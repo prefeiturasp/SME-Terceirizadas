@@ -545,31 +545,13 @@ def suspensao_alimentacao_parametros_semana(request):
     return request.param
 
 
-@pytest.fixture(params=[
-    # data do teste 15 out 2019
-    # data_inicial, data_final
-    (datetime.date(2019, 10, 17), datetime.date(2019, 10, 26)),
-    (datetime.date(2019, 10, 18), datetime.date(2019, 10, 26)),
-    (datetime.date(2019, 10, 19), datetime.date(2019, 10, 26)),
-])
-def alteracao_card_params(request):
-    alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')
-    alimentacao2 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao2')
-    alimentacao3 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao3')
-    alimentacao4 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao4')
-    alimentacao5 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao5')
-    combo1 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                        tipos_alimentacao=[alimentacao1, alimentacao5])
-    combo2 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                        tipos_alimentacao=[alimentacao2, alimentacao4])
-    substituicao1 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                               tipos_alimentacao=[alimentacao3, alimentacao1], combo=combo1)
-    substituicao2 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                               tipos_alimentacao=[alimentacao5, alimentacao2], combo=combo2)
-    motivo = mommy.make('cardapio.MotivoSuspensao', nome='outro', uuid='478b09e1-4c14-4e50-a446-fbc0af727a09')
-
-    data_inicial, data_final = request.param
-    return motivo, data_inicial, data_final, combo1, combo2, substituicao1, substituicao2
+@pytest.fixture()
+def daqui_dez_dias_ou_ultimo_dia_do_ano():
+    hoje = datetime.date.today()
+    dia_alteracao = hoje + datetime.timedelta(days=10)
+    if dia_alteracao.year != hoje.year:
+        dia_alteracao = datetime.date(hoje.year, 12, 31)
+    return dia_alteracao
 
 
 @pytest.fixture(params=[
@@ -579,25 +561,30 @@ def alteracao_card_params(request):
     (datetime.date(2019, 10, 18), datetime.date(2019, 10, 26)),
     (datetime.date(2020, 10, 11), datetime.date(2019, 10, 26)),
 ])
-def alteracao_substituicoes_params(request):
+def alteracao_substituicoes_params(request, daqui_dez_dias_ou_ultimo_dia_do_ano):
     alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')
     alimentacao2 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao2')
     alimentacao3 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao3')
-    alimentacao4 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao4')
-    alimentacao5 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao5')
-    combo1 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                        tipos_alimentacao=[alimentacao1, alimentacao3, alimentacao5])
-    combo2 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                        tipos_alimentacao=[alimentacao2, alimentacao3, alimentacao4])
-    substituicao1 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                               tipos_alimentacao=[alimentacao2, alimentacao4],
-                               combo=combo1)
-    substituicao2 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                               tipos_alimentacao=[alimentacao1, alimentacao5],
-                               combo=combo2)
-
+    periodo_escolar = mommy.make('escola.PeriodoEscolar', nome='MANHA')
+    tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar', iniciais='EMEF')
+    escola = mommy.make('escola.Escola', nome='PERICLIS', tipo_unidade=tipo_unidade_escolar)
+    mommy.make('cardapio.VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+               periodo_escolar=periodo_escolar, tipo_unidade_escolar=tipo_unidade_escolar,
+               tipos_alimentacao=[alimentacao1, alimentacao2, alimentacao3])
+    motivo = mommy.make('cardapio.MotivoAlteracaoCardapio', nome='outro', uuid='478b09e1-4c14-4e50-a446-fbc0af727a09')
     data_inicial, data_final = request.param
-    return data_inicial, data_final, combo1, combo2, substituicao1, substituicao2
+    return {'observacao': '<p>teste</p>\n',
+            'motivo': str(motivo.uuid),
+            'alterar_dia': daqui_dez_dias_ou_ultimo_dia_do_ano.isoformat(),
+            'quantidades_periodo_TARDE': {'numero_de_alunos': '30'},
+            'eh_alteracao_com_lanche_repetida': False,
+            'escola': str(escola.uuid),
+            'substituicoes': [{'periodo_escolar': str(periodo_escolar.uuid),
+                               'tipos_alimentacao_de': [str(alimentacao1.uuid), str(alimentacao2.uuid)],
+                               'tipo_alimentacao_para': str(alimentacao3.uuid),
+                               'qtd_alunos': 10}],
+            'data_inicial': daqui_dez_dias_ou_ultimo_dia_do_ano.isoformat(),
+            'data_final': daqui_dez_dias_ou_ultimo_dia_do_ano.isoformat()}
 
 
 @pytest.fixture(params=[
@@ -660,11 +647,11 @@ def faixas_etarias_ativas():
 ])
 def vinculo_tipo_alimentacao(request):
     nome_periodo, nome_ue = request.param
-    alimentacoes = mommy.make('TipoAlimentacao', _quantity=4)
-    combos = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', tipos_alimentacao=alimentacoes, _quantity=5)
+    tipos_alimentacao = mommy.make('TipoAlimentacao', _quantity=5)
     tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais=nome_ue)
     periodo_escolar = mommy.make('PeriodoEscolar', nome=nome_periodo)
-    return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar', combos=combos,
+    return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                      tipos_alimentacao=tipos_alimentacao,
                       uuid='3bdf8144-9b17-495a-8387-5ce0d2a6120a',
                       tipo_unidade_escolar=tipo_unidade_escolar,
                       periodo_escolar=periodo_escolar)

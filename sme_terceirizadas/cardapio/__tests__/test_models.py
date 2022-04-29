@@ -118,7 +118,7 @@ def test_grupo_suspensao_alimentacao(grupo_suspensao_alimentacao):
 
 
 def test_vinculo_tipo_alimentacao(vinculo_tipo_alimentacao):
-    assert vinculo_tipo_alimentacao.combos.count() == 5
+    assert vinculo_tipo_alimentacao.tipos_alimentacao.count() == 5
 
 
 def test_horario_combo_tipo_alimentacao(horario_combo_tipo_alimentacao):

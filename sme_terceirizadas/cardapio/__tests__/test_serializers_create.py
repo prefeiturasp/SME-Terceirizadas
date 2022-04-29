@@ -3,9 +3,8 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
-from ...cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, SuspensaoAlimentacaoDaCEI
+from ...cardapio.models import GrupoSuspensaoAlimentacao, InversaoCardapio, SuspensaoAlimentacaoDaCEI
 from ..api.serializers.serializers_create import (
-    AlteracaoCardapioSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate,
     InversaoCardapioSerializerCreate,
@@ -100,25 +99,6 @@ def test_inversao_serializer_creators(inversao_card_params):
     assert inversao_cardapio.escola == escola2
 
 
-# TODO: ZL1 PRECISO REFAZER ESTE TESTE ASSIM QUE ELIMINAR AS SUBSTITUICOES DO TIPO DE ALIMENTACAO
-@freeze_time('2019-10-15')
-def test_alteracao_cardapio_validators(alteracao_card_params):
-    class FakeObject(object):
-        user = mommy.make('perfil.Usuario')
-
-    motivo, data_inicial, data_final, combo1, combo2, sub1, sub2 = alteracao_card_params
-
-    serializer_obj = AlteracaoCardapioSerializerCreate(context={'request': FakeObject})
-    substituicoes_dict = []
-    substituicoes_dict.append(dict(tipo_alimentacao_de=combo1, tipo_alimentacao_para=sub1))
-    substituicoes_dict.append(dict(tipo_alimentacao_de=combo2, tipo_alimentacao_para=sub2))
-    resp_dt_inicial = serializer_obj.validate({'motivo': motivo, 'data_inicial': data_inicial})
-    resp_substicuicoes = serializer_obj.validate_substituicoes(substituicoes=substituicoes_dict)
-
-    assert isinstance(resp_dt_inicial, dict)
-    assert resp_substicuicoes == substituicoes_dict
-
-
 def test_suspensao_alimentacao_cei_creators(suspensao_alimentacao_cei_params, escola):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
@@ -159,57 +139,6 @@ def test_suspensao_alimentacao_cei_creators(suspensao_alimentacao_cei_params, es
     assert resp_create.criado_por == FakeObject.user
     assert resp_create.data == data_update
     assert resp_create.motivo.nome == 'motivo'
-
-
-@freeze_time('2019-10-15')
-def test_alteracao_cardapio_creators(alteracao_substituicoes_params, escola):
-    class FakeObject(object):
-        user = mommy.make('perfil.Usuario')
-
-    data_inicial, data_final, combo1, combo2, substituicao1, substituicao2 = alteracao_substituicoes_params
-
-    serializer_obj = AlteracaoCardapioSerializerCreate(context={'request': FakeObject})
-    periodo_escolar = mommy.make('escola.PeriodoEscolar')
-
-    substituicoes_dict = []
-
-    substituicoes_dict.append(
-        dict(tipo_alimentacao_de=combo1,
-             tipo_alimentacao_para=substituicao1,
-             periodo_escolar=periodo_escolar))
-    substituicoes_dict.append(
-        dict(tipo_alimentacao_de=combo2,
-             tipo_alimentacao_para=substituicao2,
-             periodo_escolar=periodo_escolar))
-
-    validated_data_create = dict(data_inicial=data_inicial,
-                                 data_final=data_final,
-                                 escola=escola,
-                                 substituicoes=substituicoes_dict)
-
-    resp_create = serializer_obj.create(validated_data=validated_data_create)
-
-    assert isinstance(resp_create, AlteracaoCardapio)
-    assert resp_create.substituicoes.count() == 2
-    assert resp_create.criado_por == FakeObject.user
-    assert resp_create.data_inicial == data_inicial
-    assert resp_create.data_final == data_final
-
-    substituicoes_dict.append(
-        dict(tipo_alimentacao_de=combo1,
-             tipo_alimentacao_para=substituicao1,
-             periodo_escolar=periodo_escolar))
-
-    validated_data_update = dict(data_inicial=data_inicial,
-                                 data_final=data_final,
-                                 substituicoes=substituicoes_dict)
-
-    resp_update = serializer_obj.update(instance=resp_create,
-                                        validated_data=validated_data_update)
-    assert isinstance(resp_update, AlteracaoCardapio)
-    assert resp_update.substituicoes.count() == 3
-    assert resp_update.data_inicial == data_inicial
-    assert resp_update.data_final == data_final
 
 
 def test_grupo_suspensao_alimentacao_serializer(grupo_suspensao_alimentacao_params):
