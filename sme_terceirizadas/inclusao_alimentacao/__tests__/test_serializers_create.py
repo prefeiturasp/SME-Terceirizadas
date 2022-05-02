@@ -134,8 +134,8 @@ def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros
 
     tipos_alimentacao = []
     for _ in range(3):
-        combo = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE')
-        tipos_alimentacao.append(combo)
+        tipo_alimentacao = mommy.make('cardapio.TipoAlimentacao')
+        tipos_alimentacao.append(tipo_alimentacao)
 
     periodo_escolar = mommy.make('escola.PeriodoEscolar')
     motivo = mommy.make('MotivoInclusaoNormal')

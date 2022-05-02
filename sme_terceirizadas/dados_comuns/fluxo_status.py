@@ -17,6 +17,7 @@ from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    ADMINISTRADOR_TERCEIRIZADA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     TIPO_SOLICITACAO_DIETA
@@ -319,11 +320,11 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada toma ciencia'),
         (ESCOLA_CANCELOU, 'Escola cancelou'),
         (CODAE_NEGOU_CANCELAMENTO, 'CODAE negou o cancelamento'),
-        (ESCOLA_SOLICITOU_INATIVACAO, 'Escola solicitou inativação'),
-        (CODAE_NEGOU_INATIVACAO, 'CODAE negou a inativação'),
-        (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou a inativação'),
+        (ESCOLA_SOLICITOU_INATIVACAO, 'Escola solicitou cancelamento'),
+        (CODAE_NEGOU_INATIVACAO, 'CODAE negou o cancelamento'),
+        (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou o cancelamento'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
-         'Terceirizada tomou ciência da inativação'),
+         'Terceirizada tomou ciência do cancelamento'),
         (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Data de término atingida'),
         (CANCELADO_ALUNO_MUDOU_ESCOLA, 'Cancelamento por alteração de unidade educacional'),
         (CANCELADO_ALUNO_NAO_PERTENCE_REDE, 'Cancelamento para aluno não matriculado na rede municipal')
@@ -1648,7 +1649,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @property
     def _partes_interessadas_codae_autoriza_ou_nega(self):
-        email_lista = []
         email_query_set_escola = self.rastro_escola.vinculos.filter(
             ativo=True
         ).values_list('usuario__email', flat=False)
@@ -2204,16 +2204,20 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
     @property  # noqa c901
     def _partes_interessadas_codae_autoriza_ou_nega(self):
-        email_lista = []
         try:
             email_escola_eol = self.escola.contato.email
             email_lista = [email_escola_eol]
         except AttributeError:
             email_lista = []
-        if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
-            if self.escola_destino.lote.terceirizada:
+        if self.escola_destino and self.escola_destino.lote and self.escola_destino.lote.terceirizada:
+            if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
                 email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
                     ativo=True
+                ).values_list('usuario__email', flat=True)
+                email_lista += [email for email in email_query_set_terceirizada]
+            elif self.status == self.workflow_class.CODAE_AUTORIZADO:
+                email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
+                    ativo=True, perfil__nome=ADMINISTRADOR_TERCEIRIZADA
                 ).values_list('usuario__email', flat=True)
                 email_lista += [email for email in email_query_set_terceirizada]
         return email_lista
@@ -2273,21 +2277,22 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                 anexo=anexo.get('arquivo'),
             )
 
-    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, eh_codae_autoriza):
-        if eh_codae_autoriza:
-            template = 'fluxo_codae_autoriza_dieta.html'
-        else:
-            template = 'fluxo_autorizar_negar_cancelar.html'
+    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, eh_codae_autoriza_ou_nega):
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
                           'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
+        if eh_codae_autoriza_ou_nega:
+            template = 'fluxo_codae_autoriza_ou_nega_dieta.html'
+            dados_template['acao'] = 'NEGADA' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'AUTORIZADA'
+        else:
+            template = 'fluxo_autorizar_negar_cancelar.html'
+
         html = render_to_string(template, dados_template)
         envia_email_em_massa_task.delay(
             assunto=assunto,
             corpo='',
             emails=partes_interessadas,
             template=template,
-            dados_template={'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
-                            'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome},
+            dados_template=dados_template,
             html=html
         )
 
@@ -2332,11 +2337,11 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _codae_nega_hook(self, *args, **kwargs):
         user = kwargs['user']
         assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-        titulo = 'Status de solicitação - #' + self.id_externo
+        titulo = f'Status de solicitação - "{self.aluno.codigo_eol} - {self.aluno.nome}"'
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                   usuario=user)
         self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_autoriza_ou_nega, False)
+                                              self._partes_interessadas_codae_autoriza_ou_nega, True)
 
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):

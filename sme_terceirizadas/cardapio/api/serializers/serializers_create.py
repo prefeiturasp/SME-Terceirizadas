@@ -513,6 +513,13 @@ class VinculoTipoAlimentoCreateSerializer(serializers.ModelSerializer):
         queryset=TipoAlimentacao.objects.all()
     )
 
+    def update(self, instance, validated_data):
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
+        update_instance_from_dict(instance, validated_data)
+        instance.tipos_alimentacao.set(tipos_alimentacao)
+        instance.save()
+        return instance
+
     def validate_tipos_alimentacao(self, tipos_alimentacao):
         campo_nao_pode_ser_nulo(tipos_alimentacao)
         return tipos_alimentacao

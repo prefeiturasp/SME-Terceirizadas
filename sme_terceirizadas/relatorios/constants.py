@@ -198,7 +198,7 @@ FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO = [
         'usuario': None
     },
     {
-        'titulo': 'Escola solicitou inativação',
+        'titulo': 'Escola solicitou cancelamento',
         'status': '',
         'criado_em': '',
         'usuario': None
@@ -231,7 +231,7 @@ FLUXO_DIETA_ESPECIAL_INATIVACAO = [
         'usuario': None
     },
     {
-        'titulo': 'Escola solicitou inativação',
+        'titulo': 'Escola solicitou cancelamento',
         'status': '',
         'criado_em': '',
         'usuario': None
