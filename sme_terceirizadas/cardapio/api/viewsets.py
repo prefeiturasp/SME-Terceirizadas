@@ -63,7 +63,8 @@ from .serializers.serializers_create import (
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate,
     InversaoCardapioSerializerCreate,
     SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate,
-    SuspensaoAlimentacaodeCEICreateSerializer
+    SuspensaoAlimentacaodeCEICreateSerializer,
+    VinculoTipoAlimentoCreateSerializer
 )
 
 
@@ -104,7 +105,8 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarViewSet(viewsets.ModelVi
         return HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer
 
 
-class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
+class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
+                                    mixins.RetrieveModelMixin,
                                     mixins.ListModelMixin,
                                     GenericViewSet):
     lookup_field = 'uuid'
@@ -133,6 +135,11 @@ class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return VinculoTipoAlimentoCreateSerializer
+        return VinculoTipoAlimentoSimplesSerializer
 
 
 class CombosDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet(mixins.RetrieveModelMixin,
