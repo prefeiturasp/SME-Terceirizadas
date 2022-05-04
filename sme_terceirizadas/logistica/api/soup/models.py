@@ -90,7 +90,7 @@ class Alimento(ComplexModel):
 
 class GuiCan(ComplexModel):
     __namespace__ = NS
-    StrNumGui = Integer
+    StrNumGui = String
 
 
 ArrayOfAlimento = Array(Alimento)
@@ -99,7 +99,7 @@ ArrayOfAlimento.__type_name__ = 'ArrayOfAlimento'
 
 class Guia(ComplexModel):
     __namespace__ = NS
-    StrNumGui = Integer
+    StrNumGui = String
     DtEntrega = Date
     StrCodUni = String
     StrNomUni = String
@@ -176,7 +176,7 @@ class ArqSolicitacaoMOD(ComplexModel):
     __namespace__ = NS
     __type_name__ = 'SolicitacaoMOD'
     StrCnpj = String
-    StrNumSol = Integer
+    StrNumSol = String
     IntSeqenv = Integer
     guias = ArrayOfGuia
     IntQtGuia = Integer
@@ -215,7 +215,7 @@ class ArqCancelamento(ComplexModel):
     __namespace__ = NS
     __type_name__ = 'CancelamentoMOD'
     StrCnpj = String
-    StrNumSol = Integer
+    StrNumSol = String
     IntSeqenv = Integer
     guias = ArrayOfGuiCan
     IntQtGuia = Integer
