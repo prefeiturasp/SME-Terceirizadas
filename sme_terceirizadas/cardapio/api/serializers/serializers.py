@@ -30,7 +30,7 @@ from ...models import (
     SuspensaoAlimentacaoDaCEI,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar, MotivoDRENaoValida
 )
 
 
@@ -324,3 +324,9 @@ class AlteracaoCardapioSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlteracaoCardapio
         exclude = ('id', 'criado_por', 'escola', 'motivo')
+
+
+class MotivoDRENaoValidaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MotivoDRENaoValida
+        exclude = ('id',)

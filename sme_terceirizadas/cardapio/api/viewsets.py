@@ -34,7 +34,7 @@ from ..models import (
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacaoDaCEI,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar, MotivoDRENaoValida
 )
 from .serializers.serializers import (
     AlteracaoCardapioCEISerializer,
@@ -52,7 +52,7 @@ from .serializers.serializers import (
     SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
     SuspensaoAlimentacaoDaCEISerializer,
     TipoAlimentacaoSerializer,
-    VinculoTipoAlimentoSimplesSerializer
+    VinculoTipoAlimentoSimplesSerializer, MotivoDRENaoValidaSerializer
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioCEISerializerCreate,
@@ -946,3 +946,9 @@ class MotivosSuspensaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = MotivoSuspensao.objects.all()
     serializer_class = MotivoSuspensaoSerializer
+
+
+class MotivosDRENaoValidaViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = MotivoDRENaoValida.objects.all()
+    serializer_class = MotivoDRENaoValidaSerializer

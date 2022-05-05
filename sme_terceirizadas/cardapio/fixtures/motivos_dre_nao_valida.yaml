@@ -1,0 +1,12 @@
+- model: cardapio.motivodrenaovalid
+  pk: 1
+  fields:
+    nome: Em desacordo com o contrato
+- model: cardapio.motivodrenaovalid
+  pk: 2
+  fields:
+    nome: Preenchimento incorreto
+- model: cardapio.motivodrenaovalid
+  pk: 3
+  fields:
+    nome: Outro
