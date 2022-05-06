@@ -282,17 +282,12 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         titulo = request.data.get('titulo_produto',)
         marca = request.data.get('marca_produto',)
 
-        if (titulo and not marca):
+        if (titulo):
             query_set = query_set.annotate(id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)).filter(
                 Q(id_amigavel__icontains=titulo) |
                 Q(produto__nome__icontains=titulo))
-        elif (titulo and marca):
-            query_set = query_set.annotate(id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)).filter(
-                Q(id_amigavel__icontains=titulo) |
-                Q(produto__nome__icontains=titulo)).filter(produto__marca__nome__icontains=marca)
-        elif (marca and not titulo):
-            query_set = query_set.annotate(id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)).filter(
-                produto__marca__nome__icontains=marca)
+        if (marca):
+            query_set = query_set.filter(produto__marca__nome__icontains=marca)
 
         response = {'results': self.dados_dashboard(query_set=query_set)}
         return Response(response)
