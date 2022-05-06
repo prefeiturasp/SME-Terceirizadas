@@ -2,7 +2,8 @@ from datetime import datetime
 from itertools import chain
 
 from django.db import transaction
-from django.db.models import Count, Prefetch, Q
+from django.db.models import CharField, Count, F, Prefetch, Q
+from django.db.models.functions import Cast, Substr
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -258,11 +259,12 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         for workflow in self.get_lista_status():
             q = self.reclamacoes_por_usuario(workflow, query, query_set)
-
+            qs = sorted(q.filter(status=workflow).distinct().all(),
+                        key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
             sumario.append({
                 'status': workflow,
                 'dados': self.get_serializer(
-                    q.filter(status=workflow).distinct().all(),
+                    qs[:6],
                     context={'request': self.request}, many=True).data
             })
 
@@ -271,6 +273,27 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='dashboard')
     def dashboard(self, request):
         query_set = self.get_queryset()
+        response = {'results': self.dados_dashboard(query_set=query_set)}
+        return Response(response)
+
+    @action(detail=False, methods=['POST'], url_path='filtro-homologacoes-por-titulo-marca')
+    def solicitacoes_homologacao_por_titulo_marca(self, request):
+        query_set = self.get_queryset()
+        titulo = request.data.get('titulo_produto',)
+        marca = request.data.get('marca_produto',)
+
+        if (titulo and not marca):
+            query_set = query_set.annotate(id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)).filter(
+                Q(id_amigavel__icontains=titulo) |
+                Q(produto__nome__icontains=titulo))
+        elif (titulo and marca):
+            query_set = query_set.annotate(id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)).filter(
+                Q(id_amigavel__icontains=titulo) |
+                Q(produto__nome__icontains=titulo)).filter(produto__marca__nome__icontains=marca)
+        elif (marca and not titulo):
+            query_set = query_set.annotate(id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)).filter(
+                produto__marca__nome__icontains=marca)
+
         response = {'results': self.dados_dashboard(query_set=query_set)}
         return Response(response)
 
