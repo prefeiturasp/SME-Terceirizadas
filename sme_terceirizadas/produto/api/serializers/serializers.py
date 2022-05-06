@@ -428,14 +428,14 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
             return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
 
     def get_nome_usuario_log_de_reclamacao(self, obj) -> str:
-        _status = LogSolicitacoesUsuario.STATUS_POSSIVEIS
-        status = {v: k for (k, v) in _status}
-        usr = ''
-        try:
+        if obj.status.is_CODAE_QUESTIONOU_UE:
+            _status = LogSolicitacoesUsuario.STATUS_POSSIVEIS
+            status = {v: k for (k, v) in _status}
             usr = obj.logs.filter(status_evento=status['Escola/Nutricionista reclamou do produto'])
+            if not usr:
+                return ''
             return usr.first().usuario.nome
-        except Exception:
-            return usr
+        return ''
 
     def get_nome_produto(self, obj):
         return obj.produto.nome
