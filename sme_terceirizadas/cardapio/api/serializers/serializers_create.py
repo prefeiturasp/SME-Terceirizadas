@@ -323,7 +323,9 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(
 
     def create(self, validated_data):
         faixas_etarias = validated_data.pop('faixas_etarias', '')
+        tipos_alimentacao_de = validated_data.pop('tipos_alimentacao_de')
         substituicao_alimentacao = SubstituicaoAlimentacaoNoPeriodoEscolarCEI.objects.create(**validated_data)
+        substituicao_alimentacao.tipos_alimentacao_de.set(tipos_alimentacao_de)
         substituicao_alimentacao.save()
         for faixa_etaria_dados in faixas_etarias:
             FaixaEtariaSubstituicaoAlimentacaoCEI.objects.create(

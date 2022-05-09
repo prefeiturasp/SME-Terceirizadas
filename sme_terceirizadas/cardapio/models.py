@@ -634,10 +634,9 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEI(
                                            related_name='substituicoes_cei_periodo_escolar')
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
                                         related_name='substituicoes_cei_periodo_escolar')
-    tipo_alimentacao_de = models.ForeignKey('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                                            on_delete=models.PROTECT,
-                                            related_name='substituicoes_cei_tipo_alimentacao_de', blank=True, null=True)
-    tipo_alimentacao_para = models.ForeignKey('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+    tipos_alimentacao_de = models.ManyToManyField('TipoAlimentacao',
+                                                  related_name='substituicoes_cei_tipo_alimentacao_de', blank=True)
+    tipo_alimentacao_para = models.ForeignKey('TipoAlimentacao',
                                               on_delete=models.PROTECT,
                                               related_name='substituicoes_cei_tipo_alimentacao_para',
                                               blank=True, null=True)
