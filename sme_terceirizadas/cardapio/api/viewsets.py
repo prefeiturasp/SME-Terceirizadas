@@ -30,11 +30,12 @@ from ..models import (
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
+    MotivoDRENaoValida,
     MotivoSuspensao,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacaoDaCEI,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar, MotivoDRENaoValida
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
 from .serializers.serializers import (
     AlteracaoCardapioCEISerializer,
@@ -48,11 +49,12 @@ from .serializers.serializers import (
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer,
     InversaoCardapioSerializer,
     MotivoAlteracaoCardapioSerializer,
+    MotivoDRENaoValidaSerializer,
     MotivoSuspensaoSerializer,
     SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
     SuspensaoAlimentacaoDaCEISerializer,
     TipoAlimentacaoSerializer,
-    VinculoTipoAlimentoSimplesSerializer, MotivoDRENaoValidaSerializer
+    VinculoTipoAlimentoSimplesSerializer
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioCEISerializerCreate,

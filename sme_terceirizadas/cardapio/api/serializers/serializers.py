@@ -21,6 +21,7 @@ from ...models import (
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
+    MotivoDRENaoValida,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
@@ -30,7 +31,7 @@ from ...models import (
     SuspensaoAlimentacaoDaCEI,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar, MotivoDRENaoValida
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
 
 
