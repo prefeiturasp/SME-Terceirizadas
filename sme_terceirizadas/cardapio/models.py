@@ -662,3 +662,21 @@ class FaixaEtariaSubstituicaoAlimentacaoCEI(ExportModelOperationsMixin('faixa_et
     class Meta:
         verbose_name = 'Faixa Etária de substituição de alimentação CEI'
         verbose_name_plural = 'Faixas Etárias de substituição de alimentação CEI'
+
+
+class MotivoDRENaoValida(ExportModelOperationsMixin('motivo_dre_nao_valida'), Nomeavel, TemChaveExterna):
+    """Usado em conjunto com Solicitações que passam por validação da DRE.
+
+    Exemplos:
+        - Em desacordo com o contrato
+        - Preenchimento incorreto
+        - Outro
+
+    """
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = 'Motivo de não validação da DRE'
+        verbose_name_plural = 'Motivos de não validação da DRE'

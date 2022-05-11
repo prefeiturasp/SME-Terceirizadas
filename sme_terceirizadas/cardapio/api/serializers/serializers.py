@@ -21,6 +21,7 @@ from ...models import (
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
+    MotivoDRENaoValida,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
@@ -324,3 +325,9 @@ class AlteracaoCardapioSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlteracaoCardapio
         exclude = ('id', 'criado_por', 'escola', 'motivo')
+
+
+class MotivoDRENaoValidaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MotivoDRENaoValida
+        exclude = ('id',)
