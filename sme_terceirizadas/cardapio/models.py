@@ -63,11 +63,13 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar(TemChaveExterna):
     hora_final = models.TimeField(auto_now=False, auto_now_add=False)
     escola = models.ForeignKey('escola.Escola', blank=True, null=True,
                                on_delete=models.DO_NOTHING)
-    combo_tipos_alimentacao = models.ForeignKey(
-        'cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', on_delete=models.DO_NOTHING)
+    tipo_alimentacao = models.ForeignKey('cardapio.TipoAlimentacao', blank=True, null=True,
+                                         on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', blank=True, null=True,
+                                        on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return f'{self.combo_tipos_alimentacao} DE: {self.hora_inicial} ATE: {self.hora_final}'
+        return f'{self.tipo_alimentacao.nome} DE: {self.hora_inicial} ATE: {self.hora_final}'
 
 
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
