@@ -103,15 +103,12 @@ class CombosVinculoTipoAlimentoSimplissimaSerializer(serializers.ModelSerializer
 
 class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer(serializers.ModelSerializer):
     escola = EscolaListagemSimplesSelializer()
-    combo_tipos_alimentacao = CombosVinculoTipoAlimentoSimplesSerializer()
-    periodo_escolar = serializers.SerializerMethodField()
-
-    def get_periodo_escolar(self, obj):
-        return PeriodoEscolarSimplesSerializer(obj.combo_tipos_alimentacao.vinculo.periodo_escolar).data
+    tipo_alimentacao = TipoAlimentacaoSerializer()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
 
     class Meta:
         model = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
-        fields = ('uuid', 'hora_inicial', 'hora_final', 'escola', 'combo_tipos_alimentacao', 'periodo_escolar')
+        fields = ('uuid', 'hora_inicial', 'hora_final', 'escola', 'tipo_alimentacao', 'periodo_escolar')
 
 
 class VinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
