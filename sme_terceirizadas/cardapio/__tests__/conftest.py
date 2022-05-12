@@ -661,20 +661,18 @@ def vinculo_tipo_alimentacao(request):
     # hora inicio, hora fim
     ('07:00:00', '07:30:00'),
 ])
-def horario_combo_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com_periodos_e_horarios_combos):
+def horario_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com_periodos_e_horarios_combos):
     hora_inicio, hora_fim = request.param
     escola = escola_com_periodos_e_horarios_combos
-    tp_alimentacao1 = mommy.make('TipoAlimentacao', nome='Lanche', uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
-    tp_alimentacao2 = mommy.make('TipoAlimentacao', nome='Refeição', uuid='22596464-271e-448d-bcb3-adaba43fffc8')
-    combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                       tipos_alimentacao=[tp_alimentacao1, tp_alimentacao2],
-                       vinculo=vinculo_tipo_alimentacao,
-                       uuid='9fe31f4a-716b-4677-9d7d-2868557cf954')
+    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
+    periodo_escolar = mommy.make('PeriodoEscolar', nome='TARDE', uuid='22596464-271e-448d-bcb3-adaba43fffc8')
+
     return mommy.make('HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar',
                       hora_inicial=hora_inicio,
                       hora_final=hora_fim,
                       escola=escola,
-                      combo_tipos_alimentacao=combo)
+                      tipo_alimentacao=tipo_alimentacao,
+                      periodo_escolar=periodo_escolar)
 
 
 @pytest.fixture
