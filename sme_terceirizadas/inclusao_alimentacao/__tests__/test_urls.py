@@ -242,14 +242,24 @@ def test_url_endpoint_inclusao_normal_terc_responde_questionamento(client_autent
 def test_url_endpoint_inclusao_normal_escola_cancela(client_autenticado_vinculo_escola_inclusao,
                                                      grupo_inclusao_alimentacao_normal_codae_autorizado):
     assert grupo_inclusao_alimentacao_normal_codae_autorizado.status == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    data = {'datas': [i.data.strftime('%Y-%m-%d') for i in
+                      grupo_inclusao_alimentacao_normal_codae_autorizado.inclusoes.all()[:1]]}
     response = client_autenticado_vinculo_escola_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_autorizado.uuid}/'
-        f'{ESCOLA_CANCELA}/')
+        f'{ESCOLA_CANCELA}/', content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    assert grupo_inclusao_alimentacao_normal_codae_autorizado.status == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    data = {'datas': [i.data.strftime('%Y-%m-%d') for i in
+                      grupo_inclusao_alimentacao_normal_codae_autorizado.inclusoes.all()[1:]]}
+    response = client_autenticado_vinculo_escola_inclusao.patch(
+        f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_autorizado.uuid}/'
+        f'{ESCOLA_CANCELA}/', content_type='application/json', data=data)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU
     response = client_autenticado_vinculo_escola_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_autorizado.uuid}/'
-        f'{ESCOLA_CANCELA}/')
+        f'{ESCOLA_CANCELA}/', content_type='application/json', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Erro de transição de estado: Já está cancelada'}
 
