@@ -1,11 +1,16 @@
+import io
+import pandas as pd
 import uuid as uuid_generator
 from copy import deepcopy
 from datetime import date
+import xlsxwriter
+import numpy as np
 
 from django.db import transaction
 from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
 from django_filters import rest_framework as filters
+from django.http import HttpResponse
 from rest_framework import generics, mixins, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -66,6 +71,7 @@ from .serializers import (
     ProtocoloPadraoDietaEspecialSimplesSerializer,
     RelatorioQuantitativoSolicDietaEspSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
+    SolicitacaoDietaEspecialExportXLSXSerializer,
     SolicitacaoDietaEspecialSerializer,
     SolicitacaoDietaEspecialSimplesSerializer,
     SolicitacaoDietaEspecialUpdateSerializer,
@@ -682,6 +688,66 @@ class SolicitacaoDietaEspecialViewSet(
             return Response(status=HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')
+    def exportar_xlsx(self, request):
+        status = request.query_params.get('status')
+        lote = request.query_params.get('lote')
+        classificacao = request.query_params.get('classificacao')
+        protocolo = request.query_params.get('protocolo')
+
+        filtro = Q()
+        if status:
+            filtro &= Q(status=status)
+        if lote:
+            filtro &= Q(escola_destino__lote__iniciais=lote)
+        if classificacao:
+            filtro &= Q(classificacao__nome=classificacao)
+        if protocolo:
+            filtro &= Q(protocolo_padrao__nome_protocolo)
+        queryset = self.get_queryset().filter(filtro)[:10]
+        serializer = SolicitacaoDietaEspecialExportXLSXSerializer(queryset, context={'request': request}, many=True)
+
+        output = io.BytesIO()
+        xlwriter = pd.ExcelWriter(output, engine='xlsxwriter')
+
+        df = pd.DataFrame(serializer.data)
+        df1 = pd.DataFrame([[np.nan] * len(df.columns)], columns=df.columns)
+        df = df1.append(df, ignore_index=True)
+        df = df1.append(df, ignore_index=True)
+
+        df.to_excel(xlwriter, 'Solicitações de dieta especial')
+        workbook = xlwriter.book
+        worksheet = xlwriter.sheets['Solicitações de dieta especial']
+        worksheet.set_row(0, 30)
+        worksheet.set_row(1, 30)
+        worksheet.set_column('B:F', 30)
+        merge_format = workbook.add_format({'align': 'center', 'bg_color': '#a9d18e'})
+        merge_format.set_align('vcenter')
+        cell_format = workbook.add_format()
+        cell_format.set_text_wrap()
+        cell_format.set_align('vcenter')
+        v_center_format = workbook.add_format()
+        v_center_format.set_align('vcenter')
+        single_cell_format = workbook.add_format({'bg_color': '#a9d18e'})
+        len_cols = len(df.columns)
+        worksheet.merge_range(0, 0, 0, len_cols, 'Relatório de dietas especiais', merge_format)
+        worksheet.merge_range(1, 0, 2, 4, f'Dietas Autorizadas: Lote 05 | Classificação da Dieta: A | Protocolo Padrão: Intolerância a Lactose', cell_format)
+        worksheet.merge_range(1, 5, 2, 6, f'Total de dietas: {queryset.count()}', v_center_format)
+        worksheet.write(3, 1, 'COD.EOL do Aluno', single_cell_format)
+        worksheet.write(3, 2, 'Nome do Aluno', single_cell_format)
+        worksheet.write(3, 3, 'Nome da Escola', single_cell_format)
+        worksheet.write(3, 4, 'Classificação da dieta', single_cell_format)
+        worksheet.write(3, 5, 'Protocolo Padrão', single_cell_format)
+        df.reset_index(drop=True, inplace=True)
+        xlwriter.save()
+        xlwriter.close()
+        output.seek(0)
+        response = HttpResponse(
+            output.read(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = "attachment; filename=myfile.xlsx"
+        return response
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
