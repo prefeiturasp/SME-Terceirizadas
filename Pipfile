@@ -70,11 +70,11 @@ django-environ='==0.4.5'  # https://github.com/joke2k/django-environ
 django-model-utils='==3.1.2'  # https://github.com/jazzband/django-model-utils
 django-redis='==4.10.0'  # https://github.com/niwinz/django-redis
 django-des='==2.4.1' # https://github.com/jamiecounsell/django-des
+django-auditlog="==1.0a1"   # https://github.com/jazzband/django-auditlog/
 django-cors-headers='==3.0.2'   # https://pypi.org/project/django-cors-headers/
 django-sequences='==2.5'  # https://pypi.org/project/django-sequences/
 django-multiselectfield='==0.1.12' # https://github.com/goinnn/django-multiselectfield
 django-celery-beat='==2.0.0'  # https://github.com/celery/django-celery-beat
-django-auditlog="*"   # https://github.com/jazzband/django-auditlog/
 django-admin-rangefilter='==0.8.1' # https://github.com/silentsokolov/django-admin-rangefilter
 # Django REST Framework
 # ------------------------------------------------------------------------------
