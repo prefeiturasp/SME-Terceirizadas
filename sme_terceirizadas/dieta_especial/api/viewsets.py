@@ -43,6 +43,7 @@ from ..forms import (
     NegaDietaEspecialForm,
     PanoramaForm,
     RelatorioDietaForm,
+    RelatorioDietaTerceirizadaForm,
     RelatorioQuantitativoSolicDietaEspForm,
     SolicitacoesAtivasInativasPorAlunoForm
 )
@@ -72,6 +73,7 @@ from .serializers import (
     RelatorioQuantitativoSolicDietaEspSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
     SolicitacaoDietaEspecialExportXLSXSerializer,
+    SolicitacaoDietaEspecialRelatorioTercSerializer,
     SolicitacaoDietaEspecialSerializer,
     SolicitacaoDietaEspecialSimplesSerializer,
     SolicitacaoDietaEspecialUpdateSerializer,
@@ -100,6 +102,8 @@ class SolicitacaoDietaEspecialViewSet(
     def get_queryset(self):
         if self.action in ['relatorio_dieta_especial', 'imprime_relatorio_dieta_especial']:  # noqa
             return self.queryset.select_related('rastro_escola__diretoria_regional').order_by('criado_em')  # noqa
+        if self.action in ['relatorio_dieta_especial_terceirizada']:  # noqa
+            return self.queryset.select_related('rastro_terceirizada').order_by('-criado_em')  # noqa
         return super().get_queryset()
 
     def get_permissions(self):  # noqa C901
@@ -119,6 +123,9 @@ class SolicitacaoDietaEspecialViewSet(
         ]:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarDietaEspecial)
+        elif self.action == 'relatorio_dieta_especial_terceirizada':
+            self.permission_classes = (
+                IsAuthenticated, UsuarioTerceirizada)
         return super(SolicitacaoDietaEspecialViewSet, self).get_permissions()
 
     def get_serializer_class(self):  # noqa C901
@@ -136,6 +143,8 @@ class SolicitacaoDietaEspecialViewSet(
             return RelatorioQuantitativoSolicDietaEspSerializer
         elif self.action == 'relatorio_dieta_especial':
             return SolicitacaoDietaEspecialSimplesSerializer
+        elif self.action == 'relatorio_dieta_especial_terceirizada':
+            return SolicitacaoDietaEspecialRelatorioTercSerializer
         elif self.action == 'panorama_escola':
             return PanoramaSerializer
         elif self.action == 'alteracao_ue':
@@ -616,6 +625,30 @@ class SolicitacaoDietaEspecialViewSet(
 
         user = self.request.user
         return relatorio_geral_dieta_especial(form, queryset.filter(**filtros), user)  # noqa
+
+    @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial-terceirizada')  # noqa C901
+    def relatorio_dieta_especial_terceirizada(self, request, uuid=None):
+        query_set = self.get_queryset()
+        form = RelatorioDietaTerceirizadaForm(self.request.data)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        data = form.cleaned_data
+        if (data['terceirizada_uuid']):
+            query_set = query_set.filter(rastro_terceirizada=data['terceirizada_uuid'])
+        if (data['status'].upper() == 'AUTORIZADAS'):
+            qs = query_set.filter(status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO)
+        if (data['status'].upper() == 'CANCELADAS'):
+            qs = query_set.filter(status__in=[
+                SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
+                SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZOU_INATIVACAO,
+                SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
+                SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+            ])
+
+        serializer = self.get_serializer(qs, many=True)
+
+        return Response(serializer.data)
 
     @action(detail=False, methods=['POST'], url_path='panorama-escola')
     def panorama_escola(self, request):
