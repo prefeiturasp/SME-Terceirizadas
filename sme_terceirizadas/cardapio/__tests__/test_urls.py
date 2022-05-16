@@ -815,24 +815,22 @@ def test_url_endpoint_get_vinculos_tipo_alimentacao(client_autenticado_vinculo_e
 
 
 def test_endpoint_horario_do_combo_tipo_alimentacao_unidade_escolar(client_autenticado_vinculo_escola,
-                                                                    horario_combo_tipo_alimentacao):
+                                                                    horario_tipo_alimentacao):
     response = client_autenticado_vinculo_escola.get(
-        f'/{ENDPOINT_HORARIO_DO_COMBO}/escola/{horario_combo_tipo_alimentacao.escola.uuid}/'
+        f'/{ENDPOINT_HORARIO_DO_COMBO}/escola/{horario_tipo_alimentacao.escola.uuid}/'
     )
     json = response.json()['results']
     assert response.status_code == status.HTTP_200_OK
-    assert json[0]['uuid'] == str(horario_combo_tipo_alimentacao.uuid)
-    assert json[0]['hora_inicial'] == horario_combo_tipo_alimentacao.hora_inicial
-    assert json[0]['hora_final'] == horario_combo_tipo_alimentacao.hora_final
-    assert json[0]['combo_tipos_alimentacao'] == {
-        'uuid': '9fe31f4a-716b-4677-9d7d-2868557cf954',
-        'tipos_alimentacao': [
-            {'uuid': 'c42a24bb-14f8-4871-9ee8-05bc42cf3061', 'nome': 'Lanche'},
-            {'uuid': '22596464-271e-448d-bcb3-adaba43fffc8', 'nome': 'Refeição'}
-        ],
-        'vinculo': '3bdf8144-9b17-495a-8387-5ce0d2a6120a',
-        'substituicoes': [],
-        'label': 'Lanche e Refeição'
+    assert json[0]['uuid'] == str(horario_tipo_alimentacao.uuid)
+    assert json[0]['hora_inicial'] == horario_tipo_alimentacao.hora_inicial
+    assert json[0]['hora_final'] == horario_tipo_alimentacao.hora_final
+    assert json[0]['tipo_alimentacao'] == {
+        'uuid': 'c42a24bb-14f8-4871-9ee8-05bc42cf3061',
+        'nome': 'Lanche'
+    }
+    assert json[0]['periodo_escolar'] == {
+        'uuid': '22596464-271e-448d-bcb3-adaba43fffc8',
+        'nome': 'TARDE'
     }
     assert json[0]['escola'] == {
         'uuid': 'a627fc63-16fd-482c-a877-16ebc1a82e57',
