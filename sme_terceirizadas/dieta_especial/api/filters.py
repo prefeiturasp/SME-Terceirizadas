@@ -20,6 +20,7 @@ class DietaEspecialFilter(filters.FilterSet):
                                                       to_field_name='id',
                                                       queryset=ClassificacaoDieta.objects.all())
     status = filters.MultipleChoiceFilter(choices=[(str(state), state) for state in DietaEspecialWorkflow.states])
+    terceirizada = filters.CharFilter(field_name='rastro_terceirizada__uuid', lookup_expr='iexact')
 
 
 class AlimentoFilter(filters.FilterSet):
