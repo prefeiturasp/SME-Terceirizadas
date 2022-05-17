@@ -39,6 +39,7 @@ def termina_dietas_especiais(usuario):
 def dietas_especiais_a_iniciar():
     return SolicitacaoDietaEspecial.objects.filter(
         data_inicio__lte=date.today(),
+        tipo_solicitacao=TIPO_SOLICITACAO_DIETA.get('ALTERACAO_UE'),
         ativo=False,
         status__in=[
             DietaEspecialWorkflow.CODAE_AUTORIZADO,
@@ -50,11 +51,8 @@ def dietas_especiais_a_iniciar():
 
 def inicia_dietas_temporarias(usuario):
     for solicitacao in dietas_especiais_a_iniciar():
-        if solicitacao.tipo_solicitacao == TIPO_SOLICITACAO_DIETA.get('ALTERACAO_UE'):
-            solicitacao.dieta_alterada.ativo = False
-            solicitacao.dieta_alterada.save()
-        solicitacao.ativo = True
-        solicitacao.save()
+        solicitacao.dieta_alterada.ativo = False
+        solicitacao.dieta_alterada.save()
 
 
 def aluno_pertence_a_escola_ou_esta_na_rede(cod_escola_no_eol, cod_escola_no_sigpae) -> bool:
