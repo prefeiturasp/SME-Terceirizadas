@@ -419,6 +419,39 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
         )
 
 
+class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
+    codigo_eol_aluno = serializers.SerializerMethodField()
+    nome_aluno = serializers.SerializerMethodField()
+    nome_escola = serializers.SerializerMethodField()
+    classificacao_dieta = serializers.SerializerMethodField()
+    protocolo_padrao = serializers.SerializerMethodField()
+
+    def get_codigo_eol_aluno(self, obj):
+        return obj.aluno.codigo_eol if obj.aluno else None
+
+    def get_nome_aluno(self, obj):
+        return obj.aluno.nome if obj.aluno else None
+
+    def get_nome_escola(self, obj):
+        return obj.escola_destino.nome if obj.escola_destino else None
+
+    def get_classificacao_dieta(self, obj):
+        return obj.classificacao.nome if obj.classificacao else None
+
+    def get_protocolo_padrao(self, obj):
+        return obj.protocolo_padrao.nome_protocolo if obj.protocolo_padrao else None
+
+    class Meta:
+        model = SolicitacaoDietaEspecial
+        fields = (
+            'codigo_eol_aluno',
+            'nome_aluno',
+            'nome_escola',
+            'classificacao_dieta',
+            'protocolo_padrao'
+        )
+
+
 class PanoramaSerializer(serializers.Serializer):
     periodo = serializers.CharField(
         source='periodo_escolar__nome',
