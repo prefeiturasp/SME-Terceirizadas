@@ -483,7 +483,7 @@ class ProtocoloPadraoDietaEspecialSimplesSerializer(serializers.ModelSerializer)
 class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerializer):
     cod_eol_aluno = serializers.SerializerMethodField()
     nome_aluno = serializers.SerializerMethodField()
-    cod_eol_escola = serializers.SerializerMethodField()
+    nome_escola = serializers.SerializerMethodField()
     status_solicitacao = serializers.CharField(
         source='status',
         required=False,
@@ -494,8 +494,8 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
     protocolo_padrao = ProtocoloPadraoDietaEspecialSimplesSerializer()
     data_ultimo_log = serializers.SerializerMethodField()
 
-    def get_cod_eol_escola(self, obj):
-        return obj.rastro_escola.codigo_eol if obj.rastro_escola else None
+    def get_nome_escola(self, obj):
+        return obj.rastro_escola.nome if obj.rastro_escola else None
 
     def get_cod_eol_aluno(self, obj):
         return obj.aluno.codigo_eol if obj.aluno else None
@@ -515,7 +515,7 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
             'criado_em',
             'cod_eol_aluno',
             'nome_aluno',
-            'cod_eol_escola',
+            'nome_escola',
             'status_solicitacao',
             'rastro_lote',
             'classificacao',
