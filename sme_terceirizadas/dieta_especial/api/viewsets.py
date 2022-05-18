@@ -906,7 +906,7 @@ class SolicitacaoDietaEspecialViewSet(
                 'nome_aluno': solicitacao.aluno.nome,
                 'nome_escola': solicitacao.escola.nome,
                 'classificacao': solicitacao.classificacao.nome,
-                'protocolo_padrao': solicitacao.protocolo_padrao.nome_protocolo
+                'protocolo_padrao': solicitacao.nome_protocolo
             })
 
         filtros = self.build_texto(lotes, classificacoes, protocolos, data_inicial, data_final)
