@@ -439,7 +439,7 @@ class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
         return obj.classificacao.nome if obj.classificacao else None
 
     def get_protocolo_padrao(self, obj):
-        return obj.protocolo_padrao.nome_protocolo if obj.protocolo_padrao else None
+        return obj.protocolo_padrao.nome_protocolo if obj.protocolo_padrao else obj.nome_protocolo
 
     class Meta:
         model = SolicitacaoDietaEspecial
