@@ -311,19 +311,18 @@ class SolicitacaoDietaEspecialViewSet(
         justificativa = request.data.get('justificativa', '')
         solicitacao = self.get_object()
         try:
+            solicitacao.cancelar_pedido(
+                user=request.user, justificativa=justificativa)
+            solicitacao.ativo = False
+            solicitacao.save()
             if solicitacao.tipo_solicitacao == 'CANCELAMENTO_DIETA':
                 solicitacao.dieta_alterada.ativo = False
                 solicitacao.dieta_alterada.cancelar_pedido(
                     user=request.user, justificativa=solicitacao.logs.first().justificativa)
                 solicitacao.dieta_alterada.save()
-            elif solicitacao.tipo_solicitacao == 'ALTERACAO_UE':
+            if solicitacao.tipo_solicitacao == 'ALTERACAO_UE':
                 solicitacao.dieta_alterada.ativo = True
                 solicitacao.dieta_alterada.save()
-            else:
-                solicitacao.cancelar_pedido(
-                    user=request.user, justificativa=justificativa)
-                solicitacao.ativo = False
-                solicitacao.save()
             serializer = self.get_serializer(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
