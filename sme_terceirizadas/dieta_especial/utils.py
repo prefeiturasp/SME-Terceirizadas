@@ -266,7 +266,7 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
                 enviar_email_para_adm_terceirizada_da_escola_destino(
                     solicitacao_dieta,
                     aluno,
-                    escola=aluno.escola,
+                    escola=solicitacao_dieta.escola,
                     fora_da_rede=True
                 )
         elif aluno_matriculado_em_outra_ue(aluno, solicitacao_dieta):
