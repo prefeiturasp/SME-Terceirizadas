@@ -744,7 +744,7 @@ class SolicitacaoDietaEspecialViewSet(
             filtro &= Q(classificacao__id__in=classificacoes)
         if protocolos:
             protocolos = protocolos.split(',')
-            filtro &= Q(protocolo_padrao__nome_protocolo__in=protocolos)
+            filtro &= (Q(protocolo_padrao__nome_protocolo__in=protocolos) | Q(nome_protocolo__in=protocolos))
         queryset = queryset.filter(filtro)
 
         if data_inicial:
