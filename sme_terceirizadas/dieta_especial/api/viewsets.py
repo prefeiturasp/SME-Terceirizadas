@@ -31,6 +31,7 @@ from ...paineis_consolidados.models import SolicitacoesCODAE, SolicitacoesDRE, S
 from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
+    relatorio_dietas_especiais_terceirizada,
     relatorio_geral_dieta_especial,
     relatorio_quantitativo_classificacao_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial,
@@ -720,7 +721,7 @@ class SolicitacaoDietaEspecialViewSet(
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
-    def filtrar_dietas_terceirizadas_xlsx(  # noqa C901
+    def filtrar_dietas_terceirizadas_xlsx_pdf(  # noqa C901
         self, queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial, data_final):
         if status:
             if status.upper() == 'AUTORIZADAS':
@@ -827,7 +828,7 @@ class SolicitacaoDietaEspecialViewSet(
         data_final = request.query_params.get('data_final')
 
         queryset = self.get_queryset()
-        queryset = self.filtrar_dietas_terceirizadas_xlsx(
+        queryset = self.filtrar_dietas_terceirizadas_xlsx_pdf(
             queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial, data_final)
 
         serializer = SolicitacaoDietaEspecialExportXLSXSerializer(queryset, context={'request': request}, many=True)
@@ -842,6 +843,83 @@ class SolicitacaoDietaEspecialViewSet(
         )
         response['Content-Disposition'] = 'attachment; filename=myfile.xlsx'
         return response
+
+    def build_texto(self, lotes, classificacoes, protocolos, data_inicial, data_final):  # noqa C901
+        filtros = ''
+        if lotes:
+            lotes = lotes.split(',')
+            nomes_lotes = ', '.join([lote.nome for lote in Lote.objects.filter(uuid__in=lotes)])
+            if len(filtros) == 0:
+                filtros += f'{nomes_lotes}'
+            else:
+                filtros += f' | {nomes_lotes}'
+
+        if classificacoes:
+            classificacoes = classificacoes.split(',')
+            nomes_classificacoes = ', '.join([
+                classificacao.nome for classificacao in ClassificacaoDieta.objects.filter(id__in=classificacoes)])
+            if len(filtros) == 0:
+                filtros += f'Classificação(ões) da dieta: {nomes_classificacoes}'
+            else:
+                filtros += f' | Classificação(ões) da dieta: {nomes_classificacoes}'
+
+        if protocolos:
+            protocolos = protocolos.split(',')
+            if len(filtros) == 0:
+                filtros += f'Protocolo(s) padrão(ões): {", ".join(protocolos)}'
+            else:
+                filtros += f' | Protocolo(s) padrão(ões): {", ".join(protocolos)}'
+
+        if data_inicial:
+            if len(filtros) == 0:
+                filtros += f'Data inicial: {data_inicial}'
+            else:
+                filtros += f' | Data inicial: {data_inicial}'
+
+        if data_final:
+            if len(filtros) == 0:
+                filtros += f'Data final: {data_final}'
+            else:
+                filtros += f' | Data final: {data_final}'
+
+        return filtros
+
+    @action(detail=False, methods=['GET'], url_path='exportar-pdf')  # noqa C901
+    def exportar_pdf(self, request):
+        user = self.request.user
+        terceirizada_uuid = request.query_params.get('terceirizada_uuid')
+        status = request.query_params.get('status')
+        lotes = request.query_params.get('lotes')
+        classificacoes = request.query_params.get('classificacoes')
+        protocolos = request.query_params.get('protocolos')
+        data_inicial = request.query_params.get('data_inicial')
+        data_final = request.query_params.get('data_final')
+
+        queryset = self.get_queryset()
+        queryset = self.filtrar_dietas_terceirizadas_xlsx_pdf(
+            queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial, data_final)
+
+        solicitacoes = []
+        for solicitacao in queryset:
+            solicitacoes.append({
+                'codigo_eol_aluno': solicitacao.aluno.codigo_eol,
+                'nome_aluno': solicitacao.aluno.nome,
+                'nome_escola': solicitacao.escola.nome,
+                'classificacao': solicitacao.classificacao.nome,
+                'protocolo_padrao': solicitacao.protocolo_padrao.nome_protocolo
+            })
+
+        filtros = self.build_texto(lotes, classificacoes, protocolos, data_inicial, data_final)
+
+        dados = {
+            'usuario_nome': user.nome,
+            'status': status.lower(),
+            'filtros': filtros,
+            'solicitacoes': solicitacoes,
+            'quantidade_solicitacoes': queryset.count()
+        }
+
+        return relatorio_dietas_especiais_terceirizada(request, dados=dados)
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
