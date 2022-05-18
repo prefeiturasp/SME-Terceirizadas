@@ -2181,26 +2181,19 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
         A dieta especial termina quando a data de término é atingida.
         São as partes interessadas:
-            - A Escola solicitante
-            - Nutricionistas CODAE
-            - Terceirizada que tomou ciência (se aplicável)
+            - perfil "ADMINISTRADOR_TERCEIRIZADA" vinculado à terceirizada relacionda
+              à escola destino da dieta
         """
-        email_lista = []
+        escola = self.escola_destino
         try:
-            email_escola_eol = self.escola.contato.email
-            email_lista = [email_escola_eol]
+            terceirizada = escola.lote.terceirizada
+            administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
+                ativo=True,
+                perfil__nome=ADMINISTRADOR_TERCEIRIZADA
+            )]
         except AttributeError:
-            email_lista = []
-        email_query_set_codae = Usuario.objects.filter(
-            vinculos__perfil__nome=COORDENADOR_DIETA_ESPECIAL).values_list(
-            'email')
-        email_lista += [email for email in email_query_set_codae]
-        if self.rastro_terceirizada:
-            email_query_set_terceirizada = self.rastro_terceirizada.vinculos.filter(
-                ativo=True
-            ).values_list('usuario__email', flat=False)
-            email_lista += [email for email in email_query_set_terceirizada]
-        return email_lista
+            administradores_terceirizadas = []
+        return administradores_terceirizadas
 
     @property  # noqa c901
     def _partes_interessadas_codae_autoriza_ou_nega(self):
@@ -2240,6 +2233,19 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         except AttributeError:
             responsaveis_terceirizadas = []
         return email_escola_destino_eol + responsaveis_terceirizadas
+
+    @property
+    def _partes_interessadas_codae_cancela(self):
+        escola = self.escola_destino
+        try:
+            terceirizada = escola.lote.terceirizada
+            administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
+                ativo=True,
+                perfil__nome=ADMINISTRADOR_TERCEIRIZADA
+            )]
+        except AttributeError:
+            administradores_terceirizadas = []
+        return administradores_terceirizadas
 
     @property
     def template_mensagem(self):
@@ -2307,9 +2313,13 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _cancelar_pedido_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs['justificativa']
+        assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
+        titulo = f'Status de solicitação - "{self.aluno.codigo_eol} - {self.aluno.nome}"'
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
                                   usuario=user,
                                   justificativa=justificativa)
+        self._preenche_template_e_envia_email(assunto, titulo, user,
+                                              self._partes_interessadas_codae_cancela, False)
 
     @xworkflows.after_transition('negar_cancelamento_pedido')
     def _negar_cancelamento_pedido_hook(self, *args, **kwargs):
