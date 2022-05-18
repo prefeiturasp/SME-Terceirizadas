@@ -53,10 +53,16 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate(seriali
         queryset=Escola.objects.all()
     )
 
-    combo_tipos_alimentacao = serializers.SlugRelatedField(
+    tipo_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
-        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all()
     )
 
     def validate(self, attrs):
@@ -67,8 +73,9 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate(seriali
 
     def create(self, validated_data):
         escola = validated_data.get('escola')
-        combo_tipos_alimentacao = validated_data.get('combo_tipos_alimentacao')
-        escola_nao_pode_cadastrar_dois_combos_iguais(escola, combo_tipos_alimentacao)
+        tipo_alimentacao = validated_data.get('tipo_alimentacao')
+        periodo_escolar = validated_data.get('periodo_escolar')
+        escola_nao_pode_cadastrar_dois_combos_iguais(escola, tipo_alimentacao, periodo_escolar)
         horario_do_combo = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.create(**validated_data)
         return horario_do_combo
 
@@ -79,7 +86,7 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate(seriali
 
     class Meta:
         model = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
-        fields = ('uuid', 'hora_inicial', 'hora_final', 'escola', 'combo_tipos_alimentacao')
+        fields = ('uuid', 'hora_inicial', 'hora_final', 'escola', 'tipo_alimentacao', 'periodo_escolar')
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -323,7 +330,9 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(
 
     def create(self, validated_data):
         faixas_etarias = validated_data.pop('faixas_etarias', '')
+        tipos_alimentacao_de = validated_data.pop('tipos_alimentacao_de')
         substituicao_alimentacao = SubstituicaoAlimentacaoNoPeriodoEscolarCEI.objects.create(**validated_data)
+        substituicao_alimentacao.tipos_alimentacao_de.set(tipos_alimentacao_de)
         substituicao_alimentacao.save()
         for faixa_etaria_dados in faixas_etarias:
             FaixaEtariaSubstituicaoAlimentacaoCEI.objects.create(

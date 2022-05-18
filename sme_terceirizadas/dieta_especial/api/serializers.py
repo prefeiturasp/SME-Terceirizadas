@@ -7,7 +7,7 @@ from rest_framework import serializers
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.utils import update_instance_from_dict
 from ...dados_comuns.validators import nao_pode_ser_no_passado
-from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
+from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, LoteSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
 from ...produto.api.serializers.serializers import MarcaSimplesSerializer, ProdutoSimplesSerializer
 from ...produto.models import Produto, SolicitacaoCadastroProdutoDieta
@@ -419,6 +419,39 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
         )
 
 
+class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
+    codigo_eol_aluno = serializers.SerializerMethodField()
+    nome_aluno = serializers.SerializerMethodField()
+    nome_escola = serializers.SerializerMethodField()
+    classificacao_dieta = serializers.SerializerMethodField()
+    protocolo_padrao = serializers.SerializerMethodField()
+
+    def get_codigo_eol_aluno(self, obj):
+        return obj.aluno.codigo_eol if obj.aluno else None
+
+    def get_nome_aluno(self, obj):
+        return obj.aluno.nome if obj.aluno else None
+
+    def get_nome_escola(self, obj):
+        return obj.escola_destino.nome if obj.escola_destino else None
+
+    def get_classificacao_dieta(self, obj):
+        return obj.classificacao.nome if obj.classificacao else None
+
+    def get_protocolo_padrao(self, obj):
+        return obj.protocolo_padrao.nome_protocolo if obj.protocolo_padrao else obj.nome_protocolo
+
+    class Meta:
+        model = SolicitacaoDietaEspecial
+        fields = (
+            'codigo_eol_aluno',
+            'nome_aluno',
+            'nome_escola',
+            'classificacao_dieta',
+            'protocolo_padrao'
+        )
+
+
 class PanoramaSerializer(serializers.Serializer):
     periodo = serializers.CharField(
         source='periodo_escolar__nome',
@@ -478,3 +511,48 @@ class ProtocoloPadraoDietaEspecialSimplesSerializer(serializers.ModelSerializer)
     class Meta:
         model = ProtocoloPadraoDietaEspecial
         fields = ('nome_protocolo', 'uuid')
+
+
+class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerializer):
+    cod_eol_aluno = serializers.SerializerMethodField()
+    nome_aluno = serializers.SerializerMethodField()
+    nome_escola = serializers.SerializerMethodField()
+    status_solicitacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
+    rastro_lote = LoteSerializer()
+    classificacao = ClassificacaoDietaSerializer()
+    protocolo_padrao = ProtocoloPadraoDietaEspecialSimplesSerializer()
+    data_ultimo_log = serializers.SerializerMethodField()
+
+    def get_nome_escola(self, obj):
+        return obj.rastro_escola.nome if obj.rastro_escola else None
+
+    def get_cod_eol_aluno(self, obj):
+        return obj.aluno.codigo_eol if obj.aluno else None
+
+    def get_nome_aluno(self, obj):
+        return obj.aluno.nome if obj.aluno else None
+
+    def get_data_ultimo_log(self, obj):
+        return datetime.strftime(obj.logs.last().criado_em, '%d/%m/%Y') if (
+            obj.logs and obj.status != SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO) else None
+
+    class Meta:
+        model = SolicitacaoDietaEspecial
+        fields = (
+            'uuid',
+            'id_externo',
+            'criado_em',
+            'cod_eol_aluno',
+            'nome_aluno',
+            'nome_escola',
+            'status_solicitacao',
+            'rastro_lote',
+            'classificacao',
+            'protocolo_padrao',
+            'nome_protocolo',
+            'data_ultimo_log'
+        )

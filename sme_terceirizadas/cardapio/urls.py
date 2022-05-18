@@ -29,6 +29,8 @@ router.register('horario-do-combo-tipo-de-alimentacao-por-unidade-escolar',
 router.register('suspensao-alimentacao-de-cei',
                 viewsets.SuspensaoAlimentacaoDaCEIViewSet,
                 'suspensao-alimentacao-de-cei')
+router.register('motivos-dre-nao-valida', viewsets.MotivosDRENaoValidaViewSet,
+                'Motivos de não validação da DRE')
 urlpatterns = [
     path('', include(router.urls)),
 ]

@@ -244,6 +244,11 @@ def relatorio_dieta_especial(request, solicitacao):
     return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
 
 
+def relatorio_dietas_especiais_terceirizada(request, dados):
+    html_string = render_to_string('relatorio_dietas_especiais_terceirizada.html', dados)
+    return html_to_pdf_response(html_string, f'dietas_especiais.pdf')
+
+
 def relatorio_dieta_especial_protocolo(request, solicitacao):
     if solicitacao.tipo_solicitacao == 'COMUM':
         escola = solicitacao.rastro_escola

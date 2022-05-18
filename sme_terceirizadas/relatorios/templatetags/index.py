@@ -97,7 +97,7 @@ def concatena_string(lista):
 def concatena_label(query_set):
     label = ''
     for item in query_set:
-        label += ' e '.join([tp.nome for tp in item.tipos_alimentacao.all()])
+        label += ' e '.join([item.nome])
         if item != list(query_set)[-1]:
             label += ', '
     return label
@@ -251,3 +251,13 @@ def embalagens_filter(embalagens, tipo):
             return emb
     else:
         return False
+
+
+@register.filter
+def existe_inclusao_cancelada(solicitacao):
+    return solicitacao.inclusoes.filter(cancelado=True).exists()
+
+
+@register.filter
+def inclusoes_canceladas(solicitacao):
+    return solicitacao.inclusoes.filter(cancelado=True)

@@ -7,8 +7,6 @@ verify_ssl = true
 Werkzeug='==0.15.3'  # https://github.com/pallets/werkzeug
 ipdb='==0.13.9'  # https://github.com/gotcha/ipdb
 Sphinx='==1.8.4'  # https://github.com/sphinx-doc/sphinx
-pandas='==0.25.0' # https://github.com/pandas-dev/pandas/
-numpy='==1.17.0' # https://github.com/numpy/numpy/
 # Testing
 # ------------------------------------------------------------------------------
 mypy='==0.730'  # https://github.com/python/mypy
@@ -63,6 +61,9 @@ argon2-cffi= '==19.1.0'  # https://github.com/hynek/argon2_cffi
 redis= '==3.2.0'  # https://github.com/antirez/redis
 django-xworkflows='==0.12.3' # https://github.com/rbarrois/django_xworkflows
 drf_base64='==2.0' # https://pypi.org/project/drf_base64/
+pandas='==0.25.0' # https://github.com/pandas-dev/pandas/
+numpy='==1.17.0' # https://github.com/numpy/numpy/
+XlsxWriter='==3.0.3' # https://github.com/jmcnamara/XlsxWriter
 # Django
 # ------------------------------------------------------------------------------
 django='==2.2.13'          # https://www.djangoproject.com/
@@ -70,11 +71,11 @@ django-environ='==0.4.5'  # https://github.com/joke2k/django-environ
 django-model-utils='==3.1.2'  # https://github.com/jazzband/django-model-utils
 django-redis='==4.10.0'  # https://github.com/niwinz/django-redis
 django-des='==2.4.1' # https://github.com/jamiecounsell/django-des
+django-auditlog="==1.0a1"   # https://github.com/jazzband/django-auditlog/
 django-cors-headers='==3.0.2'   # https://pypi.org/project/django-cors-headers/
 django-sequences='==2.5'  # https://pypi.org/project/django-sequences/
 django-multiselectfield='==0.1.12' # https://github.com/goinnn/django-multiselectfield
 django-celery-beat='==2.0.0'  # https://github.com/celery/django-celery-beat
-django-auditlog="*"   # https://github.com/jazzband/django-auditlog/
 django-admin-rangefilter='==0.8.1' # https://github.com/silentsokolov/django-admin-rangefilter
 # Django REST Framework
 # ------------------------------------------------------------------------------
