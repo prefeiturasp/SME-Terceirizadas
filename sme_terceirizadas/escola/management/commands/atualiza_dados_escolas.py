@@ -127,6 +127,8 @@ class Command(BaseCommand):
 
         if escola_dados['email']:
             contato.email = escola_dados['email'].strip()
+            if env('DJANGO_ENV') != 'production':
+                contato.email = 'fake_' + contato.email
 
         if (
             escola_dados['telefone']
