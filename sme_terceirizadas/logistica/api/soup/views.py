@@ -119,6 +119,7 @@ soap_app = Application(
 django_soap_application = DjangoApplication(soap_app)
 if API_URL:
     django_soap_application.doc.wsdl11.build_interface_document(API_URL + '/webserver/solicitacao-remessa/')
+    django_soap_application.max_content_length = 50 * 1024 * 1024
 
 solicitacao_application = csrf_exempt(django_soap_application)
 
