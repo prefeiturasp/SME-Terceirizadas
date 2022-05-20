@@ -2358,20 +2358,19 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                   usuario=user)
-        if env('DJANGO_ENV') == 'production':
-            if self.tipo_solicitacao == 'ALTERACAO_UE':
-                assunto = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
-                titulo = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
-                dieta_origem = self.aluno.dietas_especiais.filter(
-                    tipo_solicitacao='COMUM',
-                    status=self.workflow_class.CODAE_AUTORIZADO).last()
-                self._envia_email_autorizar(assunto, titulo, user,
-                                            self._partes_interessadas_codae_autoriza, dieta_origem)
-            else:
-                assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-                titulo = 'Status de Solicitação\n' + self.aluno.codigo_eol + ' ' + self.aluno.nome
-                self._preenche_template_e_envia_email(assunto, titulo, user,
-                                                      self._partes_interessadas_codae_autoriza_ou_nega, True)
+        if self.tipo_solicitacao == 'ALTERACAO_UE':
+            assunto = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
+            titulo = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
+            dieta_origem = self.aluno.dietas_especiais.filter(
+                tipo_solicitacao='COMUM',
+                status=self.workflow_class.CODAE_AUTORIZADO).last()
+            self._envia_email_autorizar(assunto, titulo, user,
+                                        self._partes_interessadas_codae_autoriza, dieta_origem)
+        else:
+            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
+            titulo = 'Status de Solicitação\n' + self.aluno.codigo_eol + ' ' + self.aluno.nome
+            self._preenche_template_e_envia_email(assunto, titulo, user,
+                                                  self._partes_interessadas_codae_autoriza_ou_nega, True)
 
     @xworkflows.after_transition('inicia_fluxo_inativacao')
     def _inicia_fluxo_inativacao_hook(self, *args, **kwargs):
