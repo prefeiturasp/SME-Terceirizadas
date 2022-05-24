@@ -1,9 +1,6 @@
 from rest_framework import serializers
 
-from ....cardapio.api.serializers.serializers import (
-    CombosVinculoTipoAlimentoSimplissimaSerializer,
-    TipoAlimentacaoSimplesSerializer
-)
+from ....cardapio.api.serializers.serializers import TipoAlimentacaoSimplesSerializer
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....escola.api.serializers import (
     EscolaSimplesSerializer,
@@ -48,7 +45,7 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     prioridade = serializers.CharField()
     periodo_escolar = PeriodoEscolarSimplesSerializer()
-    tipos_alimentacao = CombosVinculoTipoAlimentoSimplissimaSerializer(many=True, read_only=True)
+    tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True, read_only=True)
     motivo = MotivoInclusaoNormalSerializer()
     quantidade_alunos_por_faixas_etarias = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
         many=True, read_only=True)

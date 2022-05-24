@@ -51,9 +51,14 @@ class EscolaIniciaCancela():
             url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido(self, request, uuid=None):
         obj = self.get_object()
+        datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            obj.cancelar_pedido(user=request.user, justificativa=justificativa)
+            if (type(obj) == InclusaoAlimentacaoContinua or
+                    len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
+                obj.cancelar_pedido(user=request.user, justificativa=justificativa)
+            else:
+                obj.inclusoes.filter(data__in=datas).update(cancelado=True, cancelado_justificativa=justificativa)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -189,9 +194,9 @@ class InclusaoAlimentacaoViewSetBase(ModelViewSet, EscolaIniciaCancela, DREValid
     funcao_relatorio = relatorio_inclusao_alimentacao_cei
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:

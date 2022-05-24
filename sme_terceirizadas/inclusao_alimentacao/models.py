@@ -166,6 +166,8 @@ class InclusaoAlimentacaoNormal(ExportModelOperationsMixin('inclusao_normal'), T
                                 TemTerceirizadaConferiuGestaoAlimentacao):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
+    cancelado = models.BooleanField('Esta cancelado?', default=False)
+    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                        blank=True, null=True,
                                        on_delete=models.CASCADE,
@@ -289,7 +291,7 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
-    tipos_alimentacao = models.ManyToManyField('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE')
+    tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
 
     objects = models.Manager()  # Manager Padrão
     desta_semana = InclusaoDeAlimentacaoDeCeiDestaSemanaManager()

@@ -16,10 +16,15 @@
               {% if dias_inclusao.outro_motivo %}
                 <td>{{ dias_inclusao.outro_motivo }}</td>
               {% else %}
-                <td>{{ dias_inclusao.motivo.nome }}</td>
+                <td>
+                  {{ dias_inclusao.motivo.nome }}
+                </td>
               {% endif %}
 
             <td>{{ dias_inclusao.data }}</td>
+              {% if dias_inclusao.cancelado %}
+                <td>Cancelado</td>
+              {% endif %}
           </tr>
         {% endfor %}
     </table>
@@ -44,6 +49,7 @@
       </table>
     </div>
       {% include "bloco_observacoes.html" %}
+      {% include "bloco_historico_cancelamento_inclusao.html" %}
       {% include "bloco_historico_questionamento.html" %}
       {% include "bloco_historico_cancelamento.html" %}
   </div>

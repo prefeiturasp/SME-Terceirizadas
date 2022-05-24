@@ -43,15 +43,16 @@ def fim_de_fluxo(logs):
 def class_css(log):
     classe_css = 'pending'
     if log.status_evento_explicacao in ['Solicitação Realizada', 'Escola revisou', 'DRE validou', 'DRE revisou',
-                                        'CODAE autorizou', 'Terceirizada tomou ciência', 'Escola solicitou inativação',
-                                        'CODAE autorizou inativação', 'Terceirizada tomou ciência da inativação',
+                                        'CODAE autorizou', 'Terceirizada tomou ciência',
+                                        'Escola solicitou cancelamento', 'CODAE autorizou cancelamento',
+                                        'Terceirizada tomou ciência do cancelamento',
                                         'CODAE homologou', 'CODAE autorizou reclamação']:
         classe_css = 'active'
     elif log.status_evento_explicacao in ['Escola cancelou', 'DRE cancelou', 'Terceirizada cancelou homologação',
                                           'CODAE suspendeu o produto']:
         classe_css = 'cancelled'
     elif log.status_evento_explicacao in ['DRE não validou', 'CODAE negou', 'Terceirizada recusou',
-                                          'CODAE negou inativação', 'CODAE não homologou']:
+                                          'CODAE negou cancelamento', 'CODAE não homologou']:
         classe_css = 'disapproved'
     elif log.status_evento_explicacao in ['Questionamento pela CODAE', 'CODAE pediu correção',
                                           'CODAE pediu análise sensorial', 'Escola/Nutricionista reclamou do produto',
@@ -96,7 +97,7 @@ def concatena_string(lista):
 def concatena_label(query_set):
     label = ''
     for item in query_set:
-        label += ' e '.join([tp.nome for tp in item.tipos_alimentacao.all()])
+        label += ' e '.join([item.nome])
         if item != list(query_set)[-1]:
             label += ', '
     return label
@@ -250,3 +251,13 @@ def embalagens_filter(embalagens, tipo):
             return emb
     else:
         return False
+
+
+@register.filter
+def existe_inclusao_cancelada(solicitacao):
+    return solicitacao.inclusoes.filter(cancelado=True).exists()
+
+
+@register.filter
+def inclusoes_canceladas(solicitacao):
+    return solicitacao.inclusoes.filter(cancelado=True)

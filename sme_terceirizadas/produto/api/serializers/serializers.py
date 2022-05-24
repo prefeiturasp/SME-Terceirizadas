@@ -415,6 +415,7 @@ class HomologacaoProdutoBase(serializers.ModelSerializer):
 
 class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
     nome_produto = serializers.SerializerMethodField()
+    marca_produto = serializers.SerializerMethodField()
     log_mais_recente = serializers.SerializerMethodField()
     nome_usuario_log_de_reclamacao = serializers.SerializerMethodField()
 
@@ -427,22 +428,25 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
             return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
 
     def get_nome_usuario_log_de_reclamacao(self, obj) -> str:
-        _status = LogSolicitacoesUsuario.STATUS_POSSIVEIS
-        status = {v: k for (k, v) in _status}
-        usr = ''
-        try:
+        if obj.status.is_CODAE_QUESTIONOU_UE:
+            _status = LogSolicitacoesUsuario.STATUS_POSSIVEIS
+            status = {v: k for (k, v) in _status}
             usr = obj.logs.filter(status_evento=status['Escola/Nutricionista reclamou do produto'])
+            if not usr:
+                return ''
             return usr.first().usuario.nome
-        except Exception:
-            return usr
+        return ''
 
     def get_nome_produto(self, obj):
         return obj.produto.nome
 
+    def get_marca_produto(self, obj):
+        return obj.produto.marca.nome
+
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente', 'nome_usuario_log_de_reclamacao',
-                  'qtde_reclamacoes', 'qtde_questionamentos')
+        fields = ('uuid', 'nome_produto', 'marca_produto', 'status', 'id_externo', 'log_mais_recente',
+                  'nome_usuario_log_de_reclamacao', 'qtde_reclamacoes', 'qtde_questionamentos')
 
 
 class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
