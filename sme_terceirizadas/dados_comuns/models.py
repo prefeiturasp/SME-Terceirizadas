@@ -225,6 +225,9 @@ class LogSolicitacoesUsuario(
     uuid_original = models.UUIDField()
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
 
+    class Meta:
+        ordering = ('-criado_em',)
+
     @property
     def status_evento_explicacao(self):
         return self.get_status_evento_display()
