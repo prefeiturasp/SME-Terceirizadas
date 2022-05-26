@@ -2,7 +2,7 @@ from datetime import datetime
 from itertools import chain
 
 from django.db import transaction
-from django.db.models import CharField, Count, F, Prefetch, Q
+from django.db.models import CharField, Count, F, Prefetch, Q, QuerySet
 from django.db.models.functions import Cast, Substr
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
@@ -214,7 +214,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return lista_status
 
-    def dados_dashboard(self, query_set: list) -> list:
+    def dados_dashboard(self, query_set: QuerySet) -> list:
         sumario = []
 
         for workflow in self.get_lista_status():
@@ -222,9 +222,9 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     'homologacoes_produto': HomologacaoDoProduto._meta.db_table,
                     'status': workflow}
             qs = query_set.raw(
-                "SELECT %(homologacoes_produto)s.* FROM %(homologacoes_produto)s "
-                "JOIN (SELECT DISTINCT uuid_original FROM %(logs)s) AS most_recent_log "
-                "ON %(homologacoes_produto)s.uuid = most_recent_log.uuid_original "
+                'SELECT %(homologacoes_produto)s.* FROM %(homologacoes_produto)s '
+                'JOIN (SELECT DISTINCT uuid_original FROM %(logs)s) AS most_recent_log '
+                'ON %(homologacoes_produto)s.uuid = most_recent_log.uuid_original '
                 "WHERE %(homologacoes_produto)s.status = '%(status)s' ORDER BY criado_em DESC" % data)
             sumario.append({
                 'status': workflow,
