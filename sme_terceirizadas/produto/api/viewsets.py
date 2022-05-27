@@ -214,21 +214,53 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return lista_status
 
-    def dados_dashboard(self, query_set: QuerySet) -> list:
-        # TODO: é preciso fazer um refactor dessa parte do dashboard de P&D
-        sumario = []
+    def reclamacoes_por_usuario(self, workflow, raw_sql, data):
+        if (workflow in [
+            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO] and
+                self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
+            data['terceirizada'] = self.request.user.vinculo_atual.object_id
+            raw_sql += "AND %(homologacoes_produto)s.rastro_terceirizada_id = '%(terceirizada)s' "
+        elif (workflow in [
+            HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_UE,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoDoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
+                self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA):
+            data['escola'] = self.request.user.vinculo_atual.object_id
+            raw_sql += "AND %(reclamacoes_produto)s.escola_id = '%(escola)s' "
+        elif (workflow in [
+            HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_UE,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoDoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
+                self.request.user.tipo_usuario == constants.TIPO_USUARIO_NUTRISUPERVISOR):
+            data['registro_funcional'] = self.request.user.registro_funcional
+            raw_sql += "AND %(reclamacoes_produto)s.reclamante_registro_funcional = '%(registro_funcional)s' "
 
-        query = self.get_queryset()
+    def dados_dashboard(self, query_set: QuerySet) -> list:
+        sumario = []
 
         for workflow in self.get_lista_status():
             data = {'logs': LogSolicitacoesUsuario._meta.db_table,
                     'homologacoes_produto': HomologacaoDoProduto._meta.db_table,
+                    'reclamacoes_produto': ReclamacaoDeProduto._meta.db_table,
                     'status': workflow}
-            qs = query_set.raw(
-                'SELECT %(homologacoes_produto)s.* FROM %(homologacoes_produto)s '
-                'JOIN (SELECT DISTINCT uuid_original FROM %(logs)s) AS most_recent_log '
-                'ON %(homologacoes_produto)s.uuid = most_recent_log.uuid_original '
-                "WHERE %(homologacoes_produto)s.status = '%(status)s' ORDER BY criado_em DESC" % data)
+            raw_sql = ('SELECT %(homologacoes_produto)s.* FROM %(homologacoes_produto)s '
+                       'JOIN (SELECT DISTINCT uuid_original FROM %(logs)s) AS most_recent_log '
+                       'ON %(homologacoes_produto)s.uuid = most_recent_log.uuid_original '
+                       'LEFT JOIN %(reclamacoes_produto)s '
+                       'ON %(reclamacoes_produto)s.homologacao_de_produto_id = %(homologacoes_produto)s.id '
+                       "WHERE %(homologacoes_produto)s.status = '%(status)s' ")
+            self.reclamacoes_por_usuario(workflow, raw_sql, data)
+            raw_sql += 'ORDER BY criado_em DESC'
+            qs = query_set.raw(raw_sql % data)
             sumario.append({
                 'status': workflow,
                 'dados': self.get_serializer(
