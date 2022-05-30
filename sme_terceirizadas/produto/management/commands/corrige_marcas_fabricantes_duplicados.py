@@ -9,7 +9,7 @@ from django.db.models.functions import Upper
 from sme_terceirizadas.dieta_especial.models import Alimento
 from sme_terceirizadas.produto.models import Fabricante, Marca, Produto
 
-logger = logging.getLogger('sigpae.cmd_suja_base')
+logger = logging.getLogger('sigpae.cmd_corrige_marcas_fabricantes_duplicados')
 
 
 class Command(BaseCommand):
