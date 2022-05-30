@@ -498,10 +498,10 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
 
     @classmethod
     def com_lanche_do_mes_corrente(cls, escola_uuid):
-        lanche = TipoAlimentacao.objects.get(nome__icontains='lanche')
+        lanche = TipoAlimentacao.objects.filter(nome__icontains='lanche')
         alteracoes_da_escola = cls.do_mes_corrente.all().filter(
             escola__uuid=escola_uuid,
-            substituicoes_periodo_escolar__tipo_alimentacao_para=lanche
+            substituicoes_periodo_escolar__tipo_alimentacao_para__in=lanche
         )
         return alteracoes_da_escola
 
