@@ -79,7 +79,10 @@ class LogSolicitacoesSerializer(serializers.ModelSerializer):
 
 
 class LogSolicitacoesUsuarioComVinculoSerializer(LogSolicitacoesUsuarioSerializer):
-    nome_instituicao = serializers.CharField(source='usuario.vinculo_atual.instituicao.nome')
+    nome_instituicao = serializers.SerializerMethodField()
+
+    def get_nome_instituicao(self, obj):
+        return obj.usuario.vinculo_atual.instituicao.nome if obj.usuario and obj.usuario.vinculo_atual else None
 
     class Meta:
         model = LogSolicitacoesUsuario
