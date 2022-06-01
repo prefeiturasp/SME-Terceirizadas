@@ -79,6 +79,23 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'Removendo espaços duplos'))
         Marca.objects.filter(nome__icontains='  ').update(
             nome=Func(F('nome'), Value('  '), Value(' '), function='replace'))
+        self.stdout.write(self.style.SUCCESS(f'Removendo pontos'))
+        Marca.objects.filter(nome__icontains='.').update(
+            nome=Func(F('nome'), Value('.'), Value(''), function='replace'))
+        self.stdout.write(self.style.SUCCESS(f'Removendo traços'))
+        Marca.objects.filter(nome__icontains=' - ').update(
+            nome=Func(F('nome'), Value(' - '), Value(' '), function='replace'))
+        self.stdout.write(self.style.SUCCESS(f'Removendo aspas'))
+        Marca.objects.filter(nome__icontains="'").update(
+            nome=Func(F('nome'), Value("'"), Value(''), function='replace'))
+        self.stdout.write(self.style.SUCCESS(f'Removendo parênteses'))
+        Marca.objects.filter(nome__icontains='(').update(
+            nome=Func(F('nome'), Value('('), Value(''), function='replace'))
+        Marca.objects.filter(nome__icontains=')').update(
+            nome=Func(F('nome'), Value(')'), Value(''), function='replace'))
+        self.stdout.write(self.style.SUCCESS(f'Trocando & por E'))
+        Marca.objects.filter(nome__icontains='&').update(
+            nome=Func(F('nome'), Value('&'), Value('E'), function='replace'))
         self.stdout.write(self.style.SUCCESS(f'Removendo acentos'))
         for marca in Marca.objects.all():
             if self.remove_acentos(marca.nome) != marca.nome:
@@ -91,6 +108,23 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'Removendo espaços duplos'))
         Fabricante.objects.filter(nome__icontains='  ').update(
             nome=Func(F('nome'), Value('  '), Value(' '), function='replace'))
+        self.stdout.write(self.style.SUCCESS(f'Removendo pontos'))
+        Fabricante.objects.filter(nome__icontains='.').update(
+            nome=Func(F('nome'), Value('.'), Value(''), function='replace'))
+        self.stdout.write(self.style.SUCCESS(f'Removendo traços'))
+        Fabricante.objects.filter(nome__icontains=' - ').update(
+            nome=Func(F('nome'), Value(' - '), Value(' '), function='replace'))
+        Fabricante.objects.filter(nome__icontains='-').update(
+            nome=Func(F('nome'), Value('-'), Value(' '), function='replace'))
+        self.stdout.write(self.style.SUCCESS(f'Removendo aspas'))
+        Fabricante.objects.filter(nome__icontains="'").update(
+            nome=Func(F('nome'), Value("'"), Value(''), function='replace'))
+        self.stdout.write(self.style.SUCCESS(f'Trocando & por E'))
+        Fabricante.objects.filter(nome__icontains='&').update(
+            nome=Func(F('nome'), Value('&'), Value('E'), function='replace'))
+        self.stdout.write(self.style.SUCCESS(f'Trocando / por espaço'))
+        Fabricante.objects.filter(nome__icontains='/').update(
+            nome=Func(F('nome'), Value('/'), Value(' '), function='replace'))
         self.stdout.write(self.style.SUCCESS(f'Removendo acentos'))
         for fabricante in Fabricante.objects.all():
             if self.remove_acentos(fabricante.nome) != fabricante.nome:
