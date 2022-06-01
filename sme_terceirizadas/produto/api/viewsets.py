@@ -219,7 +219,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO] and
                 self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
-            if query_set:
+            if query_set is not None:
                 query_set = query_set.filter(rastro_terceirizada=self.request.user.vinculo_atual.instituicao)
             else:
                 data['terceirizada'] = self.request.user.vinculo_atual.object_id
@@ -233,7 +233,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
             HomologacaoDoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
                 self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA):
-            if query_set:
+            if query_set is not None:
                 query_set = query_set.filter(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
             else:
                 data['escola'] = self.request.user.vinculo_atual.object_id
@@ -247,7 +247,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
             HomologacaoDoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
                 self.request.user.tipo_usuario == constants.TIPO_USUARIO_NUTRISUPERVISOR):
-            if query_set:
+            if query_set is not None:
                 query_set = query_set.filter(
                     reclamacoes__reclamante_registro_funcional=self.request.user.registro_funcional)
             else:
@@ -289,7 +289,9 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='dashboard')
     def dashboard(self, request):
         query_set = self.get_queryset()
-        response = {'results': self.dados_dashboard(query_set=query_set)}
+        use_raw = self.request.user.tipo_usuario not in [constants.TIPO_USUARIO_ESCOLA,
+                                                         constants.TIPO_USUARIO_NUTRISUPERVISOR]
+        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=use_raw)}
         return Response(response)
 
     @action(detail=False, methods=['POST'], url_path='filtro-homologacoes-por-titulo-marca')
