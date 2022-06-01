@@ -2,7 +2,7 @@ from datetime import datetime
 from itertools import chain
 
 from django.db import transaction
-from django.db.models import CharField, Count, F, Prefetch, Q
+from django.db.models import CharField, Count, F, Prefetch, Q, QuerySet
 from django.db.models.functions import Cast, Substr
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
@@ -214,17 +214,17 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return lista_status
 
-    def reclamacoes_por_usuario(self, workflow, query, query_set):
-        q = query_set
+    def reclamacoes_por_usuario(self, workflow, raw_sql, data, query_set):  # noqa C901
         if (workflow in [
             HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO] and
                 self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
-
-            q = query_set.filter(rastro_terceirizada=self.request.user.vinculo_atual.instituicao)
-
-        # Para o card aguardando reclamação quando o usuário é uma escola
-        if (workflow in [
+            if query_set is not None:
+                query_set = query_set.filter(rastro_terceirizada=self.request.user.vinculo_atual.instituicao)
+            else:
+                data['terceirizada'] = self.request.user.vinculo_atual.object_id
+                raw_sql += "AND %(homologacoes_produto)s.rastro_terceirizada_id = '%(terceirizada)s' "
+        elif (workflow in [
             HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_UE,
@@ -233,11 +233,12 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
             HomologacaoDoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
                 self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA):
-
-            q = query.filter(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
-
-        # Para o card aguardando reclamação quando o usuário é um nutrisupervisor
-        if (workflow in [
+            if query_set is not None:
+                query_set = query_set.filter(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
+            else:
+                data['escola'] = self.request.user.vinculo_atual.object_id
+                raw_sql += "AND %(reclamacoes_produto)s.escola_id = '%(escola)s' "
+        elif (workflow in [
             HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_UE,
@@ -246,21 +247,36 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
             HomologacaoDoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
                 self.request.user.tipo_usuario == constants.TIPO_USUARIO_NUTRISUPERVISOR):
+            if query_set is not None:
+                query_set = query_set.filter(
+                    reclamacoes__reclamante_registro_funcional=self.request.user.registro_funcional)
+            else:
+                data['registro_funcional'] = self.request.user.registro_funcional
+                raw_sql += "AND %(reclamacoes_produto)s.reclamante_registro_funcional = '%(registro_funcional)s' "
+        return query_set
 
-            q = query.filter(reclamacoes__reclamante_registro_funcional=self.request.user.registro_funcional)
-
-        return q
-
-    def dados_dashboard(self, query_set: list) -> dict:
-        # TODO: é preciso fazer um refactor dessa parte do dashboard de P&D
+    def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
         sumario = []
 
-        query = self.get_queryset()
-
         for workflow in self.get_lista_status():
-            q = self.reclamacoes_por_usuario(workflow, query, query_set)
-            qs = sorted(q.filter(status=workflow).distinct().all(),
-                        key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+            if use_raw:
+                data = {'logs': LogSolicitacoesUsuario._meta.db_table,
+                        'homologacoes_produto': HomologacaoDoProduto._meta.db_table,
+                        'reclamacoes_produto': ReclamacaoDeProduto._meta.db_table,
+                        'status': workflow}
+                raw_sql = ('SELECT %(homologacoes_produto)s.* FROM %(homologacoes_produto)s '
+                           'JOIN (SELECT DISTINCT uuid_original FROM %(logs)s) AS most_recent_log '
+                           'ON %(homologacoes_produto)s.uuid = most_recent_log.uuid_original '
+                           'LEFT JOIN %(reclamacoes_produto)s '
+                           'ON %(reclamacoes_produto)s.homologacao_de_produto_id = %(homologacoes_produto)s.id '
+                           "WHERE %(homologacoes_produto)s.status = '%(status)s' ")
+                self.reclamacoes_por_usuario(workflow, raw_sql, data, None)
+                raw_sql += 'ORDER BY criado_em DESC'
+                qs = query_set.raw(raw_sql % data)
+            else:
+                query_set = self.reclamacoes_por_usuario(workflow, None, None, query_set)
+                qs = sorted(query_set.filter(status=workflow).distinct().all(),
+                            key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
             sumario.append({
                 'status': workflow,
                 'dados': self.get_serializer(
@@ -273,7 +289,9 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='dashboard')
     def dashboard(self, request):
         query_set = self.get_queryset()
-        response = {'results': self.dados_dashboard(query_set=query_set)}
+        use_raw = self.request.user.tipo_usuario not in [constants.TIPO_USUARIO_ESCOLA,
+                                                         constants.TIPO_USUARIO_NUTRISUPERVISOR]
+        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=use_raw)}
         return Response(response)
 
     @action(detail=False, methods=['POST'], url_path='filtro-homologacoes-por-titulo-marca')
@@ -289,7 +307,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if (marca):
             query_set = query_set.filter(produto__marca__nome__icontains=marca)
 
-        response = {'results': self.dados_dashboard(query_set=query_set)}
+        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=False)}
         return Response(response)
 
     @action(detail=False,  # noqa C901

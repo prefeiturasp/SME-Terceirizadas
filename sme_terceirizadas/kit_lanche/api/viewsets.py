@@ -32,7 +32,7 @@ from .serializers import serializers, serializers_create, serializers_create_cei
 
 class KitLancheViewSet(ModelViewSet):
     lookup_field = 'uuid'
-    queryset = models.KitLanche.objects.all()
+    queryset = models.KitLanche.objects.all().order_by('nome')
     serializer_class = serializers.KitLancheSerializer
     pagination_class = KitLanchePagination
     filter_backends = (filters.DjangoFilterBackend,)

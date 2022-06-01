@@ -7,6 +7,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...dados_comuns import constants
+from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import TemplateMensagem
 
@@ -152,6 +153,15 @@ def embalagem_produto():
 
 
 @pytest.fixture
+def terceirizada():
+    return mommy.make('Terceirizada',
+                      contatos=[mommy.make('dados_comuns.Contato')],
+                      make_m2m=True,
+                      nome_fantasia='Alimentos SA'
+                      )
+
+
+@pytest.fixture
 def produto(user, protocolo1, protocolo2, marca1, fabricante):
     return mommy.make('Produto',
                       criado_por=user,
@@ -173,6 +183,45 @@ def produto(user, protocolo1, protocolo2, marca1, fabricante):
                           protocolo1,
                           protocolo2,
                       ])
+
+
+@pytest.fixture
+def homologacoes_produto(produto, terceirizada):
+    hom = mommy.make('HomologacaoDoProduto',
+                     produto=produto,
+                     rastro_terceirizada=terceirizada,
+                     status=HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO)
+    mommy.make('LogSolicitacoesUsuario', uuid_original=hom.uuid)
+    return hom
+
+
+@pytest.fixture
+def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
+    email = 'foo@codae.com'
+    password = DJANGO_ADMIN_PASSWORD
+    perfil_adm_terc = mommy.make('Perfil', nome='TERCEIRIZADA', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=terceirizada, perfil=perfil_adm_terc,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_escola(client, django_user_model, escola):
+    email = 'user@escola.com'
+    password = DJANGO_ADMIN_PASSWORD
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456',
+                                                    )
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
 
 
 @pytest.fixture
@@ -280,6 +329,31 @@ def client_autenticado_vinculo_escola_nutrisupervisor(
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_nutri,
                data_inicial=hoje, ativo=True)
+    mommy.make(TemplateMensagem, assunto='TESTE',
+               tipo=TemplateMensagem.DIETA_ESPECIAL,
+               template_html='@id @criado_em @status @link')
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_codae_nutrisupervisor(
+        client,
+        django_user_model,
+        codae):
+
+    email = 'test@test.com'
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+
+    perfil_nutri = mommy.make('Perfil', nome='COORDENADOR_SUPERVISAO_NUTRICAO',
+                              ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_nutri,
+               data_inicial=hoje, ativo=True)
+    assert user.tipo_usuario == constants.TIPO_USUARIO_NUTRISUPERVISOR
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
