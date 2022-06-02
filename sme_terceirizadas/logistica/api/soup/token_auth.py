@@ -18,7 +18,7 @@ class TokenAuthentication():
             raise exceptions.AuthenticationFailed('Token inválido. Não foi enviado informações de credenciais.')
 
         if not hasattr(oWsAcessoModel, 'StrToken'):
-            raise exceptions.AuthenticationFailed('Token inválido.')
+            raise exceptions.AuthenticationFailed('Falha na autenticação. StrToken não foi informado.')
 
         token = oWsAcessoModel.StrToken
 
