@@ -2186,14 +2186,19 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         """
         escola = self.escola_destino
         try:
+            email_escola_eol = self.escola_destino.contato.email
+            email_lista = [email_escola_eol]
+        except AttributeError:
+            email_lista = []
+        try:
             terceirizada = escola.lote.terceirizada
-            administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
+            email_lista += [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
                 ativo=True,
                 perfil__nome=ADMINISTRADOR_TERCEIRIZADA
             )]
         except AttributeError:
-            administradores_terceirizadas = []
-        return administradores_terceirizadas
+            pass
+        return email_lista
 
     @property  # noqa c901
     def _partes_interessadas_codae_autoriza_ou_nega(self):
@@ -2411,9 +2416,20 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _envia_email_termino(self):
         assunto = f'[SIGPAE] Prazo de fornecimento de dieta encerrado - Solicitação #{self.id_externo}'
         template = 'fluxo_dieta_especial_termina.html'
+        dre = 'SEM DRE'
+        lote = 'SEM LOTE'
+        escola = 'SEM ESCOLA'
+        if self.escola_destino:
+            escola = f'{self.escola_destino.nome}'
+            if self.escola_destino.diretoria_regional:
+                dre = f'DRE {self.escola_destino.diretoria_regional.nome}'
+            if self.escola_destino.lote:
+                lote = f'LOTE {self.escola_destino.lote.nome}'
+        titulo = f'{dre}  - {lote} - {escola}'
         dados_template = {
             'eol_aluno': self.aluno.codigo_eol,
-            'nome_aluno': self.aluno.nome
+            'nome_aluno': self.aluno.nome,
+            'titulo': titulo
         }
         html = render_to_string(template, dados_template)
         envia_email_em_massa_task.delay(
