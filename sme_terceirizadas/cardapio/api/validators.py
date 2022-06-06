@@ -29,11 +29,15 @@ def data_troca_nao_pode_ser_superior_a_data_inversao(data_de: datetime.date, dat
 def nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de: datetime.date, data_para: datetime.date,
                                                          escola: Escola):
     inversao_cardapio = InversaoCardapio.objects.filter(
-        cardapio_de__data=data_de,
-        cardapio_para__data=data_para,
-        escola=escola).filter(
-        ~Q(status=InversaoCardapio.workflow_class.RASCUNHO)
-    ).exists()
+        Q(cardapio_de__data=data_de, cardapio_para__data=data_para, escola=escola) |
+        Q(data_de_inversao=data_de, data_para_inversao=data_para, escola=escola)
+    ).filter(~Q(status__in=[
+        InversaoCardapio.workflow_class.RASCUNHO,
+        InversaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
+        InversaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO,
+        InversaoCardapio.workflow_class.ESCOLA_CANCELOU,
+        InversaoCardapio.workflow_class.CANCELADO_AUTOMATICAMENTE,
+    ])).exists()
     if inversao_cardapio:
         raise serializers.ValidationError(
             'Já existe uma solicitação de inversão com estes dados')

@@ -12,7 +12,16 @@ class NovoSGPServico:
 
     @classmethod
     def dias_letivos(cls, codigo_eol: str, data_inicio: str, data_fim: str, tipo_turno: int = 1):
-        """Consulta os dias letivos para ums escola na API do novo sgp."""
+        """Consulta os dias letivos para as escola na API do novo sgp.
+
+        tipo_turno:
+            1 Manhã
+            2 Intermediário
+            3 Tarde
+            4 Vespertino
+            5 Noite
+            6 Integral
+        """
         response = requests.get(f'{DJANGO_NOVO_SGP_API_URL}/v1/calendario/integracoes/ues/dias-letivos/',
                                 headers=cls.HEADER, timeout=cls.TIMEOUT,
                                 params={'UeCodigo': codigo_eol, 'TipoTurno': tipo_turno,

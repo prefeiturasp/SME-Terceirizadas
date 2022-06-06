@@ -118,7 +118,7 @@ def processa_dias_letivos(lista_dias_letivos, escola):
 
 
 def calendario_sgp():
-    from calendar import monthrange
+    import pandas as pd
 
     from sme_terceirizadas.escola.models import Escola
     from sme_terceirizadas.escola.services import NovoSGPServico
@@ -131,9 +131,9 @@ def calendario_sgp():
         logger.debug(f"""Consultando dias letivos da escola com Nome: {escola.nome}
         e código eol: {escola.codigo_eol}, data: {hoje.strftime('%Y-%m-%d')}""")
         try:
-            ultimo_dia_do_mes_atual = monthrange(year=hoje.year, month=hoje.month)[1]
             data_inicio = hoje.strftime('%Y-%m-%d')
-            data_fim = datetime(year=hoje.year, month=hoje.month, day=ultimo_dia_do_mes_atual).strftime('%Y-%m-%d')
+            data_final = (hoje + pd.DateOffset(months=3)).date()
+            data_fim = data_final.strftime('%Y-%m-%d')
 
             resposta = NovoSGPServico.dias_letivos(
                 codigo_eol=escola.codigo_eol,
