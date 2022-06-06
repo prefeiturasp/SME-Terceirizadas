@@ -2411,9 +2411,20 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _envia_email_termino(self):
         assunto = f'[SIGPAE] Prazo de fornecimento de dieta encerrado - Solicitação #{self.id_externo}'
         template = 'fluxo_dieta_especial_termina.html'
+        dre = 'SEM DRE'
+        lote = 'SEM LOTE'
+        escola = 'SEM ESCOLA'
+        if self.escola_destino:
+            escola = f'{self.escola_destino.nome}'
+            if self.escola_destino.diretoria_regional:
+                dre = f'DRE {self.escola_destino.diretoria_regional.nome}'
+            if self.escola_destino.lote:
+                lote = f'{self.escola_destino.lote.nome}'
+        titulo = f'{dre}  - {lote} - {escola}'
         dados_template = {
             'eol_aluno': self.aluno.codigo_eol,
-            'nome_aluno': self.aluno.nome
+            'nome_aluno': self.aluno.nome,
+            'titulo': titulo
         }
         html = render_to_string(template, dados_template)
         envia_email_em_massa_task.delay(
