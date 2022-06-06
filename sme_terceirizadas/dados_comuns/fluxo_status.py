@@ -2186,19 +2186,14 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         """
         escola = self.escola_destino
         try:
-            email_escola_eol = self.escola_destino.contato.email
-            email_lista = [email_escola_eol]
-        except AttributeError:
-            email_lista = []
-        try:
             terceirizada = escola.lote.terceirizada
-            email_lista += [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
+            administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
                 ativo=True,
                 perfil__nome=ADMINISTRADOR_TERCEIRIZADA
             )]
         except AttributeError:
-            pass
-        return email_lista
+            administradores_terceirizadas = []
+        return administradores_terceirizadas
 
     @property  # noqa c901
     def _partes_interessadas_codae_autoriza_ou_nega(self):
