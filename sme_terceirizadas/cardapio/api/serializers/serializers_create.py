@@ -3,8 +3,8 @@ from rest_framework import serializers
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
     campo_nao_pode_ser_nulo,
-    deve_existir_cardapio,
     deve_pedir_com_antecedencia,
+    deve_ser_dia_letivo,
     deve_ser_no_mesmo_ano_corrente,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
@@ -123,17 +123,16 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         data_troca_nao_pode_ser_superior_a_data_inversao(data_de, data_para)
         nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de, data_para, escola)
         nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para)
-        deve_existir_cardapio(escola, data_de)
-        deve_existir_cardapio(escola, data_para)
+        deve_ser_dia_letivo(escola, data_de)
+        deve_ser_dia_letivo(escola, data_para)
         return attrs
 
     def create(self, validated_data):
         data_de = validated_data.pop('data_de')
         data_para = validated_data.pop('data_para')
-        escola = validated_data.get('escola')
 
-        validated_data['cardapio_de'] = escola.get_cardapio(data_de)
-        validated_data['cardapio_para'] = escola.get_cardapio(data_para)
+        validated_data['data_de_inversao'] = data_de
+        validated_data['data_para_inversao'] = data_para
         validated_data['criado_por'] = self.context['request'].user
 
         inversao_cardapio = InversaoCardapio.objects.create(**validated_data)
@@ -143,9 +142,12 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         data_de = validated_data.pop('data_de')
         data_para = validated_data.pop('data_para')
-        escola = validated_data.get('escola')
-        validated_data['cardapio_de'] = escola.get_cardapio(data_de)
-        validated_data['cardapio_para'] = escola.get_cardapio(data_para)
+        if instance.cardapio_de or instance.cardapio_para:
+            instance.cardapio_de = None
+            instance.cardapio_para = None
+            instance.save()
+        validated_data['data_de_inversao'] = data_de
+        validated_data['data_para_inversao'] = data_para
         update_instance_from_dict(instance, validated_data)
         instance.save()
         return instance
