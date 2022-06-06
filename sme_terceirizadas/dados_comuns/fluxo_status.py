@@ -2419,7 +2419,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             if self.escola_destino.diretoria_regional:
                 dre = f'DRE {self.escola_destino.diretoria_regional.nome}'
             if self.escola_destino.lote:
-                lote = f'LOTE {self.escola_destino.lote.nome}'
+                lote = f'{self.escola_destino.lote.nome}'
         titulo = f'{dre}  - {lote} - {escola}'
         dados_template = {
             'eol_aluno': self.aluno.codigo_eol,
