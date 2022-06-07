@@ -5,6 +5,7 @@ from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from ...dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
+from sme_terceirizadas.terceirizada.models import Terceirizada
 
 
 class SolicitacaoFilter(filters.FilterSet):
@@ -20,6 +21,12 @@ class SolicitacaoFilter(filters.FilterSet):
     nome_distribuidor = filters.CharFilter(
         field_name='distribuidor__nome_fantasia',
         lookup_expr='icontains',
+    )
+    distribuidor = filters.MultipleChoiceFilter(
+        field_name='distribuidor__uuid',
+        choices=[(str(value), value) for value in [
+            distribuidora.uuid for distribuidora in Terceirizada.objects.all().filter(eh_distribuidor=True)
+        ]],
     )
     data_inicial = filters.DateFilter(
         field_name='guias__data_entrega',
@@ -99,6 +106,12 @@ class SolicitacaoAlteracaoFilter(filters.FilterSet):
     nome_distribuidor = filters.CharFilter(
         field_name='requisicao__distribuidor__razao_social',
         lookup_expr='icontains',
+    )
+    distribuidor = filters.MultipleChoiceFilter(
+        field_name='requisicao__distribuidor__uuid',
+        choices=[(str(value), value) for value in [
+            distribuidora.uuid for distribuidora in Terceirizada.objects.all().filter(eh_distribuidor=True)
+        ]],
     )
     data_inicial = filters.DateFilter(
         field_name='requisicao__guias__data_entrega',
