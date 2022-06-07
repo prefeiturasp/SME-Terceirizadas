@@ -15,10 +15,8 @@ from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
-    ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_TERCEIRIZADA,
-    COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     TIPO_SOLICITACAO_DIETA
 )
@@ -268,20 +266,20 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
         ('distribuidor_confirma_guia', AGUARDANDO_CONFIRMACAO, PENDENTE_DE_CONFERENCIA),
         ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
         ('escola_recebe', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIDA),
         ('escola_nao_recebe', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], NAO_RECEBIDA),
         ('escola_recebe_parcial', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIMENTO_PARCIAL),
         ('escola_recebe_parcial_atraso', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIMENTO_PARCIAL),
         ('reposicao_parcial', [
             NAO_RECEBIDA, RECEBIMENTO_PARCIAL, REPOSICAO_PARCIAL, REPOSICAO_TOTAL], REPOSICAO_PARCIAL),
@@ -1122,7 +1120,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     def _partes_interessadas_codae_homologa(self):
         # Envia email somente para ESCOLAS selecionadas
-        # e para COORDENADOR_DIETA_ESPECIAL e NUTRI_ADMIN_RESPONSAVEL.
+        # NUTRI_ADMIN_RESPONSAVEL.
         escolas_ids = m.Escola.objects.filter(
             enviar_email_por_produto=True
         ).values_list('id', flat=True)
@@ -1136,7 +1134,6 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
         usuarios_vinculos_perfil = Usuario.objects.filter(
             vinculos__perfil__nome__in=(
-                'COORDENADOR_DIETA_ESPECIAL',
                 'NUTRI_ADMIN_RESPONSAVEL',
             )
         )
@@ -1907,17 +1904,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
     @property
     def _partes_interessadas_cancelamento(self):
-        """Quando a dre cancela a sua solicitação, a codae deve ser avisados caso tenha chegado neles.
-
-        Será retornada uma lista de emails para envio via celery.
-        """
-        if self.ta_na_codae:
-            # TODO: quando tiver subdepartamento definido, voltar aqui
-            email_query_set_codae = Usuario.objects.filter(
-                vinculos__perfil__nome__in=[COORDENADOR_DIETA_ESPECIAL, ADMINISTRADOR_DIETA_ESPECIAL]).values_list(
-                'usuario__email', flat=False)
-
-            return [email for email in email_query_set_codae]
+        return []
 
     @property
     def _partes_interessadas_codae_autoriza_ou_nega(self):
