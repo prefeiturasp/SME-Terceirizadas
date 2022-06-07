@@ -26,7 +26,7 @@ class SolicitacaoFilter(filters.FilterSet):
     distribuidor = filters.MultipleChoiceFilter(
         field_name='distribuidor__uuid',
         choices=[(str(value), value) for value in [
-            distribuidora.uuid for distribuidora in Terceirizada.objects.all().filter(eh_distribuidor=True)
+            distribuidor.uuid for distribuidor in Terceirizada.objects.all().filter(eh_distribuidor=True)
         ]],
     )
     data_inicial = filters.DateFilter(
@@ -111,7 +111,7 @@ class SolicitacaoAlteracaoFilter(filters.FilterSet):
     distribuidor = filters.MultipleChoiceFilter(
         field_name='requisicao__distribuidor__uuid',
         choices=[(str(value), value) for value in [
-            distribuidora.uuid for distribuidora in Terceirizada.objects.all().filter(eh_distribuidor=True)
+            distribuidor.uuid for distribuidor in Terceirizada.objects.all().filter(eh_distribuidor=True)
         ]],
     )
     data_inicial = filters.DateFilter(
