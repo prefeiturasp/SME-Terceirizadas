@@ -2271,10 +2271,11 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
     def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, eh_codae_autoriza_ou_nega):
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
+                          'nome_aluno': self.aluno.nome, 'cod_eol_aluno': self.aluno.codigo_eol,
                           'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
         if eh_codae_autoriza_ou_nega:
             template = 'fluxo_codae_autoriza_ou_nega_dieta.html'
-            dados_template['acao'] = 'NEGADA' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'AUTORIZADA'
+            dados_template['acao'] = 'negada' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'autorizada'
         else:
             template = 'fluxo_autorizar_negar_cancelar.html'
 
@@ -2354,7 +2355,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                                         self._partes_interessadas_codae_autoriza, dieta_origem)
         else:
             assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de Solicitação\n' + self.aluno.codigo_eol + ' ' + self.aluno.nome
+            titulo = self.str_dre_lote_escola
             self._preenche_template_e_envia_email(assunto, titulo, user,
                                                   self._partes_interessadas_codae_autoriza_ou_nega, True)
 
@@ -2397,16 +2398,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _envia_email_termino(self):
         assunto = f'[SIGPAE] Prazo de fornecimento de dieta encerrado - Solicitação #{self.id_externo}'
         template = 'fluxo_dieta_especial_termina.html'
-        dre = 'SEM DRE'
-        lote = 'SEM LOTE'
-        escola = 'SEM ESCOLA'
-        if self.escola_destino:
-            escola = f'{self.escola_destino.nome}'
-            if self.escola_destino.diretoria_regional:
-                dre = f'DRE {self.escola_destino.diretoria_regional.nome}'
-            if self.escola_destino.lote:
-                lote = f'{self.escola_destino.lote.nome}'
-        titulo = f'{dre}  - {lote} - {escola}'
+        titulo = self.str_dre_lote_escola
         dados_template = {
             'eol_aluno': self.aluno.codigo_eol,
             'nome_aluno': self.aluno.nome,
