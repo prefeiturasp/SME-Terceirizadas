@@ -190,7 +190,10 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
                                         'nome_alimento': alimento_guia.nome_alimento,
                                         'arquivo': alimento_conferencia.arquivo
                                     }
-                                    lista_imagens_conferencia.append(imagem)
+                                    lista_filtrada = [a for a in lista_imagens_conferencia
+                                                      if a['nome_alimento'] == alimento_guia.nome_alimento]
+                                    if not lista_filtrada:
+                                        lista_imagens_conferencia.append(imagem)
                                 conferencias_alimento.append(embalagem)
                         alimento_guia.embalagens_conferidas = conferencias_alimento
                 for alimento_reposicao in reposicoes_individuais:
@@ -206,7 +209,10 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
                                         'nome_alimento': alimento_guia.nome_alimento,
                                         'arquivo': alimento_reposicao.arquivo
                                     }
-                                    lista_imagens_reposicao.append(imagem)
+                                    lista_filtrada = [a for a in lista_imagens_reposicao
+                                                      if a['nome_alimento'] == alimento_guia.nome_alimento]
+                                    if not lista_filtrada:
+                                        lista_imagens_reposicao.append(imagem)
                                 reposicoes_alimento.append(embalagem)
                         alimento_guia.embalagens_repostas = reposicoes_alimento
 
