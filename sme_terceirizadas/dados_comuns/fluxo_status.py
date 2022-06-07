@@ -1964,7 +1964,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         self.foi_solicitado_fora_do_prazo = self.prioridade in [
             'PRIORITARIO', 'LIMITE']
         user = kwargs['user']
-        assunto, corpo = self.template_mensagem
+        # assunto, corpo = self.template_mensagem
 
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)

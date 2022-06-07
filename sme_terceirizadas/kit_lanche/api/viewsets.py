@@ -305,9 +305,9 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     serializer_class = serializers.SolicitacaoKitLancheUnificadaSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarSolicitacaoUnificada)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioDiretoriaRegional,)
