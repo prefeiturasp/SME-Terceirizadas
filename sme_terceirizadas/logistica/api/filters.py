@@ -4,8 +4,9 @@ import operator
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
-from ...dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.terceirizada.models import Terceirizada
+
+from ...dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 
 
 class SolicitacaoFilter(filters.FilterSet):
