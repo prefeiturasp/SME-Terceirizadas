@@ -2269,12 +2269,14 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                 anexo=anexo.get('arquivo'),
             )
 
-    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, eh_codae_autoriza_ou_nega):
+    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, transicao):
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
                           'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
-        if eh_codae_autoriza_ou_nega:
+        if transicao in ['codae_autoriza', 'codae_nega']:
             template = 'fluxo_codae_autoriza_ou_nega_dieta.html'
-            dados_template['acao'] = 'NEGADA' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'AUTORIZADA'
+            dados_template['acao'] = 'negada' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'autorizada'
+        elif transicao == 'cancelar_pedido':
+            template = 'fluxo_dieta_alta_medica.html'
         else:
             template = 'fluxo_autorizar_negar_cancelar.html'
 
@@ -2299,13 +2301,17 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _cancelar_pedido_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs['justificativa']
+        alta_medica = kwargs.get('alta_medica', False)
         assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
         titulo = f'Status de solicitação - "{self.aluno.codigo_eol} - {self.aluno.nome}"'
+        if alta_medica:
+            titulo = self.str_dre_lote_escola
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
                                   usuario=user,
                                   justificativa=justificativa)
         self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_cancela, False)
+                                              self._partes_interessadas_codae_cancela,
+                                              'cancelar_pedido' if alta_medica else None)
 
     @xworkflows.after_transition('negar_cancelamento_pedido')
     def _negar_cancelamento_pedido_hook(self, *args, **kwargs):
@@ -2337,7 +2343,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                   usuario=user)
         self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_autoriza_ou_nega, True)
+                                              self._partes_interessadas_codae_autoriza_ou_nega, 'codae_nega')
 
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
@@ -2356,7 +2362,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
             titulo = 'Status de Solicitação\n' + self.aluno.codigo_eol + ' ' + self.aluno.nome
             self._preenche_template_e_envia_email(assunto, titulo, user,
-                                                  self._partes_interessadas_codae_autoriza_ou_nega, True)
+                                                  self._partes_interessadas_codae_autoriza_ou_nega, 'codae_autoriza')
 
     @xworkflows.after_transition('inicia_fluxo_inativacao')
     def _inicia_fluxo_inativacao_hook(self, *args, **kwargs):
