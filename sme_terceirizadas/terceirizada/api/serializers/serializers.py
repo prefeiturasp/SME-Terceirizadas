@@ -37,7 +37,7 @@ class DistribuidorSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Terceirizada
-        fields = ('uuid', 'nome_fantasia')
+        fields = ('uuid', 'nome_fantasia', 'razao_social')
 
 
 class VigenciaContratoSerializer(serializers.ModelSerializer):
