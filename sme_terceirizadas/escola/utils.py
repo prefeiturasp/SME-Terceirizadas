@@ -117,7 +117,7 @@ def processa_dias_letivos(lista_dias_letivos, escola):
             dia_calendario.save()
 
 
-def calendario_sgp():
+def calendario_sgp():  # noqa C901
     import pandas as pd
 
     from sme_terceirizadas.escola.models import Escola
@@ -145,13 +145,16 @@ def calendario_sgp():
         except Exception as e:
             logger.error(f'Dados não encontrados para escola {escola} : {str(e)}')
             logger.debug('Tentando buscar dias letivos no novo sgp para turno da noite')
-            resposta = NovoSGPServico.dias_letivos(
-                codigo_eol=escola.codigo_eol,
-                data_inicio=data_inicio,
-                data_fim=data_fim,
-                tipo_turno=3)
+            try:
+                resposta = NovoSGPServico.dias_letivos(
+                    codigo_eol=escola.codigo_eol,
+                    data_inicio=data_inicio,
+                    data_fim=data_fim,
+                    tipo_turno=3)
 
-            processa_dias_letivos(resposta, escola)
+                processa_dias_letivos(resposta, escola)
+            except Exception as e:
+                logger.error(f'Erro ao buscar por turno noite para escola {escola} : {str(e)}')
 
 
 class EscolaSimplissimaPagination(PageNumberPagination):

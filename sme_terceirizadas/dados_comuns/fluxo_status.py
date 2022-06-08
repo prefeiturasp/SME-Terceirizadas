@@ -266,20 +266,20 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
         ('distribuidor_confirma_guia', AGUARDANDO_CONFIRMACAO, PENDENTE_DE_CONFERENCIA),
         ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
         ('escola_recebe', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIDA),
         ('escola_nao_recebe', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], NAO_RECEBIDA),
         ('escola_recebe_parcial', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIMENTO_PARCIAL),
         ('escola_recebe_parcial_atraso', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIMENTO_PARCIAL),
         ('reposicao_parcial', [
             NAO_RECEBIDA, RECEBIMENTO_PARCIAL, REPOSICAO_PARCIAL, REPOSICAO_TOTAL], REPOSICAO_PARCIAL),
@@ -2271,6 +2271,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
     def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, transicao):
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
+                          'nome_aluno': self.aluno.nome, 'cod_eol_aluno': self.aluno.codigo_eol,
                           'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
         if transicao in ['codae_autoriza', 'codae_nega']:
             template = 'fluxo_codae_autoriza_ou_nega_dieta.html'
@@ -2360,7 +2361,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                                         self._partes_interessadas_codae_autoriza, dieta_origem)
         else:
             assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de Solicitação\n' + self.aluno.codigo_eol + ' ' + self.aluno.nome
+            titulo = self.str_dre_lote_escola
             self._preenche_template_e_envia_email(assunto, titulo, user,
                                                   self._partes_interessadas_codae_autoriza_ou_nega, 'codae_autoriza')
 
@@ -2403,16 +2404,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _envia_email_termino(self):
         assunto = f'[SIGPAE] Prazo de fornecimento de dieta encerrado - Solicitação #{self.id_externo}'
         template = 'fluxo_dieta_especial_termina.html'
-        dre = 'SEM DRE'
-        lote = 'SEM LOTE'
-        escola = 'SEM ESCOLA'
-        if self.escola_destino:
-            escola = f'{self.escola_destino.nome}'
-            if self.escola_destino.diretoria_regional:
-                dre = f'DRE {self.escola_destino.diretoria_regional.nome}'
-            if self.escola_destino.lote:
-                lote = f'{self.escola_destino.lote.nome}'
-        titulo = f'{dre}  - {lote} - {escola}'
+        titulo = self.str_dre_lote_escola
         dados_template = {
             'eol_aluno': self.aluno.codigo_eol,
             'nome_aluno': self.aluno.nome,
