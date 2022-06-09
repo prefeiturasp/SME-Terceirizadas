@@ -225,7 +225,7 @@ class SolicitacaoDietaEspecial(
         if self.escola_destino:
             escola = f'{self.escola_destino.nome}'
             if self.escola_destino.diretoria_regional:
-                dre = f'DRE {self.escola_destino.diretoria_regional.nome}'
+                dre = f'DRE {self.escola_destino.diretoria_regional.nome.split(" ")[-1]}'
             if self.escola_destino.lote:
                 lote = f'{self.escola_destino.lote.nome}'
         return f'{dre}  - {lote} - {escola}'
