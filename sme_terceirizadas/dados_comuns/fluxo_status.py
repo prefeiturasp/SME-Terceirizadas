@@ -1130,15 +1130,22 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         usuarios_escolas_selecionadas = Usuario.objects.filter(
             vinculos__object_id__in=escolas_ids,
             vinculos__content_type=content_type,
+            vinculos__ativo=True
         )
 
         usuarios_vinculos_perfil = Usuario.objects.filter(
+            vinculos__ativo=True,
             vinculos__perfil__nome__in=(
                 'NUTRI_ADMIN_RESPONSAVEL',
             )
         )
 
-        queryset = usuarios_escolas_selecionadas | usuarios_vinculos_perfil
+        usuarios_terceirizada = Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome=ADMINISTRADOR_TERCEIRIZADA
+        )
+
+        queryset = usuarios_escolas_selecionadas | usuarios_vinculos_perfil | usuarios_terceirizada
         return [usuario.email for usuario in queryset]
 
     def _envia_email_codae_homologa(self, log_transicao, link_pdf):
@@ -1175,6 +1182,16 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _partes_interessadas_codae_questiona(self):
+        emails = [self.produto.criado_por.email]
+        emails += [usuario.email for usuario in Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome__in=(
+                ADMINISTRADOR_TERCEIRIZADA,
+            )
+        )]
+        return emails
+
     def _envia_email_codae_questiona(self, log_transicao, link_pdf):
         html = render_to_string(
             template_name='produto_codae_questiona.html',
@@ -1187,7 +1204,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
         envia_email_em_massa_task.delay(
             assunto='Produto Cadastrado Exige Correção',
-            emails=[self.produto.criado_por.email],
+            emails=self._partes_interessadas_codae_questiona(),
             corpo='',
             html=html
         )
@@ -1213,7 +1230,12 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
 
     def _partes_interessadas_codae_pede_analise_sensorial(self):
-        return [self.ultima_analise.terceirizada.vinculos.filter(ativo=True).first().usuario.email]
+        emails = [self.ultima_analise.terceirizada.vinculos.filter(ativo=True).first().usuario.email]
+        emails += [usuario.email for usuario in Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome=ADMINISTRADOR_TERCEIRIZADA
+        )]
+        return emails
 
     def _envia_email_codae_pede_analise_sensorial(self, log_transicao, link_pdf):
         html = render_to_string(
