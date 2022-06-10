@@ -462,7 +462,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          CODAE_HOMOLOGADO),
         ('inativa_homologacao',
          [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO,
-          CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO], INATIVA),
+          CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO, TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO], INATIVA),
         ('terceirizada_cancelou_solicitacao_homologacao',
          CODAE_PENDENTE_HOMOLOGACAO, TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO),
         ('terceirizada_responde_analise_sensorial_da_reclamacao',
