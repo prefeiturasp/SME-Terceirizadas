@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -701,10 +702,29 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA ESCOLA)
     #
 
-    @action(detail=True, permission_classes=[UsuarioEscola],
+    @action(detail=True, permission_classes=[UsuarioEscola], # noqa C901
             methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_solicitacao(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
+        if isinstance(alteracao_cardapio, AlteracaoCardapio):
+            alteracoes_de_cardapio = AlteracaoCardapio.objects.filter(
+                escola=alteracao_cardapio.escola,
+                status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            )
+            if alteracao_cardapio.data_inicial == alteracao_cardapio.data_final:
+                alteracoes_de_cardapio = alteracoes_de_cardapio.filter(
+                    Q(data_inicial=alteracao_cardapio.data_inicial) |
+                    Q(data_final=alteracao_cardapio.data_final)
+                )
+            else:
+                alteracoes_de_cardapio = alteracoes_de_cardapio.filter(
+                    Q(data_inicial=alteracao_cardapio.data_inicial) |
+                    Q(data_final=alteracao_cardapio.data_final) |
+                    Q(data_inicial=alteracao_cardapio.data_inicial, data_final=alteracao_cardapio.data_final)
+                )
+            if alteracoes_de_cardapio.exists():
+                return Response(dict(detail='Já existe solicitação autorizada para a mesma data e ou período.'),
+                                status=HTTP_400_BAD_REQUEST)
         try:
             alteracao_cardapio.inicia_fluxo(user=request.user, )
             serializer = self.get_serializer(alteracao_cardapio)

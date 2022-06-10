@@ -1,3 +1,5 @@
+import datetime
+
 from des.models import DynamicEmailConfiguration
 from django.db import IntegrityError
 from django.utils.decorators import method_decorator
@@ -12,9 +14,10 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 
 from ... import __version__
 from ..behaviors import DiasSemana, TempoPasseio
-from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
+from ..constants import TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
 from ..models import CategoriaPerguntaFrequente, CentralDeDownload, Notificacao, PerguntaFrequente, TemplateMensagem
 from ..permissions import UsuarioCODAEGestaoAlimentacao
+from ..utils import obter_dias_uteis_apos
 from .filters import CentralDeDownloadFilter, NotificacaoFilter
 from .serializers import (
     CategoriaPerguntaFrequenteSerializer,
@@ -84,8 +87,11 @@ class TempoDePasseioViewSet(ViewSet):
 class DiasUteisViewSet(ViewSet):
     permission_classes = (AllowAny,)
 
-    @method_decorator(cache_page(TEMPO_CACHE_1H))
     def list(self, request):
+        data = request.query_params.get('data', '')
+        if data:
+            result = obter_dias_uteis_apos(datetime.datetime.strptime(data, '%d/%m/%Y'), 4)
+            return Response({'data_apos_quatro_dias_uteis': result})
         dias_uteis = {
             'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5),
             'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(3)
