@@ -47,7 +47,7 @@ class RequisicoesExcelService(object):
             return arquivo
 
     @classmethod
-    def exportar_visao_distribuidor(cls, requisicoes):
+    def exportar_visao_distribuidor(cls, requisicoes, is_async=False):
 
         cabecalho = ['Número da Requisição', 'Status da Requisição', 'Quantidade Total de Guias', 'Número da Guia',
                      'Data de Entrega', 'Código CODAE da UE', 'Nome UE', 'Endereço UE', 'Número UE', 'Bairro UE',
@@ -103,10 +103,10 @@ class RequisicoesExcelService(object):
         arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'
 
-        return {'arquivo': arquivo, 'filename': filename}
+        return arquivo if is_async else {'arquivo': arquivo, 'filename': filename}
 
     @classmethod
-    def exportar_visao_dilog(cls, requisicoes):
+    def exportar_visao_dilog(cls, requisicoes, is_async=False):
 
         cabecalho = ['Nome do Distribuidor', 'Número da Requisição', 'Status da Requisição',
                      'Quantidade Total de Guias', 'Número da Guia', 'Data de Entrega', 'Código EOL da UE',
@@ -167,7 +167,7 @@ class RequisicoesExcelService(object):
         arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'
 
-        return {'arquivo': arquivo, 'filename': filename}
+        return arquivo if is_async else {'arquivo': arquivo, 'filename': filename}
 
     @classmethod  # noqa C901
     def cria_aba_insucesso(cls, ws, requisicoes, perfil):
