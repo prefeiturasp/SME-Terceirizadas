@@ -63,16 +63,15 @@ from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 from sme_terceirizadas.logistica.services import arquiva_guias, confirma_cancelamento, confirma_guias, desarquiva_guias
 
+from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA
 from ...escola.models import DiretoriaRegional, Escola
 from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
-from ..tasks import gera_pdf_async
+from ..tasks import gera_pdf_async, gera_xlsx_async
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import (
     retorna_dados_normalizados_excel_entregas_distribuidor,
-    retorna_dados_normalizados_excel_visao_dilog,
-    retorna_dados_normalizados_excel_visao_distribuidor,
     valida_guia_conferencia,
     valida_guia_insucesso
 )
@@ -495,20 +494,18 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         permission_classes=[UsuarioDilogOuDistribuidor])
     def gerar_excel(self, request):
         user = self.request.user
-        queryset = self.filter_queryset(self.get_queryset())
-        if user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
-            requisicoes = retorna_dados_normalizados_excel_visao_distribuidor(queryset)
-            result = RequisicoesExcelService.exportar_visao_distribuidor(requisicoes)
-        else:
-            requisicoes = retorna_dados_normalizados_excel_visao_dilog(queryset)
-            result = RequisicoesExcelService.exportar_visao_dilog(requisicoes)
+        username = user.get_username()
+        ids_requisicoes = list(self.filter_queryset(self.get_queryset().values_list('id', flat=True)))
+        eh_distribuidor = True if user.vinculo_atual.perfil.nome == ADMINISTRADOR_DISTRIBUIDORA else False
 
-        response = HttpResponse(
-            result['arquivo'],
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s' % result['filename']
-        return response
+        gera_xlsx_async.delay(
+            username=username,
+            nome_arquivo='visao-consolidada.xlsx',
+            ids_requisicoes=ids_requisicoes,
+            eh_distribuidor=eh_distribuidor)
+
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=HTTP_200_OK)
 
     @action(
         detail=False, methods=['GET'],
