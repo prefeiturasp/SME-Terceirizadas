@@ -483,7 +483,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         permission_classes=[PermissaoParaListarEntregas])
     def gerar_relaorio_guias_da_requisicao(self, request, uuid=None):
         user = request.user.get_username()
-        solicitacao = self.get_object()
+        solicitacao = SolicitacaoRemessa.objects.get(uuid=uuid)
         tem_conferencia = request.query_params.get('tem_conferencia', 'false')
         tem_insucesso = request.query_params.get('tem_insucesso', 'false')
         tem_conferencia = eh_true_ou_false(tem_conferencia, 'tem_conferencia')
