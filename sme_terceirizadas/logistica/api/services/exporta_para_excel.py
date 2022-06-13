@@ -19,9 +19,28 @@ class RequisicoesExcelService(object):
                             top=Side(border_style='thin', color='24292E'),
                             bottom=Side(border_style='thin', color='24292E'))
 
-    @classmethod  # noqa C901
-    def aplicar_estilo_padrao(cls, ws, count_data, count_fields):
+    @classmethod
+    def aplicar_tamanho_calculado_nas_celulas(cls, ws):
+        # Ajuste automatico do tamanho das colunas
+        for colunas in ws.columns:
+            unmerged_cells = list(
+                filter(lambda cell_to_check: cell_to_check.coordinate not in ws.merged_cells, colunas))
+            length = max(len(str(cell.value)) for cell in unmerged_cells)
+            ws.column_dimensions[unmerged_cells[0].column_letter].width = length * 1.2
 
+    @classmethod
+    def aplicar_estilo_padrao(cls, ws, count_data, count_fields):
+        for linha in range(1, (count_data + 2)):
+            for coluna in range(1, (count_fields + 1)):
+                celula = ws.cell(row=linha, column=coluna)
+                celula.border = cls.DEFAULT_BORDER
+                if linha == 1:
+                    celula.fill = PatternFill(fill_type='solid', fgColor='198459')
+
+        cls.aplicar_tamanho_calculado_nas_celulas(ws)
+
+    @classmethod
+    def aplicar_estilo_visao_distribuidor(cls, ws, count_data, count_fields):
         for linha in range(2, (count_data + 3)):
             for coluna in range(1, (count_fields + 1)):
                 celula = ws.cell(row=linha, column=coluna)
@@ -29,12 +48,7 @@ class RequisicoesExcelService(object):
                 if linha == 2:
                     celula.fill = PatternFill(fill_type='solid', fgColor='198459')
 
-        # Ajuste automatico do tamanho das colunas
-        for colunas in ws.columns:
-            unmerged_cells = list(
-                filter(lambda cell_to_check: cell_to_check.coordinate not in ws.merged_cells, colunas))
-            length = max(len(str(cell.value)) for cell in unmerged_cells)
-            ws.column_dimensions[unmerged_cells[0].column_letter].width = length * 1.2
+        cls.aplicar_tamanho_calculado_nas_celulas(ws)
 
     @classmethod
     def gera_arquivo(cls, wb):
@@ -77,7 +91,7 @@ class RequisicoesExcelService(object):
             ws.cell(row=ind, column=9, value=requisicao['embalagem'])
             ws.cell(row=ind, column=10, value=int(requisicao['guias__alimentos__codigo_suprimento']))
 
-        cls.aplicar_estilo_padrao(ws, count_data, count_fields)
+        cls.aplicar_estilo_visao_distribuidor(ws, count_data, count_fields)
         arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'
 
