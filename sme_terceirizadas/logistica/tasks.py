@@ -165,9 +165,10 @@ def gera_xlsx_async(username, nome_arquivo, ids_requisicoes, eh_distribuidor=Fal
         queryset = SolicitacaoRemessa.objects.filter(id__in=ids_requisicoes)
         if eh_distribuidor:
             requisicoes = retorna_dados_normalizados_excel_visao_distribuidor(queryset)
+            arquivo = RequisicoesExcelService.exportar_visao_distribuidor(requisicoes=requisicoes, is_async=True)
         else:
             requisicoes = retorna_dados_normalizados_excel_visao_dilog(queryset)
-        arquivo = RequisicoesExcelService.exportar_visao_distribuidor(requisicoes=requisicoes, is_async=True)
+            arquivo = RequisicoesExcelService.exportar_visao_dilog(requisicoes=requisicoes, is_async=True)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
