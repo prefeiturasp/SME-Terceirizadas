@@ -482,9 +482,26 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         permission_classes=[PermissaoParaListarEntregas])
     def gerar_relaorio_guias_da_requisicao(self, request, uuid=None):
         user = request.user.get_username()
-        solicitacao = self.get_object()
-        guias = list(solicitacao.guias.all().values_list('id', flat=True))
-        gera_pdf_async.delay(user=user, nome_arquivo='guia_de_remessa.pdf', list_guias=guias)
+        solicitacao = SolicitacaoRemessa.objects.get(uuid=uuid)
+        tem_conferencia = request.query_params.get('tem_conferencia', 'false')
+        tem_insucesso = request.query_params.get('tem_insucesso', 'false')
+        tem_conferencia = eh_true_ou_false(tem_conferencia, 'tem_conferencia')
+        tem_insucesso = eh_true_ou_false(tem_insucesso, 'tem_insucesso')
+        status_guia = request.query_params.getlist('status_guia', None)
+        tem_pendencia_conferencia = True if GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA in status_guia else False
+
+        guias = solicitacao.guias.all()
+        list_guias = list(guias.filter(status__in=status_guia).values_list('id', flat=True))
+
+        if tem_insucesso:
+            guias_filter = list(guias.filter(status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO)
+                                .values_list('id', flat=True))
+            list_guias.extend(guias_filter)
+
+        if not tem_conferencia and not tem_pendencia_conferencia and not tem_insucesso:
+            list_guias = list(guias.values_list('id', flat=True))
+
+        gera_pdf_async.delay(user=user, nome_arquivo='guia_de_remessa.pdf', list_guias=list_guias)
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=HTTP_200_OK)
 
