@@ -104,6 +104,7 @@ class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
     search_fields = ('uuid', 'aluno__codigo_eol', 'aluno__nome')
     readonly_fields = ('aluno',)
     list_filter = ('eh_importado', 'conferido')
+    filter_horizontal = ('alergias_intolerancias',)
     change_list_template = 'dieta_especial/change_list.html'
     inlines = (SubstituicaoAlimentoInline,)
 
