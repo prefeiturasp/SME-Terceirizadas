@@ -69,6 +69,7 @@ class Command(BaseCommand):
             codigo_eol=registro['codigoAluno'],
             data_nascimento=data_nascimento,
             escola=escola,
+            serie=registro['turmaNome']
         )
         return obj_aluno
 
@@ -78,6 +79,7 @@ class Command(BaseCommand):
         aluno.data_nascimento = data_nascimento
         aluno.escola = escola
         aluno.nao_matriculado = False
+        aluno.serie = registro['turmaNome']
         aluno.save()
 
     def _desvincular_matriculas(self, alunos):
