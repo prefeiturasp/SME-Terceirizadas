@@ -49,13 +49,14 @@
     {% endif %}
     <table>
       <tr>
-        <th class="w-25">Data da autorização da Dieta</th>
-        <th class="w-40">Data de término da dieta</th>
-        <th class="w-25" />
+        <th class="w-30">Data da autorização da Dieta</th>
+        <th class="w-30">Data de término da dieta</th>
+        <th class="w-30">Classificação da Dieta Especial</th>
       </tr>
       <tr>
         <td>{{ solicitacao.data_inicio|date:"SHORT_DATE_FORMAT"|default:'Sem data de início' }}</td>
         <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'Sem data de término' }}</td>
+        <td>{{ solicitacao.classificacao }}</td>
       </tr>
     </table>
   </div>
