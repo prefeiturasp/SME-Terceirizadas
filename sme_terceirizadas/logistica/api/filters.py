@@ -4,6 +4,8 @@ import operator
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
+from sme_terceirizadas.terceirizada.models import Terceirizada
+
 from ...dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 
 
@@ -20,6 +22,12 @@ class SolicitacaoFilter(filters.FilterSet):
     nome_distribuidor = filters.CharFilter(
         field_name='distribuidor__nome_fantasia',
         lookup_expr='icontains',
+    )
+    distribuidor = filters.MultipleChoiceFilter(
+        field_name='distribuidor__uuid',
+        choices=[(str(value), value) for value in [
+            distribuidor.uuid for distribuidor in Terceirizada.objects.all().filter(eh_distribuidor=True)
+        ]],
     )
     data_inicial = filters.DateFilter(
         field_name='guias__data_entrega',
@@ -99,6 +107,12 @@ class SolicitacaoAlteracaoFilter(filters.FilterSet):
     nome_distribuidor = filters.CharFilter(
         field_name='requisicao__distribuidor__razao_social',
         lookup_expr='icontains',
+    )
+    distribuidor = filters.MultipleChoiceFilter(
+        field_name='requisicao__distribuidor__uuid',
+        choices=[(str(value), value) for value in [
+            distribuidor.uuid for distribuidor in Terceirizada.objects.all().filter(eh_distribuidor=True)
+        ]],
     )
     data_inicial = filters.DateFilter(
         field_name='requisicao__guias__data_entrega',

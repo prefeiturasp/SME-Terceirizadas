@@ -218,6 +218,19 @@ class SolicitacaoDietaEspecial(
         return self.substituicaoalimento_set.all()
 
     @property
+    def str_dre_lote_escola(self):
+        dre = 'SEM DRE'
+        lote = 'SEM LOTE'
+        escola = 'SEM ESCOLA'
+        if self.escola_destino:
+            escola = f'{self.escola_destino.nome}'
+            if self.escola_destino.diretoria_regional:
+                dre = f'DRE {self.escola_destino.diretoria_regional.nome.split(" ")[-1]}'
+            if self.escola_destino.lote:
+                lote = f'{self.escola_destino.lote.nome}'
+        return f'{dre}  - {lote} - {escola}'
+
+    @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(
             tipo=TemplateMensagem.DIETA_ESPECIAL)

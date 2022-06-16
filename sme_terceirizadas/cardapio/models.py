@@ -199,6 +199,8 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
     desta_semana = InversaoCardapioDestaSemanaManager()
     deste_mes = InversaoCardapioDesteMesManager()
     vencidos = InversaoCardapioVencidaManager()
+    data_de_inversao = models.DateField('Data de inversão', blank=True, null=True)
+    data_para_inversao = models.DateField('Data para inversão', blank=True, null=True)
 
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
@@ -219,11 +221,11 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
 
     @property
     def data_de(self):
-        return self.cardapio_de.data if self.cardapio_de else None
+        return self.cardapio_de.data if self.cardapio_de else self.data_de_inversao or None
 
     @property
     def data_para(self):
-        return self.cardapio_para.data if self.cardapio_para else None
+        return self.cardapio_para.data if self.cardapio_para else self.data_para_inversao or None
 
     @property
     def data(self):
@@ -260,7 +262,9 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
         )
 
     def __str__(self):
-        return f'Inversão de \nDe: {self.cardapio_de} \nPara: {self.cardapio_para}'
+        return (f'Inversão de Cardápio \nDe: {self.cardapio_de or self.data_de_inversao} \n'
+                f'Para: {self.cardapio_para or self.data_para_inversao}'
+                )
 
     class Meta:
         verbose_name = 'Inversão de cardápio'

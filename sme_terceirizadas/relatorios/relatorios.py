@@ -190,7 +190,10 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
                                         'nome_alimento': alimento_guia.nome_alimento,
                                         'arquivo': alimento_conferencia.arquivo
                                     }
-                                    lista_imagens_conferencia.append(imagem)
+                                    lista_filtrada = [a for a in lista_imagens_conferencia
+                                                      if a['nome_alimento'] == alimento_guia.nome_alimento]
+                                    if not lista_filtrada:
+                                        lista_imagens_conferencia.append(imagem)
                                 conferencias_alimento.append(embalagem)
                         alimento_guia.embalagens_conferidas = conferencias_alimento
                 for alimento_reposicao in reposicoes_individuais:
@@ -206,7 +209,10 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
                                         'nome_alimento': alimento_guia.nome_alimento,
                                         'arquivo': alimento_reposicao.arquivo
                                     }
-                                    lista_imagens_reposicao.append(imagem)
+                                    lista_filtrada = [a for a in lista_imagens_reposicao
+                                                      if a['nome_alimento'] == alimento_guia.nome_alimento]
+                                    if not lista_filtrada:
+                                        lista_imagens_reposicao.append(imagem)
                                 reposicoes_alimento.append(embalagem)
                         alimento_guia.embalagens_repostas = reposicoes_alimento
 
@@ -367,13 +373,15 @@ def relatorio_kit_lanche_passeio_cei(request, solicitacao):
 def relatorio_inversao_dia_de_cardapio(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
+    data_de = solicitacao.cardapio_de.data if solicitacao.cardapio_de else solicitacao.data_de_inversao
+    data_para = solicitacao.cardapio_para.data if solicitacao.cardapio_para else solicitacao.data_para_inversao
     html_string = render_to_string(
         'solicitacao_inversao_de_cardapio.html',
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'data_de': solicitacao.cardapio_de.data,
-            'data_para': solicitacao.cardapio_para.data,
+            'data_de': data_de,
+            'data_para': data_para,
             'fluxo': constants.FLUXO_INVERSAO_DIA_CARDAPIO,
             'width': get_width(constants.FLUXO_INVERSAO_DIA_CARDAPIO, solicitacao.logs),
             'logs': formata_logs(logs)

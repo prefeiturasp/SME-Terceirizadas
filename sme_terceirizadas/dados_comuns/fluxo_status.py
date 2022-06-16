@@ -15,10 +15,8 @@ from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
-    ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_TERCEIRIZADA,
-    COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     TIPO_SOLICITACAO_DIETA
 )
@@ -268,20 +266,20 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
         ('distribuidor_confirma_guia', AGUARDANDO_CONFIRMACAO, PENDENTE_DE_CONFERENCIA),
         ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
         ('escola_recebe', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIDA),
         ('escola_nao_recebe', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], NAO_RECEBIDA),
         ('escola_recebe_parcial', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIMENTO_PARCIAL),
         ('escola_recebe_parcial_atraso', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIMENTO_PARCIAL),
         ('reposicao_parcial', [
             NAO_RECEBIDA, RECEBIMENTO_PARCIAL, REPOSICAO_PARCIAL, REPOSICAO_TOTAL], REPOSICAO_PARCIAL),
@@ -464,7 +462,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          CODAE_HOMOLOGADO),
         ('inativa_homologacao',
          [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO,
-          CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO], INATIVA),
+          CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO, TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO], INATIVA),
         ('terceirizada_cancelou_solicitacao_homologacao',
          CODAE_PENDENTE_HOMOLOGACAO, TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO),
         ('terceirizada_responde_analise_sensorial_da_reclamacao',
@@ -1120,9 +1118,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
-    def _partes_interessadas_codae_homologa(self):
+    def _partes_interessadas_codae_homologa_ou_nao_homologa(self):
         # Envia email somente para ESCOLAS selecionadas
-        # e para COORDENADOR_DIETA_ESPECIAL e NUTRI_ADMIN_RESPONSAVEL.
+        # NUTRI_ADMIN_RESPONSAVEL.
         escolas_ids = m.Escola.objects.filter(
             enviar_email_por_produto=True
         ).values_list('id', flat=True)
@@ -1132,16 +1130,26 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         usuarios_escolas_selecionadas = Usuario.objects.filter(
             vinculos__object_id__in=escolas_ids,
             vinculos__content_type=content_type,
+            vinculos__ativo=True
         )
 
         usuarios_vinculos_perfil = Usuario.objects.filter(
+            vinculos__ativo=True,
             vinculos__perfil__nome__in=(
-                'COORDENADOR_DIETA_ESPECIAL',
                 'NUTRI_ADMIN_RESPONSAVEL',
             )
         )
+        usuarios_terceirizada = Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome=ADMINISTRADOR_TERCEIRIZADA
+        )
+        if self.status == self.workflow_class.CODAE_NAO_HOMOLOGADO:
+            usuarios_terceirizada = usuarios_terceirizada.filter(
+                vinculos__content_type__model='terceirizada',
+                vinculos__object_id=self.rastro_terceirizada.id
+            )
 
-        queryset = usuarios_escolas_selecionadas | usuarios_vinculos_perfil
+        queryset = usuarios_escolas_selecionadas | usuarios_vinculos_perfil | usuarios_terceirizada
         return [usuario.email for usuario in queryset]
 
     def _envia_email_codae_homologa(self, log_transicao, link_pdf):
@@ -1156,7 +1164,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
         envia_email_em_massa_task.delay(
             assunto='Produto Homologado com sucesso',
-            emails=self._partes_interessadas_codae_homologa(),
+            emails=self._partes_interessadas_codae_homologa_ou_nao_homologa(),
             corpo='',
             html=html
         )
@@ -1173,10 +1181,22 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
         envia_email_em_massa_task.delay(
             assunto='Produto não homologado',
-            emails=self._partes_interessadas_codae_homologa(),
+            emails=self._partes_interessadas_codae_homologa_ou_nao_homologa(),
             corpo='',
             html=html
         )
+
+    def _partes_interessadas_codae_questiona(self):
+        emails = [self.produto.criado_por.email]
+        emails += [usuario.email for usuario in Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome__in=(
+                ADMINISTRADOR_TERCEIRIZADA,
+            ),
+            vinculos__content_type__model='terceirizada',
+            vinculos__object_id=self.rastro_terceirizada.id
+        )]
+        return list(set(emails))
 
     def _envia_email_codae_questiona(self, log_transicao, link_pdf):
         html = render_to_string(
@@ -1190,7 +1210,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
         envia_email_em_massa_task.delay(
             assunto='Produto Cadastrado Exige Correção',
-            emails=[self.produto.criado_por.email],
+            emails=self._partes_interessadas_codae_questiona(),
             corpo='',
             html=html
         )
@@ -1216,7 +1236,14 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
 
     def _partes_interessadas_codae_pede_analise_sensorial(self):
-        return [self.ultima_analise.terceirizada.vinculos.filter(ativo=True).first().usuario.email]
+        emails = [self.ultima_analise.terceirizada.vinculos.filter(ativo=True).first().usuario.email]
+        emails += [usuario.email for usuario in Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome=ADMINISTRADOR_TERCEIRIZADA,
+            vinculos__content_type__model='terceirizada',
+            vinculos__object_id=self.rastro_terceirizada.id
+        )]
+        return list(set(emails))
 
     def _envia_email_codae_pede_analise_sensorial(self, log_transicao, link_pdf):
         html = render_to_string(
@@ -1907,17 +1934,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
     @property
     def _partes_interessadas_cancelamento(self):
-        """Quando a dre cancela a sua solicitação, a codae deve ser avisados caso tenha chegado neles.
-
-        Será retornada uma lista de emails para envio via celery.
-        """
-        if self.ta_na_codae:
-            # TODO: quando tiver subdepartamento definido, voltar aqui
-            email_query_set_codae = Usuario.objects.filter(
-                vinculos__perfil__nome__in=[COORDENADOR_DIETA_ESPECIAL, ADMINISTRADOR_DIETA_ESPECIAL]).values_list(
-                'usuario__email', flat=False)
-
-            return [email for email in email_query_set_codae]
+        return []
 
     @property
     def _partes_interessadas_codae_autoriza_ou_nega(self):
@@ -1964,7 +1981,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         self.foi_solicitado_fora_do_prazo = self.prioridade in [
             'PRIORITARIO', 'LIMITE']
         user = kwargs['user']
-        assunto, corpo = self.template_mensagem
 
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
@@ -2283,12 +2299,15 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                 anexo=anexo.get('arquivo'),
             )
 
-    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, eh_codae_autoriza_ou_nega):
+    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, transicao):
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
+                          'nome_aluno': self.aluno.nome, 'cod_eol_aluno': self.aluno.codigo_eol,
                           'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
-        if eh_codae_autoriza_ou_nega:
+        if transicao in ['codae_autoriza', 'codae_nega']:
             template = 'fluxo_codae_autoriza_ou_nega_dieta.html'
-            dados_template['acao'] = 'NEGADA' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'AUTORIZADA'
+            dados_template['acao'] = 'negada' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'autorizada'
+        elif transicao == 'cancelar_pedido':
+            template = 'fluxo_dieta_alta_medica.html'
         else:
             template = 'fluxo_autorizar_negar_cancelar.html'
 
@@ -2313,13 +2332,17 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _cancelar_pedido_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs['justificativa']
+        alta_medica = kwargs.get('alta_medica', False)
         assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
         titulo = f'Status de solicitação - "{self.aluno.codigo_eol} - {self.aluno.nome}"'
+        if alta_medica:
+            titulo = self.str_dre_lote_escola
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
                                   usuario=user,
                                   justificativa=justificativa)
         self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_cancela, False)
+                                              self._partes_interessadas_codae_cancela,
+                                              'cancelar_pedido' if alta_medica else None)
 
     @xworkflows.after_transition('negar_cancelamento_pedido')
     def _negar_cancelamento_pedido_hook(self, *args, **kwargs):
@@ -2351,7 +2374,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                   usuario=user)
         self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_autoriza_ou_nega, True)
+                                              self._partes_interessadas_codae_autoriza_ou_nega, 'codae_nega')
 
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
@@ -2368,9 +2391,9 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                                         self._partes_interessadas_codae_autoriza, dieta_origem)
         else:
             assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de Solicitação\n' + self.aluno.codigo_eol + ' ' + self.aluno.nome
+            titulo = self.str_dre_lote_escola
             self._preenche_template_e_envia_email(assunto, titulo, user,
-                                                  self._partes_interessadas_codae_autoriza_ou_nega, True)
+                                                  self._partes_interessadas_codae_autoriza_ou_nega, 'codae_autoriza')
 
     @xworkflows.after_transition('inicia_fluxo_inativacao')
     def _inicia_fluxo_inativacao_hook(self, *args, **kwargs):
@@ -2411,9 +2434,11 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _envia_email_termino(self):
         assunto = f'[SIGPAE] Prazo de fornecimento de dieta encerrado - Solicitação #{self.id_externo}'
         template = 'fluxo_dieta_especial_termina.html'
+        titulo = self.str_dre_lote_escola
         dados_template = {
             'eol_aluno': self.aluno.codigo_eol,
-            'nome_aluno': self.aluno.nome
+            'nome_aluno': self.aluno.nome,
+            'titulo': titulo
         }
         html = render_to_string(template, dados_template)
         envia_email_em_massa_task.delay(

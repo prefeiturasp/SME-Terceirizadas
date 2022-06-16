@@ -192,7 +192,7 @@ class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'diretoria_regional', 'codigo_eol')
+        fields = ('uuid', 'nome', 'diretoria_regional', 'codigo_eol', 'quantidade_alunos')
 
 
 class PeriodoEFaixaEtariaCounterSerializer(serializers.BaseSerializer):

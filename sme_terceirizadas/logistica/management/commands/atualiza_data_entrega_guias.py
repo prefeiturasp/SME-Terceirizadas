@@ -1,5 +1,7 @@
 from datetime import date, timedelta
+
 from django.core.management.base import BaseCommand
+
 from sme_terceirizadas.logistica.models import Guia
 
 
@@ -28,4 +30,3 @@ class Command(BaseCommand):
         print('Fim...')
         print('')
         print('')
-
