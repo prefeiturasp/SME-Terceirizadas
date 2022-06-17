@@ -1,7 +1,12 @@
 import requests
 from rest_framework import status
 
-from ..dados_comuns.constants import DJANGO_NOVO_SGP_API_TOKEN, DJANGO_NOVO_SGP_API_URL
+from ..dados_comuns.constants import (
+    DJANGO_NOVO_SGP_API_LOGIN,
+    DJANGO_NOVO_SGP_API_PASSWORD,
+    DJANGO_NOVO_SGP_API_TOKEN,
+    DJANGO_NOVO_SGP_API_URL
+)
 
 
 class NovoSGPServico:
@@ -32,3 +37,33 @@ class NovoSGPServico:
             return resultado
         else:
             raise Exception(f'Erro: {str(response)}, Status: {response.status_code}')
+
+
+class NovoSGPServicoLogadoException(Exception):
+    pass
+
+
+class NovoSGPServicoLogado:
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    def pegar_token_acesso(self):
+        data = {
+            'login': DJANGO_NOVO_SGP_API_LOGIN,
+            'senha': DJANGO_NOVO_SGP_API_PASSWORD
+        }
+        response = requests.post(f'{DJANGO_NOVO_SGP_API_URL}/v1/autenticacao', json=data, headers=self.headers)
+        return response
+
+    def __init__(self):
+        response = self.pegar_token_acesso()
+        if response.status_code != status.HTTP_200_OK:
+            raise NovoSGPServicoLogadoException("Não foi possível logar no sistema novosgp")
+        self.access_token = f'Bearer {response.json()["token"]}'
+
+    def pegar_foto_aluno(self, codigo_eol_aluno):
+        self.headers['Authorization'] = self.access_token
+        response = requests.get(f'{DJANGO_NOVO_SGP_API_URL}/v1/estudante/{codigo_eol_aluno}/foto', headers=self.headers)
+        return response
+

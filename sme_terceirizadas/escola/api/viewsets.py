@@ -6,6 +6,7 @@ from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveMode
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
+from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DRE,
@@ -440,6 +441,17 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
 
         resposta = True if aluno and aluno.escola == escola else False
         return Response({'pertence_a_escola': resposta})
+
+    @action(detail=True, methods=['GET'], url_path='pegar-foto')
+    def pegar_foto(self, request, codigo_eol):
+        try:
+            novosgpservicologado = NovoSGPServicoLogado()
+            response = novosgpservicologado.pegar_foto_aluno(codigo_eol)
+            if response.status_code == status.HTTP_200_OK:
+                return Response({'data': response.json()}, status=response.status_code)
+            return Response(status=response.status_code)
+        except NovoSGPServicoLogadoException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
