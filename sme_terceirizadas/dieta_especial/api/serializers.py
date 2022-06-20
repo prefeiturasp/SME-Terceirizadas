@@ -246,6 +246,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
         model = SolicitacaoDietaEspecial
         ordering = ('ativo', '-criado_em')
         fields = (
+            'id',
             'uuid',
             'id_externo',
             'criado_em',
@@ -277,7 +278,8 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'observacoes_alteracao',
             'motivo_alteracao_ue',
             'conferido',
-            'eh_importado'
+            'eh_importado',
+            'dieta_alterada'
         )
 
 
