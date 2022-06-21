@@ -289,6 +289,9 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.DO_NOTHING)
     tipo_gestao = models.ForeignKey(TipoGestao, blank=True, null=True, on_delete=models.DO_NOTHING)
     lote = models.ForeignKey('Lote', related_name='escolas', blank=True, null=True, on_delete=models.PROTECT)
+    subprefeitura = models.ForeignKey(
+        'Subprefeitura', related_name='escolas', blank=True, null=True, default=None, on_delete=models.PROTECT
+    )
     contato = models.ForeignKey('dados_comuns.Contato', on_delete=models.SET_DEFAULT,
                                 blank=True, null=True, default=None)
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
@@ -506,8 +509,16 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
 
 
 class Subprefeitura(ExportModelOperationsMixin('subprefeitura'), Nomeavel, TemChaveExterna):
+    AGRUPAMENTO = (
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+    )
+
     diretoria_regional = models.ManyToManyField(DiretoriaRegional, related_name='subprefeituras', blank=True)
     lote = models.ForeignKey('Lote', related_name='subprefeituras', on_delete=models.SET_NULL, null=True, blank=True)
+    agrupamento = models.PositiveSmallIntegerField(choices=AGRUPAMENTO, default=1)
 
     def __str__(self):
         return self.nome
