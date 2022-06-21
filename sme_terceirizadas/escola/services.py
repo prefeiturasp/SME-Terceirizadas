@@ -57,9 +57,10 @@ class NovoSGPServicoLogado:
         return response
 
     def __init__(self):
+        """Retorna um objeto para requisições no novosgp com token de acesso."""
         response = self.pegar_token_acesso()
         if response.status_code != status.HTTP_200_OK:
-            raise NovoSGPServicoLogadoException("Não foi possível logar no sistema novosgp")
+            raise NovoSGPServicoLogadoException('Não foi possível logar no sistema novosgp')
         self.access_token = f'Bearer {response.json()["token"]}'
 
     def pegar_foto_aluno(self, codigo_eol_aluno):
@@ -67,3 +68,19 @@ class NovoSGPServicoLogado:
         response = requests.get(f'{DJANGO_NOVO_SGP_API_URL}/v1/estudante/{codigo_eol_aluno}/foto', headers=self.headers)
         return response
 
+    def atualizar_foto_aluno(self, codigo_eol_aluno, foto):
+        headers = {
+            'Authorization': self.access_token
+        }
+        files = {
+            'File': (foto.name, foto.file, foto.content_type)
+        }
+        response = requests.post(f'{DJANGO_NOVO_SGP_API_URL}/v1/estudante/{codigo_eol_aluno}/foto',
+                                 files=files, headers=headers)
+        return response
+
+    def deletar_foto_aluno(self, codigo_eol_aluno):
+        self.headers['Authorization'] = self.access_token
+        response = requests.delete(f'{DJANGO_NOVO_SGP_API_URL}/v1/estudante/{codigo_eol_aluno}/foto',
+                                   headers=self.headers)
+        return response

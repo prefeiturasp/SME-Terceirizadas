@@ -6,7 +6,6 @@ from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveMode
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
-from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DRE,
@@ -57,6 +56,7 @@ from ..models import (
     TipoGestao,
     TipoUnidadeEscolar
 )
+from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
 from ..utils import EscolaSimplissimaPagination
 from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .serializers import (
@@ -447,6 +447,28 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
         try:
             novosgpservicologado = NovoSGPServicoLogado()
             response = novosgpservicologado.pegar_foto_aluno(codigo_eol)
+            if response.status_code == status.HTTP_200_OK:
+                return Response({'data': response.json()}, status=response.status_code)
+            return Response(status=response.status_code)
+        except NovoSGPServicoLogadoException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['POST'], url_path='atualizar-foto')
+    def atualizar_foto(self, request, codigo_eol):
+        try:
+            novosgpservicologado = NovoSGPServicoLogado()
+            response = novosgpservicologado.atualizar_foto_aluno(codigo_eol, request.FILES['file'])
+            if response.status_code == status.HTTP_200_OK:
+                return Response({'data': response.json()}, status=response.status_code)
+            return Response(status=response.status_code)
+        except NovoSGPServicoLogadoException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['DELETE'], url_path='deletar-foto')
+    def deletar_foto(self, request, codigo_eol):
+        try:
+            novosgpservicologado = NovoSGPServicoLogado()
+            response = novosgpservicologado.deletar_foto_aluno(codigo_eol)
             if response.status_code == status.HTTP_200_OK:
                 return Response({'data': response.json()}, status=response.status_code)
             return Response(status=response.status_code)
