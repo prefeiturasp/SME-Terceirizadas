@@ -4,10 +4,11 @@ import environ
 import requests
 from django.core.management.base import BaseCommand
 from requests import ConnectionError
+from rest_framework import status
 
 from ....dados_comuns.constants import DJANGO_EOL_SGP_API_TOKEN, DJANGO_EOL_SGP_API_URL
 from ....dados_comuns.models import Contato, Endereco
-from ...models import DiretoriaRegional, Escola, TipoUnidadeEscolar
+from ...models import DiretoriaRegional, Escola, Subprefeitura, TipoUnidadeEscolar
 
 env = environ.Env()
 
@@ -58,13 +59,27 @@ class Command(BaseCommand):
             escola = self._atualiza_dados_iniciais_da_escola(dre, escola_dict)
             self._atualiza_dados_contato_e_endereco_da_escola(escola)
 
-    def _atualiza_dados_iniciais_da_escola(
+    def _atualiza_dados_iniciais_da_escola( # noqa C901
         self, dre: DiretoriaRegional, escola_dict: dict
     ):
         codigo_eol_escola = escola_dict['codigoEscola'].strip()
         nome_unidade_educacao = escola_dict['nomeEscola'].strip()
         nome_tipo_escola = escola_dict['siglaTipoEscola'].strip()
         nome_escola = f'{nome_tipo_escola} {nome_unidade_educacao}'
+        subprefeitura = None
+        response = requests.get(
+            f'{DJANGO_EOL_SGP_API_URL}/escolas/{codigo_eol_escola}/subprefeituras',
+            headers=self.headers,
+            timeout=self.timeout,
+        )
+
+        if response.status_code == status.HTTP_200_OK:
+            if len(response.json()) == 1:
+                result = response.json()[0]
+                try:
+                    subprefeitura = Subprefeitura.objects.get(nome=result['nomeSubprefeitura'].strip())
+                except Subprefeitura.DoesNotExist:
+                    pass
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -84,6 +99,7 @@ class Command(BaseCommand):
                 'nome': nome_escola,
                 'diretoria_regional': dre,
                 'tipo_unidade': tipo_unidade,
+                'subprefeitura': subprefeitura,
             },
         )
         msg = (
