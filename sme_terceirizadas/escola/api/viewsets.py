@@ -59,6 +59,7 @@ from ..models import (
 from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
 from ..utils import EscolaSimplissimaPagination
 from .filters import AlunoFilter, DiretoriaRegionalFilter
+from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalSimplissimaSerializer,
@@ -442,33 +443,36 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
         resposta = True if aluno and aluno.escola == escola else False
         return Response({'pertence_a_escola': resposta})
 
-    @action(detail=True, methods=['GET'], url_path='pegar-foto')
-    def pegar_foto(self, request, codigo_eol):
+    @action(detail=True, methods=['GET'], url_path='ver-foto', permission_classes=(PodeVerEditarFotoAlunoNoSGP,))
+    def ver_foto(self, request, codigo_eol):
         try:
             novosgpservicologado = NovoSGPServicoLogado()
-            response = novosgpservicologado.pegar_foto_aluno(codigo_eol)
+            codigo_eol_ = self.get_object().codigo_eol
+            response = novosgpservicologado.pegar_foto_aluno(codigo_eol_)
             if response.status_code == status.HTTP_200_OK:
                 return Response({'data': response.json()}, status=response.status_code)
             return Response(status=response.status_code)
         except NovoSGPServicoLogadoException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['POST'], url_path='atualizar-foto')
+    @action(detail=True, methods=['POST'], url_path='atualizar-foto', permission_classes=(PodeVerEditarFotoAlunoNoSGP,))
     def atualizar_foto(self, request, codigo_eol):
         try:
             novosgpservicologado = NovoSGPServicoLogado()
-            response = novosgpservicologado.atualizar_foto_aluno(codigo_eol, request.FILES['file'])
+            codigo_eol_ = self.get_object().codigo_eol
+            response = novosgpservicologado.atualizar_foto_aluno(codigo_eol_, request.FILES['file'])
             if response.status_code == status.HTTP_200_OK:
                 return Response({'data': response.json()}, status=response.status_code)
             return Response(status=response.status_code)
         except NovoSGPServicoLogadoException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['DELETE'], url_path='deletar-foto')
+    @action(detail=True, methods=['DELETE'], url_path='deletar-foto', permission_classes=(PodeVerEditarFotoAlunoNoSGP,))
     def deletar_foto(self, request, codigo_eol):
         try:
             novosgpservicologado = NovoSGPServicoLogado()
-            response = novosgpservicologado.deletar_foto_aluno(codigo_eol)
+            codigo_eol_ = self.get_object().codigo_eol
+            response = novosgpservicologado.deletar_foto_aluno(codigo_eol_)
             if response.status_code == status.HTTP_200_OK:
                 return Response({'data': response.json()}, status=response.status_code)
             return Response(status=response.status_code)

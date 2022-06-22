@@ -64,6 +64,22 @@ class NovoSGPServicoLogado:
         self.access_token = f'Bearer {response.json()["token"]}'
 
     def pegar_foto_aluno(self, codigo_eol_aluno):
+        """
+        Retorna foto do aluno da api do novosgp.
+
+        Retorna foto do aluno caso ela exista com status 200.
+        Sem retorno com status 204 caso a foto não exista.
+        Exemplo de retorno:
+        {
+            "codigo": "08289b89-0479-4e70-b236-b27fef93f537",
+            "nome": "PngItem_5759580.png",
+            "download": {
+                "item1": "iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAABGdBT...=",
+                "item2": "image/png",
+                "item3": "PngItem_5759580.png"
+            }
+        }
+        """
         self.headers['Authorization'] = self.access_token
         response = requests.get(f'{DJANGO_NOVO_SGP_API_URL}/v1/estudante/{codigo_eol_aluno}/foto', headers=self.headers)
         return response
