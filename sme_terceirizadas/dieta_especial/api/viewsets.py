@@ -26,6 +26,7 @@ from ...dados_comuns.permissions import (
     UsuarioTerceirizada
 )
 from ...escola.models import Aluno, EscolaPeriodoEscolar, Lote
+from ...escola.services import NovoSGPServicoLogado
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...paineis_consolidados.models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
 from ...relatorios.relatorios import (
@@ -933,9 +934,10 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         tem_parametro_page = request.GET.get('page', False)
 
         if tem_parametro_page:
+            novo_sgp_service = NovoSGPServicoLogado()
             self.pagination_class = RelatorioPagination
             page = self.paginate_queryset(queryset)
-            serializer = self.get_serializer(page, many=True)
+            serializer = SolicitacoesAtivasInativasPorAlunoSerializer(page, context={'novo_sgp_service': novo_sgp_service},  many=True)
 
             return self.get_paginated_response({
                 'total_ativas': total_ativas['ativas__sum'],
