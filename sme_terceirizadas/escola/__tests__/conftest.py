@@ -122,6 +122,21 @@ def client_autenticado_coordenador_codae(client, django_user_model):
 
 
 @pytest.fixture
+def client_autenticado_da_escola(client, django_user_model, escola):
+    email = 'user@escola.com'
+    password = 'admin@123'
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456',
+                                                    )
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
 def faixas_etarias_ativas():
     faixas = [
         (0, 1),
@@ -233,3 +248,32 @@ def dia_calendario_nao_letivo(escola):
                       escola=escola,
                       data=datetime.datetime(2021, 9, 25),
                       dia_letivo=False)
+
+
+def mocked_response(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+    return MockResponse(*args, **kwargs)
+
+
+def mocked_token_novosgp():
+    return {
+        'token': 'abc123'
+    }
+
+
+def mocked_foto_aluno_novosgp():
+    return {
+        'codigo': 'a28395ef-74db-48c0-923a-0e86509f9d59',
+        'nome': 'IMG_0106.jpg',
+        'download': {
+            'item1': '/9j/4AAQSkZJRgABAQAAAQABAA==',
+            'item2': 'image/jpeg',
+            'item3': 'IMG_0106.jpg'
+        }
+    }
