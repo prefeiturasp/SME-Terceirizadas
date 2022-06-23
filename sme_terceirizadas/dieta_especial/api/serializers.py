@@ -362,14 +362,15 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     ativas = serializers.IntegerField()
     inativas = serializers.IntegerField()
 
-    def get_foto_aluno(self, obj):
+    def get_foto_aluno(self, obj):  # noqa C901
         novo_sgp_service = self.context.get('novo_sgp_service', '')
         if novo_sgp_service:
             codigo_eol = obj.codigo_eol
             try:
                 response = novo_sgp_service.pegar_foto_aluno(int(codigo_eol))
                 if response.status_code == status.HTTP_200_OK:
-                    string_foto='data:' + response.json()['download']['item2'] + ';base64,' + response.json()['download']['item1']
+                    string_foto = ('data:' + response.json()['download']['item2'] + ';base64,'
+                                   + response.json()['download']['item1'])
                     return string_foto
             except NovoSGPServicoLogadoException:
                 return None

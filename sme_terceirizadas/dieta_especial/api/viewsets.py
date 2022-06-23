@@ -937,7 +937,8 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
             novo_sgp_service = NovoSGPServicoLogado()
             self.pagination_class = RelatorioPagination
             page = self.paginate_queryset(queryset)
-            serializer = SolicitacoesAtivasInativasPorAlunoSerializer(page, context={'novo_sgp_service': novo_sgp_service},  many=True)
+            serializer = SolicitacoesAtivasInativasPorAlunoSerializer(
+                page, context={'novo_sgp_service': novo_sgp_service}, many=True)
 
             return self.get_paginated_response({
                 'total_ativas': total_ativas['ativas__sum'],
