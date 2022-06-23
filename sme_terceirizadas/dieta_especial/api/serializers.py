@@ -2,13 +2,14 @@ from datetime import datetime
 
 import environ
 from drf_base64.serializers import ModelSerializer
-from rest_framework import serializers
+from rest_framework import serializers, status
 
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.utils import update_instance_from_dict
 from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, LoteSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
+from ...escola.services import NovoSGPServicoLogadoException
 from ...produto.api.serializers.serializers import MarcaSimplesSerializer, ProdutoSimplesSerializer
 from ...produto.models import Produto, SolicitacaoCadastroProdutoDieta
 from ..models import (
@@ -353,11 +354,27 @@ class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
 class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     dre = serializers.CharField(source='escola.diretoria_regional.nome')
     escola = serializers.CharField(source='escola.nome')
+    codigo_eol_escola = serializers.CharField(source='escola.codigo_eol')
     codigo_eol = serializers.CharField()
+    foto_aluno = serializers.SerializerMethodField()
     uuid = serializers.CharField()
     nome = serializers.CharField()
     ativas = serializers.IntegerField()
     inativas = serializers.IntegerField()
+
+    def get_foto_aluno(self, obj):  # noqa C901
+        novo_sgp_service = self.context.get('novo_sgp_service', '')
+        if novo_sgp_service:
+            codigo_eol = obj.codigo_eol
+            try:
+                response = novo_sgp_service.pegar_foto_aluno(int(codigo_eol))
+                if response.status_code == status.HTTP_200_OK:
+                    string_foto = ('data:' + response.json()['download']['item2'] + ';base64,'
+                                   + response.json()['download']['item1'])
+                    return string_foto
+            except NovoSGPServicoLogadoException:
+                return None
+        return None
 
 
 class RelatorioQuantitativoSolicDietaEspSerializer(serializers.Serializer):
