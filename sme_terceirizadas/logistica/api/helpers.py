@@ -100,7 +100,8 @@ def retorna_dados_normalizados_excel_visao_distribuidor(queryset):
     ).values(
         'distribuidor__nome_fantasia', 'numero_solicitacao', 'guias__data_entrega', 'guias__alimentos__nome_alimento',
         'guias__codigo_unidade', 'guias__nome_unidade', 'endereco_unidade', 'guias__numero_guia',
-        'guias__alimentos__embalagens__qtd_volume', 'embalagem', 'guias__alimentos__codigo_suprimento'
+        'guias__alimentos__embalagens__qtd_volume', 'embalagem', 'guias__alimentos__codigo_suprimento',
+        'guias__escola__subprefeitura__agrupamento'
     )
 
     return requisicoes

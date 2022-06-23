@@ -64,7 +64,7 @@ class RequisicoesExcelService(object):
     def exportar_visao_distribuidor(cls, requisicoes, is_async=False):
 
         cabecalho = ['Número da Requisição', 'Data de Entrega', 'Alimento', 'Código da Unidade', 'Nome da Unidade',
-                     'Endereço da Unidade', 'Nº Guia Remessa', 'Qtde', 'Embalagem', 'Código SUPRI']
+                     'Endereço da Unidade', 'Nº Guia Remessa', 'Qtde', 'Embalagem', 'Código SUPRI', 'Agrup']
 
         count_fields = len(cabecalho)
         count_data = requisicoes.count()
@@ -90,6 +90,7 @@ class RequisicoesExcelService(object):
             ws.cell(row=ind, column=8, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
             ws.cell(row=ind, column=9, value=requisicao['embalagem'])
             ws.cell(row=ind, column=10, value=int(requisicao['guias__alimentos__codigo_suprimento']))
+            ws.cell(row=ind, column=11, value=requisicao['guias__escola__subprefeitura__agrupamento'])
 
         cls.aplicar_estilo_visao_distribuidor(ws, count_data, count_fields)
         arquivo = cls.gera_arquivo(wb)
