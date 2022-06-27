@@ -103,4 +103,5 @@ class PodeVerEditarFotoAlunoNoSGP(permissions.BasePermission):
             if request.user.vinculo_atual.content_type.model == 'escola':
                 aluno_pertence_a_escola = request.user.vinculo_atual.object_id == obj.escola.id
                 return aluno_pertence_a_escola
+            return True
         return False
