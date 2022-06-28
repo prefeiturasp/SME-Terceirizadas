@@ -8,6 +8,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
+from rest_framework import status
 
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
@@ -40,6 +41,7 @@ from ..inclusao_alimentacao.models import (
     InclusaoAlimentacaoDaCEI
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from .services import NovoSGPServicoLogado
 from .utils import meses_para_mes_e_ano_string
 
 logger = logging.getLogger('sigpae.EscolaModels')
@@ -763,6 +765,17 @@ class Aluno(TemChaveExterna):
     @property
     def possui_dieta_especial_ativa(self):
         return self.dietas_especiais.filter(ativo=True).exists()
+
+    @property
+    def foto_aluno_base64(self):
+        try:
+            novosgpservicologado = NovoSGPServicoLogado()
+            response = novosgpservicologado.pegar_foto_aluno(self.codigo_eol)
+            if response.status_code == status.HTTP_200_OK:
+                download = response.json()['download']
+                return f'data:{download["item2"]};base64,{download["item1"]}'
+        except Exception:
+            return None
 
     def inativar_dieta_especial(self):
         try:
