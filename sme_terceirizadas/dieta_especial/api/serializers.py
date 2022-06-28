@@ -364,8 +364,8 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
 
     def get_foto_aluno(self, obj):  # noqa C901
         novo_sgp_service = self.context.get('novo_sgp_service', '')
-        if novo_sgp_service:
-            codigo_eol = obj.codigo_eol
+        codigo_eol = obj.codigo_eol
+        if novo_sgp_service and codigo_eol is not None:
             try:
                 response = novo_sgp_service.pegar_foto_aluno(int(codigo_eol))
                 if response.status_code == status.HTTP_200_OK:
