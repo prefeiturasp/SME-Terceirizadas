@@ -52,6 +52,7 @@ class EscolaAdmin(admin.ModelAdmin):
         'diretoria_regional',
         'tipo_gestao',
         'tipo_unidade',
+        'subprefeitura',
     )
     ordering = ('codigo_eol', 'nome')
     actions = ('marcar_para_receber_email', 'marcar_para_nao_receber_email')
