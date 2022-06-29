@@ -4,7 +4,6 @@ import environ
 import requests
 from django.core.management.base import BaseCommand
 from requests import ConnectionError
-from rest_framework import status
 
 from ....dados_comuns.constants import DJANGO_EOL_SGP_API_TOKEN, DJANGO_EOL_SGP_API_URL
 from ....dados_comuns.models import Contato, Endereco
@@ -66,20 +65,7 @@ class Command(BaseCommand):
         nome_unidade_educacao = escola_dict['nomeEscola'].strip()
         nome_tipo_escola = escola_dict['siglaTipoEscola'].strip()
         nome_escola = f'{nome_tipo_escola} {nome_unidade_educacao}'
-        subprefeitura = None
-        response = requests.get(
-            f'{DJANGO_EOL_SGP_API_URL}/escolas/{codigo_eol_escola}/subprefeituras',
-            headers=self.headers,
-            timeout=self.timeout,
-        )
-
-        if response.status_code == status.HTTP_200_OK:
-            if len(response.json()) == 1:
-                result = response.json()[0]
-                try:
-                    subprefeitura = Subprefeitura.objects.get(nome=result['nomeSubprefeitura'].strip())
-                except Subprefeitura.DoesNotExist:
-                    pass
+        nome_subprefeitura = escola_dict['nomeSubprefeitura'].strip()
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -92,6 +78,7 @@ class Command(BaseCommand):
         tipo_unidade, _ = TipoUnidadeEscolar.objects.get_or_create(
             iniciais=nome_tipo_escola, defaults={'ativo': True}
         )  # noqa
+        subprefeitura, _ = Subprefeitura.objects.get_or_create(nome=nome_subprefeitura)
 
         escola, _ = Escola.objects.update_or_create(
             codigo_eol=codigo_eol_escola,
