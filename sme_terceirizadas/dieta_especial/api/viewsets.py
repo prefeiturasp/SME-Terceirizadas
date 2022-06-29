@@ -641,7 +641,10 @@ class SolicitacaoDietaEspecialViewSet(
             if data['terceirizada_uuid']:
                 query_set = query_set.filter(rastro_terceirizada=data['terceirizada_uuid'])
             if data['status'] == 'AUTORIZADAS':
-                query_set = query_set.filter(status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO)
+                query_set = query_set.filter(
+                    status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO,
+                    ativo=True
+                )
             elif data['status'] == 'CANCELADAS':
                 query_set = query_set.filter(status__in=[
                     SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
@@ -732,7 +735,10 @@ class SolicitacaoDietaEspecialViewSet(
         self, queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial, data_final):
         if status:
             if status.upper() == 'AUTORIZADAS':
-                queryset = queryset.filter(status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO)
+                queryset = queryset.filter(
+                    status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO,
+                    ativo=True
+                )
             elif status.upper() == 'CANCELADAS':
                 queryset = queryset.filter(status__in=[
                     SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
