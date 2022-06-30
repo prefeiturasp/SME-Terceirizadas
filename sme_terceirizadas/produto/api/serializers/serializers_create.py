@@ -12,7 +12,7 @@ from ...models import (
     EmbalagemProduto,
     EspecificacaoProduto,
     Fabricante,
-    HomologacaoDoProduto,
+    HomologacaoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
@@ -107,6 +107,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         cadastro_finalizado = validated_data.pop('cadastro_finalizado', False)
         especificacoes_produto = validated_data.pop('especificacoes', [])
 
+        # duplicidade de produtos por causa da linha 112
         produto = Produto.objects.create(**validated_data)
 
         for imagem in imagens:
@@ -131,10 +132,10 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
                 embalagem_produto=especificacao.get('embalagem_produto', '')
             )
 
-        if produto.homologacoes.exists():
-            homologacao = produto.homologacoes.first()
-        else:
-            homologacao = HomologacaoDoProduto(
+        try:
+            homologacao = produto.homologacao
+        except HomologacaoProduto.DoesNotExist:
+            homologacao = HomologacaoProduto(
                 rastro_terceirizada=self.context['request'].user.vinculo_atual.instituicao,
                 produto=produto,
                 criado_por=self.context['request'].user
@@ -182,19 +183,14 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
                 embalagem_produto=especificacao.get('embalagem_produto', '')
             )
 
+        status_validos = ['CODAE_NAO_HOMOLOGADO',
+                          'CODAE_SUSPENDEU',
+                          'TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO',
+                          'CODAE_QUESTIONADO']
+
         usuario = self.context['request'].user
-        if validated_data.get('cadastro_atualizado', False):
-            ultima_homologacao = instance.homologacoes.first()
-            ultima_homologacao.inativa_homologacao(user=usuario)
-            homologacao = HomologacaoDoProduto(
-                rastro_terceirizada=usuario.vinculo_atual.instituicao,
-                produto=instance,
-                criado_por=usuario
-            )
-            homologacao.save()
-            homologacao.inicia_fluxo(user=usuario, justificativa=justificativa)
-        if validated_data.get('cadastro_finalizado', False):
-            homologacao = instance.homologacoes.first()
+        if validated_data.get('cadastro_finalizado', False) or instance.homologacao.status in status_validos:
+            homologacao = instance.homologacao
             homologacao.inicia_fluxo(user=usuario, justificativa=justificativa)
         return instance
 
@@ -237,10 +233,10 @@ class ReclamacaoDeProdutoSerializerCreate(serializers.ModelSerializer):
 
 
 class RespostaAnaliseSensorialSearilzerCreate(serializers.ModelSerializer):
-    homologacao_de_produto = serializers.SlugRelatedField(
+    homologacao_produto = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
-        queryset=HomologacaoDoProduto.objects.all()
+        queryset=HomologacaoProduto.objects.all()
     )
     data = serializers.DateField()
     hora = serializers.TimeField()
