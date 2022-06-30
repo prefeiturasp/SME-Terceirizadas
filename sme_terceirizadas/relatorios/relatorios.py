@@ -413,7 +413,7 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
 
 
 def relatorio_produto_homologacao(request, produto):
-    homologacao = produto.homologacoes.first()
+    homologacao = produto.homologacao
     terceirizada = homologacao.rastro_terceirizada
     reclamacao = homologacao.reclamacoes.filter(
         status=ReclamacaoProdutoWorkflow.CODAE_ACEITOU).first()
@@ -522,7 +522,7 @@ def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
 
 
 def relatorio_produto_analise_sensorial(request, produto):
-    homologacao = produto.homologacoes.first()
+    homologacao = produto.homologacao
     terceirizada = homologacao.rastro_terceirizada
     logs = homologacao.logs
     lotes = terceirizada.lotes.all()
@@ -567,7 +567,7 @@ def relatorio_produtos_situacao(request, queryset, filtros):
 
 
 def relatorio_produto_analise_sensorial_recebimento(request, produto):
-    homologacao = produto.homologacoes.first()
+    homologacao = produto.homologacao
     terceirizada = homologacao.rastro_terceirizada
     logs = homologacao.logs
     lotes = terceirizada.lotes.all()
