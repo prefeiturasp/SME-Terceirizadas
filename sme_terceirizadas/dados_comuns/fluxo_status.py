@@ -402,6 +402,10 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo',
          [RASCUNHO,
+          CODAE_NAO_HOMOLOGADO,
+          CODAE_SUSPENDEU,
+          TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO,
+          CODAE_QUESTIONADO,
           CODAE_AUTORIZOU_RECLAMACAO,
           CODAE_CANCELOU_ANALISE_SENSORIAL], CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL,
@@ -415,6 +419,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_pede_analise_sensorial',
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
+          UE_RESPONDEU_QUESTIONAMENTO,
+          NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
           CODAE_PENDENTE_HOMOLOGACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
@@ -452,6 +458,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          UE_RESPONDEU_QUESTIONAMENTO,
+          NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
           CODAE_PEDIU_ANALISE_SENSORIAL],
          CODAE_AUTORIZOU_RECLAMACAO),
         ('codae_recusou_reclamacao',
@@ -1279,8 +1287,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 'log_transicao': log_transicao,
             }
         )
-        usuarios_selecionados = self._partes_interessadas_codae_homologa()
-        emails = self._partes_interessadas_codae_ativa_ou_suspende() + usuarios_selecionados  # noqa
+        emails = self._partes_interessadas_codae_ativa_ou_suspende()
         envia_email_em_massa_task.delay(
             assunto=assunto,
             emails=emails,
