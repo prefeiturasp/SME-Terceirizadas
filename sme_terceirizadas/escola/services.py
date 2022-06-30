@@ -1,7 +1,12 @@
 import requests
 from rest_framework import status
 
-from ..dados_comuns.constants import DJANGO_NOVO_SGP_API_TOKEN, DJANGO_NOVO_SGP_API_URL
+from ..dados_comuns.constants import (
+    DJANGO_NOVO_SGP_API_LOGIN,
+    DJANGO_NOVO_SGP_API_PASSWORD,
+    DJANGO_NOVO_SGP_API_TOKEN,
+    DJANGO_NOVO_SGP_API_URL
+)
 
 
 class NovoSGPServico:
@@ -32,3 +37,66 @@ class NovoSGPServico:
             return resultado
         else:
             raise Exception(f'Erro: {str(response)}, Status: {response.status_code}')
+
+
+class NovoSGPServicoLogadoException(Exception):
+    pass
+
+
+class NovoSGPServicoLogado:
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    def pegar_token_acesso(self):
+        data = {
+            'login': DJANGO_NOVO_SGP_API_LOGIN,
+            'senha': DJANGO_NOVO_SGP_API_PASSWORD
+        }
+        response = requests.post(f'{DJANGO_NOVO_SGP_API_URL}/v1/autenticacao', json=data, headers=self.headers)
+        return response
+
+    def __init__(self):
+        """Retorna um objeto para requisições no novosgp com token de acesso."""
+        response = self.pegar_token_acesso()
+        if response.status_code != status.HTTP_200_OK:
+            raise NovoSGPServicoLogadoException('Não foi possível logar no sistema novosgp')
+        self.access_token = f'Bearer {response.json()["token"]}'
+
+    def pegar_foto_aluno(self, codigo_eol_aluno):
+        """
+        Retorna foto do aluno da api do novosgp.
+
+        Retorna foto do aluno caso ela exista com status 200.
+        Sem retorno com status 204 caso a foto não exista.
+        Exemplo de retorno:
+        {
+            "codigo": "08289b89-0479-4e70-b236-b27fef93f537",
+            "nome": "PngItem_5759580.png",
+            "download": {
+                "item1": "iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAABGdBT...=",
+                "item2": "image/png",
+                "item3": "PngItem_5759580.png"
+            }
+        }
+        """
+        self.headers['Authorization'] = self.access_token
+        response = requests.get(f'{DJANGO_NOVO_SGP_API_URL}/v1/estudante/{codigo_eol_aluno}/foto', headers=self.headers)
+        return response
+
+    def atualizar_foto_aluno(self, codigo_eol_aluno, foto):
+        headers = {
+            'Authorization': self.access_token
+        }
+        files = {
+            'File': (foto.name, foto.file, foto.content_type)
+        }
+        response = requests.post(f'{DJANGO_NOVO_SGP_API_URL}/v1/estudante/{codigo_eol_aluno}/foto',
+                                 files=files, headers=headers)
+        return response
+
+    def deletar_foto_aluno(self, codigo_eol_aluno):
+        self.headers['Authorization'] = self.access_token
+        response = requests.delete(f'{DJANGO_NOVO_SGP_API_URL}/v1/estudante/{codigo_eol_aluno}/foto',
+                                   headers=self.headers)
+        return response

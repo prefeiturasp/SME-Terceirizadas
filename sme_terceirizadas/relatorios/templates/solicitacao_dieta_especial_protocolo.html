@@ -7,39 +7,50 @@
 <link rel="stylesheet" href="{% sass_src 'css/dieta_especial_protocolo.scss' %}" type="text/css">
 <div class="conteudo dieta-especial-protocolo">
   <div class="tabela-dados-solicitacao">
-    <table>
-      <thead>
-        <tr>
-          {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
-          <th class="w-25">CPF do Aluno</th>
-          {% else %}
-          <th class="w-25">Cód. EOL do Aluno</th>
-          {% endif %}
-          <th class="w-40">Nome Completo do Aluno</th>
-          <th class="w-25">Data de Nascimento</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
-          <td>{{ solicitacao.aluno.cpf|default:'' }}</td>
-          {% else %}
-          <td>{{ solicitacao.aluno.codigo_eol|default:'' }}</td>
-          {% endif %}
-          <td>{{ solicitacao.aluno.nome }}</td>
-          <td>{{ solicitacao.aluno.data_nascimento|date:"SHORT_DATE_FORMAT" }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="row">
+        <div class="col-2 ml-4 mt-4">
+          {% if foto_aluno %}
+          <img src={{ foto_aluno }} alt="foto aluno" />
+        {% else %}
+          <img src="{% static 'images/avatar.png' %}" alt="avatar aluno sem foto" />
+        {% endif %}
+        </div>
+        <div class="col-9">
+          <table>
+            <tr style="height: 2em">
+              {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO'%}
+                <th class="w-25">CPF do Aluno</th>
+              {%else%}
+                <th class="w-25">Cód. EOL do Aluno</th>
+              {%endif%}
+            </tr>
+            <tr style="height: 2em">
+              {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO'%}
+                <td>{{ solicitacao.aluno.cpf|default:'' }}</td>
+              {%else%}
+                <td>{{ solicitacao.aluno.codigo_eol }}</td>
+              {%endif%}
+            </tr>
+            <tr style="height: 3em">
+              <th style="height: 2em" class="w-25">Nome completo do Aluno</th>
+              <th class="w-25">Data de nascimento</th>
+            </tr>
+            <tr style="height: 2em">
+                <td>{{ solicitacao.aluno.nome }}</td>
+                <td>{{ solicitacao.aluno.data_nascimento|date:"SHORT_DATE_FORMAT" }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
     {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
     <table>
-      <tr>
+      <tr style="height: 2em">
         <th class="w-25">CPF do Responsável</th>
         <th class="w-40">Nome completo do Responsável</th>
         <th class="w-25" />
       </tr>
       {%with responsavel=solicitacao.aluno.responsaveis.first %}
-      <tr>
+      <tr style="height: 2em">
         <td>{{ responsavel.cpf|default:'' }}</td>
         <td>{{ responsavel.nome }}</td>
       </tr>
@@ -47,15 +58,16 @@
       {% endwith %}
     </table>
     {% endif %}
-    <table>
-      <tr>
-        <th class="w-25">Data da autorização da Dieta</th>
-        <th class="w-40">Data de término da dieta</th>
-        <th class="w-25" />
+    <table style="margin-top: 0">
+      <tr style="height: 2em">
+        <th class="w-30">Data da autorização da Dieta</th>
+        <th class="w-30">Data de término da dieta</th>
+        <th class="w-30">Classificação da Dieta Especial</th>
       </tr>
-      <tr>
+      <tr style="height: 2em">
         <td>{{ solicitacao.data_inicio|date:"SHORT_DATE_FORMAT"|default:'Sem data de início' }}</td>
         <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'Sem data de término' }}</td>
+        <td>{{ solicitacao.classificacao }}</td>
       </tr>
     </table>
   </div>

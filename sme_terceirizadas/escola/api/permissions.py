@@ -93,3 +93,15 @@ class PodeCriarAdministradoresDaCODAESupervisaoNutricao(permissions.BasePermissi
             )
             return perfil_coordenador_gestao_alimentacao
         return False
+
+
+class PodeVerEditarFotoAlunoNoSGP(permissions.BasePermission):
+    message = 'O seu perfil não tem permissão de ver/atualizar/excluir a foto do aluno no SGP'
+
+    def has_object_permission(self, request, view, obj):
+        if request.user and obj.escola:
+            if request.user.vinculo_atual.content_type.model == 'escola':
+                aluno_pertence_a_escola = request.user.vinculo_atual.object_id == obj.escola.id
+                return aluno_pertence_a_escola
+            return True
+        return False

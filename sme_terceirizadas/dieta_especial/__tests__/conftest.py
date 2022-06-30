@@ -165,6 +165,7 @@ def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_die
         password=password, email=email, registro_funcional=rf)
     client.login(email=email, password=password)
 
+    mommy.make(AlergiaIntolerancia, id=1)
     perfil_professor = mommy.make(
         'perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
@@ -174,6 +175,7 @@ def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_die
                        codigo_eol='123456', data_nascimento='2000-01-01')
     solic = mommy.make(SolicitacaoDietaEspecial,
                        rastro_escola=escola,
+                       rastro_terceirizada=escola.lote.terceirizada,
                        aluno=aluno,
                        criado_por=user)
     solic.inicia_fluxo(user=user)
@@ -246,7 +248,7 @@ def template_mensagem_dieta_especial():
 
 @pytest.fixture
 def escola():
-    terceirizada = mommy.make('Terceirizada')
+    terceirizada = mommy.make('Terceirizada', uuid='a8fefdd3-b5ff-47e0-8338-ce5d7c6d8a52')
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make(
         'DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')

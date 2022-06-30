@@ -9,7 +9,7 @@ from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
-from rest_framework import generics, mixins, serializers
+from rest_framework import generics, mixins, serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -26,6 +26,7 @@ from ...dados_comuns.permissions import (
     UsuarioTerceirizada
 )
 from ...escola.models import Aluno, EscolaPeriodoEscolar, Lote
+from ...escola.services import NovoSGPServicoLogado
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...paineis_consolidados.models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
 from ...relatorios.relatorios import (
@@ -609,45 +610,54 @@ class SolicitacaoDietaEspecialViewSet(
 
     @action(detail=False, methods=['POST'], url_path='imprime-relatorio-dieta-especial')  # noqa C901
     def imprime_relatorio_dieta_especial(self, request):
-        form = RelatorioDietaForm(self.request.data)
-        if not form.is_valid():
-            raise ValidationError(form.errors)
-        queryset = self.filter_queryset(self.get_queryset())
-        data = form.cleaned_data
-        filtros = {}
-        if data['escola']:
-            filtros['rastro_escola__uuid__in'] = [
-                escola.uuid for escola in data['escola']]
-        if data['diagnostico']:
-            filtros['alergias_intolerancias__id__in'] = [
-                disgnostico.id for disgnostico in data['diagnostico']]
+        try:
+            form = RelatorioDietaForm(self.request.data)
+            if not form.is_valid():
+                raise ValidationError(form.errors)
+            queryset = self.filter_queryset(self.get_queryset())
+            data = form.cleaned_data
+            filtros = {}
+            if data['escola']:
+                filtros['rastro_escola__uuid__in'] = [
+                    escola.uuid for escola in data['escola']]
+            if data['diagnostico']:
+                filtros['alergias_intolerancias__id__in'] = [
+                    disgnostico.id for disgnostico in data['diagnostico']]
 
-        user = self.request.user
-        return relatorio_geral_dieta_especial(form, queryset.filter(**filtros), user)  # noqa
+            user = self.request.user
+            return relatorio_geral_dieta_especial(form, queryset.filter(**filtros), user)  # noqa
+        except ValidationError as error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial-terceirizada')  # noqa C901
-    def relatorio_dieta_especial_terceirizada(self, request, uuid=None):
-        query_set = self.get_queryset()
-        form = RelatorioDietaTerceirizadaForm(self.request.data)
-        if not form.is_valid():
-            raise ValidationError(form.errors)
+    def relatorio_dieta_especial_terceirizada(self, request):
+        try:
+            query_set = self.get_queryset()
+            form = RelatorioDietaTerceirizadaForm(self.request.data)
+            if not form.is_valid():
+                raise ValidationError(form.errors)
 
-        data = form.cleaned_data
-        if (data['terceirizada_uuid']):
-            query_set = query_set.filter(rastro_terceirizada=data['terceirizada_uuid'])
-        if (data['status'].upper() == 'AUTORIZADAS'):
-            qs = query_set.filter(status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO)
-        if (data['status'].upper() == 'CANCELADAS'):
-            qs = query_set.filter(status__in=[
-                SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
-                SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZOU_INATIVACAO,
-                SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
-                SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-            ])
+            data = form.cleaned_data
+            if data['terceirizada_uuid']:
+                query_set = query_set.filter(rastro_terceirizada=data['terceirizada_uuid'])
+            if data['status'] == 'AUTORIZADAS':
+                query_set = query_set.filter(
+                    status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO,
+                    ativo=True
+                )
+            elif data['status'] == 'CANCELADAS':
+                query_set = query_set.filter(status__in=[
+                    SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
+                    SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZOU_INATIVACAO,
+                    SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
+                    SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+                ])
 
-        serializer = self.get_serializer(qs, many=True)
+            serializer = self.get_serializer(query_set, many=True)
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        except ValidationError as error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['POST'], url_path='panorama-escola')
     def panorama_escola(self, request):
@@ -725,7 +735,10 @@ class SolicitacaoDietaEspecialViewSet(
         self, queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial, data_final):
         if status:
             if status.upper() == 'AUTORIZADAS':
-                queryset = queryset.filter(status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO)
+                queryset = queryset.filter(
+                    status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO,
+                    ativo=True
+                )
             elif status.upper() == 'CANCELADAS':
                 queryset = queryset.filter(status__in=[
                     SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
@@ -933,9 +946,11 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         tem_parametro_page = request.GET.get('page', False)
 
         if tem_parametro_page:
+            novo_sgp_service = NovoSGPServicoLogado()
             self.pagination_class = RelatorioPagination
             page = self.paginate_queryset(queryset)
-            serializer = self.get_serializer(page, many=True)
+            serializer = SolicitacoesAtivasInativasPorAlunoSerializer(
+                page, context={'novo_sgp_service': novo_sgp_service}, many=True)
 
             return self.get_paginated_response({
                 'total_ativas': total_ativas['ativas__sum'],

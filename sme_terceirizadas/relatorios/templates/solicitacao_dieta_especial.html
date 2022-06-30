@@ -16,28 +16,42 @@
   {% include "bloco_fluxo_status_homologacao.html" with eh_importado=solicitacao.eh_importado %}
     {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <div class="bloco-pescritor-dieta-especial">
-      <h5>Descrição da solicitação</h5>
-      <table>
-        <tr>
-          {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO'%}
-            <th class="w-25">CPF do Aluno</th>
-          {%else%}
-            <th class="w-25">Cód. EOL do Aluno</th>
-          {%endif%}
-          <th class="w-50">Nome completo do Aluno</th>
-          <th class="w-25">Data de nascimento</th>
-        </tr>
-        <tr>
-          {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO'%}
-            <td>{{ solicitacao.aluno.cpf|default:'' }}</td>
-          {%else%}
-            <td>{{ solicitacao.aluno.codigo_eol }}</td>
-          {%endif%}
-            <td>{{ solicitacao.aluno.nome }}</td>
-            <td>{{ solicitacao.aluno.data_nascimento }}</td>
-        </tr>
-      </table>
-      <hr/>
+      <div class="row">
+        <div class="col-2">
+          {% if foto_aluno %}
+          <img src={{ foto_aluno }} alt="foto aluno" />
+        {% else %}
+          <img src="{% static 'images/avatar.png' %}" alt="avatar aluno sem foto" />
+        {% endif %}
+        </div>
+        <div class="col-10">
+          <table>
+            <tr>
+              {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO'%}
+                <th class="w-25">CPF do Aluno</th>
+              {%else%}
+                <th class="w-25">Cód. EOL do Aluno</th>
+              {%endif%}
+            </tr>
+            <tr>
+              {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO'%}
+                <td>{{ solicitacao.aluno.cpf|default:'' }}</td>
+              {%else%}
+                <td>{{ solicitacao.aluno.codigo_eol }}</td>
+              {%endif%}
+            </tr>
+            <tr>
+              <th class="w-25">Nome completo do Aluno</th>
+              <th class="w-25">Data de nascimento</th>
+            </tr>
+            <tr>
+                <td>{{ solicitacao.aluno.nome }}</td>
+                <td>{{ solicitacao.aluno.data_nascimento }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <hr />
     </div>
 
     {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}

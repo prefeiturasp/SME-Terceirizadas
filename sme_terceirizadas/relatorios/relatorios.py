@@ -138,7 +138,8 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             'fluxo': fluxo,
             'width': get_width(fluxo, solicitacao.logs),
             'logs': formata_logs(logs),
-            'eh_importado': eh_importado
+            'eh_importado': eh_importado,
+            'foto_aluno': solicitacao.aluno.foto_aluno_base64
         }
     )
     return html_string
@@ -268,7 +269,8 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
             'solicitacao': solicitacao,
             'substituicoes': substituicao_ordenada,
             'data_termino': solicitacao.data_termino,
-            'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
+            'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU),
+            'foto_aluno': solicitacao.aluno.foto_aluno_base64
         }
     )
     if request:
