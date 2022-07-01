@@ -91,7 +91,7 @@ def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_mode
     mommy.make('Vinculo', usuario=user, instituicao=tecerizada, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
     produto = mommy.make('Produto', criado_por=user)
-    homologacao_produto = mommy.make('HomologacaoDoProduto',
+    homologacao_produto = mommy.make('HomologacaoProduto',
                                      produto=produto,
                                      rastro_terceirizada=escola.lote.terceirizada,
                                      criado_por=user,
@@ -99,17 +99,8 @@ def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_mode
                                      uuid='774ad907-d871-4bfd-b1aa-d4e0ecb6c01f')
     homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL
     homologacao_produto.save()
-
-    homologacao_produto1 = mommy.make('HomologacaoDoProduto',
-                                      produto=produto,
-                                      rastro_terceirizada=escola.lote.terceirizada,
-                                      criado_por=user,
-                                      criado_em=datetime.datetime.utcnow(),
-                                      uuid='774ad907-d871-4bfd-b1aa-d4e0ecb6c05a')
-    homologacao_produto1.status = HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
-    homologacao_produto1.save()
     client.login(email=email, password=password)
-    return client, homologacao_produto, homologacao_produto1
+    return client, homologacao_produto
 
 
 @pytest.fixture
@@ -187,7 +178,7 @@ def produto(user, protocolo1, protocolo2, marca1, fabricante):
 
 @pytest.fixture
 def homologacoes_produto(produto, terceirizada):
-    hom = mommy.make('HomologacaoDoProduto',
+    hom = mommy.make('HomologacaoProduto',
                      produto=produto,
                      rastro_terceirizada=terceirizada,
                      status=HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO)
@@ -368,7 +359,7 @@ def homologacao_produto(escola, template_homologacao_produto, user, produto):
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_admin_terceirizada,
                data_inicial=hoje, ativo=True)
-    homologacao_produto = mommy.make('HomologacaoDoProduto',
+    homologacao_produto = mommy.make('HomologacaoProduto',
                                      produto=produto,
                                      rastro_terceirizada=escola.lote.terceirizada,
                                      criado_por=user,
@@ -406,7 +397,7 @@ def homologacao_produto_escola_ou_nutri_reclamou(homologacao_produto):
 @pytest.fixture
 def reclamacao(homologacao_produto_escola_ou_nutri_reclamou, escola, user):
     reclamacao = mommy.make('ReclamacaoDeProduto',
-                            homologacao_de_produto=homologacao_produto_escola_ou_nutri_reclamou,
+                            homologacao_produto=homologacao_produto_escola_ou_nutri_reclamou,
                             escola=escola,
                             reclamante_registro_funcional='23456789',
                             reclamante_cargo='Cargo',
@@ -440,7 +431,7 @@ def homologacao_produto_rascunho(homologacao_produto):
 @pytest.fixture
 def reclamacao_ue(homologacao_produto_gpcodae_questionou_escola, escola, user):
     reclamacao = mommy.make('ReclamacaoDeProduto',
-                            homologacao_de_produto=homologacao_produto_gpcodae_questionou_escola,
+                            homologacao_produto=homologacao_produto_gpcodae_questionou_escola,
                             escola=escola,
                             reclamante_registro_funcional='23456788',
                             reclamante_cargo='Cargo',
@@ -454,7 +445,7 @@ def reclamacao_ue(homologacao_produto_gpcodae_questionou_escola, escola, user):
 @pytest.fixture
 def reclamacao_nutrisupervisor(homologacao_produto_gpcodae_questionou_nutrisupervisor, escola, user):
     reclamacao = mommy.make('ReclamacaoDeProduto',
-                            homologacao_de_produto=homologacao_produto_gpcodae_questionou_nutrisupervisor,
+                            homologacao_produto=homologacao_produto_gpcodae_questionou_nutrisupervisor,
                             escola=escola,
                             reclamante_registro_funcional='8888888',
                             reclamante_cargo='Cargo',
