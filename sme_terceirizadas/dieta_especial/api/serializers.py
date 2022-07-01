@@ -357,6 +357,7 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     codigo_eol_escola = serializers.CharField(source='escola.codigo_eol')
     codigo_eol = serializers.CharField()
     foto_aluno = serializers.SerializerMethodField()
+    classificacao_dieta_ativa = serializers.SerializerMethodField()
     uuid = serializers.CharField()
     nome = serializers.CharField()
     ativas = serializers.IntegerField()
@@ -374,6 +375,12 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
                     return string_foto
             except NovoSGPServicoLogadoException:
                 return None
+        return None
+
+    def get_classificacao_dieta_ativa(self, obj):
+        qs_dieta_ativa = obj.dietas_especiais.filter(ativo=True)
+        if qs_dieta_ativa.exists():
+            return qs_dieta_ativa.first().classificacao.nome
         return None
 
 
