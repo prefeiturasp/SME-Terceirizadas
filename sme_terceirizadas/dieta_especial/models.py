@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.contrib.postgres import fields
@@ -257,6 +259,10 @@ class SolicitacaoDietaEspecial(
             uuid_original=self.uuid,
             justificativa=justificativa
         )
+
+    @property
+    def data_ultimo_log(self):
+        return datetime.strftime(self.logs.last().criado_em, '%d/%m/%Y') if self.logs else None
 
     class Meta:
         ordering = ('-ativo', '-criado_em')
