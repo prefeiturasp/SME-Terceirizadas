@@ -29,9 +29,9 @@ def test_cria_filtro_produto_por_parametros_form_parametros():
         'nome_fabricante': 'fabricante__nome__unaccent__icontains',
         'nome_marca': 'marca__nome__unaccent__icontains',
         'nome_produto': 'nome__unaccent__icontains',
-        'nome_terceirizada': 'homologacoes__rastro_terceirizada__nome_fantasia__icontains',
-        'data_inicial': 'homologacoes__criado_em__gte',
-        'status': 'homologacoes__status__in',
+        'nome_terceirizada': 'homologacao__rastro_terceirizada__nome_fantasia__icontains',
+        'data_inicial': 'homologacao__criado_em__gte',
+        'status': 'homologacao__status__in',
         'tem_aditivos_alergenicos': 'tem_aditivos_alergenicos',
         'eh_para_alunos_com_dieta': 'eh_para_alunos_com_dieta'
     }
@@ -49,7 +49,7 @@ def test_cria_filtro_produto_por_parametros_form_data_final():
     campos_filtrados = cria_filtro_produto_por_parametros_form({
         'data_final': data
     })
-    assert campos_filtrados['homologacoes__criado_em__lt'] == date(2020, 5, 1)
+    assert campos_filtrados['homologacao__criado_em__lt'] == date(2020, 5, 1)
 
 
 def test_get_filtros_data_em_analise_sensorial_sem_data_final():
