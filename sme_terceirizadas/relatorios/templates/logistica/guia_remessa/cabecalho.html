@@ -4,23 +4,42 @@
 
 <html>
 <body>
-<header class="header green-header">
-		<section class="titulo-e-logo"> <img src="{% static 'images/LOGO_FUNDO_CLARO.png' %}" alt="" />
-			<h1 class="titulo-branco">SIGPAE - Sistema de Gestão do Programa de Alimentação Escolar</h1> </section>
-		<div class="info mt-3 border border-dark">
-			<div class="row border-bottom border-dark">
-				<div class="col pt-2 pb-2 border-right border-dark"> <b>Nº Guia de Remessa</b>: {{page.numero_guia}} </div>
-				<div class="col pt-2 pb-2"> <b>Data de Entrega:</b> {{page.data_entrega|date:"d/m/Y"}} </div>
+<header class="header">
+		<section class="titulo-e-logo flex-between">
+      <img src="{% static 'images/LOGO_FUNDO_CLARO.png' %}" alt="" />
+			<h1 class="titulo">SIGPAE - Sistema de Gestão do Programa de Alimentação Escolar</h1>
+      <div class="paginacao">
+        <p>Página</p>
+        <p class="paginador"></p>
+      </div>
+    </section>
+    <div class="info mt-2 border border-dark">
+			<div class="row">
+				<div class="col pt-2 pb-2 grow-2"> Nº Guia de Remessa: </div>
+				<div class="col pt-2 pb-2 grow-5"> Nome da Unidade: </div>
+        <div class="col pt-2 pb-2 grow-2"> Data de Entrega: </div>
 			</div>
-			<div class="row border-bottom border-dark">
-				<div class="col pt-2 pb-2 border-right border-dark"> <b>Nome da Unidade:</b> {{page.codigo_unidade}} - {{page.nome_unidade}} </div>
-				<div class="col pt-2 pb-2"> <b>Endereço:</b> {{page.endereco_unidade}}, {{page.numero_unidade}} - {{page.bairro_unidade}}, CEP: {{page.cep_unidade}} - {{page.cidade_unidade}} - {{page.estado_unidade}} </div>
-			</div>
-			<div class="row border-dark">
-				<div class="col pt-2 pb-2 border-right border-dark"> <b>Contato de entrega:</b> {{page.contato_unidade}} </div>
-				<div class="col pt-2 pb-2"> <b>Telefone:</b> {{page.telefone_unidade}} </div>
+			<div class="row green-important-text">
+				<div class="col pb-2 grow-2"> {{page.numero_guia}} </div>
+				<div class="col pb-2 grow-5"> {{page.codigo_unidade}} - {{page.nome_unidade}} </div>
+        <div class="col pb-2 grow-2"> {{page.data_entrega|date:"d/m/Y"}} </div>
 			</div>
 		</div>
+
+    <section class="pt-3 pb-2">
+      <div>
+        <b>Endereço: </b> {{page.endereco_unidade}}, {{page.numero_unidade}} - {{page.bairro_unidade}}, CEP: {{page.cep_unidade}} - {{page.cidade_unidade}} - {{page.estado_unidade}}
+      </div>
+    </section>
+
+    <section class="flex">
+      <div class="telefone">
+        <b>Telefone da unidade:</b> {{page.telefone_unidade}}
+      </div>
+      <div class="contato"> 
+        <b>Contato de entrega:</b> {{page.contato_unidade}} 
+      </div>
+    </section>
 	</header>
 </body>
 </html>
