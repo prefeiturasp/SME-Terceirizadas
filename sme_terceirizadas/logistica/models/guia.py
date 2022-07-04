@@ -195,15 +195,21 @@ class ConferenciaIndividualPorAlimento(ModeloBase):
 class InsucessoEntregaGuia(ModeloBase, CriadoPor):
     # Motivo Choice
     MOTIVO_UNIDADE_FECHADA = 'UNIDADE_FECHADA'
+    MOTIVO_UNIDADE_SEM_ENERGIA = 'UNIDADE_SEM_ENERGIA'
+    MOTIVO_UNIDADE_SEM_ACESSO = 'UNIDADE_SEM_ACESSO'
     MOTIVO_OUTROS = 'OUTROS'
 
     MOTIVO_NOMES = {
         MOTIVO_UNIDADE_FECHADA: 'Unidade educacional fechada',
+        MOTIVO_UNIDADE_SEM_ENERGIA: 'unidade educacional sem energia elétrica',
+        MOTIVO_UNIDADE_SEM_ACESSO: 'interdição de via de acesso ao local de entrega',
         MOTIVO_OUTROS: 'Outros',
     }
 
     MOTIVO_CHOICES = (
         (MOTIVO_UNIDADE_FECHADA, MOTIVO_NOMES[MOTIVO_UNIDADE_FECHADA]),
+        (MOTIVO_UNIDADE_SEM_ENERGIA, MOTIVO_NOMES[MOTIVO_UNIDADE_SEM_ENERGIA]),
+        (MOTIVO_UNIDADE_SEM_ACESSO, MOTIVO_NOMES[MOTIVO_UNIDADE_SEM_ACESSO]),
         (MOTIVO_OUTROS, MOTIVO_NOMES[MOTIVO_OUTROS]),
     )
 
