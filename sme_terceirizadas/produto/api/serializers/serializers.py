@@ -31,7 +31,7 @@ from ...models import (
     EmbalagemProduto,
     EspecificacaoProduto,
     Fabricante,
-    HomologacaoDoProduto,
+    HomologacaoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
@@ -180,7 +180,7 @@ class HomologacaoProdutoSimplesSerializer(serializers.ModelSerializer):
         ).data
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'logs',
                   'criado_em', 'reclamacoes')
 
@@ -209,7 +209,7 @@ class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
         ).data
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'logs',
                   'criado_em', 'reclamacoes', 'ultimo_log', 'ultima_analise', 'tempo_aguardando_acao_em_dias',
                   'status_titulo', 'protocolo_analise_sensorial', 'data_cadastro')
@@ -246,6 +246,8 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     informacoes_nutricionais = serializers.SerializerMethodField()
 
+    homologacao = HomologacaoProdutoComUltimoLogSerializer()
+
     homologacoes = serializers.SerializerMethodField()
 
     ultima_homologacao = HomologacaoProdutoComUltimoLogSerializer()
@@ -254,7 +256,7 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     def get_homologacoes(self, obj):
         return HomologacaoProdutoComUltimoLogSerializer(
-            HomologacaoDoProduto.objects.filter(
+            HomologacaoProduto.objects.filter(
                 produto=obj
             ), context=self.context,
             many=True
@@ -293,7 +295,7 @@ class ProdutoSemAnexoSerializer(serializers.ModelSerializer):
 
     def get_homologacoes(self, obj):
         return HomologacaoProdutoSimplesSerializer(
-            HomologacaoDoProduto.objects.filter(
+            HomologacaoProduto.objects.filter(
                 produto=obj
             ), context=self.context,
             many=True
@@ -389,7 +391,7 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
     ultima_analise = AnaliseSensorialSerializer()
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
                   'protocolo_analise_sensorial', 'ultima_analise')
 
@@ -405,11 +407,11 @@ class HomologacaoProdutoBase(serializers.ModelSerializer):
     qtde_questionamentos = serializers.SerializerMethodField()
 
     def get_qtde_reclamacoes(self, obj):
-        return ReclamacaoDeProduto.objects.filter(homologacao_de_produto=obj).count()
+        return ReclamacaoDeProduto.objects.filter(homologacao_produto=obj).count()
 
     def get_qtde_questionamentos(self, obj):
         return ReclamacaoDeProduto.objects.filter(
-            homologacao_de_produto=obj,
+            homologacao_produto=obj,
             status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA).count()
 
 
@@ -444,7 +446,7 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
         return obj.produto.marca.nome
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('uuid', 'nome_produto', 'marca_produto', 'status', 'id_externo', 'log_mais_recente',
                   'nome_usuario_log_de_reclamacao', 'qtde_reclamacoes', 'qtde_questionamentos')
 
@@ -455,7 +457,7 @@ class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer)
     rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
                   'protocolo_analise_sensorial')
 
@@ -476,7 +478,7 @@ class HomologacaoRelatorioAnaliseSensorialSerializer(serializers.ModelSerializer
 
     def get_resposta_analise(self, obj):
         return RespostaAnaliseSensorialSerializer(
-            RespostaAnaliseSensorial.objects.filter(homologacao_de_produto=obj).order_by('criado_em').last()).data
+            RespostaAnaliseSensorial.objects.filter(homologacao_produto=obj).order_by('criado_em').last()).data
 
     def get_log_resposta_analise(self, obj):
         return LogSolicitacoesUsuarioSerializer(
@@ -494,7 +496,7 @@ class HomologacaoRelatorioAnaliseSensorialSerializer(serializers.ModelSerializer
             ).order_by('criado_em').last()).data
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('uuid', 'status', 'id_externo', 'log_resposta_analise', 'log_solicitacao_analise',
                   'rastro_terceirizada', 'protocolo_analise_sensorial', 'resposta_analise')
 
@@ -514,7 +516,7 @@ class HomologacaoListagemSerializer(serializers.ModelSerializer):
     rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('uuid', 'status', 'id_externo',
                   'rastro_terceirizada', 'criado_em')
 
@@ -548,7 +550,7 @@ class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
         return queryset
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('ultimo_log', 'status', 'status_titulo')
 
 
@@ -644,7 +646,7 @@ class HomologacaoReclamacaoSerializer(serializers.ModelSerializer):
     rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('id', 'uuid', 'status', 'id_externo',
                   'criado_em', 'reclamacoes', 'status_titulo',
                   'rastro_terceirizada')
@@ -691,7 +693,7 @@ class UltimaHomologacaoHomologadosPorParametrosSerializer(serializers.ModelSeria
         ).data
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('uuid', 'reclamacoes')
 
 
@@ -709,7 +711,7 @@ class HomologacaoProdutoSuspensoSerializer(serializers.ModelSerializer):
     ultimo_log = LogSolicitacoesUsuarioComAnexosSerializer()
 
     class Meta:
-        model = HomologacaoDoProduto
+        model = HomologacaoProduto
         fields = ('uuid', 'ultimo_log')
 
 

@@ -157,7 +157,7 @@ def test_url_endpoint_homologacao_produto_codae_pede_analise_sensorial_reclamaca
         content_type='application/json',
         data=json.dumps({
             'justificativa': 'É isso',
-            'uuidTerceirizada': str(reclamacao.homologacao_de_produto.rastro_terceirizada.uuid)}))
+            'uuidTerceirizada': str(reclamacao.homologacao_produto.rastro_terceirizada.uuid)}))
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == ReclamacaoProdutoWorkflow.AGUARDANDO_ANALISE_SENSORIAL
 
@@ -298,17 +298,19 @@ def test_url_endpoint_resposta_analise_sensorial(client_autenticado_vinculo_terc
         'observacao': 'OBSERVACAO',
         'anexos': []
     }
-    client, homologacao_produto, homologacao_produto_1 = client_autenticado_vinculo_terceirizada_homologacao
+    client, homologacao_produto = client_autenticado_vinculo_terceirizada_homologacao
     assert homologacao_produto.status == HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL
     response = client.post(f'/{ENDPOINT_ANALISE_SENSORIAL}/{TERCEIRIZADA_RESPONDE}/', data=json.dumps(body_content),
                            content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {'homologacao_de_produto': '774ad907-d871-4bfd-b1aa-d4e0ecb6c01f', 'data': '23/05/2020',
+    assert response.json() == {'homologacao_produto': '774ad907-d871-4bfd-b1aa-d4e0ecb6c01f', 'data': '23/05/2020',
                                'hora': '20:01:54', 'anexos': [], 'responsavel_produto': 'RESPONSAVEL TESTE',
-                               'registro_funcional': '02564875', 'observacao': 'OBSERVACAO'}
+                               'registro_funcional': '02564875', 'observacao': 'OBSERVACAO',
+                               'homologacao_de_produto': None}
 
-    assert homologacao_produto_1.status == HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
-    body_content['homologacao_de_produto'] = '774ad907-d871-4bfd-b1aa-d4e0ecb6c05a'
+    homologacao_produto.refresh_from_db()
+    assert homologacao_produto.status == HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+    body_content['homologacao_de_produto'] = '774ad907-d871-4bfd-b1aa-d4e0ecb6c01f'
     response = client.post(f'/{ENDPOINT_ANALISE_SENSORIAL}/{TERCEIRIZADA_RESPONDE}/', data=json.dumps(body_content),
                            content_type='application/json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
