@@ -1,5 +1,26 @@
 @import "../variaveis";
 
+.flex{
+  display: flex;
+  
+  .telefone, .contato{
+    width: 50%;
+  }
+}
+
+.paginacao{
+  p{
+    padding: 0;
+    margin: 0;
+  }
+  font-weight: bold;
+  padding-bottom: 12px;
+
+  .paginador{
+    content: counter(page) "/" counter(pages);
+    text-align: center;
+  }
+}
 
 .titulo-e-logo {
   display: flex;
@@ -13,29 +34,26 @@
 
   h1 {
     font-style: normal;
-    font-weight: bold;
-    font-size: 17px;
+    font-size: 14px;
     line-height: 21px;
     text-transform: uppercase;
     color: $preto;
+    margin: 0;
   }
 
-  .titulo-branco{
-    color: #FFFFFF;
+  .titulo{
+    color: $preto;
+    font-weight: normal;
   }
 }
 
 .header {
   padding: 1em 1em 1em 1em;
   background: $cinza-claro;
-}
-
-.green-header{
-  background: $verde;
   font-size: 14px;
 }
 
-.green-header .info {
+.header .info {
   background: $branco;
   border-collapse: collapse;
   border-radius: 3px !important;
@@ -43,12 +61,12 @@
   overflow: hidden;
 }
 
-.green-header .info .row {
+.header .info .row {
   margin-right: 0!important;
   margin-left: 0 !important;
 }
 
-.green-header .info .col {
+.header .info .col {
   font-style: normal;
   line-height: 16px;
   letter-spacing: 0.01em;
@@ -56,16 +74,16 @@
   box-sizing: border-box;
 }
 
-.tabela-cabecalho {
-  border-collapse: collapse;
-  background: $branco;
-  border-radius: 10px !important;
-  padding: 5px !important;
-  width: 100%;
-  overflow: hidden;
+.green-important-text{
+  font-weight: bold;
+  color: $verde-escuro;
+  font-size: 16px;
+}
 
-  table, th, td {
-    border: $borda-tabela-padrao;
-    padding: 0.3em;
-  }
+.grow-2{
+  flex-grow: 2 !important;
+}
+
+.grow-5{
+  flex-grow: 5 !important;
 }
