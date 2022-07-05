@@ -2204,19 +2204,22 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
         A dieta especial termina quando a data de término é atingida.
         São as partes interessadas:
-            - perfil "ADMINISTRADOR_TERCEIRIZADA" vinculado à terceirizada relacionda
+            - perfil "ADMINISTRADOR_TERCEIRIZADA" vinculado à terceirizada relacionada
               à escola destino da dieta
+            - email de contato da escola (escola.contato.email)
         """
         escola = self.escola_destino
         try:
             terceirizada = escola.lote.terceirizada
-            administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
+            email_administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
                 ativo=True,
                 perfil__nome=ADMINISTRADOR_TERCEIRIZADA
             )]
+            email_escola_eol = [escola.contato.email]
+            email_lista = email_administradores_terceirizadas + email_escola_eol
         except AttributeError:
-            administradores_terceirizadas = []
-        return administradores_terceirizadas
+            email_lista = []
+        return email_lista
 
     @property  # noqa c901
     def _partes_interessadas_codae_autoriza_ou_nega(self):
@@ -2262,13 +2265,15 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         escola = self.escola_destino
         try:
             terceirizada = escola.lote.terceirizada
-            administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
+            email_administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
                 ativo=True,
                 perfil__nome=ADMINISTRADOR_TERCEIRIZADA
             )]
+            email_escola_eol = [escola.contato.email]
+            email_lista = email_administradores_terceirizadas + email_escola_eol
         except AttributeError:
-            administradores_terceirizadas = []
-        return administradores_terceirizadas
+            email_lista = []
+        return email_lista
 
     @property
     def template_mensagem(self):
