@@ -243,7 +243,7 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
         else:
             return html_to_pdf_file(lista_pdfs[0], f'guia_{guia.numero_guia}.pdf', is_async)
     else:
-        return html_to_pdf_multiple(lista_pdfs, 'guia_de_remessa.pdf', is_async)
+        return html_to_pdf_multiple(lista_pdfs, 'guias_de_remessa.pdf', is_async)
 
 
 def relatorio_dieta_especial(request, solicitacao):
