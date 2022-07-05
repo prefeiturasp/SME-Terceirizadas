@@ -451,6 +451,7 @@ class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
     nome_escola = serializers.SerializerMethodField()
     classificacao_dieta = serializers.SerializerMethodField()
     protocolo_padrao = serializers.SerializerMethodField()
+    data_ultimo_log = serializers.SerializerMethodField()
 
     def get_codigo_eol_aluno(self, obj):
         return obj.aluno.codigo_eol if obj.aluno else None
@@ -467,6 +468,9 @@ class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
     def get_protocolo_padrao(self, obj):
         return obj.protocolo_padrao.nome_protocolo if obj.protocolo_padrao else obj.nome_protocolo
 
+    def get_data_ultimo_log(self, obj):
+        return datetime.strftime(obj.logs.last().criado_em, '%d/%m/%Y') if obj.logs else None
+
     class Meta:
         model = SolicitacaoDietaEspecial
         fields = (
@@ -474,8 +478,16 @@ class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
             'nome_aluno',
             'nome_escola',
             'classificacao_dieta',
-            'protocolo_padrao'
+            'protocolo_padrao',
+            'data_ultimo_log'
         )
+
+    def __init__(self, *args, **kwargs):
+        """Não retornar campo data_ultimo_log caso status da solicitação for 'AUTORIZADAS'."""
+        if kwargs['context']['status'] == 'AUTORIZADAS':
+            del self.fields['data_ultimo_log']
+
+        super().__init__(*args, **kwargs)
 
 
 class PanoramaSerializer(serializers.Serializer):

@@ -23,6 +23,9 @@
           <th scope="col">Nome da escola</th>
           <th scope="col">Classificação da dieta</th>
           <th scope="col">Protocolo padrão</th>
+          {% if status == 'canceladas' %}
+            <th scope="col">Data de cancelamento</th>
+          {% endif %}
         </tr>
       </thead>
       <tbody>
@@ -33,6 +36,9 @@
           <td>{{ solicitacao.nome_escola }}</td>
           <td>{{ solicitacao.classificacao }}</td>
           <td>{{ solicitacao.protocolo_padrao }}</td>
+          {% if status == 'canceladas' %}
+            <td>{{ solicitacao.data_cancelamento }}</td>
+          {% endif %}
 
         </tr>
         {% endfor %}
