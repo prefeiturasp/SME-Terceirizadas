@@ -518,8 +518,8 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         numero_requisicao = request.query_params.get('numero_requisicao', False)
         ids_requisicoes = list(self.filter_queryset(self.get_queryset().values_list('id', flat=True)))
         eh_distribuidor = True if user.vinculo_atual.perfil.nome == ADMINISTRADOR_DISTRIBUIDORA else False
-        filename = (f'requisicao_{numero_requisicao}.xlsx' if numero_requisicao and len(ids_requisicoes) == 1
-                    else 'requisicoes-de-entrega.xlsx')
+
+        filename = (f'requisicao_{numero_requisicao}.xlsx' if numero_requisicao else 'requisicoes-de-entrega.xlsx')
 
         gera_xlsx_async.delay(
             username=username,
