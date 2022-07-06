@@ -410,7 +410,7 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
                                                        escola.tipo_unidade,
                                                        periodo_escolar)
         nao_pode_ser_no_passado(attrs['data_inicial'])
-        if attrs['motivo'].nome != 'Merenda Seca':
+        if attrs['motivo'].nome != 'Lanche Emergencial':
             deve_pedir_com_antecedencia(attrs['data_inicial'])
         deve_ser_no_mesmo_ano_corrente(attrs['data_inicial'])
 
