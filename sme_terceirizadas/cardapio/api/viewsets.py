@@ -959,8 +959,8 @@ class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.vinculo_atual.perfil.nome in ['DIRETOR CEI']:
-            return MotivoAlteracaoCardapio.objects.exclude(nome__icontains='Merenda Seca')
+        if user.vinculo_atual.perfil.nome in ['DIRETOR_CEI']:
+            return MotivoAlteracaoCardapio.objects.exclude(nome__icontains='Lanche Emergencial')
         return MotivoAlteracaoCardapio.objects.all()
 
 
