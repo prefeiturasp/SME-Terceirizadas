@@ -301,3 +301,32 @@ class InsucessoDeEntregaGuiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = InsucessoEntregaGuia
         exclude = ('id',)
+
+
+class InsucessoDeEntregaSimplesGuiaSerializer(serializers.ModelSerializer):
+    criado_por = UsuarioVinculoSerializer(required=False)
+    motivo = serializers.CharField(source='get_motivo_display', required=False)
+
+    class Meta:
+        model = InsucessoEntregaGuia
+        exclude = ('id',)
+
+
+class ConferenciaComOcorrenciaSimplesSerializer(serializers.ModelSerializer):
+    criado_por = UsuarioVinculoSerializer()
+    conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoSerializer(many=True)
+
+    class Meta:
+        model = ConferenciaGuia
+        exclude = ('id',)
+
+
+class GuiaDaRemessaCompletaSerializer(serializers.ModelSerializer):
+    alimentos = AlimentoLookUpSerializer(many=True)
+    conferencias = ConferenciaComOcorrenciaSimplesSerializer(required=False, many=True)
+    insucessos = InsucessoDeEntregaGuiaSerializer(required=False, many=True)
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = Guia
+        exclude = ('id',)
