@@ -593,9 +593,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
     def lista_guias_inconsistencias(self, request):
-        queryset = self.get_queryset().filter(escola=None).annotate(numero_requisicao=F(
-            'solicitacao__numero_solicitacao')).order_by('-id')
-        queryset = self.filter_queryset(queryset)
+        queryset = self.filter_queryset(self.get_queryset().filter(escola=None).order_by('-id'))
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = GuiaDaRemessaLookUpSerializer(page, many=True)
