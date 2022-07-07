@@ -2352,9 +2352,10 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
                                   usuario=user,
                                   justificativa=justificativa)
-        self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_cancela,
-                                              'cancelar_pedido' if alta_medica else None)
+        if self.tipo_solicitacao != 'CANCELAMENTO_DIETA':
+            self._preenche_template_e_envia_email(assunto, titulo, user,
+                                                  self._partes_interessadas_codae_cancela,
+                                                  'cancelar_pedido' if alta_medica else None)
 
     @xworkflows.after_transition('negar_cancelamento_pedido')
     def _negar_cancelamento_pedido_hook(self, *args, **kwargs):
