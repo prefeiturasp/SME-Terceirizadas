@@ -45,6 +45,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     ConferenciaIndividualPorAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
     GuiaDaRemessaComStatusRequisicaoSerializer,
+    GuiaDaRemessaLookUpSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
@@ -592,8 +593,17 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
     def lista_guias_inconsistencias(self, request):
-        response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None).annotate(
-                    numero_requisicao=F('solicitacao__numero_solicitacao')), many=True).data}
+        queryset = self.get_queryset().filter(escola=None).annotate(numero_requisicao=F(
+            'solicitacao__numero_solicitacao')).order_by('-id')
+        queryset = self.filter_queryset(queryset)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = GuiaDaRemessaLookUpSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+        response = GuiaDaRemessaLookUpSerializer(queryset, many=True).data
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='guias-escola', permission_classes=(UsuarioEscolaAbastecimento,))

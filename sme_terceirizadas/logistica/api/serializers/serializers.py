@@ -177,6 +177,12 @@ class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class GuiaDaRemessaLookUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Guia
+        fields = ('id', 'uuid', 'numero_guia', 'codigo_unidade', 'nome_unidade')
+
+
 class GuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
