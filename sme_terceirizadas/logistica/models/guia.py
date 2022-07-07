@@ -201,8 +201,8 @@ class InsucessoEntregaGuia(ModeloBase, CriadoPor):
 
     MOTIVO_NOMES = {
         MOTIVO_UNIDADE_FECHADA: 'Unidade educacional fechada',
-        MOTIVO_UNIDADE_SEM_ENERGIA: 'unidade educacional sem energia elétrica',
-        MOTIVO_UNIDADE_SEM_ACESSO: 'interdição de via de acesso ao local de entrega',
+        MOTIVO_UNIDADE_SEM_ENERGIA: 'Unidade educacional sem energia elétrica',
+        MOTIVO_UNIDADE_SEM_ACESSO: 'Interdição de via de acesso ao local de entrega',
         MOTIVO_OUTROS: 'Outros',
     }
 
