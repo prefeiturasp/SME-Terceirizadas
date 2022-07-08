@@ -177,6 +177,25 @@ class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class ConferenciaIndividualPorAlimentoComOcorrenciaDisplaySerializer(serializers.ModelSerializer):
+    conferencia = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ConferenciaGuia.objects.all()
+    )
+    status_alimento = serializers.CharField(source='get_status_alimento_display')
+    tipo_embalagem = serializers.CharField(source='get_tipo_embalagem_display')
+    ocorrencia = serializers.CharField(source='get_ocorrencia_display')
+    arquivo = serializers.SerializerMethodField()
+
+    def get_arquivo(self, obj):
+        return obj.arquivo_base64
+
+    class Meta:
+        model = ConferenciaIndividualPorAlimento
+        exclude = ('id',)
+
+
 class GuiaDaRemessaLookUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
@@ -303,7 +322,40 @@ class InsucessoDeEntregaGuiaSerializer(serializers.ModelSerializer):
     guia = GuiaDaRemessaSimplesSerializer()
     criado_por = UsuarioVinculoSerializer()
     motivo = serializers.CharField(source='get_motivo_display')
+    arquivo = serializers.SerializerMethodField()
+
+    def get_arquivo(self, obj):
+        return obj.arquivo_base64
 
     class Meta:
         model = InsucessoEntregaGuia
+        exclude = ('id',)
+
+
+class InsucessoDeEntregaSimplesGuiaSerializer(serializers.ModelSerializer):
+    criado_por = UsuarioVinculoSerializer(required=False)
+    motivo = serializers.CharField(source='get_motivo_display', required=False)
+
+    class Meta:
+        model = InsucessoEntregaGuia
+        exclude = ('id',)
+
+
+class ConferenciaComOcorrenciaSimplesSerializer(serializers.ModelSerializer):
+    criado_por = UsuarioVinculoSerializer()
+    conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoComOcorrenciaDisplaySerializer(many=True)
+
+    class Meta:
+        model = ConferenciaGuia
+        exclude = ('id',)
+
+
+class GuiaDaRemessaCompletaSerializer(serializers.ModelSerializer):
+    alimentos = AlimentoLookUpSerializer(many=True)
+    conferencias = ConferenciaComOcorrenciaSimplesSerializer(required=False, many=True)
+    insucessos = InsucessoDeEntregaGuiaSerializer(required=False, many=True)
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = Guia
         exclude = ('id',)
