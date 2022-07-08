@@ -199,6 +199,16 @@ def planilha_de_para_eol_codae(arquivo):
 
 
 @pytest.fixture
+def planilha_atualizacao_tipo_gestao(arquivo):
+    return mommy.make(
+        'PlanilhaAtualizacaoTipoGestaoEscola',
+        conteudo=arquivo,
+        criado_em=datetime.date.today(),
+        status='SUCESSO'
+    )
+
+
+@pytest.fixture
 def alunos_matriculados_periodo_escola_regular(escola, periodo_escolar):
     return mommy.make(models.AlunosMatriculadosPeriodoEscola,
                       escola=escola,
