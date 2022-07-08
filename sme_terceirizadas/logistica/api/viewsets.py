@@ -37,13 +37,14 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
-from sme_terceirizadas.logistica.api.serializers.serializers import (
+from sme_terceirizadas.logistica.api.serializers.serializers import ( # noqa
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
     ConferenciaComOcorrenciaSerializer,
     ConferenciaDaGuiaSerializer,
     ConferenciaIndividualPorAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
+    GuiaDaRemessaCompletaSerializer,
     GuiaDaRemessaComStatusRequisicaoSerializer,
     GuiaDaRemessaLookUpSerializer,
     GuiaDaRemessaSerializer,
@@ -712,6 +713,14 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         guia = self.get_object()
         guias = [guia]
         return relatorio_guia_de_remessa(guias)
+
+    @action(detail=True, methods=['GET'],
+            url_path='detalhe-guia-de-remessa',
+            permission_classes=[UsuarioDilogOuDistribuidorOuEscolaAbastecimento])
+    def detalhe_guia_de_remessa(self, request, uuid=None):
+        guia = self.get_object()
+        serializer = GuiaDaRemessaCompletaSerializer(guia)
+        return Response(serializer.data)
 
 
 class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):
