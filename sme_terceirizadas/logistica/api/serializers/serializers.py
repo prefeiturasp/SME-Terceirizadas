@@ -177,6 +177,25 @@ class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class ConferenciaIndividualPorAlimentoComOcorrenciaDisplaySerializer(serializers.ModelSerializer):
+    conferencia = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ConferenciaGuia.objects.all()
+    )
+    status_alimento = serializers.CharField(source='get_status_alimento_display')
+    tipo_embalagem = serializers.CharField(source='get_tipo_embalagem_display')
+    ocorrencia = serializers.CharField(source='get_ocorrencia_display')
+    arquivo = serializers.SerializerMethodField()
+
+    def get_arquivo(self, obj):
+        return obj.arquivo_base64
+
+    class Meta:
+        model = ConferenciaIndividualPorAlimento
+        exclude = ('id',)
+
+
 class GuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
@@ -314,7 +333,7 @@ class InsucessoDeEntregaSimplesGuiaSerializer(serializers.ModelSerializer):
 
 class ConferenciaComOcorrenciaSimplesSerializer(serializers.ModelSerializer):
     criado_por = UsuarioVinculoSerializer()
-    conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoSerializer(many=True)
+    conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoComOcorrenciaDisplaySerializer(many=True)
 
     class Meta:
         model = ConferenciaGuia
