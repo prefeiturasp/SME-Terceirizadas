@@ -1795,7 +1795,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         from sme_terceirizadas.cardapio.models import AlteracaoCardapio
         if (self.foi_solicitado_fora_do_prazo and
             self.status != PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO):  # noqa #129
-            if (isinstance(self, AlteracaoCardapio) and self.motivo.nome == 'Merenda Seca'):
+            if (isinstance(self, AlteracaoCardapio) and self.motivo.nome == 'Lanche Emergencial'):
                 return
             raise xworkflows.InvalidTransitionError(
                 f'CODAE não pode autorizar direto caso seja em cima da hora, deve questionar')
@@ -2352,9 +2352,10 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
                                   usuario=user,
                                   justificativa=justificativa)
-        self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_cancela,
-                                              'cancelar_pedido' if alta_medica else None)
+        if self.tipo_solicitacao != 'CANCELAMENTO_DIETA':
+            self._preenche_template_e_envia_email(assunto, titulo, user,
+                                                  self._partes_interessadas_codae_cancela,
+                                                  'cancelar_pedido' if alta_medica else None)
 
     @xworkflows.after_transition('negar_cancelamento_pedido')
     def _negar_cancelamento_pedido_hook(self, *args, **kwargs):

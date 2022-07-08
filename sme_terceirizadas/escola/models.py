@@ -12,6 +12,7 @@ from rest_framework import status
 
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
+    ArquivoCargaBase,
     Ativavel,
     CriadoEm,
     CriadoPor,
@@ -826,6 +827,16 @@ class PlanilhaEscolaDeParaCodigoEolCodigoCoade(CriadoEm, TemAlteradoEm):
 
     def __str__(self):
         return str(self.planilha)
+
+
+class PlanilhaAtualizacaoTipoGestaoEscola(ArquivoCargaBase):
+
+    class Meta:
+        verbose_name = 'Planilha Atualização Tipo Gestão Escola'
+        verbose_name_plural = 'Planilha Atualização Tipo Gestão Escola'
+
+    def __str__(self):
+        return str(self.conteudo)
 
 
 class TipoTurma(Enum):

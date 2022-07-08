@@ -43,7 +43,7 @@ class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, 
     Lanche 4 horas
     Lanche 5 horas
     Lanche 6 horas
-    Merenda Seca
+    Lanche Emergencial
     """
 
     @property
