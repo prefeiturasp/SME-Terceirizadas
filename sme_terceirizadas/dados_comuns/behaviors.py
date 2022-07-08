@@ -128,7 +128,7 @@ class DiasSemana(models.Model):
     dias_semana = ArrayField(
         models.PositiveSmallIntegerField(
             choices=DIAS, default=[], null=True, blank=True
-        )
+        ), null=True, blank=True
     )
 
     def dias_semana_display(self):

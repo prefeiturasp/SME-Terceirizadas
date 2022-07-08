@@ -289,7 +289,8 @@ def relatorio_inclusao_alimentacao_continua(request, solicitacao):
             'solicitacao': solicitacao,
             'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
             'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
-            'logs': formata_logs(logs)
+            'logs': formata_logs(logs),
+            'week': {"D": 6, "S": 0, "T": 1, "Q": 2, "Qi": 3, "Sx": 4, "Sb": 5}
         }
     )
     return html_to_pdf_response(html_string, f'inclusao_alimentacao_continua_{solicitacao.id_externo}.pdf')

@@ -32,10 +32,11 @@ from .managers import (
 )
 
 
-class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), TemChaveExterna):
+class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), DiasSemana, TemChaveExterna):
     numero_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
+    observacao = models.CharField('Observação', blank=True, max_length=1000)
     grupo_inclusao_normal = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                               on_delete=models.CASCADE,
                                               null=True, blank=True,
@@ -72,7 +73,7 @@ class MotivoInclusaoContinua(ExportModelOperationsMixin('motivo_inclusao_continu
 
 class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'), IntervaloDeDia, Descritivel,
                                   TemChaveExterna,
-                                  DiasSemana, FluxoAprovacaoPartindoDaEscola,
+                                  FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
                                   CriadoEm, Logs, TemPrioridade, SolicitacaoForaDoPrazo,
                                   TemTerceirizadaConferiuGestaoAlimentacao):
@@ -83,7 +84,6 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_alimentacao_continua')
-    observacao = models.CharField('Observação', blank=True, max_length=1000)
     objects = models.Manager()  # Manager Padrão
     desta_semana = InclusoesDeAlimentacaoContinuaDestaSemanaManager()
     deste_mes = InclusoesDeAlimentacaoContinuaDesteMesManager()
@@ -138,7 +138,7 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
         )
 
     def __str__(self):
-        return f'de {self.data_inicial} até {self.data_final} para {self.escola} para {self.dias_semana_display()}'
+        return f'de {self.data_inicial} até {self.data_final} para {self.escola}'
 
     class Meta:
         verbose_name = 'Inclusão de alimentação contínua'
