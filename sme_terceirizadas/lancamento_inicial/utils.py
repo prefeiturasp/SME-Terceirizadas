@@ -35,7 +35,6 @@ def total_merendas_secas_por_escola_periodo_escolar_e_data(escola_periodo_escola
             inclusao_alimentacao_continua__escola=escola_periodo_escolar.escola,
             inclusao_alimentacao_continua__data_inicial__lte=data,
             inclusao_alimentacao_continua__data_final__gte=data,
-            inclusao_alimentacao_continua__dias_semana__contains=[data.weekday()],
             inclusao_alimentacao_continua__status=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
         )
         |
@@ -45,6 +44,7 @@ def total_merendas_secas_por_escola_periodo_escolar_e_data(escola_periodo_escola
             grupo_inclusao_normal__status=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
         ),
         periodo_escolar=escola_periodo_escolar.periodo_escolar,
+        dias_semana__contains=[data.weekday()],
         tipos_alimentacao__nome__iexact='merenda seca'
     ).aggregate(total_merendas_secas=Sum('numero_alunos'))['total_merendas_secas']
 

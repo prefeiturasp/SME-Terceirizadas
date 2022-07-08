@@ -87,7 +87,6 @@ def inclusao_alimentacao_continua_params(escola, motivo_inclusao_continua, reque
                        data_inicial=data_inicial,
                        data_final=data_final,
                        outro_motivo=fake.name(),
-                       observacao=fake.name(),
                        escola=escola)
     return model, esperado
 
@@ -104,7 +103,6 @@ def inclusao_alimentacao_continua(escola, motivo_inclusao_continua, request, tem
                       data_inicial=data_inicial,
                       data_final=data_final,
                       outro_motivo=fake.name(),
-                      observacao=fake.name(),
                       escola=escola,
                       rastro_escola=escola,
                       rastro_dre=escola.diretoria_regional)
@@ -123,7 +121,6 @@ def inclusao_alimentacao_continua_outra_dre(escola_dre_guaianases, motivo_inclus
                       data_inicial=data_inicial,
                       data_final=data_final,
                       outro_motivo=fake.name(),
-                      observacao=fake.name(),
                       escola=escola_dre_guaianases,
                       rastro_escola=escola_dre_guaianases,
                       rastro_dre=escola_dre_guaianases.diretoria_regional)
@@ -302,10 +299,10 @@ def inclusao_alimentacao_continua_parametros_vencidos(request):
 
 @pytest.fixture(params=[
     # data_inicial, data_final, dias semana,
-    (datetime.date(2019, 10, 20), datetime.date(2019, 10, 30), [1, 2, 3, 4, 5, 6]),
-    (datetime.date(2020, 10, 17), datetime.date(2020, 10, 30), [1, 2, 3]),
-    (datetime.date(2020, 3, 1), datetime.date(2020, 3, 31), [1, 2, 3, 4]),
-    (datetime.date(2020, 8, 17), datetime.date(2020, 9, 30), [1, 4])
+    (datetime.date(2019, 10, 20), datetime.date(2019, 10, 30)),
+    (datetime.date(2020, 10, 17), datetime.date(2020, 10, 30)),
+    (datetime.date(2020, 3, 1), datetime.date(2020, 3, 31)),
+    (datetime.date(2020, 8, 17), datetime.date(2020, 9, 30))
 ])
 def inclusao_alimentacao_continua_parametros(request):
     return request.param
