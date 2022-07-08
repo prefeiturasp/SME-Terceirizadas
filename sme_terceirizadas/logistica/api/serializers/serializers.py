@@ -316,6 +316,10 @@ class InsucessoDeEntregaGuiaSerializer(serializers.ModelSerializer):
     guia = GuiaDaRemessaSimplesSerializer()
     criado_por = UsuarioVinculoSerializer()
     motivo = serializers.CharField(source='get_motivo_display')
+    arquivo = serializers.SerializerMethodField()
+
+    def get_arquivo(self, obj):
+        return obj.arquivo_base64
 
     class Meta:
         model = InsucessoEntregaGuia

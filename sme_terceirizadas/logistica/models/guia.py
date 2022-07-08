@@ -230,6 +230,14 @@ class InsucessoEntregaGuia(ModeloBase, CriadoPor):
     def __str__(self):
         return f'Insucesso de entrega da guia {self.guia.numero_guia}'
 
+    @property
+    def arquivo_base64(self):
+        if self.arquivo:
+            extensao = os.path.splitext(self.arquivo.name)[1]
+            return convert_image_to_base64(self.arquivo.path, extensao.replace('.', ''))
+        else:
+            return None
+
     class Meta:
         verbose_name = 'Insucesso de Entrega da Guia'
         verbose_name_plural = 'Insucessos de Entregas das Guias'
