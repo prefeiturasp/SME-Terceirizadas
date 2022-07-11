@@ -8,6 +8,7 @@ from ....escola.api.serializers import (
     PeriodoEscolarSerializer,
     PeriodoEscolarSimplesSerializer
 )
+from ....escola.models import FaixaEtaria
 from ....inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -57,9 +58,17 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
         retorno = super().to_representation(instance)
 
         # Inclui o total de alunos nas faixas etárias num período
-        qtde_alunos = instance.escola.alunos_por_periodo_e_faixa_etaria(
-            instance.data
+        faixas_etarias_da_solicitacao = FaixaEtaria.objects.filter(
+            id__in=[
+                f['faixa_etaria__id'] for f in instance.quantidade_alunos_por_faixas_etarias.values('faixa_etaria__id')
+            ]
         )
+
+        qtde_alunos = instance.escola.alunos_por_periodo_e_faixa_etaria(
+            instance.data,
+            faixas_etarias_da_solicitacao
+        )
+
         nome_periodo = 'INTEGRAL' if instance.periodo_escolar.nome == 'PARCIAL' else instance.periodo_escolar.nome
         for faixa_etaria in retorno['quantidade_alunos_por_faixas_etarias']:
             uuid_faixa_etaria = faixa_etaria['faixa_etaria']['uuid']
