@@ -59,8 +59,9 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
 
         # Inclui o total de alunos nas faixas etárias num período
         faixas_etarias_da_solicitacao = FaixaEtaria.objects.filter(
-            id__in=[
-                f['faixa_etaria__id'] for f in instance.quantidade_alunos_por_faixas_etarias.values('faixa_etaria__id')
+            uuid__in=[
+                f['faixa_etaria__uuid'] for f in
+                instance.quantidade_alunos_por_faixas_etarias.values('faixa_etaria__uuid')
             ]
         )
 
