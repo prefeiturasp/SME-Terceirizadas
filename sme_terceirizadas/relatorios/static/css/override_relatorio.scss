@@ -96,10 +96,16 @@
 
     }
 
+    tr {
+      border-bottom: 1px solid $preto;
+      &.sem-border-bottom {
+        border-bottom: none;
+      }
+    }
+
     th, td {
       padding: 0.5em;
       text-align: left;
-      border-bottom: 1px solid $preto;
     }
   }
 
@@ -396,5 +402,34 @@
         }
       }
     }
+  }
+}
+
+.weekly {
+
+  .week-circle {
+    height: 20px;
+    width: 15px;
+    padding-left: 7px;
+    margin-left: 1px;
+    padding-top: 2px;
+    color: $preto;
+    background-color: #fff;
+    border: 1px solid $preto;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .week-circle-clicked {
+    height: 20px;
+    width: 15px;
+    padding-left: 7px;
+    margin-left: 1px;
+    padding-top: 2px;
+    color: #fff;
+    background-color: $preto;
+    border: 1px solid $preto;
+    border-radius: 50%;
+    display: inline-block;
   }
 }
