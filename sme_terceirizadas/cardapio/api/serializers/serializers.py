@@ -10,6 +10,7 @@ from ....escola.api.serializers import (
     TipoUnidadeEscolarSerializer,
     TipoUnidadeEscolarSerializerSimples
 )
+from ....escola.models import FaixaEtaria
 from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
 from ...models import (
     AlteracaoCardapio,
@@ -273,9 +274,14 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializer(SubstituicoesAliment
     def to_representation(self, instance):
         retorno = super().to_representation(instance)
 
+        faixas_etarias_da_solicitacao = FaixaEtaria.objects.filter(
+            uuid__in=[f.faixa_etaria.uuid for f in instance.faixas_etarias.all()]
+        )
+
         # Inclui o total de alunos nas faixas etárias num período
         qtde_alunos = instance.alteracao_cardapio.escola.alunos_por_periodo_e_faixa_etaria(
-            instance.alteracao_cardapio.data
+            instance.alteracao_cardapio.data,
+            faixas_etarias_da_solicitacao
         )
         nome_periodo = 'INTEGRAL' if instance.periodo_escolar.nome == 'PARCIAL' else instance.periodo_escolar.nome
         for faixa_etaria in retorno['faixas_etarias']:

@@ -8,6 +8,7 @@ from ....escola.api.serializers import (
     EscolaSimplesSerializer,
     FaixaEtariaSerializer
 )
+from ....escola.models import FaixaEtaria
 from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
 from ....terceirizada.models import Edital
 from ...models import (
@@ -193,7 +194,11 @@ class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
         retorno = super().to_representation(instance)
 
         # Inclui o total de alunos nas faixas etárias
-        qtde_alunos = instance.escola.alunos_por_faixa_etaria(instance.data)
+        faixas_etarias_da_solicitacao = FaixaEtaria.objects.filter(
+            uuid__in=[f.faixa_etaria.uuid for f in instance.faixas_etarias.all()]
+        )
+
+        qtde_alunos = instance.escola.alunos_por_faixa_etaria(instance.data, faixas_etarias_da_solicitacao)
         for faixa_etaria in retorno['faixas_etarias']:
             uuid_faixa_etaria = faixa_etaria['faixa_etaria']['uuid']
             faixa_etaria['total_alunos_no_periodo'] = qtde_alunos[uuid_faixa_etaria]

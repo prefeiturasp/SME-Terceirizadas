@@ -371,10 +371,11 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
         return resultados
 
-    def alunos_por_faixa_etaria(self, data_referencia=None):  # noqa C901
+    def alunos_por_faixa_etaria(self, data_referencia=None, faixas_etarias=None):  # noqa C901
         if data_referencia is None:
             data_referencia = date.today()
-        faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+        if not faixas_etarias:
+            faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
         if faixas_etarias.count() == 0:
             raise ObjectDoesNotExist()
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.codigo_eol)
