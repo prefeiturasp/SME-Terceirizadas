@@ -103,8 +103,6 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):  # noqa C901
         validated_data['criado_por'] = self.context['request'].user
-        data_inicio = datetime.datetime.now().strftime('%Y-%m-%d')
-        validated_data['data_inicio'] = data_inicio
 
         anexos = validated_data.pop('anexos', [])
         aluno_data = validated_data.pop('aluno_json', None)

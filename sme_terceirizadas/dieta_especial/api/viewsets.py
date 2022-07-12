@@ -178,6 +178,9 @@ class SolicitacaoDietaEspecialViewSet(
                 serializer.update(solicitacao, request.data)
                 solicitacao.ativo = True
             solicitacao.codae_autoriza(user=request.user)
+            if not solicitacao.data_inicio:
+                solicitacao.data_inicio = datetime.now().strftime('%Y-%m-%d')
+                solicitacao.save()
             return Response({'detail': 'Autorização de dieta especial realizada com sucesso'})  # noqa
         except InvalidTransitionError as e:
             return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)  # noqa
