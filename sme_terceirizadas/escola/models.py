@@ -62,7 +62,8 @@ class DiretoriaRegional(
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(escola__in=self.escolas.all()).aggregate(
+        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(
+            escola__in=self.escolas.all(), tipo_turma='REGULAR').aggregate(
             Sum('quantidade_alunos')
         )
         return quantidade_result.get('quantidade_alunos__sum') or 0
@@ -307,7 +308,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def quantidade_alunos(self):
-        quantidade = AlunosMatriculadosPeriodoEscola.objects.filter(escola=self).aggregate(Sum('quantidade_alunos'))
+        quantidade = AlunosMatriculadosPeriodoEscola.objects.filter(
+            escola=self, tipo_turma='REGULAR').aggregate(Sum('quantidade_alunos'))
         return quantidade.get('quantidade_alunos__sum') or 0
 
     @property
@@ -498,7 +500,8 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(escola__in=self.escolas.all()).aggregate(
+        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(
+            escola__in=self.escolas.all(), tipo_turma='REGULAR').aggregate(
             Sum('quantidade_alunos')
         )
         return quantidade_result.get('quantidade_alunos__sum') or 0
@@ -546,7 +549,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(escola__in=Escola.objects.all()).aggregate(
+        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(
+            escola__in=Escola.objects.all(), tipo_turma='REGULAR').aggregate(
             Sum('quantidade_alunos')
         )
         return quantidade_result.get('quantidade_alunos__sum') or 0
