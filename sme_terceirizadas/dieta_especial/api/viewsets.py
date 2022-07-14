@@ -52,6 +52,7 @@ from ..models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    DietaEmEdicaoAberta,
     MotivoAlteracaoUE,
     MotivoNegacao,
     ProtocoloPadraoDietaEspecial,
@@ -150,6 +151,15 @@ class SolicitacaoDietaEspecialViewSet(
         elif self.action == 'alteracao_ue':
             return AlteracaoUESerializer
         return SolicitacaoDietaEspecialSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        DietaEmEdicaoAberta.objects.create(
+            solicitacao_dieta_especial=instance,
+            usuario_com_dieta_aberta=self.request.user,
+        )
+        return Response(serializer.data)
 
     @action(
         detail=False,
