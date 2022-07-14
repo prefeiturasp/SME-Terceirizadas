@@ -106,7 +106,8 @@ class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
 
     @property
     def quantidade_alimentacoes(self):
-        return self.quantidade_alunos * self.solicitacao_kit_lanche.kits.count()
+        if self.quantidade_alunos:
+            return self.quantidade_alunos * self.solicitacao_kit_lanche.kits.count()
 
     @property
     def data(self):
@@ -146,7 +147,7 @@ class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
 
 
 class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa'), SolicitacaoKitLancheAvulsaBase):
-    quantidade_alunos = models.PositiveSmallIntegerField()
+    quantidade_alunos = models.PositiveSmallIntegerField(blank=True, null=True)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
