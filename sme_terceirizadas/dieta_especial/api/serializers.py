@@ -17,6 +17,7 @@ from ..models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    DietaEmEdicaoAberta,
     MotivoAlteracaoUE,
     MotivoNegacao,
     ProtocoloPadraoDietaEspecial,
@@ -45,6 +46,18 @@ class ClassificacaoDietaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassificacaoDieta
         fields = '__all__'
+
+
+class DietaEmEdicaoAbertaSerializer(serializers.ModelSerializer):
+    uuid_solicitacao_dieta_especial = serializers.CharField(source='solicitacao_dieta_especial.uuid')
+    email_usuario_com_dieta_aberta = serializers.CharField(source='usuario_com_dieta_aberta.email')
+
+    class Meta:
+        model = DietaEmEdicaoAberta
+        fields = (
+            'uuid_solicitacao_dieta_especial',
+            'email_usuario_com_dieta_aberta'
+        )
 
 
 class MotivoNegacaoSerializer(serializers.ModelSerializer):
