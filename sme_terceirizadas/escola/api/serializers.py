@@ -336,6 +336,10 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.tipo_unidade.uuid
 
+    def get_tipo_unidade_escolar_iniciais(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.tipo_unidade.iniciais
+
     def get_tipo_gestao(self, obj):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.tipo_gestao.nome
@@ -362,6 +366,7 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                 'escolas': self.get_escolas(obj),
                 'diretoria_regional': self.get_diretoria_regional(obj),
                 'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj),
+                'tipo_unidade_escolar_iniciais': self.get_tipo_unidade_escolar_iniciais(obj),
                 'tipo_gestao': self.get_tipo_gestao(obj),
                 'tipos_contagem': self.get_tipos_contagem(obj),
                 'endereco': self.get_endereco(obj),

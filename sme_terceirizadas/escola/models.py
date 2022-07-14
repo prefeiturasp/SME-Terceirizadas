@@ -35,7 +35,7 @@ from ..dados_comuns.constants import (
 )
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
-from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
+from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI, PERIODOS_ESPECIAIS_CEU_GESTAO
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -321,6 +321,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
         if self.tipo_unidade.tem_somente_integral_e_parcial:
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
+        if self.tipo_unidade.iniciais == 'CEU GESTAO':
+            periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
         else:
             # TODO: ver uma forma melhor de fazer essa query
             periodos_ids = self.escolas_periodos.filter(quantidade_alunos__gte=1).values_list(
