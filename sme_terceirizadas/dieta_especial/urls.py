@@ -9,6 +9,7 @@ from .constants import (
     ENDPOINT_MOTIVOS_NEGACAO,
     ENDPOINT_TIPO_CONTAGEM
 )
+from .consumers import DietasEmEdicaoConsumer
 
 router = routers.DefaultRouter()
 
@@ -38,4 +39,9 @@ urlpatterns = [
         r'^solicitacoes-dieta-especial-ativas-inativas/$',
         viewsets.SolicitacoesAtivasInativasPorAlunoView.as_view()
     )
+]
+
+
+ws_urlpatterns = [
+    re_path(r'ws/dietas-em-edicao-abertas/', DietasEmEdicaoConsumer.as_asgi())
 ]
