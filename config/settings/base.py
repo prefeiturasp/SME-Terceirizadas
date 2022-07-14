@@ -67,6 +67,16 @@ ROOT_URLCONF = 'config.urls'
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = 'config.wsgi.application'
 
+ASGI_APPLICATION = 'config.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(env('REDIS_HOST'), env('REDIS_PORT'))]
+        }
+    }
+}
+
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
@@ -82,6 +92,7 @@ DJANGO_APPS = [
     'django.contrib.postgres'
 ]
 THIRD_PARTY_APPS = [
+    'channels',
     'crispy_forms',
     'django_filters',
     'django_prometheus',
