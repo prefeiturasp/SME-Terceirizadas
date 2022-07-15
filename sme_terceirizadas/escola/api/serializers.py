@@ -77,6 +77,13 @@ class SubprefeituraSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SubprefeituraSerializerSimples(serializers.ModelSerializer):
+
+    class Meta:
+        model = Subprefeitura
+        fields = ('codigo_eol', 'nome')
+
+
 class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
     periodos_escolares = PeriodoEscolarSimplesSerializer(many=True)
 
