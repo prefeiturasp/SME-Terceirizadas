@@ -54,11 +54,11 @@ def cria_filtro_produto_por_parametros_form(cleaned_data):  # noqa C901
             if chave == 'uuid':
                 campos_a_pesquisar['homologacao__uuid'] = valor
             if chave == 'nome_fabricante':
-                campos_a_pesquisar['fabricante__nome__unaccent__icontains'] = valor
+                campos_a_pesquisar['fabricante__nome__icontains'] = valor
             elif chave == 'nome_marca':
-                campos_a_pesquisar['marca__nome__unaccent__icontains'] = valor
+                campos_a_pesquisar['marca__nome__icontains'] = valor
             elif chave == 'nome_produto':
-                campos_a_pesquisar['nome__unaccent__icontains'] = valor
+                campos_a_pesquisar['nome__icontains'] = valor
             elif chave == 'nome_terceirizada':
                 campos_a_pesquisar['homologacao__rastro_terceirizada__nome_fantasia__icontains'] = valor
             elif chave == 'data_inicial' and valor is not None:
