@@ -73,6 +73,7 @@ from .serializers import (
     PeriodoEFaixaEtariaCounterSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
+    SubprefeituraSerializerSimples,
     TipoGestaoSerializer,
     TipoUnidadeEscolarSerializer
 )
@@ -298,7 +299,7 @@ class SubprefeituraViewSet(ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='lista-completa')
     def lista_completa(self, request):
-        response = {'results': SubprefeituraSerializer(self.get_queryset(), many=True).data}
+        response = {'results': SubprefeituraSerializerSimples(self.get_queryset(), many=True).data}
         return Response(response)
 
 
