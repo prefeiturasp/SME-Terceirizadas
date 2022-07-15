@@ -106,6 +106,13 @@ class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'codigo_eol')
 
 
+class DiretoriaRegionalLookUpSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DiretoriaRegional
+        fields = ('uuid', 'iniciais', 'nome', 'codigo_eol')
+
+
 class LoteReclamacaoSerializer(serializers.ModelSerializer):
     terceirizada = TerceirizadaSimplesSerializer()
 

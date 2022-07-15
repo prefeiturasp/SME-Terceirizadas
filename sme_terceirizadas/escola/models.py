@@ -526,6 +526,8 @@ class Subprefeitura(ExportModelOperationsMixin('subprefeitura'), Nomeavel, TemCh
         (4, 4),
     )
 
+    codigo_eol = models.CharField( # noqa DJ01
+        'Código EOL', max_length=6, unique=True, null=True, blank=True)
     diretoria_regional = models.ManyToManyField(DiretoriaRegional, related_name='subprefeituras', blank=True)
     lote = models.ForeignKey('Lote', related_name='subprefeituras', on_delete=models.SET_NULL, null=True, blank=True)
     agrupamento = models.PositiveSmallIntegerField(choices=AGRUPAMENTO, default=1)
