@@ -688,7 +688,7 @@ class UltimaHomologacaoHomologadosPorParametrosSerializer(serializers.ModelSeria
 
     def get_reclamacoes(self, obj):
         return ReclamacoesUltimaHomologacaoHomologadosPorParametrosSerializer(
-            obj.reclamacoes.all(), context=self.context,
+            obj.reclamacoes.all().order_by('-criado_em'), context=self.context,
             many=True
         ).data
 
