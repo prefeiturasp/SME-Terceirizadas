@@ -77,6 +77,13 @@ class SubprefeituraSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SubprefeituraSerializerSimples(serializers.ModelSerializer):
+
+    class Meta:
+        model = Subprefeitura
+        fields = ('codigo_eol', 'nome')
+
+
 class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
     periodos_escolares = PeriodoEscolarSimplesSerializer(many=True)
 
@@ -104,6 +111,13 @@ class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiretoriaRegional
         fields = ('uuid', 'nome', 'codigo_eol')
+
+
+class DiretoriaRegionalLookUpSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DiretoriaRegional
+        fields = ('uuid', 'iniciais', 'nome', 'codigo_eol')
 
 
 class LoteReclamacaoSerializer(serializers.ModelSerializer):

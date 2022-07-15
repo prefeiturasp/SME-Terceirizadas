@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
-from rest_framework import serializers, status
+from rest_framework import permissions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.response import Response
@@ -65,6 +65,7 @@ from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
     DiretoriaRegionalCompletaSerializer,
+    DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaListagemSimplissimaComDRESelializer,
     EscolaSimplesSerializer,
@@ -72,6 +73,7 @@ from .serializers import (
     PeriodoEFaixaEtariaCounterSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
+    SubprefeituraSerializerSimples,
     TipoGestaoSerializer,
     TipoUnidadeEscolarSerializer
 )
@@ -272,9 +274,15 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
 
 
 class DiretoriaRegionalSimplissimaViewSet(ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
     lookup_field = 'uuid'
     queryset = DiretoriaRegional.objects.all()
     serializer_class = DiretoriaRegionalSimplissimaSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-completa')
+    def lista_completa(self, request):
+        response = {'results': DiretoriaRegionalLookUpSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
 
 
 class TipoGestaoViewSet(ReadOnlyModelViewSet):
@@ -284,9 +292,15 @@ class TipoGestaoViewSet(ReadOnlyModelViewSet):
 
 
 class SubprefeituraViewSet(ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
     lookup_field = 'uuid'
     queryset = Subprefeitura.objects.all()
     serializer_class = SubprefeituraSerializer
+
+    @action(detail=False, methods=['get'], url_path='lista-completa')
+    def lista_completa(self, request):
+        response = {'results': SubprefeituraSerializerSimples(self.get_queryset(), many=True).data}
+        return Response(response)
 
 
 class LoteViewSet(ModelViewSet):
