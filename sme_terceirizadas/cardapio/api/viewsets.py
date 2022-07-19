@@ -121,7 +121,7 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
             url_path='tipo_unidade_escolar/(?P<tipo_unidade_escolar_uuid>[^/.]+)')
     def filtro_por_tipo_ue(self, request, tipo_unidade_escolar_uuid=None):
         vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-            tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid, ativo=True)
+            tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid, ativo=True).order_by('periodo_escolar__posicao')
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -134,7 +134,7 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
             tipo_unidade_escolar=escola.tipo_unidade,
             periodo_escolar__in=escola.periodos_escolares,
             ativo=True
-        )
+        ).order_by('periodo_escolar__posicao')
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
