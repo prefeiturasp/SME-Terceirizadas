@@ -4,7 +4,7 @@ from datetime import date
 from enum import Enum
 
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
@@ -275,9 +275,10 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
     """manhã, intermediário, tarde, vespertino, noturno, integral."""
 
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
+    posicao = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
 
     class Meta:
-        ordering = ('nome',)
+        ordering = ('posicao',)
         verbose_name = 'Período escolar'
         verbose_name_plural = 'Períodos escolares'
 

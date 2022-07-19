@@ -153,7 +153,7 @@ def test_faixa_str():
 
 
 def test_ordem(periodo_escolar):
-    assert ('nome',) == periodo_escolar._meta.ordering
+    assert ('posicao',) == periodo_escolar._meta.ordering
 
 
 def test_instance_model_planilha_de_para_codigo_eol_codigo_codae(planilha_de_para_eol_codae):

@@ -830,7 +830,8 @@ def test_endpoint_horario_do_combo_tipo_alimentacao_unidade_escolar(client_auten
     }
     assert json[0]['periodo_escolar'] == {
         'uuid': '22596464-271e-448d-bcb3-adaba43fffc8',
-        'nome': 'TARDE'
+        'nome': 'TARDE',
+        'posicao': None
     }
     assert json[0]['escola'] == {
         'uuid': 'a627fc63-16fd-482c-a877-16ebc1a82e57',
