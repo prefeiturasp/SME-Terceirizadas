@@ -1,3 +1,4 @@
+import re
 from datetime import date
 
 from django.template.loader import render_to_string
@@ -499,3 +500,7 @@ def diff_substituicoes(substituicoes_old, substituicoes_new): # noqa C901
                 substituicoes.append(sub)
 
     return substituicoes
+
+
+def is_alpha_numeric_and_has_single_space(descricao):
+    return bool(re.match(r'[A-Za-z0-9\s]+$', descricao))
