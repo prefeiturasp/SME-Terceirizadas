@@ -156,7 +156,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     desc_doc = models.CharField(max_length=50)
     data_log = models.DateTimeField()
     status_evento = models.PositiveSmallIntegerField()
-    numero_alunos = models.PositiveSmallIntegerField()
+    numero_alunos = models.BigIntegerField()
     status_atual = models.CharField(max_length=32)
 
     objects = models.Manager()
