@@ -158,13 +158,15 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 'periodos_escolares': [
                     {
                         'tipos_alimentacao': [],
-                        'nome': 'MANHA',
-                        'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'
+                        'nome': 'TARDE',
+                        'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                        'posicao': None
                     },
                     {
                         'tipos_alimentacao': [],
-                        'nome': 'TARDE',
-                        'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'
+                        'nome': 'MANHA',
+                        'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                        'posicao': None
                     }
                 ],
                 'escolas': [],
@@ -599,13 +601,15 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             'periodos_escolares': [
                 {
                     'tipos_alimentacao': [],
-                    'nome': 'MANHA',
-                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'
+                    'nome': 'TARDE',
+                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    'posicao': None
                 },
                 {
                     'tipos_alimentacao': [],
-                    'nome': 'TARDE',
-                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'
+                    'nome': 'MANHA',
+                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    'posicao': None
                 }
             ],
             'escolas': [],
@@ -614,8 +618,7 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
                 'nome': 'DIRETORIA REGIONAL IPIRANGA',
                 'codigo_eol': '987656'
             },
-            'tipo_unidade_escolar':
-            '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+            'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
             'tipo_unidade_escolar_iniciais': 'EMEF',
             'tipo_gestao': 'TERC TOTAL',
             'tipos_contagem': [],
