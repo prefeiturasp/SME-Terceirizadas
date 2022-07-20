@@ -33,6 +33,7 @@ from ..dados_comuns.constants import (
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     SUPLENTE
 )
+from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
 from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI, PERIODOS_ESPECIAIS_CEU_GESTAO
@@ -512,9 +513,33 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
     def transferir_solicitacoes_gestao_alimentacao(self, terceirizada):
         if not self.terceirizada:
             return
-        self.terceirizada.inclusao_alimentacao_inclusaoalimentacaocontinua_rastro_terceirizada.filter(
-
-        )
+        hoje = date.today()
+        canceladas_ou_negadas = Q(status__in=[
+            FluxoAprovacaoPartindoDaEscola.workflow_class.CODAE_NEGOU_PEDIDO,
+            FluxoAprovacaoPartindoDaEscola.workflow_class.CANCELADO_AUTOMATICAMENTE,
+            FluxoAprovacaoPartindoDaEscola.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
+            FluxoAprovacaoPartindoDaEscola.workflow_class.ESCOLA_CANCELOU])
+        self.terceirizada.inclusao_alimentacao_inclusaoalimentacaocontinua_rastro_terceirizada.exclude(
+            canceladas_ou_negadas | Q(data_inicial__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada)
+        self.terceirizada.inclusao_alimentacao_grupoinclusaoalimentacaonormal_rastro_terceirizada.exclude(
+            canceladas_ou_negadas | Q(data__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada)
+        self.terceirizada.inclusao_alimentacao_inclusaoalimentacaodacei_rastro_terceirizada.exclude(
+            canceladas_ou_negadas | Q(data__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada)
+        self.terceirizada.cardapio_alteracaocardapio_rastro_terceirizada.exclude(
+            canceladas_ou_negadas | Q(data__lt=hoje) | Q(data_inicial__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada)
+        self.terceirizada.cardapio_alteracaocardapiocei_rastro_terceirizada.exclude(
+            canceladas_ou_negadas | Q(data__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada)
+        self.terceirizada.kit_lanche_solicitacaokitlancheavulsa_rastro_terceirizada.exclude(
+            canceladas_ou_negadas | Q(data__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada)
+        self.terceirizada.kit_lanche_solicitacaokitlancheceiavulsa_rastro_terceirizada.exclude(
+            canceladas_ou_negadas | Q(data__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada)
 
 
     def __str__(self):
