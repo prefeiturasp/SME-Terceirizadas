@@ -1,3 +1,4 @@
+import re
 from datetime import date
 
 from django.contrib import admin, messages
@@ -36,6 +37,7 @@ from .models import (
     TipoContagem
 )
 from .tasks import get_escolas_task, processa_dietas_especiais_task
+from .utils import is_alpha_numeric_and_has_single_space
 
 
 @admin.register(AlergiaIntolerancia)
@@ -43,6 +45,27 @@ class AlergiaIntoleranciaAdmin(admin.ModelAdmin):
     list_display = ('descricao',)
     search_fields = ('descricao',)
     ordering = ('descricao',)
+
+    def message_user(self, *args):
+        pass
+
+    def save_model(self, request, obj, form, change): # noqa C901
+        if obj.descricao in ['', None]:
+            messages.error(request, f'É necessário preencher o campo descrição!')
+            return
+        obj.descricao = obj.descricao.strip().upper()
+        obj.descricao = re.sub(r'\s+', ' ', obj.descricao)
+        acao = 'cadastrada'
+        if change:
+            acao = 'alterada'
+        if AlergiaIntolerancia.objects.filter(descricao=obj.descricao):
+            messages.error(request, f'Alergia intolerância "{obj.descricao}" já cadastrada!')
+            return
+        if not is_alpha_numeric_and_has_single_space(obj.descricao):
+            messages.error(request, f'Descrição "{obj.descricao}" inválida. Permitido apenas letras e números!')
+            return
+        messages.success(request, f'Alergia intolerância "{obj.descricao}" {acao} com sucesso!')
+        super(AlergiaIntoleranciaAdmin, self).save_model(request, obj, form, change)  # noqa
 
 
 @admin.register(Alimento)
