@@ -73,7 +73,7 @@ class Command(BaseCommand):
             descricao=Func(F('descricao'), Value('/'), Value(' '), function='replace'))
         self.stdout.write(self.style.SUCCESS(f'Removendo acentos'))
         for alergia in AlergiaIntolerancia.objects.all():
-            re.sub(r'\s+', ' ', alergia.descricao)
+            alergia.descricao = re.sub(r'\s+', ' ', alergia.descricao)
             if self.remove_acentos(alergia.descricao) != alergia.descricao:
                 alergia.descricao = self.remove_acentos(alergia.descricao)
             alergia.save()
