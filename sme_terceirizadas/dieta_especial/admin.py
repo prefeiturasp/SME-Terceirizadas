@@ -55,16 +55,16 @@ class AlergiaIntoleranciaAdmin(admin.ModelAdmin):
             return
         obj.descricao = obj.descricao.strip().upper()
         obj.descricao = re.sub(r'\s+', ' ', obj.descricao)
-        acao = 'cadastrada'
+        acao = 'cadastrado'
         if change:
-            acao = 'alterada'
+            acao = 'alterado'
         if AlergiaIntolerancia.objects.filter(descricao=obj.descricao):
-            messages.error(request, f'Alergia intolerância "{obj.descricao}" já cadastrada!')
+            messages.error(request, f'Diagnóstico já cadastrado!')
             return
         if not is_alpha_numeric_and_has_single_space(obj.descricao):
-            messages.error(request, f'Descrição "{obj.descricao}" inválida. Permitido apenas letras e números!')
+            messages.error(request, f'Diagnóstico "{obj.descricao}" inválido. Permitido apenas letras e números!')
             return
-        messages.success(request, f'Alergia intolerância "{obj.descricao}" {acao} com sucesso!')
+        messages.success(request, f'Diagnóstico {acao} com sucesso!')
         super(AlergiaIntoleranciaAdmin, self).save_model(request, obj, form, change)  # noqa
 
 
