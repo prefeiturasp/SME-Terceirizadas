@@ -142,11 +142,6 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
         ).exclude(perfil__nome=NUTRI_ADMIN_RESPONSAVEL)
 
-    def desvincular_lotes(self):
-        for lote in self.lotes.all():
-            self.lotes.remove(lote)
-        self.save()
-
     @property
     def quantidade_alunos(self):
         quantidade_total = 0

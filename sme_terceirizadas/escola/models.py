@@ -508,6 +508,14 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
         )
         return quantidade_result.get('quantidade_alunos__sum') or 0
 
+    def transferir_solicitacoes_gestao_alimentacao(self, terceirizada):
+        if not self.terceirizada:
+            return
+        self.terceirizada.inclusao_alimentacao_inclusaoalimentacaocontinua_rastro_terceirizada.filter(
+
+        )
+
+
     def __str__(self):
         nome_dre = self.diretoria_regional.nome if self.diretoria_regional else 'sem DRE definida'
         return f'{self.nome} - {nome_dre}'

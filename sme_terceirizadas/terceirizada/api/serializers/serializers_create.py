@@ -164,7 +164,12 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             instance.contatos.set(contatos)
         else:
             instance.contatos.clear()
-            instance.desvincular_lotes()
+
+            if instance.lotes.exclude(id__in=[lote.id for lote in lotes_array]).exists():
+                raise ValidationError("Não pode remover um lote de uma empresa. É preciso atribuí-lo a outra empresa.")
+
+            for lote in [lote for lote in lotes_array if lote not in instance.lotes.all()]:
+                lote.transferir_solicitacoes_gestao_alimentacao(instance)
 
             contatos = []
             for contato_json in contato_array:
