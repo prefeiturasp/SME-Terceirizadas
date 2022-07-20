@@ -1,6 +1,9 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 from django_filters import rest_framework as filters
-from rest_framework import serializers, status
+from openpyxl import Workbook, styles
+from openpyxl.worksheet.datavalidation import DataValidation
+from rest_framework import permissions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.response import Response
@@ -62,6 +65,7 @@ from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
     DiretoriaRegionalCompletaSerializer,
+    DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaListagemSimplissimaComDRESelializer,
     EscolaSimplesSerializer,
@@ -69,6 +73,7 @@ from .serializers import (
     PeriodoEFaixaEtariaCounterSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
+    SubprefeituraSerializerSimples,
     TipoGestaoSerializer,
     TipoUnidadeEscolarSerializer
 )
@@ -269,9 +274,15 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
 
 
 class DiretoriaRegionalSimplissimaViewSet(ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
     lookup_field = 'uuid'
     queryset = DiretoriaRegional.objects.all()
     serializer_class = DiretoriaRegionalSimplissimaSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-completa')
+    def lista_completa(self, request):
+        response = {'results': DiretoriaRegionalLookUpSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
 
 
 class TipoGestaoViewSet(ReadOnlyModelViewSet):
@@ -281,9 +292,15 @@ class TipoGestaoViewSet(ReadOnlyModelViewSet):
 
 
 class SubprefeituraViewSet(ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
     lookup_field = 'uuid'
     queryset = Subprefeitura.objects.all()
     serializer_class = SubprefeituraSerializer
+
+    @action(detail=False, methods=['get'], url_path='lista-completa')
+    def lista_completa(self, request):
+        response = {'results': SubprefeituraSerializerSimples(self.get_queryset(), many=True).data}
+        return Response(response)
 
 
 class LoteViewSet(ModelViewSet):
@@ -487,3 +504,47 @@ class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
         if self.action == 'create':
             return MudancaFaixasEtariasCreateSerializer
         return FaixaEtariaSerializer
+
+
+def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=planilha_importacao_tipo_gestao_escolas.xlsx'
+    workbook: Workbook = Workbook()
+    ws = workbook.active
+    ws.title = 'UNIDADES COM TIPO DE GESTÃO'
+    headers = [
+        'CÓDIGO EOL',
+        'CÓDIGO CODAE',
+        'NOME UNIDADE',
+        'TIPO',
+    ]
+    _font = styles.Font(name='Calibri', sz=11)
+    {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
+    for i in range(0, len(headers)):
+        cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
+        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
+        cabecalho.font = styles.Font(name='Calibri', size=11, bold=True)
+        cabecalho.border = styles.Border(
+            left=styles.Side(border_style='thin', color='000000'),
+            right=styles.Side(border_style='thin', color='000000'),
+            top=styles.Side(border_style='thin', color='000000'),
+            bottom=styles.Side(border_style='thin', color='000000')
+        )
+    dv = DataValidation(
+        type='list',
+        formula1='"PARCEIRA, DIRETA, MISTA, TERCEIRIZADA TOTAL"',
+        allow_blank=True
+    )
+    dv.error = 'Tipo Inválido'
+    dv.errorTitle = 'Tipo não permitido'
+    ws.add_data_validation(dv)
+    dv.add('D2:H1048576')
+
+    for colunas in ws.columns:
+        unmerged_cells = list(
+            filter(lambda cell_to_check: cell_to_check.coordinate not in ws.merged_cells, colunas))
+        length = max(len(str(cell.value)) for cell in unmerged_cells)
+        ws.column_dimensions[unmerged_cells[0].column_letter].width = length * 1.3
+    workbook.save(response)
+
+    return response
