@@ -33,7 +33,7 @@ from .managers import (
 
 
 class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), DiasSemana, TemChaveExterna):
-    numero_alunos = models.BigIntegerField(null=True, blank=True,)
+    numero_alunos = models.IntegerField(null=True, blank=True,)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
     observacao = models.CharField('Observação', blank=True, max_length=1000)
