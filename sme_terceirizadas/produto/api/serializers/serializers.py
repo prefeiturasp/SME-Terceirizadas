@@ -547,6 +547,13 @@ class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):
 class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
     ultimo_log = UltimoLogRelatorioSituacaoSerializer()
     status_titulo = serializers.CharField(source='status.state.title')
+    justificativa = serializers.SerializerMethodField()
+
+    def get_justificativa(self, obj):
+        if LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).exists():
+            log_solicitacao = LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).first()
+            return log_solicitacao.justificativa
+        return None
 
     @staticmethod
     def setup_eager_loading(queryset):
@@ -556,7 +563,7 @@ class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomologacaoProduto
-        fields = ('ultimo_log', 'status', 'status_titulo')
+        fields = ('ultimo_log', 'status', 'status_titulo', 'justificativa')
 
 
 class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
