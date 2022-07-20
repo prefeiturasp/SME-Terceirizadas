@@ -558,6 +558,12 @@ def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
 
 
 def relatorio_produtos_situacao(request, queryset, filtros):
+
+    for produto in queryset:
+        if produto.ultima_homologacao:
+            homologacao = produto.ultima_homologacao
+            log_solicitacao = LogSolicitacoesUsuario.objects.filter(uuid_original=homologacao.uuid).first()
+            produto.justificativa = log_solicitacao.justificativa
     html_string = render_to_string(
         'relatorio_produtos_situacao.html',
         {

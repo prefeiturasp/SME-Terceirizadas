@@ -53,6 +53,13 @@
                     <div>{{produto.tem_aditivos_alergenicos|yesno:"Sim,Não"}}</div>
                   </div>
                 </div>
+                {% if produto.ultima_homologacao.status.state.title == "CODAE não homologou" %}
+                  <div class="status-flex-container-justificativa ">
+                    <div class="justificativa">Motivo da recusa de Homologação</div>
+                    <div>{{produto.justificativa|safe}}</div>
+                  </div>
+                {% endif %}
+                <div class="row-line"></div>
               </div>
             </td>
           </tr>
