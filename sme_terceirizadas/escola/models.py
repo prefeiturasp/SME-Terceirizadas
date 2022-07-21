@@ -33,7 +33,7 @@ from ..dados_comuns.constants import (
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     SUPLENTE
 )
-from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola
+from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
 from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI, PERIODOS_ESPECIAIS_CEU_GESTAO
@@ -521,26 +521,50 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
             FluxoAprovacaoPartindoDaEscola.workflow_class.ESCOLA_CANCELOU])
         self.terceirizada.inclusao_alimentacao_inclusaoalimentacaocontinua_rastro_terceirizada.exclude(
             canceladas_ou_negadas | Q(data_inicial__lt=hoje)
-        ).update(rastro_terceirizada=terceirizada)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
         self.terceirizada.inclusao_alimentacao_grupoinclusaoalimentacaonormal_rastro_terceirizada.exclude(
-            canceladas_ou_negadas | Q(data__lt=hoje)
-        ).update(rastro_terceirizada=terceirizada)
+            canceladas_ou_negadas | Q(inclusoes_normais__data__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
         self.terceirizada.inclusao_alimentacao_inclusaoalimentacaodacei_rastro_terceirizada.exclude(
             canceladas_ou_negadas | Q(data__lt=hoje)
-        ).update(rastro_terceirizada=terceirizada)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
         self.terceirizada.cardapio_alteracaocardapio_rastro_terceirizada.exclude(
-            canceladas_ou_negadas | Q(data__lt=hoje) | Q(data_inicial__lt=hoje)
-        ).update(rastro_terceirizada=terceirizada)
+            canceladas_ou_negadas | Q(data_inicial__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
         self.terceirizada.cardapio_alteracaocardapiocei_rastro_terceirizada.exclude(
             canceladas_ou_negadas | Q(data__lt=hoje)
-        ).update(rastro_terceirizada=terceirizada)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
         self.terceirizada.kit_lanche_solicitacaokitlancheavulsa_rastro_terceirizada.exclude(
-            canceladas_ou_negadas | Q(data__lt=hoje)
-        ).update(rastro_terceirizada=terceirizada)
+            canceladas_ou_negadas | Q(solicitacao_kit_lanche__data__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
         self.terceirizada.kit_lanche_solicitacaokitlancheceiavulsa_rastro_terceirizada.exclude(
-            canceladas_ou_negadas | Q(data__lt=hoje)
-        ).update(rastro_terceirizada=terceirizada)
+            canceladas_ou_negadas | Q(solicitacao_kit_lanche__data__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
+        self.terceirizada.cardapio_inversaocardapio_rastro_terceirizada.exclude(
+            canceladas_ou_negadas | Q(data_de_inversao__lt=hoje) | Q(data_para_inversao__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
+        self.terceirizada.cardapio_gruposuspensaoalimentacao_rastro_terceirizada.exclude(
+            suspensoes_alimentacao__data__lt=hoje
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
+        self.terceirizada.cardapio_suspensaoalimentacaodacei_rastro_terceirizada.exclude(
+            data__lt=hoje
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
 
+    def transferir_dietas_especiais(self, terceirizada):
+        if not self.terceirizada:
+            return
+        canceladas_ou_negadas = Q(status__in=[
+            FluxoDietaEspecialPartindoDaEscola.workflow_class.CANCELADO_ALUNO_MUDOU_ESCOLA,
+            FluxoDietaEspecialPartindoDaEscola.workflow_class.CODAE_NEGOU_PEDIDO,
+            FluxoDietaEspecialPartindoDaEscola.workflow_class.ESCOLA_CANCELOU,
+            FluxoDietaEspecialPartindoDaEscola.workflow_class.TERMINADA_AUTOMATICAMENTE_SISTEMA,
+            FluxoDietaEspecialPartindoDaEscola.workflow_class.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+            FluxoDietaEspecialPartindoDaEscola.workflow_class.CODAE_AUTORIZOU_INATIVACAO,
+            FluxoDietaEspecialPartindoDaEscola.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO
+        ])
+        self.terceirizada.dieta_especial_solicitacaodietaespecial_rastro_terceirizada.exclude(
+            canceladas_ou_negadas
+        ).update(rastro_terceirizada=terceirizada, conferido=False)
 
     def __str__(self):
         nome_dre = self.diretoria_regional.nome if self.diretoria_regional else 'sem DRE definida'

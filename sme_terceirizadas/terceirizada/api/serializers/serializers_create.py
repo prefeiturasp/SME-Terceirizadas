@@ -170,6 +170,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
 
             for lote in [lote for lote in lotes_array if lote not in instance.lotes.all()]:
                 lote.transferir_solicitacoes_gestao_alimentacao(instance)
+                lote.transferir_dietas_especiais(instance)
 
             contatos = []
             for contato_json in contato_array:
