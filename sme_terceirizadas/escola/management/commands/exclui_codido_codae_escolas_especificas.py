@@ -15,7 +15,7 @@ class Command(BaseCommand):
     help = 'Remove código codae de escolas que não fazem parte do piloto em produção do SIGPAE'
 
     try:
-        tipo_unidade_cei_parceiro = TipoUnidadeEscolar.objects.get(iniciais='CR.P.CONVn')
+        tipo_unidade_cei_parceiro = TipoUnidadeEscolar.objects.get(iniciais='CR.P.CONV')
         tipo_gestao_parceira = TipoGestao.objects.get(nome='PARCEIRA')
         tipo_gestao_mista = TipoGestao.objects.get(nome='MISTA')
         tipo_gestao_direta = TipoGestao.objects.get(nome='DIRETA')
