@@ -15,6 +15,12 @@ from ..dados_comuns.utils import (
 )
 from ..logistica.models.guia import Guia
 from ..relatorios.relatorios import relatorio_guia_de_remessa
+from .api.helpers import (
+    retorna_dados_normalizados_excel_visao_dilog,
+    retorna_dados_normalizados_excel_visao_distribuidor
+)
+from .api.services.exporta_para_excel import RequisicoesExcelService
+from .models import SolicitacaoRemessa
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +144,31 @@ def gera_pdf_async(user, nome_arquivo, list_guias):
     try:
         guias = Guia.objects.filter(id__in=list_guias)
         arquivo = relatorio_guia_de_remessa(guias=guias, is_async=True)
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+
+    logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def gera_xlsx_async(username, nome_arquivo, ids_requisicoes, eh_distribuidor=False):
+    logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
+
+    obj_central_download = gera_objeto_na_central_download(user=username, identificador=nome_arquivo)
+    try:
+        queryset = SolicitacaoRemessa.objects.filter(id__in=ids_requisicoes)
+        if eh_distribuidor:
+            requisicoes = retorna_dados_normalizados_excel_visao_distribuidor(queryset)
+            arquivo = RequisicoesExcelService.exportar_visao_distribuidor(requisicoes=requisicoes, is_async=True)
+        else:
+            requisicoes = retorna_dados_normalizados_excel_visao_dilog(queryset)
+            arquivo = RequisicoesExcelService.exportar_visao_dilog(requisicoes=requisicoes, is_async=True)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))

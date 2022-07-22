@@ -5,7 +5,7 @@ from celery import shared_task
 from django.core import management
 from requests import ConnectionError
 
-from sme_terceirizadas.escola.utils_escola import atualiza_codigo_codae_das_escolas
+from sme_terceirizadas.escola.utils_escola import atualiza_codigo_codae_das_escolas, atualiza_tipo_gestao_das_escolas
 from sme_terceirizadas.perfil.models.perfil import Vinculo
 
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, InversaoCardapio
@@ -63,6 +63,16 @@ def atualiza_alunos_escolas():
 def atualiza_codigo_codae_das_escolas_task(path_planilha, id_planilha):
     logger.debug(f'Iniciando task atualiza_codigo_codae_das_escolas às {datetime.datetime.now()}')
     atualiza_codigo_codae_das_escolas(path_planilha, id_planilha)
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 3},
+)
+def atualiza_tipo_gestao_das_escolas_task(path_planilha, id_planilha):
+    logger.debug(f'Iniciando task atualiza_tipo_gestao_das_escolas às {datetime.datetime.now()}')
+    atualiza_tipo_gestao_das_escolas(path_planilha, id_planilha)
 
 
 @shared_task(

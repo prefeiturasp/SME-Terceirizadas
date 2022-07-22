@@ -138,7 +138,8 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             'fluxo': fluxo,
             'width': get_width(fluxo, solicitacao.logs),
             'logs': formata_logs(logs),
-            'eh_importado': eh_importado
+            'eh_importado': eh_importado,
+            'foto_aluno': solicitacao.aluno.foto_aluno_base64
         }
     )
     return html_string
@@ -190,7 +191,10 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
                                         'nome_alimento': alimento_guia.nome_alimento,
                                         'arquivo': alimento_conferencia.arquivo
                                     }
-                                    lista_imagens_conferencia.append(imagem)
+                                    lista_filtrada = [a for a in lista_imagens_conferencia
+                                                      if a['nome_alimento'] == alimento_guia.nome_alimento]
+                                    if not lista_filtrada:
+                                        lista_imagens_conferencia.append(imagem)
                                 conferencias_alimento.append(embalagem)
                         alimento_guia.embalagens_conferidas = conferencias_alimento
                 for alimento_reposicao in reposicoes_individuais:
@@ -206,7 +210,10 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
                                         'nome_alimento': alimento_guia.nome_alimento,
                                         'arquivo': alimento_reposicao.arquivo
                                     }
-                                    lista_imagens_reposicao.append(imagem)
+                                    lista_filtrada = [a for a in lista_imagens_reposicao
+                                                      if a['nome_alimento'] == alimento_guia.nome_alimento]
+                                    if not lista_filtrada:
+                                        lista_imagens_reposicao.append(imagem)
                                 reposicoes_alimento.append(embalagem)
                         alimento_guia.embalagens_repostas = reposicoes_alimento
 
@@ -232,11 +239,11 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
 
     if len(lista_pdfs) == 1:
         if guia.status == GuiaStatus.CANCELADA:
-            return html_to_pdf_cancelada(lista_pdfs[0], 'guia_de_remessa.pdf', is_async)
+            return html_to_pdf_cancelada(lista_pdfs[0], f'guia_{guia.numero_guia}.pdf', is_async)
         else:
-            return html_to_pdf_file(lista_pdfs[0], 'guia_de_remessa.pdf', is_async)
+            return html_to_pdf_file(lista_pdfs[0], f'guia_{guia.numero_guia}.pdf', is_async)
     else:
-        return html_to_pdf_multiple(lista_pdfs, 'guia_de_remessa.pdf', is_async)
+        return html_to_pdf_multiple(lista_pdfs, 'guias_de_remessa.pdf', is_async)
 
 
 def relatorio_dieta_especial(request, solicitacao):
@@ -262,7 +269,8 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
             'solicitacao': solicitacao,
             'substituicoes': substituicao_ordenada,
             'data_termino': solicitacao.data_termino,
-            'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
+            'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU),
+            'foto_aluno': solicitacao.aluno.foto_aluno_base64
         }
     )
     if request:
@@ -281,7 +289,8 @@ def relatorio_inclusao_alimentacao_continua(request, solicitacao):
             'solicitacao': solicitacao,
             'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
             'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
-            'logs': formata_logs(logs)
+            'logs': formata_logs(logs),
+            'week': {'D': 6, 'S': 0, 'T': 1, 'Q': 2, 'Qi': 3, 'Sx': 4, 'Sb': 5}
         }
     )
     return html_to_pdf_response(html_string, f'inclusao_alimentacao_continua_{solicitacao.id_externo}.pdf')
@@ -367,13 +376,15 @@ def relatorio_kit_lanche_passeio_cei(request, solicitacao):
 def relatorio_inversao_dia_de_cardapio(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
+    data_de = solicitacao.cardapio_de.data if solicitacao.cardapio_de else solicitacao.data_de_inversao
+    data_para = solicitacao.cardapio_para.data if solicitacao.cardapio_para else solicitacao.data_para_inversao
     html_string = render_to_string(
         'solicitacao_inversao_de_cardapio.html',
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'data_de': solicitacao.cardapio_de.data,
-            'data_para': solicitacao.cardapio_para.data,
+            'data_de': data_de,
+            'data_para': data_para,
             'fluxo': constants.FLUXO_INVERSAO_DIA_CARDAPIO,
             'width': get_width(constants.FLUXO_INVERSAO_DIA_CARDAPIO, solicitacao.logs),
             'logs': formata_logs(logs)
@@ -405,7 +416,7 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
 
 
 def relatorio_produto_homologacao(request, produto):
-    homologacao = produto.homologacoes.first()
+    homologacao = produto.homologacao
     terceirizada = homologacao.rastro_terceirizada
     reclamacao = homologacao.reclamacoes.filter(
         status=ReclamacaoProdutoWorkflow.CODAE_ACEITOU).first()
@@ -514,7 +525,7 @@ def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
 
 
 def relatorio_produto_analise_sensorial(request, produto):
-    homologacao = produto.homologacoes.first()
+    homologacao = produto.homologacao
     terceirizada = homologacao.rastro_terceirizada
     logs = homologacao.logs
     lotes = terceirizada.lotes.all()
@@ -559,7 +570,7 @@ def relatorio_produtos_situacao(request, queryset, filtros):
 
 
 def relatorio_produto_analise_sensorial_recebimento(request, produto):
-    homologacao = produto.homologacoes.first()
+    homologacao = produto.homologacao
     terceirizada = homologacao.rastro_terceirizada
     logs = homologacao.logs
     lotes = terceirizada.lotes.all()

@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -120,7 +121,7 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
             url_path='tipo_unidade_escolar/(?P<tipo_unidade_escolar_uuid>[^/.]+)')
     def filtro_por_tipo_ue(self, request, tipo_unidade_escolar_uuid=None):
         vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-            tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid, ativo=True)
+            tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid, ativo=True).order_by('periodo_escolar__posicao')
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -133,7 +134,7 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
             tipo_unidade_escolar=escola.tipo_unidade,
             periodo_escolar__in=escola.periodos_escolares,
             ativo=True
-        )
+        ).order_by('periodo_escolar__posicao')
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -608,9 +609,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     queryset = AlteracaoCardapio.objects.all()
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
@@ -701,10 +702,29 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA ESCOLA)
     #
 
-    @action(detail=True, permission_classes=[UsuarioEscola],
+    @action(detail=True, permission_classes=[UsuarioEscola], # noqa C901
             methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_solicitacao(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
+        if isinstance(alteracao_cardapio, AlteracaoCardapio):
+            alteracoes_de_cardapio = AlteracaoCardapio.objects.filter(
+                escola=alteracao_cardapio.escola,
+                status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            )
+            if alteracao_cardapio.data_inicial == alteracao_cardapio.data_final:
+                alteracoes_de_cardapio = alteracoes_de_cardapio.filter(
+                    Q(data_inicial=alteracao_cardapio.data_inicial) |
+                    Q(data_final=alteracao_cardapio.data_final)
+                )
+            else:
+                alteracoes_de_cardapio = alteracoes_de_cardapio.filter(
+                    Q(data_inicial=alteracao_cardapio.data_inicial) |
+                    Q(data_final=alteracao_cardapio.data_final) |
+                    Q(data_inicial=alteracao_cardapio.data_inicial, data_final=alteracao_cardapio.data_final)
+                )
+            if alteracoes_de_cardapio.exists():
+                return Response(dict(detail='Já existe solicitação autorizada para a mesma data e ou período.'),
+                                status=HTTP_400_BAD_REQUEST)
         try:
             alteracao_cardapio.inicia_fluxo(user=request.user, )
             serializer = self.get_serializer(alteracao_cardapio)
@@ -939,8 +959,8 @@ class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.vinculo_atual.perfil.nome in ['DIRETOR CEI']:
-            return MotivoAlteracaoCardapio.objects.exclude(nome__icontains='Merenda Seca')
+        if user.vinculo_atual.perfil.nome in ['DIRETOR_CEI']:
+            return MotivoAlteracaoCardapio.objects.exclude(nome__icontains='Lanche Emergencial')
         return MotivoAlteracaoCardapio.objects.all()
 
 

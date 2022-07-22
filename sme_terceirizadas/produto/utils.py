@@ -52,21 +52,21 @@ def cria_filtro_produto_por_parametros_form(cleaned_data):  # noqa C901
     for (chave, valor) in cleaned_data.items():
         if valor != '' and valor is not None:
             if chave == 'uuid':
-                campos_a_pesquisar['homologacoes__uuid'] = valor
+                campos_a_pesquisar['homologacao__uuid'] = valor
             if chave == 'nome_fabricante':
-                campos_a_pesquisar['fabricante__nome__unaccent__icontains'] = valor
+                campos_a_pesquisar['fabricante__nome__icontains'] = valor
             elif chave == 'nome_marca':
-                campos_a_pesquisar['marca__nome__unaccent__icontains'] = valor
+                campos_a_pesquisar['marca__nome__icontains'] = valor
             elif chave == 'nome_produto':
-                campos_a_pesquisar['nome__unaccent__icontains'] = valor
+                campos_a_pesquisar['nome__icontains'] = valor
             elif chave == 'nome_terceirizada':
-                campos_a_pesquisar['homologacoes__rastro_terceirizada__nome_fantasia__icontains'] = valor
+                campos_a_pesquisar['homologacao__rastro_terceirizada__nome_fantasia__icontains'] = valor
             elif chave == 'data_inicial' and valor is not None:
-                campos_a_pesquisar['homologacoes__criado_em__gte'] = valor
+                campos_a_pesquisar['homologacao__criado_em__gte'] = valor
             elif chave == 'data_final' and valor is not None:
-                campos_a_pesquisar['homologacoes__criado_em__lt'] = valor + timedelta(days=1)
+                campos_a_pesquisar['homologacao__criado_em__lt'] = valor + timedelta(days=1)
             elif chave == 'status' and len(valor) > 0:
-                campos_a_pesquisar['homologacoes__status__in'] = valor
+                campos_a_pesquisar['homologacao__status__in'] = valor
             elif chave == 'tem_aditivos_alergenicos':
                 campos_a_pesquisar['tem_aditivos_alergenicos'] = valor
             elif chave == 'eh_para_alunos_com_dieta':

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.contrib.postgres import fields
@@ -218,6 +220,19 @@ class SolicitacaoDietaEspecial(
         return self.substituicaoalimento_set.all()
 
     @property
+    def str_dre_lote_escola(self):
+        dre = 'SEM DRE'
+        lote = 'SEM LOTE'
+        escola = 'SEM ESCOLA'
+        if self.escola_destino:
+            escola = f'{self.escola_destino.nome}'
+            if self.escola_destino.diretoria_regional:
+                dre = f'DRE {self.escola_destino.diretoria_regional.nome.split(" ")[-1]}'
+            if self.escola_destino.lote:
+                lote = f'{self.escola_destino.lote.nome}'
+        return f'{dre}  - {lote} - {escola}'
+
+    @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(
             tipo=TemplateMensagem.DIETA_ESPECIAL)
@@ -244,6 +259,10 @@ class SolicitacaoDietaEspecial(
             uuid_original=self.uuid,
             justificativa=justificativa
         )
+
+    @property
+    def data_ultimo_log(self):
+        return datetime.strftime(self.logs.last().criado_em, '%d/%m/%Y') if self.logs else None
 
     class Meta:
         ordering = ('-ativo', '-criado_em')

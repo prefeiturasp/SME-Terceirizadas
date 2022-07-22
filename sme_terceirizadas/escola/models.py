@@ -4,13 +4,15 @@ from datetime import date
 from enum import Enum
 
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
+from rest_framework import status
 
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
+    ArquivoCargaBase,
     Ativavel,
     CriadoEm,
     CriadoPor,
@@ -33,13 +35,14 @@ from ..dados_comuns.constants import (
 )
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
-from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
+from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI, PERIODOS_ESPECIAIS_CEU_GESTAO
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoDaCEI
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from .services import NovoSGPServicoLogado
 from .utils import meses_para_mes_e_ano_string
 
 logger = logging.getLogger('sigpae.EscolaModels')
@@ -59,7 +62,8 @@ class DiretoriaRegional(
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(escola__in=self.escolas.all()).aggregate(
+        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(
+            escola__in=self.escolas.all(), tipo_turma='REGULAR').aggregate(
             Sum('quantidade_alunos')
         )
         return quantidade_result.get('quantidade_alunos__sum') or 0
@@ -271,9 +275,10 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
     """manhã, intermediário, tarde, vespertino, noturno, integral."""
 
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
+    posicao = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
 
     class Meta:
-        ordering = ('nome',)
+        ordering = ('posicao',)
         verbose_name = 'Período escolar'
         verbose_name_plural = 'Períodos escolares'
 
@@ -289,6 +294,9 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.DO_NOTHING)
     tipo_gestao = models.ForeignKey(TipoGestao, blank=True, null=True, on_delete=models.DO_NOTHING)
     lote = models.ForeignKey('Lote', related_name='escolas', blank=True, null=True, on_delete=models.PROTECT)
+    subprefeitura = models.ForeignKey(
+        'Subprefeitura', related_name='escolas', blank=True, null=True, default=None, on_delete=models.PROTECT
+    )
     contato = models.ForeignKey('dados_comuns.Contato', on_delete=models.SET_DEFAULT,
                                 blank=True, null=True, default=None)
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
@@ -301,7 +309,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def quantidade_alunos(self):
-        quantidade = AlunosMatriculadosPeriodoEscola.objects.filter(escola=self).aggregate(Sum('quantidade_alunos'))
+        quantidade = AlunosMatriculadosPeriodoEscola.objects.filter(
+            escola=self, tipo_turma='REGULAR').aggregate(Sum('quantidade_alunos'))
         return quantidade.get('quantidade_alunos__sum') or 0
 
     @property
@@ -313,6 +322,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
         if self.tipo_unidade.tem_somente_integral_e_parcial:
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
+        if self.tipo_unidade.iniciais == 'CEU GESTAO':
+            periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
         else:
             # TODO: ver uma forma melhor de fazer essa query
             periodos_ids = self.escolas_periodos.filter(quantidade_alunos__gte=1).values_list(
@@ -344,10 +355,11 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     def __str__(self):
         return f'{self.codigo_eol}: {self.nome}'
 
-    def alunos_por_periodo_e_faixa_etaria(self, data_referencia=None):  # noqa C901
+    def alunos_por_periodo_e_faixa_etaria(self, data_referencia=None, faixas_etarias=None):  # noqa C901
         if data_referencia is None:
             data_referencia = date.today()
-        faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+        if not faixas_etarias:
+            faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
         if faixas_etarias.count() == 0:
             raise ObjectDoesNotExist()
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.codigo_eol)
@@ -364,10 +376,11 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
         return resultados
 
-    def alunos_por_faixa_etaria(self, data_referencia=None):  # noqa C901
+    def alunos_por_faixa_etaria(self, data_referencia=None, faixas_etarias=None):  # noqa C901
         if data_referencia is None:
             data_referencia = date.today()
-        faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+        if not faixas_etarias:
+            faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
         if faixas_etarias.count() == 0:
             raise ObjectDoesNotExist()
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.codigo_eol)
@@ -490,7 +503,8 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(escola__in=self.escolas.all()).aggregate(
+        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(
+            escola__in=self.escolas.all(), tipo_turma='REGULAR').aggregate(
             Sum('quantidade_alunos')
         )
         return quantidade_result.get('quantidade_alunos__sum') or 0
@@ -506,8 +520,18 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
 
 
 class Subprefeitura(ExportModelOperationsMixin('subprefeitura'), Nomeavel, TemChaveExterna):
+    AGRUPAMENTO = (
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+    )
+
+    codigo_eol = models.CharField( # noqa DJ01
+        'Código EOL', max_length=6, unique=True, null=True, blank=True)
     diretoria_regional = models.ManyToManyField(DiretoriaRegional, related_name='subprefeituras', blank=True)
     lote = models.ForeignKey('Lote', related_name='subprefeituras', on_delete=models.SET_NULL, null=True, blank=True)
+    agrupamento = models.PositiveSmallIntegerField(choices=AGRUPAMENTO, default=1)
 
     def __str__(self):
         return self.nome
@@ -530,7 +554,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(escola__in=Escola.objects.all()).aggregate(
+        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(
+            escola__in=Escola.objects.all(), tipo_turma='REGULAR').aggregate(
             Sum('quantidade_alunos')
         )
         return quantidade_result.get('quantidade_alunos__sum') or 0
@@ -753,6 +778,17 @@ class Aluno(TemChaveExterna):
     def possui_dieta_especial_ativa(self):
         return self.dietas_especiais.filter(ativo=True).exists()
 
+    @property
+    def foto_aluno_base64(self):
+        try:
+            novosgpservicologado = NovoSGPServicoLogado()
+            response = novosgpservicologado.pegar_foto_aluno(self.codigo_eol)
+            if response.status_code == status.HTTP_200_OK:
+                download = response.json()['download']
+                return f'data:{download["item2"]};base64,{download["item1"]}'
+        except Exception:
+            return None
+
     def inativar_dieta_especial(self):
         try:
             dieta_especial = self.dietas_especiais.get(ativo=True)
@@ -802,6 +838,16 @@ class PlanilhaEscolaDeParaCodigoEolCodigoCoade(CriadoEm, TemAlteradoEm):
 
     def __str__(self):
         return str(self.planilha)
+
+
+class PlanilhaAtualizacaoTipoGestaoEscola(ArquivoCargaBase):
+
+    class Meta:
+        verbose_name = 'Planilha Atualização Tipo Gestão Escola'
+        verbose_name_plural = 'Planilha Atualização Tipo Gestão Escola'
+
+    def __str__(self):
+        return str(self.conteudo)
 
 
 class TipoTurma(Enum):

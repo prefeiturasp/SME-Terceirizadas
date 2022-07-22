@@ -1,6 +1,5 @@
 from datetime import date
 
-import environ
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
 
@@ -206,7 +205,7 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
     )
 
 
-def enviar_email_para_adm_terceirizada_da_escola_destino(solicitacao_dieta, aluno, escola, fora_da_rede=False):
+def enviar_email_para_adm_terceirizada_e_escola(solicitacao_dieta, aluno, escola, fora_da_rede=False):
     assunto = f'Cancelamento Automático de Dieta Especial Nº {solicitacao_dieta.id_externo}'
     hoje = date.today().strftime('%d/%m/%Y')
     template = 'email/email_dieta_cancelada_automaticamente_terceirizada_escola_destino.html',
@@ -224,20 +223,21 @@ def enviar_email_para_adm_terceirizada_da_escola_destino(solicitacao_dieta, alun
     html = render_to_string(template, dados_template)
     terceirizada = escola.lote.terceirizada
     if terceirizada:
-        administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
+        email_administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
             ativo=True,
             perfil__nome=ADMINISTRADOR_TERCEIRIZADA
         )]
-
-        for email in administradores_terceirizadas:
-            envia_email_unico(
-                assunto=assunto,
-                corpo='',
-                email=email,
-                template=template,
-                dados_template=dados_template,
-                html=html,
-            )
+    email_escola = [escola.contato.email]
+    email_lista = email_administradores_terceirizadas + email_escola
+    for email in email_lista:
+        envia_email_unico(
+            assunto=assunto,
+            corpo='',
+            email=email,
+            template=template,
+            dados_template=dados_template,
+            html=html,
+        )
 
 
 def aluno_matriculado_em_outra_ue(aluno, solicitacao_dieta):
@@ -261,14 +261,12 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
             )
             gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados, fora_da_rede=True)
             _cancelar_dieta_aluno_fora_da_rede(dieta=solicitacao_dieta)
-            env = environ.Env()
-            if env('DJANGO_ENV') == 'production':
-                enviar_email_para_adm_terceirizada_da_escola_destino(
-                    solicitacao_dieta,
-                    aluno,
-                    escola=solicitacao_dieta.escola,
-                    fora_da_rede=True
-                )
+            enviar_email_para_adm_terceirizada_e_escola(
+                solicitacao_dieta,
+                aluno,
+                escola=solicitacao_dieta.escola,
+                fora_da_rede=True
+            )
         elif aluno_matriculado_em_outra_ue(aluno, solicitacao_dieta):
             dados = dict(
                 codigo_eol_aluno=aluno.codigo_eol,
@@ -280,9 +278,7 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
             )
             gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
             _cancelar_dieta(solicitacao_dieta)
-            env = environ.Env()
-            if env('DJANGO_ENV') == 'production':
-                enviar_email_para_adm_terceirizada_da_escola_destino(solicitacao_dieta, aluno, escola=aluno.escola)
+            enviar_email_para_adm_terceirizada_e_escola(solicitacao_dieta, aluno, escola=solicitacao_dieta.escola)
         else:
             continue
 

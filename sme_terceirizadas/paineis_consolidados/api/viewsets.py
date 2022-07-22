@@ -765,8 +765,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
     def pendentes_autorizacao(self, request, dre_uuid=None):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
-        query_set = SolicitacoesDRE.get_pendentes_autorizacao(
-            dre_uuid=diretoria_regional.uuid)
+        query_set = SolicitacoesDRE.get_pendentes_validacao(dre_uuid=diretoria_regional.uuid)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}')

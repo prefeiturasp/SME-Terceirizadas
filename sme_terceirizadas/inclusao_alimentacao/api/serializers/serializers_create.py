@@ -251,11 +251,6 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
         queryset=Escola.objects.all()
     )
     quantidades_periodo = QuantidadePorPeriodoCreationSerializer(many=True)
-    dias_semana_explicacao = serializers.CharField(
-        source='dias_semana_display',
-        required=False,
-        read_only=True
-    )
     status_explicacao = serializers.CharField(
         source='status',
         required=False,

@@ -2,13 +2,14 @@ from datetime import datetime
 
 import environ
 from drf_base64.serializers import ModelSerializer
-from rest_framework import serializers
+from rest_framework import serializers, status
 
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.utils import update_instance_from_dict
 from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, LoteSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
+from ...escola.services import NovoSGPServicoLogadoException
 from ...produto.api.serializers.serializers import MarcaSimplesSerializer, ProdutoSimplesSerializer
 from ...produto.models import Produto, SolicitacaoCadastroProdutoDieta
 from ..models import (
@@ -246,6 +247,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
         model = SolicitacaoDietaEspecial
         ordering = ('ativo', '-criado_em')
         fields = (
+            'id',
             'uuid',
             'id_externo',
             'criado_em',
@@ -277,7 +279,8 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'observacoes_alteracao',
             'motivo_alteracao_ue',
             'conferido',
-            'eh_importado'
+            'eh_importado',
+            'dieta_alterada'
         )
 
 
@@ -351,11 +354,34 @@ class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
 class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     dre = serializers.CharField(source='escola.diretoria_regional.nome')
     escola = serializers.CharField(source='escola.nome')
+    codigo_eol_escola = serializers.CharField(source='escola.codigo_eol')
     codigo_eol = serializers.CharField()
+    foto_aluno = serializers.SerializerMethodField()
+    classificacao_dieta_ativa = serializers.SerializerMethodField()
     uuid = serializers.CharField()
     nome = serializers.CharField()
     ativas = serializers.IntegerField()
     inativas = serializers.IntegerField()
+
+    def get_foto_aluno(self, obj):  # noqa C901
+        novo_sgp_service = self.context.get('novo_sgp_service', '')
+        codigo_eol = obj.codigo_eol
+        if novo_sgp_service and codigo_eol is not None:
+            try:
+                response = novo_sgp_service.pegar_foto_aluno(int(codigo_eol))
+                if response.status_code == status.HTTP_200_OK:
+                    string_foto = ('data:' + response.json()['download']['item2'] + ';base64,'
+                                   + response.json()['download']['item1'])
+                    return string_foto
+            except NovoSGPServicoLogadoException:
+                return None
+        return None
+
+    def get_classificacao_dieta_ativa(self, obj):
+        qs_dieta_ativa = obj.dietas_especiais.filter(ativo=True)
+        if qs_dieta_ativa.exists():
+            return qs_dieta_ativa.first().classificacao.nome
+        return None
 
 
 class RelatorioQuantitativoSolicDietaEspSerializer(serializers.Serializer):
@@ -425,6 +451,7 @@ class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
     nome_escola = serializers.SerializerMethodField()
     classificacao_dieta = serializers.SerializerMethodField()
     protocolo_padrao = serializers.SerializerMethodField()
+    data_ultimo_log = serializers.SerializerMethodField()
 
     def get_codigo_eol_aluno(self, obj):
         return obj.aluno.codigo_eol if obj.aluno else None
@@ -441,6 +468,9 @@ class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
     def get_protocolo_padrao(self, obj):
         return obj.protocolo_padrao.nome_protocolo if obj.protocolo_padrao else obj.nome_protocolo
 
+    def get_data_ultimo_log(self, obj):
+        return datetime.strftime(obj.logs.last().criado_em, '%d/%m/%Y') if obj.logs else None
+
     class Meta:
         model = SolicitacaoDietaEspecial
         fields = (
@@ -448,8 +478,16 @@ class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
             'nome_aluno',
             'nome_escola',
             'classificacao_dieta',
-            'protocolo_padrao'
+            'protocolo_padrao',
+            'data_ultimo_log'
         )
+
+    def __init__(self, *args, **kwargs):
+        """Não retornar campo data_ultimo_log caso status da solicitação for 'AUTORIZADAS'."""
+        if kwargs['context']['status'] == 'AUTORIZADAS':
+            del self.fields['data_ultimo_log']
+
+        super().__init__(*args, **kwargs)
 
 
 class PanoramaSerializer(serializers.Serializer):
