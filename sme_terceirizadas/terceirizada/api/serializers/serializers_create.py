@@ -129,7 +129,19 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             UsuarioUpdateSerializer().create_distribuidor(terceirizada, distribuidor_json)
         else:
             terceirizada = Terceirizada.objects.create(**validated_data)
+
+            checar_terceirizadas_inativacao = []
+            for lote in [lote for lote in lotes if lote not in terceirizada.lotes.all() and lote.terceirizada]:
+                checar_terceirizadas_inativacao.append(lote.terceirizada.uuid)
+                lote.transferir_solicitacoes_gestao_alimentacao(terceirizada)
+                lote.transferir_dietas_especiais(terceirizada)
+
             terceirizada.lotes.set(lotes)
+
+            """ Inativa terceirizadas que nao tem lote """
+            Terceirizada.objects.filter(
+                uuid__in=checar_terceirizadas_inativacao, lotes__isnull=True).update(ativo=False)
+
             for contato_json in contatos:
                 contato = ContatoSerializer().create(
                     validated_data=contato_json)

@@ -511,8 +511,6 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
         return quantidade_result.get('quantidade_alunos__sum') or 0
 
     def transferir_solicitacoes_gestao_alimentacao(self, terceirizada):
-        if not self.terceirizada:
-            return
         hoje = date.today()
         canceladas_ou_negadas = Q(status__in=[
             FluxoAprovacaoPartindoDaEscola.workflow_class.CODAE_NEGOU_PEDIDO,
@@ -551,8 +549,6 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
 
     def transferir_dietas_especiais(self, terceirizada):
-        if not self.terceirizada:
-            return
         canceladas_ou_negadas = Q(status__in=[
             FluxoDietaEspecialPartindoDaEscola.workflow_class.CANCELADO_ALUNO_MUDOU_ESCOLA,
             FluxoDietaEspecialPartindoDaEscola.workflow_class.CODAE_NEGOU_PEDIDO,
