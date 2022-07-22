@@ -418,6 +418,8 @@ class HomologacaoProdutoBase(serializers.ModelSerializer):
 class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
     nome_produto = serializers.SerializerMethodField()
     marca_produto = serializers.SerializerMethodField()
+    fabricante_produto = serializers.SerializerMethodField()
+
     log_mais_recente = serializers.SerializerMethodField()
     nome_usuario_log_de_reclamacao = serializers.SerializerMethodField()
 
@@ -445,10 +447,13 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
     def get_marca_produto(self, obj):
         return obj.produto.marca.nome
 
+    def get_fabricante_produto(self, obj):
+        return obj.produto.fabricante.nome
+
     class Meta:
         model = HomologacaoProduto
-        fields = ('uuid', 'nome_produto', 'marca_produto', 'status', 'id_externo', 'log_mais_recente',
-                  'nome_usuario_log_de_reclamacao', 'qtde_reclamacoes', 'qtde_questionamentos')
+        fields = ('uuid', 'nome_produto', 'marca_produto', 'fabricante_produto', 'status', 'id_externo',
+                  'log_mais_recente', 'nome_usuario_log_de_reclamacao', 'qtde_reclamacoes', 'qtde_questionamentos')
 
 
 class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
@@ -688,7 +693,7 @@ class UltimaHomologacaoHomologadosPorParametrosSerializer(serializers.ModelSeria
 
     def get_reclamacoes(self, obj):
         return ReclamacoesUltimaHomologacaoHomologadosPorParametrosSerializer(
-            obj.reclamacoes.all(), context=self.context,
+            obj.reclamacoes.all().order_by('-criado_em'), context=self.context,
             many=True
         ).data
 

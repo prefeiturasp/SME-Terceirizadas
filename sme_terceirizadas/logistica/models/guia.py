@@ -195,15 +195,21 @@ class ConferenciaIndividualPorAlimento(ModeloBase):
 class InsucessoEntregaGuia(ModeloBase, CriadoPor):
     # Motivo Choice
     MOTIVO_UNIDADE_FECHADA = 'UNIDADE_FECHADA'
+    MOTIVO_UNIDADE_SEM_ENERGIA = 'UNIDADE_SEM_ENERGIA'
+    MOTIVO_UNIDADE_SEM_ACESSO = 'UNIDADE_SEM_ACESSO'
     MOTIVO_OUTROS = 'OUTROS'
 
     MOTIVO_NOMES = {
         MOTIVO_UNIDADE_FECHADA: 'Unidade educacional fechada',
+        MOTIVO_UNIDADE_SEM_ENERGIA: 'Unidade educacional sem energia elétrica',
+        MOTIVO_UNIDADE_SEM_ACESSO: 'Interdição de via de acesso ao local de entrega',
         MOTIVO_OUTROS: 'Outros',
     }
 
     MOTIVO_CHOICES = (
         (MOTIVO_UNIDADE_FECHADA, MOTIVO_NOMES[MOTIVO_UNIDADE_FECHADA]),
+        (MOTIVO_UNIDADE_SEM_ENERGIA, MOTIVO_NOMES[MOTIVO_UNIDADE_SEM_ENERGIA]),
+        (MOTIVO_UNIDADE_SEM_ACESSO, MOTIVO_NOMES[MOTIVO_UNIDADE_SEM_ACESSO]),
         (MOTIVO_OUTROS, MOTIVO_NOMES[MOTIVO_OUTROS]),
     )
 
@@ -223,6 +229,14 @@ class InsucessoEntregaGuia(ModeloBase, CriadoPor):
 
     def __str__(self):
         return f'Insucesso de entrega da guia {self.guia.numero_guia}'
+
+    @property
+    def arquivo_base64(self):
+        if self.arquivo:
+            extensao = os.path.splitext(self.arquivo.name)[1]
+            return convert_image_to_base64(self.arquivo.path, extensao.replace('.', ''))
+        else:
+            return None
 
     class Meta:
         verbose_name = 'Insucesso de Entrega da Guia'

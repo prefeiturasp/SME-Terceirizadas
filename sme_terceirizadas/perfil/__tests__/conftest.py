@@ -214,7 +214,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
     cardapio2 = mommy.make('cardapio.Cardapio',
                            data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
-                                      iniciais=f.name()[:10],
+                                      iniciais='EMEF',
                                       cardapios=[cardapio1, cardapio2],
                                       uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
@@ -398,7 +398,7 @@ def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
     cardapio2 = mommy.make('cardapio.Cardapio',
                            data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
-                                      iniciais=f.name()[:10],
+                                      iniciais='EMEF',
                                       cardapios=[cardapio1, cardapio2],
                                       uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',

@@ -12,7 +12,12 @@ from rest_framework import status
 from utility.carga_dados.helper import excel_to_list_with_openpyxl
 
 from sme_terceirizadas.dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
-from sme_terceirizadas.escola.models import Escola, PlanilhaEscolaDeParaCodigoEolCodigoCoade
+from sme_terceirizadas.escola.models import (
+    Escola,
+    PlanilhaAtualizacaoTipoGestaoEscola,
+    PlanilhaEscolaDeParaCodigoEolCodigoCoade,
+    TipoGestao
+)
 
 logger = logging.getLogger('sigpae.taskEscola')
 
@@ -174,3 +179,40 @@ def atualiza_codigo_codae_das_escolas(path_planilha, id_planilha):  # noqa: C901
         pass
 
     logger.debug(f'Código(s) codae de {count} escola(s) foram atualizados')
+
+
+def atualiza_tipo_gestao_das_escolas(path_planilha, id_planilha):  # noqa: C901
+    dados_planilha = excel_to_list_with_openpyxl(path_planilha)
+
+    def retorna_tipo_gestao(tipo):
+        parceira = TipoGestao.objects.get(nome='PARCEIRA')
+        mista = TipoGestao.objects.get(nome='MISTA')
+        direta = TipoGestao.objects.get(nome='DIRETA')
+        terc_total = TipoGestao.objects.get(nome='TERC TOTAL')
+
+        tipo_gestao = {
+            'PARCEIRA': parceira,
+            'MISTA': mista,
+            'DIRETA': direta,
+            'TERCEIRIZADA TOTAL': terc_total
+        }
+        return tipo_gestao.get(tipo)
+
+    count = 0
+    for info_escola in dados_planilha:
+        if info_escola.get('CÓDIGO EOL'):
+            try:
+                escola = Escola.objects.get(codigo_eol=f'{info_escola.get("CÓDIGO EOL"):06d}')
+                escola.tipo_gestao = retorna_tipo_gestao(info_escola.get('TIPO'))
+                escola.save()
+                count += 1
+            except ObjectDoesNotExist:
+                pass
+
+    try:
+        obj_planilha = PlanilhaAtualizacaoTipoGestaoEscola.objects.get(id=id_planilha)
+        obj_planilha.processamento_com_sucesso()
+    except ObjectDoesNotExist:
+        pass
+
+    logger.debug(f'Tipo de gestão de {count} escola(s) foram atualizados')

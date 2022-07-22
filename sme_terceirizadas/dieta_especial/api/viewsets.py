@@ -178,6 +178,9 @@ class SolicitacaoDietaEspecialViewSet(
                 serializer.update(solicitacao, request.data)
                 solicitacao.ativo = True
             solicitacao.codae_autoriza(user=request.user)
+            if not solicitacao.data_inicio:
+                solicitacao.data_inicio = datetime.now().strftime('%Y-%m-%d')
+                solicitacao.save()
             return Response({'detail': 'Autorização de dieta especial realizada com sucesso'})  # noqa
         except InvalidTransitionError as e:
             return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)  # noqa
@@ -818,13 +821,16 @@ class SolicitacaoDietaEspecialViewSet(
             titulo += f' | Data inicial: {data_inicial}'
         if data_final:
             titulo += f' | Data final: {data_final}'
-        worksheet.merge_range(1, 0, 2, 4, titulo, cell_format)
-        worksheet.merge_range(1, 5, 2, 6, f'Total de dietas: {queryset.count()}', v_center_format)
+        worksheet.merge_range(1, 0, 2, len_cols - 1, titulo, cell_format)
+        worksheet.merge_range(1, len_cols, 2, len_cols, f'Total de dietas: {queryset.count()}', v_center_format)
         worksheet.write(3, 1, 'COD.EOL do Aluno', single_cell_format)
         worksheet.write(3, 2, 'Nome do Aluno', single_cell_format)
         worksheet.write(3, 3, 'Nome da Escola', single_cell_format)
         worksheet.write(3, 4, 'Classificação da dieta', single_cell_format)
         worksheet.write(3, 5, 'Protocolo Padrão', single_cell_format)
+        if status.upper() == 'CANCELADAS':
+            worksheet.set_column('G:G', 30)
+            worksheet.write(3, 6, 'Data de cancelamento', single_cell_format)
         df.reset_index(drop=True, inplace=True)
         xlwriter.save()
         output.seek(0)
@@ -844,7 +850,8 @@ class SolicitacaoDietaEspecialViewSet(
         queryset = self.filtrar_dietas_terceirizadas_xlsx_pdf(
             queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial, data_final)
 
-        serializer = SolicitacaoDietaEspecialExportXLSXSerializer(queryset, context={'request': request}, many=True)
+        serializer = SolicitacaoDietaEspecialExportXLSXSerializer(
+            queryset, context={'request': request, 'status': status.upper()}, many=True)
 
         output = io.BytesIO()
 
@@ -914,13 +921,16 @@ class SolicitacaoDietaEspecialViewSet(
 
         solicitacoes = []
         for solicitacao in queryset:
-            solicitacoes.append({
+            dados_solicitacoes = {
                 'codigo_eol_aluno': solicitacao.aluno.codigo_eol,
                 'nome_aluno': solicitacao.aluno.nome,
                 'nome_escola': solicitacao.escola.nome,
                 'classificacao': solicitacao.classificacao.nome,
                 'protocolo_padrao': solicitacao.nome_protocolo
-            })
+            }
+            if status.upper() == 'CANCELADAS':
+                dados_solicitacoes['data_cancelamento'] = solicitacao.data_ultimo_log
+            solicitacoes.append(dados_solicitacoes)
 
         filtros = self.build_texto(lotes, classificacoes, protocolos, data_inicial, data_final)
 

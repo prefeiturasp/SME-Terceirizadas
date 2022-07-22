@@ -362,10 +362,14 @@ def retorna_motivo_insucesso(motivo):
     nomes_motivos = InsucessoEntregaGuia.MOTIVO_NOMES
 
     ue_fechada = InsucessoEntregaGuia.MOTIVO_UNIDADE_FECHADA
+    ue_sem_energia = InsucessoEntregaGuia.MOTIVO_UNIDADE_SEM_ENERGIA
+    ue_sem_acesso = InsucessoEntregaGuia.MOTIVO_UNIDADE_SEM_ACESSO
     outros = InsucessoEntregaGuia.MOTIVO_OUTROS
 
     switcher = {
         ue_fechada: nomes_motivos[ue_fechada],
+        ue_sem_energia: nomes_motivos[ue_sem_energia],
+        ue_sem_acesso: nomes_motivos[ue_sem_acesso],
         outros: nomes_motivos[outros],
     }
 

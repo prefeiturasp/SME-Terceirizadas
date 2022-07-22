@@ -37,14 +37,16 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
-from sme_terceirizadas.logistica.api.serializers.serializers import (
+from sme_terceirizadas.logistica.api.serializers.serializers import ( # noqa
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
     ConferenciaComOcorrenciaSerializer,
     ConferenciaDaGuiaSerializer,
     ConferenciaIndividualPorAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
+    GuiaDaRemessaCompletaSerializer,
     GuiaDaRemessaComStatusRequisicaoSerializer,
+    GuiaDaRemessaLookUpSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
@@ -457,7 +459,8 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         user = request.user.get_username()
         solicitacao = self.get_object()
         guias = list(solicitacao.guias.all().values_list('id', flat=True))
-        gera_pdf_async.delay(user=user, nome_arquivo='guia_de_remessa.pdf', list_guias=guias)
+        gera_pdf_async.delay(user=user, nome_arquivo=f'requisicao_{solicitacao.numero_solicitacao}.pdf',
+                             list_guias=guias)
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=HTTP_200_OK)
 
@@ -471,7 +474,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         queryset = queryset.filter(status='DISTRIBUIDOR_CONFIRMA')
         guias = GuiasDasRequisicoes.objects.filter(solicitacao__in=queryset).order_by('-data_entrega').distinct()
         lista_id_guias = list(guias.values_list('id', flat=True))
-        gera_pdf_async.delay(user=user, nome_arquivo='guia_de_remessa.pdf', list_guias=lista_id_guias)
+        gera_pdf_async.delay(user=user, nome_arquivo='requisicoes-confirmadas.pdf', list_guias=lista_id_guias)
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=HTTP_200_OK)
 
@@ -483,6 +486,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     def gerar_relaorio_guias_da_requisicao(self, request, uuid=None):
         user = request.user.get_username()
         solicitacao = SolicitacaoRemessa.objects.get(uuid=uuid)
+        nome_arquivo = request.query_params.get('nome_arquivo', 'requisicao')
         tem_conferencia = request.query_params.get('tem_conferencia', 'false')
         tem_insucesso = request.query_params.get('tem_insucesso', 'false')
         tem_conferencia = eh_true_ou_false(tem_conferencia, 'tem_conferencia')
@@ -501,7 +505,8 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         if not tem_conferencia and not tem_pendencia_conferencia and not tem_insucesso:
             list_guias = list(guias.values_list('id', flat=True))
 
-        gera_pdf_async.delay(user=user, nome_arquivo='guia_de_remessa.pdf', list_guias=list_guias)
+        gera_pdf_async.delay(user=user, nome_arquivo=f'{nome_arquivo}_{solicitacao.numero_solicitacao}.pdf',
+                             list_guias=list_guias)
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=HTTP_200_OK)
 
@@ -512,12 +517,15 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     def gerar_excel(self, request):
         user = self.request.user
         username = user.get_username()
+        numero_requisicao = request.query_params.get('numero_requisicao', False)
         ids_requisicoes = list(self.filter_queryset(self.get_queryset().values_list('id', flat=True)))
         eh_distribuidor = True if user.vinculo_atual.perfil.nome == ADMINISTRADOR_DISTRIBUIDORA else False
 
+        filename = (f'requisicao_{numero_requisicao}.xlsx' if numero_requisicao else 'requisicoes-de-entrega.xlsx')
+
         gera_xlsx_async.delay(
             username=username,
-            nome_arquivo='visao-consolidada.xlsx',
+            nome_arquivo=filename,
             ids_requisicoes=ids_requisicoes,
             eh_distribuidor=eh_distribuidor)
 
@@ -586,8 +594,15 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
     def lista_guias_inconsistencias(self, request):
-        response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None).annotate(
-                    numero_requisicao=F('solicitacao__numero_solicitacao')), many=True).data}
+        queryset = self.filter_queryset(self.get_queryset().filter(escola=None).order_by('-id'))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = GuiaDaRemessaLookUpSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+        response = GuiaDaRemessaLookUpSerializer(queryset, many=True).data
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='guias-escola', permission_classes=(UsuarioEscolaAbastecimento,))
@@ -698,6 +713,14 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         guia = self.get_object()
         guias = [guia]
         return relatorio_guia_de_remessa(guias)
+
+    @action(detail=True, methods=['GET'],
+            url_path='detalhe-guia-de-remessa',
+            permission_classes=[UsuarioDilogOuDistribuidorOuEscolaAbastecimento])
+    def detalhe_guia_de_remessa(self, request, uuid=None):
+        guia = self.get_object()
+        serializer = GuiaDaRemessaCompletaSerializer(guia)
+        return Response(serializer.data)
 
 
 class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):
