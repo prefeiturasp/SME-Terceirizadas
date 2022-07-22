@@ -11,6 +11,7 @@ from .constants import (
     ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_MEDICAO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     ADMINISTRADOR_UE_DIRETA,
     ADMINISTRADOR_UE_MISTA,
@@ -114,7 +115,8 @@ class UsuarioNutricionista(BasePermission):
                                                   ADMINISTRADOR_DIETA_ESPECIAL,
                                                   COORDENADOR_SUPERVISAO_NUTRICAO,
                                                   ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-                                                  COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
+                                                  COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                  ADMINISTRADOR_MEDICAO]
         )
 
 
@@ -231,7 +233,8 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
                                                       COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                      ADMINISTRADOR_MEDICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (
