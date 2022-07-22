@@ -168,7 +168,9 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             if instance.lotes.exclude(id__in=[lote.id for lote in lotes_array]).exists():
                 raise ValidationError("Não pode remover um lote de uma empresa. É preciso atribuí-lo a outra empresa.")
 
-            for lote in [lote for lote in lotes_array if lote not in instance.lotes.all()]:
+            checar_terceirizadas_inativacao = []
+            for lote in [lote for lote in lotes_array if lote not in instance.lotes.all() and lote.terceirizada]:
+                checar_terceirizadas_inativacao.append(lote.terceirizada.uuid)
                 lote.transferir_solicitacoes_gestao_alimentacao(instance)
                 lote.transferir_dietas_especiais(instance)
 
@@ -181,6 +183,10 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
 
             instance.contatos.set(contatos)
             instance.lotes.set(lotes_array)
+
+            """ Inativa terceirizadas que nao tem lote """
+            Terceirizada.objects.filter(
+                uuid__in=checar_terceirizadas_inativacao, lotes__isnull=True).update(ativo=False)
 
             if instance.super_admin:
                 self.atualizar_super_admin_terceirizada(super_admin_data, instance)
