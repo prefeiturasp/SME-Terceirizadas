@@ -166,7 +166,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             instance.contatos.clear()
 
             if instance.lotes.exclude(id__in=[lote.id for lote in lotes_array]).exists():
-                raise ValidationError("Não pode remover um lote de uma empresa. É preciso atribuí-lo a outra empresa.")
+                raise ValidationError('Não pode remover um lote de uma empresa. É preciso atribuí-lo a outra empresa.')
 
             checar_terceirizadas_inativacao = []
             for lote in [lote for lote in lotes_array if lote not in instance.lotes.all() and lote.terceirizada]:

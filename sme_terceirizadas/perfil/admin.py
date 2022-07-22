@@ -76,8 +76,8 @@ class VinculoAdmin(admin.ModelAdmin):
     search_fields = ('usuario__nome', 'usuario__email', 'usuario__registro_funcional')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "perfil":
-            kwargs["queryset"] = Perfil.objects.order_by('nome')
+        if db_field.name == 'perfil':
+            kwargs['queryset'] = Perfil.objects.order_by('nome')
         return super(VinculoAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
