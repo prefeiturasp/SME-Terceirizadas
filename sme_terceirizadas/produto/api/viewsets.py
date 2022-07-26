@@ -58,6 +58,7 @@ from ..models import (
     UnidadeMedida
 )
 from ..utils import (
+    CadastroProdutosEditalPagination,
     ItemCadastroPagination,
     StandardResultsSetPagination,
     agrupa_por_terceirizada,
@@ -66,8 +67,9 @@ from ..utils import (
     cria_filtro_produto_por_parametros_form,
     get_filtros_data
 )
-from .filters import ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
+from .filters import CadastroProdutosEditalFilter, ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
 from .serializers.serializers import (
+    CadastroProdutosEditalSerializer,
     EmbalagemProdutoSerialzer,
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -1327,6 +1329,27 @@ class NomeDeProdutoEditalViewSet(viewsets.ViewSet):
         queryset = NomeDeProdutoEdital.objects.filter(ativo=True).all()
         data = NomeDeProdutoEditalSerializer(queryset, many=True).data
         return Response({'results': data})
+
+
+class CadastroProdutoEditalViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = NomeDeProdutoEdital.objects.all()
+    pagination_class = CadastroProdutosEditalPagination
+    permission_classes = [IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = CadastroProdutosEditalFilter
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return ItensCadastroCreateSerializer
+        return CadastroProdutosEditalSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_de_nomes(self, _):
+        return Response({'results': [item.nome for item in self.queryset.all()]})
+
+    class Meta:
+        model = NomeDeProdutoEdital
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):

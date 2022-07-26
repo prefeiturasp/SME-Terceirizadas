@@ -68,3 +68,12 @@ class ItemCadastroFilter(filters.FilterSet):
     def filtra_nome(self, qs, _, value):
         return qs.filter(Q(fabricante__nome__icontains=value) | Q(marca__nome__icontains=value)
                          | Q(unidade_medida__nome__icontains=value) | Q(embalagem_produto__nome__icontains=value))
+
+
+class CadastroProdutosEditalFilter(filters.FilterSet):
+    nome = filters.CharFilter(field_name='nome', lookup_expr='icontains')
+    status = filters.CharFilter(field_name='ativo', method='filtra_status')
+
+    def filtra_status(self, qs, name, value):
+        filtro = False if value == 'Inativo' else True
+        return qs.filter(ativo=filtro)
