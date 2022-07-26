@@ -76,8 +76,18 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
                uuid='11c22490-e040-4b4a-903f-54d1b1e57b08')
     mommy.make('Perfil', nome='NUTRI_ADMIN_RESPONSAVEL', ativo=True,
                uuid='564fc542-2260-430e-b29d-ddac1ef81d47')
+    terceirizada = mommy.make(Terceirizada, uuid='66c1bdd1-9cec-4f1f-a2f6-008f27713e53', ativo=True)
     mommy.make('Lote', uuid='143c2550-8bf0-46b4-b001-27965cfcd107')
+    mommy.make('Lote', uuid='42d3887a-517b-4a72-be78-95d96d857236', terceirizada=terceirizada)
+    ontem = datetime.date.today() - datetime.timedelta(days=1)
     hoje = datetime.date.today()
+    amanha = datetime.date.today() + datetime.timedelta(days=1)
+    mommy.make('InclusaoAlimentacaoContinua', data_inicial=ontem, data_final=hoje,
+               rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=True)
+    mommy.make('InclusaoAlimentacaoContinua', data_inicial=hoje, data_final=amanha,
+               rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=True)
+    mommy.make('SolicitacaoDietaEspecial', rastro_terceirizada=terceirizada, status='CODAE_AUTORIZADO', conferido=True)
+    mommy.make('SolicitacaoDietaEspecial', rastro_terceirizada=terceirizada, status='ESCOLA_CANCELOU')
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_administrador_codae,
                ativo=False, data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30)
                )  # finalizado
