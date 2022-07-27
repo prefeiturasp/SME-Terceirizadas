@@ -6,6 +6,7 @@ from .api import viewsets
 router = routers.DefaultRouter()
 
 router.register('produtos', viewsets.ProdutoViewSet, 'Produtos')
+router.register('produtos-editais', viewsets.ProdutosEditaisViewSet, 'Produtos vinculados a editais')
 router.register('nome-de-produtos-edital', viewsets.NomeDeProdutoEditalViewSet, 'Nome de Produto Edital')
 router.register('homologacoes-produtos', viewsets.HomologacaoProdutoViewSet, 'Homologação de Produtos')
 router.register('reclamacoes-produtos', viewsets.ReclamacaoProdutoViewSet, 'Reclamação de Produtos')
