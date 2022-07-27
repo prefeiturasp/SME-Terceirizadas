@@ -34,7 +34,7 @@ class BaseUserAdmin(DjangoUserAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                'email', 'tipo_email', 'password', 'cpf',
+                'username','email', 'tipo_email', 'password', 'cpf',
                 'registro_funcional', 'nome', 'cargo', 'crn_numero'
             )
         }),
@@ -55,7 +55,7 @@ class BaseUserAdmin(DjangoUserAdmin):
             'nome', 'cargo'
         ),
     }),)
-    list_display = ('email', 'nome', 'is_staff', 'is_active')
+    list_display = ('email', 'username', 'nome', 'is_staff', 'is_active')
     search_fields = ('email', 'nome')
     ordering = ('email',)
     actions = ('carga_dados',)

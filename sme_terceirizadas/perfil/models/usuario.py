@@ -137,6 +137,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     email = models.EmailField(_('email address'), unique=True)
     tipo_email = models.PositiveSmallIntegerField(choices=TIPOS_EMAIL,
                                                   null=True, blank=True)
+    username = models.CharField(max_length=100, unique=True)
 
     registro_funcional = models.CharField(_('RF'), max_length=7, blank=True, null=True, unique=True,  # noqa DJ01
                                           validators=[MinLengthValidator(7)])
@@ -152,7 +153,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                                                     default=False)  # noqa
     crn_numero = models.CharField('Nutricionista crn', max_length=160, blank=True, null=True)  # noqa DJ01
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []  # type: ignore
 
     def atualizar_cargo(self):
