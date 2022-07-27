@@ -69,6 +69,7 @@ from ..utils import (
 )
 from .filters import CadastroProdutosEditalFilter, ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
 from .serializers.serializers import (
+    CadastroProdutosEditalCreateSerializer,
     CadastroProdutosEditalSerializer,
     EmbalagemProdutoSerialzer,
     FabricanteSerializer,
@@ -1341,7 +1342,7 @@ class CadastroProdutoEditalViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
-            return ItensCadastroCreateSerializer
+            return CadastroProdutosEditalCreateSerializer
         return CadastroProdutosEditalSerializer
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
