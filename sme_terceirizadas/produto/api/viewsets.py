@@ -1349,8 +1349,9 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
     def filtros(self, request):
         try:
             status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
-            produtos = self.get_queryset().filter(homologacao__ativo=True,
-                                                  homologacao__status=status_homologado)
+            produtos = self.get_queryset().exclude(editais=None)
+            produtos = produtos.filter(homologacao__ativo=True,
+                                       homologacao__status=status_homologado)
             produtos = produtos.distinct('nome').values_list('nome', flat=True)
             editais = Edital.objects.all().values_list('numero', flat=True)
             return Response(dict(produtos=produtos, editais=editais), status=status.HTTP_200_OK)
@@ -1361,8 +1362,9 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='filtrar') # noqa c901
     def filtrar(self, request):
         status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
-        queryset = self.get_queryset().filter(homologacao__ativo=True,
-                                              homologacao__status=status_homologado).order_by('criado_em')
+        queryset = self.get_queryset().exclude(editais=None)
+        queryset = queryset.filter(homologacao__ativo=True,
+                                   homologacao__status=status_homologado).order_by('criado_em')
         nome = request.query_params.get('nome', None)
         edital = request.query_params.get('edital', None)
         tipo_dieta = request.query_params.get('tipo', None)
