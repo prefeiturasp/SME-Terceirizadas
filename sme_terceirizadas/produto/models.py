@@ -24,6 +24,7 @@ from ..dados_comuns.fluxo_status import (
 from ..dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
 from ..escola.models import Escola
+from ..terceirizada.models import Edital
 
 MAX_NUMERO_PROTOCOLO = 6
 
@@ -105,6 +106,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
                                         blank=True,
                                         )
 
+    editais = models.ManyToManyField(Edital, related_name='produtos', blank=True)
     marca = models.ForeignKey(Marca, on_delete=models.DO_NOTHING, blank=True, null=True)
     fabricante = models.ForeignKey(Fabricante, on_delete=models.DO_NOTHING, blank=True, null=True)
     componentes = models.CharField('Componentes do Produto', blank=True, max_length=5000)
