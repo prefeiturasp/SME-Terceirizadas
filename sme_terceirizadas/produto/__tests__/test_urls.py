@@ -334,6 +334,12 @@ def test_url_endpoint_nome_de_produto_edital(client_autenticado_vinculo_terceiri
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_url_endpoint_cadastro_de_produto_edital(client_autenticado_vinculo_codae_produto):
+    client = client_autenticado_vinculo_codae_produto
+    response = client.get(f'/cadastro-produtos-edital/')
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_url_endpoint_cadastro_produto_os_steps_sem_rascunho(client_autenticado_vinculo_terceirizada,
                                                              marca1, fabricante, info_nutricional1,
                                                              unidade_medida, embalagem_produto):

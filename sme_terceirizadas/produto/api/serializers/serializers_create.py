@@ -17,6 +17,7 @@ from ...models import (
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
     Marca,
+    NomeDeProdutoEdital,
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
@@ -294,3 +295,40 @@ class SolicitacaoCadastroProdutoDietaSerializerCreate(serializers.ModelSerialize
         solicitacao = SolicitacaoCadastroProdutoDieta.objects.create(**validated_data, criado_por=usuario)
         solicitacao._envia_email_solicitacao_realizada()
         return solicitacao
+
+
+class CadastroProdutosEditalCreateSerializer(serializers.Serializer):
+    nome = serializers.CharField(required=True, write_only=True)
+    ativo = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        nome = validated_data['nome']
+        status = validated_data.pop('ativo')
+        ativo = False if status == 'Inativo' else True
+        validated_data['criado_por'] = self.context['request'].user
+
+        if nome.upper() in (produto.nome.upper() for produto in NomeDeProdutoEdital.objects.all()):
+            raise serializers.ValidationError('Item já cadastrado.')
+        try:
+            produto = NomeDeProdutoEdital(nome=nome, ativo=ativo, criado_por=self.context['request'].user)
+            produto.save()
+            return produto
+        except Exception:
+            raise serializers.ValidationError('Erro ao criar Produto Proviniente do Edital.')
+
+    def update(self, instance, validated_data): # noqa C901
+        nome = validated_data['nome']
+        status = validated_data.pop('ativo')
+        ativo = False if status == 'Inativo' else True
+
+        if (nome.upper(), ativo) in ((produto.nome.upper(), produto.ativo)
+                                     for produto in NomeDeProdutoEdital.objects.all()):
+            raise serializers.ValidationError('Item já cadastrado.')
+
+        try:
+            instance.nome = nome.upper()
+            instance.ativo = ativo
+            instance.save()
+        except Exception as e:
+            raise serializers.ValidationError(f'Erro ao editar Produto Proviniente do Edital. {str(e)}')
+        return instance

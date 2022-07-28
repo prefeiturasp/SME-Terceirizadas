@@ -324,7 +324,22 @@ class NomeDeProdutoEditalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NomeDeProdutoEdital
-        fields = ('uuid', 'nome',)
+        fields = ('uuid', 'nome')
+
+
+class CadastroProdutosEditalSerializer(serializers.ModelSerializer):
+    nome = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
+    def get_nome(self, obj):
+        return obj.nome
+
+    def get_status(self, obj):
+        return 'Ativo' if obj.ativo is True else 'Inativo'
+
+    class Meta:
+        model = NomeDeProdutoEdital
+        fields = ('uuid', 'nome', 'status')
 
 
 class ProdutosSubstitutosSerializer(serializers.ModelSerializer):

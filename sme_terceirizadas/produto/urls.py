@@ -7,6 +7,7 @@ router = routers.DefaultRouter()
 
 router.register('produtos', viewsets.ProdutoViewSet, 'Produtos')
 router.register('nome-de-produtos-edital', viewsets.NomeDeProdutoEditalViewSet, 'Nome de Produto Edital')
+router.register('cadastro-produtos-edital', viewsets.CadastroProdutoEditalViewSet, 'Cadastro de Produto Edital')
 router.register('homologacoes-produtos', viewsets.HomologacaoProdutoViewSet, 'Homologação de Produtos')
 router.register('reclamacoes-produtos', viewsets.ReclamacaoProdutoViewSet, 'Reclamação de Produtos')
 router.register(
