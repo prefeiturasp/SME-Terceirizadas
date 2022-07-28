@@ -1338,7 +1338,8 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
             else:
                 produto.ativo = True
             produto.save()
-            return Response(dict(detail=f''),
+            serializer = self.get_serializer(produto)
+            return Response(dict(data=serializer.data),
                             status=status.HTTP_200_OK)
         except Exception as e:
             return Response(dict(detail=f'Erro ao Ativar/inativar produto: {e}'),
