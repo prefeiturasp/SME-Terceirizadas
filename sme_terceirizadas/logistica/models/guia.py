@@ -226,7 +226,7 @@ class InsucessoEntregaGuia(ModeloBase, CriadoPor):
         choices=MOTIVO_CHOICES,
         default=MOTIVO_UNIDADE_FECHADA
     )
-    outro_motivo = models.TextField('Outro Motivo', max_length=100, null=True, blank=True, default=None)
+    outro_motivo = models.TextField('Outro Motivo', max_length=100, default='')
 
     def __str__(self):
         return f'Insucesso de entrega da guia {self.guia.numero_guia}'
