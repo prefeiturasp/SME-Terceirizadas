@@ -278,12 +278,14 @@ def especificacao_produto1(produto, unidade_medida, embalagem_produto):
                       unidade_de_medida=unidade_medida,
                       embalagem_produto=embalagem_produto)
 
+
 @pytest.fixture
 def produto_edital(user):
     return mommy.make('NomeDeProdutoEdital',
-                      nome="PRODUTO TESTE",
+                      nome='PRODUTO TESTE',
                       ativo=True,
                       criado_por=user)
+
 
 @pytest.fixture
 def arquivo():
