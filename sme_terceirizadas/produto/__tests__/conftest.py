@@ -153,7 +153,16 @@ def terceirizada():
 
 
 @pytest.fixture
-def produto(user, protocolo1, protocolo2, marca1, fabricante):
+def edital():
+    return mommy.make('Edital',
+                      numero='Edital de Pregão nº 56/SME/2016',
+                      tipo_contratacao='Teste',
+                      processo='Teste',
+                      objeto='Teste')
+
+
+@pytest.fixture
+def produto(user, protocolo1, protocolo2, marca1, fabricante, edital):
     return mommy.make('Produto',
                       criado_por=user,
                       eh_para_alunos_com_dieta=True,
@@ -173,7 +182,8 @@ def produto(user, protocolo1, protocolo2, marca1, fabricante):
                       protocolos=[
                           protocolo1,
                           protocolo2,
-                      ])
+                      ],
+                      editais=[edital])
 
 
 @pytest.fixture

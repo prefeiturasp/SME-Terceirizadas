@@ -685,3 +685,42 @@ def test_url_endpoint_lista_embalagens_produto_sem_paginacao(client_autenticado_
     }
 
     assert resultado == esperado
+
+
+def test_url_endpoint_produtos_editais_filtros(client_autenticado_vinculo_codae_produto,
+                                               homologacao_produto_homologado):
+    client = client_autenticado_vinculo_codae_produto
+    response = client.get('/produtos-editais/filtros/')
+    resultado = response.json()
+
+    esperado = {'editais': ['Edital de Pregão nº 56/SME/2016'], 'produtos': ['Produto1']}
+    assert resultado == esperado
+
+
+def test_url_endpoint_produtos_editais_filtrar(client_autenticado_vinculo_codae_produto,
+                                               homologacao_produto_homologado):
+    client = client_autenticado_vinculo_codae_produto
+    payload = {'page': '1', 'page_size': '10', 'nome': 'Produto1'}
+    response = client.get('/produtos-editais/filtrar/', payload)
+    resultado = response.json()
+
+    assert resultado['count'] == 1
+    assert resultado['page_size'] == 10
+    assert resultado['results'][0]['nome'] == 'Produto1'
+    assert resultado['results'][0]['ativo'] is True
+    assert resultado['results'][0]['eh_para_alunos_com_dieta'] is True
+    assert resultado['results'][0]['marca']['nome'] == 'Marca1'
+    assert resultado['results'][0]['editais'][0]['numero'] == 'Edital de Pregão nº 56/SME/2016'
+
+
+def test_url_endpoint_produtos_editais_ativar_inativar(client_autenticado_vinculo_codae_produto,
+                                                       homologacao_produto_homologado):
+    uuid = str(homologacao_produto_homologado.produto.uuid)
+    client = client_autenticado_vinculo_codae_produto
+    response = client.patch(f'/produtos-editais/{uuid}/ativar-inativar-produto/')
+    resultado = response.json()
+    assert resultado['data']['ativo'] is False
+
+    response = client.patch(f'/produtos-editais/{uuid}/ativar-inativar-produto/')
+    resultado = response.json()
+    assert resultado['data']['ativo'] is True
