@@ -69,7 +69,6 @@ from ..utils import (
 )
 from .filters import CadastroProdutosEditalFilter, ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
 from .serializers.serializers import (
-    CadastroProdutosEditalCreateSerializer,
     CadastroProdutosEditalSerializer,
     EmbalagemProdutoSerialzer,
     FabricanteSerializer,
@@ -100,6 +99,7 @@ from .serializers.serializers import (
     UnidadeMedidaSerialzer
 )
 from .serializers.serializers_create import (
+    CadastroProdutosEditalCreateSerializer,
     ProdutoSerializerCreate,
     ReclamacaoDeProdutoSerializerCreate,
     RespostaAnaliseSensorialSearilzerCreate,

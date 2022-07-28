@@ -92,7 +92,7 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
         super(NomeDeProdutoEditalAdmin, self).save_model(request, obj, form, change)
 
     def get_usuario(self, obj):
-        return obj.criado_por.nome
+        return obj.criado_por.nome if obj.criado_por else None
 
     get_usuario.short_description = 'Usuário'
 
