@@ -32,6 +32,7 @@ from ...relatorios.relatorios import (
     relatorio_reclamacao
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
+from ...terceirizada.models import Edital
 from ..constants import (
     AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
     AVALIAR_RECLAMACAO_RECLAMACOES_STATUS,
@@ -58,6 +59,7 @@ from ..models import (
     UnidadeMedida
 )
 from ..utils import (
+    CadastroProdutosEditalPagination,
     ItemCadastroPagination,
     StandardResultsSetPagination,
     agrupa_por_terceirizada,
@@ -66,8 +68,9 @@ from ..utils import (
     cria_filtro_produto_por_parametros_form,
     get_filtros_data
 )
-from .filters import ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
+from .filters import CadastroProdutosEditalFilter, ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
 from .serializers.serializers import (
+    CadastroProdutosEditalSerializer,
     EmbalagemProdutoSerialzer,
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -80,6 +83,7 @@ from .serializers.serializers import (
     MarcaSerializer,
     MarcaSimplesSerializer,
     NomeDeProdutoEditalSerializer,
+    ProdutoEditaisSerializer,
     ProdutoHomologadosPorParametrosSerializer,
     ProdutoListagemSerializer,
     ProdutoReclamacaoSerializer,
@@ -97,6 +101,7 @@ from .serializers.serializers import (
     UnidadeMedidaSerialzer
 )
 from .serializers.serializers_create import (
+    CadastroProdutosEditalCreateSerializer,
     ProdutoSerializerCreate,
     ReclamacaoDeProdutoSerializerCreate,
     RespostaAnaliseSensorialSearilzerCreate,
@@ -1381,12 +1386,96 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         })
 
 
+class ProdutosEditaisViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = ProdutoEditaisSerializer
+    queryset = Produto.objects.all()
+    pagination_class = CustomPagination
+
+    @action(detail=True, methods=['patch'], url_path='ativar-inativar-produto')
+    def ativar_inativar_produto(self, request, uuid=None):
+        try:
+            produto = Produto.objects.get(uuid=uuid)
+            if produto.ativo:
+                produto.ativo = False
+            else:
+                produto.ativo = True
+            produto.save()
+            serializer = self.get_serializer(produto)
+            return Response(dict(data=serializer.data),
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao Ativar/inativar produto: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='filtros')
+    def filtros(self, request):
+        try:
+            status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
+            produtos = self.get_queryset().exclude(editais=None)
+            produtos = produtos.filter(homologacao__ativo=True,
+                                       homologacao__status=status_homologado)
+            produtos = produtos.distinct('nome').values_list('nome', flat=True)
+            editais = Edital.objects.all().values_list('numero', flat=True)
+            return Response(dict(produtos=produtos, editais=editais), status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao consultar filtros: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='filtrar') # noqa c901
+    def filtrar(self, request):
+        status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
+        queryset = self.get_queryset().exclude(editais=None)
+        queryset = queryset.filter(homologacao__ativo=True,
+                                   homologacao__status=status_homologado).order_by('criado_em')
+        nome = request.query_params.get('nome', None)
+        edital = request.query_params.get('edital', None)
+        tipo_dieta = request.query_params.get('tipo', None)
+        if nome:
+            queryset = queryset.filter(nome=nome)
+        if edital:
+            queryset = queryset.filter(editais__numero__in=[edital])
+        if tipo_dieta:
+            if tipo_dieta == '0':
+                queryset = queryset.filter(eh_para_alunos_com_dieta=False)
+            else:
+                queryset = queryset.filter(eh_para_alunos_com_dieta=True)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
+
 class NomeDeProdutoEditalViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = NomeDeProdutoEdital.objects.filter(ativo=True).all()
         data = NomeDeProdutoEditalSerializer(queryset, many=True).data
         return Response({'results': data})
+
+
+class CadastroProdutoEditalViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = NomeDeProdutoEdital.objects.all()
+    pagination_class = CadastroProdutosEditalPagination
+    permission_classes = [IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = CadastroProdutosEditalFilter
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return CadastroProdutosEditalCreateSerializer
+        return CadastroProdutosEditalSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_de_nomes(self, _):
+        return Response({'results': [item.nome for item in self.queryset.all()]})
+
+    class Meta:
+        model = NomeDeProdutoEdital
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):

@@ -24,7 +24,7 @@ from ....escola.api.serializers import (
 from ....escola.models import Escola
 from ....perfil.api.serializers import UsuarioSerializer
 from ....perfil.models import Usuario
-from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
+from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
 from ...models import (
     AnaliseSensorial,
     AnexoReclamacaoDeProduto,
@@ -324,7 +324,22 @@ class NomeDeProdutoEditalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NomeDeProdutoEdital
-        fields = ('uuid', 'nome',)
+        fields = ('uuid', 'nome')
+
+
+class CadastroProdutosEditalSerializer(serializers.ModelSerializer):
+    nome = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
+    def get_nome(self, obj):
+        return obj.nome
+
+    def get_status(self, obj):
+        return 'Ativo' if obj.ativo is True else 'Inativo'
+
+    class Meta:
+        model = NomeDeProdutoEdital
+        fields = ('uuid', 'nome', 'status')
 
 
 class ProdutosSubstitutosSerializer(serializers.ModelSerializer):
@@ -535,6 +550,17 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produto
         exclude = ('id',)
+
+
+class ProdutoEditaisSerializer(serializers.ModelSerializer):
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
+    editais = EditalSerializer(many=True)
+
+    class Meta:
+        model = Produto
+        fields = ('uuid', 'nome', 'ativo', 'eh_para_alunos_com_dieta',
+                  'marca', 'fabricante', 'editais', 'outras_informacoes')
 
 
 class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):
