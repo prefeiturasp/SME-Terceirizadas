@@ -204,6 +204,9 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
     outras_informacoes = models.TextField('Outras Informações', blank=True)
     ativo = models.BooleanField(default=True)
 
+    def __str__(self):
+        return f'{self.produto} -- {self.edital.numero}'
+
     class Meta:
         verbose_name = 'Vinculo entre produto e edital'
         verbose_name_plural = 'Vinculos entre produtos e editais'
