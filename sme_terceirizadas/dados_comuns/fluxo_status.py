@@ -403,6 +403,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('inicia_fluxo',
          [RASCUNHO,
           CODAE_NAO_HOMOLOGADO,
+          CODAE_HOMOLOGADO,
           CODAE_SUSPENDEU,
           TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO,
           CODAE_QUESTIONADO,
