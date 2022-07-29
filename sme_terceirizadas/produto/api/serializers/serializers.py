@@ -40,6 +40,7 @@ from ...models import (
     Marca,
     NomeDeProdutoEdital,
     Produto,
+    ProdutoEdital,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
@@ -552,15 +553,22 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class ProdutoEditaisSerializer(serializers.ModelSerializer):
-    marca = MarcaSerializer()
-    fabricante = FabricanteSerializer()
-    editais = EditalSerializer(many=True)
+class ProdutoEditalSerializer(serializers.ModelSerializer):
+    marca = serializers.SerializerMethodField()
+    fabricante = serializers.SerializerMethodField()
+    produto = ProdutoSimplesSerializer()
+    edital = EditalSerializer()
+
+    def get_marca(self, obj):
+        return obj.produto.marca.nome
+
+    def get_fabricante(self, obj):
+        return obj.produto.fabricante.nome
 
     class Meta:
-        model = Produto
-        fields = ('uuid', 'nome', 'ativo', 'eh_para_alunos_com_dieta',
-                  'marca', 'fabricante', 'editais', 'outras_informacoes')
+        model = ProdutoEdital
+        fields = ('uuid', 'produto', 'edital', 'tipo_produto',
+                  'marca', 'fabricante', 'outras_informacoes', 'ativo')
 
 
 class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):

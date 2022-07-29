@@ -106,7 +106,6 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
                                         blank=True,
                                         )
 
-    editais = models.ManyToManyField(Edital, related_name='produtos', blank=True)
     marca = models.ForeignKey(Marca, on_delete=models.DO_NOTHING, blank=True, null=True)
     fabricante = models.ForeignKey(Fabricante, on_delete=models.DO_NOTHING, blank=True, null=True)
     componentes = models.CharField('Componentes do Produto', blank=True, max_length=5000)
@@ -182,6 +181,32 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     class Meta:
         verbose_name = 'Produto'
         verbose_name_plural = 'Produtos'
+
+
+class ProdutoEdital(TemChaveExterna, CriadoEm):
+
+    COMUM = 'COMUM'
+    DIETA_ESPECIAL = 'DIETA_ESPECIAL'
+
+    TIPO_PRODUTO = {
+        COMUM: 'Comum',
+        DIETA_ESPECIAL: 'Dieta especial',
+    }
+
+    TIPO_PRODUTO_CHOICES = (
+        (COMUM, TIPO_PRODUTO[COMUM]),
+        (DIETA_ESPECIAL, TIPO_PRODUTO[DIETA_ESPECIAL]),
+    )
+
+    produto = models.ForeignKey(Produto, null=True, on_delete=models.DO_NOTHING)
+    edital = models.ForeignKey(Edital, null=True, on_delete=models.DO_NOTHING)
+    tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES, null=True, blank=True)  # noqa DJ01
+    outras_informacoes = models.TextField('Outras Informações', blank=True)
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Vinculo entre produto e edital'
+        verbose_name_plural = 'Vinculos entre produtos e editais'
 
 
 class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):

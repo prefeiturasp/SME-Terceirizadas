@@ -10,6 +10,7 @@ from ...dados_comuns import constants
 from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import TemplateMensagem
+from ..models import ProdutoEdital
 
 fake = Faker('pt-Br')
 fake.seed(420)
@@ -155,6 +156,7 @@ def terceirizada():
 @pytest.fixture
 def edital():
     return mommy.make('Edital',
+                      uuid='617a8139-02a9-4801-a197-622aa20795b9',
                       numero='Edital de Pregão nº 56/SME/2016',
                       tipo_contratacao='Teste',
                       processo='Teste',
@@ -162,8 +164,9 @@ def edital():
 
 
 @pytest.fixture
-def produto(user, protocolo1, protocolo2, marca1, fabricante, edital):
+def produto(user, protocolo1, protocolo2, marca1, fabricante):
     return mommy.make('Produto',
+                      uuid='a37bcf3f-a288-44ae-87ae-dbec181a34d4',
                       criado_por=user,
                       eh_para_alunos_com_dieta=True,
                       componentes='Componente1, Componente2',
@@ -182,8 +185,7 @@ def produto(user, protocolo1, protocolo2, marca1, fabricante, edital):
                       protocolos=[
                           protocolo1,
                           protocolo2,
-                      ],
-                      editais=[edital])
+                      ])
 
 
 @pytest.fixture
@@ -194,6 +196,17 @@ def homologacoes_produto(produto, terceirizada):
                      status=HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO)
     mommy.make('LogSolicitacoesUsuario', uuid_original=hom.uuid)
     return hom
+
+
+@pytest.fixture
+def vinculo_produto_edital(produto, edital):
+    produto_edital = mommy.make('ProdutoEdital',
+                                produto=produto,
+                                edital=edital,
+                                outras_informacoes='Teste 1',
+                                ativo=True,
+                                tipo_produto=ProdutoEdital.TIPO_PRODUTO['DIETA_ESPECIAL'])
+    return produto_edital
 
 
 @pytest.fixture
