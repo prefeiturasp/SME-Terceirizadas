@@ -688,17 +688,30 @@ def test_url_endpoint_lista_embalagens_produto_sem_paginacao(client_autenticado_
 
 
 def test_url_endpoint_produtos_editais_filtros(client_autenticado_vinculo_codae_produto,
-                                               homologacao_produto_homologado):
+                                               vinculo_produto_edital):
     client = client_autenticado_vinculo_codae_produto
     response = client.get('/produtos-editais/filtros/')
     resultado = response.json()
 
-    esperado = {'editais': ['Edital de Pregão nº 56/SME/2016'], 'produtos': ['Produto1']}
+    esperado = {
+        'produtos': [
+            {
+                'produto__nome': 'Produto1',
+                'produto__uuid': 'a37bcf3f-a288-44ae-87ae-dbec181a34d4'
+            }
+        ],
+        'editais': [
+            {
+                'edital__numero': 'Edital de Pregão nº 56/SME/2016',
+                'edital__uuid': '617a8139-02a9-4801-a197-622aa20795b9'
+            }
+        ]
+    }
     assert resultado == esperado
 
 
 def test_url_endpoint_produtos_editais_filtrar(client_autenticado_vinculo_codae_produto,
-                                               homologacao_produto_homologado):
+                                               vinculo_produto_edital):
     client = client_autenticado_vinculo_codae_produto
     payload = {'page': '1', 'page_size': '10', 'nome': 'Produto1'}
     response = client.get('/produtos-editais/filtrar/', payload)
@@ -706,21 +719,20 @@ def test_url_endpoint_produtos_editais_filtrar(client_autenticado_vinculo_codae_
 
     assert resultado['count'] == 1
     assert resultado['page_size'] == 10
-    assert resultado['results'][0]['nome'] == 'Produto1'
+    assert resultado['results'][0]['produto']['nome'] == 'Produto1'
     assert resultado['results'][0]['ativo'] is True
-    assert resultado['results'][0]['eh_para_alunos_com_dieta'] is True
-    assert resultado['results'][0]['marca']['nome'] == 'Marca1'
-    assert resultado['results'][0]['editais'][0]['numero'] == 'Edital de Pregão nº 56/SME/2016'
+    assert resultado['results'][0]['tipo_produto'] == 'Dieta especial'
+    assert resultado['results'][0]['marca'] == 'Marca1'
+    assert resultado['results'][0]['edital']['numero'] == 'Edital de Pregão nº 56/SME/2016'
 
 
 def test_url_endpoint_produtos_editais_ativar_inativar(client_autenticado_vinculo_codae_produto,
-                                                       homologacao_produto_homologado):
-    uuid = str(homologacao_produto_homologado.produto.uuid)
+                                                       vinculo_produto_edital):
     client = client_autenticado_vinculo_codae_produto
-    response = client.patch(f'/produtos-editais/{uuid}/ativar-inativar-produto/')
+    response = client.patch(f'/produtos-editais/{vinculo_produto_edital.uuid}/ativar-inativar-produto/')
     resultado = response.json()
     assert resultado['data']['ativo'] is False
 
-    response = client.patch(f'/produtos-editais/{uuid}/ativar-inativar-produto/')
+    response = client.patch(f'/produtos-editais/{vinculo_produto_edital.uuid}/ativar-inativar-produto/')
     resultado = response.json()
     assert resultado['data']['ativo'] is True

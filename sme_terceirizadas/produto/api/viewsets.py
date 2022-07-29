@@ -32,7 +32,6 @@ from ...relatorios.relatorios import (
     relatorio_reclamacao
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
-from ...terceirizada.models import Edital
 from ..constants import (
     AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
     AVALIAR_RECLAMACAO_RECLAMACOES_STATUS,
@@ -52,6 +51,7 @@ from ..models import (
     Marca,
     NomeDeProdutoEdital,
     Produto,
+    ProdutoEdital,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
@@ -83,7 +83,7 @@ from .serializers.serializers import (
     MarcaSerializer,
     MarcaSimplesSerializer,
     NomeDeProdutoEditalSerializer,
-    ProdutoEditaisSerializer,
+    ProdutoEditalSerializer,
     ProdutoHomologadosPorParametrosSerializer,
     ProdutoListagemSerializer,
     ProdutoReclamacaoSerializer,
@@ -1388,35 +1388,32 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
 class ProdutosEditaisViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    serializer_class = ProdutoEditaisSerializer
-    queryset = Produto.objects.all()
+    serializer_class = ProdutoEditalSerializer
+    queryset = ProdutoEdital.objects.all()
     pagination_class = CustomPagination
 
     @action(detail=True, methods=['patch'], url_path='ativar-inativar-produto')
     def ativar_inativar_produto(self, request, uuid=None):
         try:
-            produto = Produto.objects.get(uuid=uuid)
-            if produto.ativo:
-                produto.ativo = False
+            vinculo = ProdutoEdital.objects.get(uuid=uuid)
+            if vinculo.ativo:
+                vinculo.ativo = False
             else:
-                produto.ativo = True
-            produto.save()
-            serializer = self.get_serializer(produto)
+                vinculo.ativo = True
+            vinculo.save()
+            serializer = self.get_serializer(vinculo)
             return Response(dict(data=serializer.data),
                             status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(dict(detail=f'Erro ao Ativar/inativar produto: {e}'),
+            return Response(dict(detail=f'Erro ao Ativar/inativar vínculo do produto com edital: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'], url_path='filtros')
     def filtros(self, request):
         try:
-            status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
-            produtos = self.get_queryset().exclude(editais=None)
-            produtos = produtos.filter(homologacao__ativo=True,
-                                       homologacao__status=status_homologado)
-            produtos = produtos.distinct('nome').values_list('nome', flat=True)
-            editais = Edital.objects.all().values_list('numero', flat=True)
+            vinculos = self.get_queryset()
+            produtos = vinculos.distinct('produto__nome').values('produto__nome', 'produto__uuid')
+            editais = vinculos.distinct('edital__numero').values('edital__numero', 'edital__uuid')
             return Response(dict(produtos=produtos, editais=editais), status=status.HTTP_200_OK)
         except Exception as e:
             return Response(dict(detail=f'Erro ao consultar filtros: {e}'),
@@ -1424,22 +1421,19 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='filtrar') # noqa c901
     def filtrar(self, request):
-        status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
-        queryset = self.get_queryset().exclude(editais=None)
-        queryset = queryset.filter(homologacao__ativo=True,
-                                   homologacao__status=status_homologado).order_by('criado_em')
+        queryset = self.get_queryset().order_by('criado_em')
         nome = request.query_params.get('nome', None)
         edital = request.query_params.get('edital', None)
         tipo_dieta = request.query_params.get('tipo', None)
         if nome:
-            queryset = queryset.filter(nome=nome)
+            queryset = queryset.filter(produto__nome__in=[nome])
         if edital:
-            queryset = queryset.filter(editais__numero__in=[edital])
+            queryset = queryset.filter(edital__numero__in=[edital])
         if tipo_dieta:
-            if tipo_dieta == '0':
-                queryset = queryset.filter(eh_para_alunos_com_dieta=False)
+            if tipo_dieta == 'COMUM':
+                queryset = queryset.filter(tipo_produto=ProdutoEdital.TIPO_PRODUTO['COMUM'])
             else:
-                queryset = queryset.filter(eh_para_alunos_com_dieta=True)
+                queryset = queryset.filter(tipo_produto=ProdutoEdital.TIPO_PRODUTO['DIETA_ESPECIAL'])
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
