@@ -185,6 +185,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
             )
 
         status_validos = ['CODAE_NAO_HOMOLOGADO',
+                          'CODAE_HOMOLOGADO',
                           'CODAE_SUSPENDEU',
                           'TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO',
                           'CODAE_QUESTIONADO']
