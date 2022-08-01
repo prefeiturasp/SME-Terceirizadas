@@ -198,11 +198,14 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
         (DIETA_ESPECIAL, TIPO_PRODUTO[DIETA_ESPECIAL]),
     )
 
-    produto = models.ForeignKey(Produto, null=True, on_delete=models.DO_NOTHING)
-    edital = models.ForeignKey(Edital, null=True, on_delete=models.DO_NOTHING)
+    produto = models.ForeignKey(Produto, null=True, on_delete=models.DO_NOTHING, related_name='vinculos')
+    edital = models.ForeignKey(Edital, null=True, on_delete=models.DO_NOTHING, related_name='vinculos')
     tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES, null=True, blank=True)  # noqa DJ01
     outras_informacoes = models.TextField('Outras Informações', blank=True)
     ativo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.produto} -- {self.edital.numero}'
 
     class Meta:
         verbose_name = 'Vinculo entre produto e edital'

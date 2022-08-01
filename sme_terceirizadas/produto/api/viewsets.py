@@ -11,7 +11,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
@@ -20,6 +20,7 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
+from ...escola.models import Escola
 from ...relatorios.relatorios import (
     relatorio_marcas_por_produto_homologacao,
     relatorio_produto_analise_sensorial,
@@ -32,6 +33,7 @@ from ...relatorios.relatorios import (
     relatorio_reclamacao
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
+from ...terceirizada.models import Edital
 from ..constants import (
     AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
     AVALIAR_RECLAMACAO_RECLAMACOES_STATUS,
@@ -444,7 +446,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     serializer_class = HomologacaoProdutoSerializer
     queryset = HomologacaoProduto.objects.all()
 
-    @action(detail=True,
+    @action(detail=True,  # noqa C901
             permission_classes=(UsuarioCODAEGestaoProduto,),
             methods=['patch'],
             url_path=constants.CODAE_HOMOLOGA)
@@ -454,11 +456,21 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             'Produtos-relatorio',
             args=[homologacao_produto.produto.uuid]
         )
+        editais = request.data.get('editais', [])
+        if not editais:
+            return Response(dict(detail='É necessario informar algum edital.'),
+                            status=HTTP_406_NOT_ACCEPTABLE)
         try:
-
             homologacao_produto.codae_homologa(
                 user=request.user,
                 link_pdf=url_configs('API', {'uri': uri}))
+            eh_para_alunos_com_dieta = homologacao_produto.produto.eh_para_alunos_com_dieta
+            for edital_uuid in editais:
+                ProdutoEdital.objects.create(
+                    produto=homologacao_produto.produto,
+                    edital=Edital.objects.get(uuid=edital_uuid),
+                    tipo_produto=ProdutoEdital.DIETA_ESPECIAL if eh_para_alunos_com_dieta else ProdutoEdital.COMUM
+                )
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -801,6 +813,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related(
             'marca', 'fabricante').order_by('criado_em')
+        if isinstance(request.user.vinculo_atual.instituicao, Escola):
+            contratos = request.user.vinculo_atual.instituicao.lote.contratos_do_lote.all()
+            editais = contratos.values_list('edital', flat=True)
+            queryset = queryset.filter(vinculos__edital__in=editais)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = ProdutoListagemSerializer(page, many=True)
