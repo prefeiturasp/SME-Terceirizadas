@@ -1326,6 +1326,15 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             self._envia_email_codae_homologa(
                 log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
 
+    @xworkflows.after_transition('codae_recusou_reclamacao')
+    def _codae_recusou_reclamacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_RECUSOU_RECLAMACAO,
+            justificativa=justificativa,
+            usuario=user)
+
     @xworkflows.after_transition('terceirizada_inativa')
     def _inativa_homologacao_hook(self, *args, **kwargs):
         user = kwargs['user']
