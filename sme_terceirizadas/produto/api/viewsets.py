@@ -801,6 +801,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related(
             'marca', 'fabricante').order_by('criado_em')
+        editais = request.user.vinculo_atual.instituicao.lote.contratos_do_lote.all().values_list('edital', flat=True)
+        queryset = queryset.filter(vinculos__edital__in=editais)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = ProdutoListagemSerializer(page, many=True)
