@@ -25,14 +25,6 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome',)
 
 
-class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
-    contatos = ContatoSerializer(many=True)
-
-    class Meta:
-        model = Terceirizada
-        fields = ('uuid', 'cnpj', 'nome_fantasia', 'contatos')
-
-
 class DistribuidorSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -44,6 +36,29 @@ class VigenciaContratoSerializer(serializers.ModelSerializer):
     class Meta:
         model = VigenciaContrato
         fields = ('uuid', 'data_inicial', 'data_final')
+
+
+class EditalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Edital
+        exclude = ('id',)
+
+
+class ContratoSimplesSerializer(serializers.ModelSerializer):
+    edital = EditalSerializer()
+
+    class Meta:
+        model = Contrato
+        exclude = ('id', 'terceirizada', 'diretorias_regionais', 'lotes')
+
+
+class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
+    contatos = ContatoSerializer(many=True)
+    contratos = ContratoSimplesSerializer(many=True)
+
+    class Meta:
+        model = Terceirizada
+        fields = ('uuid', 'cnpj', 'nome_fantasia', 'contatos', 'contratos')
 
 
 class ContratoSerializer(serializers.ModelSerializer):
@@ -64,12 +79,6 @@ class ContratoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class EditalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Edital
-        exclude = ('id',)
-
-
 class EditalSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Edital
@@ -82,11 +91,3 @@ class EditalContratosSerializer(serializers.ModelSerializer):
     class Meta:
         model = Edital
         exclude = ('id',)
-
-
-class ContratoSimplesSerializer(serializers.ModelSerializer):
-    edital = EditalSerializer()
-
-    class Meta:
-        model = Contrato
-        exclude = ('id', 'terceirizada', 'diretorias_regionais', 'lotes')

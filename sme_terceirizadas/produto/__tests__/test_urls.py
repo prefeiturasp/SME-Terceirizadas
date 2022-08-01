@@ -47,14 +47,21 @@ def test_url_dados_dashboard_usuario_nutrisupervisor(client_autenticado_vinculo_
 
 
 def test_url_endpoint_homologacao_produto_codae_homologa(client_autenticado_vinculo_codae_produto,
-                                                         homologacao_produto_pendente_homologacao):
+                                                         homologacao_produto_pendente_homologacao,
+                                                         edital):
     assert homologacao_produto_pendente_homologacao.status == HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
     response = client_autenticado_vinculo_codae_produto.patch(
-        f'/homologacoes-produtos/{homologacao_produto_pendente_homologacao.uuid}/{constants.CODAE_HOMOLOGA}/')
+        f'/homologacoes-produtos/{homologacao_produto_pendente_homologacao.uuid}/'
+        f'{constants.CODAE_HOMOLOGA}/',
+        content_type='application/json',
+        data=json.dumps({'editais': [edital.uuid]}))
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO
     response = client_autenticado_vinculo_codae_produto.patch(
-        f'/homologacoes-produtos/{homologacao_produto_pendente_homologacao.uuid}/{constants.CODAE_HOMOLOGA}/')
+        f'/homologacoes-produtos/{homologacao_produto_pendente_homologacao.uuid}/'
+        f'{constants.CODAE_HOMOLOGA}/',
+        content_type='application/json',
+        data=json.dumps({'editais': [edital.uuid]}))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': "Erro de transição de estado: Transition 'codae_homologa' isn't available from state "
