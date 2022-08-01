@@ -1842,7 +1842,7 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         if reclamacoes_ativas.count() == 0:
             reclamacao_produto.homologacao_produto.codae_recusou_reclamacao(
                 user=request.user,
-                justificativa='Recusa automática por não haver mais reclamações'
+                justificativa=request.data.get('justificativa') or 'Recusa automática por não haver mais reclamações'
             )
 
         analises_sensoriais = reclamacao_produto.homologacao_produto.analises_sensoriais.filter(
