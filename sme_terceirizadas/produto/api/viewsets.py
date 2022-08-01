@@ -20,6 +20,7 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
+from ...escola.models import Escola
 from ...relatorios.relatorios import (
     relatorio_marcas_por_produto_homologacao,
     relatorio_produto_analise_sensorial,
@@ -812,6 +813,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related(
             'marca', 'fabricante').order_by('criado_em')
+        if isinstance(request.user.vinculo_atual.instituicao, Escola):
+            contratos = request.user.vinculo_atual.instituicao.lote.contratos_do_lote.all()
+            editais = contratos.values_list('edital', flat=True)
+            queryset = queryset.filter(vinculos__edital__in=editais)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = ProdutoListagemSerializer(page, many=True)
