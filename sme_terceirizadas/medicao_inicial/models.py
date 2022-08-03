@@ -1,8 +1,7 @@
 from django.db import models
 
-
-from sme_terceirizadas.dados_comuns.behaviors import TemData, TemChaveExterna, CriadoEm, CriadoPor
-from sme_terceirizadas.escola.models import TipoUnidadeEscolar
+from ..dados_comuns.behaviors import CriadoEm, CriadoPor, TemChaveExterna, TemData
+from ..escola.models import TipoUnidadeEscolar
 
 
 class DiaSobremesaDoce(TemData, TemChaveExterna, CriadoEm, CriadoPor):
