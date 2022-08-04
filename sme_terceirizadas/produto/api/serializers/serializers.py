@@ -560,10 +560,10 @@ class ProdutoEditalSerializer(serializers.ModelSerializer):
     edital = EditalSerializer()
 
     def get_marca(self, obj):
-        return obj.produto.marca.nome
+        return MarcaSerializer(obj.produto.marca).data
 
     def get_fabricante(self, obj):
-        return obj.produto.fabricante.nome
+        return FabricanteSerializer(obj.produto.fabricante).data
 
     class Meta:
         model = ProdutoEdital
