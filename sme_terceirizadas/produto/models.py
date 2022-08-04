@@ -198,9 +198,9 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
         (DIETA_ESPECIAL, TIPO_PRODUTO[DIETA_ESPECIAL]),
     )
 
-    produto = models.ForeignKey(Produto, null=True, on_delete=models.DO_NOTHING, related_name='vinculos')
-    edital = models.ForeignKey(Edital, null=True, on_delete=models.DO_NOTHING, related_name='vinculos')
-    tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES, null=True, blank=True)  # noqa DJ01
+    produto = models.ForeignKey(Produto, null=False, on_delete=models.DO_NOTHING, related_name='vinculos')
+    edital = models.ForeignKey(Edital, null=False, on_delete=models.DO_NOTHING, related_name='vinculos')
+    tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES, null=False, blank=False)  # noqa DJ01
     outras_informacoes = models.TextField('Outras Informações', blank=True)
     ativo = models.BooleanField(default=True)
 
@@ -210,6 +210,7 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
     class Meta:
         verbose_name = 'Vinculo entre produto e edital'
         verbose_name_plural = 'Vinculos entre produtos e editais'
+        unique_together = ('produto', 'edital')
 
 
 class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
