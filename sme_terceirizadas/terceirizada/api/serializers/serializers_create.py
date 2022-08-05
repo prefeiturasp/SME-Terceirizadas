@@ -129,7 +129,19 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             UsuarioUpdateSerializer().create_distribuidor(terceirizada, distribuidor_json)
         else:
             terceirizada = Terceirizada.objects.create(**validated_data)
+
+            checar_terceirizadas_inativacao = []
+            for lote in [lote for lote in lotes if lote not in terceirizada.lotes.all() and lote.terceirizada]:
+                checar_terceirizadas_inativacao.append(lote.terceirizada.uuid)
+                lote.transferir_solicitacoes_gestao_alimentacao(terceirizada)
+                lote.transferir_dietas_especiais(terceirizada)
+
             terceirizada.lotes.set(lotes)
+
+            """ Inativa terceirizadas que nao tem lote """
+            Terceirizada.objects.filter(
+                uuid__in=checar_terceirizadas_inativacao, lotes__isnull=True).update(ativo=False)
+
             for contato_json in contatos:
                 contato = ContatoSerializer().create(
                     validated_data=contato_json)
@@ -164,7 +176,15 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             instance.contatos.set(contatos)
         else:
             instance.contatos.clear()
-            instance.desvincular_lotes()
+
+            if instance.lotes.exclude(id__in=[lote.id for lote in lotes_array]).exists():
+                raise ValidationError('Não pode remover um lote de uma empresa. É preciso atribuí-lo a outra empresa.')
+
+            checar_terceirizadas_inativacao = []
+            for lote in [lote for lote in lotes_array if lote not in instance.lotes.all() and lote.terceirizada]:
+                checar_terceirizadas_inativacao.append(lote.terceirizada.uuid)
+                lote.transferir_solicitacoes_gestao_alimentacao(instance)
+                lote.transferir_dietas_especiais(instance)
 
             contatos = []
             for contato_json in contato_array:
@@ -175,6 +195,10 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
 
             instance.contatos.set(contatos)
             instance.lotes.set(lotes_array)
+
+            """ Inativa terceirizadas que nao tem lote """
+            Terceirizada.objects.filter(
+                uuid__in=checar_terceirizadas_inativacao, lotes__isnull=True).update(ativo=False)
 
             if instance.super_admin:
                 self.atualizar_super_admin_terceirizada(super_admin_data, instance)

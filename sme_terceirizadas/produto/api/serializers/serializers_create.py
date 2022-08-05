@@ -5,7 +5,7 @@ from ....dados_comuns.utils import convert_base64_to_contentfile, update_instanc
 from ....dados_comuns.validators import deve_ter_extensao_valida
 from ....dieta_especial.models import SolicitacaoDietaEspecial
 from ....escola.models import Aluno, Escola
-from ....terceirizada.models import Terceirizada
+from ....terceirizada.models import Edital, Terceirizada
 from ...models import (
     AnexoReclamacaoDeProduto,
     AnexoRespostaAnaliseSensorial,
@@ -17,7 +17,9 @@ from ...models import (
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
     Marca,
+    NomeDeProdutoEdital,
     Produto,
+    ProdutoEdital,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
@@ -184,6 +186,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
             )
 
         status_validos = ['CODAE_NAO_HOMOLOGADO',
+                          'CODAE_HOMOLOGADO',
                           'CODAE_SUSPENDEU',
                           'TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO',
                           'CODAE_QUESTIONADO']
@@ -294,3 +297,75 @@ class SolicitacaoCadastroProdutoDietaSerializerCreate(serializers.ModelSerialize
         solicitacao = SolicitacaoCadastroProdutoDieta.objects.create(**validated_data, criado_por=usuario)
         solicitacao._envia_email_solicitacao_realizada()
         return solicitacao
+
+
+class ProdutoEditalCreateSerializer(serializers.Serializer):
+    editais_origem_selecionados = serializers.ListField(required=False)
+    editais_destino_selecionados = serializers.ListField(required=False)
+    produtos_editais = serializers.ListField(required=False)
+    tipo_produto = serializers.CharField(required=False)
+    outras_informacoes = serializers.CharField(required=False)
+
+    def create(self, validated_data): # noqa c901
+        editais_destino_selecionados = validated_data.get('editais_destino_selecionados', [])
+        produtos_editais = validated_data.get('produtos_editais', [])
+        outras_informacoes = validated_data.get('outras_informacoes', '')
+        tipo_produto = validated_data.get('tipo_produto', '')
+
+        produtos = ProdutoEdital.objects.filter(uuid__in=produtos_editais)
+        editais = Edital.objects.filter(uuid__in=editais_destino_selecionados)
+        lista_produtos_editais = []
+        try:
+            for produto_edital in produtos:
+                for edital in editais:
+                    if not ProdutoEdital.objects.filter(produto=produto_edital.produto, edital=edital).exists():
+                        lista_produtos_editais.append(ProdutoEdital(produto=produto_edital.produto,
+                                                                    edital=edital,
+                                                                    tipo_produto=tipo_produto,
+                                                                    outras_informacoes=outras_informacoes))
+            resultado = ProdutoEdital.objects.bulk_create(lista_produtos_editais)
+            return resultado
+        except Exception:
+            raise serializers.ValidationError('Erro ao criar Produto Proviniente do Edital.')
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        fields = ('editais_origem_selecionados', 'editais_destino_selecionados', 'produtos_editais',
+                  'outras_informacoes', 'tipo_produto')
+
+
+class CadastroProdutosEditalCreateSerializer(serializers.Serializer):
+    nome = serializers.CharField(required=True, write_only=True)
+    ativo = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        nome = validated_data['nome']
+        status = validated_data.pop('ativo')
+        ativo = False if status == 'Inativo' else True
+        validated_data['criado_por'] = self.context['request'].user
+
+        if nome.upper() in (produto.nome.upper() for produto in NomeDeProdutoEdital.objects.all()):
+            raise serializers.ValidationError('Item já cadastrado.')
+        try:
+            produto = NomeDeProdutoEdital(nome=nome, ativo=ativo, criado_por=self.context['request'].user)
+            produto.save()
+            return produto
+        except Exception:
+            raise serializers.ValidationError('Erro ao criar Produto Proviniente do Edital.')
+
+    def update(self, instance, validated_data): # noqa C901
+        nome = validated_data['nome']
+        status = validated_data.pop('ativo')
+        ativo = False if status == 'Inativo' else True
+
+        if (nome.upper(), ativo) in ((produto.nome.upper(), produto.ativo)
+                                     for produto in NomeDeProdutoEdital.objects.all()):
+            raise serializers.ValidationError('Item já cadastrado.')
+
+        try:
+            instance.nome = nome.upper()
+            instance.ativo = ativo
+            instance.save()
+        except Exception as e:
+            raise serializers.ValidationError(f'Erro ao editar Produto Proviniente do Edital. {str(e)}')
+        return instance

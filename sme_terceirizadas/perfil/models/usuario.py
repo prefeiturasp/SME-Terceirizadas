@@ -21,6 +21,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_MEDICAO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -198,6 +199,8 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                     tipo_usuario = 'supervisao_nutricao'
                 elif self.vinculo_atual.perfil.nome in [COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]:
                     tipo_usuario = 'nutricao_manifestacao'
+                elif self.vinculo_atual.perfil.nome in [ADMINISTRADOR_MEDICAO]:
+                    tipo_usuario = 'medicao'
                 else:
                     tipo_usuario = 'dieta_especial'
         return tipo_usuario
