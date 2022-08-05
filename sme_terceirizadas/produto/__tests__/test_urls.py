@@ -729,7 +729,7 @@ def test_url_endpoint_produtos_editais_filtrar(client_autenticado_vinculo_codae_
     assert resultado['results'][0]['produto']['nome'] == 'Produto1'
     assert resultado['results'][0]['ativo'] is True
     assert resultado['results'][0]['tipo_produto'] == 'Dieta especial'
-    assert resultado['results'][0]['marca'] == 'Marca1'
+    assert resultado['results'][0]['marca']['nome'] == 'Marca1'
     assert resultado['results'][0]['edital']['numero'] == 'Edital de Pregão nº 56/SME/2016'
 
 

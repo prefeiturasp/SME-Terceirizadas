@@ -104,6 +104,7 @@ from .serializers.serializers import (
 )
 from .serializers.serializers_create import (
     CadastroProdutosEditalCreateSerializer,
+    ProdutoEditalCreateSerializer,
     ProdutoSerializerCreate,
     ReclamacaoDeProdutoSerializerCreate,
     RespostaAnaliseSensorialSearilzerCreate,
@@ -1404,9 +1405,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
 class ProdutosEditaisViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    serializer_class = ProdutoEditalSerializer
     queryset = ProdutoEdital.objects.all()
     pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action in ['create']:
+            return ProdutoEditalCreateSerializer
+        return ProdutoEditalSerializer
 
     @action(detail=True, methods=['patch'], url_path='ativar-inativar-produto')
     def ativar_inativar_produto(self, request, uuid=None):
@@ -1437,7 +1442,7 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='filtrar') # noqa c901
     def filtrar(self, request):
-        queryset = self.get_queryset().order_by('criado_em')
+        queryset = self.get_queryset().order_by('produto__nome')
         nome = request.query_params.get('nome', None)
         edital = request.query_params.get('edital', None)
         tipo_dieta = request.query_params.get('tipo', None)
@@ -1446,10 +1451,7 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         if edital:
             queryset = queryset.filter(edital__numero__in=[edital])
         if tipo_dieta:
-            if tipo_dieta == 'COMUM':
-                queryset = queryset.filter(tipo_produto=ProdutoEdital.TIPO_PRODUTO['COMUM'])
-            else:
-                queryset = queryset.filter(tipo_produto=ProdutoEdital.TIPO_PRODUTO['DIETA_ESPECIAL'])
+            queryset = queryset.filter(tipo_produto=tipo_dieta)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -1457,6 +1459,18 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response({'results': serializer.data})
+
+    @action(detail=False, methods=['get'], url_path='lista-produtos-opcoes') # noqa c901
+    def lista_produtos_opcoes(self, request):
+        try:
+            editais_uuid = request.query_params.get('editais', '')
+            editais_uuid = editais_uuid.split(';')
+            queryset = self.get_queryset().filter(edital__uuid__in=editais_uuid).distinct('produto__uuid')
+            data = self.get_serializer(queryset, many=True).data
+            return Response(data=data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao consultar produtos: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class NomeDeProdutoEditalViewSet(viewsets.ViewSet):
