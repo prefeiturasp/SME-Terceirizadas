@@ -1,17 +1,34 @@
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from ..models import DiaSobremesaDoce
 from .serializers import DiaSobremesaDoceSerializer
-from .serializers_create import DiaSobremesaDoceCreateSerializer
+from .serializers_create import DiaSobremesaDoceCreateManySerializer
 
 
 class DiaSobremesaDoceViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
-    lookup_field = 'uuid'
     queryset = DiaSobremesaDoce.objects.all()
+    lookup_field = 'uuid'
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
-            return DiaSobremesaDoceCreateSerializer
+            return DiaSobremesaDoceCreateManySerializer
         return DiaSobremesaDoceSerializer
+
+    def get_queryset(self):
+        queryset = DiaSobremesaDoce.objects.all()
+        if 'mes' in self.request.query_params and 'ano' in self.request.query_params:
+            queryset = queryset.filter(data__month=self.request.query_params.get('mes'),
+                                       data__year=self.request.query_params.get('ano'))
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super(DiaSobremesaDoceViewSet, self).create(request, *args, **kwargs)
+        except AssertionError as error:
+            if str(error) == '`create()` did not return an object instance.':
+                return Response(status=status.HTTP_201_CREATED)
+            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
