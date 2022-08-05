@@ -24,6 +24,7 @@ from ..dados_comuns.fluxo_status import (
 from ..dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
 from ..escola.models import Escola
+from ..terceirizada.models import Edital
 
 MAX_NUMERO_PROTOCOLO = 6
 
@@ -180,6 +181,36 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     class Meta:
         verbose_name = 'Produto'
         verbose_name_plural = 'Produtos'
+
+
+class ProdutoEdital(TemChaveExterna, CriadoEm):
+
+    COMUM = 'COMUM'
+    DIETA_ESPECIAL = 'DIETA_ESPECIAL'
+
+    TIPO_PRODUTO = {
+        COMUM: 'Comum',
+        DIETA_ESPECIAL: 'Dieta especial',
+    }
+
+    TIPO_PRODUTO_CHOICES = (
+        (COMUM, TIPO_PRODUTO[COMUM]),
+        (DIETA_ESPECIAL, TIPO_PRODUTO[DIETA_ESPECIAL]),
+    )
+
+    produto = models.ForeignKey(Produto, null=False, on_delete=models.DO_NOTHING, related_name='vinculos')
+    edital = models.ForeignKey(Edital, null=False, on_delete=models.DO_NOTHING, related_name='vinculos')
+    tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES, null=False, blank=False)  # noqa DJ01
+    outras_informacoes = models.TextField('Outras Informações', blank=True)
+    ativo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.produto} -- {self.edital.numero}'
+
+    class Meta:
+        verbose_name = 'Vinculo entre produto e edital'
+        verbose_name_plural = 'Vinculos entre produtos e editais'
+        unique_together = ('produto', 'edital')
 
 
 class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):

@@ -11,6 +11,7 @@ from .constants import (
     ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_MEDICAO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     ADMINISTRADOR_UE_DIRETA,
     ADMINISTRADOR_UE_MISTA,
@@ -83,7 +84,8 @@ class UsuarioCODAEGestaoAlimentacao(BasePermission):
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                  ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+                                                  ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                  ADMINISTRADOR_MEDICAO]
         )
 
 
@@ -114,7 +116,8 @@ class UsuarioNutricionista(BasePermission):
                                                   ADMINISTRADOR_DIETA_ESPECIAL,
                                                   COORDENADOR_SUPERVISAO_NUTRICAO,
                                                   ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-                                                  COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
+                                                  COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                  ADMINISTRADOR_MEDICAO]
         )
 
 
@@ -173,7 +176,8 @@ class PermissaoParaRecuperarObjeto(BasePermission):
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       COORDENADOR_SUPERVISAO_NUTRICAO,
-                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                      ADMINISTRADOR_MEDICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             try:  # solicitacoes normais
@@ -202,7 +206,8 @@ class PermissaoParaRecuperarSolicitacaoUnificada(BasePermission):
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       COORDENADOR_SUPERVISAO_NUTRICAO,
-                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                      ADMINISTRADOR_MEDICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (
@@ -231,7 +236,8 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
                                                       COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                      ADMINISTRADOR_MEDICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (

@@ -403,6 +403,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('inicia_fluxo',
          [RASCUNHO,
           CODAE_NAO_HOMOLOGADO,
+          CODAE_HOMOLOGADO,
           CODAE_SUSPENDEU,
           TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO,
           CODAE_QUESTIONADO,
@@ -459,6 +460,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
           UE_RESPONDEU_QUESTIONAMENTO,
+          CODAE_QUESTIONOU_UE,
+          CODAE_QUESTIONOU_NUTRISUPERVISOR,
           NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
           CODAE_PEDIU_ANALISE_SENSORIAL],
          CODAE_AUTORIZOU_RECLAMACAO),
@@ -466,6 +469,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          CODAE_QUESTIONOU_UE,
+          CODAE_QUESTIONOU_NUTRISUPERVISOR,
           CODAE_PEDIU_ANALISE_SENSORIAL],
          CODAE_HOMOLOGADO),
         ('inativa_homologacao',
@@ -1320,6 +1325,15 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         if not kwargs.get('nao_enviar_email', False):
             self._envia_email_codae_homologa(
                 log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
+
+    @xworkflows.after_transition('codae_recusou_reclamacao')
+    def _codae_recusou_reclamacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_RECUSOU_RECLAMACAO,
+            justificativa=justificativa,
+            usuario=user)
 
     @xworkflows.after_transition('terceirizada_inativa')
     def _inativa_homologacao_hook(self, *args, **kwargs):
