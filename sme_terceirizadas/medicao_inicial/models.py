@@ -12,7 +12,7 @@ class DiaSobremesaDoce(TemData, TemChaveExterna, CriadoEm, CriadoPor):
         return None
 
     def __str__(self):
-        return f'{self.data.strftime("%d/%m/%y")} - {self.tipo_unidade.iniciais}'
+        return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais}'
 
     class Meta:
         verbose_name = 'Dia de sobremesa doce'

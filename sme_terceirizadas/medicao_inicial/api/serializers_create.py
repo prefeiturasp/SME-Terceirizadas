@@ -28,7 +28,7 @@ class DiaSobremesaDoceCreateManySerializer(serializers.ModelSerializer):
         slug_field='uuid',
         queryset=TipoUnidadeEscolar.objects.all(),
         many=True,
-        required=False,
+        required=True,
     )
 
     def create(self, validated_data):

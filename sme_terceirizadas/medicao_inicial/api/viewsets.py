@@ -3,13 +3,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ..models import DiaSobremesaDoce
 from .serializers import DiaSobremesaDoceSerializer
 from .serializers_create import DiaSobremesaDoceCreateManySerializer
 
 
 class DiaSobremesaDoceViewSet(ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada)
     queryset = DiaSobremesaDoce.objects.all()
     lookup_field = 'uuid'
 
