@@ -1,16 +1,21 @@
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from ...dados_comuns.permissions import ViewSetActionPermissionMixin
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ..models import DiaSobremesaDoce
+from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import DiaSobremesaDoceSerializer
 from .serializers_create import DiaSobremesaDoceCreateManySerializer
 
 
-class DiaSobremesaDoceViewSet(ModelViewSet):
-    permission_classes = (IsAuthenticated, PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada)
+class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
+    permission_action_classes = {
+        'list': [EhAdministradorMedicaoInicialOuGestaoAlimentacao],
+        'create': [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada],
+        'delete': [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]
+    }
     queryset = DiaSobremesaDoce.objects.all()
     lookup_field = 'uuid'
 
