@@ -1175,7 +1175,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
             HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
-            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)

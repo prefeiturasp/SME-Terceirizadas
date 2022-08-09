@@ -467,6 +467,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          CODAE_AUTORIZOU_RECLAMACAO),
         ('codae_recusou_reclamacao',
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
+          CODAE_HOMOLOGADO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
           UE_RESPONDEU_QUESTIONAMENTO,
           NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
