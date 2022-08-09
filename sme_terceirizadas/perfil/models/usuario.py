@@ -179,6 +179,10 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                 Q(data_inicial__isnull=False, data_final=None, ativo=True))
         return None
 
+    @property
+    def existe_vinculo_ativo(self):
+        return self.vinculos.filter(Q(data_inicial__isnull=False, data_final=None, ativo=True)).exists()
+
     @property  # noqa C901
     def tipo_usuario(self):
         tipo_usuario = 'indefinido'
