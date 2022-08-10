@@ -34,7 +34,7 @@ class BaseUserAdmin(DjangoUserAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                'username','email', 'tipo_email', 'password', 'cpf',
+                'username', 'email', 'tipo_email', 'password', 'cpf',
                 'registro_funcional', 'nome', 'cargo', 'crn_numero'
             )
         }),
@@ -51,17 +51,20 @@ class BaseUserAdmin(DjangoUserAdmin):
     add_fieldsets = ((None, {
         'classes': ('wide',),
         'fields': (
-            'email', 'password1', 'password2', 'cpf', 'registro_funcional',
+            'username', 'email', 'password1', 'password2', 'cpf', 'registro_funcional',
             'nome', 'cargo'
         ),
     }),)
-    list_display = ('email', 'username', 'nome', 'is_staff', 'is_active')
-    search_fields = ('email', 'nome')
-    ordering = ('email',)
-    actions = ('carga_dados',)
+    list_display = ('email', 'username', 'nome', 'registro_funcional', 'is_staff', 'is_active')
+    search_fields = ('username', 'email', 'nome')
+    ordering = ('username',)
+    actions = ('carga_dados', 'atualiza_username_servidores')
 
     def carga_dados(self, request, queryset):
         return call_command('carga_dados')
+
+    def atualiza_username_servidores(self, request, queryset):
+        return call_command('atualiza_username_servidores')
 
 
 @admin.register(Perfil)
@@ -73,7 +76,7 @@ class PerfilAdmin(admin.ModelAdmin):
 @admin.register(Vinculo)
 class VinculoAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'perfil', 'content_type')
-    search_fields = ('usuario__nome', 'usuario__email', 'usuario__registro_funcional')
+    search_fields = ('usuario__nome', 'usuario__username', 'usuario__email', 'usuario__registro_funcional')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'perfil':

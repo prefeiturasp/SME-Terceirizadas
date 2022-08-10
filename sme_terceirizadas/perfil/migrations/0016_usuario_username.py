@@ -3,6 +3,7 @@
 from django.db import migrations, models
 from django.db.models import F
 
+
 def migrate_default_values(apps, schmema_editor):
     Usuario = apps.get_model('perfil', 'Usuario')
     Usuario.objects.all().update(
