@@ -4,7 +4,12 @@ import json
 from freezegun import freeze_time
 from rest_framework import status
 
-from sme_terceirizadas.cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from sme_terceirizadas.cardapio.models import (
+    AlteracaoCardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+)
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaEscolaWorkflow
@@ -538,6 +543,22 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
     assert substituicao['tipos_alimentacao_de'][0] == str(payload_substituicao['tipos_alimentacao_de'][0])
     assert substituicao['tipo_alimentacao_para'] == str(payload_substituicao['tipo_alimentacao_para'])
     assert substituicao['qtd_alunos'] == 10
+
+
+def test_url_endpoint_alterar_tipos_alimentacao(client_autenticado_vinculo_escola_cardapio,
+                                                alterar_tipos_alimentacao_data):
+    vinculo = alterar_tipos_alimentacao_data['vinculo']
+    tipos_alimentacao = alterar_tipos_alimentacao_data['tipos_alimentacao']
+    dict_params = {'periodo_escolar': str(vinculo.periodo_escolar.uuid),
+                   'tipo_unidade_escolar': str(vinculo.tipo_unidade_escolar.uuid),
+                   'tipos_alimentacao': [str(tp.uuid) for tp in tipos_alimentacao],
+                   'uuid': str(vinculo.uuid)}
+    url = f'/{ENDPOINT_VINCULOS_ALIMENTACAO}/atualizar_lista_de_vinculos/'
+    response = client_autenticado_vinculo_escola_cardapio.put(url, content_type='application/json',
+                                                              data=json.dumps({'vinculos': [dict_params]}))
+    vinculo_atualizado = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.first()
+    assert response.status_code == status.HTTP_200_OK
+    assert vinculo_atualizado.tipos_alimentacao.count() == 2
 
 
 def test_url_endpoint_alt_card_inicio(client_autenticado_vinculo_escola_cardapio,
