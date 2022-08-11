@@ -554,6 +554,19 @@ def daqui_dez_dias_ou_ultimo_dia_do_ano():
     return dia_alteracao
 
 
+@pytest.fixture()
+def alterar_tipos_alimentacao_data():
+    alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')
+    alimentacao2 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao2')
+    alimentacao3 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao3')
+    periodo_escolar = mommy.make('escola.PeriodoEscolar', nome='MANHA')
+    tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar', iniciais='EMEF')
+    vinculo = mommy.make('cardapio.VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                         periodo_escolar=periodo_escolar, tipo_unidade_escolar=tipo_unidade_escolar,
+                         tipos_alimentacao=[alimentacao1])
+    return {'vinculo': vinculo, 'tipos_alimentacao': [alimentacao2, alimentacao3]}
+
+
 @pytest.fixture(params=[
     # data do teste 15 out 2019
     # data_inicial, data_final
