@@ -132,7 +132,6 @@ def retorna_dados_normalizados_excel_visao_dilog(queryset):
         for escola in escolas:
             if requisicao['guias__codigo_unidade'] == escola['codigo_codae']:
                 requisicao['codigo_eol_unidade'] = escola.get('codigo_eol', '')
-
     return requisicoes
 
 
@@ -174,7 +173,6 @@ def retorna_dados_normalizados_excel_entregas_distribuidor(queryset): # noqa C90
                             if reposicao_alimento:
                                 requisicao['reposicao_alimento'] = reposicao_alimento
                             break
-
     return requisicoes
 
 
