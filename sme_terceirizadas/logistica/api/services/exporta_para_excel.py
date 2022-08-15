@@ -473,7 +473,7 @@ class RequisicoesExcelService(object):
             if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
                 ws.cell(row=ind, column=offset + 21, value=qtd_recebida)
                 ws.cell(row=ind, column=offset + 22, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
-            else:
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FRACIONADA':
                 ws.cell(row=ind, column=offset + 23, value=qtd_recebida)
                 ws.cell(row=ind, column=offset + 24, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
             if 'primeira_conferencia' in requisicao:
