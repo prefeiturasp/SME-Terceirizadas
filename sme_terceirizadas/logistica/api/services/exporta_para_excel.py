@@ -158,9 +158,8 @@ class RequisicoesExcelService(object):
 
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
         arquivo = cls.gera_arquivo(wb)
-        filename = 'visao-consolidada.xlsx'
 
-        return arquivo if is_async else {'arquivo': arquivo, 'filename': filename}
+        return arquivo if is_async else {'arquivo': arquivo}
 
     @classmethod  # noqa C901
     def cria_aba_insucesso(cls, ws, requisicoes, perfil):
@@ -401,7 +400,8 @@ class RequisicoesExcelService(object):
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
     @classmethod
-    def exportar_entregas(cls, requisicoes, requisicoes_insucesso, perfil, tem_conferencia, tem_insucesso):
+    def exportar_entregas(cls, requisicoes, requisicoes_insucesso, perfil, tem_conferencia,
+                          tem_insucesso, is_async=False):
         wb = Workbook()
         if tem_conferencia and not tem_insucesso:
             ws_conferencia = wb.active
@@ -417,6 +417,5 @@ class RequisicoesExcelService(object):
             cls.cria_aba_insucesso(ws_insucesso, requisicoes_insucesso, perfil)
 
         arquivo = cls.gera_arquivo(wb)
-        filename = 'visao-consolidada.xlsx'
 
-        return {'arquivo': arquivo, 'filename': filename}
+        return arquivo if is_async else {'arquivo': arquivo}
