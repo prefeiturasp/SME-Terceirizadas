@@ -3,7 +3,13 @@ name: Check Status
 on:
 
   push:
-    branches: [ bug*, feature*, fix*]
+    branches:
+      - 'bug**'
+      - 'bugfix**'
+      - 'feature**'
+      - 'fix**'
+      - 'releases**'
+      
     paths-ignore:
     - ".github/workflows/**"  
   
