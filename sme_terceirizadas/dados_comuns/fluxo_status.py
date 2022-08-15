@@ -2763,3 +2763,44 @@ class FluxoSolicitacaoCadastroProduto(xwf_models.WorkflowEnabled, models.Model):
             corpo=corpo,
             html=html
         )
+
+
+class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
+    MEDICAO_ENCERRADA_PELA_CODAE = 'MEDICAO_ENCERRADA_PELA_CODAE'
+
+    states = (
+        (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
+        (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE),
+        ('codae_encerra_medicao_inicial', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENCERRADA_PELA_CODAE),
+    )
+
+    initial_state = MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+
+
+class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = SolicitacaoMedicaoInicialWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_encerra_medicao_inicial')
+    def _codae_encerra_medicao_inicial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENCERRADA_PELA_CODAE,
+                                      usuario=user)
+
+    class Meta:
+        abstract = True
