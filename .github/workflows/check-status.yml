@@ -9,6 +9,7 @@ on:
       - 'feature**'
       - 'fix**'
       - 'releases**'
+      - 'hotfix**'
       
     paths-ignore:
     - ".github/workflows/**"  
