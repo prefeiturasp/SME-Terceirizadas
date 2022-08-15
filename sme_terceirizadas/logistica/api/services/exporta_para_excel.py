@@ -459,7 +459,7 @@ class RequisicoesExcelService(object):
                 ws.cell(row=ind, column=offset + 16,
                         value=f'{requisicao["guias__alimentos__embalagens__capacidade_embalagem"]} '
                               f'{requisicao["guias__alimentos__embalagens__unidade_medida"]}')
-            else:
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FRACIONADA':
                 ws.cell(row=ind, column=offset + 17,
                         value=f'{requisicao["guias__alimentos__embalagens__qtd_volume"]} '
                               f'{requisicao["guias__alimentos__embalagens__descricao_embalagem"]}')
@@ -496,7 +496,7 @@ class RequisicoesExcelService(object):
             if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
                 if 'reposicao_alimento' in requisicao:
                     ws.cell(row=ind, column=offset + 32, value=requisicao['reposicao_alimento'].qtd_recebido)
-            else:
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FRACIONADA':
                 if 'reposicao_alimento' in requisicao:
                     ws.cell(row=ind, column=offset + 33, value=requisicao['reposicao_alimento'].qtd_recebido)
             if 'primeira_reposicao' in requisicao:
