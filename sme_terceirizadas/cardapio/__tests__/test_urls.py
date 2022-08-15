@@ -418,6 +418,51 @@ def test_url_endpoint_suspensoes_informa_error(client_autenticado_vinculo_escola
                                          "isn't available from state 'INFORMADO'."}
 
 
+@freeze_time('2022-08-15')
+def test_url_endpoint_suspensoes_escola_cancela(client_autenticado_vinculo_escola_cardapio,
+                                                grupo_suspensao_alimentacao_informado):
+    assert str(grupo_suspensao_alimentacao_informado.status) == InformativoPartindoDaEscolaWorkflow.INFORMADO
+    data = {'justificativa': 'Não quero mais a suspensão'}
+    response = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao_informado.uuid}/escola-cancela/',
+        data=data
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json_ = response.json()
+    assert json_['status'] == InformativoPartindoDaEscolaWorkflow.ESCOLA_CANCELOU
+    assert str(json_['uuid']) == str(grupo_suspensao_alimentacao_informado.uuid)
+    assert json_['logs'][0]['justificativa'] == data['justificativa']
+
+
+@freeze_time('2022-08-15')
+def test_url_endpoint_suspensoes_escola_cancela_erro_transicao(client_autenticado_vinculo_escola_cardapio,
+                                                               grupo_suspensao_alimentacao_escola_cancelou):
+    assert (str(grupo_suspensao_alimentacao_escola_cancelou.status) ==
+            InformativoPartindoDaEscolaWorkflow.ESCOLA_CANCELOU)
+    data = {'justificativa': 'Não quero mais a suspensão'}
+    response = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao_escola_cancelou.uuid}/escola-cancela/',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'escola_cancela' "
+                                         "isn't available from state 'ESCOLA_CANCELOU'."}
+
+
+@freeze_time('2022-08-21')
+def test_url_endpoint_suspensoes_escola_cancela_erro_dias_antecedencia(client_autenticado_vinculo_escola_cardapio,
+                                                                       grupo_suspensao_alimentacao_informado):
+    assert str(grupo_suspensao_alimentacao_informado.status) == InformativoPartindoDaEscolaWorkflow.INFORMADO
+    data = {'justificativa': 'Não quero mais a suspensão'}
+    response = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao_informado.uuid}/escola-cancela/',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    json_ = response.json()
+    assert json_['detail'] == 'Só pode cancelar com no mínimo 3 dia(s) de antecedência!'
+
+
 def test_url_endpoint_suspensoes_relatorio(client_autenticado,
                                            grupo_suspensao_alimentacao_informado):
     response = client_autenticado.get(

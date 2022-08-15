@@ -596,6 +596,20 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, permission_classes=(UsuarioEscola,),
+            methods=['patch'], url_path='escola-cancela')
+    def escola_cancela(self, request, uuid=None):
+        try:
+            grupo_suspensao_de_alimentacao = self.get_object()
+            grupo_suspensao_de_alimentacao.cancelar_pedido(user=request.user,
+                                                           justificativa=request.data.get('justificativa'))
+            serializer = self.get_serializer(grupo_suspensao_de_alimentacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+        except AssertionError as e:
+            return Response(dict(detail=str(e)), status=HTTP_400_BAD_REQUEST)
+
     def destroy(self, request, *args, **kwargs):
         grupo_suspensao_de_alimentacao = self.get_object()
         if grupo_suspensao_de_alimentacao.pode_excluir:
