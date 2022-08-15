@@ -51,11 +51,7 @@ class SolicitacaoMedicaoInicialViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     lookup_field = 'uuid'
-    permission_action_classes = {
-        'list': [UsuarioEscola],
-        'create': [UsuarioEscola],
-        'update': [UsuarioEscola],
-    }
+    permission_classes = (UsuarioEscola,)
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
