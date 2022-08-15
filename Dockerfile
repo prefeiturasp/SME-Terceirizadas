@@ -8,6 +8,7 @@ ADD ./utility/carga_dados /code/utility/carga_dados
 ADD ./manage.py /code
 ADD ./Pipfile /code/Pipfile
 ADD ./Pipfile.lock /code/Pipfile.lock
+RUN "echo teste"
 
 WORKDIR /code
 ENV PIP_NO_BINARY=:psycopg2:
