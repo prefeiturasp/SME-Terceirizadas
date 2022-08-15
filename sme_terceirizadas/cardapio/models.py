@@ -386,10 +386,12 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
         corpo = template.template_html
         return template.assunto, corpo
 
-    def salvar_log_transicao(self, status_evento, usuario):
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
+            justificativa=justificativa,
             solicitacao_tipo=LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO,
             usuario=usuario,
             uuid_original=self.uuid

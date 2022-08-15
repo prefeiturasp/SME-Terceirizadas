@@ -213,8 +213,10 @@ def template_mensagem_suspensao_alimentacao():
 
 @pytest.fixture
 def grupo_suspensao_alimentacao(escola, template_mensagem_suspensao_alimentacao):
-    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola,
-                      rastro_escola=escola)
+    grupo_suspensao = mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola,
+                                 rastro_escola=escola)
+    mommy.make(SuspensaoAlimentacao, data=datetime.date(2022, 8, 22), grupo_suspensao=grupo_suspensao)
+    return grupo_suspensao
 
 
 @pytest.fixture
@@ -237,6 +239,13 @@ def grupo_suspensao_alimentacao_outra_dre(escola_dre_guaianases, template_mensag
 @pytest.fixture
 def grupo_suspensao_alimentacao_informado(grupo_suspensao_alimentacao):
     grupo_suspensao_alimentacao.status = InformativoPartindoDaEscolaWorkflow.INFORMADO
+    grupo_suspensao_alimentacao.save()
+    return grupo_suspensao_alimentacao
+
+
+@pytest.fixture
+def grupo_suspensao_alimentacao_escola_cancelou(grupo_suspensao_alimentacao):
+    grupo_suspensao_alimentacao.status = InformativoPartindoDaEscolaWorkflow.ESCOLA_CANCELOU
     grupo_suspensao_alimentacao.save()
     return grupo_suspensao_alimentacao
 
