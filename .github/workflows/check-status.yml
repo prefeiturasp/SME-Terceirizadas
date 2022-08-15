@@ -1,0 +1,58 @@
+name: Check Status
+ 
+on:
+
+  push:
+    branches: [ bug*, feature*, fix*]
+    paths-ignore:
+    - ".github/workflows/**"  
+  
+  workflow_dispatch:
+
+jobs:
+
+  sonar:
+  
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+          
+      - name: Sonar
+        uses: luizhpriotto/action_images@sonarscannercli-v1.0
+        env:
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST: http://sonar.sme.prefeitura.sp.gov.br/
+    
+  test:
+  
+    runs-on: self-hosted
+    needs: [ sonar ]
+    steps:
+      - name: Delete Container..
+        run: if [ ! -z $(docker ps -q --filter "name=terceirizadas-db") ]; then docker rm -f terceirizadas-db; fi
+      
+      - name: Preparing Container...
+        #Criação do container de banco de dados e copia das variaveis que serão carregadas.
+        run: |
+          docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
+          cp /srv/env/terceirizadas .
+          
+      - name: Running Python Tests
+        uses: luizhpriotto/action_images@terceirizadas-backend-v1.0
+        with:
+          command: |
+            echo "Conectando o container a rede python..."
+            docker network connect python-network $(hostname)
+            echo "Carregando as variaveis de ambiente..."
+            source terceirizadas
+            echo "###################################################################################################################################################"
+            echo "### Caso tenha problemas na rotina de testes por conta de conflitos de biblioteca, execute a action sem Pip cache e informe a equipe de DevOps. ###"
+            echo "###################################################################################################################################################"
+            echo "Executando os testes..."
+            #Identificado este path através dos comandos em python "import sys" e "print(sys.path)" no ambiente funcional.
+            export PYTHONPATH="$PYTHONPATH:/runner/.local/lib/python3.6/site-packages"
+            echo "################ FLAKE8 ################"
+            flake8 -v
+            echo "################ PYTEST ################"
+            pytest
