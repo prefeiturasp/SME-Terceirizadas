@@ -1087,7 +1087,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
@@ -1101,7 +1107,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
@@ -1138,7 +1150,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
