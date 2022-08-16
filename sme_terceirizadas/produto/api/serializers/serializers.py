@@ -255,6 +255,8 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     especificacoes = serializers.SerializerMethodField()
 
+    vinculos_produto_edital = serializers.SerializerMethodField()
+
     def get_homologacoes(self, obj):
         return HomologacaoProdutoComUltimoLogSerializer(
             HomologacaoProduto.objects.filter(
@@ -273,6 +275,13 @@ class ProdutoSerializer(serializers.ModelSerializer):
     def get_especificacoes(self, obj):
         return EspecificacaoProdutoSerializer(
             EspecificacaoProduto.objects.filter(
+                produto=obj
+            ), many=True
+        ).data
+
+    def get_vinculos_produto_edital(self, obj):
+        return ProdutoEditalSerializer(
+            ProdutoEdital.objects.filter(
                 produto=obj
             ), many=True
         ).data
