@@ -249,21 +249,9 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     homologacao = HomologacaoProdutoComUltimoLogSerializer()
 
-    homologacoes = serializers.SerializerMethodField()
-
     ultima_homologacao = HomologacaoProdutoComUltimoLogSerializer()
 
     especificacoes = serializers.SerializerMethodField()
-
-    vinculos_produto_edital = serializers.SerializerMethodField()
-
-    def get_homologacoes(self, obj):
-        return HomologacaoProdutoComUltimoLogSerializer(
-            HomologacaoProduto.objects.filter(
-                produto=obj
-            ), context=self.context,
-            many=True
-        ).data
 
     def get_informacoes_nutricionais(self, obj):
         return InformacoesNutricionaisDoProdutoSerializer(
@@ -299,16 +287,15 @@ class ProdutoSemAnexoSerializer(serializers.ModelSerializer):
 
     informacoes_nutricionais = serializers.SerializerMethodField()
 
-    homologacoes = serializers.SerializerMethodField()
+    homologacao = serializers.SerializerMethodField()
 
     ultima_homologacao = HomologacaoProdutoSimplesSerializer()
 
-    def get_homologacoes(self, obj):
+    def get_homologacao(self, obj):
         return HomologacaoProdutoSimplesSerializer(
             HomologacaoProduto.objects.filter(
                 produto=obj
-            ), context=self.context,
-            many=True
+            ), context=self.context
         ).data
 
     def get_informacoes_nutricionais(self, obj):
