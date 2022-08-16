@@ -4,7 +4,7 @@ from .forms import NomeDeProdutoEditalForm
 from .models import (
     EmbalagemProduto,
     Fabricante,
-    HomologacaoDoProduto,
+    HomologacaoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
@@ -112,8 +112,8 @@ class TipoDeInformacaoNutricionalModelAdmin(admin.ModelAdmin):
     ordering = ('nome',)
 
 
-@admin.register(HomologacaoDoProduto)
-class HomologacaoDoProdutoModelAdmin(admin.ModelAdmin):
+@admin.register(HomologacaoProduto)
+class HomologacaoProdutoModelAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'produto', 'status', 'uuid')
     search_fields = ('produto__nome',)
 
