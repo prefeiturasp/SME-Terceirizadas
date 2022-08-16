@@ -267,6 +267,13 @@ class ProdutoSerializer(serializers.ModelSerializer):
             ), many=True
         ).data
 
+    def get_vinculos_produto_edital(self, obj):
+        return ProdutoEditalSerializer(
+            ProdutoEdital.objects.filter(
+                produto=obj
+            ), many=True
+        ).data
+
     class Meta:
         model = Produto
         exclude = ('id', 'protocolos')
