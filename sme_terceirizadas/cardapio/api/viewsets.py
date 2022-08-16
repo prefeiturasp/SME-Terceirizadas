@@ -152,11 +152,11 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
                 instance = vinculo_class.objects.get(uuid=vinculo['uuid'])
                 instance.tipos_alimentacao.set(TipoAlimentacao.objects.filter(uuid__in=vinculo['tipos_alimentacao']))
                 instance.save()
-                vinculos_uuids = [vinculo['uuid'] for vinculo in vinculos_from_request]
-                vinculos = vinculo_class.objects.filter(uuid__in=vinculos_uuids)
-                page = self.paginate_queryset(vinculos)
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
+            vinculos_uuids = [vinculo['uuid'] for vinculo in vinculos_from_request]
+            vinculos = vinculo_class.objects.filter(uuid__in=vinculos_uuids)
+            page = self.paginate_queryset(vinculos)
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         except AssertionError as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
