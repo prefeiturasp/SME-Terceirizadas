@@ -466,12 +466,17 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 link_pdf=url_configs('API', {'uri': uri}))
             eh_para_alunos_com_dieta = homologacao_produto.produto.eh_para_alunos_com_dieta
+            vinculos_produto_edital = homologacao_produto.produto.vinculos.all()
+            array_uuids_vinc = [str(value)
+                                for value
+                                in [*vinculos_produto_edital.values_list('edital__uuid', flat=True)]]
             for edital_uuid in editais:
-                ProdutoEdital.objects.create(
-                    produto=homologacao_produto.produto,
-                    edital=Edital.objects.get(uuid=edital_uuid),
-                    tipo_produto=ProdutoEdital.DIETA_ESPECIAL if eh_para_alunos_com_dieta else ProdutoEdital.COMUM
-                )
+                if edital_uuid not in array_uuids_vinc:
+                    ProdutoEdital.objects.create(
+                        produto=homologacao_produto.produto,
+                        edital=Edital.objects.get(uuid=edital_uuid),
+                        tipo_produto=ProdutoEdital.DIETA_ESPECIAL if eh_para_alunos_com_dieta else ProdutoEdital.COMUM
+                    )
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
