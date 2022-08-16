@@ -1765,24 +1765,9 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
                     user=request.user, justificativa=justificativa
                 )
             else:
-                # Respondendo análise sensorial vindo de uma Homologação de produto homologada.
-                logs_homologados = homologacao.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).all()
-
-                # Essa validação não está funcionando
-                # caso de erro:
-                # Tercerizada Solicitou > CODAE Homologou > CODAE Suspendeu
-                # Terceirzada Corrigiu > CODAE Solicita análise sensorial
-                # Produto vai direto para homologado
-                # o último log de CODAE_HOMOLOGADO deve ser novo que o último log de CODAE_PENDENTE_HOMOLOGACAO
-                if logs_homologados:
-                    homologacao.terceirizada_responde_analise_sensorial_homologado(
-                        user=request.user, justificativa=justificativa
-                    )
-                else:
-                    # Respondendo análise sensorial vindo de uma Homologação de produto pendente.
-                    homologacao.terceirizada_responde_analise_sensorial(
-                        user=request.user, justificativa=justificativa
-                    )
+                homologacao.terceirizada_responde_analise_sensorial(
+                    user=request.user, justificativa=justificativa
+                )
             serializer.save()
 
             analise_sensorial = homologacao.ultima_analise
