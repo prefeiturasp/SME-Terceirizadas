@@ -318,3 +318,17 @@ class TemTerceirizadaConferiuGestaoAlimentacao(models.Model):
 
     class Meta:
         abstract = True
+
+
+class TemMes(models.Model):
+    mes = models.CharField('Mes', max_length=2)
+
+    class Meta:
+        abstract = True
+
+
+class TemAno(models.Model):
+    ano = models.CharField('Ano', max_length=4)
+
+    class Meta:
+        abstract = True

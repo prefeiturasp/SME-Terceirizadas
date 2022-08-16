@@ -93,8 +93,9 @@ def test_url_registrar_insucesso_entrega(client_autenticado_distribuidor, guia_p
         'nome_motorista': 'José',
         'placa_veiculo': 'AAABV44',
         'hora_tentativa': '03:04',
-        'motivo': 'UNIDADE_FECHADA',
+        'motivo': 'OUTROS',
         'justificativa': 'Unidade estava fechada.',
+        'outro_motivo': 'Incendio na escola'
     }
 
     response = client_autenticado_distribuidor.post(

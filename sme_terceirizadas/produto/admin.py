@@ -4,7 +4,7 @@ from .forms import NomeDeProdutoEditalForm
 from .models import (
     EmbalagemProduto,
     Fabricante,
-    HomologacaoDoProduto,
+    HomologacaoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
@@ -92,7 +92,7 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
         super(NomeDeProdutoEditalAdmin, self).save_model(request, obj, form, change)
 
     def get_usuario(self, obj):
-        return obj.criado_por.nome
+        return obj.criado_por.nome if obj.criado_por else None
 
     get_usuario.short_description = 'Usuário'
 
@@ -112,8 +112,8 @@ class TipoDeInformacaoNutricionalModelAdmin(admin.ModelAdmin):
     ordering = ('nome',)
 
 
-@admin.register(HomologacaoDoProduto)
-class HomologacaoDoProdutoModelAdmin(admin.ModelAdmin):
+@admin.register(HomologacaoProduto)
+class HomologacaoProdutoModelAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'produto', 'status', 'uuid')
     search_fields = ('produto__nome',)
 
