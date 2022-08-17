@@ -81,15 +81,42 @@ def relatorio_kit_lanche_unificado(request, solicitacao):
     return html_to_pdf_response(html_string, f'solicitacao_unificada_{solicitacao.id_externo}.pdf')
 
 
-def relatorio_alteracao_cardapio(request, solicitacao):
-    escola = solicitacao.rastro_escola
+def relatorio_alteracao_cardapio(request, solicitacao): # noqa C901
     substituicoes = solicitacao.substituicoes_periodo_escolar
+    formata_substituicoes = []
+
+    for subs in substituicoes.all():
+        tipos_alimentacao_de = subs.tipos_alimentacao_de.all()
+        tipos_alimentacao_para = subs.tipos_alimentacao_para.all()
+
+        tad_formatado = ''
+        tap_formatado = ''
+
+        for tad in tipos_alimentacao_de:
+            if len(tad_formatado) > 0:
+                tad_formatado = f'{tad_formatado}, {tad.nome}'
+            else:
+                tad_formatado = tad.nome
+
+        for tap in tipos_alimentacao_para:
+            if len(tap_formatado) > 0:
+                tap_formatado = f'{tap_formatado}, {tap.nome}'
+            else:
+                tap_formatado = tap.nome
+
+        resultado = {'periodo': subs.periodo_escolar.nome,
+                     'tipos_alimentacao_de': tad_formatado,
+                     'tipos_alimentacao_para': tap_formatado}
+
+        formata_substituicoes.append(resultado)
+
+    escola = solicitacao.rastro_escola
     logs = solicitacao.logs
     html_string = render_to_string(
         'solicitacao_alteracao_cardapio.html',
         {'escola': escola,
          'solicitacao': solicitacao,
-         'substituicoes': substituicoes,
+         'substituicoes': formata_substituicoes,
          'fluxo': constants.FLUXO_ALTERACAO_DE_CARDAPIO,
          'width': get_width(constants.FLUXO_ALTERACAO_DE_CARDAPIO, solicitacao.logs),
          'logs': formata_logs(logs)}

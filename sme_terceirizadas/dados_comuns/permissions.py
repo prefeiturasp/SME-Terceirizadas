@@ -46,9 +46,14 @@ class UsuarioEscola(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         usuario = request.user
-        return (
-            usuario.vinculo_atual.instituicao in [obj.escola, obj.rastro_escola]
-        )
+        if hasattr(obj, 'escola') and hasattr(obj, 'rastro_escola'):
+            return usuario.vinculo_atual.instituicao in [obj.escola, obj.rastro_escola]
+        elif hasattr(obj, 'escola'):
+            return usuario.vinculo_atual.instituicao == obj.escola
+        elif hasattr(obj, 'rastro_escola'):
+            return usuario.vinculo_atual.instituicao == obj.rastro_escola
+        else:
+            return False
 
 
 class UsuarioDiretoriaRegional(BasePermission):

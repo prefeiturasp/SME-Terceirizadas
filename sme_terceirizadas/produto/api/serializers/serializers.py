@@ -253,6 +253,8 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     especificacoes = serializers.SerializerMethodField()
 
+    vinculos_produto_edital = serializers.SerializerMethodField()
+
     def get_informacoes_nutricionais(self, obj):
         return InformacoesNutricionaisDoProdutoSerializer(
             InformacoesNutricionaisDoProduto.objects.filter(
