@@ -259,16 +259,19 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase(serializers.ModelSe
         queryset=AlteracaoCardapio.objects.all()
     )
     tipos_alimentacao_de = TipoAlimentacaoSerializer(many=True)
-    tipo_alimentacao_para = TipoAlimentacaoSerializer()
 
 
 class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase):
+    tipos_alimentacao_para = TipoAlimentacaoSerializer(many=True)
+
     class Meta:
         model = SubstituicaoAlimentacaoNoPeriodoEscolar
         exclude = ('id',)
 
 
 class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializer(SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase):
+    tipos_alimentacao_para = TipoAlimentacaoSerializer()
+
     faixas_etarias = FaixaEtariaSubstituicaoAlimentacaoCEISerializer(many=True)
 
     def to_representation(self, instance):
