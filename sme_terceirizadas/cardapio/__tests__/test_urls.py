@@ -586,7 +586,7 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
     payload_substituicao = alteracao_substituicoes_params['substituicoes'][0]
     assert substituicao['periodo_escolar'] == str(payload_substituicao['periodo_escolar'])
     assert substituicao['tipos_alimentacao_de'][0] == str(payload_substituicao['tipos_alimentacao_de'][0])
-    assert substituicao['tipo_alimentacao_para'] == str(payload_substituicao['tipo_alimentacao_para'])
+    assert substituicao['tipos_alimentacao_para'][0] == str(payload_substituicao['tipos_alimentacao_para'][0])
     assert substituicao['qtd_alunos'] == 10
 
 
