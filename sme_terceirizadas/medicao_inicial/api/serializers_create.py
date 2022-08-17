@@ -1,5 +1,6 @@
 import json
 
+import environ
 from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -68,9 +69,9 @@ class AnexoOcorrenciaMedicaoInicialCreateSerializer(serializers.ModelSerializer)
     nome = serializers.CharField()
 
     def get_arquivo(self, obj):
-        request = self.context.get('request')
-        arquivo = obj.arquivo.url
-        return request.build_absolute_uri(arquivo)
+        env = environ.Env()
+        api_url = env.str('URL_ANEXO', default='http://localhost:8000')
+        return f'{api_url}{obj.arquivo.url}'
 
     def validate_nome(self, nome):
         deve_ter_extensao_xls_xlsx(nome)
