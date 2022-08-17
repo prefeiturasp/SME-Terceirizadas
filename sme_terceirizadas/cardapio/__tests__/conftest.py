@@ -603,7 +603,7 @@ def alteracao_substituicoes_params(request, daqui_dez_dias_ou_ultimo_dia_do_ano)
             'escola': str(escola.uuid),
             'substituicoes': [{'periodo_escolar': str(periodo_escolar.uuid),
                                'tipos_alimentacao_de': [str(alimentacao1.uuid), str(alimentacao2.uuid)],
-                               'tipo_alimentacao_para': str(alimentacao3.uuid),
+                               'tipos_alimentacao_para': [str(alimentacao3.uuid)],
                                'qtd_alunos': 10}],
             'data_inicial': daqui_dez_dias_ou_ultimo_dia_do_ano.isoformat(),
             'data_final': daqui_dez_dias_ou_ultimo_dia_do_ano.isoformat()}
