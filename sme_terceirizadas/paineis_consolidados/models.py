@@ -600,9 +600,11 @@ class SolicitacoesEscola(MoldeConsolidado):
                         ]
 
     AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                          InformativoPartindoDaEscolaWorkflow.INFORMADO]
     AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
-                          LogSolicitacoesUsuario.CODAE_AUTORIZOU]
+                          LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                          LogSolicitacoesUsuario.INICIO_FLUXO]
 
     CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
     CANCELADOS_EVENTO = [LogSolicitacoesUsuario.ESCOLA_CANCELOU]

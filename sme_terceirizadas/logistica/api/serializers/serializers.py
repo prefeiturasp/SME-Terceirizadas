@@ -16,9 +16,13 @@ from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
 
 class EmbalagemSerializer(serializers.ModelSerializer):
     tipo_embalagem = serializers.SerializerMethodField()
+    capacidade_completa = serializers.SerializerMethodField()
 
     def get_tipo_embalagem(self, obj):
         return obj.get_tipo_embalagem_display()
+
+    def get_capacidade_completa(self, obj):
+        return f'{obj.descricao_embalagem} {str(obj.capacidade_embalagem).replace(".", ",")} {obj.unidade_medida}'
 
     class Meta:
         model = Embalagem

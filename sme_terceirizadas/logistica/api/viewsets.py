@@ -3,7 +3,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Count, F, FloatField, Max, Q, Sum
 from django.db.utils import DataError
-from django.http.response import HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -59,7 +58,6 @@ from sme_terceirizadas.logistica.api.serializers.serializers import ( # noqa
     SolicitacaoRemessaSimplesSerializer,
     XmlParserSolicitacaoSerializer
 )
-from sme_terceirizadas.logistica.api.services.exporta_para_excel import RequisicoesExcelService
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
@@ -69,14 +67,10 @@ from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA
 from ...escola.models import DiretoriaRegional, Escola
 from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
-from ..tasks import gera_pdf_async, gera_xlsx_async
+from ..tasks import gera_pdf_async, gera_xlsx_async, gera_xlsx_entregas_async
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
-from .helpers import (
-    retorna_dados_normalizados_excel_entregas_distribuidor,
-    valida_guia_conferencia,
-    valida_guia_insucesso
-)
+from .helpers import valida_guia_conferencia, valida_guia_insucesso
 from .validators import eh_true_ou_false
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
@@ -537,35 +531,24 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         url_path='exporta-excel-visao-entregas',
         permission_classes=[PermissaoParaListarEntregas])
     def gerar_excel_entregas(self, request):
+        user = self.request.user
+        username = user.get_username()
         uuid = request.query_params.get('uuid', None)
         tem_conferencia = request.query_params.get('tem_conferencia', None)
         tem_insucesso = request.query_params.get('tem_insucesso', None)
         tem_conferencia = eh_true_ou_false(tem_conferencia, 'tem_conferencia')
         tem_insucesso = eh_true_ou_false(tem_insucesso, 'tem_insucesso')
-        requisicoes_insucesso = None
-        queryset = self.filter_queryset(self.get_queryset())
-        if tem_insucesso:
-            queryset_insucesso = self.get_queryset().filter(
-                uuid=uuid,
-                guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO)
-            requisicoes_insucesso = retorna_dados_normalizados_excel_entregas_distribuidor(queryset_insucesso)
+        eh_distribuidor = True if user.vinculo_atual.perfil.nome == ADMINISTRADOR_DISTRIBUIDORA else False
 
-        requisicoes = retorna_dados_normalizados_excel_entregas_distribuidor(queryset)
+        gera_xlsx_entregas_async.delay(
+            uuid=uuid,
+            username=username,
+            tem_conferencia=tem_conferencia,
+            tem_insucesso=tem_insucesso,
+            eh_distribuidor=eh_distribuidor)
 
-        if self.request.user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
-            result = RequisicoesExcelService.exportar_entregas(
-                requisicoes, requisicoes_insucesso, 'DISTRIBUIDOR', tem_conferencia, tem_insucesso)
-        else:
-            result = RequisicoesExcelService.exportar_entregas(
-                requisicoes, requisicoes_insucesso, 'DILOG', tem_conferencia, tem_insucesso)
-
-        response = HttpResponse(
-            result['arquivo'],
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s' % result['filename']
-
-        return response
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=HTTP_200_OK)
 
 
 class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):

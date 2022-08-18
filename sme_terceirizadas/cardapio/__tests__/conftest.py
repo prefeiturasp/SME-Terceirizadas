@@ -213,8 +213,10 @@ def template_mensagem_suspensao_alimentacao():
 
 @pytest.fixture
 def grupo_suspensao_alimentacao(escola, template_mensagem_suspensao_alimentacao):
-    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola,
-                      rastro_escola=escola)
+    grupo_suspensao = mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola,
+                                 rastro_escola=escola)
+    mommy.make(SuspensaoAlimentacao, data=datetime.date(2022, 8, 22), grupo_suspensao=grupo_suspensao)
+    return grupo_suspensao
 
 
 @pytest.fixture
@@ -237,6 +239,13 @@ def grupo_suspensao_alimentacao_outra_dre(escola_dre_guaianases, template_mensag
 @pytest.fixture
 def grupo_suspensao_alimentacao_informado(grupo_suspensao_alimentacao):
     grupo_suspensao_alimentacao.status = InformativoPartindoDaEscolaWorkflow.INFORMADO
+    grupo_suspensao_alimentacao.save()
+    return grupo_suspensao_alimentacao
+
+
+@pytest.fixture
+def grupo_suspensao_alimentacao_escola_cancelou(grupo_suspensao_alimentacao):
+    grupo_suspensao_alimentacao.status = InformativoPartindoDaEscolaWorkflow.ESCOLA_CANCELOU
     grupo_suspensao_alimentacao.save()
     return grupo_suspensao_alimentacao
 
@@ -554,6 +563,19 @@ def daqui_dez_dias_ou_ultimo_dia_do_ano():
     return dia_alteracao
 
 
+@pytest.fixture()
+def alterar_tipos_alimentacao_data():
+    alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')
+    alimentacao2 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao2')
+    alimentacao3 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao3')
+    periodo_escolar = mommy.make('escola.PeriodoEscolar', nome='MANHA')
+    tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar', iniciais='EMEF')
+    vinculo = mommy.make('cardapio.VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                         periodo_escolar=periodo_escolar, tipo_unidade_escolar=tipo_unidade_escolar,
+                         tipos_alimentacao=[alimentacao1])
+    return {'vinculo': vinculo, 'tipos_alimentacao': [alimentacao2, alimentacao3]}
+
+
 @pytest.fixture(params=[
     # data do teste 15 out 2019
     # data_inicial, data_final
@@ -581,7 +603,7 @@ def alteracao_substituicoes_params(request, daqui_dez_dias_ou_ultimo_dia_do_ano)
             'escola': str(escola.uuid),
             'substituicoes': [{'periodo_escolar': str(periodo_escolar.uuid),
                                'tipos_alimentacao_de': [str(alimentacao1.uuid), str(alimentacao2.uuid)],
-                               'tipo_alimentacao_para': str(alimentacao3.uuid),
+                               'tipos_alimentacao_para': [str(alimentacao3.uuid)],
                                'qtd_alunos': 10}],
             'data_inicial': daqui_dez_dias_ou_ultimo_dia_do_ano.isoformat(),
             'data_final': daqui_dez_dias_ou_ultimo_dia_do_ano.isoformat()}

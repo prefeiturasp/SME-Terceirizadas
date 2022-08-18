@@ -1,13 +1,10 @@
 import environ
-from django.conf import settings
 from django.core import exceptions
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
 from spyne.model.complex import Array, ComplexModel
 from spyne.model.primitive import Date, Integer, String
 from spyne.util.dictdoc import get_object_as_dict
-
-from sme_terceirizadas.eol_servico.utils import EOLPapaService
 
 from ....dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ....dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow as StatusReq
@@ -226,6 +223,7 @@ class ArqCancelamento(ComplexModel):
         num_solicitacao = cancelamento_dict.get('StrNumSol')
         seq_envio = cancelamento_dict.get('IntSeqenv')
         guias = cancelamento_dict.get('guias')
+        confirma_cancelamento_no_papa = False
 
         if isinstance(guias, list):
             guias_payload = [x['StrNumGui'] for x in guias]
@@ -258,12 +256,9 @@ class ArqCancelamento(ComplexModel):
                     usuario=user,
                     justificativa=f'Guias canceladas: {guias_payload}'
                 )
-            # Envia confirmação para o papa
-            if not settings.DEBUG:
-                EOLPapaService.confirmacao_de_cancelamento(
-                    cnpj=solicitacao.cnpj, numero_solicitacao=solicitacao.numero_solicitacao, sequencia_envio=seq_envio)
-            # Atualiza registro da solicitação de cancelamento
+
             solicitacao_cancelamento.confirmar_cancelamento()
+            confirma_cancelamento_no_papa = True
 
         # Depende de confirmação do distribuidor no sigpae
         elif solicitacao.status in (StatusReq.DISTRIBUIDOR_CONFIRMA, StatusReq.DISTRIBUIDOR_SOLICITA_ALTERACAO):
@@ -279,6 +274,8 @@ class ArqCancelamento(ComplexModel):
                     usuario=user,
                     justificativa=f'Guias canceladas: {guias_payload}'
                 )
+
+        return confirma_cancelamento_no_papa
 
 
 class oWsAcessoModel(ComplexModel):

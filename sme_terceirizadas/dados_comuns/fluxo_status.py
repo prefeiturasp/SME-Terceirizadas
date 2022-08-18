@@ -159,16 +159,19 @@ class InformativoPartindoDaEscolaWorkflow(xwf_models.Workflow):
     RASCUNHO = 'RASCUNHO'  # INICIO
     INFORMADO = 'INFORMADO'
     TERCEIRIZADA_TOMOU_CIENCIA = 'TERCEIRIZADA_TOMOU_CIENCIA'
+    ESCOLA_CANCELOU = 'ESCOLA_CANCELOU'
 
     states = (
         (RASCUNHO, 'Rascunho'),
         (INFORMADO, 'Informado'),
         (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada toma ciencia'),
+        (ESCOLA_CANCELOU, 'Escola cancelou')
     )
 
     transitions = (
         ('informa', RASCUNHO, INFORMADO),
         ('terceirizada_toma_ciencia', INFORMADO, TERCEIRIZADA_TOMOU_CIENCIA),
+        ('escola_cancela', [INFORMADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_CANCELOU)
     )
 
     initial_state = RASCUNHO
@@ -2075,6 +2078,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = InformativoPartindoDaEscolaWorkflow
     status = xwf_models.StateField(workflow_class)
+    DIAS_PARA_CANCELAR = 3
 
     rastro_escola = models.ForeignKey('escola.Escola',
                                       on_delete=models.DO_NOTHING,
@@ -2123,9 +2127,24 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
         return []
 
     @property
+    def partes_interessadas_escola_cancelou(self):
+        # TODO: definir partes interessadas
+        return []
+
+    @property
     def template_mensagem(self):
         raise NotImplementedError(
             'Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
+
+    def cancelar_pedido(self, user, justificativa):
+        dia_antecedencia = datetime.date.today(
+        ) + datetime.timedelta(days=self.DIAS_PARA_CANCELAR)
+        data_do_evento = self.data
+        if isinstance(data_do_evento, datetime.datetime):
+            data_do_evento = data_do_evento.date()
+        if data_do_evento < dia_antecedencia:
+            raise AssertionError(f'Só pode cancelar com no mínimo {self.DIAS_PARA_CANCELAR} dia(s) de antecedência!')
+        self.escola_cancela(user=user, justificativa=justificativa)
 
     @xworkflows.after_transition('informa')
     def _informa_hook(self, *args, **kwargs):
@@ -2138,8 +2157,16 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                                      usuario=user)
+
+    @xworkflows.after_transition('escola_cancela')
+    def _escola_cancela_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs['justificativa']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                                      justificativa=justificativa,
                                       usuario=user)
 
     class Meta:
@@ -2763,3 +2790,44 @@ class FluxoSolicitacaoCadastroProduto(xwf_models.WorkflowEnabled, models.Model):
             corpo=corpo,
             html=html
         )
+
+
+class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
+    MEDICAO_ENCERRADA_PELA_CODAE = 'MEDICAO_ENCERRADA_PELA_CODAE'
+
+    states = (
+        (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
+        (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE),
+        ('codae_encerra_medicao_inicial', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENCERRADA_PELA_CODAE),
+    )
+
+    initial_state = MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+
+
+class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = SolicitacaoMedicaoInicialWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_encerra_medicao_inicial')
+    def _codae_encerra_medicao_inicial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENCERRADA_PELA_CODAE,
+                                      usuario=user)
+
+    class Meta:
+        abstract = True

@@ -78,7 +78,9 @@ class LogSolicitacoesUsuario(
         DILOG_NEGA_ALTERACAO,
         CANCELADO_ALUNO_MUDOU_ESCOLA,
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-    ) = range(54)
+        MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
+        MEDICAO_ENCERRADA_PELA_CODAE,
+    ) = range(56)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -173,6 +175,8 @@ class LogSolicitacoesUsuario(
             CANCELADO_ALUNO_NAO_PERTENCE_REDE,
             'Cancelamento para aluno não matriculado na rede municipal',
         ),
+        (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
+        (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -194,7 +198,8 @@ class LogSolicitacoesUsuario(
         SOLICITACAO_REMESSA_PAPA,
         SOLICITACAO_DE_ALTERACAO_REQUISICAO,
         ABASTECIMENTO_GUIA_DE_REMESSA,
-    ) = range(15)
+        MEDICAO_INICIAL
+    ) = range(16)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -213,6 +218,7 @@ class LogSolicitacoesUsuario(
         (SOLICITACAO_REMESSA_PAPA, 'Solicitação de remessa'),
         (SOLICITACAO_DE_ALTERACAO_REQUISICAO, 'Solicitação de Ateração de requisição'),
         (ABASTECIMENTO_GUIA_DE_REMESSA, 'Abastecimento de guia de remessa'),
+        (MEDICAO_INICIAL, 'Solicitação de medição inicial'),
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
