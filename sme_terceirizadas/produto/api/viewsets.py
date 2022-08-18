@@ -470,6 +470,9 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             array_uuids_vinc = [str(value)
                                 for value
                                 in [*vinculos_produto_edital.values_list('edital__uuid', flat=True)]]
+            for vinc_prod_edital in vinculos_produto_edital:
+                if str(vinc_prod_edital.edital.uuid) not in editais:
+                    vinc_prod_edital.delete()
             for edital_uuid in editais:
                 if edital_uuid not in array_uuids_vinc:
                     ProdutoEdital.objects.create(
