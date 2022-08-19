@@ -470,6 +470,9 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             array_uuids_vinc = [str(value)
                                 for value
                                 in [*vinculos_produto_edital.values_list('edital__uuid', flat=True)]]
+            for vinc_prod_edital in vinculos_produto_edital:
+                if str(vinc_prod_edital.edital.uuid) not in editais:
+                    vinc_prod_edital.delete()
             for edital_uuid in editais:
                 if edital_uuid not in array_uuids_vinc:
                     ProdutoEdital.objects.create(
@@ -1043,12 +1046,15 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return relatorio_produto_analise_sensorial_recebimento(request, produto=self.get_object())
 
     def get_queryset_filtrado(self, cleaned_data):
+        logs_homologados = [log.uuid_original for log in LogSolicitacoesUsuario.objects.filter(
+            status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO)]
         campos_a_pesquisar = cria_filtro_produto_por_parametros_form(cleaned_data)
+        queryset = self.get_queryset().filter(
+            **campos_a_pesquisar).filter(homologacao__uuid__in=logs_homologados)
         if 'aditivos' in cleaned_data:
             filtro_aditivos = cria_filtro_aditivos(cleaned_data['aditivos'])
-            return self.get_queryset().filter(**campos_a_pesquisar).filter(filtro_aditivos).exclude(homologacao=None)
-        else:
-            return self.get_queryset().filter(**campos_a_pesquisar).exclude(homologacao=None)
+            queryset = queryset.filter(filtro_aditivos)
+        return queryset.order_by('-criado_em')
 
     @action(detail=False,
             methods=['POST'],
@@ -1097,7 +1103,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
-        queryset.order_by('criado_por')
 
         dados_agrupados = agrupa_por_terceirizada(queryset)
 
@@ -1117,7 +1122,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
-        queryset.order_by('criado_por')
 
         produtos = queryset.values_list('nome', 'marca__nome').order_by('nome', 'marca__nome')
         produtos_e_marcas = {}
@@ -1204,7 +1208,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
-        return self.paginated_response(queryset.order_by('criado_em'))
+        return self.paginated_response(queryset)
 
     @action(detail=False,
             methods=['GET'],
