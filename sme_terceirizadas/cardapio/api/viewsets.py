@@ -139,6 +139,27 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(detail=False, # noqa C901
+            url_path='atualizar_lista_de_vinculos',
+            methods=['put'])
+    def atualizar_lista_de_vinculos(self, request):
+        try:
+            if 'vinculos' not in request.data:
+                raise AssertionError('vinculos é um parâmetro obrigatório')
+            vinculos_from_request = request.data.get('vinculos', [])
+            for vinculo in vinculos_from_request:
+                vinculo_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+                instance = vinculo_class.objects.get(uuid=vinculo['uuid'])
+                instance.tipos_alimentacao.set(TipoAlimentacao.objects.filter(uuid__in=vinculo['tipos_alimentacao']))
+                instance.save()
+            vinculos_uuids = [vinculo['uuid'] for vinculo in vinculos_from_request]
+            vinculos = vinculo_class.objects.filter(uuid__in=vinculos_uuids)
+            page = self.paginate_queryset(vinculos)
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        except AssertionError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return VinculoTipoAlimentoCreateSerializer
@@ -574,6 +595,20 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=(UsuarioEscola,),
+            methods=['patch'], url_path='escola-cancela')
+    def escola_cancela(self, request, uuid=None):
+        try:
+            grupo_suspensao_de_alimentacao = self.get_object()
+            grupo_suspensao_de_alimentacao.cancelar_pedido(user=request.user,
+                                                           justificativa=request.data.get('justificativa'))
+            serializer = self.get_serializer(grupo_suspensao_de_alimentacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+        except AssertionError as e:
+            return Response(dict(detail=str(e)), status=HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
         grupo_suspensao_de_alimentacao = self.get_object()

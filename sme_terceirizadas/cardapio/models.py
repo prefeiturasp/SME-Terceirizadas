@@ -386,10 +386,12 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
         corpo = template.template_html
         return template.assunto, corpo
 
-    def salvar_log_transicao(self, status_evento, usuario):
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
+            justificativa=justificativa,
             solicitacao_tipo=LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO,
             usuario=usuario,
             uuid_original=self.uuid
@@ -506,7 +508,7 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
         lanche = TipoAlimentacao.objects.filter(nome__icontains='lanche')
         alteracoes_da_escola = cls.do_mes_corrente.all().filter(
             escola__uuid=escola_uuid,
-            substituicoes_periodo_escolar__tipo_alimentacao_para__in=lanche
+            substituicoes_periodo_escolar__tipos_alimentacao_para__in=lanche
         )
         return alteracoes_da_escola
 
@@ -572,11 +574,10 @@ class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substi
                                                   related_name='substituicoes_alimentos_de',
                                                   help_text='Tipos de alimentação substituídos na solicitação',
                                                   blank=True)
-    tipo_alimentacao_para = models.ForeignKey('TipoAlimentacao',
-                                              related_name='substituicao_alimento_para',
-                                              help_text='Substituição selecionada na solicitação',
-                                              null=True, blank=True,
-                                              on_delete=models.PROTECT)
+    tipos_alimentacao_para = models.ManyToManyField('TipoAlimentacao',
+                                                    related_name='substituicoes_alimento_para',
+                                                    help_text='Substituições selecionada na solicitação',
+                                                    blank=True)
 
     def __str__(self):
         return f'Substituições de alimentação: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'

@@ -132,7 +132,6 @@ def retorna_dados_normalizados_excel_visao_dilog(queryset):
         for escola in escolas:
             if requisicao['guias__codigo_unidade'] == escola['codigo_codae']:
                 requisicao['codigo_eol_unidade'] = escola.get('codigo_eol', '')
-
     return requisicoes
 
 
@@ -156,7 +155,9 @@ def retorna_dados_normalizados_excel_entregas_distribuidor(queryset): # noqa C90
         'guias__alimentos__embalagens__qtd_volume', 'guias__status', 'guias__alimentos__embalagens__qtd_a_receber',
         'guias__insucessos__placa_veiculo', 'guias__insucessos__nome_motorista', 'guias__insucessos__criado_em',
         'guias__insucessos__hora_tentativa', 'guias__insucessos__motivo', 'guias__insucessos__justificativa',
-        'guias__insucessos__criado_por__cpf', 'guias__insucessos__criado_por__nome', 'distribuidor__nome_fantasia')
+        'guias__insucessos__criado_por__cpf', 'guias__insucessos__criado_por__nome', 'distribuidor__nome_fantasia',
+        'guias__escola__subprefeitura__agrupamento'
+    )
 
     for requisicao in requisicoes:
         for guia in queryset[0].guias.all():
@@ -174,7 +175,6 @@ def retorna_dados_normalizados_excel_entregas_distribuidor(queryset): # noqa C90
                             if reposicao_alimento:
                                 requisicao['reposicao_alimento'] = reposicao_alimento
                             break
-
     return requisicoes
 
 

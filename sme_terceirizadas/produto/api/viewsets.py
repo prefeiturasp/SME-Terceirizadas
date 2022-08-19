@@ -466,12 +466,20 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 link_pdf=url_configs('API', {'uri': uri}))
             eh_para_alunos_com_dieta = homologacao_produto.produto.eh_para_alunos_com_dieta
+            vinculos_produto_edital = homologacao_produto.produto.vinculos.all()
+            array_uuids_vinc = [str(value)
+                                for value
+                                in [*vinculos_produto_edital.values_list('edital__uuid', flat=True)]]
+            for vinc_prod_edital in vinculos_produto_edital:
+                if str(vinc_prod_edital.edital.uuid) not in editais:
+                    vinc_prod_edital.delete()
             for edital_uuid in editais:
-                ProdutoEdital.objects.create(
-                    produto=homologacao_produto.produto,
-                    edital=Edital.objects.get(uuid=edital_uuid),
-                    tipo_produto=ProdutoEdital.DIETA_ESPECIAL if eh_para_alunos_com_dieta else ProdutoEdital.COMUM
-                )
+                if edital_uuid not in array_uuids_vinc:
+                    ProdutoEdital.objects.create(
+                        produto=homologacao_produto.produto,
+                        edital=Edital.objects.get(uuid=edital_uuid),
+                        tipo_produto=ProdutoEdital.DIETA_ESPECIAL if eh_para_alunos_com_dieta else ProdutoEdital.COMUM
+                    )
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -1085,7 +1093,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
@@ -1098,7 +1112,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
@@ -1134,7 +1154,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
@@ -1761,24 +1787,9 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
                     user=request.user, justificativa=justificativa
                 )
             else:
-                # Respondendo análise sensorial vindo de uma Homologação de produto homologada.
-                logs_homologados = homologacao.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).all()
-
-                # Essa validação não está funcionando
-                # caso de erro:
-                # Tercerizada Solicitou > CODAE Homologou > CODAE Suspendeu
-                # Terceirzada Corrigiu > CODAE Solicita análise sensorial
-                # Produto vai direto para homologado
-                # o último log de CODAE_HOMOLOGADO deve ser novo que o último log de CODAE_PENDENTE_HOMOLOGACAO
-                if logs_homologados:
-                    homologacao.terceirizada_responde_analise_sensorial_homologado(
-                        user=request.user, justificativa=justificativa
-                    )
-                else:
-                    # Respondendo análise sensorial vindo de uma Homologação de produto pendente.
-                    homologacao.terceirizada_responde_analise_sensorial(
-                        user=request.user, justificativa=justificativa
-                    )
+                homologacao.terceirizada_responde_analise_sensorial(
+                    user=request.user, justificativa=justificativa
+                )
             serializer.save()
 
             analise_sensorial = homologacao.ultima_analise
