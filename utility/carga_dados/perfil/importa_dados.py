@@ -7,8 +7,10 @@ from django.db import transaction
 from django.db.models import F, Func, Q, Value
 from openpyxl import Workbook, load_workbook, styles
 
-from sme_terceirizadas.perfil.models.usuario import ImportacaoPlanilhaUsuarioServidorCoreSSO
+from sme_terceirizadas.perfil.models.usuario import ImportacaoPlanilhaUsuarioServidorCoreSSO, \
+    ImportacaoPlanilhaUsuarioExternoCoreSSO
 from sme_terceirizadas.perfil.services.usuario_coresso_service import cria_ou_atualiza_usuario_core_sso
+from sme_terceirizadas.terceirizada.models import Terceirizada
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import ja_existe, progressbar
 
@@ -29,7 +31,7 @@ from .schemas import (
     ImportacaoPlanilhaUsuarioPerfilCodaeSchema,
     ImportacaoPlanilhaUsuarioPerfilDreSchema,
     ImportacaoPlanilhaUsuarioPerfilEscolaSchema,
-    ImportacaoPlanilhaUsuarioServidorCoreSSOSchema
+    ImportacaoPlanilhaUsuarioServidorCoreSSOSchema, ImportacaoPlanilhaUsuarioExternoCoreSSOSchema
 )
 
 logger = logging.getLogger('sigpae.carga_dados_perfil_importa_dados')
@@ -760,7 +762,7 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
                 dicionario_dados = self.monta_dicionario_de_dados(linha)
                 usuario_schema = ImportacaoPlanilhaUsuarioServidorCoreSSOSchema(**dicionario_dados)
                 logger.info(f'Criando usuário: {usuario_schema.nome} -- {usuario_schema.email}')
-                self.cria_usuario_perfil_codae(ind, usuario_schema)
+                self.cria_usuario_servidor(ind, usuario_schema)
                 self.loga_sucesso_carga_usuario(usuario_schema)
 
             except Exception as exc:
@@ -826,53 +828,138 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
         return {key: linha[index].value
                 for index, key in enumerate(ImportacaoPlanilhaUsuarioServidorCoreSSOSchema.schema()['properties'].keys())}
 
-    def cria_usuario_perfil_codae(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):  # noqa C901
+    def cria_usuario_servidor(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):  # noqa C901
         try:
-            self.__criar_usuario_perfil_codae(usuario_schema)
+            self.__criar_usuario_servidor(usuario_schema)
         except Exception as exd:
             self.erros.append(f'Linha {ind} - {exd}')
 
     @transaction.atomic
-    def __criar_usuario_perfil_codae(self, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):
+    def __criar_usuario_servidor(self, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):
         usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
         self.cria_vinculo(usuario, usuario_schema)
         cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.rf, eh_servidor='S')
 
-    def checa_usuario(self, registro_funcional, email, nome_planilha):
-        usuario = Usuario.objects.filter(Q(registro_funcional=registro_funcional) | Q(email=email)).first()
-        if usuario:
-            logger.error(f'Usuário com email "{email}" ou com rf "{registro_funcional}" já existe.')
-            raise Exception(f'Usuário com email "{email}" ou com rf '
-                            + f'"{registro_funcional}" já existe. Nome na planilha: {nome_planilha}.')
+    def finaliza_processamento(self) -> None:
+        if self.erros:
+            self.arquivo.log = '\n'.join(self.erros)
+            self.arquivo.processamento_com_erro()
+            self.cria_planilha_de_erros()
+            logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
+        else:
+            self.arquivo.log = 'Planilha processada com sucesso.'
+            self.arquivo.processamento_com_sucesso()
+            logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
 
-    def __criar_usuario(self, dre, usuario_schema):
-        try:
-            perfil = Perfil.objects.get(nome=usuario_schema.perfil)
-        except Perfil.DoesNotExist:
-            logger.error(f'Este perfil não existe: {usuario_schema.perfil}')
-            raise Exception(f'Este perfil não existe: {usuario_schema.perfil}')
-        data_atual = date.today()
-        usuario = Usuario.objects.create_user(
-            email=usuario_schema.email,
-            password=DJANGO_ADMIN_TREINAMENTO_PASSWORD,
-            nome=usuario_schema.nome,
-            cargo=usuario_schema.cargo,
-            registro_funcional=usuario_schema.rf,
-            cpf=usuario_schema.cpf,
+    def cria_planilha_de_erros(self) -> None:
+        workbook: Workbook = Workbook()
+        ws = workbook.active
+        ws.title = 'Erros'
+        cabecalho = ws.cell(row=1, column=1, value='Erros encontrados no processamento da planilha')
+        cabecalho.fill = styles.PatternFill('solid', fgColor='808080')
+        for index, erro in enumerate(self.erros, 2):
+            ws.cell(row=index, column=1, value=erro)
+
+        filename = f'arquivo_resultado_{self.arquivo.pk}.xlsx'
+        with NamedTemporaryFile() as tmp:
+            workbook.save(tmp.name)
+            self.arquivo.resultado.save(name=filename, content=File(tmp))
+
+
+class ProcessaPlanilhaUsuarioExternoCoreSSO:
+    def __init__(self, usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioServidorCoreSSO) -> None:
+        """Prepara atributos importantes para o processamento da planilha."""
+        self.usuario = usuario
+        self.arquivo = arquivo
+        self.erros = []
+        self.worksheet = self.abre_worksheet()
+
+    @property
+    def path(self):
+        return self.arquivo.conteudo.path
+
+    def processamento(self):  # noqa C901
+        self.arquivo.inicia_processamento()
+        if not self.validacao_inicial():
+            return
+
+        linhas = list(self.worksheet.rows)
+        logger.info(f'Quantidade de linhas: {len(linhas)} -- Quantidade de colunas: {len(linhas[0])}')
+
+        for ind, linha in enumerate(linhas[1:], 2):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
+            try:
+                dicionario_dados = self.monta_dicionario_de_dados(linha)
+                usuario_schema = ImportacaoPlanilhaUsuarioExternoCoreSSOSchema(**dicionario_dados)
+                logger.info(f'Criando usuário: {usuario_schema.nome} -- {usuario_schema.email}')
+                self.cria_usuario_externo(ind, usuario_schema)
+                self.loga_sucesso_carga_usuario(usuario_schema)
+
+            except Exception as exc:
+                self.erros.append(f'Linha {ind} - {exc}')
+
+    def abre_worksheet(self):
+        return load_workbook(self.path).active
+
+    def get_instituicao(self, dados_usuario):
+        return Terceirizada.objects.get(cnpj=dados_usuario.cnpj_terceirizada)
+
+    def get_perfil(self, dados_usuario):
+        return Perfil.objects.get(nome__iexact=dados_usuario.perfil)
+
+    def loga_sucesso_carga_usuario(self, dados_usuario):
+        mensagem = f'Usuário {dados_usuario.cpf} criado/atualizado com sucesso.'
+        logger.info(mensagem)
+
+    def cria_ou_atualiza_usuario_admin(self, dados_usuario):
+        usuario, criado = Usuario.objects.update_or_create(
+            username=dados_usuario.cpf,
+            defaults={
+                'email': dados_usuario.email if dados_usuario.email else "",
+                'nome': dados_usuario.nome,
+                'cpf': dados_usuario.cpf
+            }
         )
+        return usuario
+
+    def cria_vinculo(self, usuario, dados_usuario):
+        if usuario.existe_vinculo_ativo:
+            vinculo = usuario.vinculo_atual
+            vinculo.ativo = False
+            vinculo.data_final = date.today()
+            vinculo.save()
         Vinculo.objects.create(
-            instituicao=dre,
-            perfil=perfil,
+            instituicao=self.get_instituicao(dados_usuario),
+            perfil=self.get_perfil(dados_usuario),
             usuario=usuario,
-            data_inicial=data_atual,
+            data_inicial=date.today(),
             ativo=True,
         )
-        contato = Contato.objects.create(
-            nome=usuario_schema.nome,
-            email=usuario_schema.email,
-            telefone=usuario_schema.telefone,
-        )
-        usuario.contatos.add(contato)
+
+    def validacao_inicial(self) -> bool:
+        return self.existe_conteudo()
+
+    def existe_conteudo(self) -> bool:
+        if not self.arquivo.conteudo:
+            self.arquivo.log = 'Não foi feito o upload da planilha'
+            self.arquivo.erro_no_processamento()
+            return False
+        return True
+
+    def monta_dicionario_de_dados(self, linha: tuple) -> dict:
+        return {key: linha[index].value
+                for index, key in enumerate(ImportacaoPlanilhaUsuarioExternoCoreSSOSchema.schema()['properties'].keys())}
+
+    def cria_usuario_externo(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioExternoCoreSSOSchema):  # noqa C901
+        try:
+            self.__criar_usuario_externo(usuario_schema)
+        except Exception as exd:
+            self.erros.append(f'Linha {ind} - {exd}')
+
+    @transaction.atomic
+    def __criar_usuario_externo(self, usuario_schema: ImportacaoPlanilhaUsuarioExternoCoreSSOSchema):
+        usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
+        self.cria_vinculo(usuario, usuario_schema)
+        cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.cpf, eh_servidor='N')
 
     def finaliza_processamento(self) -> None:
         if self.erros:
@@ -912,4 +999,19 @@ def importa_usuarios_servidores_coresso(usuario: Usuario, arquivo: ImportacaoPla
 
 
 class ProcessaPlanilhaUsuarioServidorCoreSSOException(Exception):
+    pass
+
+
+def importa_usuarios_externos_coresso(usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioExternoCoreSSO) -> None:
+    logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
+
+    try:
+        processador = ProcessaPlanilhaUsuarioExternoCoreSSO(usuario, arquivo)
+        processador.processamento()
+        processador.finaliza_processamento()
+    except Exception as exc:
+        logger.error(f'Erro genérico: {exc}')
+
+
+class ProcessaPlanilhaUsuarioExternoCoreSSOException(Exception):
     pass

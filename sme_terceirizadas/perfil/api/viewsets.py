@@ -363,3 +363,44 @@ def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
     workbook.save(response)
 
     return response
+
+
+def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=planilha_importacao_usuarios_perfil_servidor_coresso.xlsx'
+    workbook: Workbook = Workbook()
+    ws = workbook.active
+    ws.title = 'Usuários Externos CoreSSO'
+    headers = [
+        'Nome do Usuário',
+        'Email',
+        'CPF',
+        'Perfil',
+        'CNPJ da Empresa'
+    ]
+    _font = styles.Font(name='Calibri', sz=10)
+    {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
+    for i in range(0, len(headers)):
+        cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
+        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
+        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.border = styles.Border(
+            left=styles.Side(border_style='thin', color='000000'),
+            right=styles.Side(border_style='thin', color='000000'),
+            top=styles.Side(border_style='thin', color='000000'),
+            bottom=styles.Side(border_style='thin', color='000000')
+        )
+    perfis = ", ".join([p.nome for p in Perfil.objects.all()])
+    dv = DataValidation(
+        type='list',
+        formula1=f"{perfis}",
+        allow_blank=True
+    )
+    dv.error = 'Perfil Inválido'
+    dv.errorTitle = 'Perfil não permitido'
+    ws.add_data_validation(dv)
+    dv.add('D2:D1048576')
+
+    workbook.save(response)
+
+    return response

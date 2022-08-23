@@ -384,13 +384,26 @@ class ImportacaoPlanilhaUsuarioPerfilDre(ArquivoCargaBase):
 
 
 class ImportacaoPlanilhaUsuarioServidorCoreSSO(ArquivoCargaBase):
-    """Importa dados de planilha de usuários com perfil Dre."""
+    """Importa dados de planilha de usuários com perfil servidor."""
 
     resultado = models.FileField(blank=True, default='')
 
     class Meta:
         verbose_name = 'Arquivo para importação/atualização de usuários servidores no CoreSSO'
         verbose_name_plural = 'Arquivos para importação/atualização de usuários servidores no CoreSSO'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
+class ImportacaoPlanilhaUsuarioExternoCoreSSO(ArquivoCargaBase):
+    """Importa dados de planilha de usuários com perfil externo."""
+
+    resultado = models.FileField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Arquivo para importação/atualização de usuários externos no CoreSSO'
+        verbose_name_plural = 'Arquivos para importação/atualização de usuários externos no CoreSSO'
 
     def __str__(self) -> str:
         return str(self.conteudo)

@@ -21,7 +21,6 @@ def cria_ou_atualiza_usuario_core_sso(dados_usuario, login, eh_servidor):
 
     try:
         info_user_core = EOLServicoSGP.usuario_core_sso_or_none(login=login)
-        print('info_user_core', info_user_core)
         if not info_user_core:
             # Valida o nome
             if not dados_usuario.nome:

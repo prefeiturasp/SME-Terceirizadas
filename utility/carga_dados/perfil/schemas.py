@@ -289,3 +289,44 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOSchema(BaseModel):
             if not values['codae']:
                 raise ValueError('CODAE obrigatório')
         return values
+
+
+class ImportacaoPlanilhaUsuarioExternoCoreSSOSchema(BaseModel):
+    nome: Optional[str]
+    email: Optional[str]
+    cpf: Optional[str]
+    perfil: Optional[str]
+    cnpj_terceirizada: Optional[str]
+
+    @classmethod
+    def formata_documentos(cls, value):
+        return value.replace('.', '').replace('-', '').strip()
+
+    @classmethod
+    def checa_vazio(cls, value, nome_parametro):
+        if not value:
+            raise Exception(f'{nome_parametro} não pode ser vazio.')
+
+    @validator('nome')
+    def formata_nome(cls, value):
+        cls.checa_vazio(value, 'Nome do usuário')
+        return value.upper().strip()
+
+    @validator('email')
+    def formata_email(cls, value):
+        cls.checa_vazio(value, 'Email do usuário')
+        return value.strip()
+
+    @validator('cpf')
+    def validate_cpf(cls, value):
+        cls.checa_vazio(value, 'CPF do usuário')
+        value = cls.formata_documentos(value)
+        if len(value) != TAMANHO_CPF:
+            raise ValueError('CPF deve conter 11 dígitos.')
+        return value
+
+    @validator('perfil')
+    def formata_perfil(cls, value):
+        cls.checa_vazio(value, 'Perfil do usuário')
+        value = value.upper().strip()
+        return value
