@@ -217,8 +217,8 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOSchema(BaseModel):
     email: Optional[str]
     cpf: Optional[str]
     rf: Optional[str]
-    perfil: Optional[str]
     tipo_perfil: Optional[str]
+    perfil: Optional[str]
     codae: Optional[str]
 
     @classmethod

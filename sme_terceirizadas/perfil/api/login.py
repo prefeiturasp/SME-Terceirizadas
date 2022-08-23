@@ -5,7 +5,7 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework_jwt.views import ObtainJSONWebToken
 
-from ..services import AutenticacaoService
+from sme_terceirizadas.perfil.services.autenticacao_service import AutenticacaoService
 
 User = get_user_model()
 logger = logging.getLogger(__name__)

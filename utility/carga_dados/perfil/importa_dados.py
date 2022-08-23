@@ -8,6 +8,7 @@ from django.db.models import F, Func, Q, Value
 from openpyxl import Workbook, load_workbook, styles
 
 from sme_terceirizadas.perfil.models.usuario import ImportacaoPlanilhaUsuarioServidorCoreSSO
+from sme_terceirizadas.perfil.services.usuario_coresso_service import cria_ou_atualiza_usuario_core_sso
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import ja_existe, progressbar
 
@@ -27,7 +28,8 @@ import magic
 from .schemas import (
     ImportacaoPlanilhaUsuarioPerfilCodaeSchema,
     ImportacaoPlanilhaUsuarioPerfilDreSchema,
-    ImportacaoPlanilhaUsuarioPerfilEscolaSchema, ImportacaoPlanilhaUsuarioServidorCoreSSOSchema
+    ImportacaoPlanilhaUsuarioPerfilEscolaSchema,
+    ImportacaoPlanilhaUsuarioServidorCoreSSOSchema
 )
 
 logger = logging.getLogger('sigpae.carga_dados_perfil_importa_dados')
@@ -757,10 +759,8 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
             try:
                 dicionario_dados = self.monta_dicionario_de_dados(linha)
                 usuario_schema = ImportacaoPlanilhaUsuarioServidorCoreSSOSchema(**dicionario_dados)
-                print(usuario_schema)
                 logger.info(f'Criando usuário: {usuario_schema.nome} -- {usuario_schema.email}')
                 self.cria_usuario_perfil_codae(ind, usuario_schema)
-                #cria_ou_atualiza_usuario_core_sso(dados_usuario)
                 self.loga_sucesso_carga_usuario(usuario_schema)
 
             except Exception as exc:
@@ -836,6 +836,7 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
     def __criar_usuario_perfil_codae(self, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):
         usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
         self.cria_vinculo(usuario, usuario_schema)
+        cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.rf, eh_servidor='S')
 
     def checa_usuario(self, registro_funcional, email, nome_planilha):
         usuario = Usuario.objects.filter(Q(registro_funcional=registro_funcional) | Q(email=email)).first()
@@ -908,3 +909,7 @@ def importa_usuarios_servidores_coresso(usuario: Usuario, arquivo: ImportacaoPla
         processador.finaliza_processamento()
     except Exception as exc:
         logger.error(f'Erro genérico: {exc}')
+
+
+class ProcessaPlanilhaUsuarioServidorCoreSSOException(Exception):
+    pass
