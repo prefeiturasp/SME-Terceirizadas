@@ -772,9 +772,9 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
         return load_workbook(self.path).active
 
     def get_instituicao(self, dados_usuario):
-        if dados_usuario.tipo_perfil == 'escola':
+        if dados_usuario.tipo_perfil == 'ESCOLA':
             return Escola.objects.get(codigo_eol=format(int(dados_usuario.codigo_eol), '06d'))
-        elif dados_usuario.tipo_perfil == 'dre':
+        elif dados_usuario.tipo_perfil == 'DRE':
             return DiretoriaRegional.objects.get(codigo_eol=format(int(dados_usuario.codigo_eol), '06d'))
         else:
             return Codae.objects.annotate(nome_sem_espacos=Func(F('nome'), Value(' '), Value(''), function='replace')

@@ -41,7 +41,7 @@ def cria_ou_atualiza_usuario_core_sso(dados_usuario, login, eh_servidor):
 
         if info_user_core and dados_usuario.email and info_user_core["email"] != dados_usuario.email:
             EOLServicoSGP.redefine_email(login, dados_usuario.email)
-            logger.info(f"Atualizado e-mail do usuário no CoreSSO {login}, {dados_usuario['email']}.")
+            logger.info(f"Atualizado e-mail do usuário no CoreSSO {login}, {dados_usuario.email}.")
 
         if dados_usuario.perfil:
             EOLServicoSGP.atribuir_perfil_coresso(login=login, perfil=dados_usuario.perfil)
