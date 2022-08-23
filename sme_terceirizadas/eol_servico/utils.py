@@ -1,10 +1,9 @@
+import json
 from datetime import date
 
 import environ
-import json
 import requests
 from rest_framework import status
-
 
 from ..dados_comuns.constants import (
     DJANGO_EOL_API_TOKEN,
@@ -150,12 +149,11 @@ class EOLServicoSGP:
             if response.status_code == status.HTTP_200_OK:
                 return response.json()
             else:
-                logger.info(f"Usuário {login} não encontrado no CoreSSO: {response}")
+                logger.info(f'Usuário {login} não encontrado no CoreSSO: {response}')
                 return None
         except Exception as err:
-            logger.info(f"Erro ao procurar usuário {login} no CoreSSO: {str(err)}")
+            logger.info(f'Erro ao procurar usuário {login} no CoreSSO: {str(err)}')
             raise EOLException(str(err))
-
 
     @classmethod
     def atribuir_perfil_coresso(cls, login, perfil):
@@ -170,7 +168,7 @@ class EOLServicoSGP:
 
         sys_grupo_ids = {
             'ADMINISTRADOR_UE_DIRETA': 'FFCCF227-9D0E-ED11-9C8C-00155D278332',
-            'ADMINISTRADOR_UE_MISTA':' 813AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_UE_MISTA': '813AF850-9E0E-ED11-9C8C-00155D278332',
             'ADMINSITRADOR_UE_PARCEIRA': '823AF850-9E0E-ED11-9C8C-00155D278332',
             'ADMINISTRADOR_ESCOLA_ABASTECIMENTO': '833AF850-9E0E-ED11-9C8C-00155D278332',
             'ADMINISTRADOR_DRE': '843AF850-9E0E-ED11-9C8C-00155D278332',
@@ -205,12 +203,12 @@ class EOLServicoSGP:
             url = f'{DJANGO_EOL_SGP_API_URL}/perfis/servidores/{login}/perfil/{grupo_id}/atribuirPerfil'
             response = requests.get(url, headers=cls.HEADER)
             if response.status_code == status.HTTP_200_OK:
-                return ""
+                return ''
             else:
-                logger.info("Falha ao tentar fazer atribuição de perfil: %s", response)
+                logger.info('Falha ao tentar fazer atribuição de perfil: %s', response)
                 raise EOLException('Falha ao fazer atribuição de perfil.')
         except Exception as err:
-            logger.info("Erro ao tentar fazer atribuição de perfil: %s", str(err))
+            logger.info('Erro ao tentar fazer atribuição de perfil: %s', str(err))
             raise EOLException(str(err))
 
     @classmethod
@@ -241,18 +239,18 @@ class EOLServicoSGP:
             url = f'{DJANGO_EOL_SGP_API_URL}/v1/usuarios/coresso'
 
             payload = json.dumps({
-                "nome": nome,
-                "documento": login if not e_servidor else "",
-                "codigoRf": login if e_servidor else "",
-                "email": email
+                'nome': nome,
+                'documento': login if not e_servidor else '',
+                'codigoRf': login if e_servidor else '',
+                'email': email
             })
 
-            response = requests.request("POST", url, headers=headers, data=payload)
+            response = requests.request('POST', url, headers=headers, data=payload)
             if response.status_code == status.HTTP_200_OK:
-                result = "OK"
+                result = 'OK'
                 return result
             else:
-                logger.info("Erro ao redefinir email: %s", response.json())
+                logger.info('Erro ao redefinir email: %s', response.json())
                 raise EOLException(f'Erro ao tentar criar o usuário {nome}.')
         except Exception as err:
             raise EOLException(str(err))
@@ -269,10 +267,10 @@ class EOLServicoSGP:
             response = requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/AlterarEmail', data=data,
                                      headers=cls.HEADER)
             if response.status_code == status.HTTP_200_OK:
-                result = "OK"
+                result = 'OK'
                 return result
             else:
-                logger.info("Erro ao redefinir email: %s", response.json())
+                logger.info('Erro ao redefinir email: %s', response.json())
                 raise EOLException('Erro ao redefinir email')
         except Exception as err:
             raise EOLException(str(err))

@@ -330,7 +330,7 @@ def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
     tipos_de_perfil = 'escola,dre,codae'
     dv = DataValidation(
         type='list',
-        formula1=f"{tipos_de_perfil}",
+        formula1=f'{tipos_de_perfil}',
         allow_blank=True
     )
     dv.error = 'Tipo de perfil Inválido'
@@ -338,10 +338,10 @@ def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
     ws.add_data_validation(dv)
     dv.add('G2:G1048576')
 
-    perfis = ", ".join([p.nome for p in Perfil.objects.all()])
+    perfis = ', '.join([p.nome for p in Perfil.objects.all()])
     dv2 = DataValidation(
         type='list',
-        formula1=f"{perfis}",
+        formula1=f'{perfis}',
         allow_blank=True
     )
     dv2.error = 'Perfil Inválido'
@@ -349,10 +349,10 @@ def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
     ws.add_data_validation(dv2)
     dv2.add('H2:H1048576')
 
-    codaes = ", ".join([c.nome.split(' - ')[1] for c in Codae.objects.all()]).replace(' ', '')
+    codaes = ', '.join([c.nome.split(' - ')[1] for c in Codae.objects.all()]).replace(' ', '')
     dv3 = DataValidation(
         type='list',
-        formula1=f"{codaes}",
+        formula1=f'{codaes}',
         allow_blank=True
     )
     dv3.error = 'CODAE Inválida'
@@ -390,10 +390,10 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
             top=styles.Side(border_style='thin', color='000000'),
             bottom=styles.Side(border_style='thin', color='000000')
         )
-    perfis = ", ".join([p.nome for p in Perfil.objects.all()])
+    perfis = ', '.join([p.nome for p in Perfil.objects.all()])
     dv = DataValidation(
         type='list',
-        formula1=f"{perfis}",
+        formula1=f'{perfis}',
         allow_blank=True
     )
     dv.error = 'Perfil Inválido'

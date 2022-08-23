@@ -5,17 +5,20 @@ from django.urls import path
 from django.utils.translation import ugettext_lazy as _
 from utility.carga_dados.escola.importa_dados import cria_usuario_cogestor, cria_usuario_diretor
 from utility.carga_dados.perfil.importa_dados import (
+    importa_usuarios_externos_coresso,
     importa_usuarios_perfil_codae,
     importa_usuarios_perfil_dre,
     importa_usuarios_perfil_escola,
-    valida_arquivo_importacao_usuarios, importa_usuarios_servidores_coresso, importa_usuarios_externos_coresso
+    importa_usuarios_servidores_coresso,
+    valida_arquivo_importacao_usuarios
 )
 
 from .api.viewsets import (
+    exportar_planilha_importacao_usuarios_externos_coresso,
     exportar_planilha_importacao_usuarios_perfil_codae,
     exportar_planilha_importacao_usuarios_perfil_dre,
-    exportar_planilha_importacao_usuarios_perfil_escola, exportar_planilha_importacao_usuarios_servidor_coresso,
-    exportar_planilha_importacao_usuarios_externos_coresso
+    exportar_planilha_importacao_usuarios_perfil_escola,
+    exportar_planilha_importacao_usuarios_servidor_coresso
 )
 from .models import (
     Cargo,
@@ -27,7 +30,7 @@ from .models import (
     Usuario,
     Vinculo
 )
-from .models.usuario import ImportacaoPlanilhaUsuarioServidorCoreSSO, ImportacaoPlanilhaUsuarioExternoCoreSSO
+from .models.usuario import ImportacaoPlanilhaUsuarioExternoCoreSSO, ImportacaoPlanilhaUsuarioServidorCoreSSO
 
 
 class BaseUserAdmin(DjangoUserAdmin):

@@ -1,11 +1,11 @@
 
 from brazilnum.cpf import validate_cpf
 
-from sme_terceirizadas.eol_servico.utils import EOLServicoSGP, EOLException
+from sme_terceirizadas.eol_servico.utils import EOLException, EOLServicoSGP
 
 
-def cria_ou_atualiza_usuario_core_sso(dados_usuario, login, eh_servidor):
-    """ Verifica se usuário já existe no CoreSSO e cria se não existir
+def cria_ou_atualiza_usuario_core_sso(dados_usuario, login, eh_servidor):  # noqa C901
+    """Verifica se usuário já existe no CoreSSO e cria se não existir.
 
     :param dados_usuario: {
             "login": "123456",
@@ -25,27 +25,27 @@ def cria_ou_atualiza_usuario_core_sso(dados_usuario, login, eh_servidor):
             # Valida o nome
             if not dados_usuario.nome:
                 raise ProcessaPlanilhaUsuarioServidorCoreSSOException(
-                    f"Nome é necessário para criação do usuário ({login}).")
+                    f'Nome é necessário para criação do usuário ({login}).')
 
             # Valida login no caso de não servidor
-            if eh_servidor == "N" and not validate_cpf(login):
+            if eh_servidor == 'N' and not validate_cpf(login):
                 raise ProcessaPlanilhaUsuarioServidorCoreSSOException(
-                    f"Login de não servidor ({login}) não é um CPF válido.")
+                    f'Login de não servidor ({login}) não é um CPF válido.')
             EOLServicoSGP.cria_usuario_core_sso(
                 login=login,
                 nome=dados_usuario.nome,
-                email=dados_usuario.email if dados_usuario.email else "",
-                e_servidor=eh_servidor == "S"
+                email=dados_usuario.email if dados_usuario.email else '',
+                e_servidor=eh_servidor == 'S'
             )
-            logger.info(f"Criado usuário no CoreSSO {login}.")
+            logger.info(f'Criado usuário no CoreSSO {login}.')
 
-        if info_user_core and dados_usuario.email and info_user_core["email"] != dados_usuario.email:
+        if info_user_core and dados_usuario.email and info_user_core['email'] != dados_usuario.email:
             EOLServicoSGP.redefine_email(login, dados_usuario.email)
-            logger.info(f"Atualizado e-mail do usuário no CoreSSO {login}, {dados_usuario.email}.")
+            logger.info(f'Atualizado e-mail do usuário no CoreSSO {login}, {dados_usuario.email}.')
 
         if dados_usuario.perfil:
             EOLServicoSGP.atribuir_perfil_coresso(login=login, perfil=dados_usuario.perfil)
-            logger.info(f"Visão {dados_usuario.perfil} vinculada ao usuário {login} no CoreSSO.")
+            logger.info(f'Visão {dados_usuario.perfil} vinculada ao usuário {login} no CoreSSO.')
 
     except EOLException as e:
         raise ProcessaPlanilhaUsuarioServidorCoreSSOException(
