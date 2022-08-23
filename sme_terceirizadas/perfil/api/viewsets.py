@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from ...escola.api.serializers import UsuarioDetalheSerializer
+from ...escola.models import Codae
 from ...terceirizada.models import Terceirizada
 from ..api.helpers import ofuscar_email
 from ..models import Perfil, Usuario
@@ -292,6 +293,73 @@ def exportar_planilha_importacao_usuarios_perfil_dre(request, **kwargs):
     dv.errorTitle = 'Perfil não permitido'
     ws.add_data_validation(dv)
     dv.add('H2:H1048576')
+    workbook.save(response)
+
+    return response
+
+
+def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=planilha_importacao_usuarios_perfil_servidor_coresso.xlsx'
+    workbook: Workbook = Workbook()
+    ws = workbook.active
+    ws.title = 'Servidores CoreSSO'
+    headers = [
+        'Cód. EOL da Instituição (Escola, DRE ou CODAE)',
+        'Nome do Usuário',
+        'Cargo',
+        'Email',
+        'CPF',
+        'RF',
+        'Tipo de perfil',
+        'Perfil',
+        'CODAE'
+    ]
+    _font = styles.Font(name='Calibri', sz=10)
+    {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
+    for i in range(0, len(headers)):
+        cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
+        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
+        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.border = styles.Border(
+            left=styles.Side(border_style='thin', color='000000'),
+            right=styles.Side(border_style='thin', color='000000'),
+            top=styles.Side(border_style='thin', color='000000'),
+            bottom=styles.Side(border_style='thin', color='000000')
+        )
+    tipos_de_perfil = 'escola,dre,codae'
+    dv = DataValidation(
+        type='list',
+        formula1=f"{tipos_de_perfil}",
+        allow_blank=True
+    )
+    dv.error = 'Tipo de perfil Inválido'
+    dv.errorTitle = 'Tipo de Perfil não permitido'
+    ws.add_data_validation(dv)
+    dv.add('G2:G1048576')
+
+    perfis = ", ".join([p.nome for p in Perfil.objects.all()])
+    dv2 = DataValidation(
+        type='list',
+        formula1=f"{perfis}",
+        allow_blank=True
+    )
+    dv2.error = 'Perfil Inválido'
+    dv2.errorTitle = 'Perfil não permitido'
+    ws.add_data_validation(dv2)
+    dv2.add('H2:H1048576')
+
+    codaes = ", ".join([c.nome.split(' - ')[1] for c in Codae.objects.all()]).replace(' ', '')
+    dv3 = DataValidation(
+        type='list',
+        formula1=f"{codaes}",
+        allow_blank=True
+    )
+    dv3.error = 'CODAE Inválida'
+    dv3.errorTitle = 'CODAE não permitida'
+    ws.add_data_validation(dv3)
+    dv3.add('I2:I1048576')
+
     workbook.save(response)
 
     return response
