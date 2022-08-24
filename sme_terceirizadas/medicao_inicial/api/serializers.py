@@ -1,3 +1,4 @@
+import environ
 from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -24,9 +25,9 @@ class AnexoOcorrenciaMedicaoInicialSerializer(serializers.ModelSerializer):
     arquivo = serializers.SerializerMethodField()
 
     def get_arquivo(self, obj):
-        request = self.context.get('request')
-        arquivo = obj.arquivo.url
-        return request.build_absolute_uri(arquivo)
+        env = environ.Env()
+        api_url = env.str('URL_ANEXO', default='http://localhost:8000')
+        return f'{api_url}{obj.arquivo.url}'
 
     class Meta:
         model = TipoContagemAlimentacao

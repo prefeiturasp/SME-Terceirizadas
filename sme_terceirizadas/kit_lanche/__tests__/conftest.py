@@ -55,13 +55,13 @@ def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
     password = DJANGO_ADMIN_PASSWORD
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456',
                                                     )
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -70,12 +70,12 @@ def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
     email = 'user@dre.com'
     password = DJANGO_ADMIN_PASSWORD
     perfil_adm_dre = mommy.make('Perfil', nome='ADM_DRE', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=diretoria_regional, perfil=perfil_adm_dre,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -84,12 +84,12 @@ def client_autenticado_da_codae(client, django_user_model, codae):
     email = 'foo@codae.com'
     password = DJANGO_ADMIN_PASSWORD
     perfil_adm_codae = mommy.make('Perfil', nome=COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=codae, perfil=perfil_adm_codae,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -98,12 +98,12 @@ def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
     email = 'foo@codae.com'
     password = DJANGO_ADMIN_PASSWORD
     perfil_adm_terc = mommy.make('Perfil', nome='TERCEIRIZADA', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=terceirizada, perfil=perfil_adm_terc,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 

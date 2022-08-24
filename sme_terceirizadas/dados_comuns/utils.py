@@ -126,7 +126,10 @@ def url_configs(variable, content):
 
 def convert_base64_to_contentfile(base64_str: str):
     format, imgstr = base64_str.split(';base64,')
-    ext = guess_extension(format[5:]) or ''
+    if format == 'data:application/vnd.ms-excel':
+        ext = '.xls'
+    else:
+        ext = guess_extension(format[5:]) or ''
     data = ContentFile(base64.b64decode(imgstr), name=str(uuid.uuid4()) + ext)
     return data
 

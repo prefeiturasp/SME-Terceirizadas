@@ -293,12 +293,6 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase(serializers.M
         queryset=TipoAlimentacao.objects.all()
     )
 
-    tipo_alimentacao_para = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=False,
-        queryset=TipoAlimentacao.objects.all()
-    )
-
 
 class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
     SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase):  # noqa E501
@@ -308,10 +302,19 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
         queryset=AlteracaoCardapio.objects.all()
     )
 
+    tipos_alimentacao_para = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        many=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+
     def create(self, validated_data):
         tipos_alimentacao_de = validated_data.pop('tipos_alimentacao_de')
+        tipos_alimentacao_para = validated_data.pop('tipos_alimentacao_para')
         substituicao_alimentacao = SubstituicaoAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
         substituicao_alimentacao.tipos_alimentacao_de.set(tipos_alimentacao_de)
+        substituicao_alimentacao.tipos_alimentacao_para.set(tipos_alimentacao_para)
         return substituicao_alimentacao
 
     class Meta:
@@ -326,6 +329,12 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(
         slug_field='uuid',
         required=False,
         queryset=AlteracaoCardapioCEI.objects.all()
+    )
+
+    tipos_alimentacao_para = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=TipoAlimentacao.objects.all()
     )
 
     faixas_etarias = FaixaEtariaSubstituicaoAlimentacaoCEISerializerCreate(many=True)

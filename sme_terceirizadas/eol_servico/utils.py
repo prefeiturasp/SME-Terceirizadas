@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 import environ
@@ -121,6 +122,7 @@ class EOLService(object):
 
 class EOLServicoSGP:
     HEADER = {
+        'accept': 'application/json',
         'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}'
     }
     TIMEOUT = 10
@@ -135,6 +137,143 @@ class EOLServicoSGP:
             return resultado
         else:
             raise EOLException(f'API EOL do SGP está com erro. Erro: {str(response)}, Status: {response.status_code}')
+
+    @classmethod
+    def usuario_core_sso_or_none(cls, login):
+        from utility.carga_dados.perfil.importa_dados import logger
+
+        logger.info('Consultando informação de %s.', login)
+        try:
+            response = requests.get(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/{login}/dados',
+                                    headers=cls.HEADER)
+            if response.status_code == status.HTTP_200_OK:
+                return response.json()
+            else:
+                logger.info(f'Usuário {login} não encontrado no CoreSSO: {response}')
+                return None
+        except Exception as err:
+            logger.info(f'Erro ao procurar usuário {login} no CoreSSO: {str(err)}')
+            raise EOLException(str(err))
+
+    @classmethod
+    def atribuir_perfil_coresso(cls, login, perfil):
+        from utility.carga_dados.perfil.importa_dados import logger
+        """ Atribuição de Perfil:
+
+        /api/perfis/servidores/{codigoRF}/perfil/{perfil}/atribuirPerfil - GET
+
+        """
+        logger.info(f'Atribuindo perfil {perfil} ao usuário {login}.')
+        """TODO: Implementar um endpoint no autentica-core-sso para pegar esse dicionário dinamicamente"""
+
+        sys_grupo_ids = {
+            'ADMINISTRADOR_UE_DIRETA': 'FFCCF227-9D0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_UE_MISTA': '813AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINSITRADOR_UE_PARCEIRA': '823AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_ESCOLA_ABASTECIMENTO': '833AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_DRE': '843AF850-9E0E-ED11-9C8C-00155D278332',
+            'COORDENADOR_CODAE_DILOG_LOGISTICA': '853AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_CODAE_DILOG_JURIDICO': '863AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_CODAE_DILOG_CONTABIL': '873AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_CODAE_GABINETE': '883AF850-9E0E-ED11-9C8C-00155D278332',
+            'COORDENADOR_LOGISTICA': '893AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_DISTRIBUIDORA': '8A3AF850-9E0E-ED11-9C8C-00155D278332',
+            'DIRETOR': '8B3AF850-9E0E-ED11-9C8C-00155D278332',
+            'DIRETOR_CEI': '8C3AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_ESCOLA': '8D3AF850-9E0E-ED11-9C8C-00155D278332',
+            'COORDENADOR_ESCOLA': '8E3AF850-9E0E-ED11-9C8C-00155D278332',
+            'COGESTOR': '903AF850-9E0E-ED11-9C8C-00155D278332',
+            'COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO': '913AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_SUPERVISAO_NUTRICAO': '923AF850-9E0E-ED11-9C8C-00155D278332',
+            'COORDENADOR_SUPERVISAO_NUTRICAO': '933AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_GESTAO_PRODUTO': '943AF850-9E0E-ED11-9C8C-00155D278332',
+            'COORDENADOR_GESTAO_PRODUTO': '953AF850-9E0E-ED11-9C8C-00155D278332',
+            'NUTRI_ADMIN_RESPONSAVEL': '963AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_DIETA_ESPECIAL': '973AF850-9E0E-ED11-9C8C-00155D278332',
+            'COORDENADOR_DIETA_ESPECIAL': '983AF850-9E0E-ED11-9C8C-00155D278332',
+            'COORDENADOR_TERCNOLOGIA_INFORMACAO': '993AF850-9E0E-ED11-9C8C-00155D278332',
+            'COORDENADOR_GESTAO_FINANCEIRA': '9A3AF850-9E0E-ED11-9C8C-00155D278332',
+            'COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA': '9B3AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_TERCEIRIZADA': '9C3AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA': '9D3AF850-9E0E-ED11-9C8C-00155D278332',
+            'ADMINISTRADOR_UE_PARCEIRA': '901BDF54-BA1C-ED11-8DCB-00155D7E7911'
+        }
+        try:
+            grupo_id = sys_grupo_ids[perfil]
+            url = f'{DJANGO_EOL_SGP_API_URL}/perfis/servidores/{login}/perfil/{grupo_id}/atribuirPerfil'
+            response = requests.get(url, headers=cls.HEADER)
+            if response.status_code == status.HTTP_200_OK:
+                return ''
+            else:
+                logger.info('Falha ao tentar fazer atribuição de perfil: %s', response)
+                raise EOLException('Falha ao fazer atribuição de perfil.')
+        except Exception as err:
+            logger.info('Erro ao tentar fazer atribuição de perfil: %s', str(err))
+            raise EOLException(str(err))
+
+    @classmethod
+    def cria_usuario_core_sso(cls, login, nome, email, e_servidor=False):
+        from utility.carga_dados.perfil.importa_dados import logger
+        """ Cria um novo usuário no CoreSSO
+
+        /api/v1/usuarios/coresso - POST
+
+        Payload =
+            {
+              "nome": "Nome do Usuário",
+              "documento": "CPF em caso de não funcionário, caso de funcionário, enviar vazio",
+              "codigoRf": "Código RF do funcionário, caso não funcionario, enviar vazio",
+              "email": "Email do usuário"
+            }
+        """
+
+        headers = {
+            'accept': 'application/json',
+            'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}',
+            'Content-Type': 'application/json-patch+json'
+        }
+
+        logger.info('Criando usuário no CoreSSO.')
+
+        try:
+            url = f'{DJANGO_EOL_SGP_API_URL}/v1/usuarios/coresso'
+
+            payload = json.dumps({
+                'nome': nome,
+                'documento': login if not e_servidor else '',
+                'codigoRf': login if e_servidor else '',
+                'email': email
+            })
+
+            response = requests.request('POST', url, headers=headers, data=payload)
+            if response.status_code == status.HTTP_200_OK:
+                result = 'OK'
+                return result
+            else:
+                logger.info('Erro ao redefinir email: %s', response.json())
+                raise EOLException(f'Erro ao tentar criar o usuário {nome}.')
+        except Exception as err:
+            raise EOLException(str(err))
+
+    @classmethod
+    def redefine_email(cls, registro_funcional, email):
+        from utility.carga_dados.perfil.importa_dados import logger
+        logger.info('Alterando email.')
+        try:
+            data = {
+                'Usuario': registro_funcional,
+                'Email': email
+            }
+            response = requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/AlterarEmail', data=data,
+                                     headers=cls.HEADER)
+            if response.status_code == status.HTTP_200_OK:
+                result = 'OK'
+                return result
+            else:
+                logger.info('Erro ao redefinir email: %s', response.json())
+                raise EOLException('Erro ao redefinir email')
+        except Exception as err:
+            raise EOLException(str(err))
 
 
 class EOLPapaService:

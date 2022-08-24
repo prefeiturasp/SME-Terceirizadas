@@ -2,7 +2,10 @@ import logging
 
 import requests
 
-from ..dados_comuns.constants import DJANGO_AUTENTICA_CORESSO_API_TOKEN, DJANGO_AUTENTICA_CORESSO_API_URL
+from sme_terceirizadas.dados_comuns.constants import (
+    DJANGO_AUTENTICA_CORESSO_API_TOKEN,
+    DJANGO_AUTENTICA_CORESSO_API_URL
+)
 
 LOG = logging.getLogger(__name__)
 

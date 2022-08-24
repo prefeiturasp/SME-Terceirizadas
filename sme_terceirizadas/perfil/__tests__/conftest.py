@@ -153,9 +153,9 @@ def tipo_gestao():
 ])
 def users_admin_escola(client, django_user_model, request, tipo_gestao):
     email, password, rf = request.param
-    user = django_user_model.objects.create_user(
-        password=password, email=email, registro_funcional=rf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password,
+                                                 email=email, registro_funcional=rf)
+    client.login(username=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
@@ -203,9 +203,9 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
 ])
 def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_gestao):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(
-        password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional=rf, cpf=cpf)
+    client.login(username=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
@@ -258,9 +258,9 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
 ])
 def users_cogestor_diretoria_regional(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(
-        password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password,
+                                                 email=email, registro_funcional=rf, cpf=cpf)
+    client.login(username=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
                                     uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
@@ -296,9 +296,9 @@ def users_cogestor_diretoria_regional(client, django_user_model, request, usuari
 ])
 def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(
-        password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password,
+                                                 email=email, registro_funcional=rf, cpf=cpf)
+    client.login(username=email, password=password)
 
     codae = mommy.make('Codae', nome='CODAE',
                        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
@@ -333,9 +333,9 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
 ])
 def users_terceirizada(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(
-        password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional=rf, cpf=cpf)
+    client.login(username=email, password=password)
     mommy.make('Codae')
     terceirizada = mommy.make('Terceirizada', nome_fantasia='Alimentos LTDA',
                               uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
@@ -463,12 +463,12 @@ def fake_user(client):
 def usuario_autenticado(client):
     email = 'admin@admin.com'
     password = DJANGO_ADMIN_PASSWORD
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
 @pytest.fixture
 def authenticated_client(client, fake_user):
     user, password = fake_user
-    client.login(email=user.email, password=password)
+    client.login(username=user.email, password=password)
     return client
