@@ -20,7 +20,7 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
-from ...escola.models import Escola
+from ...escola.models import Escola, Lote
 from ...relatorios.relatorios import (
     relatorio_marcas_por_produto_homologacao,
     relatorio_produto_analise_sensorial,
@@ -33,7 +33,7 @@ from ...relatorios.relatorios import (
     relatorio_reclamacao
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
-from ...terceirizada.models import Edital
+from ...terceirizada.models import Contrato, Edital, Terceirizada
 from ..constants import (
     AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
     AVALIAR_RECLAMACAO_RECLAMACOES_STATUS,
@@ -1442,6 +1442,12 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
             return ProdutoEditalCreateSerializer
         return ProdutoEditalSerializer
 
+    def usuario_eh_escola(self, usuario):
+        return isinstance(usuario.vinculo_atual.instituicao, Escola)
+
+    def usuario_eh_terceirizada(self, usuario):
+        return isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
+
     @action(detail=True, methods=['patch'], url_path='ativar-inativar-produto')
     def ativar_inativar_produto(self, request, uuid=None):
         try:
@@ -1457,6 +1463,29 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(dict(detail=f'Erro ao Ativar/inativar vínculo do produto com edital: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-unicos')
+    def lista_nomes_unicos(self, request):
+        editais = self.get_queryset()
+        usuario = request.user
+
+        if self.usuario_eh_escola(usuario):
+            lote = usuario.vinculo_atual.instituicao.lote
+            editais_id = Contrato.objects.filter(lotes__in=[lote]).values_list('edital_id', flat=True)
+            editais = editais.filter(edital__id__in=editais_id)
+
+        if self.usuario_eh_terceirizada(usuario):
+            terceirizada = usuario.vinculo_atual.instituicao
+            lotes_uuid = Lote.objects.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
+            editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
+            editais = editais.filter(edital__id__in=editais_id)
+
+        editais = editais.distinct('edital__numero').values('edital__numero')
+        nomes_unicos = [p['edital__numero'] for p in editais]
+        return Response({
+            'results': nomes_unicos,
+            'count': len(nomes_unicos)
+        })
 
     @action(detail=False, methods=['get'], url_path='filtros')
     def filtros(self, request):
