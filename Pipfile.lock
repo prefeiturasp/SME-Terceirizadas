@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "63242fa1f64a00c804c7e5610af1d0048d39e931ec8e7cb7a22de53f7a451ece"
+            "sha256": "b4436de5151f20acb70bacb264f62e2a0627032130f30a16a3d7627104d0a6f1"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -78,13 +78,6 @@
                 "sha256:87103ea78fa6ab4d5c751c4909bcff74617d985de7fa8b672cf8618afd5a875b"
             ],
             "version": "==3.6.4.0"
-        },
-        "brazilnum": {
-            "hashes": [
-                "sha256:3f7ad78471182e40b922497710a6199d7128d5dab67706db3f31d7bbe15a4c5a"
-            ],
-            "index": "pypi",
-            "version": "==0.8.8"
         },
         "cairocffi": {
             "hashes": [
@@ -1508,6 +1501,13 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==4.1.0"
+        },
+        "brazilnum": {
+            "hashes": [
+                "sha256:3f7ad78471182e40b922497710a6199d7128d5dab67706db3f31d7bbe15a4c5a"
+            ],
+            "index": "pypi",
+            "version": "==0.8.8"
         },
         "certifi": {
             "hashes": [
