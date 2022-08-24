@@ -209,6 +209,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
 
     def criar_super_admin_terceirizada(self, dados_usuario, terceirizada): # noqa C901
         contatos = dados_usuario.pop('contatos')
+        dados_usuario['username'] = dados_usuario['cpf']
         try:
             usuario = Usuario.objects.create(**dados_usuario)
         except IntegrityError as e:
