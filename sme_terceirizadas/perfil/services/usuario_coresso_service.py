@@ -28,7 +28,7 @@ def cria_ou_atualiza_usuario_core_sso(dados_usuario, login, eh_servidor):  # noq
                     f'Nome é necessário para criação do usuário ({login}).')
 
             # Valida login no caso de não servidor
-             if eh_servidor == 'N' and not validate_cpf(login):
+            if eh_servidor == 'N' and not validate_cpf(login):
                 raise ProcessaPlanilhaUsuarioServidorCoreSSOException(
                     f'Login de não servidor ({login}) não é um CPF válido.')
             EOLServicoSGP.cria_usuario_core_sso(
