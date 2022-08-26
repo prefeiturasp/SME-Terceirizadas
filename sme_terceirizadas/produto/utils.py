@@ -59,6 +59,10 @@ def cria_filtro_produto_por_parametros_form(cleaned_data):  # noqa C901
                 campos_a_pesquisar['marca__nome__icontains'] = valor
             elif chave == 'nome_produto':
                 campos_a_pesquisar['nome__icontains'] = valor
+            elif chave == 'nome_edital':
+                campos_a_pesquisar['vinculos__edital__numero__icontains'] = valor
+            elif chave == 'tipo':
+                campos_a_pesquisar['vinculos__tipo_produto__icontains'] = valor
             elif chave == 'nome_terceirizada':
                 campos_a_pesquisar['homologacao__rastro_terceirizada__nome_fantasia__icontains'] = valor
             elif chave == 'data_inicial' and valor is not None:
