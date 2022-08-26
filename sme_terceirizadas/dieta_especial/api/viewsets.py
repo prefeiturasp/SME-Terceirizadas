@@ -1098,7 +1098,7 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
     serializer_class = ProtocoloPadraoDietaEspecialSerializer
     pagination_class = ProtocoloPadraoPagination
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('nome_protocolo', 'status')
+    filterset_fields = ('nome_protocolo', 'status')
 
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
