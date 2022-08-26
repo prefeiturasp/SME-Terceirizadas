@@ -1104,9 +1104,31 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         queryset = self.get_queryset_filtrado(form_data)
 
-        dados_agrupados = agrupa_por_terceirizada(queryset)
+        uuids_homologacao = queryset.values_list('homologacao__uuid', flat=True)
+        status_homologado = LogSolicitacoesUsuario.CODAE_HOMOLOGADO
 
-        return Response(self.serializa_agrupamento(dados_agrupados))
+        logs_homologados = LogSolicitacoesUsuario.objects.filter(status_evento=status_homologado,
+                                                                 uuid_original__in=uuids_homologacao)
+
+        produtos = queryset.values('uuid', 'homologacao__rastro_terceirizada__nome_fantasia', 'nome',
+                                   'marca__nome', 'vinculos__tipo_produto', 'vinculos__edital__numero',
+                                   'criado_em', 'homologacao__uuid')
+
+        produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
+
+        produtos_agrupados = []
+        for produto in produtos:
+            data_homologacao = logs_homologados.filter(uuid_original=produto['homologacao__uuid']).last()
+            produtos_agrupados.append({
+                'terceirizada': produto['homologacao__rastro_terceirizada__nome_fantasia'],
+                'nome': produto['nome'],
+                'marca': produto['marca__nome'],
+                'edital': produto['vinculos__edital__numero'],
+                'tipo': produto['vinculos__tipo_produto'],
+                'cadastro': produto['criado_em'].strftime('%d/%m/%Y'),
+                'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
+            })
+        return Response(produtos_agrupados)
 
     def get_queryset_filtrado_agrupado(self, request, form):
         form_data = form.cleaned_data.copy()
@@ -1123,12 +1145,16 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         queryset = self.get_queryset_filtrado(form_data)
 
-        produtos = queryset.values_list('nome', 'marca__nome').order_by('nome', 'marca__nome')
-        produtos_e_marcas = {}
-        for key, value in produtos:
-            produtos_e_marcas[key] = produtos_e_marcas.get(key, [])  # caso a chave não exista, criar a lista vazia
-            produtos_e_marcas[key].append(value)
-        return produtos_e_marcas
+        produtos = queryset.values('nome', 'marca__nome', 'vinculos__edital__numero').order_by('nome', 'marca__nome')
+        produtos_agrupados = []
+        for produto in produtos:
+            produtos_agrupados.append({
+                'nome': produto['nome'],
+                'marca': produto['marca__nome'],
+                'edital': produto['vinculos__edital__numero']
+            })
+
+        return produtos_agrupados
 
     @action(detail=False,
             methods=['POST'],

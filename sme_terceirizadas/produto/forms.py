@@ -8,6 +8,8 @@ class ProdutoPorParametrosForm(forms.Form):
     uuid = forms.UUIDField(required=False)
     nome_fabricante = forms.CharField(required=False)
     nome_marca = forms.CharField(required=False)
+    nome_edital = forms.CharField(required=False)
+    tipo = forms.CharField(required=False)
     nome_produto = forms.CharField(required=False)
     nome_terceirizada = forms.CharField(required=False)
     data_inicial = forms.DateField(required=False)
