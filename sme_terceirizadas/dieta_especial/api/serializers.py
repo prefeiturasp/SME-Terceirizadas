@@ -12,6 +12,7 @@ from ...escola.models import DiretoriaRegional, Escola
 from ...escola.services import NovoSGPServicoLogadoException
 from ...produto.api.serializers.serializers import MarcaSimplesSerializer, ProdutoSimplesSerializer
 from ...produto.models import Produto, SolicitacaoCadastroProdutoDieta
+from ...terceirizada.api.serializers.serializers import EditalSimplesSerializer
 from ..models import (
     AlergiaIntolerancia,
     Alimento,
@@ -524,6 +525,7 @@ class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
     substituicoes = serializers.SerializerMethodField()
     historico = serializers.SerializerMethodField()
+    editais = EditalSimplesSerializer(many=True)
 
     class Meta:
         model = ProtocoloPadraoDietaEspecial
@@ -533,6 +535,7 @@ class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
             'status',
             'orientacoes_gerais',
             'substituicoes',
+            'editais',
             'historico'
         )
 
