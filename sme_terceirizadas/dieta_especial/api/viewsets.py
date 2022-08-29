@@ -1108,7 +1108,7 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
     def get_queryset(self):
         queryset = ProtocoloPadraoDietaEspecial.objects.all()
         if 'editais[]' in self.request.query_params:
-            queryset = queryset.filter(editais__uuid__in=self.request.query_params.getlist('editais[]'))
+            queryset = queryset.filter(editais__uuid__in=self.request.query_params.getlist('editais[]')).distinct()
         return queryset.order_by('nome_protocolo')
 
     @action(detail=False, methods=['GET'], url_path='lista-status')
