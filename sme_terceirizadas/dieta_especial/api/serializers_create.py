@@ -11,6 +11,7 @@ from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
 from ...escola.models import Aluno, Escola, Responsavel
 from ...produto.api.serializers import serializers as ser
 from ...produto.models import Produto
+from ...terceirizada.models import Edital
 from ..models import (
     Alimento,
     AlimentoSubstituto,
@@ -304,15 +305,23 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
 
 class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
     substituicoes = SubstituicaoProtocoloPadraoCreateSerializer(many=True)
+    editais = serializers.ListField(
+        child=serializers.CharField(),
+        write_only=True
+    )
+
 
     def create(self, validated_data): # noqa C901
         substituicoes = validated_data.pop('substituicoes')
         nome_protocolo = validated_data['nome_protocolo']
+        editais = validated_data.pop('editais')
         protocolos = ProtocoloPadraoDietaEspecial.objects.all()
         if (nome_protocolo.upper() in [protocolo.nome_protocolo.upper() for protocolo in protocolos]):
             raise serializers.ValidationError('Já existe um protocolo padrão com esse nome.')
         validated_data['nome_protocolo'] = nome_protocolo.upper()
         protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.create(**validated_data)
+        if editais and len(editais):
+            protocolo_padrao.editais.set(Edital.objects.filter(uuid__in=editais))
         for substituicao in substituicoes:
             substitutos = substituicao.pop('substitutos', None)
             substituicao['protocolo_padrao'] = protocolo_padrao
@@ -334,6 +343,11 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
         return protocolo_padrao
 
     def update(self, instance, validated_data): # noqa C901
+        editais = validated_data.pop('editais')
+        instance.editais.clear()
+        if editais and len(editais):
+            instance.editais.set(Edital.objects.filter(uuid__in=editais))
+
         substituicoes = validated_data.pop('substituicoes')
 
         nome_protocolo = validated_data['nome_protocolo']
@@ -365,4 +379,4 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = ProtocoloPadraoDietaEspecial
-        fields = ('uuid', 'nome_protocolo', 'status', 'orientacoes_gerais', 'criado_em', 'substituicoes')
+        fields = ('uuid', 'nome_protocolo', 'status', 'orientacoes_gerais', 'criado_em', 'substituicoes', 'editais')
