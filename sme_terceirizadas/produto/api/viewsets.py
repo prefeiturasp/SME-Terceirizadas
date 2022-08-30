@@ -20,7 +20,7 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
-from ...escola.models import Escola
+from ...escola.models import Escola, Lote
 from ...relatorios.relatorios import (
     relatorio_marcas_por_produto_homologacao,
     relatorio_produto_analise_sensorial,
@@ -33,7 +33,7 @@ from ...relatorios.relatorios import (
     relatorio_reclamacao
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
-from ...terceirizada.models import Edital
+from ...terceirizada.models import Contrato, Edital, Terceirizada
 from ..constants import (
     AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
     AVALIAR_RECLAMACAO_RECLAMACOES_STATUS,
@@ -470,6 +470,9 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             array_uuids_vinc = [str(value)
                                 for value
                                 in [*vinculos_produto_edital.values_list('edital__uuid', flat=True)]]
+            for vinc_prod_edital in vinculos_produto_edital:
+                if str(vinc_prod_edital.edital.uuid) not in editais:
+                    vinc_prod_edital.delete()
             for edital_uuid in editais:
                 if edital_uuid not in array_uuids_vinc:
                     ProdutoEdital.objects.create(
@@ -1043,12 +1046,15 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return relatorio_produto_analise_sensorial_recebimento(request, produto=self.get_object())
 
     def get_queryset_filtrado(self, cleaned_data):
+        logs_homologados = [log.uuid_original for log in LogSolicitacoesUsuario.objects.filter(
+            status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO)]
         campos_a_pesquisar = cria_filtro_produto_por_parametros_form(cleaned_data)
+        queryset = self.get_queryset().filter(
+            **campos_a_pesquisar).filter(homologacao__uuid__in=logs_homologados)
         if 'aditivos' in cleaned_data:
             filtro_aditivos = cria_filtro_aditivos(cleaned_data['aditivos'])
-            return self.get_queryset().filter(**campos_a_pesquisar).filter(filtro_aditivos).exclude(homologacao=None)
-        else:
-            return self.get_queryset().filter(**campos_a_pesquisar).exclude(homologacao=None)
+            queryset = queryset.filter(filtro_aditivos)
+        return queryset.order_by('-criado_em')
 
     @action(detail=False,
             methods=['POST'],
@@ -1097,11 +1103,32 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
-        queryset.order_by('criado_por')
 
-        dados_agrupados = agrupa_por_terceirizada(queryset)
+        uuids_homologacao = queryset.values_list('homologacao__uuid', flat=True)
+        status_homologado = LogSolicitacoesUsuario.CODAE_HOMOLOGADO
 
-        return Response(self.serializa_agrupamento(dados_agrupados))
+        logs_homologados = LogSolicitacoesUsuario.objects.filter(status_evento=status_homologado,
+                                                                 uuid_original__in=uuids_homologacao)
+
+        produtos = queryset.values('uuid', 'homologacao__rastro_terceirizada__nome_fantasia', 'nome',
+                                   'marca__nome', 'vinculos__tipo_produto', 'vinculos__edital__numero',
+                                   'criado_em', 'homologacao__uuid')
+
+        produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
+
+        produtos_agrupados = []
+        for produto in produtos:
+            data_homologacao = logs_homologados.filter(uuid_original=produto['homologacao__uuid']).last()
+            produtos_agrupados.append({
+                'terceirizada': produto['homologacao__rastro_terceirizada__nome_fantasia'],
+                'nome': produto['nome'],
+                'marca': produto['marca__nome'],
+                'edital': produto['vinculos__edital__numero'],
+                'tipo': produto['vinculos__tipo_produto'],
+                'cadastro': produto['criado_em'].strftime('%d/%m/%Y'),
+                'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
+            })
+        return Response(produtos_agrupados)
 
     def get_queryset_filtrado_agrupado(self, request, form):
         form_data = form.cleaned_data.copy()
@@ -1117,14 +1144,17 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
-        queryset.order_by('criado_por')
 
-        produtos = queryset.values_list('nome', 'marca__nome').order_by('nome', 'marca__nome')
-        produtos_e_marcas = {}
-        for key, value in produtos:
-            produtos_e_marcas[key] = produtos_e_marcas.get(key, [])  # caso a chave não exista, criar a lista vazia
-            produtos_e_marcas[key].append(value)
-        return produtos_e_marcas
+        produtos = queryset.values('nome', 'marca__nome', 'vinculos__edital__numero').order_by('nome', 'marca__nome')
+        produtos_agrupados = []
+        for produto in produtos:
+            produtos_agrupados.append({
+                'nome': produto['nome'],
+                'marca': produto['marca__nome'],
+                'edital': produto['vinculos__edital__numero']
+            })
+
+        return produtos_agrupados
 
     @action(detail=False,
             methods=['POST'],
@@ -1204,7 +1234,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
-        return self.paginated_response(queryset.order_by('criado_em'))
+        return self.paginated_response(queryset)
 
     @action(detail=False,
             methods=['GET'],
@@ -1438,6 +1468,12 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
             return ProdutoEditalCreateSerializer
         return ProdutoEditalSerializer
 
+    def usuario_eh_escola(self, usuario):
+        return isinstance(usuario.vinculo_atual.instituicao, Escola)
+
+    def usuario_eh_terceirizada(self, usuario):
+        return isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
+
     @action(detail=True, methods=['patch'], url_path='ativar-inativar-produto')
     def ativar_inativar_produto(self, request, uuid=None):
         try:
@@ -1453,6 +1489,29 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(dict(detail=f'Erro ao Ativar/inativar vínculo do produto com edital: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-unicos')
+    def lista_nomes_unicos(self, request):
+        editais = self.get_queryset()
+        usuario = request.user
+
+        if self.usuario_eh_escola(usuario):
+            lote = usuario.vinculo_atual.instituicao.lote
+            editais_id = Contrato.objects.filter(lotes__in=[lote]).values_list('edital_id', flat=True)
+            editais = editais.filter(edital__id__in=editais_id)
+
+        if self.usuario_eh_terceirizada(usuario):
+            terceirizada = usuario.vinculo_atual.instituicao
+            lotes_uuid = Lote.objects.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
+            editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
+            editais = editais.filter(edital__id__in=editais_id)
+
+        editais = editais.distinct('edital__numero').values('edital__numero')
+        nomes_unicos = [p['edital__numero'] for p in editais]
+        return Response({
+            'results': nomes_unicos,
+            'count': len(nomes_unicos)
+        })
 
     @action(detail=False, methods=['get'], url_path='filtros')
     def filtros(self, request):
