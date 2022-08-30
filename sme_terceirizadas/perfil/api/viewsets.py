@@ -1,7 +1,6 @@
 import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.query_utils import Q
 from django.http import HttpResponse
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
@@ -81,11 +80,8 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
         else:
             return Usuario.objects.get(email=request.data.get('email'))
 
-    def _get_usuario_por_rf_email(self, registro_funcional_ou_email):
-        return Usuario.objects.get(
-            Q(registro_funcional=registro_funcional_ou_email) |  # noqa W504
-            Q(email=registro_funcional_ou_email)
-        )
+    def _get_usuario_por_rf_cpf(self, registro_funcional_ou_cpf):
+        return Usuario.objects.get(username=registro_funcional_ou_cpf)
 
     def create(self, request):  # noqa C901
         try:
@@ -105,13 +101,13 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
                 mensagem = 'E-mail não cadastrado no sistema'
             return Response({'detail': mensagem}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, url_path='recuperar-senha/(?P<registro_funcional_ou_email>.*)')
-    def recuperar_senha(self, request, registro_funcional_ou_email=None):
+    @action(detail=False, url_path='recuperar-senha/(?P<registro_funcional_ou_cpf>.*)')
+    def recuperar_senha(self, request, registro_funcional_ou_cpf=None):
         try:
-            usuario = self._get_usuario_por_rf_email(
-                registro_funcional_ou_email)
+            usuario = self._get_usuario_por_rf_cpf(
+                registro_funcional_ou_cpf)
         except ObjectDoesNotExist:
-            return Response({'detail': 'Não existe usuário com este e-mail ou RF'},
+            return Response({'detail': 'Não existe usuário com este CPF ou RF'},
                             status=status.HTTP_400_BAD_REQUEST)
         usuario.enviar_email_recuperacao_senha()
         return Response({'email': f'{ofuscar_email(usuario.email)}'})
