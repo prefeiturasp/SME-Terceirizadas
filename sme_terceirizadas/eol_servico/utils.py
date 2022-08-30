@@ -275,6 +275,29 @@ class EOLServicoSGP:
         except Exception as err:
             raise EOLException(str(err))
 
+    @classmethod
+    def redefine_senha(cls, registro_funcional, senha):
+        from utility.carga_dados.perfil.importa_dados import logger
+        """Se a nova senha for uma das senhas padões, a API do SME INTEGRAÇÃO
+        não deixa fazer a atualização.
+        Para resetar para a senha padrão é preciso usar o endpoint ReiniciarSenha da API SME INTEGRAÇÃO"""
+        logger.info('Alterando senha.')
+        try:
+            data = {
+                'Usuario': registro_funcional,
+                'Senha': senha
+            }
+            response = requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/AlterarSenha', data=data,
+                                     headers=cls.HEADER)
+            if response.status_code == status.HTTP_200_OK:
+                result = 'OK'
+                return result
+            else:
+                logger.info('Erro ao redefinir senha: %s', response.content.decode('utf-8'))
+                raise EOLException(f"Erro ao redefinir senha: {response.content.decode('utf-8')}")
+        except Exception as err:
+            raise EOLException(str(err))
+
 
 class EOLPapaService:
     TIMEOUT = 20

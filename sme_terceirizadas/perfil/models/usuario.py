@@ -32,7 +32,7 @@ from ...dados_comuns.constants import (
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
-from ...eol_servico.utils import EOLService
+from ...eol_servico.utils import EOLService, EOLServicoSGP
 from ..models import Perfil, Vinculo
 
 log = logging.getLogger('sigpae.usuario')
@@ -247,10 +247,9 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         token = token_generator.make_token(self)
         content = {'uuid': self.uuid, 'confirmation_key': token}
         titulo = 'Recuperação de senha'
-        conteudo = f'Clique neste link para criar uma nova senha no SIGPAE: {url_configs("RECUPERAR_SENHA", content)}'
-        template = 'email_conteudo_simples.html'
-        dados_template = {'titulo': titulo, 'conteudo': conteudo}
-        html = render_to_string(template, dados_template)
+        template = 'recuperar_senha.html'
+        dados_template = {'titulo': titulo, 'link_recuperar_senha': url_configs('RECUPERAR_SENHA', content)}
+        html = render_to_string(template, context=dados_template)
         self.email_user(
             subject='Email de recuperação de senha - SIGPAE',
             message='',
@@ -277,6 +276,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     def atualiza_senha(self, senha, token):
         token_generator = PasswordResetTokenGenerator()
         if token_generator.check_token(self, token):
+            EOLServicoSGP.redefine_senha(self.username, senha)
             self.set_password(senha)
             self.save()
             return True
