@@ -745,13 +745,9 @@ def test_recuperar_senha(client, usuarios_pendentes_confirmacao):
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'email': ofuscar_email(usuario.email)}
 
-    response2 = client.get(f'/cadastro/recuperar-senha/{usuario.email}/')
-    assert response2.status_code == status.HTTP_200_OK
-    assert response2.json() == {'email': ofuscar_email(usuario.email)}
-
 
 def test_recuperar_senha_invalido(client, usuarios_pendentes_confirmacao):
     response = client.get(f'/cadastro/recuperar-senha/NAO-EXISTE/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        'detail': 'Não existe usuário com este e-mail ou RF'}
+        'detail': 'Não existe usuário com este CPF ou RF'}
