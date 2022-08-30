@@ -17,8 +17,9 @@ def dia_sobremesa_doce(tipo_unidade_escolar):
 @pytest.fixture
 def client_autenticado_coordenador_codae(client, django_user_model):
     email, password, rf, cpf = ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052')
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password, email=email, registro_funcional=rf,
+                                                 cpf=cpf)
+    client.login(username=email, password=password)
 
     codae = mommy.make('Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 

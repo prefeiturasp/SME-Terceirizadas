@@ -39,8 +39,8 @@ def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_die
     password = DJANGO_ADMIN_PASSWORD
     rf = '1545933'
     user = Usuario.objects.create_user(
-        password=password, email=email, registro_funcional=rf)
-    client.login(email=email, password=password)
+        username=email, password=password, email=email, registro_funcional=rf)
+    client.login(username=email, password=password)
 
     perfil_professor = mommy.make(
         'perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
@@ -65,8 +65,8 @@ def solicitacao_dieta_especial_autorizada(client, escola, solicitacao_dieta_espe
     password = DJANGO_ADMIN_PASSWORD
     rf = '4545454'
     user = Usuario.objects.create_user(
-        password=password, email=email, registro_funcional=rf)
-    client.login(email=email, password=password)
+        username=email, password=password, email=email, registro_funcional=rf)
+    client.login(username=email, password=password)
 
     perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,

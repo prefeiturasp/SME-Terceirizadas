@@ -47,6 +47,7 @@ def usuario_2():
         Usuario,
         uuid='8344f23a-95c4-4871-8f20-3880529767c0',
         nome='Fulano da Silva',
+        username='fulano@teste.com',
         email='fulano@teste.com',
         cpf='11111111111',
         registro_funcional='1234567'
@@ -63,8 +64,9 @@ def usuario_2():
 ])
 def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional=rf, cpf=cpf)
+    client.login(username=email, password=password)
 
     codae = mommy.make('Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 

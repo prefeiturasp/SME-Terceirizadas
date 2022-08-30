@@ -5,16 +5,20 @@ from django.urls import path
 from django.utils.translation import ugettext_lazy as _
 from utility.carga_dados.escola.importa_dados import cria_usuario_cogestor, cria_usuario_diretor
 from utility.carga_dados.perfil.importa_dados import (
+    importa_usuarios_externos_coresso,
     importa_usuarios_perfil_codae,
     importa_usuarios_perfil_dre,
     importa_usuarios_perfil_escola,
+    importa_usuarios_servidores_coresso,
     valida_arquivo_importacao_usuarios
 )
 
 from .api.viewsets import (
+    exportar_planilha_importacao_usuarios_externos_coresso,
     exportar_planilha_importacao_usuarios_perfil_codae,
     exportar_planilha_importacao_usuarios_perfil_dre,
-    exportar_planilha_importacao_usuarios_perfil_escola
+    exportar_planilha_importacao_usuarios_perfil_escola,
+    exportar_planilha_importacao_usuarios_servidor_coresso
 )
 from .models import (
     Cargo,
@@ -26,6 +30,7 @@ from .models import (
     Usuario,
     Vinculo
 )
+from .models.usuario import ImportacaoPlanilhaUsuarioExternoCoreSSO, ImportacaoPlanilhaUsuarioServidorCoreSSO
 
 
 class BaseUserAdmin(DjangoUserAdmin):
@@ -208,6 +213,82 @@ class ImportacaoPlanilhaUsuarioPerfilDreAdmin(admin.ModelAdmin):
         self.message_user(request, f'Processo Terminado. Verifique o status do processo: {arquivo.uuid}')
 
     processa_planilha.short_description = 'Realizar a importação dos usuários perfil Dre'
+
+
+@admin.register(ImportacaoPlanilhaUsuarioServidorCoreSSO)
+class ImportacaoPlanilhaUsuarioServidorCoreSSOAdmin(admin.ModelAdmin):
+    list_display = ('id', 'uuid', '__str__', 'criado_em', 'status')
+    readonly_fields = ('resultado', 'status', 'log')
+    list_filter = ('status',)
+    actions = ('processa_planilha',)
+    change_list_template = 'admin/perfil/importacao_usuarios_servidor_coresso.html'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(
+                'exportar_planilha_importacao_usuarios_servidor_coresso/',
+                self.admin_site.admin_view(self.exporta_planilha, cacheable=True)
+            ),
+        ]
+        return my_urls + urls
+
+    def exporta_planilha(self, request):
+        return exportar_planilha_importacao_usuarios_servidor_coresso(request)
+
+    def processa_planilha(self, request, queryset):
+        arquivo = queryset.first()
+
+        if len(queryset) > 1:
+            self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
+            return
+        if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
+            self.message_user(request, 'Arquivo não suportado.', messages.ERROR)
+            return
+
+        importa_usuarios_servidores_coresso(request.user, arquivo)
+
+        self.message_user(request, f'Processo Terminado. Verifique o status do processo: {arquivo.uuid}')
+
+    processa_planilha.short_description = 'Realizar a importação dos usuários perfil servidor CoreSSO'
+
+
+@admin.register(ImportacaoPlanilhaUsuarioExternoCoreSSO)
+class ImportacaoPlanilhaUsuarioExternoCoreSSOAdmin(admin.ModelAdmin):
+    list_display = ('id', 'uuid', '__str__', 'criado_em', 'status')
+    readonly_fields = ('resultado', 'status', 'log')
+    list_filter = ('status',)
+    actions = ('processa_planilha',)
+    change_list_template = 'admin/perfil/importacao_usuarios_externos_coresso.html'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(
+                'exportar_planilha_importacao_usuarios_externos_coresso/',
+                self.admin_site.admin_view(self.exporta_planilha, cacheable=True)
+            ),
+        ]
+        return my_urls + urls
+
+    def exporta_planilha(self, request):
+        return exportar_planilha_importacao_usuarios_externos_coresso(request)
+
+    def processa_planilha(self, request, queryset):
+        arquivo = queryset.first()
+
+        if len(queryset) > 1:
+            self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
+            return
+        if not valida_arquivo_importacao_usuarios(arquivo=arquivo):
+            self.message_user(request, 'Arquivo não suportado.', messages.ERROR)
+            return
+
+        importa_usuarios_externos_coresso(request.user, arquivo)
+
+        self.message_user(request, f'Processo Terminado. Verifique o status do processo: {arquivo.uuid}')
+
+    processa_planilha.short_description = 'Realizar a importação dos usuários perfil externo CoreSSO'
 
 
 admin.site.register(Usuario, BaseUserAdmin)

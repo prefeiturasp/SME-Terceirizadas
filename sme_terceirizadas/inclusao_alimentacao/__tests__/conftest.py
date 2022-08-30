@@ -322,13 +322,13 @@ def grupo_inclusao_alimentacao_nome():
 def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola, template_inclusao_normal):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR, ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -336,13 +336,13 @@ def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola
 def client_autenticado_vinculo_escola_cei_inclusao(client, django_user_model, escola, template_inclusao_normal):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR_CEI, ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -350,13 +350,13 @@ def client_autenticado_vinculo_escola_cei_inclusao(client, django_user_model, es
 def client_autenticado_vinculo_dre_inclusao(client, django_user_model, escola, template_inclusao_normal):
     email = 'test@test1.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888889')
     perfil_cogestor = mommy.make('Perfil', nome='COGESTOR', ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.diretoria_regional, perfil=perfil_cogestor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -364,7 +364,7 @@ def client_autenticado_vinculo_dre_inclusao(client, django_user_model, escola, t
 def client_autenticado_vinculo_codae_inclusao(client, django_user_model, escola, codae):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_alimentacao = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                  ativo=True,
@@ -375,7 +375,7 @@ def client_autenticado_vinculo_codae_inclusao(client, django_user_model, escola,
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -383,7 +383,7 @@ def client_autenticado_vinculo_codae_inclusao(client, django_user_model, escola,
 def client_autenticado_vinculo_terceirizada_inclusao(client, django_user_model, escola, codae):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_nutri_admin = mommy.make('Perfil', nome=constants.NUTRI_ADMIN_RESPONSAVEL,
                                     ativo=True,
@@ -394,5 +394,5 @@ def client_autenticado_vinculo_terceirizada_inclusao(client, django_user_model, 
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client

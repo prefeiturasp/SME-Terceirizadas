@@ -29,8 +29,6 @@ def test_vinculo(vinculo):
     assert vinculo.usuario.is_active is False
     assert vinculo.data_final is not None
     assert vinculo.ativo is False
-    assert vinculo.__str__() == (f'fulano@teste.com de {datetime.date.today().strftime("%Y-%m-%d")} até '
-                                 f'{datetime.date.today().strftime("%Y-%m-%d")}')
 
 
 def test_vinculo_aguardando_ativacao(vinculo_aguardando_ativacao):

@@ -106,8 +106,9 @@ def aluno(escola):
 @pytest.fixture
 def client_autenticado_coordenador_codae(client, django_user_model):
     email, password, rf, cpf = ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052')
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password, email=email, registro_funcional=rf,
+                                                 cpf=cpf)
+    client.login(username=email, password=password)
 
     codae = mommy.make('Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 
@@ -126,13 +127,13 @@ def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
     password = 'admin@123'
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456',
                                                     )
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 

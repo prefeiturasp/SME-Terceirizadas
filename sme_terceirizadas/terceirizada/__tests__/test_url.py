@@ -68,7 +68,8 @@ def test_cadastro_empresa(users_codae_gestao_alimentacao):
              }
         ],
         'super_admin': {
-            'email': 'empresa@empresa.teste.com', 'nome': 'Empresa LTDA', 'cpf': '97596447031', 'cargo': 'militante',
+            'username': '97596447031', 'email': 'empresa@empresa.teste.com', 'nome': 'Empresa LTDA',
+            'cpf': '97596447031', 'cargo': 'militante',
             'contatos': [{
                 'email': 'empresa@empresa2.teste.com', 'telefone': '12 32131 2315'
             }]
@@ -98,7 +99,8 @@ def test_cadastro_empresa(users_codae_gestao_alimentacao):
             }
         ],
         'super_admin': {
-            'email': 'empresa@empresa2.teste.com', 'nome': 'Empresa LTDA2', 'cpf': '97596447027', 'cargo': 'vagal',
+            'username': '97596447027', 'email': 'empresa@empresa2.teste.com', 'nome': 'Empresa LTDA2',
+            'cpf': '97596447027', 'cargo': 'vagal',
             'contatos': [{
                 'email': 'empresa@empresa2.teste.com', 'telefone': '12 32131 2315'
             }]
@@ -134,7 +136,8 @@ def test_cadastro_empresa_remove_lote_erro(users_codae_gestao_alimentacao):
              }
         ],
         'super_admin': {
-            'email': 'empresa@empresa.teste.com', 'nome': 'Empresa LTDA', 'cpf': '97596447031', 'cargo': 'militante',
+            'username': '97596447031', 'email': 'empresa@empresa.teste.com', 'nome': 'Empresa LTDA',
+            'cpf': '97596447031', 'cargo': 'militante',
             'contatos': [{
                 'email': 'empresa@empresa2.teste.com', 'telefone': '12 32131 2315'
             }]
@@ -164,7 +167,8 @@ def test_cadastro_empresa_remove_lote_erro(users_codae_gestao_alimentacao):
             }
         ],
         'super_admin': {
-            'email': 'empresa@empresa2.teste.com', 'nome': 'Empresa LTDA2', 'cpf': '97596447027', 'cargo': 'vagal',
+            'username': '97596447027', 'email': 'empresa@empresa2.teste.com', 'nome': 'Empresa LTDA2',
+            'cpf': '97596447027', 'cargo': 'vagal',
             'contatos': [{
                 'email': 'empresa@empresa2.teste.com', 'telefone': '12 32131 2315'
             }]

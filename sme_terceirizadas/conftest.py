@@ -14,9 +14,9 @@ f = Faker(locale='pt-Br')
 def client_autenticado(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    django_user_model.objects.create_user(password=password, email=email,
+    django_user_model.objects.create_user(username=email, password=password, email=email,
                                           registro_funcional='8888888')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -24,10 +24,10 @@ def client_autenticado(client, django_user_model):
 def client_admin_django(client, django_user_model):
     email = 'admDoDjango@xxx.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    django_user_model.objects.create_user(password=password, email=email,
+    django_user_model.objects.create_user(username=email, password=password, email=email,
                                           registro_funcional='8888888',
                                           is_staff=True, )
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -35,7 +35,7 @@ def client_admin_django(client, django_user_model):
 def client_autenticado_vinculo_escola(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     lote = mommy.make('Lote', nome='lote', iniciais='lt')
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
@@ -56,7 +56,7 @@ def client_autenticado_vinculo_escola(client, django_user_model):
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -64,7 +64,8 @@ def client_autenticado_vinculo_escola(client, django_user_model):
 def client_autenticado_diretoria_regional(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888888')
     perfil_cogestor = mommy.make('Perfil',
                                  nome=constants.COGESTOR,
                                  ativo=True)
@@ -76,7 +77,7 @@ def client_autenticado_diretoria_regional(client, django_user_model):
                perfil=perfil_cogestor,
                data_inicial=hoje,
                ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -84,7 +85,8 @@ def client_autenticado_diretoria_regional(client, django_user_model):
 def client_autenticado_codae_gestao_alimentacao(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888888')
     perfil_admin_gestao_alimentacao = mommy.make('Perfil',
                                                  nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                  ativo=True)
@@ -96,7 +98,7 @@ def client_autenticado_codae_gestao_alimentacao(client, django_user_model):
                perfil=perfil_admin_gestao_alimentacao,
                data_inicial=hoje,
                ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -104,7 +106,8 @@ def client_autenticado_codae_gestao_alimentacao(client, django_user_model):
 def client_autenticado_dilog(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888888')
     perfil_admin_dilog = mommy.make('Perfil',
                                     nome=constants.COORDENADOR_LOGISTICA,
                                     ativo=True)
@@ -116,7 +119,7 @@ def client_autenticado_dilog(client, django_user_model):
                perfil=perfil_admin_dilog,
                data_inicial=hoje,
                ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -124,7 +127,8 @@ def client_autenticado_dilog(client, django_user_model):
 def client_autenticado_distribuidor(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888888')
     perfil_admin_distribuidor = mommy.make('Perfil',
                                            nome=constants.ADMINISTRADOR_DISTRIBUIDORA,
                                            ativo=True)
@@ -136,7 +140,7 @@ def client_autenticado_distribuidor(client, django_user_model):
                perfil=perfil_admin_distribuidor,
                data_inicial=hoje,
                ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -144,7 +148,7 @@ def client_autenticado_distribuidor(client, django_user_model):
 def client_autenticado_escola_abastecimento(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     lote = mommy.make('Lote', nome='lote', iniciais='lt')
     perfil_admin_escola_abastecimento = mommy.make('Perfil',
@@ -167,5 +171,5 @@ def client_autenticado_escola_abastecimento(client, django_user_model):
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
