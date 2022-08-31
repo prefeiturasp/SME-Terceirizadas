@@ -387,7 +387,7 @@ def mocked_request_api_eol_usuario_diretoria_regional():
 def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
     nome = 'Bruno da Conceição'
     uuid = 'd36fa08e-e91e-4acb-9d54-b88115147e8e'
-    usuario = mommy.make('Usuario', nome=nome, uuid=uuid,
+    usuario = mommy.make('Usuario', nome=nome, uuid=uuid, username='1234567',
                          is_active=False, registro_funcional='1234567', email='GrVdXIhxqb@example.com')
     hoje = datetime.date.today()
 

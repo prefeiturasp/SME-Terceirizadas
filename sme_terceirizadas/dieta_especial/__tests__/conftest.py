@@ -534,14 +534,14 @@ def substituicao_padrao_dieta_especial_2(alimentos, produtos, protocolo_padrao_d
 def client_autenticado_protocolo_dieta(client, django_user_model, escola, codae):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_dieta_especial = mommy.make('Perfil', nome=constants.ADMINISTRADOR_DIETA_ESPECIAL,
                                              ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_dieta_especial,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     mommy.make('Edital', uuid='b7b6a0a7-b230-4783-94b6-8d3d22041ab3')
     mommy.make('Edital', uuid='60f5a64e-8652-422d-a6e9-0a36717829c9')
     mommy.make('Edital', uuid='4f7287e5-da63-4b23-8bbc-48cc6722c91e')
