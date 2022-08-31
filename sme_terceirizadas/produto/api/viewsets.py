@@ -64,7 +64,6 @@ from ..utils import (
     CadastroProdutosEditalPagination,
     ItemCadastroPagination,
     StandardResultsSetPagination,
-    agrupa_por_terceirizada,
     converte_para_datetime,
     cria_filtro_aditivos,
     cria_filtro_produto_por_parametros_form,
@@ -1029,10 +1028,49 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
+        form_data = form.cleaned_data.copy()
+        form_data['status'] = [
+            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
+        ]
+
+        queryset = self.get_queryset_filtrado(form_data)
+
+        produtos = queryset.values('nome', 'marca__nome', 'vinculos__edital__numero')
+        produtos = produtos.order_by('nome', 'marca__nome')
+        produtos_agrupados = []
+        nomes_agrupados = []
+        for produto in produtos:
+            if not produto['nome'] in nomes_agrupados:
+                marcas = produtos.filter(nome=produto['nome']).exclude(marca=None)
+                marcas = marcas.values_list('marca__nome', flat=True).order_by().distinct()
+                editais = produtos.filter(nome=produto['nome']).exclude(vinculos__edital=None)
+                editais = editais.values_list('vinculos__edital__numero', flat=True).order_by().distinct()
+                produtos_agrupados.append({
+                    'nome': produto['nome'],
+                    'marcas': ', '.join(marcas),
+                    'editais': ', '.join(editais)
+                })
+                nomes_agrupados.append(produto['nome'])
+
+        status = 'CODAE_HOMOLOGADO'
+        quantidade_homologados = Produto.objects.filter(
+            ativo=True,
+            homologacao__status=status
+        ).count()
+
+        form_data['quantidade_homologados'] = quantidade_homologados
+
         return relatorio_marcas_por_produto_homologacao(
             request,
-            produtos=self.get_queryset_filtrado_agrupado(request, form),
-            filtros=form.cleaned_data
+            produtos=produtos_agrupados,
+            filtros=form_data
         )
 
     @action(detail=True, url_path=constants.RELATORIO_ANALISE,
@@ -1168,7 +1206,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos_e_marcas = self.get_queryset_filtrado_agrupado(request, form)
         return Response(produtos_e_marcas)
 
-    @action(detail=False,
+    @action(detail=False, # noqa C901
             methods=['GET'],
             url_path='relatorio-por-parametros-agrupado-terceirizada')
     def relatorio_por_parametros_agrupado_terceirizada(self, request):
@@ -1190,10 +1228,46 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
+        uuids_homologacao = queryset.values_list('homologacao__uuid', flat=True)
+        status_homologado = LogSolicitacoesUsuario.CODAE_HOMOLOGADO
 
-        dados_agrupados = agrupa_por_terceirizada(queryset)
+        logs_homologados = LogSolicitacoesUsuario.objects.filter(status_evento=status_homologado,
+                                                                 uuid_original__in=uuids_homologacao)
 
-        return relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, form_data)
+        produtos = queryset.values('uuid', 'homologacao__rastro_terceirizada__nome_fantasia', 'nome',
+                                   'marca__nome', 'vinculos__tipo_produto', 'vinculos__edital__numero',
+                                   'criado_em', 'homologacao__uuid', 'tem_aditivos_alergenicos')
+
+        produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
+
+        produtos_agrupados = []
+        for produto in produtos:
+            data_homologacao = logs_homologados.filter(uuid_original=produto['homologacao__uuid']).last()
+            produtos_agrupados.append({
+                'terceirizada': produto['homologacao__rastro_terceirizada__nome_fantasia'],
+                'nome': produto['nome'],
+                'marca': produto['marca__nome'],
+                'edital': produto['vinculos__edital__numero'],
+                'tipo': produto['vinculos__tipo_produto'],
+                'tem_aditivos_alergenicos': produto['tem_aditivos_alergenicos'],
+                'cadastro': produto['criado_em'].strftime('%d/%m/%Y'),
+                'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
+            })
+
+        status = 'CODAE_HOMOLOGADO'
+        quantidade_homologados = Produto.objects.filter(
+            ativo=True,
+            homologacao__status=status
+        ).count()
+
+        form_data['quantidade_homologados'] = quantidade_homologados
+        if isinstance(request.user.vinculo_atual.instituicao, Terceirizada):
+            form_data['tipo_usuario'] = 'Terceirizada'
+        elif isinstance(request.user.vinculo_atual.instituicao, Escola):
+            form_data['tipo_usuario'] = 'Escola'
+        else:
+            form_data['tipo_usuario'] = 'Outros'
+        return relatorio_produtos_agrupado_terceirizada(request, produtos_agrupados, form_data)
 
     @action(detail=False,
             methods=['GET'],

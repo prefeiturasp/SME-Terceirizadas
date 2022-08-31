@@ -1,4 +1,3 @@
-{% include 'relatorio_base.html' %}
 {% load static %}
 {% load sass_tags %}
 
@@ -9,46 +8,61 @@
 </head>
 <header class="header">
   <section class="titulo-e-logo">
-    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
-    <h1>SIGPAE - RELATÓRIO DE PRODUTOS HOMOLOGADOS</h1>
+    <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1 class='custom-title'>SIGPAE - RELATÓRIO DE PRODUTOS HOMOLOGADOS</h1>
   </section>
-  {% include "tabela_filtros.html" with filtros=filtros %}
+  <table class="tabela-cabecalho tabela-arredondada">
+    {% if filtros.tipo_usuario == "Terceirizada" %}
+      <tr class="custom-filtros">
+        <td>Terceirizada: <b>{{ filtros.nome_terceirizada }}</b></td>
+        <td class="text-right">Total de produtos homologados: <b>{{ filtros.quantidade_homologados }}</b></td>
+      </tr>
+    {% endif %}
+    {% if filtros.tipo_usuario == "Escola" %}
+      <tr class="custom-filtros">
+        <td>Edital: <b>{{ filtros.nome_edital }}</b></td>
+        <td class="text-right">Total de produtos homologados: <b>{{ filtros.quantidade_homologados }}</b></td>
+      </tr>
+    {% endif %}
+    {% if filtros.tipo_usuario == "Outros" %}
+      <tr class="custom-filtros">
+        <td>Total de produtos homologados: <b>{{ filtros.quantidade_homologados }}</b></td>
+      </tr>
+    {% endif %}
+  </table>
 </header>
 <body>
   <div class="tabela-filtro">
-    <h5>Relatório de produtos homologados</h5>
     <table>
       <thead>
         <tr>
           <th>Terceirizada</th>
-          <th>Nome do produto</th>
+          <th>Produto</th>
           <th>Marca</th>
-          <th>Dieta Especial</th>
+          <th>Edital</th>
+          <th>Tipo</th>
           <th>Contém Alergênicos</th>
-          <th>Data de cadastro</th>
-          <th>Data de homologação</th>
+          <th>Cadastro</th>
+          <th>Homologação</th>
         </tr>
       </thead>
       <tbody>
-        {% for grupo in dados_agrupados.results %}
-          {% for produto in grupo.produtos %}
-            <tr>
-              <td>{{ grupo.terceirizada.nome }}</td>
-              <td>{{ produto.nome }}</td>
-              <td>{{ produto.marca.nome }}</td>
-              <td>{{ produto.eh_para_alunos_com_dieta|yesno:"Sim,Não" }}</td>
-              <td>{{ produto.tem_aditivos_alergenicos|yesno:"Sim,Não" }}</td>
-              <td>{{ produto.criado_em|date:"d/m/Y" }}</td>
-              <td>{{ produto.data_homologacao|date:"d/m/Y" }}</td>
-            </tr>
-          {% endfor %}
+        {% for grupo in dados_agrupados %}
           <tr>
-            <td class="total-grupo" colspan="7">Total de produtos cadastrados por {{ grupo.terceirizada.nome }}: {{ grupo.produtos|length }}</td>
+            <td>{{ grupo.terceirizada }}</td>
+            <td>{{ grupo.nome }}</td>
+            <td>{{ grupo.marca }}</td>
+            <td>{{ grupo.edital }}</td>
+            {% if  grupo.tipo == 'Comum'%}
+              <td class="text-center">COMUM</td>
+            {% else %}
+              <td class="text-center">ESPECIAL</td>
+            {% endif %}
+            <td class="text-center">{{ grupo.tem_aditivos_alergenicos|yesno:"Sim,Não" }}</td>
+            <td>{{ grupo.cadastro }}</td>
+            <td>{{ grupo.homologacao }}</td>
           </tr>
         {% endfor %}
-        <tr>
-          <td class="total-geral" colspan="7">Total de produtos cadastrados no período: {{ dados_agrupados.total_produtos }}</td>
-        </tr>
       </tbody>
     </table>
   </div>
