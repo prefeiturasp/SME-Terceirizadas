@@ -4,10 +4,12 @@ from rest_framework import serializers
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_terceirizadas.escola.api.serializers import TipoUnidadeEscolarSerializer
 from sme_terceirizadas.medicao_inicial.models import (
+    CategoriaMedicao,
     DiaSobremesaDoce,
     Responsavel,
     SolicitacaoMedicaoInicial,
-    TipoContagemAlimentacao
+    TipoContagemAlimentacao,
+    ValorMedicao
 )
 from sme_terceirizadas.perfil.api.serializers import UsuarioSerializer
 
@@ -58,3 +60,21 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoMedicaoInicial
         exclude = ('id', 'criado_por',)
+
+
+class ValorMedicaoSerializer(serializers.ModelSerializer):
+    medicao_uuid = serializers.SerializerMethodField()
+
+    def get_medicao_uuid(self, obj):
+        return obj.medicao.uuid
+
+    class Meta:
+        model = ValorMedicao
+        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid', 'uuid')
+
+
+class CategoriaMedicaoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CategoriaMedicao
+        fields = '__all__'
