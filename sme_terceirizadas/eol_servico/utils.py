@@ -212,6 +212,10 @@ class EOLServicoSGP:
             raise EOLException(str(err))
 
     @classmethod
+    def chamada_externa_criar_usuario_coresso(cls, headers, payload):
+        return requests.request('POST', f'{DJANGO_EOL_SGP_API_URL}/v1/usuarios/coresso', headers=headers, data=payload)
+
+    @classmethod
     def cria_usuario_core_sso(cls, login, nome, email, e_servidor=False):
         from utility.carga_dados.perfil.importa_dados import logger
         """ Cria um novo usuário no CoreSSO
@@ -236,8 +240,6 @@ class EOLServicoSGP:
         logger.info('Criando usuário no CoreSSO.')
 
         try:
-            url = f'{DJANGO_EOL_SGP_API_URL}/v1/usuarios/coresso'
-
             payload = json.dumps({
                 'nome': nome,
                 'documento': login if not e_servidor else '',
@@ -245,15 +247,20 @@ class EOLServicoSGP:
                 'email': email
             })
 
-            response = requests.request('POST', url, headers=headers, data=payload)
+            response = cls.chamada_externa_criar_usuario_coresso(headers, payload)
             if response.status_code == status.HTTP_200_OK:
                 result = 'OK'
                 return result
             else:
-                logger.info('Erro ao redefinir email: %s', response.json())
+                logger.info('Erro ao tentar criar o usuáriol: %s', response.json())
                 raise EOLException(f'Erro ao tentar criar o usuário {nome}.')
         except Exception as err:
             raise EOLException(str(err))
+
+    @classmethod
+    def chamada_externa_altera_email_coresso(cls, data):
+        return requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/AlterarEmail', data=data,
+                             headers=cls.HEADER)
 
     @classmethod
     def redefine_email(cls, registro_funcional, email):
@@ -264,8 +271,7 @@ class EOLServicoSGP:
                 'Usuario': registro_funcional,
                 'Email': email
             }
-            response = requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/AlterarEmail', data=data,
-                                     headers=cls.HEADER)
+            response = cls.chamada_externa_altera_email_coresso(data)
             if response.status_code == status.HTTP_200_OK:
                 result = 'OK'
                 return result
@@ -276,19 +282,24 @@ class EOLServicoSGP:
             raise EOLException(str(err))
 
     @classmethod
+    def chamada_externa_altera_senha(cls, data):
+        return requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/AlterarSenha', data=data,
+                             headers=cls.HEADER)
+
+    @classmethod
     def redefine_senha(cls, registro_funcional, senha):
         from utility.carga_dados.perfil.importa_dados import logger
         """Se a nova senha for uma das senhas padões, a API do SME INTEGRAÇÃO
         não deixa fazer a atualização.
         Para resetar para a senha padrão é preciso usar o endpoint ReiniciarSenha da API SME INTEGRAÇÃO"""
         logger.info('Alterando senha.')
+
         try:
             data = {
                 'Usuario': registro_funcional,
                 'Senha': senha
             }
-            response = requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/AlterarSenha', data=data,
-                                     headers=cls.HEADER)
+            response = cls.chamada_externa_altera_senha(data)
             if response.status_code == status.HTTP_200_OK:
                 result = 'OK'
                 return result
