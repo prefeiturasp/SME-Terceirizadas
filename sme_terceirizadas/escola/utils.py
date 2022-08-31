@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from rest_framework.pagination import PageNumberPagination
 
@@ -74,11 +74,31 @@ def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
     AlunosMatriculadosPeriodoEscola.objects.bulk_update(objs, ['quantidade_alunos'])
 
 
+def duplica_dia_anterior(dre, ontem, tipo_turma_name):
+    from sme_terceirizadas.escola.models import (
+        LogAlunosMatriculadosPeriodoEscola,
+    )
+    logs = LogAlunosMatriculadosPeriodoEscola.objects.filter(escola__diretoria_regional=dre,
+                                                             criado_em__date=ontem,
+                                                             tipo_turma=tipo_turma_name)
+    logs_para_criar = []
+    for log in logs:
+        log = LogAlunosMatriculadosPeriodoEscola(
+            escola=log.escola,
+            periodo_escolar=log.periodo_escolar,
+            quantidade_alunos=log.quantidade_alunos,
+            tipo_turma=tipo_turma_name
+        )
+        logs_para_criar.append(log)
+    LogAlunosMatriculadosPeriodoEscola.objects.bulk_create(logs_para_criar)
+
+
 def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
     from sme_terceirizadas.escola.models import (
         DiretoriaRegional
     )
     hoje = date.today()
+    ontem = date.today() - timedelta(days=1)
     dres = DiretoriaRegional.objects.all()
     total = len(dres)
     cont = 1
@@ -95,7 +115,9 @@ def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
 
             registra_quantidade_matriculados(resposta, hoje, tipo_turma.name)
         except Exception as e:
-            logger.error(f'Houve um erro inesperado ao consultar a Diretoria Regional {dre} : {str(e)}')
+            duplica_dia_anterior(dre, ontem, tipo_turma.name)
+            logger.error(f'Houve um erro inesperado ao consultar a Diretoria Regional {dre} : {str(e)}; '
+                         f'as quantidades de alunos foram duplicadas do dia anterior')
         cont += 1
 
 

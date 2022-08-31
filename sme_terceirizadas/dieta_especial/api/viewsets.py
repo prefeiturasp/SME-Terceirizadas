@@ -1098,13 +1098,18 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
     serializer_class = ProtocoloPadraoDietaEspecialSerializer
     pagination_class = ProtocoloPadraoPagination
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('nome_protocolo', 'status')
+    filterset_fields = ('nome_protocolo', 'status')
 
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
             return ProtocoloPadraoDietaEspecialSerializerCreate
-        else:
-            return ProtocoloPadraoDietaEspecialSerializer
+        return ProtocoloPadraoDietaEspecialSerializer
+
+    def get_queryset(self):
+        queryset = ProtocoloPadraoDietaEspecial.objects.all()
+        if 'editais[]' in self.request.query_params:
+            queryset = queryset.filter(editais__uuid__in=self.request.query_params.getlist('editais[]')).distinct()
+        return queryset.order_by('nome_protocolo')
 
     @action(detail=False, methods=['GET'], url_path='lista-status')
     def lista_status(self, request):

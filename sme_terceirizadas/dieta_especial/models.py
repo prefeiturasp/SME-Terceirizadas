@@ -530,6 +530,9 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
         default=STATUS_NAO_LIBERADO
     )
 
+    editais = models.ManyToManyField('terceirizada.Edital',
+                                     related_name='protocolos_padroes_dieta_especial')
+
     historico = fields.JSONField(blank=True, null=True)
 
     class Meta:
