@@ -51,8 +51,16 @@
           <tr>
             <td>{{ grupo.terceirizada }}</td>
             <td>{{ grupo.nome }}</td>
-            <td>{{ grupo.marca }}</td>
-            <td>{{ grupo.edital }}</td>
+            {% if grupo.marca %}
+              <td>{{ grupo.marca }}</td>
+            {% else %}
+              <td class="text-center"> - </td>
+            {% endif %}
+            {% if grupo.edital %}
+              <td>{{ grupo.edital }}</td>
+            {% else %}
+              <td class="text-center"> - </td>
+            {% endif %}
             {% if  grupo.tipo == 'Comum'%}
               <td class="text-center">COMUM</td>
             {% else %}
