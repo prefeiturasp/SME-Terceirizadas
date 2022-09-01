@@ -484,6 +484,18 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, permission_classes=(UsuarioEscola,),
+            methods=['patch'], url_path=constants.CANCELA_SUSPENSAO_CEI)
+    def cancela_suspensao_cei(self, request, uuid=None):
+        suspensao_de_alimentacao = self.get_object()
+        try:
+            justificativa = request.data.get('justificativa')
+            suspensao_de_alimentacao.escola_cancela(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(suspensao_de_alimentacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
     def destroy(self, request, *args, **kwargs):
         suspensao_de_alimentacao = self.get_object()
         if suspensao_de_alimentacao.pode_excluir:

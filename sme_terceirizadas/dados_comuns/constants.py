@@ -87,6 +87,7 @@ PROTOCOLO = 'protocolo'
 ESCOLA_INICIO_PEDIDO = 'inicio-pedido'
 ESCOLA_REVISA_PEDIDO = 'escola-revisa-pedido'
 ESCOLA_CANCELA = 'escola-cancela-pedido-48h-antes'
+CANCELA_SUSPENSAO_CEI = 'cancela-suspensao-cei'
 ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
 ESCOLA_SOLICITA_INATIVACAO = 'escola-solicita-inativacao'
 
