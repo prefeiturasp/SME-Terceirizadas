@@ -3,16 +3,20 @@ import json
 import environ
 from rest_framework import serializers
 
+from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from sme_terceirizadas.dados_comuns.validators import deve_ter_extensao_xls_xlsx
-from sme_terceirizadas.escola.models import Escola, TipoUnidadeEscolar
+from sme_terceirizadas.escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
 from sme_terceirizadas.medicao_inicial.models import (
     AnexoOcorrenciaMedicaoInicial,
+    CategoriaMedicao,
     DiaSobremesaDoce,
+    Medicao,
     Responsavel,
     SolicitacaoMedicaoInicial,
-    TipoContagemAlimentacao
+    TipoContagemAlimentacao,
+    ValorMedicao
 )
 from sme_terceirizadas.perfil.models import Usuario
 
@@ -155,4 +159,91 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoMedicaoInicial
+        exclude = ('id', 'criado_por',)
+
+
+class ValorMedicaoCreateUpdateSerializer(serializers.ModelSerializer):
+    valor = serializers.CharField()
+    nome_campo = serializers.CharField()
+    categoria_medicao = serializers.SlugRelatedField(
+        slug_field='id',
+        required=True,
+        queryset=CategoriaMedicao.objects.all(),
+    )
+    tipo_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        allow_null=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+    medicao_uuid = serializers.SerializerMethodField()
+
+    def get_medicao_uuid(self, obj):
+        return obj.medicao.uuid
+
+    class Meta:
+        model = ValorMedicao
+        exclude = ('id', 'medicao',)
+
+
+class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
+    solicitacao_medicao_inicial = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=SolicitacaoMedicaoInicial.objects.all()
+    )
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='nome',
+        required=True,
+        queryset=PeriodoEscolar.objects.all(),
+    )
+    valores_medicao = ValorMedicaoCreateUpdateSerializer(many=True, required=False)
+
+    def create(self, validated_data):
+        validated_data['criado_por'] = self.context['request'].user
+        valores_medicao_dict = validated_data.pop('valores_medicao', None)
+
+        medicao = Medicao.objects.create(**validated_data)
+        medicao.save()
+
+        for valor_medicao in valores_medicao_dict:
+            ValorMedicao.objects.create(
+                medicao=medicao,
+                dia=valor_medicao.get('dia', ''),
+                valor=valor_medicao.get('valor', ''),
+                nome_campo=valor_medicao.get('nome_campo', ''),
+                categoria_medicao=valor_medicao.get('categoria_medicao', ''),
+                tipo_alimentacao=valor_medicao.get('tipo_alimentacao', ''),
+            )
+
+        return medicao
+
+    def update(self, instance, validated_data):  # noqa C901
+        valores_medicao_dict = validated_data.pop('valores_medicao', None)
+
+        if valores_medicao_dict:
+            for valor_medicao in valores_medicao_dict:
+                ValorMedicao.objects.update_or_create(
+                    medicao=instance,
+                    dia=valor_medicao.get('dia', ''),
+                    nome_campo=valor_medicao.get('nome_campo', ''),
+                    categoria_medicao=valor_medicao.get('categoria_medicao', ''),
+                    tipo_alimentacao=valor_medicao.get('tipo_alimentacao', ''),
+                    defaults={
+                        'medicao': instance,
+                        'dia': valor_medicao.get('dia', ''),
+                        'valor': valor_medicao.get('valor', ''),
+                        'nome_campo': valor_medicao.get('nome_campo', ''),
+                        'categoria_medicao': valor_medicao.get('categoria_medicao', ''),
+                        'tipo_alimentacao': valor_medicao.get('tipo_alimentacao', ''),
+                    }
+                )
+        ValorMedicao.objects.all().filter(valor=0).delete()
+        if not instance.valores_medicao.all().exists():
+            instance.delete()
+
+        return instance
+
+    class Meta:
+        model = Medicao
         exclude = ('id', 'criado_por',)
