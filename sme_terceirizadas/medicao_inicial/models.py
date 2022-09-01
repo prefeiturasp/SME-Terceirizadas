@@ -9,6 +9,7 @@ from ..dados_comuns.behaviors import (
     TemAno,
     TemChaveExterna,
     TemData,
+    TemDia,
     TemIdentificadorExternoAmigavel,
     TemMes
 )
@@ -100,3 +101,57 @@ class TipoContagemAlimentacao(Nomeavel, TemChaveExterna, Ativavel):
 
     def __str__(self):
         return self.nome
+
+
+class Medicao(
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel,
+    CriadoEm, CriadoPor,
+):
+    solicitacao_medicao_inicial = models.ForeignKey('SolicitacaoMedicaoInicial', on_delete=models.CASCADE,
+                                                    related_name='medicoes')
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+
+    class Meta:
+        verbose_name = 'Medição'
+        verbose_name_plural = 'Medições'
+
+    def __str__(self):
+        ano = f'{self.solicitacao_medicao_inicial.ano}'
+        mes = f'{self.solicitacao_medicao_inicial.mes}'
+        return f'Medição #{self.id_externo} -- {self.periodo_escolar.nome} -- {mes}/{ano}'
+
+
+class CategoriaMedicao(Nomeavel, Ativavel, TemChaveExterna):
+
+    class Meta:
+        verbose_name = 'Categoria de medição'
+        verbose_name_plural = 'Categorias de medições'
+
+    def __str__(self):
+        return self.nome
+
+
+class ValorMedicao(
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel,
+    CriadoEm, TemDia
+):
+    valor = models.TextField('Valor do Campo')
+    nome_campo = models.CharField(max_length=100)
+    medicao = models.ForeignKey('Medicao', on_delete=models.CASCADE, related_name='valores_medicao')
+    categoria_medicao = models.ForeignKey('CategoriaMedicao', on_delete=models.CASCADE,
+                                          related_name='valores_medicao')
+    tipo_alimentacao = models.ForeignKey('cardapio.TipoAlimentacao', blank=True,
+                                         null=True, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        verbose_name = 'Valor da Medição'
+        verbose_name_plural = 'Valores das Medições'
+
+    def __str__(self):
+        categoria = f'{self.categoria_medicao.nome}'
+        nome_campo = f'{self.nome_campo}'
+        dia = f'{self.dia}'
+        mes = f'{self.medicao.solicitacao_medicao_inicial.mes}'
+        return f'#{self.id_externo} -- Categoria {categoria} -- Campo {nome_campo} -- Dia/Mês {dia}/{mes}'

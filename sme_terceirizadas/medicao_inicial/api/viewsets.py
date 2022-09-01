@@ -4,14 +4,27 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from ...dados_comuns.permissions import UsuarioEscola, ViewSetActionPermissionMixin
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
-from ..models import DiaSobremesaDoce, SolicitacaoMedicaoInicial, TipoContagemAlimentacao
+from ..models import (
+    CategoriaMedicao,
+    DiaSobremesaDoce,
+    Medicao,
+    SolicitacaoMedicaoInicial,
+    TipoContagemAlimentacao,
+    ValorMedicao
+)
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
+    CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
     SolicitacaoMedicaoInicialSerializer,
-    TipoContagemAlimentacaoSerializer
+    TipoContagemAlimentacaoSerializer,
+    ValorMedicaoSerializer
 )
-from .serializers_create import DiaSobremesaDoceCreateManySerializer, SolicitacaoMedicaoInicialCreateSerializer
+from .serializers_create import (
+    DiaSobremesaDoceCreateManySerializer,
+    MedicaoCreateUpdateSerializer,
+    SolicitacaoMedicaoInicialCreateSerializer
+)
 
 
 class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
@@ -76,3 +89,50 @@ class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = TipoContagemAlimentacao.objects.filter(ativo=True)
     serializer_class = TipoContagemAlimentacaoSerializer
     pagination_class = None
+
+
+class CategoriaMedicaoViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = CategoriaMedicao.objects.filter(ativo=True)
+    serializer_class = CategoriaMedicaoSerializer
+    pagination_class = None
+
+
+class ValorMedicaoViewSet(
+        mixins.ListModelMixin,
+        mixins.DestroyModelMixin,
+        GenericViewSet):
+    lookup_field = 'uuid'
+    queryset = ValorMedicao.objects.all()
+    serializer_class = ValorMedicaoSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = ValorMedicao.objects.all()
+        nome_periodo_escolar = self.request.query_params.get('nome_periodo_escolar', '')
+        uuid_solicitacao_medicao = self.request.query_params.get('uuid_solicitacao_medicao', '')
+        if nome_periodo_escolar:
+            queryset = queryset.filter(medicao__periodo_escolar__nome=nome_periodo_escolar)
+        if uuid_solicitacao_medicao:
+            queryset = queryset.filter(medicao__solicitacao_medicao_inicial__uuid=uuid_solicitacao_medicao)
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        medicao = instance.medicao
+        self.perform_destroy(instance)
+        if not medicao.valores_medicao.all().exists():
+            medicao.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MedicaoViewSet(
+        mixins.RetrieveModelMixin,
+        mixins.ListModelMixin,
+        mixins.CreateModelMixin,
+        mixins.UpdateModelMixin,
+        GenericViewSet):
+    lookup_field = 'uuid'
+    queryset = Medicao.objects.all()
+
+    def get_serializer_class(self):
+        return MedicaoCreateUpdateSerializer
