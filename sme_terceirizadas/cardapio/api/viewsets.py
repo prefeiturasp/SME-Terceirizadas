@@ -131,10 +131,13 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
     def filtro_por_escola(self, request, escola_uuid=None):
         escola = Escola.objects.get(uuid=escola_uuid)
         vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-            tipo_unidade_escolar=escola.tipo_unidade,
             periodo_escolar__in=escola.periodos_escolares,
             ativo=True
         ).order_by('periodo_escolar__posicao')
+        if escola.tipo_unidade.iniciais == 'CEMEI':
+            vinculos = vinculos.filter(tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
+        else:
+            vinculos = vinculos.filter(tipo_unidade_escolar=escola.tipo_unidade)
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

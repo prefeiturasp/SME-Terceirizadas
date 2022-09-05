@@ -160,12 +160,14 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                         'tipos_alimentacao': [],
                         'nome': 'TARDE',
                         'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                        'tipo_turno': None,
                         'posicao': None
                     },
                     {
                         'tipos_alimentacao': [],
                         'nome': 'MANHA',
                         'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                        'tipo_turno': None,
                         'posicao': None
                     }
                 ],
@@ -603,12 +605,14 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
                     'tipos_alimentacao': [],
                     'nome': 'TARDE',
                     'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    "tipo_turno": None,
                     'posicao': None
                 },
                 {
                     'tipos_alimentacao': [],
                     'nome': 'MANHA',
                     'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    "tipo_turno": None,
                     'posicao': None
                 }
             ],

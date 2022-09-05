@@ -334,3 +334,72 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     class Meta:
         verbose_name = 'Inclusão de alimentação da CEI'
         verbose_name_plural = 'Inclusões de alimentação da CEI'
+
+
+class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm, Logs,
+                                 SolicitacaoForaDoPrazo, CriadoPor, TemIdentificadorExternoAmigavel, TemPrioridade,
+                                 TemTerceirizadaConferiuGestaoAlimentacao):
+    DESCRICAO = 'Inclusão de Alimentação CEMEI'
+
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='inclusoes_de_alimentacao_cemei')
+
+    def __str__(self):
+        return f'Inclusão de Alimentação CEMEI cód: {self.id_externo}'
+
+    class Meta:
+        verbose_name = 'Inclusão de alimentação CEMEI'
+        verbose_name_plural = 'Inclusões de alimentação CEMEI'
+
+
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI(TemChaveExterna):
+    inclusao_alimentacao_cemei = models.ForeignKey('InclusaoDeAlimentacaoCEMEI',
+                                                   on_delete=models.CASCADE,
+                                                   related_name='quantidade_alunos_cei_da_inclusao_cemei')
+    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'De: {self.faixa_etaria.inicio} até: {self.faixa_etaria.fim} meses - {self.quantidade_alunos} alunos'
+
+    class Meta:
+        verbose_name = 'Quantidade de alunos por faixa etária da inclusao de alimentação CEMEI'
+        verbose_name_plural = 'Quantidade de alunos por faixa etária da inclusao de alimentação CEMEI'
+
+
+class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI(TemChaveExterna):
+    inclusao_alimentacao_cemei = models.ForeignKey('InclusaoDeAlimentacaoCEMEI',
+                                                   on_delete=models.CASCADE,
+                                                   related_name='quantidade_alunos_emei_da_inclusao_cemei')
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'{self.periodo_escolar.nome} - {self.quantidade_alunos} alunos'
+
+    class Meta:
+        verbose_name = 'Quantidade de alunos EMEI por inclusao de alimentação CEMEI'
+        verbose_name_plural = 'Quantidade de alunos EMEI por inclusao de alimentação CEMEI'
+
+
+class DiasMotivosInclusaoDeAlimentacaoCEMEI(TemData, TemChaveExterna):
+    inclusao_alimentacao_cemei = models.ForeignKey('InclusaoDeAlimentacaoCEMEI',
+                                                   on_delete=models.CASCADE,
+                                                   related_name='dias_motivos_da_inclusao_cemei')
+    motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
+    cancelado = models.BooleanField('Esta cancelado?', default=False)
+    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
+
+    def __str__(self):
+        if self.outro_motivo:
+            return f'Dia {self.data} - Outro motivo: {self.outro_motivo}'
+        return f'Dia {self.data} {self.motivo}'
+
+    class Meta:
+        verbose_name = 'Diaa e motivo inclusão de alimentação CEMEI'
+        verbose_name_plural = 'Dias e motivos inclusçao de alimentação CEMEI'
+        ordering = ('data',)
