@@ -390,33 +390,57 @@ class InclusaoDeAlimentacaoCEMEICreateSerializer(serializers.ModelSerializer):
         QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEICreateSerializer(required=False, many=True)
     )
 
-    def create(self, validated_data):  # noqa C901
+    def criar_dias_motivos(self, dias_motivos_da_inclusao_cemei, instance):
+        dias_motivos_da_inclusao_cemei = [dict(item, **{'inclusao_alimentacao_cemei': instance})
+                                          for item in dias_motivos_da_inclusao_cemei]
+        for dia_motivo in dias_motivos_da_inclusao_cemei:
+            DiasMotivosInclusaoDeAlimentacaoCEMEI.objects.create(**dia_motivo)
+
+    def criar_quantidade_alunos_cei(self, quantidade_alunos_cei_da_inclusao_cemei, instance):
+        if not quantidade_alunos_cei_da_inclusao_cemei:
+            return
+        quantidade_alunos_cei_da_inclusao_cemei = [dict(item, **{'inclusao_alimentacao_cemei': instance})
+                                                   for item in quantidade_alunos_cei_da_inclusao_cemei]
+        for quantidade_alunos_cei in quantidade_alunos_cei_da_inclusao_cemei:
+            QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI.objects.create(
+                **quantidade_alunos_cei)
+
+    def criar_quantidade_alunos_emei(self, quantidade_alunos_emei_da_inclusao_cemei, instance):
+        if not quantidade_alunos_emei_da_inclusao_cemei:
+            return
+        quantidade_alunos_emei_da_inclusao_cemei = [dict(item, **{'inclusao_alimentacao_cemei': instance})
+                                                    for item in quantidade_alunos_emei_da_inclusao_cemei]
+        for quantidade_alunos_emei in quantidade_alunos_emei_da_inclusao_cemei:
+            QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI.objects.create(
+                **quantidade_alunos_emei)
+
+    def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
         dias_motivos_da_inclusao_cemei = validated_data.pop('dias_motivos_da_inclusao_cemei')
         quantidade_alunos_cei_da_inclusao_cemei = validated_data.pop('quantidade_alunos_cei_da_inclusao_cemei', [])
         quantidade_alunos_emei_da_inclusao_cemei = validated_data.pop('quantidade_alunos_emei_da_inclusao_cemei', [])
         inclusao_da_cemei = InclusaoDeAlimentacaoCEMEI.objects.create(**validated_data)
 
-        dias_motivos_da_inclusao_cemei = [dict(item, **{'inclusao_alimentacao_cemei': inclusao_da_cemei})
-                                          for item in dias_motivos_da_inclusao_cemei]
-        for dia_motivo in dias_motivos_da_inclusao_cemei:
-            DiasMotivosInclusaoDeAlimentacaoCEMEI.objects.create(**dia_motivo)
-
-        if quantidade_alunos_cei_da_inclusao_cemei:
-            quantidade_alunos_cei_da_inclusao_cemei = [dict(item, **{'inclusao_alimentacao_cemei': inclusao_da_cemei})
-                                                       for item in quantidade_alunos_cei_da_inclusao_cemei]
-            for quantidade_alunos_cei in quantidade_alunos_cei_da_inclusao_cemei:
-                QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI.objects.create(
-                    **quantidade_alunos_cei)
-
-        if quantidade_alunos_emei_da_inclusao_cemei:
-            quantidade_alunos_emei_da_inclusao_cemei = [dict(item, **{'inclusao_alimentacao_cemei': inclusao_da_cemei})
-                                                        for item in quantidade_alunos_emei_da_inclusao_cemei]
-            for quantidade_alunos_emei in quantidade_alunos_emei_da_inclusao_cemei:
-                QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI.objects.create(
-                    **quantidade_alunos_emei)
+        self.criar_dias_motivos(dias_motivos_da_inclusao_cemei, inclusao_da_cemei)
+        self.criar_quantidade_alunos_cei(quantidade_alunos_cei_da_inclusao_cemei, inclusao_da_cemei)
+        self.criar_quantidade_alunos_emei(quantidade_alunos_emei_da_inclusao_cemei, inclusao_da_cemei)
 
         return inclusao_da_cemei
+
+    def update(self, instance, validated_data):
+        instance.dias_motivos_da_inclusao_cemei.all().delete()
+        instance.quantidade_alunos_cei_da_inclusao_cemei.all().delete()
+        instance.quantidade_alunos_emei_da_inclusao_cemei.all().delete()
+
+        dias_motivos_da_inclusao_cemei = validated_data.pop('dias_motivos_da_inclusao_cemei')
+        quantidade_alunos_cei_da_inclusao_cemei = validated_data.pop('quantidade_alunos_cei_da_inclusao_cemei', [])
+        quantidade_alunos_emei_da_inclusao_cemei = validated_data.pop('quantidade_alunos_emei_da_inclusao_cemei', [])
+
+        self.criar_dias_motivos(dias_motivos_da_inclusao_cemei, instance)
+        self.criar_quantidade_alunos_cei(quantidade_alunos_cei_da_inclusao_cemei, instance)
+        self.criar_quantidade_alunos_emei(quantidade_alunos_emei_da_inclusao_cemei, instance)
+
+        return instance
 
     class Meta:
         model = InclusaoDeAlimentacaoCEMEI

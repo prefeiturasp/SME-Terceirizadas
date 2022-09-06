@@ -4,6 +4,7 @@ from ....cardapio.api.serializers.serializers import TipoAlimentacaoSimplesSeria
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....escola.api.serializers import (
     EscolaSimplesSerializer,
+    EscolaSimplissimaSerializer,
     FaixaEtariaSerializer,
     PeriodoEscolarSerializer,
     PeriodoEscolarSimplesSerializer
@@ -20,6 +21,12 @@ from ....inclusao_alimentacao.models import (
     QuantidadePorPeriodo
 )
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
+from ...models import (
+    DiasMotivosInclusaoDeAlimentacaoCEMEI,
+    InclusaoDeAlimentacaoCEMEI,
+    QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI,
+    QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI
+)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
@@ -160,3 +167,40 @@ class GrupoInclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerialize
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
         exclude = ('id', 'criado_por', 'escola')
+
+
+class DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
+    motivo = MotivoInclusaoNormalSerializer()
+
+    class Meta:
+        model = DiasMotivosInclusaoDeAlimentacaoCEMEI
+        exclude = ('id',)
+
+
+class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+
+    class Meta:
+        model = QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI
+        exclude = ('id',)
+
+
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+    faixa_etaria = FaixaEtariaSerializer()
+
+    class Meta:
+        model = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI
+        exclude = ('id',)
+
+
+class InclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
+    escola = EscolaSimplissimaSerializer()
+    dias_motivos_da_inclusao_cemei = DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(many=True)
+    quantidade_alunos_cei_da_inclusao_cemei = (
+        QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEISerializer(many=True))
+    quantidade_alunos_emei_da_inclusao_cemei = QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(many=True)
+
+    class Meta:
+        model = InclusaoDeAlimentacaoCEMEI
+        exclude = ('id',)

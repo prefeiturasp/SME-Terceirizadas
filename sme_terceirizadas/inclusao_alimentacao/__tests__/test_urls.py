@@ -536,3 +536,46 @@ def test_terceirizada_marca_conferencia_inclusoes_alimentacao_continua_viewset(c
         client_autenticado,
         InclusaoAlimentacaoContinua,
         'inclusoes-alimentacao-continua')
+
+
+def test_url_endpoint_inclusao_cemei(client_autenticado_vinculo_escola_inclusao):
+    data = {'escola': '230453bb-d6f1-4513-b638-8d6d150d1ac6',
+            'dias_motivos_da_inclusao_cemei': [{
+                'data': '2022-01-02', 'motivo': '803f0508-2abd-4874-ad05-95a4fb29947e'}],
+            'quantidade_alunos_cei_da_inclusao_cemei': [{
+                'periodo_escolar': '208f7cb4-b03a-4357-ab6d-bda078a37748',
+                'quantidade_alunos': 40,
+                'matriculados_quando_criado': 666,
+                'faixa_etaria': 'ee77f350-6af8-4928-86d6-684fbf423ff5'
+            }],
+            'quantidade_alunos_emei_da_inclusao_cemei': [
+                {'periodo_escolar': '208f7cb4-b03a-4357-ab6d-bda078a37748',
+                 'quantidade_alunos': 30,
+                 'matriculados_quando_criado': 46}]
+            }
+    response = client_autenticado_vinculo_escola_inclusao.post('/inclusao-alimentacao-cemei/',
+                                                               content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_201_CREATED
+    response_json = response.json()
+    assert response_json['criado_por'] is not None
+    assert len(response_json['dias_motivos_da_inclusao_cemei']) == 1
+    assert len(response_json['quantidade_alunos_cei_da_inclusao_cemei']) == 1
+    assert len(response_json['quantidade_alunos_emei_da_inclusao_cemei']) == 1
+
+    response = client_autenticado_vinculo_escola_inclusao.get(f'/inclusao-alimentacao-cemei/{response_json["uuid"]}/')
+    assert response.status_code == status.HTTP_200_OK
+
+    data['dias_motivos_da_inclusao_cemei'] = [
+        {'data': '2022-01-02', 'motivo': '803f0508-2abd-4874-ad05-95a4fb29947e'},
+        {'data': '2022-01-03', 'motivo': '803f0508-2abd-4874-ad05-95a4fb29947e'},
+        {'data': '2022-01-04', 'motivo': '803f0508-2abd-4874-ad05-95a4fb29947e'}
+    ]
+    del data['quantidade_alunos_cei_da_inclusao_cemei']
+
+    response = client_autenticado_vinculo_escola_inclusao.patch(f'/inclusao-alimentacao-cemei/{response_json["uuid"]}/',
+                                                                content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert len(response_json['dias_motivos_da_inclusao_cemei']) == 3
+    assert len(response_json['quantidade_alunos_cei_da_inclusao_cemei']) == 0
+    assert len(response_json['quantidade_alunos_emei_da_inclusao_cemei']) == 1

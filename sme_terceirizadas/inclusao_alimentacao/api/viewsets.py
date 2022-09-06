@@ -510,9 +510,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, EscolaIniciaCancela, DREV
 class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = InclusaoDeAlimentacaoCEMEI.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, UsuarioEscola)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.InclusaoDeAlimentacaoCEMEICreateSerializer
-        return serializers.InclusaoAlimentacaoContinuaSerializer
+        return serializers.InclusaoDeAlimentacaoCEMEISerializer
