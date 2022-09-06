@@ -198,8 +198,9 @@ class LogSolicitacoesUsuario(
         SOLICITACAO_REMESSA_PAPA,
         SOLICITACAO_DE_ALTERACAO_REQUISICAO,
         ABASTECIMENTO_GUIA_DE_REMESSA,
-        MEDICAO_INICIAL
-    ) = range(16)
+        MEDICAO_INICIAL,
+        INCLUSAO_ALIMENTACAO_CEMEI
+    ) = range(17)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -219,6 +220,7 @@ class LogSolicitacoesUsuario(
         (SOLICITACAO_DE_ALTERACAO_REQUISICAO, 'Solicitação de Ateração de requisição'),
         (ABASTECIMENTO_GUIA_DE_REMESSA, 'Abastecimento de guia de remessa'),
         (MEDICAO_INICIAL, 'Solicitação de medição inicial'),
+        (INCLUSAO_ALIMENTACAO_CEMEI, 'Inclusão de Alimentação CEMEI')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
