@@ -507,12 +507,36 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, EscolaIniciaCancela, DREV
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
 
 
-class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet):
+class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela):
     lookup_field = 'uuid'
     queryset = InclusaoDeAlimentacaoCEMEI.objects.all()
-    permission_classes = (IsAuthenticated, UsuarioEscola)
+    permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.InclusaoDeAlimentacaoCEMEICreateSerializer
         return serializers.InclusaoDeAlimentacaoCEMEISerializer
+
+    def get_permissions(self):
+        if self.action in ['list']:
+            self.permission_classes = (UsuarioEscola,)
+        elif self.action in ['retrieve', 'update']:
+            self.permission_classes = (
+                IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create', 'destroy']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(InclusaoAlimentacaoCEMEIViewSet, self).get_permissions()
+
+    def get_queryset(self):
+        queryset = InclusaoDeAlimentacaoCEMEI.objects.filter(escola=self.request.user.vinculo_atual.instituicao)
+        if 'status' in self.request.query_params:
+            queryset = queryset.filter(status=self.request.query_params.get('status').upper())
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        inclusao_alimentacao_cemei = self.get_object()
+        if inclusao_alimentacao_cemei.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
