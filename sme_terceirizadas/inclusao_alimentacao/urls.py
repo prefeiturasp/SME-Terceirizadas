@@ -15,6 +15,8 @@ router.register('inclusoes-alimentacao-continua', viewsets.InclusaoAlimentacaoCo
                 basename='inclusao-alimentacao-continua')
 router.register('inclusoes-alimentacao-da-cei', viewsets.InclusaoAlimentacaoDaCEIViewSet,
                 basename='inclusao-alimentacao-da-cei')
+router.register('inclusao-alimentacao-cemei', viewsets.InclusaoAlimentacaoCEMEIViewSet,
+                basename='inclusao-alimentacao-cemei')
 
 urlpatterns = [
     path('', include(router.urls))

@@ -277,6 +277,7 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
 
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
     posicao = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
+    tipo_turno = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
 
     class Meta:
         ordering = ('posicao',)
@@ -313,6 +314,20 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         quantidade = AlunosMatriculadosPeriodoEscola.objects.filter(
             escola=self, tipo_turma='REGULAR').aggregate(Sum('quantidade_alunos'))
         return quantidade.get('quantidade_alunos__sum') or 0
+
+    @property
+    def quantidade_alunos_cei_da_cemei(self):
+        if self.tipo_unidade and self.tipo_unidade.iniciais != 'CEMEI':
+            return None
+        return self.aluno_set.filter(Q(serie__icontains='1') | Q(serie__icontains='2')
+                                     | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+
+    @property
+    def quantidade_alunos_emei_da_cemei(self):
+        if self.tipo_unidade and self.tipo_unidade.iniciais != 'CEMEI':
+            return None
+        return self.aluno_set.exclude(Q(serie__icontains='1') | Q(serie__icontains='2')
+                                      | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
 
     @property
     def alunos_por_periodo_escolar(self):
