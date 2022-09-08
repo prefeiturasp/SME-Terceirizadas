@@ -48,6 +48,7 @@ from ..forms import AlunosPorFaixaEtariaForm
 from ..models import (
     Aluno,
     Codae,
+    DiaCalendario,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
@@ -65,6 +66,7 @@ from ..utils import EscolaSimplissimaPagination
 from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
+    DiaCalendarioSerializer,
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
@@ -529,6 +531,25 @@ class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
         if self.action == 'create':
             return MudancaFaixasEtariasCreateSerializer
         return FaixaEtariaSerializer
+
+
+class DiaCalendarioViewSet(ModelViewSet):
+    serializer_class = DiaCalendarioSerializer
+    queryset = DiaCalendario.objects.all()
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = DiaCalendario.objects.all()
+
+        escola_uuid = self.request.query_params.get('escola_uuid', '')
+        mes = self.request.query_params.get('mes', '')
+        ano = self.request.query_params.get('ano', '')
+
+        queryset = queryset.filter(escola__uuid=escola_uuid,
+                                   data__month=mes,
+                                   data__year=ano)
+
+        return queryset
 
 
 def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):

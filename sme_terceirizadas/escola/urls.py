@@ -45,6 +45,8 @@ router.register('alunos', viewsets.AlunoViewSet,
                 basename='alunos')
 router.register('matriculados-no-mes', viewsets.LogAlunosMatriculadosPeriodoEscolaViewSet,
                 basename='matriculados-no-mes')
+router.register('dias-calendario', viewsets.DiaCalendarioViewSet,
+                basename='dias-calendario')
 
 urlpatterns = [
     path('', include(router.urls))

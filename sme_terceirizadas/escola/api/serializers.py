@@ -12,6 +12,7 @@ from ...terceirizada.models import Terceirizada
 from ..models import (
     Aluno,
     Codae,
+    DiaCalendario,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
@@ -103,6 +104,18 @@ class LogAlunosMatriculadosPeriodoEscolaSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogAlunosMatriculadosPeriodoEscola
         exclude = ('id', 'uuid', 'observacao')
+
+
+class DiaCalendarioSerializer(serializers.ModelSerializer):
+    escola = serializers.CharField(source='escola.nome')
+    dia = serializers.SerializerMethodField()
+
+    def get_dia(self, obj):
+        return obj.data.strftime('%d')
+
+    class Meta:
+        model = DiaCalendario
+        exclude = ('id', 'uuid')
 
 
 class TipoUnidadeEscolarSerializerSimples(serializers.ModelSerializer):
