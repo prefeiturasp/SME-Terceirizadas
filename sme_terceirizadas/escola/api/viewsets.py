@@ -53,6 +53,7 @@ from ..models import (
     EscolaPeriodoEscolar,
     FaixaEtaria,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+    LogAlunosMatriculadosPeriodoEscola,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
@@ -70,6 +71,7 @@ from .serializers import (
     EscolaListagemSimplissimaComDRESelializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
+    LogAlunosMatriculadosPeriodoEscolaSerializer,
     PeriodoEFaixaEtariaCounterSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
@@ -342,6 +344,29 @@ class TipoUnidadeEscolarViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     serializer_class = TipoUnidadeEscolarSerializer
     queryset = TipoUnidadeEscolar.objects.all()
+
+
+class LogAlunosMatriculadosPeriodoEscolaViewSet(ModelViewSet):
+    serializer_class = LogAlunosMatriculadosPeriodoEscolaSerializer
+    queryset = LogAlunosMatriculadosPeriodoEscola.objects.all()
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = LogAlunosMatriculadosPeriodoEscola.objects.all()
+
+        escola_uuid = self.request.query_params.get('escola_uuid', '')
+        mes = self.request.query_params.get('mes', '')
+        ano = self.request.query_params.get('ano', '')
+        tipo_turma = self.request.query_params.get('tipo_turma', '')
+        periodo_escolar = self.request.query_params.get('periodo_escolar', '')
+
+        queryset = queryset.filter(escola__uuid=escola_uuid,
+                                   criado_em__month=mes,
+                                   criado_em__year=ano,
+                                   tipo_turma=tipo_turma,
+                                   periodo_escolar__uuid=periodo_escolar)
+
+        return queryset
 
 
 class EscolaPeriodoEscolarViewSet(ModelViewSet):
