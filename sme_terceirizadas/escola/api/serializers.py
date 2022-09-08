@@ -17,6 +17,7 @@ from ..models import (
     EscolaPeriodoEscolar,
     FaixaEtaria,
     FaixaIdadeEscolar,
+    LogAlunosMatriculadosPeriodoEscola,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
@@ -90,6 +91,18 @@ class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoUnidadeEscolar
         exclude = ('id', 'cardapios')
+
+
+class LogAlunosMatriculadosPeriodoEscolaSerializer(serializers.ModelSerializer):
+    dia = serializers.SerializerMethodField()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+
+    def get_dia(self, obj):
+        return obj.criado_em.strftime('%d')
+
+    class Meta:
+        model = LogAlunosMatriculadosPeriodoEscola
+        exclude = ('id', 'uuid', 'observacao')
 
 
 class TipoUnidadeEscolarSerializerSimples(serializers.ModelSerializer):
