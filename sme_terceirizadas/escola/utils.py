@@ -32,6 +32,18 @@ def remove_acentos(texto):
     return resultado
 
 
+def update_datetime_LogAlunosMatriculadosPeriodoEscola():
+    from sme_terceirizadas.escola.models import (
+        LogAlunosMatriculadosPeriodoEscola,
+    )
+    hoje = date.today()
+    logs_hoje = LogAlunosMatriculadosPeriodoEscola.objects.filter(criado_em__date=hoje)
+
+    for log in logs_hoje:
+        log.criado_em = log.criado_em - timedelta(days=1)
+        log.save()
+
+
 def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
     from sme_terceirizadas.escola.models import (
         AlunosMatriculadosPeriodoEscola,
@@ -72,6 +84,7 @@ def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
             tipo_turma=tipo_turma,
             escola=escola).exclude(periodo_escolar__in=periodos).delete()
     AlunosMatriculadosPeriodoEscola.objects.bulk_update(objs, ['quantidade_alunos'])
+    update_datetime_LogAlunosMatriculadosPeriodoEscola()
 
 
 def duplica_dia_anterior(dre, ontem, tipo_turma_name):
@@ -91,6 +104,7 @@ def duplica_dia_anterior(dre, ontem, tipo_turma_name):
         )
         logs_para_criar.append(log)
     LogAlunosMatriculadosPeriodoEscola.objects.bulk_create(logs_para_criar)
+    update_datetime_LogAlunosMatriculadosPeriodoEscola()
 
 
 def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
