@@ -107,6 +107,7 @@ class DiretoriaRegionalAdmin(admin.ModelAdmin):
 @admin.register(Aluno)
 class AlunoAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'escola')
+    list_filter = ('periodo_escolar',)
     search_fields = ('nome', 'escola__nome', 'codigo_eol', 'escola__codigo_eol')
 
 

@@ -3,6 +3,7 @@ from collections import Counter
 from datetime import date
 from enum import Enum
 
+import unidecode
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
@@ -317,14 +318,28 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def quantidade_alunos_cei_da_cemei(self):
-        if self.tipo_unidade and self.tipo_unidade.iniciais != 'CEMEI':
+        if not self.eh_cemei:
             return None
         return self.aluno_set.filter(Q(serie__icontains='1') | Q(serie__icontains='2')
                                      | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
 
+    def quantidade_alunos_cei_por_periodo(self, periodo):
+        if not self.eh_cemei:
+            return None
+        return self.aluno_set.filter(periodo_escolar__nome=periodo).filter(
+            Q(serie__icontains='1') | Q(serie__icontains='2')
+            | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+
+    def quantidade_alunos_emei_por_periodo(self, periodo):
+        if not self.eh_cemei:
+            return None
+        return self.aluno_set.filter(periodo_escolar__nome=periodo).exclude(
+            Q(serie__icontains='1') | Q(serie__icontains='2')
+            | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+
     @property
     def quantidade_alunos_emei_da_cemei(self):
-        if self.tipo_unidade and self.tipo_unidade.iniciais != 'CEMEI':
+        if not self.eh_cemei:
             return None
         return self.aluno_set.exclude(Q(serie__icontains='1') | Q(serie__icontains='2')
                                       | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
@@ -356,6 +371,36 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
                 data_inicial__isnull=False, data_final=None, ativo=True
             )  # noqa W504 ativo
         ).exclude(perfil__nome=COORDENADOR_ESCOLA)
+
+    @property
+    def eh_cemei(self):
+        return self.tipo_unidade and self.tipo_unidade.iniciais == 'CEMEI'
+
+    @property
+    def periodos_escolares_com_alunos(self):
+        return list(self.aluno_set.values_list('periodo_escolar__nome', flat=True).distinct())
+
+    @property  # noqa C901
+    def quantidade_alunos_por_cei_emei(self):
+        if not self.eh_cemei:
+            return None
+        return_dict = {}
+        alunos_por_periodo_e_faixa_etaria = self.alunos_por_periodo_e_faixa_etaria()
+        dict_normalizado = {unidecode.unidecode(faixa): dict(quantidade_alunos.items())
+                            for faixa, quantidade_alunos in alunos_por_periodo_e_faixa_etaria.items()}
+        lista_faixas = {}
+        for periodo, dict_faixas in dict_normalizado.items():
+            lista_faixas[periodo] = []
+            for uuid_, quantidade_alunos in dict_faixas.items():
+                lista_faixas[periodo].append({'uuid': uuid_,
+                                              'faixa': FaixaEtaria.objects.get(uuid=uuid_).__str__(),
+                                              'quantidade_alunos': quantidade_alunos})
+
+        for periodo in self.periodos_escolares_com_alunos:
+            return_dict[periodo] = {}
+            return_dict[periodo]['CEI'] = lista_faixas[periodo]
+            return_dict[periodo]['EMEI'] = self.quantidade_alunos_emei_por_periodo(periodo)
+        return return_dict
 
     @property
     def grupos_inclusoes(self):
