@@ -388,6 +388,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         alunos_por_periodo_e_faixa_etaria = self.alunos_por_periodo_e_faixa_etaria()
         dict_normalizado = {unidecode.unidecode(faixa): dict(quantidade_alunos.items())
                             for faixa, quantidade_alunos in alunos_por_periodo_e_faixa_etaria.items()}
+
         lista_faixas = {}
         for periodo, dict_faixas in dict_normalizado.items():
             lista_faixas[periodo] = []
@@ -400,7 +401,16 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             return_dict[periodo] = {}
             return_dict[periodo]['CEI'] = lista_faixas[periodo]
             return_dict[periodo]['EMEI'] = self.quantidade_alunos_emei_por_periodo(periodo)
-        return return_dict
+
+        return_array = []
+        indice = 0
+        for periodo, cei_emei in return_dict.items():
+            return_array.append({'nome': periodo})
+            for key, value in cei_emei.items():
+                return_array[indice][key] = value
+            indice += 1
+
+        return return_array
 
     @property
     def grupos_inclusoes(self):
