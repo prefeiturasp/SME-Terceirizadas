@@ -123,8 +123,8 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         data_troca_nao_pode_ser_superior_a_data_inversao(data_de, data_para)
         nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de, data_para, escola)
         nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para)
-        deve_ser_dia_letivo(escola, data_de)
-        deve_ser_dia_letivo(escola, data_para)
+        # deve_ser_dia_letivo(escola, data_de)
+        # deve_ser_dia_letivo(escola, data_para)
         return attrs
 
     def create(self, validated_data):
@@ -154,7 +154,7 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = InversaoCardapio
-        fields = ('uuid', 'motivo', 'observacao', 'data_de', 'data_para', 'escola', 'status_explicacao')
+        fields = ('uuid', 'motivo', 'observacao', 'data_de', 'data_para', 'escola', 'status_explicacao', 'alunos_da_cemei')
 
 
 class CardapioCreateSerializer(serializers.ModelSerializer):
