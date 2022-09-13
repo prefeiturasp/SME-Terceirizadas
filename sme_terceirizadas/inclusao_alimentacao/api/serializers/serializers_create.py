@@ -415,6 +415,9 @@ class InclusaoDeAlimentacaoCEMEICreateSerializer(serializers.ModelSerializer):
                 **quantidade_alunos_emei)
 
     def create(self, validated_data):
+        if 'status' in validated_data:
+            validated_data.pop('status')
+
         validated_data['criado_por'] = self.context['request'].user
         dias_motivos_da_inclusao_cemei = validated_data.pop('dias_motivos_da_inclusao_cemei')
         quantidade_alunos_cei_da_inclusao_cemei = validated_data.pop('quantidade_alunos_cei_da_inclusao_cemei', [])
