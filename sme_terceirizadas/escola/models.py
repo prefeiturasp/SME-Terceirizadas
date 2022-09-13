@@ -3,6 +3,7 @@ from collections import Counter
 from datetime import date
 from enum import Enum
 
+import unidecode
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
@@ -317,14 +318,28 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def quantidade_alunos_cei_da_cemei(self):
-        if self.tipo_unidade and self.tipo_unidade.iniciais != 'CEMEI':
+        if not self.eh_cemei:
             return None
         return self.aluno_set.filter(Q(serie__icontains='1') | Q(serie__icontains='2')
                                      | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
 
+    def quantidade_alunos_cei_por_periodo(self, periodo):
+        if not self.eh_cemei:
+            return None
+        return self.aluno_set.filter(periodo_escolar__nome=periodo).filter(
+            Q(serie__icontains='1') | Q(serie__icontains='2')
+            | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+
+    def quantidade_alunos_emei_por_periodo(self, periodo):
+        if not self.eh_cemei:
+            return None
+        return self.aluno_set.filter(periodo_escolar__nome=periodo).exclude(
+            Q(serie__icontains='1') | Q(serie__icontains='2')
+            | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+
     @property
     def quantidade_alunos_emei_da_cemei(self):
-        if self.tipo_unidade and self.tipo_unidade.iniciais != 'CEMEI':
+        if not self.eh_cemei:
             return None
         return self.aluno_set.exclude(Q(serie__icontains='1') | Q(serie__icontains='2')
                                       | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
@@ -358,6 +373,49 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         ).exclude(perfil__nome=COORDENADOR_ESCOLA)
 
     @property
+    def eh_cemei(self):
+        return self.tipo_unidade and self.tipo_unidade.iniciais == 'CEMEI'
+
+    @property
+    def periodos_escolares_com_alunos(self):
+        return list(self.aluno_set.values_list('periodo_escolar__nome', flat=True).distinct())
+
+    @property  # noqa C901
+    def quantidade_alunos_por_cei_emei(self):
+        if not self.eh_cemei:
+            return None
+        return_dict = {}
+        alunos_por_periodo_e_faixa_etaria = self.alunos_por_periodo_e_faixa_etaria_objetos_alunos()
+        dict_normalizado = {unidecode.unidecode(faixa): dict(quantidade_alunos.items())
+                            for faixa, quantidade_alunos in alunos_por_periodo_e_faixa_etaria.items()}
+
+        lista_faixas = {}
+        for periodo, dict_faixas in dict_normalizado.items():
+            lista_faixas[periodo] = []
+            for uuid_, quantidade_alunos in dict_faixas.items():
+                lista_faixas[periodo].append({'uuid': uuid_,
+                                              'faixa': FaixaEtaria.objects.get(uuid=uuid_).__str__(),
+                                              'quantidade_alunos': quantidade_alunos})
+
+        for periodo in self.periodos_escolares_com_alunos:
+            return_dict[periodo] = {}
+            try:
+                return_dict[periodo]['CEI'] = lista_faixas[periodo]
+            except KeyError:
+                return_dict[periodo]['CEI'] = lista_faixas['INTEGRAL']
+            return_dict[periodo]['EMEI'] = self.quantidade_alunos_emei_por_periodo(periodo)
+
+        return_array = []
+        indice = 0
+        for periodo, cei_emei in return_dict.items():
+            return_array.append({'nome': periodo})
+            for key, value in cei_emei.items():
+                return_array[indice][key] = value
+            indice += 1
+
+        return return_array
+
+    @property
     def grupos_inclusoes(self):
         return self.grupos_inclusoes_normais
 
@@ -386,6 +444,29 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             if periodo not in resultados:
                 resultados[periodo] = Counter()
             data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+            for faixa_etaria in faixas_etarias:
+                if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
+                    resultados[periodo][str(faixa_etaria.uuid)] += 1
+
+        return resultados
+
+    def alunos_por_periodo_e_faixa_etaria_objetos_alunos(self, data_referencia=None, faixas_etarias=None):  # noqa C901
+        if data_referencia is None:
+            data_referencia = date.today()
+        if not faixas_etarias:
+            faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+        if faixas_etarias.count() == 0:
+            raise ObjectDoesNotExist()
+        lista_alunos = Aluno.objects.filter(escola__codigo_eol=self.codigo_eol).filter(
+            Q(serie__icontains='1') | Q(serie__icontains='2')
+            | Q(serie__icontains='3') | Q(serie__icontains='4'))
+
+        resultados = {}
+        for aluno in lista_alunos:
+            periodo = aluno.periodo_escolar.nome
+            if periodo not in resultados:
+                resultados[periodo] = Counter()
+            data_nascimento = aluno.data_nascimento
             for faixa_etaria in faixas_etarias:
                 if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
                     resultados[periodo][str(faixa_etaria.uuid)] += 1
