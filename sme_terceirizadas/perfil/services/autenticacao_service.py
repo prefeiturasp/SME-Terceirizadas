@@ -31,3 +31,18 @@ class AutenticacaoService:
         except Exception as e:
             LOG.info('ERROR - %s', str(e))
             raise e
+
+    @classmethod
+    def get_perfis_do_sistema(cls,):
+        try:
+            LOG.info('Buscando perfis do sistema no CoreSSO.')
+            response = requests.get(
+                f'{DJANGO_AUTENTICA_CORESSO_API_URL}/perfis/',
+                headers=cls.DEFAULT_HEADERS,
+                timeout=cls.DEFAULT_TIMEOUT
+            )
+            return response.json()
+
+        except Exception as e:
+            LOG.info('ERROR - %s', str(e))
+            raise e
