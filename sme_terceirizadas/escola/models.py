@@ -385,7 +385,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         if not self.eh_cemei:
             return None
         return_dict = {}
-        alunos_por_periodo_e_faixa_etaria = self.alunos_por_periodo_e_faixa_etaria()
+        alunos_por_periodo_e_faixa_etaria = self.alunos_por_periodo_e_faixa_etaria_objetos_alunos()
         dict_normalizado = {unidecode.unidecode(faixa): dict(quantidade_alunos.items())
                             for faixa, quantidade_alunos in alunos_por_periodo_e_faixa_etaria.items()}
 
@@ -399,7 +399,10 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
         for periodo in self.periodos_escolares_com_alunos:
             return_dict[periodo] = {}
-            return_dict[periodo]['CEI'] = lista_faixas[periodo]
+            try:
+                return_dict[periodo]['CEI'] = lista_faixas[periodo]
+            except KeyError:
+                return_dict[periodo]['CEI'] = lista_faixas['INTEGRAL']
             return_dict[periodo]['EMEI'] = self.quantidade_alunos_emei_por_periodo(periodo)
 
         return_array = []
@@ -441,6 +444,29 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             if periodo not in resultados:
                 resultados[periodo] = Counter()
             data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+            for faixa_etaria in faixas_etarias:
+                if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
+                    resultados[periodo][str(faixa_etaria.uuid)] += 1
+
+        return resultados
+
+    def alunos_por_periodo_e_faixa_etaria_objetos_alunos(self, data_referencia=None, faixas_etarias=None):  # noqa C901
+        if data_referencia is None:
+            data_referencia = date.today()
+        if not faixas_etarias:
+            faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+        if faixas_etarias.count() == 0:
+            raise ObjectDoesNotExist()
+        lista_alunos = Aluno.objects.filter(escola__codigo_eol=self.codigo_eol).filter(
+            Q(serie__icontains='1') | Q(serie__icontains='2')
+            | Q(serie__icontains='3') | Q(serie__icontains='4'))
+
+        resultados = {}
+        for aluno in lista_alunos:
+            periodo = aluno.periodo_escolar.nome
+            if periodo not in resultados:
+                resultados[periodo] = Counter()
+            data_nascimento = aluno.data_nascimento
             for faixa_etaria in faixas_etarias:
                 if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
                     resultados[periodo][str(faixa_etaria.uuid)] += 1
