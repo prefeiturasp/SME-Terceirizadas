@@ -17,6 +17,9 @@ router.register('solicitacoes-kit-lanche-cei-avulsa', viewsets.SolicitacaoKitLan
 router.register('solicitacoes-kit-lanche-unificada', viewsets.SolicitacaoKitLancheUnificadaViewSet,
                 basename='solicitacao-kit-lanche-unificada')
 
+router.register('solicitacao-kit-lanche-cemei', viewsets.SolicitacaoKitLancheCEMEIViewSet,
+                basename='solicitacao-kit-lanche-cemei')
+
 urlpatterns = [
     path('', include(router.urls))
 ]

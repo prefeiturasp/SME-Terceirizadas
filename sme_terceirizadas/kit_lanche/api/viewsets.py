@@ -25,7 +25,12 @@ from ...relatorios.relatorios import (
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
 from ..filters import KitLancheFilter
-from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheUnificada
+)
 from ..utils import KitLanchePagination
 from .serializers import serializers, serializers_create, serializers_create_cei
 
@@ -561,3 +566,14 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
             return Response(serializer.data)
         except Exception as e:
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
+
+
+class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacaoKitLancheCEMEI.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return serializers_create.SolicitacaoKitLancheCEMEICreateSerializer
+        return serializers.SolicitacaoKitLancheCEMEISerializer

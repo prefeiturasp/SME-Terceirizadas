@@ -19,6 +19,7 @@ from ...models import (
     SolicitacaoKitLanche,
     SolicitacaoKitLancheAvulsa,
     SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEMEI,
     SolicitacaoKitLancheUnificada
 )
 
@@ -208,3 +209,10 @@ class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoKitLancheCEIAvulsa
         exclude = ('id', 'criado_por')
+
+
+class SolicitacaoKitLancheCEMEISerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SolicitacaoKitLancheCEMEI
+        exclude = ('id',)

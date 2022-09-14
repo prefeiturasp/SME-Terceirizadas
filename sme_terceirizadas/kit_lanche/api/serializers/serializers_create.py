@@ -8,12 +8,16 @@ from ....dados_comuns.validators import (
     deve_ser_no_mesmo_ano_corrente,
     nao_pode_ser_no_passado
 )
-from ....escola.models import Aluno, DiretoriaRegional, Escola
+from ....escola.models import Aluno, DiretoriaRegional, Escola, FaixaEtaria
 from ...models import (
     EscolaQuantidade,
+    FaixasQuantidadesKitLancheCEIdaCEMEI,
     KitLanche,
     SolicitacaoKitLanche,
     SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIdaCEMEI,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheEMEIdaCEMEI,
     SolicitacaoKitLancheUnificada
 )
 from ..validators import (
@@ -306,3 +310,121 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
     class Meta:
         model = SolicitacaoKitLancheUnificada
         exclude = ('id', 'status')
+
+
+class FaixasQuantidadesKitLancheCEIdaCEMEICreateSerializer(serializers.ModelSerializer):
+    solicitacao_kit_lanche_cei_da_cemei = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=SolicitacaoKitLancheCEIdaCEMEI.objects.all())
+    faixa_etaria = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=FaixaEtaria.objects.all())
+
+    class Meta:
+        model = FaixasQuantidadesKitLancheCEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheCEIdaCEMEICreateSerializer(serializers.ModelSerializer):
+    kits = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=True,
+        queryset=KitLanche.objects.all())
+    alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=False,
+        queryset=Aluno.objects.all())
+    solicitacao_kit_lanche_cemei = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=SolicitacaoKitLancheCEMEI.objects.all()
+    )
+    faixas_quantidades = FaixasQuantidadesKitLancheCEIdaCEMEICreateSerializer(many=True)
+
+    class Meta:
+        model = SolicitacaoKitLancheCEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheEMEIdaCEMEICreateSerializer(serializers.ModelSerializer):
+    kits = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=True,
+        queryset=KitLanche.objects.all())
+    alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=False,
+        queryset=Aluno.objects.all())
+    solicitacao_kit_lanche_cemei = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=SolicitacaoKitLancheCEMEI.objects.all()
+    )
+
+    class Meta:
+        model = SolicitacaoKitLancheEMEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheCEMEICreateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Escola.objects.all()
+    )
+    solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEICreateSerializer(required=False)
+    solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEICreateSerializer(required=False)
+
+    def criar_solicitacao_cei(self, solicitacao_cei, instance):
+        if not solicitacao_cei:
+            return
+        kits = solicitacao_cei.pop('kits')
+        alunos_com_dieta_especial_participantes = solicitacao_cei.pop('alunos_com_dieta_especial_participantes', [])
+        faixas_quantidades = solicitacao_cei.pop('faixas_quantidades')
+        solicitacao_cei['solicitacao_kit_lanche_cemei'] = instance
+        solicitacao_kit_lanche_cei_da_cemei = SolicitacaoKitLancheCEIdaCEMEI.objects.create(
+            **solicitacao_cei)
+        solicitacao_kit_lanche_cei_da_cemei.kits.set(kits)
+        solicitacao_kit_lanche_cei_da_cemei.alunos_com_dieta_especial_participantes.set(
+            alunos_com_dieta_especial_participantes)
+
+        faixas_quantidades = [dict(item, **{'solicitacao_kit_lanche_cei_da_cemei': solicitacao_kit_lanche_cei_da_cemei})
+                              for item in faixas_quantidades]
+        for faixa_quantidade in faixas_quantidades:
+            FaixasQuantidadesKitLancheCEIdaCEMEI.objects.create(**faixa_quantidade)
+
+    def criar_solicitacao_emei(self, solicitacao_emei, instance):
+        if not solicitacao_emei:
+            return
+        kits = solicitacao_emei.pop('kits')
+        alunos_com_dieta_especial_participantes = solicitacao_emei.pop('alunos_com_dieta_especial_participantes', [])
+        solicitacao_emei['solicitacao_kit_lanche_cemei'] = instance
+        solicitacao_kit_lanche_emei_da_cemei = SolicitacaoKitLancheEMEIdaCEMEI.objects.create(
+            **solicitacao_emei)
+        solicitacao_kit_lanche_emei_da_cemei.kits.set(kits)
+        solicitacao_kit_lanche_emei_da_cemei.alunos_com_dieta_especial_participantes.set(
+            alunos_com_dieta_especial_participantes)
+
+    def create(self, validated_data):
+        if 'status' in validated_data:
+            validated_data.pop('status')
+
+        validated_data['criado_por'] = self.context['request'].user
+        solicitacao_cei = validated_data.pop('solicitacao_cei', None)
+        solicitacao_emei = validated_data.pop('solicitacao_emei', [])
+        solicitacao_kit_lanche_cemei = SolicitacaoKitLancheCEMEI.objects.create(**validated_data)
+
+        self.criar_solicitacao_cei(solicitacao_cei, solicitacao_kit_lanche_cemei)
+        self.criar_solicitacao_emei(solicitacao_emei, solicitacao_kit_lanche_cemei)
+
+        return solicitacao_kit_lanche_cemei
+
+    class Meta:
+        model = SolicitacaoKitLancheCEMEI
+        exclude = ('id',)

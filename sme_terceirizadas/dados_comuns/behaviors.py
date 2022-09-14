@@ -200,10 +200,6 @@ class TemPrioridade(object):
     Quando o objeto implementa o TemPrioridade, ele deve ter um property data
     """
 
-    @property
-    def data(self):
-        raise NotImplementedError('Deve implementar um property @data')
-
     @property  # noqa
     def prioridade(self):
         descricao = 'VENCIDO'
