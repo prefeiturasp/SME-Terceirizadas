@@ -201,6 +201,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
     vencidos = InversaoCardapioVencidaManager()
     data_de_inversao = models.DateField('Data de inversão', blank=True, null=True)
     data_para_inversao = models.DateField('Data para inversão', blank=True, null=True)
+    alunos_da_cemei = models.CharField('Alunos da CEMEI', blank=True, default='', max_length=50)
 
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
@@ -462,13 +463,14 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
         corpo = template.template_html
         return template.assunto, corpo
 
-    def salvar_log_transicao(self, status_evento, usuario):
+    def salvar_log_transicao(self, status_evento, usuario, justificativa=''):
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.SUSPENSAO_ALIMENTACAO_CEI,
             usuario=usuario,
-            uuid_original=self.uuid
+            uuid_original=self.uuid,
+            justificativa=justificativa
         )
 
     def __str__(self):

@@ -24,7 +24,8 @@ def escola():
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
-    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional,
+                      uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
 
 
 @pytest.fixture
@@ -310,7 +311,12 @@ def inclusao_alimentacao_continua_parametros(request):
 
 @pytest.fixture
 def motivo_inclusao_normal_nome():
-    return mommy.make(models.MotivoInclusaoNormal, nome='Passeio 5h')
+    return mommy.make(models.MotivoInclusaoNormal, nome='Passeio 5h', uuid='803f0508-2abd-4874-ad05-95a4fb29947e')
+
+
+@pytest.fixture
+def periodo_escolar():
+    return mommy.make('PeriodoEscolar', uuid='208f7cb4-b03a-4357-ab6d-bda078a37748')
 
 
 @pytest.fixture
@@ -319,7 +325,13 @@ def grupo_inclusao_alimentacao_nome():
 
 
 @pytest.fixture
-def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola, template_inclusao_normal):
+def faixa_etaria():
+    return mommy.make('FaixaEtaria', uuid='ee77f350-6af8-4928-86d6-684fbf423ff5')
+
+
+@pytest.fixture
+def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola, motivo_inclusao_normal_nome,
+                                               template_inclusao_normal, periodo_escolar, faixa_etaria):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,

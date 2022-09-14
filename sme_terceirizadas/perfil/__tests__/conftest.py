@@ -18,7 +18,7 @@ def perfil():
 
 @pytest.fixture
 def escola():
-    return mommy.make('Escola', nome='EscolaTeste')
+    return mommy.make('Escola', nome='EscolaTeste', uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
 
 
 @pytest.fixture

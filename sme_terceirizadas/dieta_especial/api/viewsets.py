@@ -39,6 +39,7 @@ from ...relatorios.relatorios import (
     relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas,
     relatorio_quantitativo_solic_dieta_especial
 )
+from ...terceirizada.models import Contrato
 from ..forms import (
     NegaDietaEspecialForm,
     PanoramaForm,
@@ -1125,7 +1126,12 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='lista-protocolos-liberados')
     def lista_protocolos_liberados(self, request):
-        protocolos_liberados = self.get_queryset().filter(status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO)
+        dieta_uuid = request.query_params.get('dieta_especial_uuid', None)
+        solicitacao = SolicitacaoDietaEspecial.objects.get(uuid=dieta_uuid)
+        escola = solicitacao.escola
+        editais_uuid = Contrato.objects.filter(lotes__in=[escola.lote]).values_list('edital__uuid', flat=True)
+        protocolos_liberados = self.get_queryset().filter(status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO,
+                                                          editais__uuid__in=editais_uuid)
         response = {'results': ProtocoloPadraoDietaEspecialSimplesSerializer(protocolos_liberados, many=True).data}
         return Response(response)
 

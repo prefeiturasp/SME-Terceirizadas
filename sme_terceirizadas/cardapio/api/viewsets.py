@@ -131,10 +131,13 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
     def filtro_por_escola(self, request, escola_uuid=None):
         escola = Escola.objects.get(uuid=escola_uuid)
         vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-            tipo_unidade_escolar=escola.tipo_unidade,
             periodo_escolar__in=escola.periodos_escolares,
             ativo=True
         ).order_by('periodo_escolar__posicao')
+        if escola.tipo_unidade.iniciais == 'CEMEI':
+            vinculos = vinculos.filter(tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
+        else:
+            vinculos = vinculos.filter(tipo_unidade_escolar=escola.tipo_unidade)
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -479,6 +482,18 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
         suspensao_de_alimentacao = self.get_object()
         try:
             suspensao_de_alimentacao.informa(user=request.user, )
+            serializer = self.get_serializer(suspensao_de_alimentacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=(UsuarioEscola,),
+            methods=['patch'], url_path=constants.CANCELA_SUSPENSAO_CEI)
+    def cancela_suspensao_cei(self, request, uuid=None):
+        suspensao_de_alimentacao = self.get_object()
+        try:
+            justificativa = request.data.get('justificativa')
+            suspensao_de_alimentacao.escola_cancela(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(suspensao_de_alimentacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:

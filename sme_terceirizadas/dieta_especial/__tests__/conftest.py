@@ -14,6 +14,7 @@ from ...eol_servico.utils import EOLService
 from ...escola.models import Aluno
 from ...perfil.models import Usuario
 from ...produto.models import Produto
+from ...terceirizada.models import Edital
 from ..models import AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial
 
 fake = Faker('pt_BR')
@@ -256,6 +257,18 @@ def escola():
         diretoria_regional=diretoria_regional
     )
     return escola
+
+
+@pytest.fixture
+def massa_dados_protocolo_padrao_test(solicitacao_dieta_especial):
+    lote = solicitacao_dieta_especial.escola.lote
+    edital_1 = Edital.objects.get(uuid='b7b6a0a7-b230-4783-94b6-8d3d22041ab3')
+    edital_2 = Edital.objects.get(uuid='60f5a64e-8652-422d-a6e9-0a36717829c9')
+    contrato_1 = mommy.make('Contrato', lotes=[lote], edital=edital_1)
+    contrato_2 = mommy.make('Contrato', lotes=[lote], edital=edital_2)
+    return {'editais': [edital_1.uuid, edital_2.uuid],
+            'dieta_uuid': solicitacao_dieta_especial.uuid,
+            'contratos': [contrato_1, contrato_2]}
 
 
 @pytest.fixture
