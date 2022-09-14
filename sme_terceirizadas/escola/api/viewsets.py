@@ -1,4 +1,4 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from openpyxl import Workbook, styles
@@ -6,6 +6,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from rest_framework import permissions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
@@ -522,6 +523,20 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
             return Response(status=response.status_code)
         except NovoSGPServicoLogadoException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=('GET',), url_path='quantidade-cemei-por-cei-emei',  # noqa C901
+            permission_classes=(IsAuthenticated,))
+    def quantidade_cemei_por_cei_emei(self, request):
+        try:
+            codigo_eol_escola = request.query_params.get('codigo_eol_escola', None)
+            if not codigo_eol_escola:
+                raise ValidationError('`codigo_eol_escola` como query_param é obrigatório')
+            escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
+            if not escola.eh_cemei:
+                raise ValidationError('escola não é CEMEI')
+            return Response(escola.quantidade_alunos_por_cei_emei, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
