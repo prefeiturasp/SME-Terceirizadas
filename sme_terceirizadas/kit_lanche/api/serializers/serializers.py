@@ -4,6 +4,7 @@ from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.api.serializers import (
     AlunoSerializer,
+    AlunoSimplesSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer,
     FaixaEtariaSerializer
@@ -14,12 +15,15 @@ from ....terceirizada.models import Edital
 from ...models import (
     EscolaQuantidade,
     FaixaEtariaSolicitacaoKitLancheCEIAvulsa,
+    FaixasQuantidadesKitLancheCEIdaCEMEI,
     ItemKitLanche,
     KitLanche,
     SolicitacaoKitLanche,
     SolicitacaoKitLancheAvulsa,
     SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEIdaCEMEI,
     SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheEMEIdaCEMEI,
     SolicitacaoKitLancheUnificada
 )
 
@@ -211,7 +215,37 @@ class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
         exclude = ('id', 'criado_por')
 
 
+class FaixasQuantidadesKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer):
+    faixa_etaria = FaixaEtariaSerializer()
+
+    class Meta:
+        model = FaixasQuantidadesKitLancheCEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer):
+    kits = KitLancheSimplesSerializer(many=True)
+    alunos_com_dieta_especial_participantes = AlunoSimplesSerializer(many=True)
+    faixas_quantidades = FaixasQuantidadesKitLancheCEIdaCEMEISerializer(many=True)
+
+    class Meta:
+        model = SolicitacaoKitLancheCEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheEMEIdaCEMEISerializer(serializers.ModelSerializer):
+    kits = KitLancheSimplesSerializer(many=True)
+    alunos_com_dieta_especial_participantes = AlunoSimplesSerializer(many=True)
+
+    class Meta:
+        model = SolicitacaoKitLancheEMEIdaCEMEI
+        exclude = ('id',)
+
+
 class SolicitacaoKitLancheCEMEISerializer(serializers.ModelSerializer):
+    solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEISerializer()
+    solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEISerializer()
+    escola = serializers.UUIDField(source='escola.uuid')
 
     class Meta:
         model = SolicitacaoKitLancheCEMEI

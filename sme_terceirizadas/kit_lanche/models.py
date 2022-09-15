@@ -392,6 +392,19 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
                                related_name='solicitacoes_kit_lanche_cemei')
     alunos_cei_e_ou_emei = models.CharField(choices=STATUS_CHOICES, max_length=10, default=TODOS)
 
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_CEMEI,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
+        )
+
     class Meta:
         verbose_name = 'Solicitação Kit Lanche CEMEI'
         verbose_name_plural = 'Solicitações Kit Lanche CEMEI'
@@ -402,6 +415,8 @@ class SolicitacaoKitLancheCEIdaCEMEI(TemChaveExterna, TempoPasseio):
     kits = models.ManyToManyField(KitLanche, blank=True)
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
     solicitacao_kit_lanche_cemei = models.OneToOneField(SolicitacaoKitLancheCEMEI,
+                                                        blank=True,
+                                                        null=True,
                                                         on_delete=models.CASCADE,
                                                         related_name='solicitacao_cei')
 
@@ -429,6 +444,8 @@ class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio):
     matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
     solicitacao_kit_lanche_cemei = models.OneToOneField(SolicitacaoKitLancheCEMEI,
+                                                        blank=True,
+                                                        null=True,
                                                         on_delete=models.CASCADE,
                                                         related_name='solicitacao_emei')
 

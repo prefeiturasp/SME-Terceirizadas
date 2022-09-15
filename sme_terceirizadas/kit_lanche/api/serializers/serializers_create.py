@@ -381,7 +381,8 @@ class SolicitacaoKitLancheCEMEICreateSerializer(serializers.ModelSerializer):
     solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEICreateSerializer(required=False)
     solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEICreateSerializer(required=False)
 
-    def criar_solicitacao_cei(self, solicitacao_cei, instance):
+    @staticmethod
+    def criar_solicitacao_cei(solicitacao_cei, instance):
         if not solicitacao_cei:
             return
         kits = solicitacao_cei.pop('kits')
@@ -399,7 +400,8 @@ class SolicitacaoKitLancheCEMEICreateSerializer(serializers.ModelSerializer):
         for faixa_quantidade in faixas_quantidades:
             FaixasQuantidadesKitLancheCEIdaCEMEI.objects.create(**faixa_quantidade)
 
-    def criar_solicitacao_emei(self, solicitacao_emei, instance):
+    @staticmethod
+    def criar_solicitacao_emei(solicitacao_emei, instance):
         if not solicitacao_emei:
             return
         kits = solicitacao_emei.pop('kits')
@@ -424,6 +426,29 @@ class SolicitacaoKitLancheCEMEICreateSerializer(serializers.ModelSerializer):
         self.criar_solicitacao_emei(solicitacao_emei, solicitacao_kit_lanche_cemei)
 
         return solicitacao_kit_lanche_cemei
+
+    def update(self, instance, validated_data):
+        if hasattr(instance, 'solicitacao_cei'):
+            solicitacao_cei = instance.solicitacao_cei
+            solicitacao_cei.kits.clear()
+            solicitacao_cei.alunos_com_dieta_especial_participantes.clear()
+            solicitacao_cei.solicitacao_kit_lanche_cemei = None
+            solicitacao_cei.delete()
+        if hasattr(instance, 'solicitacao_emei'):
+            solicitacao_emei = instance.solicitacao_emei
+            solicitacao_emei.kits.clear()
+            solicitacao_emei.alunos_com_dieta_especial_participantes.clear()
+            solicitacao_emei.solicitacao_kit_lanche_cemei = None
+            solicitacao_emei.delete()
+
+        solicitacao_cei = validated_data.pop('solicitacao_cei', None)
+        solicitacao_emei = validated_data.pop('solicitacao_emei', None)
+        update_instance_from_dict(instance, validated_data)
+
+        self.criar_solicitacao_cei(solicitacao_cei, instance)
+        self.criar_solicitacao_emei(solicitacao_emei, instance)
+
+        return instance
 
     class Meta:
         model = SolicitacaoKitLancheCEMEI
