@@ -14,7 +14,22 @@ from ...dados_comuns.tasks import envia_email_unico_task
 class Perfil(ExportModelOperationsMixin('perfil'), Nomeavel, Descritivel, Ativavel, TemChaveExterna):
     """Perfil do usuário Ex: Cogestor, Nutricionista. Cada perfil tem uma série de permissoes."""
 
+    # Visão Choices
+    ESCOLA = 'ESCOLA'
+    DRE = 'DRE'
+    CODAE = 'CODAE'
+    EMPRESA = 'EMPRESA'
+
+    VISAO_CHOICES = (
+        (ESCOLA, 'Escola'),
+        (DRE, 'Diretoria Regional'),
+        (CODAE, 'Codae'),
+        (EMPRESA, 'Empresa'),
+    )
+
     super_usuario = models.BooleanField('Super usuario na instiuição?', default=False)
+    visao = models.CharField( # noqa
+        'Visão', choices=VISAO_CHOICES, max_length=25, blank=True, null=True, default=None)
 
     class Meta:
         verbose_name = 'Perfil'

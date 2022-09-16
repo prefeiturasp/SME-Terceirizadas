@@ -19,6 +19,15 @@ def test_usuario(usuario):
     assert usuario.tipo_usuario == 'indefinido'
 
 
+def test_meta_modelo(perfil):
+    assert perfil._meta.verbose_name == 'Perfil'
+    assert perfil._meta.verbose_name_plural == 'Perfis'
+
+
+def test_instance_model(perfil):
+    assert isinstance(perfil, Perfil)
+
+
 def test_vinculo(vinculo):
     assert (isinstance(vinculo.data_final, datetime.date) or vinculo.data_final is None)
     assert isinstance(vinculo.usuario, Usuario)
