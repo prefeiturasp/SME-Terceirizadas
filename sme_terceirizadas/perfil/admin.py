@@ -89,6 +89,25 @@ class VinculoAdmin(admin.ModelAdmin):
         return super(VinculoAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
+    def get_content_type(self, value): # noqa
+        if value == 'CODAE':
+            return 'CODAE'
+        elif value == 'EMPRESA':
+            return 'Terceirizada'
+        elif value == 'DRE':
+            return 'Diretoria regional'
+        elif value == 'ESCOLA':
+            return 'Escola'
+
+    def save_model(self, request, obj, form, change):
+
+        content = obj.perfil.visao
+        if self.get_content_type(content) != str(obj.content_type):
+            return messages.error(request, f'A visão do perfil e o content type devem ser equivalentes!')
+        else:
+            super(VinculoAdmin, self).save_model(request, obj, form, change)
+
+
 @admin.register(PlanilhaDiretorCogestor)
 class PlanilhaDiretorCogestorAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'criado_em')
