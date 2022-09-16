@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='perfil',
             name='visao',
-            field=models.CharField(blank=True, choices=[('ESCOLA', 'Escola'), ('DRE', 'Diretoria Regional'), ('CODAE', 'Codae'), ('EMPRESA', 'Empresa')], default=None, max_length=25, verbose_name='Visão'),
+            field=models.CharField(blank=True, choices=[('ESCOLA', 'Escola'), ('DRE', 'Diretoria Regional'), ('CODAE', 'Codae'), ('EMPRESA', 'Empresa')], default=None, max_length=25, null=True, verbose_name='Visão'),
         ),
         migrations.RunPython(migrate_default_values)
     ]

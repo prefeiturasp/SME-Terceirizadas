@@ -28,8 +28,8 @@ class Perfil(ExportModelOperationsMixin('perfil'), Nomeavel, Descritivel, Ativav
     )
 
     super_usuario = models.BooleanField('Super usuario na instiuição?', default=False)
-    visao = models.CharField(
-        'Visão', choices=VISAO_CHOICES, max_length=25, blank=True, default=None)
+    visao = models.CharField( # noqa
+        'Visão', choices=VISAO_CHOICES, max_length=25, blank=True, null=True, default=None)
 
     class Meta:
         verbose_name = 'Perfil'
