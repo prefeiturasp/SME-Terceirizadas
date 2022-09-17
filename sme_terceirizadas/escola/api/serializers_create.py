@@ -85,6 +85,8 @@ class EscolaPeriodoEscolarCreateSerializer(serializers.ModelSerializer):
 
 
 class FaixaEtariaSerializer(serializers.ModelSerializer):
+    __str__ = serializers.CharField()
+
     def validate(self, attrs):
         if attrs['inicio'] >= attrs['fim']:
             raise serializers.ValidationError(

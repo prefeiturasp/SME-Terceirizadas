@@ -231,10 +231,8 @@ class SolicitacaoKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
         slug_field='uuid')
-    faixas_quantidades = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='uuid')
+    faixas_quantidades = FaixasQuantidadesKitLancheCEIdaCEMEISerializer(many=True)
+    tempo_passeio = serializers.CharField()
 
     class Meta:
         model = SolicitacaoKitLancheCEIdaCEMEI
