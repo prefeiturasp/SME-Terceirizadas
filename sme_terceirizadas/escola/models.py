@@ -415,6 +415,27 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
         return return_array
 
+    @property  # noqa C901
+    def quantidade_alunos_por_periodo_cei_emei(self):
+        if not self.eh_cemei:
+            return None
+        return_dict = {}
+
+        for periodo in self.periodos_escolares_com_alunos:
+            return_dict[periodo] = {}
+            return_dict[periodo]['CEI'] = self.quantidade_alunos_cei_por_periodo(periodo)
+            return_dict[periodo]['EMEI'] = self.quantidade_alunos_emei_por_periodo(periodo)
+
+        return_array = []
+        indice = 0
+        for periodo, cei_emei in return_dict.items():
+            return_array.append({'nome': periodo})
+            for key, value in cei_emei.items():
+                return_array[indice][key] = value
+            indice += 1
+
+        return return_array
+
     @property
     def grupos_inclusoes(self):
         return self.grupos_inclusoes_normais

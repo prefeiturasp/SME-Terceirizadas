@@ -306,6 +306,11 @@ class SuspensaoAlimentacao(ExportModelOperationsMixin('suspensao_alimentacao'), 
 
 
 class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quantidade_periodo'), TemChaveExterna):
+    CEI_OU_EMEI_CHOICES = [
+        ('TODOS', 'Todos'),
+        ('CEI', 'CEI'),
+        ('EMEI', 'EMEI'),
+    ]
     numero_alunos = models.SmallIntegerField()
     periodo_escolar = models.ForeignKey(
         'escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
@@ -313,6 +318,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quant
                                         blank=True, null=True, related_name='quantidades_por_periodo')
     # TODO: SUBSTITUIR POR COMBOS DO TIPO DE ALIMENTACAO
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
+    alunos_cei_ou_emei = models.CharField(max_length=10, choices=CEI_OU_EMEI_CHOICES, blank=True)
 
     def __str__(self):
         return f'Quantidade de alunos: {self.numero_alunos}'
