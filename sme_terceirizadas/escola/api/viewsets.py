@@ -538,6 +538,20 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
         except ValidationError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=('GET',), url_path='quantidade-alunos-por-periodo-cei-emei',  # noqa C901
+            permission_classes=(IsAuthenticated,))
+    def quantidade_alunos_por_periodo_cei_emei(self, request):
+        try:
+            codigo_eol_escola = request.query_params.get('codigo_eol_escola', None)
+            if not codigo_eol_escola:
+                raise ValidationError('`codigo_eol_escola` como query_param é obrigatório')
+            escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
+            if not escola.eh_cemei:
+                raise ValidationError('escola não é CEMEI')
+            return Response(escola.quantidade_alunos_por_periodo_cei_emei, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
 
 class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     queryset = FaixaEtaria.objects.filter(ativo=True)
