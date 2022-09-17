@@ -457,6 +457,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer(serializers.Model
         many=True,
         queryset=TipoAlimentacao.objects.all()
     )
+    alunos_cei_ou_emei = serializers.CharField(required=False)
 
     class Meta:
         model = QuantidadePorPeriodoSuspensaoAlimentacao
