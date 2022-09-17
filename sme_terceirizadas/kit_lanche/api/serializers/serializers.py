@@ -4,7 +4,6 @@ from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.api.serializers import (
     AlunoSerializer,
-    AlunoSimplesSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer,
     FaixaEtariaSerializer
@@ -224,9 +223,18 @@ class FaixasQuantidadesKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer
 
 
 class SolicitacaoKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer):
-    kits = KitLancheSimplesSerializer(many=True)
-    alunos_com_dieta_especial_participantes = AlunoSimplesSerializer(many=True)
-    faixas_quantidades = FaixasQuantidadesKitLancheCEIdaCEMEISerializer(many=True)
+    kits = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='uuid')
+    alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='uuid')
+    faixas_quantidades = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='uuid')
 
     class Meta:
         model = SolicitacaoKitLancheCEIdaCEMEI
@@ -234,8 +242,15 @@ class SolicitacaoKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoKitLancheEMEIdaCEMEISerializer(serializers.ModelSerializer):
-    kits = KitLancheSimplesSerializer(many=True)
-    alunos_com_dieta_especial_participantes = AlunoSimplesSerializer(many=True)
+    kits = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='uuid')
+    alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='uuid')
+    tempo_passeio = serializers.CharField()
 
     class Meta:
         model = SolicitacaoKitLancheEMEIdaCEMEI
@@ -245,6 +260,7 @@ class SolicitacaoKitLancheEMEIdaCEMEISerializer(serializers.ModelSerializer):
 class SolicitacaoKitLancheCEMEISerializer(serializers.ModelSerializer):
     solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEISerializer()
     solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEISerializer()
+    id_externo = serializers.CharField()
     escola = serializers.UUIDField(source='escola.uuid')
 
     class Meta:

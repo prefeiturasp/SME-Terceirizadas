@@ -428,6 +428,9 @@ class SolicitacaoKitLancheCEMEICreateSerializer(serializers.ModelSerializer):
         return solicitacao_kit_lanche_cemei
 
     def update(self, instance, validated_data):
+        if 'status' in validated_data:
+            validated_data.pop('status')
+
         if hasattr(instance, 'solicitacao_cei'):
             solicitacao_cei = instance.solicitacao_cei
             solicitacao_cei.kits.clear()
@@ -443,7 +446,9 @@ class SolicitacaoKitLancheCEMEICreateSerializer(serializers.ModelSerializer):
 
         solicitacao_cei = validated_data.pop('solicitacao_cei', None)
         solicitacao_emei = validated_data.pop('solicitacao_emei', None)
+
         update_instance_from_dict(instance, validated_data)
+        instance.save()
 
         self.criar_solicitacao_cei(solicitacao_cei, instance)
         self.criar_solicitacao_emei(solicitacao_emei, instance)

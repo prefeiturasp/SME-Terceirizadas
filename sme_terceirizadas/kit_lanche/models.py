@@ -18,6 +18,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     TemData,
     TemFaixaEtariaEQuantidade,
     TemIdentificadorExternoAmigavel,
+    TemObservacao,
     TempoPasseio,
     TemPrioridade,
     TemTerceirizadaConferiuGestaoAlimentacao
@@ -373,7 +374,7 @@ class EscolaQuantidade(ExportModelOperationsMixin('escola_quantidade'), TemChave
 
 
 class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo, CriadoEm,
+                                CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo, CriadoEm, TemObservacao,
                                 TemTerceirizadaConferiuGestaoAlimentacao):
     TODOS = 'TODOS'
     CEI = 'CEI'
