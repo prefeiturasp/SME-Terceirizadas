@@ -20,7 +20,7 @@ class Command(BaseCommand):
     timeout = 10
     contador_alunos = 0
     total_alunos = 0
-    status_matricula_ativa = [1, 6, 10, 13, 5]  # status para matrículas ativas
+    status_matricula_ativa = [1, 6, 10, 13]  # status para matrículas ativas
     codigo_turma_regular = 1  # código da turma para matrículas do tipo REGULAR
 
     def __init__(self):
