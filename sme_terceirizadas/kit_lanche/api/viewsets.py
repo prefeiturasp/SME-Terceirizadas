@@ -17,6 +17,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...inclusao_alimentacao.api.viewsets import EscolaIniciaCancela
 from ...relatorios.relatorios import (
     relatorio_kit_lanche_passeio,
     relatorio_kit_lanche_passeio_cei,
@@ -25,7 +26,12 @@ from ...relatorios.relatorios import (
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
 from ..filters import KitLancheFilter
-from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheUnificada
+)
 from ..utils import KitLanchePagination
 from .serializers import serializers, serializers_create, serializers_create_cei
 
@@ -561,3 +567,37 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
             return Response(serializer.data)
         except Exception as e:
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
+
+
+class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, EscolaIniciaCancela):
+    lookup_field = 'uuid'
+    queryset = SolicitacaoKitLancheCEMEI.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return serializers_create.SolicitacaoKitLancheCEMEICreateSerializer
+        return serializers.SolicitacaoKitLancheCEMEISerializer
+
+    def get_permissions(self):
+        if self.action in ['list']:
+            self.permission_classes = (UsuarioEscola,)
+        elif self.action in ['retrieve', 'update']:
+            self.permission_classes = (
+                IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create', 'destroy']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(SolicitacaoKitLancheCEMEIViewSet, self).get_permissions()
+
+    def get_queryset(self):
+        queryset = SolicitacaoKitLancheCEMEI.objects.filter(escola=self.request.user.vinculo_atual.instituicao)
+        if 'status' in self.request.query_params:
+            queryset = queryset.filter(status=self.request.query_params.get('status').upper())
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        solicitacao_kit_lanche_cemei = self.get_object()
+        if not solicitacao_kit_lanche_cemei.pode_excluir:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
