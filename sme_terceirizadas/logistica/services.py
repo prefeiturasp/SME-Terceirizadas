@@ -20,7 +20,7 @@ def inativa_tipos_de_embabalagem(queryset):
 
 
 def confirma_guias(solicitacao, user):
-    guias = Guia.objects.filter(solicitacao=solicitacao)
+    guias = Guia.objects.filter(solicitacao=solicitacao, status=GuiaStatus.AGUARDANDO_CONFIRMACAO)
     try:
         for guia in guias:
 
