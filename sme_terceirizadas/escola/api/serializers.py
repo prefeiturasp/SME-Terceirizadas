@@ -28,7 +28,7 @@ from ..models import (
 
 
 class FaixaEtariaSerializer(serializers.ModelSerializer):
-    __str__ = serializers.CharField()
+    __str__ = serializers.CharField(required=False)
 
     class Meta:
         model = FaixaEtaria
