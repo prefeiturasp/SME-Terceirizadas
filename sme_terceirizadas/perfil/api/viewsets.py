@@ -141,6 +141,10 @@ class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Perfil.objects.all()
     serializer_class = PerfilSerializer
 
+    @action(detail=False)
+    def visoes(self, request):
+        return Response(Perfil.visoes_to_json())
+
 
 class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
     permission_classes = (AllowAny,)
