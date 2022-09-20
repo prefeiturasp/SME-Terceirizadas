@@ -34,7 +34,7 @@ from .validators import (
 class PerfilSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Perfil
-        fields = ('nome', 'uuid')
+        fields = ('nome', 'uuid', 'visao')
 
 
 class PerfilSerializer(serializers.ModelSerializer):
@@ -77,7 +77,8 @@ class UsuarioVinculoSerializer(serializers.ModelSerializer):
             'date_joined',
             'registro_funcional',
             'tipo_usuario',
-            'cargo'
+            'cargo',
+            'username'
         )
 
 
@@ -88,6 +89,17 @@ class VinculoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vinculo
         fields = ('uuid', 'data_inicial', 'data_final', 'perfil', 'usuario')
+
+
+class VinculoSimplesSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='usuario.username')
+    nome_usuario = serializers.CharField(source='usuario.nome')
+    nome_perfil = serializers.CharField(source='perfil.nome')
+    visao_perfil = serializers.CharField(source='perfil.visao')
+
+    class Meta:
+        model = Vinculo
+        fields = ('uuid', 'username', 'nome_usuario', 'nome_perfil', 'visao_perfil')
 
 
 class UsuarioUpdateSerializer(serializers.ModelSerializer):

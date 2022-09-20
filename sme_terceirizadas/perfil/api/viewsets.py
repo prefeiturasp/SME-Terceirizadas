@@ -2,6 +2,7 @@ import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
+from django_filters import rest_framework as filters
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
 from rest_framework import status, viewsets
@@ -10,13 +11,17 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from sme_terceirizadas.perfil.models.perfil import Vinculo
+
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.models import Codae
 from ...terceirizada.models import Terceirizada
 from ..api.helpers import ofuscar_email
 from ..models import Perfil, Usuario
 from ..tasks import busca_cargo_de_usuario
-from .serializers import PerfilSerializer, UsuarioUpdateSerializer
+from ..utils import VinculoPagination
+from .filters import VinculoFilter
+from .serializers import PerfilSerializer, UsuarioUpdateSerializer, VinculoSerializer, VinculoSimplesSerializer
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -163,6 +168,29 @@ class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
 
         usuario.save()
         return Response(UsuarioDetalheSerializer(usuario).data)
+
+
+class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    lookup_field = 'uuid'
+    queryset = Vinculo.objects.all()
+    serializer_class = VinculoSerializer
+    pagination_class = VinculoPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = VinculoFilter
+
+    @action(detail=False, methods=['GET'], url_path='vinculos-ativos', permission_classes=(IsAuthenticated,))
+    def lista_vinculos_ativos(self, request):
+        queryset = [vinc for vinc in self.filter_queryset(self.get_queryset()) if vinc.status is Vinculo.STATUS_ATIVO]
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = VinculoSimplesSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+        response = VinculoSimplesSerializer(queryset, many=True).data
+        return Response(response)
 
 
 def exportar_planilha_importacao_usuarios_perfil_codae(request, **kwargs):
