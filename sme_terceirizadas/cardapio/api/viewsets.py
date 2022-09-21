@@ -25,6 +25,7 @@ from ...relatorios.relatorios import (
 from ..models import (
     AlteracaoCardapio,
     AlteracaoCardapioCEI,
+    AlteracaoCardapioCEMEI,
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
@@ -40,6 +41,7 @@ from ..models import (
 )
 from .serializers.serializers import (
     AlteracaoCardapioCEISerializer,
+    AlteracaoCardapioCEMEISerializer,
     AlteracaoCardapioSerializer,
     AlteracaoCardapioSimplesSerializer,
     CardapioSerializer,
@@ -59,6 +61,7 @@ from .serializers.serializers import (
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioCEISerializerCreate,
+    AlteracaoCardapioCEMEISerializerCreate,
     AlteracaoCardapioSerializerCreate,
     CardapioCreateSerializer,
     ComboDoVinculoTipoAlimentoSimplesSerializerCreate,
@@ -1000,6 +1003,33 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
             url_path=f'{constants.RELATORIO}')
     def relatorio(self, request, uuid=None):
         return relatorio_alteracao_cardapio_cei(request, solicitacao=self.get_object())
+
+
+class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet):
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return AlteracaoCardapioCEMEISerializerCreate
+        return AlteracaoCardapioCEMEISerializer
+
+    def get_queryset(self):
+        queryset = AlteracaoCardapioCEMEI.objects.filter(escola=self.request.user.vinculo_atual.instituicao)
+        if 'status' in self.request.query_params:
+            queryset = queryset.filter(status=self.request.query_params.get('status').upper())
+        return queryset
+
+    @action(detail=True,
+            permission_classes=(UsuarioEscola,),
+            methods=['patch'],
+            url_path=constants.ESCOLA_INICIO_PEDIDO)
+    def inicio_de_pedido(self, request, uuid=None):
+        obj = self.get_object()
+        try:
+            obj.inicia_fluxo(user=request.user, )
+            serializer = self.get_serializer(obj)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
