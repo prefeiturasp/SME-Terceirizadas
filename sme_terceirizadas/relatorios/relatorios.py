@@ -578,7 +578,8 @@ def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
         {
             'dados_agrupados': dados_agrupados,
             'filtros': filtros,
-            'qtde_filtros': conta_filtros(filtros)
+            'qtde_filtros': conta_filtros(filtros),
+            'exibe_coluna_terceirizada': request.user.tipo_usuario not in ['escola', 'terceirizada']
         }
     )
     return html_to_pdf_response(html_string, 'produtos_homologados_por_terceirizada.pdf')
