@@ -12,11 +12,13 @@ from ...terceirizada.models import Terceirizada
 from ..models import (
     Aluno,
     Codae,
+    DiaCalendario,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
     FaixaEtaria,
     FaixaIdadeEscolar,
+    LogAlunosMatriculadosPeriodoEscola,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
@@ -26,6 +28,7 @@ from ..models import (
 
 
 class FaixaEtariaSerializer(serializers.ModelSerializer):
+    __str__ = serializers.CharField(required=False)
 
     class Meta:
         model = FaixaEtaria
@@ -90,6 +93,30 @@ class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoUnidadeEscolar
         exclude = ('id', 'cardapios')
+
+
+class LogAlunosMatriculadosPeriodoEscolaSerializer(serializers.ModelSerializer):
+    dia = serializers.SerializerMethodField()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+
+    def get_dia(self, obj):
+        return obj.criado_em.strftime('%d')
+
+    class Meta:
+        model = LogAlunosMatriculadosPeriodoEscola
+        exclude = ('id', 'uuid', 'observacao')
+
+
+class DiaCalendarioSerializer(serializers.ModelSerializer):
+    escola = serializers.CharField(source='escola.nome')
+    dia = serializers.SerializerMethodField()
+
+    def get_dia(self, obj):
+        return obj.data.strftime('%d')
+
+    class Meta:
+        model = DiaCalendario
+        exclude = ('id', 'uuid')
 
 
 class TipoUnidadeEscolarSerializerSimples(serializers.ModelSerializer):
@@ -186,6 +213,8 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
             'nome',
             'codigo_eol',
             'quantidade_alunos',
+            'quantidade_alunos_cei_da_cemei',
+            'quantidade_alunos_emei_da_cemei',
             'periodos_escolares',
             'lote',
             'tipo_gestao',
@@ -371,20 +400,24 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
             return ContatoSerializer(obj.instituicao.contato).data
 
     def get_instituicao(self, obj):
-        return {'nome': obj.instituicao.nome,
-                'uuid': obj.instituicao.uuid,
-                'codigo_eol': self.get_codigo_eol(obj),
-                'quantidade_alunos': obj.instituicao.quantidade_alunos,
-                'lotes': self.get_lotes(obj),
-                'periodos_escolares': self.get_periodos_escolares(obj),
-                'escolas': self.get_escolas(obj),
-                'diretoria_regional': self.get_diretoria_regional(obj),
-                'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj),
-                'tipo_unidade_escolar_iniciais': self.get_tipo_unidade_escolar_iniciais(obj),
-                'tipo_gestao': self.get_tipo_gestao(obj),
-                'tipos_contagem': self.get_tipos_contagem(obj),
-                'endereco': self.get_endereco(obj),
-                'contato': self.get_contato(obj)}
+        instituicao_dict = {'nome': obj.instituicao.nome,
+                            'uuid': obj.instituicao.uuid,
+                            'codigo_eol': self.get_codigo_eol(obj),
+                            'quantidade_alunos': obj.instituicao.quantidade_alunos,
+                            'lotes': self.get_lotes(obj),
+                            'periodos_escolares': self.get_periodos_escolares(obj),
+                            'escolas': self.get_escolas(obj),
+                            'diretoria_regional': self.get_diretoria_regional(obj),
+                            'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj),
+                            'tipo_unidade_escolar_iniciais': self.get_tipo_unidade_escolar_iniciais(obj),
+                            'tipo_gestao': self.get_tipo_gestao(obj),
+                            'tipos_contagem': self.get_tipos_contagem(obj),
+                            'endereco': self.get_endereco(obj),
+                            'contato': self.get_contato(obj)}
+        if isinstance(obj.instituicao, Escola) and obj.instituicao.tipo_unidade.iniciais == 'CEMEI':
+            instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
+            instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
+        return instituicao_dict
 
     class Meta:
         model = Vinculo

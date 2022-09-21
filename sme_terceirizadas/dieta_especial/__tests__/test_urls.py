@@ -828,15 +828,16 @@ def test_cadastro_protocolo_dieta_especial_lista_status(client_autenticado_proto
     assert len(response.json()['results']) == len(ProtocoloPadraoDietaEspecial.STATUS_NOMES.keys())
 
 
-def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados(client_autenticado_protocolo_dieta):
+def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados(client_autenticado_protocolo_dieta,
+                                                                      massa_dados_protocolo_padrao_test):
     data = {'nome_protocolo': 'ALERGIA - ABACATE',
             'orientacoes_gerais': '<ul><li>Substituição do <strong>Abacate,&nbsp;</strong>bem como '
                                   'preparações contendo este.</li><li>É importante observar sempre os rótulos dos '
                                   'alimentos,&nbsp;tendo em vista que a composição do produto pode ser alterada pela '
                                   'empresa fabricante a qualquer tempo.</li></ul>',
             'status': 'LIBERADO',
-            'editais': ['b7b6a0a7-b230-4783-94b6-8d3d22041ab3',
-                        '60f5a64e-8652-422d-a6e9-0a36717829c9'],
+            'editais': [massa_dados_protocolo_padrao_test['editais'][0],
+                        massa_dados_protocolo_padrao_test['editais'][1]],
             'substituicoes': [{
                 'alimento': '1',
                 'tipo': 'I',
@@ -851,7 +852,8 @@ def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados(client_aut
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']) == 1
 
+    dieta_especial_uuid = massa_dados_protocolo_padrao_test['dieta_uuid']
     response = client_autenticado_protocolo_dieta.get(
-        '/protocolo-padrao-dieta-especial/lista-protocolos-liberados/')
+        f'/protocolo-padrao-dieta-especial/lista-protocolos-liberados/?dieta_especial_uuid={dieta_especial_uuid}')
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()['results']) == 1
+    assert len(response.json()['results']) == 2

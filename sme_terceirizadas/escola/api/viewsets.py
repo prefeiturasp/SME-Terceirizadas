@@ -1,4 +1,4 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from openpyxl import Workbook, styles
@@ -6,6 +6,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from rest_framework import permissions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
@@ -48,11 +49,13 @@ from ..forms import AlunosPorFaixaEtariaForm
 from ..models import (
     Aluno,
     Codae,
+    DiaCalendario,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
     FaixaEtaria,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+    LogAlunosMatriculadosPeriodoEscola,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
@@ -64,12 +67,14 @@ from ..utils import EscolaSimplissimaPagination
 from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
+    DiaCalendarioSerializer,
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaListagemSimplissimaComDRESelializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
+    LogAlunosMatriculadosPeriodoEscolaSerializer,
     PeriodoEFaixaEtariaCounterSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
@@ -344,6 +349,29 @@ class TipoUnidadeEscolarViewSet(ReadOnlyModelViewSet):
     queryset = TipoUnidadeEscolar.objects.all()
 
 
+class LogAlunosMatriculadosPeriodoEscolaViewSet(ModelViewSet):
+    serializer_class = LogAlunosMatriculadosPeriodoEscolaSerializer
+    queryset = LogAlunosMatriculadosPeriodoEscola.objects.all()
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = LogAlunosMatriculadosPeriodoEscola.objects.all()
+
+        escola_uuid = self.request.query_params.get('escola_uuid', '')
+        mes = self.request.query_params.get('mes', '')
+        ano = self.request.query_params.get('ano', '')
+        tipo_turma = self.request.query_params.get('tipo_turma', '')
+        periodo_escolar = self.request.query_params.get('periodo_escolar', '')
+
+        queryset = queryset.filter(escola__uuid=escola_uuid,
+                                   criado_em__month=mes,
+                                   criado_em__year=ano,
+                                   tipo_turma=tipo_turma,
+                                   periodo_escolar__uuid=periodo_escolar)
+
+        return queryset
+
+
 class EscolaPeriodoEscolarViewSet(ModelViewSet):
     lookup_field = 'uuid'
 
@@ -496,6 +524,34 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
         except NovoSGPServicoLogadoException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=('GET',), url_path='quantidade-cemei-por-cei-emei',  # noqa C901
+            permission_classes=(IsAuthenticated,))
+    def quantidade_cemei_por_cei_emei(self, request):
+        try:
+            codigo_eol_escola = request.query_params.get('codigo_eol_escola', None)
+            if not codigo_eol_escola:
+                raise ValidationError('`codigo_eol_escola` como query_param é obrigatório')
+            escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
+            if not escola.eh_cemei:
+                raise ValidationError('escola não é CEMEI')
+            return Response(escola.quantidade_alunos_por_cei_emei, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=('GET',), url_path='quantidade-alunos-por-periodo-cei-emei',  # noqa C901
+            permission_classes=(IsAuthenticated,))
+    def quantidade_alunos_por_periodo_cei_emei(self, request):
+        try:
+            codigo_eol_escola = request.query_params.get('codigo_eol_escola', None)
+            if not codigo_eol_escola:
+                raise ValidationError('`codigo_eol_escola` como query_param é obrigatório')
+            escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
+            if not escola.eh_cemei:
+                raise ValidationError('escola não é CEMEI')
+            return Response(escola.quantidade_alunos_por_periodo_cei_emei, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
 
 class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     queryset = FaixaEtaria.objects.filter(ativo=True)
@@ -504,6 +560,25 @@ class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
         if self.action == 'create':
             return MudancaFaixasEtariasCreateSerializer
         return FaixaEtariaSerializer
+
+
+class DiaCalendarioViewSet(ModelViewSet):
+    serializer_class = DiaCalendarioSerializer
+    queryset = DiaCalendario.objects.all()
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = DiaCalendario.objects.all()
+
+        escola_uuid = self.request.query_params.get('escola_uuid', '')
+        mes = self.request.query_params.get('mes', '')
+        ano = self.request.query_params.get('ano', '')
+
+        queryset = queryset.filter(escola__uuid=escola_uuid,
+                                   data__month=mes,
+                                   data__year=ano)
+
+        return queryset
 
 
 def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):

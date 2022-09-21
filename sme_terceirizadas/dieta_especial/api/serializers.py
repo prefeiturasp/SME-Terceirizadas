@@ -355,6 +355,7 @@ class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
 class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     dre = serializers.CharField(source='escola.diretoria_regional.nome')
     escola = serializers.CharField(source='escola.nome')
+    serie = serializers.CharField()
     codigo_eol_escola = serializers.CharField(source='escola.codigo_eol')
     codigo_eol = serializers.CharField()
     foto_aluno = serializers.SerializerMethodField()
