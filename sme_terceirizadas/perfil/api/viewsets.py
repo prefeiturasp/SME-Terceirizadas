@@ -21,7 +21,7 @@ from ..models import Perfil, Usuario
 from ..tasks import busca_cargo_de_usuario
 from ..utils import VinculoPagination
 from .filters import VinculoFilter
-from .serializers import PerfilSerializer, PerfilSimplesSerializer, UsuarioUpdateSerializer, VinculoSerializer, VinculoSimplesSerializer
+from .serializers import PerfilSimplesSerializer, UsuarioUpdateSerializer, VinculoSerializer, VinculoSimplesSerializer
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
