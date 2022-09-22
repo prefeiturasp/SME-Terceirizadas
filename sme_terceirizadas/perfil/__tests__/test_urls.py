@@ -755,3 +755,17 @@ def test_recuperar_senha_invalido(client, usuarios_pendentes_confirmacao):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': 'Não existe usuário com este CPF ou RF'}
+
+
+# Testa se vem 2 vinculos, pois no conftest users_terceirizada existem 3, porém só 2 ativos
+def test_busca_vinculos_ativos(client, users_terceirizada):
+    response = client.get(f'/vinculos/vinculos-ativos/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 2
+
+
+def test_busca_vinculos_ativos_com_filtro(client, users_terceirizada):
+    response = client.get(f'/vinculos/vinculos-ativos/?perfil=NUTRI_ADMIN_RESPONSAVEL')
+    assert response.status_code == status.HTTP_200_OK
+    for resultado in response.json()['results']:
+        assert resultado.get('nome_perfil') == 'NUTRI_ADMIN_RESPONSAVEL'

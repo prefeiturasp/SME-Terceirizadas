@@ -90,6 +90,17 @@ class VinculoSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'data_inicial', 'data_final', 'perfil', 'usuario')
 
 
+class VinculoSimplesSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='usuario.username')
+    nome_usuario = serializers.CharField(source='usuario.nome')
+    nome_perfil = serializers.CharField(source='perfil.nome')
+    visao_perfil = serializers.CharField(source='perfil.visao')
+
+    class Meta:
+        model = Vinculo
+        fields = ('uuid', 'username', 'nome_usuario', 'nome_perfil', 'visao_perfil')
+
+
 class UsuarioUpdateSerializer(serializers.ModelSerializer):
     confirmar_password = serializers.CharField()
 
