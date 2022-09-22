@@ -200,7 +200,10 @@ class EscolaSimplissimaComDREUnpaginatedViewSet(EscolaSimplissimaComDREViewSet):
 
     @action(detail=False, methods=['GET'], url_path='terc-total')
     def terc_total(self, request):
-        escolas = self.queryset.filter(tipo_gestao__nome='TERC TOTAL')
+        escolas = self.get_queryset().filter(tipo_gestao__nome='TERC TOTAL')
+        dre = request.query_params.get('dre', None)
+        if dre:
+            escolas = escolas.filter(diretoria_regional__uuid=dre)
         return Response(self.get_serializer(escolas, many=True).data)
 
 

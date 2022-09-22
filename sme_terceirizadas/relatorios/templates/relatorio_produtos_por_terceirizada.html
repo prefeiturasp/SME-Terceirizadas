@@ -36,7 +36,9 @@
     <table>
       <thead>
         <tr>
-          <th>Terceirizada</th>
+          {% if exibe_coluna_terceirizada %}
+            <th>Terceirizada</th>
+          {% endif %}
           <th>Produto</th>
           <th>Marca</th>
           <th>Edital</th>
@@ -49,7 +51,9 @@
       <tbody>
         {% for grupo in dados_agrupados %}
           <tr>
-            <td>{{ grupo.terceirizada }}</td>
+            {% if exibe_coluna_terceirizada %}
+              <td>{{ grupo.terceirizada }}</td>
+            {% endif %}
             <td>{{ grupo.nome }}</td>
             {% if grupo.marca %}
               <td>{{ grupo.marca }}</td>
