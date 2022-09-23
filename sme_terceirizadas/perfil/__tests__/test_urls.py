@@ -1,5 +1,4 @@
 import datetime
-import json
 import uuid
 
 import pytest
@@ -8,7 +7,7 @@ from rest_framework import status
 from ..api.helpers import ofuscar_email
 from ..api.serializers import UsuarioUpdateSerializer
 from ..api.viewsets import UsuarioUpdateViewSet
-from ..models import Perfil, Usuario
+from ..models import Usuario
 from .conftest import mocked_request_api_eol, mocked_request_api_eol_usuario_diretoria_regional
 
 pytestmark = pytest.mark.django_db
@@ -770,10 +769,3 @@ def test_busca_vinculos_ativos_com_filtro(client, users_terceirizada):
     assert response.status_code == status.HTTP_200_OK
     for resultado in response.json()['results']:
         assert resultado.get('nome_perfil') == 'NUTRI_ADMIN_RESPONSAVEL'
-
-
-def test_url_visoes(client_autenticado):
-    response = client_autenticado.get('/perfis/visoes/')
-    assert response.status_code == status.HTTP_200_OK
-    json_data = json.loads(response.content)
-    assert json_data == Perfil.visoes_to_json()
