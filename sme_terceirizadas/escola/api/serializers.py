@@ -172,18 +172,6 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class LoteSimplesSerializer(serializers.ModelSerializer):
-    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
-    tipo_gestao = TipoGestaoSerializer()
-    escolas = EscolaSimplissimaSerializer(many=True)
-    terceirizada = TerceirizadaSimplesSerializer()
-    subprefeituras = SubprefeituraSerializer(many=True)
-
-    class Meta:
-        model = Lote
-        exclude = ('id',)
-
-
 class LoteNomeSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     tipo_gestao = serializers.CharField()
@@ -198,6 +186,26 @@ class LoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lote
         fields = ('uuid', 'nome')  # noqa
+
+
+class EscolaNomeCodigoEOLSerializer(serializers.ModelSerializer):
+    lote = LoteSerializer()
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'codigo_eol', 'lote')
+
+
+class LoteSimplesSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+    tipo_gestao = TipoGestaoSerializer()
+    escolas = EscolaNomeCodigoEOLSerializer(many=True)
+    terceirizada = TerceirizadaSimplesSerializer()
+    subprefeituras = SubprefeituraSerializer(many=True)
+
+    class Meta:
+        model = Lote
+        exclude = ('id',)
 
 
 class EscolaSimplesSerializer(serializers.ModelSerializer):
