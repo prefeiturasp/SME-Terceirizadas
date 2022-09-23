@@ -1,9 +1,12 @@
 from datetime import datetime
 from itertools import chain
 
+import environ
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import transaction
 from django.db.models import CharField, Count, F, Prefetch, Q, QuerySet
 from django.db.models.functions import Cast, Substr
+from django.template.loader import render_to_string
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -32,6 +35,7 @@ from ...relatorios.relatorios import (
     relatorio_produtos_suspensos,
     relatorio_reclamacao
 )
+from ...relatorios.utils import html_to_pdf_response
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...terceirizada.models import Contrato, Edital, Terceirizada
 from ..constants import (
@@ -109,6 +113,8 @@ from .serializers.serializers_create import (
     RespostaAnaliseSensorialSearilzerCreate,
     SolicitacaoCadastroProdutoDietaSerializerCreate
 )
+
+env = environ.Env()
 
 DEFAULT_PAGE = 1
 DEFAULT_PAGE_SIZE = 10
@@ -772,6 +778,33 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         homologacao_produto.pdf_gerado = True
         homologacao_produto.save()
         return Response('PDF Homologação gerado')
+
+    @action(detail=True,
+            permission_classes=[IsAuthenticated],
+            methods=['get'],
+            url_path=constants.GERAR_PDF_FICHA_IDENTIFICACAO_PRODUTO)
+    def gerar_pdf_ficha_identificacao_produto(self, request, uuid=None):
+        SERVER_NAME = env.str('SERVER_NAME', default=None)
+        homologacao_produto = self.get_object()
+        img_ids = [img.id for img in homologacao_produto.produto.imagens if img.nome.split('.')[len(img.nome.split('.')) - 1] in ['png', 'jpg', 'jpeg']] # noqa E501
+        imagens = homologacao_produto.produto.imagens.filter(id__in=img_ids)
+        documentos = homologacao_produto.produto.imagens.exclude(id__in=img_ids)
+        html_string = render_to_string(
+            'ficha_identificacao_produto.html',
+            {
+                'homologacao_produto': homologacao_produto,
+                'contato_empresa': homologacao_produto.rastro_terceirizada.contatos.first(),
+                'editais_vinculados': ', '.join(
+                    vinc.edital.numero for vinc in homologacao_produto.produto.vinculos.all()),
+                'informacoes_nutricionais': homologacao_produto.produto.informacoes_nutricionais.all(),
+                'especificacao_primaria': homologacao_produto.produto.especificacoes.first(),
+                'URL': SERVER_NAME,
+                'imagens': imagens,
+                'documentos': documentos,
+                'base_static_url': staticfiles_storage.location
+            }
+        )
+        return html_to_pdf_response(html_string, f'ficha_identificacao_produto_{homologacao_produto.id_externo}.pdf')
 
     @action(detail=False,
             permission_classes=[UsuarioTerceirizada],
