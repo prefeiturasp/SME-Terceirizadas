@@ -31,6 +31,17 @@ class Perfil(ExportModelOperationsMixin('perfil'), Nomeavel, Descritivel, Ativav
     visao = models.CharField( # noqa
         'Visão', choices=VISAO_CHOICES, max_length=25, blank=True, null=True, default=None)
 
+    @classmethod
+    def visoes_to_json(cls):
+        result = []
+        for visao in cls.VISAO_CHOICES:
+            choice = {
+                'id': visao[0],
+                'nome': visao[1]
+            }
+            result.append(choice)
+        return result
+
     class Meta:
         verbose_name = 'Perfil'
         verbose_name_plural = 'Perfis'
