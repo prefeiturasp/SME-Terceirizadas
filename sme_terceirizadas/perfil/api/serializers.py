@@ -1,6 +1,9 @@
+import logging
 import re
 
+from django.db import transaction
 from django.db.utils import IntegrityError
+from munch import Munch
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -19,6 +22,7 @@ from ...eol_servico.utils import EOLException, EOLService
 from ...perfil.api.validators import usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
 from ..models import Perfil, Usuario, Vinculo
+from ..services.usuario_coresso_service import cria_ou_atualiza_usuario_core_sso
 from .validators import (
     deve_ser_email_sme_ou_prefeitura,
     deve_ter_mesmo_cpf,
@@ -29,6 +33,8 @@ from .validators import (
     usuario_nao_possui_vinculo_valido,
     usuario_pode_efetuar_cadastro
 )
+
+logger = logging.getLogger(__name__)
 
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):
@@ -362,3 +368,52 @@ class SuperAdminTerceirizadaSerializer(serializers.ModelSerializer):
             'contatos',
             'cargo'
         )
+
+
+class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
+    eh_servidor = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    username = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    nome = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    visao = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    perfil = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    instituicao = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=False)
+    cpf = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    cnpj = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=False)
+    email = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=False)
+    cargo = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=False)
+
+    class Meta:
+        model = Usuario
+        fields = ['uuid', 'username', 'email', 'nome', 'visao', 'perfil', 'instituicao', 'cpf', 'cnpj', 'cargo',
+                  'eh_servidor']
+
+    @transaction.atomic
+    def create(self, validated_data):
+        dados_usuario_dict = {
+            'login': validated_data['username'],
+            'nome': validated_data['nome'],
+            'email': validated_data['email'],
+            'cargo': validated_data.get('cargo', None),
+            'cpf': validated_data['cpf'],
+            'cnpj': validated_data.get('cnpj', None),
+            'perfil': validated_data['perfil'],
+            'eh_servidor': validated_data['eh_servidor']
+        }
+
+        dados_usuario = Munch.fromDict(dados_usuario_dict)
+        eh_servidor = validated_data['eh_servidor'] == 'S'
+
+        try:
+            user = Usuario.cria_ou_atualiza_usuario_sigpae(dados_usuario=dados_usuario_dict, eh_servidor=eh_servidor)
+            cria_ou_atualiza_usuario_core_sso(
+                dados_usuario=dados_usuario,
+                login=dados_usuario.login,
+                eh_servidor=dados_usuario.eh_servidor
+            )
+            logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
+
+        except Exception as e:
+            logger.error(
+                f'Erro ao tentar criar/atualizar usuário {validated_data["username"]} no CoreSSO/SIGPAE: {str(e)}')
+
+        return user

@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -21,7 +21,13 @@ from ..models import Perfil, Usuario
 from ..tasks import busca_cargo_de_usuario
 from ..utils import VinculoPagination
 from .filters import VinculoFilter
-from .serializers import PerfilSerializer, UsuarioUpdateSerializer, VinculoSerializer, VinculoSimplesSerializer
+from .serializers import (
+    PerfilSerializer,
+    UsuarioComCoreSSOCreateSerializer,
+    UsuarioUpdateSerializer,
+    VinculoSerializer,
+    VinculoSimplesSerializer
+)
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -432,3 +438,8 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
     workbook.save(response)
 
     return response
+
+
+class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UsuarioComCoreSSOCreateSerializer
