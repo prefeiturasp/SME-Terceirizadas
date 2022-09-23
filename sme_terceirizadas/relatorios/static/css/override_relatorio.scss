@@ -103,9 +103,69 @@
       }
     }
 
+    .ficha-produto-body {
+      td {
+        div {
+          background: $cinza-claro;
+          padding: 10px;
+          border: 1px solid $cinza-meio-claro;
+          border-radius: 4px;
+        }
+      }
+    }
+
     th, td {
       padding: 0.5em;
       text-align: left;
+    }
+  }
+
+  .tabela-info-nutricional {
+    margin-top: 1em;
+    padding: 0;
+
+    table {
+      font-size: 14px;
+      width: 100%;
+      border-collapse: collapse;
+
+      thead {
+        background-color: $cinza-claro
+      }
+
+      tbody {
+        color: #686868;
+        border: 1px solid #C0C0C0;
+      }
+    }
+
+    td {
+      border: 1px solid #C0C0C0;
+      margin: 50px !important;
+    }
+
+    th, td {
+      padding: 0.5em;
+      text-align: left;
+    }
+  }
+
+  .imagem {
+    text-align: left;
+  }
+
+  .imagem-produto {
+    width: 4cm;
+    height: 4cm;
+    padding: 2px;
+    background: $cinza-claro;
+  }
+
+  .tabela-imagem {
+    width: 100%;
+
+    td {
+      padding-bottom: 30px;
     }
   }
 
