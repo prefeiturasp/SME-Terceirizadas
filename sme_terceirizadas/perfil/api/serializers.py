@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 class PerfilSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Perfil
-        fields = ('nome', 'uuid')
+        fields = ('nome', 'visao', 'uuid')
 
 
 class PerfilSerializer(serializers.ModelSerializer):
