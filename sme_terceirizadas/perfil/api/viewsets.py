@@ -22,7 +22,7 @@ from ..tasks import busca_cargo_de_usuario
 from ..utils import VinculoPagination
 from .filters import VinculoFilter
 from .serializers import (
-    PerfilSerializer,
+    PerfilSimplesSerializer,
     UsuarioComCoreSSOCreateSerializer,
     UsuarioUpdateSerializer,
     VinculoSerializer,
@@ -145,7 +145,7 @@ class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     lookup_field = 'uuid'
     queryset = Perfil.objects.all()
-    serializer_class = PerfilSerializer
+    serializer_class = PerfilSimplesSerializer
 
     @action(detail=False)
     def visoes(self, request):
