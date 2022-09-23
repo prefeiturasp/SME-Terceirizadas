@@ -25,6 +25,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...dieta_especial.tasks import gera_pdf_relatorio_dieta_especial_async
 from ...escola.models import Aluno, EscolaPeriodoEscolar, Lote
 from ...escola.services import NovoSGPServicoLogado
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
@@ -33,7 +34,6 @@ from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
     relatorio_dietas_especiais_terceirizada,
-    relatorio_geral_dieta_especial,
     relatorio_quantitativo_classificacao_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas,
@@ -628,8 +628,12 @@ class SolicitacaoDietaEspecialViewSet(
                 filtros['alergias_intolerancias__id__in'] = [
                     disgnostico.id for disgnostico in data['diagnostico']]
 
-            user = self.request.user
-            return relatorio_geral_dieta_especial(form, queryset.filter(**filtros), user)  # noqa
+            user = request.user.get_username()
+            ids_dietas = list(queryset.filter(**filtros).values_list('id', flat=True))
+            gera_pdf_relatorio_dieta_especial_async.delay(user=user, nome_arquivo='relatorio_dieta_especial.pdf',
+                                                          data=self.request.data, ids_dietas=ids_dietas)
+            return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                            status=status.HTTP_200_OK)
         except ValidationError as error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 

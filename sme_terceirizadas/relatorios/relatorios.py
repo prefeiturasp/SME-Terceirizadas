@@ -677,6 +677,23 @@ def relatorio_geral_dieta_especial(form, queryset, user):
         None, form, queryset, user, 'relatorio_dieta_especial')
 
 
+def relatorio_geral_dieta_especial_pdf(form, queryset, user):
+    status = None
+    if 'status' in form.cleaned_data:
+        status = dict(form.fields['status'].choices).get(
+            form.cleaned_data['status'], '')
+    html_string = render_to_string(
+        f'relatorio_dieta_especial.html',
+        {
+            'status': status,
+            'filtros': form.cleaned_data,
+            'queryset': queryset,
+            'user': user
+        }
+    )
+    return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
+
+
 def get_pdf_guia_distribuidor(data=None, many=False):
     pages = []
     inicio = 0
