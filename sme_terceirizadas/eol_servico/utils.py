@@ -148,6 +148,7 @@ class EOLServicoSGP:
             response = requests.get(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/{login}/dados',
                                     headers=cls.HEADER)
             if response.status_code == status.HTTP_200_OK:
+                logger.info(f'Usuário {login} encontrado no CoreSSO.')
                 return response.json()
             else:
                 logger.info(f'Usuário {login} não encontrado no CoreSSO: {response}')
