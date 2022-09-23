@@ -291,6 +291,31 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
             ativo=False
         )
 
+    @classmethod
+    def cria_ou_atualiza_usuario_sigpae(cls, dados_usuario, eh_servidor):
+        if eh_servidor:
+            usuario, criado = Usuario.objects.update_or_create(
+                username=dados_usuario['login'],
+                registro_funcional=dados_usuario['rf'],
+                defaults={
+                    'email': dados_usuario.get('email', ''),
+                    'nome': dados_usuario['nome'],
+                    'cargo': dados_usuario.get('cargo', ''),
+                    'cpf': dados_usuario.get('cpf', ''),
+                }
+            )
+            return usuario
+        else:
+            usuario, criado = Usuario.objects.update_or_create(
+                username=dados_usuario['cpf'],
+                defaults={
+                    'email': dados_usuario.get('email', ''),
+                    'nome': dados_usuario['nome'],
+                    'cpf': dados_usuario['cpf']
+                }
+            )
+            return usuario
+
     class Meta:
         ordering = ('-super_admin_terceirizadas',)
 
