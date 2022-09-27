@@ -1,6 +1,7 @@
 import datetime
 import json
 import uuid
+from unittest.mock import patch
 
 import pytest
 from rest_framework import status
@@ -777,3 +778,30 @@ def test_url_visoes(client_autenticado):
     assert response.status_code == status.HTTP_200_OK
     json_data = json.loads(response.content)
     assert json_data == Perfil.visoes_to_json()
+
+
+def test_criar_usuario_nao_servidor_coresso(client_autenticado, terceirizada, perfil_distribuidor):
+    payload = {
+        'username': '52898325139',
+        'email': 'teste_silva@teste.com',
+        'nome': 'Teste da Silva',
+        'visao': 'EMPRESA',
+        'perfil': perfil_distribuidor.nome,
+        'instituicao': terceirizada.cnpj,
+        'cpf': '52898325139',
+        'eh_servidor': 'N'
+    }
+
+    api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso' # noqa
+    with patch(api_cria_ou_atualiza_usuario_core_sso):
+        response = client_autenticado.post('/cadastro-com-coresso/', data=json.dumps(payload),
+                                           content_type='application/json')
+    result = response.json()
+
+    u = Usuario.objects.filter(username='52898325139').first()
+    esperado = {
+        'uuid': str(u.uuid),
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert result == esperado

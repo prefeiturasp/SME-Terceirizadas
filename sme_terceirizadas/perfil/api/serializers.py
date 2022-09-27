@@ -22,7 +22,7 @@ from ...eol_servico.utils import EOLException, EOLService
 from ...perfil.api.validators import usuario_com_coresso_validation, usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
 from ..models import Perfil, Usuario, Vinculo
-from ..services.usuario_coresso_service import cria_ou_atualiza_usuario_core_sso
+from ..services.usuario_coresso_service import EOLUsuarioCoreSSO
 from .validators import (
     deve_ser_email_sme_ou_prefeitura,
     deve_ter_mesmo_cpf,
@@ -415,7 +415,8 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
         try:
             usuario = Usuario.cria_ou_atualiza_usuario_sigpae(dados_usuario=dados_usuario_dict, eh_servidor=eh_servidor)
             Vinculo.cria_vinculo(usuario=usuario, dados_usuario=dados_usuario_dict)
-            cria_ou_atualiza_usuario_core_sso(
+            eolusuariocoresso = EOLUsuarioCoreSSO()
+            eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(
                 dados_usuario=dados_usuario,
                 login=dados_usuario.login,
                 eh_servidor=dados_usuario.eh_servidor

@@ -9,7 +9,7 @@ from openpyxl import Workbook, load_workbook, styles
 
 from sme_terceirizadas.perfil.models.usuario import ImportacaoPlanilhaUsuarioServidorCoreSSO, \
     ImportacaoPlanilhaUsuarioExternoCoreSSO
-from sme_terceirizadas.perfil.services.usuario_coresso_service import cria_ou_atualiza_usuario_core_sso
+from sme_terceirizadas.perfil.services.usuario_coresso_service import EOLUsuarioCoreSSO
 from sme_terceirizadas.terceirizada.models import Terceirizada
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import ja_existe, progressbar
@@ -838,7 +838,8 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
     def __criar_usuario_servidor(self, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):
         usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
         self.cria_vinculo(usuario, usuario_schema)
-        cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.rf, eh_servidor='S')
+        eolusuariocoresso = EOLUsuarioCoreSSO()
+        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.rf, eh_servidor='S')
 
     def finaliza_processamento(self) -> None:
         if self.erros:
@@ -959,7 +960,8 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
     def __criar_usuario_externo(self, usuario_schema: ImportacaoPlanilhaUsuarioExternoCoreSSOSchema):
         usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
         self.cria_vinculo(usuario, usuario_schema)
-        cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.cpf, eh_servidor='N')
+        eolusuariocoresso = EOLUsuarioCoreSSO()
+        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.cpf, eh_servidor='N')
 
     def finaliza_processamento(self) -> None:
         if self.erros:
