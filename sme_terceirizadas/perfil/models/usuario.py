@@ -296,7 +296,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         if eh_servidor:
             usuario, criado = Usuario.objects.update_or_create(
                 username=dados_usuario['login'],
-                registro_funcional=dados_usuario['rf'],
+                registro_funcional=dados_usuario['login'],
                 defaults={
                     'email': dados_usuario.get('email', ''),
                     'nome': dados_usuario['nome'],
