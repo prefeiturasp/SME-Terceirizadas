@@ -223,7 +223,7 @@ class EOLServicoSGP:
                 result = 'OK'
                 return result
             else:
-                logger.info('Erro ao tentar criar o usuáriol: %s', response.json())
+                logger.info('Erro ao tentar criar o usuário: %s', response.json())
                 raise EOLException(f'Erro ao tentar criar o usuário {nome}.')
         except Exception as err:
             raise EOLException(str(err))

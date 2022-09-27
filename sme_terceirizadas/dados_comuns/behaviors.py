@@ -93,6 +93,10 @@ class TemData(models.Model):
 class TemChaveExterna(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
+    @classmethod
+    def by_uuid(cls, uuid):
+        return cls.objects.get(uuid=uuid)
+
     class Meta:
         abstract = True
 

@@ -2,7 +2,7 @@ from rest_framework import serializers, status
 
 from ...eol_servico.utils import EOLException
 from ...terceirizada.models import Terceirizada
-from ..models import Usuario
+from ..models import Perfil, Usuario
 
 
 def senha_deve_ser_igual_confirmar_senha(senha: str, confirmar_senha: str):
@@ -66,3 +66,9 @@ def usuario_nao_possui_vinculo_valido(usuario: Usuario):
     if usuario.vinculo_atual is not None:
         raise serializers.ValidationError('Usuário já possui vínculo válido', code=status.HTTP_400_BAD_REQUEST)
     return True
+
+
+def usuario_com_coresso_validation(visao, subdivisao):
+    if visao == Perfil.CODAE:
+        if not subdivisao:
+            raise serializers.ValidationError({'detail': f'É necessário Informar a subdivisão da visão {Perfil.CODAE}'})

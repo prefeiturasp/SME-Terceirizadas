@@ -19,7 +19,7 @@ from ...dados_comuns.constants import (
 )
 from ...dados_comuns.models import Contato
 from ...eol_servico.utils import EOLException, EOLService
-from ...perfil.api.validators import usuario_e_das_terceirizadas
+from ...perfil.api.validators import usuario_com_coresso_validation, usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
 from ..models import Perfil, Usuario, Vinculo
 from ..services.usuario_coresso_service import cria_ou_atualiza_usuario_core_sso
@@ -375,19 +375,26 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
     nome = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
     visao = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    subdivisao = serializers.UUIDField(write_only=True, required=False, allow_null=True)
     perfil = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
-    instituicao = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=False)
+    instituicao = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
     cpf = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
-    cnpj = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=False)
-    email = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=False)
+    email = serializers.EmailField(write_only=True, required=True, allow_blank=False, allow_null=False)
     cargo = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=False)
+
+    def validate(self, attrs):
+        visao = attrs.get('visao')
+        subdivisao = attrs.get('subdivisao')
+        usuario_com_coresso_validation(visao, subdivisao)
+
+        return attrs
 
     class Meta:
         model = Usuario
-        fields = ['uuid', 'username', 'email', 'nome', 'visao', 'perfil', 'instituicao', 'cpf', 'cnpj', 'cargo',
+        fields = ['uuid', 'username', 'email', 'nome', 'visao', 'subdivisao', 'perfil', 'instituicao', 'cpf', 'cargo',
                   'eh_servidor']
 
-    @transaction.atomic
+    @transaction.atomic # noqa
     def create(self, validated_data):
         dados_usuario_dict = {
             'login': validated_data['username'],
@@ -395,8 +402,10 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
             'email': validated_data['email'],
             'cargo': validated_data.get('cargo', None),
             'cpf': validated_data['cpf'],
-            'cnpj': validated_data.get('cnpj', None),
             'perfil': validated_data['perfil'],
+            'visao': validated_data['visao'],
+            'subdivisao': validated_data.get('subdivisao', None),
+            'instituicao': validated_data['instituicao'],
             'eh_servidor': validated_data['eh_servidor']
         }
 
@@ -404,7 +413,8 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
         eh_servidor = validated_data['eh_servidor'] == 'S'
 
         try:
-            user = Usuario.cria_ou_atualiza_usuario_sigpae(dados_usuario=dados_usuario_dict, eh_servidor=eh_servidor)
+            usuario = Usuario.cria_ou_atualiza_usuario_sigpae(dados_usuario=dados_usuario_dict, eh_servidor=eh_servidor)
+            Vinculo.cria_vinculo(usuario=usuario, dados_usuario=dados_usuario_dict)
             cria_ou_atualiza_usuario_core_sso(
                 dados_usuario=dados_usuario,
                 login=dados_usuario.login,
@@ -412,8 +422,16 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
             )
             logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
 
-        except Exception as e:
-            logger.error(
-                f'Erro ao tentar criar/atualizar usuário {validated_data["username"]} no CoreSSO/SIGPAE: {str(e)}')
+            return usuario
 
-        return user
+        except IntegrityError as e:
+            if 'unique constraint' in str(e):
+                error = str(e)
+                msg = error.split('Key')
+                raise IntegrityError('Erro, informação duplicada:' + msg[1])
+            raise IntegrityError('Erro ao tentar criar/atualizar usuário: ' + str(e))
+
+        except Exception as e:
+            msg = f'Erro ao tentar criar/atualizar usuário {validated_data["username"]} no CoreSSO/SIGPAE: {str(e)}'
+            logger.error(msg)
+            raise serializers.ValidationError(msg)
