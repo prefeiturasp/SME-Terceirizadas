@@ -308,78 +308,78 @@ class RequisicoesExcelService(object):
             else:
                 qtd_recebida = ''
 
-            ws.cell(row=ind, column=0, value=requisicao['guias__data_entrega'])
-            ws.cell(row=ind, column=1, value=requisicao['guias__alimentos__nome_alimento'])
-            ws.cell(row=ind, column=2, value=requisicao['distribuidor__nome_fantasia'])
-            ws.cell(row=ind, column=3, value=requisicao['guias__numero_guia'])
-            ws.cell(row=ind, column=4, value=retorna_status_guia_remessa(requisicao['guias__status']))
-            ws.cell(row=ind, column=5, value=requisicao['guias__nome_unidade'])
-            ws.cell(row=ind, column=6, value=requisicao['guias__telefone_unidade'])
-            ws.cell(row=ind, column=7, value=f'{requisicao["guias__endereco_unidade"]} '
+            ws.cell(row=ind, column=1, value=requisicao['guias__data_entrega'])
+            ws.cell(row=ind, column=2, value=requisicao['guias__alimentos__nome_alimento'])
+            ws.cell(row=ind, column=3, value=requisicao['distribuidor__nome_fantasia'])
+            ws.cell(row=ind, column=4, value=requisicao['guias__numero_guia'])
+            ws.cell(row=ind, column=5, value=retorna_status_guia_remessa(requisicao['guias__status']))
+            ws.cell(row=ind, column=6, value=requisicao['guias__nome_unidade'])
+            ws.cell(row=ind, column=7, value=requisicao['guias__telefone_unidade'])
+            ws.cell(row=ind, column=8, value=f'{requisicao["guias__endereco_unidade"]} '
                                              f'{requisicao["guias__numero_unidade"]}')
-            ws.cell(row=ind, column=8, value=requisicao['guias__bairro_unidade'])
-            ws.cell(row=ind, column=9, value=requisicao['guias__contato_unidade'])
-            ws.cell(row=ind, column=10, value=requisicao['guias__escola__codigo_eol'])
-            ws.cell(row=ind, column=11, value=requisicao['guias__alimentos__codigo_papa'])
-            ws.cell(row=ind, column=12, value=requisicao['guias__codigo_unidade'])
+            ws.cell(row=ind, column=9, value=requisicao['guias__bairro_unidade'])
+            ws.cell(row=ind, column=10, value=requisicao['guias__contato_unidade'])
+            ws.cell(row=ind, column=11, value=requisicao['guias__escola__codigo_eol'])
+            ws.cell(row=ind, column=12, value=requisicao['guias__alimentos__codigo_papa'])
+            ws.cell(row=ind, column=13, value=requisicao['guias__codigo_unidade'])
             if 'primeira_conferencia' in requisicao:
-                ws.cell(row=ind, column=13, value=f'{requisicao["primeira_conferencia"].data_recebimento} '
+                ws.cell(row=ind, column=14, value=f'{requisicao["primeira_conferencia"].data_recebimento} '
                                                   f'{requisicao["primeira_conferencia"].hora_recebimento}')
-                ws.cell(row=ind, column=14,
+                ws.cell(row=ind, column=15,
                         value=requisicao['primeira_conferencia'].criado_em.strftime('%d/%m/%Y %H:%M:%S'))
             if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
-                ws.cell(row=ind, column=15,
-                        value=f'{requisicao["guias__alimentos__embalagens__qtd_volume"]} '
-                              f'{requisicao["guias__alimentos__embalagens__descricao_embalagem"]}')
-            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FRACIONADA':
                 ws.cell(row=ind, column=16,
                         value=f'{requisicao["guias__alimentos__embalagens__qtd_volume"]} '
                               f'{requisicao["guias__alimentos__embalagens__descricao_embalagem"]}')
-            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
-                ws.cell(row=ind, column=17, value=qtd_recebida)
             if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FRACIONADA':
+                ws.cell(row=ind, column=17,
+                        value=f'{requisicao["guias__alimentos__embalagens__qtd_volume"]} '
+                              f'{requisicao["guias__alimentos__embalagens__descricao_embalagem"]}')
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
                 ws.cell(row=ind, column=18, value=qtd_recebida)
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FRACIONADA':
+                ws.cell(row=ind, column=19, value=qtd_recebida)
             if 'primeira_conferencia' in requisicao:
-                ws.cell(row=ind, column=19, value=requisicao['primeira_conferencia'].criado_por.nome)
-                ws.cell(row=ind, column=20, value=requisicao['primeira_conferencia'].nome_motorista)
-                ws.cell(row=ind, column=21, value=requisicao['primeira_conferencia'].placa_veiculo)
+                ws.cell(row=ind, column=20, value=requisicao['primeira_conferencia'].criado_por.nome)
+                ws.cell(row=ind, column=21, value=requisicao['primeira_conferencia'].nome_motorista)
+                ws.cell(row=ind, column=22, value=requisicao['primeira_conferencia'].placa_veiculo)
                 if 'conferencia_alimento' in requisicao:
-                    ws.cell(row=ind, column=22, value=retorna_status_alimento(
+                    ws.cell(row=ind, column=23, value=retorna_status_alimento(
                         requisicao['conferencia_alimento'].status_alimento
                     ))
-                    ws.cell(row=ind, column=23, value=retorna_ocorrencias_alimento(
+                    ws.cell(row=ind, column=24, value=retorna_ocorrencias_alimento(
                         requisicao['conferencia_alimento'].ocorrencia
                     ))
-                    ws.cell(row=ind, column=24, value=requisicao['conferencia_alimento'].observacao)
+                    ws.cell(row=ind, column=25, value=requisicao['conferencia_alimento'].observacao)
             if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
-                ws.cell(row=ind, column=25, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
-            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FRACIONADA':
                 ws.cell(row=ind, column=26, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FRACIONADA':
+                ws.cell(row=ind, column=27, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
             if 'primeira_reposicao' in requisicao:
-                ws.cell(row=ind, column=27, value=f'{requisicao["primeira_reposicao"].data_recebimento} '
+                ws.cell(row=ind, column=28, value=f'{requisicao["primeira_reposicao"].data_recebimento} '
                                                   f'{requisicao["primeira_reposicao"].hora_recebimento}')
-                ws.cell(row=ind, column=28,
+                ws.cell(row=ind, column=29,
                         value=requisicao['primeira_reposicao'].criado_em.strftime('%d/%m/%Y %H:%M:%S'))
             if 'primeira_reposicao' in requisicao:
                 if 'reposicao_alimento' in requisicao:
-                    ws.cell(row=ind, column=29, value=retorna_status_alimento(
+                    ws.cell(row=ind, column=30, value=retorna_status_alimento(
                         requisicao['reposicao_alimento'].status_alimento
                     ))
             if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
                 if 'reposicao_alimento' in requisicao:
-                    ws.cell(row=ind, column=30, value=requisicao['reposicao_alimento'].qtd_recebido)
+                    ws.cell(row=ind, column=31, value=requisicao['reposicao_alimento'].qtd_recebido)
             if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FRACIONADA':
                 if 'reposicao_alimento' in requisicao:
-                    ws.cell(row=ind, column=31, value=requisicao['reposicao_alimento'].qtd_recebido)
+                    ws.cell(row=ind, column=32, value=requisicao['reposicao_alimento'].qtd_recebido)
             if 'primeira_reposicao' in requisicao:
-                ws.cell(row=ind, column=32, value=requisicao['primeira_reposicao'].criado_por.nome)
-                ws.cell(row=ind, column=33, value=requisicao['primeira_reposicao'].nome_motorista)
-                ws.cell(row=ind, column=34, value=requisicao['primeira_reposicao'].placa_veiculo)
+                ws.cell(row=ind, column=33, value=requisicao['primeira_reposicao'].criado_por.nome)
+                ws.cell(row=ind, column=34, value=requisicao['primeira_reposicao'].nome_motorista)
+                ws.cell(row=ind, column=35, value=requisicao['primeira_reposicao'].placa_veiculo)
                 if 'reposicao_alimento' in requisicao:
-                    ws.cell(row=ind, column=35, value=retorna_ocorrencias_alimento(
+                    ws.cell(row=ind, column=36, value=retorna_ocorrencias_alimento(
                         requisicao['reposicao_alimento'].ocorrencia
                     ))
-                    ws.cell(row=ind, column=36, value=requisicao['reposicao_alimento'].observacao)
+                    ws.cell(row=ind, column=37, value=requisicao['reposicao_alimento'].observacao)
 
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
