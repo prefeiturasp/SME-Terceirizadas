@@ -1,9 +1,11 @@
 from rest_framework import mixins, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from ...dados_comuns.permissions import UsuarioEscola, ViewSetActionPermissionMixin
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
+from ...escola.models import Escola
 from ..models import (
     CategoriaMedicao,
     DiaSobremesaDoce,
@@ -46,6 +48,9 @@ class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
         if 'mes' in self.request.query_params and 'ano' in self.request.query_params:
             queryset = queryset.filter(data__month=self.request.query_params.get('mes'),
                                        data__year=self.request.query_params.get('ano'))
+        if 'escola_uuid' in self.request.query_params:
+            escola = Escola.objects.get(uuid=self.request.query_params.get('escola_uuid'))
+            queryset = queryset.filter(tipo_unidade=escola.tipo_unidade)
         return queryset
 
     def create(self, request, *args, **kwargs):
@@ -55,6 +60,14 @@ class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
             if str(error) == '`create()` did not return an object instance.':
                 return Response(status=status.HTTP_201_CREATED)
             return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='lista-dias')
+    def lista_dias(self, request):
+        try:
+            lista_dias = self.get_queryset().values_list('data', flat=True).distinct()
+            return Response(lista_dias, status=status.HTTP_200_OK)
+        except Escola.DoesNotExist as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SolicitacaoMedicaoInicialViewSet(
