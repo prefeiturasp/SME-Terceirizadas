@@ -10,9 +10,11 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from sme_terceirizadas.perfil.models.perfil import Vinculo
 
+from ...dados_comuns.permissions import UsuarioSuperCodae
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.models import Codae
 from ...terceirizada.models import Terceirizada
@@ -191,7 +193,8 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='vinculos-ativos', permission_classes=(IsAuthenticated,))
     def lista_vinculos_ativos(self, request):
-        queryset = [vinc for vinc in self.filter_queryset(self.get_queryset()) if vinc.status is Vinculo.STATUS_ATIVO]
+        queryset = [vinc for vinc in self.filter_queryset(
+            self.get_queryset().order_by('-data_inicial')) if vinc.status is Vinculo.STATUS_ATIVO]
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = VinculoSimplesSerializer(page, many=True)
@@ -441,6 +444,18 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
 
 
 class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    lookup_field = 'id'
     permission_classes = (IsAuthenticated,)
     serializer_class = UsuarioComCoreSSOCreateSerializer
     queryset = Usuario.objects.all()
+
+    @action(detail=True, permission_classes=(UsuarioSuperCodae,),
+            methods=['post'], url_path='finalizar-vinculo')
+    def finaliza_vinculo(self, request, username):
+        """(post) /cadastro-com-coresso/{usuario.username}/finalizar-vinculo/."""
+        try:
+            user = Usuario.objects.get(username=username)
+            user.vinculo_atual.finalizar_vinculo()
+            return Response(dict(detail=f'Acesso removido com sucesso!'), status=HTTP_200_OK)
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Usuário não encontrado: {e}'), status=HTTP_400_BAD_REQUEST)
