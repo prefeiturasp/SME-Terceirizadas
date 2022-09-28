@@ -250,42 +250,42 @@ class RequisicoesExcelService(object):
 
     @classmethod  # noqa C901
     def cria_aba_conferencia_dilog(cls, ws, requisicoes):
-        cabecalho = ['Data de Entrega'
-                     'Nome do Alimento'
-                     'Nome do Distribuidor'
-                     'Número da Guia de Remessa'
-                     'Status da Guia de Remessa'
-                     'Nome da UE'
-                     'Telefone da UE'
-                     'Endereço da UE '
-                     'Bairro da UE'
-                     'Contato da Entrega'
-                     'Código EOL'
-                     'Código PAPA'
-                     'Código CODAE'
-                     'Data e Hora do Recebimento (1ª Conferência) '
-                     'Data e hora do Registro (1ª Conferência) '
-                     'Quantidade Prevista (Embalagem Fechada) '
-                     'Quantidade Prevista (Embalagem Fracionada) '
-                     'Quantidade Recebida (Embalagem Fechada)'
-                     'Quantidade Recebida (Embalagem Fracionada)'
-                     'Nome Completo do Conferente (1ª Conferência)'
-                     'Nome do Motorista (1ª Conferência)'
-                     'Placa do Veículo (1ª Conferência)'
-                     'Status de Recebimento do Alimento (1ª Conferência)'
-                     'Ocorrências (1ª Conferência)'
-                     'Observações (1ª Conferência)'
-                     'Quantidade a ​Receber (Embalagem Fechada)'
-                     'Quantidade a ​Receber (Embalagem Fracionada)'
-                     'Data e Hora do Recebimento (Reposição)'
-                     'Data e Hora de Registro (Reposição)'
-                     'Status de Recebimento do Alimento (Reposição)'
-                     'Quantidade Reposta (Embalagem Fechada)'
-                     'Quantidade Reposta (Embalagem Fracionada)'
-                     'Nome Completo do Conferente (Reposição)'
-                     'Nome do Motorista (Reposição)'
-                     'Placa do Veículo (Reposição)'
-                     'Ocorrências (Reposição)'
+        cabecalho = ['Data de Entrega',
+                     'Nome do Alimento',
+                     'Nome do Distribuidor',
+                     'Número da Guia de Remessa',
+                     'Status da Guia de Remessa',
+                     'Nome da UE',
+                     'Telefone da UE',
+                     'Endereço da UE ',
+                     'Bairro da UE',
+                     'Contato da Entrega',
+                     'Código EOL',
+                     'Código PAPA',
+                     'Código CODAE',
+                     'Data e Hora do Recebimento (1ª Conferência) ',
+                     'Data e hora do Registro (1ª Conferência) ',
+                     'Quantidade Prevista (Embalagem Fechada) ',
+                     'Quantidade Prevista (Embalagem Fracionada) ',
+                     'Quantidade Recebida (Embalagem Fechada)',
+                     'Quantidade Recebida (Embalagem Fracionada)',
+                     'Nome Completo do Conferente (1ª Conferência)',
+                     'Nome do Motorista (1ª Conferência)',
+                     'Placa do Veículo (1ª Conferência)',
+                     'Status de Recebimento do Alimento (1ª Conferência)',
+                     'Ocorrências (1ª Conferência)',
+                     'Observações (1ª Conferência)',
+                     'Quantidade a ​Receber (Embalagem Fechada)',
+                     'Quantidade a ​Receber (Embalagem Fracionada)',
+                     'Data e Hora do Recebimento (Reposição)',
+                     'Data e Hora de Registro (Reposição)',
+                     'Status de Recebimento do Alimento (Reposição)',
+                     'Quantidade Reposta (Embalagem Fechada)',
+                     'Quantidade Reposta (Embalagem Fracionada)',
+                     'Nome Completo do Conferente (Reposição)',
+                     'Nome do Motorista (Reposição)',
+                     'Placa do Veículo (Reposição)',
+                     'Ocorrências (Reposição)',
                      'Observações (Reposição)']
 
         count_fields = len(cabecalho)
