@@ -202,7 +202,8 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_ESCOLA',
-                'uuid': '48330a6f-c444-4462-971e-476452b328b2'
+                'uuid': '48330a6f-c444-4462-971e-476452b328b2',
+                'visao': None
             },
             'ativo': False
         },
@@ -260,7 +261,7 @@ def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
     response.json()[0].pop('uuid')
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+         'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva', 'cpf': '11111111111',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'tipo_usuario': 'escola',
                      'cargo': ''}}]
@@ -327,7 +328,8 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_DRE',
-                'uuid': '48330a6f-c444-4462-971e-476452b328b2'
+                'uuid': '48330a6f-c444-4462-971e-476452b328b2',
+                'visao': None
             },
             'ativo': False
         },
@@ -350,7 +352,7 @@ def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regiona
     response.json()[0].pop('uuid')
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+         'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
                      'tipo_usuario': 'diretoriaregional', 'cargo': ''}}]
@@ -455,7 +457,8 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
-                'uuid': '48330a6f-c444-4462-971e-476452b328b2'
+                'uuid': '48330a6f-c444-4462-971e-476452b328b2',
+                'visao': None
             },
             'ativo': False
         },
@@ -480,7 +483,7 @@ def test_get_equipe_administradora_vinculos_codae(users_codae_gestao_alimentacao
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
-                    'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+                    'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
                      'tipo_usuario': 'gestao_alimentacao_terceirizada', 'cargo': ''}}]
@@ -514,7 +517,7 @@ def test_get_equipe_administradora_vinculos_terceirizadas(users_terceirizada):
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_TERCEIRIZADA',
-                    'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'},
+                    'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'tipo_usuario': 'terceirizada', 'cargo': ''}
          }
@@ -647,7 +650,8 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
         },
         'perfil': {
             'nome': 'COORDENADOR_ESCOLA',
-            'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'
+            'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+            'visao': None
         },
         'ativo': True
     }
@@ -727,7 +731,8 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
             },
             'perfil': {
                 'nome': 'título do perfil',
-                'uuid': 'd38e10da-c5e3-4dd5-9916-010fc250595a'
+                'uuid': 'd38e10da-c5e3-4dd5-9916-010fc250595a',
+                'visao': None
             },
             'ativo': True
         },
