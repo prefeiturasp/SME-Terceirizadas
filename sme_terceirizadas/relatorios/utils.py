@@ -1,3 +1,4 @@
+import base64
 import io
 import math
 from datetime import date
@@ -90,6 +91,29 @@ def html_to_pdf_cancelada(html_string, pdf_filename, is_async=False):
         response = HttpResponse(arquivo_final, content_type='application/pdf')
         response['Content-Disposition'] = f'filename="{pdf_filename}"'
         return response
+
+
+def merge_pdf_com_rodape_assinatura(arquivo_usuario, string_pdf_rodape):
+    arquivo_final = io.BytesIO()
+    pdf_rodape_assinatura = HTML(
+        string=string_pdf_rodape,
+        base_url=staticfiles_storage.location
+    ).write_pdf()
+
+    pdf_usuario = PdfFileReader(arquivo_usuario)
+    pdf_rodape = PdfFileReader(io.BytesIO(pdf_rodape_assinatura))
+    pdf_writer = PdfFileWriter()
+
+    for page in range(pdf_usuario.getNumPages()):
+        page = pdf_usuario.getPage(page)
+        page.mergePage(pdf_rodape.getPage(0))
+        pdf_writer.addPage(page)
+
+    pdf_writer.write(arquivo_final)
+    arquivo_final.seek(0)
+    encoded_string = ''
+    encoded_string = base64.b64encode(arquivo_final.read())
+    return 'data:application/pdf;base64,%s' % (encoded_string.decode('utf-8'))
 
 
 def html_to_pdf_multiple(lista_strings, pdf_filename, is_async=False):
