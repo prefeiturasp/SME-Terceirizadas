@@ -1,11 +1,17 @@
+import datetime
 import json
 
 import environ
+from django.template.loader import render_to_string
 from rest_framework import serializers
 
 from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
-from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
+from sme_terceirizadas.dados_comuns.utils import (
+    convert_base64_to_contentfile,
+    convert_image_to_base64,
+    update_instance_from_dict
+)
 from sme_terceirizadas.dados_comuns.validators import deve_ter_extensao_xls_xlsx
 from sme_terceirizadas.escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
 from sme_terceirizadas.medicao_inicial.models import (
@@ -19,6 +25,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     ValorMedicao
 )
 from sme_terceirizadas.perfil.models import Usuario
+from sme_terceirizadas.relatorios.utils import merge_pdf_com_rodape_assinatura
 
 
 class DiaSobremesaDoceCreateSerializer(serializers.ModelSerializer):
@@ -129,6 +136,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         return solicitacao
 
     def update(self, instance, validated_data):  # noqa C901
+        usuario = self.context['request'].user
         responsaveis_dict = validated_data.pop('responsaveis', None)
         key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
 
@@ -147,9 +155,23 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if anexo_string:
             anexo = json.loads(anexo_string)
             arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            imagem_convertida = convert_image_to_base64(
+                'sme_terceirizadas/relatorios/static/images/logo-sigpae.png', 'png'
+            )
+            time = datetime.datetime.today()
+            string_pdf_rodape = render_to_string(
+                'rodape_assinatura_digital.html',
+                {
+                    'imagem_convertida': imagem_convertida,
+                    'usuario': usuario,
+                    'time': time
+                }
+            )
+            arquivo_com_assinatura = merge_pdf_com_rodape_assinatura(arquivo, string_pdf_rodape)
+            arquivo_final = convert_base64_to_contentfile(arquivo_com_assinatura)
             AnexoOcorrenciaMedicaoInicial.objects.create(
                 solicitacao_medicao_inicial=instance,
-                arquivo=arquivo,
+                arquivo=arquivo_final,
                 nome=anexo.get('nome')
             )
         if key_com_ocorrencias is not None:
