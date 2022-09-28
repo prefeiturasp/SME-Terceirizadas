@@ -444,7 +444,7 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
 
 
 class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    lookup_field = 'id'
+    lookup_field = 'username'
     permission_classes = (IsAuthenticated,)
     serializer_class = UsuarioComCoreSSOCreateSerializer
     queryset = Usuario.objects.all()
