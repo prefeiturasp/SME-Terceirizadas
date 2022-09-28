@@ -4,6 +4,7 @@ import re
 from django.db import transaction
 from django.db.utils import IntegrityError
 from munch import Munch
+from requests import ConnectTimeout, ReadTimeout
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -18,7 +19,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_TERCEIRIZADA
 )
 from ...dados_comuns.models import Contato
-from ...eol_servico.utils import EOLException, EOLService
+from ...eol_servico.utils import EOLException, EOLService, EOLServicoSGP
 from ...perfil.api.validators import usuario_com_coresso_validation, usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
 from ..models import Perfil, Usuario, Vinculo
@@ -446,3 +447,26 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
             msg = f'Erro ao tentar criar/atualizar usuário {validated_data["username"]} no CoreSSO/SIGPAE: {str(e)}'
             logger.error(msg)
             raise serializers.ValidationError(msg)
+
+
+class AlteraEmailSerializer(serializers.ModelSerializer):
+
+    @transaction.atomic # noqa
+    def update(self, instance, validated_data):
+        try:
+            instance.email = validated_data.get('email')
+            instance.save()
+            EOLServicoSGP.redefine_email(instance.username, validated_data['email'])
+        except EOLException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError:
+            return Response({'detail': 'Já existe um usuário com este e-mail'}, status=status.HTTP_400_BAD_REQUEST)
+        except ReadTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        except ConnectTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        return instance
+
+    class Meta:
+        model = Usuario
+        fields = ['uuid', 'username', 'email']

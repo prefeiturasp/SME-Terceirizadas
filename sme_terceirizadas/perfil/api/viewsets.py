@@ -24,8 +24,10 @@ from ..tasks import busca_cargo_de_usuario
 from ..utils import VinculoPagination
 from .filters import VinculoFilter
 from .serializers import (
+    AlteraEmailSerializer,
     PerfilSimplesSerializer,
     UsuarioComCoreSSOCreateSerializer,
+    UsuarioSerializer,
     UsuarioUpdateSerializer,
     VinculoSerializer,
     VinculoSimplesSerializer
@@ -459,3 +461,16 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
             return Response(dict(detail=f'Acesso removido com sucesso!'), status=HTTP_200_OK)
         except ObjectDoesNotExist as e:
             return Response(dict(detail=f'Usuário não encontrado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=(UsuarioSuperCodae,),
+            url_path='alterar-email', methods=['patch'])
+    def altera_email(self, request, username):
+        """(patch) /cadastro-com-coresso/{usuario.username}/alterar-email/."""
+        data = request.data
+        serialize = AlteraEmailSerializer()
+        validated_data = serialize.validate(data)
+        user = Usuario.objects.get(username=username)
+        instance = serialize.update(user, validated_data)
+        if isinstance(instance, Response):
+            return instance
+        return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
