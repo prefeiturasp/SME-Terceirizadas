@@ -99,12 +99,22 @@ class VinculoSerializer(serializers.ModelSerializer):
 class VinculoSimplesSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='usuario.username')
     nome_usuario = serializers.CharField(source='usuario.nome')
+    email_usuario = serializers.CharField(source='usuario.email')
+    cpf_usuario = serializers.CharField(source='usuario.cpf')
+    uuid_usuario = serializers.CharField(source='usuario.uuid')
+    cnpj_empresa = serializers.SerializerMethodField()
     nome_perfil = serializers.CharField(source='perfil.nome')
     visao_perfil = serializers.CharField(source='perfil.visao')
 
+    def get_cnpj_empresa(self, obj):
+        if obj.content_type.name == 'Terceirizada':
+            return obj.instituicao.cnpj
+        return None
+
     class Meta:
         model = Vinculo
-        fields = ('uuid', 'username', 'nome_usuario', 'nome_perfil', 'visao_perfil')
+        fields = ('uuid', 'username', 'nome_usuario', 'email_usuario', 'cpf_usuario', 'uuid_usuario', 'cnpj_empresa',
+                  'nome_perfil', 'visao_perfil', )
 
 
 class UsuarioUpdateSerializer(serializers.ModelSerializer):
