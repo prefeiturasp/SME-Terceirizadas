@@ -166,7 +166,6 @@ class EOLServicoSGP:
 
         """
         logger.info(f'Atribuindo perfil {perfil} ao usuário {login}.')
-        """TODO: Implementar um endpoint no autentica-core-sso para pegar esse dicionário dinamicamente"""
 
         sys_grupo_ids = AutenticacaoService.get_perfis_do_sistema()
         try:
