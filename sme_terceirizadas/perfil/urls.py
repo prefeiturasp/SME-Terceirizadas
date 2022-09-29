@@ -7,6 +7,7 @@ from .api.login import LoginView
 router = routers.DefaultRouter()
 
 router.register('cadastro', viewsets.UsuarioUpdateViewSet, 'Cadastro de Usuários')
+router.register('cadastro-com-coresso', viewsets.UsuarioComCoreSSOViewSet, 'Cadastro com CoreSSO')
 router.register('usuarios', viewsets.UsuarioViewSet, 'Usuários')
 router.register('perfis', viewsets.PerfilViewSet, 'Perfis')
 router.register('vinculos', viewsets.VinculoViewSet, 'Vinculos')

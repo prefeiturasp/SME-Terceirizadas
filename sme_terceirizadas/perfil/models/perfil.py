@@ -31,6 +31,21 @@ class Perfil(ExportModelOperationsMixin('perfil'), Nomeavel, Descritivel, Ativav
     visao = models.CharField( # noqa
         'Visão', choices=VISAO_CHOICES, max_length=25, blank=True, null=True, default=None)
 
+    @classmethod
+    def visoes_to_json(cls):
+        result = []
+        for visao in cls.VISAO_CHOICES:
+            choice = {
+                'id': visao[0],
+                'nome': visao[1]
+            }
+            result.append(choice)
+        return result
+
+    @classmethod
+    def by_nome(cls, nome):
+        return Perfil.objects.get(nome__iexact=nome)
+
     class Meta:
         verbose_name = 'Perfil'
         verbose_name_plural = 'Perfis'
@@ -104,6 +119,35 @@ class Vinculo(ExportModelOperationsMixin('vinculo_perfil'), Ativavel, TemChaveEx
         self.ativo = True
         self.data_inicial = datetime.date.today()
         self.save()
+
+    @classmethod # noqa
+    def get_instituicao(cls, dados_usuario):
+        from ...escola.models import Escola, DiretoriaRegional, Codae
+        from ...terceirizada.models import Terceirizada
+
+        if dados_usuario['visao'] == Perfil.ESCOLA:
+            return Escola.objects.get(codigo_eol=dados_usuario['instituicao'])
+        elif dados_usuario['visao'] == Perfil.DRE:
+            return DiretoriaRegional.objects.get(codigo_eol=dados_usuario['instituicao'])
+        elif dados_usuario['visao'] == Perfil.EMPRESA:
+            return Terceirizada.objects.get(cnpj=dados_usuario['instituicao'])
+        elif dados_usuario['visao'] == Perfil.CODAE:
+            return Codae.by_uuid(uuid=dados_usuario['subdivisao'])
+
+    @classmethod
+    def cria_vinculo(cls, usuario, dados_usuario):
+        if usuario.existe_vinculo_ativo:
+            vinculo = usuario.vinculo_atual
+            vinculo.ativo = False
+            vinculo.data_final = datetime.date.today()
+            vinculo.save()
+        Vinculo.objects.create(
+            instituicao=cls.get_instituicao(dados_usuario),
+            perfil=Perfil.by_nome(nome=dados_usuario['perfil']),
+            usuario=usuario,
+            data_inicial=datetime.date.today(),
+            ativo=True,
+        )
 
     class Meta:
         verbose_name = 'Vínculo'

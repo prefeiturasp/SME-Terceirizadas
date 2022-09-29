@@ -17,14 +17,34 @@ def perfil():
 
 
 @pytest.fixture
+def perfil_distribuidor():
+    return mommy.make(models.Perfil, nome='ADMINISTRADOR_DISTRIBUIDORA', uuid='d38e10da-c5e3-4dd5-9916-010fc250595a')
+
+
+@pytest.fixture
+def perfil_escola():
+    return mommy.make(models.Perfil, nome='ADMINISTRADOR_ESCOLA', uuid='F38e10da-c5e3-4dd5-9916-010fc250595a')
+
+
+@pytest.fixture
 def escola():
-    return mommy.make('Escola', nome='EscolaTeste', uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
+    return mommy.make('Escola', nome='EscolaTeste', codigo_eol='400221', uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
 
 
 @pytest.fixture
 def diretoria_regional():
     return mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL DE EDUCACAO ITAQUERA',
                       uuid='7bb20934-e740-4621-a906-bccb8ea98414')
+
+
+@pytest.fixture
+def terceirizada():
+    return mommy.make('Terceirizada',
+                      contatos=[mommy.make('dados_comuns.Contato')],
+                      make_m2m=True,
+                      nome_fantasia='Alimentos SA',
+                      cnpj='85786774000142'
+                      )
 
 
 @pytest.fixture
@@ -60,6 +80,7 @@ def usuario_2():
 def usuario_3():
     user = mommy.make(
         models.Usuario,
+        username='7654321',
         uuid='155743d3-b16d-4899-8224-efc694053055',
         nome='Siclano Souza',
         email='siclano@teste.com',

@@ -148,6 +148,7 @@ class EOLServicoSGP:
             response = requests.get(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/{login}/dados',
                                     headers=cls.HEADER)
             if response.status_code == status.HTTP_200_OK:
+                logger.info(f'Usuário {login} encontrado no CoreSSO.')
                 return response.json()
             else:
                 logger.info(f'Usuário {login} não encontrado no CoreSSO: {response}')
@@ -165,7 +166,6 @@ class EOLServicoSGP:
 
         """
         logger.info(f'Atribuindo perfil {perfil} ao usuário {login}.')
-        """TODO: Implementar um endpoint no autentica-core-sso para pegar esse dicionário dinamicamente"""
 
         sys_grupo_ids = AutenticacaoService.get_perfis_do_sistema()
         try:
@@ -222,7 +222,7 @@ class EOLServicoSGP:
                 result = 'OK'
                 return result
             else:
-                logger.info('Erro ao tentar criar o usuáriol: %s', response.json())
+                logger.info('Erro ao tentar criar o usuário: %s', response.json())
                 raise EOLException(f'Erro ao tentar criar o usuário {nome}.')
         except Exception as err:
             raise EOLException(str(err))

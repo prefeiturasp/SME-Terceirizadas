@@ -1,5 +1,7 @@
 import datetime
+import json
 import uuid
+from unittest.mock import patch
 
 import pytest
 from rest_framework import status
@@ -7,7 +9,7 @@ from rest_framework import status
 from ..api.helpers import ofuscar_email
 from ..api.serializers import UsuarioUpdateSerializer
 from ..api.viewsets import UsuarioUpdateViewSet
-from ..models import Usuario
+from ..models import Perfil, Usuario
 from .conftest import mocked_request_api_eol, mocked_request_api_eol_usuario_diretoria_regional
 
 pytestmark = pytest.mark.django_db
@@ -200,7 +202,8 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_ESCOLA',
-                'uuid': '48330a6f-c444-4462-971e-476452b328b2'
+                'uuid': '48330a6f-c444-4462-971e-476452b328b2',
+                'visao': None
             },
             'ativo': False
         },
@@ -258,7 +261,7 @@ def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
     response.json()[0].pop('uuid')
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+         'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva', 'cpf': '11111111111',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'tipo_usuario': 'escola',
                      'cargo': ''}}]
@@ -325,7 +328,8 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_DRE',
-                'uuid': '48330a6f-c444-4462-971e-476452b328b2'
+                'uuid': '48330a6f-c444-4462-971e-476452b328b2',
+                'visao': None
             },
             'ativo': False
         },
@@ -348,7 +352,7 @@ def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regiona
     response.json()[0].pop('uuid')
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+         'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
                      'tipo_usuario': 'diretoriaregional', 'cargo': ''}}]
@@ -453,7 +457,8 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
-                'uuid': '48330a6f-c444-4462-971e-476452b328b2'
+                'uuid': '48330a6f-c444-4462-971e-476452b328b2',
+                'visao': None
             },
             'ativo': False
         },
@@ -478,7 +483,7 @@ def test_get_equipe_administradora_vinculos_codae(users_codae_gestao_alimentacao
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
-                    'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+                    'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
                      'tipo_usuario': 'gestao_alimentacao_terceirizada', 'cargo': ''}}]
@@ -512,7 +517,7 @@ def test_get_equipe_administradora_vinculos_terceirizadas(users_terceirizada):
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_TERCEIRIZADA',
-                    'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'},
+                    'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'tipo_usuario': 'terceirizada', 'cargo': ''}
          }
@@ -645,7 +650,8 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
         },
         'perfil': {
             'nome': 'COORDENADOR_ESCOLA',
-            'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'
+            'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+            'visao': None
         },
         'ativo': True
     }
@@ -725,7 +731,8 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
             },
             'perfil': {
                 'nome': 'título do perfil',
-                'uuid': 'd38e10da-c5e3-4dd5-9916-010fc250595a'
+                'uuid': 'd38e10da-c5e3-4dd5-9916-010fc250595a',
+                'visao': None
             },
             'ativo': True
         },
@@ -769,3 +776,92 @@ def test_busca_vinculos_ativos_com_filtro(client, users_terceirizada):
     assert response.status_code == status.HTTP_200_OK
     for resultado in response.json()['results']:
         assert resultado.get('nome_perfil') == 'NUTRI_ADMIN_RESPONSAVEL'
+
+
+def test_url_visoes(client_autenticado):
+    response = client_autenticado.get('/perfis/visoes/')
+    assert response.status_code == status.HTTP_200_OK
+    json_data = json.loads(response.content)
+    assert json_data == Perfil.visoes_to_json()
+
+
+def test_criar_usuario_nao_servidor_coresso(client_autenticado, terceirizada, perfil_distribuidor):
+    payload = {
+        'username': '52898325139',
+        'email': 'teste_silva@teste.com',
+        'nome': 'Teste da Silva',
+        'visao': 'EMPRESA',
+        'perfil': perfil_distribuidor.nome,
+        'instituicao': terceirizada.cnpj,
+        'cpf': '52898325139',
+        'eh_servidor': 'N'
+    }
+
+    api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso' # noqa
+    with patch(api_cria_ou_atualiza_usuario_core_sso):
+        response = client_autenticado.post('/cadastro-com-coresso/', data=json.dumps(payload),
+                                           content_type='application/json')
+    result = response.json()
+
+    u = Usuario.objects.filter(username='52898325139').first()
+    esperado = {
+        'uuid': str(u.uuid),
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert result == esperado
+
+
+def test_criar_usuario_servidor_coresso(client_autenticado, escola, perfil_escola):
+    payload = {
+        'username': '1234567',
+        'email': 'teste_servidor@teste.com',
+        'nome': 'Servidor da Silva',
+        'visao': 'ESCOLA',
+        'perfil': perfil_escola.nome,
+        'instituicao': escola.codigo_eol,
+        'cpf': '52898325139',
+        'cargo': 'Diretor',
+        'eh_servidor': 'S'
+    }
+
+    api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso' # noqa
+    with patch(api_cria_ou_atualiza_usuario_core_sso):
+        response = client_autenticado.post('/cadastro-com-coresso/', data=json.dumps(payload),
+                                           content_type='application/json')
+    result = response.json()
+
+    u = Usuario.objects.filter(username='1234567').first()
+    esperado = {
+        'uuid': str(u.uuid),
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert result == esperado
+
+
+def test_finaliza_vinculo(client_autenticado_dilog, usuario_3):
+    username = usuario_3.username
+    response = client_autenticado_dilog.post(f'/cadastro-com-coresso/{username}/finalizar-vinculo/',
+                                             content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_edicao_email(client_autenticado_dilog, usuario_3):
+    username = usuario_3.username
+    payload = {
+        'username': username,
+        'email': 'teste_servidor_novo_email@teste.com'
+    }
+    api_redefine_email = 'sme_terceirizadas.eol_servico.utils.EOLServicoSGP.redefine_email'
+    with patch(api_redefine_email):
+        response = client_autenticado_dilog.patch(f'/cadastro-com-coresso/{username}/alterar-email/',
+                                                  data=json.dumps(payload), content_type='application/json')
+
+    result = response.json()
+    u = Usuario.objects.filter(username=username).first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['email'] == 'teste_servidor_novo_email@teste.com'
+    assert u.email == 'teste_servidor_novo_email@teste.com'

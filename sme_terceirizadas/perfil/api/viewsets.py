@@ -5,14 +5,16 @@ from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from sme_terceirizadas.perfil.models.perfil import Vinculo
 
+from ...dados_comuns.permissions import UsuarioSuperCodae
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.models import Codae
 from ...terceirizada.models import Terceirizada
@@ -21,7 +23,15 @@ from ..models import Perfil, Usuario
 from ..tasks import busca_cargo_de_usuario
 from ..utils import VinculoPagination
 from .filters import VinculoFilter
-from .serializers import PerfilSimplesSerializer, UsuarioUpdateSerializer, VinculoSerializer, VinculoSimplesSerializer
+from .serializers import (
+    AlteraEmailSerializer,
+    PerfilSimplesSerializer,
+    UsuarioComCoreSSOCreateSerializer,
+    UsuarioSerializer,
+    UsuarioUpdateSerializer,
+    VinculoSerializer,
+    VinculoSimplesSerializer
+)
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -141,6 +151,10 @@ class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Perfil.objects.all()
     serializer_class = PerfilSimplesSerializer
 
+    @action(detail=False)
+    def visoes(self, request):
+        return Response(Perfil.visoes_to_json())
+
 
 class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
     permission_classes = (AllowAny,)
@@ -181,7 +195,8 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='vinculos-ativos', permission_classes=(IsAuthenticated,))
     def lista_vinculos_ativos(self, request):
-        queryset = [vinc for vinc in self.filter_queryset(self.get_queryset()) if vinc.status is Vinculo.STATUS_ATIVO]
+        queryset = [vinc for vinc in self.filter_queryset(
+            self.get_queryset().order_by('-data_inicial')) if vinc.status is Vinculo.STATUS_ATIVO]
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = VinculoSimplesSerializer(page, many=True)
@@ -428,3 +443,34 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
     workbook.save(response)
 
     return response
+
+
+class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    lookup_field = 'username'
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UsuarioComCoreSSOCreateSerializer
+    queryset = Usuario.objects.all()
+
+    @action(detail=True, permission_classes=(UsuarioSuperCodae,),
+            methods=['post'], url_path='finalizar-vinculo')
+    def finaliza_vinculo(self, request, username):
+        """(post) /cadastro-com-coresso/{usuario.username}/finalizar-vinculo/."""
+        try:
+            user = Usuario.objects.get(username=username)
+            user.vinculo_atual.finalizar_vinculo()
+            return Response(dict(detail=f'Acesso removido com sucesso!'), status=HTTP_200_OK)
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Usuário não encontrado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=(UsuarioSuperCodae,),
+            url_path='alterar-email', methods=['patch'])
+    def altera_email(self, request, username):
+        """(patch) /cadastro-com-coresso/{usuario.username}/alterar-email/."""
+        data = request.data
+        serialize = AlteraEmailSerializer()
+        validated_data = serialize.validate(data)
+        user = Usuario.objects.get(username=username)
+        instance = serialize.update(user, validated_data)
+        if isinstance(instance, Response):
+            return instance
+        return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
