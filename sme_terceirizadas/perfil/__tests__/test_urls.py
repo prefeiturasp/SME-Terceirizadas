@@ -810,3 +810,58 @@ def test_criar_usuario_nao_servidor_coresso(client_autenticado, terceirizada, pe
 
     assert response.status_code == status.HTTP_201_CREATED
     assert result == esperado
+
+
+def test_criar_usuario_servidor_coresso(client_autenticado, escola, perfil_escola):
+    payload = {
+        'username': '1234567',
+        'email': 'teste_servidor@teste.com',
+        'nome': 'Servidor da Silva',
+        'visao': 'ESCOLA',
+        'perfil': perfil_escola.nome,
+        'instituicao': escola.codigo_eol,
+        'cpf': '52898325139',
+        'cargo': 'Diretor',
+        'eh_servidor': 'S'
+    }
+
+    api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso' # noqa
+    with patch(api_cria_ou_atualiza_usuario_core_sso):
+        response = client_autenticado.post('/cadastro-com-coresso/', data=json.dumps(payload),
+                                           content_type='application/json')
+    result = response.json()
+
+    u = Usuario.objects.filter(username='1234567').first()
+    esperado = {
+        'uuid': str(u.uuid),
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert result == esperado
+
+
+def test_finaliza_vinculo(client_autenticado_dilog, usuario_3):
+    username = usuario_3.username
+    response = client_autenticado_dilog.post(f'/cadastro-com-coresso/{username}/finalizar-vinculo/',
+                                             content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_edicao_email(client_autenticado_dilog, usuario_3):
+    username = usuario_3.username
+    payload = {
+        'username': username,
+        'email': 'teste_servidor_novo_email@teste.com'
+    }
+    api_redefine_email = 'sme_terceirizadas.eol_servico.utils.EOLServicoSGP.redefine_email'
+    with patch(api_redefine_email):
+        response = client_autenticado_dilog.patch(f'/cadastro-com-coresso/{username}/alterar-email/',
+                                                  data=json.dumps(payload), content_type='application/json')
+
+    result = response.json()
+    u = Usuario.objects.filter(username=username).first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['email'] == 'teste_servidor_novo_email@teste.com'
+    assert u.email == 'teste_servidor_novo_email@teste.com'
