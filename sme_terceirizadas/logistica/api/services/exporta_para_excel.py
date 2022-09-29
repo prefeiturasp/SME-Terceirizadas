@@ -397,6 +397,117 @@ class RequisicoesExcelService(object):
             ws.cell(row=ind, column=offset + 55, value=retorna_status_guia_remessa(requisicao['guias__status']))
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
+    @classmethod  # noqa C901
+    def cria_aba_conferencia_dre(cls, ws, requisicoes):
+        offset = 0
+        cabecalho = ['Código EOL',
+                     'Código CODAE',
+                     'Nome da UE',
+                     'Telefone UE',
+                     'Data de Entrega',
+                     'Número da Guia',
+                     'Status da Guia de Remessa',
+                     'Data e Hora do Recebimento (1ª Conferência)',
+                     'Data e Hora do Registro (1ª Conferência)',
+                     'Data e Hora do Recebimento (Reposição)',
+                     'Data e Hora do Registro (Reposição)',
+                     'Nome do Alimento',
+                     'Quantidade Prevista (Embalagem Fechada)',
+                     'Quantidade Prevista (Embalagem Fracionada)',
+                     'Quantidade a Repor (Embalagem Fechada)',
+                     'Quantidade a Repor (Embalagem Fracionada)',
+                     'Status de Recebimento do alimento (1ª Conferência)',
+                     'Ocorrências (1ª Conferência)',
+                     'Observações (1ª Conferência)',
+                     'Nome Completo do Conferente (1ª Conferência)',
+                     'Quantidade Reposta (Embalagem Fechada)',
+                     'Quantidade Reposta (Embalagem Fracionada)',
+                     'Status de Recebimento do Alimento (Reposição)',
+                     'Ocorrências (Reposição)',
+                     'Observações (Reposição)',
+                     'Nome Completo do Conferente (Reposição)'
+                     ]
+
+        offset = 1
+
+        count_fields = len(cabecalho)
+        count_data = requisicoes.count()
+
+        ws.title = 'Relatório de Conferência'
+        for ind, title in enumerate(cabecalho, 1):
+            celula = ws.cell(row=1, column=ind)
+            celula.value = title
+            celula.font = Font(size='13', bold=True, color='00FFFFFF')
+
+        for ind, requisicao in enumerate(requisicoes, 2):
+
+            qtd_recebida = 0
+
+            if 'conferencia_alimento' in requisicao and requisicao['conferencia_alimento'] is not None:
+                qtd_recebida = requisicao['conferencia_alimento'].qtd_recebido
+            elif 'primeira_conferencia' in requisicao:
+                qtd_recebida = requisicao['guias__alimentos__embalagens__qtd_volume']
+            else:
+                qtd_recebida = ''
+
+            ws.cell(row=ind, column=offset, value=requisicao['guias__escola__codigo_eol'])
+            ws.cell(row=ind, column=offset + 1, value=requisicao['guias__codigo_unidade'])
+            ws.cell(row=ind, column=offset + 2, value=requisicao['guias__nome_unidade'])
+            ws.cell(row=ind, column=offset + 3, value=requisicao['guias__telefone_unidade'])
+            ws.cell(row=ind, column=offset + 4, value=requisicao['guias__data_entrega'])
+            ws.cell(row=ind, column=offset + 5, value=requisicao['guias__numero_guia'])
+            ws.cell(row=ind, column=offset + 6, value=retorna_status_guia_remessa(requisicao['guias__status']))
+            if 'primeira_conferencia' in requisicao:
+                ws.cell(row=ind, column=offset + 7, value=f'{requisicao["primeira_conferencia"].data_recebimento} '
+                                                          f'{requisicao["primeira_conferencia"].hora_recebimento}')
+                ws.cell(row=ind, column=offset + 8,
+                        value=f'{requisicao["primeira_conferencia"].criado_em.strftime("%d/%m/%Y")} '
+                              f'{requisicao["primeira_conferencia"].criado_em.strftime("%H:%M:%S")}')
+            if 'primeira_reposicao' in requisicao:
+                ws.cell(row=ind, column=offset + 9, value=f'{requisicao["primeira_reposicao"].data_recebimento} '
+                                                          f'{requisicao["primeira_reposicao"].hora_recebimento}')
+                ws.cell(row=ind, column=offset + 10,
+                        value=f'{requisicao["primeira_reposicao"].criado_em.strftime("%d/%m/%Y")} '
+                              f'{requisicao["primeira_reposicao"].criado_em.strftime("%H:%M:%S")}')
+            ws.cell(row=ind, column=offset + 11, value=requisicao['guias__alimentos__nome_alimento'])
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
+                ws.cell(row=ind, column=offset + 12,
+                        value=f'{requisicao["guias__alimentos__embalagens__qtd_volume"]} '
+                              f'{requisicao["guias__alimentos__embalagens__descricao_embalagem"]}')
+            else:
+                ws.cell(row=ind, column=offset + 13,
+                        value=f'{requisicao["guias__alimentos__embalagens__qtd_volume"]} '
+                              f'{requisicao["guias__alimentos__embalagens__descricao_embalagem"]}')
+
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
+                ws.cell(row=ind, column=offset + 14, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
+            else:
+                ws.cell(row=ind, column=offset + 15, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
+            if 'primeira_conferencia' in requisicao:
+                if 'conferencia_alimento' in requisicao:
+                    ws.cell(row=ind, column=offset + 16, value=retorna_status_alimento(
+                        requisicao['conferencia_alimento'].status_alimento
+                    ))
+                    ws.cell(row=ind, column=offset + 17, value=retorna_ocorrencias_alimento(
+                        requisicao['conferencia_alimento'].ocorrencia
+                    ))
+                    ws.cell(row=ind, column=offset + 18, value=requisicao['conferencia_alimento'].observacao)
+                    ws.cell(row=ind, column=offset + 19, value=requisicao['primeira_conferencia'].criado_por.nome)
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
+                ws.cell(row=ind, column=offset + 20, value=qtd_recebida)
+            else:
+                ws.cell(row=ind, column=offset + 21, value=qtd_recebida)
+            if 'primeira_reposicao' in requisicao:
+                if 'reposicao_alimento' in requisicao:
+                    ws.cell(row=ind, column=offset + 22, value=retorna_status_alimento(
+                        requisicao['reposicao_alimento'].status_alimento
+                    ))
+                    ws.cell(row=ind, column=offset + 23, value=retorna_ocorrencias_alimento(
+                        requisicao['reposicao_alimento'].ocorrencia
+                    ))
+                    ws.cell(row=ind, column=offset + 24, value=requisicao['reposicao_alimento'].observacao)
+                    ws.cell(row=ind, column=offset + 25, value=requisicao['primeira_reposicao'].criado_por.nome)
+        cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
     @classmethod  # noqa C901
     def cria_aba_conferencia_distribuidor(cls, ws, requisicoes):
@@ -513,16 +624,18 @@ class RequisicoesExcelService(object):
 
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
-    @classmethod
+    @classmethod  # noqa C901
     def exportar_entregas(cls, requisicoes, requisicoes_insucesso, perfil, tem_conferencia,
                           tem_insucesso, is_async=False):
         wb = Workbook()
-
         ws_conferencia = wb.active
-        conferencia = (
-            cls.cria_aba_conferencia_distribuidor(ws_conferencia, requisicoes) if perfil == 'DISTRIBUIDOR'
-            else cls.cria_aba_conferencia_dilog(ws_conferencia, requisicoes)
-        )
+        if perfil == 'DISTRIBUIDOR':
+            conferencia = cls.cria_aba_conferencia_distribuidor(ws_conferencia, requisicoes)
+        elif perfil == 'DRE':
+            conferencia = cls.cria_aba_conferencia_dre(ws_conferencia, requisicoes)
+        else:
+            conferencia = cls.cria_aba_conferencia_dilog(ws_conferencia, requisicoes)
+
         if tem_conferencia and not tem_insucesso:
             conferencia
         elif tem_insucesso and not tem_conferencia:

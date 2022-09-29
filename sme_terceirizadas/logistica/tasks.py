@@ -183,7 +183,7 @@ def gera_xlsx_async(username, nome_arquivo, ids_requisicoes, eh_distribuidor=Fal
     time_limet=600,
     soft_time_limit=300
 )
-def gera_xlsx_entregas_async(uuid, username, tem_conferencia, tem_insucesso, eh_distribuidor=False):
+def gera_xlsx_entregas_async(uuid, username, tem_conferencia, tem_insucesso, eh_distribuidor=False, eh_dre=False):
 
     queryset = SolicitacaoRemessa.objects.filter(uuid=uuid)
     nome_arquivo = f'entregas_requisicao_{queryset.first().numero_solicitacao}.xlsx'
@@ -200,12 +200,13 @@ def gera_xlsx_entregas_async(uuid, username, tem_conferencia, tem_insucesso, eh_
     requisicoes = retorna_dados_normalizados_excel_entregas_distribuidor(queryset)
 
     try:
-        if eh_distribuidor:
-            arquivo = RequisicoesExcelService.exportar_entregas(
-                requisicoes, requisicoes_insucesso, 'DISTRIBUIDOR', tem_conferencia, tem_insucesso, is_async=True)
+        if not eh_distribuidor and not eh_dre:
+            perfil = 'DILOG'
         else:
-            arquivo = RequisicoesExcelService.exportar_entregas(
-                requisicoes, requisicoes_insucesso, 'DILOG', tem_conferencia, tem_insucesso, is_async=True)
+            perfil = 'DISTRIBUIDOR' if eh_distribuidor else 'DRE'
+
+        arquivo = RequisicoesExcelService.exportar_entregas(
+            requisicoes, requisicoes_insucesso, perfil, tem_conferencia, tem_insucesso, is_async=True)
 
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
