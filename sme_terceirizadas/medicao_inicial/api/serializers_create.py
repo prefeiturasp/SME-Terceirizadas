@@ -6,7 +6,7 @@ from rest_framework import serializers
 from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
-from sme_terceirizadas.dados_comuns.validators import deve_ter_extensao_xls_xlsx
+from sme_terceirizadas.dados_comuns.validators import deve_ter_extensao_xls_xlsx_pdf
 from sme_terceirizadas.escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
 from sme_terceirizadas.medicao_inicial.models import (
     AnexoOcorrenciaMedicaoInicial,
@@ -78,7 +78,7 @@ class AnexoOcorrenciaMedicaoInicialCreateSerializer(serializers.ModelSerializer)
         return f'{api_url}{obj.arquivo.url}'
 
     def validate_nome(self, nome):
-        deve_ter_extensao_xls_xlsx(nome)
+        deve_ter_extensao_xls_xlsx_pdf(nome)
         return nome
 
     class Meta:
@@ -108,7 +108,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
     )
     responsaveis = ResponsavelCreateSerializer(many=True)
     com_ocorrencias = serializers.BooleanField(required=False)
-    anexo = AnexoOcorrenciaMedicaoInicialCreateSerializer(required=False)
+    anexos = AnexoOcorrenciaMedicaoInicialCreateSerializer(required=False, many=True)
     logs = LogSolicitacoesUsuarioSerializer(many=True, required=False)
 
     def create(self, validated_data):
@@ -143,15 +143,16 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                     rf=responsavel.get('rf', '')
                 )
 
-        anexo_string = self.context['request'].data.get('anexo', None)
-        if anexo_string:
-            anexo = json.loads(anexo_string)
-            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
-            AnexoOcorrenciaMedicaoInicial.objects.create(
-                solicitacao_medicao_inicial=instance,
-                arquivo=arquivo,
-                nome=anexo.get('nome')
-            )
+        anexos_string = self.context['request'].data.get('anexos', None)
+        if anexos_string:
+            anexos = json.loads(anexos_string)
+            for anexo in anexos:
+                arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+                AnexoOcorrenciaMedicaoInicial.objects.create(
+                    solicitacao_medicao_inicial=instance,
+                    arquivo=arquivo,
+                    nome=anexo.get('nome')
+                )
         if key_com_ocorrencias is not None:
             instance.codae_encerra_medicao_inicial(user=self.context['request'].user)
 

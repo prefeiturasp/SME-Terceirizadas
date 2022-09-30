@@ -9,6 +9,8 @@ from ..validators import (
     deve_existir_cardapio,
     deve_pedir_com_antecedencia,
     deve_ser_no_mesmo_ano_corrente,
+    deve_ser_no_passado,
+    deve_ter_extensao_xls_xlsx_pdf,
     dia_util,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
@@ -125,3 +127,18 @@ def test_valida_ano_diferente_exception(data_inversao_ano_diferente):
 def test_valida_mesmo_ano(data_inversao_mesmo_ano):
     data_inversao, esperado = data_inversao_mesmo_ano
     assert deve_ser_no_mesmo_ano_corrente(data_inversao) is esperado
+
+
+def test_anexo_extensoes_validas(nomes_anexos_validos):
+    nome = deve_ter_extensao_xls_xlsx_pdf(nomes_anexos_validos)
+    assert type(nome) is str
+
+
+def test_anexo_extensoes_invalidas(nomes_anexos_invalidos):
+    with pytest.raises(ValidationError, match='Extensão inválida'):
+        deve_ter_extensao_xls_xlsx_pdf(nomes_anexos_invalidos)
+
+
+def test_data_deve_ser_no_passado_raise_error(data_maior_que_hoje):
+    with pytest.raises(ValidationError, match='Deve ser data anterior a hoje'):
+        deve_ser_no_passado(data_maior_que_hoje)

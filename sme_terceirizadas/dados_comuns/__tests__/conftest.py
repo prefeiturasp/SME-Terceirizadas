@@ -296,3 +296,26 @@ def download(usuario_teste_notificacao_autenticado, arquivo):
         criado_em=datetime.datetime.now(),
         msg_erro=''
     )
+
+
+@pytest.fixture(scope='function', params=[
+    'anexo.pdf',
+    'anexo_1.xls',
+    'anexo_2.xlsx',
+])
+def nomes_anexos_validos(request):
+    return request.param
+
+
+@pytest.fixture(scope='function', params=[
+    'anexo.zip',
+    'anexo_1.py',
+    'anexo_2.js',
+])
+def nomes_anexos_invalidos(request):
+    return request.param
+
+
+@pytest.fixture
+def data_maior_que_hoje():
+    return datetime.date.today() + datetime.timedelta(days=10)

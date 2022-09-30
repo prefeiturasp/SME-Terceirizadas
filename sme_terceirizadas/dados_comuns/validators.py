@@ -93,7 +93,7 @@ def deve_ter_extensao_valida(nome: str):
     return nome
 
 
-def deve_ter_extensao_xls_xlsx(nome: str):
-    if nome.split('.')[len(nome.split('.')) - 1].lower() not in ['xls', 'xlsx']:
+def deve_ter_extensao_xls_xlsx_pdf(nome: str):
+    if nome.split('.')[len(nome.split('.')) - 1].lower() not in ['xls', 'xlsx', 'pdf']:
         raise serializers.ValidationError('Extensão inválida')
     return nome
