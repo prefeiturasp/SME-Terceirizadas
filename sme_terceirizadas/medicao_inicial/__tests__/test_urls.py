@@ -17,6 +17,15 @@ def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_co
     )
     assert response.status_code == status.HTTP_201_CREATED
     assert DiaSobremesaDoce.objects.count() == 3
+
+    response = client_autenticado_coordenador_codae.get(
+        '/medicao-inicial/dias-sobremesa-doce/lista-dias/?mes=8&ano=2022'
+        '&escola_uuid=95ad02fb-d746-4e0c-95f4-0181a99bc192',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == ['2022-08-08']
+
     response = client_autenticado_coordenador_codae.get(
         '/medicao-inicial/dias-sobremesa-doce/?mes=8&ano=2022',
         content_type='application/json'
@@ -40,6 +49,15 @@ def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_co
     )
     assert response.status_code == status.HTTP_201_CREATED
     assert DiaSobremesaDoce.objects.count() == 0
+
+
+def test_url_endpoint_list_dias_erro(client_autenticado_coordenador_codae):
+    response = client_autenticado_coordenador_codae.get(
+        '/medicao-inicial/dias-sobremesa-doce/lista-dias/?mes=8&ano=2022'
+        '&escola_uuid=95ad02fb-d746-4e0c-95f4-0181a99bc193',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_url_endpoint_solicitacao_medicao_inicial(client_autenticado_da_escola,

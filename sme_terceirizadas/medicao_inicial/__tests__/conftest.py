@@ -29,7 +29,8 @@ def client_autenticado_coordenador_codae(client, django_user_model):
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_coordenador,
                data_inicial=hoje, ativo=True)
-    mommy.make('TipoUnidadeEscolar', iniciais='EMEF', uuid='1cc3253b-e297-42b3-8e57-ebfd115a1aba')
+    emef = mommy.make('TipoUnidadeEscolar', iniciais='EMEF', uuid='1cc3253b-e297-42b3-8e57-ebfd115a1aba')
+    mommy.make('Escola', tipo_unidade=emef, uuid='95ad02fb-d746-4e0c-95f4-0181a99bc192')
     mommy.make('TipoUnidadeEscolar', iniciais='CEU GESTAO', uuid='40ee89a7-dc70-4abb-ae21-369c67f2b9e3')
     mommy.make('TipoUnidadeEscolar', iniciais='CIEJA', uuid='ac4858ff-1c11-41f3-b539-7a02696d6d1b')
     return client
