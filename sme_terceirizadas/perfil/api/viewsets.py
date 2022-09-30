@@ -13,6 +13,10 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from sme_terceirizadas.perfil.models.perfil import Vinculo
+from sme_terceirizadas.perfil.models.usuario import (
+    ImportacaoPlanilhaUsuarioExternoCoreSSO,
+    ImportacaoPlanilhaUsuarioServidorCoreSSO
+)
 
 from ...dados_comuns.permissions import UsuarioSuperCodae
 from ...escola.api.serializers import UsuarioDetalheSerializer
@@ -21,10 +25,12 @@ from ...terceirizada.models import Terceirizada
 from ..api.helpers import ofuscar_email
 from ..models import Perfil, Usuario
 from ..tasks import busca_cargo_de_usuario
-from ..utils import VinculoPagination
-from .filters import VinculoFilter
+from ..utils import PerfilPagination
+from .filters import ImportacaoPlanilhaUsuarioCoreSSOFilter, VinculoFilter
 from .serializers import (
     AlteraEmailSerializer,
+    ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer,
+    ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer,
     PerfilSimplesSerializer,
     UsuarioComCoreSSOCreateSerializer,
     UsuarioSerializer,
@@ -189,7 +195,7 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Vinculo.objects.all()
     serializer_class = VinculoSerializer
-    pagination_class = VinculoPagination
+    pagination_class = PerfilPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = VinculoFilter
 
@@ -474,3 +480,23 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
         if isinstance(instance, Response):
             return instance
         return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
+
+
+class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (UsuarioSuperCodae,)
+    lookup_field = 'uuid'
+    queryset = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.all()
+    serializer_class = ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer
+    pagination_class = PerfilPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
+
+
+class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (UsuarioSuperCodae,)
+    lookup_field = 'uuid'
+    queryset = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.all()
+    serializer_class = ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer
+    pagination_class = PerfilPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
