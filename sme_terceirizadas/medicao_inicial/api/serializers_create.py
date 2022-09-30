@@ -6,7 +6,7 @@ from rest_framework import serializers
 from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
-from sme_terceirizadas.dados_comuns.validators import deve_ter_extensao_xls_xlsx
+from sme_terceirizadas.dados_comuns.validators import deve_ter_extensao_xls_xlsx_pdf
 from sme_terceirizadas.escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
 from sme_terceirizadas.medicao_inicial.models import (
     AnexoOcorrenciaMedicaoInicial,
@@ -78,7 +78,7 @@ class AnexoOcorrenciaMedicaoInicialCreateSerializer(serializers.ModelSerializer)
         return f'{api_url}{obj.arquivo.url}'
 
     def validate_nome(self, nome):
-        deve_ter_extensao_xls_xlsx(nome)
+        deve_ter_extensao_xls_xlsx_pdf(nome)
         return nome
 
     class Meta:
