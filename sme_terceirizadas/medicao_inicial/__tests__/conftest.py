@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from model_mommy import mommy
 
 
@@ -32,4 +33,89 @@ def client_autenticado_coordenador_codae(client, django_user_model):
     mommy.make('Escola', tipo_unidade=emef, uuid='95ad02fb-d746-4e0c-95f4-0181a99bc192')
     mommy.make('TipoUnidadeEscolar', iniciais='CEU GESTAO', uuid='40ee89a7-dc70-4abb-ae21-369c67f2b9e3')
     mommy.make('TipoUnidadeEscolar', iniciais='CIEJA', uuid='ac4858ff-1c11-41f3-b539-7a02696d6d1b')
+    return client
+
+
+@pytest.fixture
+def escola():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='9640fef4-a068-474e-8979-2e1b2654357a')
+    return mommy.make('Escola', nome='EMEF TESTE', lote=lote, diretoria_regional=diretoria_regional)
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial(escola):
+    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
+    return mommy.make('SolicitacaoMedicaoInicial', uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
+                      mes=12, ano=2022, escola=escola, tipo_contagem_alimentacoes=tipo_contagem)
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_sem_arquivo(escola):
+    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas COloridas')
+    return mommy.make('SolicitacaoMedicaoInicial', uuid='fb6d1870-a397-4e87-8218-13d316a0ffea',
+                      mes=6, ano=2022, escola=escola, tipo_contagem_alimentacoes=tipo_contagem)
+
+
+@pytest.fixture
+def anexo_ocorrencia_medicao_inicial(solicitacao_medicao_inicial):
+    nome = 'arquivo_teste.pdf'
+    arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
+    return mommy.make('AnexoOcorrenciaMedicaoInicial', uuid='1ace193a-6c2c-4686-b9ed-60a922ad0e1a',
+                      nome=nome, arquivo=arquivo, solicitacao_medicao_inicial=solicitacao_medicao_inicial)
+
+
+@pytest.fixture
+def responsavel(solicitacao_medicao_inicial):
+    nome = 'tester'
+    rf = '1234567'
+    return mommy.make('medicao_inicial.Responsavel', nome=nome, rf=rf,
+                      solicitacao_medicao_inicial=solicitacao_medicao_inicial)
+
+
+@pytest.fixture
+def tipo_contagem_alimentacao():
+    return mommy.make('TipoContagemAlimentacao', nome='Fichas')
+
+
+@pytest.fixture
+def periodo_escolar():
+    return mommy.make('PeriodoEscolar', nome='INTEGRAL')
+
+
+@pytest.fixture
+def medicao(solicitacao_medicao_inicial, periodo_escolar):
+    return mommy.make('Medicao', periodo_escolar=periodo_escolar, uuid='5a3a3941-1b91-4b9f-b410-c3547e224eb5',
+                      solicitacao_medicao_inicial=solicitacao_medicao_inicial)
+
+
+@pytest.fixture
+def categoria_medicao():
+    return mommy.make('CategoriaMedicao', nome='ALIMENTAÇÃO')
+
+
+@pytest.fixture
+def valor_medicao(medicao, categoria_medicao):
+    valor = 13
+    nome_campo = 'observacoes'
+    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', uuid='b58b7946-67c4-416c-82cf-f26a470fb93e')
+    return mommy.make('ValorMedicao', valor=valor, nome_campo=nome_campo, medicao=medicao,
+                      uuid='fc2fbc0a-8dda-4c8e-b5cf-c40ecff52a5c', dia=13,
+                      categoria_medicao=categoria_medicao, tipo_alimentacao=tipo_alimentacao)
+
+
+@pytest.fixture
+def client_autenticado_da_escola(client, django_user_model, escola):
+    email = 'user@escola.com'
+    password = 'admin@123'
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456',
+                                                    )
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
     return client

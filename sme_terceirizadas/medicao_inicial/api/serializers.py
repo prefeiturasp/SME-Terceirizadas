@@ -54,7 +54,7 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     escola = serializers.CharField(source='escola.nome')
     tipo_contagem_alimentacoes = TipoContagemAlimentacaoSerializer()
     responsaveis = ResponsavelSerializer(many=True)
-    anexo = AnexoOcorrenciaMedicaoInicialSerializer(required=False)
+    anexos = AnexoOcorrenciaMedicaoInicialSerializer(required=False, many=True)
     logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
