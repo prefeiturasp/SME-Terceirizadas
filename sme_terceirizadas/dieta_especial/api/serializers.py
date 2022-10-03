@@ -18,6 +18,7 @@ from ..models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    LogQuantidadeDietasAutorizadas,
     MotivoAlteracaoUE,
     MotivoNegacao,
     ProtocoloPadraoDietaEspecial,
@@ -598,3 +599,15 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
             'nome_protocolo',
             'data_ultimo_log'
         )
+
+
+class LogQuantidadeDietasAutorizadasSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Escola.objects.all()
+    )
+
+    class Meta:
+        model = LogQuantidadeDietasAutorizadas
+        exclude = ('id', 'uuid', 'criado_em')
