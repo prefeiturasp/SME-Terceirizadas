@@ -487,3 +487,35 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer(serializers.ModelSeriali
     class Meta:
         model = ImportacaoPlanilhaUsuarioExternoCoreSSO
         exclude = ['id']
+
+
+class ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer(serializers.ModelSerializer):
+    conteudo = serializers.FileField(required=True)
+
+    def validate(self, attrs):
+        conteudo = attrs.get('conteudo')
+        if conteudo:
+            if not conteudo.endswith(tuple(['.xlsx', '.xls'])):
+                raise serializers.ValidationError({'detail': 'Extensão do arquivo não suportada'})
+
+        return attrs
+
+    class Meta:
+        model = ImportacaoPlanilhaUsuarioServidorCoreSSO
+        exclude = ('id',)
+
+
+class ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer(serializers.ModelSerializer):
+    conteudo = serializers.FileField(required=True)
+
+    def validate(self, attrs):
+        conteudo = attrs.get('conteudo')
+        if conteudo:
+            if not conteudo.endswith(tuple(['.xlsx', '.xls'])):
+                raise serializers.ValidationError({'detail': 'Extensão do arquivo não suportada'})
+
+        return attrs
+
+    class Meta:
+        model = ImportacaoPlanilhaUsuarioExternoCoreSSO
+        exclude = ('id',)
