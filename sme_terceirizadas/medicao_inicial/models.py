@@ -70,9 +70,9 @@ class SolicitacaoMedicaoInicial(
 class AnexoOcorrenciaMedicaoInicial(TemChaveExterna):
     nome = models.CharField(max_length=100)
     arquivo = models.FileField()
-    solicitacao_medicao_inicial = models.OneToOneField(
+    solicitacao_medicao_inicial = models.ForeignKey(
         SolicitacaoMedicaoInicial,
-        related_name='anexo',
+        related_name='anexos',
         on_delete=models.CASCADE
     )
 
