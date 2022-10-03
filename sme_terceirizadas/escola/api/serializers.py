@@ -172,18 +172,6 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class LoteSimplesSerializer(serializers.ModelSerializer):
-    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
-    tipo_gestao = TipoGestaoSerializer()
-    escolas = EscolaSimplissimaSerializer(many=True)
-    terceirizada = TerceirizadaSimplesSerializer()
-    subprefeituras = SubprefeituraSerializer(many=True)
-
-    class Meta:
-        model = Lote
-        exclude = ('id',)
-
-
 class LoteNomeSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     tipo_gestao = serializers.CharField()
@@ -198,6 +186,26 @@ class LoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lote
         fields = ('uuid', 'nome')  # noqa
+
+
+class EscolaNomeCodigoEOLSerializer(serializers.ModelSerializer):
+    lote = LoteSerializer()
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'codigo_eol', 'lote')
+
+
+class LoteSimplesSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+    tipo_gestao = TipoGestaoSerializer()
+    escolas = EscolaNomeCodigoEOLSerializer(many=True)
+    terceirizada = TerceirizadaSimplesSerializer()
+    subprefeituras = SubprefeituraSerializer(many=True)
+
+    class Meta:
+        model = Lote
+        exclude = ('id',)
 
 
 class EscolaSimplesSerializer(serializers.ModelSerializer):
@@ -361,12 +369,6 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         else:
             return []
 
-    def get_escolas(self, obj):
-        if isinstance(obj.instituicao, DiretoriaRegional):
-            return EscolaListagemSimplesSelializer(obj.instituicao.escolas.all(), many=True).data
-        else:
-            return []
-
     def get_diretoria_regional(self, obj):
         if isinstance(obj.instituicao, Escola):
             return DiretoriaRegionalSimplissimaSerializer(obj.instituicao.diretoria_regional).data
@@ -406,7 +408,6 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                             'quantidade_alunos': obj.instituicao.quantidade_alunos,
                             'lotes': self.get_lotes(obj),
                             'periodos_escolares': self.get_periodos_escolares(obj),
-                            'escolas': self.get_escolas(obj),
                             'diretoria_regional': self.get_diretoria_regional(obj),
                             'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj),
                             'tipo_unidade_escolar_iniciais': self.get_tipo_unidade_escolar_iniciais(obj),

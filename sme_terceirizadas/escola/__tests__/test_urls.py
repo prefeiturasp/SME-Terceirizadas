@@ -238,3 +238,11 @@ def test_url_endpoint_deletar_foto_aluno_token_invalido(client_autenticado_da_es
     response = client_autenticado_da_escola.delete(f'/alunos/{aluno.codigo_eol}/deletar-foto/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()['detail'] == 'Não foi possível logar no sistema novosgp'
+
+
+def test_escola_simplissima_dre_unpaginated(client_autenticado_da_dre, diretoria_regional):
+    assert diretoria_regional.escolas.count() == 3
+    response = client_autenticado_da_dre.get(
+        f'/escolas-simplissima-com-dre-unpaginated/terc-total/?dre=d305add2-f070-4ad3-8c17-ba9664a7c655')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 3

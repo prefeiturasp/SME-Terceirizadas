@@ -9,6 +9,7 @@ from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, mixins, serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -25,6 +26,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...dieta_especial.tasks import gera_pdf_relatorio_dieta_especial_async
 from ...escola.models import Aluno, EscolaPeriodoEscolar, Lote
 from ...escola.services import NovoSGPServicoLogado
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
@@ -33,7 +35,6 @@ from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
     relatorio_dietas_especiais_terceirizada,
-    relatorio_geral_dieta_especial,
     relatorio_quantitativo_classificacao_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas,
@@ -53,6 +54,7 @@ from ..models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    LogQuantidadeDietasAutorizadas,
     MotivoAlteracaoUE,
     MotivoNegacao,
     ProtocoloPadraoDietaEspecial,
@@ -61,11 +63,12 @@ from ..models import (
     TipoContagem
 )
 from ..utils import ProtocoloPadraoPagination, RelatorioPagination
-from .filters import AlimentoFilter, DietaEspecialFilter, MotivoNegacaoFilter
+from .filters import AlimentoFilter, DietaEspecialFilter, LogQuantidadeDietasEspeciaisFilter, MotivoNegacaoFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
     ClassificacaoDietaSerializer,
+    LogQuantidadeDietasAutorizadasSerializer,
     MotivoAlteracaoUESerializer,
     MotivoNegacaoSerializer,
     PanoramaSerializer,
@@ -628,8 +631,12 @@ class SolicitacaoDietaEspecialViewSet(
                 filtros['alergias_intolerancias__id__in'] = [
                     disgnostico.id for disgnostico in data['diagnostico']]
 
-            user = self.request.user
-            return relatorio_geral_dieta_especial(form, queryset.filter(**filtros), user)  # noqa
+            user = request.user.get_username()
+            ids_dietas = list(queryset.filter(**filtros).values_list('id', flat=True))
+            gera_pdf_relatorio_dieta_especial_async.delay(user=user, nome_arquivo='relatorio_dieta_especial.pdf',
+                                                          data=self.request.data, ids_dietas=ids_dietas)
+            return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                            status=status.HTTP_200_OK)
         except ValidationError as error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1140,3 +1147,11 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         import json
         protocolo_padrao: ProtocoloPadraoDietaEspecial = self.get_object()
         return Response({'results': json.loads(protocolo_padrao.historico) if protocolo_padrao.historico else []})
+
+
+class LogQuantidadeDietasAutorizadasViewSet(mixins.ListModelMixin, GenericViewSet):
+    serializer_class = LogQuantidadeDietasAutorizadasSerializer
+    queryset = LogQuantidadeDietasAutorizadas.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = LogQuantidadeDietasEspeciaisFilter
+    pagination_class = None

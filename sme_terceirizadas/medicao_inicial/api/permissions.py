@@ -26,7 +26,7 @@ class EhAdministradorMedicaoInicialOuGestaoAlimentacao(permissions.BasePermissio
     def has_permission(self, request, view):
         usuario = request.user
         if not usuario.is_anonymous:
-            return usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_MEDICAO,
-                                                         ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                         COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+            return usuario.tipo_usuario == 'escola' or usuario.vinculo_atual.perfil.nome in [
+                ADMINISTRADOR_MEDICAO, ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
         return False

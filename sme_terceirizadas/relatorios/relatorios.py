@@ -578,7 +578,8 @@ def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
         {
             'dados_agrupados': dados_agrupados,
             'filtros': filtros,
-            'qtde_filtros': conta_filtros(filtros)
+            'qtde_filtros': conta_filtros(filtros),
+            'exibe_coluna_terceirizada': request.user.tipo_usuario not in ['escola', 'terceirizada']
         }
     )
     return html_to_pdf_response(html_string, 'produtos_homologados_por_terceirizada.pdf')
@@ -674,6 +675,23 @@ def relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas(campos, for
 def relatorio_geral_dieta_especial(form, queryset, user):
     return get_relatorio_dieta_especial(
         None, form, queryset, user, 'relatorio_dieta_especial')
+
+
+def relatorio_geral_dieta_especial_pdf(form, queryset, user):
+    status = None
+    if 'status' in form.cleaned_data:
+        status = dict(form.fields['status'].choices).get(
+            form.cleaned_data['status'], '')
+    html_string = render_to_string(
+        f'relatorio_dieta_especial.html',
+        {
+            'status': status,
+            'filtros': form.cleaned_data,
+            'queryset': queryset,
+            'user': user
+        }
+    )
+    return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
 
 
 def get_pdf_guia_distribuidor(data=None, many=False):
