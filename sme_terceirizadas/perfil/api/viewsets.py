@@ -29,7 +29,9 @@ from ..utils import PerfilPagination
 from .filters import ImportacaoPlanilhaUsuarioCoreSSOFilter, VinculoFilter
 from .serializers import (
     AlteraEmailSerializer,
+    ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer,
     ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer,
+    ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer,
     ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer,
     PerfilSimplesSerializer,
     UsuarioComCoreSSOCreateSerializer,
@@ -482,7 +484,11 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
         return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
-class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(viewsets.ReadOnlyModelViewSet):
+class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(mixins.RetrieveModelMixin,
+                                                      mixins.ListModelMixin,
+                                                      mixins.CreateModelMixin,
+                                                      viewsets.GenericViewSet):
+
     permission_classes = (UsuarioSuperCodae,)
     lookup_field = 'uuid'
     queryset = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.all()
@@ -491,8 +497,36 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(viewsets.ReadOnlyModelView
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
 
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer
+        else:
+            return ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer
 
-class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(viewsets.ReadOnlyModelViewSet):
+    @action(detail=True, permission_classes=(UsuarioSuperCodae,),
+            methods=['post'], url_path='processar-importacao')
+    def processa_importacao_usuario_servidor(self, request, uuid):
+        """(post) /planilha-coresso-servidor/{ImportacaoPlanilhaUsuarioServidorCoreSSO.uuid}/processar-importacao/."""
+        username = request.user.get_username()
+        processa_planilha_usuario_externo_coresso_async.delay(username=username, arquivo_uuid=uuid)
+
+        return Response(dict(detail='Processamento de importação iniciado com sucesso.'), status=HTTP_200_OK)
+
+    @action(detail=True, permission_classes=(UsuarioSuperCodae,),
+            methods=['patch'], url_path='remover')
+    def remove_palnilha_usuario_servidor(self, request, uuid):
+        """(patch) /planilha-coresso-servidor/{ImportacaoPlanilhaUsuarioServidorCoreSSO.uuid}/remover/."""
+        arquivo = self.get_object()
+        arquivo.removido()
+
+        return Response(dict(detail='Arquivo removido com sucesso.'), status=HTTP_200_OK)
+
+
+class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
+                                                     mixins.ListModelMixin,
+                                                     mixins.CreateModelMixin,
+                                                     viewsets.GenericViewSet):
+
     permission_classes = (UsuarioSuperCodae,)
     lookup_field = 'uuid'
     queryset = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.all()
@@ -500,6 +534,12 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(viewsets.ReadOnlyModelViewS
     pagination_class = PerfilPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer
+        else:
+            return ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer
 
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),
             methods=['post'], url_path='processar-importacao')
@@ -509,3 +549,12 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(viewsets.ReadOnlyModelViewS
         processa_planilha_usuario_externo_coresso_async.delay(username=username, arquivo_uuid=uuid)
 
         return Response(dict(detail='Processamento de importação iniciado com sucesso.'), status=HTTP_200_OK)
+
+    @action(detail=True, permission_classes=(UsuarioSuperCodae,),
+            methods=['patch'], url_path='remover')
+    def remove_palnilha_usuario_externo(self, request, uuid):
+        """(patch) /planilha-coresso-externo/{ImportacaoPlanilhaUsuarioExternoCoreSSO.uuid}/remover/."""
+        arquivo = self.get_object()
+        arquivo.removido()
+
+        return Response(dict(detail='Arquivo removido com sucesso.'), status=HTTP_200_OK)

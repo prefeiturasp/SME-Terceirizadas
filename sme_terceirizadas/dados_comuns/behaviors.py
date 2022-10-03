@@ -311,6 +311,12 @@ class ArquivoCargaBase(ModeloBase):
         self.status = StatusProcessamentoArquivo.ERRO.value
         self.save()
 
+    def removido(self):
+        if self.conteudo:
+            self.conteudo.storage.delete(self.conteudo.name)
+        self.status = StatusProcessamentoArquivo.REMOVIDO.value
+        self.save()
+
     class Meta:
         abstract = True
 
