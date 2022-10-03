@@ -503,6 +503,11 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(mixins.RetrieveModelMixin,
         else:
             return ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer
 
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioSuperCodae,),
+            url_path='download-planilha-servidor')
+    def exportar_planilha_servidor(self, request):
+        return exportar_planilha_importacao_usuarios_servidor_coresso(request)
+
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),
             methods=['post'], url_path='processar-importacao')
     def processa_importacao_usuario_servidor(self, request, uuid):
@@ -558,3 +563,8 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
         arquivo.removido()
 
         return Response(dict(detail='Arquivo removido com sucesso.'), status=HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioSuperCodae,),
+            url_path='download-planilha-nao-servidor')
+    def exportar_planilha_externos(self, request):
+        return exportar_planilha_importacao_usuarios_externos_coresso(request)
