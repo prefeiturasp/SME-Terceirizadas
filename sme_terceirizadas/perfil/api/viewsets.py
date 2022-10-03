@@ -491,6 +491,11 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(viewsets.ReadOnlyModelView
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
 
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioSuperCodae,),
+            url_path='download-planilha-servidor')
+    def exportar_planilha_servidor(self, request):
+        return exportar_planilha_importacao_usuarios_servidor_coresso(request)
+
 
 class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (UsuarioSuperCodae,)
@@ -500,3 +505,8 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(viewsets.ReadOnlyModelViewS
     pagination_class = PerfilPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
+
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioSuperCodae,),
+            url_path='download-planilha-nao-servidor')
+    def exportar_planilha_externos(self, request):
+        return exportar_planilha_importacao_usuarios_externos_coresso(request)
