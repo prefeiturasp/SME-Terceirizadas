@@ -1,9 +1,15 @@
+import datetime
 import logging
 
 from celery import shared_task
 from rest_framework.exceptions import ValidationError
 
-from sme_terceirizadas.dieta_especial.models import PlanilhaDietasAtivas
+from sme_terceirizadas.dieta_especial.models import (
+    ClassificacaoDieta,
+    LogQuantidadeDietasAutorizadas,
+    PlanilhaDietasAtivas,
+    SolicitacaoDietaEspecial
+)
 from sme_terceirizadas.escola.utils_escola import get_escolas
 
 from ..dados_comuns.utils import (
@@ -11,6 +17,7 @@ from ..dados_comuns.utils import (
     atualiza_central_download_com_erro,
     gera_objeto_na_central_download
 )
+from ..escola.models import Escola, TipoGestao
 from ..perfil.models import Usuario
 from .utils import cancela_dietas_ativas_automaticamente, inicia_dietas_temporarias, termina_dietas_especiais
 
@@ -67,3 +74,33 @@ def gera_pdf_relatorio_dieta_especial_async(user, nome_arquivo, ids_dietas, data
         atualiza_central_download_com_erro(obj_central_download, str(e))
 
     logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+)
+def gera_logs_dietas_especiais_diariamente():
+    logger.info(f'x-x-x-x Iniciando a geração de logs de dietas especiais autorizadas diaria x-x-x-x')
+    ontem = datetime.date.today() - datetime.timedelta(days=1)
+    dietas_autorizadas = SolicitacaoDietaEspecial.objects.filter(
+        tipo_solicitacao__in=['COMUM', 'ALTERACAO_UE', 'ALUNO_NAO_MATRICULADO'],
+        status__in=[
+            SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO,
+            SolicitacaoDietaEspecial.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+            SolicitacaoDietaEspecial.workflow_class.ESCOLA_SOLICITOU_INATIVACAO]
+    )
+    terc_total = TipoGestao.objects.get(nome='TERC TOTAL')
+    logs_a_criar = []
+    for escola in Escola.objects.filter(tipo_gestao=terc_total):
+        logger.info(f'x-x-x-x Logs para a escola {escola.nome} x-x-x-x')
+        for classificacao in ClassificacaoDieta.objects.all():
+            quantidade_dietas = dietas_autorizadas.filter(classificacao=classificacao, escola_destino=escola).count()
+            log = LogQuantidadeDietasAutorizadas(
+                quantidade=quantidade_dietas,
+                escola=escola,
+                data=ontem,
+                classificacao=classificacao
+            )
+            logs_a_criar.append(log)
+    LogQuantidadeDietasAutorizadas.objects.bulk_create(logs_a_criar)
