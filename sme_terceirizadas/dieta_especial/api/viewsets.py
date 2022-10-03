@@ -9,6 +9,7 @@ from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, mixins, serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -53,6 +54,7 @@ from ..models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    LogQuantidadeDietasAutorizadas,
     MotivoAlteracaoUE,
     MotivoNegacao,
     ProtocoloPadraoDietaEspecial,
@@ -61,11 +63,12 @@ from ..models import (
     TipoContagem
 )
 from ..utils import ProtocoloPadraoPagination, RelatorioPagination
-from .filters import AlimentoFilter, DietaEspecialFilter, MotivoNegacaoFilter
+from .filters import AlimentoFilter, DietaEspecialFilter, LogQuantidadeDietasEspeciaisFilter, MotivoNegacaoFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
     ClassificacaoDietaSerializer,
+    LogQuantidadeDietasAutorizadasSerializer,
     MotivoAlteracaoUESerializer,
     MotivoNegacaoSerializer,
     PanoramaSerializer,
@@ -1144,3 +1147,11 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         import json
         protocolo_padrao: ProtocoloPadraoDietaEspecial = self.get_object()
         return Response({'results': json.loads(protocolo_padrao.historico) if protocolo_padrao.historico else []})
+
+
+class LogQuantidadeDietasAutorizadasViewSet(mixins.ListModelMixin, GenericViewSet):
+    serializer_class = LogQuantidadeDietasAutorizadasSerializer
+    queryset = LogQuantidadeDietasAutorizadas.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = LogQuantidadeDietasEspeciaisFilter
+    pagination_class = None
