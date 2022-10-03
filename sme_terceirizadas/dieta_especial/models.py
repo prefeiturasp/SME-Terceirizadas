@@ -16,6 +16,7 @@ from ..dados_comuns.behaviors import (
     Logs,
     Nomeavel,
     TemChaveExterna,
+    TemData,
     TemIdentificadorExternoAmigavel,
     TemPrioridade
 )
@@ -621,3 +622,19 @@ class ArquivoCargaUsuariosEscola(ArquivoCargaBase):
 
     def __str__(self) -> str:
         return str(self.conteudo)
+
+
+class LogQuantidadeDietasAutorizadas(TemChaveExterna, TemData, CriadoEm):
+    escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE, related_name='logs_dietas_autorizadas')
+    quantidade = models.PositiveIntegerField()
+    classificacao = models.ForeignKey(
+        'ClassificacaoDieta', on_delete=models.CASCADE, related_name='logs_dietas_autorizadas')
+
+    def __str__(self) -> str:
+        return (f'{self.escola.nome} - {self.data.strftime("%d/%m/%Y")} - {self.classificacao.nome} - '
+                f'{self.quantidade} dieta(s)')
+
+    class Meta:
+        verbose_name = 'Log da quantidade de dietas autorizadas por unidade escolar'
+        verbose_name_plural = 'Logs da quantidade de dietas autorizadas por unidade escolar'
+        ordering = ('-data', 'escola__nome')

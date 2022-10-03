@@ -27,6 +27,7 @@ from .models import (
     ArquivoCargaUsuariosEscola,
     ClassificacaoDieta,
     LogDietasAtivasCanceladasAutomaticamente,
+    LogQuantidadeDietasAutorizadas,
     MotivoAlteracaoUE,
     MotivoNegacao,
     PlanilhaDietasAtivas,
@@ -308,6 +309,12 @@ class ArquivoCargaUsuariosEscolaAdmin(admin.ModelAdmin):
         self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
 
     processa_carga.short_description = 'Realiza a importação dos usuários Diretor e Assistente Diretor'
+
+
+@admin.register(LogQuantidadeDietasAutorizadas)
+class LogQuantidadeDietasAutorizadasAdmin(admin.ModelAdmin):
+    list_display = ('escola', 'data', 'classificacao', 'quantidade')
+    list_filter = ('classificacao__nome',)
 
 
 admin.site.register(Anexo)
