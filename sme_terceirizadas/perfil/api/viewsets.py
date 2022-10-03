@@ -24,7 +24,7 @@ from ...escola.models import Codae
 from ...terceirizada.models import Terceirizada
 from ..api.helpers import ofuscar_email
 from ..models import Perfil, Usuario
-from ..tasks import busca_cargo_de_usuario
+from ..tasks import busca_cargo_de_usuario, processa_planilha_usuario_externo_coresso_async
 from ..utils import PerfilPagination
 from .filters import ImportacaoPlanilhaUsuarioCoreSSOFilter, VinculoFilter
 from .serializers import (
@@ -500,3 +500,12 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(viewsets.ReadOnlyModelViewS
     pagination_class = PerfilPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
+
+    @action(detail=True, permission_classes=(UsuarioSuperCodae,),
+            methods=['post'], url_path='processar-importacao')
+    def processa_importacao_usuario_externo(self, request, uuid):
+        """(post) /planilha-coresso-externo/{ImportacaoPlanilhaUsuarioExternoCoreSSO.uuid}/processar-importacao/."""
+        username = request.user.get_username()
+        processa_planilha_usuario_externo_coresso_async.delay(username=username, arquivo_uuid=uuid)
+
+        return Response(dict(detail='Processamento de importação iniciado com sucesso.'), status=HTTP_200_OK)

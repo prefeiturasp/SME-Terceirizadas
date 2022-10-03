@@ -1,9 +1,14 @@
 import logging
 
 from celery import shared_task
+from django.contrib.auth import get_user_model
+from utility.carga_dados.perfil.importa_dados import (
+    importa_usuarios_externos_coresso,
+    valida_arquivo_importacao_usuarios
+)
 
 from ..eol_servico.utils import EOLException, EOLService
-from .models import Cargo, Usuario
+from .models import Cargo, ImportacaoPlanilhaUsuarioExternoCoreSSO, Usuario
 
 logger = logging.getLogger('sigpae.taskPerfil')
 
@@ -33,3 +38,17 @@ def busca_cargo_de_usuario(registro_funcional):
 
     except EOLException:
         logger.debug(f'Usuario com rf {registro_funcional} não esta cadastro no EOL')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limet=600,
+    soft_time_limit=300
+)
+def processa_planilha_usuario_externo_coresso_async(username, arquivo_uuid):
+    arquivo = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.get(uuid=arquivo_uuid)
+    usuario = get_user_model().objects.get(username=username)
+
+    if valida_arquivo_importacao_usuarios(arquivo=arquivo):
+        importa_usuarios_externos_coresso(usuario, arquivo)
