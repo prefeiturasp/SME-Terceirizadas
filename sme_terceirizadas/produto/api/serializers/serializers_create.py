@@ -148,7 +148,8 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         return produto
 
     def update(self, instance, validated_data):  # noqa C901
-        mudancas = changes_between(instance, validated_data)
+        usuario = self.context['request'].user
+        mudancas = changes_between(instance, validated_data, usuario)
         justificativa = mudancas_para_justificativa_html(mudancas, instance._meta.get_fields())
         imagens = validated_data.pop('imagens', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
