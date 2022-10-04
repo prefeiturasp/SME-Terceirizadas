@@ -1,5 +1,5 @@
-import logging
 import datetime
+import logging
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
@@ -515,7 +515,6 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(mixins.RetrieveModelMixin,
             methods=['post'], url_path='processar-importacao')
     def processar_importacao_usuario_servidor(self, request, uuid):
         """(post) /planilha-coresso-servidor/{ImportacaoPlanilhaUsuarioServidorCoreSSO.uuid}/processar-importacao/."""
-
         logger.info('Processando arquivo de carga de usuário externo com uuid %s.', uuid)
         username = request.user.get_username()
 
@@ -566,7 +565,6 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
             methods=['post'], url_path='processar-importacao')
     def processar_importacao_usuario_externo(self, request, uuid):
         """(post) /planilha-coresso-externo/{ImportacaoPlanilhaUsuarioExternoCoreSSO.uuid}/processar-importacao/."""
-
         logger.info('Processando arquivo de carga de usuário externo com uuid %s.', uuid)
         username = request.user.get_username()
 

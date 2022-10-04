@@ -59,7 +59,6 @@ def processa_planilha_usuario_externo_coresso_async(username, arquivo_uuid):
         logger.info('Arquivo não encontrado %s', arquivo_uuid)
 
 
-
 @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
