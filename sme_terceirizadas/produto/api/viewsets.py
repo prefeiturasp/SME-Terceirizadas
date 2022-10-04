@@ -1656,7 +1656,8 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         try:
             editais_uuid = request.query_params.get('editais', '')
             editais_uuid = editais_uuid.split(';')
-            queryset = self.get_queryset().filter(edital__uuid__in=editais_uuid).distinct('produto__uuid')
+            queryset = self.get_queryset().filter(edital__uuid__in=editais_uuid).order_by('produto__nome',
+                                                                                          'produto__marca__nome')
             data = self.get_serializer(queryset, many=True).data
             return Response(data=data, status=status.HTTP_200_OK)
         except Exception as e:
