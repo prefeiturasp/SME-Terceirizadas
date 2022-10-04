@@ -306,6 +306,11 @@ class SuspensaoAlimentacao(ExportModelOperationsMixin('suspensao_alimentacao'), 
 
 
 class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quantidade_periodo'), TemChaveExterna):
+    CEI_OU_EMEI_CHOICES = [
+        ('TODOS', 'Todos'),
+        ('CEI', 'CEI'),
+        ('EMEI', 'EMEI'),
+    ]
     numero_alunos = models.SmallIntegerField()
     periodo_escolar = models.ForeignKey(
         'escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
@@ -313,6 +318,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quant
                                         blank=True, null=True, related_name='quantidades_por_periodo')
     # TODO: SUBSTITUIR POR COMBOS DO TIPO DE ALIMENTACAO
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
+    alunos_cei_ou_emei = models.CharField(max_length=10, choices=CEI_OU_EMEI_CHOICES, blank=True)
 
     def __str__(self):
         return f'Quantidade de alunos: {self.numero_alunos}'
@@ -672,6 +678,116 @@ class FaixaEtariaSubstituicaoAlimentacaoCEI(ExportModelOperationsMixin('faixa_et
     class Meta:
         verbose_name = 'Faixa Etária de substituição de alimentação CEI'
         verbose_name_plural = 'Faixas Etárias de substituição de alimentação CEI'
+
+
+class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao,
+                             FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
+                             Logs, TemPrioridade, SolicitacaoForaDoPrazo, EhAlteracaoCardapio,
+                             TemTerceirizadaConferiuGestaoAlimentacao):
+
+    DESCRICAO = 'Alteração de Cardápio CEMEI'
+
+    TODOS = 'TODOS'
+    CEI = 'CEI'
+    EMEI = 'EMEI'
+
+    STATUS_CHOICES = (
+        (TODOS, 'Todos'),
+        (CEI, 'CEI'),
+        (EMEI, 'EMEI')
+    )
+
+    alunos_cei_e_ou_emei = models.CharField(choices=STATUS_CHOICES, max_length=10, default=TODOS)
+    alterar_dia = models.DateField('Alterar dia', null=True, blank=True)
+    data_inicial = models.DateField('Data inicial', null=True, blank=True)
+    data_final = models.DateField('Data final', null=True, blank=True)
+
+    @property
+    def data(self):
+        return self.alterar_dia or self.data_inicial
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.ALTERACAO_DE_CARDAPIO,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
+        )
+
+    def __str__(self):
+        return f'Alteração de cardápio CEMEI de {self.data}'
+
+    class Meta:
+        verbose_name = 'Alteração de cardápio CEMEI'
+        verbose_name_plural = 'Alterações de cardápio CEMEI'
+
+
+class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI(TemChaveExterna):
+    alteracao_cardapio = models.ForeignKey('AlteracaoCardapioCEMEI', on_delete=models.CASCADE,
+                                           null=True, blank=True,
+                                           related_name='substituicoes_cemei_cei_periodo_escolar')
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
+                                        related_name='substituicoes_cemei_cei_periodo_escolar')
+    tipos_alimentacao_de = models.ManyToManyField('TipoAlimentacao',
+                                                  related_name='substituicoes_cemei_cei_tipo_alimentacao_de',
+                                                  blank=True)
+    tipos_alimentacao_para = models.ManyToManyField('TipoAlimentacao',
+                                                    related_name='substituicoes_cemei_cei_alimento_para',
+                                                    help_text='Substituições selecionada na solicitação',
+                                                    blank=True)
+
+    def __str__(self):
+        return f'Substituições de alimentação CEMEI: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'  # noqa E501
+
+    class Meta:
+        verbose_name = 'Substituições de alimentação CEMEI CEI no período'
+        verbose_name_plural = 'Substituições de alimentação CEMEI CEI no período'
+
+
+class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEI(TemChaveExterna):
+    alteracao_cardapio = models.ForeignKey('AlteracaoCardapioCEMEI', on_delete=models.CASCADE,
+                                           null=True, blank=True,
+                                           related_name='substituicoes_cemei_emei_periodo_escolar')
+    qtd_alunos = models.PositiveSmallIntegerField(default=0)
+
+    # adicionar quantidade de matriculados
+
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
+                                        related_name='substituicoes_cemei_emei_periodo_escolar')
+    tipos_alimentacao_de = models.ManyToManyField('TipoAlimentacao',
+                                                  related_name='substituicoes_cemei_emei_tipo_alimentacao_de',
+                                                  blank=True)
+    tipos_alimentacao_para = models.ManyToManyField('TipoAlimentacao',
+                                                    related_name='substituicoes_cemei_emei_alimento_para',
+                                                    help_text='Substituições selecionada na solicitação',
+                                                    blank=True)
+
+    def __str__(self):
+        return f'Substituições de alimentação CEMEI EMEI: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'  # noqa E501
+
+    class Meta:
+        verbose_name = 'Substituições de alimentação CEMEI EMEI no período'
+        verbose_name_plural = 'Substituições de alimentação CEMEI EMEI no período'
+
+
+class FaixaEtariaSubstituicaoAlimentacaoCEMEICEI(TemChaveExterna, TemFaixaEtariaEQuantidade):
+    substituicao_alimentacao = models.ForeignKey('SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI',
+                                                 on_delete=models.CASCADE, related_name='faixas_etarias')
+    # adicionar quantidade de matriculados
+
+    def __str__(self):
+        retorno = f'Faixa Etária de substituição de alimentação CEMEI CEI: {self.uuid}'
+        retorno += f' da Substituição: {self.substituicao_alimentacao.uuid}'
+        return retorno
+
+    class Meta:
+        verbose_name = 'Faixa Etária de substituição de alimentação CEMEI CEI'
+        verbose_name_plural = 'Faixas Etárias de substituição de alimentação CEMEI CEI'
 
 
 class MotivoDRENaoValida(ExportModelOperationsMixin('motivo_dre_nao_valida'), Nomeavel, TemChaveExterna):

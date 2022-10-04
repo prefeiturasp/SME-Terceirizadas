@@ -625,7 +625,9 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                                                   usuario=user,
                                                   justificativa=kwargs.get('justificativa', ''))
 
-        self.guias.update(status=GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO)
+        self.guias.filter(
+            status=GuiaRemessaWorkFlow.AGUARDANDO_ENVIO
+        ).update(status=GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO)
         self._envia_email_dilog_envia_solicitacao_para_distibuidor(log_transicao=log_transicao)
 
         # Monta Notificacao
@@ -642,8 +644,6 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_CONFIRMA_SOLICITACAO,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
-
-        self.guias.update(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)
 
     @xworkflows.after_transition('aguarda_confirmacao_de_cancelamento')
     def _aguarda_confirmacao_de_cancelamento_hook(self, *args, **kwargs):
@@ -924,10 +924,34 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _preenche_template_e_cria_notificacao_insucesso(self, template_notif, titulo_notif, usuarios, link, tipo,
+                                                        insucesso):
+        if usuarios:
+            texto_notificacao = render_to_string(
+                template_name=template_notif,
+                context={
+                    'solicitacao': self,
+                    'insucesso': insucesso
+                }
+            )
+            for usuario in usuarios:
+                Notificacao.notificar(
+                    tipo=tipo,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
+                    titulo=titulo_notif,
+                    descricao=texto_notificacao,
+                    usuario=usuario,
+                    link=link,
+                    guia=self,
+                )
+
     def _preenche_template_e_cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo):
         if usuarios:
             texto_notificacao = render_to_string(
                 template_name=template_notif,
+                context={
+                    'solicitacao': self,
+                }
             )
             for usuario in usuarios:
                 Notificacao.notificar(
@@ -999,6 +1023,16 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
+
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_escola()
+        template_notif = 'logistica_notificacao_escola_aviso_insucesso_entrega.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
+        titulo_notif = f'Insucesso de Entrega - Guia de Remessa {self.numero_guia}'
+        link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
+        insucesso = self.insucessos.last() if self.insucessos else None
+        self._preenche_template_e_cria_notificacao_insucesso(template_notif, titulo_notif, usuarios, link, tipo,
+                                                             insucesso)
 
     @xworkflows.after_transition('escola_recebe')
     def _escola_recebe_hook(self, *args, **kwargs):

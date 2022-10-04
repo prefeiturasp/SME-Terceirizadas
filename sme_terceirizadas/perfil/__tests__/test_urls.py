@@ -173,7 +173,6 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                         'posicao': None
                     }
                 ],
-                'escolas': [],
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',
@@ -317,7 +316,6 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
                 'quantidade_alunos': 0,
                 'lotes': [],
                 'periodos_escolares': [],
-                'escolas': [],
                 'diretoria_regional': None,
                 'tipo_unidade_escolar': None,
                 'tipo_unidade_escolar_iniciais': None,
@@ -446,7 +444,6 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
                 'quantidade_alunos': 0,
                 'lotes': [],
                 'periodos_escolares': [],
-                'escolas': [],
                 'diretoria_regional': None,
                 'tipo_unidade_escolar': None,
                 'tipo_unidade_escolar_iniciais': None,
@@ -621,7 +618,6 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
                     'posicao': None
                 }
             ],
-            'escolas': [],
             'diretoria_regional': {
                 'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                 'nome': 'DIRETORIA REGIONAL IPIRANGA',
@@ -702,7 +698,6 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
                 'quantidade_alunos': 0,
                 'lotes': [],
                 'periodos_escolares': [],
-                'escolas': [],
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',

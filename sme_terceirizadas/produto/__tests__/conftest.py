@@ -517,3 +517,8 @@ def item_cadastrado_4(embalagem_produto):
                       tipo='EMBALAGEM',
                       content_type=ContentType.objects.get(model='embalagemproduto'),
                       content_object=embalagem_produto)
+
+
+@pytest.fixture
+def usuario():
+    return mommy.make('perfil.Usuario')

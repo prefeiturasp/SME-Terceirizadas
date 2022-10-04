@@ -605,3 +605,75 @@ def test_terceirizada_marca_conferencia_solicitacao_kitlanche_unificada_viewset(
         client_autenticado,
         SolicitacaoKitLancheUnificada,
         'solicitacoes-kit-lanche-unificada')
+
+
+def test_url_endpoint_solicitacao_kit_lanche_cemei(client_autenticado_da_escola):
+    data = {'escola': '230453bb-d6f1-4513-b638-8d6d150d1ac6',
+            'local': 'Parque do Ibirapuera',
+            'alunos_cei_e_ou_emei': 'CEI',
+            'data': '2020-09-20',
+            'solicitacao_cei': {
+                'kits': ['b9c58783-9131-4e8d-a5fb-89974ca5cbfc'],
+                'alunos_com_dieta_especial_participantes': ['2d20157a-4e52-4d25-a4c7-9c0e6b67ee18'],
+                'tempo_passeio': 2,
+                'faixas_quantidades': [
+                    {'faixa_etaria': 'a26bcacc-a9e0-4f2d-b03d-d9d5ff63f8e7',
+                     'quantidade_alunos': 18,
+                     'matriculados_quando_criado': 19}
+                ]
+            },
+            'status': 'DRE_A_VALIDAR',
+            'solicitacao_emei': {
+                'kits': ['b9c58783-9131-4e8d-a5fb-89974ca5cbfc'],
+                'tempo_passeio': 0,
+                'alunos_com_dieta_especial_participantes': ['2d20157a-4e52-4d25-a4c7-9c0e6b67ee18'],
+                'quantidade_alunos': 12,
+                'matriculados_quando_criado': 123}
+            }
+    response = client_autenticado_da_escola.post('/solicitacao-kit-lanche-cemei/',
+                                                 content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_201_CREATED
+    response_json = response.json()
+    uuid_ = response_json['uuid']
+
+    assert response_json['criado_por'] is not None
+    assert response_json['local'] == data['local']
+    assert response_json['data'] == '20/09/2020'
+    assert response_json['solicitacao_cei'] is not None
+    assert len(response_json['solicitacao_cei']['alunos_com_dieta_especial_participantes']) == 1
+    assert response_json['solicitacao_emei'] is not None
+    assert len(response_json['solicitacao_emei']['alunos_com_dieta_especial_participantes']) == 1
+
+    response = client_autenticado_da_escola.get(f'/solicitacao-kit-lanche-cemei/{response_json["uuid"]}/')
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert response_json['solicitacao_cei'] is not None
+    assert len(response_json['solicitacao_cei']['alunos_com_dieta_especial_participantes']) == 1
+    assert response_json['solicitacao_emei'] is not None
+    assert len(response_json['solicitacao_emei']['alunos_com_dieta_especial_participantes']) == 1
+
+    del data['solicitacao_emei']
+
+    response = client_autenticado_da_escola.put(f'/solicitacao-kit-lanche-cemei/{uuid_}/',
+                                                content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert response_json['solicitacao_emei'] is None
+
+    response = client_autenticado_da_escola.get(f'/solicitacao-kit-lanche-cemei/?status=RASCUNHO')
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert len(response_json['results']) == 1
+
+    response = client_autenticado_da_escola.delete(f'/solicitacao-kit-lanche-cemei/{uuid_}/')
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    response = client_autenticado_da_escola.post('/solicitacao-kit-lanche-cemei/',
+                                                 content_type='application/json', data=data)
+    response_json = response.json()
+    uuid_ = response_json['uuid']
+    response = client_autenticado_da_escola.patch(f'/solicitacao-kit-lanche-cemei/{uuid_}/inicio-pedido/')
+    assert response.json()['status'] == 'DRE_A_VALIDAR'
+    response = client_autenticado_da_escola.delete(f'/solicitacao-kit-lanche-cemei/{uuid_}/')
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json()['detail'] == 'Você só pode excluir quando o status for RASCUNHO.'

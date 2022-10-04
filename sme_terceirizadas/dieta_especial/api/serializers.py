@@ -18,6 +18,7 @@ from ..models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    LogQuantidadeDietasAutorizadas,
     MotivoAlteracaoUE,
     MotivoNegacao,
     ProtocoloPadraoDietaEspecial,
@@ -355,6 +356,7 @@ class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
 class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     dre = serializers.CharField(source='escola.diretoria_regional.nome')
     escola = serializers.CharField(source='escola.nome')
+    serie = serializers.CharField()
     codigo_eol_escola = serializers.CharField(source='escola.codigo_eol')
     codigo_eol = serializers.CharField()
     foto_aluno = serializers.SerializerMethodField()
@@ -597,3 +599,15 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
             'nome_protocolo',
             'data_ultimo_log'
         )
+
+
+class LogQuantidadeDietasAutorizadasSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Escola.objects.all()
+    )
+
+    class Meta:
+        model = LogQuantidadeDietasAutorizadas
+        exclude = ('id', 'uuid', 'criado_em')

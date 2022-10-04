@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Coalesce
 from django_prometheus.models import ExportModelOperationsMixin
+from rest_framework.compat import MinValueValidator
 
 from ..dados_comuns.behaviors import (  # noqa I101
     CriadoEm,
@@ -17,6 +18,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     TemData,
     TemFaixaEtariaEQuantidade,
     TemIdentificadorExternoAmigavel,
+    TemObservacao,
     TempoPasseio,
     TemPrioridade,
     TemTerceirizadaConferiuGestaoAlimentacao
@@ -369,3 +371,85 @@ class EscolaQuantidade(ExportModelOperationsMixin('escola_quantidade'), TemChave
     class Meta:
         verbose_name = 'Escola quantidade'
         verbose_name_plural = 'Escolas quantidades'
+
+
+class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
+                                CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo, CriadoEm, TemObservacao,
+                                TemTerceirizadaConferiuGestaoAlimentacao):
+    TODOS = 'TODOS'
+    CEI = 'CEI'
+    EMEI = 'EMEI'
+
+    STATUS_CHOICES = (
+        (TODOS, 'Todos'),
+        (CEI, 'CEI'),
+        (EMEI, 'EMEI')
+    )
+
+    DESCRICAO = 'Kit Lanche CEMEI'
+    local = models.CharField(max_length=160)
+    data = models.DateField('Data')
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='solicitacoes_kit_lanche_cemei')
+    alunos_cei_e_ou_emei = models.CharField(choices=STATUS_CHOICES, max_length=10, default=TODOS)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_CEMEI,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
+        )
+
+    class Meta:
+        verbose_name = 'Solicitação Kit Lanche CEMEI'
+        verbose_name_plural = 'Solicitações Kit Lanche CEMEI'
+        ordering = ('-criado_em',)
+
+
+class SolicitacaoKitLancheCEIdaCEMEI(TemChaveExterna, TempoPasseio):
+    kits = models.ManyToManyField(KitLanche, blank=True)
+    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
+    solicitacao_kit_lanche_cemei = models.OneToOneField(SolicitacaoKitLancheCEMEI,
+                                                        blank=True,
+                                                        null=True,
+                                                        on_delete=models.CASCADE,
+                                                        related_name='solicitacao_cei')
+
+    class Meta:
+        verbose_name = 'Solicitação Kit Lanche CEI da EMEI'
+        verbose_name_plural = 'Solicitações Kit Lanche CEI da EMEI'
+
+
+class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna):
+    solicitacao_kit_lanche_cei_da_cemei = models.ForeignKey(SolicitacaoKitLancheCEIdaCEMEI,
+                                                            on_delete=models.CASCADE,
+                                                            related_name='faixas_quantidades')
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = 'Faixa e quantidade de alunos da CEI da solicitação kit lanche CEMEI'
+        verbose_name_plural = 'Faixas e quantidade de alunos da CEI das solicitações kit lanche CEMEI'
+
+
+class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio):
+    kits = models.ManyToManyField(KitLanche, blank=True)
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
+    solicitacao_kit_lanche_cemei = models.OneToOneField(SolicitacaoKitLancheCEMEI,
+                                                        blank=True,
+                                                        null=True,
+                                                        on_delete=models.CASCADE,
+                                                        related_name='solicitacao_emei')
+
+    class Meta:
+        verbose_name = 'Solicitação Kit Lanche CEI da EMEI'
+        verbose_name_plural = 'Solicitações Kit Lanche CEI da EMEI'
