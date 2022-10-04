@@ -9,7 +9,7 @@ from rest_framework import status
 from ..api.helpers import ofuscar_email
 from ..api.serializers import UsuarioUpdateSerializer
 from ..api.viewsets import UsuarioUpdateViewSet
-from ..models import Perfil, Usuario
+from ..models import ImportacaoPlanilhaUsuarioExternoCoreSSO, Perfil, Usuario
 from .conftest import mocked_request_api_eol, mocked_request_api_eol_usuario_diretoria_regional
 
 pytestmark = pytest.mark.django_db
@@ -865,3 +865,16 @@ def test_edicao_email(client_autenticado_dilog, usuario_3):
     assert response.status_code == status.HTTP_200_OK
     assert result['email'] == 'teste_servidor_novo_email@teste.com'
     assert u.email == 'teste_servidor_novo_email@teste.com'
+
+
+def test_create_planilha_externo_coresso(client_autenticado_dilog, arquivo_xls):
+    payload = {
+        'conteudo': arquivo_xls
+    }
+    response = client_autenticado_dilog.post(f'/planilha-coresso-externo/', data=payload, format='multipart')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.filter(uuid=result['uuid']).exists()
+    planilha = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.get(uuid=result['uuid'])
+    assert planilha.conteudo.name.split('.')[-1] == arquivo_xls.name.split('.')[-1]

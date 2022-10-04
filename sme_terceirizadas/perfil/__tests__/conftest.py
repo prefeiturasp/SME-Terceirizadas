@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 from model_mommy import mommy
 
@@ -493,3 +494,21 @@ def authenticated_client(client, fake_user):
     user, password = fake_user
     client.login(username=user.email, password=password)
     return client
+
+
+@pytest.fixture
+def arquivo_pdf():
+    type_pdf = 'application/pdf'
+    return SimpleUploadedFile('arquivo-teste.pdf', str.encode('file_content'), content_type=type_pdf)
+
+
+@pytest.fixture
+def arquivo_xls():
+    return SimpleUploadedFile(
+        f'arquivo.xls',
+        bytes(f'Código eol,\n93238,', encoding='utf-8'))
+
+
+@pytest.fixture
+def planilha_usuario_externo(arquivo_xls):
+    return mommy.make('ImportacaoPlanilhaUsuarioExternoCoreSSO', conteudo=arquivo_xls)
