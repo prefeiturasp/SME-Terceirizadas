@@ -9,9 +9,9 @@ from sme_terceirizadas.perfil.models import ImportacaoPlanilhaUsuarioExternoCore
 pytestmark = pytest.mark.django_db(transaction=True)
 
 
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.usefixtures('celery_session_app')
 @pytest.mark.usefixtures('celery_session_worker')
-@pytest.mark.django_db(transaction=True)
 def test_processar_planilha_externo_coresso(client_autenticado_dilog, planilha_usuario_externo, arquivo_xls):
     assert ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.get(uuid=planilha_usuario_externo.uuid).status == 'PENDENTE'
     api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso'  # noqa
