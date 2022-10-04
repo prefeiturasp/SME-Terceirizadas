@@ -1,3 +1,4 @@
+import logging
 import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -40,6 +41,8 @@ from .serializers import (
     VinculoSerializer,
     VinculoSimplesSerializer
 )
+
+logger = logging.getLogger(__name__)
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -510,16 +513,29 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),
             methods=['post'], url_path='processar-importacao')
-    def processa_importacao_usuario_servidor(self, request, uuid):
+    def processar_importacao_usuario_servidor(self, request, uuid):
         """(post) /planilha-coresso-servidor/{ImportacaoPlanilhaUsuarioServidorCoreSSO.uuid}/processar-importacao/."""
+
+        logger.info('Processando arquivo de carga de usuário externo com uuid %s.', uuid)
         username = request.user.get_username()
+
+        if not uuid:
+            logger.info('Parametro uuid não fornecido.')
+            msg = 'É necessário enviar o uuid do Arquivo.'
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        arquivo = self.get_object()
+        if not arquivo:
+            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            logger.info(msg)
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
         processa_planilha_usuario_externo_coresso_async.delay(username=username, arquivo_uuid=uuid)
 
         return Response(dict(detail='Processamento de importação iniciado com sucesso.'), status=HTTP_200_OK)
 
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),
             methods=['patch'], url_path='remover')
-    def remove_palnilha_usuario_servidor(self, request, uuid):
+    def remover_palnilha_usuario_servidor(self, request, uuid):
         """(patch) /planilha-coresso-servidor/{ImportacaoPlanilhaUsuarioServidorCoreSSO.uuid}/remover/."""
         arquivo = self.get_object()
         arquivo.removido()
@@ -548,16 +564,30 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),
             methods=['post'], url_path='processar-importacao')
-    def processa_importacao_usuario_externo(self, request, uuid):
+    def processar_importacao_usuario_externo(self, request, uuid):
         """(post) /planilha-coresso-externo/{ImportacaoPlanilhaUsuarioExternoCoreSSO.uuid}/processar-importacao/."""
+
+        logger.info('Processando arquivo de carga de usuário externo com uuid %s.', uuid)
         username = request.user.get_username()
+
+        if not uuid:
+            logger.info('Parametro uuid não fornecido.')
+            msg = 'É necessário enviar o uuid do Arquivo.'
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        arquivo = self.get_object()
+        if not arquivo:
+            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            logger.info(msg)
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
+
         processa_planilha_usuario_externo_coresso_async.delay(username=username, arquivo_uuid=uuid)
 
         return Response(dict(detail='Processamento de importação iniciado com sucesso.'), status=HTTP_200_OK)
 
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),
             methods=['patch'], url_path='remover')
-    def remove_palnilha_usuario_externo(self, request, uuid):
+    def remover_palnilha_usuario_externo(self, request, uuid):
         """(patch) /planilha-coresso-externo/{ImportacaoPlanilhaUsuarioExternoCoreSSO.uuid}/remover/."""
         arquivo = self.get_object()
         arquivo.removido()
