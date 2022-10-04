@@ -640,7 +640,10 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
     def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, InclusaoAlimentacaoDaCEI)
         return queryset.filter(
-            escola__in=Escola.objects.all(), status=InclusaoAlimentacaoDaCEI.workflow_class.DRE_VALIDADO
+            status__in=[
+                InclusaoAlimentacaoDaCEI.workflow_class.DRE_VALIDADO,
+                InclusaoAlimentacaoDaCEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+            ]
         )
 
     @property
