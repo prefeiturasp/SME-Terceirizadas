@@ -495,7 +495,7 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer(serializers.Model
     def validate(self, attrs):
         conteudo = attrs.get('conteudo')
         if conteudo:
-            if not conteudo.name.split('.')[-1] in ['.xlsx', '.xls']:
+            if not conteudo.name.split('.')[-1] in ['xlsx', 'xls']:
                 raise serializers.ValidationError({'detail': 'Extensão do arquivo não suportada.'})
 
         return attrs
@@ -511,7 +511,7 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer(serializers.ModelS
     def validate(self, attrs):
         conteudo = attrs.get('conteudo')
         if conteudo:
-            if not conteudo.name.split('.')[-1] in ['.xlsx', '.xls']:
+            if not conteudo.name.split('.')[-1] in ['xlsx', 'xls']:
                 raise serializers.ValidationError({'detail': 'Extensão do arquivo não suportada.'})
 
         return attrs
