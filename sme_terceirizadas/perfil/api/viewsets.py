@@ -518,11 +518,6 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(mixins.RetrieveModelMixin,
         logger.info('Processando arquivo de carga de usuário externo com uuid %s.', uuid)
         username = request.user.get_username()
 
-        if not uuid:
-            logger.info('Parametro uuid não fornecido.')
-            msg = 'É necessário enviar o uuid do Arquivo.'
-            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-
         arquivo = self.get_object()
         if not arquivo:
             msg = f'Arquivo com uuid {uuid} não encontrado.'
@@ -537,6 +532,11 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(mixins.RetrieveModelMixin,
     def remover_palnilha_usuario_servidor(self, request, uuid):
         """(patch) /planilha-coresso-servidor/{ImportacaoPlanilhaUsuarioServidorCoreSSO.uuid}/remover/."""
         arquivo = self.get_object()
+        if not arquivo:
+            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            logger.info(msg)
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
+
         arquivo.removido()
 
         return Response(dict(detail='Arquivo removido com sucesso.'), status=HTTP_200_OK)
@@ -568,11 +568,6 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
         logger.info('Processando arquivo de carga de usuário externo com uuid %s.', uuid)
         username = request.user.get_username()
 
-        if not uuid:
-            logger.info('Parametro uuid não fornecido.')
-            msg = 'É necessário enviar o uuid do Arquivo.'
-            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-
         arquivo = self.get_object()
         if not arquivo:
             msg = f'Arquivo com uuid {uuid} não encontrado.'
@@ -588,6 +583,11 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
     def remover_palnilha_usuario_externo(self, request, uuid):
         """(patch) /planilha-coresso-externo/{ImportacaoPlanilhaUsuarioExternoCoreSSO.uuid}/remover/."""
         arquivo = self.get_object()
+        if not arquivo:
+            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            logger.info(msg)
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
+
         arquivo.removido()
 
         return Response(dict(detail='Arquivo removido com sucesso.'), status=HTTP_200_OK)
