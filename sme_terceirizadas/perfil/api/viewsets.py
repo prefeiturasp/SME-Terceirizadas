@@ -494,7 +494,7 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(mixins.RetrieveModelMixin,
 
     permission_classes = (UsuarioSuperCodae,)
     lookup_field = 'uuid'
-    queryset = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.all()
+    queryset = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.all().order_by('-criado_em')
     serializer_class = ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer
     pagination_class = PerfilPagination
     filter_backends = (filters.DjangoFilterBackend,)
@@ -549,7 +549,7 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
 
     permission_classes = (UsuarioSuperCodae,)
     lookup_field = 'uuid'
-    queryset = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.all()
+    queryset = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.all().order_by('-criado_em')
     serializer_class = ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer
     pagination_class = PerfilPagination
     filter_backends = (filters.DjangoFilterBackend,)
@@ -560,6 +560,11 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
             return ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer
         else:
             return ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer
+
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioSuperCodae,),
+            url_path='download-planilha-nao-servidor')
+    def exportar_planilha_externos(self, request):
+        return exportar_planilha_importacao_usuarios_externos_coresso(request)
 
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),
             methods=['post'], url_path='processar-importacao')
@@ -591,8 +596,3 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
         arquivo.removido()
 
         return Response(dict(detail='Arquivo removido com sucesso.'), status=HTTP_200_OK)
-
-    @action(detail=False, methods=['GET'], permission_classes=(UsuarioSuperCodae,),
-            url_path='download-planilha-nao-servidor')
-    def exportar_planilha_externos(self, request):
-        return exportar_planilha_importacao_usuarios_externos_coresso(request)

@@ -909,6 +909,16 @@ def test_remover_planilha_externo_coresso(client_autenticado_dilog, planilha_usu
     assert response2.status_code == status.HTTP_404_NOT_FOUND
 
 
+def test_busca_planilha_coresso_externo(client_autenticado_dilog, planilha_usuario_externo):
+    response = client_autenticado_dilog.get(f'/planilha-coresso-externo/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_download_planilha_modelo_coresso_externo(client_autenticado_dilog):
+    response = client_autenticado_dilog.get(f'/planilha-coresso-externo/download-planilha-nao-servidor/')
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_create_planilha_servidor_coresso(client_autenticado_dilog, arquivo_xls, arquivo_pdf):
     payload = {
         'conteudo': arquivo_xls
@@ -950,3 +960,8 @@ def test_remover_planilha_servidor_coresso(client_autenticado_dilog, planilha_us
 
     assert response.status_code == status.HTTP_200_OK
     assert response2.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_busca_planilha_coresso_servidor(client_autenticado_dilog, planilha_usuario_servidor):
+    response = client_autenticado_dilog.get(f'/planilha-coresso-servidor/')
+    assert response.status_code == status.HTTP_200_OK
