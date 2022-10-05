@@ -512,3 +512,8 @@ def arquivo_xls():
 @pytest.fixture
 def planilha_usuario_externo(arquivo_xls):
     return mommy.make('ImportacaoPlanilhaUsuarioExternoCoreSSO', conteudo=arquivo_xls)
+
+
+@pytest.fixture
+def planilha_usuario_servidor(arquivo_xls):
+    return mommy.make('ImportacaoPlanilhaUsuarioServidorCoreSSO', conteudo=arquivo_xls)
