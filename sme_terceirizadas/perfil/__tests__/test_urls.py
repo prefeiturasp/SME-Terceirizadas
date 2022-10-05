@@ -9,7 +9,7 @@ from rest_framework import status
 from ..api.helpers import ofuscar_email
 from ..api.serializers import UsuarioUpdateSerializer
 from ..api.viewsets import UsuarioUpdateViewSet
-from ..models import ImportacaoPlanilhaUsuarioExternoCoreSSO, Perfil, Usuario
+from ..models import ImportacaoPlanilhaUsuarioExternoCoreSSO, ImportacaoPlanilhaUsuarioServidorCoreSSO, Perfil, Usuario
 from .conftest import mocked_request_api_eol, mocked_request_api_eol_usuario_diretoria_regional
 
 pytestmark = pytest.mark.django_db
@@ -867,14 +867,86 @@ def test_edicao_email(client_autenticado_dilog, usuario_3):
     assert u.email == 'teste_servidor_novo_email@teste.com'
 
 
-def test_create_planilha_externo_coresso(client_autenticado_dilog, arquivo_xls):
+def test_create_planilha_externo_coresso(client_autenticado_dilog, arquivo_xls, arquivo_pdf):
     payload = {
         'conteudo': arquivo_xls
     }
+    payload_extensao_invalida = {
+        'conteudo': arquivo_pdf
+    }
     response = client_autenticado_dilog.post(f'/planilha-coresso-externo/', data=payload, format='multipart')
+    response_erro_forcado = client_autenticado_dilog.post(
+        f'/planilha-coresso-externo/', data=payload_extensao_invalida, format='multipart')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_201_CREATED
     assert ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.filter(uuid=result['uuid']).exists()
     planilha = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.get(uuid=result['uuid'])
     assert planilha.conteudo.name.split('.')[-1] == arquivo_xls.name.split('.')[-1]
+    assert response_erro_forcado.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_processar_planilha_externo_coresso(client_autenticado_dilog, planilha_usuario_externo, arquivo_xls):
+    assert ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.get(uuid=planilha_usuario_externo.uuid).status == 'PENDENTE'
+    api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso'  # noqa
+    with patch(api_cria_ou_atualiza_usuario_core_sso):
+        response = client_autenticado_dilog.post(
+            f'/planilha-coresso-externo/{planilha_usuario_externo.uuid}/processar-importacao/')
+        response2 = client_autenticado_dilog.post(
+            '/planilha-coresso-externo/F38e10da-c5e3-4dd5-9916-010fc250595a/processar-importacao/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_remover_planilha_externo_coresso(client_autenticado_dilog, planilha_usuario_externo, arquivo_xls):
+    response = client_autenticado_dilog.patch(
+        f'/planilha-coresso-externo/{planilha_usuario_externo.uuid}/remover/')
+    response2 = client_autenticado_dilog.patch(
+        '/planilha-coresso-externo/F38e10da-c5e3-4dd5-9916-010fc250595a/remover/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_create_planilha_servidor_coresso(client_autenticado_dilog, arquivo_xls, arquivo_pdf):
+    payload = {
+        'conteudo': arquivo_xls
+    }
+    payload_extensao_invalida = {
+        'conteudo': arquivo_pdf
+    }
+    response = client_autenticado_dilog.post(f'/planilha-coresso-servidor/', data=payload, format='multipart')
+    response_erro_forcado = client_autenticado_dilog.post(
+        f'/planilha-coresso-servidor/', data=payload_extensao_invalida, format='multipart')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.filter(uuid=result['uuid']).exists()
+    planilha = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.get(uuid=result['uuid'])
+    assert planilha.conteudo.name.split('.')[-1] == arquivo_xls.name.split('.')[-1]
+    assert response_erro_forcado.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_processar_planilha_servidor_coresso(client_autenticado_dilog, planilha_usuario_servidor, arquivo_xls):
+    assert ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.get(
+        uuid=planilha_usuario_servidor.uuid).status == 'PENDENTE'
+    api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso'  # noqa
+    with patch(api_cria_ou_atualiza_usuario_core_sso):
+        response = client_autenticado_dilog.post(
+            f'/planilha-coresso-servidor/{planilha_usuario_servidor.uuid}/processar-importacao/')
+        response2 = client_autenticado_dilog.post(
+            '/planilha-coresso-servidor/F38e10da-c5e3-4dd5-9916-010fc250595a/processar-importacao/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_remover_planilha_servidor_coresso(client_autenticado_dilog, planilha_usuario_servidor, arquivo_xls):
+    response = client_autenticado_dilog.patch(
+        f'/planilha-coresso-servidor/{planilha_usuario_servidor.uuid}/remover/')
+    response2 = client_autenticado_dilog.patch(
+        '/planilha-coresso-servidor/F38e10da-c5e3-4dd5-9916-010fc250595a/remover/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_404_NOT_FOUND
