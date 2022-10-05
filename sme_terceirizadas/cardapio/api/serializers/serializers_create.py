@@ -336,7 +336,7 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(
         queryset=AlteracaoCardapioCEI.objects.all()
     )
 
-    tipos_alimentacao_para = serializers.SlugRelatedField(
+    tipo_alimentacao_para = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
         queryset=TipoAlimentacao.objects.all()
