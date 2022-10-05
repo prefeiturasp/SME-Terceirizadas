@@ -470,7 +470,8 @@ class SolicitacoesCODAE(MoldeConsolidado):
     @classmethod
     def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         return cls.objects.filter(
@@ -485,7 +486,8 @@ class SolicitacoesCODAE(MoldeConsolidado):
     @classmethod
     def get_inativas_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         return cls.objects.filter(
@@ -709,7 +711,8 @@ class SolicitacoesEscola(MoldeConsolidado):
     @classmethod
     def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         escola_uuid = kwargs.get('escola_uuid')
@@ -726,7 +729,8 @@ class SolicitacoesEscola(MoldeConsolidado):
     @classmethod
     def get_inativas_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         escola_uuid = kwargs.get('escola_uuid')
@@ -929,7 +933,8 @@ class SolicitacoesDRE(MoldeConsolidado):
     @classmethod
     def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         dre_uuid = kwargs.get('dre_uuid')
@@ -946,7 +951,8 @@ class SolicitacoesDRE(MoldeConsolidado):
     @classmethod
     def get_inativas_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         dre_uuid = kwargs.get('dre_uuid')
@@ -1136,7 +1142,8 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         qs = SolicitacaoDietaEspecial.objects.filter(
             rastro_terceirizada__uuid=terceirizada_uuid,
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         return cls.objects.filter(
@@ -1151,7 +1158,8 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
     @classmethod
     def get_inativas_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
