@@ -865,3 +865,18 @@ def test_edicao_email(client_autenticado_dilog, usuario_3):
     assert response.status_code == status.HTTP_200_OK
     assert result['email'] == 'teste_servidor_novo_email@teste.com'
     assert u.email == 'teste_servidor_novo_email@teste.com'
+
+
+def test_busca_planilha_coresso_servidor(client_autenticado_dilog, arquivo_carga_usuarios_servidor_coresso):
+    response = client_autenticado_dilog.get(f'/planilha-coresso-servidor/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_busca_planilha_coresso_externo(client_autenticado_dilog, arquivo_carga_usuarios_externo_coresso):
+    response = client_autenticado_dilog.get(f'/planilha-coresso-externo/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_download_planilha_modelo_coresso_externo(client_autenticado_dilog):
+    response = client_autenticado_dilog.get(f'/planilha-coresso-externo/download-planilha-nao-servidor/')
+    assert response.status_code == status.HTTP_200_OK

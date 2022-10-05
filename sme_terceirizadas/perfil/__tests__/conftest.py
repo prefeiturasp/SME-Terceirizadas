@@ -4,6 +4,11 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from sme_terceirizadas.perfil.models.usuario import (
+    ImportacaoPlanilhaUsuarioExternoCoreSSO,
+    ImportacaoPlanilhaUsuarioServidorCoreSSO
+)
+
 from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from .. import models
 from ..api.serializers import UsuarioSerializer, UsuarioUpdateSerializer
@@ -464,6 +469,16 @@ def email_list(request):
 ])
 def email_list_invalidos(request):
     return request.param
+
+
+@pytest.fixture
+def arquivo_carga_usuarios_externo_coresso():
+    return mommy.make(ImportacaoPlanilhaUsuarioExternoCoreSSO)
+
+
+@pytest.fixture
+def arquivo_carga_usuarios_servidor_coresso():
+    return mommy.make(ImportacaoPlanilhaUsuarioServidorCoreSSO)
 
 
 @pytest.fixture
