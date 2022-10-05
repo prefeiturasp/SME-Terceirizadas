@@ -485,7 +485,7 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
 class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (UsuarioSuperCodae,)
     lookup_field = 'uuid'
-    queryset = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.all()
+    queryset = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.all().order_by('-criado_em')
     serializer_class = ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer
     pagination_class = PerfilPagination
     filter_backends = (filters.DjangoFilterBackend,)
@@ -496,25 +496,11 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(viewsets.ReadOnlyModelView
     def exportar_planilha_servidor(self, request):
         return exportar_planilha_importacao_usuarios_servidor_coresso(request)
 
-    def list(self, request):
-        queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.order_by('-criado_em').distinct()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            response = self.get_paginated_response(
-                serializer.data
-            )
-            return response
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
 
 class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (UsuarioSuperCodae,)
     lookup_field = 'uuid'
-    queryset = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.all()
+    queryset = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.all().order_by('-criado_em')
     serializer_class = ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer
     pagination_class = PerfilPagination
     filter_backends = (filters.DjangoFilterBackend,)
@@ -524,17 +510,3 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(viewsets.ReadOnlyModelViewS
             url_path='download-planilha-nao-servidor')
     def exportar_planilha_externos(self, request):
         return exportar_planilha_importacao_usuarios_externos_coresso(request)
-
-    def list(self, request):
-        queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.order_by('-criado_em').distinct()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            response = self.get_paginated_response(
-                serializer.data
-            )
-            return response
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
