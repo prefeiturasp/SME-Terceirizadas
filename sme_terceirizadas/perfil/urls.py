@@ -11,6 +11,10 @@ router.register('cadastro-com-coresso', viewsets.UsuarioComCoreSSOViewSet, 'Cada
 router.register('usuarios', viewsets.UsuarioViewSet, 'Usuários')
 router.register('perfis', viewsets.PerfilViewSet, 'Perfis')
 router.register('vinculos', viewsets.VinculoViewSet, 'Vinculos')
+router.register('planilha-coresso-servidor', viewsets.ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet,
+                'Planilhas de Importação de Usuário Servidor - CoreSSO')
+router.register('planilha-coresso-externo', viewsets.ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet,
+                'Planilhas de Importação de Usuário Externo - CoreSSO')
 router.register('confirmar_email/(?P<uuid>[^/]+)/(?P<confirmation_key>[^/]+)',
                 viewsets.UsuarioConfirmaEmailViewSet, 'Confirmar E-mail')
 

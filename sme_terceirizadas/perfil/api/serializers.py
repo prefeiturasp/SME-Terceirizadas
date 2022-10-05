@@ -9,6 +9,11 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from sme_terceirizadas.perfil.models.usuario import (
+    ImportacaoPlanilhaUsuarioExternoCoreSSO,
+    ImportacaoPlanilhaUsuarioServidorCoreSSO
+)
+
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DISTRIBUIDORA,
@@ -470,3 +475,15 @@ class AlteraEmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ['uuid', 'username', 'email']
+
+
+class ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImportacaoPlanilhaUsuarioServidorCoreSSO
+        exclude = ['id']
+
+
+class ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImportacaoPlanilhaUsuarioExternoCoreSSO
+        exclude = ['id']
