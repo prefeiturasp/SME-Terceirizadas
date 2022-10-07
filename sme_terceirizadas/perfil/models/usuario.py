@@ -6,7 +6,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -273,14 +273,27 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
             html=html
         )
 
+    @transaction.atomic
     def atualiza_senha(self, senha, token):
         token_generator = PasswordResetTokenGenerator()
         if token_generator.check_token(self, token):
-            EOLServicoSGP.redefine_senha(self.username, senha)
             self.set_password(senha)
             self.save()
+            EOLServicoSGP.redefine_senha(self.username, senha)
             return True
         return False
+
+    @transaction.atomic
+    def atualiza_senha_sem_token(self, senha):
+        self.set_password(senha)
+        self.save()
+        EOLServicoSGP.redefine_senha(self.username, senha)
+
+    @transaction.atomic
+    def atualiza_email(self, email):
+        self.email = email
+        self.save()
+        EOLServicoSGP.redefine_email(self.username, email)
 
     def criar_vinculo_administrador(self, instituicao, nome_perfil):
         perfil = Perfil.objects.get(nome=nome_perfil)
