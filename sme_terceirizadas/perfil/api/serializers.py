@@ -24,8 +24,8 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_TERCEIRIZADA
 )
 from ...dados_comuns.models import Contato
-from ...eol_servico.utils import EOLException, EOLService, EOLServicoSGP
-from ...perfil.api.validators import usuario_com_coresso_validation, usuario_e_das_terceirizadas
+from ...eol_servico.utils import EOLException, EOLService
+from ...perfil.api.validators import checa_senha, usuario_com_coresso_validation, usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
 from ..models import Perfil, Usuario, Vinculo
 from ..services.usuario_coresso_service import EOLUsuarioCoreSSO
@@ -455,13 +455,12 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
 
 
 class AlteraEmailSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
 
-    @transaction.atomic # noqa
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data): # noqa
         try:
-            instance.email = validated_data.get('email')
-            instance.save()
-            EOLServicoSGP.redefine_email(instance.username, validated_data['email'])
+            instance.atualiza_email(validated_data.get('email'))
+
         except EOLException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except IntegrityError:
@@ -475,6 +474,34 @@ class AlteraEmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ['uuid', 'username', 'email']
+
+
+class RedefinirSenhaSerializer(serializers.ModelSerializer):
+    senha_atual = serializers.CharField(required=True)
+    senha = serializers.CharField(required=True)
+    confirmar_senha = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        senha_deve_ser_igual_confirmar_senha(attrs.get('senha'), attrs.get('confirmar_senha'))
+        attrs.pop('confirmar_senha')
+        return attrs
+
+    def update(self, instance, validated_data): # noqa
+        try:
+            checa_senha(instance, validated_data['senha_atual'])
+            instance.atualiza_senha_sem_token(validated_data['senha'])
+
+        except EOLException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except ReadTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        except ConnectTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        return instance
+
+    class Meta:
+        model = Usuario
+        fields = ['senha_atual', 'senha', 'confirmar_senha']
 
 
 class ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer(serializers.ModelSerializer):

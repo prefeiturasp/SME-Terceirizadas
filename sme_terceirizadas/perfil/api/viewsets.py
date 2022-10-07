@@ -2,6 +2,7 @@ import datetime
 import logging
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from openpyxl import Workbook, styles
@@ -35,6 +36,7 @@ from .serializers import (
     ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer,
     ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer,
     PerfilSimplesSerializer,
+    RedefinirSenhaSerializer,
     UsuarioComCoreSSOCreateSerializer,
     UsuarioSerializer,
     UsuarioUpdateSerializer,
@@ -69,20 +71,16 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({'detail': 'sucesso'}, status=status.HTTP_200_OK)
 
     @action(detail=False, url_path='atualizar-senha', methods=['patch'])
+    @transaction.atomic
     def atualizar_senha(self, request):
-        try:
-            usuario = request.user
-            assert usuario.check_password(request.data.get(
-                'senha_atual')) is True, 'senha atual incorreta'
-            senha = request.data.get('senha')
-            confirmar_senha = request.data.get('confirmar_senha')
-            assert senha == confirmar_senha, 'senha e confirmar senha divergem'
-            usuario.set_password(senha)
-            usuario.save()
-            serializer = self.get_serializer(usuario)
-        except AssertionError as error:
-            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data)
+        serializer = RedefinirSenhaSerializer()
+        validated_data = serializer.validate(request.data)
+        usuario = request.user
+        result = serializer.update(usuario, validated_data)
+        if isinstance(result, Response):
+            logger.error('Erro ao alterar a senha:', result)
+            return result
+        return Response({'detail': 'Senha alterada com sucesso'}, status=status.HTTP_200_OK)
 
     @action(detail=False, url_path='meus-dados')
     def meus_dados(self, request):
@@ -475,6 +473,7 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
 
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),
             url_path='alterar-email', methods=['patch'])
+    @transaction.atomic
     def altera_email(self, request, username):
         """(patch) /cadastro-com-coresso/{usuario.username}/alterar-email/."""
         data = request.data
