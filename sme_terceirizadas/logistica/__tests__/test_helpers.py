@@ -5,8 +5,12 @@ from sme_terceirizadas.logistica.api.helpers import (
     retorna_dados_normalizados_excel_entregas_distribuidor,
     retorna_dados_normalizados_excel_visao_dilog,
     retorna_dados_normalizados_excel_visao_distribuidor,
+    retorna_motivo_insucesso,
+    retorna_ocorrencias_alimento,
     retorna_status_das_requisicoes,
-    retorna_status_para_usuario
+    retorna_status_guia_remessa,
+    retorna_status_para_usuario,
+    valida_rf_ou_cpf
 )
 from sme_terceirizadas.logistica.models import SolicitacaoRemessa
 
@@ -139,3 +143,23 @@ def test_retorna_dados_normalizados_excel_entregas_distribuidor(solicitacao):
         'guias__escola__subprefeitura__agrupamento': None,
         'status_requisicao': 'Aguardando envio'}
     assert requisicoes.last() == esperado
+
+
+def test_retorna_ocorrencias_alimento():
+    ocorrencias = retorna_ocorrencias_alimento(['AUSENCIA_PRODUTO'])
+    assert ocorrencias == 'Ausência do produto'
+
+
+def test_retorna_status_guia_remessa():
+    status = retorna_status_guia_remessa('CANCELADA')
+    assert status == 'Cancelada'
+
+
+def test_valida_rf_ou_cpf(distribuidor):
+    doc = valida_rf_ou_cpf(distribuidor)
+    assert doc == '12345678910'
+
+
+def test_retorna_motivo_insucesso():
+    motivo = retorna_motivo_insucesso('OUTROS')
+    assert motivo == 'Outros'
