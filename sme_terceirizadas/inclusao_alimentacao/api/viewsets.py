@@ -13,6 +13,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...kit_lanche.models import SolicitacaoKitLancheCEMEI
 from ...relatorios.relatorios import (
     relatorio_inclusao_alimentacao_cei,
     relatorio_inclusao_alimentacao_continua,
@@ -55,7 +56,7 @@ class EscolaIniciaCancela():
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            if (type(obj) == InclusaoAlimentacaoContinua or
+            if (type(obj) in [InclusaoAlimentacaoContinua, SolicitacaoKitLancheCEMEI] or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:

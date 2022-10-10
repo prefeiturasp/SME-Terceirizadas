@@ -264,3 +264,17 @@ class SolicitacaoKitLancheCEMEISerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoKitLancheCEMEI
         exclude = ('id',)
+
+
+class SolicitacaoKitLancheCEMEIRetrieveSerializer(serializers.ModelSerializer):
+    solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEISerializer()
+    solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEISerializer()
+    id_externo = serializers.CharField()
+    escola = EscolaSimplesSerializer()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+    prioridade = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+
+    class Meta:
+        model = SolicitacaoKitLancheCEMEI
+        exclude = ('id',)
