@@ -276,7 +276,7 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(SubstituicoesAlimentaca
 
 
 class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializer(SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase):
-    tipos_alimentacao_para = TipoAlimentacaoSerializer()
+    tipo_alimentacao_para = TipoAlimentacaoSerializer()
 
     faixas_etarias = FaixaEtariaSubstituicaoAlimentacaoCEISerializer(many=True)
 
