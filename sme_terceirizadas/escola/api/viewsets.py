@@ -233,6 +233,8 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = PeriodoEscolar.objects.all()
     serializer_class = PeriodoEscolarSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('nome',)
 
     #  TODO: Quebrar esse método um pouco, está complexo e sem teste
     @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')  # noqa C901
