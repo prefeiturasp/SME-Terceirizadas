@@ -127,7 +127,7 @@ class Command(BaseCommand):
         Aluno.objects.bulk_create(novos_alunos.values())
 
     def _atualiza_todas_as_escolas(self):
-        escolas = Escola.objects.all()
+        escolas = Escola.objects.filter(id=1601)
 
         total = escolas.count()
         for i, escola in enumerate(escolas):

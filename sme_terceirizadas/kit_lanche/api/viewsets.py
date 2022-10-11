@@ -17,7 +17,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
-from ...inclusao_alimentacao.api.viewsets import EscolaIniciaCancela
+from ...inclusao_alimentacao.api.viewsets import EscolaIniciaCancela, TerceirizadaTomaCiencia
 from ...relatorios.relatorios import (
     relatorio_kit_lanche_passeio,
     relatorio_kit_lanche_passeio_cei,
@@ -569,7 +569,7 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
 
 
-class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, EscolaIniciaCancela):
+class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, TerceirizadaTomaCiencia):
     lookup_field = 'uuid'
     queryset = SolicitacaoKitLancheCEMEI.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -592,7 +592,9 @@ class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, EscolaIniciaCancela):
         return super(SolicitacaoKitLancheCEMEIViewSet, self).get_permissions()
 
     def get_queryset(self):
-        queryset = SolicitacaoKitLancheCEMEI.objects.filter(escola=self.request.user.vinculo_atual.instituicao)
+        queryset = SolicitacaoKitLancheCEMEI.objects.all()
+        if self.request.user.tipo_usuario == 'escola':
+            queryset = queryset.filter(escola=self.request.user.vinculo_atual.instituicao)
         if 'status' in self.request.query_params:
             queryset = queryset.filter(status=self.request.query_params.get('status').upper())
         return queryset
