@@ -577,6 +577,8 @@ class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, EscolaIniciaCancela):
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.SolicitacaoKitLancheCEMEICreateSerializer
+        if self.action == 'retrieve':
+            return serializers.SolicitacaoKitLancheCEMEIRetrieveSerializer
         return serializers.SolicitacaoKitLancheCEMEISerializer
 
     def get_permissions(self):
