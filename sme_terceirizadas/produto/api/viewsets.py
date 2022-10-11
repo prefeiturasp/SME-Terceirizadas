@@ -227,6 +227,19 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return lista_status
 
+    def homologados_e_com_reclamacoes(self, qs):
+        status_permitidos = [
+            HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_UE,
+            HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            HomologacaoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO]
+        qs = qs.filter(status__in=status_permitidos)
+        return qs.exclude(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
+
     def reclamacoes_por_usuario(self, workflow, raw_sql, data, query_set):  # noqa C901
         if (workflow in [
             HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
@@ -291,8 +304,15 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 qs = query_set.raw(raw_sql % data)
             else:
                 qs = self.reclamacoes_por_usuario(workflow, None, None, query_set)
-                qs = sorted(qs.filter(status=workflow).distinct().all(),
-                            key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+                usuario = self.request.user.tipo_usuario
+                status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
+                if workflow == status_homologado and usuario == constants.TIPO_USUARIO_ESCOLA:
+                    qs = self.homologados_e_com_reclamacoes(qs)
+                    qs = sorted(qs.distinct().all(),
+                                key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+                else:
+                    qs = sorted(qs.filter(status=workflow).distinct().all(),
+                                key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
             sumario.append({
                 'status': workflow,
                 'dados': self.get_serializer(
@@ -1656,7 +1676,8 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         try:
             editais_uuid = request.query_params.get('editais', '')
             editais_uuid = editais_uuid.split(';')
-            queryset = self.get_queryset().filter(edital__uuid__in=editais_uuid).distinct('produto__uuid')
+            queryset = self.get_queryset().filter(edital__uuid__in=editais_uuid).order_by('produto__nome',
+                                                                                          'produto__marca__nome')
             data = self.get_serializer(queryset, many=True).data
             return Response(data=data, status=status.HTTP_200_OK)
         except Exception as e:
