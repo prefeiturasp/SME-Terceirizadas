@@ -64,6 +64,8 @@ class Command(BaseCommand):
         codigo_eol_escola = escola_dict['codigoEscola'].strip()
         nome_unidade_educacao = escola_dict['nomeEscola'].strip()
         nome_tipo_escola = escola_dict['siglaTipoEscola'].strip()
+        if nome_tipo_escola == 'CEU':
+            nome_tipo_escola = 'CEU GESTAO'
         nome_escola = f'{nome_tipo_escola} {nome_unidade_educacao}'
         nome_subprefeitura = escola_dict['nomeSubprefeitura'].strip()
 
