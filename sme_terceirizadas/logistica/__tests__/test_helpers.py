@@ -52,18 +52,25 @@ def test_retorna_dados_normalizados_excel_visao_distribuidor(solicitacao):
     queryset = SolicitacaoRemessa.objects.filter(uuid=f'{str(solicitacao.uuid)}')
     requisicoes = retorna_dados_normalizados_excel_visao_distribuidor(queryset)
     esperado = {
-        'distribuidor__nome_fantasia': 'Alimentos SA',
         'numero_solicitacao': '559890',
         'guias__data_entrega': None,
         'guias__alimentos__nome_alimento': None,
-        'guias__codigo_unidade': None,
         'guias__nome_unidade': None,
+        'guias__escola__codigo_eol': None,
+        'guias__endereco_unidade': None,
+        'guias__numero_unidade': None,
+        'guias__bairro_unidade': None,
+        'guias__cep_unidade': None,
+        'guias__telefone_unidade': None,
         'guias__numero_guia': None,
+        'guias__alimentos__embalagens__tipo_embalagem': None,
         'guias__alimentos__embalagens__qtd_volume': None,
+        'guias__alimentos__embalagens__descricao_embalagem': None,
+        'guias__alimentos__embalagens__capacidade_embalagem': None,
+        'guias__alimentos__embalagens__unidade_medida': None,
         'guias__alimentos__codigo_suprimento': None,
         'guias__escola__subprefeitura__agrupamento': None,
-        'endereco_unidade': ' Nº ',
-        'embalagem': '  '
+        'status_requisicao': 'Aguardando envio'
     }
     assert requisicoes.last() == esperado
 
