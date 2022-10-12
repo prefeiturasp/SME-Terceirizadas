@@ -59,11 +59,26 @@ class RequisicoesExcelService(object):
             os.unlink(tmp.name)
             return arquivo
 
-    @classmethod
+    @classmethod # noqa C901
     def exportar_visao_distribuidor(cls, requisicoes, is_async=False):
 
-        cabecalho = ['Número da Requisição', 'Data de Entrega', 'Alimento', 'Código da Unidade', 'Nome da Unidade',
-                     'Endereço da Unidade', 'Nº Guia Remessa', 'Qtde', 'Embalagem', 'Código SUPRI', 'Agrup']
+        cabecalho = ['Nº da Requisição',
+                     'Status da Requisição',
+                     'Data de Entrega',
+                     'Alimento',
+                     'Nome da UE',
+                     'Código EOL da UE',
+                     'Endereço da UE',
+                     'Bairro da UE',
+                     'Cep da UE',
+                     'Telefone UE',
+                     'Número da Guia',
+                     'Quantidade',
+                     'Capacidade (Embalagem Fechada)',
+                     'Quantidade (Fracionada)',
+                     'Capacidade (Embalagem Fracionada)',
+                     'Código Supri',
+                     'Agrupamento']
 
         count_fields = len(cabecalho)
         count_data = requisicoes.count()
@@ -78,18 +93,34 @@ class RequisicoesExcelService(object):
             celula.font = Font(size='13', bold=True, color='00FFFFFF')
 
         for ind, requisicao in enumerate(requisicoes, 3):
-            ws.cell(row=1, column=1, value=requisicao['distribuidor__nome_fantasia']).font = Font(size='13', bold=True)
             ws.cell(row=ind, column=1, value=int(requisicao['numero_solicitacao']))
-            ws.cell(row=ind, column=2, value=requisicao['guias__data_entrega'].strftime('%d/%m/%Y'))
-            ws.cell(row=ind, column=3, value=requisicao['guias__alimentos__nome_alimento'])
-            ws.cell(row=ind, column=4, value=int(requisicao['guias__codigo_unidade']))
+            ws.cell(row=ind, column=2, value=requisicao['status_requisicao'])
+            ws.cell(row=ind, column=3, value=requisicao['guias__data_entrega'].strftime('%d/%m/%Y'))
+            ws.cell(row=ind, column=4, value=requisicao['guias__alimentos__nome_alimento'])
             ws.cell(row=ind, column=5, value=requisicao['guias__nome_unidade'])
-            ws.cell(row=ind, column=6, value=requisicao['endereco_unidade'])
-            ws.cell(row=ind, column=7, value=int(requisicao['guias__numero_guia']))
-            ws.cell(row=ind, column=8, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
-            ws.cell(row=ind, column=9, value=requisicao['embalagem'])
-            ws.cell(row=ind, column=10, value=int(requisicao['guias__alimentos__codigo_suprimento']))
-            ws.cell(row=ind, column=11, value=requisicao['guias__escola__subprefeitura__agrupamento'])
+            ws.cell(row=ind, column=6, value=requisicao['guias__escola__codigo_eol'])
+            ws.cell(row=ind, column=7, value=f'{requisicao["guias__endereco_unidade"]} '
+                                             f'{requisicao["guias__numero_unidade"]}')
+            ws.cell(row=ind, column=8, value=requisicao['guias__bairro_unidade'])
+            ws.cell(row=ind, column=9, value=requisicao['guias__cep_unidade'])
+            ws.cell(row=ind, column=10, value=requisicao['guias__telefone_unidade'])
+            ws.cell(row=ind, column=11, value=int(requisicao['guias__numero_guia']))
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
+                ws.cell(row=ind, column=12,
+                        value=f'{requisicao["guias__alimentos__embalagens__qtd_volume"]} '
+                              f'{requisicao["guias__alimentos__embalagens__descricao_embalagem"]}')
+                ws.cell(row=ind, column=13,
+                        value=f'{requisicao["guias__alimentos__embalagens__capacidade_embalagem"]} '
+                              f'{requisicao["guias__alimentos__embalagens__unidade_medida"]}')
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FRACIONADA':
+                ws.cell(row=ind, column=14,
+                        value=f'{requisicao["guias__alimentos__embalagens__qtd_volume"]} '
+                              f'{requisicao["guias__alimentos__embalagens__descricao_embalagem"]}')
+                ws.cell(row=ind, column=15,
+                        value=f'{requisicao["guias__alimentos__embalagens__capacidade_embalagem"]} '
+                              f'{requisicao["guias__alimentos__embalagens__unidade_medida"]}')
+            ws.cell(row=ind, column=16, value=requisicao['guias__alimentos__codigo_suprimento'])
+            ws.cell(row=ind, column=17, value=requisicao['guias__escola__subprefeitura__agrupamento'])
 
         cls.aplicar_estilo_visao_distribuidor(ws, count_data, count_fields)
         arquivo = cls.gera_arquivo(wb)
