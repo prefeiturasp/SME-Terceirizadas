@@ -51,7 +51,7 @@ def test_url_get_guia_conferencia_uuid_invalido(client_autenticado_escola_abaste
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_url_get_guia_conferencia(client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado):
+def test_url_get_guia_conferencia(client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado, escola):
     response = client_autenticado_escola_abastecimento.get(
         '/guias-da-requisicao/guia-para-conferencia/?uuid=' + str(guia_com_escola_client_autenticado.uuid)
     )
