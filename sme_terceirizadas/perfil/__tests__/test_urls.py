@@ -73,7 +73,7 @@ def test_atualizar_senha_logado_senha_e_confirmar_senha_divergem(users_admin_esc
     response = client.patch('/usuarios/atualizar-senha/',
                             content_type='application/json', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': 'senha e confirmar senha divergem'}
+    assert response.json() == ['Senha e confirmar senha divergem']
 
 
 def test_get_meus_dados_admin_escola(users_admin_escola):
