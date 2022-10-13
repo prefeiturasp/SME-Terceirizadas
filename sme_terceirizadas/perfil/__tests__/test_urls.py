@@ -43,8 +43,10 @@ def test_atualizar_senha_logado(users_admin_escola):
         'senha': 'adminadmin123',
         'confirmar_senha': 'adminadmin123'
     }
-    response = client.patch('/usuarios/atualizar-senha/',
-                            content_type='application/json', data=data)
+    api_redefine_senha = 'sme_terceirizadas.eol_servico.utils.EOLServicoSGP.redefine_senha'
+    with patch(api_redefine_senha):
+        response = client.patch('/usuarios/atualizar-senha/',
+                                content_type='application/json', data=data)
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.check_password('adminadmin123') is True
@@ -60,7 +62,7 @@ def test_atualizar_senha_logado_senha_atual_incorreta(users_admin_escola):
     response = client.patch('/usuarios/atualizar-senha/',
                             content_type='application/json', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': 'senha atual incorreta'}
+    assert response.json() == {'detail': 'Senha atual incorreta'}
 
 
 def test_atualizar_senha_logado_senha_e_confirmar_senha_divergem(users_admin_escola):
