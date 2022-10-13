@@ -43,7 +43,12 @@ from ..inclusao_alimentacao.models import (
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoDaCEI
 )
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..kit_lanche.models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheUnificada
+)
 from .services import NovoSGPServicoLogado
 from .utils import meses_para_mes_e_ano_string
 
@@ -120,6 +125,11 @@ class DiretoriaRegional(
     def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
             filtro_aplicado, SolicitacaoKitLancheCEIAvulsa
+        )
+
+    def solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado, SolicitacaoKitLancheCEMEI
         )
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
