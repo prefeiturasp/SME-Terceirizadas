@@ -13,7 +13,7 @@ fake.seed(420)
 
 @pytest.fixture
 def distribuidor():
-    return mommy.make('Usuario', email='distribuidor@admin.com', is_superuser=True)
+    return mommy.make('Usuario', email='distribuidor@admin.com', cpf='12345678910', is_superuser=True)
 
 
 @pytest.fixture
@@ -45,14 +45,14 @@ def lote():
 @pytest.fixture
 def escola(lote):
     return mommy.make(models.Escola,
-                      nome=fake.name(),
-                      codigo_eol=fake.name()[:6],
+                      nome='CEI DIRET ROBERTO ARANTES LANHOSO',
+                      codigo_eol='400221',
                       lote=lote)
 
 
 @pytest.fixture
-def escola_com_guia(lote):
-    return models.Escola.objects.get(uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+def escola_com_guia(lote, escola):
+    return models.Escola.objects.get(uuid=str(escola.uuid))
 
 
 @pytest.fixture
