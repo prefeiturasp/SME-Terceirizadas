@@ -224,6 +224,7 @@ class StatusProcessamentoArquivo(Enum):
     ERRO = 'ERRO'
     PROCESSADO_COM_ERRO = 'PROCESSADO_COM_ERRO'
     PROCESSANDO = 'PROCESSANDO'
+    REMOVIDO = 'REMOVIDO'
 
     @classmethod
     def choices(cls):

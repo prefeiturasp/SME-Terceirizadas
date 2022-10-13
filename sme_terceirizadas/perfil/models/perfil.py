@@ -23,7 +23,7 @@ class Perfil(ExportModelOperationsMixin('perfil'), Nomeavel, Descritivel, Ativav
     VISAO_CHOICES = (
         (ESCOLA, 'Escola'),
         (DRE, 'Diretoria Regional'),
-        (CODAE, 'Codae'),
+        (CODAE, 'CODAE'),
         (EMPRESA, 'Empresa'),
     )
 
