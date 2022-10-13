@@ -274,6 +274,8 @@ class SolicitacaoKitLancheCEMEIRetrieveSerializer(serializers.ModelSerializer):
     rastro_terceirizada = TerceirizadaSimplesSerializer()
     prioridade = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    prioridade = serializers.CharField()
+    data = serializers.DateField()
 
     class Meta:
         model = SolicitacaoKitLancheCEMEI
