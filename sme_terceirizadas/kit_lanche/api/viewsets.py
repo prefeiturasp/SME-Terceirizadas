@@ -17,7 +17,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
-from ...inclusao_alimentacao.api.viewsets import DREValida, EscolaIniciaCancela
+from ...inclusao_alimentacao.api.viewsets import DREValida, EscolaIniciaCancela, TerceirizadaTomaCiencia
 from ...relatorios.relatorios import (
     relatorio_kit_lanche_passeio,
     relatorio_kit_lanche_passeio_cei,
@@ -569,7 +569,7 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
 
 
-class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, DREValida, EscolaIniciaCancela):
+class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, DREValida, EscolaIniciaCancela, TerceirizadaTomaCiencia):
     lookup_field = 'uuid'
     queryset = SolicitacaoKitLancheCEMEI.objects.all()
     permission_classes = (IsAuthenticated,)
