@@ -72,3 +72,8 @@ def usuario_com_coresso_validation(visao, subdivisao):
     if visao == Perfil.CODAE:
         if not subdivisao:
             raise serializers.ValidationError({'detail': f'É necessário Informar a subdivisão da visão {Perfil.CODAE}'})
+
+
+def checa_senha(usuario, senha):
+    if not usuario.check_password(senha):
+        raise serializers.ValidationError({'detail': 'Senha atual incorreta'})
