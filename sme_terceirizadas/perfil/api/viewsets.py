@@ -25,7 +25,11 @@ from ...escola.models import Codae
 from ...terceirizada.models import Terceirizada
 from ..api.helpers import ofuscar_email
 from ..models import Perfil, Usuario
-from ..tasks import busca_cargo_de_usuario, processa_planilha_usuario_externo_coresso_async
+from ..tasks import (
+    busca_cargo_de_usuario,
+    processa_planilha_usuario_externo_coresso_async,
+    processa_planilha_usuario_servidor_coresso_async
+)
 from ..utils import PerfilPagination
 from .filters import ImportacaoPlanilhaUsuarioCoreSSOFilter, VinculoFilter
 from .serializers import (
@@ -523,13 +527,13 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(mixins.RetrieveModelMixin,
             msg = f'Arquivo com uuid {uuid} não encontrado.'
             logger.info(msg)
             return Response(msg, status=status.HTTP_404_NOT_FOUND)
-        processa_planilha_usuario_externo_coresso_async.delay(username=username, arquivo_uuid=uuid)
+        processa_planilha_usuario_servidor_coresso_async.delay(username=username, arquivo_uuid=uuid)
 
         return Response(dict(detail='Processamento de importação iniciado com sucesso.'), status=HTTP_200_OK)
 
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),
             methods=['patch'], url_path='remover')
-    def remover_palnilha_usuario_servidor(self, request, uuid):
+    def remover_planilha_usuario_servidor(self, request, uuid):
         """(patch) /planilha-coresso-servidor/{ImportacaoPlanilhaUsuarioServidorCoreSSO.uuid}/remover/."""
         arquivo = self.get_object()
         if not arquivo:
@@ -585,7 +589,7 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),
             methods=['patch'], url_path='remover')
-    def remover_palnilha_usuario_externo(self, request, uuid):
+    def remover_planilha_usuario_externo(self, request, uuid):
         """(patch) /planilha-coresso-externo/{ImportacaoPlanilhaUsuarioExternoCoreSSO.uuid}/remover/."""
         arquivo = self.get_object()
         if not arquivo:
