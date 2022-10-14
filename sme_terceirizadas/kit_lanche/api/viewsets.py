@@ -17,7 +17,13 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
-from ...inclusao_alimentacao.api.viewsets import DREValida, EscolaIniciaCancela, TerceirizadaTomaCiencia
+from ...inclusao_alimentacao.api.viewsets import (
+    CodaeAutoriza,
+    CodaeQuestionaTerceirizadaResponde,
+    DREValida,
+    EscolaIniciaCancela,
+    TerceirizadaTomaCiencia
+)
 from ...relatorios.relatorios import (
     relatorio_kit_lanche_passeio,
     relatorio_kit_lanche_passeio_cei,
@@ -569,7 +575,8 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
 
 
-class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, DREValida, EscolaIniciaCancela, TerceirizadaTomaCiencia):
+class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, CodaeAutoriza, CodaeQuestionaTerceirizadaResponde, DREValida,
+                                       EscolaIniciaCancela, TerceirizadaTomaCiencia):
     lookup_field = 'uuid'
     queryset = SolicitacaoKitLancheCEMEI.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -616,6 +623,19 @@ class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, DREValida, EscolaIniciaCanc
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         kit_lanches_cemei = diretoria_regional.solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(kit_lanches_cemei)
+        serializer = serializers.SolicitacaoKitLancheCEMEIRetrieveSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def solicitacoes_codae(self, request, filtro_aplicado='sem_filtro'):
+        usuario = request.user
+        codae = usuario.vinculo_atual.instituicao
+        kit_lanches_cemei = codae.solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
         page = self.paginate_queryset(kit_lanches_cemei)
