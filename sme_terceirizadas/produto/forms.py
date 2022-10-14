@@ -20,6 +20,21 @@ class ProdutoPorParametrosForm(forms.Form):
     )
 
 
+class ProdutoPorParametrosFormHomologados(forms.Form):
+    uuid = forms.UUIDField(required=False)
+    nome_fabricante = forms.CharField(required=False)
+    nome_marca = forms.CharField(required=False)
+    nome_edital = forms.CharField(required=False)
+    tipo = forms.CharField(required=False)
+    nome_produto = forms.CharField(required=False)
+    nome_terceirizada = forms.CharField(required=False)
+    data_homologacao = forms.DateField(required=False)
+    status = forms.MultipleChoiceField(
+        required=False,
+        choices=[(str(state), state) for state in HomologacaoProdutoWorkflow.states]
+    )
+
+
 class ProdutoJaExisteForm(forms.Form):
     fabricante = forms.ModelChoiceField(Fabricante.objects.all(), to_field_name='uuid')
     marca = forms.ModelChoiceField(Marca.objects.all(), to_field_name='uuid')

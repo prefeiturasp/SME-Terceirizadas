@@ -743,3 +743,29 @@ def test_url_endpoint_produtos_editais_ativar_inativar(client_autenticado_vincul
     response = client.patch(f'/produtos-editais/{vinculo_produto_edital.uuid}/ativar-inativar-produto/')
     resultado = response.json()
     assert resultado['data']['ativo'] is True
+
+
+def test_url_endpoint_produtos_editais_lista_editais_dre(client_autenticado_da_dre, contrato, diretoria_regional):
+    client = client_autenticado_da_dre
+    response = client.get(f'/produtos-editais/lista-editais-dre/')
+    resultado = response.json()
+    esperado = {'results': [
+        {'uuid': '617a8139-02a9-4801-a197-622aa20795b9',
+         'numero': 'Edital de Pregão nº 56/SME/2016'}
+    ]}
+    assert resultado == esperado
+
+
+def test_url_endpoint_produtos_editais_filtro_por_parametros_agrupado_terceirizada(client_autenticado_da_dre):
+    client = client_autenticado_da_dre
+    payload = {
+        'agrupado_por_nome_e_marca': False,
+        'data_homologacao': '14/10/2022',
+        'nome_edital': 'Edital de Pregão nº 41/sme/2017',
+        'nome_marca': 'IAGRO',
+        'nome_produto': 'ARROZ LONGO FINO TIPO 1',
+        'nome_terceirizada': 'APETECE'
+    }
+    response = client.post(f'/produtos/filtro-por-parametros-agrupado-terceirizada/',
+                           data=json.dumps(payload), content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
