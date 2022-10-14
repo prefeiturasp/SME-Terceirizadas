@@ -23,7 +23,7 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
-from ...escola.models import Escola, Lote
+from ...escola.models import DiretoriaRegional, Escola, Lote
 from ...relatorios.relatorios import (
     relatorio_marcas_por_produto_homologacao,
     relatorio_produto_analise_sensorial,
@@ -36,7 +36,7 @@ from ...relatorios.relatorios import (
     relatorio_reclamacao
 )
 from ...relatorios.utils import html_to_pdf_response
-from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
+from ...terceirizada.api.serializers.serializers import EditalSimplesSerializer, TerceirizadaSimplesSerializer
 from ...terceirizada.models import Contrato, Edital, Terceirizada
 from ..constants import (
     AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
@@ -1154,7 +1154,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         for homologacao in homologacao_produtos:
             logs = homologacao.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
-                                                              LogSolicitacoesUsuario.CODAE_SUSPENDEU])
+                                                              LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                                              LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO],)
             data_homologacao = cleaned_data['data_homologacao']
             if data_homologacao != '' and data_homologacao is not None:
 
@@ -1703,6 +1704,15 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(dict(detail=f'Erro ao consultar produtos: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='lista-editais-dre')
+    def lista_editais_dre(self, request):
+        user = request.user
+        dre = DiretoriaRegional.objects.get(nome=user.vinculo_atual.instituicao.nome)
+        pks = Contrato.objects.filter(diretorias_regionais__in=[dre]).values_list('edital', flat=True)
+        queryset = Edital.objects.filter(pk__in=pks).order_by('pk').distinct('pk')
+        response = {'results': EditalSimplesSerializer(queryset, many=True).data}
+        return Response(response)
 
 
 class NomeDeProdutoEditalViewSet(viewsets.ViewSet):
