@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import chain
 
 import environ
@@ -23,7 +23,7 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
-from ...escola.models import Escola, Lote
+from ...escola.models import DiretoriaRegional, Escola, Lote
 from ...relatorios.relatorios import (
     relatorio_marcas_por_produto_homologacao,
     relatorio_produto_analise_sensorial,
@@ -36,7 +36,7 @@ from ...relatorios.relatorios import (
     relatorio_reclamacao
 )
 from ...relatorios.utils import html_to_pdf_response
-from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
+from ...terceirizada.api.serializers.serializers import EditalSimplesSerializer, TerceirizadaSimplesSerializer
 from ...terceirizada.models import Contrato, Edital, Terceirizada
 from ..constants import (
     AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
@@ -45,7 +45,7 @@ from ..constants import (
     RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
     RESPONDER_RECLAMACAO_RECLAMACOES_STATUS
 )
-from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm
+from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm, ProdutoPorParametrosFormHomologados
 from ..models import (
     AnaliseSensorial,
     EmbalagemProduto,
@@ -71,6 +71,7 @@ from ..utils import (
     converte_para_datetime,
     cria_filtro_aditivos,
     cria_filtro_produto_por_parametros_form,
+    cria_filtro_produto_por_parametros_form_homologado,
     get_filtros_data
 )
 from .filters import CadastroProdutosEditalFilter, ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
@@ -1138,6 +1139,29 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(filtro_aditivos)
         return queryset.order_by('-criado_em')
 
+    def get_queryset_filtrado_homologados(self, cleaned_data):
+        homologacao_produtos = HomologacaoProduto.objects.all()
+        logs_homologados = []
+
+        for homologacao in homologacao_produtos:
+            logs = homologacao.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+                                                              LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                                              LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO],)
+            data_homologacao = cleaned_data['data_homologacao']
+            if data_homologacao != '' and data_homologacao is not None:
+
+                log = logs.filter(criado_em__lte=data_homologacao + timedelta(days=1)).last()
+            else:
+                log = logs.last()
+
+            if log and log.status_evento == LogSolicitacoesUsuario.CODAE_HOMOLOGADO:
+                logs_homologados.append(log.uuid_original)
+
+        campos_a_pesquisar = cria_filtro_produto_por_parametros_form_homologado(cleaned_data)
+        queryset = self.get_queryset().filter(
+            **campos_a_pesquisar).filter(homologacao__uuid__in=logs_homologados)
+        return queryset
+
     @action(detail=False,
             methods=['POST'],
             url_path='filtro-por-parametros')
@@ -1167,7 +1191,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['POST'],
             url_path='filtro-por-parametros-agrupado-terceirizada')
     def filtro_por_parametros_agrupado_terceirizada(self, request):
-        form = ProdutoPorParametrosForm(request.data)
+        form = ProdutoPorParametrosFormHomologados(request.data)
 
         if not form.is_valid():
             return Response(form.errors)
@@ -1184,13 +1208,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
         ]
 
-        queryset = self.get_queryset_filtrado(form_data)
-
-        uuids_homologacao = queryset.values_list('homologacao__uuid', flat=True)
-        status_homologado = LogSolicitacoesUsuario.CODAE_HOMOLOGADO
-
-        logs_homologados = LogSolicitacoesUsuario.objects.filter(status_evento=status_homologado,
-                                                                 uuid_original__in=uuids_homologacao)
+        queryset = self.get_queryset_filtrado_homologados(form_data)
 
         produtos = queryset.values('uuid', 'homologacao__rastro_terceirizada__nome_fantasia', 'nome',
                                    'marca__nome', 'vinculos__tipo_produto', 'vinculos__edital__numero',
@@ -1199,8 +1217,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
 
         produtos_agrupados = []
+
         for produto in produtos:
-            data_homologacao = logs_homologados.filter(uuid_original=produto['homologacao__uuid']).last()
+            data_homologacao = LogSolicitacoesUsuario.objects.filter(
+                uuid_original=produto['homologacao__uuid'],
+                status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).last()
             produtos_agrupados.append({
                 'terceirizada': produto['homologacao__rastro_terceirizada__nome_fantasia'],
                 'nome': produto['nome'],
@@ -1674,6 +1695,15 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(dict(detail=f'Erro ao consultar produtos: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='lista-editais-dre')
+    def lista_editais_dre(self, request):
+        user = request.user
+        dre = DiretoriaRegional.objects.get(nome=user.vinculo_atual.instituicao.nome)
+        pks = Contrato.objects.filter(diretorias_regionais__in=[dre]).values_list('edital', flat=True)
+        queryset = Edital.objects.filter(pk__in=pks).order_by('pk').distinct('pk')
+        response = {'results': EditalSimplesSerializer(queryset, many=True).data}
+        return Response(response)
 
 
 class NomeDeProdutoEditalViewSet(viewsets.ViewSet):
