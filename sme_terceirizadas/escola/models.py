@@ -874,6 +874,15 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
             ]
         )
 
+    def solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheCEMEI)
+        return queryset.filter(
+            status__in=[
+                SolicitacaoKitLancheCEMEI.workflow_class.DRE_VALIDADO,
+                SolicitacaoKitLancheCEMEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+            ]
+        )
+
     @property
     def solicitacao_kit_lanche_avulsa_reprovadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
