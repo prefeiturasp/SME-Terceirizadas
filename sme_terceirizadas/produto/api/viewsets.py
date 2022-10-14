@@ -228,17 +228,22 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         return lista_status
 
     def homologados_e_com_reclamacoes(self, qs):
-        status_permitidos = [
+        status_reclamacao = [
             HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_UE,
             HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
             HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
             HomologacaoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
-            HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
-            HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO]
-        qs = qs.filter(status__in=status_permitidos)
-        return qs.exclude(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
+            HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO]
+        status_permitidos = [HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO]
+        instituicao = self.request.user.vinculo_atual.instituicao
+        if isinstance(instituicao, Escola):
+            status_permitidos = status_permitidos + status_reclamacao
+            qs = qs.filter(status__in=status_permitidos)
+            return qs.exclude(reclamacoes__escola=instituicao)
+        else:
+            return qs.filter(status__in=status_permitidos)
 
     def reclamacoes_por_usuario(self, workflow, raw_sql, data, query_set):  # noqa C901
         if (workflow in [
@@ -264,21 +269,6 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             else:
                 data['escola'] = self.request.user.vinculo_atual.object_id
                 raw_sql += "AND %(reclamacoes_produto)s.escola_id = '%(escola)s' "
-        elif (workflow in [
-            HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-            HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
-            HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_UE,
-            HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
-            HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
-            HomologacaoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
-            HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
-                self.request.user.tipo_usuario == constants.TIPO_USUARIO_NUTRISUPERVISOR):
-            if query_set is not None:
-                query_set = query_set.filter(
-                    reclamacoes__reclamante_registro_funcional=self.request.user.registro_funcional)
-            else:
-                data['registro_funcional'] = self.request.user.registro_funcional
-                raw_sql += "AND %(reclamacoes_produto)s.reclamante_registro_funcional = '%(registro_funcional)s' "
         return query_set
 
     def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
@@ -306,7 +296,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 qs = self.reclamacoes_por_usuario(workflow, None, None, query_set)
                 usuario = self.request.user.tipo_usuario
                 status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
-                if workflow == status_homologado and usuario == constants.TIPO_USUARIO_ESCOLA:
+                status_permitidos = [constants.TIPO_USUARIO_ESCOLA, constants.TIPO_USUARIO_NUTRISUPERVISOR]
+                if workflow == status_homologado and usuario in status_permitidos:
                     qs = self.homologados_e_com_reclamacoes(qs)
                     qs = sorted(qs.distinct().all(),
                                 key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
