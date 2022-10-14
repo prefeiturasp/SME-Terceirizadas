@@ -43,7 +43,7 @@ def test_url_dados_dashboard_usuario_nutrisupervisor(client_autenticado_vinculo_
     response_json = response.json()
     assert len(response_json['results']) == 12
     codae_hom = next((x for x in response_json['results'] if x['status'] == 'TERCEIRIZADA_RESPONDEU_RECLAMACAO'), None)
-    assert len(codae_hom['dados']) == 0
+    assert len(codae_hom['dados']) == 1
 
 
 def test_url_endpoint_homologacao_produto_codae_homologa(client_autenticado_vinculo_codae_produto,
