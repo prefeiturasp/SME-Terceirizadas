@@ -1512,45 +1512,54 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return queryset
 
     @action(detail=False, # noqa C901
-            methods=['GET'],
+            methods=['POST'],
             url_path='filtro-relatorio-produto-suspenso')
     def filtro_relatorio_produto_suspenso(self, request):
-        logs_queryset = LogSolicitacoesUsuario.objects.filter(status_evento=LogSolicitacoesUsuario.CODAE_SUSPENDEU)
 
-        nome_produto = request.query_params.get('nome_produto', None)
-        nome_edital = request.query_params.get('nome_edital', None)
-        nome_marca = request.query_params.get('nome_marca', None)
-        nome_fabricante = request.query_params.get('nome_fabricante', None)
-        tipo = request.query_params.get('tipo', None)
-        suspenso_ate = request.query_params.get('data_suspensao_final', None)
-        status_permitido = ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO']
-        if suspenso_ate:
-            suspenso_ate = suspenso_ate.split('/')
-            suspenso_ate = [int(element) for element in suspenso_ate]
-            suspenso_ate = datetime(suspenso_ate[2], suspenso_ate[1], suspenso_ate[0])
-            logs_queryset = logs_queryset.filter(criado_em__lte=suspenso_ate)
+        data_final = request.data['params'].get('data_suspensao_final', None)
+        nome_produto = request.data['params'].get('nome_produto', None)
+        nome_edital = request.data['params'].get('nome_edital', None)
+        nome_marca = request.data['params'].get('nome_marca', None)
+        nome_fabricante = request.data['params'].get('nome_fabricante', None)
+        tipo = request.data['params'].get('tipo', None)
+        status = request.data['params'].get('status')
 
-        uuids_homologacao = logs_queryset.values_list('uuid_original', flat=True)
-        uuids_homologacao = uuids_homologacao.distinct()
+        homologacoes = HomologacaoProduto.objects.all()
+        uuids_homologacao = []
 
-        queryset = HomologacaoProduto.objects.filter(uuid__in=uuids_homologacao, status__in=status_permitido)
+        if data_final:
+            data_final = data_final.split('/')
+            data_final = [int(element) for element in data_final]
+            data_final = datetime(data_final[2], data_final[1], data_final[0])
+
+        for hom in homologacoes:
+            logs = hom.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+                                                      LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                                      LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO])
+            if data_final:
+                logs = hom.logs.filter(criado_em__lte=data_final)
+            if logs.last():
+                uuid = logs.last().uuid_original
+                uuids_homologacao.append(uuid)
+        homologacoes = homologacoes.filter(uuid__in=uuids_homologacao, status__in=status)
+
         if nome_produto:
-            queryset = queryset.filter(produto__nome=nome_produto)
+            homologacoes = homologacoes.filter(produto__nome=nome_produto)
         if nome_marca:
-            queryset = queryset.filter(produto__marca__nome=nome_marca)
+            homologacoes = homologacoes.filter(produto__marca__nome=nome_marca)
         if nome_fabricante:
-            queryset = queryset.filter(produto__fabricante__nome=nome_fabricante)
+            homologacoes = homologacoes.filter(produto__fabricante__nome=nome_fabricante)
         if nome_edital:
-            queryset = queryset.filter(produto__vinculos__edital__numero=nome_edital)
+            homologacoes = homologacoes.filter(produto__vinculos__edital__numero=nome_edital)
         if not nome_edital:
             usuario = request.user
-            queryset = self.editais_do_ususario(usuario, queryset)
+            homologacoes = self.editais_do_ususario(usuario, homologacoes)
         if tipo == 'Comum':
-            queryset = queryset.filter(produto__eh_para_alunos_com_dieta=False)
+            homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=False)
         if tipo == 'Dieta especial':
-            queryset = queryset.filter(produto__eh_para_alunos_com_dieta=True)
+            homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=True)
+        queryset = Produto.objects.filter(pk__in=homologacoes.values_list('produto', flat=True))
 
-        queryset = Produto.objects.filter(pk__in=queryset.values_list('produto', flat=True))
         return self.paginated_response(queryset)
 
     @action(detail=False, url_path='relatorio-produto-suspenso',
