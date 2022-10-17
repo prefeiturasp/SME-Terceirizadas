@@ -1523,7 +1523,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         nome_fabricante = request.query_params.get('nome_fabricante', None)
         tipo = request.query_params.get('tipo', None)
         suspenso_ate = request.query_params.get('data_suspensao_final', None)
-
+        status_permitido = ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO']
         if suspenso_ate:
             suspenso_ate = suspenso_ate.split('/')
             suspenso_ate = [int(element) for element in suspenso_ate]
@@ -1533,7 +1533,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         uuids_homologacao = logs_queryset.values_list('uuid_original', flat=True)
         uuids_homologacao = uuids_homologacao.distinct()
 
-        queryset = HomologacaoProduto.objects.filter(uuid__in=uuids_homologacao, status='CODAE_SUSPENDEU')
+        queryset = HomologacaoProduto.objects.filter(uuid__in=uuids_homologacao, status__in=status_permitido)
         if nome_produto:
             queryset = queryset.filter(produto__nome=nome_produto)
         if nome_marca:
