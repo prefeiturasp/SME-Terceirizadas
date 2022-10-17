@@ -1542,7 +1542,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 uuid = logs.last().uuid_original
                 uuids_homologacao.append(uuid)
         homologacoes = homologacoes.filter(uuid__in=uuids_homologacao, status__in=status)
-        
+
         if nome_produto:
             homologacoes = homologacoes.filter(produto__nome=nome_produto)
         if nome_marca:
