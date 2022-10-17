@@ -1515,6 +1515,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['POST'],
             url_path='filtro-relatorio-produto-suspenso')
     def filtro_relatorio_produto_suspenso(self, request):
+
         data_final = request.data['params'].get('data_suspensao_final', None)
         nome_produto = request.data['params'].get('nome_produto', None)
         nome_edital = request.data['params'].get('nome_edital', None)
@@ -1541,7 +1542,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 uuid = logs.last().uuid_original
                 uuids_homologacao.append(uuid)
         homologacoes = homologacoes.filter(uuid__in=uuids_homologacao, status__in=status)
-
+        
         if nome_produto:
             homologacoes = homologacoes.filter(produto__nome=nome_produto)
         if nome_marca:
@@ -1558,6 +1559,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if tipo == 'Dieta especial':
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=True)
         queryset = Produto.objects.filter(pk__in=homologacoes.values_list('produto', flat=True))
+
         return self.paginated_response(queryset)
 
     @action(detail=False, url_path='relatorio-produto-suspenso',
