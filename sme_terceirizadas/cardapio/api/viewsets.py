@@ -534,11 +534,10 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     serializer_class = GrupoSuspensaoAlimentacaoSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
-            self.permission_classes = (
-                IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['retrieve', 'update']:
+            self.permission_classes = (PermissaoParaRecuperarObjeto,)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
         return super(GrupoSuspensaoAlimentacaoSerializerViewSet, self).get_permissions()
