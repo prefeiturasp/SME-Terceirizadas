@@ -1545,8 +1545,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not nome_edital:
             usuario = request.user
             queryset = self.editais_do_ususario(usuario, queryset)
-        if tipo:
-            queryset = queryset.filter(produto__vinculos__tipo_produto=tipo.upper())
+        if tipo == 'Comum':
+            queryset = queryset.filter(produto__eh_para_alunos_com_dieta=False)
+        if tipo == 'Dieta especial':
+            queryset = queryset.filter(produto__eh_para_alunos_com_dieta=True)
 
         queryset = Produto.objects.filter(pk__in=queryset.values_list('produto', flat=True))
         return self.paginated_response(queryset)
