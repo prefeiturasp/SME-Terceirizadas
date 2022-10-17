@@ -1487,13 +1487,68 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                     para_excluir.append(produto.id)
         return queryset.exclude(id__in=para_excluir)
 
-    @action(detail=False,
+    def editais_do_ususario(self, usuario, queryset):
+        editais = Edital.objects.all()
+        if isinstance(usuario.vinculo_atual.instituicao, Escola):
+            lote = usuario.vinculo_atual.instituicao.lote
+            editais_id = Contrato.objects.filter(lotes__in=[lote])
+            editais_id = editais_id.values_list('edital_id', flat=True).distinct()
+            editais = editais.filter(id__in=editais_id)
+            queryset = queryset.filter(produto__vinculos__edital__in=editais)
+        if isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
+            terceirizada = usuario.vinculo_atual.instituicao
+            lotes_uuid = Lote.objects.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
+            editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid)
+            editais_id = editais_id.values_list('edital_id', flat=True).distinct()
+            editais = editais.filter(id__in=editais_id)
+            queryset = queryset.filter(produto__vinculos__edital__in=editais)
+        if isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional):
+            diretoria_regional = usuario.vinculo_atual.instituicao
+            lotes_uuid = Lote.objects.filter(diretoria_regional=diretoria_regional).values_list('uuid', flat=True)
+            editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid)
+            editais_id = editais_id.values_list('edital_id', flat=True).distinct()
+            editais = editais.filter(id__in=editais_id)
+            queryset = queryset.filter(produto__vinculos__edital__in=editais)
+        return queryset
+
+    @action(detail=False, # noqa C901
             methods=['GET'],
             url_path='filtro-relatorio-produto-suspenso')
     def filtro_relatorio_produto_suspenso(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).select_related(
-            'marca', 'fabricante').order_by('nome')
-        queryset = self.filtra_produtos_suspensos_por_data(request, queryset)
+        logs_queryset = LogSolicitacoesUsuario.objects.filter(status_evento=LogSolicitacoesUsuario.CODAE_SUSPENDEU)
+
+        nome_produto = request.query_params.get('nome_produto', None)
+        nome_edital = request.query_params.get('nome_edital', None)
+        nome_marca = request.query_params.get('nome_marca', None)
+        nome_fabricante = request.query_params.get('nome_fabricante', None)
+        tipo = request.query_params.get('tipo', None)
+        suspenso_ate = request.query_params.get('data_suspensao_final', None)
+
+        if suspenso_ate:
+            suspenso_ate = suspenso_ate.split('/')
+            suspenso_ate = [int(element) for element in suspenso_ate]
+            suspenso_ate = datetime(suspenso_ate[2], suspenso_ate[1], suspenso_ate[0])
+            logs_queryset = logs_queryset.filter(criado_em__lte=suspenso_ate)
+
+        uuids_homologacao = logs_queryset.values_list('uuid_original', flat=True)
+        uuids_homologacao = uuids_homologacao.distinct()
+
+        queryset = HomologacaoProduto.objects.filter(uuid__in=uuids_homologacao, status='CODAE_SUSPENDEU')
+        if nome_produto:
+            queryset = queryset.filter(produto__nome=nome_produto)
+        if nome_marca:
+            queryset = queryset.filter(produto__marca__nome=nome_marca)
+        if nome_fabricante:
+            queryset = queryset.filter(produto__fabricante__nome=nome_fabricante)
+        if nome_edital:
+            queryset = queryset.filter(produto__vinculos__edital__numero=nome_edital)
+        if not nome_edital:
+            usuario = request.user
+            queryset = self.editais_do_ususario(usuario, queryset)
+        if tipo:
+            queryset = queryset.filter(produto__vinculos__tipo_produto=tipo.upper())
+
+        queryset = Produto.objects.filter(pk__in=queryset.values_list('produto', flat=True))
         return self.paginated_response(queryset)
 
     @action(detail=False, url_path='relatorio-produto-suspenso',
