@@ -1532,14 +1532,16 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if data_final:
             data_final = data_final.split('/')
             data_final = [int(element) for element in data_final]
-            data_final = datetime(data_final[2], data_final[1], data_final[0])
+            data_final = datetime(data_final[2], data_final[1], data_final[0], 23, 59)
 
         for hom in homologacoes:
-            logs = hom.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
-                                                      LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+            log_homologado = hom.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).last()
+            logs = hom.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_SUSPENDEU,
                                                       LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO])
             if data_final:
-                logs = hom.logs.filter(criado_em__lte=data_final)
+                logs = logs.filter(criado_em__lte=data_final)
+                if log_homologado:
+                    logs = logs.filter(criado_em__gt=log_homologado.criado_em)
             if logs.last():
                 uuid = logs.last().uuid_original
                 uuids_homologacao.append(uuid)
