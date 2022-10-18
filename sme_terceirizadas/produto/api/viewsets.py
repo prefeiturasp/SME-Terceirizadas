@@ -1512,17 +1512,16 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return queryset
 
     @action(detail=False, # noqa C901
-            methods=['POST'],
+            methods=['GET'],
             url_path='filtro-relatorio-produto-suspenso')
     def filtro_relatorio_produto_suspenso(self, request):
-
-        data_final = request.data['params'].get('data_suspensao_final', None)
-        nome_produto = request.data['params'].get('nome_produto', None)
-        nome_edital = request.data['params'].get('nome_edital', None)
-        nome_marca = request.data['params'].get('nome_marca', None)
-        nome_fabricante = request.data['params'].get('nome_fabricante', None)
-        tipo = request.data['params'].get('tipo', None)
-        status = request.data['params'].get('status')
+        data_final = request.query_params.get('data_suspensao_final', None)
+        nome_produto = request.query_params.get('nome_produto', None)
+        nome_edital = request.query_params.get('nome_edital', None)
+        nome_marca = request.query_params.get('nome_marca', None)
+        nome_fabricante = request.query_params.get('nome_fabricante', None)
+        tipo = request.query_params.get('tipo', None)
+        status = ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO']
 
         homologacoes = HomologacaoProduto.objects.all()
         uuids_homologacao = []
