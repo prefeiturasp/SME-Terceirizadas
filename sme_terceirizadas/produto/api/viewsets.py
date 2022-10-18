@@ -1515,7 +1515,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['GET'],
             url_path='filtro-relatorio-produto-suspenso')
     def filtro_relatorio_produto_suspenso(self, request):
-        data_final = request.query_params.get('data_suspensao_final', None)
+        if request.query_params.get('data_suspensao_final', None) == 'null':
+            data_final = None
+        else:
+            data_final = request.query_params.get('data_suspensao_final', None)
         nome_produto = request.query_params.get('nome_produto', None)
         nome_edital = request.query_params.get('nome_edital', None)
         nome_marca = request.query_params.get('nome_marca', None)
