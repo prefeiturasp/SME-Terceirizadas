@@ -1722,7 +1722,7 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         try:
             vinculos = self.get_queryset()
             produtos = vinculos.distinct('produto__nome').values('produto__nome', 'produto__uuid')
-            editais = vinculos.distinct('edital__numero').values('edital__numero', 'edital__uuid')
+            editais = Edital.objects.all().values('numero', 'uuid')
             return Response(dict(produtos=produtos, editais=editais), status=status.HTTP_200_OK)
         except Exception as e:
             return Response(dict(detail=f'Erro ao consultar filtros: {e}'),
