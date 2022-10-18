@@ -709,8 +709,8 @@ def test_url_endpoint_produtos_editais_filtros(client_autenticado_vinculo_codae_
         ],
         'editais': [
             {
-                'edital__numero': 'Edital de Pregão nº 56/SME/2016',
-                'edital__uuid': '617a8139-02a9-4801-a197-622aa20795b9'
+                'numero': 'Edital de Pregão nº 56/SME/2016',
+                'uuid': '617a8139-02a9-4801-a197-622aa20795b9'
             }
         ]
     }
