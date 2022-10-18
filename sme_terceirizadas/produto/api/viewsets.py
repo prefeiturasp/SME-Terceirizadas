@@ -1559,7 +1559,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if tipo == 'Dieta especial':
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=True)
         queryset = Produto.objects.filter(pk__in=homologacoes.values_list('produto', flat=True))
-
+        queryset = queryset.order_by('nome')
         return self.paginated_response(queryset)
 
     @action(detail=False, url_path='relatorio-produto-suspenso',
