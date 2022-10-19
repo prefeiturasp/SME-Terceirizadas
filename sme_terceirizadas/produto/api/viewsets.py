@@ -1512,17 +1512,19 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return queryset
 
     @action(detail=False, # noqa C901
-            methods=['POST'],
+            methods=['GET'],
             url_path='filtro-relatorio-produto-suspenso')
     def filtro_relatorio_produto_suspenso(self, request):
-
-        data_final = request.data['params'].get('data_suspensao_final', None)
-        nome_produto = request.data['params'].get('nome_produto', None)
-        nome_edital = request.data['params'].get('nome_edital', None)
-        nome_marca = request.data['params'].get('nome_marca', None)
-        nome_fabricante = request.data['params'].get('nome_fabricante', None)
-        tipo = request.data['params'].get('tipo', None)
-        status = request.data['params'].get('status')
+        if request.query_params.get('data_suspensao_final', None) == 'null':
+            data_final = None
+        else:
+            data_final = request.query_params.get('data_suspensao_final', None)
+        nome_produto = request.query_params.get('nome_produto', None)
+        nome_edital = request.query_params.get('nome_edital', None)
+        nome_marca = request.query_params.get('nome_marca', None)
+        nome_fabricante = request.query_params.get('nome_fabricante', None)
+        tipo = request.query_params.get('tipo', None)
+        status = ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO']
 
         homologacoes = HomologacaoProduto.objects.all()
         uuids_homologacao = []
@@ -1530,14 +1532,16 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if data_final:
             data_final = data_final.split('/')
             data_final = [int(element) for element in data_final]
-            data_final = datetime(data_final[2], data_final[1], data_final[0])
+            data_final = datetime(data_final[2], data_final[1], data_final[0], 23, 59)
 
         for hom in homologacoes:
-            logs = hom.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
-                                                      LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+            log_homologado = hom.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).last()
+            logs = hom.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_SUSPENDEU,
                                                       LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO])
             if data_final:
-                logs = hom.logs.filter(criado_em__lte=data_final)
+                logs = logs.filter(criado_em__lte=data_final)
+                if log_homologado:
+                    logs = logs.filter(criado_em__gt=log_homologado.criado_em)
             if logs.last():
                 uuid = logs.last().uuid_original
                 uuids_homologacao.append(uuid)
@@ -1559,7 +1563,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if tipo == 'Dieta especial':
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=True)
         queryset = Produto.objects.filter(pk__in=homologacoes.values_list('produto', flat=True))
-
+        queryset = queryset.order_by('nome')
         return self.paginated_response(queryset)
 
     @action(detail=False, url_path='relatorio-produto-suspenso',
@@ -1723,7 +1727,7 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         try:
             vinculos = self.get_queryset()
             produtos = vinculos.distinct('produto__nome').values('produto__nome', 'produto__uuid')
-            editais = vinculos.distinct('edital__numero').values('edital__numero', 'edital__uuid')
+            editais = Edital.objects.all().values('numero', 'uuid')
             return Response(dict(produtos=produtos, editais=editais), status=status.HTTP_200_OK)
         except Exception as e:
             return Response(dict(detail=f'Erro ao consultar filtros: {e}'),
