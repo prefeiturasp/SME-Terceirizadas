@@ -96,11 +96,23 @@ def retorna_dados_normalizados_excel_visao_distribuidor(queryset):
                                 'guias__codigo_unidade', output_field=CharField()),
         embalagem=Concat('guias__alimentos__embalagens__descricao_embalagem', Value(' '),
                          'guias__alimentos__embalagens__capacidade_embalagem', Value(' '),
-                         'guias__alimentos__embalagens__unidade_medida', output_field=CharField())
+                         'guias__alimentos__embalagens__unidade_medida', output_field=CharField()),
+        status_requisicao=Case(
+            When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
+            When(status='DILOG_ENVIA', then=Value('Enviada')),
+            When(status='CANCELADA', then=Value('Cancelada')),
+            When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
+            When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
+            When(status='DILOG_ACEITA_ALTERACAO', then=Value('Alterada')),
+            output_field=CharField(),
+        )
     ).values(
-        'distribuidor__nome_fantasia', 'numero_solicitacao', 'guias__data_entrega', 'guias__alimentos__nome_alimento',
-        'guias__codigo_unidade', 'guias__nome_unidade', 'endereco_unidade', 'guias__numero_guia',
-        'guias__alimentos__embalagens__qtd_volume', 'embalagem', 'guias__alimentos__codigo_suprimento',
+        'numero_solicitacao', 'status_requisicao', 'guias__data_entrega', 'guias__alimentos__nome_alimento',
+        'guias__nome_unidade', 'guias__escola__codigo_eol', 'guias__endereco_unidade', 'guias__numero_unidade',
+        'guias__bairro_unidade', 'guias__cep_unidade', 'guias__telefone_unidade', 'guias__numero_guia',
+        'guias__alimentos__embalagens__tipo_embalagem', 'guias__alimentos__embalagens__qtd_volume',
+        'guias__alimentos__embalagens__descricao_embalagem', 'guias__alimentos__embalagens__capacidade_embalagem',
+        'guias__alimentos__embalagens__unidade_medida', 'guias__alimentos__codigo_suprimento',
         'guias__escola__subprefeitura__agrupamento'
     )
 

@@ -155,7 +155,7 @@ def test_compara_lista_imagens(produto, imagem_produto1, imagem_produto2):
 
 def test_changes_between(produto, info_nutricional1, info_nutricional2, info_nutricional3,
                          info_nutricional_produto1, info_nutricional_produto2,
-                         imagem_produto1, imagem_produto2, marca2):
+                         imagem_produto1, imagem_produto2, marca2, usuario):
     validated_data = {
         'nome': produto.nome,
         'eh_para_alunos_com_dieta': True,
@@ -193,7 +193,7 @@ def test_changes_between(produto, info_nutricional1, info_nutricional2, info_nut
             }
         ]
     }
-    changes = changes_between(produto, validated_data)
+    changes = changes_between(produto, validated_data, usuario)
 
     assert changes['componentes'] == {'de': 'Componente1, Componente2', 'para': 'Componente3, Componente4'}
     assert changes['info_armazenamento'] == {'de': 'Guardem bem', 'para': 'Bote na geladeira'}
