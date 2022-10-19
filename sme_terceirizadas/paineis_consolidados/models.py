@@ -23,7 +23,7 @@ class SolicitacoesDestaSemanaManager(models.Manager):
         data_limite_inicial = hoje
         data_limite_final = hoje + datetime.timedelta(7)
         return super(SolicitacoesDestaSemanaManager, self).get_queryset(
-        ).filter(criado_em__range=(data_limite_inicial, data_limite_final))
+        ).filter(data_evento__range=(data_limite_inicial, data_limite_final))
 
 
 class SolicitacoesDesteMesManager(models.Manager):
@@ -32,7 +32,7 @@ class SolicitacoesDesteMesManager(models.Manager):
         data_limite_inicial = hoje
         data_limite_final = hoje + datetime.timedelta(31)
         return super(SolicitacoesDesteMesManager, self).get_queryset(
-        ).filter(criado_em__range=(data_limite_inicial, data_limite_final))
+        ).filter(data_evento__range=(data_limite_inicial, data_limite_final))
 
 
 class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmigavel):
