@@ -8,7 +8,8 @@ from ....dados_comuns.validators import (
     deve_ser_no_mesmo_ano_corrente,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
-    objeto_nao_deve_ter_duplicidade
+    objeto_nao_deve_ter_duplicidade,
+    valida_duplicidade_solicitacoes
 )
 from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
@@ -425,6 +426,8 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
         nao_pode_ser_no_passado(attrs['data_inicial'])
         if attrs['motivo'].nome != 'Lanche Emergencial':
             deve_pedir_com_antecedencia(attrs['data_inicial'])
+        if attrs['motivo'].nome == 'RPL - Refeição por Lanche':
+            valida_duplicidade_solicitacoes(attrs)
         deve_ser_no_mesmo_ano_corrente(attrs['data_inicial'])
 
         return attrs

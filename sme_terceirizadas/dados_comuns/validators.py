@@ -1,9 +1,11 @@
+import calendar
 import datetime
 
 from django.db import models
 from rest_framework import serializers
 from workalendar.america import BrazilSaoPauloCity
 
+from ..cardapio.models import AlteracaoCardapio, SubstituicaoAlimentacaoNoPeriodoEscolar
 from .constants import obter_dias_uteis_apos_hoje
 from .utils import eh_dia_util
 
@@ -26,6 +28,33 @@ def deve_pedir_com_antecedencia(dia: datetime.date, dias: int = 2):
     prox_dia_util = obter_dias_uteis_apos_hoje(quantidade_dias=dias)
     if dia < prox_dia_util:
         raise serializers.ValidationError(f'Deve pedir com pelo menos {dias} dias úteis de antecedência')
+    return True
+
+
+def valida_duplicidade_solicitacoes(attrs):
+    status_permitidos = ['ESCOLA_CANCELOU', 'DRE_NAO_VALIDOU_PEDIDO_ESCOLA',
+                         'CODAE_NEGOU_PEDIDO', 'RASCUNHO']
+    periodos_uuids = [sub['periodo_escolar'].uuid for sub in attrs['substituicoes']]
+    motivo = attrs['motivo'].uuid
+
+    data_inicial_mes = attrs['data_inicial'].month
+    data_inicial_ano = attrs['data_inicial'].year
+    menor_data = datetime.datetime(data_inicial_ano, data_inicial_mes, 1)
+
+    data_final_mes = attrs['data_final'].month
+    data_final_ano = attrs['data_final'].year
+    ultimo_dia_do_mes = calendar.monthrange(data_final_ano, data_final_mes)[1]
+    maior_data = datetime.datetime(data_final_ano, data_final_mes, ultimo_dia_do_mes)
+
+    substituicoes = SubstituicaoAlimentacaoNoPeriodoEscolar.objects.filter(periodo_escolar__uuid__in=periodos_uuids)
+    alteracoes_pks = substituicoes.values_list('alteracao_cardapio', flat=True)
+    solicitacoes = AlteracaoCardapio.objects.filter(motivo__uuid=motivo, pk__in=alteracoes_pks, escola=attrs['escola'])
+
+    solicitacoes = solicitacoes.filter(data_inicial__gte=menor_data, data_final__lte=maior_data)
+    solicitacoes = solicitacoes.exclude(status__in=status_permitidos)
+
+    if solicitacoes:
+        raise serializers.ValidationError(f'Já existe uma solicitação de RPL para o mês e período selecionado!')
     return True
 
 
