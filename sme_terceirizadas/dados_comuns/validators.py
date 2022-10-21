@@ -5,7 +5,12 @@ from django.db import models
 from rest_framework import serializers
 from workalendar.america import BrazilSaoPauloCity
 
-from ..cardapio.models import AlteracaoCardapio, SubstituicaoAlimentacaoNoPeriodoEscolar
+from ..cardapio.models import (
+    AlteracaoCardapio,
+    AlteracaoCardapioCEI,
+    SubstituicaoAlimentacaoNoPeriodoEscolar,
+    SubstituicaoAlimentacaoNoPeriodoEscolarCEI
+)
 from .constants import obter_dias_uteis_apos_hoje
 from .utils import eh_dia_util
 
@@ -51,6 +56,29 @@ def valida_duplicidade_solicitacoes(attrs):
     solicitacoes = AlteracaoCardapio.objects.filter(motivo__uuid=motivo, pk__in=alteracoes_pks, escola=attrs['escola'])
 
     solicitacoes = solicitacoes.filter(data_inicial__gte=menor_data, data_final__lte=maior_data)
+    solicitacoes = solicitacoes.exclude(status__in=status_permitidos)
+
+    if solicitacoes:
+        raise serializers.ValidationError(f'Já existe uma solicitação de RPL para o mês e período selecionado!')
+    return True
+
+
+def valida_duplicidade_solicitacoes_cei(attrs, data):
+    status_permitidos = ['ESCOLA_CANCELOU', 'DRE_NAO_VALIDOU_PEDIDO_ESCOLA',
+                         'CODAE_NEGOU_PEDIDO', 'RASCUNHO']
+    periodos_uuids = [sub['periodo_escolar'] for sub in attrs['substituicoes']]
+    motivo = attrs['motivo']
+
+    mes = data.month
+    ano = data.year
+    ultimo_dia_do_mes = calendar.monthrange(ano, mes)[1]
+    menor_data = datetime.datetime(ano, mes, 1)
+    maior_data = datetime.datetime(ano, mes, ultimo_dia_do_mes)
+    substituicoes = SubstituicaoAlimentacaoNoPeriodoEscolarCEI.objects.filter(periodo_escolar__uuid__in=periodos_uuids)
+    alteracoes_pks = substituicoes.values_list('alteracao_cardapio', flat=True)
+    solicitacoes = AlteracaoCardapioCEI.objects.filter(motivo__uuid=motivo, pk__in=alteracoes_pks,
+                                                       escola__uuid=attrs['escola'])
+    solicitacoes = solicitacoes.filter(data__gte=menor_data, data__lte=maior_data)
     solicitacoes = solicitacoes.exclude(status__in=status_permitidos)
 
     if solicitacoes:

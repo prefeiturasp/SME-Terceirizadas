@@ -9,7 +9,8 @@ from ....dados_comuns.validators import (
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
     objeto_nao_deve_ter_duplicidade,
-    valida_duplicidade_solicitacoes
+    valida_duplicidade_solicitacoes,
+    valida_duplicidade_solicitacoes_cei
 )
 from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
@@ -445,6 +446,10 @@ class AlteracaoCardapioCEISerializerCreate(AlteracaoCardapioSerializerCreateBase
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
         deve_ser_no_mesmo_ano_corrente(data)
+        attrs = self.context['request'].data
+        motivo = MotivoAlteracaoCardapio.objects.filter(uuid=attrs['motivo']).first()
+        if motivo and motivo.nome == 'RPL - Refeição por Lanche':
+            valida_duplicidade_solicitacoes_cei(attrs, data)
         return data
 
     class Meta:
