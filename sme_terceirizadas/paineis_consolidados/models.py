@@ -23,7 +23,7 @@ class SolicitacoesDestaSemanaManager(models.Manager):
         data_limite_inicial = hoje
         data_limite_final = hoje + datetime.timedelta(7)
         return super(SolicitacoesDestaSemanaManager, self).get_queryset(
-        ).filter(criado_em__range=(data_limite_inicial, data_limite_final))
+        ).filter(data_evento__range=(data_limite_inicial, data_limite_final))
 
 
 class SolicitacoesDesteMesManager(models.Manager):
@@ -32,7 +32,7 @@ class SolicitacoesDesteMesManager(models.Manager):
         data_limite_inicial = hoje
         data_limite_final = hoje + datetime.timedelta(31)
         return super(SolicitacoesDesteMesManager, self).get_queryset(
-        ).filter(criado_em__range=(data_limite_inicial, data_limite_final))
+        ).filter(data_evento__range=(data_limite_inicial, data_limite_final))
 
 
 class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmigavel):
@@ -1238,12 +1238,11 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
     @classmethod
     def get_questionamentos(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
-        s = cls.objects.filter(
+        return cls.objects.filter(
             terceirizada_uuid=terceirizada_uuid,
             status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
             status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU
-        )
-        return sorted(s, key=operator.attrgetter('data_log'), reverse=True)
+        ).order_by('-data_log')
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
@@ -1307,3 +1306,20 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
                                LogSolicitacoesUsuario.INICIO_FLUXO],
             terceirizada_uuid=terceirizada_uuid
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('uuid')
+
+    @classmethod
+    def busca_filtro(cls, queryset, query_params, **kwargs):
+        if query_params.get('busca'):
+            queryset = queryset.filter(
+                Q(uuid__icontains=query_params.get('busca')) |
+                Q(desc_doc__icontains=query_params.get('busca')) |
+                Q(escola_nome__icontains=query_params.get('busca')) |
+                Q(escola_uuid__icontains=query_params.get('busca')) |
+                Q(lote_nome__icontains=query_params.get('busca'))
+            )
+        if query_params.get('lote'):
+            queryset = queryset.filter(lote_uuid__icontains=query_params.get('lote'))
+        if query_params.get('status'):
+            queryset = queryset.filter(
+                terceirizada_conferiu_gestao=query_params.get('status') == '1')
+        return queryset

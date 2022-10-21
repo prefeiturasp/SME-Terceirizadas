@@ -1026,10 +1026,12 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
             return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{QUESTIONAMENTOS}/{FILTRO_TERCEIRIZADA_UUID}')
-    def questionamentos(self, request, terceirizada_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{QUESTIONAMENTOS}')
+    def questionamentos(self, request):
+        terceirizada_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesTerceirizada.get_questionamentos(
             terceirizada_uuid=terceirizada_uuid)
+        query_set = SolicitacoesTerceirizada.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_TERCEIRIZADA_UUID}')
@@ -1038,22 +1040,28 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
             terceirizada_uuid=terceirizada_uuid)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_TERCEIRIZADA_UUID}')
-    def autorizados(self, request, terceirizada_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}')
+    def autorizados(self, request):
+        terceirizada_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesTerceirizada.get_autorizados(
             terceirizada_uuid=terceirizada_uuid)
+        query_set = SolicitacoesTerceirizada.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}/{FILTRO_TERCEIRIZADA_UUID}')
-    def negados(self, request, terceirizada_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}')
+    def negados(self, request):
+        terceirizada_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesTerceirizada.get_negados(
             terceirizada_uuid=terceirizada_uuid)
+        query_set = SolicitacoesTerceirizada.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_TERCEIRIZADA_UUID}')
-    def cancelados(self, request, terceirizada_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}')
+    def cancelados(self, request):
+        terceirizada_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesTerceirizada.get_cancelados(
             terceirizada_uuid=terceirizada_uuid)
+        query_set = SolicitacoesTerceirizada.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'],
