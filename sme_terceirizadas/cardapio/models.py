@@ -487,7 +487,8 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
         verbose_name_plural = 'Suspensões de Alimentação de CEI'
 
 
-class MotivoAlteracaoCardapio(ExportModelOperationsMixin('motivo_alteracao_cardapio'), Nomeavel, TemChaveExterna):
+class MotivoAlteracaoCardapio(ExportModelOperationsMixin('motivo_alteracao_cardapio'), Nomeavel, TemChaveExterna,
+                              Ativavel):
     """Usado em conjunto com AlteracaoCardapio.
 
     Exemplos:
