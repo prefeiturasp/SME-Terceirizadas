@@ -10,7 +10,8 @@ from ....dados_comuns.validators import (
     nao_pode_ser_no_passado,
     objeto_nao_deve_ter_duplicidade,
     valida_duplicidade_solicitacoes,
-    valida_duplicidade_solicitacoes_cei
+    valida_duplicidade_solicitacoes_cei,
+    valida_duplicidade_solicitacoes_cemei
 )
 from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
@@ -584,6 +585,9 @@ class AlteracaoCardapioCEMEISerializerCreate(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        motivo = validated_data.get('motivo', None)
+        if motivo and motivo.nome == 'RPL - Refeição por Lanche':
+            valida_duplicidade_solicitacoes_cemei(validated_data)
         substituicoes_cemei_cei_periodo_escolar = validated_data.pop('substituicoes_cemei_cei_periodo_escolar', [])
         substituicoes_cemei_emei_periodo_escolar = validated_data.pop('substituicoes_cemei_emei_periodo_escolar', [])
         alteracao_cemei = AlteracaoCardapioCEMEI.objects.create(**validated_data)

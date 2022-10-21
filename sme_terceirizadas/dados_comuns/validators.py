@@ -8,8 +8,10 @@ from workalendar.america import BrazilSaoPauloCity
 from ..cardapio.models import (
     AlteracaoCardapio,
     AlteracaoCardapioCEI,
+    AlteracaoCardapioCEMEI,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
-    SubstituicaoAlimentacaoNoPeriodoEscolarCEI
+    SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
+    SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI
 )
 from .constants import obter_dias_uteis_apos_hoje
 from .utils import eh_dia_util
@@ -81,6 +83,29 @@ def valida_duplicidade_solicitacoes_cei(attrs, data):
     solicitacoes = solicitacoes.filter(data__gte=menor_data, data__lte=maior_data)
     solicitacoes = solicitacoes.exclude(status__in=status_permitidos)
 
+    if solicitacoes:
+        raise serializers.ValidationError(f'Já existe uma solicitação de RPL para o mês e período selecionado!')
+    return True
+
+
+def valida_duplicidade_solicitacoes_cemei(attrs):
+    status_permitidos = ['ESCOLA_CANCELOU', 'DRE_NAO_VALIDOU_PEDIDO_ESCOLA',
+                         'CODAE_NEGOU_PEDIDO', 'RASCUNHO']
+    periodos_uuids = [sub['periodo_escolar'].uuid for sub in attrs['substituicoes_cemei_cei_periodo_escolar']]
+    motivo = attrs['motivo'].uuid
+    data = attrs['alterar_dia']
+    mes = data.month
+    ano = data.year
+    ultimo_dia_do_mes = calendar.monthrange(ano, mes)[1]
+    menor_data = datetime.datetime(ano, mes, 1)
+    maior_data = datetime.datetime(ano, mes, ultimo_dia_do_mes)
+    modelo_substituitos = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI
+    substituicoes = modelo_substituitos.objects.filter(periodo_escolar__uuid__in=periodos_uuids)
+    alteracoes_pks = substituicoes.values_list('alteracao_cardapio', flat=True)
+    solicitacoes = AlteracaoCardapioCEMEI.objects.filter(motivo__uuid=motivo, pk__in=alteracoes_pks,
+                                                         escola__uuid=attrs['escola'].uuid)
+    solicitacoes = solicitacoes.filter(alterar_dia__gte=menor_data, alterar_dia__lte=maior_data)
+    solicitacoes = solicitacoes.exclude(status__in=status_permitidos)
     if solicitacoes:
         raise serializers.ValidationError(f'Já existe uma solicitação de RPL para o mês e período selecionado!')
     return True
