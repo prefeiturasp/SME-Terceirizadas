@@ -1050,14 +1050,15 @@ class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet):
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
-    queryset = MotivoAlteracaoCardapio.objects.all()
+    queryset = MotivoAlteracaoCardapio.objects.filter(ativo=True)
     serializer_class = MotivoAlteracaoCardapioSerializer
 
     def get_queryset(self):
         user = self.request.user
+        queryset = MotivoAlteracaoCardapio.objects.filter(ativo=True)
         if user.vinculo_atual.perfil.nome in ['DIRETOR_CEI']:
-            return MotivoAlteracaoCardapio.objects.exclude(nome__icontains='Lanche Emergencial')
-        return MotivoAlteracaoCardapio.objects.all()
+            return queryset.exclude(nome__icontains='Lanche Emergencial')
+        return queryset
 
 
 class MotivosSuspensaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
