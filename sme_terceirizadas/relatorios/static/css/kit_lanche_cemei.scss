@@ -66,5 +66,41 @@
     }
   }
 
+  .tabela-matriculados {
+    width: 95%;
+    margin-left: 1em;
+
+    article {
+      border-radius: 6px;
+      border: 1px solid #e9eaea;
+      display: grid;
+      grid-template-columns: 50% 50%;
+      min-height: 48px;
+      height: auto;
+      background-color: #e9eaea;
+      font-weight: bold;
+      line-height: 16px;
+      color: #42474a;
+
+      div {
+        font-style: normal;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding-left: 16px;
+      }
+
+      .alunos-matriculados {
+        border-right: 0.5px solid #e9eaea;
+      }
+
+      .quantidade {
+        display: flex;
+        border-left: 0.5px solid #e9eaea;
+      }
+    }
+  }
+
 
 }

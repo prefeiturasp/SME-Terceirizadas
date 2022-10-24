@@ -410,9 +410,9 @@ def relatorio_kit_lanche_passeio_cemei(request, solicitacao):
     logs = solicitacao.logs
     tempo_passeio_cei = None
     tempo_passeio_emei = None
-    if hasattr(solicitacao, 'solicitacao_cei'):
+    if solicitacao.tem_solicitacao_cei:
         tempo_passeio_cei = TEMPO_PASSEIO.get(solicitacao.solicitacao_cei.tempo_passeio)
-    if hasattr(solicitacao, 'solicitacao_emei'):
+    if solicitacao.tem_solicitacao_emei:
         tempo_passeio_emei = TEMPO_PASSEIO.get(solicitacao.solicitacao_emei.tempo_passeio)
     html_string = render_to_string(
         'solicitacao_kit_lanche_cemei.html',
@@ -421,8 +421,6 @@ def relatorio_kit_lanche_passeio_cemei(request, solicitacao):
             'tempo_passeio_emei': tempo_passeio_emei,
             'escola': escola,
             'solicitacao': solicitacao,
-            'tem_solicitacao_cei': hasattr(solicitacao, 'solicitacao_cei'),
-            'tem_solicitacao_emei': hasattr(solicitacao, 'solicitacao_emei'),
             'fluxo': constants.FLUXO_KIT_LANCHE_PASSEIO,
             'width': get_width(constants.FLUXO_KIT_LANCHE_PASSEIO, solicitacao.logs),
             'logs': formata_logs(logs)
