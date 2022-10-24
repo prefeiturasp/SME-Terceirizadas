@@ -421,6 +421,26 @@ class SolicitacaoKitLancheCEIdaCEMEI(TemChaveExterna, TempoPasseio):
                                                         on_delete=models.CASCADE,
                                                         related_name='solicitacao_cei')
 
+    @property
+    def quantidade_alimentacoes(self):
+        return sum(self.faixas_quantidades.values_list('quantidade_alunos', flat=True)) * self.kits.count()
+
+    @property
+    def quantidade_alunos(self):
+        return sum(self.faixas_quantidades.values_list('quantidade_alunos', flat=True))
+
+    @property
+    def quantidade_matriculados(self):
+        return sum(self.faixas_quantidades.values_list('matriculados_quando_criado', flat=True))
+
+    @property
+    def nomes_kits(self):
+        return ', '.join(list(self.kits.values_list('nome', flat=True)))
+
+    @property
+    def tem_alunos_com_dieta(self):
+        return self.alunos_com_dieta_especial_participantes.exists()
+
     class Meta:
         verbose_name = 'Solicitação Kit Lanche CEI da EMEI'
         verbose_name_plural = 'Solicitações Kit Lanche CEI da EMEI'
@@ -449,6 +469,10 @@ class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio):
                                                         null=True,
                                                         on_delete=models.CASCADE,
                                                         related_name='solicitacao_emei')
+
+    @property
+    def quantidade_alimentacoes(self):
+        return self.quantidade_alunos * self.kits.count()
 
     class Meta:
         verbose_name = 'Solicitação Kit Lanche CEI da EMEI'
