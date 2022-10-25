@@ -415,7 +415,7 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                             'tipos_contagem': self.get_tipos_contagem(obj),
                             'endereco': self.get_endereco(obj),
                             'contato': self.get_contato(obj)}
-        if isinstance(obj.instituicao, Escola) and obj.instituicao.tipo_unidade.iniciais == 'CEMEI':
+        if isinstance(obj.instituicao, Escola) and obj.instituicao.eh_cemei:
             instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
             instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
         return instituicao_dict
