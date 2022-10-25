@@ -1,4 +1,5 @@
 from django.db import connection
+from rest_framework.pagination import PageNumberPagination
 
 MAPEAMENTO_STATUS_LABEL = {'CODAE_AUTORIZOU_RECLAMACAO': 'RECLAMACAO_DE_PRODUTO',
                            'CODAE_SUSPENDEU': 'PRODUTOS_SUSPENSOS',
@@ -126,3 +127,22 @@ def transforma_dados_relatorio_quantitativo(dados):  # noqa C901
     if 'dias' in dados:
         retorno['qtdeDias'] = dados['dias']
     return retorno
+
+
+def serializa_emails_terceirizadas(query_emails):
+    lista_emails = []
+    if query_emails.count() > 0:
+        for email in query_emails:
+            data_email = {}
+            data_email['uuid'] = email.uuid
+            data_email['email'] = email.email
+            data_email['modulo'] = email.modulo.nome
+            lista_emails.append(data_email)
+
+    return lista_emails
+
+
+class TerceirizadasEmailsPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100

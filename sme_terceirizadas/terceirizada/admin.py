@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.db.models import F
 
 from ..dados_comuns.actions import export_as_xls
-from .models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
+from .models import Contrato, Edital, EmailTerceirizadaPorModulo, Modulo, Nutricionista, Terceirizada, VigenciaContrato
 
 
 class NutricionistasInline(admin.TabularInline):
@@ -52,3 +52,13 @@ class ContratoInline(admin.TabularInline):
 @admin.register(Edital)
 class EditalModelAdmin(admin.ModelAdmin):
     inlines = [ContratoInline]
+
+
+@admin.register(Modulo)
+class ModuloModelAdmin(admin.ModelAdmin):
+    model = Modulo
+
+
+@admin.register(EmailTerceirizadaPorModulo)
+class EmailTerceirizadaPorModuloModelAdmin(admin.ModelAdmin):
+    model = EmailTerceirizadaPorModulo
