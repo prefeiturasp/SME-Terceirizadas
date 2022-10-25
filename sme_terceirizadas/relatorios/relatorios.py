@@ -400,6 +400,35 @@ def relatorio_kit_lanche_passeio_cei(request, solicitacao):
     return html_to_pdf_response(html_string, f'solicitacao_avulsa_{solicitacao.id_externo}.pdf')
 
 
+def relatorio_kit_lanche_passeio_cemei(request, solicitacao):
+    TEMPO_PASSEIO = {
+        0: 'até 4 horas',
+        1: 'de 5 a 7 horas',
+        2: '8 horas ou mais'
+    }
+    escola = solicitacao.rastro_escola
+    logs = solicitacao.logs
+    tempo_passeio_cei = None
+    tempo_passeio_emei = None
+    if solicitacao.tem_solicitacao_cei:
+        tempo_passeio_cei = TEMPO_PASSEIO.get(solicitacao.solicitacao_cei.tempo_passeio)
+    if solicitacao.tem_solicitacao_emei:
+        tempo_passeio_emei = TEMPO_PASSEIO.get(solicitacao.solicitacao_emei.tempo_passeio)
+    html_string = render_to_string(
+        'solicitacao_kit_lanche_cemei.html',
+        {
+            'tempo_passeio_cei': tempo_passeio_cei,
+            'tempo_passeio_emei': tempo_passeio_emei,
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'fluxo': constants.FLUXO_KIT_LANCHE_PASSEIO,
+            'width': get_width(constants.FLUXO_KIT_LANCHE_PASSEIO, solicitacao.logs),
+            'logs': formata_logs(logs)
+        }
+    )
+    return html_to_pdf_response(html_string, f'solicitacao_kit_lanche_cemei_{solicitacao.id_externo}.pdf')
+
+
 def relatorio_inversao_dia_de_cardapio(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
