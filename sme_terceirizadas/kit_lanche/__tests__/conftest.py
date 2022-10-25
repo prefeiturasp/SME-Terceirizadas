@@ -4,13 +4,13 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from ..models import KitLanche
 from ...dados_comuns.behaviors import TempoPasseio
 from ...dados_comuns.constants import COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DJANGO_ADMIN_PASSWORD
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ...escola.models import Aluno
 from .. import models
+from ..models import KitLanche
 
 fake = Faker('pt_BR')
 fake.seed(420)
