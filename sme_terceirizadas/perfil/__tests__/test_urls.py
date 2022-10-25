@@ -140,6 +140,7 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
     response.json().get('vinculo_atual').pop('uuid')
+    response.json().get('vinculo_atual').get('instituicao').pop('periodos_escolares')
     response.json().pop('uuid')
     assert response.json() == {
         'cpf': '95887745002',
@@ -153,24 +154,8 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 'nome': 'EMEI NOE AZEVEDO, PROF',
                 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                 'codigo_eol': '256341',
-                'quantidade_alunos': 0,
+                'quantidade_alunos': 450,
                 'lotes': [],
-                'periodos_escolares': [
-                    {
-                        'tipos_alimentacao': [],
-                        'nome': 'TARDE',
-                        'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
-                        'tipo_turno': None,
-                        'posicao': None
-                    },
-                    {
-                        'tipos_alimentacao': [],
-                        'nome': 'MANHA',
-                        'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
-                        'tipo_turno': None,
-                        'posicao': None
-                    }
-                ],
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',
@@ -589,30 +574,15 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     assert json['email'] == email
     assert json['registro_funcional'] == rf
     response.json().get('vinculo_atual').pop('uuid')
+    response.json().get('vinculo_atual').get('instituicao').pop('periodos_escolares')
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
         'instituicao': {
             'nome': 'EMEI NOE AZEVEDO, PROF',
             'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
             'codigo_eol': '256341',
-            'quantidade_alunos': 0,
+            'quantidade_alunos': 450,
             'lotes': [],
-            'periodos_escolares': [
-                {
-                    'tipos_alimentacao': [],
-                    'nome': 'TARDE',
-                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
-                    'tipo_turno': None,
-                    'posicao': None
-                },
-                {
-                    'tipos_alimentacao': [],
-                    'nome': 'MANHA',
-                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
-                    'tipo_turno': None,
-                    'posicao': None
-                }
-            ],
             'diretoria_regional': {
                 'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                 'nome': 'DIRETORIA REGIONAL IPIRANGA',
