@@ -137,7 +137,7 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
             periodo_escolar__in=escola.periodos_escolares,
             ativo=True
         ).order_by('periodo_escolar__posicao')
-        if escola.tipo_unidade.iniciais == 'CEMEI':
+        if escola.eh_cemei:
             vinculos = vinculos.filter(tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
         else:
             vinculos = vinculos.filter(tipo_unidade_escolar=escola.tipo_unidade)
