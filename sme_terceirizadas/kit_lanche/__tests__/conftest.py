@@ -4,6 +4,7 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ..models import KitLanche
 from ...dados_comuns.behaviors import TempoPasseio
 from ...dados_comuns.constants import COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DJANGO_ADMIN_PASSWORD
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
@@ -512,3 +513,41 @@ def escola_quantidade():
 @pytest.fixture
 def periodo_escolar():
     return mommy.make('PeriodoEscolar', nome='INTEGRAL')
+
+
+@pytest.fixture
+def kit_lanche_cemei():
+    kit_lanche_cemei = mommy.make(
+        'SolicitacaoKitLancheCEMEI',
+        local='Parque do Ibirapuera',
+        data='2022-10-25'
+    )
+
+    mommy.make('KitLanche', nome='KIT 1')
+    mommy.make('KitLanche', nome='KIT 2')
+    mommy.make('KitLanche', nome='KIT 3')
+    kits = KitLanche.objects.all()
+
+    solicitacao_cei = mommy.make('SolicitacaoKitLancheCEIdaCEMEI',
+                                 solicitacao_kit_lanche_cemei=kit_lanche_cemei,
+                                 kits=kits)
+    mommy.make('FaixasQuantidadesKitLancheCEIdaCEMEI',
+               solicitacao_kit_lanche_cei_da_cemei=solicitacao_cei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20)
+    mommy.make('FaixasQuantidadesKitLancheCEIdaCEMEI',
+               solicitacao_kit_lanche_cei_da_cemei=solicitacao_cei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20)
+    mommy.make('FaixasQuantidadesKitLancheCEIdaCEMEI',
+               solicitacao_kit_lanche_cei_da_cemei=solicitacao_cei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20)
+
+    mommy.make('SolicitacaoKitLancheEMEIdaCEMEI',
+               solicitacao_kit_lanche_cemei=kit_lanche_cemei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20,
+               kits=kits)
+
+    return kit_lanche_cemei
