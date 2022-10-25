@@ -13,6 +13,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...kit_lanche.models import SolicitacaoKitLancheCEMEI
 from ...relatorios.relatorios import (
     relatorio_inclusao_alimentacao_cei,
     relatorio_inclusao_alimentacao_continua,
@@ -55,7 +56,7 @@ class EscolaIniciaCancela():
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            if (type(obj) == InclusaoAlimentacaoContinua or
+            if (type(obj) in [InclusaoAlimentacaoContinua, SolicitacaoKitLancheCEMEI] or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
@@ -186,6 +187,21 @@ class TerceirizadaTomaCiencia():
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        inclusao_alimentacao_cei: InclusaoAlimentacaoDaCEI = self.get_object()
+        try:
+            inclusao_alimentacao_cei.terceirizada_conferiu_gestao = True
+            inclusao_alimentacao_cei.save()
+            serializer = self.get_serializer(inclusao_alimentacao_cei)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)  # noqa
 
 
 class InclusaoAlimentacaoViewSetBase(ModelViewSet, EscolaIniciaCancela, DREValida, CodaeAutoriza,

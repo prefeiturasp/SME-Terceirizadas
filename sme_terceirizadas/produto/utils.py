@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from rest_framework import serializers
 from rest_framework.pagination import PageNumberPagination
 
+from ..dados_comuns import constants
 from .models import ImagemDoProduto
 
 
@@ -76,6 +77,24 @@ def cria_filtro_produto_por_parametros_form(cleaned_data):  # noqa C901
             elif chave == 'eh_para_alunos_com_dieta':
                 campos_a_pesquisar['eh_para_alunos_com_dieta'] = valor
 
+    return campos_a_pesquisar
+
+def cria_filtro_produto_por_parametros_form_homologado(cleaned_data):  # noqa C901
+    campos_a_pesquisar = {}
+    for (chave, valor) in cleaned_data.items():
+        if valor != '' and valor is not None:
+            if chave == 'nome_fabricante':
+                campos_a_pesquisar['fabricante__nome__icontains'] = valor
+            elif chave == 'nome_marca':
+                campos_a_pesquisar['marca__nome__icontains'] = valor
+            elif chave == 'nome_produto':
+                campos_a_pesquisar['nome__icontains'] = valor
+            elif chave == 'nome_edital':
+                campos_a_pesquisar['vinculos__edital__numero__icontains'] = valor
+            elif chave == 'tipo':
+                campos_a_pesquisar['vinculos__tipo_produto__icontains'] = valor
+            elif chave == 'nome_terceirizada':
+                campos_a_pesquisar['homologacao__rastro_terceirizada__nome_fantasia__icontains'] = valor
     return campos_a_pesquisar
 
 
@@ -227,7 +246,7 @@ def checa_campo(field_name, produto, validated_data):
         )
 
 
-def changes_between(produto, validated_data):  # noqa C901
+def changes_between(produto, validated_data, usuario):  # noqa C901
     mudancas = {}
 
     for field in produto._meta.get_fields():
@@ -237,7 +256,12 @@ def changes_between(produto, validated_data):  # noqa C901
                 validated_data['informacoes_nutricionais'])
             if mudancas_info_nutricionais.keys():
                 mudancas['informacoes_nutricionais'] = mudancas_info_nutricionais
-        elif field.name == 'eh_para_alunos_com_dieta':
+        elif (field.name == 'eh_para_alunos_com_dieta' and
+              usuario.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA and
+              produto.homologacao.status not in ['CODAE_QUESTIONADO',
+                                                 'CODAE_HOMOLOGADO',
+                                                 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
+                                                 'TERCEIRIZADA_RESPONDEU_RECLAMACAO']):
             kwargs = {'field_name': field.name, 'produto': produto, 'validated_data': validated_data}
             checa_campo(**kwargs)
         elif field.is_relation:

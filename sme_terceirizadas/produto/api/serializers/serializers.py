@@ -753,19 +753,28 @@ class ProdutoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
 
 class HomologacaoProdutoSuspensoSerializer(serializers.ModelSerializer):
     ultimo_log = LogSolicitacoesUsuarioComAnexosSerializer()
+    logs = LogSolicitacoesUsuarioComAnexosSerializer(many=True)
 
     class Meta:
         model = HomologacaoProduto
-        fields = ('uuid', 'ultimo_log')
+        fields = ('uuid', 'ultimo_log', 'logs')
 
 
 class ProdutoSuspensoSerializer(ProdutoBaseSerializer):
     ultima_homologacao = HomologacaoProdutoSuspensoSerializer()
+    vinculos_produto_edital = serializers.SerializerMethodField()
+
+    def get_vinculos_produto_edital(self, obj):
+        return ProdutoEditalSerializer(
+            ProdutoEdital.objects.filter(
+                produto=obj
+            ), many=True
+        ).data
 
     class Meta:
         model = Produto
-        fields = ('id_externo', 'nome', 'marca', 'fabricante',
-                  'ultima_homologacao', 'criado_em')
+        fields = ('id_externo', 'nome', 'marca', 'fabricante', 'eh_para_alunos_com_dieta',
+                  'ultima_homologacao', 'criado_em', 'vinculos_produto_edital')
 
 
 class ItensCadastroSerializer(serializers.ModelSerializer):

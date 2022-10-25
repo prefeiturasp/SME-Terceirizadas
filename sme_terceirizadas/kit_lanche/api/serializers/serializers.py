@@ -4,6 +4,7 @@ from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.api.serializers import (
     AlunoSerializer,
+    AlunoSimplesSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer,
     FaixaEtariaSerializer
@@ -260,6 +261,48 @@ class SolicitacaoKitLancheCEMEISerializer(serializers.ModelSerializer):
     solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEISerializer()
     id_externo = serializers.CharField()
     escola = serializers.UUIDField(source='escola.uuid')
+
+    class Meta:
+        model = SolicitacaoKitLancheCEMEI
+        exclude = ('id',)
+
+
+class KitLancheNomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KitLanche
+        fields = ('nome',)
+
+
+class SolicitacaoKitLancheEMEIdaCEMEIRetrieveSerializer(serializers.ModelSerializer):
+    alunos_com_dieta_especial_participantes = AlunoSimplesSerializer(many=True)
+    kits = KitLancheNomeSerializer(many=True)
+    tempo_passeio = serializers.CharField()
+
+    class Meta:
+        model = SolicitacaoKitLancheEMEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheCEIdaCEMEIRetrieveSerializer(serializers.ModelSerializer):
+    alunos_com_dieta_especial_participantes = AlunoSimplesSerializer(many=True)
+    kits = KitLancheNomeSerializer(many=True)
+    faixas_quantidades = FaixasQuantidadesKitLancheCEIdaCEMEISerializer(many=True)
+    tempo_passeio = serializers.CharField()
+
+    class Meta:
+        model = SolicitacaoKitLancheCEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheCEMEIRetrieveSerializer(serializers.ModelSerializer):
+    solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEIRetrieveSerializer()
+    solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEIRetrieveSerializer()
+    id_externo = serializers.CharField()
+    escola = EscolaSimplesSerializer()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+    prioridade = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    data = serializers.DateField()
 
     class Meta:
         model = SolicitacaoKitLancheCEMEI
