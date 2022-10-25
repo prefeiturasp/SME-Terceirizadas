@@ -20,7 +20,7 @@ from .serializers.serializers import (
     EditalSerializer,
     EditalSimplesSerializer,
     EmailsPorModuloSerializer,
-    EmailTerceirizadaPorModuloSerializer,
+    EmailsTerceirizadaPorModuloSerializer,
     TerceirizadaLookUpSerializer,
     TerceirizadaSimplesSerializer
 )
@@ -152,7 +152,7 @@ class VinculoTerceirizadaViewSet(ReadOnlyModelViewSet):
 
 class EmailTerceirizadaPorModuloViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    serializer_class = EmailTerceirizadaPorModuloSerializer
+    serializer_class = EmailsTerceirizadaPorModuloSerializer
     queryset = EmailTerceirizadaPorModulo.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = EmailTerceirizadaPorModuloFilter
@@ -160,4 +160,4 @@ class EmailTerceirizadaPorModuloViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return CreateEmailTerceirizadaPorModuloSerializer
-        return EmailTerceirizadaPorModuloSerializer
+        return EmailsTerceirizadaPorModuloSerializer

@@ -127,7 +127,7 @@ class EmailsPorModuloSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'razao_social', 'emails_terceirizadas')
 
 
-class EmailTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
+class EmailsTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
     modulo = serializers.SerializerMethodField()
     terceirizada = serializers.SerializerMethodField()
 
