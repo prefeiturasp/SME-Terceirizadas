@@ -174,9 +174,9 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
         'PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
     periodo_escolar_manha = mommy.make(
         'PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81')
-    mommy.make('EscolaPeriodoEscolar', escola=escola,
+    mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
-    mommy.make('EscolaPeriodoEscolar', escola=escola,
+    mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
     perfil_professor = mommy.make(
         'Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
@@ -224,9 +224,9 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
         'PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
     periodo_escolar_manha = mommy.make(
         'PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81')
-    mommy.make('EscolaPeriodoEscolar', escola=escola,
+    mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
-    mommy.make('EscolaPeriodoEscolar', escola=escola,
+    mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
