@@ -150,6 +150,9 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
                                                related_name='vinculos',
                                                blank=True)
 
+    def __str__(self):
+        return f'{self.tipo_unidade_escolar.iniciais} - {self.periodo_escolar.nome}'
+
     class Meta:
         unique_together = [['periodo_escolar', 'tipo_unidade_escolar']]
         verbose_name = 'Vínculo tipo alimentação'
