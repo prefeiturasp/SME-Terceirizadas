@@ -2,7 +2,16 @@ from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import ContatoSerializer
 from ....escola.models import DiretoriaRegional, Lote
-from ...models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
+from ...models import (
+    Contrato,
+    Edital,
+    EmailTerceirizadaPorModulo,
+    Modulo,
+    Nutricionista,
+    Terceirizada,
+    VigenciaContrato
+)
+from ...utils import serializa_emails_terceirizadas
 
 
 class NutricionistaSerializer(serializers.ModelSerializer):
@@ -61,6 +70,13 @@ class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'cnpj', 'nome_fantasia', 'contatos', 'contratos')
 
 
+class TerceirizadaLookUpSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Terceirizada
+        fields = ('uuid', 'razao_social')
+
+
 class ContratoSerializer(serializers.ModelSerializer):
     edital = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -90,4 +106,64 @@ class EditalContratosSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Edital
+        exclude = ('id',)
+
+
+class ModuloSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Modulo
+        exclude = ('id',)
+
+
+class EmailsPorModuloSerializer(serializers.ModelSerializer):
+    emails_terceirizadas = serializers.SerializerMethodField()
+
+    def get_emails_terceirizadas(self, obj):
+        return serializa_emails_terceirizadas(obj.emails_terceirizadas.all())
+
+    class Meta:
+        model = Terceirizada
+        fields = ('uuid', 'razao_social', 'emails_terceirizadas')
+
+
+class EmailsTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
+    modulo = serializers.SerializerMethodField()
+    terceirizada = serializers.SerializerMethodField()
+
+    def get_modulo(self, obj):
+        return obj.modulo.nome if obj.modulo else None
+
+    def get_terceirizada(self, obj):
+        return obj.terceirizada.razao_social if obj.terceirizada else None
+
+    class Meta:
+        model = EmailTerceirizadaPorModulo
+        exclude = ('id', 'criado_por')
+
+
+class CreateEmailTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
+    terceirizada = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Terceirizada.objects.all()
+    )
+    modulo = serializers.SlugRelatedField(
+        slug_field='nome',
+        required=True,
+        queryset=Modulo.objects.all()
+    )
+    criado_por = serializers.CharField(required=False)
+
+    def create(self, validated_data):
+        user = None
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            user = request.user
+        validated_data['criado_por'] = user
+        EmailTerceirizada = EmailTerceirizadaPorModulo.objects.create(**validated_data)
+        return EmailTerceirizada
+
+    class Meta:
+        model = EmailTerceirizadaPorModulo
         exclude = ('id',)
