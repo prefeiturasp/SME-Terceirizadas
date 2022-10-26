@@ -2865,3 +2865,33 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+
+class CronogramaWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    RASCUNHO = 'RASCUNHO'
+    ENVIADO_AO_FORNECEDOR = 'ENVIADO_AO_FORNECEDOR'
+
+    states = (
+        (RASCUNHO, 'Rascunho'),
+        (ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
+    )
+
+    initial_state = RASCUNHO
+
+
+class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = CronogramaWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
+                                      usuario=user)
