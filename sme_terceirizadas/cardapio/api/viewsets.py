@@ -137,7 +137,7 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
             periodo_escolar__in=escola.periodos_escolares,
             ativo=True
         ).order_by('periodo_escolar__posicao')
-        if escola.tipo_unidade.iniciais == 'CEMEI':
+        if escola.eh_cemei:
             vinculos = vinculos.filter(tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
         else:
             vinculos = vinculos.filter(tipo_unidade_escolar=escola.tipo_unidade)
@@ -225,9 +225,9 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     queryset = InversaoCardapio.objects.all()
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
@@ -451,9 +451,9 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
     serializer_class = SuspensaoAlimentacaoDaCEISerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
@@ -534,11 +534,10 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     serializer_class = GrupoSuspensaoAlimentacaoSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
-            self.permission_classes = (
-                IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['retrieve', 'update']:
+            self.permission_classes = (PermissaoParaRecuperarObjeto,)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
         return super(GrupoSuspensaoAlimentacaoSerializerViewSet, self).get_permissions()
