@@ -2046,7 +2046,7 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
         data['homologacao_produto'] = uuid_homologacao
         serializer = self.get_serializer(data=data)
         if not serializer.is_valid():
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         homologacao = HomologacaoProduto.objects.get(uuid=uuid_homologacao)
         data['homologacao_produto'] = homologacao
