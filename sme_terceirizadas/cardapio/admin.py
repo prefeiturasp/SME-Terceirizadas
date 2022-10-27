@@ -53,6 +53,7 @@ class ComboVinculoLine(admin.TabularInline):
 
 @admin.register(VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
 class VinculoTipoAlimentacaoModelAdmin(admin.ModelAdmin):
+    list_filter = ('periodo_escolar__nome', 'tipo_unidade_escolar__iniciais')
     inlines = [ComboVinculoLine]
 
 
