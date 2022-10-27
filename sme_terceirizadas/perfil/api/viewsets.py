@@ -20,6 +20,7 @@ from sme_terceirizadas.perfil.models.usuario import (
     ImportacaoPlanilhaUsuarioServidorCoreSSO
 )
 
+from ...dados_comuns.constants import DIRETOR, DIRETOR_ABASTECIMENTO, DIRETOR_CEI
 from ...dados_comuns.permissions import UsuarioSuperCodae
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.models import Codae
@@ -208,8 +209,16 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='vinculos-ativos', permission_classes=(IsAuthenticated,))
     def lista_vinculos_ativos(self, request):
+        usuario = request.user
+        if usuario.vinculo_atual.perfil.nome in [DIRETOR, DIRETOR_CEI, DIRETOR_ABASTECIMENTO]:
+            queryset = self.get_queryset().filter(
+                content_type=usuario.vinculo_atual.content_type,
+                object_id=usuario.vinculo_atual.object_id
+            ).order_by('-data_inicial')
+        else:
+            queryset = self.get_queryset().order_by('-data_inicial')
         queryset = [vinc for vinc in self.filter_queryset(
-            self.get_queryset().order_by('-data_inicial')) if vinc.status is Vinculo.STATUS_ATIVO]
+            queryset) if vinc.status is Vinculo.STATUS_ATIVO]
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = VinculoSimplesSerializer(page, many=True)

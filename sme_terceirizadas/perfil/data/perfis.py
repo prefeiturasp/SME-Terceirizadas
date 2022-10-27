@@ -10,6 +10,11 @@ data_perfis = [
         'super_usuario': True,
     },
     {
+        'nome': 'DIRETOR_ABASTECIMENTO',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
         'nome': 'COORDENADOR_ESCOLA',
         'ativo': True,
         'super_usuario': True,

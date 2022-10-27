@@ -250,6 +250,14 @@ USUARIOS = [
         'nome': 'SUPER USUARIO UE PARCEIRA',
         'cargo': 'Diretor',
     },
+    {
+        'email': 'diretorabastecimento@admin.com',
+        'password': DJANGO_ADMIN_PASSWORD,
+        'cpf': '11111111127',
+        'registro_funcional': '1238000',
+        'nome': 'DIRETOR ESCOLA ABASTECIMENTO',
+        'cargo': 'Diretor',
+    },
 ]
 
 
