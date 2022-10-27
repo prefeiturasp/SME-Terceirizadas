@@ -16,6 +16,7 @@ from .constants import (
     ADMINISTRADOR_UE_DIRETA,
     ADMINISTRADOR_UE_MISTA,
     ADMINISTRADOR_UE_PARCEIRA,
+    DIRETOR_ABASTECIMENTO,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -322,7 +323,7 @@ class UsuarioEscolaAbastecimento(BasePermission):
             isinstance(usuario.vinculo_atual.instituicao, Escola) and
             usuario.vinculo_atual.perfil.nome in [
                 ADMINISTRADOR_ESCOLA_ABASTECIMENTO, ADMINISTRADOR_UE_DIRETA, ADMINISTRADOR_UE_MISTA,
-                ADMINISTRADOR_UE_PARCEIRA
+                ADMINISTRADOR_UE_PARCEIRA, DIRETOR_ABASTECIMENTO,
             ]
         )
 
@@ -367,7 +368,7 @@ class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
                     isinstance(usuario.vinculo_atual.instituicao, Escola) and
                     usuario.vinculo_atual.perfil.nome in [
                         ADMINISTRADOR_ESCOLA_ABASTECIMENTO, ADMINISTRADOR_UE_DIRETA, ADMINISTRADOR_UE_MISTA,
-                        ADMINISTRADOR_UE_PARCEIRA
+                        ADMINISTRADOR_UE_PARCEIRA, DIRETOR_ABASTECIMENTO,
                     ]
                 )
             )
