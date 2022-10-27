@@ -120,7 +120,11 @@ class EmailsPorModuloSerializer(serializers.ModelSerializer):
     emails_terceirizadas = serializers.SerializerMethodField()
 
     def get_emails_terceirizadas(self, obj):
-        return serializa_emails_terceirizadas(obj.emails_terceirizadas.all())
+        busca = self.context['busca']
+        emails = obj.emails_terceirizadas.all()
+        if busca and busca.upper() not in obj.razao_social.upper():
+            emails = emails.filter(email__icontains=busca)
+        return serializa_emails_terceirizadas(emails)
 
     class Meta:
         model = Terceirizada
