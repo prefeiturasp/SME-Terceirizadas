@@ -1764,7 +1764,7 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
 
             if log and log.status_evento == LogSolicitacoesUsuario.CODAE_HOMOLOGADO:
                 logs_homologados.append(log.uuid_original)
-        queryset = self.get_queryset().filter(produto__homologacao__uuid__in=logs_homologados)
+        queryset = self.get_queryset().filter(produto__homologacao__uuid__in=logs_homologados).filter(ativo=True)
         return queryset
 
     @action(detail=False, methods=['get'], url_path='lista-produtos-opcoes') # noqa c901
