@@ -1753,13 +1753,29 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response({'results': serializer.data})
 
+    def get_queryset_filtrado_homologados(self):
+        homologacao_produtos = HomologacaoProduto.objects.all()
+        logs_homologados = []
+
+        for homologacao in homologacao_produtos:
+            log = homologacao.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+                                                             LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                                             LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO],).last()
+
+            if log and log.status_evento == LogSolicitacoesUsuario.CODAE_HOMOLOGADO:
+                logs_homologados.append(log.uuid_original)
+        queryset = self.get_queryset().filter(produto__homologacao__uuid__in=logs_homologados, ativo=True)
+        return queryset
+
     @action(detail=False, methods=['get'], url_path='lista-produtos-opcoes') # noqa c901
     def lista_produtos_opcoes(self, request):
         try:
             editais_uuid = request.query_params.get('editais', '')
             tipo_produto_edital_origem = request.query_params.get('tipo_produto_edital_origem', '')
             editais_uuid = editais_uuid.split(';')
-            queryset = self.get_queryset().filter(edital__uuid__in=editais_uuid)
+            queryset_homologados = self.get_queryset_filtrado_homologados()
+            queryset = queryset_homologados.filter(edital__uuid__in=editais_uuid)
+
             if tipo_produto_edital_origem.lower() == ProdutoEdital.TIPO_PRODUTO['COMUM'].lower():
                 queryset = queryset.filter(tipo_produto__icontains=ProdutoEdital.TIPO_PRODUTO['COMUM'])
             else:
