@@ -8,7 +8,10 @@ from ....dados_comuns.validators import (
     deve_ser_no_mesmo_ano_corrente,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
-    objeto_nao_deve_ter_duplicidade
+    objeto_nao_deve_ter_duplicidade,
+    valida_duplicidade_solicitacoes,
+    valida_duplicidade_solicitacoes_cei,
+    valida_duplicidade_solicitacoes_cemei
 )
 from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
@@ -336,7 +339,7 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(
         queryset=AlteracaoCardapioCEI.objects.all()
     )
 
-    tipos_alimentacao_para = serializers.SlugRelatedField(
+    tipo_alimentacao_para = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
         queryset=TipoAlimentacao.objects.all()
@@ -425,6 +428,8 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
         nao_pode_ser_no_passado(attrs['data_inicial'])
         if attrs['motivo'].nome != 'Lanche Emergencial':
             deve_pedir_com_antecedencia(attrs['data_inicial'])
+        if attrs['motivo'].nome == 'RPL - Refeição por Lanche':
+            valida_duplicidade_solicitacoes(attrs)
         deve_ser_no_mesmo_ano_corrente(attrs['data_inicial'])
 
         return attrs
@@ -442,6 +447,10 @@ class AlteracaoCardapioCEISerializerCreate(AlteracaoCardapioSerializerCreateBase
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
         deve_ser_no_mesmo_ano_corrente(data)
+        attrs = self.context['request'].data
+        motivo = MotivoAlteracaoCardapio.objects.filter(uuid=attrs['motivo']).first()
+        if motivo and motivo.nome == 'RPL - Refeição por Lanche':
+            valida_duplicidade_solicitacoes_cei(attrs, data)
         return data
 
     class Meta:
@@ -576,6 +585,9 @@ class AlteracaoCardapioCEMEISerializerCreate(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        motivo = validated_data.get('motivo', None)
+        if motivo and motivo.nome == 'RPL - Refeição por Lanche':
+            valida_duplicidade_solicitacoes_cemei(validated_data)
         substituicoes_cemei_cei_periodo_escolar = validated_data.pop('substituicoes_cemei_cei_periodo_escolar', [])
         substituicoes_cemei_emei_periodo_escolar = validated_data.pop('substituicoes_cemei_emei_periodo_escolar', [])
         alteracao_cemei = AlteracaoCardapioCEMEI.objects.create(**validated_data)

@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
@@ -387,6 +388,8 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
 
     def get_tipo_gestao(self, obj):
         if isinstance(obj.instituicao, Escola):
+            if not obj.instituicao.tipo_gestao:
+                raise ValidationError('Escola não possui tipo de gestão. Favor contatar a CODAE.')
             return obj.instituicao.tipo_gestao.nome
 
     def get_tipos_contagem(self, obj):
@@ -415,7 +418,7 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                             'tipos_contagem': self.get_tipos_contagem(obj),
                             'endereco': self.get_endereco(obj),
                             'contato': self.get_contato(obj)}
-        if isinstance(obj.instituicao, Escola) and obj.instituicao.tipo_unidade.iniciais == 'CEMEI':
+        if isinstance(obj.instituicao, Escola) and obj.instituicao.eh_cemei:
             instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
             instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
         return instituicao_dict

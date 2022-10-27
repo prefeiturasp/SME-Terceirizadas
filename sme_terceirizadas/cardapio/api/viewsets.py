@@ -137,7 +137,7 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
             periodo_escolar__in=escola.periodos_escolares,
             ativo=True
         ).order_by('periodo_escolar__posicao')
-        if escola.tipo_unidade.iniciais == 'CEMEI':
+        if escola.eh_cemei:
             vinculos = vinculos.filter(tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
         else:
             vinculos = vinculos.filter(tipo_unidade_escolar=escola.tipo_unidade)
@@ -225,9 +225,9 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     queryset = InversaoCardapio.objects.all()
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
@@ -440,7 +440,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except Exception as e:
-            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
@@ -450,9 +451,9 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
     serializer_class = SuspensaoAlimentacaoDaCEISerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
@@ -510,6 +511,21 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
 
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        suspensao_alimentacao_cei: SuspensaoAlimentacaoDaCEI = self.get_object()
+        try:
+            suspensao_alimentacao_cei.terceirizada_conferiu_gestao = True
+            suspensao_alimentacao_cei.save()
+            serializer = self.get_serializer(suspensao_alimentacao_cei)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
 
 class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -518,11 +534,10 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     serializer_class = GrupoSuspensaoAlimentacaoSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
-            self.permission_classes = (
-                IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['retrieve', 'update']:
+            self.permission_classes = (PermissaoParaRecuperarObjeto,)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
         return super(GrupoSuspensaoAlimentacaoSerializerViewSet, self).get_permissions()
@@ -1034,14 +1049,15 @@ class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet):
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
-    queryset = MotivoAlteracaoCardapio.objects.all()
+    queryset = MotivoAlteracaoCardapio.objects.filter(ativo=True)
     serializer_class = MotivoAlteracaoCardapioSerializer
 
     def get_queryset(self):
         user = self.request.user
+        queryset = MotivoAlteracaoCardapio.objects.filter(ativo=True)
         if user.vinculo_atual.perfil.nome in ['DIRETOR_CEI']:
-            return MotivoAlteracaoCardapio.objects.exclude(nome__icontains='Lanche Emergencial')
-        return MotivoAlteracaoCardapio.objects.all()
+            return queryset.exclude(nome__icontains='Lanche Emergencial')
+        return queryset
 
 
 class MotivosSuspensaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):

@@ -10,6 +10,8 @@ from ...dados_comuns import constants
 from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import TemplateMensagem
+from ...escola.models import DiretoriaRegional, TipoGestao
+from ...terceirizada.models import Contrato
 from ..models import ProdutoEdital
 
 fake = Faker('pt-Br')
@@ -22,7 +24,9 @@ def escola():
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
-    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
+
+    return mommy.make('Escola', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', lote=lote,
+                      diretoria_regional=diretoria_regional)
 
 
 @pytest.fixture
@@ -220,6 +224,43 @@ def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
     mommy.make('Vinculo', usuario=usuario, instituicao=terceirizada, perfil=perfil_adm_terc,
                data_inicial=hoje, ativo=True)
     client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def tipo_gestao():
+    return mommy.make(TipoGestao,
+                      nome='TERC TOTAL')
+
+
+@pytest.fixture
+def diretoria_regional(tipo_gestao):
+    dre = mommy.make(DiretoriaRegional,
+                     nome=fake.name(),
+                     uuid='d305add2-f070-4ad3-8c17-ba9664a7c655',
+                     make_m2m=True)
+    mommy.make('Escola', diretoria_regional=dre, tipo_gestao=tipo_gestao)
+    mommy.make('Escola', diretoria_regional=dre, tipo_gestao=tipo_gestao)
+    mommy.make('Escola', diretoria_regional=dre, tipo_gestao=tipo_gestao)
+    return dre
+
+
+@pytest.fixture
+def contrato(diretoria_regional, edital):
+    return mommy.make(Contrato, numero='1', processo='12345', diretorias_regionais=[diretoria_regional], edital=edital)
+
+
+@pytest.fixture
+def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
+    email = 'user@dre.com'
+    password = 'admin@123'
+    perfil_adm_dre = mommy.make('Perfil', nome='ADM_DRE', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=diretoria_regional, perfil=perfil_adm_dre,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
     return client
 
 

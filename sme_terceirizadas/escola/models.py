@@ -43,7 +43,12 @@ from ..inclusao_alimentacao.models import (
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoDaCEI
 )
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..kit_lanche.models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheUnificada
+)
 from .services import NovoSGPServicoLogado
 from .utils import meses_para_mes_e_ano_string
 
@@ -120,6 +125,11 @@ class DiretoriaRegional(
     def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
             filtro_aplicado, SolicitacaoKitLancheCEIAvulsa
+        )
+
+    def solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado, SolicitacaoKitLancheCEMEI
         )
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
@@ -357,7 +367,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
         else:
             # TODO: ver uma forma melhor de fazer essa query
-            periodos_ids = self.escolas_periodos.filter(quantidade_alunos__gte=1).values_list(
+            periodos_ids = self.alunos_matriculados_por_periodo.filter(quantidade_alunos__gte=1).values_list(
                 'periodo_escolar', flat=True
             )
             periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids)
@@ -374,7 +384,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def eh_cemei(self):
-        return self.tipo_unidade and self.tipo_unidade.iniciais == 'CEMEI'
+        return self.tipo_unidade and self.tipo_unidade.iniciais in ['CEU CEMEI', 'CEMEI']
 
     @property
     def periodos_escolares_com_alunos(self):
@@ -757,7 +767,10 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
     def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, InclusaoAlimentacaoDaCEI)
         return queryset.filter(
-            escola__in=Escola.objects.all(), status=InclusaoAlimentacaoDaCEI.workflow_class.DRE_VALIDADO
+            status__in=[
+                InclusaoAlimentacaoDaCEI.workflow_class.DRE_VALIDADO,
+                InclusaoAlimentacaoDaCEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+            ]
         )
 
     @property
@@ -858,6 +871,15 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
             status__in=[
                 SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
                 SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+            ]
+        )
+
+    def solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheCEMEI)
+        return queryset.filter(
+            status__in=[
+                SolicitacaoKitLancheCEMEI.workflow_class.DRE_VALIDADO,
+                SolicitacaoKitLancheCEMEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
             ]
         )
 
