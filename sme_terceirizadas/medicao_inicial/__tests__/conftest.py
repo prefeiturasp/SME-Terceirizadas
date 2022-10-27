@@ -112,7 +112,7 @@ def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
     password = 'admin@123'
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456',
                                                     )
     hoje = datetime.date.today()
