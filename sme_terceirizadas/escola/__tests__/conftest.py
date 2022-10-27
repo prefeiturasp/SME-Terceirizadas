@@ -151,7 +151,7 @@ def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=diretoria_regional, perfil=perfil_adm_dre,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 

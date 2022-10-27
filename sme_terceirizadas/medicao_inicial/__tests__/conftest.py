@@ -118,5 +118,5 @@ def client_autenticado_da_escola(client, django_user_model, escola):
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
