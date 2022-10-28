@@ -95,7 +95,7 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
                                        Q(razao_social__icontains=busca))
         page = self.paginate_queryset(queryset)
         serializer = EmailsPorModuloSerializer(
-            page if page is not None else queryset, many=True)
+            page if page is not None else queryset, many=True, context={'busca': busca})
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=['GET'], url_path='lista-razoes')
