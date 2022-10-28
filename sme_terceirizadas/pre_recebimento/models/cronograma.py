@@ -71,6 +71,17 @@ class EtapasDoCronograma(ModeloBase):
         verbose_name = 'Etapa do Cronograma'
         verbose_name_plural = 'Etapas dos Cronogramas'
 
+    @classmethod
+    def etapas_to_json(cls):
+        result = []
+        for numero in range(1, 101):
+            choice = {
+                'uuid': f'Parte {numero}',
+                'nome': f'Parte {numero}'
+            }
+            result.append(choice)
+        return result
+
 
 class ProgramacaoDoRecebimentoDoCronograma(ModeloBase):
     PALETIZADA = 'PALETIZADA'
