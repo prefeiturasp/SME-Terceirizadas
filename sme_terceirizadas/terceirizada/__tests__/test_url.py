@@ -178,3 +178,17 @@ def test_cadastro_empresa_remove_lote_erro(users_codae_gestao_alimentacao):
                           data=json.dumps(data_update))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()[0] == 'Não pode remover um lote de uma empresa. É preciso atribuí-lo a outra empresa.'
+
+
+def test_url_authorized_emails_terceirizadas(client_autenticado_terceiro):
+
+    client = client_autenticado_terceiro
+    response = client.get('/terceirizadas/emails-por-modulo/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_authorized_emails_terceirizadas_por_modulo(client_autenticado_terceiro):
+
+    client = client_autenticado_terceiro
+    response = client.get('/emails-terceirizadas-modulos/')
+    assert response.status_code == status.HTTP_200_OK

@@ -1,3 +1,5 @@
+from django.db.models import Q
+from django_filters import rest_framework as filters
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,14 +9,19 @@ from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSeri
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ...relatorios.relatorios import relatorio_quantitativo_por_terceirizada
 from ..forms import RelatorioQuantitativoForm
-from ..models import Edital, Terceirizada
-from ..utils import obtem_dados_relatorio_quantitativo
+from ..models import Edital, EmailTerceirizadaPorModulo, Terceirizada
+from ..utils import TerceirizadasEmailsPagination, obtem_dados_relatorio_quantitativo
+from .filters import EmailTerceirizadaPorModuloFilter, TerceirizadaFilter
 from .permissions import PodeCriarAdministradoresDaTerceirizada
 from .serializers.serializers import (
+    CreateEmailTerceirizadaPorModuloSerializer,
     DistribuidorSimplesSerializer,
     EditalContratosSerializer,
     EditalSerializer,
     EditalSimplesSerializer,
+    EmailsPorModuloSerializer,
+    EmailsTerceirizadaPorModuloSerializer,
+    TerceirizadaLookUpSerializer,
     TerceirizadaSimplesSerializer
 )
 from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
@@ -34,7 +41,9 @@ class EditalViewSet(viewsets.ReadOnlyModelViewSet):
 
 class TerceirizadaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = Terceirizada.objects.all()
+    queryset = Terceirizada.objects.all().order_by('razao_social')
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = TerceirizadaFilter
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -78,6 +87,27 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
 
         return relatorio_quantitativo_por_terceirizada(
             self.request, form.cleaned_data, dados_relatorio)
+
+    @action(
+        detail=False, methods=['GET'],
+        url_path='emails-por-modulo')
+    def emails_por_modulo(self, request):
+        modulo = request.query_params.get('modulo', None)
+        busca = request.query_params.get('busca', None)
+        queryset = self.get_queryset().filter(emails_terceirizadas__modulo__nome=modulo).distinct('razao_social')
+        self.pagination_class = TerceirizadasEmailsPagination
+        if busca:
+            queryset = queryset.filter(Q(emails_terceirizadas__email__icontains=busca) |
+                                       Q(razao_social__icontains=busca))
+        page = self.paginate_queryset(queryset)
+        serializer = EmailsPorModuloSerializer(
+            page if page is not None else queryset, many=True, context={'busca': busca})
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path='lista-razoes')
+    def lista_razoes(self, request):
+        response = {'results': TerceirizadaLookUpSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
 
 
 class EditalContratosViewSet(viewsets.ModelViewSet):
@@ -124,3 +154,16 @@ class VinculoTerceirizadaViewSet(ReadOnlyModelViewSet):
             return Response(self.get_serializer(vinculo).data)
         except AssertionError as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmailTerceirizadaPorModuloViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = EmailsTerceirizadaPorModuloSerializer
+    queryset = EmailTerceirizadaPorModulo.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = EmailTerceirizadaPorModuloFilter
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return CreateEmailTerceirizadaPorModuloSerializer
+        return EmailsTerceirizadaPorModuloSerializer

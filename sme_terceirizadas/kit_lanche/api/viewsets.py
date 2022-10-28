@@ -27,6 +27,7 @@ from ...inclusao_alimentacao.api.viewsets import (
 from ...relatorios.relatorios import (
     relatorio_kit_lanche_passeio,
     relatorio_kit_lanche_passeio_cei,
+    relatorio_kit_lanche_passeio_cemei,
     relatorio_kit_lanche_unificado
 )
 from .. import models
@@ -83,9 +84,9 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     serializer_class = serializers.SolicitacaoKitLancheAvulsaSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
@@ -641,3 +642,8 @@ class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, CodaeAutoriza, CodaeQuestio
         page = self.paginate_queryset(kit_lanches_cemei)
         serializer = serializers.SolicitacaoKitLancheCEMEIRetrieveSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, url_path=constants.RELATORIO,
+            methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_kit_lanche_passeio_cemei(request, solicitacao=self.get_object())
