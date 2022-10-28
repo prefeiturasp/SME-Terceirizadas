@@ -76,8 +76,8 @@ class EtapasDoCronograma(ModeloBase):
         result = []
         for numero in range(1, 101):
             choice = {
-                'uuid': f'Parte {numero}',
-                'nome': f'Parte {numero}'
+                'uuid': f'Etapa {numero}',
+                'nome': f'Etapa {numero}'
             }
             result.append(choice)
         return result
