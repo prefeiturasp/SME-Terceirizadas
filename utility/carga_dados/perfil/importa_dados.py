@@ -52,6 +52,7 @@ def cria_vinculos():
     perfil = {
         'perfil_diretor_escola': Perfil.objects.get(nome='DIRETOR'),
         'perfil_diretor_escola_cei': Perfil.objects.get(nome='DIRETOR_CEI'),
+        'perfil_diretor_escola_abastecimento': Perfil.objects.get(nome='DIRETOR_ABASTECIMENTO'),
         'perfil_cogestor_dre': Perfil.objects.get(nome='COGESTOR'),
         'perfil_usuario_codae': Perfil.objects.get(nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA'),  # noqa
         'perfil_usuario_dilog': Perfil.objects.get(nome='COORDENADOR_LOGISTICA'),  # noqa
@@ -98,6 +99,7 @@ def cria_vinculos():
         'usuario_ue_mista': Usuario.objects.get(email='uemista@admin.com'),
         'usuario_ue_direta': Usuario.objects.get(email='uedireta@admin.com'),
         'usuario_ue_parceira': Usuario.objects.get(email='ueparceira@admin.com'),
+        'usuario_diretor_ue_abastecimento': Usuario.objects.get(email='diretorabastecimento@admin.com'),
     }
 
     items = [
@@ -175,6 +177,11 @@ def cria_vinculos():
             'nome': 'CR.P.CONV FRATERNIDADE MARIA DE NAZARE',
             'perfil': perfil['perfil_usuario_ue_parceira'],
             'usuario': usuario['usuario_ue_parceira'],
+        },
+        {
+            'nome': 'CEI DIRET ROBERTO ARANTES LANHOSO',
+            'perfil': perfil['perfil_diretor_escola_abastecimento'],
+            'usuario': usuario['usuario_diretor_ue_abastecimento'],
         },
 
     ]

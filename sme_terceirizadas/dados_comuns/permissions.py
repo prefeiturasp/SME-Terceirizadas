@@ -22,7 +22,8 @@ from .constants import (
     COORDENADOR_GESTAO_PRODUTO,
     COORDENADOR_LOGISTICA,
     COORDENADOR_SUPERVISAO_NUTRICAO,
-    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO
+    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+    DIRETOR_ABASTECIMENTO
 )
 
 
@@ -322,7 +323,7 @@ class UsuarioEscolaAbastecimento(BasePermission):
             isinstance(usuario.vinculo_atual.instituicao, Escola) and
             usuario.vinculo_atual.perfil.nome in [
                 ADMINISTRADOR_ESCOLA_ABASTECIMENTO, ADMINISTRADOR_UE_DIRETA, ADMINISTRADOR_UE_MISTA,
-                ADMINISTRADOR_UE_PARCEIRA
+                ADMINISTRADOR_UE_PARCEIRA, DIRETOR_ABASTECIMENTO,
             ]
         )
 
@@ -367,7 +368,7 @@ class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
                     isinstance(usuario.vinculo_atual.instituicao, Escola) and
                     usuario.vinculo_atual.perfil.nome in [
                         ADMINISTRADOR_ESCOLA_ABASTECIMENTO, ADMINISTRADOR_UE_DIRETA, ADMINISTRADOR_UE_MISTA,
-                        ADMINISTRADOR_UE_PARCEIRA
+                        ADMINISTRADOR_UE_PARCEIRA, DIRETOR_ABASTECIMENTO,
                     ]
                 )
             )
