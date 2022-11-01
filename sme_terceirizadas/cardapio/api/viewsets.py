@@ -15,6 +15,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...escola.constants import PERIODOS_ESPECIAIS_CEMEI
 from ...escola.models import Escola
 from ...relatorios.relatorios import (
     relatorio_alteracao_cardapio,
@@ -138,7 +139,9 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
             ativo=True
         ).order_by('periodo_escolar__posicao')
         if escola.eh_cemei:
-            vinculos = vinculos.filter(tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
+            vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+                periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+                tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
         else:
             vinculos = vinculos.filter(tipo_unidade_escolar=escola.tipo_unidade)
         page = self.paginate_queryset(vinculos)

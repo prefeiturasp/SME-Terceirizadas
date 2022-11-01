@@ -126,7 +126,7 @@ class EOLServicoSGP:
         'accept': 'application/json',
         'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}'
     }
-    TIMEOUT = 10
+    TIMEOUT = 30
 
     @classmethod
     def matricula_por_escola(cls, codigo_eol: str, data: str, tipo_turma: int = 1):
