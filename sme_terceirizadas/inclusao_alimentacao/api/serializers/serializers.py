@@ -215,6 +215,8 @@ class InclusaoDeAlimentacaoCEMEIRetrieveSerializer(serializers.ModelSerializer):
     quantidade_alunos_emei_da_inclusao_cemei = QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(many=True)
     id_externo = serializers.CharField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
+    prioridade = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
         model = InclusaoDeAlimentacaoCEMEI
