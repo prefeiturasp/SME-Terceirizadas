@@ -1,7 +1,7 @@
 {% load index %}
 
 {% block historico_cancelamento %}
-    {% if solicitacao.logs %}
+    {% if solicitacao.logs.all|tem_cancelamento %}
       <div class="observacoes">
         <div>
           <p class="cabecalho">Histórico de justificativas:</p>

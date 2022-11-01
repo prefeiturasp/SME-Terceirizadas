@@ -534,12 +534,14 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
     def quantidade_cemei_por_cei_emei(self, request):
         try:
             codigo_eol_escola = request.query_params.get('codigo_eol_escola', None)
+            manha_e_tarde_sempre = request.query_params.get('manha_e_tarde_sempre', False)
             if not codigo_eol_escola:
                 raise ValidationError('`codigo_eol_escola` como query_param é obrigatório')
             escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
             if not escola.eh_cemei:
                 raise ValidationError('escola não é CEMEI')
-            return Response(escola.quantidade_alunos_por_cei_emei, status=status.HTTP_200_OK)
+            return Response(escola.quantidade_alunos_por_cei_emei(manha_e_tarde_sempre == 'true'),
+                            status=status.HTTP_200_OK)
         except ValidationError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
 
