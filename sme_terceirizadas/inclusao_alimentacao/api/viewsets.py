@@ -531,6 +531,8 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela):
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.InclusaoDeAlimentacaoCEMEICreateSerializer
+        elif self.action == 'retrieve':
+            return serializers.InclusaoDeAlimentacaoCEMEIRetrieveSerializer
         return serializers.InclusaoDeAlimentacaoCEMEISerializer
 
     def get_permissions(self):

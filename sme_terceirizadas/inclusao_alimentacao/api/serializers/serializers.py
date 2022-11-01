@@ -205,3 +205,17 @@ class InclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
     class Meta:
         model = InclusaoDeAlimentacaoCEMEI
         exclude = ('id',)
+
+
+class InclusaoDeAlimentacaoCEMEIRetrieveSerializer(serializers.ModelSerializer):
+    escola = EscolaSimplesSerializer()
+    dias_motivos_da_inclusao_cemei = DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(many=True)
+    quantidade_alunos_cei_da_inclusao_cemei = (
+        QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEISerializer(many=True))
+    quantidade_alunos_emei_da_inclusao_cemei = QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(many=True)
+    id_externo = serializers.CharField()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+
+    class Meta:
+        model = InclusaoDeAlimentacaoCEMEI
+        exclude = ('id',)
