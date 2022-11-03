@@ -349,6 +349,10 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
         dia_motivo = self.dias_motivos_da_inclusao_cemei.order_by('data').first()
         return dia_motivo.data if dia_motivo else ''
 
+    @property
+    def inclusoes(self):
+        return self.dias_motivos_da_inclusao_cemei
+
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
         resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
