@@ -524,7 +524,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, EscolaIniciaCancela, DREV
 
 
 class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREValida, CodaeAutoriza,
-                                      CodaeQuestionaTerceirizadaResponde):
+                                      CodaeQuestionaTerceirizadaResponde, TerceirizadaTomaCiencia):
     lookup_field = 'uuid'
     queryset = InclusaoDeAlimentacaoCEMEI.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -551,6 +551,8 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREVali
             queryset = queryset.filter(escola=user.vinculo_atual.instituicao)
         if user.tipo_usuario == 'diretoriaregional':
             queryset = queryset.filter(rastro_dre=user.vinculo_atual.instituicao)
+        if user.tipo_usuario == 'terceirizada':
+            queryset = queryset.filter(rastro_terceirizada=user.vinculo_atual.instituicao)
         if 'status' in self.request.query_params:
             queryset = queryset.filter(status=self.request.query_params.get('status').upper())
         return queryset
