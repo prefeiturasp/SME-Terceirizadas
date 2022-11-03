@@ -21,6 +21,6 @@ class CronogramaModelViewSet(viewsets.ModelViewSet):
         else:
             return CronogramaCreateSerializer
 
-    @action(detail=False, url_path='opcoes-etapa')
+    @action(detail=False, url_path='opcoes-etapas')
     def etapas(self, _):
         return Response(EtapasDoCronograma.etapas_to_json())
