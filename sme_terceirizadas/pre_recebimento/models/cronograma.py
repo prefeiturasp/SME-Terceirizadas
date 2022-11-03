@@ -58,6 +58,7 @@ class EtapasDoCronograma(ModeloBase):
     numero_empenho = models.CharField('Número do Empenho', blank=True, max_length=50)
     etapa = models.CharField(blank=True, max_length=15)
     parte = models.CharField(blank=True, max_length=15)
+    data_programada = models.DateField('Data Programada', blank=True, null=True)
     quantidade = models.FloatField(blank=True, null=True)
     total_embalagens = models.PositiveSmallIntegerField('Total de Embalagens', blank=True, null=True)
 

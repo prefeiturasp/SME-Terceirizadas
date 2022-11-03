@@ -26,6 +26,7 @@ class EtapasDoCronogramaCreateSerializer(serializers.ModelSerializer):
     numero_empenho = serializers.CharField(required=False)
     etapa = serializers.CharField(required=False)
     parte = serializers.CharField(required=False)
+    data_programada = serializers.CharField(required=False)
     quantidade = serializers.FloatField(required=False)
     total_embalagens = serializers.IntegerField(required=False)
 
