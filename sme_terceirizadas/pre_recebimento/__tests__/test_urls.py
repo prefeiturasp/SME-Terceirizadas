@@ -38,5 +38,5 @@ def test_url_endpoint_cronograma(client_autenticado_dilog):
 
 
 def test_url_lista_etapas_authorized_numeros(client_autenticado_dilog):
-    response = client_autenticado_dilog.get('/cronogramas/etapas/')
+    response = client_autenticado_dilog.get('/cronogramas/opcoes-etapa/')
     assert response.status_code == status.HTTP_200_OK
