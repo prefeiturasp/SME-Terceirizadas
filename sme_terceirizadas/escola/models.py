@@ -37,7 +37,11 @@ from ..dados_comuns.constants import (
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
-from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI, PERIODOS_ESPECIAIS_CEU_GESTAO
+from ..escola.constants import (
+    PERIODOS_ESPECIAIS_CEI_CEU_CCI,
+    PERIODOS_ESPECIAIS_CEI_DIRET,
+    PERIODOS_ESPECIAIS_CEU_GESTAO
+)
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -370,6 +374,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
         elif self.tipo_unidade.iniciais == 'CEU GESTAO':
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
+        if self.tipo_unidade.iniciais == 'CEI DIRET':
+            periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_DIRET)
         else:
             # TODO: ver uma forma melhor de fazer essa query
             periodos_ids = self.alunos_matriculados_por_periodo.filter(quantidade_alunos__gte=1).values_list(
@@ -386,6 +392,10 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
                 data_inicial__isnull=False, data_final=None, ativo=True
             )  # noqa W504 ativo
         ).exclude(perfil__nome=COORDENADOR_ESCOLA)
+
+    @property
+    def eh_cei_diret(self):
+        return self.tipo_unidade and self.tipo_unidade.iniciais == 'CEI DIRET'
 
     @property
     def eh_cemei(self):
