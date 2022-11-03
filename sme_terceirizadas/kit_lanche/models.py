@@ -31,7 +31,9 @@ from .managers import (
     SolicitacaoUnificadaVencidaManager,
     SolicitacoesKitLancheAvulsaDestaSemanaManager,
     SolicitacoesKitLancheAvulsaDesteMesManager,
-    SolicitacoesKitLancheAvulsaVencidaDiasManager
+    SolicitacoesKitLancheAvulsaVencidaDiasManager,
+    SolicitacoesKitLancheCemeiDestaSemanaManager,
+    SolicitacoesKitLancheCemeiDesteMesManager
 )
 
 
@@ -392,6 +394,10 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_cemei')
     alunos_cei_e_ou_emei = models.CharField(choices=STATUS_CHOICES, max_length=10, default=TODOS)
+
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = SolicitacoesKitLancheCemeiDestaSemanaManager()
+    deste_mes = SolicitacoesKitLancheCemeiDesteMesManager()
 
     @property
     def tem_solicitacao_cei(self):
