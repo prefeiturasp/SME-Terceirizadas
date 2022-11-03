@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import status
 
 from sme_terceirizadas.pre_recebimento.models import Cronograma
@@ -30,7 +32,7 @@ def test_url_endpoint_cronograma(client_autenticado_dilog):
     response = client_autenticado_dilog.post(
         '/cronogramas/',
         content_type='application/json',
-        data=data
+        data=json.dumps(data)
     )
     assert response.status_code == status.HTTP_201_CREATED
     obj = Cronograma.objects.last()
