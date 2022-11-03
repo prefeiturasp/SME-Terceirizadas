@@ -5,9 +5,9 @@ from rest_framework import status
 from sme_terceirizadas.pre_recebimento.models import Cronograma
 
 
-def test_url_endpoint_cronograma(client_autenticado_dilog):
+def test_url_endpoint_cronograma(client_autenticado_dilog, armazem):
     data = {
-        'armazem': '3886c9f7-b897-4740-970d-659e4096a511',
+        'armazem': armazem.uuid,
         'contrato_uuid': 'f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
         'contrato': '5678/2022',
         'cadastro_finalizado': False,
@@ -40,5 +40,5 @@ def test_url_endpoint_cronograma(client_autenticado_dilog):
 
 
 def test_url_lista_etapas_authorized_numeros(client_autenticado_dilog):
-    response = client_autenticado_dilog.get('/cronogramas/opcoes-etapa/')
+    response = client_autenticado_dilog.get('/cronogramas/opcoes-etapas/')
     assert response.status_code == status.HTTP_200_OK
