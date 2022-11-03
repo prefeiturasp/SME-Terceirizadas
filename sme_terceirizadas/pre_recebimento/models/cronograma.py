@@ -59,7 +59,7 @@ class EtapasDoCronograma(ModeloBase):
     etapa = models.CharField(blank=True, max_length=15)
     parte = models.CharField(blank=True, max_length=15)
     quantidade = models.FloatField(blank=True, null=True)
-    total_embalagens = models.PositiveSmallIntegerField('Total de Embalagens', blank=True)
+    total_embalagens = models.PositiveSmallIntegerField('Total de Embalagens', blank=True, null=True)
 
     def __str__(self):
         if self.etapa:
