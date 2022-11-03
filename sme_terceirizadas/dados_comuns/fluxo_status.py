@@ -1807,7 +1807,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _dre_pede_revisao_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_PEDIU_REVISAO,
                                       usuario=user)
 
@@ -1830,7 +1829,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _escola_revisa_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_REVISOU,
                                       usuario=user)
 
@@ -1890,7 +1888,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
@@ -2066,7 +2063,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
                                       justificativa=justificativa,
                                       usuario=user)
@@ -2075,7 +2071,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
@@ -2085,7 +2080,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         justificativa = kwargs.get('justificativa', '')
         resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
                                       justificativa=justificativa,
                                       resposta_sim_nao=resposta_sim_nao,
