@@ -9,7 +9,7 @@ def cronograma():
 
 
 @pytest.fixture
-def etapas(cronograma):
+def etapa(cronograma):
     return mommy.make('EtapasDoCronograma', cronograma=cronograma, etapa='Etapa 1')
 
 
