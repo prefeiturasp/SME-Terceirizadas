@@ -36,6 +36,11 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(ser
         required=True,
         queryset=FaixaEtaria.objects.all())
 
+    periodo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all())
+
     def create(self, validated_data):
         quantidade_alunos_faixa_etaria = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI.objects.create(
             **validated_data
@@ -55,13 +60,13 @@ class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
 
     periodo_escolar = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
+        required=False,
         queryset=PeriodoEscolar.objects.all())
 
     tipos_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
         many=True,
-        required=True,
+        required=False,
         queryset=TipoAlimentacao.objects.all())
 
     motivo = serializers.SlugRelatedField(
@@ -83,10 +88,7 @@ class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         quantidade_alunos_por_faixas_etarias = validated_data.pop('quantidade_alunos_por_faixas_etarias')
         validated_data['criado_por'] = self.context['request'].user
-        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
-
         inclusao_alimentacao_da_cei = InclusaoAlimentacaoDaCEI.objects.create(**validated_data)
-        inclusao_alimentacao_da_cei.tipos_alimentacao.set(tipos_alimentacao)
         for quantidade_json in quantidade_alunos_por_faixas_etarias:
             qtd = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer().create(
                 validated_data=quantidade_json)
@@ -95,11 +97,7 @@ class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         quantidade_alunos_por_faixas_etarias = validated_data.pop('quantidade_alunos_por_faixas_etarias')
-        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
-
         instance.quantidade_alunos_da_inclusao.all().delete()
-        instance.tipos_alimentacao.set([])
-        instance.tipos_alimentacao.set(tipos_alimentacao)
 
         for quantidade_json in quantidade_alunos_por_faixas_etarias:
             qtd = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer().create(

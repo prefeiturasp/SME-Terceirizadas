@@ -414,7 +414,13 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        escola_periodo = self.get_object()
+        if request.user.vinculo_atual:
+            escola = request.user.vinculo_atual.instituicao
+            if escola.tipo_unidade.iniciais == 'CEI DIRET':
+                escola_periodo = EscolaPeriodoEscolar.objects.get(periodo_escolar__uuid=uuid, escola__uuid=escola.uuid)
+        else:
+            escola_periodo = self.get_object()
+
         data_referencia = form.cleaned_data['data_referencia']
 
         try:

@@ -523,7 +523,8 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, EscolaIniciaCancela, DREV
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
 
 
-class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela):
+class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREValida, CodaeAutoriza,
+                                      CodaeQuestionaTerceirizadaResponde, TerceirizadaTomaCiencia):
     lookup_field = 'uuid'
     queryset = InclusaoDeAlimentacaoCEMEI.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -545,8 +546,15 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela):
             self.permission_classes = (UsuarioEscola,)
         return super(InclusaoAlimentacaoCEMEIViewSet, self).get_permissions()
 
-    def get_queryset(self):
-        queryset = InclusaoDeAlimentacaoCEMEI.objects.filter(escola=self.request.user.vinculo_atual.instituicao)
+    def get_queryset(self): # noqa C901
+        queryset = InclusaoDeAlimentacaoCEMEI.objects.all()
+        user = self.request.user
+        if user.tipo_usuario == 'escola':
+            queryset = queryset.filter(escola=user.vinculo_atual.instituicao)
+        if user.tipo_usuario == 'diretoriaregional':
+            queryset = queryset.filter(rastro_dre=user.vinculo_atual.instituicao)
+        if user.tipo_usuario == 'terceirizada':
+            queryset = queryset.filter(rastro_terceirizada=user.vinculo_atual.instituicao)
         if 'status' in self.request.query_params:
             queryset = queryset.filter(status=self.request.query_params.get('status').upper())
         return queryset
@@ -558,3 +566,29 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela):
         else:
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioDiretoriaRegional,))
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        inclusoes_alimentacao = diretoria_regional.inclusoes_alimentacao_cemei_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_alimentacao)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        codae = usuario.vinculo_atual.instituicao
+        inclusoes_alimentacao = codae.inclusoes_alimentacao_cemei_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_alimentacao)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
