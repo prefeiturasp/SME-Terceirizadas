@@ -23,6 +23,8 @@ from .managers import (
     GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager,
     GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
     GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager,
+    InclusaoDeAlimentacaoCemeiDestaSemanaManager,
+    InclusaoDeAlimentacaoCemeiDesteMesManager,
     InclusaoDeAlimentacaoDeCeiDestaSemanaManager,
     InclusaoDeAlimentacaoDeCeiDesteMesManager,
     InclusaoDeAlimentacaoDeCeiVencidosDiasManager,
@@ -343,6 +345,10 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_de_alimentacao_cemei')
+
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = InclusaoDeAlimentacaoCemeiDestaSemanaManager()
+    deste_mes = InclusaoDeAlimentacaoCemeiDesteMesManager()
 
     @property
     def data(self):
