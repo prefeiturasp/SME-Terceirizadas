@@ -41,7 +41,8 @@ from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI, PERIODOS_ESPECIAI
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
-    InclusaoAlimentacaoDaCEI
+    InclusaoAlimentacaoDaCEI,
+    InclusaoDeAlimentacaoCEMEI
 )
 from ..kit_lanche.models import (
     SolicitacaoKitLancheAvulsa,
@@ -149,6 +150,9 @@ class DiretoriaRegional(
 
     def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(filtro_aplicado, InclusaoAlimentacaoDaCEI)
+
+    def inclusoes_alimentacao_cemei_das_minhas_escolas(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(filtro_aplicado, InclusaoDeAlimentacaoCEMEI)
 
     #
     # Alterações de cardápio
