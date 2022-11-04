@@ -120,6 +120,8 @@ def test_codae(codae):
         assert codae.alteracoes_cardapio_das_minhas(filtro) is not None
         assert codae.alteracoes_cardapio_cei_das_minhas(
             filtro) is not None
+        assert codae.alteracoes_cardapio_cemei_das_minhas_escolas(
+            filtro) is not None
         assert codae.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro) is not None
         assert codae.inclusoes_alimentacao_cemei_das_minhas_escolas(
