@@ -68,6 +68,10 @@ def test_diretoria_regional(diretoria_regional, escola):
             filtro) is not None
         assert diretoria_regional.alteracoes_cardapio_das_minhas_escolas(
             filtro) is not None
+        assert diretoria_regional.alteracoes_cardapio_cei_das_minhas_escolas(
+            filtro) is not None
+        assert diretoria_regional.alteracoes_cardapio_cemei_das_minhas_escolas(
+            filtro) is not None
         assert diretoria_regional.inversoes_cardapio_das_minhas_escolas(
             filtro) is not None
 
@@ -114,6 +118,8 @@ def test_codae(codae):
         assert codae.solicitacoes_unificadas(filtro) is not None
         assert codae.suspensoes_cardapio_das_minhas_escolas(filtro) is not None
         assert codae.alteracoes_cardapio_das_minhas(filtro) is not None
+        assert codae.alteracoes_cardapio_cei_das_minhas(
+            filtro) is not None
         assert codae.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro) is not None
         assert codae.inclusoes_alimentacao_cemei_das_minhas_escolas(
