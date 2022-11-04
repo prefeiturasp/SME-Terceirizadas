@@ -23,6 +23,8 @@ from .managers import (
     GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager,
     GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
     GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager,
+    InclusaoDeAlimentacaoCemeiDestaSemanaManager,
+    InclusaoDeAlimentacaoCemeiDesteMesManager,
     InclusaoDeAlimentacaoDeCeiDestaSemanaManager,
     InclusaoDeAlimentacaoDeCeiDesteMesManager,
     InclusaoDeAlimentacaoDeCeiVencidosDiasManager,
@@ -272,6 +274,7 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExter
                                                     related_name='quantidade_alunos_da_inclusao')
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
     quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    periodo = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING, blank=True, null=True)
 
     def __str__(self):
         return f'De: {self.faixa_etaria.inicio} até: {self.faixa_etaria.fim} meses - {self.quantidade_alunos} alunos'
@@ -344,10 +347,18 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_de_alimentacao_cemei')
 
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = InclusaoDeAlimentacaoCemeiDestaSemanaManager()
+    deste_mes = InclusaoDeAlimentacaoCemeiDesteMesManager()
+
     @property
     def data(self):
         dia_motivo = self.dias_motivos_da_inclusao_cemei.order_by('data').first()
         return dia_motivo.data if dia_motivo else ''
+
+    @property
+    def inclusoes(self):
+        return self.dias_motivos_da_inclusao_cemei
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
