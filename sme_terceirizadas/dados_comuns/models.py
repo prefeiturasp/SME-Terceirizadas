@@ -80,7 +80,9 @@ class LogSolicitacoesUsuario(
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
         MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
         MEDICAO_ENCERRADA_PELA_CODAE,
-    ) = range(56)
+        CRONOGRAMA_CRIADO,
+        CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
+    ) = range(58)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -177,6 +179,8 @@ class LogSolicitacoesUsuario(
         ),
         (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
         (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
+        (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
+        (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -200,8 +204,9 @@ class LogSolicitacoesUsuario(
         ABASTECIMENTO_GUIA_DE_REMESSA,
         MEDICAO_INICIAL,
         INCLUSAO_ALIMENTACAO_CEMEI,
-        SOLICITACAO_KIT_LANCHE_CEMEI
-    ) = range(18)
+        SOLICITACAO_KIT_LANCHE_CEMEI,
+        CRONOGRAMA
+    ) = range(19)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -222,7 +227,8 @@ class LogSolicitacoesUsuario(
         (ABASTECIMENTO_GUIA_DE_REMESSA, 'Abastecimento de guia de remessa'),
         (MEDICAO_INICIAL, 'Solicitação de medição inicial'),
         (INCLUSAO_ALIMENTACAO_CEMEI, 'Inclusão de Alimentação CEMEI'),
-        (SOLICITACAO_KIT_LANCHE_CEMEI, 'Solicitação de kit lanche CEMEI')
+        (SOLICITACAO_KIT_LANCHE_CEMEI, 'Solicitação de kit lanche CEMEI'),
+        (CRONOGRAMA, 'Cronograma')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
