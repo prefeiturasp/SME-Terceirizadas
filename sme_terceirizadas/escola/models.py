@@ -11,7 +11,13 @@ from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 from rest_framework import status
 
-from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..cardapio.models import (
+    AlteracaoCardapio,
+    AlteracaoCardapioCEI,
+    AlteracaoCardapioCEMEI,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio
+)
 from ..dados_comuns.behaviors import (
     ArquivoCargaBase,
     Ativavel,
@@ -207,6 +213,12 @@ class DiretoriaRegional(
     def alteracoes_cardapio_cei_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEI)
         return queryset.filter(escola__in=self.escolas.all(), status=AlteracaoCardapioCEI.workflow_class.DRE_A_VALIDAR)
+
+    def alteracoes_cardapio_cemei_das_minhas_escolas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEMEI)
+        return queryset.filter(
+            escola__in=self.escolas.all(), status=AlteracaoCardapioCEMEI.workflow_class.DRE_A_VALIDAR
+        )
 
     #
     # Inversões de cardápio
