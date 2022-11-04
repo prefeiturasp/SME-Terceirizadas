@@ -538,11 +538,11 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREVali
 
     def get_permissions(self):
         if self.action in ['list']:
-            self.permission_classes = (UsuarioEscola,)
-        elif self.action in ['retrieve', 'update']:
+            self.permission_classes = (IsAuthenticated,)
+        elif self.action in ['retrieve', 'update', 'destroy']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
-        elif self.action in ['create', 'destroy']:
+        elif self.action in ['create']:
             self.permission_classes = (UsuarioEscola,)
         return super(InclusaoAlimentacaoCEMEIViewSet, self).get_permissions()
 
@@ -551,9 +551,9 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREVali
         user = self.request.user
         if user.tipo_usuario == 'escola':
             queryset = queryset.filter(escola=user.vinculo_atual.instituicao)
-        if user.tipo_usuario == 'diretoriaregional':
+        elif user.tipo_usuario == 'diretoriaregional':
             queryset = queryset.filter(rastro_dre=user.vinculo_atual.instituicao)
-        if user.tipo_usuario == 'terceirizada':
+        elif user.tipo_usuario == 'terceirizada':
             queryset = queryset.filter(rastro_terceirizada=user.vinculo_atual.instituicao)
         if 'status' in self.request.query_params:
             queryset = queryset.filter(status=self.request.query_params.get('status').upper())
