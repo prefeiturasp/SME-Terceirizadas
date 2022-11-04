@@ -21,7 +21,8 @@ from ...inclusao_alimentacao.api.viewsets import (
     CodaeAutoriza,
     CodaeQuestionaTerceirizadaResponde,
     DREValida,
-    EscolaIniciaCancela
+    EscolaIniciaCancela,
+    TerceirizadaTomaCiencia
 )
 from ...relatorios.relatorios import (
     relatorio_alteracao_cardapio,
@@ -1030,20 +1031,22 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
 
 
 class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet, EscolaIniciaCancela, DREValida, CodaeAutoriza,
-                                     CodaeQuestionaTerceirizadaResponde):
+                                     CodaeQuestionaTerceirizadaResponde, TerceirizadaTomaCiencia):
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return AlteracaoCardapioCEMEISerializerCreate
         return AlteracaoCardapioCEMEISerializer
 
-    def get_queryset(self):
+    def get_queryset(self): # noqa C901
         queryset = AlteracaoCardapioCEMEI.objects.all()
         user = self.request.user
         if user.tipo_usuario == 'escola':
             queryset = queryset.filter(escola=user.vinculo_atual.instituicao)
         if user.tipo_usuario == 'diretoriaregional':
             queryset = queryset.filter(rastro_dre=user.vinculo_atual.instituicao)
+        if user.tipo_usuario == 'terceirizada':
+            queryset = queryset.filter(rastro_terceirizada=user.vinculo_atual.instituicao)
         if 'status' in self.request.query_params:
             queryset = queryset.filter(status=self.request.query_params.get('status').upper())
         return queryset
