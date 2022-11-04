@@ -17,7 +17,12 @@ from ...dados_comuns.permissions import (
 )
 from ...escola.constants import PERIODOS_ESPECIAIS_CEMEI
 from ...escola.models import Escola
-from ...inclusao_alimentacao.api.viewsets import DREValida, EscolaIniciaCancela
+from ...inclusao_alimentacao.api.viewsets import (
+    CodaeAutoriza,
+    CodaeQuestionaTerceirizadaResponde,
+    DREValida,
+    EscolaIniciaCancela
+)
 from ...relatorios.relatorios import (
     relatorio_alteracao_cardapio,
     relatorio_alteracao_cardapio_cei,
@@ -1024,7 +1029,8 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
         return relatorio_alteracao_cardapio_cei(request, solicitacao=self.get_object())
 
 
-class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet, EscolaIniciaCancela, DREValida):
+class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet, EscolaIniciaCancela, DREValida, CodaeAutoriza,
+                                     CodaeQuestionaTerceirizadaResponde):
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -1049,6 +1055,19 @@ class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet, EscolaIniciaCanc
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_cemei_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        codae = usuario.vinculo_atual.instituicao
+        alteracoes_cardapio = codae.alteracoes_cardapio_cemei_das_minhas_escolas(
             filtro_aplicado
         )
         page = self.paginate_queryset(alteracoes_cardapio)

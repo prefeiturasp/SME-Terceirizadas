@@ -828,8 +828,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         queryset = queryset_por_data(filtro_aplicado, InclusaoDeAlimentacaoCEMEI)
         return queryset.filter(
             status__in=[
-                GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_VALIDADO,
-                GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                InclusaoDeAlimentacaoCEMEI.workflow_class.DRE_VALIDADO,
+                InclusaoDeAlimentacaoCEMEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
             ]
         )
 
@@ -848,6 +848,15 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
             status__in=[
                 AlteracaoCardapioCEI.workflow_class.DRE_VALIDADO,
                 AlteracaoCardapioCEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+            ]
+        )
+
+    def alteracoes_cardapio_cemei_das_minhas_escolas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEMEI)
+        return queryset.filter(
+            status__in=[
+                AlteracaoCardapioCEMEI.workflow_class.DRE_VALIDADO,
+                AlteracaoCardapioCEMEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
             ]
         )
 
