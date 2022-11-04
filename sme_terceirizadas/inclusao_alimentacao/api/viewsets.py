@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
+from ...cardapio.models import AlteracaoCardapioCEMEI
 from ...dados_comuns import constants
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarObjeto,
@@ -56,7 +57,7 @@ class EscolaIniciaCancela():
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            if (type(obj) in [InclusaoAlimentacaoContinua, SolicitacaoKitLancheCEMEI] or
+            if (type(obj) in [InclusaoAlimentacaoContinua, SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI] or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
