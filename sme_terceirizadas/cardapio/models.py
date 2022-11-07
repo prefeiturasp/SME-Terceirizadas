@@ -24,6 +24,10 @@ from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInf
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from .behaviors import EhAlteracaoCardapio, TemLabelDeTiposDeAlimentacao
 from .managers import (
+    AlteracoesCardapioCEIDestaSemanaManager,
+    AlteracoesCardapioCEIDesteMesManager,
+    AlteracoesCardapioCEMEIDestaSemanaManager,
+    AlteracoesCardapioCEMEIDesteMesManager,
     GrupoSuspensaoAlimentacaoDestaSemanaManager,
     GrupoSuspensaoAlimentacaoDesteMesManager,
     InversaoCardapioDestaSemanaManager,
@@ -607,6 +611,10 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
 
     eh_alteracao_com_lanche_repetida = models.BooleanField(default=False)
 
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = AlteracoesCardapioCEIDestaSemanaManager()
+    deste_mes = AlteracoesCardapioCEIDesteMesManager()
+
     @property
     def substituicoes(self):
         return self.substituicoes_cei_periodo_escolar
@@ -705,6 +713,10 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
     alterar_dia = models.DateField('Alterar dia', null=True, blank=True)
     data_inicial = models.DateField('Data inicial', null=True, blank=True)
     data_final = models.DateField('Data final', null=True, blank=True)
+
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = AlteracoesCardapioCEMEIDestaSemanaManager()
+    deste_mes = AlteracoesCardapioCEMEIDesteMesManager()
 
     @property
     def data(self):

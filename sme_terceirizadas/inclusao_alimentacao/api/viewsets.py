@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
+from ...cardapio.models import AlteracaoCardapioCEMEI
 from ...dados_comuns import constants
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarObjeto,
@@ -56,7 +57,7 @@ class EscolaIniciaCancela():
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            if (type(obj) in [InclusaoAlimentacaoContinua, SolicitacaoKitLancheCEMEI] or
+            if (type(obj) in [InclusaoAlimentacaoContinua, SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI] or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
@@ -533,15 +534,17 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREVali
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.InclusaoDeAlimentacaoCEMEICreateSerializer
+        elif self.action == 'retrieve':
+            return serializers.InclusaoDeAlimentacaoCEMEIRetrieveSerializer
         return serializers.InclusaoDeAlimentacaoCEMEISerializer
 
     def get_permissions(self):
         if self.action in ['list']:
-            self.permission_classes = (UsuarioEscola,)
-        elif self.action in ['retrieve', 'update']:
+            self.permission_classes = (IsAuthenticated,)
+        elif self.action in ['retrieve', 'update', 'destroy']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
-        elif self.action in ['create', 'destroy']:
+        elif self.action in ['create']:
             self.permission_classes = (UsuarioEscola,)
         return super(InclusaoAlimentacaoCEMEIViewSet, self).get_permissions()
 
@@ -550,9 +553,9 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREVali
         user = self.request.user
         if user.tipo_usuario == 'escola':
             queryset = queryset.filter(escola=user.vinculo_atual.instituicao)
-        if user.tipo_usuario == 'diretoriaregional':
+        elif user.tipo_usuario == 'diretoriaregional':
             queryset = queryset.filter(rastro_dre=user.vinculo_atual.instituicao)
-        if user.tipo_usuario == 'terceirizada':
+        elif user.tipo_usuario == 'terceirizada':
             queryset = queryset.filter(rastro_terceirizada=user.vinculo_atual.instituicao)
         if 'status' in self.request.query_params:
             queryset = queryset.filter(status=self.request.query_params.get('status').upper())
