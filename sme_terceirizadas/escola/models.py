@@ -70,6 +70,12 @@ logger = logging.getLogger('sigpae.EscolaModels')
 class DiretoriaRegional(
     ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos
 ):
+
+    @property
+    def editais(self):
+        return [str(uuid_) for uuid_ in set(list(self.escolas.filter(lote__isnull=False).values_list(
+            'lote__contratos_do_lote__edital__uuid', flat=True)))]
+
     @property
     def vinculos_que_podem_ser_finalizados(self):
         return self.vinculos.filter(
@@ -378,6 +384,12 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     @property
     def alunos_por_periodo_escolar(self):
         return self.escolas_periodos.filter(quantidade_alunos__gte=1)
+
+    @property
+    def editais(self):
+        if self.lote:
+            return [str(edital) for edital in self.lote.contratos_do_lote.values_list('edital__uuid', flat=True)]
+        return []
 
     @property
     def periodos_escolares(self):
