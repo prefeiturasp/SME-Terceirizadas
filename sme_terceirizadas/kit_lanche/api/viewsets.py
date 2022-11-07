@@ -50,6 +50,19 @@ class KitLancheViewSet(ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = KitLancheFilter
 
+    def get_queryset(self):
+        queryset = models.KitLanche.objects.all()
+        user = self.request.user
+        if user.tipo_usuario in ['escola', 'diretoriaregional']:
+            queryset = queryset.filter(edital__uuid__in=user.vinculo_atual.instituicao.editais)
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        response_list = serializer.data
+        return Response({'results': response_list})
+
     @action(detail=False, methods=['GET'], url_path='consulta-kits')
     def lista_kits_consulta(self, request):
         queryset = self.filter_queryset(self.get_queryset().order_by('id'))
