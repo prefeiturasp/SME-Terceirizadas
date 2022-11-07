@@ -22,7 +22,11 @@ from .constants import (
     COORDENADOR_GESTAO_PRODUTO,
     COORDENADOR_LOGISTICA,
     COORDENADOR_SUPERVISAO_NUTRICAO,
-    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO
+    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+    DILOG_CRONOGRAMA,
+    DILOG_DIRETORIA,
+    DILOG_QUALIDADE,
+    DINUTRE_DIRETORIA
 )
 
 
@@ -382,6 +386,45 @@ class PermissaoParaListarEntregas(BasePermission):
                 ) or
                 (
                     isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional)
+                )
+            )
+        )
+
+
+class PermissaoParaVisualizarCronograma(BasePermission):
+    # TODO: Conforme solicitado pelos P.Os, usuários Logistica tem acesso temporariamente p/ visualização do cronograma.
+    #  Após finalização da definição de permissionamento deve se remover COORDENADOR_CODAE_DILOG_LOGISTICA e
+    #  COORDENADOR_LOGISTICA deste permissionamento.
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
+                                                          DINUTRE_DIRETORIA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                          COORDENADOR_LOGISTICA]
+                )
+            )
+        )
+
+
+class PermissaoParaCriarCronograma(BasePermission):
+    # TODO: Conforme solicitado pelos P.Os, usuários Logistica tem acesso temporariamente ao Cadastro de Cronograma.
+    #  Após finalização da definição de permissionamento deve se remover COORDENADOR_CODAE_DILOG_LOGISTICA e
+    #  COORDENADOR_LOGISTICA deste permissionamento.
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                          COORDENADOR_LOGISTICA]
                 )
             )
         )
