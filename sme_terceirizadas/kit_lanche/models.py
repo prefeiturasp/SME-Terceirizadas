@@ -31,7 +31,9 @@ from .managers import (
     SolicitacaoUnificadaVencidaManager,
     SolicitacoesKitLancheAvulsaDestaSemanaManager,
     SolicitacoesKitLancheAvulsaDesteMesManager,
-    SolicitacoesKitLancheAvulsaVencidaDiasManager
+    SolicitacoesKitLancheAvulsaVencidaDiasManager,
+    SolicitacoesKitLancheCemeiDestaSemanaManager,
+    SolicitacoesKitLancheCemeiDesteMesManager
 )
 
 
@@ -393,6 +395,27 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
                                related_name='solicitacoes_kit_lanche_cemei')
     alunos_cei_e_ou_emei = models.CharField(choices=STATUS_CHOICES, max_length=10, default=TODOS)
 
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = SolicitacoesKitLancheCemeiDestaSemanaManager()
+    deste_mes = SolicitacoesKitLancheCemeiDesteMesManager()
+
+    @property
+    def tem_solicitacao_cei(self):
+        return hasattr(self, 'solicitacao_cei')
+
+    @property
+    def tem_solicitacao_emei(self):
+        return hasattr(self, 'solicitacao_emei')
+
+    @property
+    def total_kits(self):
+        total = 0
+        if self.tem_solicitacao_cei:
+            total += self.solicitacao_cei.quantidade_alimentacoes
+        if self.tem_solicitacao_emei:
+            total += self.solicitacao_emei.quantidade_alimentacoes
+        return total
+
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
         resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
@@ -420,6 +443,26 @@ class SolicitacaoKitLancheCEIdaCEMEI(TemChaveExterna, TempoPasseio):
                                                         null=True,
                                                         on_delete=models.CASCADE,
                                                         related_name='solicitacao_cei')
+
+    @property
+    def quantidade_alimentacoes(self):
+        return sum(self.faixas_quantidades.values_list('quantidade_alunos', flat=True)) * self.kits.count()
+
+    @property
+    def quantidade_alunos(self):
+        return sum(self.faixas_quantidades.values_list('quantidade_alunos', flat=True))
+
+    @property
+    def quantidade_matriculados(self):
+        return sum(self.faixas_quantidades.values_list('matriculados_quando_criado', flat=True))
+
+    @property
+    def nomes_kits(self):
+        return ', '.join(list(self.kits.values_list('nome', flat=True)))
+
+    @property
+    def tem_alunos_com_dieta(self):
+        return self.alunos_com_dieta_especial_participantes.exists()
 
     class Meta:
         verbose_name = 'Solicitação Kit Lanche CEI da EMEI'
@@ -449,6 +492,18 @@ class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio):
                                                         null=True,
                                                         on_delete=models.CASCADE,
                                                         related_name='solicitacao_emei')
+
+    @property
+    def nomes_kits(self):
+        return ', '.join(list(self.kits.values_list('nome', flat=True)))
+
+    @property
+    def quantidade_alimentacoes(self):
+        return self.quantidade_alunos * self.kits.count()
+
+    @property
+    def tem_alunos_com_dieta(self):
+        return self.alunos_com_dieta_especial_participantes.exists()
 
     class Meta:
         verbose_name = 'Solicitação Kit Lanche CEI da EMEI'
