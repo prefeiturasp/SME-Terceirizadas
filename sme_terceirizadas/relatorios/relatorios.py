@@ -5,9 +5,12 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db.models import F, FloatField, Sum
 from django.template.loader import get_template, render_to_string
 
+from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
+from ..escola.api.serializers import FaixaEtariaSerializer
+from ..escola.models import EscolaPeriodoEscolar, FaixaEtaria, PeriodoEscolar
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
 from ..relatorios.utils import html_to_pdf_cancelada, html_to_pdf_file, html_to_pdf_multiple, html_to_pdf_response
@@ -341,16 +344,68 @@ def relatorio_inclusao_alimentacao_normal(request, solicitacao):
 def relatorio_inclusao_alimentacao_cei(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    html_string = render_to_string(
-        'solicitacao_inclusao_alimentacao_cei.html',
-        {
-            'escola': escola,
-            'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
-            'logs': formata_logs(logs)
-        }
-    )
+    if solicitacao.periodo_escolar:
+        html_string = render_to_string(
+            'solicitacao_inclusao_alimentacao_cei.html',
+            {
+                'escola': escola,
+                'solicitacao': solicitacao,
+                'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+                'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+                'logs': formata_logs(logs)
+            }
+        )
+    else:
+        quantidade_por_faixa = []
+        matriculados = []
+        periodo_escolar = PeriodoEscolar.objects.get(nome='INTEGRAL')
+        escola_periodo_escolar = EscolaPeriodoEscolar.objects.filter(periodo_escolar=periodo_escolar, escola=escola)
+        faixa_alunos = escola_periodo_escolar.first().alunos_por_faixa_etaria(solicitacao.data)
+
+        for uuid_faixa_etaria in faixa_alunos:
+            matriculados.append({
+                'faixa_etaria': FaixaEtariaSerializer(FaixaEtaria.objects.get(uuid=uuid_faixa_etaria)).data,
+                'count': faixa_alunos[uuid_faixa_etaria]
+            })
+        vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+        vinculos = vinculos_class.objects.filter(periodo_escolar__in=escola.periodos_escolares, ativo=True,
+                                                 tipo_unidade_escolar=escola.tipo_unidade)
+        vinculos = vinculos.order_by('periodo_escolar__posicao')
+
+        for vinculo in vinculos:
+            quantidade = {}
+            quantidade['periodo'] = vinculo.periodo_escolar.nome
+            qtd_solicitacao = solicitacao.quantidade_alunos_da_inclusao.filter(periodo=vinculo.periodo_escolar)
+            quantidade['total_solicitacao'] = sum(qtd_solicitacao.values_list('quantidade_alunos', flat=True))
+            quantidade['total_matriculados'] = sum([m['count'] for m in matriculados])
+            quantidade['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.values_list('nome', flat=True))
+            inclusoes = []
+
+            for faixa in FaixaEtaria.objects.all():
+                q = qtd_solicitacao.filter(faixa_etaria=faixa)
+                if q.first():
+                    quantidade_inclusao = q.first().quantidade_alunos
+                    t = sum([m['count'] if m['faixa_etaria']['uuid'] == str(faixa.uuid) else 0 for m in matriculados])
+                else:
+                    quantidade_inclusao = 0
+                    t = 0
+                inclusoes.append({'faixa_etaria': faixa,
+                                  'quantidade_alunos': quantidade_inclusao,
+                                  'quantidade_matriculados': t})
+
+            quantidade['quantidade_por_faixa_etaria'] = inclusoes
+            quantidade_por_faixa.append(quantidade)
+        html_string = render_to_string(
+            'novo_solicitacao_inclusao_alimentacao_cei.html',
+            {
+                'escola': escola,
+                'solicitacao': solicitacao,
+                'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+                'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+                'logs': formata_logs(logs),
+                'inclusoes': quantidade_por_faixa
+            }
+        )
     return html_to_pdf_response(html_string, f'inclusao_alimentacao_{solicitacao.id_externo}.pdf')
 
 
