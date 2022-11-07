@@ -30,8 +30,8 @@ from ...dados_comuns.constants import (
     COORDENADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
     DILOG_CRONOGRAMA,
-    DILOG_QUALIDADE,
     DILOG_DIRETORIA,
+    DILOG_QUALIDADE,
     DINUTRE_DIRETORIA
 )
 from ...dados_comuns.tasks import envia_email_unico_task
