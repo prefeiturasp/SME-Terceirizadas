@@ -225,7 +225,6 @@ class InclusaoAlimentacaoViewSetBase(ModelViewSet, EscolaIniciaCancela, DREValid
             url_path=f'{constants.RELATORIO}',
             permission_classes=(IsAuthenticated,))
     def relatorio(self, request, uuid=None):
-        # AQUI
         return relatorio_inclusao_alimentacao_cei(request, solicitacao=self.get_object())
 
 
