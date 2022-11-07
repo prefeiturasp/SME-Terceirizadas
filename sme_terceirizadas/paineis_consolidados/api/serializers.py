@@ -1,6 +1,5 @@
 import datetime
 
-from django.utils import timezone
 from rest_framework import serializers
 
 from ..models import SolicitacoesCODAE
@@ -26,10 +25,9 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
         return descricao
 
     def get_data_log(self, obj):
-        data_log = obj.data_log.astimezone(timezone.get_current_timezone())
-        if data_log.date() == datetime.date.today():
-            return data_log.strftime('%d/%m/%Y %H:%M')
-        return data_log.strftime('%d/%m/%Y')
+        if obj.data_log.date() == datetime.date.today():
+            return obj.data_log.strftime('%d/%m/%Y %H:%M')
+        return obj.data_log.strftime('%d/%m/%Y')
 
     class Meta:
         fields = '__all__'
