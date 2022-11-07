@@ -320,6 +320,15 @@ def periodo_escolar():
 
 
 @pytest.fixture
+def escola_periodo_escolar_cei(escola_cei):
+    periodo_escolar = mommy.make('PeriodoEscolar', uuid='208f7cb4-b03a-4357-ab6d-bda078a37598', nome='INTEGRAL')
+    return mommy.make('EscolaPeriodoEscolar',
+                      uuid='208f7cb4-b03a-4357-ab6d-bda078a37223',
+                      periodo_escolar=periodo_escolar,
+                      escola=escola_cei)
+
+
+@pytest.fixture
 def grupo_inclusao_alimentacao_nome():
     return mommy.make(models.GrupoInclusaoAlimentacaoNormal)
 
