@@ -62,7 +62,11 @@ def cria_vinculos():
         'perfil_usuario_dilog_juridico': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_DILOG_JURIDICO'),
         'perfil_usuario_ue_mista': Perfil.objects.get(nome='ADMINISTRADOR_UE_MISTA'),
         'perfil_usuario_ue_direta': Perfil.objects.get(nome='ADMINISTRADOR_UE_DIRETA'),
-        'perfil_usuario_ue_parceira': Perfil.objects.get(nome='ADMINISTRADOR_UE_PARCEIRA')
+        'perfil_usuario_ue_parceira': Perfil.objects.get(nome='ADMINISTRADOR_UE_PARCEIRA'),
+        'perfil_usuario_cronograma': Perfil.objects.get(nome='DILOG_CRONOGRAMA'),
+        'perfil_usuario_qualidade': Perfil.objects.get(nome='DILOG_QUALIDADE'),
+        'perfil_usuario_dilog_diretoria': Perfil.objects.get(nome='DILOG_DIRETORIA'),
+        'perfil_usuario_dinutre_diretoria': Perfil.objects.get(nome='DINUTRE_DIRETORIA')
     }
 
     usuario = {
@@ -93,6 +97,10 @@ def cria_vinculos():
         'usuario_ue_mista': Usuario.objects.get(email='uemista@admin.com'),
         'usuario_ue_direta': Usuario.objects.get(email='uedireta@admin.com'),
         'usuario_ue_parceira': Usuario.objects.get(email='ueparceira@admin.com'),
+        'usuario_cronograma': Usuario.objects.get(email='cronograma@admin.com'),
+        'usuario_qualidade': Usuario.objects.get(email='qualidade@admin.com'),
+        'usuario_dilog_diretoria': Usuario.objects.get(email='dilogdiretoria@admin.com'),
+        'usuario_dinutre_diretoria': Usuario.objects.get(email='dinutrediretoria@admin.com'),
     }
 
     items = [
@@ -242,6 +250,26 @@ def cria_vinculos():
             'instituicao': terceirizada,
             'perfil': perfil['perfil_usuario_terceirizada'],
             'usuario': usuario['usuario_terceirizada'],
+        },
+        {
+            'instituicao': dilog,
+            'perfil': perfil['perfil_usuario_cronograma'],
+            'usuario': usuario['usuario_cronograma'],
+        },
+        {
+            'instituicao': dilog,
+            'perfil': perfil['perfil_usuario_qualidade'],
+            'usuario': usuario['usuario_qualidade'],
+        },
+        {
+            'instituicao': dilog,
+            'perfil': perfil['perfil_usuario_dilog_diretoria'],
+            'usuario': usuario['usuario_qualidade'],
+        },
+        {
+            'instituicao': dilog,
+            'perfil': perfil['perfil_usuario_dinutre_diretoria'],
+            'usuario': usuario['usuario_dinutre_diretoria'],
         },
     ]
 
