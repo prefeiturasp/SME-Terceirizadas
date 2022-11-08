@@ -19,18 +19,16 @@
         </tr>
       </thead>
       <tbody>
-        {% for motivo in suspensoes.all %}
-          <tr>
-            <td>
-              {% if motivo.motivo.nome == 'Outro' %}
-                {{ motivo.motivo.nome }} - {{ motivo.outro_motivo }}
-              {% else %}
-                {{ motivo.motivo.nome }}
-              {% endif %}
-            </td>
-            <td>{{ motivo.data|date:"d/m/Y" }}</td>
-          </tr>
-        {% endfor %}
+        <tr>
+          <td>
+            {% if solicitacao.motivo.nome == 'Outro' %}
+              {{ solicitacao.motivo.nome }} - {{ solicitacao.outro_motivo }}
+            {% else %}
+              {{ solicitacao.motivo.nome }}
+            {% endif %}
+          </td>
+          <td>{{ solicitacao.data|date:"d/m/Y" }}</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -48,12 +46,12 @@
         </tr>
         </thead>
         <tbody>
-        {% for periodo in quantidades_por_periodo %}
+        {% for periodo in periodos_escolares %}
           <tr>
-            <td>{{  periodo.periodo_escolar }}</td>
+            <td>{{  periodo.nome }}</td>
             <td>{{ periodo.tipos_alimentacao.all |concatena_label }}</td>
             <td></td>
-            <td>{{ periodo.numero_alunos }}</td>
+            <td>{{ escola.quantidade_alunos }}</td>
           </tr>
         {% endfor %}
         </tbody>
