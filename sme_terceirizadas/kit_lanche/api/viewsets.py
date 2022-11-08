@@ -27,6 +27,7 @@ from ...inclusao_alimentacao.api.viewsets import (
 from ...relatorios.relatorios import (
     relatorio_kit_lanche_passeio,
     relatorio_kit_lanche_passeio_cei,
+    relatorio_kit_lanche_passeio_cemei,
     relatorio_kit_lanche_unificado
 )
 from .. import models
@@ -654,3 +655,8 @@ class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, CodaeAutoriza, CodaeQuestio
         page = self.paginate_queryset(kit_lanches_cemei)
         serializer = serializers.SolicitacaoKitLancheCEMEIRetrieveSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, url_path=constants.RELATORIO,
+            methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_kit_lanche_passeio_cemei(request, solicitacao=self.get_object())

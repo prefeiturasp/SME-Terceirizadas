@@ -84,6 +84,14 @@ def tem_questionamentos(logs):
 
 
 @register.filter
+def tem_cancelamento(logs):
+    return logs.filter(status_evento__in=[LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                                          LogSolicitacoesUsuario.DRE_NAO_VALIDOU,
+                                          LogSolicitacoesUsuario.CODAE_NEGOU,
+                                          LogSolicitacoesUsuario.DRE_CANCELOU]).exists()
+
+
+@register.filter
 def concatena_str(query_set):
     return ', '.join([p.nome for p in query_set])
 

@@ -45,3 +45,9 @@ def test_edital_simples_serializer(edital_simples_serializer):
     assert edital_simples_serializer.data is not None
     assert 'uuid' in edital_simples_serializer.data
     assert 'numero' in edital_simples_serializer.data
+
+
+def test_emails_terceiradas_modulos(email_terceirizada_por_modulo_serializer):
+    assert email_terceirizada_por_modulo_serializer.data is not None
+    assert 'uuid' in email_terceirizada_por_modulo_serializer.data
+    assert 'email' in email_terceirizada_por_modulo_serializer.data

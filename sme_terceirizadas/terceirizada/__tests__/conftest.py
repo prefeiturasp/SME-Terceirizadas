@@ -11,10 +11,11 @@ from ..api.serializers.serializers import (
     EditalContratosSerializer,
     EditalSerializer,
     EditalSimplesSerializer,
+    EmailsTerceirizadaPorModuloSerializer,
     TerceirizadaSimplesSerializer,
     VigenciaContratoSerializer
 )
-from ..models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
+from ..models import Contrato, Edital, EmailTerceirizadaPorModulo, Modulo, Nutricionista, Terceirizada, VigenciaContrato
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -105,6 +106,17 @@ def edital():
 
 
 @pytest.fixture
+def modulo():
+    return mommy.make(Modulo, nome='Dieta Especial')
+
+
+@pytest.fixture
+def emailterceirizadapormodulo(terceirizada, modulo, usuario_2):
+    return mommy.make(EmailTerceirizadaPorModulo, email='teste@teste.com',
+                      terceirizada=terceirizada, modulo=modulo, criado_por=usuario_2)
+
+
+@pytest.fixture
 def contrato():
     return mommy.make(Contrato, numero='1', processo='12345')
 
@@ -158,6 +170,11 @@ def terceirizada():
                       make_m2m=True,
                       nome_fantasia='Alimentos SA'
                       )
+
+
+@pytest.fixture
+def email_terceirizada_por_modulo_serializer(emailterceirizadapormodulo):
+    return EmailsTerceirizadaPorModuloSerializer(emailterceirizadapormodulo)
 
 
 @pytest.fixture

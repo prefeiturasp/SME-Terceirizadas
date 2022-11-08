@@ -49,6 +49,7 @@ from ..kit_lanche.models import (
     SolicitacaoKitLancheCEMEI,
     SolicitacaoKitLancheUnificada
 )
+from .constants import PERIODOS_ESPECIAIS_CEMEI
 from .services import NovoSGPServicoLogado
 from .utils import meses_para_mes_e_ano_string
 
@@ -375,7 +376,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
         if self.tipo_unidade.tem_somente_integral_e_parcial:
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
-        if self.tipo_unidade.iniciais == 'CEU GESTAO':
+        elif self.tipo_unidade.iniciais == 'CEU GESTAO':
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
         else:
             # TODO: ver uma forma melhor de fazer essa query
@@ -402,8 +403,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     def periodos_escolares_com_alunos(self):
         return list(self.aluno_set.values_list('periodo_escolar__nome', flat=True).distinct())
 
-    @property  # noqa C901
-    def quantidade_alunos_por_cei_emei(self):
+    def quantidade_alunos_por_cei_emei(self, manha_e_tarde_sempre=False):  # noqa C901
         if not self.eh_cemei:
             return None
         return_dict = {}
@@ -418,8 +418,11 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
                 lista_faixas[periodo].append({'uuid': uuid_,
                                               'faixa': FaixaEtaria.objects.get(uuid=uuid_).__str__(),
                                               'quantidade_alunos': quantidade_alunos})
-
-        for periodo in self.periodos_escolares_com_alunos:
+        periodos = self.periodos_escolares_com_alunos
+        if manha_e_tarde_sempre:
+            periodos = list(PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEMEI).values_list(
+                'nome', flat=True))
+        for periodo in periodos:
             return_dict[periodo] = {}
             try:
                 return_dict[periodo]['CEI'] = lista_faixas[periodo]
