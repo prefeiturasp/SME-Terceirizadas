@@ -471,6 +471,24 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
     return html_to_pdf_response(html_string, f'solicitacao_suspensao_{solicitacao.id_externo}.pdf')
 
 
+def relatorio_suspensao_de_alimentacao_cei(request, solicitacao):
+    escola = solicitacao.rastro_escola
+    logs = solicitacao.logs
+    periodos_escolares = solicitacao.periodos_escolares.all()
+    html_string = render_to_string(
+        'solicitacao_suspensao_de_alimentacao_cei.html',
+        {
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'periodos_escolares': periodos_escolares,
+            'fluxo': constants.FLUXO_SUSPENSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_SUSPENSAO_ALIMENTACAO, solicitacao.logs),
+            'logs': formata_logs(logs)
+        }
+    )
+    return html_to_pdf_response(html_string, f'solicitacao_suspensao_cei_{solicitacao.id_externo}.pdf')
+
+
 def relatorio_produto_homologacao(request, produto):
     homologacao = produto.homologacao
     terceirizada = homologacao.rastro_terceirizada
