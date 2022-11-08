@@ -28,7 +28,8 @@ from ...relatorios.relatorios import (
     relatorio_alteracao_cardapio,
     relatorio_alteracao_cardapio_cei,
     relatorio_inversao_dia_de_cardapio,
-    relatorio_suspensao_de_alimentacao
+    relatorio_suspensao_de_alimentacao,
+    relatorio_suspensao_de_alimentacao_cei
 )
 from ..models import (
     AlteracaoCardapio,
@@ -535,6 +536,11 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path=constants.RELATORIO, methods=['get'],
+            permission_classes=(IsAuthenticated,))
+    def relatorio(self, request, uuid=None):
+        return relatorio_suspensao_de_alimentacao_cei(request, solicitacao=self.get_object())
 
 
 class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
