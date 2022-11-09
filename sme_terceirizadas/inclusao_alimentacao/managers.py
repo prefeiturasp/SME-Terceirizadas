@@ -73,6 +73,26 @@ class InclusaoDeAlimentacaoDeCeiVencidosDiasManager(models.Manager):
         )
 
 
+class InclusaoDeAlimentacaoCemeiDesteMesManager(models.Manager):
+    def get_queryset(self):
+        hoje = datetime.date.today()
+        data_limite_inicial = hoje
+        data_limite_final = hoje + datetime.timedelta(days=31)
+        return super(InclusaoDeAlimentacaoCemeiDesteMesManager, self).get_queryset().filter(
+            dias_motivos_da_inclusao_cemei__data__range=(data_limite_inicial, data_limite_final)
+        )
+
+
+class InclusaoDeAlimentacaoCemeiDestaSemanaManager(models.Manager):
+    def get_queryset(self):
+        hoje = datetime.date.today()
+        data_limite_inicial = hoje
+        data_limite_final = hoje + datetime.timedelta(days=7)
+        return super(InclusaoDeAlimentacaoCemeiDestaSemanaManager, self).get_queryset().filter(
+            dias_motivos_da_inclusao_cemei__data__range=(data_limite_inicial, data_limite_final)
+        )
+
+
 class GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager(models.Manager):
     def get_queryset(self):
         hoje = datetime.date.today()

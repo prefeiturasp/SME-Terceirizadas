@@ -17,11 +17,19 @@ from ...dados_comuns.permissions import (
 )
 from ...escola.constants import PERIODOS_ESPECIAIS_CEMEI
 from ...escola.models import Escola
+from ...inclusao_alimentacao.api.viewsets import (
+    CodaeAutoriza,
+    CodaeQuestionaTerceirizadaResponde,
+    DREValida,
+    EscolaIniciaCancela,
+    TerceirizadaTomaCiencia
+)
 from ...relatorios.relatorios import (
     relatorio_alteracao_cardapio,
     relatorio_alteracao_cardapio_cei,
     relatorio_inversao_dia_de_cardapio,
-    relatorio_suspensao_de_alimentacao
+    relatorio_suspensao_de_alimentacao,
+    relatorio_suspensao_de_alimentacao_cei
 )
 from ..models import (
     AlteracaoCardapio,
@@ -529,6 +537,11 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, url_path=constants.RELATORIO, methods=['get'],
+            permission_classes=(IsAuthenticated,))
+    def relatorio(self, request, uuid=None):
+        return relatorio_suspensao_de_alimentacao_cei(request, solicitacao=self.get_object())
+
 
 class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -1023,31 +1036,52 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
         return relatorio_alteracao_cardapio_cei(request, solicitacao=self.get_object())
 
 
-class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet):
+class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet, EscolaIniciaCancela, DREValida, CodaeAutoriza,
+                                     CodaeQuestionaTerceirizadaResponde, TerceirizadaTomaCiencia):
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return AlteracaoCardapioCEMEISerializerCreate
         return AlteracaoCardapioCEMEISerializer
 
-    def get_queryset(self):
-        queryset = AlteracaoCardapioCEMEI.objects.filter(escola=self.request.user.vinculo_atual.instituicao)
+    def get_queryset(self): # noqa C901
+        queryset = AlteracaoCardapioCEMEI.objects.all()
+        user = self.request.user
+        if user.tipo_usuario == 'escola':
+            queryset = queryset.filter(escola=user.vinculo_atual.instituicao)
+        if user.tipo_usuario == 'diretoriaregional':
+            queryset = queryset.filter(rastro_dre=user.vinculo_atual.instituicao)
+        if user.tipo_usuario == 'terceirizada':
+            queryset = queryset.filter(rastro_terceirizada=user.vinculo_atual.instituicao)
         if 'status' in self.request.query_params:
             queryset = queryset.filter(status=self.request.query_params.get('status').upper())
         return queryset
 
-    @action(detail=True,
-            permission_classes=(UsuarioEscola,),
-            methods=['patch'],
-            url_path=constants.ESCOLA_INICIO_PEDIDO)
-    def inicio_de_pedido(self, request, uuid=None):
-        obj = self.get_object()
-        try:
-            obj.inicia_fluxo(user=request.user, )
-            serializer = self.get_serializer(obj)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioDiretoriaRegional,))
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_cemei_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        codae = usuario.vinculo_atual.instituicao
+        alteracoes_cardapio = codae.alteracoes_cardapio_cemei_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
