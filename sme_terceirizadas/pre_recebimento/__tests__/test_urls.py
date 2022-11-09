@@ -42,3 +42,12 @@ def test_url_endpoint_cronograma(client_autenticado_dilog, armazem):
 def test_url_lista_etapas_authorized_numeros(client_autenticado_dilog):
     response = client_autenticado_dilog.get('/cronogramas/opcoes-etapas/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_list_cronogramas(client_autenticado_dilog):
+    response = client_autenticado_dilog.get('/cronogramas/')
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert 'count' in json
+    assert 'next' in json
+    assert 'previous' in json
