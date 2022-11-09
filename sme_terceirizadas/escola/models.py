@@ -380,7 +380,9 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
         else:
             # TODO: ver uma forma melhor de fazer essa query
-            periodos_ids = self.alunos_matriculados_por_periodo.filter(quantidade_alunos__gte=1).values_list(
+            periodos_ids = self.alunos_matriculados_por_periodo.filter(
+                tipo_turma='REGULAR',
+                quantidade_alunos__gte=1).values_list(
                 'periodo_escolar', flat=True
             )
             periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids)
