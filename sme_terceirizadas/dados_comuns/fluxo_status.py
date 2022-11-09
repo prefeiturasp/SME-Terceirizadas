@@ -2866,10 +2866,20 @@ class CronogramaWorkflow(xwf_models.Workflow):
 
     RASCUNHO = 'RASCUNHO'
     ENVIADO_AO_FORNECEDOR = 'ENVIADO_AO_FORNECEDOR'
+    ALTERACAO_CODAE = 'ALTERACAO_CODAE'
+    APROVADO = 'APROVADO'
+    REPROVADO = 'REPROVADO'
+    ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
+    VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
 
     states = (
         (RASCUNHO, 'Rascunho'),
         (ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
+        (ALTERACAO_CODAE, 'Alteração CODAE'),
+        (APROVADO, 'Aprovado'),
+        (REPROVADO, 'Reprovado'),
+        (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
+        (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
     )
 
     transitions = (
