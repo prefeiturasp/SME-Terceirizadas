@@ -436,8 +436,8 @@ class SuspensaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('suspensao
 
 class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentacao_de_cei'),
                                 TemData, TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
-                                CriadoEm, FluxoInformativoPartindoDaEscola, Logs, TemPrioridade,
-                                TemTerceirizadaConferiuGestaoAlimentacao):
+                                CriadoEm, FluxoInformativoPartindoDaEscola, Logs, TemObservacao,
+                                TemPrioridade, TemTerceirizadaConferiuGestaoAlimentacao):
     DESCRICAO = 'Suspensão de Alimentação de CEI'
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)

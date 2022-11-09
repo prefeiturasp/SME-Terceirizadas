@@ -28,7 +28,11 @@ from ...dados_comuns.constants import (
     COORDENADOR_GESTAO_PRODUTO,
     COORDENADOR_LOGISTICA,
     COORDENADOR_SUPERVISAO_NUTRICAO,
-    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO
+    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+    DILOG_CRONOGRAMA,
+    DILOG_DIRETORIA,
+    DILOG_QUALIDADE,
+    DINUTRE_DIRETORIA
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
@@ -201,6 +205,9 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                     tipo_usuario = 'nutricao_manifestacao'
                 elif self.vinculo_atual.perfil.nome in [ADMINISTRADOR_MEDICAO]:
                     tipo_usuario = 'medicao'
+                elif self.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
+                                                        DINUTRE_DIRETORIA]:
+                    tipo_usuario = 'pre_recebimento'
                 else:
                     tipo_usuario = 'dieta_especial'
         return tipo_usuario

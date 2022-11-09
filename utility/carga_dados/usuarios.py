@@ -250,6 +250,38 @@ USUARIOS = [
         'nome': 'SUPER USUARIO UE PARCEIRA',
         'cargo': 'Diretor',
     },
+    {
+        'email': 'cronograma@admin.com',
+        'password': DJANGO_ADMIN_PASSWORD,
+        'cpf': '11111111128',
+        'registro_funcional': '1239000',
+        'nome': 'SUPER USUARIO CRONOGRAMA',
+        'cargo': 'Coordenador',
+    },
+    {
+        'email': 'qualidade@admin.com',
+        'password': DJANGO_ADMIN_PASSWORD,
+        'cpf': '11111111128',
+        'registro_funcional': '1240000',
+        'nome': 'SUPER USUARIO QUALIDADE',
+        'cargo': 'Coordenador',
+    },
+    {
+        'email': 'dilogdiretoria@admin.com',
+        'password': DJANGO_ADMIN_PASSWORD,
+        'cpf': '11111111130',
+        'registro_funcional': '1241000',
+        'nome': 'SUPER USUARIO DILOG DIRETORIA',
+        'cargo': 'Diretor',
+    },
+    {
+        'email': 'dinutrediretoria@admin.com',
+        'password': DJANGO_ADMIN_PASSWORD,
+        'cpf': '11111111131',
+        'registro_funcional': '1242000',
+        'nome': 'SUPER USUARIO DINUTRE DIRETORIA',
+        'cargo': 'Coordenador',
+    },
 ]
 
 
