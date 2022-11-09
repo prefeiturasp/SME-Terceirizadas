@@ -293,7 +293,7 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
                                related_name='grupos_inclusoes_por_cei')
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
-    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING, blank=True, null=True)
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
 
     objects = models.Manager()  # Manager Padrão
