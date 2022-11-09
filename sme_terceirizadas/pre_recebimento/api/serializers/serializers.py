@@ -7,3 +7,9 @@ class CronogramaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cronograma
         exclude = ('id',)
+
+
+class CronogramaRascunhosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cronograma
+        fields = ('uuid', 'numero', 'criado_em')
