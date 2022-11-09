@@ -1,9 +1,11 @@
+import datetime
 import logging
 from collections import Counter
 from datetime import date
 from enum import Enum
 
 import unidecode
+from dateutil.relativedelta import relativedelta
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
@@ -402,7 +404,9 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_DIRET)
         else:
             # TODO: ver uma forma melhor de fazer essa query
-            periodos_ids = self.alunos_matriculados_por_periodo.filter(quantidade_alunos__gte=1).values_list(
+            periodos_ids = self.alunos_matriculados_por_periodo.filter(
+                tipo_turma='REGULAR',
+                quantidade_alunos__gte=1).values_list(
                 'periodo_escolar', flat=True
             )
             periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids)
@@ -509,6 +513,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         if faixas_etarias.count() == 0:
             raise ObjectDoesNotExist()
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.codigo_eol)
+        seis_anos_atras = datetime.date.today() - relativedelta(years=6)
 
         resultados = {}
         for aluno in lista_alunos:
@@ -519,7 +524,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             for faixa_etaria in faixas_etarias:
                 if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
                     resultados[periodo][str(faixa_etaria.uuid)] += 1
-
+                elif data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:  # ultima faixa
+                    resultados[periodo][str(faixa_etaria.uuid)] += 1
         return resultados
 
     def alunos_por_periodo_e_faixa_etaria_objetos_alunos(self, data_referencia=None, faixas_etarias=None):  # noqa C901
@@ -532,7 +538,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         lista_alunos = Aluno.objects.filter(escola__codigo_eol=self.codigo_eol).filter(
             Q(serie__icontains='1') | Q(serie__icontains='2')
             | Q(serie__icontains='3') | Q(serie__icontains='4'))
-
+        seis_anos_atras = datetime.date.today() - relativedelta(years=6)
         resultados = {}
         for aluno in lista_alunos:
             periodo = aluno.periodo_escolar.nome
@@ -541,6 +547,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             data_nascimento = aluno.data_nascimento
             for faixa_etaria in faixas_etarias:
                 if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
+                    resultados[periodo][str(faixa_etaria.uuid)] += 1
+                elif data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:  # ultima faixa
                     resultados[periodo][str(faixa_etaria.uuid)] += 1
 
         return resultados
@@ -553,12 +561,15 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         if faixas_etarias.count() == 0:
             raise ObjectDoesNotExist()
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.codigo_eol)
+        seis_anos_atras = datetime.date.today() - relativedelta(years=6)
 
         resultados = Counter()
         for aluno in lista_alunos:
             data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
             for faixa_etaria in faixas_etarias:
                 if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
+                    resultados[str(faixa_etaria.uuid)] += 1
+                elif data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:  # ultima faixa
                     resultados[str(faixa_etaria.uuid)] += 1
 
         return resultados
@@ -602,13 +613,16 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
             raise ObjectDoesNotExist()
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.escola.codigo_eol)
         faixa_alunos = Counter()
+        seis_anos_atras = datetime.date.today() - relativedelta(years=6)
         for aluno in lista_alunos:
             if aluno['dc_tipo_turno'].strip().upper() == self.periodo_escolar.nome:
                 data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+
                 for faixa_etaria in faixas_etarias:
                     if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
                         faixa_alunos[faixa_etaria.uuid] += 1
-
+                    elif data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:  # ultima faixa
+                        faixa_alunos[faixa_etaria.uuid] += 1
         return faixa_alunos
 
     class Meta:
