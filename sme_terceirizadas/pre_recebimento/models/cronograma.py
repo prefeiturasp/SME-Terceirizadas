@@ -102,7 +102,7 @@ class ProgramacaoDoRecebimentoDoCronograma(ModeloBase):
         if self.data_programada:
             return self.data_programada
         else:
-            return self.id
+            return str(self.id)
 
     class Meta:
         verbose_name = 'Programação do Recebimento do Cromograma'

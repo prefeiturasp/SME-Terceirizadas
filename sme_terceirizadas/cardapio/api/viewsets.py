@@ -694,7 +694,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['list']:
-            self.permission_classes = (IsAdminUser,)
+            self.permission_classes = (UsuarioEscola,)
         elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
