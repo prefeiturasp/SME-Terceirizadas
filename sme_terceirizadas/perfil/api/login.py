@@ -19,7 +19,6 @@ class LoginView(ObtainJSONWebToken):
     def post(self, request, *args, **kwargs):  # noqa
         login = request.data.get('login', '')
         senha = request.data.get('password', '')
-
         try:
             response = AutenticacaoService.autentica(login, senha)
             if response.status_code == 200:
@@ -27,6 +26,7 @@ class LoginView(ObtainJSONWebToken):
                 if 'login' in user_dict.keys():
                     try:
                         user = User.objects.get(username=user_dict['login'])
+                        last_login = user.last_login
                         user.name = user_dict['nome']
                         user.email = user_dict['email']
                         user.set_password(senha)
@@ -44,7 +44,7 @@ class LoginView(ObtainJSONWebToken):
 
                     request._full_data = {'username': user_dict['login'], 'password': senha}
                     resp = super().post(request, *args, **kwargs)
-                    data = {**user_dict, **resp.data}
+                    data = {'last_login': last_login, **user_dict, **resp.data}
                     return Response(data)
             return Response(response.json(), response.status_code)
         except Exception as e:
