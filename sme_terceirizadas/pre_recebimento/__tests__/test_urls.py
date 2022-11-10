@@ -51,3 +51,10 @@ def test_url_list_cronogramas(client_autenticado_dilog):
     assert 'count' in json
     assert 'next' in json
     assert 'previous' in json
+
+
+def test_url_list_rascunhos_cronogramas(client_autenticado_dilog):
+    response = client_autenticado_dilog.get('/cronogramas/rascunhos/')
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert 'results' in json
