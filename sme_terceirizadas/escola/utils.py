@@ -17,6 +17,8 @@ def meses_para_mes_e_ano_string(meses):
 
     if anos > 0:
         saida = f'{anos} ' + ('ano' if anos == 1 else 'anos')
+        if anos == 6:
+            return saida
         if meses > 0:
             saida += ' e '
     if anos == 0 or meses > 0:

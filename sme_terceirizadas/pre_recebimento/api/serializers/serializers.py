@@ -35,5 +35,11 @@ class CronogramaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cronograma
         fields = ('uuid', 'numero', 'status', 'criado_em', 'alterado_em', 'contrato_uuid', 'contrato', 'empresa_uuid',
-                  'nome_empresa', 'processo_sei', 'produto_uuid', 'nome_produto', 'qtd_total_programada',
-                  'unidade_medida', 'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento')
+                          'nome_empresa', 'processo_sei', 'produto_uuid', 'nome_produto', 'qtd_total_programada',
+                          'unidade_medida', 'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento')
+
+
+class CronogramaRascunhosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cronograma
+        fields = ('uuid', 'numero', 'criado_em')
