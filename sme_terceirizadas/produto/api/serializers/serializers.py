@@ -149,7 +149,7 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
         ).data
 
     def get_logs(self, obj):
-        return LogSolicitacoesUsuarioSerializer(
+        return LogSolicitacoesUsuarioComAnexosSerializer(
             LogSolicitacoesUsuario.objects.filter(
                 uuid_original=obj.uuid).order_by('criado_em'),
             many=True
