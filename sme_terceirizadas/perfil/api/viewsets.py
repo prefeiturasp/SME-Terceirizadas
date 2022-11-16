@@ -81,6 +81,8 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = RedefinirSenhaSerializer()
         validated_data = serializer.validate(request.data)
         usuario = request.user
+        usuario.last_login = datetime.datetime.now()
+        usuario.save()
         result = serializer.update(usuario, validated_data)
         if isinstance(result, Response):
             logger.error('Erro ao alterar a senha:', result)
