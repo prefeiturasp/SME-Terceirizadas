@@ -69,6 +69,7 @@ class EtapasDoCronograma(ModeloBase):
             return f'Etapa do cronogrma {self.cronograma.numero}'
 
     class Meta:
+        ordering = ('etapa', 'parte')
         verbose_name = 'Etapa do Cronograma'
         verbose_name_plural = 'Etapas dos Cronogramas'
 
