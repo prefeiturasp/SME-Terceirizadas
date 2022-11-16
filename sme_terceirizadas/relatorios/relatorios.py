@@ -386,12 +386,9 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
                 if q.first():
                     quantidade_inclusao = q.first().quantidade_alunos
                     t = sum([m['count'] if m['faixa_etaria']['uuid'] == str(faixa.uuid) else 0 for m in matriculados])
-                else:
-                    quantidade_inclusao = 0
-                    t = 0
-                inclusoes.append({'faixa_etaria': faixa,
-                                  'quantidade_alunos': quantidade_inclusao,
-                                  'quantidade_matriculados': t})
+                    inclusoes.append({'faixa_etaria': faixa,
+                                      'quantidade_alunos': quantidade_inclusao,
+                                      'quantidade_matriculados': t})
 
             quantidade['quantidade_por_faixa_etaria'] = inclusoes
             quantidade_por_faixa.append(quantidade)
