@@ -422,8 +422,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         ).exclude(perfil__nome=COORDENADOR_ESCOLA)
 
     @property
-    def eh_cei_diret(self):
-        return self.tipo_unidade and self.tipo_unidade.iniciais == 'CEI DIRET'
+    def eh_cei(self):
+        return self.tipo_unidade and self.tipo_unidade.iniciais in ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI']
 
     @property
     def eh_cemei(self):

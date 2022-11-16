@@ -416,7 +416,7 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
 
         if request.user.vinculo_atual:
             escola = request.user.vinculo_atual.instituicao
-            if escola.tipo_unidade.iniciais == 'CEI DIRET':
+            if escola.eh_cei:
                 escola_periodo = EscolaPeriodoEscolar.objects.get(periodo_escolar__uuid=uuid, escola__uuid=escola.uuid)
         else:
             escola_periodo = self.get_object()
