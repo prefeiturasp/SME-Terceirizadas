@@ -497,8 +497,12 @@ def test_url_endpoint_inclusao_continua_relatorio(client_autenticado,
     assert isinstance(response.content, bytes)
 
 
-def test_url_endpoint_inclusao_cei_relatorio(client_autenticado_vinculo_escola_cei_inclusao):
-    inclusao_alimentacao = mommy.make(InclusaoAlimentacaoDaCEI)
+def test_url_endpoint_inclusao_cei_relatorio(client_autenticado_vinculo_escola_cei_inclusao,
+                                             escola_periodo_escolar_cei,
+                                             escola_cei, periodo_escolar):
+    inclusao_alimentacao = mommy.make(InclusaoAlimentacaoDaCEI,
+                                      rastro_escola=escola_cei,
+                                      periodo_escolar=periodo_escolar)
     response = client_autenticado_vinculo_escola_cei_inclusao.get(
         f'/inclusoes-alimentacao-da-cei/{inclusao_alimentacao.uuid}/{constants.RELATORIO}/')
     id_externo = inclusao_alimentacao.id_externo
