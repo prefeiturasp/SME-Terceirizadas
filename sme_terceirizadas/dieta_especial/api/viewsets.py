@@ -1021,9 +1021,9 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         ).filter(Q(ativas__gt=0) | Q(inativas__gt=0))
 
         if user.tipo_usuario == 'escola':
-            qs = qs.filter(escola=user.vinculo_atual.instituicao)
+            qs = qs.filter(dietas_especiais__rastro_escola=user.vinculo_atual.instituicao)
         elif form.cleaned_data['escola']:
-            qs = qs.filter(escola=form.cleaned_data['escola'])
+            qs = qs.filter(dietas_especiais__rastro_escola=form.cleaned_data['escola'])
         elif user.tipo_usuario == 'diretoriaregional':
             qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=user.vinculo_atual.instituicao)
         elif form.cleaned_data['dre']:
