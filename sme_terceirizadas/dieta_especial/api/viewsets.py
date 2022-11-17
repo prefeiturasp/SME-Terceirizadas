@@ -1025,9 +1025,9 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         elif form.cleaned_data['escola']:
             qs = qs.filter(escola=form.cleaned_data['escola'])
         elif user.tipo_usuario == 'diretoriaregional':
-            qs = qs.filter(escola__diretoria_regional=user.vinculo_atual.instituicao)
+            qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=user.vinculo_atual.instituicao)
         elif form.cleaned_data['dre']:
-            qs = qs.filter(escola__diretoria_regional=form.cleaned_data['dre'])
+            qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=form.cleaned_data['dre'])
 
         if form.cleaned_data['codigo_eol']:
             codigo_eol = f"{int(form.cleaned_data['codigo_eol']):06d}"
@@ -1043,6 +1043,7 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
             )
         elif self.request.user.tipo_usuario == 'diretoriaregional':
             return qs.order_by('escola__nome', 'nome')
+
         return qs.order_by('nome')
 
 
