@@ -3,12 +3,15 @@ from datetime import date
 from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
     ProgramacaoDoRecebimentoDoCronograma
 )
 from sme_terceirizadas.terceirizada.models import Terceirizada
+
+from .serializers import EtapasDoCronogramaSerializer, ProgramacaoDoRecebimentoDoCronogramaSerializer
 
 
 class ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(serializers.ModelSerializer):
@@ -90,6 +93,34 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
             cronograma.inicia_fluxo(user=user)
 
         return cronograma
+
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+        cadastro_finalizado = validated_data.pop('cadastro_finalizado', None)
+        etapas_payload = validated_data.pop('etapas', [])
+        programacoes_de_recebimento_payload = validated_data.pop('programacoes_de_recebimento', [])
+
+        instance.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CRIADO, usuario=user)
+        instance.etapas.clear()
+        instance.programacoes_de_recebimento.clear()
+
+        lista_etapas = []
+        for etapa_json in etapas_payload:
+            etapa = EtapasDoCronogramaSerializer().create(etapa_json)
+            lista_etapas.append(etapa)
+
+        lista_programa_de_recebimento = []
+        for programa_de_recebimento_json in programacoes_de_recebimento_payload:
+            recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer().create(programa_de_recebimento_json)
+            lista_programa_de_recebimento.append(recebimento)
+
+        update_instance_from_dict(instance, validated_data, save=True)
+        instance.etapas.set(lista_etapas)
+        instance.programacoes_de_recebimento.set(lista_programa_de_recebimento)
+
+        if cadastro_finalizado:
+            instance.inicia_fluxo(user=user)
+        return instance
 
     class Meta:
         model = Cronograma
