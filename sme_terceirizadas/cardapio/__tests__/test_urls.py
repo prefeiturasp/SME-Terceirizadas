@@ -516,13 +516,6 @@ def test_permissoes_alteracao_cardapio_viewset(client_autenticado_vinculo_escola
     response = client_autenticado_vinculo_escola_cardapio.get(
         f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_outra_dre.uuid}/'
     )
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-    # não pode ver os dados de TODAS as alterações de cardápio
-    response = client_autenticado_vinculo_escola_cardapio.get(
-        f'/{ENDPOINT_ALTERACAO_CARD}/'
-    )
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
     alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
     alteracao_cardapio.save()
     response = client_autenticado_vinculo_escola_cardapio.delete(

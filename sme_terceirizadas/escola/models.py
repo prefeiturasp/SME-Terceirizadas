@@ -13,7 +13,13 @@ from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 from rest_framework import status
 
-from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..cardapio.models import (
+    AlteracaoCardapio,
+    AlteracaoCardapioCEI,
+    AlteracaoCardapioCEMEI,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio
+)
 from ..dados_comuns.behaviors import (
     ArquivoCargaBase,
     Ativavel,
@@ -39,11 +45,16 @@ from ..dados_comuns.constants import (
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
-from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI, PERIODOS_ESPECIAIS_CEU_GESTAO
+from ..escola.constants import (
+    PERIODOS_ESPECIAIS_CEI_CEU_CCI,
+    PERIODOS_ESPECIAIS_CEI_DIRET,
+    PERIODOS_ESPECIAIS_CEU_GESTAO
+)
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
-    InclusaoAlimentacaoDaCEI
+    InclusaoAlimentacaoDaCEI,
+    InclusaoDeAlimentacaoCEMEI
 )
 from ..kit_lanche.models import (
     SolicitacaoKitLancheAvulsa,
@@ -158,6 +169,9 @@ class DiretoriaRegional(
     def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(filtro_aplicado, InclusaoAlimentacaoDaCEI)
 
+    def inclusoes_alimentacao_cemei_das_minhas_escolas(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(filtro_aplicado, InclusaoDeAlimentacaoCEMEI)
+
     #
     # Alterações de cardápio
     #
@@ -207,6 +221,12 @@ class DiretoriaRegional(
     def alteracoes_cardapio_cei_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEI)
         return queryset.filter(escola__in=self.escolas.all(), status=AlteracaoCardapioCEI.workflow_class.DRE_A_VALIDAR)
+
+    def alteracoes_cardapio_cemei_das_minhas_escolas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEMEI)
+        return queryset.filter(
+            escola__in=self.escolas.all(), status=AlteracaoCardapioCEMEI.workflow_class.DRE_A_VALIDAR
+        )
 
     #
     # Inversões de cardápio
@@ -380,6 +400,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
         elif self.tipo_unidade.iniciais == 'CEU GESTAO':
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
+        if self.tipo_unidade.iniciais == 'CEI DIRET':
+            periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_DIRET)
         else:
             # TODO: ver uma forma melhor de fazer essa query
             periodos_ids = self.alunos_matriculados_por_periodo.filter(
@@ -398,6 +420,10 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
                 data_inicial__isnull=False, data_final=None, ativo=True
             )  # noqa W504 ativo
         ).exclude(perfil__nome=COORDENADOR_ESCOLA)
+
+    @property
+    def eh_cei(self):
+        return self.tipo_unidade and self.tipo_unidade.iniciais in ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI']
 
     @property
     def eh_cemei(self):
@@ -824,6 +850,15 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
             ]
         )
 
+    def inclusoes_alimentacao_cemei_das_minhas_escolas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, InclusaoDeAlimentacaoCEMEI)
+        return queryset.filter(
+            status__in=[
+                InclusaoDeAlimentacaoCEMEI.workflow_class.DRE_VALIDADO,
+                InclusaoDeAlimentacaoCEMEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+            ]
+        )
+
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
         return queryset.filter(
@@ -839,6 +874,15 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
             status__in=[
                 AlteracaoCardapioCEI.workflow_class.DRE_VALIDADO,
                 AlteracaoCardapioCEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+            ]
+        )
+
+    def alteracoes_cardapio_cemei_das_minhas_escolas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEMEI)
+        return queryset.filter(
+            status__in=[
+                AlteracaoCardapioCEMEI.workflow_class.DRE_VALIDADO,
+                AlteracaoCardapioCEMEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
             ]
         )
 

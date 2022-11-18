@@ -58,11 +58,19 @@ def test_diretoria_regional(diretoria_regional, escola):
     for filtro in [DAQUI_A_TRINTA_DIAS, DAQUI_A_SETE_DIAS, SEM_FILTRO]:
         assert diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro) is not None
+        assert diretoria_regional.solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
+            filtro) is not None
         assert diretoria_regional.alteracoes_cardapio_das_minhas_escolas_a_validar(
             filtro) is not None
         assert diretoria_regional.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro) is not None
+        assert diretoria_regional.inclusoes_alimentacao_cemei_das_minhas_escolas(
+            filtro) is not None
         assert diretoria_regional.alteracoes_cardapio_das_minhas_escolas(
+            filtro) is not None
+        assert diretoria_regional.alteracoes_cardapio_cei_das_minhas_escolas(
+            filtro) is not None
+        assert diretoria_regional.alteracoes_cardapio_cemei_das_minhas_escolas(
             filtro) is not None
         assert diretoria_regional.inversoes_cardapio_das_minhas_escolas(
             filtro) is not None
@@ -105,10 +113,18 @@ def test_codae(codae):
     for filtro in [DAQUI_A_TRINTA_DIAS, DAQUI_A_SETE_DIAS, SEM_FILTRO]:
         assert codae.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro) is not None
+        assert codae.solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
+            filtro) is not None
         assert codae.solicitacoes_unificadas(filtro) is not None
         assert codae.suspensoes_cardapio_das_minhas_escolas(filtro) is not None
         assert codae.alteracoes_cardapio_das_minhas(filtro) is not None
+        assert codae.alteracoes_cardapio_cei_das_minhas(
+            filtro) is not None
+        assert codae.alteracoes_cardapio_cemei_das_minhas_escolas(
+            filtro) is not None
         assert codae.inclusoes_alimentacao_continua_das_minhas_escolas(
+            filtro) is not None
+        assert codae.inclusoes_alimentacao_cemei_das_minhas_escolas(
             filtro) is not None
         assert codae.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro) is not None
