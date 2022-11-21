@@ -241,10 +241,12 @@ class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
 
 class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+    lote = LoteSimplesSerializer()
+    tipo_unidade = TipoUnidadeEscolarSerializer()
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'diretoria_regional', 'codigo_eol', 'quantidade_alunos')
+        fields = ('uuid', 'nome', 'diretoria_regional', 'codigo_eol', 'quantidade_alunos', 'lote', 'tipo_unidade')
 
 
 class PeriodoEFaixaEtariaCounterSerializer(serializers.BaseSerializer):
