@@ -132,6 +132,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
 
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
+    data_evento_fim = models.DateField()
     criado_em = models.DateTimeField()
     lote_nome = models.CharField(max_length=50)
     dre_nome = models.CharField(max_length=200)
@@ -178,6 +179,16 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         return queryset
 
     @classmethod
+    def busca_data_evento(cls, queryset, query_params, **kwargs):
+        data_evento = query_params.get('data_evento')
+        if not data_evento:
+            return queryset
+        queryset = queryset.filter(Q(data_evento=data_evento) |
+                                   (Q(data_evento_fim__isnull=False) & ~Q(desc_doc__icontains='Alteração') &
+                                    (Q(data_evento__lte=data_evento) | Q(data_evento_fim__gte=data_evento))))
+        return queryset
+
+    @classmethod
     def busca_filtro(cls, queryset, query_params, **kwargs):
         if query_params.get('busca'):
             queryset = queryset.filter(
@@ -194,6 +205,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
             queryset = queryset.filter(
                 terceirizada_conferiu_gestao=query_params.get('status') == '1')
         queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
+        queryset = cls.busca_data_evento(queryset, query_params)
         return queryset
 
     @classmethod
