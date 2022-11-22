@@ -42,4 +42,4 @@ class CronogramaSerializer(serializers.ModelSerializer):
 class CronogramaRascunhosSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cronograma
-        fields = ('uuid', 'numero', 'criado_em')
+        fields = ('uuid', 'numero', 'alterado_em')
