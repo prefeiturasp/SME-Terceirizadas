@@ -168,6 +168,7 @@ from inclusao_alimentacao_grupoinclusaoalimentacaonormal as inc_aliment_normal
          left join inclusao_alimentacao_inclusaoalimentacaonormal as inc_alimentacao_item
                    on inc_alimentacao_item.grupo_inclusao_id = inc_aliment_normal.id
 group by inc_aliment_normal.id,
+         inc_alimentacao_item.data,
          lote.nome,
          dre.nome,
          escola.nome,
@@ -316,6 +317,7 @@ from cardapio_gruposuspensaoalimentacao as grupo_suspensao
          left join cardapio_suspensaoalimentacao as susp_alimentacao_item
                    on susp_alimentacao_item.grupo_suspensao_id = grupo_suspensao.id
 group by grupo_suspensao.id,
+         susp_alimentacao_item.data,
          lote.nome,
          escola.nome,
          lote.uuid,
@@ -663,6 +665,7 @@ from inclusao_alimentacao_inclusaodealimentacaocemei as inc_aliment_cemei
          left join inclusao_alimentacao_diasmotivosinclusaodealimentacaocemei as inc_alimentacao_item
                    on inc_alimentacao_item.inclusao_alimentacao_cemei_id = inc_aliment_cemei.id
 group by inc_aliment_cemei.id,
+         inc_alimentacao_item.data,
          lote.nome,
          dre.nome,
          escola.nome,
