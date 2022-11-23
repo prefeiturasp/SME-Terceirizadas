@@ -185,7 +185,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
             return queryset
         queryset = queryset.filter(Q(data_evento=data_evento) |
                                    (Q(data_evento_fim__isnull=False) & ~Q(desc_doc__icontains='Alteração') &
-                                    (Q(data_evento__lte=data_evento) | Q(data_evento_fim__gte=data_evento))))
+                                    Q(data_evento__lte=data_evento) & Q(data_evento_fim__gte=data_evento)))
         return queryset
 
     @classmethod
