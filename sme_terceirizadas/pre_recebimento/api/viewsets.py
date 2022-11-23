@@ -6,18 +6,23 @@ from rest_framework.response import Response
 
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaCadastrarLaboratorio,
     PermissaoParaCriarCronograma,
     PermissaoParaVisualizarCronograma,
     ViewSetActionPermissionMixin
 )
 from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter
 from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPagination
-from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import CronogramaCreateSerializer
+from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
+    CronogramaCreateSerializer,
+    LaboratorioCreateSerializer
+)
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaRascunhosSerializer,
-    CronogramaSerializer
+    CronogramaSerializer,
+    LaboratorioSerializer
 )
-from sme_terceirizadas.pre_recebimento.models import Cronograma, EtapasDoCronograma
+from sme_terceirizadas.pre_recebimento.models import Cronograma, EtapasDoCronograma, Laboratorio
 
 
 class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
@@ -66,3 +71,20 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         queryset = self.get_queryset().filter(status__in=[CronogramaWorkflow.RASCUNHO])
         response = {'results': CronogramaRascunhosSerializer(queryset, many=True).data}
         return Response(response)
+
+
+class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Laboratorio.objects.all()
+    serializer_class = LaboratorioSerializer
+    permission_classes = (PermissaoParaCadastrarLaboratorio,)
+    permission_action_classes = {
+        'create': [PermissaoParaCadastrarLaboratorio],
+        'delete': [PermissaoParaCadastrarLaboratorio]
+    }
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return LaboratorioSerializer
+        else:
+            return LaboratorioCreateSerializer

@@ -5,8 +5,10 @@ from rest_framework import serializers
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
+    ContatoLaboratorio,
     Cronograma,
     EtapasDoCronograma,
+    Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma
 )
 from sme_terceirizadas.terceirizada.models import Terceirizada
@@ -125,3 +127,33 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cronograma
         exclude = ('id', 'numero', 'status')
+
+
+class ContatosLaboratoriosCreateSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField(required=False)
+    telefone = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
+
+    class Meta:
+        model = ContatoLaboratorio
+        exclude = ('id', 'laboratorio')
+
+
+class LaboratorioCreateSerializer(serializers.ModelSerializer):
+    contatos = ContatosLaboratoriosCreateSerializer(many=True, required=False)
+
+    def create(self, validated_data):
+        contatos = validated_data.pop('contatos', [])
+        laboratorio = Laboratorio.objects.create(**validated_data)
+
+        for contato in contatos:
+            ContatoLaboratorio.objects.create(
+                laboratorio=laboratorio,
+                **contato
+            )
+
+        return laboratorio
+
+    class Meta:
+        model = Laboratorio
+        exclude = ('id', )
