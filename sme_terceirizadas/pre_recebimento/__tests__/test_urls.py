@@ -2,7 +2,7 @@ import json
 
 from rest_framework import status
 
-from sme_terceirizadas.pre_recebimento.models import Cronograma
+from sme_terceirizadas.pre_recebimento.models import Cronograma, Laboratorio
 
 
 def test_url_endpoint_cronograma(client_autenticado_dilog, armazem):
@@ -95,3 +95,38 @@ def test_url_endpoint_cronograma_editar(client_autenticado_dilog, cronograma_ras
     assert obj.contrato == '5678/2022'
     assert cronograma_rascunho.status == 'RASCUNHO'
     assert obj.status == 'ENVIADO_AO_FORNECEDOR'
+
+
+def test_url_endpoint_laboratorio(client_autenticado_qualidade):
+    data = {
+        'contatos': [
+            {
+                'nome': 'TEREZA',
+                'telefone': '8135431540',
+                'email': 'maxlab@max.com',
+            }
+        ],
+        'nome': 'LABORATORIO DE TESTES',
+        'cnpj': '10359359000154',
+        'cep': '53600000',
+        'logradouro': 'OLIVEIR',
+        'numero': '120',
+        'complemento': '',
+        'bairro': 'CENTRO',
+        'cidade': 'IGARASSU',
+        'estado': 'PE',
+        'credenciado': True
+    }
+    response = client_autenticado_qualidade.post(
+        '/laboratorios/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    obj = Laboratorio.objects.last()
+    assert obj.nome == 'LABORATORIO DE TESTES'
+
+
+def test_url_lista_laboratorios_authorized(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get('/laboratorios/')
+    assert response.status_code == status.HTTP_200_OK
