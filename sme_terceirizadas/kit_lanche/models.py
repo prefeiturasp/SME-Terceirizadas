@@ -76,6 +76,7 @@ class KitLanche(ExportModelOperationsMixin('kit_lanche'), Nomeavel, TemChaveExte
     class Meta:
         verbose_name = 'Kit lanche'
         verbose_name_plural = 'Kit lanches'
+        ordering = ('nome',)
 
 
 class SolicitacaoKitLanche(ExportModelOperationsMixin('kit_lanche_base'), TemData, Motivo, Descritivel, CriadoEm,
