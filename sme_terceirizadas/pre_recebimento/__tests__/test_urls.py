@@ -58,3 +58,40 @@ def test_url_list_rascunhos_cronogramas(client_autenticado_dilog):
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert 'results' in json
+
+
+def test_url_endpoint_cronograma_editar(client_autenticado_dilog, cronograma_rascunho):
+    data = {
+        'contrato_uuid': 'f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
+        'contrato': '5678/2022',
+        'cadastro_finalizado': True,
+        'etapas': [
+            {
+                'empenho_uuid': 'f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
+                'numero_empenho': '123456789'
+            },
+            {
+                'empenho_uuid': 'f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
+                'numero_empenho': '1891425',
+                'etapa': 'Etapa 1'
+            }
+        ],
+        'programacoes_de_recebimento': [
+            {
+                'data_programada': '22/08/2022 - Etapa 1 - Parte 1',
+                'tipo_carga': 'PALETIZADA'
+            }
+        ]
+    }
+    response = client_autenticado_dilog.put(
+        f'/cronogramas/{cronograma_rascunho.uuid}/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    obj = Cronograma.objects.last()
+    assert cronograma_rascunho.contrato == '1234/2022'
+    assert obj.contrato == '5678/2022'
+    assert cronograma_rascunho.status == 'RASCUNHO'
+    assert obj.status == 'ENVIADO_AO_FORNECEDOR'
