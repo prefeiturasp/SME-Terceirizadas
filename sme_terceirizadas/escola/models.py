@@ -285,6 +285,11 @@ class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativav
         help_text='Variável de controle para setar os períodos escolares na mão, válido para CEI CEU, CEI e CCI',
         default=False,
     )
+    pertence_relatorio_solicitacoes_alimentacao = models.BooleanField(
+        help_text='Variável de controle para determinar quais tipos de unidade escolar são exibidos no relatório de '
+                  'solicitações de alimentação',
+        default=True,
+    )
 
     def get_cardapio(self, data):
         # TODO: ter certeza que tem so um cardapio por dia por tipo de u.e.

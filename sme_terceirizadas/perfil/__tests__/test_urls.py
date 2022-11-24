@@ -159,7 +159,8 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                    'codigo_eol': '987656'
+                    'codigo_eol': '987656',
+                    'iniciais': 'IP'
                 },
                 'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
                 'tipo_unidade_escolar_iniciais': 'EMEF',
@@ -586,7 +587,8 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             'diretoria_regional': {
                 'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                 'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                'codigo_eol': '987656'
+                'codigo_eol': '987656',
+                'iniciais': 'IP'
             },
             'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
             'tipo_unidade_escolar_iniciais': 'EMEF',
@@ -665,7 +667,8 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                    'codigo_eol': '987656'
+                    'codigo_eol': '987656',
+                    'iniciais': 'IP'
                 },
                 'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
                 'tipo_unidade_escolar_iniciais': 'EMEF',
