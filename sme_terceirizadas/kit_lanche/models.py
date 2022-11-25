@@ -11,6 +11,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     CriadoPor,
     Descritivel,
     Logs,
+    MatriculadosQuandoCriado,
     Motivo,
     Nomeavel,
     SolicitacaoForaDoPrazo,
@@ -183,7 +184,7 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
         verbose_name_plural = 'Solicitações de kit lanche CEI avulsa'
 
 
-class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(TemChaveExterna, TemFaixaEtariaEQuantidade):
+class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(TemChaveExterna, TemFaixaEtariaEQuantidade, MatriculadosQuandoCriado):
     solicitacao_kit_lanche_avulsa = models.ForeignKey('SolicitacaoKitLancheCEIAvulsa',
                                                       on_delete=models.CASCADE, related_name='faixas_etarias')
 
@@ -470,12 +471,11 @@ class SolicitacaoKitLancheCEIdaCEMEI(TemChaveExterna, TempoPasseio):
         verbose_name_plural = 'Solicitações Kit Lanche CEI da EMEI'
 
 
-class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna):
+class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna, MatriculadosQuandoCriado):
     solicitacao_kit_lanche_cei_da_cemei = models.ForeignKey(SolicitacaoKitLancheCEIdaCEMEI,
                                                             on_delete=models.CASCADE,
                                                             related_name='faixas_quantidades')
     quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-    matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.PROTECT)
 
     class Meta:
@@ -483,10 +483,9 @@ class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna):
         verbose_name_plural = 'Faixas e quantidade de alunos da CEI das solicitações kit lanche CEMEI'
 
 
-class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio):
+class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio, MatriculadosQuandoCriado):
     kits = models.ManyToManyField(KitLanche, blank=True)
     quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-    matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
     solicitacao_kit_lanche_cemei = models.OneToOneField(SolicitacaoKitLancheCEMEI,
                                                         blank=True,
