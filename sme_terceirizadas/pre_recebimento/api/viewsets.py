@@ -88,3 +88,9 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
             return LaboratorioSerializer
         else:
             return LaboratorioCreateSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-laboratorios')
+    def lista_nomes_armazens(self, request):
+        queryset = Laboratorio.objects.all()
+        response = {'results': [q.nome for q in queryset]}
+        return Response(response)
