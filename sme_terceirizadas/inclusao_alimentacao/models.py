@@ -9,6 +9,7 @@ from ..dados_comuns.behaviors import (
     DiasSemana,
     IntervaloDeDia,
     Logs,
+    MatriculadosQuandoCriado,
     Nomeavel,
     SolicitacaoForaDoPrazo,
     TemChaveExterna,
@@ -267,7 +268,7 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
         verbose_name_plural = 'Grupos de inclusão de alimentação normal'
 
 
-class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExterna):
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExterna, MatriculadosQuandoCriado):
     inclusao_alimentacao_da_cei = models.ForeignKey('InclusaoAlimentacaoDaCEI',
                                                     blank=True, null=True,
                                                     on_delete=models.CASCADE,
@@ -381,13 +382,12 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
         verbose_name_plural = 'Inclusões de alimentação CEMEI'
 
 
-class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI(TemChaveExterna):
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI(TemChaveExterna, MatriculadosQuandoCriado):
     inclusao_alimentacao_cemei = models.ForeignKey('InclusaoDeAlimentacaoCEMEI',
                                                    on_delete=models.CASCADE,
                                                    related_name='quantidade_alunos_cei_da_inclusao_cemei')
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
     quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-    matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
 
     def __str__(self):
@@ -398,12 +398,11 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI(TemChaveExter
         verbose_name_plural = 'Quantidade de alunos por faixa etária da inclusao de alimentação CEMEI'
 
 
-class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI(TemChaveExterna):
+class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI(TemChaveExterna, MatriculadosQuandoCriado):
     inclusao_alimentacao_cemei = models.ForeignKey('InclusaoDeAlimentacaoCEMEI',
                                                    on_delete=models.CASCADE,
                                                    related_name='quantidade_alunos_emei_da_inclusao_cemei')
     quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-    matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
 
     def __str__(self):
