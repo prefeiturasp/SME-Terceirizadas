@@ -106,7 +106,7 @@ def test_url_endpoint_laboratorio(client_autenticado_qualidade):
                 'email': 'maxlab@max.com',
             }
         ],
-        'nome': 'LABORATORIO DE TESTES',
+        'nome': 'Laboratorio de testes maiusculo',
         'cnpj': '10359359000154',
         'cep': '53600000',
         'logradouro': 'OLIVEIR',
@@ -124,7 +124,7 @@ def test_url_endpoint_laboratorio(client_autenticado_qualidade):
     )
     assert response.status_code == status.HTTP_201_CREATED
     obj = Laboratorio.objects.last()
-    assert obj.nome == 'LABORATORIO DE TESTES'
+    assert obj.nome == 'LABORATORIO DE TESTES MAIUSCULO'
 
 
 def test_url_lista_laboratorios_authorized(client_autenticado_qualidade):

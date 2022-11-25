@@ -39,9 +39,4 @@ def armazem():
 
 @pytest.fixture
 def laboratorio():
-    return mommy.make('Laboratorio', nome='LABO TEST')
-
-
-@pytest.fixture
-def contato(laboratorio):
-    return mommy.make('ContatoLaboratorio', nome='FULANO DE TAL', laboratorio=laboratorio)
+    return mommy.make('Laboratorio', nome='Labo Test')

@@ -1,12 +1,6 @@
 import pytest
 
-from ..models import (
-    ContatoLaboratorio,
-    Cronograma,
-    EtapasDoCronograma,
-    Laboratorio,
-    ProgramacaoDoRecebimentoDoCronograma
-)
+from ..models import Cronograma, EtapasDoCronograma, Laboratorio, ProgramacaoDoRecebimentoDoCronograma
 
 pytestmark = pytest.mark.django_db
 
@@ -55,22 +49,9 @@ def test_laboratorio_instance_model(laboratorio):
 
 
 def test_laboratorio_srt_model(laboratorio):
-    assert laboratorio.__str__() == 'LABO TEST'
+    assert laboratorio.__str__() == 'Labo Test'
 
 
 def test_laboratorio_meta_modelo(laboratorio):
     assert laboratorio._meta.verbose_name == 'Laboratório'
     assert laboratorio._meta.verbose_name_plural == 'Laboratórios'
-
-
-def test_contato_instance_model(contato):
-    assert isinstance(contato, ContatoLaboratorio)
-
-
-def test_contato_srt_model(contato):
-    assert contato.__str__() == 'FULANO DE TAL'
-
-
-def test_contato_meta_modelo(contato):
-    assert contato._meta.verbose_name == 'Contato'
-    assert contato._meta.verbose_name_plural == 'Contatos'

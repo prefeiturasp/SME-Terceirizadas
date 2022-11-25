@@ -2,10 +2,10 @@ from datetime import date
 
 from rest_framework import serializers
 
+from sme_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
-    ContatoLaboratorio,
     Cronograma,
     EtapasDoCronograma,
     Laboratorio,
@@ -129,28 +129,27 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         exclude = ('id', 'numero', 'status')
 
 
-class ContatosLaboratoriosCreateSerializer(serializers.ModelSerializer):
-    nome = serializers.CharField(required=False)
-    telefone = serializers.CharField(required=False)
-    email = serializers.EmailField(required=False)
-
-    class Meta:
-        model = ContatoLaboratorio
-        exclude = ('id', 'laboratorio')
-
-
 class LaboratorioCreateSerializer(serializers.ModelSerializer):
-    contatos = ContatosLaboratoriosCreateSerializer(many=True, required=False)
+    nome = serializers.CharField(required=True)
+    cnpj = serializers.CharField(required=True)
+    cep = serializers.CharField(required=True)
+    logradouro = serializers.CharField(required=True)
+    numero = serializers.CharField(required=True)
+    bairro = serializers.CharField(required=True)
+    cidade = serializers.CharField(required=True)
+    estado = serializers.CharField(required=True)
+    credenciado = serializers.BooleanField(required=True)
+    contatos = ContatoSerializer(many=True)
 
     def create(self, validated_data):
+        validated_data['nome'] = validated_data['nome'].upper()
         contatos = validated_data.pop('contatos', [])
         laboratorio = Laboratorio.objects.create(**validated_data)
 
-        for contato in contatos:
-            ContatoLaboratorio.objects.create(
-                laboratorio=laboratorio,
-                **contato
-            )
+        for contato_json in contatos:
+            contato = ContatoSerializer().create(
+                validated_data=contato_json)
+            laboratorio.contatos.add(contato)
 
         return laboratorio
 

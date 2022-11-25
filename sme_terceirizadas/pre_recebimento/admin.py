@@ -1,28 +1,17 @@
 from django.contrib import admin
 
-from .models import (
-    ContatoLaboratorio,
-    Cronograma,
-    EtapasDoCronograma,
-    Laboratorio,
-    ProgramacaoDoRecebimentoDoCronograma
-)
-
-
-class ContatoInline(admin.StackedInline):
-    model = ContatoLaboratorio
-    extra = 1
-    show_change_link = True
+from .forms import CaixaAltaNomeForm
+from .models import Cronograma, EtapasDoCronograma, Laboratorio, ProgramacaoDoRecebimentoDoCronograma
 
 
 @admin.register(Laboratorio)
 class Laboratoriodmin(admin.ModelAdmin):
+    form = CaixaAltaNomeForm
     list_display = ('nome', 'cnpj', 'cidade', 'credenciado')
     ordering = ('-criado_em',)
     search_fields = ('nome',)
     list_filter = ('nome',)
     readonly_fields = ('uuid',)
-    inlines = [ContatoInline]
 
 
 admin.site.register(Cronograma)

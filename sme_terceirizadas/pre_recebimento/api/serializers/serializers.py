@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
+from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
 from sme_terceirizadas.pre_recebimento.models import (
-    ContatoLaboratorio,
     Cronograma,
     EtapasDoCronograma,
     Laboratorio,
@@ -47,15 +47,8 @@ class CronogramaRascunhosSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'numero', 'alterado_em')
 
 
-class ContatoLaboratorioSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ContatoLaboratorio
-        exclude = ('id', )
-
-
 class LaboratorioSerializer(serializers.ModelSerializer):
-    contatos = ContatoLaboratorioSerializer(many=True)
+    contatos = ContatoSimplesSerializer(many=True)
 
     class Meta:
         model = Laboratorio

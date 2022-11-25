@@ -118,6 +118,12 @@ class ContatoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class ContatoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contato
+        fields = ('nome', 'telefone', 'email')
+
+
 class CategoriaPerguntaFrequenteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoriaPerguntaFrequente
