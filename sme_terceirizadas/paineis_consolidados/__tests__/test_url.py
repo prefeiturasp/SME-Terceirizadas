@@ -5,6 +5,7 @@ from rest_framework import status
 
 from ...dados_comuns.constants import SEM_FILTRO
 from ..api.constants import (
+    AGUARDANDO_CODAE,
     AUTORIZADOS,
     CANCELADOS,
     NEGADOS,
@@ -38,6 +39,9 @@ def test_url_endpoint_painel_dre_pendentes_validacao(client_autenticado_dre_pain
     # TODO: Revisar esse teste, vive dando problema pois os valores sempre se alteram
     assert response.status_code == status.HTTP_200_OK
 
+def test_url_endpoint_painel_dre_aguardando_codae(client_autenticado_dre_paineis_consolidados):
+    response = base_diretoria_regional(client_autenticado_dre_paineis_consolidados, f'{AGUARDANDO_CODAE}')
+    assert response.status_code == status.HTTP_200_OK
 
 def test_url_endpoint_painel_codae_pendentes_autorizacao(client_autenticado_codae_gestao_alimentacao):
     base_codae(client_autenticado_codae_gestao_alimentacao, f'{PENDENTES_AUTORIZACAO}/{SEM_FILTRO}')
