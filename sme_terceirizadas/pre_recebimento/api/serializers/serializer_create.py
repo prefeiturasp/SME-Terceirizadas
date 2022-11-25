@@ -135,17 +135,30 @@ class LaboratorioCreateSerializer(serializers.ModelSerializer):
     credenciado = serializers.BooleanField(required=True)
     contatos = ContatoSerializer(many=True)
 
-    def create(self, validated_data):
-        validated_data['nome'] = validated_data['nome'].upper()
-        contatos = validated_data.pop('contatos', [])
-        laboratorio = Laboratorio.objects.create(**validated_data)
-
+    def cria_contatos(self, contatos, laboratorio):
         for contato_json in contatos:
             contato = ContatoSerializer().create(
                 validated_data=contato_json)
             laboratorio.contatos.add(contato)
 
+    def create(self, validated_data):
+        validated_data['nome'] = validated_data['nome'].upper()
+        contatos = validated_data.pop('contatos', [])
+        laboratorio = Laboratorio.objects.create(**validated_data)
+
+        self.cria_contatos(contatos, laboratorio)
         return laboratorio
+
+    def update(self, instance, validated_data):
+        validated_data['nome'] = validated_data['nome'].upper()
+        contatos = validated_data.pop('contatos', [])
+
+        instance.contatos.all().delete()
+
+        self.cria_contatos(contatos, instance)
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        return instance
 
     class Meta:
         model = Laboratorio
