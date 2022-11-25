@@ -13,8 +13,6 @@ from sme_terceirizadas.pre_recebimento.models import (
 )
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
-from .serializers import EtapasDoCronogramaSerializer, ProgramacaoDoRecebimentoDoCronogramaSerializer
-
 
 class ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(serializers.ModelSerializer):
     data_programada = serializers.CharField(required=False)
@@ -70,6 +68,20 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         else:
             return f'001/{ano}'
 
+    def cria_etapas(self, etapas, cronograma):
+        for etapa in etapas:
+            EtapasDoCronograma.objects.create(
+                cronograma=cronograma,
+                **etapa
+            )
+
+    def cria_programacao(self, programacoes, cronograma):
+        for programacao in programacoes:
+            ProgramacaoDoRecebimentoDoCronograma.objects.create(
+                cronograma=cronograma,
+                **programacao
+            )
+
     def create(self, validated_data):
         user = self.context['request'].user
         cadastro_finalizado = validated_data.pop('cadastro_finalizado', None)
@@ -79,17 +91,8 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         cronograma = Cronograma.objects.create(numero=numero_cronograma, **validated_data)
         cronograma.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CRIADO, usuario=user)
 
-        for etapa in etapas:
-            EtapasDoCronograma.objects.create(
-                cronograma=cronograma,
-                **etapa
-            )
-
-        for programacao in programacoes_de_recebimento:
-            ProgramacaoDoRecebimentoDoCronograma.objects.create(
-                cronograma=cronograma,
-                **programacao
-            )
+        self.cria_etapas(etapas, cronograma)
+        self.cria_programacao(programacoes_de_recebimento, cronograma)
 
         if cadastro_finalizado:
             cronograma.inicia_fluxo(user=user)
@@ -99,26 +102,17 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         user = self.context['request'].user
         cadastro_finalizado = validated_data.pop('cadastro_finalizado', None)
-        etapas_payload = validated_data.pop('etapas', [])
-        programacoes_de_recebimento_payload = validated_data.pop('programacoes_de_recebimento', [])
+        etapas = validated_data.pop('etapas', [])
+        programacoes_de_recebimento = validated_data.pop('programacoes_de_recebimento', [])
 
         instance.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CRIADO, usuario=user)
-        instance.etapas.clear()
-        instance.programacoes_de_recebimento.clear()
-
-        lista_etapas = []
-        for etapa_json in etapas_payload:
-            etapa = EtapasDoCronogramaSerializer().create(etapa_json)
-            lista_etapas.append(etapa)
-
-        lista_programa_de_recebimento = []
-        for programa_de_recebimento_json in programacoes_de_recebimento_payload:
-            recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer().create(programa_de_recebimento_json)
-            lista_programa_de_recebimento.append(recebimento)
+        instance.etapas.all().delete()
+        instance.programacoes_de_recebimento.all().delete()
 
         update_instance_from_dict(instance, validated_data, save=True)
-        instance.etapas.set(lista_etapas)
-        instance.programacoes_de_recebimento.set(lista_programa_de_recebimento)
+
+        self.cria_etapas(etapas, instance)
+        self.cria_programacao(programacoes_de_recebimento, instance)
 
         if cadastro_finalizado:
             instance.inicia_fluxo(user=user)
