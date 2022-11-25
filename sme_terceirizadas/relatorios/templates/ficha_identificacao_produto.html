@@ -82,12 +82,7 @@
       <table class="ficha-produto-table">
         <thead>
           <tr class="sem-border-bottom">
-            <td style="color: #686868; margin-left: 0; padding-left: 0; width: 55%; font-size: 12px;">
-              <div>
-                O produto se destina a alimentação de alunos com dieta especial?
-              </div>
-            </td>
-            <td style="color: #686868">
+            <td style="margin-left: 0; padding-left: 0; color: #686868">
               <div>
                 Nome do Produto
               </div>
@@ -96,25 +91,18 @@
         </thead>
         <tbody class="ficha-produto-body">
           <tr class="sem-border-bottom">
-            <td style="margin-left: 0; padding-left: 0; width: 55%">
-              <div>
-                {% if homologacao_produto.produto.eh_para_alunos_com_dieta %}
-                  SIM
-                {% else %}
-                  NÃO
-                {% endif %}
-              </div>
-            </td>
-            <td style="margin-right: 0; padding-right: 0;">
+            <td style="margin-left: 0; padding-left: 0; margin-right: 0; padding-right: 0;">
               <div>
                 {{ homologacao_produto.produto.nome }}
               </div>
             </td>
           </tr>
         </tbody>
+      </table>
+      <table class="ficha-produto-table">
         <thead>
           <tr class="sem-border-bottom">
-            <td style="color: #686868; margin-left: 0; padding-left: 0;">
+            <td style="color: #686868; margin-left: 0; padding-left: 0; width: 50%">
               <div>
                 Marca
               </div>
@@ -136,6 +124,30 @@
             <td style="margin-right: 0; padding-right: 0;">
               <div>
                 {{ homologacao_produto.produto.fabricante }}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="ficha-produto-table">
+        <thead>
+          <tr class="sem-border-bottom">
+            <td style="margin-left: 0; padding-left: 0; color: #686868">
+              <div>
+                O produto se destina a alimentação de alunos com dieta especial?
+              </div>
+            </td>
+          </tr>
+        </thead>
+        <tbody class="ficha-produto-body">
+          <tr class="sem-border-bottom">
+            <td style="margin-left: 0; padding-left: 0; margin-right: 0; padding-right: 0;">
+              <div>
+                {% if homologacao_produto.produto.eh_para_alunos_com_dieta %}
+                  SIM
+                {% else %}
+                  NÃO
+                {% endif %}
               </div>
             </td>
           </tr>
@@ -371,35 +383,39 @@
       </table>
     </div>
   </div>
-  <hr style="color: #EEEEEE; margin-top: 30px;">
   <div class="section">
-    <h5 style="color: #686868;">Fotos do Produto</h5>
-    <table class="tabela-imagem">
-      {% for imagem in imagens %}
-        {% if forloop.first %}
-          <tr>
-        {% endif %}
-          <td>
-            <div class="imagem">
-              <img class="imagem-produto" src="{{ URL }}{{ imagem.arquivo.url }}" alt="{{ imagem.nome|default:'imagem-produto' }}">
-            </div>
-          </td>
-        {% if forloop.last %}
-          </tr>
-        {% else %}
-          {% if forloop.counter|divisibleby:"4" %}
-            </tr><tr>
+    {% if imagens %}
+      <hr style="color: #EEEEEE; margin-top: 30px;">
+      <h5 style="color: #686868;">Fotos do Produto</h5>
+      <table class="tabela-imagem">
+        {% for imagem in imagens %}
+          {% if forloop.first %}
+            <tr>
           {% endif %}
-        {% endif %}
+            <td>
+              <div class="imagem">
+                <img class="imagem-produto" src="{{ URL }}{{ imagem.arquivo.url }}" alt="{{ imagem.nome|default:'imagem-produto' }}">
+              </div>
+            </td>
+          {% if forloop.last %}
+            </tr>
+          {% else %}
+            {% if forloop.counter|divisibleby:"4" %}
+              </tr><tr>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </table>
+    {% endif %}
+    {% if documentos %}
+      <hr style="color: #EEEEEE; margin-bottom: -5px;">
+      <h5 style="color: #686868; margin-bottom: 15px;">Documentos</h5>
+      {% for documento in documentos %}
+        <div style="margin-bottom: 5px; font-size: 14px;">
+          {{ documento.nome }}
+        </div>
       {% endfor %}
-    </table>
-    <hr style="color: #EEEEEE; margin-bottom: -5px;">
-    <h5 style="color: #686868; margin-bottom: 15px;">Documentos</h5>
-    {% for documento in documentos %}
-      <div style="margin-bottom: 5px; font-size: 14px;">
-        {{ documento.nome }}
-      </div>
-    {% endfor %}
+    {% endif %}
   </div>
 </div>
 {% endblock %}

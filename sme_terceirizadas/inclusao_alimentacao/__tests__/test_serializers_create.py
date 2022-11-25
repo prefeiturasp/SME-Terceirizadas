@@ -130,11 +130,6 @@ def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros
             faixa_etaria=quantidade.faixa_etaria,
             quantidade_alunos=quantidade.quantidade_alunos))
 
-    tipos_alimentacao = []
-    for _ in range(3):
-        tipo_alimentacao = mommy.make('cardapio.TipoAlimentacao')
-        tipos_alimentacao.append(tipo_alimentacao)
-
     periodo_escolar = mommy.make('escola.PeriodoEscolar')
     motivo = mommy.make('MotivoInclusaoNormal')
 
@@ -142,7 +137,6 @@ def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros
     validated_data = dict(
         quantidade_alunos_por_faixas_etarias=quantidade_alunos_por_faixas_etarias,
         escola=escola,
-        tipos_alimentacao=tipos_alimentacao,
         periodo_escolar=periodo_escolar,
         motivo=motivo,
         data=data
@@ -152,7 +146,6 @@ def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros
 
     validated_data_update = dict(quantidade_alunos_por_faixas_etarias=quantidade_alunos_por_faixas_etarias,
                                  escola=escola,
-                                 tipos_alimentacao=tipos_alimentacao,
                                  periodo_escolar=periodo_escolar,
                                  motivo=motivo,
                                  data=data)

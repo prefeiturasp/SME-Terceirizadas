@@ -97,7 +97,7 @@ class SolicitacaoEnvioEmMassaModelViewSet(viewsets.ModelViewSet):
             try:
                 solicitacao.inicia_fluxo(user=usuario)
             except InvalidTransitionError as e:
-                return Response(dict(detail=f'Erro de transição de estado: {e}', status=HTTP_400_BAD_REQUEST))
+                return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
         serializer = SolicitacaoRemessaSerializer(solicitacoes, many=True)
         return Response(serializer.data)
 
