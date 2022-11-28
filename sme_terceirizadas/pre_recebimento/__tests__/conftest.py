@@ -35,3 +35,8 @@ def armazem():
                       uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
                       nome_fantasia='Alimentos SA'
                       )
+
+
+@pytest.fixture
+def laboratorio():
+    return mommy.make('Laboratorio', nome='Labo Test')
