@@ -32,6 +32,7 @@ from ..models import (
 )
 from ..validators import FiltroValidator
 from .constants import (
+    AGUARDANDO_CODAE,
     AGUARDANDO_INICIO_VIGENCIA_DIETA_ESPECIAL,
     AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
     AUTORIZADOS,
@@ -818,6 +819,15 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesDRE.get_autorizados(
             dre_uuid=diretoria_regional.uuid)
         query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{AGUARDANDO_CODAE}')
+    def aguardando_codae(self, request, dre_uuid=None):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        query_set = SolicitacoesDRE.get_aguardando_codae(
+            dre_uuid=diretoria_regional.uuid)
+        query_set = SolicitacoesDRE.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}')
