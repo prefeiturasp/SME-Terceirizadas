@@ -9,6 +9,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     IntervaloDeDia,
     Logs,
     LogSolicitacoesUsuario,
+    MatriculadosQuandoCriado,
     Motivo,
     Nomeavel,
     SolicitacaoForaDoPrazo,
@@ -678,7 +679,7 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEI(
 
 
 class FaixaEtariaSubstituicaoAlimentacaoCEI(ExportModelOperationsMixin('faixa_etaria_substituicao_alimentacao_cei'),
-                                            TemChaveExterna, TemFaixaEtariaEQuantidade):
+                                            TemChaveExterna, TemFaixaEtariaEQuantidade, MatriculadosQuandoCriado):
     substituicao_alimentacao = models.ForeignKey('SubstituicaoAlimentacaoNoPeriodoEscolarCEI',
                                                  on_delete=models.CASCADE, related_name='faixas_etarias')
 
@@ -765,13 +766,11 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI(TemChaveExterna):
         verbose_name_plural = 'Substituições de alimentação CEMEI CEI no período'
 
 
-class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEI(TemChaveExterna):
+class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEI(TemChaveExterna, MatriculadosQuandoCriado):
     alteracao_cardapio = models.ForeignKey('AlteracaoCardapioCEMEI', on_delete=models.CASCADE,
                                            null=True, blank=True,
                                            related_name='substituicoes_cemei_emei_periodo_escolar')
     qtd_alunos = models.PositiveSmallIntegerField(default=0)
-
-    # adicionar quantidade de matriculados
 
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
                                         related_name='substituicoes_cemei_emei_periodo_escolar')
@@ -791,10 +790,9 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEI(TemChaveExterna):
         verbose_name_plural = 'Substituições de alimentação CEMEI EMEI no período'
 
 
-class FaixaEtariaSubstituicaoAlimentacaoCEMEICEI(TemChaveExterna, TemFaixaEtariaEQuantidade):
+class FaixaEtariaSubstituicaoAlimentacaoCEMEICEI(TemChaveExterna, TemFaixaEtariaEQuantidade, MatriculadosQuandoCriado):
     substituicao_alimentacao = models.ForeignKey('SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI',
                                                  on_delete=models.CASCADE, related_name='faixas_etarias')
-    # adicionar quantidade de matriculados
 
     def __str__(self):
         retorno = f'Faixa Etária de substituição de alimentação CEMEI CEI: {self.uuid}'
