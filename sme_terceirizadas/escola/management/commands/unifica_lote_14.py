@@ -5,7 +5,7 @@ from django.core.management import BaseCommand
 
 from sme_terceirizadas.escola.models import Lote
 
-logger = logging.getLogger('sigpae.cmd_suja_base')
+logger = logging.getLogger('sigpae.cmd_unifica_lote_14')
 
 env = environ.Env()
 
