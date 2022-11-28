@@ -3,7 +3,7 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
 
 from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, REGULAR, StatusProcessamentoArquivo
@@ -332,6 +332,14 @@ class TemMes(models.Model):
 
 class TemDia(models.Model):
     dia = models.CharField('Dia', max_length=2)
+
+    class Meta:
+        abstract = True
+
+
+class MatriculadosQuandoCriado(models.Model):
+    matriculados_quando_criado = models.PositiveSmallIntegerField(null=True, blank=True,
+                                                                  validators=[MinValueValidator(1)])
 
     class Meta:
         abstract = True
