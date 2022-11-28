@@ -913,6 +913,14 @@ class SolicitacoesDRE(MoldeConsolidado):
     NEGADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_NEGOU,
                       LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
 
+    AGUARDANDO_CODAE_STATUS = [PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                               PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                               PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+    AGUARDANDO_CODAE_EVENTO = [LogSolicitacoesUsuario.DRE_VALIDOU,
+                               LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+                               ]
+
     @classmethod
     def get_pendentes_dieta_especial(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
@@ -1025,6 +1033,15 @@ class SolicitacoesDRE(MoldeConsolidado):
         return manager.filter(
             status_atual=PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
             status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
+            dre_uuid=dre_uuid
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_aguardando_codae(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            status_evento__in=cls.AGUARDANDO_CODAE_EVENTO,
+            status_atual__in=cls.AGUARDANDO_CODAE_STATUS,
             dre_uuid=dre_uuid
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
