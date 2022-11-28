@@ -132,6 +132,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
 
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
+    data_evento_fim = models.DateField()
     criado_em = models.DateTimeField()
     lote_nome = models.CharField(max_length=50)
     dre_nome = models.CharField(max_length=200)
@@ -165,6 +166,47 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     filtro_30_dias = SolicitacoesDesteMesManager()
     conferido = models.BooleanField()
     terceirizada_conferiu_gestao = models.BooleanField()
+
+    @classmethod
+    def busca_por_tipo_solicitacao(cls, queryset, query_params, **kwargs):
+        tipo_solicitacao = query_params.get('tipo_solicitacao')
+        if not tipo_solicitacao:
+            return queryset
+        if tipo_solicitacao == 'KIT_LANCHE':
+            queryset = queryset.filter(desc_doc__icontains='Kit Lanche').exclude(desc_doc__icontains='Unificado')
+        else:
+            queryset = queryset.filter(desc_doc__icontains=tipo_solicitacao)
+        return queryset
+
+    @classmethod
+    def busca_data_evento(cls, queryset, query_params, **kwargs):
+        data_evento = query_params.get('data_evento')
+        if not data_evento:
+            return queryset
+        queryset = queryset.filter(Q(data_evento=data_evento) |
+                                   (Q(data_evento_fim__isnull=False) & ~Q(desc_doc__icontains='Alteração') &
+                                    Q(data_evento__lte=data_evento) & Q(data_evento_fim__gte=data_evento)))
+        return queryset
+
+    @classmethod
+    def busca_filtro(cls, queryset, query_params, **kwargs):
+        if query_params.get('busca'):
+            queryset = queryset.filter(
+                Q(uuid__icontains=query_params.get('busca')) |
+                Q(desc_doc__icontains=query_params.get('busca')) |
+                Q(escola_nome__icontains=query_params.get('busca')) |
+                Q(escola_uuid__icontains=query_params.get('busca')) |
+                Q(lote_nome__icontains=query_params.get('busca')) |
+                Q(motivo__icontains=query_params.get('busca'))
+            )
+        if query_params.get('lote'):
+            queryset = queryset.filter(lote_uuid__icontains=query_params.get('lote'))
+        if query_params.get('status'):
+            queryset = queryset.filter(
+                terceirizada_conferiu_gestao=query_params.get('status') == '1')
+        queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
+        queryset = cls.busca_data_evento(queryset, query_params)
+        return queryset
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
@@ -348,18 +390,6 @@ class SolicitacoesNutrisupervisao(MoldeConsolidado):
             status_atual__in=cls.CANCELADOS_STATUS,
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
-    @classmethod
-    def busca_filtro(cls, queryset, query_params, **kwargs):
-        if query_params.get('busca'):
-            queryset = queryset.filter(
-                Q(uuid__icontains=query_params.get('busca')) |
-                Q(desc_doc__icontains=query_params.get('busca')) |
-                Q(escola_nome__icontains=query_params.get('busca')) |
-                Q(escola_uuid__icontains=query_params.get('busca')) |
-                Q(lote_nome__icontains=query_params.get('busca'))
-            )
-        return queryset
-
 
 class SolicitacoesNutrimanifestacao(MoldeConsolidado):
     #
@@ -401,18 +431,6 @@ class SolicitacoesNutrimanifestacao(MoldeConsolidado):
             status_evento__in=cls.CANCELADOS_EVENTO,
             status_atual__in=cls.CANCELADOS_STATUS,
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
-
-    @classmethod
-    def busca_filtro(cls, queryset, query_params, **kwargs):
-        if query_params.get('busca'):
-            queryset = queryset.filter(
-                Q(uuid__icontains=query_params.get('busca')) |
-                Q(desc_doc__icontains=query_params.get('busca')) |
-                Q(escola_nome__icontains=query_params.get('busca')) |
-                Q(escola_uuid__icontains=query_params.get('busca')) |
-                Q(lote_nome__icontains=query_params.get('busca'))
-            )
-        return queryset
 
 
 class SolicitacoesCODAE(MoldeConsolidado):
@@ -561,18 +579,6 @@ class SolicitacoesCODAE(MoldeConsolidado):
             status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
             status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU
         ).distinct().order_by('-data_log')
-
-    @classmethod
-    def busca_filtro(cls, queryset, query_params, **kwargs):
-        if query_params.get('busca'):
-            queryset = queryset.filter(
-                Q(uuid__icontains=query_params.get('busca')) |
-                Q(desc_doc__icontains=query_params.get('busca')) |
-                Q(escola_nome__icontains=query_params.get('busca')) |
-                Q(escola_uuid__icontains=query_params.get('busca')) |
-                Q(lote_nome__icontains=query_params.get('busca'))
-            )
-        return queryset
 
     #
     # Filtros consolidados
@@ -872,19 +878,6 @@ class SolicitacoesEscola(MoldeConsolidado):
 
         return cls._conta_totais(query_set, query_set_mes_passado)
 
-    @classmethod
-    def busca_filtro(cls, queryset, query_params, **kwargs):
-        if query_params.get('busca'):
-            queryset = queryset.filter(
-                Q(uuid__icontains=query_params.get('busca')) |
-                Q(desc_doc__icontains=query_params.get('busca')) |
-                Q(escola_nome__icontains=query_params.get('busca')) |
-                Q(escola_uuid__icontains=query_params.get('busca')) |
-                Q(lote_nome__icontains=query_params.get('busca')) |
-                Q(motivo__icontains=query_params.get('busca'))
-            )
-        return queryset
-
 
 class SolicitacoesDRE(MoldeConsolidado):
     #
@@ -1078,18 +1071,6 @@ class SolicitacoesDRE(MoldeConsolidado):
             status_atual__in=cls.CANCELADOS_STATUS,
             dre_uuid=dre_uuid
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
-
-    @classmethod
-    def busca_filtro(cls, queryset, query_params, **kwargs):
-        if query_params.get('busca'):
-            queryset = queryset.filter(
-                Q(uuid__icontains=query_params.get('busca')) |
-                Q(desc_doc__icontains=query_params.get('busca')) |
-                Q(escola_nome__icontains=query_params.get('busca')) |
-                Q(escola_uuid__icontains=query_params.get('busca')) |
-                Q(lote_nome__icontains=query_params.get('busca'))
-            )
-        return queryset
 
     #
     # Filtros  consolidados
@@ -1323,20 +1304,3 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
                                LogSolicitacoesUsuario.INICIO_FLUXO],
             terceirizada_uuid=terceirizada_uuid
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('uuid')
-
-    @classmethod
-    def busca_filtro(cls, queryset, query_params, **kwargs):
-        if query_params.get('busca'):
-            queryset = queryset.filter(
-                Q(uuid__icontains=query_params.get('busca')) |
-                Q(desc_doc__icontains=query_params.get('busca')) |
-                Q(escola_nome__icontains=query_params.get('busca')) |
-                Q(escola_uuid__icontains=query_params.get('busca')) |
-                Q(lote_nome__icontains=query_params.get('busca'))
-            )
-        if query_params.get('lote'):
-            queryset = queryset.filter(lote_uuid__icontains=query_params.get('lote'))
-        if query_params.get('status'):
-            queryset = queryset.filter(
-                terceirizada_conferiu_gestao=query_params.get('status') == '1')
-        return queryset

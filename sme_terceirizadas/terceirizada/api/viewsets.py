@@ -52,7 +52,7 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_nomes(self, request):
-        response = {'results': TerceirizadaSimplesSerializer(self.get_queryset(), many=True).data}
+        response = {'results': TerceirizadaSimplesSerializer(self.filter_queryset(self.get_queryset()), many=True).data}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes-distribuidores')

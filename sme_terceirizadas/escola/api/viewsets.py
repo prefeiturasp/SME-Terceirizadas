@@ -340,6 +340,8 @@ class LoteSimplesViewSet(ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = LoteNomeSerializer
     queryset = Lote.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('diretoria_regional__uuid',)
 
 
 class CODAESimplesViewSet(ModelViewSet):
@@ -352,6 +354,8 @@ class TipoUnidadeEscolarViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     serializer_class = TipoUnidadeEscolarSerializer
     queryset = TipoUnidadeEscolar.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('pertence_relatorio_solicitacoes_alimentacao',)
 
 
 class LogAlunosMatriculadosPeriodoEscolaViewSet(ModelViewSet):
