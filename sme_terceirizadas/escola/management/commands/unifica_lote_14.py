@@ -96,3 +96,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'{lote_14_b.dieta_especial_solicitacaodietaespecial_rastro_lote.count()} '
                                              f'solicitações de dieta especial passadas do Lote 14B para o 14'))
         lote_14_b.dieta_especial_solicitacaodietaespecial_rastro_lote.update(rastro_lote=lote_14_a)
+
+        self.stdout.write(self.style.SUCCESS(f'Exclui o lote 14B'))
+        lote_14_b.delete()
