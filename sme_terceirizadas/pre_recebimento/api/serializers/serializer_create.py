@@ -2,11 +2,13 @@ from datetime import date
 
 from rest_framework import serializers
 
+from sme_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
+    Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma
 )
 from sme_terceirizadas.terceirizada.models import Terceirizada
@@ -119,3 +121,32 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cronograma
         exclude = ('id', 'numero', 'status')
+
+
+class LaboratorioCreateSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField(required=True)
+    cnpj = serializers.CharField(required=True)
+    cep = serializers.CharField(required=True)
+    logradouro = serializers.CharField(required=True)
+    numero = serializers.CharField(required=True)
+    bairro = serializers.CharField(required=True)
+    cidade = serializers.CharField(required=True)
+    estado = serializers.CharField(required=True)
+    credenciado = serializers.BooleanField(required=True)
+    contatos = ContatoSerializer(many=True)
+
+    def create(self, validated_data):
+        validated_data['nome'] = validated_data['nome'].upper()
+        contatos = validated_data.pop('contatos', [])
+        laboratorio = Laboratorio.objects.create(**validated_data)
+
+        for contato_json in contatos:
+            contato = ContatoSerializer().create(
+                validated_data=contato_json)
+            laboratorio.contatos.add(contato)
+
+        return laboratorio
+
+    class Meta:
+        model = Laboratorio
+        exclude = ('id', )

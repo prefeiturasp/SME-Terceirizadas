@@ -1,6 +1,6 @@
 import pytest
 
-from ..models import Cronograma, EtapasDoCronograma, ProgramacaoDoRecebimentoDoCronograma
+from ..models import Cronograma, EtapasDoCronograma, Laboratorio, ProgramacaoDoRecebimentoDoCronograma
 
 pytestmark = pytest.mark.django_db
 
@@ -42,3 +42,16 @@ def test_programacao_de_recebimento_do_cronograma_srt_model(programacao):
 def test_programacao_de_recebimento_do_cronograma_meta_modelo(programacao):
     assert programacao._meta.verbose_name == 'Programação do Recebimento do Cromograma'
     assert programacao._meta.verbose_name_plural == 'Programações dos Recebimentos dos Cromogramas'
+
+
+def test_laboratorio_instance_model(laboratorio):
+    assert isinstance(laboratorio, Laboratorio)
+
+
+def test_laboratorio_srt_model(laboratorio):
+    assert laboratorio.__str__() == 'Labo Test'
+
+
+def test_laboratorio_meta_modelo(laboratorio):
+    assert laboratorio._meta.verbose_name == 'Laboratório'
+    assert laboratorio._meta.verbose_name_plural == 'Laboratórios'
