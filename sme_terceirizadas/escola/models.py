@@ -304,6 +304,7 @@ class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativav
     class Meta:
         verbose_name = 'Tipo de unidade escolar'
         verbose_name_plural = 'Tipos de unidade escolar'
+        ordering = ('iniciais',)
 
 
 class TipoGestao(ExportModelOperationsMixin('tipo_gestao'), Nomeavel, Ativavel, TemChaveExterna):
