@@ -2,7 +2,7 @@ import json
 
 from rest_framework import status
 
-from sme_terceirizadas.pre_recebimento.models import Cronograma, Laboratorio
+from sme_terceirizadas.pre_recebimento.models import Cronograma, EmbalagemQld, Laboratorio
 
 
 def test_url_endpoint_cronograma(client_autenticado_dilog, armazem):
@@ -148,7 +148,7 @@ def test_url_endpoint_embalagem(client_autenticado_qualidade):
         data=json.dumps(data)
     )
     assert response.status_code == status.HTTP_201_CREATED
-    obj = Laboratorio.objects.last()
+    obj = EmbalagemQld.objects.last()
     assert obj.nome == 'FARDO'
 
 
