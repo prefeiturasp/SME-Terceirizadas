@@ -705,34 +705,43 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
             FluxoAprovacaoPartindoDaEscola.workflow_class.CANCELADO_AUTOMATICAMENTE,
             FluxoAprovacaoPartindoDaEscola.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
             FluxoAprovacaoPartindoDaEscola.workflow_class.ESCOLA_CANCELOU])
-        self.terceirizada.inclusao_alimentacao_inclusaoalimentacaocontinua_rastro_terceirizada.exclude(
+        self.inclusao_alimentacao_inclusaoalimentacaocontinua_rastro_lote.exclude(
             canceladas_ou_negadas | Q(data_inicial__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
-        self.terceirizada.inclusao_alimentacao_grupoinclusaoalimentacaonormal_rastro_terceirizada.exclude(
+        self.inclusao_alimentacao_grupoinclusaoalimentacaonormal_rastro_lote.exclude(
             canceladas_ou_negadas | Q(inclusoes_normais__data__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
-        self.terceirizada.inclusao_alimentacao_inclusaoalimentacaodacei_rastro_terceirizada.exclude(
+        self.inclusao_alimentacao_inclusaoalimentacaodacei_rastro_lote.exclude(
             canceladas_ou_negadas | Q(data__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
-        self.terceirizada.cardapio_alteracaocardapio_rastro_terceirizada.exclude(
+        self.inclusao_alimentacao_inclusaodealimentacaocemei_rastro_lote.exclude(
+            canceladas_ou_negadas | Q(dias_motivos_da_inclusao_cemei__data__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
+        self.cardapio_alteracaocardapio_rastro_lote.exclude(
             canceladas_ou_negadas | Q(data_inicial__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
-        self.terceirizada.cardapio_alteracaocardapiocei_rastro_terceirizada.exclude(
+        self.cardapio_alteracaocardapiocei_rastro_lote.exclude(
             canceladas_ou_negadas | Q(data__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
-        self.terceirizada.kit_lanche_solicitacaokitlancheavulsa_rastro_terceirizada.exclude(
+        self.cardapio_alteracaocardapiocemei_rastro_lote.exclude(
+            canceladas_ou_negadas | Q(alterar_dia__lt=hoje) | Q(data_inicial__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
+        self.kit_lanche_solicitacaokitlancheavulsa_rastro_lote.exclude(
             canceladas_ou_negadas | Q(solicitacao_kit_lanche__data__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
-        self.terceirizada.kit_lanche_solicitacaokitlancheceiavulsa_rastro_terceirizada.exclude(
+        self.kit_lanche_solicitacaokitlancheceiavulsa_rastro_lote.exclude(
             canceladas_ou_negadas | Q(solicitacao_kit_lanche__data__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
-        self.terceirizada.cardapio_inversaocardapio_rastro_terceirizada.exclude(
+        self.kit_lanche_solicitacaokitlanchecemei_rastro_lote.exclude(
+            canceladas_ou_negadas | Q(data__lt=hoje)
+        ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
+        self.cardapio_inversaocardapio_rastro_lote.exclude(
             canceladas_ou_negadas | Q(data_de_inversao__lt=hoje) | Q(data_para_inversao__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
-        self.terceirizada.cardapio_gruposuspensaoalimentacao_rastro_terceirizada.exclude(
+        self.cardapio_gruposuspensaoalimentacao_rastro_lote.exclude(
             suspensoes_alimentacao__data__lt=hoje
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
-        self.terceirizada.cardapio_suspensaoalimentacaodacei_rastro_terceirizada.exclude(
+        self.cardapio_suspensaoalimentacaodacei_rastro_lote.exclude(
             data__lt=hoje
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
 
@@ -746,7 +755,7 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
             FluxoDietaEspecialPartindoDaEscola.workflow_class.CODAE_AUTORIZOU_INATIVACAO,
             FluxoDietaEspecialPartindoDaEscola.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO
         ])
-        self.terceirizada.dieta_especial_solicitacaodietaespecial_rastro_terceirizada.exclude(
+        self.dieta_especial_solicitacaodietaespecial_rastro_lote.exclude(
             canceladas_ou_negadas
         ).update(rastro_terceirizada=terceirizada, conferido=False)
 
