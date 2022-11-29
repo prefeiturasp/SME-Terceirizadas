@@ -108,6 +108,7 @@ def relatorio_alteracao_cardapio(request, solicitacao): # noqa C901
                 tap_formatado = tap.nome
 
         resultado = {'periodo': subs.periodo_escolar.nome,
+                     'qtd_alunos': subs.qtd_alunos,
                      'tipos_alimentacao_de': tad_formatado,
                      'tipos_alimentacao_para': tap_formatado}
 
