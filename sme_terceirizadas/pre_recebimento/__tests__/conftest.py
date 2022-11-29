@@ -40,3 +40,8 @@ def armazem():
 @pytest.fixture
 def laboratorio():
     return mommy.make('Laboratorio', nome='Labo Test')
+
+
+@pytest.fixture
+def emabalagem_qld():
+    return mommy.make('EmbalagemQld', nome='CAIXA', abreviacao='CX')

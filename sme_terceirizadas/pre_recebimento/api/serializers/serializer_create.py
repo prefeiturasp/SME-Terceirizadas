@@ -7,6 +7,7 @@ from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
+    EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma
@@ -162,4 +163,20 @@ class LaboratorioCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Laboratorio
+        exclude = ('id', )
+
+
+class EmbalagemQldCreateSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField(required=True)
+    abreviacao = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        validated_data['nome'] = validated_data['nome'].upper()
+        validated_data['abreviacao'] = validated_data['abreviacao'].upper()
+        embalagem = EmbalagemQld.objects.create(**validated_data)
+
+        return embalagem
+
+    class Meta:
+        model = EmbalagemQld
         exclude = ('id', )
