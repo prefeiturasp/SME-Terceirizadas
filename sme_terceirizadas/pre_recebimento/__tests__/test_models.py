@@ -1,6 +1,6 @@
 import pytest
 
-from ..models import Cronograma, EtapasDoCronograma, Laboratorio, ProgramacaoDoRecebimentoDoCronograma, EmbalagemQld
+from ..models import Cronograma, EmbalagemQld, EtapasDoCronograma, Laboratorio, ProgramacaoDoRecebimentoDoCronograma
 
 pytestmark = pytest.mark.django_db
 
