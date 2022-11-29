@@ -114,11 +114,12 @@ def test_cadastro_empresa(users_codae_gestao_alimentacao):
     terceirizada = Terceirizada.objects.get(uuid='66c1bdd1-9cec-4f1f-a2f6-008f27713e53')
     assert terceirizada.ativo is False
     assert terceirizada.inclusao_alimentacao_inclusaoalimentacaocontinua_rastro_terceirizada.count() == 1
-    assert terceirizada.dieta_especial_solicitacaodietaespecial_rastro_terceirizada.count() == 1
-    assert terceirizada.dieta_especial_solicitacaodietaespecial_rastro_terceirizada.get().conferido is False
+    assert terceirizada.dieta_especial_solicitacaodietaespecial_rastro_terceirizada.count() == 2
+    assert terceirizada.dieta_especial_solicitacaodietaespecial_rastro_terceirizada.get(
+        rastro_lote__uuid='42d3887a-517b-4a72-be78-95d96d857236').conferido is False
     terceirizada_criada = Terceirizada.objects.get(uuid=terceirizada_uuid)
     assert terceirizada_criada.inclusao_alimentacao_inclusaoalimentacaocontinua_rastro_terceirizada.count() == 1
-    assert terceirizada_criada.dieta_especial_solicitacaodietaespecial_rastro_terceirizada.count() == 1
+    assert terceirizada_criada.dieta_especial_solicitacaodietaespecial_rastro_terceirizada.count() == 0
 
 
 def test_cadastro_empresa_remove_lote_erro(users_codae_gestao_alimentacao):

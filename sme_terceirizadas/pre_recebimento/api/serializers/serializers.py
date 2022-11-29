@@ -3,6 +3,7 @@ from rest_framework import serializers
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
+    EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma
@@ -52,4 +53,10 @@ class LaboratorioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Laboratorio
+        exclude = ('id', )
+
+
+class EmbalagemQldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmbalagemQld
         exclude = ('id', )

@@ -446,6 +446,21 @@ class PermissaoParaCadastrarLaboratorio(BasePermission):
         )
 
 
+class PermissaoParaCadastrarVisualizarEmbalagem(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE, DILOG_CRONOGRAMA]
+                )
+            )
+        )
+
+
 class ViewSetActionPermissionMixin:
     def get_permissions(self):
         """Return the permission classes based on action.

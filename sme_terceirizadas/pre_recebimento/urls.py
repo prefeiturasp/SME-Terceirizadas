@@ -7,6 +7,7 @@ router = routers.DefaultRouter()
 
 router.register('cronogramas', viewsets.CronogramaModelViewSet)
 router.register('laboratorios', viewsets.LaboratorioModelViewSet)
+router.register('embalagens', viewsets.EmbalagemQldModelViewSet)
 
 urlpatterns = [
     path('', include(router.urls))
