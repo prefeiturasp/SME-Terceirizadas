@@ -262,6 +262,16 @@ class SolicitacaoDietaEspecial(
         )
 
     @property
+    def display_nutricionista_with_registro_funcional(self):
+        usuario = self.logs.get(
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+            solicitacao_tipo=LogSolicitacoesUsuario.DIETA_ESPECIAL
+        ).usuario
+        if usuario.registro_funcional:
+            return f'Elaborado por {usuario.nome} - RF {usuario.registro_funcional}'
+        return self.registro_funcional_nutricionista
+
+    @property
     def data_ultimo_log(self):
         return datetime.strftime(self.logs.last().criado_em, '%d/%m/%Y') if self.logs else None
 
