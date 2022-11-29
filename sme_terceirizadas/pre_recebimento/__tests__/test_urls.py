@@ -132,6 +132,37 @@ def test_url_laboratorios_authorized(client_autenticado_qualidade):
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_url_endpoint_laboratorio_editar(client_autenticado_qualidade, laboratorio):
+    data = {
+        'contatos': [
+            {
+                'nome': 'TEREZA',
+                'telefone': '8135431540',
+                'email': 'maxlab@max.com',
+            }
+        ],
+        'nome': 'Laboratorio de testes maiusculo',
+        'cnpj': '10359359000154',
+        'cep': '53600000',
+        'logradouro': 'OLIVEIR',
+        'numero': '120',
+        'complemento': '',
+        'bairro': 'CENTRO',
+        'cidade': 'IGARASSU',
+        'estado': 'PE',
+        'credenciado': True
+    }
+    response = client_autenticado_qualidade.put(
+        f'/laboratorios/{laboratorio.uuid}/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    obj = Laboratorio.objects.last()
+    assert obj.nome == 'LABORATORIO DE TESTES MAIUSCULO'
+
+
 def test_url_lista_laboratorios_authorized(client_autenticado_qualidade):
     response = client_autenticado_qualidade.get('/laboratorios/lista-laboratorios/')
     assert response.status_code == status.HTTP_200_OK
