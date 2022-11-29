@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCadastrarLaboratorio,
+    PermissaoParaCadastrarVisualizarEmbalagem,
     PermissaoParaCriarCronograma,
     PermissaoParaVisualizarCronograma,
     ViewSetActionPermissionMixin
@@ -15,14 +16,16 @@ from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter
 from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPagination
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
+    EmbalagemQldCreateSerializer,
     LaboratorioCreateSerializer
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
+    EmbalagemQldSerializer,
     LaboratorioSerializer
 )
-from sme_terceirizadas.pre_recebimento.models import Cronograma, EtapasDoCronograma, Laboratorio
+from sme_terceirizadas.pre_recebimento.models import Cronograma, EmbalagemQld, EtapasDoCronograma, Laboratorio
 
 
 class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
@@ -90,7 +93,26 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
             return LaboratorioCreateSerializer
 
     @action(detail=False, methods=['GET'], url_path='lista-laboratorios')
-    def lista_nomes_armazens(self, request):
+    def lista_nomes_laboratorios(self, request):
         queryset = Laboratorio.objects.all()
         response = {'results': [q.nome for q in queryset]}
+        return Response(response)
+
+
+class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = EmbalagemQld.objects.all()
+    serializer_class = EmbalagemQldSerializer
+    permission_classes = (PermissaoParaCadastrarVisualizarEmbalagem,)
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return EmbalagemQldSerializer
+        else:
+            return EmbalagemQldCreateSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-embalagens')
+    def lista_nomes_embalagens(self, request):
+        queryset = EmbalagemQld.objects.all().values_list('nome', flat=True)
+        response = {'results': queryset}
         return Response(response)
