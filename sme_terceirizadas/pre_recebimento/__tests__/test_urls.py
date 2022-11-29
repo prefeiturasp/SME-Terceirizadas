@@ -127,7 +127,7 @@ def test_url_endpoint_laboratorio(client_autenticado_qualidade):
     assert obj.nome == 'LABORATORIO DE TESTES MAIUSCULO'
 
 
-def test_url_lista_laboratorios_authorized(client_autenticado_qualidade):
+def test_url_laboratorios_authorized(client_autenticado_qualidade):
     response = client_autenticado_qualidade.get('/laboratorios/')
     assert response.status_code == status.HTTP_200_OK
 
@@ -161,3 +161,9 @@ def test_url_endpoint_laboratorio_editar(client_autenticado_qualidade, laborator
     assert response.status_code == status.HTTP_200_OK
     obj = Laboratorio.objects.last()
     assert obj.nome == 'LABORATORIO DE TESTES MAIUSCULO'
+
+
+def test_url_lista_laboratorios_authorized(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get('/laboratorios/lista-laboratorios/')
+    assert response.status_code == status.HTTP_200_OK
+

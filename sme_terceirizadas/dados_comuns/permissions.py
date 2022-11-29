@@ -431,7 +431,7 @@ class PermissaoParaCriarCronograma(BasePermission):
 
 
 class PermissaoParaCadastrarLaboratorio(BasePermission):
-    # TODO: Conforme solicitado pelos P.Os, apenas DILOG_QUALIDADE tem acesso a tela de cadstro de Laboratórios.
+    # Apenas DILOG_QUALIDADE tem acesso a tela de cadastro de Laboratórios.
     def has_permission(self, request, view):
         usuario = request.user
         return (
