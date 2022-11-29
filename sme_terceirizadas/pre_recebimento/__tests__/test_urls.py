@@ -191,4 +191,3 @@ def test_url_embalagen_authorized(client_autenticado_qualidade):
 def test_url_lista_nomes_embalagens_authorized(client_autenticado_qualidade):
     response = client_autenticado_qualidade.get('/embalagens/lista-nomes-embalagens/')
     assert response.status_code == status.HTTP_200_OK
-
