@@ -24,3 +24,15 @@ class Laboratorio(ModeloBase):
     class Meta:
         verbose_name = 'Laboratório'
         verbose_name_plural = 'Laboratórios'
+
+
+class EmbalagemQld(ModeloBase):
+    nome = models.CharField('Nome', max_length=150, unique=True)
+    abreviacao = models.CharField('Abreviação', max_length=15)
+
+    def __str__(self):
+        return f'{self.nome}'
+
+    class Meta:
+        verbose_name = 'Embalagem QLD'
+        verbose_name_plural = 'Embalagens QLD'
