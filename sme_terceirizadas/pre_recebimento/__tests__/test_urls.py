@@ -135,3 +135,28 @@ def test_url_laboratorios_authorized(client_autenticado_qualidade):
 def test_url_lista_laboratorios_authorized(client_autenticado_qualidade):
     response = client_autenticado_qualidade.get('/laboratorios/lista-laboratorios/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_embalagem(client_autenticado_qualidade):
+    data = {
+        'nome': 'fardo',
+        'abreviacao': 'FD'
+    }
+    response = client_autenticado_qualidade.post(
+        '/embalagens/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    obj = Laboratorio.objects.last()
+    assert obj.nome == 'FARDO'
+
+
+def test_url_embalagen_authorized(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get('/embalagens/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_lista_nomes_embalagens_authorized(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get('/embalagens/lista-nomes-embalagens/')
+    assert response.status_code == status.HTTP_200_OK
