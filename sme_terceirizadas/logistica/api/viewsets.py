@@ -36,7 +36,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
-from sme_terceirizadas.logistica.api.serializers.serializers import ( # noqa
+from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
     ConferenciaComOcorrenciaSerializer,
@@ -61,7 +61,13 @@ from sme_terceirizadas.logistica.api.serializers.serializers import ( # noqa
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
-from sme_terceirizadas.logistica.services import arquiva_guias, confirma_cancelamento, confirma_guias, desarquiva_guias
+from sme_terceirizadas.logistica.services import (
+    arquiva_guias,
+    confirma_cancelamento,
+    confirma_guias,
+    desarquiva_guias,
+    envia_email_e_notificacao_confirmacao_guias
+)
 
 from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA, COGESTOR
 from ...escola.models import DiretoriaRegional, Escola
@@ -384,6 +390,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
                     cnpj=solicitacao.cnpj,
                     numero_solicitacao=solicitacao.numero_solicitacao,
                     sequencia_envio=solicitacao.sequencia_envio)
+                envia_email_e_notificacao_confirmacao_guias(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
@@ -405,6 +412,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
                         cnpj=solicitacao.cnpj,
                         numero_solicitacao=solicitacao.numero_solicitacao,
                         sequencia_envio=solicitacao.sequencia_envio)
+                    envia_email_e_notificacao_confirmacao_guias(solicitacao)
             return Response(status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)

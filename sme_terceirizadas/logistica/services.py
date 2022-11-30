@@ -29,6 +29,15 @@ def confirma_guias(solicitacao, user):
         return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
 
+def envia_email_e_notificacao_confirmacao_guias(solicitacao):
+    guias = Guia.objects.filter(solicitacao=solicitacao, status=GuiaStatus.PENDENTE_DE_CONFERENCIA)
+    try:
+        for guia in guias:
+            guia.distribuidor_confirma_guia_envia_email_e_notificacao()
+    except InvalidTransitionError as e:
+        return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+
 def exclui_ultima_reposicao(guia):
     reposicao = guia.conferencias.filter(eh_reposicao=True).last()
     if reposicao:
