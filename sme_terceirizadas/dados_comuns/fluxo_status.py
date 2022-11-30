@@ -267,6 +267,7 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
 
     transitions = (
         ('distribuidor_confirma_guia', AGUARDANDO_CONFIRMACAO, PENDENTE_DE_CONFERENCIA),
+        ('distribuidor_confirma_guia_envia_email_e_notificacao', PENDENTE_DE_CONFERENCIA, PENDENTE_DE_CONFERENCIA),
         ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
         ('escola_recebe', [
             PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
@@ -993,11 +994,13 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('distribuidor_confirma_guia')
     def _distribuidor_confirma_guia_hook(self, *args, **kwargs):
         user = kwargs['user']
-        log_transicao = self.salvar_log_transicao(
+        self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
 
+    @xworkflows.after_transition('distribuidor_confirma_guia_envia_email_e_notificacao')
+    def _dispara_email_e_notificacao_de_confirmacao_ao_distribuidor_hook(self, *args, **kwargs):
         # Monta e-mail
         url = f'{base_url}/logistica/conferir-entrega?numero_guia={self.numero_guia}'
         titulo = f'Nova Guia de Remessa N° {self.numero_guia}'
@@ -1005,7 +1008,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         template = 'logistica_distribuidor_confirma_requisicao.html'
         partes_interessadas = self._partes_interessadas_escola()
 
-        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, None, url)
 
         # Monta Notificacao
         usuarios = self._usuarios_partes_interessadas_escola()
