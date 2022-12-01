@@ -531,6 +531,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         map_filtros = {
             'lote_uuid__in': request.query_params.getlist('lotes[]', None),
             'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
+            'terceirizada_uuid': request.query_params.get('terceirizada', None),
             'tipo_doc__in': tipo_doc,
             'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
         }
@@ -995,6 +996,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         map_filtros = {
             'lote_uuid__in': request.query_params.getlist('lotes[]', None),
             'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
+            'terceirizada_uuid': request.query_params.get('terceirizada', None),
             'tipo_doc__in': tipo_doc,
             'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
         }
