@@ -509,6 +509,35 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             query_set=query_set)}
         return Response(response)
 
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtrar-solicitacoes-ga',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def filtrar_solicitacoes_ga(self, request):
+        # queryset por status
+        status = request.query_params.get('status', None)
+        queryset = SolicitacoesCODAE.map_queryset_por_status(status)
+
+        # filtra por datas
+        periodo_datas = {
+            'data_evento': request.query_params.get('de', None),
+            'data_evento_fim': request.query_params.get('ate', None)
+        }
+        queryset = SolicitacoesCODAE.busca_periodo_de_datas(queryset, periodo_datas)
+
+        tipo_doc = request.query_params.getlist('tipos_solicitacao[]', None)
+        tipo_doc = SolicitacoesCODAE.map_queryset_por_tipo_doc(tipo_doc)
+        # outros filtros
+        map_filtros = {
+            'lote_uuid__in': request.query_params.getlist('lotes[]', None),
+            'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
+            'tipo_doc__in': tipo_doc,
+            'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
+        }
+        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
+        queryset = queryset.filter(**filtros)
+        return self._retorno_base(queryset, False)
+
 
 class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -943,6 +972,35 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
             return self._retorno_base(query_set)
         else:
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtrar-solicitacoes-ga',
+            permission_classes=(UsuarioDiretoriaRegional,))
+    def filtrar_solicitacoes_ga(self, request):
+        # queryset por status
+        dre_uuid = request.user.vinculo_atual.instituicao.uuid
+        status = request.query_params.get('status', None)
+        queryset = SolicitacoesDRE.map_queryset_por_status(status, dre_uuid=dre_uuid)
+        # filtra por datas
+        periodo_datas = {
+            'data_evento': request.query_params.get('de', None),
+            'data_evento_fim': request.query_params.get('ate', None)
+        }
+        queryset = SolicitacoesDRE.busca_periodo_de_datas(queryset, periodo_datas)
+
+        tipo_doc = request.query_params.getlist('tipos_solicitacao[]', None)
+        tipo_doc = SolicitacoesDRE.map_queryset_por_tipo_doc(tipo_doc)
+        # outros filtros
+        map_filtros = {
+            'lote_uuid__in': request.query_params.getlist('lotes[]', None),
+            'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
+            'tipo_doc__in': tipo_doc,
+            'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
+        }
+        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
+        queryset = queryset.filter(**filtros).order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
+        return self._retorno_base(queryset, False)
 
 
 class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
