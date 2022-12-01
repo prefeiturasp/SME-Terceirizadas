@@ -66,6 +66,8 @@ DATABASES['default']['ATOMIC_REQUESTS'] = True
 ROOT_URLCONF = 'config.urls'
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = 'config.wsgi.application'
+# DEIXAR ILIMITADO O TAMANHO DO QUERY PARAMS PARA GET E POST
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 
 # APPS
 # ------------------------------------------------------------------------------
