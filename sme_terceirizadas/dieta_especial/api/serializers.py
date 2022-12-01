@@ -622,6 +622,15 @@ class LogQuantidadeDietasAutorizadasSerializer(serializers.ModelSerializer):
         required=False,
         queryset=Escola.objects.all()
     )
+    classificacao = serializers.CharField(
+        source='classificacao.nome',
+        required=False
+    )
+    dia = serializers.SerializerMethodField()
+
+    def get_dia(self, obj):
+        day = str(obj.data.day)
+        return day if len(day) == 2 else '0' + day
 
     class Meta:
         model = LogQuantidadeDietasAutorizadas
