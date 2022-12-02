@@ -356,7 +356,7 @@ class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEICreateSerializer(serialize
         exclude = ('id',)
 
 
-class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEIreateSerializer(serializers.ModelSerializer):
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEICreateSerializer(serializers.ModelSerializer):
     inclusao_alimentacao_cemei = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -382,7 +382,7 @@ class InclusaoDeAlimentacaoCEMEICreateSerializer(serializers.ModelSerializer):
         queryset=Escola.objects.all())
     dias_motivos_da_inclusao_cemei = DiasMotivosInclusaoDeAlimentacaoCEMEICreateSerializer(required=True, many=True)
     quantidade_alunos_cei_da_inclusao_cemei = (
-        QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEIreateSerializer(required=False, many=True)
+        QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEICreateSerializer(required=False, many=True)
     )
     quantidade_alunos_emei_da_inclusao_cemei = (
         QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEICreateSerializer(required=False, many=True)
