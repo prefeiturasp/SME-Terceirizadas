@@ -185,8 +185,8 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
 
 class ProdutoEdital(TemChaveExterna, CriadoEm):
 
-    COMUM = 'COMUM'
-    DIETA_ESPECIAL = 'DIETA_ESPECIAL'
+    COMUM = 'Comum'
+    DIETA_ESPECIAL = 'Dieta especial'
 
     TIPO_PRODUTO = {
         COMUM: 'Comum',

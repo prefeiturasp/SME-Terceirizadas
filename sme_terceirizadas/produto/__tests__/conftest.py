@@ -209,7 +209,7 @@ def vinculo_produto_edital(produto, edital):
                                 edital=edital,
                                 outras_informacoes='Teste 1',
                                 ativo=True,
-                                tipo_produto=ProdutoEdital.TIPO_PRODUTO['DIETA_ESPECIAL'])
+                                tipo_produto=ProdutoEdital.DIETA_ESPECIAL)
     return produto_edital
 
 
