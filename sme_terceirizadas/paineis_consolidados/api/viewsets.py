@@ -1,6 +1,9 @@
 import datetime
+import io
 
+import numpy as np
 from django.db.models.query import QuerySet
+from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -18,6 +21,7 @@ from ...dados_comuns.permissions import (
 )
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
+from ...escola.models import Escola, Lote, TipoUnidadeEscolar
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
@@ -55,6 +59,7 @@ from .constants import (
     RESUMO_MES
 )
 from .filters import SolicitacoesCODAEFilter
+from .serializers import SolicitacoesExportXLSXSerializer
 
 
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
@@ -509,12 +514,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             query_set=query_set)}
         return Response(response)
 
-    @action(detail=False,
-            methods=['GET'],
-            url_path='filtrar-solicitacoes-ga',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def filtrar_solicitacoes_ga(self, request):
-        # queryset por status
+    def filtrar_solicitacoes_para_relatorio(self, request):
         status = request.query_params.get('status', None)
         queryset = SolicitacoesCODAE.map_queryset_por_status(status)
 
@@ -537,7 +537,140 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         }
         filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
         queryset = queryset.filter(**filtros)
+        return queryset
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtrar-solicitacoes-ga',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def filtrar_solicitacoes_ga(self, request):
+        # queryset por status
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
         return self._retorno_base(queryset, False)
+
+    def build_subtitulo(self, request, status_, queryset):
+        subtitulo = f'Total de Solicitações {status_}: {len(queryset)}'
+
+        lotes = request.query_params.getlist('lotes[]')
+        nomes_lotes = ', '.join([lote.nome for lote in Lote.objects.filter(uuid__in=lotes)])
+        subtitulo += f' | Lote(s): {nomes_lotes}' if nomes_lotes else ''
+
+        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
+        de_para_tipos_solicitacao = {
+            'INC_ALIMENTA': 'Inclusão de Alimentação',
+            'ALT_CARDAPIO': 'Alteração do tipo de Alimentação',
+            'KIT_LANCHE_AVULSA': 'Kit Lanche',
+            'INV_CARDAPIO': 'Inversão de dia de Cardápio',
+            'SUSP_ALIMENTACAO': 'Suspensão de Alimentação'
+        }
+        nomes_tipos_solicitacao = ', '.join([de_para_tipos_solicitacao[tipo_sol] for tipo_sol in tipos_solicitacao])
+        subtitulo += f' | Tipo(s) de solicitação(ões): {nomes_tipos_solicitacao}' if nomes_tipos_solicitacao else ''
+
+        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
+        nomes_tipos_unidade = ', '.join([
+            tipo_unidade.iniciais for tipo_unidade in TipoUnidadeEscolar.objects.filter(uuid__in=tipos_unidade)])
+        subtitulo += f' | Tipo(s) unidade(s): {nomes_tipos_unidade}' if nomes_tipos_unidade else ''
+
+        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
+        nomes_ues = ', '.join([
+            escola.nome for escola in Escola.objects.filter(uuid__in=unidades_educacionais)])
+        subtitulo += f' | Unidade(s) educacional(is): {nomes_ues}' if nomes_ues else ''
+
+        data_inicial = request.query_params.get('de')
+        subtitulo += f' | Data inicial: {data_inicial}' if data_inicial else ''
+
+        data_final = request.query_params.get('ate')
+        subtitulo += f' | Data final: {data_final}' if data_final else ''
+
+        return subtitulo
+
+    def build_xlsx(self, output, serializer, queryset, request):
+        LINHA_0 = 0
+        LINHA_1 = 1
+        LINHA_2 = 2
+        LINHA_3 = 3
+
+        COLUNA_1 = 1
+        COLUNA_2 = 2
+        COLUNA_3 = 3
+        COLUNA_4 = 4
+        COLUNA_5 = 5
+        COLUNA_6 = 6
+        COLUNA_7 = 7
+
+        ALTURA_COLUNA_30 = 30
+        ALTURA_COLUNA_50 = 50
+
+        import pandas as pd
+        xlwriter = pd.ExcelWriter(output, engine='xlsxwriter')
+
+        df = pd.DataFrame(serializer.data)
+
+        # Adiciona linhas em branco no comeco do arquivo
+        df_auxiliar = pd.DataFrame([[np.nan] * len(df.columns)], columns=df.columns)
+        df = df_auxiliar.append(df, ignore_index=True)
+        df = df_auxiliar.append(df, ignore_index=True)
+        df = df_auxiliar.append(df, ignore_index=True)
+
+        status_ = request.query_params.get('status').capitalize()
+        status_ = list(status_)
+        status_[-2] = 'a'
+        status_ = ''.join(status_)
+
+        titulo = f'Relatório de Solicitações de Alimentação {status_}'
+
+        df.to_excel(xlwriter, f'Relatório - {status_}')
+        workbook = xlwriter.book
+        worksheet = xlwriter.sheets[f'Relatório - {status_}']
+        worksheet.set_row(LINHA_0, ALTURA_COLUNA_50)
+        worksheet.set_row(LINHA_1, ALTURA_COLUNA_30)
+        worksheet.set_column('B:H', ALTURA_COLUNA_30)
+        merge_format = workbook.add_format({'align': 'center', 'bg_color': '#a9d18e', 'border_color': '#198459'})
+        merge_format.set_align('vcenter')
+        merge_format.set_bold()
+        cell_format = workbook.add_format()
+        cell_format.set_text_wrap()
+        cell_format.set_align('vcenter')
+        cell_format.set_bold()
+        v_center_format = workbook.add_format()
+        v_center_format.set_align('vcenter')
+        single_cell_format = workbook.add_format({'bg_color': '#a9d18e'})
+        len_cols = len(df.columns)
+        worksheet.merge_range(0, 0, 0, len_cols, titulo, merge_format)
+
+        subtitulo = self.build_subtitulo(request, status_, queryset)
+
+        worksheet.merge_range(LINHA_1, 0, LINHA_2, len_cols, subtitulo, cell_format)
+        worksheet.insert_image('A1', 'sme_terceirizadas/static/images/logo-sigpae-light.png')
+        worksheet.write(LINHA_3, COLUNA_1, 'Lote', single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_2, 'Unidade Educacional', single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_3, 'Tipo de Solicitação', single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_4, 'Data do Evento', single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_5, 'Nª de Alunos', single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_6, 'Observações', single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_7, 'Data da Autorização', single_cell_format)
+        df.reset_index(drop=True, inplace=True)
+        xlwriter.save()
+        output.seek(0)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')  # noqa C901
+    def exportar_xlsx(self, request):
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        queryset = self._remove_duplicados_do_query_set(queryset)
+        status_ = request.query_params.get('status')
+
+        serializer = SolicitacoesExportXLSXSerializer(
+            queryset, context={'request': request, 'status': status_.upper()}, many=True)
+
+        output = io.BytesIO()
+
+        self.build_xlsx(output, serializer, queryset, request)
+
+        response = HttpResponse(
+            output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=myfile.xlsx'
+        return response
 
 
 class EscolaSolicitacoesViewSet(SolicitacoesViewSet):

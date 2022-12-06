@@ -247,6 +247,15 @@ class Logs(object):
     def log_mais_recente(self):
         return self.logs.last()
 
+    @property
+    def data_autorizacao(self):
+        if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid,
+                                                 status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU).exists():
+            return LogSolicitacoesUsuario.objects.get(
+                uuid_original=self.uuid, status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU
+            ).criado_em.strftime('%d/%m/%Y')
+        return None
+
 
 class TemVinculos(models.Model):
     vinculos = GenericRelation('perfil.Vinculo')

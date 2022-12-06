@@ -32,3 +32,47 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = SolicitacoesCODAE
+
+
+class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
+    lote_nome = serializers.CharField()
+    escola_nome = serializers.CharField()
+    desc_doc = serializers.CharField()
+    data_evento = serializers.SerializerMethodField()
+    numero_alunos = serializers.CharField()
+    observacoes = serializers.SerializerMethodField()
+    data_autorizacao = serializers.SerializerMethodField()
+
+    def get_data_evento(self, obj):
+        return obj.data_evento.strftime('%d/%m/%Y') if obj.data_evento else None
+
+    def get_data_autorizacao(self, obj):
+        return obj.get_raw_model.objects.get(uuid=obj.uuid).data_autorizacao
+
+    def get_observacoes(self, obj):
+        model_obj = obj.get_raw_model.objects.get(uuid=obj.uuid)
+        if hasattr(model_obj, 'observacao'):
+            return model_obj.observacao.replace('<p>', '').replace('</p>', '')
+        elif hasattr(model_obj, 'observacoes'):
+            return model_obj.observacoes
+        else:
+            return None
+
+    class Meta:
+        model = SolicitacoesCODAE
+        fields = (
+            'lote_nome',
+            'escola_nome',
+            'desc_doc',
+            'data_evento',
+            'numero_alunos',
+            'observacoes',
+            'data_autorizacao'
+        )
+
+    def __init__(self, *args, **kwargs):
+        """Não retornar campo data_ultimo_log caso status da solicitação for 'AUTORIZADAS'."""
+        if kwargs['context']['status'] == 'AUTORIZADAS':
+            del self.fields['data_ultimo_log']
+
+        super().__init__(*args, **kwargs)
