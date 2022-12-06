@@ -803,7 +803,7 @@ def test_cadastro_protocolo_dieta_especial(client_autenticado_protocolo_dieta):
                                                        content_type='application/json',
                                                        data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()[0] == 'Já existe um protocolo padrão com esse nome.'
+    assert 'Já existe um protocolo padrão com esse nome' in response.json()[0]
     data['nome_protocolo'] = 'ALERGIA - BANANA'
     client_autenticado_protocolo_dieta.post('/protocolo-padrao-dieta-especial/',
                                             content_type='application/json',
@@ -812,7 +812,7 @@ def test_cadastro_protocolo_dieta_especial(client_autenticado_protocolo_dieta):
                                                           content_type='application/json',
                                                           data=data)
     assert response_400.status_code == status.HTTP_400_BAD_REQUEST
-    assert response_400.json()[0] == 'Já existe um protocolo padrão com esse nome.'
+    assert 'Já existe um protocolo padrão com esse nome' in response_400.json()[0]
     data['nome_protocolo'] = 'ALERGIA - ABACATE'
     data['editais'] = []
     response = client_autenticado_protocolo_dieta.put(f'/protocolo-padrao-dieta-especial/{uuid}/',

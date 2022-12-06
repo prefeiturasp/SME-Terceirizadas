@@ -23,7 +23,7 @@ from ..models import (
     SubstituicaoAlimentoProtocoloPadrao
 )
 from ..utils import log_create, log_update
-from .validators import AlunoSerializerValidator
+from .validators import AlunoSerializerValidator, edital_ja_existe_protocolo
 
 
 class AnexoCreateSerializer(serializers.ModelSerializer):
@@ -315,9 +315,9 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
         substituicoes = validated_data.pop('substituicoes')
         nome_protocolo = validated_data['nome_protocolo']
         editais = validated_data.pop('editais')
-        protocolos = ProtocoloPadraoDietaEspecial.objects.all()
-        if (nome_protocolo.upper() in [protocolo.nome_protocolo.upper() for protocolo in protocolos]):
-            raise serializers.ValidationError('Já existe um protocolo padrão com esse nome.')
+        protocolos = Edital.objects.check_editais_already_has_nome_protocolo(editais, nome_protocolo)
+        if (protocolos):
+            edital_ja_existe_protocolo(protocolos, len(editais))
         validated_data['nome_protocolo'] = nome_protocolo.upper()
         protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.create(**validated_data)
         if editais and len(editais):
@@ -344,16 +344,19 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
 
     def update(self, instance, validated_data): # noqa C901
         editais = validated_data.pop('editais')
+        nome_protocolo = validated_data['nome_protocolo']
+        protocolos = Edital.objects.check_editais_already_has_nome_protocolo(
+            editais, nome_protocolo)
+        if(nome_protocolo == self.instance.nome_protocolo):
+            protocolos = protocolos.exclude(uuid__in=list(instance.editais.values_list('uuid', flat=True)))
+        if (protocolos):
+            edital_ja_existe_protocolo(protocolos, len(editais))
         instance.editais.clear()
         if editais and len(editais):
             instance.editais.set(Edital.objects.filter(uuid__in=editais))
 
         substituicoes = validated_data.pop('substituicoes')
 
-        nome_protocolo = validated_data['nome_protocolo']
-        protocolos = ProtocoloPadraoDietaEspecial.objects.all().exclude(uuid=instance.uuid)
-        if (nome_protocolo.upper() in [protocolo.nome_protocolo.upper() for protocolo in protocolos]):
-            raise serializers.ValidationError('Já existe um protocolo padrão com esse nome.')
         validated_data['nome_protocolo'] = nome_protocolo.upper()
         user = None
         request = self.context.get('request')
