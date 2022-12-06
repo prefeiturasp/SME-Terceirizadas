@@ -4,10 +4,10 @@
 
 {% block conteudo %}
 
-<div class="row mx-5 my-2">
-  {% if solicitacao.foi_solicitado_fora_do_prazo%}
-    <div class="col-12" style="color: #42474A; font-weight: 700; font-size: 14px">Solicitação fora do prazo regular</div>
-  {% else %}
+<div class="row mx-4 my-2">
+  {% if solicitacao.prioridade == "LIMITE" %}
+    <div class="col-12" style="color: #42474A; font-weight: 700; font-size: 14px">Solicitação no prazo limite</div>
+  {% elif solicitacao.prioridade == "REGULAR" %}
     <div class="col-12" style="color: #42474A; font-weight: 700; font-size: 14px">Solicitação no prazo regular</div>
   {% endif %}
   <div class="col-12 my-3" style="color: #42474A; font-weight: 700; font-size: 14px; text-align: center">Relatório SIGPAE - Inclusão de Alimentação</div>
@@ -58,19 +58,20 @@
   </div>
 </div>
 
-
 <div class="row mx-5 my-2" style="font-family: 'Roboto'; font-style: normal; font-weight: 400; font-size: 14px; color: #42474A;">
   <div class="col-12">
-    <p><b>Solicitação de Alimentação</b></p>
+    <p class="my-0"><b>Solicitação de Alimentação</b></p>
   </div>
-  <div class="col-4">
-    <p>Motivo:</p>
-    <p><b>{{ solicitacao.motivo.nome }}</b></p>
-  </div>
-  <div class="col-4">
-    <p>Dia(s) de inclusão:</p>
-    <p><b>{{ solicitacao.data }}</b></p>
-  </div>
+  {% for motivo_ in solicitacao.dias_motivos_da_inclusao_cemei.all %}
+    <div class="col-4">
+      <p>Motivo:</p>
+      <p><b>{{ motivo_.motivo.nome }}</b></p>
+    </div>
+    <div class="col-8">
+      <p>Dia(s) de inclusão:</p>
+      <p><b>{{ motivo_.data }}</b></p>
+    </div>
+  {% endfor %}
 </div>
 
 <div class="row mx-4 my-2">
@@ -78,24 +79,23 @@
     <hr style="color: #EEEEEE; opacity: 0.3">
   </div>
 </div>
-
-<div class="row mx-5 my-2">
-  <div class="col-12" style="background: #F1F1F1; border: 1px solid #E0E0E0; border-radius: 6px; font-family: 'Roboto'; font-style: normal; font-weight: 400; font-size: 14px; padding-top: 1%; padding-bottom: 1% ; color: #333333;">
-    INTEGRAL
-  </div>
-</div>
-{% for inclusao in inclusoes %}
-  <div class="row mx-5" style="padding: 0px 3% 0px 3%;">
+{% for periodo_cei in periodos_cei %}
+  <div class="row mx-5 my-2">
     <div class="col-12" style="background: #F1F1F1; border: 1px solid #E0E0E0; border-radius: 6px; font-family: 'Roboto'; font-style: normal; font-weight: 400; font-size: 14px; padding-top: 1%; padding-bottom: 1% ; color: #333333;">
-      {{inclusao.periodo}}
+      {{ periodo_cei.nome }}
     </div>
   </div>
-  <div class="row mx-5" style="padding: 0px 3% 0px 3%;">
-    <div class="col-12 my-2" style="font-family: 'Roboto'; font-style: normal; font-weight: 500; font-size: 14px; color: #686868;">
-      Tipos de Inclusão de Alimentação: <b>{{inclusao.tipos_alimentacao}}</b>
+  <div class="row mx-5" style="padding: 0px 0px 0px 3%;">
+    <div class="col-12" style="background: #F1F1F1; border: 1px solid #E0E0E0; border-radius: 6px; font-family: 'Roboto'; font-style: normal; font-weight: 400; font-size: 14px; padding-top: 1%; padding-bottom: 1% ; color: #333333;">
+      Alunos CEI
     </div>
   </div>
-  <div class="mx-5" style="padding: 0px 3% 0px 3%;">
+  <div class="row mx-5" style="padding: 0px 0px 0px 3%;">
+    <div class="col-12 my-3" style="font-family: 'Roboto'; font-style: normal; font-weight: 500; font-size: 14px; color: #686868;">
+      Tipos de Inclusão de Alimentação: <b>{{ periodo_cei.tipos_alimentacao }}</b>
+    </div>
+  </div>
+  <div class="mx-5" style="padding: 0px 0px 0px 3%;">
     <table class="table table-bordered">
       <thead>
         <tr style="background: #F5F6F8; font-family: 'Roboto'; font-style: normal; font-weight: 700; font-size: 14px; color: #42474A;">
@@ -105,21 +105,46 @@
         </tr>
       </thead>
       <tbody>
-        {% for faixa in inclusao.quantidade_por_faixa_etaria %}
+        {% for faixa in periodo_cei.faixas_etarias %}
           <tr style="font-family: 'Roboto'; font-style: normal; font-weight: 400; font-size: 14px; color: #333333;">
-            <td>{{faixa.faixa_etaria}}</td>
-            <td style="text-align: center">{{faixa.quantidade_matriculados}}</td>
-            <td style="text-align: center">{{faixa.quantidade_alunos}}</td>
+            <td>{{ faixa.faixa_etaria }}</td>
+            <td style="text-align: center">{{ faixa.matriculados_quando_criado }}</td>
+            <td style="text-align: center">{{ faixa.quantidade_alunos }}</td>
           </tr>
         {% endfor %}
         <tr style="background: #F5F6F8; font-family: 'Roboto'; font-style: normal; font-weight: 700; font-size: 14px; color: #42474A;">
           <td>Total</td>
-          <td style="text-align: center">{{inclusao.total_matriculados}}</td>
-          <td style="text-align: center">{{inclusao.total_solicitacao}}</td>
+          <td style="text-align: center">{{ periodo_cei.total_matriculados }}</td>
+          <td style="text-align: center">{{ periodo_cei.total_solicitacao }}</td>
         </tr>
       </tbody>
     </table>
   </div>
+  {% for periodo_emei in periodos_emei %}
+    {% if periodo_emei.nome == periodo_cei.nome %}
+      <div class="row mx-5" style="padding: 0px 0px 0px 3%;">
+        <div class="col-12" style="background: #F1F1F1; border: 1px solid #E0E0E0; border-radius: 6px; font-family: 'Roboto'; font-style: normal; font-weight: 400; font-size: 14px; padding-top: 1%; padding-bottom: 1% ; color: #333333;">
+          Alunos EMEI
+        </div>
+      </div>
+      <div class="row mx-5" style="padding: 0px 0px 0px 3%;">
+        <div class="col-12 my-3" style="font-family: 'Roboto'; font-style: normal; font-weight: 500; font-size: 14px; color: #686868;">
+          Tipos de Inclusão de Alimentação: <b>{{ periodo_emei.tipos_alimentacao }}</b>
+        </div>
+      </div>
+      <div class="mx-5" style="padding: 0px 0px 0px 3%;">
+        <table class="table table-bordered">
+          <thead>
+            <tr style="background: #F5F6F8; font-family: 'Roboto'; font-style: normal; font-weight: 700; font-size: 14px; color: #42474A;">
+              <th>Alunos Matriculados: {{ periodo_emei.total_matriculados }}</th>
+              <th>Quantidade: {{ periodo_emei.total_solicitacao }}</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    {% endif %}
+  {% endfor %}
+<br/>
 {% endfor %}
 
 <div class="row mx-4 my-2">
@@ -134,7 +159,7 @@
 <div class="row mx-5">
   {% include "bloco_historico_questionamento.html" %}
 </div>
-<div class="row mx-5">
+<div class="row mx-5" style="font-size: 14px;">
   {% include "bloco_historico_cancelamento.html" %}
 </div>
 

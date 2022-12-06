@@ -670,3 +670,16 @@ def test_url_inclusao_cemei_terceirizada(client_autenticado_vinculo_terceirizada
     assert response.status_code == status.HTTP_200_OK
     # só pode ver inclusoes da sua TERCEIRIZADA
     assert len(response.json()['results']) == 1
+
+
+def test_url_endpoint_inclusao_cemei_relatorio(client_autenticado_vinculo_escola_inclusao,
+                                               inclusao_alimentacao_cemei):
+    response = client_autenticado_vinculo_escola_inclusao.get(
+        f'/inclusao-alimentacao-cemei/{inclusao_alimentacao_cemei.uuid}/{constants.RELATORIO}/')
+    id_externo = inclusao_alimentacao_cemei.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="inclusao_alimentacao_cemei_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)

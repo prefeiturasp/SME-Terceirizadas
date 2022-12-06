@@ -17,6 +17,7 @@ from ...dados_comuns.permissions import (
 from ...kit_lanche.models import SolicitacaoKitLancheCEMEI
 from ...relatorios.relatorios import (
     relatorio_inclusao_alimentacao_cei,
+    relatorio_inclusao_alimentacao_cemei,
     relatorio_inclusao_alimentacao_continua,
     relatorio_inclusao_alimentacao_normal
 )
@@ -594,3 +595,10 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREVali
         page = self.paginate_queryset(inclusoes_alimentacao)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}',
+            permission_classes=(IsAuthenticated,))
+    def relatorio(self, request, uuid=None):
+        return relatorio_inclusao_alimentacao_cemei(request, solicitacao=self.get_object())
