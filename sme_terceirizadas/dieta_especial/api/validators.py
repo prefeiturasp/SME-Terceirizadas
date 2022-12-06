@@ -34,7 +34,7 @@ def somente_digitos(codigo_eol):
         raise serializers.ValidationError('Deve ter somente dígitos')
 
 
-def edital_ja_existe_protocolo(editais: str):
+def edital_ja_existe_protocolo(editais):
     if (len(editais) > 1):
         str_editais = ', '.join(str(edital['numero']) for edital in editais)
         raise serializers.ValidationError(
