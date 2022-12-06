@@ -3,6 +3,8 @@ from django.db import models
 from django.db.models import Q
 from django_prometheus.models import ExportModelOperationsMixin
 
+from sme_terceirizadas.dieta_especial.managers import EditalManager
+
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
     Ativavel,
@@ -30,6 +32,8 @@ class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
     processo = models.CharField('Processo Administrativo', max_length=100,
                                 help_text='Processo administrativo do edital')
     objeto = models.TextField('objeto resumido')
+
+    objects = EditalManager()
 
     @property
     def contratos(self):
