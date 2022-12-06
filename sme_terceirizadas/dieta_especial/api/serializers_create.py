@@ -317,7 +317,7 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
         editais = validated_data.pop('editais')
         protocolos = Edital.objects.check_editais_already_has_nome_protocolo(editais, nome_protocolo)
         if (protocolos):
-            edital_ja_existe_protocolo(protocolos)
+            edital_ja_existe_protocolo(protocolos, len(editais))
         validated_data['nome_protocolo'] = nome_protocolo.upper()
         protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.create(**validated_data)
         if editais and len(editais):
@@ -350,7 +350,7 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
         if(nome_protocolo == self.instance.nome_protocolo):
             protocolos = protocolos.exclude(uuid__in=list(instance.editais.values_list('uuid', flat=True)))
         if (protocolos):
-            edital_ja_existe_protocolo(protocolos)
+            edital_ja_existe_protocolo(protocolos, len(editais))
         instance.editais.clear()
         if editais and len(editais):
             instance.editais.set(Edital.objects.filter(uuid__in=editais))
