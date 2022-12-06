@@ -19,7 +19,7 @@ def test_extensoes_invalidas(nomes_arquivos_invalidos):
 
 
 @pytest.mark.parametrize('editais,quantidade_editais,msg_esperada', [
-    ([{'numero': 'E1'}], 0,'Já existe um protocolo padrão com esse nome.'),
+    ([{'numero': 'E1'}], 0, 'Já existe um protocolo padrão com esse nome.'),
     ([{'numero': 'E1'}, {'numero': 'E2'}], 2, 'Já existe um protocolo padrão com esse nome para os editais: E1, E2.')
 ])
 def test_edital_ja_existe_protocolo(editais, quantidade_editais, msg_esperada):
