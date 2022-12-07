@@ -68,7 +68,8 @@ def cria_vinculos():
         'perfil_usuario_dilog_juridico': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_DILOG_JURIDICO'),
         'perfil_usuario_ue_mista': Perfil.objects.get(nome='ADMINISTRADOR_UE_MISTA'),
         'perfil_usuario_ue_direta': Perfil.objects.get(nome='ADMINISTRADOR_UE_DIRETA'),
-        'perfil_usuario_ue_parceira': Perfil.objects.get(nome='ADMINISTRADOR_UE_PARCEIRA')
+        'perfil_usuario_ue_parceira': Perfil.objects.get(nome='ADMINISTRADOR_UE_PARCEIRA'),
+        'perfil_admin_fornecedor': Perfil.objects.get(nome='ADMINSTRADOR_FORNECEDOR')
     }
 
     usuario = {
@@ -100,6 +101,7 @@ def cria_vinculos():
         'usuario_ue_direta': Usuario.objects.get(email='uedireta@admin.com'),
         'usuario_ue_parceira': Usuario.objects.get(email='ueparceira@admin.com'),
         'usuario_diretor_ue_abastecimento': Usuario.objects.get(email='diretorabastecimento@admin.com'),
+        'usuario_admin_fornecedor': Usuario.objects.get(email='fornecedor@admin.com'),
     }
 
     items = [
@@ -182,6 +184,11 @@ def cria_vinculos():
             'nome': 'CEI DIRET ROBERTO ARANTES LANHOSO',
             'perfil': perfil['perfil_diretor_escola_abastecimento'],
             'usuario': usuario['usuario_diretor_ue_abastecimento'],
+        },
+        {
+            'nome': 'FORNECEDOR ADMIN',
+            'perfil': perfil['perfil_admin_fornecedor'],
+            'usuario': usuario['usuario_admin_fornecedor'],
         },
 
     ]

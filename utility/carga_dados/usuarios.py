@@ -16,6 +16,14 @@ USUARIOS = [
         'cargo': 'Admin',
     },
     {
+        'email': 'fornecedor@admin.com',
+        'password': DJANGO_ADMIN_PASSWORD,
+        'cpf': '13262731838',
+        'registro_funcional': '1111122',
+        'nome': 'FORNECEDOR ADMIN',
+        'cargo': 'Fornecedor',
+    },
+    {
         'email': 'escola@admin.com',
         'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111101',
