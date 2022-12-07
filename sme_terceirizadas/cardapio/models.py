@@ -383,6 +383,11 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
         query = self.suspensoes_alimentacao.order_by('data')
         return query.first().data
 
+    @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in
+                          self.suspensoes_alimentacao.order_by('data').values_list('data', flat=True)])
+
     def __str__(self):
         return f'{self.observacao}'
 

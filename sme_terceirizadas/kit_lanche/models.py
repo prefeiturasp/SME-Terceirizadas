@@ -158,6 +158,10 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
                                related_name='solicitacoes_kit_lanche_avulsa')
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
 
+    @property
+    def observacao(self):
+        return None
+
     def __str__(self):
         return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'
 
@@ -234,6 +238,10 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     @property
     def data(self):
         return self.solicitacao_kit_lanche.data
+
+    @property
+    def observacao(self):
+        return None
 
     @property
     def lote_nome(self):

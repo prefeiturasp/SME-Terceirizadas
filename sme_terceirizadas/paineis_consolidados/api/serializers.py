@@ -44,6 +44,10 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     data_autorizacao = serializers.SerializerMethodField()
 
     def get_data_evento(self, obj):
+        if obj.data_evento_fim and obj.data_evento and obj.data_evento != obj.data_evento_fim:
+            return f"{obj.data_evento.strftime('%d/%m/%Y')} - {obj.data_evento_fim.strftime('%d/%m/%Y')}"
+        elif obj.tipo_doc in ['INC_ALIMENTA', 'SUSP_ALIMENTACAO', 'INC_ALIMENTA_CEMEI']:
+            return obj.get_raw_model.objects.get(uuid=obj.uuid).datas
         return obj.data_evento.strftime('%d/%m/%Y') if obj.data_evento else None
 
     def get_data_autorizacao(self, obj):
@@ -52,11 +56,10 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     def get_observacoes(self, obj):
         model_obj = obj.get_raw_model.objects.get(uuid=obj.uuid)
         if hasattr(model_obj, 'observacao'):
-            return model_obj.observacao.replace('<p>', '').replace('</p>', '')
+            return model_obj.observacao.replace('<p>', '').replace('</p>', '') if model_obj.observacao else None
         elif hasattr(model_obj, 'observacoes'):
-            return model_obj.observacoes
-        else:
-            return None
+            return model_obj.observacoes.replace('<p>', '').replace('</p>', '') if model_obj.observacoes else None
+        return None
 
     class Meta:
         model = SolicitacoesCODAE

@@ -613,9 +613,12 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         df = df_auxiliar.append(df, ignore_index=True)
 
         status_ = request.query_params.get('status').capitalize()
-        status_ = list(status_)
-        status_[-2] = 'a'
-        status_ = ''.join(status_)
+        if status_ == 'Em_andamento':
+            status_ = 'Recebidas'
+        else:
+            status_ = list(status_)
+            status_[-2] = 'a'
+            status_ = ''.join(status_)
 
         titulo = f'Relatório de Solicitações de Alimentação {status_}'
 
@@ -649,6 +652,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         worksheet.write(LINHA_3, COLUNA_5, 'Nª de Alunos', single_cell_format)
         worksheet.write(LINHA_3, COLUNA_6, 'Observações', single_cell_format)
         worksheet.write(LINHA_3, COLUNA_7, 'Data da Autorização', single_cell_format)
+
         df.reset_index(drop=True, inplace=True)
         xlwriter.save()
         output.seek(0)
