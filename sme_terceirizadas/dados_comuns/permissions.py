@@ -304,7 +304,7 @@ class UsuarioSuperCodae(BasePermission):
 
 
 class PermissaoParaCriarUsuarioComCoresso(BasePermission):
-    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial, Terceirizadas e Diretores."""
 
     def has_permission(self, request, view):
         usuario = request.user
