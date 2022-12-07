@@ -18,6 +18,7 @@ class ProdutoFilter(filters.FilterSet):
     nome_terceirizada = filters.CharFilter(field_name='homologacao__rastro_terceirizada__nome_fantasia',
                                            lookup_expr='icontains')
     aditivos = filters.CharFilter(field_name='aditivos', method='filtra_aditivos')
+    nome_edital = filters.CharFilter(field_name='vinculos__edital__numero', lookup_expr='iexact')
 
     status = filters.MultipleChoiceFilter(
         field_name='homologacao__status',
