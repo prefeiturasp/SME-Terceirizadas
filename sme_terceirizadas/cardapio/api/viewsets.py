@@ -25,6 +25,7 @@ from ...inclusao_alimentacao.api.viewsets import (
     TerceirizadaTomaCiencia
 )
 from ...relatorios.relatorios import (
+    relatorio_alteracao_alimentacao_cemei,
     relatorio_alteracao_cardapio,
     relatorio_alteracao_cardapio_cei,
     relatorio_inversao_dia_de_cardapio,
@@ -1082,6 +1083,13 @@ class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet, EscolaIniciaCanc
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}',
+            permission_classes=(IsAuthenticated,))
+    def relatorio(self, request, uuid=None):
+        return relatorio_alteracao_alimentacao_cemei(request, self.get_object())
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
