@@ -547,8 +547,8 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_INCLUSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_INCLUSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs),
             'periodos_cei': periodos_cei,
             'periodos_emei': periodos_emei,
