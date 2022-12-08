@@ -3,7 +3,6 @@
 {% load static %}
 
 {% block conteudo %}
-
 <div class="row mx-4 my-2">
   {% if solicitacao.prioridade == "LIMITE" %}
     <div class="col-12" style="color: #42474A; font-weight: 700; font-size: 14px">Solicitação no prazo limite</div>
@@ -145,7 +144,6 @@
       </div>
     {% endif %}
   {% endfor %}
-<br/>
 {% endfor %}
 
 {% if periodos_cei|length == 0 %}
@@ -178,20 +176,21 @@
   {% endfor %}
 {% endif %}
 
-<div class="row mx-4 my-2">
-  <div class="col-12">
-    <hr style="color: #EEEEEE; opacity: 0.3">
+{% if solicitacao.observacao or solicitacao.descricao or solicitacao.logs.all|tem_cancelamento or solicitacao.logs.all|tem_questionamentos %}
+  <div class="row mx-4 my-2">
+    <div class="col-12">
+      <hr style="color: #EEEEEE; opacity: 0.3">
+    </div>
   </div>
-</div>
 
-<div class="row mx-5">
-  {% include "bloco_observacoes.html" %}
-</div>
-<div class="row mx-5">
-  {% include "bloco_historico_questionamento.html" %}
-</div>
-<div class="row mx-5" style="font-size: 14px;">
-  {% include "bloco_historico_cancelamento.html" %}
-</div>
-
+  <div class="row mx-5">
+    {% include "bloco_observacoes.html" %}
+  </div>
+  <div class="row mx-5" style="font-size: 14px;">
+    {% include "bloco_historico_questionamento.html" %}
+  </div>
+  <div class="row mx-5" style="font-size: 14px;">
+    {% include "bloco_historico_cancelamento.html" %}
+  </div>
+{% endif %}
 {% endblock %}
