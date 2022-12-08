@@ -21,7 +21,7 @@ from sme_terceirizadas.perfil.models.usuario import (
 )
 
 from ...dados_comuns.constants import DIRETOR, DIRETOR_ABASTECIMENTO, DIRETOR_CEI
-from ...dados_comuns.permissions import UsuarioSuperCodae
+from ...dados_comuns.permissions import PermissaoParaCriarUsuarioComCoresso, UsuarioSuperCodae
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.models import Codae
 from ...terceirizada.models import Terceirizada
@@ -473,6 +473,10 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
     lookup_field = 'username'
     permission_classes = (IsAuthenticated,)
     serializer_class = UsuarioComCoreSSOCreateSerializer
+    permission_action_classes = {
+        'create': [PermissaoParaCriarUsuarioComCoresso],
+        'delete': [PermissaoParaCriarUsuarioComCoresso]
+    }
     queryset = Usuario.objects.all()
 
     @action(detail=True, permission_classes=(UsuarioSuperCodae,),

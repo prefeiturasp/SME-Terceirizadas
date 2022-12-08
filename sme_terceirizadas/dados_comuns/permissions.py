@@ -8,11 +8,13 @@ from .constants import (
     ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DISTRIBUIDORA,
+    ADMINISTRADOR_FORNECEDOR,
     ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_MEDICAO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+    ADMINISTRADOR_TERCEIRIZADA,
     ADMINISTRADOR_UE_DIRETA,
     ADMINISTRADOR_UE_MISTA,
     ADMINISTRADOR_UE_PARCEIRA,
@@ -23,7 +25,9 @@ from .constants import (
     COORDENADOR_LOGISTICA,
     COORDENADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
-    DIRETOR_ABASTECIMENTO
+    DIRETOR,
+    DIRETOR_ABASTECIMENTO,
+    DIRETOR_CEI
 )
 
 
@@ -296,6 +300,23 @@ class UsuarioSuperCodae(BasePermission):
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+        )
+
+
+class PermissaoParaCriarUsuarioComCoresso(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial, Terceirizadas e Diretores."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA, ADMINISTRADOR_FORNECEDOR,
+                                                  ADMINISTRADOR_TERCEIRIZADA, COORDENADOR_LOGISTICA,
+                                                  COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                  COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DIRETOR,
+                                                  DIRETOR_ABASTECIMENTO, DIRETOR_CEI, ]
         )
 
 
