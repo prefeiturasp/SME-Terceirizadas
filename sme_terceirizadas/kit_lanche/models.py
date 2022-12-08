@@ -2,6 +2,7 @@ import uuid
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django_prometheus.models import ExportModelOperationsMixin
 from rest_framework.compat import MinValueValidator
@@ -162,6 +163,10 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
     def observacao(self):
         return None
 
+    @property
+    def numero_alunos(self):
+        return self.quantidade_alunos
+
     def __str__(self):
         return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'
 
@@ -179,6 +184,10 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
     @property
     def quantidade_alunos(self):
         return self.faixas_etarias.all().aggregate(models.Sum('quantidade'))['quantidade__sum']
+
+    @property
+    def numero_alunos(self):
+        return self.quantidade_alunos
 
     def __str__(self):
         return f'{self.escola} SOLICITA EM {self.local}'
@@ -353,6 +362,10 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
                 total_kit_lanche += escola_quantidade.total_kit_lanche
             return total_kit_lanche
 
+    @property
+    def numero_alunos(self):
+        return self.escolas_quantidades.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
+
     def __str__(self):
         dre = self.diretoria_regional
         return f'{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}'
@@ -416,6 +429,15 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
     @property
     def tem_solicitacao_emei(self):
         return hasattr(self, 'solicitacao_emei')
+
+    @property
+    def numero_alunos(self):
+        total = 0
+        if self.tem_solicitacao_cei:
+            total += self.solicitacao_cei.quantidade_alunos
+        if self.tem_solicitacao_emei:
+            total += self.solicitacao_emei.quantidade_alunos
+        return total
 
     @property
     def total_kits(self):

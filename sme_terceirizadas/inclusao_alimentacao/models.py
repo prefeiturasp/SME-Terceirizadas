@@ -1,6 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
@@ -105,6 +105,10 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
         return ', '.join(self.quantidades_periodo.exclude(
             Q(observacao='') | Q(observacao__isnull=True)
         ).values_list('observacao', flat=True))
+
+    @property
+    def numero_alunos(self):
+        return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
 
     @classmethod
     def get_solicitacoes_rascunho(cls, usuario):
@@ -242,6 +246,10 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
                           self.inclusoes_normais.order_by('data').values_list('data', flat=True)])
 
     @property
+    def numero_alunos(self):
+        return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
+
+    @property
     def observacoes(self):
         return ', '.join(self.quantidades_periodo.exclude(
             Q(observacao='') | Q(observacao__isnull=True)
@@ -321,6 +329,10 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     vencidos = InclusaoDeAlimentacaoDeCeiVencidosDiasManager()
 
     @property
+    def numero_alunos(self):
+        return self.quantidade_alunos_da_inclusao.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
+
+    @property
     def observacao(self):
         return None
 
@@ -387,6 +399,13 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
     @property
     def observacao(self):
         return None
+
+    @property
+    def numero_alunos(self):
+        return (self.quantidade_alunos_emei_da_inclusao_cemei.aggregate(
+            Sum('quantidade_alunos'))['quantidade_alunos__sum'] or 0 +
+            self.quantidade_alunos_cei_da_inclusao_cemei.aggregate(
+                Sum('quantidade_alunos'))['quantidade_alunos__sum'] or 0)
 
     @property
     def inclusoes(self):
