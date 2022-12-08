@@ -75,10 +75,3 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
             'observacoes',
             'data_autorizacao'
         )
-
-    def __init__(self, *args, **kwargs):
-        """Não retornar campo data_ultimo_log caso status da solicitação for 'AUTORIZADAS'."""
-        if kwargs['context']['status'] == 'AUTORIZADAS':
-            del self.fields['data_ultimo_log']
-
-        super().__init__(*args, **kwargs)
