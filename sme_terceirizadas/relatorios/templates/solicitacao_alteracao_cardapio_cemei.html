@@ -224,14 +224,21 @@
 <br/>
 {% endfor %}
 
-<div class="row mx-4 my-2">
-  <div class="col-12">
-    <hr style="color: #EEEEEE; opacity: 0.3">
+{% if solicitacao.logs.all|tem_cancelamento or solicitacao.logs.all|tem_questionamentos or solicitacao.observacao %}
+  <div class="row mx-4 my-2">
+    <div class="col-12">
+      <hr style="color: #EEEEEE; opacity: 0.3">
+    </div>
   </div>
-</div>
 
-<div class="row mx-5" style="font-size: 14px;">
-  {% include "bloco_historico_cancelamento.html" %}
-</div>
-
+  <div class="row mx-5" style="font-size: 14px;">
+    {% include "bloco_observacoes.html" %}
+  </div>
+  <div class="row mx-5" style="font-size: 14px;">
+    {% include "bloco_historico_questionamento.html" %}
+  </div>
+  <div class="row mx-5" style="font-size: 14px;">
+    {% include "bloco_historico_cancelamento.html" %}
+  </div>
+{% endif %}
 {% endblock %}
