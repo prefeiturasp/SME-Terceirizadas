@@ -111,7 +111,8 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     worksheet.merge_range(LINHA_1, 0, LINHA_2, len_cols, subtitulo, cell_format)
     worksheet.insert_image('A1', 'sme_terceirizadas/static/images/logo-sigpae-light.png')
     worksheet.write(LINHA_3, COLUNA_1, 'Lote', single_cell_format)
-    worksheet.write(LINHA_3, COLUNA_2, 'Unidade Educacional', single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_2, 'Terceirizada' if status_ == 'Recebidas' else 'Unidade Educacional',
+                    single_cell_format)
     worksheet.write(LINHA_3, COLUNA_3, 'Tipo de Solicitação', single_cell_format)
     worksheet.write(LINHA_3, COLUNA_4, 'Data do Evento', single_cell_format)
     worksheet.write(LINHA_3, COLUNA_5, 'Nª de Alunos', single_cell_format)

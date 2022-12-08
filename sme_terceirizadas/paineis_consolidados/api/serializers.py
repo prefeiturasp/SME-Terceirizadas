@@ -36,12 +36,15 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
 
 class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     lote_nome = serializers.CharField()
-    escola_nome = serializers.CharField()
+    escola_ou_terceirizada_nome = serializers.SerializerMethodField()
     desc_doc = serializers.CharField()
     data_evento = serializers.SerializerMethodField()
     numero_alunos = serializers.SerializerMethodField()
     observacoes = serializers.SerializerMethodField()
     data_autorizacao = serializers.SerializerMethodField()
+
+    def get_escola_ou_terceirizada_nome(self, obj):
+        return obj.terceirizada_nome if self.context['status'] == 'EM_ANDAMENTO' else obj.escola_nome
 
     def get_numero_alunos(self, obj):
         return obj.get_raw_model.objects.get(uuid=obj.uuid).numero_alunos
@@ -68,7 +71,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
         model = SolicitacoesCODAE
         fields = (
             'lote_nome',
-            'escola_nome',
+            'escola_ou_terceirizada_nome',
             'desc_doc',
             'data_evento',
             'numero_alunos',
