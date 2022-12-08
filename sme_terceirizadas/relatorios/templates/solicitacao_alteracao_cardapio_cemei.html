@@ -188,8 +188,8 @@
       </table>
     </div>
   {% else %}
-      {% for perioco_cei in periodos_cei %}
-        {% if perioco_cei.nome != periodo_emei.nome %}
+    {% for perioco_cei in periodos_cei %}
+      {% if perioco_cei.nome != periodo_emei.nome %}
         <div class="row mx-5 my-2">
           <div class="col-12" style="background: #F1F1F1; border: 1px solid #E0E0E0; border-radius: 6px; font-family: 'Roboto'; font-style: normal; font-weight: 400; font-size: 14px; padding-top: 1%; padding-bottom: 1% ; color: #333333;">
             {{ periodo_emei.nome }}
@@ -218,22 +218,18 @@
             </thead>
           </table>
         </div>
-        {% endif %}
-      {% endfor %}
-    {% endif %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
 <br/>
 {% endfor %}
-
-
 
 <div class="row mx-4 my-2">
   <div class="col-12">
     <hr style="color: #EEEEEE; opacity: 0.3">
   </div>
 </div>
-<div class="row mx-5">
-  <p>Motivo/Justificativa:</p>
-</div>
+
 <div class="row mx-5" style="font-size: 14px;">
   {% include "bloco_historico_cancelamento.html" %}
 </div>
