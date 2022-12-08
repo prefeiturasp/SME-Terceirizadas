@@ -195,9 +195,6 @@ def relatorio_alteracao_alimentacao_cemei(request, solicitacao): # noqa C901
         if vinculo.periodo_escolar.nome in periodos_escolares_emei:
             periodo = {}
             periodo['nome'] = vinculo.periodo_escolar.nome
-            periodo['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.exclude(
-                nome__icontains='Lanche Emergencial').values_list('nome', flat=True))
-
             qtd_solicitacao = solicitacao.substituicoes_cemei_emei_periodo_escolar.filter(
                 periodo_escolar__nome=vinculo.periodo_escolar.nome)
             periodo['tipos_alimentacao_de'] = ', '.join(
