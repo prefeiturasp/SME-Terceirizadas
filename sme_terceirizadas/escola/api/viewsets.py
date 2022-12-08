@@ -270,6 +270,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
                 'faixa_etaria': FaixaEtariaSerializer(FaixaEtaria.objects.get(uuid=uuid_faixa_etaria)).data,
                 'count': faixa_alunos[uuid_faixa_etaria]
             })
+        results = sorted(results, key=lambda x: x['faixa_etaria']['inicio'])
 
         return Response({
             'count': len(results),
