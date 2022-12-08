@@ -246,7 +246,8 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
         usuario = request.user
         if usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_TERCEIRIZADA, ADMINISTRADOR_DISTRIBUIDORA,
                                                  ADMINISTRADOR_FORNECEDOR]:
-            vinculo = Vinculo.objects.get(usuario=usuario)
+            vinculos = Vinculo.objects.filter(usuario=usuario)
+            vinculo = [vinc for vinc in vinculos if vinc.status is Vinculo.STATUS_ATIVO][0]
             response = {'nome': vinculo.instituicao.nome, 'cnpj': vinculo.instituicao.cnpj}
         else:
             response = {'erro': 'Vínculo não encontrato.'}
