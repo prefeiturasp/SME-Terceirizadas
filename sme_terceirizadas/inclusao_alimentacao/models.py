@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
@@ -98,6 +99,16 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
         if self.data_final < data:
             data = self.data_final
         return data
+
+    @property
+    def observacoes(self):
+        return ', '.join(self.quantidades_periodo.exclude(
+            Q(observacao='') | Q(observacao__isnull=True)
+        ).values_list('observacao', flat=True))
+
+    @property
+    def numero_alunos(self):
+        return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
 
     @classmethod
     def get_solicitacoes_rascunho(cls, usuario):
@@ -229,6 +240,21 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
         inclusao_normal = self.inclusoes_normais.order_by('data').first()
         return inclusao_normal.data if inclusao_normal else ''
 
+    @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in
+                          self.inclusoes_normais.order_by('data').values_list('data', flat=True)])
+
+    @property
+    def numero_alunos(self):
+        return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
+
+    @property
+    def observacoes(self):
+        return ', '.join(self.quantidades_periodo.exclude(
+            Q(observacao='') | Q(observacao__isnull=True)
+        ).values_list('observacao', flat=True))
+
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
         resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
@@ -303,6 +329,14 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     vencidos = InclusaoDeAlimentacaoDeCeiVencidosDiasManager()
 
     @property
+    def numero_alunos(self):
+        return self.quantidade_alunos_da_inclusao.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
+
+    @property
+    def observacao(self):
+        return None
+
+    @property
     def quantidade_alunos_por_faixas_etarias(self):
         return self.quantidade_alunos_da_inclusao
 
@@ -356,6 +390,22 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
     def data(self):
         dia_motivo = self.dias_motivos_da_inclusao_cemei.order_by('data').first()
         return dia_motivo.data if dia_motivo else ''
+
+    @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in
+                          self.dias_motivos_da_inclusao_cemei.order_by('data').values_list('data', flat=True)])
+
+    @property
+    def observacao(self):
+        return None
+
+    @property
+    def numero_alunos(self):
+        return (self.quantidade_alunos_emei_da_inclusao_cemei.aggregate(
+            Sum('quantidade_alunos'))['quantidade_alunos__sum'] or 0 +
+            self.quantidade_alunos_cei_da_inclusao_cemei.aggregate(
+                Sum('quantidade_alunos'))['quantidade_alunos__sum'] or 0)
 
     @property
     def inclusoes(self):
