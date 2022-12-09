@@ -92,6 +92,11 @@ def tem_cancelamento(logs):
 
 
 @register.filter
+def tem_cancelamento_parcial(dias):
+    return dias.filter(cancelado=True).exists()
+
+
+@register.filter
 def concatena_str(query_set):
     return ', '.join([p.nome for p in query_set])
 
