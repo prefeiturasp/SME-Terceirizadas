@@ -275,8 +275,8 @@ class PermissaoParaReclamarDeProduto(BasePermission):
         )
 
 
-class UsuarioDilogCodae(BasePermission):
-    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+class UsuarioDilog(BasePermission):
+    """Permite acesso a usuários DILOG com vinculo a CODAE."""
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -285,6 +285,19 @@ class UsuarioDilogCodae(BasePermission):
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA]
+        )
+
+
+class UsuarioCodaeDilog(BasePermission):
+    """Permite acesso a usuários do perfil CODAE DILOG."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_CODAE_DILOG_LOGISTICA]
         )
 
 
