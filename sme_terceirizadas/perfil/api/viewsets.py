@@ -20,7 +20,14 @@ from sme_terceirizadas.perfil.models.usuario import (
     ImportacaoPlanilhaUsuarioServidorCoreSSO
 )
 
-from ...dados_comuns.constants import DIRETOR, DIRETOR_ABASTECIMENTO, DIRETOR_CEI
+from ...dados_comuns.constants import (
+    ADMINISTRADOR_DISTRIBUIDORA,
+    ADMINISTRADOR_FORNECEDOR,
+    ADMINISTRADOR_TERCEIRIZADA,
+    DIRETOR,
+    DIRETOR_ABASTECIMENTO,
+    DIRETOR_CEI
+)
 from ...dados_comuns.permissions import PermissaoParaCriarUsuarioComCoresso, UsuarioSuperCodae
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.models import Codae
@@ -212,13 +219,16 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['GET'], url_path='vinculos-ativos', permission_classes=(IsAuthenticated,))
     def lista_vinculos_ativos(self, request):
         usuario = request.user
-        if usuario.vinculo_atual.perfil.nome in [DIRETOR, DIRETOR_CEI, DIRETOR_ABASTECIMENTO]:
+        if usuario.vinculo_atual.perfil.nome in [DIRETOR, DIRETOR_CEI, DIRETOR_ABASTECIMENTO,
+                                                 ADMINISTRADOR_TERCEIRIZADA, ADMINISTRADOR_DISTRIBUIDORA,
+                                                 ADMINISTRADOR_FORNECEDOR]:
             queryset = self.get_queryset().filter(
                 content_type=usuario.vinculo_atual.content_type,
                 object_id=usuario.vinculo_atual.object_id
             ).order_by('-data_inicial')
         else:
             queryset = self.get_queryset().order_by('-data_inicial')
+
         queryset = [vinc for vinc in self.filter_queryset(
             queryset) if vinc.status is Vinculo.STATUS_ATIVO]
         page = self.paginate_queryset(queryset)
@@ -230,6 +240,18 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
             return response
         response = VinculoSimplesSerializer(queryset, many=True).data
         return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='vinculo-empresa', permission_classes=(IsAuthenticated,))
+    def vinculo_empresa(self, request):
+        usuario = request.user
+        if usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_TERCEIRIZADA, ADMINISTRADOR_DISTRIBUIDORA,
+                                                 ADMINISTRADOR_FORNECEDOR]:
+            vinculos = Vinculo.objects.filter(usuario=usuario)
+            vinculo = [vinc for vinc in vinculos if vinc.status is Vinculo.STATUS_ATIVO][0]
+            response = {'nome': vinculo.instituicao.nome, 'cnpj': vinculo.instituicao.cnpj}
+        else:
+            response = {'erro': 'Vínculo não encontrato.'}
+        return Response(response, status=status.HTTP_200_OK)
 
 
 def exportar_planilha_importacao_usuarios_perfil_codae(request, **kwargs):
