@@ -15,8 +15,8 @@ def test_url_authorized_numeros(client_autenticado_dilog, guia):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_authorized_inconsistencias(client_autenticado_dilog, guia):
-    response = client_autenticado_dilog.get('/guias-da-requisicao/inconsistencias/')
+def test_url_authorized_inconsistencias(client_autenticado_codae_dilog, guia):
+    response = client_autenticado_codae_dilog.get('/guias-da-requisicao/inconsistencias/')
     assert response.status_code == status.HTTP_200_OK
 
 
