@@ -146,8 +146,8 @@
   {% endfor %}
 {% endfor %}
 
-{% if periodos_cei|length == 0 %}
-  {% for periodo_emei in periodos_emei %}
+{% for periodo_emei in periodos_emei %}
+  {% if periodo_emei.nome not in periodos_escolares_cei %}
     <div class="row mx-5 my-2">
       <div class="col-12" style="background: #F1F1F1; border: 1px solid #E0E0E0; border-radius: 6px; font-family: 'Roboto'; font-style: normal; font-weight: 400; font-size: 14px; padding-top: 1%; padding-bottom: 1% ; color: #333333;">
         {{ periodo_emei.nome }}
@@ -173,7 +173,24 @@
         </thead>
       </table>
     </div>
-  {% endfor %}
+  {% endif %}
+{% endfor %}
+
+{% if solicitacao.dias_motivos_da_inclusao_cemei.all|tem_cancelamento_parcial %}
+  <div class="row mx-5 my-3" style="font-family: 'Roboto'; font-style: normal; font-size: 14px;">
+    <div>
+      <div>
+        <p>Histórico de cancelamento parcial:</p>
+      </div>
+      {% for dia in solicitacao.dias_motivos_da_inclusao_cemei.all %}
+        {% if dia.cancelado %}
+          <div>
+            {{ dia.data }} - {{ dia.cancelado_justificativa }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
 {% endif %}
 
 {% if solicitacao.observacao or solicitacao.descricao or solicitacao.logs.all|tem_cancelamento or solicitacao.logs.all|tem_questionamentos %}
