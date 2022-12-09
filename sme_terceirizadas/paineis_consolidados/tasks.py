@@ -1,3 +1,4 @@
+import datetime
 import io
 import logging
 
@@ -45,6 +46,8 @@ def build_subtitulo(data, status_, queryset, lotes, tipos_solicitacao, tipos_uni
 
     data_final = data.get('ate')
     subtitulo += f' | Data final: {data_final}' if data_final else ''
+
+    subtitulo += f' | Data de Extração do Relatório: {datetime.date.today().strftime("%d/%m/%Y")}'
 
     return subtitulo
 
@@ -117,7 +120,13 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     worksheet.write(LINHA_3, COLUNA_4, 'Data do Evento', single_cell_format)
     worksheet.write(LINHA_3, COLUNA_5, 'Nª de Alunos', single_cell_format)
     worksheet.write(LINHA_3, COLUNA_6, 'Observações', single_cell_format)
-    worksheet.write(LINHA_3, COLUNA_7, 'Data da Autorização', single_cell_format)
+    map_data = {
+        'Autorizadas': 'Data de Autorização',
+        'Canceladas': 'Data de Cancelamento',
+        'Negadas': 'Data de Negação',
+        'Recebidas': 'Data de Autorização'
+    }
+    worksheet.write(LINHA_3, COLUNA_7, map_data[status_], single_cell_format)
 
     df.reset_index(drop=True, inplace=True)
     xlwriter.save()
@@ -135,7 +144,8 @@ def gera_xls_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
-        queryset = SolicitacoesCODAE.objects.filter(uuid__in=uuids)
+        queryset = SolicitacoesCODAE.objects.filter(uuid__in=uuids).order_by(
+            'lote_nome', 'escola_nome', 'terceirizada_nome')
 
         # remove duplicados
         aux = []

@@ -2,6 +2,7 @@ import datetime
 
 from rest_framework import serializers
 
+from ...dados_comuns.utils import remove_tags_html_from_string
 from ..models import SolicitacoesCODAE
 
 
@@ -41,7 +42,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     data_evento = serializers.SerializerMethodField()
     numero_alunos = serializers.SerializerMethodField()
     observacoes = serializers.SerializerMethodField()
-    data_autorizacao = serializers.SerializerMethodField()
+    data_autorizacao_negacao_cancelamento = serializers.SerializerMethodField()
 
     def get_escola_ou_terceirizada_nome(self, obj):
         return obj.terceirizada_nome if self.context['status'] == 'EM_ANDAMENTO' else obj.escola_nome
@@ -56,15 +57,21 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
             return obj.get_raw_model.objects.get(uuid=obj.uuid).datas
         return obj.data_evento.strftime('%d/%m/%Y') if obj.data_evento else None
 
-    def get_data_autorizacao(self, obj):
-        return obj.get_raw_model.objects.get(uuid=obj.uuid).data_autorizacao
+    def get_data_autorizacao_negacao_cancelamento(self, obj):
+        map_data = {
+            'AUTORIZADOS': 'data_autorizacao',
+            'CANCELADOS': 'data_cancelamento',
+            'NEGADOS': 'data_negacao',
+            'EM_ANDAMENTO': 'data_autorizacao'
+        }
+        return getattr(obj.get_raw_model.objects.get(uuid=obj.uuid), map_data[self.context['status']])
 
     def get_observacoes(self, obj):
         model_obj = obj.get_raw_model.objects.get(uuid=obj.uuid)
         if hasattr(model_obj, 'observacao'):
-            return model_obj.observacao.replace('<p>', '').replace('</p>', '') if model_obj.observacao else None
+            return remove_tags_html_from_string(model_obj.observacao) if model_obj.observacao else None
         elif hasattr(model_obj, 'observacoes'):
-            return model_obj.observacoes.replace('<p>', '').replace('</p>', '') if model_obj.observacoes else None
+            return remove_tags_html_from_string(model_obj.observacoes) if model_obj.observacoes else None
         return None
 
     class Meta:
@@ -76,5 +83,5 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
             'data_evento',
             'numero_alunos',
             'observacoes',
-            'data_autorizacao'
+            'data_autorizacao_negacao_cancelamento'
         )
