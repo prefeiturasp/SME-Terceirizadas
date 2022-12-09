@@ -4,6 +4,14 @@ import operator
 from django.db import models
 from django.db.models import Q
 
+from ..cardapio.models import (
+    AlteracaoCardapio,
+    AlteracaoCardapioCEI,
+    AlteracaoCardapioCEMEI,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    SuspensaoAlimentacaoDaCEI
+)
 from ..dados_comuns.behaviors import TemIdentificadorExternoAmigavel, TemPrioridade
 from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
 from ..dados_comuns.fluxo_status import (
@@ -15,6 +23,18 @@ from ..dados_comuns.fluxo_status import (
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..dieta_especial.models import SolicitacaoDietaEspecial
 from ..escola.models import Escola
+from ..inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
+    InclusaoDeAlimentacaoCEMEI
+)
+from ..kit_lanche.models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheUnificada
+)
 
 
 class SolicitacoesDestaSemanaManager(models.Manager):
@@ -181,6 +201,27 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     filtro_30_dias = SolicitacoesDesteMesManager()
     conferido = models.BooleanField()
     terceirizada_conferiu_gestao = models.BooleanField()
+
+    @property
+    def get_raw_model(self):
+        models_de_para = {
+            'DIETA_ESPECIAL': SolicitacaoDietaEspecial,
+            'ALT_CARDAPIO': AlteracaoCardapio,
+            'INV_CARDAPIO': InversaoCardapio,
+            'INC_ALIMENTA': GrupoInclusaoAlimentacaoNormal,
+            'INC_ALIMENTA_CONTINUA': InclusaoAlimentacaoContinua,
+            'KIT_LANCHE_AVULSA': SolicitacaoKitLancheAvulsa,
+            'SUSP_ALIMENTACAO': GrupoSuspensaoAlimentacao,
+            'KIT_LANCHE_UNIFICADA': SolicitacaoKitLancheUnificada,
+            'INC_ALIMENTA_CEI': InclusaoAlimentacaoDaCEI,
+            'ALT_CARDAPIO_CEI': AlteracaoCardapioCEI,
+            'KIT_LANCHE_AVULSA_CEI': SolicitacaoKitLancheCEIAvulsa,
+            'SUSP_ALIMENTACAO_CEI': SuspensaoAlimentacaoDaCEI,
+            'KIT_LANCHE_CEMEI': SolicitacaoKitLancheCEMEI,
+            'INC_ALIMENTA_CEMEI': InclusaoDeAlimentacaoCEMEI,
+            'ALT_CARDAPIO_CEMEI': AlteracaoCardapioCEMEI
+        }
+        return models_de_para[self.tipo_doc]
 
     @classmethod
     def busca_por_tipo_solicitacao(cls, queryset, query_params, **kwargs):
