@@ -45,7 +45,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     data_autorizacao_negacao_cancelamento = serializers.SerializerMethodField()
 
     def get_escola_ou_terceirizada_nome(self, obj):
-        return obj.terceirizada_nome if self.context['status'] == 'EM_ANDAMENTO' else obj.escola_nome
+        return obj.terceirizada_nome if self.context['status'] == 'RECEBIDAS' else obj.escola_nome
 
     def get_numero_alunos(self, obj):
         return obj.get_raw_model.objects.get(uuid=obj.uuid).numero_alunos
@@ -62,7 +62,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
             'AUTORIZADOS': 'data_autorizacao',
             'CANCELADOS': 'data_cancelamento',
             'NEGADOS': 'data_negacao',
-            'EM_ANDAMENTO': 'data_autorizacao'
+            'RECEBIDAS': 'data_autorizacao'
         }
         return getattr(obj.get_raw_model.objects.get(uuid=obj.uuid), map_data[self.context['status']])
 
