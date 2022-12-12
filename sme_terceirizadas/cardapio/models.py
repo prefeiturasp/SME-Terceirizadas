@@ -751,9 +751,11 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
 
     @property
     def numero_alunos(self):
-        return (self.substituicoes_cemei_cei_periodo_escolar.aggregate(
-            Sum('faixas_etarias__quantidade'))['faixas_etarias__quantidade__sum'] or 0 +
-            self.substituicoes_cemei_emei_periodo_escolar.aggregate(Sum('qtd_alunos'))['qtd_alunos__sum'] or 0)
+        total = 0
+        total += self.substituicoes_cemei_cei_periodo_escolar.aggregate(
+            Sum('faixas_etarias__quantidade'))['faixas_etarias__quantidade__sum'] or 0
+        total += self.substituicoes_cemei_emei_periodo_escolar.aggregate(Sum('qtd_alunos'))['qtd_alunos__sum'] or 0
+        return total
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')

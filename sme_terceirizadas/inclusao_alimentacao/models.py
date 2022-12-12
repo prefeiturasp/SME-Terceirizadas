@@ -402,10 +402,12 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
 
     @property
     def numero_alunos(self):
-        return (self.quantidade_alunos_emei_da_inclusao_cemei.aggregate(
-            Sum('quantidade_alunos'))['quantidade_alunos__sum'] or 0 +
-            self.quantidade_alunos_cei_da_inclusao_cemei.aggregate(
-                Sum('quantidade_alunos'))['quantidade_alunos__sum'] or 0)
+        total = 0
+        total += self.quantidade_alunos_emei_da_inclusao_cemei.aggregate(
+            Sum('quantidade_alunos'))['quantidade_alunos__sum'] or 0
+        total += self.quantidade_alunos_cei_da_inclusao_cemei.aggregate(
+            Sum('quantidade_alunos'))['quantidade_alunos__sum'] or 0
+        return total
 
     @property
     def inclusoes(self):
