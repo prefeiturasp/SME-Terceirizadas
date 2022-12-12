@@ -31,7 +31,7 @@
   </div>
   <div class="col-3">
     <p>Lote:</p>
-    <p><b>{{ escola.lote.nome|retorna_lote }}</b></p>
+    <p><b>{{ escola.lote.nome }}</b></p>
   </div>
   <div class="col-3">
     <p>Tipo de Gestão:</p>
@@ -61,14 +61,14 @@
   <div class="col-12">
     <p class="my-0"><b>Solicitação de Alimentação</b></p>
   </div>
-  {% for motivo_ in solicitacao.dias_motivos_da_inclusao_cemei.all %}
-    <div class="col-4">
+  {% for motivo in motivos %}
+    <div class="col-3">
       <p>Motivo:</p>
-      <p><b>{{ motivo_.motivo.nome }}</b></p>
+      <p><b>{{ motivo.nome }}</b></p>
     </div>
-    <div class="col-8">
+    <div class="col-9">
       <p>Dia(s) de inclusão:</p>
-      <p><b>{{ motivo_.data }}</b></p>
+      <p><b>{{ motivo.datas|safe }}</b></p>
     </div>
   {% endfor %}
 </div>
@@ -177,7 +177,12 @@
 {% endfor %}
 
 {% if solicitacao.dias_motivos_da_inclusao_cemei.all|tem_cancelamento_parcial %}
-  <div class="row mx-5 my-3" style="font-family: 'Roboto'; font-style: normal; font-size: 14px;">
+  <div class="row mx-4 my-1">
+    <div class="col-12">
+      <hr style="color: #EEEEEE; opacity: 0.3">
+    </div>
+  </div>
+  <div class="row mx-5 my-1" style="font-family: 'Roboto'; font-style: normal; font-size: 14px;">
     <div>
       <div>
         <p>Histórico de cancelamento parcial:</p>
@@ -194,20 +199,24 @@
 {% endif %}
 
 {% if solicitacao.observacao or solicitacao.descricao or solicitacao.logs.all|tem_cancelamento or solicitacao.logs.all|tem_questionamentos %}
-  <div class="row mx-4 my-2">
+  <div class="row mx-4 my-1">
     <div class="col-12">
       <hr style="color: #EEEEEE; opacity: 0.3">
     </div>
   </div>
-
   <div class="row mx-5">
     {% include "bloco_observacoes.html" %}
   </div>
   <div class="row mx-5" style="font-size: 14px;">
-    {% include "bloco_historico_questionamento.html" %}
+    {% include "bloco_historico_cancelamento.html" %}
+  </div>
+  <div class="row mx-4 my-1">
+    <div class="col-12">
+      <hr style="color: #EEEEEE; opacity: 0.3">
+    </div>
   </div>
   <div class="row mx-5" style="font-size: 14px;">
-    {% include "bloco_historico_cancelamento.html" %}
+    {% include "bloco_historico_questionamento_com_data.html" %}
   </div>
 {% endif %}
 {% endblock %}
