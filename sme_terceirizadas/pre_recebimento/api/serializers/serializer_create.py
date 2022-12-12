@@ -177,6 +177,13 @@ class EmbalagemQldCreateSerializer(serializers.ModelSerializer):
 
         return embalagem
 
+    def update(self, instance, validated_data):
+        validated_data['nome'] = validated_data['nome'].upper()
+        validated_data['abreviacao'] = validated_data['abreviacao'].upper()
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        return instance
+
     class Meta:
         model = EmbalagemQld
         exclude = ('id', )

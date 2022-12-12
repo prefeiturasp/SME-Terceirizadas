@@ -551,6 +551,7 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
             'width': get_width(constants.FLUXO_INCLUSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs),
             'periodos_cei': periodos_cei,
+            'periodos_escolares_cei': periodos_escolares_cei,
             'periodos_emei': periodos_emei,
             'periodos_escolares_emei': periodos_escolares_emei
         }
@@ -566,8 +567,6 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
     }
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    observacao = solicitacao.solicitacao_kit_lanche.descricao
-    solicitacao.observacao = observacao
     tempo_passeio_num = str(solicitacao.solicitacao_kit_lanche.tempo_passeio)
     tempo_passeio = TEMPO_PASSEIO.get(tempo_passeio_num)
     html_string = render_to_string(
@@ -588,8 +587,6 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
 def relatorio_kit_lanche_passeio_cei(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    observacao = solicitacao.solicitacao_kit_lanche.descricao
-    solicitacao.observacao = observacao
     html_string = render_to_string(
         'solicitacao_kit_lanche_passeio_cei.html',
         {

@@ -760,10 +760,10 @@ class SolicitacaoDietaEspecialViewSet(
 
         filtro = Q()
         if terceirizada_uuid:
-            filtro &= Q(escola_destino__lote__terceirizada__uuid=terceirizada_uuid)
+            filtro &= Q(rastro_terceirizada__uuid=terceirizada_uuid)
         if lotes:
             lotes = lotes.split(',')
-            filtro &= Q(escola_destino__lote__uuid__in=lotes)
+            filtro &= Q(rastro_lote__uuid__in=lotes)
         if classificacoes:
             classificacoes = classificacoes.split(',')
             filtro &= Q(classificacao__id__in=classificacoes)

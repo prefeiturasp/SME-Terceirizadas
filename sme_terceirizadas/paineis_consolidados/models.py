@@ -223,6 +223,27 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     conferido = models.BooleanField()
     terceirizada_conferiu_gestao = models.BooleanField()
 
+    @property
+    def get_raw_model(self):
+        models_de_para = {
+            'DIETA_ESPECIAL': SolicitacaoDietaEspecial,
+            'ALT_CARDAPIO': AlteracaoCardapio,
+            'INV_CARDAPIO': InversaoCardapio,
+            'INC_ALIMENTA': GrupoInclusaoAlimentacaoNormal,
+            'INC_ALIMENTA_CONTINUA': InclusaoAlimentacaoContinua,
+            'KIT_LANCHE_AVULSA': SolicitacaoKitLancheAvulsa,
+            'SUSP_ALIMENTACAO': GrupoSuspensaoAlimentacao,
+            'KIT_LANCHE_UNIFICADA': SolicitacaoKitLancheUnificada,
+            'INC_ALIMENTA_CEI': InclusaoAlimentacaoDaCEI,
+            'ALT_CARDAPIO_CEI': AlteracaoCardapioCEI,
+            'KIT_LANCHE_AVULSA_CEI': SolicitacaoKitLancheCEIAvulsa,
+            'SUSP_ALIMENTACAO_CEI': SuspensaoAlimentacaoDaCEI,
+            'KIT_LANCHE_CEMEI': SolicitacaoKitLancheCEMEI,
+            'INC_ALIMENTA_CEMEI': InclusaoDeAlimentacaoCEMEI,
+            'ALT_CARDAPIO_CEMEI': AlteracaoCardapioCEMEI
+        }
+        return models_de_para[self.tipo_doc]
+
     @classmethod
     def busca_por_tipo_solicitacao(cls, queryset, query_params, **kwargs):
         tipo_solicitacao = query_params.get('tipo_solicitacao')
