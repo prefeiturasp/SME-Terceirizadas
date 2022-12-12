@@ -723,6 +723,14 @@ class SolicitacoesCODAE(MoldeConsolidado):
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('data_log').order_by('-data_log')
 
     @classmethod
+    def get_recebidas(cls, **kwargs):
+        return cls.objects.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            data_evento__lte=datetime.date.today()
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
     def get_autorizados(cls, **kwargs):
         return cls.objects.filter(
             status_evento__in=cls.AUTORIZADOS_EVENTO,
@@ -800,7 +808,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
             'AUTORIZADOS': 'cls.get_autorizados()',
             'CANCELADOS': 'cls.get_cancelados()',
             'NEGADOS': 'cls.get_negados()',
-            'EM_ANDAMENTO': 'cls.get_pendentes_autorizacao()'
+            'RECEBIDAS': 'cls.get_recebidas()'
         }
         return eval(mapeador[status])
 
@@ -1228,6 +1236,16 @@ class SolicitacoesDRE(MoldeConsolidado):
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
     @classmethod
+    def get_recebidas(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            dre_uuid=dre_uuid,
+            data_evento__lte=datetime.date.today()
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
     def get_autorizados(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
@@ -1312,7 +1330,7 @@ class SolicitacoesDRE(MoldeConsolidado):
             'AUTORIZADOS': f'cls.get_autorizados(dre_uuid="{dre_uuid}")',
             'CANCELADOS': f'cls.get_cancelados(dre_uuid="{dre_uuid}")',
             'NEGADOS': f'cls.get_negados(dre_uuid="{dre_uuid}")',
-            'EM_ANDAMENTO': f'cls.get_pendentes_autorizacao(dre_uuid="{dre_uuid}")'
+            'RECEBIDAS': f'cls.get_recebidas(dre_uuid="{dre_uuid}")'
         }
         return eval(mapeador[status])
 
