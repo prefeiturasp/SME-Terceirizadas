@@ -149,7 +149,7 @@ def test_relatorio_filtro_escola_error(users_diretor_escola):
         ],
         'status_solicitacao': [
             'status de solicitação TESTE_XXX não permitida, deve ser um dos: '
-            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']"
+            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'RECEBIDAS', 'TODOS']"
         ],
         'data_inicial': ['Informe uma data válida.'], 'data_final': ['Informe uma data válida.']
     }
@@ -253,7 +253,7 @@ def test_relatorio_filtro_dre_error(solicitacoes_ano_dre):
         ],
         'status_solicitacao': [
             'status de solicitação EM_APROVACAO não permitida, deve ser um dos: '
-            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']"
+            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'RECEBIDAS', 'TODOS']"
         ],
         'data_inicial': ['Informe uma data válida.']
     }
@@ -279,6 +279,6 @@ def test_filtro_dre_error(solicitacoes_ano_dre):
             "'SUSP_ALIMENTACAO', 'KIT_LANCHE_UNIFICADA', 'TODOS']"],
         'status_solicitacao': [
             'status de solicitação URGENTE não permitida, deve ser um dos: '
-            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']"],
+            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'RECEBIDAS', 'TODOS']"],
         'data_final': ['Informe uma data válida.']
     }
