@@ -203,3 +203,18 @@ def get_ultima_justificativa_analise_sensorial(produto):
     if ultimo_log.status_evento_explicacao == 'CODAE pediu análise sensorial':
         justificativa = ultimo_log.justificativa
     return justificativa
+
+
+def formata_motivos_inclusao(motivos_inclusao):
+    motivos_formatados = []
+    motivos = list(set(motivos_inclusao.values_list('motivo__nome', flat=True)))
+    for motivo in motivos:
+        datas = []
+        for motivo_inclusao in motivos_inclusao:
+            if motivo_inclusao.motivo.nome == motivo:
+                datas.append(motivo_inclusao.data.strftime('%d/%m/%Y'))
+        motivos_formatados.append({
+            'nome': motivo,
+            'datas': '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.join(datas)
+        })
+    return motivos_formatados
