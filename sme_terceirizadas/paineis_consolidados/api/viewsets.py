@@ -6,6 +6,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
 
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
@@ -23,6 +24,7 @@ from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
 from ..api.constants import PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
 from ..models import (
+    MoldeConsolidado,
     SolicitacoesCODAE,
     SolicitacoesDRE,
     SolicitacoesEscola,
@@ -158,6 +160,14 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             return datetime.datetime.strptime(date_text, '%d-%m-%Y')
         except ValueError:
             return False
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='solicitacoes-detalhadas')
+    def solicitacoes_detalhadas(self, request):
+        solicitacoes = request.query_params.getlist('solicitacoes[]', None)
+        solicitacoes = MoldeConsolidado.solicitacoes_detalhadas(solicitacoes, request)
+        return Response(dict(data=solicitacoes, status=HTTP_200_OK))
 
 
 class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
