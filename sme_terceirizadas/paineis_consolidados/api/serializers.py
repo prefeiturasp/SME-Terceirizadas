@@ -9,12 +9,16 @@ from ..models import SolicitacoesCODAE
 class SolicitacoesSerializer(serializers.ModelSerializer):
     data_log = serializers.SerializerMethodField()
     descricao = serializers.SerializerMethodField()
+    numero_alunos = serializers.SerializerMethodField()
     descricao_dieta_especial = serializers.SerializerMethodField()
     prioridade = serializers.CharField()
     id_externo = serializers.CharField()
 
     def get_descricao_dieta_especial(self, obj):
         return f'{obj.codigo_eol_aluno if obj.codigo_eol_aluno else "(Aluno não matriculado)"} - {obj.nome_aluno}'
+
+    def get_numero_alunos(self, obj):
+        return obj.get_raw_model.objects.get(uuid=obj.uuid).numero_alunos
 
     def get_descricao(self, obj):
         uuid = str(obj.uuid)
@@ -45,7 +49,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     data_autorizacao_negacao_cancelamento = serializers.SerializerMethodField()
 
     def get_escola_ou_terceirizada_nome(self, obj):
-        return obj.terceirizada_nome if self.context['status'] == 'EM_ANDAMENTO' else obj.escola_nome
+        return obj.terceirizada_nome if self.context['status'] == 'RECEBIDAS' else obj.escola_nome
 
     def get_numero_alunos(self, obj):
         return obj.get_raw_model.objects.get(uuid=obj.uuid).numero_alunos
@@ -62,7 +66,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
             'AUTORIZADOS': 'data_autorizacao',
             'CANCELADOS': 'data_cancelamento',
             'NEGADOS': 'data_negacao',
-            'EM_ANDAMENTO': 'data_autorizacao'
+            'RECEBIDAS': 'data_autorizacao'
         }
         return getattr(obj.get_raw_model.objects.get(uuid=obj.uuid), map_data[self.context['status']])
 

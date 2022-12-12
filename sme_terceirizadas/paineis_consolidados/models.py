@@ -182,7 +182,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     STATUS_AUTORIZADOS = 'AUTORIZADOS'
     STATUS_NEGADOS = 'NEGADOS'
     STATUS_CANCELADOS = 'CANCELADOS'
-    STATUS_PENDENTES = 'EM_ANDAMENTO'
+    STATUS_PENDENTES = 'RECEBIDAS'
 
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
@@ -419,7 +419,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         if tipo_solicitacao != cls.TP_SOL_TODOS:
             query_set = query_set.filter(tipo_doc=tipo_solicitacao)
         if status_solicitacao != cls.STATUS_TODOS:
-            # AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+            # AUTORIZADOS|NEGADOS|CANCELADOS|RECEBIDAS|TODOS
             if status_solicitacao == cls.STATUS_AUTORIZADOS:
                 query_set = query_set.filter(
                     status_atual__in=cls.AUTORIZADOS_STATUS,

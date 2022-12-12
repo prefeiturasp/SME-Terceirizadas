@@ -32,7 +32,7 @@
   </div>
   <div class="col-3">
     <p>Lote:</p>
-    <p><b>{{ escola.lote.nome|retorna_lote }}</b></p>
+    <p><b>{{ escola.lote.nome }}</b></p>
   </div>
   <div class="col-3">
     <p>Tipo de Gestão:</p>
@@ -235,7 +235,7 @@
     {% include "bloco_observacoes.html" %}
   </div>
   <div class="row mx-5" style="font-size: 14px;">
-    {% include "bloco_historico_questionamento.html" %}
+    {% include "bloco_historico_questionamento_com_data.html" %}
   </div>
   <div class="row mx-5" style="font-size: 14px;">
     {% include "bloco_historico_cancelamento.html" %}
