@@ -1,9 +1,18 @@
+import ast
 import datetime
 import operator
 
 from django.db import models
 from django.db.models import Q
 
+from ..cardapio.api.serializers.serializers import (
+    AlteracaoCardapioCEISerializer,
+    AlteracaoCardapioCEMEISerializer,
+    AlteracaoCardapioSerializer,
+    GrupoSuspensaoAlimentacaoSerializer,
+    InversaoCardapioSerializer,
+    SuspensaoAlimentacaoDaCEISerializer
+)
 from ..cardapio.models import (
     AlteracaoCardapio,
     AlteracaoCardapioCEI,
@@ -23,11 +32,23 @@ from ..dados_comuns.fluxo_status import (
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..dieta_especial.models import SolicitacaoDietaEspecial
 from ..escola.models import Escola
+from ..inclusao_alimentacao.api.serializers.serializers import (
+    GrupoInclusaoAlimentacaoNormalSerializer,
+    InclusaoAlimentacaoContinuaSerializer,
+    InclusaoAlimentacaoDaCEISerializer,
+    InclusaoDeAlimentacaoCEMEISerializer
+)
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoDaCEI,
     InclusaoDeAlimentacaoCEMEI
+)
+from ..kit_lanche.api.serializers.serializers import (
+    SolicitacaoKitLancheAvulsaSerializer,
+    SolicitacaoKitLancheCEIAvulsaSerializer,
+    SolicitacaoKitLancheCEMEISerializer,
+    SolicitacaoKitLancheUnificadaSerializer
 )
 from ..kit_lanche.models import (
     SolicitacaoKitLancheAvulsa,
@@ -283,6 +304,59 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         for td in tipo_doc:
             lista_tipo_doc = lista_tipo_doc + mapeador[td]
         return lista_tipo_doc
+
+    @classmethod
+    def get_class_name(cls, tipo_doc, **kwargs):
+        mapeador = {
+            f'{cls.TP_SOL_INC_ALIMENTA}': GrupoInclusaoAlimentacaoNormal,
+            f'{cls.TP_SOL_INC_ALIMENTA_CONTINUA}': InclusaoAlimentacaoContinua,
+            f'{cls.TP_SOL_INC_ALIMENTA_CEI}': InclusaoAlimentacaoDaCEI,
+            f'{cls.TP_SOL_INC_ALIMENTA_CEMEI}': InclusaoDeAlimentacaoCEMEI,
+            f'{cls.TP_SOL_ALT_CARDAPIO}': AlteracaoCardapio,
+            f'{cls.TP_SOL_ALT_CARDAPIO_CEI}': AlteracaoCardapioCEI,
+            f'{cls.TP_SOL_ALT_CARDAPIO_CEMEI}': AlteracaoCardapioCEMEI,
+            f'{cls.TP_SOL_KIT_LANCHE_AVULSA}': SolicitacaoKitLancheAvulsa,
+            f'{cls.TP_SOL_KIT_LANCHE_UNIFICADA}': SolicitacaoKitLancheUnificada,
+            f'{cls.TP_SOL_KIT_LANCHE_AVULSA_CEI}': SolicitacaoKitLancheCEIAvulsa,
+            f'{cls.TP_SOL_KIT_LANCHE_CEMEI}': SolicitacaoKitLancheCEMEI,
+            f'{cls.TP_SOL_SUSP_ALIMENTACAO}': GrupoSuspensaoAlimentacao,
+            f'{cls.TP_SOL_SUSP_ALIMENTACAO_CEI}': SuspensaoAlimentacaoDaCEI,
+            f'{cls.TP_SOL_INV_CARDAPIO}': InversaoCardapio
+        }
+        return mapeador[tipo_doc]
+
+    @classmethod
+    def get_serializer_name(cls, tipo_doc, **kwargs):
+        mapeador = {
+            f'{cls.TP_SOL_INC_ALIMENTA}': GrupoInclusaoAlimentacaoNormalSerializer,
+            f'{cls.TP_SOL_INC_ALIMENTA_CONTINUA}': InclusaoAlimentacaoContinuaSerializer,
+            f'{cls.TP_SOL_INC_ALIMENTA_CEI}': InclusaoAlimentacaoDaCEISerializer,
+            f'{cls.TP_SOL_INC_ALIMENTA_CEMEI}': InclusaoDeAlimentacaoCEMEISerializer,
+            f'{cls.TP_SOL_ALT_CARDAPIO}': AlteracaoCardapioSerializer,
+            f'{cls.TP_SOL_ALT_CARDAPIO_CEI}': AlteracaoCardapioCEISerializer,
+            f'{cls.TP_SOL_ALT_CARDAPIO_CEMEI}': AlteracaoCardapioCEMEISerializer,
+            f'{cls.TP_SOL_KIT_LANCHE_AVULSA}': SolicitacaoKitLancheAvulsaSerializer,
+            f'{cls.TP_SOL_KIT_LANCHE_UNIFICADA}': SolicitacaoKitLancheUnificadaSerializer,
+            f'{cls.TP_SOL_KIT_LANCHE_AVULSA_CEI}': SolicitacaoKitLancheCEIAvulsaSerializer,
+            f'{cls.TP_SOL_KIT_LANCHE_CEMEI}': SolicitacaoKitLancheCEMEISerializer,
+            f'{cls.TP_SOL_SUSP_ALIMENTACAO}': GrupoSuspensaoAlimentacaoSerializer,
+            f'{cls.TP_SOL_SUSP_ALIMENTACAO_CEI}': SuspensaoAlimentacaoDaCEISerializer,
+            f'{cls.TP_SOL_INV_CARDAPIO}': InversaoCardapioSerializer
+        }
+        return mapeador[tipo_doc]
+
+    @classmethod
+    def solicitacoes_detalhadas(cls, solicitacoes, request, **kwargs):
+        resultado = []
+        if not solicitacoes:
+            return resultado
+        for str_dict in solicitacoes:
+            solicitacao = ast.literal_eval(str_dict)
+            class_name = cls.get_class_name(solicitacao['tipo_doc'])
+            serializer_name = cls.get_serializer_name(solicitacao['tipo_doc'])
+            solicitacao = class_name.objects.get(uuid=solicitacao['uuid'])
+            resultado.append(serializer_name(solicitacao, context={'request': request}, many=False).data)
+        return resultado
 
     @classmethod
     def busca_filtro(cls, queryset, query_params, **kwargs):
@@ -649,6 +723,14 @@ class SolicitacoesCODAE(MoldeConsolidado):
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('data_log').order_by('-data_log')
 
     @classmethod
+    def get_recebidas(cls, **kwargs):
+        return cls.objects.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            data_evento__lte=datetime.date.today()
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
     def get_autorizados(cls, **kwargs):
         return cls.objects.filter(
             status_evento__in=cls.AUTORIZADOS_EVENTO,
@@ -726,7 +808,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
             'AUTORIZADOS': 'cls.get_autorizados()',
             'CANCELADOS': 'cls.get_cancelados()',
             'NEGADOS': 'cls.get_negados()',
-            'EM_ANDAMENTO': 'cls.get_pendentes_autorizacao()'
+            'RECEBIDAS': 'cls.get_recebidas()'
         }
         return eval(mapeador[status])
 
@@ -1154,6 +1236,16 @@ class SolicitacoesDRE(MoldeConsolidado):
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
     @classmethod
+    def get_recebidas(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            dre_uuid=dre_uuid,
+            data_evento__lte=datetime.date.today()
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
     def get_autorizados(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
@@ -1238,7 +1330,7 @@ class SolicitacoesDRE(MoldeConsolidado):
             'AUTORIZADOS': f'cls.get_autorizados(dre_uuid="{dre_uuid}")',
             'CANCELADOS': f'cls.get_cancelados(dre_uuid="{dre_uuid}")',
             'NEGADOS': f'cls.get_negados(dre_uuid="{dre_uuid}")',
-            'EM_ANDAMENTO': f'cls.get_pendentes_autorizacao(dre_uuid="{dre_uuid}")'
+            'RECEBIDAS': f'cls.get_recebidas(dre_uuid="{dre_uuid}")'
         }
         return eval(mapeador[status])
 

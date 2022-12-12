@@ -4,6 +4,7 @@ from rest_framework import routers
 from .api import viewsets
 
 router = routers.DefaultRouter()
+router.register('solicitacoes-genericas', viewsets.SolicitacoesViewSet, 'solicitacoes_genericas')
 router.register('codae-solicitacoes', viewsets.CODAESolicitacoesViewSet, 'codae_solicitacoes')
 router.register(
     'nutrisupervisao-solicitacoes',
