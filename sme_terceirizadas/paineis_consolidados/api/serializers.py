@@ -9,12 +9,16 @@ from ..models import SolicitacoesCODAE
 class SolicitacoesSerializer(serializers.ModelSerializer):
     data_log = serializers.SerializerMethodField()
     descricao = serializers.SerializerMethodField()
+    numero_alunos = serializers.SerializerMethodField()
     descricao_dieta_especial = serializers.SerializerMethodField()
     prioridade = serializers.CharField()
     id_externo = serializers.CharField()
 
     def get_descricao_dieta_especial(self, obj):
         return f'{obj.codigo_eol_aluno if obj.codigo_eol_aluno else "(Aluno não matriculado)"} - {obj.nome_aluno}'
+
+    def get_numero_alunos(self, obj):
+        return obj.get_raw_model.objects.get(uuid=obj.uuid).numero_alunos
 
     def get_descricao(self, obj):
         uuid = str(obj.uuid)
