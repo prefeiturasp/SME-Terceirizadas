@@ -6,6 +6,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
 
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
@@ -23,6 +24,7 @@ from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
 from ..api.constants import PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
 from ..models import (
+    MoldeConsolidado,
     SolicitacoesCODAE,
     SolicitacoesDRE,
     SolicitacoesEscola,
@@ -30,6 +32,7 @@ from ..models import (
     SolicitacoesNutrisupervisao,
     SolicitacoesTerceirizada
 )
+from ..tasks import gera_xls_relatorio_solicitacoes_alimentacao_async
 from ..validators import FiltroValidator
 from .constants import (
     AGUARDANDO_CODAE,
@@ -157,6 +160,14 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             return datetime.datetime.strptime(date_text, '%d-%m-%Y')
         except ValueError:
             return False
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='solicitacoes-detalhadas')
+    def solicitacoes_detalhadas(self, request):
+        solicitacoes = request.query_params.getlist('solicitacoes[]', None)
+        solicitacoes = MoldeConsolidado.solicitacoes_detalhadas(solicitacoes, request)
+        return Response(dict(data=solicitacoes, status=HTTP_200_OK))
 
 
 class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
@@ -435,7 +446,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         ---
         tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
         KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS
-        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|RECEBIDAS|TODOS
         data_inicial -- dd-mm-yyyy
         data_final -- dd-mm-yyyy
         """
@@ -509,12 +520,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             query_set=query_set)}
         return Response(response)
 
-    @action(detail=False,
-            methods=['GET'],
-            url_path='filtrar-solicitacoes-ga',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def filtrar_solicitacoes_ga(self, request):
-        # queryset por status
+    def filtrar_solicitacoes_para_relatorio(self, request):
         status = request.query_params.get('status', None)
         queryset = SolicitacoesCODAE.map_queryset_por_status(status)
 
@@ -537,7 +543,39 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         }
         filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
         queryset = queryset.filter(**filtros)
+        return queryset
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtrar-solicitacoes-ga',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def filtrar_solicitacoes_ga(self, request):
+        # queryset por status
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
         return self._retorno_base(queryset, False)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')  # noqa C901
+    def exportar_xlsx(self, request):
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        lotes = request.query_params.getlist('lotes[]')
+        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
+        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
+        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
+
+        user = request.user.get_username()
+        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
+            data=self.request.query_params,
+            uuids=uuids,
+            lotes=lotes,
+            tipos_solicitacao=tipos_solicitacao,
+            tipos_unidade=tipos_unidade,
+            unidades_educacionais=unidades_educacionais
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
 
 
 class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
@@ -729,7 +767,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         ---
         tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
         KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS
-        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|RECEBIDAS|TODOS
         data_inicial -- dd-mm-yyyy
         data_final -- dd-mm-yyyy
         """
@@ -953,7 +991,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         ---
         tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
         KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS
-        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|RECEBIDAS|TODOS
         data_inicial -- dd-mm-yyyy
         data_final -- dd-mm-yyyy
         """
@@ -974,12 +1012,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         else:
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False,
-            methods=['GET'],
-            url_path='filtrar-solicitacoes-ga',
-            permission_classes=(UsuarioDiretoriaRegional,))
-    def filtrar_solicitacoes_ga(self, request):
-        # queryset por status
+    def filtrar_solicitacoes_para_relatorio(self, request):
         dre_uuid = request.user.vinculo_atual.instituicao.uuid
         status = request.query_params.get('status', None)
         queryset = SolicitacoesDRE.map_queryset_por_status(status, dre_uuid=dre_uuid)
@@ -1002,7 +1035,39 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         }
         filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
         queryset = queryset.filter(**filtros).order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
+        return queryset
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtrar-solicitacoes-ga',
+            permission_classes=(UsuarioDiretoriaRegional,))
+    def filtrar_solicitacoes_ga(self, request):
+        # queryset por status
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
         return self._retorno_base(queryset, False)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')  # noqa C901
+    def exportar_xlsx(self, request):
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        lotes = request.query_params.getlist('lotes[]')
+        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
+        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
+        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
+
+        user = request.user.get_username()
+        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
+            data=self.request.query_params,
+            uuids=uuids,
+            lotes=lotes,
+            tipos_solicitacao=tipos_solicitacao,
+            tipos_unidade=tipos_unidade,
+            unidades_educacionais=unidades_educacionais
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
 
 
 class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):

@@ -20,6 +20,7 @@ from . import constants
 from .utils import (
     conta_filtros,
     formata_logs,
+    formata_motivos_inclusao,
     get_config_cabecario_relatorio_analise,
     get_diretorias_regionais,
     get_ultima_justificativa_analise_sensorial,
@@ -542,15 +543,18 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
             periodo['total_matriculados'] = sum(qtd_solicitacao.values_list('matriculados_quando_criado', flat=True))
             periodos_emei.append(periodo)
 
+    motivos = formata_motivos_inclusao(solicitacao.dias_motivos_da_inclusao_cemei.all())
     html_string = render_to_string(
         'solicitacao_inclusao_alimentacao_cemei.html',
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_INCLUSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_INCLUSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs),
+            'motivos': motivos,
             'periodos_cei': periodos_cei,
+            'periodos_escolares_cei': periodos_escolares_cei,
             'periodos_emei': periodos_emei,
             'periodos_escolares_emei': periodos_escolares_emei
         }
@@ -566,8 +570,6 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
     }
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    observacao = solicitacao.solicitacao_kit_lanche.descricao
-    solicitacao.observacao = observacao
     tempo_passeio_num = str(solicitacao.solicitacao_kit_lanche.tempo_passeio)
     tempo_passeio = TEMPO_PASSEIO.get(tempo_passeio_num)
     html_string = render_to_string(
@@ -588,8 +590,6 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
 def relatorio_kit_lanche_passeio_cei(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    observacao = solicitacao.solicitacao_kit_lanche.descricao
-    solicitacao.observacao = observacao
     html_string = render_to_string(
         'solicitacao_kit_lanche_passeio_cei.html',
         {
