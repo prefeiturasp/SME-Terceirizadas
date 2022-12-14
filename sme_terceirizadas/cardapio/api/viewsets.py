@@ -1100,7 +1100,7 @@ class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = MotivoAlteracaoCardapio.objects.filter(ativo=True)
-        if user.vinculo_atual.perfil.nome in ['DIRETOR_CEI']:
+        if isinstance(user.vinculo_atual.instituicao, Escola) and user.vinculo_atual.instituicao.eh_cei:
             return queryset.exclude(nome__icontains='Lanche Emergencial')
         return queryset
 
