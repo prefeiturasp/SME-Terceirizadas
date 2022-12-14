@@ -18,6 +18,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO
 )
+from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
     PodeCriarAdministradoresDaCODAEGestaoDietaEspecial,
@@ -261,7 +262,12 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
         except ObjectDoesNotExist:
             return Response(
                 {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except EOLException:
+            return Response(
+                {'detail': 'API EOL indisponível para carregar as faixas etárias. Tente novamente mais tarde'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         results = []
