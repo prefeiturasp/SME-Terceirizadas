@@ -47,7 +47,7 @@ from ..inclusao_alimentacao.models import (
 from ..kit_lanche.api.serializers.serializers import (
     SolicitacaoKitLancheAvulsaSerializer,
     SolicitacaoKitLancheCEIAvulsaSerializer,
-    SolicitacaoKitLancheCEMEISerializer,
+    SolicitacaoKitLancheCEMEIRetrieveSerializer,
     SolicitacaoKitLancheUnificadaSerializer
 )
 from ..kit_lanche.models import (
@@ -338,7 +338,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
             f'{cls.TP_SOL_KIT_LANCHE_AVULSA}': SolicitacaoKitLancheAvulsaSerializer,
             f'{cls.TP_SOL_KIT_LANCHE_UNIFICADA}': SolicitacaoKitLancheUnificadaSerializer,
             f'{cls.TP_SOL_KIT_LANCHE_AVULSA_CEI}': SolicitacaoKitLancheCEIAvulsaSerializer,
-            f'{cls.TP_SOL_KIT_LANCHE_CEMEI}': SolicitacaoKitLancheCEMEISerializer,
+            f'{cls.TP_SOL_KIT_LANCHE_CEMEI}': SolicitacaoKitLancheCEMEIRetrieveSerializer,
             f'{cls.TP_SOL_SUSP_ALIMENTACAO}': GrupoSuspensaoAlimentacaoSerializer,
             f'{cls.TP_SOL_SUSP_ALIMENTACAO_CEI}': SuspensaoAlimentacaoDaCEISerializer,
             f'{cls.TP_SOL_INV_CARDAPIO}': InversaoCardapioSerializer
