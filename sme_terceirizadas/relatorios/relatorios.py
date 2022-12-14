@@ -186,9 +186,11 @@ def relatorio_alteracao_alimentacao_cemei(request, solicitacao): # noqa C901
                                    'matriculados_quando_criado': f.matriculados_quando_criado})
             periodo['faixas_etarias'] = faixas
 
-            periodo['total_solicitacao'] = sum(qtd_solicitacao.values_list(
+            periodo['total_solicitacao'] = sum(qtd_solicitacao.exclude(
+                faixas_etarias__quantidade__isnull=True).values_list(
                 'faixas_etarias__quantidade', flat=True))
-            periodo['total_matriculados'] = sum(qtd_solicitacao.values_list(
+            periodo['total_matriculados'] = sum(qtd_solicitacao.exclude(
+                faixas_etarias__matriculados_quando_criado__isnull=True).values_list(
                 'faixas_etarias__matriculados_quando_criado', flat=True))
             periodos_cei.append(periodo)
 
@@ -199,11 +201,15 @@ def relatorio_alteracao_alimentacao_cemei(request, solicitacao): # noqa C901
             qtd_solicitacao = solicitacao.substituicoes_cemei_emei_periodo_escolar.filter(
                 periodo_escolar__nome=vinculo.periodo_escolar.nome)
             periodo['tipos_alimentacao_de'] = ', '.join(
-                qtd_solicitacao.values_list('tipos_alimentacao_de__nome', flat=True))
+                qtd_solicitacao.exclude(tipos_alimentacao_de__nome__isnull=True).values_list(
+                    'tipos_alimentacao_de__nome', flat=True))
             periodo['tipos_alimentacao_para'] = ', '.join(
-                qtd_solicitacao.values_list('tipos_alimentacao_para__nome', flat=True))
-            periodo['total_solicitacao'] = sum(qtd_solicitacao.values_list('qtd_alunos', flat=True))
-            periodo['total_matriculados'] = sum(qtd_solicitacao.values_list('matriculados_quando_criado', flat=True))
+                qtd_solicitacao.exclude(tipos_alimentacao_para__nome__isnull=True).values_list(
+                    'tipos_alimentacao_para__nome', flat=True))
+            periodo['total_solicitacao'] = sum(qtd_solicitacao.exclude(
+                qtd_alunos__isnull=True).values_list('qtd_alunos', flat=True))
+            periodo['total_matriculados'] = sum(qtd_solicitacao.exclude(
+                matriculados_quando_criado__isnull=True).values_list('matriculados_quando_criado', flat=True))
             periodos_emei.append(periodo)
     data_final = None
     if solicitacao.data_final:
