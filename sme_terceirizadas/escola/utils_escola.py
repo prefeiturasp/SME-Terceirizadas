@@ -167,7 +167,7 @@ def atualiza_codigo_codae_das_escolas(path_planilha, id_planilha):  # noqa: C901
             escola = Escola.objects.filter(codigo_eol=f'{info_escola.get("codigo_eol"):06d}').first()
 
             if escola:
-                escola.codigo_codae = info_escola.get('codigo_unidade')
+                escola.codigo_codae = f'{info_escola.get("codigo_unidade"):05d}'
                 escola.save()
                 count += 1
 
