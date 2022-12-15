@@ -162,9 +162,10 @@ def campo_deve_ser_deste_tipo(valor, tipo=str, mensagem='Deve ser do tipo texto'
 
 def deve_ser_no_mesmo_ano_corrente(data_inversao: datetime.date):
     ano_corrente = datetime.date.today().year
-    if ano_corrente != data_inversao.year:
+    mes_corrente = datetime.date.today().month
+    if ano_corrente != data_inversao.year and mes_corrente != 12:
         raise serializers.ValidationError(
-            'Inversão de dia de cardapio deve ser solicitada no ano corrente'
+            'Solicitação deve ser solicitada no ano corrente'
         )
     return True
 
