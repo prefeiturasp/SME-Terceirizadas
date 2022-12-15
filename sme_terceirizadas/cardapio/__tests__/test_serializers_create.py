@@ -1,7 +1,6 @@
 import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
-from rest_framework.exceptions import ValidationError
 
 from ...cardapio.models import GrupoSuspensaoAlimentacao, InversaoCardapio, SuspensaoAlimentacaoDaCEI
 from ..api.serializers.serializers_create import (
