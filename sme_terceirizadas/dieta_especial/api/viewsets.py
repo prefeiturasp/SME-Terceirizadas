@@ -929,11 +929,12 @@ class SolicitacaoDietaEspecialViewSet(
 
         solicitacoes = []
         for solicitacao in queryset:
+            classificacao = solicitacao.classificacao.nome if solicitacao.classificacao else '--'
             dados_solicitacoes = {
                 'codigo_eol_aluno': solicitacao.aluno.codigo_eol,
                 'nome_aluno': solicitacao.aluno.nome,
                 'nome_escola': solicitacao.escola.nome,
-                'classificacao': solicitacao.classificacao.nome,
+                'classificacao': classificacao,
                 'protocolo_padrao': solicitacao.nome_protocolo
             }
             if status.upper() == 'CANCELADAS':
