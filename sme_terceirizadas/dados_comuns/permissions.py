@@ -9,6 +9,7 @@ from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DISTRIBUIDORA,
     ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
+    ADMINISTRADOR_FORNECEDOR,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_MEDICAO,
@@ -415,10 +416,11 @@ class PermissaoParaVisualizarCronograma(BasePermission):
             usuario.vinculo_atual and
             (
                 (
-                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) or
+                    isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
                     usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
                                                           DINUTRE_DIRETORIA, COORDENADOR_CODAE_DILOG_LOGISTICA,
-                                                          COORDENADOR_LOGISTICA]
+                                                          COORDENADOR_LOGISTICA, ADMINISTRADOR_FORNECEDOR]
                 )
             )
         )
