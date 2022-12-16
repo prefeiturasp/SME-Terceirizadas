@@ -599,25 +599,19 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         response = GuiaDaRemessaLookUpSerializer(queryset, many=True).data
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='guias-escola', permission_classes=(UsuarioEscolaAbastecimento,))
+    @action(detail=False, methods=['GET'], url_path='guias-escola')
     def lista_guias_escola(self, request):
         escola = request.user.vinculo_atual.instituicao
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.annotate(
             nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
-        ).filter(escola=escola).exclude(status__in=(
+        ).filter(conferencias__conferencia_dos_alimentos__tem_ocorrencia=True).exclude(status__in=(
             GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
-            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
-        )).order_by('data_entrega').distinct()
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = GuiaDaRemessaComDistribuidorSerializer(page, many=True)
-            response = self.get_paginated_response(
-                serializer.data
-            )
-            return response
+            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO,
+            GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA
+        )).distinct()
 
-        serializer = GuiaDaRemessaComDistribuidorSerializer(queryset, many=True)
+        serializer = GuiaDaRemessaCompletaSerializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'],
