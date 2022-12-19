@@ -760,10 +760,10 @@ class SolicitacaoDietaEspecialViewSet(
 
         filtro = Q()
         if terceirizada_uuid:
-            filtro &= Q(escola_destino__lote__terceirizada__uuid=terceirizada_uuid)
+            filtro &= Q(rastro_terceirizada__uuid=terceirizada_uuid)
         if lotes:
             lotes = lotes.split(',')
-            filtro &= Q(escola_destino__lote__uuid__in=lotes)
+            filtro &= Q(rastro_lote__uuid__in=lotes)
         if classificacoes:
             classificacoes = classificacoes.split(',')
             filtro &= Q(classificacao__id__in=classificacoes)
@@ -929,11 +929,12 @@ class SolicitacaoDietaEspecialViewSet(
 
         solicitacoes = []
         for solicitacao in queryset:
+            classificacao = solicitacao.classificacao.nome if solicitacao.classificacao else '--'
             dados_solicitacoes = {
                 'codigo_eol_aluno': solicitacao.aluno.codigo_eol,
                 'nome_aluno': solicitacao.aluno.nome,
                 'nome_escola': solicitacao.escola.nome,
-                'classificacao': solicitacao.classificacao.nome,
+                'classificacao': classificacao,
                 'protocolo_padrao': solicitacao.nome_protocolo
             }
             if status.upper() == 'CANCELADAS':

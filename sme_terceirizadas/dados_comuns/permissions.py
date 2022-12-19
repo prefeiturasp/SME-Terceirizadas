@@ -9,6 +9,7 @@ from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DISTRIBUIDORA,
     ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
+    ADMINISTRADOR_FORNECEDOR,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_MEDICAO,
@@ -275,8 +276,8 @@ class PermissaoParaReclamarDeProduto(BasePermission):
         )
 
 
-class UsuarioDilogCodae(BasePermission):
-    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+class UsuarioDilog(BasePermission):
+    """Permite acesso a usuários DILOG com vinculo a CODAE."""
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -285,6 +286,19 @@ class UsuarioDilogCodae(BasePermission):
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA]
+        )
+
+
+class UsuarioCodaeDilog(BasePermission):
+    """Permite acesso a usuários do perfil CODAE DILOG."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_CODAE_DILOG_LOGISTICA]
         )
 
 
@@ -402,10 +416,11 @@ class PermissaoParaVisualizarCronograma(BasePermission):
             usuario.vinculo_atual and
             (
                 (
-                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) or
+                    isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
                     usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
                                                           DINUTRE_DIRETORIA, COORDENADOR_CODAE_DILOG_LOGISTICA,
-                                                          COORDENADOR_LOGISTICA]
+                                                          COORDENADOR_LOGISTICA, ADMINISTRADOR_FORNECEDOR]
                 )
             )
         )

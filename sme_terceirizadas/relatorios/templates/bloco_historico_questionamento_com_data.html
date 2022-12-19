@@ -8,6 +8,7 @@
             {% for log in solicitacao.logs.all %}
                 {% if log.status_evento_explicacao == "Questionamento pela CODAE" %}
                   <div class="is-it-possible">
+                    {{log.criado_em|date:"d/m/Y H:i:s"}} - CODAE <br>
                     <div class="title">
                       É possível atender a solicitação com todos os itens
                       previstos no contrato?
@@ -19,6 +20,7 @@
                 {% endif %}
                 {% if log.status_evento_explicacao == "Terceirizada respondeu questionamento" %}
                   <div class="is-it-possible">
+                    {{log.criado_em|date:"d/m/Y H:i:s"}} - TERCEIRIZADA <br>
                     <div class="title">
                         {{ log.resposta_sim_nao |aceita_nao_aceita_str }}
                     </div>
@@ -29,6 +31,7 @@
                 {% endif %}
                 {% if log.status_evento_explicacao == "CODAE autorizou" %}
                   <div class="is-it-possible">
+                    {{log.criado_em|date:"d/m/Y H:i:s"}} - CODAE <br>
                     <div class="title">Autorizou</div>
                       {% if log.justificativa %}
                         <div class="obs">
@@ -39,6 +42,7 @@
                 {% endif %}
                 {% if log.status_evento_explicacao == "CODAE negou" %}
                   <div class="is-it-possible">
+                    {{log.criado_em|date:"d/m/Y H:i:s"}} - CODAE <br>
                     <div class="title">Negou</div>
                       {% if log.justificativa %}
                         <div class="obs">

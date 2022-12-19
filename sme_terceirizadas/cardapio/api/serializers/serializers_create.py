@@ -1,3 +1,5 @@
+from datetime import date
+
 from rest_framework import serializers
 
 from ....dados_comuns.utils import update_instance_from_dict
@@ -113,12 +115,10 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
     )
 
     def validate_data_de(self, data_de):
-        deve_ser_no_mesmo_ano_corrente(data_de)
         nao_pode_ser_no_passado(data_de)
         return data_de
 
     def validate_data_para(self, data_para):
-        deve_ser_no_mesmo_ano_corrente(data_para)
         nao_pode_ser_no_passado(data_para)
         return data_para
 
@@ -126,6 +126,10 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         data_de = attrs['data_de']
         data_para = attrs['data_para']
         escola = attrs['escola']
+
+        if data_de.month != 12 and date.today().year + 1 not in [data_de.year, data_para.year]:
+            deve_ser_no_mesmo_ano_corrente(data_de)
+            deve_ser_no_mesmo_ano_corrente(data_para)
 
         data_troca_nao_pode_ser_superior_a_data_inversao(data_de, data_para)
         nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de, data_para, escola)

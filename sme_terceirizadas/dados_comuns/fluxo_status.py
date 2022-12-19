@@ -2878,6 +2878,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
     REPROVADO = 'REPROVADO'
     ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
     VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
+    ENTREGA_CONFIRMADA = 'ENTREGA_CONFIRMADA'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -2887,6 +2888,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (REPROVADO, 'Reprovado'),
         (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
         (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
+        (ENTREGA_CONFIRMADA, 'Entrega Confirmada'),
     )
 
     transitions = (
