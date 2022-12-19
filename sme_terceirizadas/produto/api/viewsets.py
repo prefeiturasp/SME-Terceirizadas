@@ -1677,12 +1677,6 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
             return ProdutoEditalCreateSerializer
         return ProdutoEditalSerializer
 
-    def usuario_eh_escola(self, usuario):
-        return isinstance(usuario.vinculo_atual.instituicao, Escola)
-
-    def usuario_eh_terceirizada(self, usuario):
-        return isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
-
     @action(detail=True, methods=['patch'], url_path='ativar-inativar-produto')
     def ativar_inativar_produto(self, request, uuid=None):
         try:
@@ -1703,24 +1697,24 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
     def lista_nomes_unicos(self, request):
         editais = self.get_queryset()
         usuario = request.user
+        lotes = Lote.objects.all().values_list('uuid', flat=True)
 
-        if self.usuario_eh_escola(usuario):
-            lote = usuario.vinculo_atual.instituicao.lote
-            editais_id = Contrato.objects.filter(lotes__in=[lote]).values_list('edital_id', flat=True)
-            editais = editais.filter(edital__id__in=editais_id)
-
-        if self.usuario_eh_terceirizada(usuario):
+        if usuario.tipo_usuario == 'escola':
+            lotes = [usuario.vinculo_atual.instituicao.lote]
+        elif usuario.tipo_usuario == 'diretoriaregional':
+            lotes = usuario.vinculo_atual.instituicao.lotes
+        elif usuario.tipo_usuario == 'terceirizada':
             terceirizada = usuario.vinculo_atual.instituicao
-            lotes_uuid = Lote.objects.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
-            editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
-            editais = editais.filter(edital__id__in=editais_id)
+            lotes = lotes.filter(terceirizada=terceirizada)
 
-        editais = editais.distinct('edital__numero').values('edital__numero')
-        nomes_unicos = [p['edital__numero'] for p in editais]
+        lotes_uuid = lotes.values_list('uuid', flat=True)
+        editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
+        editais = editais.filter(edital__id__in=editais_id)
+        nomes_unicos = editais.values_list('edital__numero', flat=True).distinct()
         return Response({
             'results': nomes_unicos,
             'count': len(nomes_unicos)
-        })
+        }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='filtros')
     def filtros(self, request):
