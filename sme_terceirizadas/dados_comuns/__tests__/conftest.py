@@ -166,11 +166,11 @@ def dias_sem_cardapio(request):
 
 @pytest.fixture(params=[
     (datetime.date(datetime.datetime.now().year - 1, 5, 26),
-     'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
+     'Solicitação deve ser solicitada no ano corrente'),
     (datetime.date(datetime.datetime.now().year + 1, 1, 1),
-     'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
+     'Solicitação deve ser solicitada no ano corrente'),
     (datetime.date(datetime.datetime.now().year + 2, 12, 1),
-     'Inversão de dia de cardapio deve ser solicitada no ano corrente')
+     'Solicitação deve ser solicitada no ano corrente')
 ])
 def data_inversao_ano_diferente(request):
     return request.param

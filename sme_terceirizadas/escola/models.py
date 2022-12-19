@@ -453,7 +453,9 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             for uuid_, quantidade_alunos in dict_faixas.items():
                 lista_faixas[periodo].append({'uuid': uuid_,
                                               'faixa': FaixaEtaria.objects.get(uuid=uuid_).__str__(),
-                                              'quantidade_alunos': quantidade_alunos})
+                                              'quantidade_alunos': quantidade_alunos,
+                                              'inicio': FaixaEtaria.objects.get(uuid=uuid_).inicio})
+            lista_faixas[periodo] = sorted(lista_faixas[periodo], key=lambda x: x['inicio'])
         periodos = self.periodos_escolares_com_alunos
         if manha_e_tarde_sempre:
             periodos = list(PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEMEI).values_list(

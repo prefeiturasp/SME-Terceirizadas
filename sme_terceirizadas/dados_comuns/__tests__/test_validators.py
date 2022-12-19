@@ -117,6 +117,7 @@ def test_nao_existe_cardapio(dias_sem_cardapio, escola):
         assert deve_existir_cardapio(escola, dias_sem_cardapio)
 
 
+@freeze_time('2019-07-10')
 def test_valida_ano_diferente_exception(data_inversao_ano_diferente):
     data_inversao, esperado = data_inversao_ano_diferente
     with pytest.raises(serializers.ValidationError, match=esperado):

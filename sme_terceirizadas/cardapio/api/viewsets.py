@@ -25,6 +25,7 @@ from ...inclusao_alimentacao.api.viewsets import (
     TerceirizadaTomaCiencia
 )
 from ...relatorios.relatorios import (
+    relatorio_alteracao_alimentacao_cemei,
     relatorio_alteracao_cardapio,
     relatorio_alteracao_cardapio_cei,
     relatorio_inversao_dia_de_cardapio,
@@ -1083,6 +1084,13 @@ class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet, EscolaIniciaCanc
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}',
+            permission_classes=(IsAuthenticated,))
+    def relatorio(self, request, uuid=None):
+        return relatorio_alteracao_alimentacao_cemei(request, self.get_object())
+
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
@@ -1092,7 +1100,7 @@ class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = MotivoAlteracaoCardapio.objects.filter(ativo=True)
-        if user.vinculo_atual.perfil.nome in ['DIRETOR_CEI']:
+        if isinstance(user.vinculo_atual.instituicao, Escola) and user.vinculo_atual.instituicao.eh_cei:
             return queryset.exclude(nome__icontains='Lanche Emergencial')
         return queryset
 

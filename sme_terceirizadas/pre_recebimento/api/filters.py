@@ -1,6 +1,8 @@
 
 from django_filters import rest_framework as filters
 
+from sme_terceirizadas.terceirizada.models import Terceirizada
+
 from ...dados_comuns.fluxo_status import CronogramaWorkflow
 
 
@@ -33,4 +35,10 @@ class CronogramaFilter(filters.FilterSet):
     status = filters.MultipleChoiceFilter(
         field_name='status',
         choices=[(str(state), state) for state in CronogramaWorkflow.states],
+    )
+    armazem = filters.MultipleChoiceFilter(
+        field_name='armazem__uuid',
+        choices=[(str(value), value) for value in [
+            armazem.uuid for armazem in Terceirizada.objects.filter(tipo_empresa=Terceirizada.ARMAZEM_DISTRIBUIDOR)
+        ]],
     )

@@ -201,6 +201,10 @@ class SolicitacaoDietaEspecial(
         return self.anexo_set.all()
 
     @property
+    def numero_alunos(self):
+        return None
+
+    @property
     def escola(self):
         return self.rastro_escola
 
