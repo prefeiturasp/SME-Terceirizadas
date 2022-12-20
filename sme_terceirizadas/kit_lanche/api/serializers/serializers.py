@@ -277,6 +277,9 @@ class SolicitacaoKitLancheEMEIdaCEMEIRetrieveSerializer(serializers.ModelSeriali
     alunos_com_dieta_especial_participantes = AlunoSimplesSerializer(many=True)
     kits = KitLancheNomeSerializer(many=True)
     tempo_passeio = serializers.CharField()
+    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
+                                                     required=False,
+                                                     read_only=True)
 
     class Meta:
         model = SolicitacaoKitLancheEMEIdaCEMEI
@@ -288,6 +291,9 @@ class SolicitacaoKitLancheCEIdaCEMEIRetrieveSerializer(serializers.ModelSerializ
     kits = KitLancheNomeSerializer(many=True)
     faixas_quantidades = FaixasQuantidadesKitLancheCEIdaCEMEISerializer(many=True)
     tempo_passeio = serializers.CharField()
+    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
+                                                     required=False,
+                                                     read_only=True)
 
     class Meta:
         model = SolicitacaoKitLancheCEIdaCEMEI

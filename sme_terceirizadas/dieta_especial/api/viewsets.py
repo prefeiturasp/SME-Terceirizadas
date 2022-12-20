@@ -760,10 +760,10 @@ class SolicitacaoDietaEspecialViewSet(
 
         filtro = Q()
         if terceirizada_uuid:
-            filtro &= Q(escola_destino__lote__terceirizada__uuid=terceirizada_uuid)
+            filtro &= Q(rastro_terceirizada__uuid=terceirizada_uuid)
         if lotes:
             lotes = lotes.split(',')
-            filtro &= Q(escola_destino__lote__uuid__in=lotes)
+            filtro &= Q(rastro_lote__uuid__in=lotes)
         if classificacoes:
             classificacoes = classificacoes.split(',')
             filtro &= Q(classificacao__id__in=classificacoes)
@@ -929,11 +929,12 @@ class SolicitacaoDietaEspecialViewSet(
 
         solicitacoes = []
         for solicitacao in queryset:
+            classificacao = solicitacao.classificacao.nome if solicitacao.classificacao else '--'
             dados_solicitacoes = {
                 'codigo_eol_aluno': solicitacao.aluno.codigo_eol,
                 'nome_aluno': solicitacao.aluno.nome,
                 'nome_escola': solicitacao.escola.nome,
-                'classificacao': solicitacao.classificacao.nome,
+                'classificacao': classificacao,
                 'protocolo_padrao': solicitacao.nome_protocolo
             }
             if status.upper() == 'CANCELADAS':
@@ -1021,13 +1022,13 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         ).filter(Q(ativas__gt=0) | Q(inativas__gt=0))
 
         if user.tipo_usuario == 'escola':
-            qs = qs.filter(escola=user.vinculo_atual.instituicao)
+            qs = qs.filter(dietas_especiais__rastro_escola=user.vinculo_atual.instituicao)
         elif form.cleaned_data['escola']:
-            qs = qs.filter(escola=form.cleaned_data['escola'])
+            qs = qs.filter(dietas_especiais__rastro_escola=form.cleaned_data['escola'])
         elif user.tipo_usuario == 'diretoriaregional':
-            qs = qs.filter(escola__diretoria_regional=user.vinculo_atual.instituicao)
+            qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=user.vinculo_atual.instituicao)
         elif form.cleaned_data['dre']:
-            qs = qs.filter(escola__diretoria_regional=form.cleaned_data['dre'])
+            qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=form.cleaned_data['dre'])
 
         if form.cleaned_data['codigo_eol']:
             codigo_eol = f"{int(form.cleaned_data['codigo_eol']):06d}"
@@ -1043,6 +1044,7 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
             )
         elif self.request.user.tipo_usuario == 'diretoriaregional':
             return qs.order_by('escola__nome', 'nome')
+
         return qs.order_by('nome')
 
 
@@ -1155,3 +1157,15 @@ class LogQuantidadeDietasAutorizadasViewSet(mixins.ListModelMixin, GenericViewSe
     filter_backends = (DjangoFilterBackend,)
     filterset_class = LogQuantidadeDietasEspeciaisFilter
     pagination_class = None
+
+    def get_queryset(self):
+        queryset = LogQuantidadeDietasAutorizadas.objects.all()
+
+        escola_uuid = self.request.query_params.get('escola_uuid', '')
+        mes = self.request.query_params.get('mes', '')
+        ano = self.request.query_params.get('ano', '')
+        queryset = queryset.filter(escola__uuid=escola_uuid,
+                                   data__month=mes,
+                                   data__year=ano)
+
+        return queryset

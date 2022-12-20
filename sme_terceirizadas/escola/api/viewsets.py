@@ -18,6 +18,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO
 )
+from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
     PodeCriarAdministradoresDaCODAEGestaoDietaEspecial,
@@ -261,7 +262,12 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
         except ObjectDoesNotExist:
             return Response(
                 {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except EOLException:
+            return Response(
+                {'detail': 'API EOL indisponível para carregar as faixas etárias. Tente novamente mais tarde'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         results = []
@@ -270,6 +276,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
                 'faixa_etaria': FaixaEtariaSerializer(FaixaEtaria.objects.get(uuid=uuid_faixa_etaria)).data,
                 'count': faixa_alunos[uuid_faixa_etaria]
             })
+        results = sorted(results, key=lambda x: x['faixa_etaria']['inicio'])
 
         return Response({
             'count': len(results),
@@ -340,6 +347,8 @@ class LoteSimplesViewSet(ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = LoteNomeSerializer
     queryset = Lote.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('diretoria_regional__uuid',)
 
 
 class CODAESimplesViewSet(ModelViewSet):
@@ -352,6 +361,8 @@ class TipoUnidadeEscolarViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     serializer_class = TipoUnidadeEscolarSerializer
     queryset = TipoUnidadeEscolar.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('pertence_relatorio_solicitacoes_alimentacao',)
 
 
 class LogAlunosMatriculadosPeriodoEscolaViewSet(ModelViewSet):
@@ -414,7 +425,13 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        escola_periodo = self.get_object()
+        if request.user.vinculo_atual:
+            escola = request.user.vinculo_atual.instituicao
+            if escola.eh_cei:
+                escola_periodo = EscolaPeriodoEscolar.objects.get(periodo_escolar__uuid=uuid, escola__uuid=escola.uuid)
+        else:
+            escola_periodo = self.get_object()
+
         data_referencia = form.cleaned_data['data_referencia']
 
         try:

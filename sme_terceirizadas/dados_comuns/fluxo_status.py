@@ -209,6 +209,7 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
         ('aguarda_confirmacao_de_cancelamento', [DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO],
          AGUARDANDO_CANCELAMENTO),
         ('distribuidor_confirma_cancelamento', AGUARDANDO_CANCELAMENTO, PAPA_CANCELA),
+        ('distribuidor_confirma_cancelamento_envia_email_notificacao', PAPA_CANCELA, PAPA_CANCELA),
     )
 
     initial_state = AGUARDANDO_ENVIO
@@ -267,6 +268,7 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
 
     transitions = (
         ('distribuidor_confirma_guia', AGUARDANDO_CONFIRMACAO, PENDENTE_DE_CONFERENCIA),
+        ('distribuidor_confirma_guia_envia_email_e_notificacao', PENDENTE_DE_CONFERENCIA, PENDENTE_DE_CONFERENCIA),
         ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
         ('escola_recebe', [
             PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
@@ -673,11 +675,14 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('distribuidor_confirma_cancelamento')
     def _distribuidor_confirma_cancelamento_hook(self, *args, **kwargs):
         user = kwargs['user']
-        log_transicao = self.salvar_log_transicao(
+        self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_CONFIRMA_CANCELAMENTO,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
 
+    @xworkflows.after_transition('distribuidor_confirma_cancelamento_envia_email_notificacao')
+    def _distribuidor_confirma_cancelamento_envia_email_notificacao_hook(self, *args, **kwargs):
+        log_transicao = self.log_mais_recente
         partes_interessadas = self._partes_interessadas_codae_dilog()
         self._envia_email_distribuidor_confirma_cancelamento(log_transicao=log_transicao,
                                                              partes_interessadas=partes_interessadas)
@@ -993,11 +998,13 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('distribuidor_confirma_guia')
     def _distribuidor_confirma_guia_hook(self, *args, **kwargs):
         user = kwargs['user']
-        log_transicao = self.salvar_log_transicao(
+        self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
 
+    @xworkflows.after_transition('distribuidor_confirma_guia_envia_email_e_notificacao')
+    def _dispara_email_e_notificacao_de_confirmacao_ao_distribuidor_hook(self, *args, **kwargs):
         # Monta e-mail
         url = f'{base_url}/logistica/conferir-entrega?numero_guia={self.numero_guia}'
         titulo = f'Nova Guia de Remessa N° {self.numero_guia}'
@@ -1005,7 +1012,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         template = 'logistica_distribuidor_confirma_requisicao.html'
         partes_interessadas = self._partes_interessadas_escola()
 
-        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, None, url)
 
         # Monta Notificacao
         usuarios = self._usuarios_partes_interessadas_escola()
@@ -1807,7 +1814,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _dre_pede_revisao_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_PEDIU_REVISAO,
                                       usuario=user)
 
@@ -1830,7 +1836,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _escola_revisa_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_REVISOU,
                                       usuario=user)
 
@@ -1890,7 +1895,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
@@ -2066,7 +2070,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
                                       justificativa=justificativa,
                                       usuario=user)
@@ -2075,7 +2078,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
@@ -2085,7 +2087,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         justificativa = kwargs.get('justificativa', '')
         resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
                                       justificativa=justificativa,
                                       resposta_sim_nao=resposta_sim_nao,
@@ -2865,3 +2866,45 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+
+class CronogramaWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    RASCUNHO = 'RASCUNHO'
+    ENVIADO_AO_FORNECEDOR = 'ENVIADO_AO_FORNECEDOR'
+    ALTERACAO_CODAE = 'ALTERACAO_CODAE'
+    APROVADO = 'APROVADO'
+    REPROVADO = 'REPROVADO'
+    ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
+    VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
+    ENTREGA_CONFIRMADA = 'ENTREGA_CONFIRMADA'
+
+    states = (
+        (RASCUNHO, 'Rascunho'),
+        (ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
+        (ALTERACAO_CODAE, 'Alteração CODAE'),
+        (APROVADO, 'Aprovado'),
+        (REPROVADO, 'Reprovado'),
+        (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
+        (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
+        (ENTREGA_CONFIRMADA, 'Entrega Confirmada'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
+    )
+
+    initial_state = RASCUNHO
+
+
+class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = CronogramaWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
+                                      usuario=user)

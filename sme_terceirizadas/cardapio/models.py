@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (  # noqa I101
@@ -9,6 +10,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     IntervaloDeDia,
     Logs,
     LogSolicitacoesUsuario,
+    MatriculadosQuandoCriado,
     Motivo,
     Nomeavel,
     SolicitacaoForaDoPrazo,
@@ -24,6 +26,10 @@ from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInf
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from .behaviors import EhAlteracaoCardapio, TemLabelDeTiposDeAlimentacao
 from .managers import (
+    AlteracoesCardapioCEIDestaSemanaManager,
+    AlteracoesCardapioCEIDesteMesManager,
+    AlteracoesCardapioCEMEIDestaSemanaManager,
+    AlteracoesCardapioCEMEIDesteMesManager,
     GrupoSuspensaoAlimentacaoDestaSemanaManager,
     GrupoSuspensaoAlimentacaoDesteMesManager,
     InversaoCardapioDestaSemanaManager,
@@ -236,6 +242,10 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
         return self.data_para if self.data_para < self.data_de else self.data_de
 
     @property
+    def numero_alunos(self):
+        return None
+
+    @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(
             tipo=TemplateMensagem.INVERSAO_CARDAPIO)
@@ -378,6 +388,15 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
         query = self.suspensoes_alimentacao.order_by('data')
         return query.first().data
 
+    @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in
+                          self.suspensoes_alimentacao.order_by('data').values_list('data', flat=True)])
+
+    @property
+    def numero_alunos(self):
+        return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
+
     def __str__(self):
         return f'{self.observacao}'
 
@@ -432,8 +451,8 @@ class SuspensaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('suspensao
 
 class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentacao_de_cei'),
                                 TemData, TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
-                                CriadoEm, FluxoInformativoPartindoDaEscola, Logs, TemPrioridade,
-                                TemTerceirizadaConferiuGestaoAlimentacao):
+                                CriadoEm, FluxoInformativoPartindoDaEscola, Logs, TemObservacao,
+                                TemPrioridade, TemTerceirizadaConferiuGestaoAlimentacao):
     DESCRICAO = 'Suspensão de Alimentação de CEI'
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
@@ -481,6 +500,10 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
             uuid_original=self.uuid,
             justificativa=justificativa
         )
+
+    @property
+    def numero_alunos(self):
+        return None
 
     def __str__(self):
         return f'{self.id_externo}'
@@ -530,6 +553,10 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
         if self.data_final < data:
             data = self.data_final
         return data
+
+    @property
+    def numero_alunos(self):
+        return self.substituicoes.aggregate(Sum('qtd_alunos'))['qtd_alunos__sum']
 
     @property
     def eh_unico_dia(self):
@@ -607,6 +634,14 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
 
     eh_alteracao_com_lanche_repetida = models.BooleanField(default=False)
 
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = AlteracoesCardapioCEIDestaSemanaManager()
+    deste_mes = AlteracoesCardapioCEIDesteMesManager()
+
+    @property
+    def numero_alunos(self):
+        return self.substituicoes.aggregate(Sum('faixas_etarias__quantidade'))['faixas_etarias__quantidade__sum']
+
     @property
     def substituicoes(self):
         return self.substituicoes_cei_periodo_escolar
@@ -670,7 +705,7 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEI(
 
 
 class FaixaEtariaSubstituicaoAlimentacaoCEI(ExportModelOperationsMixin('faixa_etaria_substituicao_alimentacao_cei'),
-                                            TemChaveExterna, TemFaixaEtariaEQuantidade):
+                                            TemChaveExterna, TemFaixaEtariaEQuantidade, MatriculadosQuandoCriado):
     substituicao_alimentacao = models.ForeignKey('SubstituicaoAlimentacaoNoPeriodoEscolarCEI',
                                                  on_delete=models.CASCADE, related_name='faixas_etarias')
 
@@ -706,9 +741,21 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
     data_inicial = models.DateField('Data inicial', null=True, blank=True)
     data_final = models.DateField('Data final', null=True, blank=True)
 
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = AlteracoesCardapioCEMEIDestaSemanaManager()
+    deste_mes = AlteracoesCardapioCEMEIDesteMesManager()
+
     @property
     def data(self):
         return self.alterar_dia or self.data_inicial
+
+    @property
+    def numero_alunos(self):
+        total = 0
+        total += self.substituicoes_cemei_cei_periodo_escolar.aggregate(
+            Sum('faixas_etarias__quantidade'))['faixas_etarias__quantidade__sum'] or 0
+        total += self.substituicoes_cemei_emei_periodo_escolar.aggregate(Sum('qtd_alunos'))['qtd_alunos__sum'] or 0
+        return total
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
@@ -753,13 +800,11 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI(TemChaveExterna):
         verbose_name_plural = 'Substituições de alimentação CEMEI CEI no período'
 
 
-class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEI(TemChaveExterna):
+class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEI(TemChaveExterna, MatriculadosQuandoCriado):
     alteracao_cardapio = models.ForeignKey('AlteracaoCardapioCEMEI', on_delete=models.CASCADE,
                                            null=True, blank=True,
                                            related_name='substituicoes_cemei_emei_periodo_escolar')
     qtd_alunos = models.PositiveSmallIntegerField(default=0)
-
-    # adicionar quantidade de matriculados
 
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
                                         related_name='substituicoes_cemei_emei_periodo_escolar')
@@ -779,10 +824,9 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEI(TemChaveExterna):
         verbose_name_plural = 'Substituições de alimentação CEMEI EMEI no período'
 
 
-class FaixaEtariaSubstituicaoAlimentacaoCEMEICEI(TemChaveExterna, TemFaixaEtariaEQuantidade):
+class FaixaEtariaSubstituicaoAlimentacaoCEMEICEI(TemChaveExterna, TemFaixaEtariaEQuantidade, MatriculadosQuandoCriado):
     substituicao_alimentacao = models.ForeignKey('SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI',
                                                  on_delete=models.CASCADE, related_name='faixas_etarias')
-    # adicionar quantidade de matriculados
 
     def __str__(self):
         retorno = f'Faixa Etária de substituição de alimentação CEMEI CEI: {self.uuid}'

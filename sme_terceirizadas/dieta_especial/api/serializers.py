@@ -354,10 +354,10 @@ class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
 
 
 class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
-    dre = serializers.CharField(source='escola.diretoria_regional.nome')
-    escola = serializers.CharField(source='escola.nome')
+    dre = serializers.SerializerMethodField()
+    escola = serializers.SerializerMethodField()
     serie = serializers.CharField()
-    codigo_eol_escola = serializers.CharField(source='escola.codigo_eol')
+    codigo_eol_escola = serializers.SerializerMethodField()
     codigo_eol = serializers.CharField()
     foto_aluno = serializers.SerializerMethodField()
     classificacao_dieta_ativa = serializers.SerializerMethodField()
@@ -365,6 +365,21 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     nome = serializers.CharField()
     ativas = serializers.IntegerField()
     inativas = serializers.IntegerField()
+
+    def get_dre(self, obj):
+        if obj.dietas_especiais.filter(ativo=True).exists():
+            return obj.dietas_especiais.filter(ativo=True).first().rastro_escola.diretoria_regional.nome
+        return obj.dietas_especiais.first().rastro_escola.diretoria_regional.nome
+
+    def get_escola(self, obj):
+        if obj.dietas_especiais.filter(ativo=True).exists():
+            return obj.dietas_especiais.filter(ativo=True).first().rastro_escola.nome
+        return obj.dietas_especiais.first().rastro_escola.nome
+
+    def get_codigo_eol_escola(self, obj):
+        if obj.dietas_especiais.filter(ativo=True).exists():
+            return obj.dietas_especiais.filter(ativo=True).first().rastro_escola.codigo_eol
+        return obj.dietas_especiais.first().rastro_escola.codigo_eol
 
     def get_foto_aluno(self, obj):  # noqa C901
         novo_sgp_service = self.context.get('novo_sgp_service', '')
@@ -376,7 +391,7 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
                     string_foto = ('data:' + response.json()['download']['item2'] + ';base64,'
                                    + response.json()['download']['item1'])
                     return string_foto
-            except NovoSGPServicoLogadoException:
+            except (NovoSGPServicoLogadoException, TypeError):
                 return None
         return None
 
@@ -607,6 +622,15 @@ class LogQuantidadeDietasAutorizadasSerializer(serializers.ModelSerializer):
         required=False,
         queryset=Escola.objects.all()
     )
+    classificacao = serializers.CharField(
+        source='classificacao.nome',
+        required=False
+    )
+    dia = serializers.SerializerMethodField()
+
+    def get_dia(self, obj):
+        day = str(obj.data.day)
+        return day if len(day) == 2 else '0' + day
 
     class Meta:
         model = LogQuantidadeDietasAutorizadas

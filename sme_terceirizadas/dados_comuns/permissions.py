@@ -25,6 +25,10 @@ from .constants import (
     COORDENADOR_LOGISTICA,
     COORDENADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+    DILOG_CRONOGRAMA,
+    DILOG_DIRETORIA,
+    DILOG_QUALIDADE,
+    DINUTRE_DIRETORIA,
     DIRETOR,
     DIRETOR_ABASTECIMENTO,
     DIRETOR_CEI
@@ -276,8 +280,8 @@ class PermissaoParaReclamarDeProduto(BasePermission):
         )
 
 
-class UsuarioDilogCodae(BasePermission):
-    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+class UsuarioDilog(BasePermission):
+    """Permite acesso a usuários DILOG com vinculo a CODAE."""
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -300,6 +304,19 @@ class UsuarioSuperCodae(BasePermission):
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+        )
+
+
+class UsuarioCodaeDilog(BasePermission):
+    """Permite acesso a usuários do perfil CODAE DILOG."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_CODAE_DILOG_LOGISTICA]
         )
 
 
@@ -418,6 +435,77 @@ class PermissaoParaListarEntregas(BasePermission):
                 ) or
                 (
                     isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional)
+                )
+            )
+        )
+
+
+class PermissaoParaVisualizarCronograma(BasePermission):
+    # TODO: Conforme solicitado pelos P.Os, usuários Logistica tem acesso temporariamente p/ visualização do cronograma.
+    #  Após finalização da definição de permissionamento deve se remover COORDENADOR_CODAE_DILOG_LOGISTICA e
+    #  COORDENADOR_LOGISTICA deste permissionamento.
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) or
+                    isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
+                                                          DINUTRE_DIRETORIA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                          COORDENADOR_LOGISTICA, ADMINISTRADOR_FORNECEDOR]
+                )
+            )
+        )
+
+
+class PermissaoParaCriarCronograma(BasePermission):
+    # TODO: Conforme solicitado pelos P.Os, usuários Logistica tem acesso temporariamente ao Cadastro de Cronograma.
+    #  Após finalização da definição de permissionamento deve se remover COORDENADOR_CODAE_DILOG_LOGISTICA e
+    #  COORDENADOR_LOGISTICA deste permissionamento.
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                          COORDENADOR_LOGISTICA]
+                )
+            )
+        )
+
+
+class PermissaoParaCadastrarLaboratorio(BasePermission):
+    # Apenas DILOG_QUALIDADE tem acesso a tela de cadastro de Laboratórios.
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE]
+                )
+            )
+        )
+
+
+class PermissaoParaCadastrarVisualizarEmbalagem(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE, DILOG_CRONOGRAMA]
                 )
             )
         )

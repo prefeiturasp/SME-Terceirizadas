@@ -52,12 +52,18 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_nomes(self, request):
-        response = {'results': TerceirizadaSimplesSerializer(self.get_queryset(), many=True).data}
+        response = {'results': TerceirizadaSimplesSerializer(self.filter_queryset(self.get_queryset()), many=True).data}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes-distribuidores')
     def lista_nomes_distribuidores(self, request):
         queryset = Terceirizada.objects.filter(eh_distribuidor=True)
+        response = {'results': DistribuidorSimplesSerializer(queryset, many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-armazens')
+    def lista_nomes_armazens(self, request):
+        queryset = Terceirizada.objects.filter(tipo_empresa=Terceirizada.ARMAZEM_DISTRIBUIDOR)
         response = {'results': DistribuidorSimplesSerializer(queryset, many=True).data}
         return Response(response)
 

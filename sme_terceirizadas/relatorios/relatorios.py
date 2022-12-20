@@ -5,9 +5,13 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db.models import F, FloatField, Sum
 from django.template.loader import get_template, render_to_string
 
+from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
+from ..escola.api.serializers import FaixaEtariaSerializer
+from ..escola.constants import PERIODOS_ESPECIAIS_CEMEI
+from ..escola.models import EscolaPeriodoEscolar, FaixaEtaria, PeriodoEscolar
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
 from ..relatorios.utils import html_to_pdf_cancelada, html_to_pdf_file, html_to_pdf_multiple, html_to_pdf_response
@@ -16,6 +20,7 @@ from . import constants
 from .utils import (
     conta_filtros,
     formata_logs,
+    formata_motivos_inclusao,
     get_config_cabecario_relatorio_analise,
     get_diretorias_regionais,
     get_ultima_justificativa_analise_sensorial,
@@ -105,6 +110,7 @@ def relatorio_alteracao_cardapio(request, solicitacao): # noqa C901
                 tap_formatado = tap.nome
 
         resultado = {'periodo': subs.periodo_escolar.nome,
+                     'qtd_alunos': subs.qtd_alunos,
                      'tipos_alimentacao_de': tad_formatado,
                      'tipos_alimentacao_para': tap_formatado}
 
@@ -138,6 +144,94 @@ def relatorio_alteracao_cardapio_cei(request, solicitacao):
          'logs': formata_logs(logs)}
     )
     return html_to_pdf_response(html_string, f'alteracao_cardapio_{solicitacao.id_externo}.pdf')
+
+
+def relatorio_alteracao_alimentacao_cemei(request, solicitacao): # noqa C901
+    escola = solicitacao.rastro_escola
+    logs = solicitacao.logs
+    periodos_escolares_cei = []
+    periodos_cei = []
+    periodos_escolares_emei = []
+    periodos_emei = []
+    for each in solicitacao.substituicoes_cemei_cei_periodo_escolar.all():
+        if each.periodo_escolar.nome not in periodos_escolares_cei:
+            periodos_escolares_cei.append(each.periodo_escolar.nome)
+    for each in solicitacao.substituicoes_cemei_emei_periodo_escolar.all():
+        if each.periodo_escolar.nome not in periodos_escolares_emei:
+            periodos_escolares_emei.append(each.periodo_escolar.nome)
+    vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    vinculos_cei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+                                                 tipo_unidade_escolar__iniciais__in=['CEI DIRET'])
+    vinculos_cei = vinculos_cei.order_by('periodo_escolar__posicao')
+    vinculos_emei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+                                                  tipo_unidade_escolar__iniciais__in=['EMEI'])
+    vinculos_emei = vinculos_emei.order_by('periodo_escolar__posicao')
+
+    for vinculo in vinculos_cei:
+        if vinculo.periodo_escolar.nome in periodos_escolares_cei:
+            periodo = {}
+            faixas = []
+            periodo['nome'] = vinculo.periodo_escolar.nome
+            qtd_solicitacao = solicitacao.substituicoes_cemei_cei_periodo_escolar.filter(
+                periodo_escolar__nome=vinculo.periodo_escolar.nome)
+            for faixa in qtd_solicitacao:
+                periodo['tipos_alimentacao_de'] = ', '.join(
+                    faixa.tipos_alimentacao_de.values_list('nome', flat=True))
+                periodo['tipos_alimentacao_para'] = ', '.join(
+                    faixa.tipos_alimentacao_para.values_list('nome', flat=True))
+
+                for f in faixa.faixas_etarias.all():
+                    faixas.append({'faixa_etaria': f.faixa_etaria.__str__,
+                                   'quantidade_alunos': f.quantidade,
+                                   'matriculados_quando_criado': f.matriculados_quando_criado})
+            periodo['faixas_etarias'] = faixas
+
+            periodo['total_solicitacao'] = sum(qtd_solicitacao.exclude(
+                faixas_etarias__quantidade__isnull=True).values_list(
+                'faixas_etarias__quantidade', flat=True))
+            periodo['total_matriculados'] = sum(qtd_solicitacao.exclude(
+                faixas_etarias__matriculados_quando_criado__isnull=True).values_list(
+                'faixas_etarias__matriculados_quando_criado', flat=True))
+            periodos_cei.append(periodo)
+
+    for vinculo in vinculos_emei:
+        if vinculo.periodo_escolar.nome in periodos_escolares_emei:
+            periodo = {}
+            periodo['nome'] = vinculo.periodo_escolar.nome
+            qtd_solicitacao = solicitacao.substituicoes_cemei_emei_periodo_escolar.filter(
+                periodo_escolar__nome=vinculo.periodo_escolar.nome)
+            periodo['tipos_alimentacao_de'] = ', '.join(
+                qtd_solicitacao.exclude(tipos_alimentacao_de__nome__isnull=True).values_list(
+                    'tipos_alimentacao_de__nome', flat=True))
+            periodo['tipos_alimentacao_para'] = ', '.join(
+                qtd_solicitacao.exclude(tipos_alimentacao_para__nome__isnull=True).values_list(
+                    'tipos_alimentacao_para__nome', flat=True))
+            periodo['total_solicitacao'] = sum(qtd_solicitacao.exclude(
+                qtd_alunos__isnull=True).values_list('qtd_alunos', flat=True))
+            periodo['total_matriculados'] = sum(qtd_solicitacao.exclude(
+                matriculados_quando_criado__isnull=True).values_list('matriculados_quando_criado', flat=True))
+            periodos_emei.append(periodo)
+    data_final = None
+    if solicitacao.data_final:
+        data_final = solicitacao.data_final.strftime('%d/%m/%Y')
+    html_string = render_to_string(
+        'solicitacao_alteracao_cardapio_cemei.html',
+        {
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'fluxo': constants.FLUXO_ALTERACAO_DE_CARDAPIO,
+            'width': get_width(constants.FLUXO_ALTERACAO_DE_CARDAPIO, solicitacao.logs),
+            'logs': formata_logs(logs),
+            'periodos_cei': periodos_cei,
+            'periodos_emei': periodos_emei,
+            'periodos_escolares_emei': periodos_escolares_emei,
+            'motivo': solicitacao.motivo,
+            'data_de': solicitacao.data.strftime('%d/%m/%Y'),
+            'data_ate': data_final
+        }
+    )
+    return html_to_pdf_response(html_string,
+                                f'alteracao_tipo_alimentacao_cemei_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_dieta_especial_conteudo(solicitacao):
@@ -341,17 +435,137 @@ def relatorio_inclusao_alimentacao_normal(request, solicitacao):
 def relatorio_inclusao_alimentacao_cei(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
+    if solicitacao.periodo_escolar:
+        html_string = render_to_string(
+            'solicitacao_inclusao_alimentacao_cei.html',
+            {
+                'escola': escola,
+                'solicitacao': solicitacao,
+                'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+                'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+                'logs': formata_logs(logs)
+            }
+        )
+    else:
+        quantidade_por_faixa = []
+        matriculados = []
+        periodo_escolar = PeriodoEscolar.objects.get(nome='INTEGRAL')
+        escola_periodo_escolar = EscolaPeriodoEscolar.objects.filter(periodo_escolar=periodo_escolar, escola=escola)
+        faixa_alunos = escola_periodo_escolar.first().alunos_por_faixa_etaria(solicitacao.data)
+
+        for uuid_faixa_etaria in faixa_alunos:
+            matriculados.append({
+                'faixa_etaria': FaixaEtariaSerializer(FaixaEtaria.objects.get(uuid=uuid_faixa_etaria)).data,
+                'count': faixa_alunos[uuid_faixa_etaria]
+            })
+        vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+        vinculos = vinculos_class.objects.filter(periodo_escolar__in=escola.periodos_escolares, ativo=True,
+                                                 tipo_unidade_escolar=escola.tipo_unidade)
+        vinculos = vinculos.order_by('periodo_escolar__posicao')
+
+        for vinculo in vinculos:
+            quantidade = {}
+            quantidade['periodo'] = vinculo.periodo_escolar.nome
+            qtd_solicitacao = solicitacao.quantidade_alunos_da_inclusao.filter(periodo=vinculo.periodo_escolar)
+            quantidade['total_solicitacao'] = sum(qtd_solicitacao.values_list('quantidade_alunos', flat=True))
+            quantidade['total_matriculados'] = sum([m['count'] for m in matriculados])
+            quantidade['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.values_list('nome', flat=True))
+            inclusoes = []
+
+            for faixa in FaixaEtaria.objects.all():
+                q = qtd_solicitacao.filter(faixa_etaria=faixa)
+                if q.first():
+                    quantidade_inclusao = q.first().quantidade_alunos
+                    t = sum([m['count'] if m['faixa_etaria']['uuid'] == str(faixa.uuid) else 0 for m in matriculados])
+                    inclusoes.append({'faixa_etaria': faixa,
+                                      'quantidade_alunos': quantidade_inclusao,
+                                      'quantidade_matriculados': t})
+
+            quantidade['quantidade_por_faixa_etaria'] = inclusoes
+            quantidade_por_faixa.append(quantidade)
+        html_string = render_to_string(
+            'novo_solicitacao_inclusao_alimentacao_cei.html',
+            {
+                'escola': escola,
+                'solicitacao': solicitacao,
+                'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+                'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+                'logs': formata_logs(logs),
+                'inclusoes': quantidade_por_faixa
+            }
+        )
+    return html_to_pdf_response(html_string, f'inclusao_alimentacao_{solicitacao.id_externo}.pdf')
+
+
+def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
+    escola = solicitacao.rastro_escola
+    logs = solicitacao.logs
+    periodos_escolares_cei = []
+    periodos_cei = []
+    periodos_escolares_emei = []
+    periodos_emei = []
+
+    for each in solicitacao.quantidade_alunos_cei_da_inclusao_cemei.all():
+        if each.periodo_escolar.nome not in periodos_escolares_cei:
+            periodos_escolares_cei.append(each.periodo_escolar.nome)
+    for each in solicitacao.quantidade_alunos_emei_da_inclusao_cemei.all():
+        if each.periodo_escolar.nome not in periodos_escolares_emei:
+            periodos_escolares_emei.append(each.periodo_escolar.nome)
+
+    vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    vinculos_cei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+                                                 tipo_unidade_escolar__iniciais__in=['CEI DIRET'])
+    vinculos_cei = vinculos_cei.order_by('periodo_escolar__posicao')
+    vinculos_emei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+                                                  tipo_unidade_escolar__iniciais__in=['EMEI'])
+    vinculos_emei = vinculos_emei.order_by('periodo_escolar__posicao')
+
+    for vinculo in vinculos_cei:
+        if vinculo.periodo_escolar.nome in periodos_escolares_cei:
+            periodo = {}
+            faixas = []
+            periodo['nome'] = vinculo.periodo_escolar.nome
+            periodo['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.values_list('nome', flat=True))
+            qtd_solicitacao = solicitacao.quantidade_alunos_cei_da_inclusao_cemei.filter(
+                periodo_escolar__nome=vinculo.periodo_escolar.nome)
+            for faixa in qtd_solicitacao:
+                faixas.append({'faixa_etaria': faixa.faixa_etaria.__str__,
+                               'quantidade_alunos': faixa.quantidade_alunos,
+                               'matriculados_quando_criado': faixa.matriculados_quando_criado})
+            periodo['faixas_etarias'] = faixas
+            periodo['total_solicitacao'] = sum(qtd_solicitacao.values_list('quantidade_alunos', flat=True))
+            periodo['total_matriculados'] = sum(qtd_solicitacao.values_list('matriculados_quando_criado', flat=True))
+            periodos_cei.append(periodo)
+
+    for vinculo in vinculos_emei:
+        if vinculo.periodo_escolar.nome in periodos_escolares_emei:
+            periodo = {}
+            periodo['nome'] = vinculo.periodo_escolar.nome
+            periodo['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.exclude(
+                nome__icontains='Lanche Emergencial').values_list('nome', flat=True))
+            qtd_solicitacao = solicitacao.quantidade_alunos_emei_da_inclusao_cemei.filter(
+                periodo_escolar__nome=vinculo.periodo_escolar.nome)
+            periodo['total_solicitacao'] = sum(qtd_solicitacao.values_list('quantidade_alunos', flat=True))
+            periodo['total_matriculados'] = sum(qtd_solicitacao.values_list('matriculados_quando_criado', flat=True))
+            periodos_emei.append(periodo)
+
+    motivos = formata_motivos_inclusao(solicitacao.dias_motivos_da_inclusao_cemei.all())
     html_string = render_to_string(
-        'solicitacao_inclusao_alimentacao_cei.html',
+        'solicitacao_inclusao_alimentacao_cemei.html',
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
-            'logs': formata_logs(logs)
+            'fluxo': constants.FLUXO_INCLUSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_INCLUSAO_ALIMENTACAO, solicitacao.logs),
+            'logs': formata_logs(logs),
+            'motivos': motivos,
+            'periodos_cei': periodos_cei,
+            'periodos_escolares_cei': periodos_escolares_cei,
+            'periodos_emei': periodos_emei,
+            'periodos_escolares_emei': periodos_escolares_emei
         }
     )
-    return html_to_pdf_response(html_string, f'inclusao_alimentacao_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(html_string, f'inclusao_alimentacao_cemei_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_kit_lanche_passeio(request, solicitacao):
@@ -362,8 +576,6 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
     }
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    observacao = solicitacao.solicitacao_kit_lanche.descricao
-    solicitacao.observacao = observacao
     tempo_passeio_num = str(solicitacao.solicitacao_kit_lanche.tempo_passeio)
     tempo_passeio = TEMPO_PASSEIO.get(tempo_passeio_num)
     html_string = render_to_string(
@@ -384,8 +596,6 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
 def relatorio_kit_lanche_passeio_cei(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    observacao = solicitacao.solicitacao_kit_lanche.descricao
-    solicitacao.observacao = observacao
     html_string = render_to_string(
         'solicitacao_kit_lanche_passeio_cei.html',
         {
@@ -469,6 +679,24 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
         }
     )
     return html_to_pdf_response(html_string, f'solicitacao_suspensao_{solicitacao.id_externo}.pdf')
+
+
+def relatorio_suspensao_de_alimentacao_cei(request, solicitacao):
+    escola = solicitacao.rastro_escola
+    logs = solicitacao.logs
+    periodos_escolares = solicitacao.periodos_escolares.all()
+    html_string = render_to_string(
+        'solicitacao_suspensao_de_alimentacao_cei.html',
+        {
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'periodos_escolares': periodos_escolares,
+            'fluxo': constants.FLUXO_SUSPENSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_SUSPENSAO_ALIMENTACAO, solicitacao.logs),
+            'logs': formata_logs(logs)
+        }
+    )
+    return html_to_pdf_response(html_string, f'solicitacao_suspensao_cei_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_produto_homologacao(request, produto):

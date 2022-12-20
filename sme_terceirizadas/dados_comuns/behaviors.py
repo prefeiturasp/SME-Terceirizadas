@@ -3,7 +3,7 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
 
 from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, REGULAR, StatusProcessamentoArquivo
@@ -251,6 +251,41 @@ class Logs(object):
     def log_mais_recente(self):
         return self.logs.last()
 
+    @property
+    def data_autorizacao(self):
+        if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid,
+                                                 status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU).exists():
+            return LogSolicitacoesUsuario.objects.get(
+                uuid_original=self.uuid, status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU
+            ).criado_em.strftime('%d/%m/%Y')
+        return None
+
+    @property
+    def data_cancelamento(self):
+        if LogSolicitacoesUsuario.objects.filter(
+            uuid_original=self.uuid,
+            status_evento__in=[
+                LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]).exists():
+            return LogSolicitacoesUsuario.objects.get(
+                uuid_original=self.uuid,
+                status_evento__in=[
+                    LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]
+            ).criado_em.strftime('%d/%m/%Y')
+        return None
+
+    @property
+    def data_negacao(self):
+        if LogSolicitacoesUsuario.objects.filter(
+            uuid_original=self.uuid,
+            status_evento__in=[
+                LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]).exists():
+            return LogSolicitacoesUsuario.objects.get(
+                uuid_original=self.uuid,
+                status_evento__in=[
+                    LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
+            ).criado_em.strftime('%d/%m/%Y')
+        return None
+
 
 class TemVinculos(models.Model):
     vinculos = GenericRelation('perfil.Vinculo')
@@ -342,6 +377,14 @@ class TemMes(models.Model):
 
 class TemDia(models.Model):
     dia = models.CharField('Dia', max_length=2)
+
+    class Meta:
+        abstract = True
+
+
+class MatriculadosQuandoCriado(models.Model):
+    matriculados_quando_criado = models.PositiveSmallIntegerField(null=True, blank=True,
+                                                                  validators=[MinValueValidator(1)])
 
     class Meta:
         abstract = True

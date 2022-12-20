@@ -2,6 +2,7 @@ import uuid
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django_prometheus.models import ExportModelOperationsMixin
 from rest_framework.compat import MinValueValidator
@@ -11,6 +12,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     CriadoPor,
     Descritivel,
     Logs,
+    MatriculadosQuandoCriado,
     Motivo,
     Nomeavel,
     SolicitacaoForaDoPrazo,
@@ -31,7 +33,9 @@ from .managers import (
     SolicitacaoUnificadaVencidaManager,
     SolicitacoesKitLancheAvulsaDestaSemanaManager,
     SolicitacoesKitLancheAvulsaDesteMesManager,
-    SolicitacoesKitLancheAvulsaVencidaDiasManager
+    SolicitacoesKitLancheAvulsaVencidaDiasManager,
+    SolicitacoesKitLancheCemeiDestaSemanaManager,
+    SolicitacoesKitLancheCemeiDesteMesManager
 )
 
 
@@ -74,6 +78,7 @@ class KitLanche(ExportModelOperationsMixin('kit_lanche'), Nomeavel, TemChaveExte
     class Meta:
         verbose_name = 'Kit lanche'
         verbose_name_plural = 'Kit lanches'
+        ordering = ('nome',)
 
 
 class SolicitacaoKitLanche(ExportModelOperationsMixin('kit_lanche_base'), TemData, Motivo, Descritivel, CriadoEm,
@@ -154,6 +159,14 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
                                related_name='solicitacoes_kit_lanche_avulsa')
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
 
+    @property
+    def observacao(self):
+        return self.solicitacao_kit_lanche.descricao
+
+    @property
+    def numero_alunos(self):
+        return self.quantidade_alunos
+
     def __str__(self):
         return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'
 
@@ -169,8 +182,16 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
 
     @property
+    def observacao(self):
+        return self.kit_lanche_cei_avulsa.descricao
+
+    @property
     def quantidade_alunos(self):
         return self.faixas_etarias.all().aggregate(models.Sum('quantidade'))['quantidade__sum']
+
+    @property
+    def numero_alunos(self):
+        return self.quantidade_alunos
 
     def __str__(self):
         return f'{self.escola} SOLICITA EM {self.local}'
@@ -180,7 +201,7 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
         verbose_name_plural = 'Solicitações de kit lanche CEI avulsa'
 
 
-class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(TemChaveExterna, TemFaixaEtariaEQuantidade):
+class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(TemChaveExterna, TemFaixaEtariaEQuantidade, MatriculadosQuandoCriado):
     solicitacao_kit_lanche_avulsa = models.ForeignKey('SolicitacaoKitLancheCEIAvulsa',
                                                       on_delete=models.CASCADE, related_name='faixas_etarias')
 
@@ -230,6 +251,10 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     @property
     def data(self):
         return self.solicitacao_kit_lanche.data
+
+    @property
+    def observacao(self):
+        return self.solicitacao_kit_lanche.descricao
 
     @property
     def lote_nome(self):
@@ -341,6 +366,10 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
                 total_kit_lanche += escola_quantidade.total_kit_lanche
             return total_kit_lanche
 
+    @property
+    def numero_alunos(self):
+        return self.escolas_quantidades.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
+
     def __str__(self):
         dre = self.diretoria_regional
         return f'{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}'
@@ -393,6 +422,10 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
                                related_name='solicitacoes_kit_lanche_cemei')
     alunos_cei_e_ou_emei = models.CharField(choices=STATUS_CHOICES, max_length=10, default=TODOS)
 
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = SolicitacoesKitLancheCemeiDestaSemanaManager()
+    deste_mes = SolicitacoesKitLancheCemeiDesteMesManager()
+
     @property
     def tem_solicitacao_cei(self):
         return hasattr(self, 'solicitacao_cei')
@@ -400,6 +433,15 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
     @property
     def tem_solicitacao_emei(self):
         return hasattr(self, 'solicitacao_emei')
+
+    @property
+    def numero_alunos(self):
+        total = 0
+        if self.tem_solicitacao_cei:
+            total += self.solicitacao_cei.quantidade_alunos
+        if self.tem_solicitacao_emei:
+            total += self.solicitacao_emei.quantidade_alunos
+        return total
 
     @property
     def total_kits(self):
@@ -463,12 +505,11 @@ class SolicitacaoKitLancheCEIdaCEMEI(TemChaveExterna, TempoPasseio):
         verbose_name_plural = 'Solicitações Kit Lanche CEI da EMEI'
 
 
-class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna):
+class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna, MatriculadosQuandoCriado):
     solicitacao_kit_lanche_cei_da_cemei = models.ForeignKey(SolicitacaoKitLancheCEIdaCEMEI,
                                                             on_delete=models.CASCADE,
                                                             related_name='faixas_quantidades')
     quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-    matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.PROTECT)
 
     class Meta:
@@ -476,10 +517,9 @@ class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna):
         verbose_name_plural = 'Faixas e quantidade de alunos da CEI das solicitações kit lanche CEMEI'
 
 
-class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio):
+class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio, MatriculadosQuandoCriado):
     kits = models.ManyToManyField(KitLanche, blank=True)
     quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-    matriculados_quando_criado = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
     solicitacao_kit_lanche_cemei = models.OneToOneField(SolicitacaoKitLancheCEMEI,
                                                         blank=True,

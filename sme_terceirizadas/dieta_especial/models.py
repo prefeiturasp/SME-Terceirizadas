@@ -201,6 +201,10 @@ class SolicitacaoDietaEspecial(
         return self.anexo_set.all()
 
     @property
+    def numero_alunos(self):
+        return None
+
+    @property
     def escola(self):
         return self.rastro_escola
 
@@ -260,6 +264,16 @@ class SolicitacaoDietaEspecial(
             uuid_original=self.uuid,
             justificativa=justificativa
         )
+
+    @property
+    def display_nutricionista_with_registro_funcional(self):
+        usuario = self.logs.get(
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+            solicitacao_tipo=LogSolicitacoesUsuario.DIETA_ESPECIAL
+        ).usuario
+        if usuario.registro_funcional:
+            return f'Elaborado por {usuario.nome} - RF {usuario.registro_funcional}'
+        return self.registro_funcional_nutricionista
 
     @property
     def data_ultimo_log(self):

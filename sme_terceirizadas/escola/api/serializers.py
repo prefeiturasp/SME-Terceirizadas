@@ -138,7 +138,7 @@ class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DiretoriaRegional
-        fields = ('uuid', 'nome', 'codigo_eol')
+        fields = ('uuid', 'nome', 'codigo_eol', 'iniciais')
 
 
 class DiretoriaRegionalLookUpSerializer(serializers.ModelSerializer):
@@ -241,10 +241,18 @@ class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
 
 class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+    lote = serializers.SerializerMethodField()
+    tipo_unidade = serializers.SerializerMethodField()
+
+    def get_lote(self, obj):
+        return obj.lote.uuid if obj.lote else None
+
+    def get_tipo_unidade(self, obj):
+        return obj.tipo_unidade.uuid if obj.tipo_unidade else None
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'diretoria_regional', 'codigo_eol', 'quantidade_alunos')
+        fields = ('uuid', 'nome', 'diretoria_regional', 'codigo_eol', 'quantidade_alunos', 'lote', 'tipo_unidade')
 
 
 class PeriodoEFaixaEtariaCounterSerializer(serializers.BaseSerializer):

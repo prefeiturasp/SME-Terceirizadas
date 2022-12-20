@@ -1,6 +1,7 @@
 import base64
 import datetime
 import os
+import re
 import uuid
 from mimetypes import guess_extension, guess_type
 from typing import Any
@@ -264,3 +265,7 @@ class ExportExcelAction:
             else:
                 header.append(default_format(field_display))
         return header
+
+
+def remove_tags_html_from_string(html_string: str):
+    return re.sub(r'<.*?>', '', html_string)

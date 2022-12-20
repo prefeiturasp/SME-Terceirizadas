@@ -124,6 +124,48 @@ def client_autenticado_dilog(client, django_user_model):
 
 
 @pytest.fixture
+def client_autenticado_codae_dilog(client, django_user_model):
+    email = 'test@test.com'
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_admin_dilog = mommy.make('Perfil',
+                                    nome=constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                    ativo=True)
+    codae = mommy.make('Codae')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=codae,
+               perfil=perfil_admin_dilog,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_qualidade(client, django_user_model):
+    email = 'test@test.com'
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_admin_qualidade = mommy.make('Perfil',
+                                        nome=constants.DILOG_QUALIDADE,
+                                        ativo=True)
+    codae = mommy.make('Codae')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=codae,
+               perfil=perfil_admin_qualidade,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
 def client_autenticado_distribuidor(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD

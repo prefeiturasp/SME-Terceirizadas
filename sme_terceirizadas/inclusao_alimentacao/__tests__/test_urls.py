@@ -12,11 +12,19 @@ from ...dados_comuns.constants import (
     DRE_NAO_VALIDA_PEDIDO,
     DRE_VALIDA_PEDIDO,
     ESCOLA_CANCELA,
+    PEDIDOS_CODAE,
+    PEDIDOS_DRE,
+    SEM_FILTRO,
     TERCEIRIZADA_RESPONDE_QUESTIONAMENTO,
     TERCEIRIZADA_TOMOU_CIENCIA
 )
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
-from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoDaCEI
+from ..models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
+    InclusaoDeAlimentacaoCEMEI
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -489,8 +497,12 @@ def test_url_endpoint_inclusao_continua_relatorio(client_autenticado,
     assert isinstance(response.content, bytes)
 
 
-def test_url_endpoint_inclusao_cei_relatorio(client_autenticado_vinculo_escola_cei_inclusao):
-    inclusao_alimentacao = mommy.make(InclusaoAlimentacaoDaCEI)
+def test_url_endpoint_inclusao_cei_relatorio(client_autenticado_vinculo_escola_cei_inclusao,
+                                             escola_periodo_escolar_cei,
+                                             escola_cei, periodo_escolar):
+    inclusao_alimentacao = mommy.make(InclusaoAlimentacaoDaCEI,
+                                      rastro_escola=escola_cei,
+                                      periodo_escolar=periodo_escolar)
     response = client_autenticado_vinculo_escola_cei_inclusao.get(
         f'/inclusoes-alimentacao-da-cei/{inclusao_alimentacao.uuid}/{constants.RELATORIO}/')
     id_externo = inclusao_alimentacao.id_externo
@@ -579,3 +591,95 @@ def test_url_endpoint_inclusao_cemei(client_autenticado_vinculo_escola_inclusao)
     assert len(response_json['dias_motivos_da_inclusao_cemei']) == 3
     assert len(response_json['quantidade_alunos_cei_da_inclusao_cemei']) == 0
     assert len(response_json['quantidade_alunos_emei_da_inclusao_cemei']) == 1
+
+    response = client_autenticado_vinculo_escola_inclusao.get(f'/inclusao-alimentacao-cemei/{response_json["uuid"]}/',
+                                                              content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    assert 'logs' in response.json()
+
+
+def test_url_endpoint_inclusao_cemei_get_permissoes(client_autenticado_vinculo_escola_inclusao,
+                                                    client_autenticado_vinculo_escola_cei_inclusao):
+    data = {'escola': '230453bb-d6f1-4513-b638-8d6d150d1ac6',
+            'dias_motivos_da_inclusao_cemei': [{
+                'data': '2022-01-02', 'motivo': '803f0508-2abd-4874-ad05-95a4fb29947e'}],
+            'quantidade_alunos_cei_da_inclusao_cemei': [{
+                'periodo_escolar': '208f7cb4-b03a-4357-ab6d-bda078a37748',
+                'quantidade_alunos': 40,
+                'matriculados_quando_criado': 666,
+                'faixa_etaria': 'ee77f350-6af8-4928-86d6-684fbf423ff5'
+            }],
+            'quantidade_alunos_emei_da_inclusao_cemei': [
+                {'periodo_escolar': '208f7cb4-b03a-4357-ab6d-bda078a37748',
+                 'quantidade_alunos': 30,
+                 'matriculados_quando_criado': 46}]
+            }
+    response = client_autenticado_vinculo_escola_inclusao.post('/inclusao-alimentacao-cemei/',
+                                                               content_type='application/json', data=data)
+    response = client_autenticado_vinculo_escola_cei_inclusao.get('/inclusao-alimentacao-cemei/',
+                                                                  content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    # só pode ver inclusoes da sua escola
+    assert len(response.json()['results']) == 0
+
+
+def test_url_inclusao_cemei_delete(client_autenticado_vinculo_escola_inclusao, inclusao_alimentacao_cemei):
+    response = client_autenticado_vinculo_escola_inclusao.delete(
+        f'/inclusao-alimentacao-cemei/{inclusao_alimentacao_cemei.uuid}/')
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_url_inclusao_cemei_delete_403(client_autenticado_vinculo_escola_inclusao, inclusao_alimentacao_cemei):
+    inclusao_alimentacao_cemei.status = InclusaoDeAlimentacaoCEMEI.workflow_class.DRE_A_VALIDAR
+    inclusao_alimentacao_cemei.save()
+    response = client_autenticado_vinculo_escola_inclusao.delete(
+        f'/inclusao-alimentacao-cemei/{inclusao_alimentacao_cemei.uuid}/')
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {'detail': 'Você só pode excluir quando o status for RASCUNHO.'}
+
+
+def test_url_inclusao_cemei_dre(client_autenticado_vinculo_dre_inclusao, inclusao_alimentacao_cemei):
+    response = client_autenticado_vinculo_dre_inclusao.get('/inclusao-alimentacao-cemei/',
+                                                           content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    # só pode ver inclusoes da sua DRE
+    assert len(response.json()['results']) == 1
+
+    response = client_autenticado_vinculo_dre_inclusao.get('/inclusao-alimentacao-cemei/?status=DRE_A_VALIDAR',
+                                                           content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 0
+
+    inclusao_alimentacao_cemei.status = InclusaoDeAlimentacaoCEMEI.workflow_class.DRE_A_VALIDAR
+    inclusao_alimentacao_cemei.save()
+    response = client_autenticado_vinculo_dre_inclusao.get(f'/inclusao-alimentacao-cemei/{PEDIDOS_DRE}/{SEM_FILTRO}/')
+    assert response.json()['count'] == 1
+
+
+def test_url_inclusao_cemei_codae(client_autenticado_vinculo_codae_inclusao, inclusao_alimentacao_cemei):
+    inclusao_alimentacao_cemei.status = InclusaoDeAlimentacaoCEMEI.workflow_class.DRE_VALIDADO
+    inclusao_alimentacao_cemei.save()
+    response = client_autenticado_vinculo_codae_inclusao.get(
+        f'/inclusao-alimentacao-cemei/{PEDIDOS_CODAE}/{SEM_FILTRO}/')
+    assert response.json()['count'] == 1
+
+
+def test_url_inclusao_cemei_terceirizada(client_autenticado_vinculo_terceirizada_inclusao, inclusao_alimentacao_cemei):
+    response = client_autenticado_vinculo_terceirizada_inclusao.get('/inclusao-alimentacao-cemei/',
+                                                                    content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    # só pode ver inclusoes da sua TERCEIRIZADA
+    assert len(response.json()['results']) == 1
+
+
+def test_url_endpoint_inclusao_cemei_relatorio(client_autenticado_vinculo_escola_inclusao,
+                                               inclusao_alimentacao_cemei):
+    response = client_autenticado_vinculo_escola_inclusao.get(
+        f'/inclusao-alimentacao-cemei/{inclusao_alimentacao_cemei.uuid}/{constants.RELATORIO}/')
+    id_externo = inclusao_alimentacao_cemei.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="inclusao_alimentacao_cemei_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)

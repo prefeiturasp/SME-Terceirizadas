@@ -229,7 +229,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
                                                  registro_funcional=rf, cpf=cpf)
     client.login(username=email, password=password)
 
-    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA', iniciais='IP',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
     cardapio1 = mommy.make('cardapio.Cardapio',
                            data=datetime.date(2019, 10, 11))
@@ -413,7 +413,7 @@ def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
                          is_active=False, registro_funcional='1234567', email='GrVdXIhxqb@example.com')
     hoje = datetime.date.today()
 
-    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA', iniciais='IP',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
     cardapio1 = mommy.make('cardapio.Cardapio',
                            data=datetime.date(2019, 10, 11))
