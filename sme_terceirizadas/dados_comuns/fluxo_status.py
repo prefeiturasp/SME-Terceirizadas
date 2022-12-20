@@ -17,8 +17,7 @@ from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_TERCEIRIZADA,
-    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    TIPO_SOLICITACAO_DIETA
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
@@ -2287,15 +2286,11 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
               à escola destino da dieta
             - email de contato da escola (escola.contato.email)
         """
-        escola = self.escola_destino
+        escola = self.rastro_escola
         try:
-            terceirizada = escola.lote.terceirizada
-            email_administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
-                ativo=True,
-                perfil__nome=ADMINISTRADOR_TERCEIRIZADA
-            )]
+            emails_terceirizada = self.rastro_terceirizada.emails_por_modulo('Dieta Especial')
             email_escola_eol = [escola.contato.email]
-            email_lista = email_administradores_terceirizadas + email_escola_eol
+            email_lista = emails_terceirizada + email_escola_eol
         except AttributeError:
             email_lista = []
         return email_lista
@@ -2307,17 +2302,8 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             email_lista = [email_escola_eol]
         except AttributeError:
             email_lista = []
-        if self.escola_destino and self.escola_destino.lote and self.escola_destino.lote.terceirizada:
-            if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
-                email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
-                    ativo=True
-                ).values_list('usuario__email', flat=True)
-                email_lista += [email for email in email_query_set_terceirizada]
-            elif self.status == self.workflow_class.CODAE_AUTORIZADO:
-                email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
-                    ativo=True, perfil__nome=ADMINISTRADOR_TERCEIRIZADA
-                ).values_list('usuario__email', flat=True)
-                email_lista += [email for email in email_query_set_terceirizada]
+        if self.rastro_terceirizada:
+            email_lista += self.rastro_terceirizada.emails_por_modulo('Dieta Especial')
         return email_lista
 
     @property
@@ -2333,23 +2319,18 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         except AttributeError:
             email_escola_destino_eol = []
         try:
-            terceirizada = escola.lote.terceirizada
-            responsaveis_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(ativo=True)]
+            emails_terceirizadas = self.rastro_terceirizada.emails_por_modulo('Dieta Especial')
         except AttributeError:
-            responsaveis_terceirizadas = []
-        return email_escola_destino_eol + responsaveis_terceirizadas
+            emails_terceirizadas = []
+        return email_escola_destino_eol + emails_terceirizadas
 
     @property
     def _partes_interessadas_codae_cancela(self):
         escola = self.escola_destino
         try:
-            terceirizada = escola.lote.terceirizada
-            email_administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
-                ativo=True,
-                perfil__nome=ADMINISTRADOR_TERCEIRIZADA
-            )]
+            emails_terceirizadas = self.rastro_terceirizada.emails_por_modulo('Dieta Especial')
             email_escola_eol = [escola.contato.email]
-            email_lista = email_administradores_terceirizadas + email_escola_eol
+            email_lista = emails_terceirizadas + email_escola_eol
         except AttributeError:
             email_lista = []
         return email_lista

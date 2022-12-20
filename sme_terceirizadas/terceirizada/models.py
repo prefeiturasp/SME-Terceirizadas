@@ -440,6 +440,9 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
                         SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_QUESTIONADO]
         )
 
+    def emails_por_modulo(self, modulo_nome):
+        return list(self.emails_terceirizadas.filter(modulo__nome=modulo_nome).values_list('email', flat=True))
+
     def __str__(self):
         return f'{self.nome_fantasia}'
 
