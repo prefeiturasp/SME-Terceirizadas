@@ -13,6 +13,7 @@ from .constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_MEDICAO,
+    ADMINISTRADOR_REPRESENTANTE_CODAE,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     ADMINISTRADOR_TERCEIRIZADA,
     ADMINISTRADOR_UE_DIRETA,
@@ -303,7 +304,8 @@ class UsuarioSuperCodae(BasePermission):
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
-                                                  COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+                                                  COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                  ADMINISTRADOR_REPRESENTANTE_CODAE]
         )
 
 
@@ -333,7 +335,7 @@ class PermissaoParaCriarUsuarioComCoresso(BasePermission):
                                                   ADMINISTRADOR_TERCEIRIZADA, COORDENADOR_LOGISTICA,
                                                   COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DIRETOR,
-                                                  DIRETOR_ABASTECIMENTO, DIRETOR_CEI, ]
+                                                  DIRETOR_ABASTECIMENTO, DIRETOR_CEI, ADMINISTRADOR_REPRESENTANTE_CODAE]
         )
 
 

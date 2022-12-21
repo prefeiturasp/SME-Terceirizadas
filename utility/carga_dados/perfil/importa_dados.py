@@ -73,7 +73,8 @@ def cria_vinculos():
         'perfil_usuario_cronograma': Perfil.objects.get(nome='DILOG_CRONOGRAMA'),
         'perfil_usuario_qualidade': Perfil.objects.get(nome='DILOG_QUALIDADE'),
         'perfil_usuario_dilog_diretoria': Perfil.objects.get(nome='DILOG_DIRETORIA'),
-        'perfil_usuario_dinutre_diretoria': Perfil.objects.get(nome='DINUTRE_DIRETORIA')
+        'perfil_usuario_dinutre_diretoria': Perfil.objects.get(nome='DINUTRE_DIRETORIA'),
+        'perfil_usuario_representante_codae': Perfil.objects.get(nome='ADMINISTRADOR_REPRESENTANTE_CODAE')
     }
 
     usuario = {
@@ -110,6 +111,7 @@ def cria_vinculos():
         'usuario_qualidade': Usuario.objects.get(email='qualidade@admin.com'),
         'usuario_dilog_diretoria': Usuario.objects.get(email='dilogdiretoria@admin.com'),
         'usuario_dinutre_diretoria': Usuario.objects.get(email='dinutrediretoria@admin.com'),
+        'usuario_representante_codae': Usuario.objects.get(email='representantecodae@admin.com'),
     }
 
     items = [
@@ -198,7 +200,11 @@ def cria_vinculos():
             'perfil': perfil['perfil_admin_fornecedor'],
             'usuario': usuario['usuario_admin_fornecedor'],
         },
-
+        {
+            'nome': 'REPRESENTANTE CODAE ADM',
+            'perfil': perfil['perfil_usuario_representante_codae'],
+            'usuario': usuario['usuario_representante_codae'],
+        },
     ]
 
     data_atual = date.today()

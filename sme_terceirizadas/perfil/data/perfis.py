@@ -144,4 +144,9 @@ data_perfis = [
         'ativo': True,
         'super_usuario': True,
     },
+    {
+        'nome': 'ADMINISTRADOR_REPRESENTANTE_CODAE',
+        'ativo': True,
+        'super_usuario': True,
+    },
 ]
