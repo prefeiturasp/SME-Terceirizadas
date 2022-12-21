@@ -8,7 +8,7 @@ from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.relatorios.relatorios import relatorio_dieta_especial_conteudo
 from sme_terceirizadas.relatorios.utils import html_to_pdf_email_anexo
 
-from ..dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, TIPO_SOLICITACAO_DIETA
+from ..dados_comuns.constants import TIPO_SOLICITACAO_DIETA
 from ..dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ..dados_comuns.utils import envia_email_unico, envia_email_unico_com_anexo_inmemory
 from ..escola.models import Aluno
@@ -211,7 +211,7 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
 def enviar_email_para_adm_terceirizada_e_escola(solicitacao_dieta, aluno, escola, fora_da_rede=False):
     assunto = f'Cancelamento Automático de Dieta Especial Nº {solicitacao_dieta.id_externo}'
     hoje = date.today().strftime('%d/%m/%Y')
-    template = 'email/email_dieta_cancelada_automaticamente_terceirizada_escola_destino.html',
+    template = 'email/email_dieta_cancelada_automaticamente_terceirizada_escola_destino.html'
     justificativa_cancelamento = 'por não pertencer a unidade educacional'
     if fora_da_rede:
         justificativa_cancelamento = 'por não estar matriculado'
@@ -224,14 +224,9 @@ def enviar_email_para_adm_terceirizada_e_escola(solicitacao_dieta, aluno, escola
         'justificativa_cancelamento': justificativa_cancelamento,
     }
     html = render_to_string(template, dados_template)
-    terceirizada = escola.lote.terceirizada
-    if terceirizada:
-        email_administradores_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(
-            ativo=True,
-            perfil__nome=ADMINISTRADOR_TERCEIRIZADA
-        )]
+    emails_terceirizada = solicitacao_dieta.rastro_terceirizada.emails_por_modulo('Dieta Especial')
     email_escola = [escola.contato.email]
-    email_lista = email_administradores_terceirizadas + email_escola
+    email_lista = emails_terceirizada + email_escola
     for email in email_lista:
         envia_email_unico(
             assunto=assunto,
