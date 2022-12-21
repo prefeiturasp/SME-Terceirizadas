@@ -49,6 +49,8 @@ class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), Dia
                                                       on_delete=models.CASCADE,
                                                       null=True, blank=True,
                                                       related_name='quantidades_por_periodo')
+    cancelado = models.BooleanField('Esta cancelado?', default=False)
+    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
 
     def __str__(self):
         qtd = self.tipos_alimentacao.count()

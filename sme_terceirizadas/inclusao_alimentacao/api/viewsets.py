@@ -58,8 +58,7 @@ class EscolaIniciaCancela():
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            if (type(obj) in [InclusaoAlimentacaoContinua, SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI,
-                              InclusaoAlimentacaoDaCEI] or
+            if (type(obj) in [SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI, InclusaoAlimentacaoDaCEI] or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
@@ -423,7 +422,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
 
 
-class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, EscolaIniciaCancela, DREValida, CodaeAutoriza,
+class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
                                          CodaeQuestionaTerceirizadaResponde, TerceirizadaTomaCiencia):
     lookup_field = 'uuid'
     queryset = InclusaoAlimentacaoContinua.objects.all()
@@ -445,6 +444,39 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, EscolaIniciaCancela, DREV
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
         return super(InclusaoAlimentacaoContinuaViewSet, self).get_permissions()
+
+    @action(detail=True,
+            permission_classes=(UsuarioEscola,),
+            methods=['patch'],
+            url_path=constants.ESCOLA_INICIO_PEDIDO)
+    def inicio_de_pedido(self, request, uuid=None):
+        obj = self.get_object()
+        try:
+            obj.inicia_fluxo(user=request.user, )
+            serializer = self.get_serializer(obj)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=(UsuarioEscola,),
+            methods=['patch'],
+            url_path=constants.ESCOLA_CANCELA)
+    def escola_cancela_pedido(self, request, uuid=None):
+        obj = self.get_object()
+        quantidades_periodo = request.data.get('quantidades_periodo', [])
+        justificativa = request.data.get('justificativa', '')
+        try:
+            uuids_a_cancelar = [qtd_periodo['uuid'] for qtd_periodo in quantidades_periodo if qtd_periodo['cancelado']]
+            if len(uuids_a_cancelar) == obj.quantidades_periodo.count():
+                obj.cancelar_pedido(user=request.user, justificativa=justificativa)
+            else:
+                obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar).exclude(cancelado=True).update(
+                    cancelado=True, cancelado_justificativa=justificativa)
+            serializer = self.get_serializer(obj)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO, permission_classes=(UsuarioEscola,))
     def minhas_solicitacoes(self, request):
