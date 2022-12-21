@@ -153,6 +153,7 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     data_para = serializers.DateField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     rastro_terceirizada = TerceirizadaSimplesSerializer()
+    tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True)
 
     class Meta:
         model = InversaoCardapio

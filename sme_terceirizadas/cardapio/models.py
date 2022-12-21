@@ -210,7 +210,10 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
     vencidos = InversaoCardapioVencidaManager()
     data_de_inversao = models.DateField('Data de inversão', blank=True, null=True)
     data_para_inversao = models.DateField('Data para inversão', blank=True, null=True)
+    data_de_inversao_2 = models.DateField('Data de inversão', blank=True, null=True)
+    data_para_inversao_2 = models.DateField('Data para inversão', blank=True, null=True)
     alunos_da_cemei = models.CharField('Alunos da CEMEI', blank=True, default='', max_length=50)
+    alunos_da_cemei_2 = models.CharField('Alunos da CEMEI', blank=True, default='', max_length=50)
 
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
@@ -220,6 +223,10 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
                                       related_name='cardapio_para')
     escola = models.ForeignKey('escola.Escola', blank=True, null=True,
                                on_delete=models.DO_NOTHING)
+
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               help_text='Tipos de alimentacao.',
+                                               blank=True)
 
     @classmethod
     def get_solicitacoes_rascunho(cls, usuario):
