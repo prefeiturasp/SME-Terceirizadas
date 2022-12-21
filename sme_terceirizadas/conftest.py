@@ -179,14 +179,15 @@ def client_autenticado_distribuidor(client, django_user_model):
     client.login(email=email, password=password)
     return client
 
+
 @pytest.fixture
 def client_autenticado_fornecedor(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
     perfil_admin_fornecedor = mommy.make('Perfil',
-                                           nome=constants.ADMINISTRADOR_FORNECEDOR,
-                                           ativo=True)
+                                         nome=constants.ADMINISTRADOR_FORNECEDOR,
+                                         ativo=True)
     fornecedor = mommy.make('Terceirizada')
     hoje = datetime.date.today()
     mommy.make('Vinculo',
