@@ -5,6 +5,7 @@ from rest_framework import serializers
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
     campo_nao_pode_ser_nulo,
+    datas_alteracao_cardapio_devem_ser_diferentes,
     deve_pedir_com_antecedencia,
     deve_ser_dia_letivo,
     deve_ser_no_mesmo_ano_corrente,
@@ -101,6 +102,11 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate(seriali
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
     data_de = serializers.DateField()
     data_para = serializers.DateField()
+    data_de_2 = serializers.DateField(required=False, allow_null=True)
+    data_para_2 = serializers.DateField(required=False, allow_null=True)
+    tipos_alimentacao = serializers.SlugRelatedField(slug_field='uuid',
+                                                     many=True,
+                                                     queryset=TipoAlimentacao.objects.all())
 
     escola = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -122,6 +128,16 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         nao_pode_ser_no_passado(data_para)
         return data_para
 
+    def validate_data_de_2(self, data_de_2):
+        if data_de_2 is not None:
+            nao_pode_ser_no_passado(data_de_2)
+        return data_de_2
+
+    def validate_data_para_2(self, data_para_2):
+        if data_para_2 is not None:
+            nao_pode_ser_no_passado(data_para_2)
+        return data_para_2
+
     def validate(self, attrs):
         data_de = attrs['data_de']
         data_para = attrs['data_para']
@@ -136,37 +152,60 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para)
         deve_ser_dia_letivo(escola, data_de)
         deve_ser_dia_letivo(escola, data_para)
+        if 'data_de_2' in attrs and attrs['data_de_2'] is not None:
+            data_de_2 = attrs['data_de_2']
+            data_para_2 = attrs['data_para_2']
+            data_troca_nao_pode_ser_superior_a_data_inversao(data_de_2, data_para_2)
+            nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de_2, data_para_2, escola)
+            nao_pode_ter_mais_que_60_dias_diferenca(data_de_2, data_para_2)
+            datas_alteracao_cardapio_devem_ser_diferentes([data_de, data_para], [data_de_2, data_para_2])
+            deve_ser_dia_letivo(escola, data_de_2)
+            deve_ser_dia_letivo(escola, data_para_2)
+
         return attrs
 
     def create(self, validated_data):
         data_de = validated_data.pop('data_de')
         data_para = validated_data.pop('data_para')
+        data_de_2 = validated_data.pop('data_de_2', None)
+        data_para_2 = validated_data.pop('data_para_2', None)
 
         validated_data['data_de_inversao'] = data_de
         validated_data['data_para_inversao'] = data_para
+        validated_data['data_de_inversao_2'] = data_de_2
+        validated_data['data_para_inversao_2'] = data_para_2
         validated_data['criado_por'] = self.context['request'].user
-
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao', None)
         inversao_cardapio = InversaoCardapio.objects.create(**validated_data)
+        if tipos_alimentacao:
+            inversao_cardapio.tipos_alimentacao.set(tipos_alimentacao)
 
         return inversao_cardapio
 
     def update(self, instance, validated_data):
         data_de = validated_data.pop('data_de')
         data_para = validated_data.pop('data_para')
+        data_de_2 = validated_data.pop('data_de_2', None)
+        data_para_2 = validated_data.pop('data_para_2', None)
         if instance.cardapio_de or instance.cardapio_para:
             instance.cardapio_de = None
             instance.cardapio_para = None
             instance.save()
         validated_data['data_de_inversao'] = data_de
         validated_data['data_para_inversao'] = data_para
+        validated_data['data_de_inversao_2'] = data_de_2
+        validated_data['data_para_inversao_2'] = data_para_2
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao', None)
         update_instance_from_dict(instance, validated_data)
         instance.save()
+        if tipos_alimentacao:
+            instance.tipos_alimentacao.set(tipos_alimentacao)
         return instance
 
     class Meta:
         model = InversaoCardapio
-        fields = ('uuid', 'motivo', 'observacao', 'data_de', 'data_para', 'escola',
-                  'status_explicacao', 'alunos_da_cemei')
+        fields = ('uuid', 'motivo', 'observacao', 'data_de', 'data_para', 'tipos_alimentacao',
+                  'data_de_2', 'data_para_2', 'escola', 'status_explicacao', 'alunos_da_cemei', 'alunos_da_cemei_2')
 
 
 class CardapioCreateSerializer(serializers.ModelSerializer):

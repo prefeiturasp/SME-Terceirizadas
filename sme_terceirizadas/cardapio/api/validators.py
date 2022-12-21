@@ -30,7 +30,8 @@ def nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de: datetime.date,
                                                          escola: Escola):
     inversao_cardapio = InversaoCardapio.objects.filter(
         Q(cardapio_de__data=data_de, cardapio_para__data=data_para, escola=escola) |
-        Q(data_de_inversao=data_de, data_para_inversao=data_para, escola=escola)
+        Q(data_de_inversao=data_de, data_para_inversao=data_para, escola=escola) |
+        Q(data_de_inversao_2=data_de, data_para_inversao_2=data_para, escola=escola)
     ).filter(~Q(status__in=[
         InversaoCardapio.workflow_class.RASCUNHO,
         InversaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
