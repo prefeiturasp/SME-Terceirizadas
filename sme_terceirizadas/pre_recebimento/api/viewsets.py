@@ -1,13 +1,18 @@
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
+from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCadastrarLaboratorio,
     PermissaoParaCadastrarVisualizarEmbalagem,
+    PermissaoParaConfirmarCronograma,
     PermissaoParaCriarCronograma,
     PermissaoParaVisualizarCronograma,
     ViewSetActionPermissionMixin
@@ -74,6 +79,23 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         queryset = self.get_queryset().filter(status__in=[CronogramaWorkflow.RASCUNHO])
         response = {'results': CronogramaRascunhosSerializer(queryset, many=True).data}
         return Response(response)
+
+    @transaction.atomic
+    @action(detail=True, permission_classes=(PermissaoParaConfirmarCronograma,),
+            methods=['patch'], url_path='fornecedor-confirma-cronograma')
+    def fornecedor_confirma(self, request, uuid=None):
+        usuario = request.user
+
+        try:
+            cronograma = Cronograma.objects.get(uuid=uuid)
+            cronograma.fornecedor_confirma(user=usuario, )
+            serializer = CronogramaSerializer(cronograma)
+            return Response(serializer.data)
+
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Cronograma informado não é valido: {e}'), status=HTTP_406_NOT_ACCEPTABLE)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
 
 class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):

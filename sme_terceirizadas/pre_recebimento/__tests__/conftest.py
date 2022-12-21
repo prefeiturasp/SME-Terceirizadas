@@ -20,6 +20,18 @@ def cronograma_rascunho(armazem):
 
 
 @pytest.fixture
+def cronograma_recebido(armazem):
+    return mommy.make(
+        'Cronograma',
+        numero='002/2022',
+        contrato='1234/2022',
+        contrato_uuid='f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
+        armazem=armazem,
+        status='ENVIADO_AO_FORNECEDOR'
+    )
+
+
+@pytest.fixture
 def etapa(cronograma):
     return mommy.make('EtapasDoCronograma', cronograma=cronograma, etapa='Etapa 1')
 
