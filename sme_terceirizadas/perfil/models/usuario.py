@@ -22,6 +22,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_MEDICAO,
+    ADMINISTRADOR_REPRESENTANTE_CODAE,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -195,7 +196,8 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
             if tipo_usuario == 'codae':
                 if self.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                       ADMINISTRADOR_CODAE_GABINETE, ADMINISTRADOR_CODAE_DILOG_JURIDICO,
-                                                      ADMINISTRADOR_CODAE_DILOG_CONTABIL]:
+                                                      ADMINISTRADOR_CODAE_DILOG_CONTABIL,
+                                                      ADMINISTRADOR_REPRESENTANTE_CODAE]:
                     tipo_usuario = 'logistica_abastecimento'
                 elif self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                         ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]:

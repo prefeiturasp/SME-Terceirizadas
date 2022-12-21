@@ -298,6 +298,14 @@ USUARIOS = [
         'nome': 'SUPER USUARIO DINUTRE DIRETORIA',
         'cargo': 'Coordenador',
     },
+    {
+        'email': 'representantecodae@admin.com',
+        'password': DJANGO_ADMIN_PASSWORD,
+        'cpf': '71641794330',
+        'registro_funcional': '1242055',
+        'nome': 'REPRESENTANTE CODAE ADM',
+        'cargo': 'Coordenador',
+    },
 ]
 
 
