@@ -106,7 +106,6 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         etapas = validated_data.pop('etapas', [])
         programacoes_de_recebimento = validated_data.pop('programacoes_de_recebimento', [])
 
-        instance.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CRIADO, usuario=user)
         instance.etapas.all().delete()
         instance.programacoes_de_recebimento.all().delete()
 

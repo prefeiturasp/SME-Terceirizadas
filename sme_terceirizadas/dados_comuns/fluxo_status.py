@@ -2845,6 +2845,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
+        ('fornecedor_confirma', ENVIADO_AO_FORNECEDOR, ENTREGA_CONFIRMADA),
     )
 
     initial_state = RASCUNHO
@@ -2859,4 +2860,11 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
+                                      usuario=user)
+
+    @xworkflows.after_transition('fornecedor_confirma')
+    def _fornecedor_confirma_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
                                       usuario=user)
