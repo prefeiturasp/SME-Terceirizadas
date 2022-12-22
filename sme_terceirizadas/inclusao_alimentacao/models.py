@@ -4,6 +4,7 @@ from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
+    CanceladoIndividualmente,
     CriadoEm,
     CriadoPor,
     Descritivel,
@@ -17,7 +18,7 @@ from ..dados_comuns.behaviors import (
     TemData,
     TemIdentificadorExternoAmigavel,
     TemPrioridade,
-    TemTerceirizadaConferiuGestaoAlimentacao, CanceladoIndividualmente
+    TemTerceirizadaConferiuGestaoAlimentacao
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
