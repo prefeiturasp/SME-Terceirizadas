@@ -123,6 +123,14 @@ def deve_ser_dia_letivo(escola, data: datetime.date):
     return True
 
 
+def datas_alteracao_cardapio_devem_ser_diferentes(datas_1, datas_2):
+    for data_1 in datas_1:
+        for data_2 in datas_2:
+            if data_1 == data_2:
+                raise serializers.ValidationError(f'As datas não podem ser repetidas')
+    return True
+
+
 def dia_util(data: datetime.date):
     if not eh_dia_util(data):
         raise serializers.ValidationError('Não é dia útil em São Paulo')

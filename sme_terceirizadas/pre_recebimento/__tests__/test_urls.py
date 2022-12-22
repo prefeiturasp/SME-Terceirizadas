@@ -53,6 +53,25 @@ def test_url_list_cronogramas(client_autenticado_dilog):
     assert 'previous' in json
 
 
+def test_url_fornecedor_confirma_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
+    response = client_autenticado_fornecedor.patch(
+        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-confirma-cronograma/')
+    assert response.status_code == status.HTTP_200_OK
+    obj = Cronograma.objects.get(uuid=cronograma_recebido.uuid)
+    assert obj.status == 'ENTREGA_CONFIRMADA'
+
+
+def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(client_autenticado_fornecedor, cronograma):
+    response = client_autenticado_fornecedor.patch(f'/cronogramas/{cronograma.uuid}/fornecedor-confirma-cronograma/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_fornecedor_confirma_not_authorized(client_autenticado_dilog, cronograma_recebido):
+    response = client_autenticado_dilog.patch(
+        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-confirma-cronograma/')
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 def test_url_list_rascunhos_cronogramas(client_autenticado_dilog):
     response = client_autenticado_dilog.get('/cronogramas/rascunhos/')
     assert response.status_code == status.HTTP_200_OK

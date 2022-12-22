@@ -9,4 +9,4 @@
 - model: terceirizada.modulo
   pk: 3
   fields:
-    nome: Gestão de Produtos
+    nome: Gestão de Produto
