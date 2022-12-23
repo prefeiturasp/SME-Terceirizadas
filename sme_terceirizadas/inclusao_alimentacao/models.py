@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
+from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 from ..dados_comuns.behaviors import (
     CriadoEm,
     CriadoPor,
@@ -34,6 +35,7 @@ from .managers import (
     InclusoesDeAlimentacaoContinuaDesteMesManager,
     InclusoesDeAlimentacaoContinuaVencidaDiasManager
 )
+from ..escola.constants import PERIODOS_ESPECIAIS_CEMEI
 
 
 class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), DiasSemana, TemChaveExterna):
@@ -150,6 +152,34 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
             justificativa=justificativa,
             resposta_sim_nao=resposta_sim_nao
         )
+
+    @property
+    def quantidades_periodo_simples_dict(self):
+        quantidades_periodo = []
+        for quantidade_periodo in self.quantidades_periodo.all():
+            dias_semana = ', '.join([quantidade_periodo.DIAS[dia][1] for dia in quantidade_periodo.dias_semana])
+            quantidades_periodo.append({
+                'periodo': quantidade_periodo.periodo_escolar,
+                'dias_semana': dias_semana,
+                'tipos_alimentacao': ', '.join(quantidade_periodo.tipos_alimentacao.all().values_list('nome', flat=True)),
+                'numero_alunos': quantidade_periodo.numero_alunos
+            })
+
+
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Inclusão de Alimentação Contínua',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos,
+            'motivo': self.motivo.nome,
+            'outro_motivo': self.outro_motivo,
+            'data_inclusao': self.data,
+            'data_autorizacao': self.data_autorizacao,
+            'quantidades_periodo': self.quantidades_periodo_simples_dict
+        }
 
     def __str__(self):
         return f'de {self.data_inicial} até {self.data_final} para {self.escola}'
@@ -286,6 +316,49 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
         quantidade_periodo.grupo_inclusao_normal = self
         quantidade_periodo.save()
 
+    @property
+    def data_autorizacao(self):
+        log = self.logs.filter(status_evento=1)
+        if not log:
+            return ''
+        return log.first().criado_em
+
+    @property
+    def inclusoes_simples_dict(self):
+        inclusoes = []
+        for inclusao in self.inclusoes_normais.all():
+            inclusoes.append({
+                'motivo': inclusao.motivo.nome,
+                'outro_motivo': inclusao.outro_motivo,
+                'data': inclusao.data
+            })
+        return inclusoes
+
+    @property
+    def quantidades_periodo_simples_dict(self):
+        quantidades_periodo = []
+        for quantidade_periodo in self.quantidades_periodo.all():
+            quantidades_periodo.append({
+                'periodo': quantidade_periodo.periodo_escolar.nome,
+                'numero_alunos': quantidade_periodo.numero_alunos,
+                'tipos_alimentacao': ', '.join(quantidade_periodo.tipos_alimentacao.all().values_list('nome', flat=True))
+            })
+        return quantidades_periodo
+
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Inclusão de Alimentação',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos,
+            'dias_inclusao': self.data,
+            'data_autorizacao': self.data_autorizacao,
+            'inclusoes': self.inclusoes_simples_dict,
+            'quantidades_periodo': self.quantidades_periodo_simples_dict
+        }
+
     def __str__(self):
         return f'{self.escola} pedindo {self.inclusoes.count()} inclusoes'
 
@@ -366,6 +439,46 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
             resposta_sim_nao=resposta_sim_nao
         )
 
+    @property
+    def quantidade_alunos_por_faixas_etarias_simples_dict(self):
+        quantidade_alunos_por_faixas_etarias = []
+        periodos = self.quantidade_alunos_por_faixas_etarias.values_list('periodo__nome', flat=True).distinct()
+        escola = self.rastro_escola
+        vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+            periodo_escolar__in=escola.periodos_escolares,
+            ativo=True
+        ).order_by('periodo_escolar__posicao')
+        vinculos = vinculos.filter(tipo_unidade_escolar=escola.tipo_unidade)
+        tipos_alimentacao = [ta for ta in vinculos.values_list('tipos_alimentacao__nome', flat=True) if ta]
+        tipos_alimentacao = ', '.join(tipos_alimentacao)
+        for periodo in periodos:
+            quantidades_por_faixa = self.quantidade_alunos_por_faixas_etarias.filter(periodo__nome=periodo)
+            for quantidade in quantidades_por_faixa:
+                quantidade_alunos_por_faixas_etarias.append({
+                    'tipos_alimentacao': tipos_alimentacao,
+                    f'{periodo}': {
+                        'faixa_etaria': quantidade.faixa_etaria.__str__,
+                        'quantidade_alunos': quantidade.quantidade_alunos,
+                        'quantidade_matriculados': quantidade.matriculados_quando_criado,
+                    }
+                })
+        return quantidade_alunos_por_faixas_etarias
+
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Inclusão de Alimentação CEI',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos,
+            'motivo': self.motivo.nome,
+            'outro_motivo': self.outro_motivo,
+            'dias_inclusao': self.data,
+            'data_autorizacao': self.data_autorizacao,
+            'quantidade_alunos_por_faixas_etarias': self.quantidade_alunos_por_faixas_etarias_simples_dict
+        }
+
     def __str__(self):
         return f'Inclusao da CEI cód: {self.id_externo}'
 
@@ -425,6 +538,81 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
             justificativa=justificativa,
             resposta_sim_nao=resposta_sim_nao
         )
+
+    @property
+    def dias_motivos_da_inclusao_cemei_simples_dict(self):
+        dias_motivos_da_inclusao_cemei = []
+        for inclusao_cemei in self.dias_motivos_da_inclusao_cemei.all():
+            dias_motivos_da_inclusao_cemei.append({
+                'motivo': inclusao_cemei.motivo.nome,
+                'data': inclusao_cemei.data,
+            })
+        return dias_motivos_da_inclusao_cemei
+
+    @property
+    def quantidades_alunos_simples_dict(self):
+        dias_motivos_da_inclusao = []
+        periodos_cei = self.quantidade_alunos_cei_da_inclusao_cemei.all()
+        periodos_cei = periodos_cei.values_list('periodo_escolar__nome', flat=True).distinct()
+        periodos_emei = self.quantidade_alunos_emei_da_inclusao_cemei.all()
+        periodos_emei = periodos_emei.values_list('periodo_escolar__nome', flat=True).distinct()
+        periodos = list(periodos_cei) + list(periodos_emei)
+        escola = self.rastro_escola
+        vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+            periodo_escolar__in=escola.periodos_escolares,
+            ativo=True
+        ).order_by('periodo_escolar__posicao')
+        vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+                    periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+                    tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
+        for periodo in periodos:
+            tipos_alimentacao_cei = vinculos.filter(periodo_escolar__nome=periodo,
+                                                    tipo_unidade_escolar__iniciais='CEI DIRET')
+            tipos_alimentacao_cei = [ta for ta in tipos_alimentacao_cei.values_list('tipos_alimentacao__nome', flat=True) if ta]
+            tipos_alimentacao_cei = ', '.join(tipos_alimentacao_cei)
+
+            tipos_alimentacao_emei = vinculos.filter(periodo_escolar__nome=periodo,
+                                                     tipo_unidade_escolar__iniciais='EMEI')
+            tipos_alimentacao_emei = [ta for ta in tipos_alimentacao_emei.values_list('tipos_alimentacao__nome', flat=True) if ta]
+            tipos_alimentacao_emei = ', '.join(tipos_alimentacao_emei)
+
+            quantidades_cei = self.quantidade_alunos_cei_da_inclusao_cemei.filter(periodo_escolar__nome=periodo)
+            quantidades_emei = self.quantidade_alunos_emei_da_inclusao_cemei.filter(periodo_escolar__nome=periodo)
+            quantidades_cei_list = []
+            quantidades_emei_list = []
+            for qc in quantidades_cei:
+                quantidades_cei_list.append({
+                    'faixa_etaria': qc.faixa_etaria.__str__,
+                    'quantidade_alunos': qc.quantidade_alunos,
+                    'matriculados_quando_criado': qc.matriculados_quando_criado
+                })
+            for qe in quantidades_emei:
+                quantidades_emei_list.append({
+                    'quantidade_alunos': qe.quantidade_alunos,
+                    'matriculados_quando_criado': qe.matriculados_quando_criado
+                })
+            dias_motivos_da_inclusao.append({
+                f'{periodo}': {
+                    'tipos_alimentacao_cei': tipos_alimentacao_cei,
+                    'quantidades_cei': quantidades_cei_list,
+                    'tipos_alimentacao_emei': tipos_alimentacao_emei,
+                    'quantidades_emei': quantidades_emei,
+                }
+            })
+        return dias_motivos_da_inclusao
+
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Inclusão de Alimentação CEMEI',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos,
+            'dias_motivos_da_inclusao_cemei': self.dias_motivos_da_inclusao_cemei_simples_dict,
+            'quantidades_alunos': self.quantidades_alunos_simples_dict,
+            'data_autorizacao': self.data_autorizacao
+        }
 
     def __str__(self):
         return f'Inclusão de Alimentação CEMEI cód: {self.id_externo}'
