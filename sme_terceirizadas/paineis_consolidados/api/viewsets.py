@@ -581,7 +581,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
                         status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path='exportar-pdf')  # noqa C901
-    def exportar_xlsx(self, request):
+    def exportar_pdf(self, request):
         user = request.user.get_username()
         queryset = self.filtrar_solicitacoes_para_relatorio(request)
         uuids = [str(solicitacao.uuid) for solicitacao in queryset]
