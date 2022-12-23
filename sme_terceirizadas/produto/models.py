@@ -433,7 +433,7 @@ class RespostaAnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel,
 
     @property
     def numero_protocolo(self):
-        return self.homologacao_de_produto.protocolo_analise_sensorial
+        return self.homologacao_produto.protocolo_analise_sensorial
 
     def __str__(self):
         return f'Resposta {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
@@ -502,7 +502,7 @@ class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoE
 
     @property
     def numero_protocolo(self):
-        return self.homologacao_de_produto.protocolo_analise_sensorial
+        return self.homologacao_produto.protocolo_analise_sensorial
 
     def __str__(self):
         return f'Análise Sensorial {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
