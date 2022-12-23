@@ -282,6 +282,16 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
             resposta_sim_nao=resposta_sim_nao
         )
 
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Inversão de dia de Cardápio',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos
+        }
+
     def __str__(self):
         return (f'Inversão de Cardápio \nDe: {self.cardapio_de or self.data_de_inversao} \n'
                 f'Para: {self.cardapio_para or self.data_para_inversao}'
@@ -404,6 +414,16 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     def numero_alunos(self):
         return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
 
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Suspensão de Alimentação',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos
+        }
+
     def __str__(self):
         return f'{self.observacao}'
 
@@ -512,6 +532,16 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
     def numero_alunos(self):
         return None
 
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Suspensão de Alimentação de CEI',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos
+        }
+
     def __str__(self):
         return f'{self.id_externo}'
 
@@ -600,6 +630,16 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             resposta_sim_nao=resposta_sim_nao
         )
 
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Alteração do tipo de Alimentação',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos
+        }
+
     def __str__(self):
         return f'Alteração de cardápio de: {self.data_inicial} para {self.data_final}'
 
@@ -679,6 +719,16 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
             justificativa=justificativa,
             resposta_sim_nao=resposta_sim_nao
         )
+
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Alteração do Tipo de Alimentação CEI' ,
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos
+        }
 
     def __str__(self):
         return f'Alteração de cardápio CEI de {self.data}'
@@ -776,6 +826,16 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             justificativa=justificativa,
             resposta_sim_nao=resposta_sim_nao
         )
+
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Alteração do tipo de Alimentação CEMEI' ,
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos
+        }
 
     def __str__(self):
         return f'Alteração de cardápio CEMEI de {self.data}'
