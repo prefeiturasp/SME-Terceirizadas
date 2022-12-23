@@ -4,6 +4,7 @@ from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
+    CanceladoIndividualmente,
     CriadoEm,
     CriadoPor,
     Descritivel,
@@ -36,7 +37,8 @@ from .managers import (
 )
 
 
-class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), DiasSemana, TemChaveExterna):
+class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), DiasSemana, TemChaveExterna,
+                           CanceladoIndividualmente):
     numero_alunos = models.IntegerField(null=True, blank=True,)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
@@ -177,11 +179,9 @@ class MotivoInclusaoNormal(ExportModelOperationsMixin('motivo_inclusao_normal'),
 
 
 class InclusaoAlimentacaoNormal(ExportModelOperationsMixin('inclusao_normal'), TemData, TemChaveExterna,
-                                TemTerceirizadaConferiuGestaoAlimentacao):
+                                TemTerceirizadaConferiuGestaoAlimentacao, CanceladoIndividualmente):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
-    cancelado = models.BooleanField('Esta cancelado?', default=False)
-    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                        blank=True, null=True,
                                        on_delete=models.CASCADE,
@@ -465,14 +465,12 @@ class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI(TemChaveExterna, Matricul
         verbose_name_plural = 'Quantidade de alunos EMEI por inclusao de alimentação CEMEI'
 
 
-class DiasMotivosInclusaoDeAlimentacaoCEMEI(TemData, TemChaveExterna):
+class DiasMotivosInclusaoDeAlimentacaoCEMEI(TemData, TemChaveExterna, CanceladoIndividualmente):
     inclusao_alimentacao_cemei = models.ForeignKey('InclusaoDeAlimentacaoCEMEI',
                                                    on_delete=models.CASCADE,
                                                    related_name='dias_motivos_da_inclusao_cemei')
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
-    cancelado = models.BooleanField('Esta cancelado?', default=False)
-    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
 
     def __str__(self):
         if self.outro_motivo:
