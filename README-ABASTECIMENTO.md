@@ -96,6 +96,8 @@ equipes CODAE:
 
 ## Descobertas
 
+Confira as descobertas realizadas [neste link](https://github.com/prefeiturasp/SME-Terceirizadas/blob/master/README.md). 
+
 **Roadmap inicial macro:** https://whimsical.com/roadmap-macro-WXMHyJjhoxy7CgvwypErU1
 
 **Fluxo macro:** https://whimsical.com/entrega-final-Pp9z6yMcaWaitdK9UACAYM
