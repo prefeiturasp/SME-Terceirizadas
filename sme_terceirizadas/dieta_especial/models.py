@@ -290,6 +290,16 @@ class SolicitacaoDietaEspecial(
         return f'Solicitação #{self.id_externo}'
 
 
+class DietaEmEdicaoAberta(models.Model):
+    uuid_solicitacao_dieta_especial = models.CharField(max_length=50)
+    usuario_com_dieta_aberta = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        retorno = f'Solicitação "#{self.uuid_solicitacao_dieta_especial}"'
+        retorno += f' está aberta e em edição pelo usuário "{self.usuario_com_dieta_aberta}"'
+        return retorno
+
+
 class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
     solicitacao_dieta_especial = models.ForeignKey(
         SolicitacaoDietaEspecial,

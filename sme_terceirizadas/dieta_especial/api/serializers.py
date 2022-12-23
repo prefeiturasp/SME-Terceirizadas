@@ -10,6 +10,7 @@ from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, LoteSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
 from ...escola.services import NovoSGPServicoLogadoException
+from ...perfil.api.serializers import UsuarioSerializer
 from ...produto.api.serializers.serializers import MarcaSimplesSerializer, ProdutoSimplesSerializer
 from ...produto.models import Produto, SolicitacaoCadastroProdutoDieta
 from ...terceirizada.api.serializers.serializers import EditalSimplesSerializer
@@ -18,6 +19,7 @@ from ..models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    DietaEmEdicaoAberta,
     LogQuantidadeDietasAutorizadas,
     MotivoAlteracaoUE,
     MotivoNegacao,
@@ -47,6 +49,23 @@ class ClassificacaoDietaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassificacaoDieta
         fields = '__all__'
+
+
+class DietaEmEdicaoAbertaSerializer(serializers.ModelSerializer):
+    uuid_solicitacao_dieta_especial = serializers.CharField()
+    usuario_com_dieta_aberta = UsuarioSerializer(required=False)
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        return DietaEmEdicaoAberta.objects.create(usuario_com_dieta_aberta=user, **validated_data)
+
+    class Meta:
+        model = DietaEmEdicaoAberta
+        fields = (
+            'id',
+            'uuid_solicitacao_dieta_especial',
+            'usuario_com_dieta_aberta'
+        )
 
 
 class MotivoNegacaoSerializer(serializers.ModelSerializer):
@@ -235,6 +254,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
         required=False,
         queryset=ProtocoloPadraoDietaEspecial.objects.all()
     )
+    id_dieta_aberta = serializers.SerializerMethodField()
 
     def get_substituicoes(self, obj):
         substituicoes = obj.substituicoes.order_by('alimento__nome')
@@ -244,6 +264,10 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
         return SolicitacaoCadastroProdutoDieta.objects.filter(
             solicitacao_dieta_especial=obj,
             status='AGUARDANDO_CONFIRMACAO').exists()
+
+    def get_id_dieta_aberta(self, obj):
+        dieta_aberta = self.context.get('dieta_aberta', '')
+        return dieta_aberta.id if dieta_aberta else None
 
     class Meta:
         model = SolicitacaoDietaEspecial
@@ -282,7 +306,8 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'motivo_alteracao_ue',
             'conferido',
             'eh_importado',
-            'dieta_alterada'
+            'dieta_alterada',
+            'id_dieta_aberta'
         )
 
 

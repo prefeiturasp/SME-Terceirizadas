@@ -54,6 +54,7 @@ from ..models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    DietaEmEdicaoAberta,
     LogQuantidadeDietasAutorizadas,
     MotivoAlteracaoUE,
     MotivoNegacao,
@@ -68,6 +69,7 @@ from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
     ClassificacaoDietaSerializer,
+    DietaEmEdicaoAbertaSerializer,
     LogQuantidadeDietasAutorizadasSerializer,
     MotivoAlteracaoUESerializer,
     MotivoNegacaoSerializer,
@@ -1169,3 +1171,10 @@ class LogQuantidadeDietasAutorizadasViewSet(mixins.ListModelMixin, GenericViewSe
                                    data__year=ano)
 
         return queryset
+
+
+class DietaEmEdicaoAbertaViewSet(ModelViewSet):
+    lookup_field = 'id'
+    queryset = DietaEmEdicaoAberta.objects.all()
+    serializer_class = DietaEmEdicaoAbertaSerializer
+    pagination_class = None
