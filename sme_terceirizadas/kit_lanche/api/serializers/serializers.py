@@ -4,20 +4,26 @@ from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.api.serializers import (
     AlunoSerializer,
+    AlunoSimplesSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer,
     FaixaEtariaSerializer
 )
+from ....escola.models import FaixaEtaria
 from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
 from ....terceirizada.models import Edital
 from ...models import (
     EscolaQuantidade,
     FaixaEtariaSolicitacaoKitLancheCEIAvulsa,
+    FaixasQuantidadesKitLancheCEIdaCEMEI,
     ItemKitLanche,
     KitLanche,
     SolicitacaoKitLanche,
     SolicitacaoKitLancheAvulsa,
     SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEIdaCEMEI,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheEMEIdaCEMEI,
     SolicitacaoKitLancheUnificada
 )
 
@@ -193,7 +199,11 @@ class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
         retorno = super().to_representation(instance)
 
         # Inclui o total de alunos nas faixas etárias
-        qtde_alunos = instance.escola.alunos_por_faixa_etaria(instance.data)
+        faixas_etarias_da_solicitacao = FaixaEtaria.objects.filter(
+            uuid__in=[f.faixa_etaria.uuid for f in instance.faixas_etarias.all()]
+        )
+
+        qtde_alunos = instance.escola.alunos_por_faixa_etaria(instance.data, faixas_etarias_da_solicitacao)
         for faixa_etaria in retorno['faixas_etarias']:
             uuid_faixa_etaria = faixa_etaria['faixa_etaria']['uuid']
             faixa_etaria['total_alunos_no_periodo'] = qtde_alunos[uuid_faixa_etaria]
@@ -203,3 +213,103 @@ class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoKitLancheCEIAvulsa
         exclude = ('id', 'criado_por')
+
+
+class FaixasQuantidadesKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer):
+    faixa_etaria = FaixaEtariaSerializer()
+
+    class Meta:
+        model = FaixasQuantidadesKitLancheCEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer):
+    kits = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='uuid')
+    alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='uuid')
+    faixas_quantidades = FaixasQuantidadesKitLancheCEIdaCEMEISerializer(many=True)
+    tempo_passeio = serializers.CharField()
+
+    class Meta:
+        model = SolicitacaoKitLancheCEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheEMEIdaCEMEISerializer(serializers.ModelSerializer):
+    kits = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='uuid')
+    alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='uuid')
+    tempo_passeio = serializers.CharField()
+
+    class Meta:
+        model = SolicitacaoKitLancheEMEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheCEMEISerializer(serializers.ModelSerializer):
+    solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEISerializer()
+    solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEISerializer()
+    id_externo = serializers.CharField()
+    escola = serializers.UUIDField(source='escola.uuid')
+
+    class Meta:
+        model = SolicitacaoKitLancheCEMEI
+        exclude = ('id',)
+
+
+class KitLancheNomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KitLanche
+        fields = ('nome',)
+
+
+class SolicitacaoKitLancheEMEIdaCEMEIRetrieveSerializer(serializers.ModelSerializer):
+    alunos_com_dieta_especial_participantes = AlunoSimplesSerializer(many=True)
+    kits = KitLancheNomeSerializer(many=True)
+    tempo_passeio = serializers.CharField()
+    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
+                                                     required=False,
+                                                     read_only=True)
+
+    class Meta:
+        model = SolicitacaoKitLancheEMEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheCEIdaCEMEIRetrieveSerializer(serializers.ModelSerializer):
+    alunos_com_dieta_especial_participantes = AlunoSimplesSerializer(many=True)
+    kits = KitLancheNomeSerializer(many=True)
+    faixas_quantidades = FaixasQuantidadesKitLancheCEIdaCEMEISerializer(many=True)
+    tempo_passeio = serializers.CharField()
+    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
+                                                     required=False,
+                                                     read_only=True)
+
+    class Meta:
+        model = SolicitacaoKitLancheCEIdaCEMEI
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheCEMEIRetrieveSerializer(serializers.ModelSerializer):
+    solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEIRetrieveSerializer()
+    solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEIRetrieveSerializer()
+    id_externo = serializers.CharField()
+    escola = EscolaSimplesSerializer()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+    prioridade = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    data = serializers.DateField()
+
+    class Meta:
+        model = SolicitacaoKitLancheCEMEI
+        exclude = ('id',)

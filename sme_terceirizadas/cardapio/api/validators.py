@@ -5,11 +5,11 @@ from rest_framework import serializers
 
 from ...cardapio.models import (
     Cardapio,
-    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
+    TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
-from ...escola.models import Escola
+from ...escola.models import Escola, PeriodoEscolar
 from ..models import InversaoCardapio
 
 
@@ -29,11 +29,16 @@ def data_troca_nao_pode_ser_superior_a_data_inversao(data_de: datetime.date, dat
 def nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de: datetime.date, data_para: datetime.date,
                                                          escola: Escola):
     inversao_cardapio = InversaoCardapio.objects.filter(
-        cardapio_de__data=data_de,
-        cardapio_para__data=data_para,
-        escola=escola).filter(
-        ~Q(status=InversaoCardapio.workflow_class.RASCUNHO)
-    ).exists()
+        Q(cardapio_de__data=data_de, cardapio_para__data=data_para, escola=escola) |
+        Q(data_de_inversao=data_de, data_para_inversao=data_para, escola=escola) |
+        Q(data_de_inversao_2=data_de, data_para_inversao_2=data_para, escola=escola)
+    ).filter(~Q(status__in=[
+        InversaoCardapio.workflow_class.RASCUNHO,
+        InversaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
+        InversaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO,
+        InversaoCardapio.workflow_class.ESCOLA_CANCELOU,
+        InversaoCardapio.workflow_class.CANCELADO_AUTOMATICAMENTE,
+    ])).exists()
     if inversao_cardapio:
         raise serializers.ValidationError(
             'Já existe uma solicitação de inversão com estes dados')
@@ -74,18 +79,20 @@ def hora_inicio_nao_pode_ser_maior_que_hora_final(hora_inicial: datetime.time, h
     return True
 
 
-def escola_nao_pode_cadastrar_dois_combos_iguais(escola: Escola, combo: ComboDoVinculoTipoAlimentacaoPeriodoTipoUE):
+def escola_nao_pode_cadastrar_dois_combos_iguais(escola: Escola, tipo_alimentacao:
+                                                 TipoAlimentacao, periodo_escolar: PeriodoEscolar):
     """
-    Se o combo de tipo de alimentacao já estiver cadastrado para a Escola, deverá retornar um erro.
+    Se o horário de tipo de alimentação já estiver cadastrado para a Escola e Período escolar, deve retornar erro.
 
-    Pois para cada combo só é possivel registrar um intervalo de horario, caso o combo já estiver
-    cadastrado, só será possivel atualizar o objeto HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.
+    Pois para cada tipo de alimentação só é possivel registrar um intervalo de horario, caso o tipo de alimentação já
+    estiver cadastrado, só será possivel atualizar o objeto HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.
     """
-    horario_combo_por_escola = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.filter(
+    horario_alimento_por_escola_e_periodo = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.filter(
         escola=escola,
-        combo_tipos_alimentacao=combo
+        tipo_alimentacao=tipo_alimentacao,
+        periodo_escolar=periodo_escolar
     ).exists()
-    if horario_combo_por_escola:
+    if horario_alimento_por_escola_e_periodo:
         raise serializers.ValidationError(
-            'Já existe um horario registrado para esse combo nesta escola')
+            'Já existe um horário registrado para esse tipo de alimentacao neste período e escola')
     return True

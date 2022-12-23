@@ -1,9 +1,26 @@
+import ast
 import datetime
 import operator
 
 from django.db import models
 from django.db.models import Q
 
+from ..cardapio.api.serializers.serializers import (
+    AlteracaoCardapioCEISerializer,
+    AlteracaoCardapioCEMEISerializer,
+    AlteracaoCardapioSerializer,
+    GrupoSuspensaoAlimentacaoSerializer,
+    InversaoCardapioSerializer,
+    SuspensaoAlimentacaoDaCEISerializer
+)
+from ..cardapio.models import (
+    AlteracaoCardapio,
+    AlteracaoCardapioCEI,
+    AlteracaoCardapioCEMEI,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    SuspensaoAlimentacaoDaCEI
+)
 from ..dados_comuns.behaviors import TemIdentificadorExternoAmigavel, TemPrioridade
 from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
 from ..dados_comuns.fluxo_status import (
@@ -15,6 +32,30 @@ from ..dados_comuns.fluxo_status import (
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..dieta_especial.models import SolicitacaoDietaEspecial
 from ..escola.models import Escola
+from ..inclusao_alimentacao.api.serializers.serializers import (
+    GrupoInclusaoAlimentacaoNormalSerializer,
+    InclusaoAlimentacaoContinuaSerializer,
+    InclusaoAlimentacaoDaCEISerializer,
+    InclusaoDeAlimentacaoCEMEISerializer
+)
+from ..inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
+    InclusaoDeAlimentacaoCEMEI
+)
+from ..kit_lanche.api.serializers.serializers import (
+    SolicitacaoKitLancheAvulsaSerializer,
+    SolicitacaoKitLancheCEIAvulsaSerializer,
+    SolicitacaoKitLancheCEMEIRetrieveSerializer,
+    SolicitacaoKitLancheUnificadaSerializer
+)
+from ..kit_lanche.models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheUnificada
+)
 
 
 class SolicitacoesDestaSemanaManager(models.Manager):
@@ -23,7 +64,7 @@ class SolicitacoesDestaSemanaManager(models.Manager):
         data_limite_inicial = hoje
         data_limite_final = hoje + datetime.timedelta(7)
         return super(SolicitacoesDestaSemanaManager, self).get_queryset(
-        ).filter(criado_em__range=(data_limite_inicial, data_limite_final))
+        ).filter(data_evento__range=(data_limite_inicial, data_limite_final))
 
 
 class SolicitacoesDesteMesManager(models.Manager):
@@ -32,7 +73,7 @@ class SolicitacoesDesteMesManager(models.Manager):
         data_limite_inicial = hoje
         data_limite_final = hoje + datetime.timedelta(31)
         return super(SolicitacoesDesteMesManager, self).get_queryset(
-        ).filter(criado_em__range=(data_limite_inicial, data_limite_final))
+        ).filter(data_evento__range=(data_limite_inicial, data_limite_final))
 
 
 class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmigavel):
@@ -80,23 +121,23 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     CANCELADOS_STATUS_DIETA_ESPECIAL = [
         DietaEspecialWorkflow.ESCOLA_CANCELOU,
         DietaEspecialWorkflow.CANCELADO_ALUNO_MUDOU_ESCOLA,
-        DietaEspecialWorkflow.CANCELADO_ALUNO_NAO_PERTENCE_REDE
+        DietaEspecialWorkflow.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+        DietaEspecialWorkflow.TERMINADA_AUTOMATICAMENTE_SISTEMA
     ]
     CANCELADOS_EVENTO_DIETA_ESPECIAL = [
         LogSolicitacoesUsuario.ESCOLA_CANCELOU,
         LogSolicitacoesUsuario.CANCELADO_ALUNO_MUDOU_ESCOLA,
-        LogSolicitacoesUsuario.CANCELADO_ALUNO_NAO_PERTENCE_REDE
+        LogSolicitacoesUsuario.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+        LogSolicitacoesUsuario.TERMINADA_AUTOMATICAMENTE_SISTEMA
     ]
 
     INATIVOS_STATUS_DIETA_ESPECIAL = [
         DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
-        DietaEspecialWorkflow.TERMINADA_AUTOMATICAMENTE_SISTEMA,
         PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
         PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
     ]
     INATIVOS_EVENTO_DIETA_ESPECIAL = [
         LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
-        LogSolicitacoesUsuario.TERMINADA_AUTOMATICAMENTE_SISTEMA,
         LogSolicitacoesUsuario.CODAE_AUTORIZOU,
         LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA
     ]
@@ -115,26 +156,41 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     ]
 
     TP_SOL_TODOS = 'TODOS'
-    TP_SOL_ALT_CARDAPIO = 'ALT_CARDAPIO'
-    TP_SOL_INV_CARDAPIO = 'INV_CARDAPIO'
+    # Solicitações de Inclusão
     TP_SOL_INC_ALIMENTA = 'INC_ALIMENTA'
     TP_SOL_INC_ALIMENTA_CONTINUA = 'INC_ALIMENTA_CONTINUA'
+    TP_SOL_INC_ALIMENTA_CEI = 'INC_ALIMENTA_CEI'
+    TP_SOL_INC_ALIMENTA_CEMEI = 'INC_ALIMENTA_CEMEI'
+    # Solcitações de Alteração
+    TP_SOL_ALT_CARDAPIO = 'ALT_CARDAPIO'
+    TP_SOL_ALT_CARDAPIO_CEI = 'ALT_CARDAPIO_CEI'
+    TP_SOL_ALT_CARDAPIO_CEMEI = 'ALT_CARDAPIO_CEMEI'
+    # Solicitações de Kit Lanche
     TP_SOL_KIT_LANCHE_AVULSA = 'KIT_LANCHE_AVULSA'
-    TP_SOL_SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
     TP_SOL_KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
+    TP_SOL_KIT_LANCHE_AVULSA_CEI = 'KIT_LANCHE_AVULSA_CEI'
+    TP_SOL_KIT_LANCHE_CEMEI = 'KIT_LANCHE_CEMEI'
+    # Solicitações de Suspensão
+    TP_SOL_SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
+    TP_SOL_SUSP_ALIMENTACAO_CEI = 'SUSP_ALIMENTACAO_CEI'
+    # Solicitações de Inversão
+    TP_SOL_INV_CARDAPIO = 'INV_CARDAPIO'
+    # Solicitações de Dieta Especial
     TP_SOL_DIETA_ESPECIAL = 'DIETA_ESPECIAL'
 
     STATUS_TODOS = 'TODOS'
     STATUS_AUTORIZADOS = 'AUTORIZADOS'
     STATUS_NEGADOS = 'NEGADOS'
     STATUS_CANCELADOS = 'CANCELADOS'
-    STATUS_PENDENTES = 'EM_ANDAMENTO'
+    STATUS_PENDENTES = 'RECEBIDAS'
 
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
+    data_evento_fim = models.DateField()
     criado_em = models.DateTimeField()
     lote_nome = models.CharField(max_length=50)
     dre_nome = models.CharField(max_length=200)
+    dre_iniciais = models.CharField(max_length=10)
     escola_nome = models.CharField(max_length=200)
     tipo_solicitacao_dieta = models.CharField(max_length=30)
     terceirizada_nome = models.CharField(max_length=200)
@@ -148,6 +204,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
 
     lote_uuid = models.UUIDField(editable=False)
     escola_uuid = models.UUIDField(editable=False)
+    escola_tipo_unidade_uuid = models.UUIDField(editable=False)
     escola_destino_id = models.IntegerField()
     dre_uuid = models.UUIDField(editable=False)
     terceirizada_uuid = models.UUIDField(editable=False)
@@ -156,7 +213,8 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     desc_doc = models.CharField(max_length=50)
     data_log = models.DateTimeField()
     status_evento = models.PositiveSmallIntegerField()
-    numero_alunos = models.PositiveSmallIntegerField()
+    motivo = models.CharField(max_length=100)
+    numero_alunos = models.BigIntegerField()
     status_atual = models.CharField(max_length=32)
 
     objects = models.Manager()
@@ -164,6 +222,161 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     filtro_30_dias = SolicitacoesDesteMesManager()
     conferido = models.BooleanField()
     terceirizada_conferiu_gestao = models.BooleanField()
+
+    @property
+    def get_raw_model(self):
+        models_de_para = {
+            'DIETA_ESPECIAL': SolicitacaoDietaEspecial,
+            'ALT_CARDAPIO': AlteracaoCardapio,
+            'INV_CARDAPIO': InversaoCardapio,
+            'INC_ALIMENTA': GrupoInclusaoAlimentacaoNormal,
+            'INC_ALIMENTA_CONTINUA': InclusaoAlimentacaoContinua,
+            'KIT_LANCHE_AVULSA': SolicitacaoKitLancheAvulsa,
+            'SUSP_ALIMENTACAO': GrupoSuspensaoAlimentacao,
+            'KIT_LANCHE_UNIFICADA': SolicitacaoKitLancheUnificada,
+            'INC_ALIMENTA_CEI': InclusaoAlimentacaoDaCEI,
+            'ALT_CARDAPIO_CEI': AlteracaoCardapioCEI,
+            'KIT_LANCHE_AVULSA_CEI': SolicitacaoKitLancheCEIAvulsa,
+            'SUSP_ALIMENTACAO_CEI': SuspensaoAlimentacaoDaCEI,
+            'KIT_LANCHE_CEMEI': SolicitacaoKitLancheCEMEI,
+            'INC_ALIMENTA_CEMEI': InclusaoDeAlimentacaoCEMEI,
+            'ALT_CARDAPIO_CEMEI': AlteracaoCardapioCEMEI
+        }
+        return models_de_para[self.tipo_doc]
+
+    @classmethod
+    def busca_por_tipo_solicitacao(cls, queryset, query_params, **kwargs):
+        tipo_solicitacao = query_params.get('tipo_solicitacao')
+        if not tipo_solicitacao:
+            return queryset
+        if tipo_solicitacao == 'KIT_LANCHE':
+            queryset = queryset.filter(desc_doc__icontains='Kit Lanche').exclude(desc_doc__icontains='Unificado')
+        else:
+            queryset = queryset.filter(desc_doc__icontains=tipo_solicitacao)
+        return queryset
+
+    @classmethod
+    def busca_data_evento(cls, queryset, query_params, **kwargs):
+        data_evento = query_params.get('data_evento')
+        if not data_evento:
+            return queryset
+        queryset = queryset.filter(Q(data_evento=data_evento) |
+                                   (Q(data_evento_fim__isnull=False) & ~Q(desc_doc__icontains='Alteração') &
+                                    Q(data_evento__lte=data_evento) & Q(data_evento_fim__gte=data_evento)))
+        return queryset
+
+    @classmethod
+    def busca_periodo_de_datas(cls, queryset, query_params, **kwargs):
+        data_evento = query_params.get('data_evento')
+        data_evento_fim = query_params.get('data_evento_fim')
+        filtros_inicio = Q()
+        filtros_fim = Q()
+        if data_evento:
+            data_evento = '-'.join(data_evento.split('/')[::-1])
+            filtros_inicio = (Q(data_evento__gte=data_evento) |
+                              (Q(data_evento_fim__isnull=False) & ~Q(desc_doc__icontains='Alteração') &
+                               Q(data_evento__gte=data_evento)))
+        if data_evento_fim:
+            data_evento_fim = '-'.join(data_evento_fim.split('/')[::-1])
+            filtros_fim = (Q(data_evento__lte=data_evento_fim) |
+                           (Q(data_evento_fim__isnull=False) & ~Q(desc_doc__icontains='Alteração') &
+                            Q(data_evento_fim__lte=data_evento_fim)))
+
+        filtros = (filtros_inicio & filtros_fim)
+        queryset = queryset.filter(filtros)
+        return queryset
+
+    @classmethod
+    def map_queryset_por_tipo_doc(cls, tipo_doc, **kwargs):
+        if not tipo_doc:
+            return None
+        mapeador = {
+            'INC_ALIMENTA': [cls.TP_SOL_INC_ALIMENTA, cls.TP_SOL_INC_ALIMENTA_CONTINUA,
+                             cls.TP_SOL_INC_ALIMENTA_CEI, cls.TP_SOL_INC_ALIMENTA_CEMEI],
+            'ALT_CARDAPIO': [cls.TP_SOL_ALT_CARDAPIO, cls.TP_SOL_ALT_CARDAPIO_CEI,
+                             cls.TP_SOL_ALT_CARDAPIO_CEMEI],
+            'KIT_LANCHE_AVULSA': [cls.TP_SOL_KIT_LANCHE_AVULSA, cls.TP_SOL_KIT_LANCHE_UNIFICADA,
+                                  cls.TP_SOL_KIT_LANCHE_AVULSA_CEI, cls.TP_SOL_KIT_LANCHE_CEMEI],
+            'SUSP_ALIMENTACAO': [cls.TP_SOL_SUSP_ALIMENTACAO, cls.TP_SOL_SUSP_ALIMENTACAO_CEI],
+            'INV_CARDAPIO': [cls.TP_SOL_INV_CARDAPIO],
+        }
+        lista_tipo_doc = []
+        for td in tipo_doc:
+            lista_tipo_doc = lista_tipo_doc + mapeador[td]
+        return lista_tipo_doc
+
+    @classmethod
+    def get_class_name(cls, tipo_doc, **kwargs):
+        mapeador = {
+            f'{cls.TP_SOL_INC_ALIMENTA}': GrupoInclusaoAlimentacaoNormal,
+            f'{cls.TP_SOL_INC_ALIMENTA_CONTINUA}': InclusaoAlimentacaoContinua,
+            f'{cls.TP_SOL_INC_ALIMENTA_CEI}': InclusaoAlimentacaoDaCEI,
+            f'{cls.TP_SOL_INC_ALIMENTA_CEMEI}': InclusaoDeAlimentacaoCEMEI,
+            f'{cls.TP_SOL_ALT_CARDAPIO}': AlteracaoCardapio,
+            f'{cls.TP_SOL_ALT_CARDAPIO_CEI}': AlteracaoCardapioCEI,
+            f'{cls.TP_SOL_ALT_CARDAPIO_CEMEI}': AlteracaoCardapioCEMEI,
+            f'{cls.TP_SOL_KIT_LANCHE_AVULSA}': SolicitacaoKitLancheAvulsa,
+            f'{cls.TP_SOL_KIT_LANCHE_UNIFICADA}': SolicitacaoKitLancheUnificada,
+            f'{cls.TP_SOL_KIT_LANCHE_AVULSA_CEI}': SolicitacaoKitLancheCEIAvulsa,
+            f'{cls.TP_SOL_KIT_LANCHE_CEMEI}': SolicitacaoKitLancheCEMEI,
+            f'{cls.TP_SOL_SUSP_ALIMENTACAO}': GrupoSuspensaoAlimentacao,
+            f'{cls.TP_SOL_SUSP_ALIMENTACAO_CEI}': SuspensaoAlimentacaoDaCEI,
+            f'{cls.TP_SOL_INV_CARDAPIO}': InversaoCardapio
+        }
+        return mapeador[tipo_doc]
+
+    @classmethod
+    def get_serializer_name(cls, tipo_doc, **kwargs):
+        mapeador = {
+            f'{cls.TP_SOL_INC_ALIMENTA}': GrupoInclusaoAlimentacaoNormalSerializer,
+            f'{cls.TP_SOL_INC_ALIMENTA_CONTINUA}': InclusaoAlimentacaoContinuaSerializer,
+            f'{cls.TP_SOL_INC_ALIMENTA_CEI}': InclusaoAlimentacaoDaCEISerializer,
+            f'{cls.TP_SOL_INC_ALIMENTA_CEMEI}': InclusaoDeAlimentacaoCEMEISerializer,
+            f'{cls.TP_SOL_ALT_CARDAPIO}': AlteracaoCardapioSerializer,
+            f'{cls.TP_SOL_ALT_CARDAPIO_CEI}': AlteracaoCardapioCEISerializer,
+            f'{cls.TP_SOL_ALT_CARDAPIO_CEMEI}': AlteracaoCardapioCEMEISerializer,
+            f'{cls.TP_SOL_KIT_LANCHE_AVULSA}': SolicitacaoKitLancheAvulsaSerializer,
+            f'{cls.TP_SOL_KIT_LANCHE_UNIFICADA}': SolicitacaoKitLancheUnificadaSerializer,
+            f'{cls.TP_SOL_KIT_LANCHE_AVULSA_CEI}': SolicitacaoKitLancheCEIAvulsaSerializer,
+            f'{cls.TP_SOL_KIT_LANCHE_CEMEI}': SolicitacaoKitLancheCEMEIRetrieveSerializer,
+            f'{cls.TP_SOL_SUSP_ALIMENTACAO}': GrupoSuspensaoAlimentacaoSerializer,
+            f'{cls.TP_SOL_SUSP_ALIMENTACAO_CEI}': SuspensaoAlimentacaoDaCEISerializer,
+            f'{cls.TP_SOL_INV_CARDAPIO}': InversaoCardapioSerializer
+        }
+        return mapeador[tipo_doc]
+
+    @classmethod
+    def solicitacoes_detalhadas(cls, solicitacoes, request, **kwargs):
+        resultado = []
+        if not solicitacoes:
+            return resultado
+        for str_dict in solicitacoes:
+            solicitacao = ast.literal_eval(str_dict)
+            class_name = cls.get_class_name(solicitacao['tipo_doc'])
+            serializer_name = cls.get_serializer_name(solicitacao['tipo_doc'])
+            solicitacao = class_name.objects.get(uuid=solicitacao['uuid'])
+            resultado.append(serializer_name(solicitacao, context={'request': request}, many=False).data)
+        return resultado
+
+    @classmethod
+    def busca_filtro(cls, queryset, query_params, **kwargs):
+        if query_params.get('busca'):
+            queryset = queryset.filter(
+                Q(uuid__icontains=query_params.get('busca')) |
+                Q(desc_doc__icontains=query_params.get('busca')) |
+                Q(escola_nome__icontains=query_params.get('busca')) |
+                Q(escola_uuid__icontains=query_params.get('busca')) |
+                Q(lote_nome__icontains=query_params.get('busca')) |
+                Q(motivo__icontains=query_params.get('busca'))
+            )
+        if query_params.get('lote'):
+            queryset = queryset.filter(lote_uuid__icontains=query_params.get('lote'))
+        if query_params.get('status'):
+            queryset = queryset.filter(
+                terceirizada_conferiu_gestao=query_params.get('status') == '1')
+        queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
+        queryset = cls.busca_data_evento(queryset, query_params)
+        return queryset
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
@@ -206,7 +419,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         if tipo_solicitacao != cls.TP_SOL_TODOS:
             query_set = query_set.filter(tipo_doc=tipo_solicitacao)
         if status_solicitacao != cls.STATUS_TODOS:
-            # AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+            # AUTORIZADOS|NEGADOS|CANCELADOS|RECEBIDAS|TODOS
             if status_solicitacao == cls.STATUS_AUTORIZADOS:
                 query_set = query_set.filter(
                     status_atual__in=cls.AUTORIZADOS_STATUS,
@@ -470,7 +683,8 @@ class SolicitacoesCODAE(MoldeConsolidado):
     @classmethod
     def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         return cls.objects.filter(
@@ -485,7 +699,8 @@ class SolicitacoesCODAE(MoldeConsolidado):
     @classmethod
     def get_inativas_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         return cls.objects.filter(
@@ -506,6 +721,14 @@ class SolicitacoesCODAE(MoldeConsolidado):
             (Q(desc_doc='Kit Lanche Passeio Unificado') &
                 Q(status_atual='CODAE_A_AUTORIZAR'))
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('data_log').order_by('-data_log')
+
+    @classmethod
+    def get_recebidas(cls, **kwargs):
+        return cls.objects.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            data_evento__lte=datetime.date.today()
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
     @classmethod
     def get_autorizados(cls, **kwargs):
@@ -530,11 +753,10 @@ class SolicitacoesCODAE(MoldeConsolidado):
 
     @classmethod
     def get_questionamentos(cls, **kwargs):
-        s = cls.objects.filter(
+        return cls.objects.filter(
             status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
             status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU
-        )
-        return sorted(s, key=operator.attrgetter('data_log'), reverse=True)
+        ).distinct().order_by('-data_log')
 
     #
     # Filtros consolidados
@@ -578,6 +800,18 @@ class SolicitacoesCODAE(MoldeConsolidado):
 
         return cls._conta_totais(query_set, query_set_mes_passado)
 
+    @classmethod
+    def map_queryset_por_status(cls, status, **kwargs):
+        if not status:
+            return cls.objects.all()
+        mapeador = {
+            'AUTORIZADOS': 'cls.get_autorizados()',
+            'CANCELADOS': 'cls.get_cancelados()',
+            'NEGADOS': 'cls.get_negados()',
+            'RECEBIDAS': 'cls.get_recebidas()'
+        }
+        return eval(mapeador[status])
+
 
 class SolicitacoesEscola(MoldeConsolidado):
     #
@@ -600,9 +834,11 @@ class SolicitacoesEscola(MoldeConsolidado):
                         ]
 
     AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                          InformativoPartindoDaEscolaWorkflow.INFORMADO]
     AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
-                          LogSolicitacoesUsuario.CODAE_AUTORIZOU]
+                          LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                          LogSolicitacoesUsuario.INICIO_FLUXO]
 
     CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
     CANCELADOS_EVENTO = [LogSolicitacoesUsuario.ESCOLA_CANCELOU]
@@ -709,7 +945,8 @@ class SolicitacoesEscola(MoldeConsolidado):
     @classmethod
     def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         escola_uuid = kwargs.get('escola_uuid')
@@ -726,7 +963,8 @@ class SolicitacoesEscola(MoldeConsolidado):
     @classmethod
     def get_inativas_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         escola_uuid = kwargs.get('escola_uuid')
@@ -865,6 +1103,14 @@ class SolicitacoesDRE(MoldeConsolidado):
     NEGADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_NEGOU,
                       LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
 
+    AGUARDANDO_CODAE_STATUS = [PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                               PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                               PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+    AGUARDANDO_CODAE_EVENTO = [LogSolicitacoesUsuario.DRE_VALIDOU,
+                               LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+                               ]
+
     @classmethod
     def get_pendentes_dieta_especial(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
@@ -929,7 +1175,8 @@ class SolicitacoesDRE(MoldeConsolidado):
     @classmethod
     def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         dre_uuid = kwargs.get('dre_uuid')
@@ -946,7 +1193,8 @@ class SolicitacoesDRE(MoldeConsolidado):
     @classmethod
     def get_inativas_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         dre_uuid = kwargs.get('dre_uuid')
@@ -976,6 +1224,25 @@ class SolicitacoesDRE(MoldeConsolidado):
             status_atual=PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
             status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
             dre_uuid=dre_uuid
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_aguardando_codae(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            status_evento__in=cls.AGUARDANDO_CODAE_EVENTO,
+            status_atual__in=cls.AGUARDANDO_CODAE_STATUS,
+            dre_uuid=dre_uuid
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_recebidas(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            dre_uuid=dre_uuid,
+            data_evento__lte=datetime.date.today()
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
     @classmethod
@@ -1053,6 +1320,19 @@ class SolicitacoesDRE(MoldeConsolidado):
         ).distinct('uuid')
 
         return cls._conta_totais(query_set, query_set_mes_passado)
+
+    @classmethod
+    def map_queryset_por_status(cls, status, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        if not status:
+            return cls.objects.all()
+        mapeador = {
+            'AUTORIZADOS': f'cls.get_autorizados(dre_uuid="{dre_uuid}")',
+            'CANCELADOS': f'cls.get_cancelados(dre_uuid="{dre_uuid}")',
+            'NEGADOS': f'cls.get_negados(dre_uuid="{dre_uuid}")',
+            'RECEBIDAS': f'cls.get_recebidas(dre_uuid="{dre_uuid}")'
+        }
+        return eval(mapeador[status])
 
 
 # TODO: voltar quando tiver o Rastro implementado
@@ -1136,7 +1416,8 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         qs = SolicitacaoDietaEspecial.objects.filter(
             rastro_terceirizada__uuid=terceirizada_uuid,
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         return cls.objects.filter(
@@ -1151,7 +1432,8 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
     @classmethod
     def get_inativas_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
+            dieta_alterada__isnull=False,
+            tipo_solicitacao='ALTERACAO_UE'
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
@@ -1167,12 +1449,11 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
     @classmethod
     def get_questionamentos(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
-        s = cls.objects.filter(
+        return cls.objects.filter(
             terceirizada_uuid=terceirizada_uuid,
             status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
             status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU
-        )
-        return sorted(s, key=operator.attrgetter('data_log'), reverse=True)
+        ).order_by('-data_log')
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):

@@ -2,14 +2,17 @@ import uuid
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django_prometheus.models import ExportModelOperationsMixin
+from rest_framework.compat import MinValueValidator
 
 from ..dados_comuns.behaviors import (  # noqa I101
     CriadoEm,
     CriadoPor,
     Descritivel,
     Logs,
+    MatriculadosQuandoCriado,
     Motivo,
     Nomeavel,
     SolicitacaoForaDoPrazo,
@@ -17,6 +20,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     TemData,
     TemFaixaEtariaEQuantidade,
     TemIdentificadorExternoAmigavel,
+    TemObservacao,
     TempoPasseio,
     TemPrioridade,
     TemTerceirizadaConferiuGestaoAlimentacao
@@ -29,7 +33,9 @@ from .managers import (
     SolicitacaoUnificadaVencidaManager,
     SolicitacoesKitLancheAvulsaDestaSemanaManager,
     SolicitacoesKitLancheAvulsaDesteMesManager,
-    SolicitacoesKitLancheAvulsaVencidaDiasManager
+    SolicitacoesKitLancheAvulsaVencidaDiasManager,
+    SolicitacoesKitLancheCemeiDestaSemanaManager,
+    SolicitacoesKitLancheCemeiDesteMesManager
 )
 
 
@@ -72,6 +78,7 @@ class KitLanche(ExportModelOperationsMixin('kit_lanche'), Nomeavel, TemChaveExte
     class Meta:
         verbose_name = 'Kit lanche'
         verbose_name_plural = 'Kit lanches'
+        ordering = ('nome',)
 
 
 class SolicitacaoKitLanche(ExportModelOperationsMixin('kit_lanche_base'), TemData, Motivo, Descritivel, CriadoEm,
@@ -106,7 +113,8 @@ class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
 
     @property
     def quantidade_alimentacoes(self):
-        return self.quantidade_alunos * self.solicitacao_kit_lanche.kits.count()
+        if self.quantidade_alunos:
+            return self.quantidade_alunos * self.solicitacao_kit_lanche.kits.count()
 
     @property
     def data(self):
@@ -146,10 +154,18 @@ class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
 
 
 class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa'), SolicitacaoKitLancheAvulsaBase):
-    quantidade_alunos = models.PositiveSmallIntegerField()
+    quantidade_alunos = models.BigIntegerField(blank=True, null=True)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
+
+    @property
+    def observacao(self):
+        return self.solicitacao_kit_lanche.descricao
+
+    @property
+    def numero_alunos(self):
+        return self.quantidade_alunos
 
     def __str__(self):
         return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'
@@ -166,8 +182,16 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
 
     @property
+    def observacao(self):
+        return self.kit_lanche_cei_avulsa.descricao
+
+    @property
     def quantidade_alunos(self):
         return self.faixas_etarias.all().aggregate(models.Sum('quantidade'))['quantidade__sum']
+
+    @property
+    def numero_alunos(self):
+        return self.quantidade_alunos
 
     def __str__(self):
         return f'{self.escola} SOLICITA EM {self.local}'
@@ -177,7 +201,7 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
         verbose_name_plural = 'Solicitações de kit lanche CEI avulsa'
 
 
-class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(TemChaveExterna, TemFaixaEtariaEQuantidade):
+class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(TemChaveExterna, TemFaixaEtariaEQuantidade, MatriculadosQuandoCriado):
     solicitacao_kit_lanche_avulsa = models.ForeignKey('SolicitacaoKitLancheCEIAvulsa',
                                                       on_delete=models.CASCADE, related_name='faixas_etarias')
 
@@ -227,6 +251,10 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     @property
     def data(self):
         return self.solicitacao_kit_lanche.data
+
+    @property
+    def observacao(self):
+        return self.solicitacao_kit_lanche.descricao
 
     @property
     def lote_nome(self):
@@ -338,6 +366,10 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
                 total_kit_lanche += escola_quantidade.total_kit_lanche
             return total_kit_lanche
 
+    @property
+    def numero_alunos(self):
+        return self.escolas_quantidades.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
+
     def __str__(self):
         dre = self.diretoria_regional
         return f'{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}'
@@ -368,3 +400,145 @@ class EscolaQuantidade(ExportModelOperationsMixin('escola_quantidade'), TemChave
     class Meta:
         verbose_name = 'Escola quantidade'
         verbose_name_plural = 'Escolas quantidades'
+
+
+class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
+                                CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo, CriadoEm, TemObservacao,
+                                TemTerceirizadaConferiuGestaoAlimentacao):
+    TODOS = 'TODOS'
+    CEI = 'CEI'
+    EMEI = 'EMEI'
+
+    STATUS_CHOICES = (
+        (TODOS, 'Todos'),
+        (CEI, 'CEI'),
+        (EMEI, 'EMEI')
+    )
+
+    DESCRICAO = 'Kit Lanche CEMEI'
+    local = models.CharField(max_length=160)
+    data = models.DateField('Data')
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='solicitacoes_kit_lanche_cemei')
+    alunos_cei_e_ou_emei = models.CharField(choices=STATUS_CHOICES, max_length=10, default=TODOS)
+
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = SolicitacoesKitLancheCemeiDestaSemanaManager()
+    deste_mes = SolicitacoesKitLancheCemeiDesteMesManager()
+
+    @property
+    def tem_solicitacao_cei(self):
+        return hasattr(self, 'solicitacao_cei')
+
+    @property
+    def tem_solicitacao_emei(self):
+        return hasattr(self, 'solicitacao_emei')
+
+    @property
+    def numero_alunos(self):
+        total = 0
+        if self.tem_solicitacao_cei:
+            total += self.solicitacao_cei.quantidade_alunos
+        if self.tem_solicitacao_emei:
+            total += self.solicitacao_emei.quantidade_alunos
+        return total
+
+    @property
+    def total_kits(self):
+        total = 0
+        if self.tem_solicitacao_cei:
+            total += self.solicitacao_cei.quantidade_alimentacoes
+        if self.tem_solicitacao_emei:
+            total += self.solicitacao_emei.quantidade_alimentacoes
+        return total
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_CEMEI,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
+        )
+
+    class Meta:
+        verbose_name = 'Solicitação Kit Lanche CEMEI'
+        verbose_name_plural = 'Solicitações Kit Lanche CEMEI'
+        ordering = ('-criado_em',)
+
+
+class SolicitacaoKitLancheCEIdaCEMEI(TemChaveExterna, TempoPasseio):
+    kits = models.ManyToManyField(KitLanche, blank=True)
+    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
+    solicitacao_kit_lanche_cemei = models.OneToOneField(SolicitacaoKitLancheCEMEI,
+                                                        blank=True,
+                                                        null=True,
+                                                        on_delete=models.CASCADE,
+                                                        related_name='solicitacao_cei')
+
+    @property
+    def quantidade_alimentacoes(self):
+        return sum(self.faixas_quantidades.values_list('quantidade_alunos', flat=True)) * self.kits.count()
+
+    @property
+    def quantidade_alunos(self):
+        return sum(self.faixas_quantidades.values_list('quantidade_alunos', flat=True))
+
+    @property
+    def quantidade_matriculados(self):
+        return sum(self.faixas_quantidades.values_list('matriculados_quando_criado', flat=True))
+
+    @property
+    def nomes_kits(self):
+        return ', '.join(list(self.kits.values_list('nome', flat=True)))
+
+    @property
+    def tem_alunos_com_dieta(self):
+        return self.alunos_com_dieta_especial_participantes.exists()
+
+    class Meta:
+        verbose_name = 'Solicitação Kit Lanche CEI da EMEI'
+        verbose_name_plural = 'Solicitações Kit Lanche CEI da EMEI'
+
+
+class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna, MatriculadosQuandoCriado):
+    solicitacao_kit_lanche_cei_da_cemei = models.ForeignKey(SolicitacaoKitLancheCEIdaCEMEI,
+                                                            on_delete=models.CASCADE,
+                                                            related_name='faixas_quantidades')
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = 'Faixa e quantidade de alunos da CEI da solicitação kit lanche CEMEI'
+        verbose_name_plural = 'Faixas e quantidade de alunos da CEI das solicitações kit lanche CEMEI'
+
+
+class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio, MatriculadosQuandoCriado):
+    kits = models.ManyToManyField(KitLanche, blank=True)
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
+    solicitacao_kit_lanche_cemei = models.OneToOneField(SolicitacaoKitLancheCEMEI,
+                                                        blank=True,
+                                                        null=True,
+                                                        on_delete=models.CASCADE,
+                                                        related_name='solicitacao_emei')
+
+    @property
+    def nomes_kits(self):
+        return ', '.join(list(self.kits.values_list('nome', flat=True)))
+
+    @property
+    def quantidade_alimentacoes(self):
+        return self.quantidade_alunos * self.kits.count()
+
+    @property
+    def tem_alunos_com_dieta(self):
+        return self.alunos_com_dieta_especial_participantes.exists()
+
+    class Meta:
+        verbose_name = 'Solicitação Kit Lanche CEI da EMEI'
+        verbose_name_plural = 'Solicitações Kit Lanche CEI da EMEI'

@@ -1,16 +1,19 @@
 import datetime
 
 import pytest
+from django.contrib import admin
 from freezegun import freeze_time
 
 from ...cardapio.models import Cardapio
 from ...dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO
+from ..admin import PlanilhaAtualizacaoTipoGestaoEscolaAdmin
 from ..models import (
     AlunosMatriculadosPeriodoEscola,
     DiaCalendario,
     DiretoriaRegional,
     FaixaEtaria,
     LogAlunosMatriculadosPeriodoEscola,
+    PlanilhaAtualizacaoTipoGestaoEscola,
     PlanilhaEscolaDeParaCodigoEolCodigoCoade,
     TipoGestao,
     TipoUnidadeEscolar
@@ -55,11 +58,19 @@ def test_diretoria_regional(diretoria_regional, escola):
     for filtro in [DAQUI_A_TRINTA_DIAS, DAQUI_A_SETE_DIAS, SEM_FILTRO]:
         assert diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro) is not None
+        assert diretoria_regional.solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
+            filtro) is not None
         assert diretoria_regional.alteracoes_cardapio_das_minhas_escolas_a_validar(
             filtro) is not None
         assert diretoria_regional.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro) is not None
+        assert diretoria_regional.inclusoes_alimentacao_cemei_das_minhas_escolas(
+            filtro) is not None
         assert diretoria_regional.alteracoes_cardapio_das_minhas_escolas(
+            filtro) is not None
+        assert diretoria_regional.alteracoes_cardapio_cei_das_minhas_escolas(
+            filtro) is not None
+        assert diretoria_regional.alteracoes_cardapio_cemei_das_minhas_escolas(
             filtro) is not None
         assert diretoria_regional.inversoes_cardapio_das_minhas_escolas(
             filtro) is not None
@@ -102,10 +113,18 @@ def test_codae(codae):
     for filtro in [DAQUI_A_TRINTA_DIAS, DAQUI_A_SETE_DIAS, SEM_FILTRO]:
         assert codae.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro) is not None
+        assert codae.solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
+            filtro) is not None
         assert codae.solicitacoes_unificadas(filtro) is not None
         assert codae.suspensoes_cardapio_das_minhas_escolas(filtro) is not None
         assert codae.alteracoes_cardapio_das_minhas(filtro) is not None
+        assert codae.alteracoes_cardapio_cei_das_minhas(
+            filtro) is not None
+        assert codae.alteracoes_cardapio_cemei_das_minhas_escolas(
+            filtro) is not None
         assert codae.inclusoes_alimentacao_continua_das_minhas_escolas(
+            filtro) is not None
+        assert codae.inclusoes_alimentacao_cemei_das_minhas_escolas(
             filtro) is not None
         assert codae.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro) is not None
@@ -150,7 +169,7 @@ def test_faixa_str():
 
 
 def test_ordem(periodo_escolar):
-    assert ('nome',) == periodo_escolar._meta.ordering
+    assert ('posicao',) == periodo_escolar._meta.ordering
 
 
 def test_instance_model_planilha_de_para_codigo_eol_codigo_codae(planilha_de_para_eol_codae):
@@ -164,6 +183,28 @@ def test_instance_model_planilha_de_para_codigo_eol_codigo_codae(planilha_de_par
 def test_meta_modelo_planilha_de_para_codigo_eol_codigo_codae(planilha_de_para_eol_codae):
     assert planilha_de_para_eol_codae._meta.verbose_name == 'Planilha De-Para: Código EOL x Código Codae'
     assert planilha_de_para_eol_codae._meta.verbose_name_plural == 'Planilhas De-Para: Código EOL x Código Codae'
+
+
+def test_instance_model_planilha_atualizacao_tipo_gestao_escolas(planilha_atualizacao_tipo_gestao):
+    model = planilha_atualizacao_tipo_gestao
+    assert isinstance(model, PlanilhaAtualizacaoTipoGestaoEscola)
+    assert model.criado_em is not None
+    assert model.conteudo is not None
+    assert model.status is not None
+
+
+def test_meta_modelo_planilha_atualizacao_tipo_gestao_escolas(planilha_atualizacao_tipo_gestao):
+    assert planilha_atualizacao_tipo_gestao._meta.verbose_name == 'Planilha Atualização Tipo Gestão Escola'
+    assert planilha_atualizacao_tipo_gestao._meta.verbose_name_plural == 'Planilha Atualização Tipo Gestão Escola'
+
+
+def test_admin_planilha_atualizacao_tipo_gestao_escolas():
+    model_admin = PlanilhaAtualizacaoTipoGestaoEscolaAdmin(PlanilhaAtualizacaoTipoGestaoEscola, admin.site)
+    # pylint: disable=W0212
+    assert admin.site._registry[PlanilhaAtualizacaoTipoGestaoEscola]
+    assert model_admin.list_display == ('__str__', 'criado_em', 'status')
+    assert model_admin.change_list_template == 'admin/escola/importacao_tipos_de_gestao_das_escolas.html'
+    assert model_admin.actions == ('processa_planilha',)
 
 
 def test_modelo_alunos_matriculados_periodo_escola_regular(alunos_matriculados_periodo_escola_regular):

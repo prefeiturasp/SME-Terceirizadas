@@ -3,7 +3,7 @@ import json
 import pytest
 from rest_framework import status
 
-from sme_terceirizadas.logistica.models import SolicitacaoRemessa
+from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 
 pytestmark = pytest.mark.django_db
 
@@ -157,3 +157,17 @@ def test_url_relatorio_guia_remessa_authorized_dilog(client_autenticado_dilog, s
     response = client_autenticado_dilog.get(
         f'/solicitacao-remessa/{str(solicitacao.uuid)}/relatorio-guias-da-requisicao/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_solicitacao_de_alteracao_de_requisicao(client_autenticado_dilog, solicitacao, guia):
+    response = client_autenticado_dilog.get(f'/solicitacao-de-alteracao-de-requisicao/?motivos='
+                                            f'{SolicitacaoDeAlteracaoRequisicao.MOTIVO_ALTERAR_ALIMENTO}/')
+    resposta = json.loads(response.content)
+    esperado = {
+        'count': 0,
+        'next': None,
+        'previous': None,
+        'results': []
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert resposta == esperado

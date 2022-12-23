@@ -10,21 +10,27 @@ from ....escola.api.serializers import (
     TipoUnidadeEscolarSerializer,
     TipoUnidadeEscolarSerializerSimples
 )
+from ....escola.models import FaixaEtaria
 from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
 from ...models import (
     AlteracaoCardapio,
     AlteracaoCardapioCEI,
+    AlteracaoCardapioCEMEI,
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     FaixaEtariaSubstituicaoAlimentacaoCEI,
+    FaixaEtariaSubstituicaoAlimentacaoCEMEICEI,
     GrupoSuspensaoAlimentacao,
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
+    MotivoDRENaoValida,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
     SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
+    SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI,
+    SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEI,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoDaCEI,
@@ -102,15 +108,12 @@ class CombosVinculoTipoAlimentoSimplissimaSerializer(serializers.ModelSerializer
 
 class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer(serializers.ModelSerializer):
     escola = EscolaListagemSimplesSelializer()
-    combo_tipos_alimentacao = CombosVinculoTipoAlimentoSimplesSerializer()
-    periodo_escolar = serializers.SerializerMethodField()
-
-    def get_periodo_escolar(self, obj):
-        return PeriodoEscolarSimplesSerializer(obj.combo_tipos_alimentacao.vinculo.periodo_escolar).data
+    tipo_alimentacao = TipoAlimentacaoSerializer()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
 
     class Meta:
         model = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
-        fields = ('uuid', 'hora_inicial', 'hora_final', 'escola', 'combo_tipos_alimentacao', 'periodo_escolar')
+        fields = ('uuid', 'hora_inicial', 'hora_final', 'escola', 'tipo_alimentacao', 'periodo_escolar')
 
 
 class VinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
@@ -150,6 +153,7 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     data_para = serializers.DateField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     rastro_terceirizada = TerceirizadaSimplesSerializer()
+    tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True)
 
     class Meta:
         model = InversaoCardapio
@@ -174,10 +178,12 @@ class MotivoSuspensaoSerializer(serializers.ModelSerializer):
 
 
 class SuspensaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
-    escola = EscolaListagemSimplesSelializer()
+    escola = EscolaSimplesSerializer()
     motivo = MotivoSuspensaoSerializer()
     periodos_escolares = PeriodoEscolarSimplesSerializer(many=True)
     id_externo = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = SuspensaoAlimentacaoDaCEI
@@ -260,24 +266,32 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase(serializers.ModelSe
         queryset=AlteracaoCardapio.objects.all()
     )
     tipos_alimentacao_de = TipoAlimentacaoSerializer(many=True)
-    tipo_alimentacao_para = TipoAlimentacaoSerializer()
 
 
 class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase):
+    tipos_alimentacao_para = TipoAlimentacaoSerializer(many=True)
+
     class Meta:
         model = SubstituicaoAlimentacaoNoPeriodoEscolar
         exclude = ('id',)
 
 
 class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializer(SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase):
+    tipo_alimentacao_para = TipoAlimentacaoSerializer()
+
     faixas_etarias = FaixaEtariaSubstituicaoAlimentacaoCEISerializer(many=True)
 
     def to_representation(self, instance):
         retorno = super().to_representation(instance)
 
+        faixas_etarias_da_solicitacao = FaixaEtaria.objects.filter(
+            uuid__in=[f.faixa_etaria.uuid for f in instance.faixas_etarias.all()]
+        )
+
         # Inclui o total de alunos nas faixas etárias num período
         qtde_alunos = instance.alteracao_cardapio.escola.alunos_por_periodo_e_faixa_etaria(
-            instance.alteracao_cardapio.data
+            instance.alteracao_cardapio.data,
+            faixas_etarias_da_solicitacao
         )
         nome_periodo = 'INTEGRAL' if instance.periodo_escolar.nome == 'PARCIAL' else instance.periodo_escolar.nome
         for faixa_etaria in retorno['faixas_etarias']:
@@ -318,9 +332,60 @@ class AlteracaoCardapioCEISerializer(AlteracaoCardapioSerializerBase):
         exclude = ('id',)
 
 
+class FaixaEtariaSubstituicaoAlimentacaoCEMEICEISerializer(serializers.ModelSerializer):
+
+    faixa_etaria = FaixaEtariaSerializer()
+
+    class Meta:
+        model = FaixaEtariaSubstituicaoAlimentacaoCEMEICEI
+        exclude = ('id',)
+
+
+class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEISerializer(serializers.ModelSerializer):
+    periodo_escolar = PeriodoEscolarSerializer()
+    faixas_etarias = FaixaEtariaSubstituicaoAlimentacaoCEMEICEISerializer(many=True)
+    tipos_alimentacao_de = TipoAlimentacaoSerializer(many=True)
+    tipos_alimentacao_para = TipoAlimentacaoSerializer(many=True)
+
+    class Meta:
+        model = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI
+        exclude = ('id',)
+
+
+class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEISerializer(serializers.ModelSerializer):
+    periodo_escolar = PeriodoEscolarSerializer()
+    tipos_alimentacao_de = TipoAlimentacaoSerializer(many=True)
+    tipos_alimentacao_para = TipoAlimentacaoSerializer(many=True)
+
+    class Meta:
+        model = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEI
+        exclude = ('id',)
+
+
+class AlteracaoCardapioCEMEISerializer(serializers.ModelSerializer):
+    escola = EscolaSimplesSerializer()
+    motivo = MotivoAlteracaoCardapioSerializer()
+    foi_solicitado_fora_do_prazo = serializers.BooleanField()
+    id_externo = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    prioridade = serializers.CharField()
+    substituicoes_cemei_cei_periodo_escolar = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEISerializer(many=True)
+    substituicoes_cemei_emei_periodo_escolar = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEISerializer(many=True)
+
+    class Meta:
+        model = AlteracaoCardapioCEMEI
+        exclude = ('id',)
+
+
 class AlteracaoCardapioSimplesSerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
 
     class Meta:
         model = AlteracaoCardapio
         exclude = ('id', 'criado_por', 'escola', 'motivo')
+
+
+class MotivoDRENaoValidaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MotivoDRENaoValida
+        exclude = ('id',)

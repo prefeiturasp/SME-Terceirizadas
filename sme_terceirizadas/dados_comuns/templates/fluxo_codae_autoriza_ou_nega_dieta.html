@@ -2,7 +2,7 @@
 {% load email_templatetags %}
 
 {% block conteudo %}
-  <p>A solicitação de dieta especial foi <strong>{{ acao }}</strong>.</p>
-  <p>Para acompanhar e visualizar todos os detalhes da solicitação, acesse o sistema.</p>
+  <p>A dieta especial do aluno {{ cod_eol_aluno }} - {{ nome_aluno }} foi {{ acao }}.</p>
+  <p>Para maiores detalhes acesse o sistema e consulte a solicitação.</p>
   <br/>
 {% endblock %}

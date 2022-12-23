@@ -11,6 +11,7 @@ router.register('grupos-suspensoes-alimentacao', viewsets.GrupoSuspensaoAlimenta
                 'Grupos de suspensão de alimentação.')
 router.register('alteracoes-cardapio', viewsets.AlteracoesCardapioViewSet, 'Alterações de Cardápio')
 router.register('alteracoes-cardapio-cei', viewsets.AlteracoesCardapioCEIViewSet, 'Alterações de Cardápio CEI')
+router.register('alteracoes-cardapio-cemei', viewsets.AlteracoesCardapioCEMEIViewSet, 'Alterações de Cardápio CEMEI')
 router.register('motivos-alteracao-cardapio', viewsets.MotivosAlteracaoCardapioViewSet,
                 'Motivos de alteração de cardápio')
 router.register('motivos-suspensao-cardapio', viewsets.MotivosSuspensaoCardapioViewSet,
@@ -29,6 +30,8 @@ router.register('horario-do-combo-tipo-de-alimentacao-por-unidade-escolar',
 router.register('suspensao-alimentacao-de-cei',
                 viewsets.SuspensaoAlimentacaoDaCEIViewSet,
                 'suspensao-alimentacao-de-cei')
+router.register('motivos-dre-nao-valida', viewsets.MotivosDRENaoValidaViewSet,
+                'Motivos de não validação da DRE')
 urlpatterns = [
     path('', include(router.urls)),
 ]

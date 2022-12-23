@@ -140,6 +140,7 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
     response.json().get('vinculo_atual').pop('uuid')
+    response.json().get('vinculo_atual').get('instituicao').pop('periodos_escolares')
     response.json().pop('uuid')
     assert response.json() == {
         'cpf': '95887745002',
@@ -153,27 +154,16 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 'nome': 'EMEI NOE AZEVEDO, PROF',
                 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                 'codigo_eol': '256341',
-                'quantidade_alunos': 0,
+                'quantidade_alunos': 450,
                 'lotes': [],
-                'periodos_escolares': [
-                    {
-                        'tipos_alimentacao': [],
-                        'nome': 'MANHA',
-                        'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'
-                    },
-                    {
-                        'tipos_alimentacao': [],
-                        'nome': 'TARDE',
-                        'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'
-                    }
-                ],
-                'escolas': [],
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                    'codigo_eol': '987656'
+                    'codigo_eol': '987656',
+                    'iniciais': 'IP'
                 },
                 'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+                'tipo_unidade_escolar_iniciais': 'EMEF',
                 'tipo_gestao': 'TERC TOTAL',
                 'tipos_contagem': [],
                 'endereco': {
@@ -309,9 +299,9 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
                 'quantidade_alunos': 0,
                 'lotes': [],
                 'periodos_escolares': [],
-                'escolas': [],
                 'diretoria_regional': None,
                 'tipo_unidade_escolar': None,
+                'tipo_unidade_escolar_iniciais': None,
                 'tipo_gestao': None,
                 'tipos_contagem': None,
                 'endereco': None,
@@ -436,9 +426,9 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
                 'quantidade_alunos': 0,
                 'lotes': [],
                 'periodos_escolares': [],
-                'escolas': [],
                 'diretoria_regional': None,
                 'tipo_unidade_escolar': None,
+                'tipo_unidade_escolar_iniciais': None,
                 'tipo_gestao': None,
                 'tipos_contagem': None,
                 'endereco': None,
@@ -585,34 +575,23 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     assert json['email'] == email
     assert json['registro_funcional'] == rf
     response.json().get('vinculo_atual').pop('uuid')
+    response.json().get('vinculo_atual').get('instituicao').pop('periodos_escolares')
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
         'instituicao': {
             'nome': 'EMEI NOE AZEVEDO, PROF',
             'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
             'codigo_eol': '256341',
-            'quantidade_alunos': 0,
+            'quantidade_alunos': 450,
             'lotes': [],
-            'periodos_escolares': [
-                {
-                    'tipos_alimentacao': [],
-                    'nome': 'MANHA',
-                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'
-                },
-                {
-                    'tipos_alimentacao': [],
-                    'nome': 'TARDE',
-                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'
-                }
-            ],
-            'escolas': [],
             'diretoria_regional': {
                 'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                 'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                'codigo_eol': '987656'
+                'codigo_eol': '987656',
+                'iniciais': 'IP'
             },
-            'tipo_unidade_escolar':
-            '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+            'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+            'tipo_unidade_escolar_iniciais': 'EMEF',
             'tipo_gestao': 'TERC TOTAL',
             'tipos_contagem': [],
             'endereco': {
@@ -685,13 +664,14 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
                 'quantidade_alunos': 0,
                 'lotes': [],
                 'periodos_escolares': [],
-                'escolas': [],
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                    'codigo_eol': '987656'
+                    'codigo_eol': '987656',
+                    'iniciais': 'IP'
                 },
                 'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+                'tipo_unidade_escolar_iniciais': 'EMEF',
                 'tipo_gestao': 'TERC TOTAL',
                 'tipos_contagem': [],
                 'endereco': {

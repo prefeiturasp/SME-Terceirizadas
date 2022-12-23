@@ -7,7 +7,7 @@ from requests import ConnectionError
 
 from ....dados_comuns.constants import DJANGO_EOL_SGP_API_TOKEN, DJANGO_EOL_SGP_API_URL
 from ....dados_comuns.models import Contato, Endereco
-from ...models import DiretoriaRegional, Escola, TipoUnidadeEscolar
+from ...models import DiretoriaRegional, Escola, Subprefeitura, TipoUnidadeEscolar
 
 env = environ.Env()
 
@@ -41,7 +41,7 @@ class Command(BaseCommand):
 
     def _atualiza_dados_escola(self, dre):
         response = requests.get(
-            f'{DJANGO_EOL_SGP_API_URL}/DREs/{dre.codigo_eol}/escola',
+            f'{DJANGO_EOL_SGP_API_URL}/DREs/{dre.codigo_eol}/escola/Sigpae',
             headers=self.headers,
             timeout=self.timeout,
         )
@@ -58,13 +58,16 @@ class Command(BaseCommand):
             escola = self._atualiza_dados_iniciais_da_escola(dre, escola_dict)
             self._atualiza_dados_contato_e_endereco_da_escola(escola)
 
-    def _atualiza_dados_iniciais_da_escola(
+    def _atualiza_dados_iniciais_da_escola( # noqa C901
         self, dre: DiretoriaRegional, escola_dict: dict
     ):
         codigo_eol_escola = escola_dict['codigoEscola'].strip()
         nome_unidade_educacao = escola_dict['nomeEscola'].strip()
         nome_tipo_escola = escola_dict['siglaTipoEscola'].strip()
+        if nome_tipo_escola == 'CEU':
+            nome_tipo_escola = 'CEU GESTAO'
         nome_escola = f'{nome_tipo_escola} {nome_unidade_educacao}'
+        nome_subprefeitura = escola_dict['nomeSubprefeitura'].strip()
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -77,6 +80,7 @@ class Command(BaseCommand):
         tipo_unidade, _ = TipoUnidadeEscolar.objects.get_or_create(
             iniciais=nome_tipo_escola, defaults={'ativo': True}
         )  # noqa
+        subprefeitura, _ = Subprefeitura.objects.get_or_create(nome=nome_subprefeitura)
 
         escola, _ = Escola.objects.update_or_create(
             codigo_eol=codigo_eol_escola,
@@ -84,6 +88,7 @@ class Command(BaseCommand):
                 'nome': nome_escola,
                 'diretoria_regional': dre,
                 'tipo_unidade': tipo_unidade,
+                'subprefeitura': subprefeitura,
             },
         )
         msg = (
@@ -127,6 +132,8 @@ class Command(BaseCommand):
 
         if escola_dados['email']:
             contato.email = escola_dados['email'].strip()
+            if env('DJANGO_ENV') != 'production':
+                contato.email = 'fake_' + contato.email
 
         if (
             escola_dados['telefone']

@@ -30,7 +30,8 @@ class ProcessadorPlanilha:
         self.usuario = usuario
         self.arquivo = arquivo
         self.erros = []
-        self.worksheet = self.abre_worksheet()
+        if self.arquivo.conteudo:
+            self.worksheet = self.abre_worksheet()
 
     @property
     def path(self):
@@ -137,10 +138,22 @@ class ProcessadorPlanilha:
             raise Exception(f'Lote "{solicitacao.rastro_lote.nome}" relacionado à escola '
                             + f'"{solicitacao.rastro_escola.nome}" não está vinculado à uma terceirizada.')
 
+    def eh_exatamente_mesma_solicitacao(self, solicitacao, solicitacao_dieta_schema):
+        if (solicitacao.escola_destino.codigo_codae == solicitacao_dieta_schema.codigo_escola and
+            solicitacao.aluno.codigo_eol == solicitacao_dieta_schema.codigo_eol_aluno and
+            solicitacao.nome_protocolo.upper() == solicitacao_dieta_schema.protocolo_dieta.upper() and
+            solicitacao_dieta_schema.codigo_categoria_dieta in solicitacao.classificacao.nome and
+                [x.upper() for x in solicitacao_dieta_schema.codigo_diagnostico.split(';')] == [
+                x.descricao.upper() for x in solicitacao.alergias_intolerancias.all()]):
+            raise Exception('Erro: Já existe uma solicitação ativa que foi importada para o aluno com código eol: '
+                            + f'{solicitacao_dieta_schema.codigo_eol_aluno} exatamente igual a esta')
+
     def checa_existencia_solicitacao(self, solicitacao_dieta_schema, aluno) -> None:
         if SolicitacaoDietaEspecial.objects.filter(aluno=aluno, ativo=True, eh_importado=True).exists():
-            raise Exception('Erro: Já existe uma solicitação ativa que foi importada para o aluno com código eol: '
-                            + f'{solicitacao_dieta_schema.codigo_eol_aluno}')
+            solicitacao = SolicitacaoDietaEspecial.objects.get(aluno=aluno, ativo=True, eh_importado=True)
+            self.eh_exatamente_mesma_solicitacao(solicitacao, solicitacao_dieta_schema)
+        if SolicitacaoDietaEspecial.objects.filter(aluno=aluno, ativo=True, eh_importado=False).exists():
+            SolicitacaoDietaEspecial.objects.filter(aluno=aluno, ativo=True, eh_importado=False).update(ativo=False)
 
     @transaction.atomic
     def cria_solicitacao(self, solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos, escola):  # noqa C901

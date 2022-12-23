@@ -1,7 +1,8 @@
 from django import forms
 
-from ..escola.models import DiretoriaRegional, Escola
-from .models import AlergiaIntolerancia, ClassificacaoDieta, SolicitacaoDietaEspecial
+from ..escola.models import DiretoriaRegional, Escola, Lote
+from ..terceirizada.models import Terceirizada
+from .models import AlergiaIntolerancia, ClassificacaoDieta, ProtocoloPadraoDietaEspecial, SolicitacaoDietaEspecial
 
 
 class NegaDietaEspecialForm(forms.ModelForm):
@@ -73,6 +74,32 @@ class RelatorioDietaForm(forms.Form):
     diagnostico = forms.ModelMultipleChoiceField(
         required=False,
         queryset=AlergiaIntolerancia.objects.all()
+    )
+    data_inicial = forms.DateField(required=False)
+    data_final = forms.DateField(required=False)
+
+
+class RelatorioDietaTerceirizadaForm(forms.Form):
+    terceirizada_uuid = forms.ModelChoiceField(
+        required=False,
+        queryset=Terceirizada.objects.all(),
+        to_field_name='uuid'
+    )
+    status = forms.ChoiceField(required=False, choices=(
+        ('AUTORIZADAS', 'Autorizadas'),
+        ('CANCELADAS', 'Canceladas'),
+    ))
+    lote = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=Lote.objects.all(),
+    )
+    classificacao_dieta = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=ClassificacaoDieta.objects.all()
+    )
+    protocolo_padrao = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=ProtocoloPadraoDietaEspecial.objects.all()
     )
     data_inicial = forms.DateField(required=False)
     data_final = forms.DateField(required=False)

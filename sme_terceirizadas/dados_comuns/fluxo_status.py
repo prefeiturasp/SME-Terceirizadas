@@ -14,14 +14,7 @@ from django_xworkflows import models as xwf_models
 from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
-from .constants import (
-    ADMINISTRADOR_DIETA_ESPECIAL,
-    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    ADMINISTRADOR_TERCEIRIZADA,
-    COORDENADOR_DIETA_ESPECIAL,
-    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    TIPO_SOLICITACAO_DIETA
-)
+from .constants import ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory
@@ -161,16 +154,19 @@ class InformativoPartindoDaEscolaWorkflow(xwf_models.Workflow):
     RASCUNHO = 'RASCUNHO'  # INICIO
     INFORMADO = 'INFORMADO'
     TERCEIRIZADA_TOMOU_CIENCIA = 'TERCEIRIZADA_TOMOU_CIENCIA'
+    ESCOLA_CANCELOU = 'ESCOLA_CANCELOU'
 
     states = (
         (RASCUNHO, 'Rascunho'),
         (INFORMADO, 'Informado'),
         (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada toma ciencia'),
+        (ESCOLA_CANCELOU, 'Escola cancelou')
     )
 
     transitions = (
         ('informa', RASCUNHO, INFORMADO),
         ('terceirizada_toma_ciencia', INFORMADO, TERCEIRIZADA_TOMOU_CIENCIA),
+        ('escola_cancela', [INFORMADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_CANCELOU)
     )
 
     initial_state = RASCUNHO
@@ -208,6 +204,7 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
         ('aguarda_confirmacao_de_cancelamento', [DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO],
          AGUARDANDO_CANCELAMENTO),
         ('distribuidor_confirma_cancelamento', AGUARDANDO_CANCELAMENTO, PAPA_CANCELA),
+        ('distribuidor_confirma_cancelamento_envia_email_notificacao', PAPA_CANCELA, PAPA_CANCELA),
     )
 
     initial_state = AGUARDANDO_ENVIO
@@ -266,22 +263,23 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
 
     transitions = (
         ('distribuidor_confirma_guia', AGUARDANDO_CONFIRMACAO, PENDENTE_DE_CONFERENCIA),
+        ('distribuidor_confirma_guia_envia_email_e_notificacao', PENDENTE_DE_CONFERENCIA, PENDENTE_DE_CONFERENCIA),
         ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
         ('escola_recebe', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIDA),
         ('escola_nao_recebe', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], NAO_RECEBIDA),
         ('escola_recebe_parcial', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIMENTO_PARCIAL),
         ('escola_recebe_parcial_atraso', [
-            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
-            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+            PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO, NAO_RECEBIDA,
+            RECEBIMENTO_PARCIAL, RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
         ], RECEBIMENTO_PARCIAL),
         ('reposicao_parcial', [
             NAO_RECEBIDA, RECEBIMENTO_PARCIAL, REPOSICAO_PARCIAL, REPOSICAO_TOTAL], REPOSICAO_PARCIAL),
@@ -404,6 +402,11 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo',
          [RASCUNHO,
+          CODAE_NAO_HOMOLOGADO,
+          CODAE_HOMOLOGADO,
+          CODAE_SUSPENDEU,
+          TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO,
+          CODAE_QUESTIONADO,
           CODAE_AUTORIZOU_RECLAMACAO,
           CODAE_CANCELOU_ANALISE_SENSORIAL], CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL,
@@ -417,6 +420,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_pede_analise_sensorial',
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
+          UE_RESPONDEU_QUESTIONAMENTO,
+          NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
           CODAE_PENDENTE_HOMOLOGACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
@@ -454,17 +459,26 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          UE_RESPONDEU_QUESTIONAMENTO,
+          CODAE_QUESTIONOU_UE,
+          CODAE_QUESTIONOU_NUTRISUPERVISOR,
+          NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
           CODAE_PEDIU_ANALISE_SENSORIAL],
          CODAE_AUTORIZOU_RECLAMACAO),
         ('codae_recusou_reclamacao',
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
+          CODAE_HOMOLOGADO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+          UE_RESPONDEU_QUESTIONAMENTO,
+          NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          CODAE_QUESTIONOU_UE,
+          CODAE_QUESTIONOU_NUTRISUPERVISOR,
           CODAE_PEDIU_ANALISE_SENSORIAL],
          CODAE_HOMOLOGADO),
         ('inativa_homologacao',
          [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO,
-          CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO], INATIVA),
+          CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO, TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO], INATIVA),
         ('terceirizada_cancelou_solicitacao_homologacao',
          CODAE_PENDENTE_HOMOLOGACAO, TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO),
         ('terceirizada_responde_analise_sensorial_da_reclamacao',
@@ -608,7 +622,9 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                                                   usuario=user,
                                                   justificativa=kwargs.get('justificativa', ''))
 
-        self.guias.update(status=GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO)
+        self.guias.filter(
+            status=GuiaRemessaWorkFlow.AGUARDANDO_ENVIO
+        ).update(status=GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO)
         self._envia_email_dilog_envia_solicitacao_para_distibuidor(log_transicao=log_transicao)
 
         # Monta Notificacao
@@ -625,8 +641,6 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_CONFIRMA_SOLICITACAO,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
-
-        self.guias.update(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)
 
     @xworkflows.after_transition('aguarda_confirmacao_de_cancelamento')
     def _aguarda_confirmacao_de_cancelamento_hook(self, *args, **kwargs):
@@ -656,11 +670,14 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('distribuidor_confirma_cancelamento')
     def _distribuidor_confirma_cancelamento_hook(self, *args, **kwargs):
         user = kwargs['user']
-        log_transicao = self.salvar_log_transicao(
+        self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_CONFIRMA_CANCELAMENTO,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
 
+    @xworkflows.after_transition('distribuidor_confirma_cancelamento_envia_email_notificacao')
+    def _distribuidor_confirma_cancelamento_envia_email_notificacao_hook(self, *args, **kwargs):
+        log_transicao = self.log_mais_recente
         partes_interessadas = self._partes_interessadas_codae_dilog()
         self._envia_email_distribuidor_confirma_cancelamento(log_transicao=log_transicao,
                                                              partes_interessadas=partes_interessadas)
@@ -907,10 +924,34 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _preenche_template_e_cria_notificacao_insucesso(self, template_notif, titulo_notif, usuarios, link, tipo,
+                                                        insucesso):
+        if usuarios:
+            texto_notificacao = render_to_string(
+                template_name=template_notif,
+                context={
+                    'solicitacao': self,
+                    'insucesso': insucesso
+                }
+            )
+            for usuario in usuarios:
+                Notificacao.notificar(
+                    tipo=tipo,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
+                    titulo=titulo_notif,
+                    descricao=texto_notificacao,
+                    usuario=usuario,
+                    link=link,
+                    guia=self,
+                )
+
     def _preenche_template_e_cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo):
         if usuarios:
             texto_notificacao = render_to_string(
                 template_name=template_notif,
+                context={
+                    'solicitacao': self,
+                }
             )
             for usuario in usuarios:
                 Notificacao.notificar(
@@ -952,11 +993,13 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('distribuidor_confirma_guia')
     def _distribuidor_confirma_guia_hook(self, *args, **kwargs):
         user = kwargs['user']
-        log_transicao = self.salvar_log_transicao(
+        self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
 
+    @xworkflows.after_transition('distribuidor_confirma_guia_envia_email_e_notificacao')
+    def _dispara_email_e_notificacao_de_confirmacao_ao_distribuidor_hook(self, *args, **kwargs):
         # Monta e-mail
         url = f'{base_url}/logistica/conferir-entrega?numero_guia={self.numero_guia}'
         titulo = f'Nova Guia de Remessa N° {self.numero_guia}'
@@ -964,7 +1007,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         template = 'logistica_distribuidor_confirma_requisicao.html'
         partes_interessadas = self._partes_interessadas_escola()
 
-        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, None, url)
 
         # Monta Notificacao
         usuarios = self._usuarios_partes_interessadas_escola()
@@ -982,6 +1025,16 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
+
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_escola()
+        template_notif = 'logistica_notificacao_escola_aviso_insucesso_entrega.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
+        titulo_notif = f'Insucesso de Entrega - Guia de Remessa {self.numero_guia}'
+        link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
+        insucesso = self.insucessos.last() if self.insucessos else None
+        self._preenche_template_e_cria_notificacao_insucesso(template_notif, titulo_notif, usuarios, link, tipo,
+                                                             insucesso)
 
     @xworkflows.after_transition('escola_recebe')
     def _escola_recebe_hook(self, *args, **kwargs):
@@ -1120,9 +1173,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
-    def _partes_interessadas_codae_homologa(self):
+    def _partes_interessadas_codae_homologa_ou_nao_homologa(self):
         # Envia email somente para ESCOLAS selecionadas
-        # e para COORDENADOR_DIETA_ESPECIAL e NUTRI_ADMIN_RESPONSAVEL.
+        # NUTRI_ADMIN_RESPONSAVEL.
         escolas_ids = m.Escola.objects.filter(
             enviar_email_por_produto=True
         ).values_list('id', flat=True)
@@ -1132,17 +1185,21 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         usuarios_escolas_selecionadas = Usuario.objects.filter(
             vinculos__object_id__in=escolas_ids,
             vinculos__content_type=content_type,
-        )
+            vinculos__ativo=True
+        ).values_list('email', flat=True).distinct()
 
         usuarios_vinculos_perfil = Usuario.objects.filter(
+            vinculos__ativo=True,
             vinculos__perfil__nome__in=(
-                'COORDENADOR_DIETA_ESPECIAL',
                 'NUTRI_ADMIN_RESPONSAVEL',
             )
-        )
+        ).values_list('email', flat=True).distinct()
 
-        queryset = usuarios_escolas_selecionadas | usuarios_vinculos_perfil
-        return [usuario.email for usuario in queryset]
+        usuarios_terceirizada = self.rastro_terceirizada.todos_emails_por_modulo('Gestão de Produto')
+        if self.status == self.workflow_class.CODAE_NAO_HOMOLOGADO:
+            usuarios_terceirizada = self.rastro_terceirizada.emails_por_modulo('Gestão de Produto')
+
+        return list(usuarios_escolas_selecionadas) + list(usuarios_vinculos_perfil) + usuarios_terceirizada
 
     def _envia_email_codae_homologa(self, log_transicao, link_pdf):
         html = render_to_string(
@@ -1156,7 +1213,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
         envia_email_em_massa_task.delay(
             assunto='Produto Homologado com sucesso',
-            emails=self._partes_interessadas_codae_homologa(),
+            emails=self._partes_interessadas_codae_homologa_ou_nao_homologa(),
             corpo='',
             html=html
         )
@@ -1173,10 +1230,15 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
         envia_email_em_massa_task.delay(
             assunto='Produto não homologado',
-            emails=self._partes_interessadas_codae_homologa(),
+            emails=self._partes_interessadas_codae_homologa_ou_nao_homologa(),
             corpo='',
             html=html
         )
+
+    def _partes_interessadas_codae_questiona(self):
+        emails = [self.produto.criado_por.email]
+        emails += self.rastro_terceirizada.emails_por_modulo('Gestão de Produto')
+        return list(set(emails))
 
     def _envia_email_codae_questiona(self, log_transicao, link_pdf):
         html = render_to_string(
@@ -1190,7 +1252,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
         envia_email_em_massa_task.delay(
             assunto='Produto Cadastrado Exige Correção',
-            emails=[self.produto.criado_por.email],
+            emails=self._partes_interessadas_codae_questiona(),
             corpo='',
             html=html
         )
@@ -1216,7 +1278,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
 
     def _partes_interessadas_codae_pede_analise_sensorial(self):
-        return [self.ultima_analise.terceirizada.vinculos.filter(ativo=True).first().usuario.email]
+        return self.rastro_terceirizada.emails_por_modulo('Gestão de Produto')
 
     def _envia_email_codae_pede_analise_sensorial(self, log_transicao, link_pdf):
         html = render_to_string(
@@ -1237,12 +1299,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
 
     def _partes_interessadas_codae_ativa_ou_suspende(self):
-        queryset = Usuario.objects.filter(
-            vinculos__perfil__nome__in=(
-                'ADMINISTRADOR_TERCEIRIZADA',
-            )
-        )
-        return [usuario.email for usuario in queryset]
+        return self.rastro_terceirizada.todos_emails_por_modulo('Gestão de Produto')
 
     def _envia_email_codae_ativa_ou_suspende(self, log_transicao, template_name, assunto):
         html = render_to_string(
@@ -1252,8 +1309,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 'log_transicao': log_transicao,
             }
         )
-        usuarios_selecionados = self._partes_interessadas_codae_homologa()
-        emails = self._partes_interessadas_codae_ativa_ou_suspende() + usuarios_selecionados  # noqa
+        emails = self._partes_interessadas_codae_ativa_ou_suspende()
         envia_email_em_massa_task.delay(
             assunto=assunto,
             emails=emails,
@@ -1286,6 +1342,15 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         if not kwargs.get('nao_enviar_email', False):
             self._envia_email_codae_homologa(
                 log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
+
+    @xworkflows.after_transition('codae_recusou_reclamacao')
+    def _codae_recusou_reclamacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_RECUSOU_RECLAMACAO,
+            justificativa=justificativa,
+            usuario=user)
 
     @xworkflows.after_transition('terceirizada_inativa')
     def _inativa_homologacao_hook(self, *args, **kwargs):
@@ -1719,7 +1784,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _dre_pede_revisao_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_PEDIU_REVISAO,
                                       usuario=user)
 
@@ -1742,7 +1806,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _escola_revisa_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_REVISOU,
                                       usuario=user)
 
@@ -1761,7 +1824,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         from sme_terceirizadas.cardapio.models import AlteracaoCardapio
         if (self.foi_solicitado_fora_do_prazo and
             self.status != PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO):  # noqa #129
-            if (isinstance(self, AlteracaoCardapio) and self.motivo.nome == 'Merenda Seca'):
+            if (isinstance(self, AlteracaoCardapio) and self.motivo.nome == 'Lanche Emergencial'):
                 return
             raise xworkflows.InvalidTransitionError(
                 f'CODAE não pode autorizar direto caso seja em cima da hora, deve questionar')
@@ -1802,7 +1865,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
@@ -1907,17 +1969,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
     @property
     def _partes_interessadas_cancelamento(self):
-        """Quando a dre cancela a sua solicitação, a codae deve ser avisados caso tenha chegado neles.
-
-        Será retornada uma lista de emails para envio via celery.
-        """
-        if self.ta_na_codae:
-            # TODO: quando tiver subdepartamento definido, voltar aqui
-            email_query_set_codae = Usuario.objects.filter(
-                vinculos__perfil__nome__in=[COORDENADOR_DIETA_ESPECIAL, ADMINISTRADOR_DIETA_ESPECIAL]).values_list(
-                'usuario__email', flat=False)
-
-            return [email for email in email_query_set_codae]
+        return []
 
     @property
     def _partes_interessadas_codae_autoriza_ou_nega(self):
@@ -1964,7 +2016,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         self.foi_solicitado_fora_do_prazo = self.prioridade in [
             'PRIORITARIO', 'LIMITE']
         user = kwargs['user']
-        assunto, corpo = self.template_mensagem
 
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
@@ -1989,7 +2040,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
                                       justificativa=justificativa,
                                       usuario=user)
@@ -1998,7 +2048,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
@@ -2008,7 +2057,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         justificativa = kwargs.get('justificativa', '')
         resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
                                       justificativa=justificativa,
                                       resposta_sim_nao=resposta_sim_nao,
@@ -2035,6 +2083,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = InformativoPartindoDaEscolaWorkflow
     status = xwf_models.StateField(workflow_class)
+    DIAS_PARA_CANCELAR = 3
 
     rastro_escola = models.ForeignKey('escola.Escola',
                                       on_delete=models.DO_NOTHING,
@@ -2083,9 +2132,24 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
         return []
 
     @property
+    def partes_interessadas_escola_cancelou(self):
+        # TODO: definir partes interessadas
+        return []
+
+    @property
     def template_mensagem(self):
         raise NotImplementedError(
             'Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
+
+    def cancelar_pedido(self, user, justificativa):
+        dia_antecedencia = datetime.date.today(
+        ) + datetime.timedelta(days=self.DIAS_PARA_CANCELAR)
+        data_do_evento = self.data
+        if isinstance(data_do_evento, datetime.datetime):
+            data_do_evento = data_do_evento.date()
+        if data_do_evento < dia_antecedencia:
+            raise AssertionError(f'Só pode cancelar com no mínimo {self.DIAS_PARA_CANCELAR} dia(s) de antecedência!')
+        self.escola_cancela(user=user, justificativa=justificativa)
 
     @xworkflows.after_transition('informa')
     def _informa_hook(self, *args, **kwargs):
@@ -2098,8 +2162,16 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                                      usuario=user)
+
+    @xworkflows.after_transition('escola_cancela')
+    def _escola_cancela_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs['justificativa']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                                      justificativa=justificativa,
                                       usuario=user)
 
     class Meta:
@@ -2181,25 +2253,17 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
         A dieta especial termina quando a data de término é atingida.
         São as partes interessadas:
-            - A Escola solicitante
-            - Nutricionistas CODAE
-            - Terceirizada que tomou ciência (se aplicável)
+            - perfil "ADMINISTRADOR_TERCEIRIZADA" vinculado à terceirizada relacionada
+              à escola destino da dieta
+            - email de contato da escola (escola.contato.email)
         """
-        email_lista = []
+        escola = self.rastro_escola
         try:
-            email_escola_eol = self.escola.contato.email
-            email_lista = [email_escola_eol]
+            emails_terceirizada = self.rastro_terceirizada.emails_por_modulo('Dieta Especial')
+            email_escola_eol = [escola.contato.email]
+            email_lista = emails_terceirizada + email_escola_eol
         except AttributeError:
             email_lista = []
-        email_query_set_codae = Usuario.objects.filter(
-            vinculos__perfil__nome=COORDENADOR_DIETA_ESPECIAL).values_list(
-            'email')
-        email_lista += [email for email in email_query_set_codae]
-        if self.rastro_terceirizada:
-            email_query_set_terceirizada = self.rastro_terceirizada.vinculos.filter(
-                ativo=True
-            ).values_list('usuario__email', flat=False)
-            email_lista += [email for email in email_query_set_terceirizada]
         return email_lista
 
     @property  # noqa c901
@@ -2209,17 +2273,8 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             email_lista = [email_escola_eol]
         except AttributeError:
             email_lista = []
-        if self.escola_destino and self.escola_destino.lote and self.escola_destino.lote.terceirizada:
-            if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
-                email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
-                    ativo=True
-                ).values_list('usuario__email', flat=True)
-                email_lista += [email for email in email_query_set_terceirizada]
-            elif self.status == self.workflow_class.CODAE_AUTORIZADO:
-                email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
-                    ativo=True, perfil__nome=ADMINISTRADOR_TERCEIRIZADA
-                ).values_list('usuario__email', flat=True)
-                email_lista += [email for email in email_query_set_terceirizada]
+        if self.rastro_terceirizada:
+            email_lista += self.rastro_terceirizada.emails_por_modulo('Dieta Especial')
         return email_lista
 
     @property
@@ -2235,11 +2290,21 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         except AttributeError:
             email_escola_destino_eol = []
         try:
-            terceirizada = escola.lote.terceirizada
-            responsaveis_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(ativo=True)]
+            emails_terceirizadas = self.rastro_terceirizada.emails_por_modulo('Dieta Especial')
         except AttributeError:
-            responsaveis_terceirizadas = []
-        return email_escola_destino_eol + responsaveis_terceirizadas
+            emails_terceirizadas = []
+        return email_escola_destino_eol + emails_terceirizadas
+
+    @property
+    def _partes_interessadas_codae_cancela(self):
+        escola = self.escola_destino
+        try:
+            emails_terceirizadas = self.rastro_terceirizada.emails_por_modulo('Dieta Especial')
+            email_escola_eol = [escola.contato.email]
+            email_lista = emails_terceirizadas + email_escola_eol
+        except AttributeError:
+            email_lista = []
+        return email_lista
 
     @property
     def template_mensagem(self):
@@ -2277,12 +2342,15 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                 anexo=anexo.get('arquivo'),
             )
 
-    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, eh_codae_autoriza_ou_nega):
+    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, transicao):
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
+                          'nome_aluno': self.aluno.nome, 'cod_eol_aluno': self.aluno.codigo_eol,
                           'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
-        if eh_codae_autoriza_ou_nega:
+        if transicao in ['codae_autoriza', 'codae_nega']:
             template = 'fluxo_codae_autoriza_ou_nega_dieta.html'
-            dados_template['acao'] = 'NEGADA' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'AUTORIZADA'
+            dados_template['acao'] = 'negada' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'autorizada'
+        elif transicao == 'cancelar_pedido':
+            template = 'fluxo_dieta_alta_medica.html'
         else:
             template = 'fluxo_autorizar_negar_cancelar.html'
 
@@ -2307,9 +2375,18 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _cancelar_pedido_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs['justificativa']
+        alta_medica = kwargs.get('alta_medica', False)
+        assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
+        titulo = f'Status de solicitação - "{self.aluno.codigo_eol} - {self.aluno.nome}"'
+        if alta_medica:
+            titulo = self.str_dre_lote_escola
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
                                   usuario=user,
                                   justificativa=justificativa)
+        if self.tipo_solicitacao != 'CANCELAMENTO_DIETA':
+            self._preenche_template_e_envia_email(assunto, titulo, user,
+                                                  self._partes_interessadas_codae_cancela,
+                                                  'cancelar_pedido' if alta_medica else None)
 
     @xworkflows.after_transition('negar_cancelamento_pedido')
     def _negar_cancelamento_pedido_hook(self, *args, **kwargs):
@@ -2337,31 +2414,30 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _codae_nega_hook(self, *args, **kwargs):
         user = kwargs['user']
         assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-        titulo = f'Status de solicitação - {self.aluno.codigo_eol} - {self.aluno.nome}'
+        titulo = f'Status de solicitação - "{self.aluno.codigo_eol} - {self.aluno.nome}"'
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                   usuario=user)
         self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_autoriza_ou_nega, True)
+                                              self._partes_interessadas_codae_autoriza_ou_nega, 'codae_nega')
 
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                   usuario=user)
-        if env('DJANGO_ENV') == 'production':
-            if self.tipo_solicitacao == 'ALTERACAO_UE':
-                assunto = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
-                titulo = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
-                dieta_origem = self.aluno.dietas_especiais.filter(
-                    tipo_solicitacao='COMUM',
-                    status=self.workflow_class.CODAE_AUTORIZADO).last()
-                self._envia_email_autorizar(assunto, titulo, user,
-                                            self._partes_interessadas_codae_autoriza, dieta_origem)
-            else:
-                assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-                titulo = 'Status de Solicitação\n' + self.aluno.codigo_eol + ' ' + self.aluno.nome
-                self._preenche_template_e_envia_email(assunto, titulo, user,
-                                                      self._partes_interessadas_codae_autoriza_ou_nega, True)
+        if self.tipo_solicitacao == 'ALTERACAO_UE':
+            assunto = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
+            titulo = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
+            dieta_origem = self.aluno.dietas_especiais.filter(
+                tipo_solicitacao='COMUM',
+                status=self.workflow_class.CODAE_AUTORIZADO).last()
+            self._envia_email_autorizar(assunto, titulo, user,
+                                        self._partes_interessadas_codae_autoriza, dieta_origem)
+        else:
+            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
+            titulo = self.str_dre_lote_escola
+            self._preenche_template_e_envia_email(assunto, titulo, user,
+                                                  self._partes_interessadas_codae_autoriza_ou_nega, 'codae_autoriza')
 
     @xworkflows.after_transition('inicia_fluxo_inativacao')
     def _inicia_fluxo_inativacao_hook(self, *args, **kwargs):
@@ -2402,9 +2478,11 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _envia_email_termino(self):
         assunto = f'[SIGPAE] Prazo de fornecimento de dieta encerrado - Solicitação #{self.id_externo}'
         template = 'fluxo_dieta_especial_termina.html'
+        titulo = self.str_dre_lote_escola
         dados_template = {
             'eol_aluno': self.aluno.codigo_eol,
-            'nome_aluno': self.aluno.nome
+            'nome_aluno': self.aluno.nome,
+            'titulo': titulo
         }
         html = render_to_string(template, dados_template)
         envia_email_em_massa_task.delay(
@@ -2513,12 +2591,12 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 'ADMINISTRADOR_ESCOLA',
                 'DIRETOR',
                 'DIRETOR CEI',
-                'ADMINISTRADOR_TERCEIRIZADA',
                 'NUTRI_ADMIN_RESPONSAVEL',
                 'COORDENADOR_SUPERVISAO_NUTRICAO',
                 'ADMINISTRADOR_SUPERVISAO_NUTRICAO']
         )
-        return [usuario.email for usuario in queryset]
+        emails_terceirizadas = self.homologacao_produto.rastro_terceirizada.todos_emails_por_modulo('Gestão de Produto')
+        return [usuario.email for usuario in queryset] + emails_terceirizadas
 
     def _envia_email_recusa_reclamacao(self, log_recusa):
         html = render_to_string(
@@ -2699,3 +2777,94 @@ class FluxoSolicitacaoCadastroProduto(xwf_models.WorkflowEnabled, models.Model):
             corpo=corpo,
             html=html
         )
+
+
+class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
+    MEDICAO_ENCERRADA_PELA_CODAE = 'MEDICAO_ENCERRADA_PELA_CODAE'
+
+    states = (
+        (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
+        (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE),
+        ('codae_encerra_medicao_inicial', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENCERRADA_PELA_CODAE),
+    )
+
+    initial_state = MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+
+
+class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = SolicitacaoMedicaoInicialWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_encerra_medicao_inicial')
+    def _codae_encerra_medicao_inicial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENCERRADA_PELA_CODAE,
+                                      usuario=user)
+
+    class Meta:
+        abstract = True
+
+
+class CronogramaWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    RASCUNHO = 'RASCUNHO'
+    ENVIADO_AO_FORNECEDOR = 'ENVIADO_AO_FORNECEDOR'
+    ALTERACAO_CODAE = 'ALTERACAO_CODAE'
+    APROVADO = 'APROVADO'
+    REPROVADO = 'REPROVADO'
+    ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
+    VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
+    ENTREGA_CONFIRMADA = 'ENTREGA_CONFIRMADA'
+
+    states = (
+        (RASCUNHO, 'Rascunho'),
+        (ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
+        (ALTERACAO_CODAE, 'Alteração CODAE'),
+        (APROVADO, 'Aprovado'),
+        (REPROVADO, 'Reprovado'),
+        (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
+        (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
+        (ENTREGA_CONFIRMADA, 'Entrega Confirmada'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
+        ('fornecedor_confirma', ENVIADO_AO_FORNECEDOR, ENTREGA_CONFIRMADA),
+    )
+
+    initial_state = RASCUNHO
+
+
+class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = CronogramaWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
+                                      usuario=user)
+
+    @xworkflows.after_transition('fornecedor_confirma')
+    def _fornecedor_confirma_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
+                                      usuario=user)

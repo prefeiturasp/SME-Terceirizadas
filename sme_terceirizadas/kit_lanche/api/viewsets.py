@@ -17,26 +17,52 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...inclusao_alimentacao.api.viewsets import (
+    CodaeAutoriza,
+    CodaeQuestionaTerceirizadaResponde,
+    DREValida,
+    EscolaIniciaCancela,
+    TerceirizadaTomaCiencia
+)
 from ...relatorios.relatorios import (
     relatorio_kit_lanche_passeio,
     relatorio_kit_lanche_passeio_cei,
+    relatorio_kit_lanche_passeio_cemei,
     relatorio_kit_lanche_unificado
 )
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
 from ..filters import KitLancheFilter
-from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheUnificada
+)
 from ..utils import KitLanchePagination
 from .serializers import serializers, serializers_create, serializers_create_cei
 
 
 class KitLancheViewSet(ModelViewSet):
     lookup_field = 'uuid'
-    queryset = models.KitLanche.objects.all()
+    queryset = models.KitLanche.objects.all().order_by('nome')
     serializer_class = serializers.KitLancheSerializer
     pagination_class = KitLanchePagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = KitLancheFilter
+
+    def get_queryset(self):
+        queryset = models.KitLanche.objects.all()
+        user = self.request.user
+        if user.tipo_usuario in ['escola', 'diretoriaregional']:
+            queryset = queryset.filter(edital__uuid__in=user.vinculo_atual.instituicao.editais)
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        response_list = serializer.data
+        return Response({'results': response_list})
 
     @action(detail=False, methods=['GET'], url_path='consulta-kits')
     def lista_kits_consulta(self, request):
@@ -71,9 +97,9 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     serializer_class = serializers.SolicitacaoKitLancheAvulsaSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
@@ -305,9 +331,9 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     serializer_class = serializers.SolicitacaoKitLancheUnificadaSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarSolicitacaoUnificada)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioDiretoriaRegional,)
@@ -561,3 +587,76 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
             return Response(serializer.data)
         except Exception as e:
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
+
+
+class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, CodaeAutoriza, CodaeQuestionaTerceirizadaResponde, DREValida,
+                                       EscolaIniciaCancela, TerceirizadaTomaCiencia):
+    lookup_field = 'uuid'
+    queryset = SolicitacaoKitLancheCEMEI.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return serializers_create.SolicitacaoKitLancheCEMEICreateSerializer
+        if self.action == 'retrieve':
+            return serializers.SolicitacaoKitLancheCEMEIRetrieveSerializer
+        return serializers.SolicitacaoKitLancheCEMEISerializer
+
+    def get_permissions(self):
+        if self.action in ['list']:
+            self.permission_classes = (UsuarioEscola,)
+        elif self.action in ['retrieve', 'update']:
+            self.permission_classes = (
+                IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create', 'destroy']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(SolicitacaoKitLancheCEMEIViewSet, self).get_permissions()
+
+    def get_queryset(self):
+        queryset = SolicitacaoKitLancheCEMEI.objects.all()
+        user = self.request.user
+        if user.tipo_usuario == 'escola':
+            queryset = queryset.filter(escola=user.vinculo_atual.instituicao)
+        if user.tipo_usuario == 'diretoriaregional':
+            queryset = queryset.filter(rastro_dre=user.vinculo_atual.instituicao)
+        if 'status' in self.request.query_params:
+            queryset = queryset.filter(status=self.request.query_params.get('status').upper())
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        solicitacao_kit_lanche_cemei = self.get_object()
+        if not solicitacao_kit_lanche_cemei.pode_excluir:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioDiretoriaRegional,))
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        kit_lanches_cemei = diretoria_regional.solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(kit_lanches_cemei)
+        serializer = serializers.SolicitacaoKitLancheCEMEIRetrieveSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def solicitacoes_codae(self, request, filtro_aplicado='sem_filtro'):
+        usuario = request.user
+        codae = usuario.vinculo_atual.instituicao
+        kit_lanches_cemei = codae.solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(kit_lanches_cemei)
+        serializer = serializers.SolicitacaoKitLancheCEMEIRetrieveSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, url_path=constants.RELATORIO,
+            methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_kit_lanche_passeio_cemei(request, solicitacao=self.get_object())

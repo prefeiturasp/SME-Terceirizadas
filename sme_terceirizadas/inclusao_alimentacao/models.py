@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
@@ -9,6 +10,7 @@ from ..dados_comuns.behaviors import (
     DiasSemana,
     IntervaloDeDia,
     Logs,
+    MatriculadosQuandoCriado,
     Nomeavel,
     SolicitacaoForaDoPrazo,
     TemChaveExterna,
@@ -23,6 +25,8 @@ from .managers import (
     GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager,
     GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
     GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager,
+    InclusaoDeAlimentacaoCemeiDestaSemanaManager,
+    InclusaoDeAlimentacaoCemeiDesteMesManager,
     InclusaoDeAlimentacaoDeCeiDestaSemanaManager,
     InclusaoDeAlimentacaoDeCeiDesteMesManager,
     InclusaoDeAlimentacaoDeCeiVencidosDiasManager,
@@ -32,10 +36,11 @@ from .managers import (
 )
 
 
-class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), TemChaveExterna):
-    numero_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), DiasSemana, TemChaveExterna):
+    numero_alunos = models.IntegerField(null=True, blank=True,)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
+    observacao = models.CharField('Observação', blank=True, max_length=1000)
     grupo_inclusao_normal = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                               on_delete=models.CASCADE,
                                               null=True, blank=True,
@@ -72,7 +77,7 @@ class MotivoInclusaoContinua(ExportModelOperationsMixin('motivo_inclusao_continu
 
 class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'), IntervaloDeDia, Descritivel,
                                   TemChaveExterna,
-                                  DiasSemana, FluxoAprovacaoPartindoDaEscola,
+                                  FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
                                   CriadoEm, Logs, TemPrioridade, SolicitacaoForaDoPrazo,
                                   TemTerceirizadaConferiuGestaoAlimentacao):
@@ -83,7 +88,6 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_alimentacao_continua')
-    observacao = models.CharField('Observação', blank=True, max_length=1000)
     objects = models.Manager()  # Manager Padrão
     desta_semana = InclusoesDeAlimentacaoContinuaDestaSemanaManager()
     deste_mes = InclusoesDeAlimentacaoContinuaDesteMesManager()
@@ -95,6 +99,16 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
         if self.data_final < data:
             data = self.data_final
         return data
+
+    @property
+    def observacoes(self):
+        return ', '.join(self.quantidades_periodo.exclude(
+            Q(observacao='') | Q(observacao__isnull=True)
+        ).values_list('observacao', flat=True))
+
+    @property
+    def numero_alunos(self):
+        return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
 
     @classmethod
     def get_solicitacoes_rascunho(cls, usuario):
@@ -138,7 +152,7 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
         )
 
     def __str__(self):
-        return f'de {self.data_inicial} até {self.data_final} para {self.escola} para {self.dias_semana_display()}'
+        return f'de {self.data_inicial} até {self.data_final} para {self.escola}'
 
     class Meta:
         verbose_name = 'Inclusão de alimentação contínua'
@@ -166,6 +180,8 @@ class InclusaoAlimentacaoNormal(ExportModelOperationsMixin('inclusao_normal'), T
                                 TemTerceirizadaConferiuGestaoAlimentacao):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
+    cancelado = models.BooleanField('Esta cancelado?', default=False)
+    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                        blank=True, null=True,
                                        on_delete=models.CASCADE,
@@ -224,6 +240,21 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
         inclusao_normal = self.inclusoes_normais.order_by('data').first()
         return inclusao_normal.data if inclusao_normal else ''
 
+    @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in
+                          self.inclusoes_normais.order_by('data').values_list('data', flat=True)])
+
+    @property
+    def numero_alunos(self):
+        return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
+
+    @property
+    def observacoes(self):
+        return ', '.join(self.quantidades_periodo.exclude(
+            Q(observacao='') | Q(observacao__isnull=True)
+        ).values_list('observacao', flat=True))
+
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
         resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
@@ -263,13 +294,14 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
         verbose_name_plural = 'Grupos de inclusão de alimentação normal'
 
 
-class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExterna):
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExterna, MatriculadosQuandoCriado):
     inclusao_alimentacao_da_cei = models.ForeignKey('InclusaoAlimentacaoDaCEI',
                                                     blank=True, null=True,
                                                     on_delete=models.CASCADE,
                                                     related_name='quantidade_alunos_da_inclusao')
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
     quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    periodo = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING, blank=True, null=True)
 
     def __str__(self):
         return f'De: {self.faixa_etaria.inicio} até: {self.faixa_etaria.fim} meses - {self.quantidade_alunos} alunos'
@@ -288,13 +320,21 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
                                related_name='grupos_inclusoes_por_cei')
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
-    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
-    tipos_alimentacao = models.ManyToManyField('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE')
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING, blank=True, null=True)
+    tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
 
     objects = models.Manager()  # Manager Padrão
     desta_semana = InclusaoDeAlimentacaoDeCeiDestaSemanaManager()
     deste_mes = InclusaoDeAlimentacaoDeCeiDesteMesManager()
     vencidos = InclusaoDeAlimentacaoDeCeiVencidosDiasManager()
+
+    @property
+    def numero_alunos(self):
+        return self.quantidade_alunos_da_inclusao.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
+
+    @property
+    def observacao(self):
+        return None
 
     @property
     def quantidade_alunos_por_faixas_etarias(self):
@@ -332,3 +372,114 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     class Meta:
         verbose_name = 'Inclusão de alimentação da CEI'
         verbose_name_plural = 'Inclusões de alimentação da CEI'
+
+
+class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm, Logs,
+                                 SolicitacaoForaDoPrazo, CriadoPor, TemIdentificadorExternoAmigavel, TemPrioridade,
+                                 TemTerceirizadaConferiuGestaoAlimentacao):
+    DESCRICAO = 'Inclusão de Alimentação CEMEI'
+
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='inclusoes_de_alimentacao_cemei')
+
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = InclusaoDeAlimentacaoCemeiDestaSemanaManager()
+    deste_mes = InclusaoDeAlimentacaoCemeiDesteMesManager()
+
+    @property
+    def data(self):
+        dia_motivo = self.dias_motivos_da_inclusao_cemei.order_by('data').first()
+        return dia_motivo.data if dia_motivo else ''
+
+    @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in
+                          self.dias_motivos_da_inclusao_cemei.order_by('data').values_list('data', flat=True)])
+
+    @property
+    def observacao(self):
+        return None
+
+    @property
+    def numero_alunos(self):
+        total = 0
+        total += self.quantidade_alunos_emei_da_inclusao_cemei.aggregate(
+            Sum('quantidade_alunos'))['quantidade_alunos__sum'] or 0
+        total += self.quantidade_alunos_cei_da_inclusao_cemei.aggregate(
+            Sum('quantidade_alunos'))['quantidade_alunos__sum'] or 0
+        return total
+
+    @property
+    def inclusoes(self):
+        return self.dias_motivos_da_inclusao_cemei
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CEMEI,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
+        )
+
+    def __str__(self):
+        return f'Inclusão de Alimentação CEMEI cód: {self.id_externo}'
+
+    class Meta:
+        verbose_name = 'Inclusão de alimentação CEMEI'
+        verbose_name_plural = 'Inclusões de alimentação CEMEI'
+
+
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI(TemChaveExterna, MatriculadosQuandoCriado):
+    inclusao_alimentacao_cemei = models.ForeignKey('InclusaoDeAlimentacaoCEMEI',
+                                                   on_delete=models.CASCADE,
+                                                   related_name='quantidade_alunos_cei_da_inclusao_cemei')
+    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'De: {self.faixa_etaria.inicio} até: {self.faixa_etaria.fim} meses - {self.quantidade_alunos} alunos'
+
+    class Meta:
+        verbose_name = 'Quantidade de alunos por faixa etária da inclusao de alimentação CEMEI'
+        verbose_name_plural = 'Quantidade de alunos por faixa etária da inclusao de alimentação CEMEI'
+
+
+class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI(TemChaveExterna, MatriculadosQuandoCriado):
+    inclusao_alimentacao_cemei = models.ForeignKey('InclusaoDeAlimentacaoCEMEI',
+                                                   on_delete=models.CASCADE,
+                                                   related_name='quantidade_alunos_emei_da_inclusao_cemei')
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'{self.periodo_escolar.nome} - {self.quantidade_alunos} alunos'
+
+    class Meta:
+        verbose_name = 'Quantidade de alunos EMEI por inclusao de alimentação CEMEI'
+        verbose_name_plural = 'Quantidade de alunos EMEI por inclusao de alimentação CEMEI'
+
+
+class DiasMotivosInclusaoDeAlimentacaoCEMEI(TemData, TemChaveExterna):
+    inclusao_alimentacao_cemei = models.ForeignKey('InclusaoDeAlimentacaoCEMEI',
+                                                   on_delete=models.CASCADE,
+                                                   related_name='dias_motivos_da_inclusao_cemei')
+    motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
+    cancelado = models.BooleanField('Esta cancelado?', default=False)
+    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
+
+    def __str__(self):
+        if self.outro_motivo:
+            return f'Dia {self.data} - Outro motivo: {self.outro_motivo}'
+        return f'Dia {self.data} {self.motivo}'
+
+    class Meta:
+        verbose_name = 'Diaa e motivo inclusão de alimentação CEMEI'
+        verbose_name_plural = 'Dias e motivos inclusçao de alimentação CEMEI'
+        ordering = ('data',)

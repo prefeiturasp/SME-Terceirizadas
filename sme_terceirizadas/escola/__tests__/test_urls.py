@@ -1,6 +1,9 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 
 from ..models import FaixaEtaria, MudancaFaixasEtarias
+from ..services import NovoSGPServicoLogado
+from .conftest import mocked_foto_aluno_novosgp, mocked_response, mocked_token_novosgp
 
 ENDPOINT_ALUNOS_POR_PERIODO = 'quantidade-alunos-por-periodo'
 ENDPOINT_LOTES = 'lotes'
@@ -152,3 +155,94 @@ def test_url_endpoint_lista_faixas_etarias(client_autenticado_coordenador_codae,
     for (expected, actual) in zip(ativas, json['results']):
         assert actual['inicio'] == expected.inicio
         assert actual['fim'] == expected.fim
+
+
+def test_url_endpoint_get_foto_aluno(client_autenticado_da_escola, aluno, monkeypatch):
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
+                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_foto_aluno',
+                        lambda p1, p2: mocked_response(mocked_foto_aluno_novosgp(), 200))
+    response = client_autenticado_da_escola.get(f'/alunos/{aluno.codigo_eol}/ver-foto/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['data'] == mocked_foto_aluno_novosgp()
+
+
+def test_url_endpoint_get_foto_aluno_204(client_autenticado_da_escola, aluno, monkeypatch):
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
+                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_foto_aluno',
+                        lambda p1, p2: mocked_response(mocked_foto_aluno_novosgp(), 204))
+    response = client_autenticado_da_escola.get(f'/alunos/{aluno.codigo_eol}/ver-foto/')
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_url_endpoint_get_foto_aluno_token_invalido(client_autenticado_da_escola, aluno, monkeypatch):
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
+                        lambda p1: mocked_response(None, 204))
+    response = client_autenticado_da_escola.get(f'/alunos/{aluno.codigo_eol}/ver-foto/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()['detail'] == 'Não foi possível logar no sistema novosgp'
+
+
+def test_url_endpoint_update_foto_aluno(client_autenticado_da_escola, aluno, monkeypatch):
+    foto = SimpleUploadedFile('file.jpg', str.encode('file_content'), content_type='image/jpg')
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
+                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+    monkeypatch.setattr(NovoSGPServicoLogado, 'atualizar_foto_aluno',
+                        lambda p1, p2, p3: mocked_response('c8c564b6-ea7f-4549-9474-6234e2406881', 200))
+    response = client_autenticado_da_escola.post(f'/alunos/{aluno.codigo_eol}/atualizar-foto/', {'file': foto})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['data'] == 'c8c564b6-ea7f-4549-9474-6234e2406881'
+
+
+def test_url_endpoint_update_foto_aluno_error(client_autenticado_da_escola, aluno, monkeypatch):
+    foto = SimpleUploadedFile('file.jpg', str.encode('file_content'), content_type='image/jpg')
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
+                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+    monkeypatch.setattr(NovoSGPServicoLogado, 'atualizar_foto_aluno',
+                        lambda p1, p2, p3: mocked_response(None, 400))
+    response = client_autenticado_da_escola.post(f'/alunos/{aluno.codigo_eol}/atualizar-foto/', {'file': foto})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_endpoint_update_foto_aluno_token_invalido(client_autenticado_da_escola, aluno, monkeypatch):
+    foto = SimpleUploadedFile('file.jpg', str.encode('file_content'), content_type='image/jpg')
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
+                        lambda p1: mocked_response(mocked_token_novosgp(), 204))
+    response = client_autenticado_da_escola.post(f'/alunos/{aluno.codigo_eol}/atualizar-foto/', {'file': foto})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()['detail'] == 'Não foi possível logar no sistema novosgp'
+
+
+def test_url_endpoint_deletar_foto_aluno(client_autenticado_da_escola, aluno, monkeypatch):
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
+                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+    monkeypatch.setattr(NovoSGPServicoLogado, 'deletar_foto_aluno',
+                        lambda p1, p2: mocked_response(None, 200))
+    response = client_autenticado_da_escola.delete(f'/alunos/{aluno.codigo_eol}/deletar-foto/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_deletar_foto_aluno_204(client_autenticado_da_escola, aluno, monkeypatch):
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
+                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+    monkeypatch.setattr(NovoSGPServicoLogado, 'deletar_foto_aluno',
+                        lambda p1, p2: mocked_response(None, 204))
+    response = client_autenticado_da_escola.delete(f'/alunos/{aluno.codigo_eol}/deletar-foto/')
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_url_endpoint_deletar_foto_aluno_token_invalido(client_autenticado_da_escola, aluno, monkeypatch):
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
+                        lambda p1: mocked_response(None, 204))
+    response = client_autenticado_da_escola.delete(f'/alunos/{aluno.codigo_eol}/deletar-foto/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()['detail'] == 'Não foi possível logar no sistema novosgp'
+
+
+def test_escola_simplissima_dre_unpaginated(client_autenticado_da_dre, diretoria_regional):
+    assert diretoria_regional.escolas.count() == 3
+    response = client_autenticado_da_dre.get(
+        f'/escolas-simplissima-com-dre-unpaginated/terc-total/?dre=d305add2-f070-4ad3-8c17-ba9664a7c655')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 3

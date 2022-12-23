@@ -51,6 +51,7 @@ def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_die
                        codigo_eol='123456', data_nascimento='2000-01-01')
     solic = mommy.make(SolicitacaoDietaEspecial,
                        rastro_escola=escola,
+                       rastro_terceirizada=escola.lote.terceirizada,
                        aluno=aluno,
                        criado_por=user)
     solic.inicia_fluxo(user=user)

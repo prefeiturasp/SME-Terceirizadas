@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from rest_framework.pagination import PageNumberPagination
 
@@ -17,6 +17,8 @@ def meses_para_mes_e_ano_string(meses):
 
     if anos > 0:
         saida = f'{anos} ' + ('ano' if anos == 1 else 'anos')
+        if anos == 6:
+            return saida
         if meses > 0:
             saida += ' e '
     if anos == 0 or meses > 0:
@@ -30,6 +32,18 @@ def remove_acentos(texto):
     resultado = re.sub(u'[èéêë]', 'e', resultado)
     resultado = re.sub(u'[ìíîï]', 'i', resultado)
     return resultado
+
+
+def update_datetime_LogAlunosMatriculadosPeriodoEscola():
+    from sme_terceirizadas.escola.models import (
+        LogAlunosMatriculadosPeriodoEscola,
+    )
+    hoje = date.today()
+    logs_hoje = LogAlunosMatriculadosPeriodoEscola.objects.filter(criado_em__date=hoje)
+
+    for log in logs_hoje:
+        log.criado_em = log.criado_em - timedelta(days=1)
+        log.save()
 
 
 def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
@@ -72,6 +86,27 @@ def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
             tipo_turma=tipo_turma,
             escola=escola).exclude(periodo_escolar__in=periodos).delete()
     AlunosMatriculadosPeriodoEscola.objects.bulk_update(objs, ['quantidade_alunos'])
+    update_datetime_LogAlunosMatriculadosPeriodoEscola()
+
+
+def duplica_dia_anterior(dre, ontem, tipo_turma_name):
+    from sme_terceirizadas.escola.models import (
+        LogAlunosMatriculadosPeriodoEscola,
+    )
+    logs = LogAlunosMatriculadosPeriodoEscola.objects.filter(escola__diretoria_regional=dre,
+                                                             criado_em__date=ontem,
+                                                             tipo_turma=tipo_turma_name)
+    logs_para_criar = []
+    for log in logs:
+        log = LogAlunosMatriculadosPeriodoEscola(
+            escola=log.escola,
+            periodo_escolar=log.periodo_escolar,
+            quantidade_alunos=log.quantidade_alunos,
+            tipo_turma=tipo_turma_name
+        )
+        logs_para_criar.append(log)
+    LogAlunosMatriculadosPeriodoEscola.objects.bulk_create(logs_para_criar)
+    update_datetime_LogAlunosMatriculadosPeriodoEscola()
 
 
 def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
@@ -79,6 +114,7 @@ def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
         DiretoriaRegional
     )
     hoje = date.today()
+    ontem = date.today() - timedelta(days=1)
     dres = DiretoriaRegional.objects.all()
     total = len(dres)
     cont = 1
@@ -95,7 +131,9 @@ def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
 
             registra_quantidade_matriculados(resposta, hoje, tipo_turma.name)
         except Exception as e:
-            logger.error(f'Houve um erro inesperado ao consultar a Diretoria Regional {dre} : {str(e)}')
+            duplica_dia_anterior(dre, ontem, tipo_turma.name)
+            logger.error(f'Houve um erro inesperado ao consultar a Diretoria Regional {dre} : {str(e)}; '
+                         f'as quantidades de alunos foram duplicadas do dia anterior')
         cont += 1
 
 
@@ -117,8 +155,8 @@ def processa_dias_letivos(lista_dias_letivos, escola):
             dia_calendario.save()
 
 
-def calendario_sgp():
-    from calendar import monthrange
+def calendario_sgp():  # noqa C901
+    import pandas as pd
 
     from sme_terceirizadas.escola.models import Escola
     from sme_terceirizadas.escola.services import NovoSGPServico
@@ -131,9 +169,9 @@ def calendario_sgp():
         logger.debug(f"""Consultando dias letivos da escola com Nome: {escola.nome}
         e código eol: {escola.codigo_eol}, data: {hoje.strftime('%Y-%m-%d')}""")
         try:
-            ultimo_dia_do_mes_atual = monthrange(year=hoje.year, month=hoje.month)[1]
             data_inicio = hoje.strftime('%Y-%m-%d')
-            data_fim = datetime(year=hoje.year, month=hoje.month, day=ultimo_dia_do_mes_atual).strftime('%Y-%m-%d')
+            data_final = (hoje + pd.DateOffset(months=3)).date()
+            data_fim = data_final.strftime('%Y-%m-%d')
 
             resposta = NovoSGPServico.dias_letivos(
                 codigo_eol=escola.codigo_eol,
@@ -145,13 +183,16 @@ def calendario_sgp():
         except Exception as e:
             logger.error(f'Dados não encontrados para escola {escola} : {str(e)}')
             logger.debug('Tentando buscar dias letivos no novo sgp para turno da noite')
-            resposta = NovoSGPServico.dias_letivos(
-                codigo_eol=escola.codigo_eol,
-                data_inicio=data_inicio,
-                data_fim=data_fim,
-                tipo_turno=3)
+            try:
+                resposta = NovoSGPServico.dias_letivos(
+                    codigo_eol=escola.codigo_eol,
+                    data_inicio=data_inicio,
+                    data_fim=data_fim,
+                    tipo_turno=3)
 
-            processa_dias_letivos(resposta, escola)
+                processa_dias_letivos(resposta, escola)
+            except Exception as e:
+                logger.error(f'Erro ao buscar por turno noite para escola {escola} : {str(e)}')
 
 
 class EscolaSimplissimaPagination(PageNumberPagination):

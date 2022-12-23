@@ -84,6 +84,19 @@ def tem_questionamentos(logs):
 
 
 @register.filter
+def tem_cancelamento(logs):
+    return logs.filter(status_evento__in=[LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                                          LogSolicitacoesUsuario.DRE_NAO_VALIDOU,
+                                          LogSolicitacoesUsuario.CODAE_NEGOU,
+                                          LogSolicitacoesUsuario.DRE_CANCELOU]).exists()
+
+
+@register.filter
+def tem_cancelamento_parcial(dias):
+    return dias.filter(cancelado=True).exists()
+
+
+@register.filter
 def concatena_str(query_set):
     return ', '.join([p.nome for p in query_set])
 
@@ -97,7 +110,7 @@ def concatena_string(lista):
 def concatena_label(query_set):
     label = ''
     for item in query_set:
-        label += ' e '.join([tp.nome for tp in item.tipos_alimentacao.all()])
+        label += ' e '.join([item.nome])
         if item != list(query_set)[-1]:
             label += ', '
     return label
@@ -251,3 +264,13 @@ def embalagens_filter(embalagens, tipo):
             return emb
     else:
         return False
+
+
+@register.filter
+def existe_inclusao_cancelada(solicitacao):
+    return solicitacao.inclusoes.filter(cancelado=True).exists()
+
+
+@register.filter
+def inclusoes_canceladas(solicitacao):
+    return solicitacao.inclusoes.filter(cancelado=True)

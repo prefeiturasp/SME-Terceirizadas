@@ -5,7 +5,7 @@ from celery import shared_task
 from django.core import management
 from requests import ConnectionError
 
-from sme_terceirizadas.escola.utils_escola import atualiza_codigo_codae_das_escolas
+from sme_terceirizadas.escola.utils_escola import atualiza_codigo_codae_das_escolas, atualiza_tipo_gestao_das_escolas
 from sme_terceirizadas.perfil.models.perfil import Vinculo
 
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, InversaoCardapio
@@ -68,6 +68,16 @@ def atualiza_codigo_codae_das_escolas_task(path_planilha, id_planilha):
 @shared_task(
     autoretry_for=(ConnectionError,),
     retry_backoff=2,
+    retry_kwargs={'max_retries': 3},
+)
+def atualiza_tipo_gestao_das_escolas_task(path_planilha, id_planilha):
+    logger.debug(f'Iniciando task atualiza_tipo_gestao_das_escolas às {datetime.datetime.now()}')
+    atualiza_tipo_gestao_das_escolas(path_planilha, id_planilha)
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=2,
     retry_kwargs={'max_retries': 3}
 )
 def nega_solicitacoes_vencidas():
@@ -102,11 +112,11 @@ def nega_solicitacoes_vencidas():
     for classe_solicitacao in classes_solicitacoes:
         solicitacoes = classe_solicitacao.objects.filter(uuid__in=uuids_solicitacoes_dre_a_validar)
         for solicitacao in solicitacoes.all():
-            usuario = Vinculo.objects.filter(
+            vinculo_dre = Vinculo.objects.filter(
                 object_id=solicitacao.escola.diretoria_regional.id,
                 content_type__model='diretoriaregional', ativo=True
-            ).get().usuario
-            solicitacao.dre_nao_valida(user=usuario, justificativa=justificativa)
+            ).first()
+            solicitacao.dre_nao_valida(user=vinculo_dre.usuario if vinculo_dre else None, justificativa=justificativa)
 
 
 @shared_task(

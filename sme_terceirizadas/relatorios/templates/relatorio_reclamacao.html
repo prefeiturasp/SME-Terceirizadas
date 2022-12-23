@@ -32,7 +32,7 @@
           <label>Reclamação #{{reclamacao.id_externo}} </label>
         </div>
         <div class="informacao-dois">
-        <p>Status Reclamação <label>{{reclamacao.status_titulo}}</label></p>
+        <p>Status Reclamação: <label>{{reclamacao.status.state.title}}</label></p>
         </div>
       </div>
        <div class="quatro-informacoes">
@@ -60,7 +60,7 @@
         </div>
         <div class="informacao-dois">
           <label>Justificativa</label>
-          <p>{{reclamacao.justificativa|safe}}</p>
+          <p>{{reclamacao.reclamacao|safe}}</p>
         </div>
         </div>
       {% for log in reclamacao.logs.all %}

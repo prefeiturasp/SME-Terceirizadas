@@ -8,31 +8,59 @@
       {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <table class='info-geral-inclusao'>
       <tr>
-        <th>Período</th>
         <th>Motivo</th>
-        <th>Dias da Semana</th>
+        <th>De</th>
+        <th>Até</th>
       </tr>
       <tr>
-        <td>De {{ solicitacao.data_inicial }} até {{ solicitacao.final }}</td>
         <td>{{ solicitacao.motivo.nome }}</td>
-        <td>{{ solicitacao.dias_semana_display }}</td>
+        <td>{{ solicitacao.data_inicial }}</td>
+        <td>{{ solicitacao.data_final }}</td>
       </tr>
     </table>
     <div class="tabela-sem-borda">
       <table class="thead-black">
         <thead>
-        <tr>
-          <th>Período</th>
-          <th>Tipos de Alimentação</th>
-          <th>Nº de Alunos</th>
-        </tr>
+          <tr>
+            {% if solicitacao.motivo.nome != 'ETEC'%}
+              <th style="width: 30%">Repetir</th>
+            {%endif%}
+            <th>Período</th>
+            <th>Tipos de Alimentação</th>
+            <th>Nº de Alunos</th>
+          </tr>
         </thead>
         <tbody>
-        {% for  quantidade_periodo in solicitacao.quantidades_por_periodo.all %}
-          <tr>
+        {% for quantidade_periodo in solicitacao.quantidades_por_periodo.all %}
+          <tr class="sem-border-bottom">
+            {% if solicitacao.motivo.nome != 'ETEC'%}
+              <td style="width: 30%" class="weekly">
+                {% for key, value in week.items %}
+                  {% if value in quantidade_periodo.dias_semana %}
+                    <span class="week-circle-clicked">
+                      {{ key.0 }}
+                    </span>
+                  {% else %}
+                    <span class="week-circle">
+                      {{ key.0 }}
+                    </span>
+                  {% endif %}
+                {% endfor %}
+              </td>
+            {%endif%}
             <td>{{ quantidade_periodo.periodo_escolar }}</td>
             <td>{{ quantidade_periodo.tipos_alimentacao.all | concatena_label }}</td>
             <td>{{ quantidade_periodo.numero_alunos }}</td>
+          </tr>
+          <tr>
+            {% if solicitacao.motivo.nome != 'ETEC'%}
+              <td colspan="4">
+            {% else %}
+              <td>
+            {%endif%}
+              <p>Observações:</p>
+              <p>{{ quantidade_periodo.observacao | safe }}</p>
+            </td>
           </tr>
         {% endfor %}
         </tbody>

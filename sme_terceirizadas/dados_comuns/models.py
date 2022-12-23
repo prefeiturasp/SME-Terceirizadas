@@ -78,7 +78,12 @@ class LogSolicitacoesUsuario(
         DILOG_NEGA_ALTERACAO,
         CANCELADO_ALUNO_MUDOU_ESCOLA,
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-    ) = range(54)
+        MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
+        MEDICAO_ENCERRADA_PELA_CODAE,
+        CRONOGRAMA_CRIADO,
+        CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
+        CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
+    ) = range(59)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -173,6 +178,11 @@ class LogSolicitacoesUsuario(
             CANCELADO_ALUNO_NAO_PERTENCE_REDE,
             'Cancelamento para aluno não matriculado na rede municipal',
         ),
+        (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
+        (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
+        (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
+        (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
+        (CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR, 'Entrega Confirmada'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -194,7 +204,11 @@ class LogSolicitacoesUsuario(
         SOLICITACAO_REMESSA_PAPA,
         SOLICITACAO_DE_ALTERACAO_REQUISICAO,
         ABASTECIMENTO_GUIA_DE_REMESSA,
-    ) = range(15)
+        MEDICAO_INICIAL,
+        INCLUSAO_ALIMENTACAO_CEMEI,
+        SOLICITACAO_KIT_LANCHE_CEMEI,
+        CRONOGRAMA
+    ) = range(19)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -213,6 +227,10 @@ class LogSolicitacoesUsuario(
         (SOLICITACAO_REMESSA_PAPA, 'Solicitação de remessa'),
         (SOLICITACAO_DE_ALTERACAO_REQUISICAO, 'Solicitação de Ateração de requisição'),
         (ABASTECIMENTO_GUIA_DE_REMESSA, 'Abastecimento de guia de remessa'),
+        (MEDICAO_INICIAL, 'Solicitação de medição inicial'),
+        (INCLUSAO_ALIMENTACAO_CEMEI, 'Inclusão de Alimentação CEMEI'),
+        (SOLICITACAO_KIT_LANCHE_CEMEI, 'Solicitação de kit lanche CEMEI'),
+        (CRONOGRAMA, 'Cronograma')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -224,6 +242,9 @@ class LogSolicitacoesUsuario(
     solicitacao_tipo = models.PositiveSmallIntegerField(choices=TIPOS_SOLICITACOES)
     uuid_original = models.UUIDField()
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+
+    class Meta:
+        ordering = ('-criado_em',)
 
     @property
     def status_evento_explicacao(self):

@@ -96,10 +96,75 @@
 
     }
 
+    tr {
+      border-bottom: 1px solid $preto;
+      &.sem-border-bottom {
+        border-bottom: none;
+      }
+    }
+
+    .ficha-produto-body {
+      td {
+        div {
+          background: $cinza-claro;
+          padding: 10px;
+          border: 1px solid $cinza-meio-claro;
+          border-radius: 4px;
+        }
+      }
+    }
+
     th, td {
       padding: 0.5em;
       text-align: left;
-      border-bottom: 1px solid $preto;
+    }
+  }
+
+  .tabela-info-nutricional {
+    margin-top: 1em;
+    padding: 0;
+
+    table {
+      font-size: 14px;
+      width: 100%;
+      border-collapse: collapse;
+
+      thead {
+        background-color: $cinza-claro
+      }
+
+      tbody {
+        color: #686868;
+        border: 1px solid #C0C0C0;
+      }
+    }
+
+    td {
+      border: 1px solid #C0C0C0;
+    }
+
+    th, td {
+      padding: 0.5em;
+      text-align: left;
+    }
+  }
+
+  .imagem {
+    text-align: left;
+  }
+
+  .imagem-produto {
+    width: 4cm;
+    height: 4cm;
+    padding: 2px;
+    background: $cinza-claro;
+  }
+
+  .tabela-imagem {
+    width: 100%;
+
+    td {
+      padding-bottom: 30px;
     }
   }
 
@@ -232,8 +297,8 @@
   }
 }
 
-
 .bloco-pescritor-dieta-especial {
+
   table {
     width: 100%;
 
@@ -396,5 +461,34 @@
         }
       }
     }
+  }
+}
+
+.weekly {
+
+  .week-circle {
+    height: 20px;
+    width: 15px;
+    padding-left: 7px;
+    margin-left: 1px;
+    padding-top: 2px;
+    color: $preto;
+    background-color: #fff;
+    border: 1px solid $preto;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .week-circle-clicked {
+    height: 20px;
+    width: 15px;
+    padding-left: 7px;
+    margin-left: 1px;
+    padding-top: 2px;
+    color: #fff;
+    background-color: $preto;
+    border: 1px solid $preto;
+    border-radius: 50%;
+    display: inline-block;
   }
 }

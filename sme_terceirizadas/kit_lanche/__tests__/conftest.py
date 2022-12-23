@@ -10,6 +10,7 @@ from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflo
 from ...dados_comuns.models import TemplateMensagem
 from ...escola.models import Aluno
 from .. import models
+from ..models import KitLanche
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -37,12 +38,14 @@ def diretoria_regional():
 
 @pytest.fixture
 def escola(diretoria_regional, lote):
-    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional,
+                      uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
 
 
 @pytest.fixture
 def aluno():
-    return mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
+    return mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01',
+                      uuid='2d20157a-4e52-4d25-a4c7-9c0e6b67ee18')
 
 
 @pytest.fixture
@@ -50,8 +53,15 @@ def edital():
     return mommy.make('Edital', numero='1', objeto='lorem ipsum')
 
 
+@pytest.fixture()
+def mocks_kit_lanche_cemei():
+    mommy.make('KitLanche', uuid='b9c58783-9131-4e8d-a5fb-89974ca5cbfc')
+    mommy.make('FaixaEtaria', uuid='a26bcacc-a9e0-4f2d-b03d-d9d5ff63f8e7')
+    mommy.make('FaixaEtaria', uuid='2d20157a-4e52-4d25-a4c7-9c0e6b67ee18')
+
+
 @pytest.fixture
-def client_autenticado_da_escola(client, django_user_model, escola):
+def client_autenticado_da_escola(client, django_user_model, escola, aluno, mocks_kit_lanche_cemei):
     email = 'user@escola.com'
     password = DJANGO_ADMIN_PASSWORD
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
@@ -503,3 +513,41 @@ def escola_quantidade():
 @pytest.fixture
 def periodo_escolar():
     return mommy.make('PeriodoEscolar', nome='INTEGRAL')
+
+
+@pytest.fixture
+def kit_lanche_cemei():
+    kit_lanche_cemei = mommy.make(
+        'SolicitacaoKitLancheCEMEI',
+        local='Parque do Ibirapuera',
+        data='2022-10-25'
+    )
+
+    mommy.make('KitLanche', nome='KIT 1')
+    mommy.make('KitLanche', nome='KIT 2')
+    mommy.make('KitLanche', nome='KIT 3')
+    kits = KitLanche.objects.all()
+
+    solicitacao_cei = mommy.make('SolicitacaoKitLancheCEIdaCEMEI',
+                                 solicitacao_kit_lanche_cemei=kit_lanche_cemei,
+                                 kits=kits)
+    mommy.make('FaixasQuantidadesKitLancheCEIdaCEMEI',
+               solicitacao_kit_lanche_cei_da_cemei=solicitacao_cei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20)
+    mommy.make('FaixasQuantidadesKitLancheCEIdaCEMEI',
+               solicitacao_kit_lanche_cei_da_cemei=solicitacao_cei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20)
+    mommy.make('FaixasQuantidadesKitLancheCEIdaCEMEI',
+               solicitacao_kit_lanche_cei_da_cemei=solicitacao_cei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20)
+
+    mommy.make('SolicitacaoKitLancheEMEIdaCEMEI',
+               solicitacao_kit_lanche_cemei=kit_lanche_cemei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20,
+               kits=kits)
+
+    return kit_lanche_cemei

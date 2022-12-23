@@ -1,79 +1,52 @@
-{% extends 'cabecalho_relatorio_produto.html' %}
-{% load index %}
 {% load static %}
+{% load sass_tags %}
 
-{% block css %}
-<style>
-  .tabela {
-    min-height: 80px;
-    border: 1px solid black;
-    border-collapse: collapse;
-    border-style: hidden;
-    box-shadow: 0 0 0 1px black;
-    background: #FFFFFF;
-    width: 100%;
-    overflow: hidden;
-  }
-  .tabela thead tr {
-    height: 50px;
-    background: #EEEEEE;
-  }
-  .tabela-borda-arredonda {
-    border-radius: 4px;
-  }
-  .fonte {
-    font-style: normal;
-    font-weight: normal;
-    font-size: 12px;
-    text-transform: uppercase;
-    color: #000;
-  }
-  table, th, td {
-    border: 1px solid black !important;
-    padding: 10px;
-  }
-</style>
-{% endblock %}
-
-{% block conteudo %}
+<html>
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/produtos_terceirizada.scss' %}" type="text/css">
+</head>
 <header class="header">
-  <figure class="logo-titulo">
-    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
-    <h1>SISTEMA GESTÃO DO PROGRAMA DE ALIMENTAÇÃO ESCOLAR</h1>
-  </figure>
-
-  <table class="tabela tabela-borda-arredonda fonte">
-    <tr>
-      <td colspan="3" style="vertical-align: middle;">RELATÓRIO DE PRODUTOS HOMOLOGADOS AGRUPADO POR NOME E MARCA</td>
-    </tr>
-    <tr>
-      <td style="vertical-align: middle; width: 30%">Data: {{ hoje|date:"d/m/Y" }}</td>
-      <td style="vertical-align: middle; width: 40%">Nome: {% if filtros.nome_produto %}{{ filtros.nome_produto }} {% else %} Todos{% endif %}</td>
-
-      <td style="vertical-align: middle; width: 30%">Marca: {% if filtros.nome_marca %}{{ filtros.nome_marca }} {% else %} Todos{% endif %}</td>
-    </tr>
+  <section class="titulo-e-logo">
+    <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1 class='custom-title'>SIGPAE - RELATÓRIO DE PRODUTOS HOMOLOGADOS</h1>
+  </section>
+  <table class="tabela-cabecalho tabela-arredondada">
+      <tr class="custom-filtros">
+        <td>Relatório de Produtos Homologados por Nome e  Marca</td>
+        <td class="text-center">Total de itens: <b>{{ filtros.quantidade_homologados }}</b></td>
+        <td class="text-right">Data: <b>{{ hoje }}</b></td>
+      </tr>
   </table>
 </header>
-<p style="page-break-before: avoid;"></p>
-<section class="corpo-relatorio-produto">
-  <section>
-    <table class="tabela">
+<body>
+  <div class="tabela-filtro">
+    <table>
       <thead>
         <tr>
-          <th style="border-collapse: collapse; border-style: hidden; box-shadow: 0 0 0 1px black;">Nome do produto</th>
+          <th>Produto</th>
           <th>Marcas</th>
+          <th>Editais</th>
         </tr>
       </thead>
       <tbody>
-        {% for produto, marca in produtos.items %}
+        {% for grupo in produtos %}
           <tr>
-            <td>{{ produto }}</td>
-            <td>{{ marca|concatena_string }}</td>
+            <td>{{ grupo.nome }}</td>
+            {% if grupo.marcas %}
+              <td>{{ grupo.marcas }}</td>
+            {% else %}
+              <td class="text-center"> - </td>
+            {% endif %}
+            {% if grupo.editais %}
+              <td>{{ grupo.editais }}</td>
+            {% else %}
+              <td class="text-center"> - </td>
+            {% endif %}
           </tr>
         {% endfor %}
       </tbody>
     </table>
-  </section>
-</section>
-
-{% endblock %}
+  </div>
+</body>
+</html>

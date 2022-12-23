@@ -17,8 +17,8 @@ def test_inclusao_continua_serializer_validators(inclusao_alimentacao_continua_p
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
-    data_inicial, data_final, dias_semana = inclusao_alimentacao_continua_parametros
-    attrs = dict(data_inicial=data_inicial, data_final=data_final, dias_semana=dias_semana)
+    data_inicial, data_final = inclusao_alimentacao_continua_parametros
+    attrs = dict(data_inicial=data_inicial, data_final=data_final)
     quantidades_por_periodo = []
     for _ in range(4):
         qtd = mommy.make('QuantidadePorPeriodo')
@@ -44,7 +44,7 @@ def test_inclusao_continua_serializer_creators(inclusao_alimentacao_continua_par
         user = mommy.make('perfil.Usuario')
 
     motivo = mommy.make('MotivoInclusaoContinua')
-    data_inicial, data_final, dias_semana = inclusao_alimentacao_continua_parametros
+    data_inicial, data_final = inclusao_alimentacao_continua_parametros
     quantidades_por_periodo = []
     for _ in range(4):
         qtd = mommy.make('QuantidadePorPeriodo')
@@ -56,13 +56,11 @@ def test_inclusao_continua_serializer_creators(inclusao_alimentacao_continua_par
     validated_data = dict(quantidades_periodo=quantidades_por_periodo,
                           data_inicial=data_inicial,
                           data_final=data_final,
-                          dias_semana=dias_semana,
                           escola=escola,
                           motivo=motivo)
     validated_data_update = dict(quantidades_periodo=quantidades_por_periodo[:3],
                                  data_inicial=data_inicial,
                                  data_final=data_final,
-                                 dias_semana=dias_semana,
                                  escola=escola,
                                  motivo=motivo)
 
@@ -86,7 +84,7 @@ def test_grupo_inclusao_normal_serializer_creators(inclusao_alimentacao_continua
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
-    data, _, _ = inclusao_alimentacao_continua_parametros
+    data, _ = inclusao_alimentacao_continua_parametros
     quantidades_por_periodo = []
     for _ in range(4):
         qtd = mommy.make('QuantidadePorPeriodo')
@@ -124,18 +122,13 @@ def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
-    data, _, _ = inclusao_alimentacao_continua_parametros
+    data, _ = inclusao_alimentacao_continua_parametros
     quantidade_alunos_por_faixas_etarias = []
     for _ in range(5):
         quantidade = mommy.make('QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI')
         quantidade_alunos_por_faixas_etarias.append(dict(
             faixa_etaria=quantidade.faixa_etaria,
             quantidade_alunos=quantidade.quantidade_alunos))
-
-    tipos_alimentacao = []
-    for _ in range(3):
-        combo = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE')
-        tipos_alimentacao.append(combo)
 
     periodo_escolar = mommy.make('escola.PeriodoEscolar')
     motivo = mommy.make('MotivoInclusaoNormal')
@@ -144,7 +137,6 @@ def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros
     validated_data = dict(
         quantidade_alunos_por_faixas_etarias=quantidade_alunos_por_faixas_etarias,
         escola=escola,
-        tipos_alimentacao=tipos_alimentacao,
         periodo_escolar=periodo_escolar,
         motivo=motivo,
         data=data
@@ -154,7 +146,6 @@ def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros
 
     validated_data_update = dict(quantidade_alunos_por_faixas_etarias=quantidade_alunos_por_faixas_etarias,
                                  escola=escola,
-                                 tipos_alimentacao=tipos_alimentacao,
                                  periodo_escolar=periodo_escolar,
                                  motivo=motivo,
                                  data=data)

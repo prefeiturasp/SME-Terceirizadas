@@ -1,3 +1,4 @@
+import environ
 from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
@@ -16,9 +17,17 @@ from ..models import (
 
 
 class AnexoLogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField()
+    arquivo_url = serializers.SerializerMethodField()
+
+    def get_arquivo_url(self, instance):
+        env = environ.Env()
+        api_url = env.str('URL_ANEXO', default='http://localhost:8000')
+        return f'{api_url}{instance.arquivo.url}'
+
     class Meta:
         model = AnexoLogSolicitacoesUsuario
-        fields = ('nome', 'arquivo')
+        fields = ('nome', 'arquivo', 'arquivo_url')
 
 
 class LogSolicitacoesUsuarioComAnexosSerializer(serializers.ModelSerializer):
@@ -79,7 +88,10 @@ class LogSolicitacoesSerializer(serializers.ModelSerializer):
 
 
 class LogSolicitacoesUsuarioComVinculoSerializer(LogSolicitacoesUsuarioSerializer):
-    nome_instituicao = serializers.CharField(source='usuario.vinculo_atual.instituicao.nome')
+    nome_instituicao = serializers.SerializerMethodField()
+
+    def get_nome_instituicao(self, obj):
+        return obj.usuario.vinculo_atual.instituicao.nome if obj.usuario and obj.usuario.vinculo_atual else None
 
     class Meta:
         model = LogSolicitacoesUsuario
@@ -104,6 +116,12 @@ class ContatoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contato
         exclude = ('id',)
+
+
+class ContatoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contato
+        fields = ('nome', 'telefone', 'email')
 
 
 class CategoriaPerguntaFrequenteSerializer(serializers.ModelSerializer):

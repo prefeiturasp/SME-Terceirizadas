@@ -77,7 +77,14 @@ class SolicitacaoService(ServiceBase):
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
         try:
-            ArqCancelamento.cancel(user)
+            confirma_cancelamento = ArqCancelamento.cancel(user)
+            if confirma_cancelamento:
+                status = 'canc'
+                msg = 'Cancelamento realizado com sucesso'
+            else:
+                status = 'pend'
+                msg = 'Solicitação de cancelamento recebida com sucesso. Pendente de confirmação do distribuidor'
+            return SoapResponse(str_status=status, str_menssagem=msg)
         except ObjectDoesNotExist as e:
             logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
@@ -94,8 +101,6 @@ class SolicitacaoService(ServiceBase):
             msg = f'Houve um erro ao receber a solicitação de cancelamento: {str(e)}'
             logger.info(msg)
             return SoapResponse(str_status='false', str_menssagem=msg)
-
-        return SoapResponse(str_status='true', str_menssagem='Solicitação de cancelamento recebida com sucesso')
 
 
 def _method_return_string(ctx):
@@ -119,6 +124,7 @@ soap_app = Application(
 django_soap_application = DjangoApplication(soap_app)
 if API_URL:
     django_soap_application.doc.wsdl11.build_interface_document(API_URL + '/webserver/solicitacao-remessa/')
+    django_soap_application.max_content_length = 50 * 1024 * 1024
 
 solicitacao_application = csrf_exempt(django_soap_application)
 

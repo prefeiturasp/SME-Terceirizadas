@@ -15,8 +15,8 @@ def test_url_authorized_numeros(client_autenticado_dilog, guia):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_authorized_inconsistencias(client_autenticado_dilog, guia):
-    response = client_autenticado_dilog.get('/guias-da-requisicao/inconsistencias/')
+def test_url_authorized_inconsistencias(client_autenticado_codae_dilog, guia):
+    response = client_autenticado_codae_dilog.get('/guias-da-requisicao/inconsistencias/')
     assert response.status_code == status.HTTP_200_OK
 
 
@@ -51,7 +51,7 @@ def test_url_get_guia_conferencia_uuid_invalido(client_autenticado_escola_abaste
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_url_get_guia_conferencia(client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado):
+def test_url_get_guia_conferencia(client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado, escola):
     response = client_autenticado_escola_abastecimento.get(
         '/guias-da-requisicao/guia-para-conferencia/?uuid=' + str(guia_com_escola_client_autenticado.uuid)
     )
@@ -93,8 +93,9 @@ def test_url_registrar_insucesso_entrega(client_autenticado_distribuidor, guia_p
         'nome_motorista': 'José',
         'placa_veiculo': 'AAABV44',
         'hora_tentativa': '03:04',
-        'motivo': 'UNIDADE_FECHADA',
+        'motivo': 'OUTROS',
         'justificativa': 'Unidade estava fechada.',
+        'outro_motivo': 'Incendio na escola'
     }
 
     response = client_autenticado_distribuidor.post(

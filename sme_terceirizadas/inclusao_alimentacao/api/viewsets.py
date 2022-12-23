@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
+from ...cardapio.models import AlteracaoCardapioCEMEI
 from ...dados_comuns import constants
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarObjeto,
@@ -13,8 +14,10 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...kit_lanche.models import SolicitacaoKitLancheCEMEI
 from ...relatorios.relatorios import (
     relatorio_inclusao_alimentacao_cei,
+    relatorio_inclusao_alimentacao_cemei,
     relatorio_inclusao_alimentacao_continua,
     relatorio_inclusao_alimentacao_normal
 )
@@ -22,6 +25,7 @@ from ..models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoDaCEI,
+    InclusaoDeAlimentacaoCEMEI,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal
 )
@@ -51,9 +55,15 @@ class EscolaIniciaCancela():
             url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido(self, request, uuid=None):
         obj = self.get_object()
+        datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            obj.cancelar_pedido(user=request.user, justificativa=justificativa)
+            if (type(obj) in [InclusaoAlimentacaoContinua, SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI,
+                              InclusaoAlimentacaoDaCEI] or
+                    len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
+                obj.cancelar_pedido(user=request.user, justificativa=justificativa)
+            else:
+                obj.inclusoes.filter(data__in=datas).update(cancelado=True, cancelado_justificativa=justificativa)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -181,6 +191,21 @@ class TerceirizadaTomaCiencia():
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        inclusao_alimentacao_cei: InclusaoAlimentacaoDaCEI = self.get_object()
+        try:
+            inclusao_alimentacao_cei.terceirizada_conferiu_gestao = True
+            inclusao_alimentacao_cei.save()
+            serializer = self.get_serializer(inclusao_alimentacao_cei)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)  # noqa
+
 
 class InclusaoAlimentacaoViewSetBase(ModelViewSet, EscolaIniciaCancela, DREValida, CodaeAutoriza,
                                      CodaeQuestionaTerceirizadaResponde, TerceirizadaTomaCiencia):
@@ -189,9 +214,9 @@ class InclusaoAlimentacaoViewSetBase(ModelViewSet, EscolaIniciaCancela, DREValid
     funcao_relatorio = relatorio_inclusao_alimentacao_cei
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
@@ -304,9 +329,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         return serializers.GrupoInclusaoAlimentacaoNormalSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
@@ -412,9 +437,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, EscolaIniciaCancela, DREV
         return serializers.InclusaoAlimentacaoContinuaSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'update']:
+        if self.action in ['list']:
             self.permission_classes = (IsAdminUser,)
-        elif self.action == 'retrieve':
+        elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
@@ -499,3 +524,81 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, EscolaIniciaCancela, DREV
             return Response(serializer.data)
         except Exception as e:
             return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
+
+
+class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREValida, CodaeAutoriza,
+                                      CodaeQuestionaTerceirizadaResponde, TerceirizadaTomaCiencia):
+    lookup_field = 'uuid'
+    queryset = InclusaoDeAlimentacaoCEMEI.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return serializers_create.InclusaoDeAlimentacaoCEMEICreateSerializer
+        elif self.action == 'retrieve':
+            return serializers.InclusaoDeAlimentacaoCEMEIRetrieveSerializer
+        return serializers.InclusaoDeAlimentacaoCEMEISerializer
+
+    def get_permissions(self):
+        if self.action in ['list']:
+            self.permission_classes = (IsAuthenticated,)
+        elif self.action in ['retrieve', 'update', 'destroy']:
+            self.permission_classes = (
+                IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(InclusaoAlimentacaoCEMEIViewSet, self).get_permissions()
+
+    def get_queryset(self): # noqa C901
+        queryset = InclusaoDeAlimentacaoCEMEI.objects.all()
+        user = self.request.user
+        if user.tipo_usuario == 'escola':
+            queryset = queryset.filter(escola=user.vinculo_atual.instituicao)
+        elif user.tipo_usuario == 'diretoriaregional':
+            queryset = queryset.filter(rastro_dre=user.vinculo_atual.instituicao)
+        elif user.tipo_usuario == 'terceirizada':
+            queryset = queryset.filter(rastro_terceirizada=user.vinculo_atual.instituicao)
+        if 'status' in self.request.query_params:
+            queryset = queryset.filter(status=self.request.query_params.get('status').upper())
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        inclusao_alimentacao_cemei = self.get_object()
+        if inclusao_alimentacao_cemei.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioDiretoriaRegional,))
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        inclusoes_alimentacao = diretoria_regional.inclusoes_alimentacao_cemei_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_alimentacao)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        codae = usuario.vinculo_atual.instituicao
+        inclusoes_alimentacao = codae.inclusoes_alimentacao_cemei_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_alimentacao)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}',
+            permission_classes=(IsAuthenticated,))
+    def relatorio(self, request, uuid=None):
+        return relatorio_inclusao_alimentacao_cemei(request, solicitacao=self.get_object())

@@ -18,7 +18,7 @@ def perfil():
 
 @pytest.fixture
 def escola():
-    return mommy.make('Escola', nome='EscolaTeste')
+    return mommy.make('Escola', nome='EscolaTeste', uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
 
 
 @pytest.fixture
@@ -174,9 +174,9 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
         'PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
     periodo_escolar_manha = mommy.make(
         'PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81')
-    mommy.make('EscolaPeriodoEscolar', escola=escola,
+    mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
-    mommy.make('EscolaPeriodoEscolar', escola=escola,
+    mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
     perfil_professor = mommy.make(
         'Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
@@ -207,14 +207,14 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
         password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
 
-    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA', iniciais='IP',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
     cardapio1 = mommy.make('cardapio.Cardapio',
                            data=datetime.date(2019, 10, 11))
     cardapio2 = mommy.make('cardapio.Cardapio',
                            data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
-                                      iniciais=f.name()[:10],
+                                      iniciais='EMEF',
                                       cardapios=[cardapio1, cardapio2],
                                       uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
@@ -224,9 +224,9 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
         'PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
     periodo_escolar_manha = mommy.make(
         'PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81')
-    mommy.make('EscolaPeriodoEscolar', escola=escola,
+    mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
-    mommy.make('EscolaPeriodoEscolar', escola=escola,
+    mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
@@ -391,14 +391,14 @@ def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
                          is_active=False, registro_funcional='1234567', email='GrVdXIhxqb@example.com')
     hoje = datetime.date.today()
 
-    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA', iniciais='IP',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
     cardapio1 = mommy.make('cardapio.Cardapio',
                            data=datetime.date(2019, 10, 11))
     cardapio2 = mommy.make('cardapio.Cardapio',
                            data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
-                                      iniciais=f.name()[:10],
+                                      iniciais='EMEF',
                                       cardapios=[cardapio1, cardapio2],
                                       uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',

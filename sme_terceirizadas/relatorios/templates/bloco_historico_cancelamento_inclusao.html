@@ -1,0 +1,17 @@
+{% load index %}
+
+{% block historico_cancelamento_inclusao %}
+    {% if solicitacao|existe_inclusao_cancelada %}
+      <div class="observacoes">
+        <div>
+          <p class="cabecalho">Histórico de cancelamento parcial:</p>
+          {% for inclusao in solicitacao|inclusoes_canceladas %}
+            <div>{{ inclusao.data }} - {{ inclusao.cancelado_justificativa }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+    {% endif %}
+{% endblock %}

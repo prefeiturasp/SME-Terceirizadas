@@ -4,6 +4,7 @@ from unicodedata import normalize
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Case, Value, When
 from django.db.models.fields import CharField
+from django.db.models.functions import Concat
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
@@ -90,23 +91,30 @@ def retorna_status_para_usuario(status_evento: str) -> str:  # noqa C901
 
 
 def retorna_dados_normalizados_excel_visao_distribuidor(queryset):
-    requisicoes = queryset.annotate(status_requisicao=Case(
-        When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
-        When(status='DILOG_ENVIA', then=Value('Recebida')),
-        When(status='CANCELADA', then=Value('Cancelada')),
-        When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
-        When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
-        When(status='DILOG_ACEITA_ALTERACAO', then=Value('Alterada')),
-        output_field=CharField(),
-    )).values(
-        'numero_solicitacao', 'status_requisicao', 'quantidade_total_guias', 'guias__numero_guia',
-        'guias__data_entrega', 'guias__codigo_unidade', 'guias__nome_unidade', 'guias__endereco_unidade',
-        'guias__endereco_unidade', 'guias__numero_unidade', 'guias__bairro_unidade', 'guias__cep_unidade',
-        'guias__cidade_unidade', 'guias__estado_unidade', 'guias__contato_unidade', 'guias__telefone_unidade',
-        'guias__alimentos__nome_alimento', 'guias__alimentos__codigo_suprimento', 'guias__alimentos__codigo_papa',
-        'guias__alimentos__embalagens__tipo_embalagem', 'guias__alimentos__embalagens__descricao_embalagem',
-        'guias__alimentos__embalagens__capacidade_embalagem', 'guias__alimentos__embalagens__unidade_medida',
-        'guias__alimentos__embalagens__qtd_volume')
+    requisicoes = queryset.annotate(
+        endereco_unidade=Concat('guias__endereco_unidade', Value(' Nº '),
+                                'guias__codigo_unidade', output_field=CharField()),
+        embalagem=Concat('guias__alimentos__embalagens__descricao_embalagem', Value(' '),
+                         'guias__alimentos__embalagens__capacidade_embalagem', Value(' '),
+                         'guias__alimentos__embalagens__unidade_medida', output_field=CharField()),
+        status_requisicao=Case(
+            When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
+            When(status='DILOG_ENVIA', then=Value('Enviada')),
+            When(status='CANCELADA', then=Value('Cancelada')),
+            When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
+            When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
+            When(status='DILOG_ACEITA_ALTERACAO', then=Value('Alterada')),
+            output_field=CharField(),
+        )
+    ).values(
+        'numero_solicitacao', 'status_requisicao', 'guias__data_entrega', 'guias__alimentos__nome_alimento',
+        'guias__nome_unidade', 'guias__escola__codigo_eol', 'guias__endereco_unidade', 'guias__numero_unidade',
+        'guias__bairro_unidade', 'guias__cep_unidade', 'guias__telefone_unidade', 'guias__numero_guia',
+        'guias__alimentos__embalagens__tipo_embalagem', 'guias__alimentos__embalagens__qtd_volume',
+        'guias__alimentos__embalagens__descricao_embalagem', 'guias__alimentos__embalagens__capacidade_embalagem',
+        'guias__alimentos__embalagens__unidade_medida', 'guias__alimentos__codigo_suprimento',
+        'guias__escola__subprefeitura__agrupamento'
+    )
 
     return requisicoes
 
@@ -136,7 +144,6 @@ def retorna_dados_normalizados_excel_visao_dilog(queryset):
         for escola in escolas:
             if requisicao['guias__codigo_unidade'] == escola['codigo_codae']:
                 requisicao['codigo_eol_unidade'] = escola.get('codigo_eol', '')
-
     return requisicoes
 
 
@@ -160,7 +167,9 @@ def retorna_dados_normalizados_excel_entregas_distribuidor(queryset): # noqa C90
         'guias__alimentos__embalagens__qtd_volume', 'guias__status', 'guias__alimentos__embalagens__qtd_a_receber',
         'guias__insucessos__placa_veiculo', 'guias__insucessos__nome_motorista', 'guias__insucessos__criado_em',
         'guias__insucessos__hora_tentativa', 'guias__insucessos__motivo', 'guias__insucessos__justificativa',
-        'guias__insucessos__criado_por__cpf', 'guias__insucessos__criado_por__nome', 'distribuidor__nome_fantasia')
+        'guias__insucessos__criado_por__cpf', 'guias__insucessos__criado_por__nome', 'distribuidor__nome_fantasia',
+        'guias__escola__subprefeitura__agrupamento'
+    )
 
     for requisicao in requisicoes:
         for guia in queryset[0].guias.all():
@@ -178,7 +187,6 @@ def retorna_dados_normalizados_excel_entregas_distribuidor(queryset): # noqa C90
                             if reposicao_alimento:
                                 requisicao['reposicao_alimento'] = reposicao_alimento
                             break
-
     return requisicoes
 
 
@@ -366,10 +374,14 @@ def retorna_motivo_insucesso(motivo):
     nomes_motivos = InsucessoEntregaGuia.MOTIVO_NOMES
 
     ue_fechada = InsucessoEntregaGuia.MOTIVO_UNIDADE_FECHADA
+    ue_sem_energia = InsucessoEntregaGuia.MOTIVO_UNIDADE_SEM_ENERGIA
+    ue_sem_acesso = InsucessoEntregaGuia.MOTIVO_UNIDADE_SEM_ACESSO
     outros = InsucessoEntregaGuia.MOTIVO_OUTROS
 
     switcher = {
         ue_fechada: nomes_motivos[ue_fechada],
+        ue_sem_energia: nomes_motivos[ue_sem_energia],
+        ue_sem_acesso: nomes_motivos[ue_sem_acesso],
         outros: nomes_motivos[outros],
     }
 

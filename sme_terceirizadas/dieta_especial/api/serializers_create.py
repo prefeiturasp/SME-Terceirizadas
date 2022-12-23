@@ -11,6 +11,7 @@ from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
 from ...escola.models import Aluno, Escola, Responsavel
 from ...produto.api.serializers import serializers as ser
 from ...produto.models import Produto
+from ...terceirizada.models import Edital
 from ..models import (
     Alimento,
     AlimentoSubstituto,
@@ -22,7 +23,7 @@ from ..models import (
     SubstituicaoAlimentoProtocoloPadrao
 )
 from ..utils import log_create, log_update
-from .validators import AlunoSerializerValidator
+from .validators import AlunoSerializerValidator, edital_ja_existe_protocolo
 
 
 class AnexoCreateSerializer(serializers.ModelSerializer):
@@ -103,8 +104,6 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):  # noqa C901
         validated_data['criado_por'] = self.context['request'].user
-        data_inicio = datetime.datetime.now().strftime('%Y-%m-%d')
-        validated_data['data_inicio'] = data_inicio
 
         anexos = validated_data.pop('anexos', [])
         aluno_data = validated_data.pop('aluno_json', None)
@@ -306,15 +305,23 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
 
 class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
     substituicoes = SubstituicaoProtocoloPadraoCreateSerializer(many=True)
+    editais = serializers.ListField(
+        child=serializers.CharField(),
+        write_only=True
+    )
+
 
     def create(self, validated_data): # noqa C901
         substituicoes = validated_data.pop('substituicoes')
         nome_protocolo = validated_data['nome_protocolo']
-        protocolos = ProtocoloPadraoDietaEspecial.objects.all()
-        if (nome_protocolo.upper() in [protocolo.nome_protocolo.upper() for protocolo in protocolos]):
-            raise serializers.ValidationError('Já existe um protocolo padrão com esse nome.')
+        editais = validated_data.pop('editais')
+        protocolos = Edital.objects.check_editais_already_has_nome_protocolo(editais, nome_protocolo)
+        if (protocolos):
+            edital_ja_existe_protocolo(protocolos, len(editais))
         validated_data['nome_protocolo'] = nome_protocolo.upper()
         protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.create(**validated_data)
+        if editais and len(editais):
+            protocolo_padrao.editais.set(Edital.objects.filter(uuid__in=editais))
         for substituicao in substituicoes:
             substitutos = substituicao.pop('substitutos', None)
             substituicao['protocolo_padrao'] = protocolo_padrao
@@ -336,12 +343,20 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
         return protocolo_padrao
 
     def update(self, instance, validated_data): # noqa C901
+        editais = validated_data.pop('editais')
+        nome_protocolo = validated_data['nome_protocolo']
+        protocolos = Edital.objects.check_editais_already_has_nome_protocolo(
+            editais, nome_protocolo)
+        if(nome_protocolo == self.instance.nome_protocolo):
+            protocolos = protocolos.exclude(uuid__in=list(instance.editais.values_list('uuid', flat=True)))
+        if (protocolos):
+            edital_ja_existe_protocolo(protocolos, len(editais))
+        instance.editais.clear()
+        if editais and len(editais):
+            instance.editais.set(Edital.objects.filter(uuid__in=editais))
+
         substituicoes = validated_data.pop('substituicoes')
 
-        nome_protocolo = validated_data['nome_protocolo']
-        protocolos = ProtocoloPadraoDietaEspecial.objects.all().exclude(uuid=instance.uuid)
-        if (nome_protocolo.upper() in [protocolo.nome_protocolo.upper() for protocolo in protocolos]):
-            raise serializers.ValidationError('Já existe um protocolo padrão com esse nome.')
         validated_data['nome_protocolo'] = nome_protocolo.upper()
         user = None
         request = self.context.get('request')
@@ -367,4 +382,4 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = ProtocoloPadraoDietaEspecial
-        fields = ('uuid', 'nome_protocolo', 'status', 'orientacoes_gerais', 'criado_em', 'substituicoes')
+        fields = ('uuid', 'nome_protocolo', 'status', 'orientacoes_gerais', 'criado_em', 'substituicoes', 'editais')

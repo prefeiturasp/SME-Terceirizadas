@@ -27,7 +27,8 @@ def ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escol
     logger.debug(f'Iniciando task ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar'
                  f' às {datetime.datetime.now()}')
 
-    for tipo_unidade in TipoUnidadeEscolar.objects.all():
+    # SGP não tem informações de CEU GESTAO, estamos colocando manualmente até o momento 22/07/2022
+    for tipo_unidade in TipoUnidadeEscolar.objects.all().exclude(iniciais='CEU GESTAO'):
         # atualiza com base nos dados da api do EOL
         for periodo_escolar in PeriodoEscolar.objects.all():
             vinculo, created = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.get_or_create(

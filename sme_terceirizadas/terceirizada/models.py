@@ -3,6 +3,8 @@ from django.db import models
 from django.db.models import Q
 from django_prometheus.models import ExportModelOperationsMixin
 
+from sme_terceirizadas.dieta_especial.managers import EditalManager
+
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
     Ativavel,
@@ -21,6 +23,7 @@ from ..inclusao_alimentacao.models import (
     InclusaoAlimentacaoDaCEI
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..perfil.models.usuario import Usuario
 
 
 class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
@@ -29,6 +32,8 @@ class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
     processo = models.CharField('Processo Administrativo', max_length=100,
                                 help_text='Processo administrativo do edital')
     objeto = models.TextField('objeto resumido')
+
+    objects = EditalManager()
 
     @property
     def contratos(self):
@@ -141,11 +146,6 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
         ).exclude(perfil__nome=NUTRI_ADMIN_RESPONSAVEL)
-
-    def desvincular_lotes(self):
-        for lote in self.lotes.all():
-            self.lotes.remove(lote)
-        self.save()
 
     @property
     def quantidade_alunos(self):
@@ -440,6 +440,14 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
                         SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_QUESTIONADO]
         )
 
+    def emails_por_modulo(self, modulo_nome):
+        return list(self.emails_terceirizadas.filter(modulo__nome=modulo_nome).values_list('email', flat=True))
+
+    @staticmethod
+    def todos_emails_por_modulo(modulo_nome):
+        return list(EmailTerceirizadaPorModulo.objects.filter(
+            modulo__nome=modulo_nome).values_list('email', flat=True))
+
     def __str__(self):
         return f'{self.nome_fantasia}'
 
@@ -475,3 +483,30 @@ class VigenciaContrato(ExportModelOperationsMixin('vigencia_contrato'), TemChave
     class Meta:
         verbose_name = 'Vigência de contrato'
         verbose_name_plural = 'Vigências de contrato'
+
+
+class Modulo(ExportModelOperationsMixin('modulo'), TemChaveExterna):
+    nome = models.CharField('Nome', max_length=100)
+
+    def __str__(self):
+        return f'{self.nome}'
+
+    class Meta:
+        verbose_name = 'Módulo'
+        verbose_name_plural = 'Módulos'
+
+
+class EmailTerceirizadaPorModulo(ExportModelOperationsMixin('email_terceirizada_por_modulo'), TemChaveExterna):
+    email = models.EmailField('E-mail')
+    terceirizada = models.ForeignKey(Terceirizada, on_delete=models.CASCADE, related_name='emails_terceirizadas')
+    modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='emails_terceirizadas')
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
+    criado_por = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='emails_terceirizadas')
+
+    def __str__(self):
+        return f'{self.email} - {self.terceirizada.nome_fantasia} - {self.modulo.nome}'
+
+    class Meta:
+        verbose_name = 'E-mail de Terceirizada por Módulos'
+        verbose_name_plural = 'E-mails de Terceirizadas por Módulos'
+        unique_together = ('email', 'terceirizada', 'modulo')

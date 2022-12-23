@@ -66,6 +66,8 @@ DATABASES['default']['ATOMIC_REQUESTS'] = True
 ROOT_URLCONF = 'config.urls'
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = 'config.wsgi.application'
+# DEIXAR ILIMITADO O TAMANHO DO QUERY PARAMS PARA GET E POST
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 
 # APPS
 # ------------------------------------------------------------------------------
@@ -113,6 +115,8 @@ LOCAL_APPS = [
     'sme_terceirizadas.produto.apps.ProdutoConfig',
     'sme_terceirizadas.lancamento_inicial.apps.LancamentoInicialConfig',
     'sme_terceirizadas.logistica.apps.LogisticaConfig',
+    'sme_terceirizadas.medicao_inicial.apps.MedicaoInicialConfig',
+    'sme_terceirizadas.pre_recebimento.apps.PreRecebimentoConfig'
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

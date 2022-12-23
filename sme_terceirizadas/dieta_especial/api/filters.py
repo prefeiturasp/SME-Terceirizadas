@@ -20,6 +20,7 @@ class DietaEspecialFilter(filters.FilterSet):
                                                       to_field_name='id',
                                                       queryset=ClassificacaoDieta.objects.all())
     status = filters.MultipleChoiceFilter(choices=[(str(state), state) for state in DietaEspecialWorkflow.states])
+    terceirizada = filters.CharFilter(field_name='rastro_terceirizada__uuid', lookup_expr='iexact')
 
 
 class AlimentoFilter(filters.FilterSet):
@@ -28,3 +29,10 @@ class AlimentoFilter(filters.FilterSet):
 
 class MotivoNegacaoFilter(filters.FilterSet):
     processo = filters.MultipleChoiceFilter(choices=MotivoNegacao.PROCESSO_CHOICES)
+
+
+class LogQuantidadeDietasEspeciaisFilter(filters.FilterSet):
+    escola_uuid = filters.UUIDFilter(field_name='escola__uuid')
+    classificacao = filters.CharFilter(field_name='classificacao')
+    mes = filters.CharFilter(field_name='data__month', lookup_expr='iexact')
+    ano = filters.CharFilter(field_name='data__year', lookup_expr='iexact')

@@ -1,8 +1,12 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.http import HttpResponse
 from django_filters import rest_framework as filters
-from rest_framework import serializers, status
+from openpyxl import Workbook, styles
+from openpyxl.worksheet.datavalidation import DataValidation
+from rest_framework import permissions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
@@ -14,6 +18,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO
 )
+from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
     PodeCriarAdministradoresDaCODAEGestaoDietaEspecial,
@@ -45,28 +50,36 @@ from ..forms import AlunosPorFaixaEtariaForm
 from ..models import (
     Aluno,
     Codae,
+    DiaCalendario,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
     FaixaEtaria,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+    LogAlunosMatriculadosPeriodoEscola,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
     TipoGestao,
     TipoUnidadeEscolar
 )
+from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
 from ..utils import EscolaSimplissimaPagination
 from .filters import AlunoFilter, DiretoriaRegionalFilter
+from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
+    DiaCalendarioSerializer,
     DiretoriaRegionalCompletaSerializer,
+    DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaListagemSimplissimaComDRESelializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
+    LogAlunosMatriculadosPeriodoEscolaSerializer,
     PeriodoEFaixaEtariaCounterSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
+    SubprefeituraSerializerSimples,
     TipoGestaoSerializer,
     TipoUnidadeEscolarSerializer
 )
@@ -188,7 +201,10 @@ class EscolaSimplissimaComDREUnpaginatedViewSet(EscolaSimplissimaComDREViewSet):
 
     @action(detail=False, methods=['GET'], url_path='terc-total')
     def terc_total(self, request):
-        escolas = self.queryset.filter(tipo_gestao__nome='TERC TOTAL')
+        escolas = self.get_queryset().filter(tipo_gestao__nome='TERC TOTAL')
+        dre = request.query_params.get('dre', None)
+        if dre:
+            escolas = escolas.filter(diretoria_regional__uuid=dre)
         return Response(self.get_serializer(escolas, many=True).data)
 
 
@@ -218,6 +234,8 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = PeriodoEscolar.objects.all()
     serializer_class = PeriodoEscolarSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('nome',)
 
     #  TODO: Quebrar esse método um pouco, está complexo e sem teste
     @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')  # noqa C901
@@ -244,7 +262,12 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
         except ObjectDoesNotExist:
             return Response(
                 {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except EOLException:
+            return Response(
+                {'detail': 'API EOL indisponível para carregar as faixas etárias. Tente novamente mais tarde'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         results = []
@@ -253,6 +276,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
                 'faixa_etaria': FaixaEtariaSerializer(FaixaEtaria.objects.get(uuid=uuid_faixa_etaria)).data,
                 'count': faixa_alunos[uuid_faixa_etaria]
             })
+        results = sorted(results, key=lambda x: x['faixa_etaria']['inicio'])
 
         return Response({
             'count': len(results),
@@ -267,9 +291,15 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
 
 
 class DiretoriaRegionalSimplissimaViewSet(ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
     lookup_field = 'uuid'
     queryset = DiretoriaRegional.objects.all()
     serializer_class = DiretoriaRegionalSimplissimaSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-completa')
+    def lista_completa(self, request):
+        response = {'results': DiretoriaRegionalLookUpSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
 
 
 class TipoGestaoViewSet(ReadOnlyModelViewSet):
@@ -279,9 +309,15 @@ class TipoGestaoViewSet(ReadOnlyModelViewSet):
 
 
 class SubprefeituraViewSet(ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
     lookup_field = 'uuid'
     queryset = Subprefeitura.objects.all()
     serializer_class = SubprefeituraSerializer
+
+    @action(detail=False, methods=['get'], url_path='lista-completa')
+    def lista_completa(self, request):
+        response = {'results': SubprefeituraSerializerSimples(self.get_queryset(), many=True).data}
+        return Response(response)
 
 
 class LoteViewSet(ModelViewSet):
@@ -311,6 +347,8 @@ class LoteSimplesViewSet(ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = LoteNomeSerializer
     queryset = Lote.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('diretoria_regional__uuid',)
 
 
 class CODAESimplesViewSet(ModelViewSet):
@@ -323,6 +361,31 @@ class TipoUnidadeEscolarViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     serializer_class = TipoUnidadeEscolarSerializer
     queryset = TipoUnidadeEscolar.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('pertence_relatorio_solicitacoes_alimentacao',)
+
+
+class LogAlunosMatriculadosPeriodoEscolaViewSet(ModelViewSet):
+    serializer_class = LogAlunosMatriculadosPeriodoEscolaSerializer
+    queryset = LogAlunosMatriculadosPeriodoEscola.objects.all()
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = LogAlunosMatriculadosPeriodoEscola.objects.all()
+
+        escola_uuid = self.request.query_params.get('escola_uuid', '')
+        mes = self.request.query_params.get('mes', '')
+        ano = self.request.query_params.get('ano', '')
+        tipo_turma = self.request.query_params.get('tipo_turma', '')
+        periodo_escolar = self.request.query_params.get('periodo_escolar', '')
+
+        queryset = queryset.filter(escola__uuid=escola_uuid,
+                                   criado_em__month=mes,
+                                   criado_em__year=ano,
+                                   tipo_turma=tipo_turma,
+                                   periodo_escolar__uuid=periodo_escolar)
+
+        return queryset
 
 
 class EscolaPeriodoEscolarViewSet(ModelViewSet):
@@ -362,7 +425,13 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        escola_periodo = self.get_object()
+        if request.user.vinculo_atual:
+            escola = request.user.vinculo_atual.instituicao
+            if escola.eh_cei:
+                escola_periodo = EscolaPeriodoEscolar.objects.get(periodo_escolar__uuid=uuid, escola__uuid=escola.uuid)
+        else:
+            escola_periodo = self.get_object()
+
         data_referencia = form.cleaned_data['data_referencia']
 
         try:
@@ -441,6 +510,72 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
         resposta = True if aluno and aluno.escola == escola else False
         return Response({'pertence_a_escola': resposta})
 
+    @action(detail=True, methods=['GET'], url_path='ver-foto', permission_classes=(PodeVerEditarFotoAlunoNoSGP,))
+    def ver_foto(self, request, codigo_eol):
+        try:
+            novosgpservicologado = NovoSGPServicoLogado()
+            codigo_eol_ = self.get_object().codigo_eol
+            response = novosgpservicologado.pegar_foto_aluno(codigo_eol_)
+            if response.status_code == status.HTTP_200_OK:
+                return Response({'data': response.json()}, status=response.status_code)
+            return Response(status=response.status_code)
+        except NovoSGPServicoLogadoException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['POST'], url_path='atualizar-foto', permission_classes=(PodeVerEditarFotoAlunoNoSGP,))
+    def atualizar_foto(self, request, codigo_eol):
+        try:
+            novosgpservicologado = NovoSGPServicoLogado()
+            codigo_eol_ = self.get_object().codigo_eol
+            response = novosgpservicologado.atualizar_foto_aluno(codigo_eol_, request.FILES['file'])
+            if response.status_code == status.HTTP_200_OK:
+                return Response({'data': response.json()}, status=response.status_code)
+            return Response(status=response.status_code)
+        except NovoSGPServicoLogadoException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['DELETE'], url_path='deletar-foto', permission_classes=(PodeVerEditarFotoAlunoNoSGP,))
+    def deletar_foto(self, request, codigo_eol):
+        try:
+            novosgpservicologado = NovoSGPServicoLogado()
+            codigo_eol_ = self.get_object().codigo_eol
+            response = novosgpservicologado.deletar_foto_aluno(codigo_eol_)
+            if response.status_code == status.HTTP_200_OK:
+                return Response({'data': response.json()}, status=response.status_code)
+            return Response(status=response.status_code)
+        except NovoSGPServicoLogadoException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=('GET',), url_path='quantidade-cemei-por-cei-emei',  # noqa C901
+            permission_classes=(IsAuthenticated,))
+    def quantidade_cemei_por_cei_emei(self, request):
+        try:
+            codigo_eol_escola = request.query_params.get('codigo_eol_escola', None)
+            manha_e_tarde_sempre = request.query_params.get('manha_e_tarde_sempre', False)
+            if not codigo_eol_escola:
+                raise ValidationError('`codigo_eol_escola` como query_param é obrigatório')
+            escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
+            if not escola.eh_cemei:
+                raise ValidationError('escola não é CEMEI')
+            return Response(escola.quantidade_alunos_por_cei_emei(manha_e_tarde_sempre == 'true'),
+                            status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=('GET',), url_path='quantidade-alunos-por-periodo-cei-emei',  # noqa C901
+            permission_classes=(IsAuthenticated,))
+    def quantidade_alunos_por_periodo_cei_emei(self, request):
+        try:
+            codigo_eol_escola = request.query_params.get('codigo_eol_escola', None)
+            if not codigo_eol_escola:
+                raise ValidationError('`codigo_eol_escola` como query_param é obrigatório')
+            escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
+            if not escola.eh_cemei:
+                raise ValidationError('escola não é CEMEI')
+            return Response(escola.quantidade_alunos_por_periodo_cei_emei, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
 
 class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     queryset = FaixaEtaria.objects.filter(ativo=True)
@@ -449,3 +584,66 @@ class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
         if self.action == 'create':
             return MudancaFaixasEtariasCreateSerializer
         return FaixaEtariaSerializer
+
+
+class DiaCalendarioViewSet(ModelViewSet):
+    serializer_class = DiaCalendarioSerializer
+    queryset = DiaCalendario.objects.all()
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = DiaCalendario.objects.all()
+
+        escola_uuid = self.request.query_params.get('escola_uuid', '')
+        mes = self.request.query_params.get('mes', '')
+        ano = self.request.query_params.get('ano', '')
+
+        queryset = queryset.filter(escola__uuid=escola_uuid,
+                                   data__month=mes,
+                                   data__year=ano)
+
+        return queryset
+
+
+def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=planilha_importacao_tipo_gestao_escolas.xlsx'
+    workbook: Workbook = Workbook()
+    ws = workbook.active
+    ws.title = 'UNIDADES COM TIPO DE GESTÃO'
+    headers = [
+        'CÓDIGO EOL',
+        'CÓDIGO CODAE',
+        'NOME UNIDADE',
+        'TIPO',
+    ]
+    _font = styles.Font(name='Calibri', sz=11)
+    {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
+    for i in range(0, len(headers)):
+        cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
+        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
+        cabecalho.font = styles.Font(name='Calibri', size=11, bold=True)
+        cabecalho.border = styles.Border(
+            left=styles.Side(border_style='thin', color='000000'),
+            right=styles.Side(border_style='thin', color='000000'),
+            top=styles.Side(border_style='thin', color='000000'),
+            bottom=styles.Side(border_style='thin', color='000000')
+        )
+    dv = DataValidation(
+        type='list',
+        formula1='"PARCEIRA, DIRETA, MISTA, TERCEIRIZADA TOTAL"',
+        allow_blank=True
+    )
+    dv.error = 'Tipo Inválido'
+    dv.errorTitle = 'Tipo não permitido'
+    ws.add_data_validation(dv)
+    dv.add('D2:H1048576')
+
+    for colunas in ws.columns:
+        unmerged_cells = list(
+            filter(lambda cell_to_check: cell_to_check.coordinate not in ws.merged_cells, colunas))
+        length = max(len(str(cell.value)) for cell in unmerged_cells)
+        ws.column_dimensions[unmerged_cells[0].column_letter].width = length * 1.3
+    workbook.save(response)
+
+    return response
