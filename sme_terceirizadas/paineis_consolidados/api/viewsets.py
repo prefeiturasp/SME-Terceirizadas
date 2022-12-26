@@ -590,6 +590,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
             data=self.request.query_params,
             uuids=uuids,
+            status=request.query_params.get('status', None)
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
@@ -1082,6 +1083,21 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
             tipos_solicitacao=tipos_solicitacao,
             tipos_unidade=tipos_unidade,
             unidades_educacionais=unidades_educacionais
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-pdf')  # noqa C901
+    def exportar_pdf(self, request):
+        user = request.user.get_username()
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
+            data=self.request.query_params,
+            uuids=uuids,
+            status=request.query_params.get('status', None)
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
