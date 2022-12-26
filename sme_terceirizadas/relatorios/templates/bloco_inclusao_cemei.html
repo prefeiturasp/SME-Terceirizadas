@@ -18,12 +18,12 @@
           {% endif %}
         </div>
       {% endfor %}
-      </td>
-    </tr>
-    {% for quantidade_aluno in solicitacao.quantidades_alunos %}
+    </td>
+  </tr>
+  {% for quantidade_aluno in solicitacao.quantidades_alunos %}
     <tr>
       <td colspan="6">
-          <div class="row mt-4 mx-2">
+        <div class="row mt-4 mx-2">
           <div class="col-12 pr-5">
             <p class="detalhes-cei">
               {{ quantidade_aluno.periodo }}
@@ -93,8 +93,7 @@
             </div>
           {% endif %}
         </div>
-           </td>
-  </tr>
-      {% endfor %}
-
+      </td>
+    </tr>
+  {% endfor %}
 {% endblock %}
