@@ -4,6 +4,7 @@ import logging
 
 import numpy as np
 from celery import shared_task
+from django.template.loader import render_to_string
 
 from sme_terceirizadas.dados_comuns.utils import (
     atualiza_central_download,
@@ -12,13 +13,9 @@ from sme_terceirizadas.dados_comuns.utils import (
 )
 from sme_terceirizadas.escola.models import Escola, Lote, TipoUnidadeEscolar
 from sme_terceirizadas.paineis_consolidados.api.serializers import SolicitacoesExportXLSXSerializer
-from sme_terceirizadas.paineis_consolidados.models import (
-    MoldeConsolidado,
-    SolicitacoesCODAE
-)
-from ..relatorios.utils import html_to_pdf_file
-from django.template.loader import render_to_string
+from sme_terceirizadas.paineis_consolidados.models import MoldeConsolidado, SolicitacoesCODAE
 
+from ..relatorios.utils import html_to_pdf_file
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +141,7 @@ def build_pdf(lista_solicitacoes_dict, status):
         'relatorio_solicitacoes_alimentacao.html',
         {'solicitacoes': lista_solicitacoes_dict,
          'total_solicitacoes': len(lista_solicitacoes_dict),
-         'data_extracao_relatorio': datetime.date.today().strftime("%d/%m/%Y"),
+         'data_extracao_relatorio': datetime.date.today().strftime('d/%m/%Y'),
          'status': status,
          'status_formatado': ''.join(letra for letra in status.title() if not letra.isspace())}
     )
@@ -198,9 +195,8 @@ def gera_pdf_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
-        status_ = data.get('status')
-
-        solicitacoes = SolicitacoesCODAE.objects.filter(uuid__in=uuids).order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
+        solicitacoes = SolicitacoesCODAE.objects.filter(uuid__in=uuids)
+        solicitacoes = solicitacoes.order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
         solicitacoes = list(solicitacoes.values('tipo_doc', 'uuid').distinct())
         lista_solicitacoes_dict = []
         for solicitacao in solicitacoes:

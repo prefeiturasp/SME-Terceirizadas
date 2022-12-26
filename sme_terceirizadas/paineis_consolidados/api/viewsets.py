@@ -32,10 +32,7 @@ from ..models import (
     SolicitacoesNutrisupervisao,
     SolicitacoesTerceirizada
 )
-from ..tasks import (
-    gera_pdf_relatorio_solicitacoes_alimentacao_async,
-    gera_xls_relatorio_solicitacoes_alimentacao_async
-)
+from ..tasks import gera_pdf_relatorio_solicitacoes_alimentacao_async, gera_xls_relatorio_solicitacoes_alimentacao_async
 from ..validators import FiltroValidator
 from .constants import (
     AGUARDANDO_CODAE,

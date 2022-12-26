@@ -22,6 +22,7 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
+from ..escola.constants import PERIODOS_ESPECIAIS_CEMEI
 from .managers import (
     GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager,
     GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
@@ -35,7 +36,6 @@ from .managers import (
     InclusoesDeAlimentacaoContinuaDesteMesManager,
     InclusoesDeAlimentacaoContinuaVencidaDiasManager
 )
-from ..escola.constants import PERIODOS_ESPECIAIS_CEMEI
 
 
 class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), DiasSemana, TemChaveExterna):
@@ -158,10 +158,11 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
         qtd_periodo = []
         for quantidade_periodo in self.quantidades_periodo.all():
             dias_semana = ', '.join([quantidade_periodo.DIAS[dia][1] for dia in quantidade_periodo.dias_semana])
+            tipos_alimentacao = ', '.join(quantidade_periodo.tipos_alimentacao.all().values_list('nome', flat=True))
             qtd_periodo.append({
                 'periodo': quantidade_periodo.periodo_escolar.nome,
                 'dias_semana': dias_semana,
-                'tipos_alimentacao': ', '.join(quantidade_periodo.tipos_alimentacao.all().values_list('nome', flat=True)),
+                'tipos_alimentacao': tipos_alimentacao,
                 'numero_alunos': quantidade_periodo.numero_alunos
             })
         return qtd_periodo
@@ -338,10 +339,11 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
     def quantidades_periodo_simples_dict(self):
         quantidades_periodo = []
         for quantidade_periodo in self.quantidades_periodo.all():
+            tipos_alimentacao = ', '.join(quantidade_periodo.tipos_alimentacao.all().values_list('nome', flat=True))
             quantidades_periodo.append({
                 'periodo': quantidade_periodo.periodo_escolar.nome,
                 'numero_alunos': quantidade_periodo.numero_alunos,
-                'tipos_alimentacao': ', '.join(quantidade_periodo.tipos_alimentacao.all().values_list('nome', flat=True))
+                'tipos_alimentacao': tipos_alimentacao
             })
         return quantidades_periodo
 
@@ -574,24 +576,27 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
             ativo=True
         ).order_by('periodo_escolar__posicao')
         vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-                    periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
-                    tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
+            periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+            tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
         for periodo in periodos:
             tipos_alimentacao_cei = vinculos.filter(periodo_escolar__nome=periodo,
                                                     tipo_unidade_escolar__iniciais='CEI DIRET')
-            tipos_alimentacao_cei = [ta for ta in tipos_alimentacao_cei.values_list('tipos_alimentacao__nome', flat=True) if ta]
+
+            tipos_alimentacao_cei = tipos_alimentacao_cei.values_list('tipos_alimentacao__nome', flat=True)
+            tipos_alimentacao_cei = [ta for ta in tipos_alimentacao_cei if ta]
             tipos_alimentacao_cei = ', '.join(tipos_alimentacao_cei)
 
             tipos_alimentacao_emei = vinculos.filter(periodo_escolar__nome=periodo,
                                                      tipo_unidade_escolar__iniciais='EMEI')
-            tipos_alimentacao_emei = [ta for ta in tipos_alimentacao_emei.values_list('tipos_alimentacao__nome', flat=True) if ta]
+            tipos_alimentacao_emei = tipos_alimentacao_emei.values_list('tipos_alimentacao__nome', flat=True)
+            tipos_alimentacao_emei = [ta for ta in tipos_alimentacao_emei if ta]
             tipos_alimentacao_emei = ', '.join(tipos_alimentacao_emei)
 
             quantidades_cei = self.quantidade_alunos_cei_da_inclusao_cemei.filter(periodo_escolar__nome=periodo)
             quantidades_emei = self.quantidade_alunos_emei_da_inclusao_cemei.filter(periodo_escolar__nome=periodo)
             quantidades_cei_list = []
             quantidades_emei_list = []
-            total_matriculados_cei= 0
+            total_matriculados_cei = 0
             total_alunos_cei = 0
             for qc in quantidades_cei:
                 total_matriculados_cei += qc.matriculados_quando_criado
