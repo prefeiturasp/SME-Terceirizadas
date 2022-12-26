@@ -378,3 +378,11 @@ class MatriculadosQuandoCriado(models.Model):
 
     class Meta:
         abstract = True
+
+
+class CanceladoIndividualmente(models.Model):
+    cancelado = models.BooleanField('Esta cancelado?', default=False)
+    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
+
+    class Meta:
+        abstract = True

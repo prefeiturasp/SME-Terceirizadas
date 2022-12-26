@@ -4,7 +4,6 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import django_xworkflows.models
-import rest_framework.compat
 import sme_terceirizadas.dados_comuns.behaviors
 import uuid
 
@@ -52,8 +51,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
                 ('tempo_passeio', models.PositiveSmallIntegerField(blank=True, choices=[(0, 'Quatro horas'), (1, 'Cinco a sete horas'), (2, 'Oito horas')], null=True)),
-                ('quantidade_alunos', models.PositiveSmallIntegerField(validators=[rest_framework.compat.MinValueValidator(1)])),
-                ('matriculados_quando_criado', models.PositiveSmallIntegerField(validators=[rest_framework.compat.MinValueValidator(1)])),
+                ('quantidade_alunos', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(1)])),
+                ('matriculados_quando_criado', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(1)])),
                 ('alunos_com_dieta_especial_participantes', models.ManyToManyField(to='escola.Aluno')),
                 ('kits', models.ManyToManyField(blank=True, to='kit_lanche.KitLanche')),
                 ('solicitacao_kit_lanche_cemei', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='solicitacao_emei', to='kit_lanche.SolicitacaoKitLancheCEMEI')),
@@ -83,8 +82,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('quantidade_alunos', models.PositiveSmallIntegerField(validators=[rest_framework.compat.MinValueValidator(1)])),
-                ('matriculados_quando_criado', models.PositiveSmallIntegerField(validators=[rest_framework.compat.MinValueValidator(1)])),
+                ('quantidade_alunos', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(1)])),
+                ('matriculados_quando_criado', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(1)])),
                 ('faixa_etaria', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='escola.FaixaEtaria')),
                 ('solicitacao_kit_lanche_cei_da_cemei', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='faixas_quantidades', to='kit_lanche.SolicitacaoKitLancheCEIdaCEMEI')),
             ],

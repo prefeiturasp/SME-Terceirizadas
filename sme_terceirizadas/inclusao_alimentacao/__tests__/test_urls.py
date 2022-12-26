@@ -15,16 +15,13 @@ from ...dados_comuns.constants import (
     PEDIDOS_CODAE,
     PEDIDOS_DRE,
     SEM_FILTRO,
+    SOLICITACOES_DO_USUARIO,
     TERCEIRIZADA_RESPONDE_QUESTIONAMENTO,
     TERCEIRIZADA_TOMOU_CIENCIA
 )
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
-from ..models import (
-    GrupoInclusaoAlimentacaoNormal,
-    InclusaoAlimentacaoContinua,
-    InclusaoAlimentacaoDaCEI,
-    InclusaoDeAlimentacaoCEMEI
-)
+from ...perfil.models import Usuario
+from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoDaCEI, InclusaoDeAlimentacaoCEMEI
 
 pytestmark = pytest.mark.django_db
 
@@ -471,16 +468,96 @@ def test_url_endpoint_inclusao_continua_terc_responde_questionamento(client_aute
 def test_url_endpoint_inclusao_continua_escola_cancela(client_autenticado_vinculo_escola_inclusao,
                                                        inclusao_alimentacao_continua_codae_autorizado):
     assert inclusao_alimentacao_continua_codae_autorizado.status == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    data = {'justificativa': 'cancelando parcialmente',
+            'quantidades_periodo': [
+                {'uuid': '6337d4a4-f2e0-475f-9400-24f2db660741', 'cancelado': True},
+                {'uuid': '6f16b41d-151e-4f82-a0d0-43921a9edabe', 'cancelado': False}
+            ]}
     response = client_autenticado_vinculo_escola_inclusao.patch(
         f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_autorizado.uuid}/'
-        f'{ESCOLA_CANCELA}/')
+        f'{ESCOLA_CANCELA}/', content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    qtd_prd = next(qtd_prd for qtd_prd in response.json()['quantidades_periodo']
+                   if qtd_prd['uuid'] == '6337d4a4-f2e0-475f-9400-24f2db660741')
+    assert qtd_prd['cancelado_justificativa'] == 'cancelando parcialmente'
+    assert qtd_prd['cancelado'] is True
+
+    data['quantidades_periodo'][1]['cancelado'] = True
+    response = client_autenticado_vinculo_escola_inclusao.patch(
+        f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_autorizado.uuid}/'
+        f'{ESCOLA_CANCELA}/', content_type='application/json', data=data)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU
+
     response = client_autenticado_vinculo_escola_inclusao.patch(
         f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_autorizado.uuid}/'
-        f'{ESCOLA_CANCELA}/')
+        f'{ESCOLA_CANCELA}/', content_type='application/json', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Erro de transição de estado: Já está cancelada'}
+
+
+def test_url_endpoint_inclusao_continua_minhas_solicitacoes(client_autenticado_vinculo_escola_inclusao,
+                                                            inclusao_alimentacao_continua):
+    assert inclusao_alimentacao_continua.status == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    inclusao_alimentacao_continua.criado_por = Usuario.objects.get(
+        id=client_autenticado_vinculo_escola_inclusao.session['_auth_user_id'])
+    inclusao_alimentacao_continua.save()
+    response = client_autenticado_vinculo_escola_inclusao.get(
+        f'/inclusoes-alimentacao-continua/{SOLICITACOES_DO_USUARIO}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
+@freeze_time('2019-9-30')
+def test_url_endpoint_inclusao_continua_solicitacoes_codae(client_autenticado_vinculo_codae_inclusao,
+                                                           inclusao_alimentacao_continua_dre_validado):
+    assert inclusao_alimentacao_continua_dre_validado.status == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    response = client_autenticado_vinculo_codae_inclusao.get(
+        f'/inclusoes-alimentacao-continua/{constants.PEDIDOS_CODAE}/{constants.DAQUI_A_TRINTA_DIAS}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
+@freeze_time('2019-9-30')
+def test_url_endpoint_inclusao_continua_solicitacoes_terceirizada(client_autenticado_vinculo_terceirizada_inclusao,
+                                                                  inclusao_alimentacao_continua_codae_autorizado):
+    assert inclusao_alimentacao_continua_codae_autorizado.status == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado_vinculo_terceirizada_inclusao.get(
+        f'/inclusoes-alimentacao-continua/{constants.PEDIDOS_TERCEIRIZADA}/{constants.DAQUI_A_TRINTA_DIAS}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
+@freeze_time('2019-9-30')
+def test_url_endpoint_inclusao_continua_solicitacoes_dre(client_autenticado_vinculo_dre_inclusao,
+                                                         inclusao_alimentacao_continua_dre_validar):
+    assert inclusao_alimentacao_continua_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    response = client_autenticado_vinculo_dre_inclusao.get(
+        f'/inclusoes-alimentacao-continua/{constants.PEDIDOS_DRE}/{constants.DAQUI_A_TRINTA_DIAS}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
+def test_url_endpoint_inclusao_continua_marca_conferencia(client_autenticado_vinculo_terceirizada_inclusao,
+                                                          inclusao_alimentacao_continua_codae_autorizado):
+    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+        f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_autorizado.uuid}/'
+        f'{constants.MARCAR_CONFERIDA}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['terceirizada_conferiu_gestao'] is True
+
+
+def test_url_endpoint_inclusao_continua_marca_conferencia_validation_error(
+    client_autenticado_vinculo_terceirizada_inclusao,
+    inclusao_alimentacao_continua_dre_validado
+):
+    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+        f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_dre_validado.uuid}/'
+        f'{constants.MARCAR_CONFERIDA}/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()['detail'] == ('Erro ao marcar solicitação como conferida: inclusão não está no status '
+                                         'AUTORIZADO')
 
 
 def test_url_endpoint_inclusao_continua_relatorio(client_autenticado,
@@ -540,14 +617,6 @@ def test_terceirizada_marca_conferencia_grupo_inclusao_normal_viewset(client_aut
         client_autenticado,
         GrupoInclusaoAlimentacaoNormal,
         'grupos-inclusao-alimentacao-normal')
-
-
-def test_terceirizada_marca_conferencia_inclusoes_alimentacao_continua_viewset(client_autenticado,
-                                                                               inclusao_alimentacao_continua):
-    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
-        client_autenticado,
-        InclusaoAlimentacaoContinua,
-        'inclusoes-alimentacao-continua')
 
 
 def test_url_endpoint_inclusao_cemei(client_autenticado_vinculo_escola_inclusao):

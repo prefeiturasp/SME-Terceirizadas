@@ -1,11 +1,11 @@
 import uuid
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django_prometheus.models import ExportModelOperationsMixin
-from rest_framework.compat import MinValueValidator
 
 from ..dados_comuns.behaviors import (  # noqa I101
     CriadoEm,
