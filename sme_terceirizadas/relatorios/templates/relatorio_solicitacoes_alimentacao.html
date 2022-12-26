@@ -36,8 +36,8 @@
           <th class="text-center">N° de Alunos</th>
         </tr>
       </thead>
-      <tbody>
         {% for solicitacao in solicitacoes %}
+         <tbody style="page-break-inside: avoid">
           <tr>
             <td>{{solicitacao.lote}}</td>
             {% if status == 'RECEBIDAS' %}
@@ -61,8 +61,8 @@
           {% if solicitacao.tipo_doc == 'Inclusão de Alimentação CEMEI' %}
             {% include "bloco_inclusao_cemei.html" with solicitacao=solicitacao %}
           {% endif %}
-        {% endfor %}
-      </tbody>
+        </tbody>
+     {% endfor %}
     </table>
   </div>
 </body>

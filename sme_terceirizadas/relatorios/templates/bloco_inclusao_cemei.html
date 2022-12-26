@@ -18,8 +18,12 @@
           {% endif %}
         </div>
       {% endfor %}
-      {% for quantidade_aluno in solicitacao.quantidades_alunos %}
-        <div class="row mt-4 mx-2">
+      </td>
+    </tr>
+    {% for quantidade_aluno in solicitacao.quantidades_alunos %}
+    <tr>
+      <td colspan="6">
+          <div class="row mt-4 mx-2">
           <div class="col-12 pr-5">
             <p class="detalhes-cei">
               {{ quantidade_aluno.periodo }}
@@ -67,7 +71,7 @@
             </div>
           {% endif %}
           {% if quantidade_aluno.quantidades_emei %}
-            <div class="col-12 mb-2 pl-5 pr-5">
+            <div style="page-break-before: always" class="col-12 mb-2 pl-5 pr-5">
               <p class="detalhes-cei">
                 Alunos EMEI
               </p>
@@ -89,7 +93,8 @@
             </div>
           {% endif %}
         </div>
-      {% endfor %}
-    </td>
+           </td>
   </tr>
+      {% endfor %}
+
 {% endblock %}
