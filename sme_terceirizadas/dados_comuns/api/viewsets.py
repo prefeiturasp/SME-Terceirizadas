@@ -15,7 +15,14 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 from ... import __version__
 from ..behaviors import DiasSemana, TempoPasseio
 from ..constants import TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
-from ..models import CategoriaPerguntaFrequente, CentralDeDownload, Notificacao, PerguntaFrequente, TemplateMensagem
+from ..models import (
+    CategoriaPerguntaFrequente,
+    CentralDeDownload,
+    Notificacao,
+    PerguntaFrequente,
+    SolicitacaoAberta,
+    TemplateMensagem
+)
 from ..permissions import UsuarioCODAEGestaoAlimentacao
 from ..utils import obter_dias_uteis_apos
 from .filters import CentralDeDownloadFilter, NotificacaoFilter
@@ -27,7 +34,8 @@ from .serializers import (
     ConsultaPerguntasFrequentesSerializer,
     NotificacaoSerializer,
     PerguntaFrequenteCreateSerializer,
-    PerguntaFrequenteSerializer
+    PerguntaFrequenteSerializer,
+    SolicitacaoAbertaSerializer
 )
 
 DEFAULT_PAGE = 1
@@ -276,3 +284,10 @@ class CentralDeDownloadViewSet(viewsets.ModelViewSet):
         status_code = status.HTTP_200_OK
 
         return Response(resultado, status=status_code)
+
+
+class SolicitacaoAbertaViewSet(ModelViewSet):
+    lookup_field = 'id'
+    queryset = SolicitacaoAberta.objects.all()
+    serializer_class = SolicitacaoAbertaSerializer
+    pagination_class = None
