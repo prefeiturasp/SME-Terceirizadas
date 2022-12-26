@@ -725,7 +725,7 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
             'terceirizada': self.rastro_terceirizada,
-            'tipo_doc': 'Alteração do Tipo de Alimentação CEI' ,
+            'tipo_doc': 'Alteração do Tipo de Alimentação CEI',
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos
         }
@@ -832,7 +832,7 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
             'terceirizada': self.rastro_terceirizada,
-            'tipo_doc': 'Alteração do tipo de Alimentação CEMEI' ,
+            'tipo_doc': 'Alteração do tipo de Alimentação CEMEI',
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos
         }

@@ -80,6 +80,21 @@
   }
 }
 
-.detalhes {
-  display: flex;
+.detalhes-cei {
+  background: #f1f1f1;
+  border: 1px solid #dadada;
+  border-radius: 5px;
+  height: 18px;
+  margin: 1% 0px;
+  width: 100%;
+  padding: 8px 15px;
+
+}
+
+.style-total-table {
+  background-color: #F1F1F1;
+  td {
+    border: 1px solid $cinza-borda-tabela;
+    padding: 0.75em;
+  }
 }

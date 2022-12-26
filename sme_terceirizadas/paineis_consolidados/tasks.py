@@ -4,6 +4,7 @@ import logging
 
 import numpy as np
 from celery import shared_task
+from django.template.loader import render_to_string
 
 from sme_terceirizadas.dados_comuns.utils import (
     atualiza_central_download,
@@ -12,13 +13,9 @@ from sme_terceirizadas.dados_comuns.utils import (
 )
 from sme_terceirizadas.escola.models import Escola, Lote, TipoUnidadeEscolar
 from sme_terceirizadas.paineis_consolidados.api.serializers import SolicitacoesExportXLSXSerializer
-from sme_terceirizadas.paineis_consolidados.models import (
-    MoldeConsolidado,
-    SolicitacoesCODAE
-)
-from ..relatorios.utils import html_to_pdf_file
-from django.template.loader import render_to_string
+from sme_terceirizadas.paineis_consolidados.models import MoldeConsolidado, SolicitacoesCODAE
 
+from ..relatorios.utils import html_to_pdf_file
 
 logger = logging.getLogger(__name__)
 
@@ -139,10 +136,14 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     output.seek(0)
 
 
-def build_pdf(lista_solicitacoes_dict):
+def build_pdf(lista_solicitacoes_dict, status):
     html_string = render_to_string(
         'relatorio_solicitacoes_alimentacao.html',
-        {'solicitacoes': lista_solicitacoes_dict}
+        {'solicitacoes': lista_solicitacoes_dict,
+         'total_solicitacoes': len(lista_solicitacoes_dict),
+         'data_extracao_relatorio': datetime.date.today().strftime('d/%m/%Y'),
+         'status': status,
+         'status_formatado': ''.join(letra for letra in status.title() if not letra.isspace())}
     )
     return html_to_pdf_file(html_string, 'relatorio_solicitacoes_alimentacao.pdf', True)
 
@@ -190,13 +191,12 @@ def gera_xls_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
     time_limit=3000,
     soft_time_limit=3000
 )
-def gera_pdf_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, uuids):
+def gera_pdf_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, uuids, status):
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
-        status_ = data.get('status')
-
-        solicitacoes = SolicitacoesCODAE.objects.filter(uuid__in=uuids).order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
+        solicitacoes = SolicitacoesCODAE.objects.filter(uuid__in=uuids)
+        solicitacoes = solicitacoes.order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
         solicitacoes = list(solicitacoes.values('tipo_doc', 'uuid').distinct())
         lista_solicitacoes_dict = []
         for solicitacao in solicitacoes:
@@ -204,7 +204,7 @@ def gera_pdf_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
             _solicitacao = class_name.objects.get(uuid=solicitacao['uuid'])
             lista_solicitacoes_dict.append(_solicitacao.solicitacao_dict_para_relatorio())
 
-        arquivo = build_pdf(lista_solicitacoes_dict)
+        arquivo = build_pdf(lista_solicitacoes_dict, status)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
