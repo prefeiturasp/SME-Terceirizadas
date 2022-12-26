@@ -141,7 +141,7 @@ def build_pdf(lista_solicitacoes_dict, status):
         'relatorio_solicitacoes_alimentacao.html',
         {'solicitacoes': lista_solicitacoes_dict,
          'total_solicitacoes': len(lista_solicitacoes_dict),
-         'data_extracao_relatorio': datetime.date.today().strftime('d/%m/%Y'),
+         'data_extracao_relatorio': datetime.date.today().strftime('%d/%m/%Y'),
          'status': status,
          'status_formatado': ''.join(letra for letra in status.title() if not letra.isspace())}
     )
