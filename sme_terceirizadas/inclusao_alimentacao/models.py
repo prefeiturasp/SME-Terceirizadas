@@ -169,7 +169,7 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
             })
         return qtd_periodo
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -318,13 +318,6 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
         quantidade_periodo.save()
 
     @property
-    def data_autorizacao(self):
-        log = self.logs.filter(status_evento=1)
-        if not log:
-            return ''
-        return log.first().criado_em
-
-    @property
     def inclusoes_simples_dict(self):
         inclusoes = []
         for inclusao in self.inclusoes_normais.all():
@@ -347,7 +340,7 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
             })
         return quantidades_periodo
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -476,7 +469,7 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
             })
         return quantidade_alunos_por_faixas_etarias
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -622,7 +615,7 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
             })
         return dias_motivos_da_inclusao
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
