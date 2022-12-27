@@ -180,8 +180,9 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
             'motivo': self.motivo.nome,
             'outro_motivo': self.outro_motivo,
             'data_inclusao': self.data,
-            'data_autorizacao': self.data_autorizacao,
-            'quantidades_periodo': self.quantidades_periodo_simples_dict
+            'quantidades_periodo': self.quantidades_periodo_simples_dict,
+            'label_data': label_data,
+            'data_log': data_log
         }
 
     def __str__(self):
@@ -349,9 +350,10 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'dias_inclusao': self.data,
-            'data_autorizacao': self.data_autorizacao,
             'inclusoes': self.inclusoes_simples_dict,
-            'quantidades_periodo': self.quantidades_periodo_simples_dict
+            'quantidades_periodo': self.quantidades_periodo_simples_dict,
+            'label_data': label_data,
+            'data_log': data_log
         }
 
     def __str__(self):
@@ -480,8 +482,9 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
             'motivo': self.motivo.nome,
             'outro_motivo': self.outro_motivo,
             'dias_inclusao': self.data,
-            'data_autorizacao': self.data_autorizacao,
-            'quantidade_alunos_por_faixas_etarias': self.quantidade_alunos_por_faixas_etarias_simples_dict
+            'quantidade_alunos_por_faixas_etarias': self.quantidade_alunos_por_faixas_etarias_simples_dict,
+            'label_data': label_data,
+            'data_log': data_log
         }
 
     def __str__(self):
@@ -625,7 +628,8 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
             'numero_alunos': self.numero_alunos,
             'dias_motivos_da_inclusao_cemei': self.dias_motivos_da_inclusao_cemei_simples_dict,
             'quantidades_alunos': self.quantidades_alunos_simples_dict,
-            'data_autorizacao': self.data_autorizacao
+            'label_data': label_data,
+            'data_log': data_log
         }
 
     def __str__(self):
