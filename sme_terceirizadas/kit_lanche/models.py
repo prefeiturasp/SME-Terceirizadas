@@ -167,6 +167,16 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
     def numero_alunos(self):
         return self.quantidade_alunos
 
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Kit Lanche Passeio',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos
+        }
+
     def __str__(self):
         return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'
 
@@ -192,6 +202,16 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
     @property
     def numero_alunos(self):
         return self.quantidade_alunos
+
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Kit Lanche Passeio de CEI',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos
+        }
 
     def __str__(self):
         return f'{self.escola} SOLICITA EM {self.local}'
@@ -370,6 +390,16 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     def numero_alunos(self):
         return self.escolas_quantidades.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
 
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': 'Várias Escolas',
+            'terceirizada': 'Várias Terceirizadas',
+            'tipo_doc': 'Kit Lanche Passeio Unificado',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos
+        }
+
     def __str__(self):
         dre = self.diretoria_regional
         return f'{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}'
@@ -464,6 +494,16 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             justificativa=justificativa,
             resposta_sim_nao=resposta_sim_nao
         )
+
+    def solicitacao_dict_para_relatorio(self):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Kit Lanche Passeio de CEMEI',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos
+        }
 
     class Meta:
         verbose_name = 'Solicitação Kit Lanche CEMEI'
