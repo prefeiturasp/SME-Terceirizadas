@@ -250,7 +250,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
 
     @property
     def numero_alunos(self):
-        return None
+        return ''
 
     @property
     def template_mensagem(self):
@@ -543,7 +543,7 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
 
     @property
     def numero_alunos(self):
-        return None
+        return ''
 
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
@@ -552,7 +552,9 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
             'terceirizada': self.rastro_terceirizada,
             'tipo_doc': 'Suspensão de Alimentação de CEI',
             'data_evento': self.data,
-            'numero_alunos': self.numero_alunos
+            'numero_alunos': self.numero_alunos,
+            'motivo': self.motivo,
+            'periodos_escolares': self.periodos_escolares
         }
 
     def __str__(self):
