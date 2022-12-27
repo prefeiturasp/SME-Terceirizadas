@@ -90,6 +90,10 @@
               </table>
             </div>
           {% endif %}
+          {% if solicitacao.observacao and solicitacao.observacao != '<p></p>' %}
+            <div class="col-12 mb-2 pl-5 pr-5">Observação:</div>
+            <div class="col-12 mb-2 pl-5 pr-5"><span>{{ solicitacao.observacao|safe }}</span></div>
+          {% endif %}
         </div>
       </td>
     </tr>
