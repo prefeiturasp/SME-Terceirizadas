@@ -1,0 +1,69 @@
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/relatorio_solicitacoes_alimentacao.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
+</head>
+<header class="header">
+  <section class="titulo-e-logo">
+    <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1 class='custom-title'>SIGPAE - RELATÓRIO DE solicitações de alimentação {{status_formatado}}</h1>
+  </section>
+  <table class="tabela-cabecalho tabela-arredondada">
+      <tr class="custom-filtros">
+        <td>Total de Solicitaçãoes {{status_formatado}}: <b>{{total_solicitacoes}}</b></td>
+        <td class="text-right">Data do Relatório: <b>{{data_extracao_relatorio}}</b></td>
+      </tr>
+  </table>
+</header>
+<body>
+  <div class="tabela-filtro">
+    <table>
+      <thead>
+        <tr>
+          <th>Lote</th>
+          {% if status == 'RECEBIDAS' %}
+            <th colspan="2">Terceirizada</th>
+          {% else %}
+            <th colspan="2">Unidade Educacional</th>
+          {% endif %}
+          <th>Tipo de Solicitação </th>
+          <th class="text-center">Data do Evento</th>
+          <th class="text-center">N° de Alunos</th>
+        </tr>
+      </thead>
+        {% for solicitacao in solicitacoes %}
+         <tbody style="page-break-inside: avoid">
+          <tr>
+            <td>{{solicitacao.lote}}</td>
+            {% if status == 'RECEBIDAS' %}
+              <td colspan="2">{{solicitacao.terceirizada}}</td>
+            {% else %}
+              <td colspan="2">{{solicitacao.unidade_educacional}}</td>
+            {% endif %}
+            <td>{{solicitacao.tipo_doc}}</td>
+            <td class="text-center">{{solicitacao.data_evento}}</td>
+            <td class="text-center">{{solicitacao.numero_alunos}}</td>
+          </tr>
+          {% if solicitacao.tipo_doc == 'Inclusão de Alimentação'%}
+            {% include "bloco_inclusao_normal.html" with solicitacao=solicitacao %}
+          {% endif %}
+          {% if solicitacao.tipo_doc == 'Inclusão de Alimentação Contínua'%}
+            {% include "bloco_inclusao_continua.html" with solicitacao=solicitacao %}
+          {% endif %}
+          {% if solicitacao.tipo_doc == 'Inclusão de Alimentação CEI'%}
+            {% include "bloco_inclusao_cei.html" with solicitacao=solicitacao %}
+          {% endif %}
+          {% if solicitacao.tipo_doc == 'Inclusão de Alimentação CEMEI' %}
+            {% include "bloco_inclusao_cemei.html" with solicitacao=solicitacao %}
+          {% endif %}
+        </tbody>
+     {% endfor %}
+    </table>
+  </div>
+</body>
+</html>
