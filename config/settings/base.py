@@ -43,6 +43,9 @@ USE_TZ = False
 LOCALE_PATHS = (
     os.path.join(ROOT_DIR, 'locale'),
 )
+
+REDIS_URL = env('REDIS_URL')
+
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
@@ -340,8 +343,6 @@ URL_CONFIGS = {
     'LOGIN_TERCEIRIZADAS': '/login?tab=terceirizadas',
     'API': '/api{uri}'
 }
-
-REDIS_URL = env('REDIS_URL')
 
 # CACHES
 # ------------------------------------------------------------------------------
