@@ -51,7 +51,6 @@
             {% else %}
               <td class="text-center">{{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}} - {{solicitacao.data_final|formatar_data_solicitacoes_alimentacao}}</td>
             {% endif %}
-            <td class="text-center">{{solicitacao.data_evento|formatar_data_solicitacoes_alimentacao}}</td>
             <td class="text-center">{{solicitacao.numero_alunos}}</td>
           </tr>
           {% if solicitacao.tipo_doc == 'Inclusão de Alimentação'%}
