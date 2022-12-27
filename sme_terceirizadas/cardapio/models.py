@@ -430,7 +430,11 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
             'terceirizada': self.rastro_terceirizada,
             'tipo_doc': 'Suspensão de Alimentação',
             'data_evento': self.data,
-            'numero_alunos': self.numero_alunos
+            'numero_alunos': self.numero_alunos,
+            'label_data': label_data,
+            'data_log': data_log,
+            'dias_motivos': self.suspensoes_alimentacao,
+            'quantidades_periodo': self.quantidades_por_periodo
         }
 
     def __str__(self):
