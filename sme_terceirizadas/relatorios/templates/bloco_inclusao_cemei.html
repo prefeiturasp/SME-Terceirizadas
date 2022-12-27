@@ -10,7 +10,7 @@
       {% for inclusao in solicitacao.dias_motivos_da_inclusao_cemei %}
         <div class="row my-2 mx-2">
           <div class="col-4"><b>{{inclusao.motivo}}</b></div>
-          <div class="col-4"><b>{{inclusao.data}}</b></div>
+          <div class="col-4"><b>{{inclusao.data|formatar_data_solicitacoes_alimentacao}}</b></div>
           {% if forloop.counter0 == 0 %}
             <div class="col-4">{{solicitacao.data_autorizacao}}</div>
           {% else %}
@@ -26,7 +26,7 @@
         <div class="row mt-4 mx-2">
           <div class="col-12 pr-5">
             <p class="detalhes-cei">
-              {{ quantidade_aluno.periodo }}
+              {{quantidade_aluno.periodo}}
             </p>
           </div>
         </div>
@@ -63,8 +63,8 @@
                   {% endfor %}
                   <tr class="style-total-table">
                     <td>Total</td>
-                    <td class="text-center">{{ quantidade_aluno.total_matriculados_cei }}</td>
-                    <td class="text-center">{{ quantidade_aluno.total_alunos_cei }}</td>
+                    <td class="text-center">{{quantidade_aluno.total_matriculados_cei}}</td>
+                    <td class="text-center">{{quantidade_aluno.total_alunos_cei}}</td>
                   </tr>
                 </tbody>
               </table>

@@ -9,10 +9,14 @@
       </div>
       <div class="row my-2 mx-2">
         <div class="col-4"><b>{{solicitacao.motivo}}</b></div>
-        {% if solicitacao.data_inicial == data_final %}
-          <div class="col-4"><b>{{solicitacao.data_inicial}}</b></div>
+        {% if solicitacao.data_inicial == solicitacao.data_final %}
+          <div class="col-4"><b>{{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}}</b></div>
         {% else %}
-          <div class="col-4"><b>{{solicitacao.data_inicial}} - {{solicitacao.data_final}}</b></div>
+          <div class="col-4">
+            <b>
+              {{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}} - {{solicitacao.data_final|formatar_data_solicitacoes_alimentacao}}
+            </b>
+          </div>
         {% endif %}
         <div class="col-4">{{solicitacao.data_autorizacao}}</div>
       </div>
@@ -28,12 +32,6 @@
           <div class="col-4"><b>{{substituicao.alteracao_para}}</b></div>
         </div>
       {% endfor %}
-      <div class="row my-2 mx-2">
-        {% if solicitacao.observacao and solicitacao.observacao != '<p></p>' %}
-          <div class="col-12 mb-2 pl-5 pr-5">Observação:</div>
-          <div class="col-12 mb-2 pl-5 pr-5"><span>{{ solicitacao.observacao|safe }}</span></div>
-        {% endif %}
-      </div>
     </td>
   </tr>
 {% endblock %}
