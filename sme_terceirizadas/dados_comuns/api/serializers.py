@@ -12,6 +12,7 @@ from ..models import (
     LogSolicitacoesUsuario,
     Notificacao,
     PerguntaFrequente,
+    SolicitacaoAberta,
     TemplateMensagem
 )
 
@@ -208,3 +209,20 @@ class CentralDeDownloadSerializer(serializers.ModelSerializer):
             'msg_erro',
             'visto'
         ]
+
+
+class SolicitacaoAbertaSerializer(serializers.ModelSerializer):
+    uuid_solicitacao = serializers.CharField()
+    usuario = UsuarioSerializer(required=False)
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        return SolicitacaoAberta.objects.create(usuario=user, **validated_data)
+
+    class Meta:
+        model = SolicitacaoAberta
+        fields = (
+            'id',
+            'uuid_solicitacao',
+            'usuario'
+        )
