@@ -61,6 +61,12 @@
           {% if solicitacao.tipo_doc == 'Inclusão de Alimentação CEMEI' %}
             {% include "bloco_inclusao_cemei.html" with solicitacao=solicitacao %}
           {% endif %}
+          {% if solicitacao.tipo_doc == 'Alteração do tipo de Alimentação' %}
+            {% include "bloco_alteracao_alimentacao.html" with solicitacao=solicitacao %}
+          {% endif %}
+          {% if solicitacao.tipo_doc == 'Alteração do tipo de Alimentação CEMEI' %}
+            {% include "bloco_alteracao_alimentacao_cemei.html" with solicitacao=solicitacao %}
+          {% endif %}
         </tbody>
      {% endfor %}
     </table>
