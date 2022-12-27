@@ -14,18 +14,19 @@
       </div>
     </td>
   </tr>
-  {% for substituicao in solicitacao.substituicoes %}
-    <tr>
-      <td colspan="6">
-        <div class="row mt-4 mx-2">
-          <div class="col-12 pr-5">
-            <p class="detalhes-cei">
-              {{ substituicao.periodo }}
-            </p>
+  {% if solicitacao.substituicoes %}
+    {% for substituicao in solicitacao.substituicoes %}
+      <tr>
+        <td colspan="6">
+          <div class="row mt-4 mx-2">
+            <div class="col-12 pr-5">
+              <p class="detalhes-cei">
+                {{ substituicao.periodo }}
+              </p>
+            </div>
           </div>
-        </div>
-        <div class="row mb-2 mx-2">
-          {% if substituicao.faixas_cei %}
+          <div class="row mb-2 mx-2">
+            {% if substituicao.faixas_cei %}
             <div class="col-12 mb-2 pl-5 pr-5">
               <p class="detalhes-cei">
                 Alunos CEI
@@ -47,17 +48,19 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for faixa in substituicao.faixas_cei.faixas_etarias %}
+                  {% if substituicao.faixas_cei.faixas_etarias %}
+                    {% for faixa in substituicao.faixas_cei.faixas_etarias %}
                     <tr>
                       <td>{{faixa.faixa_etaria}}</td>
                       {% if faixa.matriculados_quando_criado %}
-                        <td class="text-center">{{faixa.matriculados_quando_criado}}</td>
+                      <td class="text-center">{{faixa.matriculados_quando_criado}}</td>
                       {% else %}
-                        <td class="text-center">Não preenchido</td>
+                      <td class="text-center">Não preenchido</td>
                       {% endif %}
                       <td class="text-center">{{faixa.quantidade}}</td>
                     </tr>
-                  {% endfor %}
+                    {% endfor %}
+                  {% endif %}
                   <tr class="style-total-table">
                     <td>Total</td>
                     <td class="text-center">{{ substituicao.faixas_cei.total_matriculados }}</td>
@@ -66,8 +69,8 @@
                 </tbody>
               </table>
             </div>
-          {% endif %}
-          {% if substituicao.faixas_emei %}
+            {% endif %}
+            {% if substituicao.faixas_emei %}
             <div class="col-12 mb-2 pl-5 pr-5">
               <p class="detalhes-cei">
                 Alunos EMEI
@@ -89,9 +92,10 @@
                 </thead>
               </table>
             </div>
-          {% endif %}
-        </div>
-      </td>
-    </tr>
-  {% endfor %}
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+  {% endif %}
 {% endblock %}

@@ -18,14 +18,16 @@
         <div class="col-3">Tipos de Alimentação:</div>
         <div class="col-3">No de Alunos:</div>
       </div>
-      {% for quantidade_periodo in solicitacao.quantidades_periodo %}
+      {% if solicitacao.quantidades_periodo %}
+        {% for quantidade_periodo in solicitacao.quantidades_periodo %}
         <div class="row my-2 mx-2">
           <div class="col-3"><b>{{quantidade_periodo.dias_semana}}</b></div>
           <div class="col-3"><b>{{quantidade_periodo.periodo}}</b></div>
           <div class="col-3"><b>{{quantidade_periodo.tipos_alimentacao}}</b></div>
           <div class="col-3"><b>{{quantidade_periodo.numero_alunos}}</b></div>
         </div>
-      {% endfor %}
+        {% endfor %}
+      {% endif %}
     </td>
   </tr>
 {% endblock %}

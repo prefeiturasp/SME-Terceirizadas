@@ -14,7 +14,8 @@
       </div>
     </td>
   </tr>
-  {% for substituicao in solicitacao.susbstituicoes %}
+  {% if  solicitacao.susbstituicoes %}
+    {% for substituicao in solicitacao.susbstituicoes %}
     <tr>
       <td colspan="6">
         <div class="row mt-4 mx-2">
@@ -49,17 +50,19 @@
                 </tr>
               </thead>
               <tbody>
-                {% for faixa in substituicao.faixas_etarias %}
+                {% if  substituicao.faixas_etarias %}
+                  {% for faixa in substituicao.faixas_etarias %}
                   <tr>
                     <td>{{faixa.faixa_etaria}}</td>
                     {% if faixa.matriculados_quando_criado %}
-                      <td class="text-center">{{faixa.matriculados_quando_criado}}</td>
+                    <td class="text-center">{{faixa.matriculados_quando_criado}}</td>
                     {% else %}
-                      <td class="text-center">Não preenchido</td>
+                    <td class="text-center">Não preenchido</td>
                     {% endif %}
                     <td class="text-center">{{faixa.quantidade}}</td>
                   </tr>
-                {% endfor %}
+                  {% endfor %}
+                {% endif %}
                 <tr class="style-total-table">
                   <td>Total</td>
                   <td class="text-center">{{substituicao.total_matriculados}}</td>
@@ -71,5 +74,6 @@
         </div>
       </td>
     </tr>
-  {% endfor %}
+    {% endfor %}
+  {% endif %}
 {% endblock %}

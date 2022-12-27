@@ -25,13 +25,15 @@
         <div class="col-4">Alteração de Alimentação De:</div>
         <div class="col-4">Alteração de Alimentação Para:</div>
       </div>
-      {% for substituicao in solicitacao.substituicoes %}
-        <div class="row my-2 mx-2">
-          <div class="col-4"><b>{{substituicao.periodo}}</b></div>
-          <div class="col-4"><b>{{substituicao.alteracao_de}}</b></div>
-          <div class="col-4"><b>{{substituicao.alteracao_para}}</b></div>
-        </div>
-      {% endfor %}
+      {% if solicitacao.substituicoes %}
+        {% for substituicao in solicitacao.substituicoes %}
+          <div class="row my-2 mx-2">
+            <div class="col-4"><b>{{substituicao.periodo}}</b></div>
+            <div class="col-4"><b>{{substituicao.alteracao_de}}</b></div>
+            <div class="col-4"><b>{{substituicao.alteracao_para}}</b></div>
+          </div>
+        {% endfor %}
+      {% endif %}
     </td>
   </tr>
 {% endblock %}
