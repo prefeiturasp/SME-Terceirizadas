@@ -5,7 +5,7 @@
       <div class="row mt-2 mb-2 mx-2">
         <div class="col-4">Tipo de Alteração:</div>
         <div class="col-4">Data(s) do Evento:</div>
-        <div class="col-4">Data da Autorização:</div>
+        <div class="col-4">Data {{solicitacao.label_data}}:</div>
       </div>
       <div class="row my-2 mx-2">
         <div class="col-4"><b>{{solicitacao.motivo}}</b></div>
@@ -18,7 +18,7 @@
             </b>
           </div>
         {% endif %}
-        <div class="col-4">{{solicitacao.data_autorizacao}}</div>
+        <div class="col-4">{{solicitacao.data_log}}</div>
       </div>
       <div class="row mt-4 mb-2 mx-2">
         <div class="col-4">Período:</div>
