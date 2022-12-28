@@ -274,12 +274,12 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         filtros_fim = Q()
         if data_evento:
             data_evento = '-'.join(data_evento.split('/')[::-1])
-            filtros_inicio = (Q(data_evento__gte=data_evento) |
+            filtros_inicio = (Q(data_evento__gte=data_evento) | Q(data_evento_2__gte=data_evento) |
                               (Q(data_evento_fim__isnull=False) & ~Q(desc_doc__icontains='Alteração') &
                                Q(data_evento__gte=data_evento)))
         if data_evento_fim:
             data_evento_fim = '-'.join(data_evento_fim.split('/')[::-1])
-            filtros_fim = (Q(data_evento__lte=data_evento_fim) |
+            filtros_fim = (Q(data_evento__lte=data_evento_fim) | Q(data_evento_2__lte=data_evento_fim) |
                            (Q(data_evento_fim__isnull=False) & ~Q(desc_doc__icontains='Alteração') &
                             Q(data_evento_fim__lte=data_evento_fim)))
 
