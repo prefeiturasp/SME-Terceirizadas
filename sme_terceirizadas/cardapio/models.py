@@ -644,7 +644,7 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             justificativa=justificativa,
             resposta_sim_nao=resposta_sim_nao
         )
-        
+
     @property
     def substituicoes_dict(self):
         substituicoes = []
