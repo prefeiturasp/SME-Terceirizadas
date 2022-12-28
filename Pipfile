@@ -43,7 +43,7 @@ pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
 flower = "==0.9.7"
 isort = "==4.3.21"
 flake8-isort = "==2.8.0"
-notebook = "*"
+notebook = "==6.0.0"
 
 [packages]
 # The psycopg2-binary package is meant for beginners to start playing with
@@ -100,7 +100,7 @@ django-crispy-forms = "*"
 django-weasyprint = "==1.1.0"
 django-filter = "*"
 importlib-metadata = "==1.7.0"
-text-unidecode = "*"
+text-unidecode = "1.2"
 attrs = "==19.1.0"
 xlrd = "*"
 spyne = "==2.13.16"

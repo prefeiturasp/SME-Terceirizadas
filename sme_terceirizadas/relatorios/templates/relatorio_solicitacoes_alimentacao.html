@@ -61,6 +61,16 @@
           {% if solicitacao.tipo_doc == 'Inclusão de Alimentação CEMEI' %}
             {% include "bloco_inclusao_cemei.html" with solicitacao=solicitacao %}
           {% endif %}
+
+          {% if solicitacao.tipo_doc == 'Inversão de dia de Cardápio' %}
+            {% include "bloco_inversao_dia_cardapio.html" with solicitacao=solicitacao %}
+          {% endif %}
+          {% if solicitacao.tipo_doc == 'Suspensão de Alimentação' %}
+            {% include "bloco_suspensao_alimentacao.html" with solicitacao=solicitacao %}
+          {% endif %}
+          {% if solicitacao.tipo_doc == 'Suspensão de Alimentação de CEI' %}
+            {% include "bloco_suspensao_alimentacao_cei.html" with solicitacao=solicitacao %}
+          {% endif %}
         </tbody>
      {% endfor %}
     </table>

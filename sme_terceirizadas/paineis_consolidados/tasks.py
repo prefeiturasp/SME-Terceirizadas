@@ -194,6 +194,20 @@ def gera_xls_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
 def gera_pdf_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, uuids, status):
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
+
+    label_data = {
+        'AUTORIZADOS': ' de Autorização',
+        'CANCELADOS': ' de Cancelamento',
+        'NEGADOS': ' de Negação',
+        'EM_ANDAMENTO': ' de Autorização'
+    }
+    property_data = {
+        'AUTORIZADOS': 'data_autorizacao',
+        'CANCELADOS': 'data_cancelamento',
+        'NEGADOS': 'data_negacao',
+        'EM_ANDAMENTO': 'data_autorizacao'
+    }
+
     try:
         solicitacoes = SolicitacoesCODAE.objects.filter(uuid__in=uuids)
         solicitacoes = solicitacoes.order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
@@ -202,7 +216,10 @@ def gera_pdf_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
         for solicitacao in solicitacoes:
             class_name = MoldeConsolidado.get_class_name(solicitacao['tipo_doc'])
             _solicitacao = class_name.objects.get(uuid=solicitacao['uuid'])
-            lista_solicitacoes_dict.append(_solicitacao.solicitacao_dict_para_relatorio())
+            lista_solicitacoes_dict.append(_solicitacao.solicitacao_dict_para_relatorio(
+                label_data[status],
+                getattr(_solicitacao, property_data[status])
+            ))
 
         arquivo = build_pdf(lista_solicitacoes_dict, status)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
