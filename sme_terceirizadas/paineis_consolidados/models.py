@@ -186,6 +186,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
 
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
+    data_evento_2 = models.DateField()
     data_evento_fim = models.DateField()
     criado_em = models.DateTimeField()
     lote_nome = models.CharField(max_length=50)
@@ -260,7 +261,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         data_evento = query_params.get('data_evento')
         if not data_evento:
             return queryset
-        queryset = queryset.filter(Q(data_evento=data_evento) |
+        queryset = queryset.filter(Q(data_evento=data_evento) | Q(data_evento_2=data_evento) |
                                    (Q(data_evento_fim__isnull=False) & ~Q(desc_doc__icontains='Alteração') &
                                     Q(data_evento__lte=data_evento) & Q(data_evento_fim__gte=data_evento)))
         return queryset

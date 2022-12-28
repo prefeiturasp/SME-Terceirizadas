@@ -566,3 +566,13 @@ class CentralDeDownload(models.Model):
         if self.arquivo:
             self.arquivo.storage.delete(self.arquivo.name)
         super().delete()
+
+
+class SolicitacaoAberta(models.Model):
+    uuid_solicitacao = models.CharField(max_length=50)
+    usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        retorno = f'Solicitação "#{str(self.uuid_solicitacao).upper()[:5]}"'
+        retorno += f' está aberta e em edição pelo usuário "{self.usuario}"'
+        return retorno
