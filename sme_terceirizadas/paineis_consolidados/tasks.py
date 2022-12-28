@@ -199,13 +199,13 @@ def gera_pdf_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
         'AUTORIZADOS': ' de Autorização',
         'CANCELADOS': ' de Cancelamento',
         'NEGADOS': ' de Negação',
-        'EM_ANDAMENTO': ' de Autorização'
+        'RECEBIDAS': ' de Autorização'
     }
     property_data = {
         'AUTORIZADOS': 'data_autorizacao',
         'CANCELADOS': 'data_cancelamento',
         'NEGADOS': 'data_negacao',
-        'EM_ANDAMENTO': 'data_autorizacao'
+        'RECEBIDAS': 'data_autorizacao'
     }
 
     try:
