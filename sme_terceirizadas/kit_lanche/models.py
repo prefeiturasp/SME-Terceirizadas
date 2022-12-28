@@ -171,10 +171,18 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
-            'terceirizada': self.rastro_terceirizada,
+            'terceirizada': self.rastro_terceirizada.nome,
             'tipo_doc': 'Kit Lanche Passeio',
             'data_evento': self.data,
-            'numero_alunos': self.numero_alunos
+            'numero_alunos': self.numero_alunos,
+            'local_passeio': self.local,
+            'observacao': self.observacao,
+            'data_autorizacao': self.data_autorizacao,
+            'tempo_passeio': self.solicitacao_kit_lanche.get_tempo_passeio_display(),
+            'kits': ', '.join(list(self.solicitacao_kit_lanche.kits.all().values_list('nome', flat=True))),
+            'total_kits': self.quantidade_alimentacoes,
+            'label_data': label_data,
+            'data_log': data_log,
         }
 
     def __str__(self):
@@ -193,7 +201,7 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
 
     @property
     def observacao(self):
-        return self.kit_lanche_cei_avulsa.descricao
+        return self.solicitacao_kit_lanche.descricao
 
     @property
     def quantidade_alunos(self):
@@ -203,14 +211,40 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
     def numero_alunos(self):
         return self.quantidade_alunos
 
+    @property
+    def total_matriculados_quando_criado(self):
+        return sum(list(self.faixas_etarias.values_list('matriculados_quando_criado', flat=True)))
+
+    @property
+    def get_faixas_etarias_dict(self):
+        faixas_etarias = []
+        for faixa in self.faixas_etarias.all():
+            faixas_etarias.append({
+                'faixa_etaria': faixa.faixa_etaria.__str__(),
+                'matriculados_quando_criado': faixa.matriculados_quando_criado,
+                'quantidade': faixa.quantidade
+            })
+        return faixas_etarias
+
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
-            'terceirizada': self.rastro_terceirizada,
+            'terceirizada': self.rastro_terceirizada.nome,
             'tipo_doc': 'Kit Lanche Passeio de CEI',
             'data_evento': self.data,
-            'numero_alunos': self.numero_alunos
+            'numero_alunos': self.numero_alunos,
+            'local_passeio': self.local,
+            'observacao': self.observacao,
+            'data_autorizacao': self.data_autorizacao,
+            'tempo_passeio': self.solicitacao_kit_lanche.get_tempo_passeio_display(),
+            'kits': ', '.join(list(self.solicitacao_kit_lanche.kits.all().values_list('nome', flat=True))),
+            'total_kits': self.quantidade_alimentacoes,
+            'total_alunos': self.quantidade_alunos,
+            'label_data': label_data,
+            'data_log': data_log,
+            'faixas_etarias': self.get_faixas_etarias_dict,
+            'total_matriculados': self.total_matriculados_quando_criado
         }
 
     def __str__(self):
@@ -390,6 +424,20 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     def numero_alunos(self):
         return self.escolas_quantidades.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
 
+    @property
+    def get_escolas_quantidades_dict(self):
+        escolas_quantidades = []
+        for escola_quantidade in self.escolas_quantidades.all():
+            escolas_quantidades.append({
+                'codigo': escola_quantidade.escola.codigo_eol,
+                'unidade_escolar': escola_quantidade.escola.nome,
+                'quantidade': escola_quantidade.quantidade_alunos,
+                'tempo_passeio': escola_quantidade.get_tempo_passeio_display(),
+                'opcao_desejada': ', '.join(list(escola_quantidade.kits.all().values_list('nome', flat=True))),
+                'total_kits': escola_quantidade.total_kit_lanche
+            })
+        return escolas_quantidades
+
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
@@ -397,7 +445,15 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
             'terceirizada': 'Várias Terceirizadas',
             'tipo_doc': 'Kit Lanche Passeio Unificado',
             'data_evento': self.data,
-            'numero_alunos': self.numero_alunos
+            'numero_alunos': self.numero_alunos,
+            'local_passeio': self.local,
+            'observacao': self.observacao,
+            'data_autorizacao': self.data_autorizacao,
+            'tempo_passeio': self.solicitacao_kit_lanche.get_tempo_passeio_display(),
+            'total_kits': self.quantidade_alimentacoes,
+            'label_data': label_data,
+            'data_log': data_log,
+            'escolas_quantidades': self.get_escolas_quantidades_dict,
         }
 
     def __str__(self):
@@ -495,14 +551,54 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             resposta_sim_nao=resposta_sim_nao
         )
 
+    @property
+    def get_solicitacao_cei_dict(self):
+        alunos_cei = []
+        total_matriculados = 0
+        total_alunos = 0
+        if self.solicitacao_cei.faixas_quantidades.all():
+            for faixa in self.solicitacao_cei.faixas_quantidades.all():
+                total_alunos += faixa.quantidade_alunos
+                total_matriculados += faixa.matriculados_quando_criado
+                alunos_cei.append({
+                    'faixa_etaria': faixa.faixa_etaria.__str__(),
+                    'quantidade': faixa.quantidade_alunos,
+                    'matriculados_quando_criado': faixa.matriculados_quando_criado
+                })
+        return {
+            'tempo_passeio': self.solicitacao_cei.get_tempo_passeio_display(),
+            'alunos_cei': alunos_cei,
+            'kits': ', '.join(list(self.solicitacao_cei.kits.all().values_list('nome', flat=True))),
+            'total_alunos': total_alunos,
+            'total_matriculados': total_matriculados
+        }
+
+    def get_solicitacao_emei_dict(self):
+        if not self.solicitacao_emei:
+            return {}
+        return {
+            'tempo_passeio': self.solicitacao_emei.get_tempo_passeio_display(),
+            'kits': ', '.join(list(self.solicitacao_emei.kits.all().values_list('nome', flat=True))),
+            'matriculados_quando_criado': self.solicitacao_emei.matriculados_quando_criado,
+            'quantidade_alunos': self.solicitacao_emei.quantidade_alunos
+        }
+
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
-            'terceirizada': self.rastro_terceirizada,
+            'terceirizada': self.rastro_terceirizada.nome,
             'tipo_doc': 'Kit Lanche Passeio de CEMEI',
             'data_evento': self.data,
-            'numero_alunos': self.numero_alunos
+            'numero_alunos': self.numero_alunos,
+            'label_data': label_data,
+            'data_log': data_log,
+            'local_passeio': self.local,
+            'observacao': self.observacao,
+            'data_autorizacao': self.data_autorizacao,
+            'solicitacao_cei': self.get_solicitacao_cei_dict,
+            'solicitacao_emei': self.get_solicitacao_emei_dict(),
+            'total_kits': self.total_kits
         }
 
     class Meta:
