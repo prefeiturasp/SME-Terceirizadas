@@ -7,8 +7,8 @@
         <div class="col-4">Dia de suspensão:</div>
       </div>
       <div class="row my-2 mx-2">
-        <div class="col-4"><b>{{ solicitacao.data_evento }}</b></div>
         <div class="col-4"><b>{{ solicitacao.motivo.nome }}</b></div>
+        <div class="col-4"><b>{{ solicitacao.data_evento|formatar_data_solicitacoes_alimentacao }}</b></div>
       </div>
       </td>
   </tr>
