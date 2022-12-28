@@ -1,0 +1,33 @@
+{% load index %}
+{% block suspensao_alimentacao %}
+  <tr>
+    <td colspan="6" style="border-bottom: none">
+      <div class="row mt-2 mb-2 mx-2">
+        <div class="col-4">Motivo</div>
+        <div class="col-4">Dia(s) de suspensão:</div>
+      </div>
+      {% for dia_motivo in solicitacao.dias_motivos.all %}
+        <div class="row my-2 mx-2">
+          <div class="col-4"><b>{{ dia_motivo.motivo.nome }}</b></div>
+          <div class="col-4"><b>{{ dia_motivo.data }}</b></div>
+        </div>
+      {% endfor %}
+      </td>
+  </tr>
+  <tr>
+    <td colspan="6" style="border-top: none">
+      <div class="row mt-2 mb-2 mx-2">
+        <div class="col-4">Período</div>
+        <div class="col-4">Tipos de alimentação:</div>
+        <div class="col-4">Quantidade:</div>
+      </div>
+      {% for quantidade_periodo in solicitacao.quantidades_periodo.all %}
+        <div class="row my-2 mx-2">
+          <div class="col-4"><b>{{ quantidade_periodo.periodo_escolar.nome }}</b></div>
+          <div class="col-4"><b>{{ quantidade_periodo.tipos_alimentacao.all|concatena_str }}</b></div>
+          <div class="col-4"><b>{{ quantidade_periodo.numero_alunos }}</b></div>
+        </div>
+      {% endfor %}
+    </td>
+  </tr>
+{% endblock %}

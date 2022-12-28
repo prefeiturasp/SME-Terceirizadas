@@ -254,7 +254,7 @@ class Logs(object):
             return LogSolicitacoesUsuario.objects.get(
                 uuid_original=self.uuid, status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU
             ).criado_em.strftime('%d/%m/%Y')
-        return None
+        return ''
 
     @property
     def data_cancelamento(self):
@@ -267,7 +267,7 @@ class Logs(object):
                 status_evento__in=[
                     LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]
             ).criado_em.strftime('%d/%m/%Y')
-        return None
+        return ''
 
     @property
     def data_negacao(self):
@@ -280,7 +280,7 @@ class Logs(object):
                 status_evento__in=[
                     LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
             ).criado_em.strftime('%d/%m/%Y')
-        return None
+        return ''
 
 
 class TemVinculos(models.Model):

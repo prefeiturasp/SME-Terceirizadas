@@ -46,7 +46,7 @@ jobs:
           cp /srv/env/terceirizadas .
           
       - name: Running Python Tests
-        uses: luizhpriotto/action_images@terceirizadas-backend-v1.1
+        uses: luizhpriotto/action_images@terceirizadas-backend-v1.4
         with:
           command: |
             echo "Conectando o container a rede python..."

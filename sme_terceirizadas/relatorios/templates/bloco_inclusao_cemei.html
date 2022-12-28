@@ -1,18 +1,18 @@
 {% load index %}
 {% block inclusao_alimentacao_cemei %}
   <tr>
-    <td colspan="6">
+    <td colspan="6" style="border-bottom: none;">
       <div class="row mb-2 mx-2">
         <div class="col-4">Motivo:</div>
         <div class="col-4">Dia(s) de Inclusão:</div>
-        <div class="col-4">Data da Autorização:</div>
+        <div class="col-4">Data {{ solicitacao.label_data }}</div>
       </div>
       {% for inclusao in solicitacao.dias_motivos_da_inclusao_cemei %}
         <div class="row my-2 mx-2">
           <div class="col-4"><b>{{inclusao.motivo}}</b></div>
           <div class="col-4"><b>{{inclusao.data}}</b></div>
           {% if forloop.counter0 == 0 %}
-            <div class="col-4">{{solicitacao.data_autorizacao}}</div>
+            <div class="col-4"><b>{{solicitacao.data_log}}</b></div>
           {% else %}
             <div class="col-4"></div>
           {% endif %}
@@ -22,7 +22,7 @@
   </tr>
   {% for quantidade_aluno in solicitacao.quantidades_alunos %}
     <tr>
-      <td colspan="6">
+      <td colspan="6" style="border-top:none;">
         <div class="row mt-4 mx-2">
           <div class="col-12 pr-5">
             <p class="detalhes-cei">
