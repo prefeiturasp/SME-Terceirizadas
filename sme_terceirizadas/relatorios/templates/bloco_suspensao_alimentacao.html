@@ -5,11 +5,13 @@
       <div class="row mt-2 mb-2 mx-2">
         <div class="col-4">Motivo</div>
         <div class="col-4">Dia(s) de suspensão:</div>
+        <div class="col-4">Data da Suspensão:</div>
       </div>
       {% for dia_motivo in solicitacao.dias_motivos.all %}
         <div class="row my-2 mx-2">
           <div class="col-4"><b>{{ dia_motivo.motivo.nome }}</b></div>
           <div class="col-4"><b>{{ dia_motivo.data }}</b></div>
+          {% if forloop.first %}<div class="col-4"><b>{{ solicitacao.data_log }}</b></div>{% endif %}
         </div>
       {% endfor %}
       </td>

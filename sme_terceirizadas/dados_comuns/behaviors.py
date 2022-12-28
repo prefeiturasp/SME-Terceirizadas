@@ -249,6 +249,9 @@ class Logs(object):
 
     @property
     def data_autorizacao(self):
+        if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid).first().solicitacao_tipo in [
+                LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO, LogSolicitacoesUsuario.SUSPENSAO_ALIMENTACAO_CEI]:
+            return self.logs.first().criado_em.strftime('%d/%m/%Y') if self.logs.exists() else ''
         if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid,
                                                  status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU).exists():
             return LogSolicitacoesUsuario.objects.get(

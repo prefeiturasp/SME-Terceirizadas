@@ -556,7 +556,8 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'motivo': self.motivo,
-            'periodos_escolares': self.periodos_escolares
+            'periodos_escolares': self.periodos_escolares,
+            'data_log': self.data_log
         }
 
     def __str__(self):
