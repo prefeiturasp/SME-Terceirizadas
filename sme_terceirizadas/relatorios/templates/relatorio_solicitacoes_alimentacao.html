@@ -46,7 +46,11 @@
               <td colspan="2">{{solicitacao.unidade_educacional}}</td>
             {% endif %}
             <td>{{solicitacao.tipo_doc}}</td>
-            <td class="text-center">{{solicitacao.data_evento}}</td>
+            {% if solicitacao.tipo_doc == 'Alteração do tipo de Alimentação' and solicitacao.data_inicial == solicitacao.data_final %}
+              <td class="text-center">{{solicitacao.data_evento|formatar_data_solicitacoes_alimentacao}}</td>
+            {% else %}
+              <td class="text-center">{{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}} - {{solicitacao.data_final|formatar_data_solicitacoes_alimentacao}}</td>
+            {% endif %}
             <td class="text-center">{{solicitacao.numero_alunos}}</td>
           </tr>
           {% if solicitacao.tipo_doc == 'Inclusão de Alimentação'%}
@@ -61,7 +65,15 @@
           {% if solicitacao.tipo_doc == 'Inclusão de Alimentação CEMEI' %}
             {% include "bloco_inclusao_cemei.html" with solicitacao=solicitacao %}
           {% endif %}
-
+          {% if solicitacao.tipo_doc == 'Alteração do tipo de Alimentação' %}
+            {% include "bloco_alteracao_alimentacao.html" with solicitacao=solicitacao %}
+          {% endif %}
+          {% if solicitacao.tipo_doc == 'Alteração do Tipo de Alimentação CEI' %}
+            {% include "bloco_alteracao_alimentacao_cei.html" with solicitacao=solicitacao %}
+          {% endif %}
+          {% if solicitacao.tipo_doc == 'Alteração do tipo de Alimentação CEMEI' %}
+            {% include "bloco_alteracao_alimentacao_cemei.html" with solicitacao=solicitacao %}
+          {% endif %}
           {% if solicitacao.tipo_doc == 'Inversão de dia de Cardápio' %}
             {% include "bloco_inversao_dia_cardapio.html" with solicitacao=solicitacao %}
           {% endif %}
@@ -70,6 +82,16 @@
           {% endif %}
           {% if solicitacao.tipo_doc == 'Suspensão de Alimentação de CEI' %}
             {% include "bloco_suspensao_alimentacao_cei.html" with solicitacao=solicitacao %}
+          {% endif %}
+          {% if solicitacao.observacao and solicitacao.observacao != '<p></p>' %}
+            <tr>
+              <td colspan="6">
+                <div class="row mt-4 mb-2 mx-2">
+                  <div class="col-12">Observação:</div>
+                  <div class="col-12"><b><span>{{ solicitacao.observacao|safe }}</span><b></div>
+                </div>
+              </td>
+            </tr>
           {% endif %}
         </tbody>
      {% endfor %}
