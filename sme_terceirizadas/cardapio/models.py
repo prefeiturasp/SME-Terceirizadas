@@ -556,7 +556,9 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'motivo': self.motivo,
-            'periodos_escolares': self.periodos_escolares
+            'periodos_escolares': self.periodos_escolares,
+            'label_data': label_data,
+            'data_log': data_log,
         }
 
     def __str__(self):
@@ -662,7 +664,7 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             })
         return substituicoes
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -675,7 +677,9 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             'data_final': self.data_final,
             'data_autorizacao': self.data_autorizacao,
             'observacao': self.observacao,
-            'substituicoes': self.substituicoes_dict
+            'substituicoes': self.substituicoes_dict,
+            'label_data': label_data,
+            'data_log': data_log,
         }
 
     def __str__(self):
@@ -786,7 +790,7 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
             })
         return substituicoes
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -797,7 +801,9 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
             'motivo': self.motivo.nome,
             'data_autorizacao': self.data_autorizacao,
             'susbstituicoes': self.susbstituicoes_dict,
-            'observacao': self.observacao
+            'observacao': self.observacao,
+            'label_data': label_data,
+            'data_log': data_log,
         }
 
     def __str__(self):
@@ -950,7 +956,7 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             })
         return substituicoes
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -961,7 +967,9 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             'motivo': self.motivo.nome,
             'substituicoes': self.substituicoes_dict(),
             'observacao': self.observacao,
-            'data_autorizacao': self.data_autorizacao
+            'data_autorizacao': self.data_autorizacao,
+            'label_data': label_data,
+            'data_log': data_log,
         }
 
     def __str__(self):
