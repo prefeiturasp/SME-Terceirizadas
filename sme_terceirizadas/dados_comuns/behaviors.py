@@ -254,9 +254,11 @@ class Logs(object):
             return self.logs.first().criado_em.strftime('%d/%m/%Y') if self.logs.exists() else ''
         if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid,
                                                  status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU).exists():
-            return LogSolicitacoesUsuario.objects.get(
+            log = LogSolicitacoesUsuario.objects.filter(
                 uuid_original=self.uuid, status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU
-            ).criado_em.strftime('%d/%m/%Y')
+            )
+            if log:
+                return log.last().criado_em.strftime('%d/%m/%Y')
         return ''
 
     @property
@@ -265,11 +267,13 @@ class Logs(object):
             uuid_original=self.uuid,
             status_evento__in=[
                 LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]).exists():
-            return LogSolicitacoesUsuario.objects.get(
+            log = LogSolicitacoesUsuario.objects.filter(
                 uuid_original=self.uuid,
                 status_evento__in=[
                     LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]
-            ).criado_em.strftime('%d/%m/%Y')
+            )
+            if log:
+                return log.last().criado_em.strftime('%d/%m/%Y')
         return ''
 
     @property
@@ -278,11 +282,13 @@ class Logs(object):
             uuid_original=self.uuid,
             status_evento__in=[
                 LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]).exists():
-            return LogSolicitacoesUsuario.objects.get(
+            log = LogSolicitacoesUsuario.objects.filter(
                 uuid_original=self.uuid,
                 status_evento__in=[
                     LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
-            ).criado_em.strftime('%d/%m/%Y')
+            )
+            if log:
+                return log.last().criado_em.strftime('%d/%m/%Y')
         return ''
 
 
