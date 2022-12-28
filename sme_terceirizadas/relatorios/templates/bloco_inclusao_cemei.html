@@ -1,11 +1,11 @@
 {% load index %}
 {% block inclusao_alimentacao_cemei %}
   <tr>
-    <td colspan="6">
+    <td colspan="6" style="border-bottom: none;">
       <div class="row mb-2 mx-2">
         <div class="col-4">Motivo:</div>
         <div class="col-4">Dia(s) de Inclusão:</div>
-        <div class="col-4">Data da Autorização:</div>
+        <div class="col-4">Data {{ solicitacao.label_data }}</div>
       </div>
       {% if solicitacao.dias_motivos_da_inclusao_cemei %}
         {% for inclusao in solicitacao.dias_motivos_da_inclusao_cemei %}

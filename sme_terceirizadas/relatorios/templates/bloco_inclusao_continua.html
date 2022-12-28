@@ -5,7 +5,7 @@
       <div class="row mt-2 mb-2 mx-2">
         <div class="col-4">Motivo:</div>
         <div class="col-4">Dia(s) de Inclusão:</div>
-        <div class="col-4">Data da Autorização:</div>
+        <div class="col-4">Data {{ solicitacao.label_data }}</div>
       </div>
       <div class="row my-2 mx-2">
         <div class="col-4"><b>{{solicitacao.motivo}}</b></div>
@@ -21,10 +21,10 @@
       {% if solicitacao.quantidades_periodo %}
         {% for quantidade_periodo in solicitacao.quantidades_periodo %}
         <div class="row my-2 mx-2">
-          <div class="col-3"><b>{{quantidade_periodo.dias_semana}}</b></div>
-          <div class="col-3"><b>{{quantidade_periodo.periodo}}</b></div>
-          <div class="col-3"><b>{{quantidade_periodo.tipos_alimentacao}}</b></div>
-          <div class="col-3"><b>{{quantidade_periodo.numero_alunos}}</b></div>
+          <div class="col-3"><b>{{ quantidade_periodo.dias_semana }}</b></div>
+          <div class="col-3"><b>{{ quantidade_periodo.periodo }}</b></div>
+          <div class="col-3"><b>{{ quantidade_periodo.tipos_alimentacao }}</b></div>
+          <div class="col-3"><b>{{ quantidade_periodo.numero_alunos }}</b></div>
         </div>
         {% endfor %}
       {% endif %}

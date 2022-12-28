@@ -167,7 +167,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
     def numero_alunos(self):
         return self.quantidade_alunos
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -203,7 +203,7 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
     def numero_alunos(self):
         return self.quantidade_alunos
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -390,7 +390,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     def numero_alunos(self):
         return self.escolas_quantidades.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': 'Várias Escolas',
@@ -495,7 +495,7 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             resposta_sim_nao=resposta_sim_nao
         )
 
-    def solicitacao_dict_para_relatorio(self):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
