@@ -283,12 +283,19 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
         )
 
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
+        data_de_inversao = ''
+        data_de_inversao_2 = ''
+        if self.data_de_inversao:
+            data_de_inversao = self.data_de_inversao.strftime('%d/%m/%Y')
+
+        if self.data_de_inversao_2:
+            data_de_inversao_2 = self.data_de_inversao_2.strftime('%d/%m/%Y')
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
             'terceirizada': self.rastro_terceirizada,
             'tipo_doc': 'Inversão de dia de Cardápio',
-            'data_evento': self.data,
+            'data_evento': f'{data_de_inversao} {data_de_inversao_2}',
             'numero_alunos': self.numero_alunos,
             'data_de_inversao': self.data_de_inversao,
             'data_inicial': self.data_de_inversao,
@@ -426,17 +433,21 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
         return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
 
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
+        datas = list(self.suspensoes_alimentacao.order_by('data').values_list('data', flat=True))
+        datas = [d.strftime('%d/%m/%Y') for d in datas]
+        datas = ' '.join(datas)
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
             'terceirizada': self.rastro_terceirizada,
             'tipo_doc': 'Suspensão de Alimentação',
-            'data_evento': self.data,
+            'data_evento': datas,
             'numero_alunos': self.numero_alunos,
             'label_data': label_data,
             'data_log': data_log,
             'dias_motivos': self.suspensoes_alimentacao,
-            'quantidades_periodo': self.quantidades_por_periodo
+            'quantidades_periodo': self.quantidades_por_periodo,
+            'datas': self.datas
         }
 
     def __str__(self):
