@@ -48,8 +48,13 @@
             <td>{{solicitacao.tipo_doc}}</td>
             {% if solicitacao.tipo_doc == 'Alteração do tipo de Alimentação' and solicitacao.data_inicial == solicitacao.data_final %}
               <td class="text-center">{{solicitacao.data_evento|formatar_data_solicitacoes_alimentacao}}</td>
+            {% elif solicitacao.data_inicial and solicitacao.data_inicial != solicitacao.data_final %}
+              <td class="text-center">{{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}} -
+                {{solicitacao.data_final|formatar_data_solicitacoes_alimentacao}}</td>
             {% elif solicitacao.tipo_doc == 'Inversão de dia de Cardápio' or solicitacao.tipo_doc == 'Suspensão de Alimentação' %}
               <td class="text-center">{{solicitacao.data_evento}}</td>
+            {% elif solicitacao.datas %}
+              <td class="text-center">{{solicitacao.datas}}</td>
             {% else %}
               <td class="text-center">{{solicitacao.data_evento|formatar_data_solicitacoes_alimentacao}}</td>
             {% endif %}
