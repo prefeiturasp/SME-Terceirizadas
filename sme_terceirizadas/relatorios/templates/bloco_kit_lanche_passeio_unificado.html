@@ -1,0 +1,51 @@
+{% load index %}
+{% block alteracao_alimentacao_normal %}
+  <tr>
+    <td colspan="6">
+      <div class="row mt-2 mb-2 mx-2">
+        <div class="col-4">Local do Passeio:</div>
+        <div class="col-4">No Total de Kits:</div>
+        <div class="col-4">Data {{solicitacao.label_data}}:</div>
+      </div>
+      <div class="row my-2 mx-2">
+        <div class="col-4"><b>{{solicitacao.local_passeio}}</b></div>
+        <div class="col-4"><b>{{solicitacao.total_kits}}</b></div>
+        <div class="col-4"><b>{{solicitacao.data_log}}</b></div>
+      </div>
+      <div class="row mt-4 mb-2 mx-2">
+        <div class="col-12">Data do Evento:</div>
+        <div class="col-12"><b>{{solicitacao.data_evento}}</b></div>
+      </div>
+      <div class="row my-2 mx-2">
+        <div class="col-12">
+          <table>
+            <thead>
+              <tr>
+                <th>Codigo</th>
+                <th>Unidade Escola</th>
+                <th class="text-center">Quantidade</th>
+                <th class="text-center">Tempo previsto de passeio	</th>
+                <th class="text-center">Opção desejada</th>
+                <th class="text-center">Total Kits</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if solicitacao.escolas_quantidades %}
+                {% for escola_quantidade in solicitacao.escolas_quantidades %}
+                <tr>
+                  <td>{{escola_quantidade.codigo}}</td>
+                  <td>{{escola_quantidade.unidade_escolar}}</td>
+                  <td class="text-center">{{escola_quantidade.quantidade}}</td>
+                  <td class="text-center">{{escola_quantidade.tempo_passeio}}</td>
+                  <td class="text-center">{{escola_quantidade.opcao_desejada}}</td>
+                  <td class="text-center">{{escola_quantidade.total_kits}}</td>
+                </tr>
+                {% endfor %}
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </td>
+  </tr>
+{% endblock %}
