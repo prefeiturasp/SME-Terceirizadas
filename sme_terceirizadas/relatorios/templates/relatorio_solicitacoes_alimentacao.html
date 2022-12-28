@@ -48,8 +48,10 @@
             <td>{{solicitacao.tipo_doc}}</td>
             {% if solicitacao.tipo_doc == 'Alteração do tipo de Alimentação' and solicitacao.data_inicial == solicitacao.data_final %}
               <td class="text-center">{{solicitacao.data_evento|formatar_data_solicitacoes_alimentacao}}</td>
-            {% else %}
+            {% elif solicitacao.data_inicial %}
               <td class="text-center">{{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}} - {{solicitacao.data_final|formatar_data_solicitacoes_alimentacao}}</td>
+            {% else %}
+              <td class="text-center">{{solicitacao.data_evento|formatar_data_solicitacoes_alimentacao}}</td>
             {% endif %}
             <td class="text-center">{{solicitacao.numero_alunos}}</td>
           </tr>
