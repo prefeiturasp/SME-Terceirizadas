@@ -291,6 +291,8 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'data_de_inversao': self.data_de_inversao,
+            'data_inicial': self.data_de_inversao,
+            'data_final': self.data_para_inversao,
             'data_para_inversao': self.data_para_inversao,
             'data_de_inversao_2': self.data_de_inversao_2,
             'data_para_inversao_2': self.data_de_inversao_2,
