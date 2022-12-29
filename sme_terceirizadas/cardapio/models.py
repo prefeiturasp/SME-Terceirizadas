@@ -309,7 +309,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
             'data_final': self.data_para_inversao,
             'data_para_inversao': self.data_para_inversao,
             'data_de_inversao_2': self.data_de_inversao_2,
-            'data_para_inversao_2': self.data_de_inversao_2,
+            'data_para_inversao_2': self.data_para_inversao_2,
             'label_data': label_data,
             'data_log': data_log,
             'motivo': self.motivo,
