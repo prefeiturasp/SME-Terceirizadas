@@ -558,7 +558,7 @@ def test_url_endpoint_alt_card_inicio_403(client_autenticado_vinculo_dre_cardapi
 def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
                                      tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar):
     hoje = datetime.date.today()
-    if hoje.month == 12 and hoje.day == 30:
+    if hoje.month == 12 and hoje.day in [29, 30, 31]:
         return
     response = client_autenticado_vinculo_escola_cardapio.post(f'/{ENDPOINT_ALTERACAO_CARD}/',
                                                                content_type='application/json',
