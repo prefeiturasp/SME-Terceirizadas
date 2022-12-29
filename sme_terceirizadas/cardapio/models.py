@@ -237,6 +237,13 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
         return solicitacoes_unificadas
 
     @property
+    def datas(self):
+        datas = self.data_de_inversao.strftime('%d/%m/%Y')
+        if self.data_de_inversao_2:
+            datas += '<br />' + self.data_de_inversao_2.strftime('%d/%m/%Y')
+        return datas
+
+    @property
     def data_de(self):
         return self.cardapio_de.data if self.cardapio_de else self.data_de_inversao or None
 
@@ -307,7 +314,8 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
             'data_log': data_log,
             'motivo': self.motivo,
             'observacao': self.observacao,
-            'tipos_alimentacao': ', '.join(self.tipos_alimentacao.values_list('nome', flat=True))
+            'tipos_alimentacao': ', '.join(self.tipos_alimentacao.values_list('nome', flat=True)),
+            'datas': self.datas
         }
 
     def __str__(self):

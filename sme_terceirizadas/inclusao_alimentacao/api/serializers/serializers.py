@@ -156,6 +156,7 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
+    datas = serializers.CharField()
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
@@ -204,6 +205,7 @@ class InclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
     prioridade = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    datas = serializers.CharField()
 
     class Meta:
         model = InclusaoDeAlimentacaoCEMEI
