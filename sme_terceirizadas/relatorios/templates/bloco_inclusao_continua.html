@@ -26,6 +26,11 @@
           <div class="col-3"><b>{{ quantidade_periodo.periodo }}</b></div>
           <div class="col-3"><b>{{ quantidade_periodo.tipos_alimentacao }}</b></div>
           <div class="col-3"><b>{{ quantidade_periodo.numero_alunos }}</b></div>
+          {% if quantidade_periodo.observacao and quantidade_periodo.observacao != "<p></p>" %}
+            <div class="col-12">
+              Observação: {{quantidade_periodo.observacao|striptags}}
+            </div>
+          {% endif %}
         </div>
         {% endfor %}
       {% endif %}

@@ -238,7 +238,10 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
 
     @property
     def datas(self):
-        datas = self.data_de_inversao.strftime('%d/%m/%Y')
+        if self.cardapio_de:
+            datas = self.cardapio_de.data.strftime('%d/%m/%Y')
+        else:
+            datas = self.data_de_inversao.strftime('%d/%m/%Y')
         if self.data_de_inversao_2:
             datas += '<br />' + self.data_de_inversao_2.strftime('%d/%m/%Y')
         return datas
@@ -310,6 +313,8 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
             'data_para_inversao': self.data_para_inversao,
             'data_de_inversao_2': self.data_de_inversao_2,
             'data_para_inversao_2': self.data_para_inversao_2,
+            'data_de': self.data_de,
+            'data_para': self.data_para,
             'label_data': label_data,
             'data_log': data_log,
             'motivo': self.motivo,
@@ -455,7 +460,8 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
             'data_log': data_log,
             'dias_motivos': self.suspensoes_alimentacao,
             'quantidades_periodo': self.quantidades_por_periodo,
-            'datas': self.datas
+            'datas': self.datas,
+            'observacao': self.observacao
         }
 
     def __str__(self):
