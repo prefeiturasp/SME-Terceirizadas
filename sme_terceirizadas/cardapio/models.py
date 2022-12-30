@@ -455,7 +455,8 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
             'data_log': data_log,
             'dias_motivos': self.suspensoes_alimentacao,
             'quantidades_periodo': self.quantidades_por_periodo,
-            'datas': self.datas
+            'datas': self.datas,
+            'observacao': self.observacao
         }
 
     def __str__(self):
