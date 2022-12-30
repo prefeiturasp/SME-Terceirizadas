@@ -8,8 +8,20 @@
         <div class="col-4">Data {{solicitacao.label_data}}:</div>
       </div>
       <div class="row my-2 mx-2">
-        <div class="col-4"><b>{{solicitacao.data_de_inversao}}</b></div>
-        <div class="col-4"><b>{{solicitacao.data_para_inversao}}</b></div>
+        <div class="col-4"><b>
+          {% if solicitacao.data_de_inversao %}
+            {{solicitacao.data_de_inversao|date:"d/m/Y"}}
+          {% else %}
+            {{solicitacao.data_de|date:"d/m/Y"}}
+          {% endif %}
+        </b></div>
+        <div class="col-4"><b>
+          {% if solicitacao.data_para_inversao %}
+            {{solicitacao.data_para_inversao|date:"d/m/Y"}}
+          {% else %}
+            {{solicitacao.data_para|date:"d/m/Y"}}
+          {% endif %}
+        </b></div>
         <div class="col-4"><b>{{solicitacao.data_log}}</b></div>
       </div>
     </td>
@@ -22,8 +34,8 @@
           <div class="col-4">Substituição Para:</div>
         </div>
         <div class="row my-2 mx-2">
-          <div class="col-4"><b>{{solicitacao.data_de_inversao_2}}</b></div>
-          <div class="col-4"><b>{{solicitacao.data_para_inversao_2}}</b></div>
+          <div class="col-4"><b>{{solicitacao.data_de_inversao_2|date:"d/m/Y"}}</b></div>
+          <div class="col-4"><b>{{solicitacao.data_para_inversao_2|date:"d/m/Y"}}</b></div>
         </div>
       </td>
     </tr>
