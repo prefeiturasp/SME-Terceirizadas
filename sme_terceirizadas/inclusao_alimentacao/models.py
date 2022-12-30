@@ -333,7 +333,6 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
 
     @property
     def quantidades_periodo_simples_dict(self):
-        print("here")
         quantidades_periodo = []
         for quantidade_periodo in self.quantidades_periodo.all():
             tipos_alimentacao = ', '.join(quantidade_periodo.tipos_alimentacao.all().values_list('nome', flat=True))
