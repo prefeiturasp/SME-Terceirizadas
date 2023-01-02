@@ -36,7 +36,7 @@ flake8-docstrings='==1.4.0'    # https://github.com/PyCQA/flake8-docstrings
 coverage='==4.5.2'             # https://github.com/nedbat/coveragepy
 django-stubs='==1.2.0'         # https://github.com/typeddjango/django-stubs
 bandit='==1.6.2'               # https://github.com/PyCQA/bandit
-django-debug-toolbar='==1.11'  # https://github.com/jazzband/django-debug-toolbar
+django-debug-toolbar='==1.11.1'  # https://github.com/jazzband/django-debug-toolbar
 django-extensions='==2.2.3'    # https://github.com/django-extensions/django-extensions
 django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_plugin
 pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
