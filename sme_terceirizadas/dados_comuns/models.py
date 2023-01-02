@@ -82,7 +82,8 @@ class LogSolicitacoesUsuario(
         MEDICAO_ENCERRADA_PELA_CODAE,
         CRONOGRAMA_CRIADO,
         CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
-    ) = range(58)
+        CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
+    ) = range(59)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -181,6 +182,7 @@ class LogSolicitacoesUsuario(
         (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
         (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
+        (CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR, 'Entrega Confirmada'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -564,3 +566,13 @@ class CentralDeDownload(models.Model):
         if self.arquivo:
             self.arquivo.storage.delete(self.arquivo.name)
         super().delete()
+
+
+class SolicitacaoAberta(models.Model):
+    uuid_solicitacao = models.CharField(max_length=50)
+    usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        retorno = f'Solicitação "#{str(self.uuid_solicitacao).upper()[:5]}"'
+        retorno += f' está aberta e em edição pelo usuário "{self.usuario}"'
+        return retorno

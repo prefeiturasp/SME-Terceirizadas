@@ -1,7 +1,8 @@
-from django.urls import include, path
+from django.urls import include, path, re_path
 from rest_framework import routers
 
 from .api import viewsets
+from .consumers import SolicitacoesAbertasConsumer
 from .views import send_test_email, test_visualiza_email
 
 router = routers.DefaultRouter()
@@ -17,9 +18,15 @@ router.register('categorias-pergunta-frequente', viewsets.CategoriaPerguntaFrequ
                 basename='Categorias de Pergunta Frequente')
 router.register('notificacoes', viewsets.NotificacaoViewSet, basename='Notificações')
 router.register('downloads', viewsets.CentralDeDownloadViewSet, basename='Downloads')
+router.register('solicitacoes-abertas', viewsets.SolicitacaoAbertaViewSet,
+                basename='Solicitações abertas')
 
 urlpatterns = [
     path('', include(router.urls)),
     path('email-teste/', send_test_email, name='enviar_email_teste'),
     path('visualiza-email/', test_visualiza_email, name='email_teste')
+]
+
+ws_urlpatterns = [
+    re_path(r'ws/solicitacoes-abertas/', SolicitacoesAbertasConsumer.as_asgi())
 ]

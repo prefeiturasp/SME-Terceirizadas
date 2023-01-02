@@ -1,0 +1,69 @@
+{% load index %}
+{% block inclusao_alimentacao_cei %}
+  <tr>
+    <td colspan="6">
+      <div class="row mt-2 mb-2 mx-2">
+        <div class="col-4">Motivo:</div>
+        <div class="col-4">Dia(s) de Inclusão:</div>
+        <div class="col-4">Data {{solicitacao.label_data}}::</div>
+      </div>
+      <div class="row my-2 mx-2">
+        <div class="col-4"><b>{{solicitacao.motivo}}</b></div>
+        <div class="col-4"><b>{{solicitacao.data_evento|formatar_data_solicitacoes_alimentacao}}</b></div>
+        <div class="col-4">{{solicitacao.data_log}}</div>
+      </div>
+      <div class="row mt-4 mx-2">
+        <div class="col-12 pr-5">
+          <p class="detalhes-cei">
+            INTEGRAL
+          </p>
+        </div>
+      </div>
+      {% if solicitacao.quantidade_alunos_por_faixas_etarias %}
+        {% for quantidade_aluno in solicitacao.quantidade_alunos_por_faixas_etarias %}
+          <div class="row mb-2 mx-2">
+            <div class="col-12 mb-2 pl-5 pr-5">
+              <p class="detalhes-cei">
+                {{quantidade_aluno.periodo}}
+              </p>
+            </div>
+            <div class="col-12 mb-2 pl-5 pr-5">
+              Tipos de Inclusão de Alimentação: <b>{{quantidade_aluno.tipos_alimentacao}}</b>
+            </div>
+            <div class="col-12 mb-2 pl-5">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Faixa Etária</th>
+                    <th class="text-center">Alunos Matriculados	</th>
+                    <th class="text-center">Quantidade</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if quantidade_aluno.faixas_quantidades %}
+                    {% for quantidade_faixa in quantidade_aluno.faixas_quantidades %}
+                      <tr>
+                        <td>{{quantidade_faixa.faixa_etaria}}</td>
+                        {% if quantidade_faixa.quantidade_matriculados %}
+                        <td class="text-center">{{quantidade_faixa.quantidade_matriculados}}</td>
+                        {% else %}
+                        <td class="text-center">Não preenchido</td>
+                        {% endif %}
+                        <td class="text-center">{{quantidade_faixa.quantidade_alunos}}</td>
+                      </tr>
+                    {% endfor %}
+                  {% endif %}
+                  <tr class="style-total-table">
+                    <td>Total</td>
+                    <td class="text-center">{{quantidade_aluno.total_matriculados}}</td>
+                    <td class="text-center">{{quantidade_aluno.total_alunos}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </td>
+  </tr>
+{% endblock %}

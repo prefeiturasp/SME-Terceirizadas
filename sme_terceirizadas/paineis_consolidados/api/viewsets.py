@@ -32,7 +32,7 @@ from ..models import (
     SolicitacoesNutrisupervisao,
     SolicitacoesTerceirizada
 )
-from ..tasks import gera_xls_relatorio_solicitacoes_alimentacao_async
+from ..tasks import gera_pdf_relatorio_solicitacoes_alimentacao_async, gera_xls_relatorio_solicitacoes_alimentacao_async
 from ..validators import FiltroValidator
 from .constants import (
     AGUARDANDO_CODAE,
@@ -577,6 +577,21 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['GET'], url_path='exportar-pdf')  # noqa C901
+    def exportar_pdf(self, request):
+        user = request.user.get_username()
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
+            data=self.request.query_params,
+            uuids=uuids,
+            status=request.query_params.get('status', None)
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
 
 class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -1065,6 +1080,21 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
             tipos_solicitacao=tipos_solicitacao,
             tipos_unidade=tipos_unidade,
             unidades_educacionais=unidades_educacionais
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-pdf')  # noqa C901
+    def exportar_pdf(self, request):
+        user = request.user.get_username()
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
+            data=self.request.query_params,
+            uuids=uuids,
+            status=request.query_params.get('status', None)
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)

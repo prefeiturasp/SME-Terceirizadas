@@ -62,48 +62,51 @@ equipes CODAE:
 ## Funcionalidades
 
 **Gestão da Entrega de Alimentos**
-- Integração com PAPA
+- Integração com PAPA (leitura e confirmação de cancelamento de guias de remessa)
 - Gestão das requisições de entrega por CODAE e Fornecedor
 - Solicitação de alteração de Requisição de entrega pelo Fornecedor
 - Consulta e conferência de Guia de Remessa pela UE
 - Consulta de resultado das entregas por CODAE e Distribuidor
+- Notificações para os usuários
+- Central de downloads
 
 ## Roadmap
 
-- **Release 1 -** Entrega de Alimentos Congelados e Resfriados
-- **Release 2 -** Entrega de Alimentos FLVO, Pães&Bolos e Secos e Gestão de Notificações
-- **Release 3 -** Dashboards 
-- **Release 4 -** Cadastro de Contratos
-- **Release 5 -** Cronograma de Recebimento
-- **Release 6 -** Recebimento
-- **Release 7 -** Gestão de Estoque
-- **Release 8 -** Cardápio
+- **Release 1 -** Entrega de Alimentos Congelados e Resfriados, FLVO, Pães&Bolos e Secos e Gestão de Notificações
+- **Release 2 -** Cadastros e Contratos
+- **Release 3 -** Cronograma de Recebimento e Pré-recebimento
+- **Release 4 -** Recebimento
+- **Release 5 -** Gestão de Estoque
+- **Release 6 -** Cardápio
+- **Release 7 -** Dashboards
 
 # Sobre o Time
 
 | Papel | Titular | Suplente  
 |--|--|--|  
-| Product Owner | Bruno Martins| Jéssica Giarletta |  
-| Agente de Governança | Juliana Demay | Vítor Ferragini |  
-| Gerente de Projeto | Andrea Paiva | |  
-| Scrum Master | Augusto Silva |  | 
+| Product Owner | Bruno Martins| |  
+| Agente de Governança | Juliana Demay | Fernando Gonsales |  
+| Gerente de Projeto | Aline Freitas | |  
+| Scrum Master | | | 
 | Designer de Serviços | Caio Dib | |  
 | Analista de negócios | Jaqueline Sargi |  |  
-| Analista UX/UI | Pamela Marsola |  |  
-| Analista Programador | Kelwy Oliveira | Rodolpho Lima |
+| Analista UX/UI | Eduardo Lima |  |  
+| Analista Programador | Kelwy Oliveira | Rodolpho Lima e Diogo Santos|
 | Analista de teste |Paula Pimentel|  |
 
 ## Descobertas
+
+Confira as descobertas realizadas [neste link](https://github.com/prefeiturasp/SME-Terceirizadas/blob/master/README.md). 
 
 **Roadmap inicial macro:** https://whimsical.com/roadmap-macro-WXMHyJjhoxy7CgvwypErU1
 
 **Fluxo macro:** https://whimsical.com/entrega-final-Pp9z6yMcaWaitdK9UACAYM
 
-**Protótipo inicial gestão de contratos e cadastros:**https://www.figma.com/file/boLvLynn4sackAl3JkULP7/[LOGISTICA]-Descoberta?node-id=280%3A68
+**Protótipo inicial gestão de contratos e cadastros:** https://www.figma.com/file/boLvLynn4sackAl3JkULP7/[LOGISTICA]-Descoberta?node-id=280%3A68
 
 ## Protótipos
 
-**Protótipos Release 1 e 2:** [https://www.figma.com/files/project/18544315/%23-Alimenta%C3%A7%C3%A3o_Log%C3%ADstica?fuid=885864829274218706](https://www.figma.com/files/project/18544315/%23-Alimenta%C3%A7%C3%A3o_Log%C3%ADstica?fuid=885864829274218706 "https://www.figma.com/files/project/18544315/%23-alimenta%c3%a7%c3%a3o_log%c3%adstica?fuid=885864829274218706")
+**Protótipos Release 1:** [https://www.figma.com/files/project/18544315/%23-Alimenta%C3%A7%C3%A3o_Log%C3%ADstica?fuid=885864829274218706](https://www.figma.com/files/project/18544315/%23-Alimenta%C3%A7%C3%A3o_Log%C3%ADstica?fuid=885864829274218706 "https://www.figma.com/files/project/18544315/%23-alimenta%c3%a7%c3%a3o_log%c3%adstica?fuid=885864829274218706")
 
 # Links Úteis
 
