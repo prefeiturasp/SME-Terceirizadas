@@ -43,7 +43,7 @@ pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
 flower = "==0.9.7"
 isort = "==4.3.21"
 flake8-isort = "==2.8.0"
-notebook = "*"
+notebook = "==6.0.0"
 
 [packages]
 # The psycopg2-binary package is meant for beginners to start playing with
@@ -79,7 +79,7 @@ django-celery-beat='==2.0.0'  # https://github.com/celery/django-celery-beat
 django-admin-rangefilter='==0.8.1' # https://github.com/silentsokolov/django-admin-rangefilter
 # Django REST Framework
 # ------------------------------------------------------------------------------
-djangorestframework='==3.9.1'  # https://github.com/encode/django-rest-framework
+djangorestframework='==3.11.2'  # https://github.com/encode/django-rest-framework
 coreapi='==2.3.3'  # https://github.com/core-api/python-client
 djangorestframework-jwt='==1.11.0' # https://getblimp.github.io/django-rest-framework-jwt/
 workalendar='==4.3.1' # https://github.com/peopledoc/workalendar
@@ -100,7 +100,7 @@ django-crispy-forms = "*"
 django-weasyprint = "==1.1.0"
 django-filter = "*"
 importlib-metadata = "==1.7.0"
-text-unidecode = "*"
+text-unidecode = "1.2"
 attrs = "==19.1.0"
 xlrd = "*"
 spyne = "==2.13.16"
@@ -114,6 +114,8 @@ python-magic = "*"
 Unidecode='==1.3.4'
 brazilnum='==0.8.8'
 munch='==2.5.0'
+channels = "==3.0.4"
+channels-redis = "==3.3.1"
 
 [requires]
 python_version = "3.6"

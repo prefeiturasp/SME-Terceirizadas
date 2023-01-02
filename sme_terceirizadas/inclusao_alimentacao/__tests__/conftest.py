@@ -109,14 +109,21 @@ def inclusao_alimentacao_continua_params(escola, motivo_inclusao_continua, reque
 )
 def inclusao_alimentacao_continua(escola, motivo_inclusao_continua, request, template_inclusao_continua):
     data_inicial, data_final, esperado = request.param
-    return mommy.make(models.InclusaoAlimentacaoContinua,
-                      motivo=motivo_inclusao_continua,
-                      data_inicial=data_inicial,
-                      data_final=data_final,
-                      outro_motivo=fake.name(),
-                      escola=escola,
-                      rastro_escola=escola,
-                      rastro_dre=escola.diretoria_regional)
+    inc_continua = mommy.make(models.InclusaoAlimentacaoContinua,
+                              motivo=motivo_inclusao_continua,
+                              data_inicial=data_inicial,
+                              data_final=data_final,
+                              outro_motivo=fake.name(),
+                              escola=escola,
+                              rastro_escola=escola,
+                              rastro_dre=escola.diretoria_regional)
+    mommy.make('QuantidadePorPeriodo',
+               uuid='6337d4a4-f2e0-475f-9400-24f2db660741',
+               inclusao_alimentacao_continua=inc_continua)
+    mommy.make('QuantidadePorPeriodo',
+               uuid='6f16b41d-151e-4f82-a0d0-43921a9edabe',
+               inclusao_alimentacao_continua=inc_continua)
+    return inc_continua
 
 
 @pytest.fixture

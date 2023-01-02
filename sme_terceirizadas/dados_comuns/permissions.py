@@ -482,6 +482,22 @@ class PermissaoParaCriarCronograma(BasePermission):
         )
 
 
+class PermissaoParaConfirmarCronograma(BasePermission):
+    # Apenas empresas do tipo fornecedor com perfil ADMINISTRADOR_FORNECEDOR podem confirmar
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
+                    usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_FORNECEDOR
+                )
+            )
+        )
+
+
 class PermissaoParaCadastrarLaboratorio(BasePermission):
     # Apenas DILOG_QUALIDADE tem acesso a tela de cadastro de Laboratórios.
     def has_permission(self, request, view):

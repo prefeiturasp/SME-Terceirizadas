@@ -440,6 +440,14 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
                         SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_QUESTIONADO]
         )
 
+    def emails_por_modulo(self, modulo_nome):
+        return list(self.emails_terceirizadas.filter(modulo__nome=modulo_nome).values_list('email', flat=True))
+
+    @staticmethod
+    def todos_emails_por_modulo(modulo_nome):
+        return list(EmailTerceirizadaPorModulo.objects.filter(
+            modulo__nome=modulo_nome).values_list('email', flat=True))
+
     def __str__(self):
         return f'{self.nome_fantasia}'
 
@@ -489,7 +497,7 @@ class Modulo(ExportModelOperationsMixin('modulo'), TemChaveExterna):
 
 
 class EmailTerceirizadaPorModulo(ExportModelOperationsMixin('email_terceirizada_por_modulo'), TemChaveExterna):
-    email = models.EmailField('E-mail', unique=True)
+    email = models.EmailField('E-mail')
     terceirizada = models.ForeignKey(Terceirizada, on_delete=models.CASCADE, related_name='emails_terceirizadas')
     modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='emails_terceirizadas')
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
@@ -501,3 +509,4 @@ class EmailTerceirizadaPorModulo(ExportModelOperationsMixin('email_terceirizada_
     class Meta:
         verbose_name = 'E-mail de Terceirizada por Módulos'
         verbose_name_plural = 'E-mails de Terceirizadas por Módulos'
+        unique_together = ('email', 'terceirizada', 'modulo')

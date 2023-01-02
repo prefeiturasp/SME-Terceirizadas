@@ -210,7 +210,10 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
     vencidos = InversaoCardapioVencidaManager()
     data_de_inversao = models.DateField('Data de inversão', blank=True, null=True)
     data_para_inversao = models.DateField('Data para inversão', blank=True, null=True)
+    data_de_inversao_2 = models.DateField('Data de inversão', blank=True, null=True)
+    data_para_inversao_2 = models.DateField('Data para inversão', blank=True, null=True)
     alunos_da_cemei = models.CharField('Alunos da CEMEI', blank=True, default='', max_length=50)
+    alunos_da_cemei_2 = models.CharField('Alunos da CEMEI', blank=True, default='', max_length=50)
 
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
@@ -221,6 +224,10 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
     escola = models.ForeignKey('escola.Escola', blank=True, null=True,
                                on_delete=models.DO_NOTHING)
 
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               help_text='Tipos de alimentacao.',
+                                               blank=True)
+
     @classmethod
     def get_solicitacoes_rascunho(cls, usuario):
         solicitacoes_unificadas = InversaoCardapio.objects.filter(
@@ -228,6 +235,13 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
             status=InversaoCardapio.workflow_class.RASCUNHO
         )
         return solicitacoes_unificadas
+
+    @property
+    def datas(self):
+        datas = self.data_de_inversao.strftime('%d/%m/%Y')
+        if self.data_de_inversao_2:
+            datas += '<br />' + self.data_de_inversao_2.strftime('%d/%m/%Y')
+        return datas
 
     @property
     def data_de(self):
@@ -243,7 +257,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
 
     @property
     def numero_alunos(self):
-        return None
+        return ''
 
     @property
     def template_mensagem(self):
@@ -274,6 +288,35 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
             justificativa=justificativa,
             resposta_sim_nao=resposta_sim_nao
         )
+
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+        data_de_inversao = ''
+        data_de_inversao_2 = ''
+        if self.data_de_inversao:
+            data_de_inversao = self.data_de_inversao.strftime('%d/%m/%Y')
+
+        if self.data_de_inversao_2:
+            data_de_inversao_2 = self.data_de_inversao_2.strftime('%d/%m/%Y')
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Inversão de dia de Cardápio',
+            'data_evento': f'{data_de_inversao} {data_de_inversao_2}',
+            'numero_alunos': self.numero_alunos,
+            'data_de_inversao': self.data_de_inversao,
+            'data_inicial': self.data_de_inversao,
+            'data_final': self.data_para_inversao,
+            'data_para_inversao': self.data_para_inversao,
+            'data_de_inversao_2': self.data_de_inversao_2,
+            'data_para_inversao_2': self.data_para_inversao_2,
+            'label_data': label_data,
+            'data_log': data_log,
+            'motivo': self.motivo,
+            'observacao': self.observacao,
+            'tipos_alimentacao': ', '.join(self.tipos_alimentacao.values_list('nome', flat=True)),
+            'datas': self.datas
+        }
 
     def __str__(self):
         return (f'Inversão de Cardápio \nDe: {self.cardapio_de or self.data_de_inversao} \n'
@@ -397,6 +440,24 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     def numero_alunos(self):
         return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
 
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+        datas = list(self.suspensoes_alimentacao.order_by('data').values_list('data', flat=True))
+        datas = [d.strftime('%d/%m/%Y') for d in datas]
+        datas = ' '.join(datas)
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Suspensão de Alimentação',
+            'data_evento': datas,
+            'numero_alunos': self.numero_alunos,
+            'label_data': label_data,
+            'data_log': data_log,
+            'dias_motivos': self.suspensoes_alimentacao,
+            'quantidades_periodo': self.quantidades_por_periodo,
+            'datas': self.datas
+        }
+
     def __str__(self):
         return f'{self.observacao}'
 
@@ -503,7 +564,21 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
 
     @property
     def numero_alunos(self):
-        return None
+        return ''
+
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Suspensão de Alimentação de CEI',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos,
+            'motivo': self.motivo,
+            'periodos_escolares': self.periodos_escolares,
+            'label_data': label_data,
+            'data_log': data_log
+        }
 
     def __str__(self):
         return f'{self.id_externo}'
@@ -593,6 +668,39 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             resposta_sim_nao=resposta_sim_nao
         )
 
+    @property
+    def substituicoes_dict(self):
+        substituicoes = []
+        for obj in self.substituicoes_periodo_escolar.all():
+            tipos_alimentacao_de = list(obj.tipos_alimentacao_de.values_list('nome', flat=True))
+            tipos_alimentacao_de = ', '.join(tipos_alimentacao_de)
+            tipos_alimentacao_para = list(obj.tipos_alimentacao_para.values_list('nome', flat=True))
+            tipos_alimentacao_para = ', '.join(tipos_alimentacao_para)
+            substituicoes.append({
+                'periodo': obj.periodo_escolar.nome,
+                'alteracao_de': tipos_alimentacao_de,
+                'alteracao_para': tipos_alimentacao_para,
+            })
+        return substituicoes
+
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Alteração do tipo de Alimentação',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos,
+            'motivo': self.motivo.nome,
+            'data_inicial': self.data_inicial,
+            'data_final': self.data_final,
+            'data_autorizacao': self.data_autorizacao,
+            'observacao': self.observacao,
+            'substituicoes': self.substituicoes_dict,
+            'label_data': label_data,
+            'data_log': data_log,
+        }
+
     def __str__(self):
         return f'Alteração de cardápio de: {self.data_inicial} para {self.data_final}'
 
@@ -672,6 +780,50 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
             justificativa=justificativa,
             resposta_sim_nao=resposta_sim_nao
         )
+
+    @property
+    def susbstituicoes_dict(self):
+        substituicoes = []
+        for obj in self.substituicoes_cei_periodo_escolar.all():
+            periodo = obj.periodo_escolar.nome
+            tipos_alimentacao_de = list(obj.tipos_alimentacao_de.values_list('nome', flat=True))
+            tipos_alimentacao_de = ', '.join(tipos_alimentacao_de)
+            faixas_etarias = []
+            total_alunos = 0
+            total_matriculados = 0
+            for faixa in obj.faixas_etarias.all():
+                total_alunos += faixa.quantidade
+                total_matriculados += faixa.matriculados_quando_criado
+                faixas_etarias.append({
+                    'faixa_etaria': faixa.faixa_etaria.__str__(),
+                    'matriculados_quando_criado': faixa.matriculados_quando_criado,
+                    'quantidade': faixa.quantidade,
+                })
+            substituicoes.append({
+                'periodo': periodo,
+                'tipos_alimentacao_de': tipos_alimentacao_de,
+                'tipos_alimentacao_para': obj.tipo_alimentacao_para.nome,
+                'faixas_etarias': faixas_etarias,
+                'total_alunos': total_alunos,
+                'total_matriculados': total_matriculados
+            })
+        return substituicoes
+
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Alteração do Tipo de Alimentação CEI',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos,
+            'motivo': self.motivo.nome,
+            'data_autorizacao': self.data_autorizacao,
+            'susbstituicoes': self.susbstituicoes_dict,
+            'observacao': self.observacao,
+            'label_data': label_data,
+            'data_log': data_log,
+        }
 
     def __str__(self):
         return f'Alteração de cardápio CEI de {self.data}'
@@ -769,6 +921,75 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             justificativa=justificativa,
             resposta_sim_nao=resposta_sim_nao
         )
+
+    def substituicoes_dict(self):
+        substituicoes = []
+        periodos_cei = self.substituicoes_cemei_cei_periodo_escolar.all()
+        periodos_cei = periodos_cei.values_list('periodo_escolar__nome', flat=True)
+        periodos_emei = self.substituicoes_cemei_emei_periodo_escolar.all()
+        periodos_emei = periodos_emei.values_list('periodo_escolar__nome', flat=True)
+        nomes_periodos = list(periodos_cei) + list(periodos_emei)
+        nomes_periodos = list(set(nomes_periodos))
+        for periodo in nomes_periodos:
+            substituicoes_cei = self.substituicoes_cemei_cei_periodo_escolar.filter(periodo_escolar__nome=periodo)
+            substituicoes_emei = self.substituicoes_cemei_emei_periodo_escolar.filter(periodo_escolar__nome=periodo)
+            faixas_cei = {}
+            faixa_emei = {}
+            for sc in substituicoes_cei:
+                tipos_alimentacao_de = list(sc.tipos_alimentacao_de.values_list('nome', flat=True))
+                tipos_alimentacao_de = ', '.join(tipos_alimentacao_de)
+                tipos_alimentacao_para = list(sc.tipos_alimentacao_para.values_list('nome', flat=True))
+                tipos_alimentacao_para = ', '.join(tipos_alimentacao_para)
+                total_alunos = 0
+                total_matriculados = 0
+                faixas_etarias = []
+                for faixa in sc.faixas_etarias.all():
+                    total_alunos += faixa.quantidade
+                    total_matriculados += faixa.matriculados_quando_criado
+                    faixa_etaria = faixa.faixa_etaria.__str__()
+                    faixas_etarias.append({
+                        'faixa_etaria': faixa_etaria,
+                        'quantidade': faixa.quantidade,
+                        'matriculados_quando_criado': faixa.matriculados_quando_criado,
+                    })
+                faixas_cei = {
+                    'faixas_etarias': faixas_etarias,
+                    'total_alunos': total_alunos,
+                    'total_matriculados': total_matriculados,
+                    'tipos_alimentacao_de': tipos_alimentacao_de,
+                    'tipos_alimentacao_para': tipos_alimentacao_para
+                }
+            for se in substituicoes_emei:
+                tipos_alimentacao_de = list(se.tipos_alimentacao_de.values_list('nome', flat=True))
+                tipos_alimentacao_de = ', '.join(tipos_alimentacao_de)
+                tipos_alimentacao_para = list(se.tipos_alimentacao_para.values_list('nome', flat=True))
+                tipos_alimentacao_para = ', '.join(tipos_alimentacao_para)
+                faixa_emei['tipos_alimentacao_de'] = tipos_alimentacao_de
+                faixa_emei['tipos_alimentacao_para'] = tipos_alimentacao_para
+                faixa_emei['quantidade'] = se.qtd_alunos
+                faixa_emei['matriculados_quando_criado'] = se.matriculados_quando_criado
+            substituicoes.append({
+                'periodo': periodo,
+                'faixas_cei': faixas_cei,
+                'faixas_emei': faixa_emei
+            })
+        return substituicoes
+
+    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+        return {
+            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
+            'unidade_educacional': self.rastro_escola.nome,
+            'terceirizada': self.rastro_terceirizada,
+            'tipo_doc': 'Alteração do tipo de Alimentação CEMEI',
+            'data_evento': self.data,
+            'numero_alunos': self.numero_alunos,
+            'motivo': self.motivo.nome,
+            'substituicoes': self.substituicoes_dict(),
+            'observacao': self.observacao,
+            'data_autorizacao': self.data_autorizacao,
+            'label_data': label_data,
+            'data_log': data_log,
+        }
 
     def __str__(self):
         return f'Alteração de cardápio CEMEI de {self.data}'

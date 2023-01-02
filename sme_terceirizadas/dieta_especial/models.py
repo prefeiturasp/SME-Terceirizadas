@@ -202,7 +202,7 @@ class SolicitacaoDietaEspecial(
 
     @property
     def numero_alunos(self):
-        return None
+        return ''
 
     @property
     def escola(self):

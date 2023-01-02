@@ -253,12 +253,17 @@ class Logs(object):
 
     @property
     def data_autorizacao(self):
+        if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid).first().solicitacao_tipo in [
+                LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO, LogSolicitacoesUsuario.SUSPENSAO_ALIMENTACAO_CEI]:
+            return self.logs.first().criado_em.strftime('%d/%m/%Y') if self.logs.exists() else ''
         if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid,
                                                  status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU).exists():
-            return LogSolicitacoesUsuario.objects.get(
+            log = LogSolicitacoesUsuario.objects.filter(
                 uuid_original=self.uuid, status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU
-            ).criado_em.strftime('%d/%m/%Y')
-        return None
+            )
+            if log:
+                return log.last().criado_em.strftime('%d/%m/%Y')
+        return ''
 
     @property
     def data_cancelamento(self):
@@ -266,12 +271,14 @@ class Logs(object):
             uuid_original=self.uuid,
             status_evento__in=[
                 LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]).exists():
-            return LogSolicitacoesUsuario.objects.get(
+            log = LogSolicitacoesUsuario.objects.filter(
                 uuid_original=self.uuid,
                 status_evento__in=[
                     LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]
-            ).criado_em.strftime('%d/%m/%Y')
-        return None
+            )
+            if log:
+                return log.last().criado_em.strftime('%d/%m/%Y')
+        return ''
 
     @property
     def data_negacao(self):
@@ -279,12 +286,14 @@ class Logs(object):
             uuid_original=self.uuid,
             status_evento__in=[
                 LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]).exists():
-            return LogSolicitacoesUsuario.objects.get(
+            log = LogSolicitacoesUsuario.objects.filter(
                 uuid_original=self.uuid,
                 status_evento__in=[
                     LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
-            ).criado_em.strftime('%d/%m/%Y')
-        return None
+            )
+            if log:
+                return log.last().criado_em.strftime('%d/%m/%Y')
+        return ''
 
 
 class TemVinculos(models.Model):
@@ -385,6 +394,14 @@ class TemDia(models.Model):
 class MatriculadosQuandoCriado(models.Model):
     matriculados_quando_criado = models.PositiveSmallIntegerField(null=True, blank=True,
                                                                   validators=[MinValueValidator(1)])
+
+    class Meta:
+        abstract = True
+
+
+class CanceladoIndividualmente(models.Model):
+    cancelado = models.BooleanField('Esta cancelado?', default=False)
+    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
 
     class Meta:
         abstract = True

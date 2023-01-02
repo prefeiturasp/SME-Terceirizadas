@@ -43,6 +43,9 @@ USE_TZ = False
 LOCALE_PATHS = (
     os.path.join(ROOT_DIR, 'locale'),
 )
+
+REDIS_URL = env('REDIS_URL')
+
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
@@ -66,6 +69,15 @@ DATABASES['default']['ATOMIC_REQUESTS'] = True
 ROOT_URLCONF = 'config.urls'
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL]
+        }
+    }
+}
 # DEIXAR ILIMITADO O TAMANHO DO QUERY PARAMS PARA GET E POST
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 
@@ -84,6 +96,7 @@ DJANGO_APPS = [
     'django.contrib.postgres'
 ]
 THIRD_PARTY_APPS = [
+    'channels',
     'crispy_forms',
     'django_filters',
     'django_prometheus',
@@ -330,8 +343,6 @@ URL_CONFIGS = {
     'LOGIN_TERCEIRIZADAS': '/login?tab=terceirizadas',
     'API': '/api{uri}'
 }
-
-REDIS_URL = env('REDIS_URL')
 
 # CACHES
 # ------------------------------------------------------------------------------

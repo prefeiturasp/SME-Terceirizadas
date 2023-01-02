@@ -274,3 +274,11 @@ def existe_inclusao_cancelada(solicitacao):
 @register.filter
 def inclusoes_canceladas(solicitacao):
     return solicitacao.inclusoes.filter(cancelado=True)
+
+
+@register.filter
+def formatar_data_solicitacoes_alimentacao(data):
+    try:
+        return data.strftime('%d/%m/%Y')
+    except Exception:
+        return data
