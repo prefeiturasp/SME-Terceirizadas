@@ -40,7 +40,7 @@ django-debug-toolbar='==1.11'  # https://github.com/jazzband/django-debug-toolba
 django-extensions='==2.2.3'    # https://github.com/django-extensions/django-extensions
 django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_plugin
 pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
-flower = "==0.9.7"
+flower = "==1.2.0"
 isort = "==4.3.21"
 flake8-isort = "==2.8.0"
 notebook = "==6.0.0"
