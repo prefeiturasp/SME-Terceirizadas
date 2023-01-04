@@ -384,15 +384,13 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExter
         verbose_name_plural = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
 
 
-class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
+class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
                                SolicitacaoForaDoPrazo, CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade,
                                TemTerceirizadaConferiuGestaoAlimentacao):
     DESCRICAO = 'Inclusão de Alimentação Por CEI'
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_por_cei')
-    motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING, blank=True, null=True)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
 
@@ -496,6 +494,24 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     class Meta:
         verbose_name = 'Inclusão de alimentação da CEI'
         verbose_name_plural = 'Inclusões de alimentação da CEI'
+
+
+class DiasMotivosInclusaoDeAlimentacaoCEI(TemData, TemChaveExterna, CanceladoIndividualmente):
+    inclusao_cei = models.ForeignKey('InclusaoAlimentacaoDaCEI',
+                                     on_delete=models.CASCADE,
+                                     related_name='dias_motivos_da_inclusao_cei')
+    motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
+
+    def __str__(self):
+        if self.outro_motivo:
+            return f'Dia {self.data} - Outro motivo: {self.outro_motivo}'
+        return f'Dia {self.data} {self.motivo}'
+
+    class Meta:
+        verbose_name = 'Dia e motivo inclusão de alimentação CEI'
+        verbose_name_plural = 'Dias e motivos inclusão de alimentação CEI'
+        ordering = ('data',)
 
 
 class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm, Logs,
