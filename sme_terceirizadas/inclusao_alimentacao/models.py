@@ -165,7 +165,8 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
                 'periodo': quantidade_periodo.periodo_escolar.nome,
                 'dias_semana': dias_semana,
                 'tipos_alimentacao': tipos_alimentacao,
-                'numero_alunos': quantidade_periodo.numero_alunos
+                'numero_alunos': quantidade_periodo.numero_alunos,
+                'observacao': quantidade_periodo.observacao
             })
         return qtd_periodo
 
