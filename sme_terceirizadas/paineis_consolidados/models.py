@@ -1106,11 +1106,12 @@ class SolicitacoesDRE(MoldeConsolidado):
 
     AGUARDANDO_CODAE_STATUS = [PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
                                PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-                               PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+                               PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                               PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR]
     AGUARDANDO_CODAE_EVENTO = [LogSolicitacoesUsuario.DRE_VALIDOU,
                                LogSolicitacoesUsuario.CODAE_QUESTIONOU,
-                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-                               ]
+                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                               LogSolicitacoesUsuario.INICIO_FLUXO]
 
     @classmethod
     def get_pendentes_dieta_especial(cls, **kwargs):
