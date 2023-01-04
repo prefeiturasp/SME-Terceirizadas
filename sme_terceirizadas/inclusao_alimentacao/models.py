@@ -400,6 +400,16 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
     vencidos = InclusaoDeAlimentacaoDeCeiVencidosDiasManager()
 
     @property
+    def data(self):
+        dia_motivo = self.dias_motivos_da_inclusao_cei.order_by('data').first()
+        return dia_motivo.data if dia_motivo else ''
+
+    @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in
+                          self.dias_motivos_da_inclusao_cei.order_by('data').values_list('data', flat=True)])
+
+    @property
     def numero_alunos(self):
         return self.quantidade_alunos_da_inclusao.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
 
