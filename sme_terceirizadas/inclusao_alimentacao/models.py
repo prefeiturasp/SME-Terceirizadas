@@ -105,6 +105,14 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
         return data
 
     @property
+    def tipo(self):
+        return 'Inclusão de Alimentação'
+
+    @property
+    def path(self):
+        return f'inclusao-de-alimentacao/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-continua'
+
+    @property
     def observacoes(self):
         return ', '.join(self.quantidades_periodo.exclude(
             Q(observacao='') | Q(observacao__isnull=True)
@@ -284,6 +292,14 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
         return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
 
     @property
+    def tipo(self):
+        return 'Inclusão de Alimentação'
+
+    @property
+    def path(self):
+        return f'inclusao-de-alimentacao/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
+
+    @property
     def observacoes(self):
         return ', '.join(self.quantidades_periodo.exclude(
             Q(observacao='') | Q(observacao__isnull=True)
@@ -406,6 +422,14 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
         return self.quantidade_alunos_da_inclusao.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
 
     @property
+    def tipo(self):
+        return 'Inclusão de Alimentação'
+
+    @property
+    def path(self):
+        return f'inclusao-de-alimentacao/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-cei'
+
+    @property
     def observacao(self):
         return None
 
@@ -523,6 +547,14 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
     @property
     def observacao(self):
         return None
+
+    @property
+    def tipo(self):
+        return 'Inclusão de Alimentação'
+
+    @property
+    def path(self):
+        return f'inclusao-de-alimentacao-cemei/relatorio?uuid={self.uuid}'
 
     @property
     def numero_alunos(self):

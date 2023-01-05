@@ -164,6 +164,14 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
         return self.solicitacao_kit_lanche.descricao
 
     @property
+    def tipo(self):
+        return 'Kit Lanche Passeio'
+
+    @property
+    def path(self):
+        return f'solicitacao-de-kit-lanche/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
+
+    @property
     def numero_alunos(self):
         return self.quantidade_alunos
 
@@ -202,6 +210,14 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
     @property
     def observacao(self):
         return self.solicitacao_kit_lanche.descricao
+
+    @property
+    def tipo(self):
+        return 'Kit Lanche Passeio'
+
+    @property
+    def path(self):
+        return f'solicitacao-de-kit-lanche/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-cei'
 
     @property
     def quantidade_alunos(self):
@@ -305,6 +321,14 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     @property
     def data(self):
         return self.solicitacao_kit_lanche.data
+
+    @property
+    def tipo(self):
+        return 'Kit Lanche Unificado'
+
+    @property
+    def path(self):
+        return f'solicitacao-unificada/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
 
     @property
     def observacao(self):
@@ -519,6 +543,14 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
     @property
     def tem_solicitacao_emei(self):
         return hasattr(self, 'solicitacao_emei')
+
+    @property
+    def tipo(self):
+        return 'Kit Lanche Passeio'
+
+    @property
+    def path(self):
+        return f'solicitacao-de-kit-lanche-cemei/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-cemei'
 
     @property
     def numero_alunos(self):
