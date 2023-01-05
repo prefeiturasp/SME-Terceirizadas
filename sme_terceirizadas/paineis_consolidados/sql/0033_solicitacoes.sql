@@ -1,4 +1,4 @@
-DROP VIEW IF EXISTS solicitacoes_consolidadas;
+                                                                  DROP VIEW IF EXISTS solicitacoes_consolidadas;
 
 create or replace view solicitacoes_consolidadas as
 select dieta.id,
@@ -470,6 +470,7 @@ from inclusao_alimentacao_inclusaoalimentacaodacei as inc_alimentacao_cei
          left join inclusao_alimentacao_diasmotivosinclusaodealimentacaocei as inc_alimentacao_item
                    on inc_alimentacao_item.inclusao_cei_id = inc_alimentacao_cei.id
 group by inc_alimentacao_cei.id,
+         inc_alimentacao_item.data,
          lote.nome,
          dre.nome,
          dre.iniciais,
