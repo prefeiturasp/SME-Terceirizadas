@@ -88,9 +88,11 @@ def escola_dre_guaianases(dre_guaianases):
     lote = mommy.make('Lote')
     return mommy.make('Escola', lote=lote, diretoria_regional=dre_guaianases)
 
+
 @pytest.fixture
 def contato():
     return mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
+
 
 @pytest.fixture
 def email_por_modulo(terceirizada):
@@ -102,6 +104,7 @@ def email_por_modulo(terceirizada):
         terceirizada=terceirizada
     )
     return email_por_modulo
+
 
 @pytest.fixture
 def escola():
