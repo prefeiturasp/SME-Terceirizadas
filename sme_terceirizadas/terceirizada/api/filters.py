@@ -12,6 +12,15 @@ class TerceirizadaFilter(filters.FilterSet):
         lookup_expr='icontains',
     )
 
+    empresa = filters.CharFilter(method='filtrar_empresa')
+
+    def filtrar_empresa(self, queryset, name, value):
+        return queryset.filter(
+            cnpj__icontains=value
+        ) | queryset.filter(
+            razao_social__icontains=value
+        )
+
 
 class EmailTerceirizadaPorModuloFilter(filters.FilterSet):
 

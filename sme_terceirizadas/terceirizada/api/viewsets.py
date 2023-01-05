@@ -1,9 +1,12 @@
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django_filters import rest_framework as filters
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
+
+from sme_terceirizadas.dados_comuns.api.viewsets import CustomPagination
 
 from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSerializer
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
@@ -41,7 +44,7 @@ class EditalViewSet(viewsets.ReadOnlyModelViewSet):
 
 class TerceirizadaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = Terceirizada.objects.all().order_by('razao_social')
+    queryset = Terceirizada.objects.all().order_by(Lower('razao_social'))
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TerceirizadaFilter
 
