@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('paineis_consolidados', '0030_solicitacoes'),
+        ('inclusao_alimentacao', '0030_diasmotivosinclusaodealimentacaocei')
     ]
 
     operations = [

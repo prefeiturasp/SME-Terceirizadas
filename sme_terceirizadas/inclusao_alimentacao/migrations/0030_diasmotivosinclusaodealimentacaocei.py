@@ -49,16 +49,4 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.RunPython(migracao_dados, backwards),
-        migrations.RemoveField(
-            model_name='inclusaoalimentacaodacei',
-            name='data',
-        ),
-        migrations.RemoveField(
-            model_name='inclusaoalimentacaodacei',
-            name='motivo',
-        ),
-        migrations.RemoveField(
-            model_name='inclusaoalimentacaodacei',
-            name='outro_motivo',
-        ),
     ]
