@@ -95,7 +95,7 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
     def emails_por_modulo(self, request):
         modulo = request.query_params.get('modulo', None)
         busca = request.query_params.get('busca', None)
-        queryset = self.get_queryset().filter(emails_terceirizadas__modulo__nome=modulo).distinct('razao_social')
+        queryset = Terceirizada.objects.filter(emails_terceirizadas__modulo__nome=modulo).distinct('razao_social')
         self.pagination_class = TerceirizadasEmailsPagination
         if busca:
             queryset = queryset.filter(Q(emails_terceirizadas__email__icontains=busca) |
