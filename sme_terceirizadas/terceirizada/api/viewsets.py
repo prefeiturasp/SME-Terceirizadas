@@ -6,8 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from sme_terceirizadas.dados_comuns.api.viewsets import CustomPagination
-
 from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSerializer
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ...relatorios.relatorios import relatorio_quantitativo_por_terceirizada
