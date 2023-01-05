@@ -384,15 +384,13 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExter
         verbose_name_plural = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
 
 
-class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
+class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
                                SolicitacaoForaDoPrazo, CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade,
                                TemTerceirizadaConferiuGestaoAlimentacao):
     DESCRICAO = 'Inclusão de Alimentação Por CEI'
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_por_cei')
-    motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING, blank=True, null=True)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
 

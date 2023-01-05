@@ -64,7 +64,7 @@ select cardapio.id,
        null                                 as em_vigencia,
        null                                 as escola_destino_id,
        null                                 as serie,
-       null                                 as conferido   
+       null                                 as conferido
 from cardapio_alteracaocardapio as cardapio
          left join dados_comuns_logsolicitacoesusuario as logs on logs.uuid_original = cardapio.uuid
          left join escola_diretoriaregional as dre on dre.id = cardapio.rastro_dre_id
@@ -140,7 +140,7 @@ select inc_aliment_normal.id,
        null                                  AS em_vigencia,
        null                                  AS escola_destino_id,
        null                                  AS serie,
-       null                                  AS conferido 
+       null                                  AS conferido
 from inclusao_alimentacao_grupoinclusaoalimentacaonormal as inc_aliment_normal
          left join dados_comuns_logsolicitacoesusuario as logs on logs.uuid_original = inc_aliment_normal.uuid
          left join escola_diretoriaregional as dre on dre.id = inc_aliment_normal.rastro_dre_id
@@ -191,7 +191,7 @@ select inc_aliment_continua.id,
        null                                  AS em_vigencia,
        null                                  AS escola_destino_id,
        null                                  AS serie,
-       null                                  AS conferido           
+       null                                  AS conferido
 from inclusao_alimentacao_inclusaoalimentacaocontinua as inc_aliment_continua
          left join dados_comuns_logsolicitacoesusuario as logs on logs.uuid_original = inc_aliment_continua.uuid
          left join escola_diretoriaregional as dre on dre.id = inc_aliment_continua.rastro_dre_id
@@ -327,7 +327,7 @@ select kit_lanche_unificado.id,
        null                                               AS em_vigencia,
        null                                               AS escola_destino_id,
        null                                               AS serie,
-       null                                               AS conferido 
+       null                                               AS conferido
 from kit_lanche_solicitacaokitlancheunificada as kit_lanche_unificado
          left join dados_comuns_logsolicitacoesusuario as logs on logs.uuid_original = kit_lanche_unificado.uuid
          left join escola_diretoriaregional as dre on dre.id = kit_lanche_unificado.rastro_dre_id
@@ -352,7 +352,7 @@ group by kit_lanche_unificado.id,
 union
 select inc_alimentacao_cei.id,
        inc_alimentacao_cei.uuid,
-       min(inc_alimentacao_cei.data)         as data_evento,
+       null         as data_evento,
        inc_alimentacao_cei.criado_em         as criado_em,
        lote.nome                             as lote_nome,
        dre.nome                              as dre_nome,
@@ -377,7 +377,7 @@ select inc_alimentacao_cei.id,
        null                                  AS em_vigencia,
        null                                  AS escola_destino_id,
        null                                  AS serie,
-       null                                  AS conferido  
+       null                                  AS conferido
 from inclusao_alimentacao_inclusaoalimentacaodacei as inc_alimentacao_cei
          left join dados_comuns_logsolicitacoesusuario as logs on logs.uuid_original = inc_alimentacao_cei.uuid
          left join escola_diretoriaregional as dre on dre.id = inc_alimentacao_cei.rastro_dre_id

@@ -427,7 +427,7 @@ group by kit_lanche_unificado.id,
 union
 select inc_alimentacao_cei.id,
        inc_alimentacao_cei.uuid,
-       min(inc_alimentacao_cei.data)         as data_evento,
+       null         as data_evento,
        null::date                            as data_evento_2,
        null                                  as data_evento_fim,
        inc_alimentacao_cei.criado_em         as criado_em,

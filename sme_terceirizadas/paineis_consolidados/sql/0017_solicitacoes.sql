@@ -360,7 +360,7 @@ group by kit_lanche_unificado.id,
 union
 select inc_alimentacao_cei.id,
        inc_alimentacao_cei.uuid,
-       min(inc_alimentacao_cei.data)         as data_evento,
+       null         as data_evento,
        inc_alimentacao_cei.criado_em         as criado_em,
        lote.nome                             as lote_nome,
        dre.nome                              as dre_nome,

@@ -1,6 +1,6 @@
 DROP VIEW IF EXISTS solicitacoes_consolidadas;
 
-create view solicitacoes_consolidadas as
+create or replace view solicitacoes_consolidadas as
 select dieta.id,
        dieta.uuid,
        dieta.criado_em::date                            as data_evento,
