@@ -75,13 +75,13 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
                    TemIdentificadorExternoAmigavel, TemVinculos):
     # Tipo de servico
     TERCEIRIZADA = 'TERCEIRIZADA'
-    DISTRIBUIDOR = 'DISTRIBUIDOR'
+    DISTRIBUIDOR_ARMAZEM = 'DISTRIBUIDOR_ARMAZEM'
     FORNECEDOR = 'FORNECEDOR'
     FORNECEDOR_E_DISTRIBUIDOR = 'FORNECEDOR_E_DISTRIBUIDOR'
 
     TIPO_SERVICO_CHOICES = (
         (TERCEIRIZADA, 'Terceirizada'),
-        (DISTRIBUIDOR, 'Distribuidor (Armazém)'),
+        (DISTRIBUIDOR_ARMAZEM, 'Distribuidor (Armazém)'),
         (FORNECEDOR, 'Fornecedor'),
         (FORNECEDOR_E_DISTRIBUIDOR, 'Fornecedor e Distribuidor'),
     )
@@ -132,7 +132,6 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     estado = models.CharField('Estado', max_length=150, blank=True)
     numero = models.CharField('Número', max_length=10, blank=True)
     complemento = models.CharField('Complemento', max_length=50, blank=True)
-    eh_distribuidor = models.BooleanField('É distribuidor?', default=False)
     responsavel_nome = models.CharField('Responsável', max_length=160, blank=True)
     responsavel_email = models.CharField('Responsável contato (email)', max_length=160, blank=True)
     responsavel_cpf = models.CharField(max_length=11, blank=True, null=True, unique=True,  # noqa DJ01
@@ -140,8 +139,8 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     responsavel_telefone = models.CharField('Responsável contato (telefone)', max_length=160, blank=True)
     responsavel_cargo = models.CharField('Responsável cargo', max_length=50, blank=True)
     tipo_empresa = models.CharField(choices=TIPO_EMPRESA_CHOICES, max_length=25, default=TERCEIRIZADA)
-    tipo_alimento = models.CharField(choices=TIPO_ALIMENTO_CHOICES, max_length=25, default=TIPO_ALIMENTO_TERCEIRIZADA)
     tipo_servico = models.CharField(choices=TIPO_SERVICO_CHOICES, max_length=25, default=TERCEIRIZADA)
+    tipo_alimento = models.CharField(choices=TIPO_ALIMENTO_CHOICES, max_length=25, default=TIPO_ALIMENTO_TERCEIRIZADA)
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
 
     # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
