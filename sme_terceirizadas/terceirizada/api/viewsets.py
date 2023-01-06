@@ -67,6 +67,12 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
         response = {'results': DistribuidorSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='lista-cnpjs')
+    def lista_cnpjs(self, request):
+        queryset = Terceirizada.objects.all().values_list('cnpj', flat=True)
+        response = {'results': queryset}
+        return Response(response)
+
     @action(detail=False, methods=['GET'], url_path='relatorio-quantitativo')
     def relatorio_quantitativo(self, request):
         form = RelatorioQuantitativoForm(request.GET)
