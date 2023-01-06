@@ -68,9 +68,9 @@ EMAIL_SUBJECT_PREFIX = env('DJANGO_EMAIL_SUBJECT_PREFIX', default='[SME-PratoAbe
 # Django Admin URL regex.
 ADMIN_URL = env('DJANGO_ADMIN_URL')
 
-# Gunicorn
+# Uvicorn
 # ------------------------------------------------------------------------------
-INSTALLED_APPS += ['gunicorn']  # noqa F405
+INSTALLED_APPS += ['uvicorn']  # noqa F405
 
 # LOGGING
 # ------------------------------------------------------------------------------
