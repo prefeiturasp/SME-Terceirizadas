@@ -22,6 +22,7 @@ from ....inclusao_alimentacao.models import (
 )
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
+    DiasMotivosInclusaoDeAlimentacaoCEI,
     DiasMotivosInclusaoDeAlimentacaoCEMEI,
     InclusaoDeAlimentacaoCEMEI,
     QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI,
@@ -50,17 +51,24 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(ser
         exclude = ('id', 'inclusao_alimentacao_da_cei')
 
 
+class DiasMotivosInclusaoDeAlimentacaoCEISerializer(serializers.ModelSerializer):
+    motivo = MotivoInclusaoNormalSerializer()
+
+    class Meta:
+        model = DiasMotivosInclusaoDeAlimentacaoCEI
+        exclude = ('id',)
+
+
 class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     prioridade = serializers.CharField()
     periodo_escolar = PeriodoEscolarSimplesSerializer()
     tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True, read_only=True)
-    motivo = MotivoInclusaoNormalSerializer()
     quantidade_alunos_por_faixas_etarias = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
         many=True, read_only=True)
+    dias_motivos_da_inclusao_cei = DiasMotivosInclusaoDeAlimentacaoCEISerializer(many=True)
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
-    escola = EscolaSimplesSerializer()
 
     def to_representation(self, instance):
         retorno = super().to_representation(instance)
