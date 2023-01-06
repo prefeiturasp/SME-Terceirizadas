@@ -87,7 +87,7 @@ django-rest-swagger='==2.2.0' # https://github.com/marcgibbons/django-rest-swagg
 djangorestframework-xml = "==2.0.0"
 django-simple-email-confirmation='==0.6' # https://github.com/mfogel/django-simple-email-confirmation/
 # Produção
-uvicorn="*"          # https://www.uvicorn.org/
+uvicorn="==0.16.0"          # https://www.uvicorn.org/
 tornado='==6.0.3'    # http://www.tornadoweb.org/en/stable/
 sentry-sdk = "==0.10.2"
 django-prometheus = "==1.1.0"
