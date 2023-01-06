@@ -73,15 +73,26 @@ class Nutricionista(ExportModelOperationsMixin('nutricionista'), TemChaveExterna
 
 class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, Ativavel,
                    TemIdentificadorExternoAmigavel, TemVinculos):
-    # Tipo Empresa Choice
-    ARMAZEM_DISTRIBUIDOR = 'ARMAZEM/DISTRIBUIDOR'
-    FORNECEDOR_DISTRIBUIDOR = 'FORNECEDOR/DISTRIBUIDOR'
-    # opção se faz necessária para atender o fluxo do alimentação terceirizada
+    # Tipo de servico
     TERCEIRIZADA = 'TERCEIRIZADA'
+    DISTRIBUIDOR = 'DISTRIBUIDOR'
+    FORNECEDOR = 'FORNECEDOR'
+    FORNECEDOR_E_DISTRIBUIDOR = 'FORNECEDOR_E_DISTRIBUIDOR'
+
+    TIPO_SERVICO_CHOICES = (
+        (TERCEIRIZADA, 'Terceirizada'),
+        (DISTRIBUIDOR, 'Distribuidor (Armazém)'),
+        (FORNECEDOR, 'Fornecedor'),
+        (FORNECEDOR_E_DISTRIBUIDOR, 'Fornecedor e Distribuidor'),
+    )
+
+    # Tipo Empresa Choice
+    CONVENCIONAL = 'CONVENCIONAL'
+    AGRICULTURA_FAMILIAR = 'AGRICULTURA_FAMILIAR'
 
     TIPO_EMPRESA_CHOICES = (
-        (ARMAZEM_DISTRIBUIDOR, 'Armazém/Distribuidor'),
-        (FORNECEDOR_DISTRIBUIDOR, 'Fornecedor/Distribuidor'),
+        (CONVENCIONAL, 'Convencional'),
+        (AGRICULTURA_FAMILIAR, 'Agricultura Familiar'),
         (TERCEIRIZADA, 'Terceirizada'),
     )
     # Tipo Alimento Choice
@@ -128,11 +139,9 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
                            validators=[MinLengthValidator(11)])
     responsavel_telefone = models.CharField('Responsável contato (telefone)', max_length=160, blank=True)
     responsavel_cargo = models.CharField('Responsável cargo', max_length=50, blank=True)
-    # OBS.: Uso exclusivo do modulo de abastecimento(logistica).
-    # Não tem relação com o processo do edital com associação de contrato a empresa.
-    numero_contrato = models.CharField('Número de contrato', max_length=50, blank=True)
     tipo_empresa = models.CharField(choices=TIPO_EMPRESA_CHOICES, max_length=25, default=TERCEIRIZADA)
     tipo_alimento = models.CharField(choices=TIPO_ALIMENTO_CHOICES, max_length=25, default=TIPO_ALIMENTO_TERCEIRIZADA)
+    tipo_servico = models.CharField(choices=TIPO_SERVICO_CHOICES, max_length=25, default=TERCEIRIZADA)
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
 
     # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
@@ -460,7 +469,7 @@ class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
     numero = models.CharField('No do contrato', max_length=100)
     processo = models.CharField('Processo Administrativo', max_length=100,
                                 help_text='Processo administrativo do contrato')
-    data_proposta = models.DateField('Data da proposta')
+    data_proposta = models.DateField('Data da proposta', blank=True, null=True)
     lotes = models.ManyToManyField(Lote, related_name='contratos_do_lote')
     terceirizada = models.ForeignKey(Terceirizada, on_delete=models.CASCADE, related_name='contratos')
     edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='contratos', blank=True, null=True)
