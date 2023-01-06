@@ -1725,12 +1725,11 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @property
     def _partes_interessadas_codae_autoriza(self):
-        email_query_set_escola = [self.rastro_escola.contato.email]
+        email_escola_lista = [self.rastro_escola.contato.email]
         email_query_set_terceirizada = self.rastro_escola.lote.terceirizada.emails_terceirizadas.filter(
             modulo__nome='Gestão de Alimentação'
         ).values_list('email', flat=True)
-        email_lista = email_query_set_escola + list(email_query_set_terceirizada)
-        return [email for email in email_lista]
+        return email_escola_lista + list(email_query_set_terceirizada)
 
     @property
     def partes_interessadas_terceirizadas_tomou_ciencia(self):
@@ -2011,13 +2010,13 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         ).values_list('usuario__email', flat=False)
         return [email for email in email_query_set_dre]
 
-    def _partes_interessadas_codae_autoriza(self, escola):
+    @staticmethod
+    def _partes_interessadas(escola):
         email_escola = [escola.contato.email]
         email_query_set_terceirizada = escola.lote.terceirizada.emails_terceirizadas.filter(
             modulo__nome='Gestão de Alimentação'
         ).values_list('email', flat=True)
-        email_lista = email_escola + list(email_query_set_terceirizada)
-        return [email for email in email_lista]
+        return email_escola + list(email_query_set_terceirizada)
 
     @property
     def partes_interessadas_inicio_fluxo(self):
@@ -2095,18 +2094,10 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                       justificativa=justificativa)
             log_criado = self.logs.last().criado_em
             criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
-            # self._preenche_template_e_envia_email(assunto, titulo, user,
-            #                                       self._partes_interessadas_codae_autoriza_ou_nega)
-
             escolas = [eq.escola for eq in self.escolas_quantidades.all()]
             for escola in escolas:
-                email_escola = [escola.contato.email]
-                email_query_set_terceirizada = escola.lote.terceirizada.emails_terceirizadas.filter(
-                    modulo__nome='Gestão de Alimentação'
-                ).values_list('email', flat=True)
-                partes_interessadas = email_escola + list(email_query_set_terceirizada)
                 self._preenche_template_e_envia_email_codae_autoriza(
-                    assunto, titulo, id_externo, user, criado_em, partes_interessadas, escola
+                    assunto, titulo, id_externo, user, criado_em, self._partes_interessadas(escola), escola
                 )
 
     @xworkflows.after_transition('codae_questiona')
