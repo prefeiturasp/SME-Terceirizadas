@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import environ
 from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
@@ -214,15 +216,29 @@ class CentralDeDownloadSerializer(serializers.ModelSerializer):
 class SolicitacaoAbertaSerializer(serializers.ModelSerializer):
     uuid_solicitacao = serializers.CharField()
     usuario = UsuarioSerializer(required=False)
+    datetime_ultimo_acesso = serializers.CharField(required=False)
 
     def create(self, validated_data):
         user = self.context['request'].user
-        return SolicitacaoAberta.objects.create(usuario=user, **validated_data)
+        datetime_ultimo_acesso = datetime.now()
+        return SolicitacaoAberta.objects.create(
+            usuario=user,
+            datetime_ultimo_acesso=datetime_ultimo_acesso,
+            **validated_data
+        )
+
+    def update(self, instance, validated_data):
+        datetime_ultimo_acesso = datetime.now()
+        instance.datetime_ultimo_acesso = datetime_ultimo_acesso
+        instance.save()
+
+        return instance
 
     class Meta:
         model = SolicitacaoAberta
         fields = (
             'id',
             'uuid_solicitacao',
-            'usuario'
+            'usuario',
+            'datetime_ultimo_acesso'
         )
