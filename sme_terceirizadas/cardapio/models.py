@@ -550,6 +550,12 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
             criado_por=usuario,
             status=cls.workflow_class.RASCUNHO
         )
+    @property
+    def tipo(self):
+        return 'Suspensão de Alimentação'
+    @property
+    def path(self):
+        return f'suspensao-de-alimentacao-cei/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
 
     @property
     def template_mensagem(self):
