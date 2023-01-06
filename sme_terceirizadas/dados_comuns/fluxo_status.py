@@ -1724,6 +1724,14 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         return [email for email in email_lista]
 
     @property
+    def _partes_interessadas_codae_autoriza(self):
+        email_escola_lista = [self.rastro_escola.contato.email]
+        email_query_set_terceirizada = self.rastro_escola.lote.terceirizada.emails_terceirizadas.filter(
+            modulo__nome='Gestão de Alimentação'
+        ).values_list('email', flat=True)
+        return email_escola_lista + list(email_query_set_terceirizada)
+
+    @property
     def partes_interessadas_terceirizadas_tomou_ciencia(self):
         # TODO: definir partes interessadas
         return []
@@ -1754,6 +1762,24 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
             template='fluxo_autorizar_negar_cancelar.html',
             dados_template={'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
                             'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome},
+            html=html
+        )
+
+    def _preenche_template_e_envia_email_codae_autoriza(self, assunto, titulo, id_externo, user, criado_em,
+                                                        partes_interessadas):
+        url = f'{env("REACT_APP_URL")}/{self.path}'
+        template = 'fluxo_codae_autoriza.html'
+        dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO, 'id_externo': id_externo,
+                          'criado_em': criado_em, 'nome_ue': self.rastro_escola.nome, 'url': url,
+                          'nome_dre': self.escola.diretoria_regional.nome, 'nome_lote': self.escola.lote.nome,
+                          'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
+        html = render_to_string(template, dados_template)
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            corpo='',
+            emails=partes_interessadas,
+            template='fluxo_codae_autoriza.html',
+            dados_template=dados_template,
             html=html
         )
 
@@ -1832,18 +1858,24 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('codae_autoriza_questionamento')
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
-        # manda email pra escola que solicitou e a DRE dela que validou de que
+        # manda email para escola que solicitou e para os emails do módulo Gestão de Alimentação da
+        # terceirizada responsável
         # a solicitacao foi autorizada
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
-            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de solicitação - #' + self.id_externo
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-                                      usuario=user,
-                                      justificativa=justificativa)
-            self._preenche_template_e_envia_email(assunto, titulo, user,
-                                                  self._partes_interessadas_codae_autoriza_ou_nega)
+            id_externo = '#' + self.id_externo
+            assunto = '[SIGPAE] Status de solicitação - ' + id_externo
+            titulo = f'Solicitação de {self.tipo} Autorizada'
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                usuario=user,
+                justificativa=justificativa
+            )
+            log_criado = self.logs.last().criado_em
+            criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
+            self._preenche_template_e_envia_email_codae_autoriza(assunto, titulo, id_externo, user, criado_em,
+                                                                 self._partes_interessadas_codae_autoriza)
 
     @xworkflows.after_transition('codae_nega_questionamento')
     @xworkflows.after_transition('codae_nega')
@@ -1978,6 +2010,14 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         ).values_list('usuario__email', flat=False)
         return [email for email in email_query_set_dre]
 
+    @staticmethod
+    def _partes_interessadas(escola):
+        email_escola = [escola.contato.email]
+        email_query_set_terceirizada = escola.lote.terceirizada.emails_terceirizadas.filter(
+            modulo__nome='Gestão de Alimentação'
+        ).values_list('email', flat=True)
+        return email_escola + list(email_query_set_terceirizada)
+
     @property
     def partes_interessadas_inicio_fluxo(self):
         # TODO: definir partes interessadas
@@ -2011,6 +2051,25 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
             html=html
         )
 
+    def _preenche_template_e_envia_email_codae_autoriza(self, assunto, titulo, id_externo, user, criado_em,
+                                                        partes_interessadas, escola):
+        url = f'{env("REACT_APP_URL")}/{self.path}'
+        template = 'fluxo_dre_solicita_e_codae_autoriza.html'
+        dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO, 'id_externo': id_externo,
+                          'criado_em': criado_em, 'nome_ue': escola.nome, 'url': url,
+                          'nome_dre': self.rastro_dre.nome, 'nome_lote': escola.lote.nome,
+                          'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
+        html = render_to_string(template, dados_template)
+
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            corpo='',
+            emails=partes_interessadas,
+            template='fluxo_codae_autoriza.html',
+            dados_template=dados_template,
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         self.foi_solicitado_fora_do_prazo = self.prioridade in [
@@ -2027,13 +2086,19 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         justificativa = kwargs.get('justificativa', '')
         user = kwargs['user']
         if user:
+            id_externo = '#' + self.id_externo
             assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de solicitação - #' + self.id_externo
+            titulo = f'Solicitação de {self.tipo} Autorizada'
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                       usuario=user,
                                       justificativa=justificativa)
-            self._preenche_template_e_envia_email(assunto, titulo, user,
-                                                  self._partes_interessadas_codae_autoriza_ou_nega)
+            log_criado = self.logs.last().criado_em
+            criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
+            escolas = [eq.escola for eq in self.escolas_quantidades.all()]
+            for escola in escolas:
+                self._preenche_template_e_envia_email_codae_autoriza(
+                    assunto, titulo, id_externo, user, criado_em, self._partes_interessadas(escola), escola
+                )
 
     @xworkflows.after_transition('codae_questiona')
     def _codae_questiona_hook(self, *args, **kwargs):

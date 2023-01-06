@@ -5,6 +5,7 @@ from .models import (
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoDaCEI,
     InclusaoAlimentacaoNormal,
+    InclusaoDeAlimentacaoCEMEI,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal,
     QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
@@ -18,4 +19,5 @@ admin.site.register(MotivoInclusaoNormal)
 admin.site.register(InclusaoAlimentacaoNormal)
 admin.site.register(GrupoInclusaoAlimentacaoNormal)
 admin.site.register(InclusaoAlimentacaoDaCEI)
+admin.site.register(InclusaoDeAlimentacaoCEMEI)
 admin.site.register(QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI)
