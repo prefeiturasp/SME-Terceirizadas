@@ -188,7 +188,7 @@ class ArqSolicitacaoMOD(ComplexModel):
         data.pop('IntTotVol', None)
 
         try:
-            distribuidor = Terceirizada.objects.get(cnpj=cnpj, eh_distribuidor=True)
+            distribuidor = Terceirizada.objects.get(cnpj=cnpj, tippo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM)
             data['distribuidor'] = distribuidor
         except exceptions.ObjectDoesNotExist:
             raise exceptions.ObjectDoesNotExist('Não existe distribuidor cadastrado com esse cnpj')

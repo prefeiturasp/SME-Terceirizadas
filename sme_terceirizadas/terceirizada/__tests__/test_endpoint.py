@@ -77,4 +77,4 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
     terceirizada = Terceirizada.objects.first()
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert terceirizada.eh_distribuidor is True
+    assert terceirizada.tipo_servico == Terceirizada.DISTRIBUIDOR_ARMAZEM

@@ -39,5 +39,5 @@ class CronogramaFilter(filters.FilterSet):
     armazem = filters.ModelMultipleChoiceFilter(
         field_name='armazem__uuid',
         to_field_name='uuid',
-        queryset=Terceirizada.objects.filter(tipo_empresa=Terceirizada.ARMAZEM_DISTRIBUIDOR),
+        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM),
     )
