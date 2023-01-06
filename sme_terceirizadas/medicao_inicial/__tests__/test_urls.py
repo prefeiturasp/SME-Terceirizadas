@@ -88,10 +88,6 @@ def test_url_endpoint_solicitacao_medicao_inicial(client_autenticado_da_escola,
     assert response.status_code == status.HTTP_201_CREATED
     data_update = {
         'escola': str(escola.uuid),
-        'responsaveis': [{
-            'nome': 'tester_updated',
-            'rf': str(responsavel.rf)
-        }],
         'tipo_contagem_alimentacoes': str(tipo_contagem_alimentacao.uuid),
         'com_ocorrencias': True
     }

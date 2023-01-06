@@ -61,7 +61,7 @@ class SolicitacaoMedicaoInicial(
         verbose_name = 'Solicitação de medição inicial'
         verbose_name_plural = 'Solicitações de medição inicial'
         unique_together = ('escola', 'mes', 'ano',)
-        ordering = ('-criado_em',)
+        ordering = ('-ano', '-mes')
 
     def __str__(self):
         return f'Solicitação #{self.id_externo} -- Escola {self.escola.nome} -- {self.mes}/{self.ano}'
