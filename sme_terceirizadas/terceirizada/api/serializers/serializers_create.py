@@ -112,6 +112,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         super_admin = validated_data.pop('super_admin')
         lotes = validated_data.pop('lotes', [])
         contatos = validated_data.pop('contatos', [])
+        contratos_array = validated_data.pop('contratos')
         eh_distribuidor = validated_data.get('eh_distribuidor', False)
         if eh_distribuidor:
             terceirizada = Terceirizada.objects.create(**validated_data)
@@ -127,6 +128,12 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
                 'contatos': contatos
             }
             UsuarioUpdateSerializer().create_distribuidor(terceirizada, distribuidor_json)
+
+            contratos = []
+            for contrato_json in contratos_array:
+                contrato = ContratoCreateSerializer().create(contrato_json)
+                contratos.append(contrato)
+
         else:
             terceirizada = Terceirizada.objects.create(**validated_data)
 
