@@ -714,7 +714,7 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
             canceladas_ou_negadas | Q(inclusoes_normais__data__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
         self.inclusao_alimentacao_inclusaoalimentacaodacei_rastro_lote.exclude(
-            canceladas_ou_negadas | Q(data__lt=hoje)
+            canceladas_ou_negadas | Q(dias_motivos_da_inclusao_cei__data__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
         self.inclusao_alimentacao_inclusaodealimentacaocemei_rastro_lote.exclude(
             canceladas_ou_negadas | Q(dias_motivos_da_inclusao_cemei__data__lt=hoje)

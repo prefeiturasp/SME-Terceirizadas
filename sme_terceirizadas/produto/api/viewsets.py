@@ -1770,10 +1770,10 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
             queryset_homologados = self.get_queryset_filtrado_homologados()
             queryset = queryset_homologados.filter(edital__uuid__in=editais_uuid)
 
-            if tipo_produto_edital_origem.lower() == ProdutoEdital.TIPO_PRODUTO['COMUM'].lower():
-                queryset = queryset.filter(tipo_produto__icontains=ProdutoEdital.TIPO_PRODUTO['COMUM'])
+            if tipo_produto_edital_origem.lower() == ProdutoEdital.TIPO_PRODUTO['Comum'].lower():
+                queryset = queryset.filter(tipo_produto__icontains=ProdutoEdital.TIPO_PRODUTO['Comum'])
             else:
-                queryset = queryset.exclude(tipo_produto__icontains=ProdutoEdital.TIPO_PRODUTO['COMUM'])
+                queryset = queryset.exclude(tipo_produto__icontains=ProdutoEdital.TIPO_PRODUTO['Comum'])
             queryset = queryset.order_by('produto__nome', 'produto__marca__nome')
             data = self.get_serializer(queryset, many=True).data
             return Response(data=data, status=status.HTTP_200_OK)
