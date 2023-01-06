@@ -23,11 +23,10 @@ class SolicitacaoFilter(filters.FilterSet):
         field_name='distribuidor__nome_fantasia',
         lookup_expr='icontains',
     )
-    distribuidor = filters.MultipleChoiceFilter(
+    distribuidor = filters.ModelMultipleChoiceFilter(
         field_name='distribuidor__uuid',
-        choices=[(str(value), value) for value in [
-            distribuidor.uuid for distribuidor in Terceirizada.objects.all().filter(eh_distribuidor=True)
-        ]],
+        to_field_name='uuid',
+        queryset=Terceirizada.objects.filter(eh_distribuidor=True),
     )
     data_inicial = filters.DateFilter(
         field_name='guias__data_entrega',
@@ -108,11 +107,10 @@ class SolicitacaoAlteracaoFilter(filters.FilterSet):
         field_name='requisicao__distribuidor__razao_social',
         lookup_expr='icontains',
     )
-    distribuidor = filters.MultipleChoiceFilter(
+    distribuidor = filters.ModelMultipleChoiceFilter(
         field_name='requisicao__distribuidor__uuid',
-        choices=[(str(value), value) for value in [
-            distribuidor.uuid for distribuidor in Terceirizada.objects.all().filter(eh_distribuidor=True)
-        ]],
+        to_field_name='uuid',
+        queryset=Terceirizada.objects.filter(eh_distribuidor=True),
     )
     data_inicial = filters.DateFilter(
         field_name='requisicao__guias__data_entrega',

@@ -138,8 +138,7 @@ def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros
         quantidade_alunos_por_faixas_etarias=quantidade_alunos_por_faixas_etarias,
         escola=escola,
         periodo_escolar=periodo_escolar,
-        motivo=motivo,
-        data=data
+        dias_motivos_da_inclusao_cei=[{'motivo': motivo, 'data': data}],
     )
     response_inclusao_created = serializer_obj.create(validated_data=validated_data)
     assert isinstance(response_inclusao_created, InclusaoAlimentacaoDaCEI)
@@ -147,8 +146,7 @@ def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros
     validated_data_update = dict(quantidade_alunos_por_faixas_etarias=quantidade_alunos_por_faixas_etarias,
                                  escola=escola,
                                  periodo_escolar=periodo_escolar,
-                                 motivo=motivo,
-                                 data=data)
+                                 dias_motivos_da_inclusao_cei=[{'motivo': motivo, 'data': data}])
 
     response_inclusao_updated = serializer_obj.update(instance=response_inclusao_created,
                                                       validated_data=validated_data_update)
