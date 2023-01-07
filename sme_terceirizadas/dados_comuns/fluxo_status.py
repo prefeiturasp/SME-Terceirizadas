@@ -2191,7 +2191,6 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
         email_query_set_terceirizada = self.escola.lote.terceirizada.emails_terceirizadas.filter(
             modulo__nome='Gestão de Alimentação'
         ).values_list('email', flat=True)
-        print(list(email_query_set_terceirizada), "emails terceirizadas 777")
         return list(email_query_set_terceirizada)
 
     @property
@@ -2234,8 +2233,7 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
     @xworkflows.after_transition('informa')
     def _informa_hook(self, *args, **kwargs):
         user = kwargs['user']
-        # import ipdb
-        # ipdb.set_trace()
+
         if user:
             id_externo = '#' + self.id_externo
             assunto = '[SIGPAE] Status de solicitação - ' + id_externo
@@ -2247,15 +2245,13 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
             log_criado = self.logs.last().criado_em
             criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
             self._preenche_template_e_envia_email(assunto, titulo, id_externo, user, criado_em,
-                                                                 self.partes_interessadas_informacao)
+                                                  self.partes_interessadas_informacao)
 
         self._salva_rastro_solicitacao()
 
     @xworkflows.after_transition('terceirizada_toma_ciencia')
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
-        import ipdb
-        ipdb.set_trace()
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
@@ -2264,8 +2260,6 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
     def _escola_cancela_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs['justificativa']
-        # import ipdb
-        # ipdb.set_trace()
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
                                       justificativa=justificativa,
