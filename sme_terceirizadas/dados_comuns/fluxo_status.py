@@ -1713,15 +1713,9 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         return [email for email in email_query_set_escola]
 
     @property
-    def _partes_interessadas_codae_autoriza_ou_nega(self):
-        email_query_set_escola = self.rastro_escola.vinculos.filter(
-            ativo=True
-        ).values_list('usuario__email', flat=False)
-        email_query_set_dre = self.rastro_dre.vinculos.filter(
-            ativo=True
-        ).values_list('usuario__email', flat=False)
-        email_lista = email_query_set_escola | email_query_set_dre
-        return [email for email in email_lista]
+    def _partes_interessadas_codae_nega(self):
+        # Quando CODAE nega apenas o contato da escola recebe email
+        return [self.rastro_escola.contato.email]
 
     @property
     def _partes_interessadas_codae_autoriza(self):
@@ -1765,20 +1759,20 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
-    def _preenche_template_e_envia_email_codae_autoriza(self, assunto, titulo, id_externo, user, criado_em,
-                                                        partes_interessadas):
+    def _preenche_template_e_envia_email_codae_autoriza_ou_nega(self, assunto, titulo, id_externo, user, criado_em,
+                                                                partes_interessadas):
         url = f'{env("REACT_APP_URL")}/{self.path}'
-        template = 'fluxo_codae_autoriza.html'
+        template = 'fluxo_codae_autoriza_ou_nega.html'
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO, 'id_externo': id_externo,
                           'criado_em': criado_em, 'nome_ue': self.rastro_escola.nome, 'url': url,
                           'nome_dre': self.escola.diretoria_regional.nome, 'nome_lote': self.escola.lote.nome,
-                          'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
+                          'movimentacao_realizada': str(self.status)}
         html = render_to_string(template, dados_template)
         envia_email_em_massa_task.delay(
             assunto=assunto,
             corpo='',
             emails=partes_interessadas,
-            template='fluxo_codae_autoriza.html',
+            template='fluxo_codae_autoriza_ou_nega.html',
             dados_template=dados_template,
             html=html
         )
@@ -1874,8 +1868,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
             )
             log_criado = self.logs.last().criado_em
             criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
-            self._preenche_template_e_envia_email_codae_autoriza(assunto, titulo, id_externo, user, criado_em,
-                                                                 self._partes_interessadas_codae_autoriza)
+            self._preenche_template_e_envia_email_codae_autoriza_ou_nega(assunto, titulo, id_externo, user, criado_em,
+                                                                         self._partes_interessadas_codae_autoriza)
 
     @xworkflows.after_transition('codae_nega_questionamento')
     @xworkflows.after_transition('codae_nega')
@@ -1885,13 +1879,16 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         # manda email pra escola que solicitou e a DRE dela que validou de que
         # a solicitacao NAO foi autorizada
         if user:
-            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de solicitação - #' + self.id_externo
+            id_externo = '#' + self.id_externo
+            assunto = '[SIGPAE] Status de solicitação - ' + id_externo
+            titulo = f'Solicitação de {self.tipo} Negada'
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                       usuario=user,
                                       justificativa=justificativa)
-            self._preenche_template_e_envia_email(assunto, titulo, user,
-                                                  self._partes_interessadas_codae_autoriza_ou_nega)
+            log_criado = self.logs.last().criado_em
+            criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
+            self._preenche_template_e_envia_email_codae_autoriza_ou_nega(assunto, titulo, id_externo, user, criado_em,
+                                                                         self._partes_interessadas_codae_nega)
 
     @xworkflows.after_transition('terceirizada_toma_ciencia')
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
@@ -2003,15 +2000,12 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     def _partes_interessadas_cancelamento(self):
         return []
 
-    @property
-    def _partes_interessadas_codae_autoriza_ou_nega(self):
-        email_query_set_dre = self.rastro_dre.vinculos.filter(
-            ativo=True
-        ).values_list('usuario__email', flat=False)
-        return [email for email in email_query_set_dre]
+    @staticmethod
+    def _partes_interessadas_codae_nega(escola):
+        return [escola.contato.email]
 
     @staticmethod
-    def _partes_interessadas(escola):
+    def _partes_interessadas_codae_autoriza(escola):
         email_escola = [escola.contato.email]
         email_query_set_terceirizada = escola.lote.terceirizada.emails_terceirizadas.filter(
             modulo__nome='Gestão de Alimentação'
@@ -2051,21 +2045,21 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
             html=html
         )
 
-    def _preenche_template_e_envia_email_codae_autoriza(self, assunto, titulo, id_externo, user, criado_em,
-                                                        partes_interessadas, escola):
+    def _preenche_template_e_envia_email_codae_autoriza_ou_nega(self, assunto, titulo, id_externo, user, criado_em,
+                                                                partes_interessadas, escola):
         url = f'{env("REACT_APP_URL")}/{self.path}'
-        template = 'fluxo_dre_solicita_e_codae_autoriza.html'
+        template = 'fluxo_dre_solicita_e_codae_autoriza_ou_nega.html'
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO, 'id_externo': id_externo,
                           'criado_em': criado_em, 'nome_ue': escola.nome, 'url': url,
                           'nome_dre': self.rastro_dre.nome, 'nome_lote': escola.lote.nome,
-                          'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
+                          'movimentacao_realizada': str(self.status)}
         html = render_to_string(template, dados_template)
 
         envia_email_em_massa_task.delay(
             assunto=assunto,
             corpo='',
             emails=partes_interessadas,
-            template='fluxo_codae_autoriza.html',
+            template='fluxo_dre_solicita_e_codae_autoriza_ou_nega.html',
             dados_template=dados_template,
             html=html
         )
@@ -2096,8 +2090,9 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
             criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
             escolas = [eq.escola for eq in self.escolas_quantidades.all()]
             for escola in escolas:
-                self._preenche_template_e_envia_email_codae_autoriza(
-                    assunto, titulo, id_externo, user, criado_em, self._partes_interessadas(escola), escola
+                self._preenche_template_e_envia_email_codae_autoriza_ou_nega(
+                    assunto, titulo, id_externo, user, criado_em, self._partes_interessadas_codae_autoriza(escola),
+                    escola
                 )
 
     @xworkflows.after_transition('codae_questiona')
@@ -2133,13 +2128,19 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
+            id_externo = '#' + self.id_externo
             assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de solicitação - #' + self.id_externo
+            titulo = f'Solicitação de {self.tipo} Negada'
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                       usuario=user,
                                       justificativa=justificativa)
-            self._preenche_template_e_envia_email(assunto, titulo, user,
-                                                  self._partes_interessadas_codae_autoriza_ou_nega)
+            log_criado = self.logs.last().criado_em
+            criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
+            escolas = [eq.escola for eq in self.escolas_quantidades.all()]
+            for escola in escolas:
+                self._preenche_template_e_envia_email_codae_autoriza_ou_nega(
+                    assunto, titulo, id_externo, user, criado_em, self._partes_interessadas_codae_nega(escola), escola
+                )
 
     class Meta:
         abstract = True
@@ -2215,7 +2216,7 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
             assunto=assunto,
             corpo='',
             emails=partes_interessadas,
-            template='fluxo_codae_autoriza.html',
+            template='fluxo_codae_autoriza_ou_nega.html',
             dados_template=dados_template,
             html=html
         )
