@@ -1612,12 +1612,10 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         self.save()
 
     def cancelar_pedido(self, user, justificativa):
-
         """O objeto que herdar de FluxoAprovacaoPartindoDaEscola, deve ter um property data.
 
         Dado dias de antecedencia de prazo, verifica se pode e altera o estado
         """
-
         dia_antecedencia = datetime.date.today(
         ) + datetime.timedelta(days=self.DIAS_PARA_CANCELAR)
         data_do_evento = self.data
