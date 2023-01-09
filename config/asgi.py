@@ -12,11 +12,10 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.production') # 
 django.setup() # noqa I001
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
-
 from django.core.asgi import get_asgi_application
 
 from sme_terceirizadas.dados_comuns.urls import ws_urlpatterns
-
+# noqa I003
 application = ProtocolTypeRouter({
     'http': get_asgi_application(),
     'websocket': AuthMiddlewareStack(
