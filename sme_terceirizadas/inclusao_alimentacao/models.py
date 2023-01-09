@@ -442,6 +442,10 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
         return None
 
     @property
+    def inclusoes(self):
+        return self.dias_motivos_da_inclusao_cei
+
+    @property
     def quantidade_alunos_por_faixas_etarias(self):
         return self.quantidade_alunos_da_inclusao
 
