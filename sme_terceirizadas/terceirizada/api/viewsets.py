@@ -58,14 +58,21 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes-distribuidores')
     def lista_nomes_distribuidores(self, request):
-        queryset = Terceirizada.objects.filter(eh_distribuidor=True)
+        queryset = Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM)
         response = {'results': DistribuidorSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='lista-armazens')
     def lista_nomes_armazens(self, request):
-        queryset = Terceirizada.objects.filter(tipo_empresa=Terceirizada.ARMAZEM_DISTRIBUIDOR)
+        queryset = Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM)
+        queryset = Terceirizada.objects.all()
         response = {'results': DistribuidorSimplesSerializer(queryset, many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-cnpjs')
+    def lista_cnpjs(self, request):
+        queryset = Terceirizada.objects.all().values_list('cnpj', flat=True)
+        response = {'results': queryset}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='relatorio-quantitativo')

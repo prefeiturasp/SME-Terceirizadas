@@ -29,7 +29,7 @@ select dieta.id,
        dieta.escola_destino_id,
        aluno.serie,
        dieta.conferido,
-       null                                             AS terceirizada_conferiu_gestao     
+       null                                             AS terceirizada_conferiu_gestao
 from dieta_especial_solicitacaodietaespecial as dieta
          LEFT JOIN dados_comuns_logsolicitacoesusuario AS logs ON logs.uuid_original = dieta.uuid
          LEFT JOIN escola_aluno AS aluno ON aluno.id = dieta.aluno_id
@@ -360,7 +360,7 @@ group by kit_lanche_unificado.id,
 union
 select inc_alimentacao_cei.id,
        inc_alimentacao_cei.uuid,
-       min(inc_alimentacao_cei.data)         as data_evento,
+       null                                  as data_evento,
        inc_alimentacao_cei.criado_em         as criado_em,
        lote.nome                             as lote_nome,
        dre.nome                              as dre_nome,
