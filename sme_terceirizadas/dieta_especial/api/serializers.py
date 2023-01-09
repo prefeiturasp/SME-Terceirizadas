@@ -584,6 +584,7 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
     classificacao = ClassificacaoDietaSerializer()
     protocolo_padrao = ProtocoloPadraoDietaEspecialSimplesSerializer()
     data_ultimo_log = serializers.SerializerMethodField()
+    alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
 
     def get_nome_escola(self, obj):
         return obj.rastro_escola.nome if obj.rastro_escola else None
@@ -612,7 +613,8 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
             'classificacao',
             'protocolo_padrao',
             'nome_protocolo',
-            'data_ultimo_log'
+            'data_ultimo_log',
+            'alergias_intolerancias'
         )
 
 

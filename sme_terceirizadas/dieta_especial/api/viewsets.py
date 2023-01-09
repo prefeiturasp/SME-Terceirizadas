@@ -24,7 +24,8 @@ from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEDietaEspecial,
     UsuarioEscola,
-    UsuarioTerceirizada
+    UsuarioTerceirizada,
+    UsuarioTerceirizadaOuNutriSupervisao
 )
 from ...dieta_especial.tasks import gera_pdf_relatorio_dieta_especial_async
 from ...escola.models import Aluno, EscolaPeriodoEscolar, Lote
@@ -129,7 +130,7 @@ class SolicitacaoDietaEspecialViewSet(
                 IsAuthenticated, PermissaoParaRecuperarDietaEspecial)
         elif self.action == 'relatorio_dieta_especial_terceirizada':
             self.permission_classes = (
-                IsAuthenticated, UsuarioTerceirizada)
+                IsAuthenticated, UsuarioTerceirizadaOuNutriSupervisao)
         return super(SolicitacaoDietaEspecialViewSet, self).get_permissions()
 
     def get_serializer_class(self):  # noqa C901
