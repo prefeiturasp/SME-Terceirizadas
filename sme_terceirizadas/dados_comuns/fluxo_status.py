@@ -2188,8 +2188,10 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
 
     @property
     def partes_interessadas_informacao(self):
-        # TODO: definir partes interessadas
-        return []
+        email_query_set_terceirizada = self.escola.lote.terceirizada.emails_terceirizadas.filter(
+            modulo__nome='Gestão de Alimentação'
+        ).values_list('email', flat=True)
+        return list(email_query_set_terceirizada)
 
     @property
     def partes_interessadas_terceirizadas_tomou_ciencia(self):
@@ -2201,10 +2203,22 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
         # TODO: definir partes interessadas
         return []
 
-    @property
-    def template_mensagem(self):
-        raise NotImplementedError(
-            'Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
+    def _preenche_template_e_envia_email(self, assunto, titulo, id_externo, user, criado_em, partes_interessadas):
+        url = f'{env("REACT_APP_URL")}/{self.path}'
+        template = 'fluxo_ue_informa_suspensao.html'
+        dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO, 'id_externo': id_externo,
+                          'criado_em': criado_em, 'nome_ue': self.escola.nome, 'url': url,
+                          'nome_dre': self.escola.diretoria_regional.nome, 'nome_lote': self.escola.lote.nome,
+                          'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
+        html = render_to_string(template, dados_template)
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            corpo='',
+            emails=partes_interessadas,
+            template='fluxo_codae_autoriza.html',
+            dados_template=dados_template,
+            html=html
+        )
 
     def cancelar_pedido(self, user, justificativa):
         dia_antecedencia = datetime.date.today(
@@ -2219,8 +2233,20 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
     @xworkflows.after_transition('informa')
     def _informa_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
-                                  usuario=user)
+
+        if user:
+            id_externo = '#' + self.id_externo
+            assunto = '[SIGPAE] Status de solicitação - ' + id_externo
+            titulo = f'Solicitação de {self.tipo}'
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
+                usuario=user
+            )
+            log_criado = self.logs.last().criado_em
+            criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
+            self._preenche_template_e_envia_email(assunto, titulo, id_externo, user, criado_em,
+                                                  self.partes_interessadas_informacao)
+
         self._salva_rastro_solicitacao()
 
     @xworkflows.after_transition('terceirizada_toma_ciencia')
