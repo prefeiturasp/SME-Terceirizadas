@@ -469,10 +469,12 @@ class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
     processo = models.CharField('Processo Administrativo', max_length=100,
                                 help_text='Processo administrativo do contrato')
     data_proposta = models.DateField('Data da proposta', blank=True, null=True)
-    lotes = models.ManyToManyField(Lote, related_name='contratos_do_lote')
-    terceirizada = models.ForeignKey(Terceirizada, on_delete=models.CASCADE, related_name='contratos')
+    lotes = models.ManyToManyField(Lote, related_name='contratos_do_lote', blank=True)
+    terceirizada = models.ForeignKey(Terceirizada, on_delete=models.CASCADE,
+                                     related_name='contratos', blank=True, null=True)
     edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='contratos', blank=True, null=True)
-    diretorias_regionais = models.ManyToManyField(DiretoriaRegional, related_name='contratos_da_diretoria_regional')
+    diretorias_regionais = models.ManyToManyField(DiretoriaRegional, related_name='contratos_da_diretoria_regional',
+                                                  blank=True)
 
     def __str__(self):
         return f'Contrato:{self.numero} Processo: {self.processo}'
