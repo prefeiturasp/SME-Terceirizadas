@@ -299,6 +299,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         diretoria_regional = usuario.vinculo_atual.instituicao
         query_set = SolicitacoesCODAE.get_pendentes_autorizacao(dre_uuid=diretoria_regional.uuid,
                                                                 filtro=filtro_aplicado)
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
         response = {'results': self._agrupa_por_tipo_visao(
             tipo_visao=tipo_visao, query_set=query_set)}
 
