@@ -1637,8 +1637,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
             titulo = f'Solicitação de {self.tipo} Cancelada'
             log_criado = self.logs.last().criado_em
             criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
-            self._preenche_template_e_envia_email_codae_ue_cancela(assunto, titulo, id_externo, criado_em,
-                                                                   self._partes_interessadas_ue_cancela)
+            self._preenche_template_e_envia_email_ue_cancela(assunto, titulo, id_externo, criado_em,
+                                                             self._partes_interessadas_ue_cancela)
 
         elif self.status == self.workflow_class.ESCOLA_CANCELOU:
             raise xworkflows.InvalidTransitionError('Já está cancelada')
@@ -1743,8 +1743,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
-    def _preenche_template_e_envia_email_codae_ue_cancela(self, assunto, titulo, id_externo, criado_em,
-                                                          partes_interessadas):
+    def _preenche_template_e_envia_email_ue_cancela(self, assunto, titulo, id_externo, criado_em,
+                                                    partes_interessadas):
         url = f'{env("REACT_APP_URL")}/{self.path}'
         template = 'fluxo_ue_cancela.html'
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO, 'id_externo': id_externo,
