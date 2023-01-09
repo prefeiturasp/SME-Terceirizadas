@@ -392,6 +392,10 @@ CELERY_BEAT_SCHEDULE = {
     'atualiza-alunos-escolas': {
         'task': 'sme_terceirizadas.escola.tasks.atualiza_alunos_escolas',
         'schedule': crontab(hour=2, minute=0)
+    },
+    'deleta-solicitacoes-abertas': {
+        'task': 'sme_terceirizadas.dados_comuns.tasks.deleta_solicitacoes_abertas',
+        'schedule': 15.0
     }
 }
 
