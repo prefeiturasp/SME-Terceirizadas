@@ -406,7 +406,7 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     Vide SuspensaoAlimentacao e QuantidadePorPeriodoSuspensaoAlimentacao
     """
 
-    DESCRICAO = 'Suspensão de alimentação'
+    DESCRICAO = 'Suspensão de Alimentação'
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     objects = models.Manager()  # Manager Padrão
     desta_semana = GrupoSuspensaoAlimentacaoDestaSemanaManager()
@@ -438,6 +438,14 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     @property  # type: ignore
     def suspensoes_alimentacao(self):
         return self.suspensoes_alimentacao
+
+    @property
+    def tipo(self):
+        return 'Suspensão de Alimentação'
+
+    @property
+    def path(self):
+        return f'suspensao-de-alimentacao/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
 
     @property
     def data(self):
@@ -550,6 +558,14 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
             criado_por=usuario,
             status=cls.workflow_class.RASCUNHO
         )
+
+    @property
+    def tipo(self):
+        return 'Suspensão de Alimentação'
+
+    @property
+    def path(self):
+        return f'suspensao-de-alimentacao-cei/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
 
     @property
     def template_mensagem(self):
