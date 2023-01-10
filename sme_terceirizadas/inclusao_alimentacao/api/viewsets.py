@@ -58,7 +58,7 @@ class EscolaIniciaCancela():
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            if (type(obj) in [SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI, InclusaoAlimentacaoDaCEI] or
+            if (type(obj) in [SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI] or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
