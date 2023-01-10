@@ -17,8 +17,8 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
     payload = {
         'nome_fantasia': 'Empresa Teste',
         'tipo_alimento': 'FLVO',
-        "tipo_empresa": "CONVENCIONAL",
-	    "tipo_servico": "DISTRIBUIDOR_ARMAZEM",
+        'tipo_empresa': 'CONVENCIONAL',
+	    'tipo_servico': 'DISTRIBUIDOR_ARMAZEM',
         'numero_contrato': '89849',
         'razao_social': 'Empresa Teste SA',
         'cnpj': '65241564654645',
@@ -44,13 +44,14 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
         'responsavel_email': 'responsavel@gmail.com',
         'lotes': [],
         'ativo': 'true',
-        "contratos": [
+        'contratos': [
             {
-                "numero": "12345",
-                "processo": "123",
-                "vigencias": [
+                'numero': '12345',
+                'processo': '123',
+                'vigencias': [
                     {
-                        "data_inicial": "10/01/2023", "data_final": "15/01/2023"
+                        'data_inicial': '10/01/2023',
+                        'data_final': '15/01/2023'
                     },
                 ]
             }
