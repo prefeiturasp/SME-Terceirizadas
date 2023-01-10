@@ -65,12 +65,34 @@
   </div>
   <div class="col-4">
     <p>Motivo:</p>
-    <p><b>{{ solicitacao.motivo.nome }}</b></p>
   </div>
   <div class="col-4">
     <p>Dia(s) de inclusão:</p>
-    <p><b>{{ solicitacao.data }}</b></p>
   </div>
+  <div class="col-4">
+    <p>justificativa(s) de cancelamento:</p>
+  </div>
+
+  {% for dia_motivo in dias_motivos_da_inclusao_cei %}
+    <div class="col-4">
+      <p><b>{{ dia_motivo.motivo.nome }}</b></p>
+    </div>
+    <div class="col-4">
+      {% if dia_motivo.cancelado %}
+        <p style="color: #a8a8a8; text-decoration: line-through;"><b>{{dia_motivo.data}}</b></p>
+      {% else %}
+        <p><b>{{ dia_motivo.data }}</b></p>
+      {% endif %}
+    </div>
+    {% if dia_motivo.cancelado %}
+      <div class="col-4">
+        <p><b>{{dia_motivo.cancelado_justificativa}}</b></p>
+      </div>
+    {% else %}
+      <div class="col-4">
+      </div>
+    {% endif %}
+  {% endfor %}
 </div>
 
 <div class="row mx-4 my-2">
