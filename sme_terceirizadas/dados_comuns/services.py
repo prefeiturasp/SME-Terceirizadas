@@ -34,7 +34,7 @@ def _preenche_template_e_envia_email_ue_cancela_parcialmente(obj, assunto, titul
     )
 
 
-def ue_cancelar_pedido_parcialmente(obj):
+def enviar_email_ue_cancelar_pedido_parcialmente(obj):
 
     # envia email para partes interessadas
     id_externo = '#' + obj.id_externo

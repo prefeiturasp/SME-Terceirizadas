@@ -63,7 +63,7 @@ class EscolaIniciaCancela():
                 # ISSO OCORRE QUANDO O CANCELAMENTO É TOTAL
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
-                services.ue_cancelar_pedido_parcialmente(obj)
+                services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
                 obj.inclusoes.filter(data__in=datas).update(cancelado=True, cancelado_justificativa=justificativa)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
@@ -485,7 +485,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
             if len(uuids_a_cancelar) == obj.quantidades_periodo.count():
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
-                services.ue_cancelar_pedido_parcialmente(obj)
+                services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
                 obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar).exclude(cancelado=True).update(
                     cancelado=True, cancelado_justificativa=justificativa)
             serializer = self.get_serializer(obj)
