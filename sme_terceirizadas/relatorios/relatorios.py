@@ -491,7 +491,8 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
                 'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
                 'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
                 'logs': formata_logs(logs),
-                'inclusoes': quantidade_por_faixa
+                'inclusoes': quantidade_por_faixa,
+                'dias_motivos_da_inclusao_cei': solicitacao.inclusoes.all()
             }
         )
     return html_to_pdf_response(html_string, f'inclusao_alimentacao_{solicitacao.id_externo}.pdf')
