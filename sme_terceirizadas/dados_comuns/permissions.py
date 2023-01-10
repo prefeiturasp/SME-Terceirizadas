@@ -180,6 +180,7 @@ class UsuarioTerceirizadaOuNutriSupervisao(BasePermission):
             isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
         )
 
+
 class PermissaoParaRecuperarObjeto(BasePermission):
     """Permite acesso ao objeto se o objeto pertence ao usuário."""
 
