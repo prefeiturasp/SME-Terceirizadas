@@ -12,7 +12,7 @@ class TerceirizadaFilter(filters.FilterSet):
         lookup_expr='icontains',
     )
 
-    empresa = filters.CharFilter(method='filtrar_empresa')
+    busca = filters.CharFilter(method='filtrar_empresa')
 
     def filtrar_empresa(self, queryset, name, value):
         return queryset.filter(
