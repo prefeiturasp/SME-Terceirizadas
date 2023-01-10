@@ -135,7 +135,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         super_admin = validated_data.pop('super_admin')
         lotes = validated_data.pop('lotes', [])
         contatos = validated_data.pop('contatos', [])
-        contratos_array = validated_data.pop('contratos')
+        contratos_array = validated_data.pop('contratos', [])
         eh_distribuidor_ou_fornecedor = validated_data.pop('eh_distribuidor_ou_fornecedor', False)
         if eh_distribuidor_ou_fornecedor:
             empresa = Terceirizada.objects.create(**validated_data)
