@@ -6,7 +6,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
 from ...cardapio.models import AlteracaoCardapioCEMEI
-from ...dados_comuns import constants
+from ...dados_comuns import constants, services
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarObjeto,
     UsuarioCODAEGestaoAlimentacao,
@@ -60,8 +60,10 @@ class EscolaIniciaCancela():
         try:
             if (type(obj) in [SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI, InclusaoAlimentacaoDaCEI] or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
+                # ISSO OCORRE QUANDO O CANCELAMENTO É TOTAL
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
+                services.ue_cancelar_pedido_parcialmente(obj)
                 obj.inclusoes.filter(data__in=datas).update(cancelado=True, cancelado_justificativa=justificativa)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
@@ -483,6 +485,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
             if len(uuids_a_cancelar) == obj.quantidades_periodo.count():
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
+                services.ue_cancelar_pedido_parcialmente(obj)
                 obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar).exclude(cancelado=True).update(
                     cancelado=True, cancelado_justificativa=justificativa)
             serializer = self.get_serializer(obj)
