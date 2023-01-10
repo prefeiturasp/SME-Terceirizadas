@@ -18,7 +18,7 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
         'nome_fantasia': 'Empresa Teste',
         'tipo_alimento': 'FLVO',
         'tipo_empresa': 'CONVENCIONAL',
-	    'tipo_servico': 'DISTRIBUIDOR_ARMAZEM',
+        'tipo_servico': 'DISTRIBUIDOR_ARMAZEM',
         'numero_contrato': '89849',
         'razao_social': 'Empresa Teste SA',
         'cnpj': '65241564654645',
