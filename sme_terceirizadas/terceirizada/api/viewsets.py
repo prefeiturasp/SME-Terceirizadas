@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django_filters import rest_framework as filters
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
@@ -41,7 +42,7 @@ class EditalViewSet(viewsets.ReadOnlyModelViewSet):
 
 class TerceirizadaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = Terceirizada.objects.all().order_by('razao_social')
+    queryset = Terceirizada.objects.all().order_by(Lower('razao_social'))
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TerceirizadaFilter
 
@@ -101,7 +102,8 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
     def emails_por_modulo(self, request):
         modulo = request.query_params.get('modulo', None)
         busca = request.query_params.get('busca', None)
-        queryset = self.get_queryset().filter(emails_terceirizadas__modulo__nome=modulo).distinct('razao_social')
+        queryset = Terceirizada.objects.filter(emails_terceirizadas__modulo__nome=modulo).distinct(
+            'razao_social').order_by('razao_social')
         self.pagination_class = TerceirizadasEmailsPagination
         if busca:
             queryset = queryset.filter(Q(emails_terceirizadas__email__icontains=busca) |
