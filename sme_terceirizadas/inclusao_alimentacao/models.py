@@ -510,6 +510,17 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             })
         return quantidade_alunos_por_faixas_etarias
 
+    @property
+    def dias_motivos_da_inclusao_cei_simples_dict(self):
+        dias_motivos_da_inclusao_cei = []
+        for inclusao_cei in self.dias_motivos_da_inclusao_cei.all():
+            dias_motivos_da_inclusao_cei.append({
+                'motivo': inclusao_cei.motivo.nome,
+                'data': inclusao_cei.data,
+            })
+        return dias_motivos_da_inclusao_cei
+
+    # aqui
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
@@ -518,9 +529,8 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             'tipo_doc': 'Inclusão de Alimentação CEI',
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
-            'motivo': self.motivo.nome,
-            'outro_motivo': self.outro_motivo,
-            'dias_inclusao': self.data,
+            'dias_inclusao': self.datas,
+            'dias_motivos_da_inclusao_cei': self.dias_motivos_da_inclusao_cei_simples_dict,
             'quantidade_alunos_por_faixas_etarias': self.quantidade_alunos_por_faixas_etarias_simples_dict,
             'label_data': label_data,
             'data_log': data_log
