@@ -528,6 +528,7 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             'terceirizada': self.rastro_terceirizada,
             'tipo_doc': 'Inclusão de Alimentação CEI',
             'data_evento': self.data,
+            'datas': self.datas,
             'numero_alunos': self.numero_alunos,
             'dias_inclusao': self.datas,
             'dias_motivos_da_inclusao_cei': self.dias_motivos_da_inclusao_cei_simples_dict,
