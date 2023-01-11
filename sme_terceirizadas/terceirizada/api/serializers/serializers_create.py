@@ -128,14 +128,14 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
     lotes = serializers.SlugRelatedField(slug_field='uuid', many=True, queryset=Lote.objects.all())
     contatos = ContatoSerializer(many=True)
     super_admin = SuperAdminTerceirizadaSerializer()
-    contratos = ContratoAbastecimentoCreateSerializer(many=True)
+    contratos = ContratoAbastecimentoCreateSerializer(many=True, required=False)
     eh_distribuidor_ou_fornecedor = serializers.BooleanField(required=False)
 
     def create(self, validated_data): # noqa C901
         super_admin = validated_data.pop('super_admin')
         lotes = validated_data.pop('lotes', [])
         contatos = validated_data.pop('contatos', [])
-        contratos_array = validated_data.pop('contratos')
+        contratos_array = validated_data.pop('contratos', [])
         eh_distribuidor_ou_fornecedor = validated_data.pop('eh_distribuidor_ou_fornecedor', False)
         if eh_distribuidor_ou_fornecedor:
             empresa = Terceirizada.objects.create(**validated_data)
