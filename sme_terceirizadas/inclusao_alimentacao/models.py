@@ -499,8 +499,8 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
                     'quantidade_matriculados': quantidade.matriculados_quando_criado,
                 })
             for fq in faixas_quantidades:
-                total_alunos += fq['quantidade_alunos'] if fq['quantidade_alunos'] else 0
-                total_matriculados += fq['quantidade_matriculados'] if fq['quantidade_matriculados'] else 0
+                total_alunos += fq['quantidade_alunos'] or 0
+                total_matriculados += fq['quantidade_matriculados'] or 0
             quantidade_alunos_por_faixas_etarias.append({
                 'tipos_alimentacao': tipos_alimentacao,
                 'periodo': periodo,
