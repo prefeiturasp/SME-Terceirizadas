@@ -128,7 +128,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
     lotes = serializers.SlugRelatedField(slug_field='uuid', many=True, queryset=Lote.objects.all())
     contatos = ContatoSerializer(many=True)
     super_admin = SuperAdminTerceirizadaSerializer()
-    contratos = ContratoAbastecimentoCreateSerializer(many=True)
+    contratos = ContratoAbastecimentoCreateSerializer(many=True, required=False)
     eh_distribuidor_ou_fornecedor = serializers.BooleanField(required=False)
 
     def create(self, validated_data): # noqa C901
