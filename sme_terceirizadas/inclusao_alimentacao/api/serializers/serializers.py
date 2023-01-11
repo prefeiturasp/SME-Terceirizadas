@@ -69,6 +69,7 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     dias_motivos_da_inclusao_cei = DiasMotivosInclusaoDeAlimentacaoCEISerializer(many=True)
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
+    datas = serializers.CharField()
 
     def to_representation(self, instance):
         retorno = super().to_representation(instance)
