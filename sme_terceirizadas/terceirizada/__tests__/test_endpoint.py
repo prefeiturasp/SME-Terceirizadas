@@ -17,7 +17,8 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
     payload = {
         'nome_fantasia': 'Empresa Teste',
         'tipo_alimento': 'FLVO',
-        'tipo_empresa': 'ARMAZEM/DISTRIBUIDOR',
+        'tipo_empresa': 'CONVENCIONAL',
+        'tipo_servico': 'DISTRIBUIDOR_ARMAZEM',
         'numero_contrato': '89849',
         'razao_social': 'Empresa Teste SA',
         'cnpj': '65241564654645',
@@ -30,23 +31,10 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
                 'email': 'teste@gmail.com'
             }
         ],
-        'nutricionistas': [
-            {
-                'nome': 'nome',
-                'crn_numero': 'numero',
-                'super_admin_terceirizadas': False,
-                'contatos': [
-                    {
-                        'telefone': '0000000000000',
-                        'email': 'email@email.com'
-                    }
-                ]
-            }
-        ],
         'bairro': 'Teste',
         'cidade': 'Teste',
         'complemento': 'Sim',
-        'eh_distribuidor': True,
+        'eh_distribuidor_ou_fornecedor': True,
         'estado': 'SP',
         'numero': '58',
         'responsavel_cargo': 'Diretor',
@@ -56,6 +44,18 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
         'responsavel_email': 'responsavel@gmail.com',
         'lotes': [],
         'ativo': 'true',
+        'contratos': [
+            {
+                'numero': '12345',
+                'processo': '123',
+                'vigencias': [
+                    {
+                        'data_inicial': '10/01/2023',
+                        'data_final': '15/01/2023'
+                    },
+                ]
+            }
+        ],
         'super_admin': {
             'nome': 'xxx',
             'cpf': '00000000000',
@@ -77,4 +77,4 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
     terceirizada = Terceirizada.objects.first()
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert terceirizada.eh_distribuidor is True
+    assert terceirizada.tipo_servico == Terceirizada.DISTRIBUIDOR_ARMAZEM
