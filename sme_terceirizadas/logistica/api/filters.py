@@ -26,7 +26,7 @@ class SolicitacaoFilter(filters.FilterSet):
     distribuidor = filters.ModelMultipleChoiceFilter(
         field_name='distribuidor__uuid',
         to_field_name='uuid',
-        queryset=Terceirizada.objects.filter(eh_distribuidor=True),
+        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM),
     )
     data_inicial = filters.DateFilter(
         field_name='guias__data_entrega',
@@ -110,7 +110,7 @@ class SolicitacaoAlteracaoFilter(filters.FilterSet):
     distribuidor = filters.ModelMultipleChoiceFilter(
         field_name='requisicao__distribuidor__uuid',
         to_field_name='uuid',
-        queryset=Terceirizada.objects.filter(eh_distribuidor=True),
+        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM),
     )
     data_inicial = filters.DateFilter(
         field_name='requisicao__guias__data_entrega',

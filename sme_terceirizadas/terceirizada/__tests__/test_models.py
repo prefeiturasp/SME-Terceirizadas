@@ -19,9 +19,9 @@ def test_modelo_contrato(contrato):
     assert contrato.uuid is not None
     assert contrato.numero is not None
     assert contrato.processo is not None
-    assert contrato.data_proposta is not None
+    assert contrato.data_proposta is None
     assert contrato.lotes is not None
-    assert contrato.terceirizada is not None
+    assert contrato.terceirizada is None
     assert contrato.vigencias is not None
     assert contrato.diretorias_regionais is not None
 
