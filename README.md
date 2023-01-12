@@ -243,7 +243,7 @@ Pré-requisitos:
 
 ```
 pipenv shell
-pyenv local 3.6.10
+pyenv local 3.8.13
 pipenv install --dev
 
 python manage.py migrate
