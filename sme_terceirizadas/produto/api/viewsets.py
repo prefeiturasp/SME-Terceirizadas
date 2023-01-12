@@ -1319,11 +1319,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
             })
 
-        status = 'CODAE_HOMOLOGADO'
-        quantidade_homologados = Produto.objects.filter(
-            ativo=True,
-            homologacao__status=status
-        ).count()
+        quantidade_homologados = len(produtos_agrupados)
 
         form_data['quantidade_homologados'] = quantidade_homologados
         if isinstance(request.user.vinculo_atual.instituicao, Terceirizada):
@@ -1697,17 +1693,16 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
     def lista_nomes_unicos(self, request):
         editais = self.get_queryset()
         usuario = request.user
-        lotes = Lote.objects.all().values_list('uuid', flat=True)
+        lotes_uuid = Lote.objects.all().values_list('uuid', flat=True)
 
         if usuario.tipo_usuario == 'escola':
-            lotes = [usuario.vinculo_atual.instituicao.lote]
+            lotes_uuid = [usuario.vinculo_atual.instituicao.lote.uuid]
         elif usuario.tipo_usuario == 'diretoriaregional':
-            lotes = usuario.vinculo_atual.instituicao.lotes
+            lotes_uuid = usuario.vinculo_atual.instituicao.lotes.values_list('uuid', flat=True)
         elif usuario.tipo_usuario == 'terceirizada':
             terceirizada = usuario.vinculo_atual.instituicao
-            lotes = lotes.filter(terceirizada=terceirizada)
+            lotes_uuid = lotes_uuid.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
 
-        lotes_uuid = lotes.values_list('uuid', flat=True)
         editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
         editais = editais.filter(edital__id__in=editais_id)
         nomes_unicos = editais.values_list('edital__numero', flat=True).distinct()
