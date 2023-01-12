@@ -9,11 +9,12 @@ from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSeri
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ...relatorios.relatorios import relatorio_quantitativo_por_terceirizada
 from ..forms import RelatorioQuantitativoForm
-from ..models import Edital, EmailTerceirizadaPorModulo, Terceirizada
+from ..models import Contrato, Edital, EmailTerceirizadaPorModulo, Terceirizada
 from ..utils import TerceirizadasEmailsPagination, obtem_dados_relatorio_quantitativo
 from .filters import EmailTerceirizadaPorModuloFilter, TerceirizadaFilter
 from .permissions import PodeCriarAdministradoresDaTerceirizada
 from .serializers.serializers import (
+    ContratoSerializer,
     CreateEmailTerceirizadaPorModuloSerializer,
     DistribuidorSimplesSerializer,
     EditalContratosSerializer,
@@ -174,3 +175,20 @@ class EmailTerceirizadaPorModuloViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return CreateEmailTerceirizadaPorModuloSerializer
         return EmailsTerceirizadaPorModuloSerializer
+
+
+class ContratoViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = ContratoSerializer
+    queryset = Contrato.objects.all()
+
+    @action(detail=True, methods=['patch'], url_path='encerrar-contrato')
+    def encerrar_contrato(self, request, uuid=None):
+        contrato = self.get_object()
+
+        try:
+            dados_encerramento = Contrato.encerra_contrato(uuid=contrato.uuid)
+        except Exception as err:
+            return Response(dict(detail=f'Erro ao encerrar contrato: {err}'), status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(dados_encerramento, status=status.HTTP_200_OK)
