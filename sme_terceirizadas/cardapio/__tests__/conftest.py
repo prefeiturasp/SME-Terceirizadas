@@ -705,7 +705,8 @@ def vinculo_tipo_alimentacao(request):
 def horario_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com_periodos_e_horarios_combos):
     hora_inicio, hora_fim = request.param
     escola = escola_com_periodos_e_horarios_combos
-    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
+    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', posicao=2,
+                                  uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
     periodo_escolar = mommy.make('PeriodoEscolar', nome='TARDE', uuid='22596464-271e-448d-bcb3-adaba43fffc8')
 
     return mommy.make('HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar',

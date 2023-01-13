@@ -13,6 +13,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     MatriculadosQuandoCriado,
     Motivo,
     Nomeavel,
+    Posicao,
     SolicitacaoForaDoPrazo,
     TemChaveExterna,
     TemData,
@@ -38,7 +39,7 @@ from .managers import (
 )
 
 
-class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, TemChaveExterna):
+class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, TemChaveExterna, Posicao):
     """Compõe parte do cardápio.
 
     Dejejum
@@ -62,6 +63,7 @@ class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, 
     class Meta:
         verbose_name = 'Tipo de alimentação'
         verbose_name_plural = 'Tipos de alimentação'
+        ordering = ['posicao']
 
 
 class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar(TemChaveExterna):

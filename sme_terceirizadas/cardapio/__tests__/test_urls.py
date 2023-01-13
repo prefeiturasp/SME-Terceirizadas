@@ -885,6 +885,7 @@ def test_endpoint_horario_do_combo_tipo_alimentacao_unidade_escolar(client_auten
     assert json[0]['hora_final'] == horario_tipo_alimentacao.hora_final
     assert json[0]['tipo_alimentacao'] == {
         'uuid': 'c42a24bb-14f8-4871-9ee8-05bc42cf3061',
+        'posicao': 2,
         'nome': 'Lanche'
     }
     assert json[0]['periodo_escolar'] == {
