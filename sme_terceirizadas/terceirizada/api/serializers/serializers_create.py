@@ -188,10 +188,12 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         super_admin_data = validated_data.pop('super_admin')
         lotes_array = validated_data.pop('lotes', [])
         contato_array = validated_data.pop('contatos', [])
-        eh_distribuidor = validated_data.get('eh_distribuidor', False)
-        if eh_distribuidor:
+        contratos_array = validated_data.pop('contratos', [])
+        eh_distribuidor_ou_fornecedor = validated_data.pop('eh_distribuidor_ou_fornecedor', False)
+        if eh_distribuidor_ou_fornecedor:
             contatos = []
             for contato_json in contato_array:
+
                 contato = ContatoSerializer().create(contato_json)
                 contatos.append(contato)
             distribuidor_json = {
@@ -201,9 +203,20 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
                 'contatos': contatos
             }
             UsuarioUpdateSerializer().update_distribuidor(instance, distribuidor_json)
+            contratos = []
+            for contrato_json in contratos_array:
+                encerrado = contrato_json.pop('encerrado')
+                if not encerrado:
+                    contrato = ContratoAbastecimentoCreateSerializer().create(contrato_json)
+                    contratos.append(contrato)
+
             instance.contatos.all().delete()
+            instance.contratos.filter(encerrado=False).delete()
             update_instance_from_dict(instance, validated_data, save=True)
             instance.contatos.set(contatos)
+            for contrato in contratos:
+                instance.contratos.add(contrato)
+
         else:
             instance.contatos.clear()
 
