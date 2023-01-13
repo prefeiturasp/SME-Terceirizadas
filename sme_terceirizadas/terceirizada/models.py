@@ -1,6 +1,9 @@
+import datetime
+
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q
+from django.db.utils import IntegrityError
 from django_prometheus.models import ExportModelOperationsMixin
 
 from sme_terceirizadas.dieta_especial.managers import EditalManager
@@ -475,9 +478,27 @@ class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
     edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='contratos', blank=True, null=True)
     diretorias_regionais = models.ManyToManyField(DiretoriaRegional, related_name='contratos_da_diretoria_regional',
                                                   blank=True)
+    encerrado = models.BooleanField('Encerrado?', default=False)
+    data_hora_encerramento = models.DateTimeField('Data e hora do encerramento', null=True, default=None)
 
     def __str__(self):
         return f'Contrato:{self.numero} Processo: {self.processo}'
+
+    @classmethod
+    def encerra_contrato(cls, uuid):
+        contrato = cls.objects.get(uuid=uuid)
+        if contrato.encerrado:
+            raise IntegrityError('Contrato já encerrado. Não é possivel encerrar novamente!')
+        contrato.encerrado = True
+        contrato.data_hora_encerramento = datetime.datetime.now()
+        contrato.save()
+
+        dados_encerramento = {
+            'encerrado': contrato.encerrado,
+            'data_hora_encerramento': contrato.data_hora_encerramento.strftime('%d/%m/%Y - %H:%M')
+        }
+
+        return dados_encerramento
 
     class Meta:
         verbose_name = 'Contrato'
