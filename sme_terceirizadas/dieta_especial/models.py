@@ -3,6 +3,7 @@ from datetime import datetime
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.contrib.postgres import fields
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
@@ -22,7 +23,7 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
-from ..dados_comuns.utils import convert_base64_to_contentfile
+from ..dados_comuns.utils import convert_base64_to_contentfile, remove_multiplos_espacos
 from ..dados_comuns.validators import nao_pode_ser_no_passado  # noqa
 from ..escola.api.serializers import AlunoSerializer
 from ..escola.models import Aluno, Escola
@@ -551,12 +552,19 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
     historico = fields.JSONField(blank=True, null=True)
 
     class Meta:
-        ordering = ('-criado_em',)
+        ordering = ('nome_protocolo',)
         verbose_name = 'Protocolo padrão de dieta especial'
         verbose_name_plural = 'Protocolos padrões de dieta especial'
 
     def __str__(self):
         return str(self.nome_protocolo)
+
+    def save(self, *args, **kwargs):
+        self.nome_protocolo = remove_multiplos_espacos(self.nome_protocolo).upper()
+        if ProtocoloPadraoDietaEspecial.objects.exclude(uuid=self.uuid).filter(
+                nome_protocolo=self.nome_protocolo).count() >= 1:
+            raise ValidationError('Nome de protocolo já existe no sistema')
+        super(ProtocoloPadraoDietaEspecial, self).save(*args, **kwargs)
 
 
 class SubstituicaoAlimentoProtocoloPadrao(models.Model):

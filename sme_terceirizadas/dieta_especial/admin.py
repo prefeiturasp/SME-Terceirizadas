@@ -2,6 +2,7 @@ import re
 from datetime import date
 
 from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import path
@@ -247,6 +248,7 @@ class LogDietasAtivasCanceladasAutomaticamenteAdmin(admin.ModelAdmin):
 
 class SubstituicaoAlimentoProtocoloPadraoInline(admin.TabularInline):
     model = SubstituicaoAlimentoProtocoloPadrao
+    filter_horizontal = ('substitutos',)
     extra = 0
 
 
