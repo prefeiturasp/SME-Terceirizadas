@@ -243,7 +243,9 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                     }
                 )
                 uuids_criados_atualizados.append(valor_medicao_[0].uuid)
-        instance.valores_medicao.filter(valor=0).delete()
+        eh_observacao = self.context['request'].data.get('eh_observacao',)
+        if not eh_observacao:
+            instance.valores_medicao.filter(valor=0).delete()
         if uuids_criados_atualizados:
             instance.valores_medicao.exclude(uuid__in=uuids_criados_atualizados).delete()
         if not instance.valores_medicao.all().exists():
