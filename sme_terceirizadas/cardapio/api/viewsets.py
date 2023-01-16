@@ -274,12 +274,12 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         inversoes_cardapio = codae.inversoes_cardapio_das_minhas_escolas(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            inversoes_cardapio = inversoes_cardapio.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            inversoes_cardapio = inversoes_cardapio.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            inversoes_cardapio = inversoes_cardapio.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inversoes_cardapio = inversoes_cardapio.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inversoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -748,12 +748,12 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         alteracoes_cardapio = codae.alteracoes_cardapio_das_minhas(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -1006,12 +1006,12 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
         alteracoes_cardapio = codae.alteracoes_cardapio_cei_das_minhas(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -1096,12 +1096,12 @@ class AlteracoesCardapioCEMEIViewSet(AlteracoesCardapioViewSet, EscolaIniciaCanc
         alteracoes_cardapio = codae.alteracoes_cardapio_cemei_das_minhas_escolas(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            alteracoes_cardapio = alteracoes_cardapio.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
