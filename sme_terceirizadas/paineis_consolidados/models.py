@@ -375,10 +375,8 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         if query_params.get('status'):
             queryset = queryset.filter(
                 terceirizada_conferiu_gestao=query_params.get('status') == '1')
-        if query_params.getlist('diretorias_regionais[]'):
-            queryset = queryset.filter(dre_uuid__in=query_params.getlist('diretorias_regionais[]'))
-        if query_params.getlist('lotes[]'):
-            queryset = queryset.filter(lote_uuid__in=query_params.getlist('lotes[]'))
+        if query_params.get('diretoria_regional'):
+            queryset = queryset.filter(dre_uuid=query_params.get('diretoria_regional'))
         queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
         queryset = cls.busca_data_evento(queryset, query_params)
         return queryset
