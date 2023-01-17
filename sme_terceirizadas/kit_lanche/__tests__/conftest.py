@@ -38,7 +38,8 @@ def diretoria_regional():
 
 @pytest.fixture
 def escola(diretoria_regional, lote):
-    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional,
+    contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional, contato=contato,
                       uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
 
 
@@ -132,7 +133,7 @@ def item_kit_lanche():
 
 
 @pytest.fixture
-def solicitacao_avulsa(escola):
+def solicitacao_avulsa(escola, terceirizada):
     mommy.make('escola.EscolaPeriodoEscolar', escola=escola, quantidade_alunos=500)
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
     kits = mommy.make(models.KitLanche, _quantity=3)
@@ -143,11 +144,13 @@ def solicitacao_avulsa(escola):
                       solicitacao_kit_lanche=solicitacao_kit_lanche,
                       escola=escola,
                       rastro_escola=escola,
-                      rastro_dre=escola.diretoria_regional)
+                      rastro_dre=escola.diretoria_regional,
+                      rastro_terceirizada=terceirizada,
+                      )
 
 
 @pytest.fixture
-def solicitacao_cei(escola):
+def solicitacao_cei(escola, terceirizada):
     mommy.make('escola.EscolaPeriodoEscolar', escola=escola, quantidade_alunos=500)
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
     kits = mommy.make(models.KitLanche, _quantity=3)
@@ -157,7 +160,8 @@ def solicitacao_cei(escola):
                       solicitacao_kit_lanche=solicitacao_kit_lanche,
                       escola=escola,
                       rastro_escola=escola,
-                      rastro_dre=escola.diretoria_regional)
+                      rastro_dre=escola.diretoria_regional,
+                      rastro_terceirizada=terceirizada)
 
 
 @pytest.fixture

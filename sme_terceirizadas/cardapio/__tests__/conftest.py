@@ -90,9 +90,27 @@ def escola_dre_guaianases(dre_guaianases):
 
 
 @pytest.fixture
+def contato():
+    return mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
+
+
+@pytest.fixture
+def email_por_modulo(terceirizada):
+    modulo = mommy.make('Modulo', nome='Gestão de Alimentação')
+    email_por_modulo = mommy.make(
+        'EmailTerceirizadaPorModulo',
+        email='terceirizada.fake@email.com',
+        modulo=modulo,
+        terceirizada=terceirizada
+    )
+    return email_por_modulo
+
+
+@pytest.fixture
 def escola():
     terceirizada = mommy.make('Terceirizada')
     lote = mommy.make('Lote', terceirizada=terceirizada)
+    contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='012f7722-9ab4-4e21-b0f6-85e17b58b0d1')
     escola = mommy.make(
@@ -101,6 +119,7 @@ def escola():
         nome='EMEF JOAO MENDES',
         codigo_eol='000546',
         uuid='a627fc63-16fd-482c-a877-16ebc1a82e57',
+        contato=contato,
         diretoria_regional=diretoria_regional
     )
     return escola
@@ -686,7 +705,8 @@ def vinculo_tipo_alimentacao(request):
 def horario_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com_periodos_e_horarios_combos):
     hora_inicio, hora_fim = request.param
     escola = escola_com_periodos_e_horarios_combos
-    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
+    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', posicao=2,
+                                  uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
     periodo_escolar = mommy.make('PeriodoEscolar', nome='TARDE', uuid='22596464-271e-448d-bcb3-adaba43fffc8')
 
     return mommy.make('HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar',

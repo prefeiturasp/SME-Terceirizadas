@@ -571,6 +571,7 @@ class CentralDeDownload(models.Model):
 class SolicitacaoAberta(models.Model):
     uuid_solicitacao = models.CharField(max_length=50)
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+    datetime_ultimo_acesso = models.DateTimeField()
 
     def __str__(self):
         retorno = f'Solicitação "#{str(self.uuid_solicitacao).upper()[:5]}"'

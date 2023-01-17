@@ -323,6 +323,7 @@ class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):
 class TerceirizadaSerializer(serializers.ModelSerializer):
     tipo_alimento_display = serializers.CharField(source='get_tipo_alimento_display')
     tipo_empresa_display = serializers.CharField(source='get_tipo_empresa_display')
+    tipo_servico_display = serializers.CharField(source='get_tipo_servico_display')
     nutricionistas = serializers.SerializerMethodField()
     contatos = ContatoSerializer(many=True)
     contratos = ContratoSimplesSerializer(many=True)

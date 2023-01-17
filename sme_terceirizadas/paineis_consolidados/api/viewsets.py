@@ -1,5 +1,8 @@
 import datetime
+import unicodedata
 
+from dateutil.relativedelta import relativedelta
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
@@ -47,6 +50,7 @@ from .constants import (
     FILTRO_TERCEIRIZADA_UUID,
     INATIVAS_DIETA_ESPECIAL,
     INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
+    INCLUSOES_AUTORIZADAS,
     NEGADOS,
     NEGADOS_DIETA_ESPECIAL,
     PENDENTES_AUTORIZACAO,
@@ -299,6 +303,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         diretoria_regional = usuario.vinculo_atual.instituicao
         query_set = SolicitacoesCODAE.get_pendentes_autorizacao(dre_uuid=diretoria_regional.uuid,
                                                                 filtro=filtro_aplicado)
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
         response = {'results': self._agrupa_por_tipo_visao(
             tipo_visao=tipo_visao, query_set=query_set)}
 
@@ -693,6 +698,65 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
         query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{INCLUSOES_AUTORIZADAS}') # noqa C901
+    def inclusoes_autorizadas(self, request):
+        escola_uuid = request.query_params.get('escola_uuid')
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+        date = datetime.date(int(ano), int(mes), 1)
+        nome_periodo_escolar = request.query_params.get('nome_periodo_escolar')
+        query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
+        query_set = query_set.filter(
+            Q(data_evento__month=mes, data_evento__year=ano) |
+            Q(data_evento__lt=date, data_evento_2__gte=date)
+        )
+        query_set = self._remove_duplicados_do_query_set(query_set)
+
+        return_dict = []
+
+        def append(dia, periodo, inclusao):
+            alimentacoes = ', '.join([
+                unicodedata.normalize('NFD', alimentacao.nome).encode(
+                    'ascii', 'ignore').decode('utf-8') for alimentacao in periodo.tipos_alimentacao.all()]).lower()
+            return_dict.append({
+                'dia': f'{dia:02d}',
+                'periodo': f'{periodo.periodo_escolar.nome}',
+                'alimentacoes': alimentacoes,
+                'numero_alunos': periodo.numero_alunos,
+                'dias_semana': periodo.dias_semana,
+                'inclusao_id_externo': inclusao.id_externo
+            })
+
+        for inclusao in query_set:
+            inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
+            for periodo in inc.quantidades_periodo.all():
+                if periodo.periodo_escolar.nome == nome_periodo_escolar:
+                    if inclusao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
+                        i = inclusao.data_evento.day
+                        big_range = False
+                        if inclusao.data_evento.month != int(mes) and inclusao.data_evento_2.month != int(mes):
+                            big_range = True
+                            i = datetime.date(int(ano), int(mes), 1)
+                            data_evento_final_no_mes = (i + relativedelta(day=31)).day
+                            i = datetime.date(int(ano), int(mes), 1).day
+                        else:
+                            data_evento_final_no_mes = inclusao.data_evento_2.day
+                        if inclusao.data_evento_2.month != inclusao.data_evento.month and not big_range:
+                            data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
+                        while (i <= data_evento_final_no_mes):
+                            if not periodo.dias_semana or datetime.date(int(ano), int(mes), i).weekday() in periodo.dias_semana: # noqa E501
+                                append(i, periodo, inclusao)
+                            i += 1
+                    else:
+                        append(inclusao.data_evento.day, periodo, inclusao)
+
+        data = {
+            'results': return_dict
+        }
+
+        return Response(data)
 
     @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}')
     def negados(self, request):

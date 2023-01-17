@@ -12,6 +12,10 @@ from .models import (
 admin.site.register(CategoriaMedicao)
 admin.site.register(DiaSobremesaDoce)
 admin.site.register(Medicao)
-admin.site.register(SolicitacaoMedicaoInicial)
 admin.site.register(TipoContagemAlimentacao)
 admin.site.register(ValorMedicao)
+
+
+@admin.register(SolicitacaoMedicaoInicial)
+class SolicitacaoMedicaoInicialAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'criado_em')

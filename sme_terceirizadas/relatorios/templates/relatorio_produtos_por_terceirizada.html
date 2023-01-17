@@ -20,13 +20,14 @@
     {% endif %}
     {% if filtros.tipo_usuario == "Escola" %}
       <tr class="custom-filtros">
-        <td>Edital: <b>{{ filtros.nome_edital }}</b></td>
-        <td class="text-right">Total de produtos homologados: <b>{{ filtros.quantidade_homologados }}</b></td>
+        <td>Total de produtos homologados: <b>{{ filtros.quantidade_homologados }}</b></td>
+        <td class="text-right"><b>{{ filtros.nome_edital }}</b></td>
       </tr>
     {% endif %}
     {% if filtros.tipo_usuario == "Outros" %}
       <tr class="custom-filtros">
         <td>Total de produtos homologados: <b>{{ filtros.quantidade_homologados }}</b></td>
+        <td class="text-right"><b>{{ filtros.nome_edital }}</b></td>
       </tr>
     {% endif %}
   </table>

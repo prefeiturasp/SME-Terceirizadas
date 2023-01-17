@@ -168,6 +168,19 @@ class UsuarioTerceirizada(BasePermission):
         return retorno
 
 
+class UsuarioTerceirizadaOuNutriSupervisao(BasePermission):
+    """Permite acesso a usuários com vinculo a uma Terceirizada ou Nutrisupervisao."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) or
+            isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
+        )
+
+
 class PermissaoParaRecuperarObjeto(BasePermission):
     """Permite acesso ao objeto se o objeto pertence ao usuário."""
 
