@@ -98,6 +98,17 @@ class SolicitacaoKitLancheSimplesSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SolicitacaoKitLancheAvulsaSimilarSerializer(serializers.ModelSerializer):
+    solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
+    id_externo = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    data = serializers.DateField()
+
+    class Meta:
+        model = SolicitacaoKitLancheAvulsa
+        exclude = ('id',)
+
+
 class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
     solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escola = EscolaSimplesSerializer(read_only=True,
@@ -110,6 +121,7 @@ class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
     quantidade_alimentacoes = serializers.IntegerField()
     data = serializers.DateField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
+    solicitacoes_similares = SolicitacaoKitLancheAvulsaSimilarSerializer(many=True)
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
@@ -141,6 +153,22 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SolicitacaoKitLancheUnificadaSimilarSerializer(serializers.ModelSerializer):
+    solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
+    escolas_quantidades = EscolaQuantidadeSerializerSimples(many=True)
+    id_externo = serializers.CharField()
+    # TODO: remover total_kit_lanche ou quantidade_alimentacoes. estao duplicados
+    total_kit_lanche = serializers.IntegerField()
+    lote_nome = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    data = serializers.DateField()
+    quantidade_alimentacoes = serializers.IntegerField()
+
+    class Meta:
+        model = SolicitacaoKitLancheUnificada
+        exclude = ('id',)
+
+
 class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
@@ -154,6 +182,7 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     data = serializers.DateField()
     quantidade_alimentacoes = serializers.IntegerField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
+    solicitacoes_similares = SolicitacaoKitLancheUnificadaSimilarSerializer(many=True)
 
     class Meta:
         model = SolicitacaoKitLancheUnificada
@@ -194,6 +223,7 @@ class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     escola = EscolaSimplesSerializer()
+    solicitacoes_similares = SolicitacaoKitLancheAvulsaSimilarSerializer(many=True)
 
     def to_representation(self, instance):
         retorno = super().to_representation(instance)
@@ -256,9 +286,20 @@ class SolicitacaoKitLancheEMEIdaCEMEISerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SolicitacaoKitLancheCEMEISimilarSerializer(serializers.ModelSerializer):
+    solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEISerializer()
+    solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEISerializer()
+    id_externo = serializers.CharField()
+
+    class Meta:
+        model = SolicitacaoKitLancheCEMEI
+        exclude = ('id',)
+
+
 class SolicitacaoKitLancheCEMEISerializer(serializers.ModelSerializer):
     solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEISerializer()
     solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEISerializer()
+    solicitacoes_similares = SolicitacaoKitLancheCEMEISimilarSerializer(many=True)
     id_externo = serializers.CharField()
     escola = serializers.UUIDField(source='escola.uuid')
 
