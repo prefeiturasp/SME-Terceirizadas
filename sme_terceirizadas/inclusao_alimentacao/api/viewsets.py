@@ -274,12 +274,12 @@ class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
         inclusoes_alimentacao_cei = codae.inclusoes_alimentacao_de_cei_das_minhas_escolas(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao_cei)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -365,12 +365,12 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         inclusoes_continuas = codae.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            inclusoes_continuas = inclusoes_continuas.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            inclusoes_continuas = inclusoes_continuas.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            inclusoes_continuas = inclusoes_continuas.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_continuas = inclusoes_continuas.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -512,12 +512,12 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
         inclusoes_continuas = codae.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            inclusoes_continuas = inclusoes_continuas.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            inclusoes_continuas = inclusoes_continuas.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            inclusoes_continuas = inclusoes_continuas.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_continuas = inclusoes_continuas.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -648,12 +648,12 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREVali
         inclusoes_alimentacao = codae.inclusoes_alimentacao_cemei_das_minhas_escolas(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            inclusoes_alimentacao = inclusoes_alimentacao.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            inclusoes_alimentacao = inclusoes_alimentacao.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            inclusoes_alimentacao = inclusoes_alimentacao.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_alimentacao = inclusoes_alimentacao.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
