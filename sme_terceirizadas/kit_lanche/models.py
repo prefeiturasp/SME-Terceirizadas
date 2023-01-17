@@ -117,6 +117,16 @@ class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
             return self.quantidade_alunos * self.solicitacao_kit_lanche.kits.count()
 
     @property
+    def solicitacoes_similares(self):
+        tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
+        data_evento = self.solicitacao_kit_lanche.data
+        all_objects = SolicitacaoKitLancheAvulsa.objects.all()
+        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
+                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
+        solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
+        return solicitacoes_similares
+
+    @property
     def data(self):
         return self.solicitacao_kit_lanche.data
 
@@ -480,6 +490,16 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
             'escolas_quantidades': self.get_escolas_quantidades_dict,
         }
 
+    @property
+    def solicitacoes_similares(self):
+        tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
+        data_evento = self.solicitacao_kit_lanche.data
+        all_objects = SolicitacaoKitLancheUnificada.objects.all()
+        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
+                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
+        solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
+        return solicitacoes_similares
+
     def __str__(self):
         dre = self.diretoria_regional
         return f'{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}'
@@ -632,6 +652,18 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             'solicitacao_emei': self.get_solicitacao_emei_dict(),
             'total_kits': self.total_kits
         }
+
+    @property
+    def solicitacoes_similares(self):
+        tempo_passeio_cei = self.solicitacao_cei.tempo_passeio
+        tempo_passeio_emei = self.solicitacao_emei.tempo_passeio
+        data_evento = self.data
+        all_objects = SolicitacaoKitLancheCEMEI.objects.all()
+        solicitacoes_similares = all_objects.filter(data=data_evento,
+                                                    solicitacao_cei__tempo_passeio=tempo_passeio_cei,
+                                                    solicitacao_emei__tempo_passeio=tempo_passeio_emei)
+        solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
+        return solicitacoes_similares
 
     class Meta:
         verbose_name = 'Solicitação Kit Lanche CEMEI'
