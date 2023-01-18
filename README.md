@@ -239,7 +239,10 @@ celery -A config worker --beat --scheduler django --loglevel=info
 
 Pré-requisitos:
 
-* pipenv
+* pipenv versão 2022.4.8
+```
+pip install pipenv==2022.4.8
+```
 
 ```
 pipenv shell
