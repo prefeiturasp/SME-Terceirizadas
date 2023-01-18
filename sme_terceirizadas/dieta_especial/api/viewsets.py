@@ -172,9 +172,9 @@ class SolicitacaoDietaEspecialViewSet(
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @transaction.atomic  # noqa C901
+    @transaction.atomic
     @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
-    def autorizar(self, request, uuid=None):
+    def autorizar(self, request, uuid=None):  # noqa C901
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
             solicitacao.aluno.inativar_dieta_especial()
@@ -642,8 +642,8 @@ class SolicitacaoDietaEspecialViewSet(
         except ValidationError as error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial-terceirizada')  # noqa C901
-    def relatorio_dieta_especial_terceirizada(self, request):
+    @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial-terceirizada')
+    def relatorio_dieta_especial_terceirizada(self, request):  # noqa C901
         try:
             query_set = self.get_queryset()
             form = RelatorioDietaTerceirizadaForm(self.request.data)
