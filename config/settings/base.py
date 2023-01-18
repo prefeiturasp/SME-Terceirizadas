@@ -6,7 +6,6 @@ import os
 
 import environ
 import sentry_sdk
-from celery.schedules import crontab
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
