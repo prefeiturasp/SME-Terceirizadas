@@ -655,15 +655,12 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
 
     @property
     def solicitacoes_similares(self):
-        tempo_passeio_cei = self.solicitacao_cei.tempo_passeio
-        tempo_passeio_emei = self.solicitacao_emei.tempo_passeio
-        data_evento = self.data
-        all_objects = SolicitacaoKitLancheCEMEI.objects.all()
-        solicitacoes_similares = all_objects.filter(data=data_evento,
-                                                    solicitacao_cei__tempo_passeio=tempo_passeio_cei,
-                                                    solicitacao_emei__tempo_passeio=tempo_passeio_emei)
-        solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
-        return solicitacoes_similares
+        filtros = {'data': self.data}
+        if self.tem_solicitacao_cei:
+            filtros['solicitacao_cei__tempo_passeio'] = self.solicitacao_cei.tempo_passeio
+        if self.tem_solicitacao_emei:
+            filtros['solicitacao_emei__tempo_passeio'] = self.solicitacao_emei.tempo_passeio
+        return SolicitacaoKitLancheCEMEI.objects.filter(**filtros).exclude(uuid=self.uuid)
 
     class Meta:
         verbose_name = 'Solicitação Kit Lanche CEMEI'
