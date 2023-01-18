@@ -28,6 +28,7 @@ from ..dados_comuns.behaviors import (
     Iniciais,
     Justificativa,
     Nomeavel,
+    Posicao,
     TemAlteradoEm,
     TemChaveExterna,
     TemCodigoEOL,
@@ -318,11 +319,10 @@ class TipoGestao(ExportModelOperationsMixin('tipo_gestao'), Nomeavel, Ativavel, 
         verbose_name_plural = 'Tipos de gestão'
 
 
-class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, TemChaveExterna):
+class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, TemChaveExterna, Posicao):
     """manhã, intermediário, tarde, vespertino, noturno, integral."""
 
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
-    posicao = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
     tipo_turno = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
 
     class Meta:

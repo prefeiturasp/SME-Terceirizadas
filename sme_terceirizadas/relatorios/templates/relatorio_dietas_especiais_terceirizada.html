@@ -22,7 +22,13 @@
           <th scope="col">Nome do aluno</th>
           <th scope="col">Nome da escola</th>
           <th scope="col">Classificação da dieta</th>
-          <th scope="col">Protocolo padrão</th>
+          <th scope="col">
+            {% if diagnostico %}
+              Relação por Diagnóstico
+            {% else %}
+              Protocolo padrão
+            {% endif %}
+          </th>
           {% if status == 'canceladas' %}
             <th scope="col">Data de cancelamento</th>
           {% endif %}
@@ -35,7 +41,15 @@
           <td>{{ solicitacao.nome_aluno }}</td>
           <td>{{ solicitacao.nome_escola }}</td>
           <td>{{ solicitacao.classificacao }}</td>
-          <td>{{ solicitacao.protocolo_padrao }}</td>
+          <td>
+            {% if diagnostico %}
+              {% for alergia in solicitacao.alergias_intolerancias.all %}
+                <p>{{ alergia }}</p>
+              {% endfor %}
+            {% else %}
+              {{ solicitacao.protocolo_padrao }}
+            {% endif %}
+          </td>
           {% if status == 'canceladas' %}
             <td>{{ solicitacao.data_cancelamento }}</td>
           {% endif %}
