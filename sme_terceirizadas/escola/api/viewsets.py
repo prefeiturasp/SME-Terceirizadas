@@ -306,7 +306,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             ).values_list(
                 'quantidades_por_periodo__periodo_escolar__nome',
                 'quantidades_por_periodo__periodo_escolar__uuid'))
-            return Response({'periodos': periodos})
+            return Response({'periodos': periodos if len(periodos) else None})
         except ValidationError as e:
             return Response({'detail': e}, status=status.HTTP_400_BAD_REQUEST)
 
