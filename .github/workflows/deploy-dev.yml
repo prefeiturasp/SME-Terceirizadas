@@ -1,4 +1,4 @@
-name: Dev - CI/CD Pip sem cache
+name: Dev - CI/CD Pip (cache)
  
 on:
 
@@ -6,78 +6,33 @@ on:
 
 jobs:
      
-  build:
-
-    runs-on: self-hosted
-    if: ${{ github.ref == 'refs/heads/development' }}
-    steps:
-      - uses: actions/checkout@v2     
-      -  name: Login to registry
-         uses: docker/login-action@v2
-         with:
-          registry: ${{ secrets.REGISTRY_HOST }}
-          username: ${{ secrets.REGISTRY_USER }}
-          password: ${{ secrets.REGISTRY_PWD }}
-    
-      - name: Build the Docker image    
-        run: |
-             docker login ${{ secrets.REGISTRY_HOST }}
-             docker build . --tag ${{ secrets.REGISTRY_HOST }}/${GITHUB_REF##*/}/sme-sigpae-api
-             docker push ${{ secrets.REGISTRY_HOST }}/${GITHUB_REF##*/}/sme-sigpae-api
-             
-      - name: send failure message
-        if: ${{ failure() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            💥 Failed in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-             
-  deploy:
+  cache:
   
     runs-on: self-hosted
-    needs: [ build ]
-    if: ${{ github.ref == 'refs/heads/development' }}        
-    environment:
-      name: development
-    steps:
-      - name: Redeploy
-        uses: luizhpriotto/action_images@kubectl-v1.0
-        env: 
-          RANCHER_URL: ${{ secrets.RANCHER_URL }}
-          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sme-sigpae
+    steps:          
+      - name: Ajustando HOME para o cache
+        run: |
+           cd $RUNNER_WORKSPACE
+           cd ..
+           pwd
+           echo "GITHUB_RUN_HOME=$(pwd)" >> $GITHUB_ENV
+      - name: Show envs..
+        run: echo $GITHUB_RUN_HOME
           
-      - name: send failure message
-        if: ${{ failure() }}
-        uses: appleboy/telegram-action@master
+      - name: Cache Pipenv virtualenv
+        uses: actions/cache@v3
+        id: pipenv-cache
         with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            💥 Failed in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-      - name: send success message
-        if: ${{ success() }}
-        uses: appleboy/telegram-action@master
+          path: ${{ env.GITHUB_RUN_HOME }}/_temp/_github_home/.local/share/virtualenvs
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-
+      - name: Running Python Tests
+        if: steps.pipenv-cache.outputs.cache-hit != 'true'
+        uses: prefeiturasp/SME-GithubAction-Images@python38-v1.0
         with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            🚀 Success in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          command: |
+            docker network connect python-network $(hostname)
+            pip install --user pipenv pipenv==2022.4.8
+            source terceirizadas
+            pipenv install --dev
