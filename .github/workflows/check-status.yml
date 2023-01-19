@@ -50,11 +50,11 @@ jobs:
         with:
           command: |
             docker network connect python-network $(hostname)
-            export PIPENV_VENV_IN_PROJECT=enabled
             pip install --user pipenv pipenv==2022.4.8
             source terceirizadas
             pipenv install --dev
-            echo "################ PYTEST ################"
-            pipenv run pytest
             echo "################ FLAKE8 ################"
             pipenv run flake8
+            echo "################ PYTEST ################"
+            pipenv run pytest
+
