@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y libpq-dev && \
     pip install xlsxwriter && \
     pip install pycparser && \
     pip --no-cache-dir install -U pip && \
-    pip --no-cache-dir install pipenv && \
+    pip --no-cache-dir install pipenv==2022.4.8 && \
     # https://stackoverflow.com/questions/46503947/how-to-get-pipenv-running-in-docker
     pipenv install --system --deploy --ignore-pipfile
 
