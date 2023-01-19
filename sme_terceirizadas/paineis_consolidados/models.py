@@ -411,8 +411,8 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
             manager = cls.filtro_30_dias
         return manager
 
-    @classmethod  # noqa C901
-    def _filtro_data_status_tipo(cls, data_final,
+    @classmethod
+    def _filtro_data_status_tipo(cls, data_final,  # noqa C901
                                  data_inicial,
                                  query_set,
                                  status_solicitacao,

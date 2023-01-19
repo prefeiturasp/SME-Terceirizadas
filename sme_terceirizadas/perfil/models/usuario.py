@@ -182,8 +182,8 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                 Q(data_inicial__isnull=False, data_final=None, ativo=True))
         return None
 
-    @property  # noqa C901
-    def tipo_usuario(self):
+    @property
+    def tipo_usuario(self):  # noqa C901
         tipo_usuario = 'indefinido'
         if self.vinculo_atual:
             tipo_usuario = self.vinculo_atual.content_type.model

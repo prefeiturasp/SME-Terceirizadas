@@ -30,8 +30,8 @@ NS = f'{env("DJANGO_XMLNS")}'
 
 class SolicitacaoService(ServiceBase):
 
-    @rpc(oWsAcessoModel, ArqSolicitacaoMOD, _returns=SoapResponse) # noqa C901
-    def Solicitacao(ctx, oWsAcessoModel, ArqSolicitacaoMOD):
+    @rpc(oWsAcessoModel, ArqSolicitacaoMOD, _returns=SoapResponse)
+    def Solicitacao(ctx, oWsAcessoModel, ArqSolicitacaoMOD):  # noqa C901
         logger.info('Inicia integração envio de solicitação PAPA x SIGPAE:')
         logger.info(str(ArqSolicitacaoMOD))
 
@@ -64,8 +64,8 @@ class SolicitacaoService(ServiceBase):
         logger.info(f'Solicitação {solicitacao.numero_solicitacao} criada com sucesso.')
         return SoapResponse(str_status='true', str_menssagem='Solicitação criada com sucesso.')
 
-    @rpc(oWsAcessoModel, ArqCancelamento, _returns=SoapResponse) # noqa C901
-    def Cancelamento(ctx, oWsAcessoModel, ArqCancelamento):
+    @rpc(oWsAcessoModel, ArqCancelamento, _returns=SoapResponse)
+    def Cancelamento(ctx, oWsAcessoModel, ArqCancelamento):  # noqa C901
         logger.info('Inicia integração envio de cancelamento PAPA x SIGPAE:')
         logger.info(str(ArqCancelamento))
 
