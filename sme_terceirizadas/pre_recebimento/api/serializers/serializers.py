@@ -25,11 +25,12 @@ class EtapasDoCronogramaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EtapasDoCronograma
-        fields = ('uuid', 'empenho_uuid', 'numero_empenho', 'etapa', 'parte', 'data_programada', 'quantidade',
+        fields = ('uuid', 'numero_empenho', 'etapa', 'parte', 'data_programada', 'quantidade',
                   'total_embalagens')
 
 
 class CronogramaSerializer(serializers.ModelSerializer):
+    # TODO: Verificar necessidade de outros serializers
     etapas = EtapasDoCronogramaSerializer(many=True)
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(many=True)
     armazem = DistribuidorSimplesSerializer()
@@ -37,9 +38,9 @@ class CronogramaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cronograma
-        fields = ('uuid', 'numero', 'status', 'criado_em', 'alterado_em', 'contrato_uuid', 'contrato', 'empresa_uuid',
-                          'nome_empresa', 'processo_sei', 'produto_uuid', 'nome_produto', 'qtd_total_programada',
-                          'unidade_medida', 'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento')
+        fields = ('uuid', 'numero', 'status', 'criado_em', 'alterado_em', 'contrato', 'empresa',
+                           'produto', 'qtd_total_programada','unidade_medida',
+                           'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento')
 
 
 class CronogramaRascunhosSerializer(serializers.ModelSerializer):

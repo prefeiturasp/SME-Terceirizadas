@@ -12,7 +12,8 @@ from sme_terceirizadas.pre_recebimento.models import (
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma
 )
-from sme_terceirizadas.terceirizada.models import Terceirizada
+from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
+from sme_terceirizadas.produto.models import UnidadeMedida, NomeDeProdutoEdital
 
 
 class ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(serializers.ModelSerializer):
@@ -26,7 +27,6 @@ class ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(serializers.ModelSeri
 
 
 class EtapasDoCronogramaCreateSerializer(serializers.ModelSerializer):
-    empenho_uuid = serializers.UUIDField(required=False)
     numero_empenho = serializers.CharField(required=False)
     etapa = serializers.CharField(required=False)
     parte = serializers.CharField(required=False)
@@ -43,18 +43,33 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
     armazem = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=Terceirizada.objects.all(),
+        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM),
         allow_null=True
     )
-    contrato_uuid = serializers.UUIDField(required=True)
-    contrato = serializers.CharField(required=True)
-    empresa_uuid = serializers.UUIDField(required=False)
-    nome_empresa = serializers.CharField(required=False)
-    produto_uuid = serializers.UUIDField(required=False)
-    processo_sei = serializers.CharField(required=False)
-    nome_produto = serializers.CharField(required=False)
+    empresa = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.FORNECEDOR),
+    )
+    contrato = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Contrato.objects.all(),
+        allow_null=True
+    )
+    produto = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=NomeDeProdutoEdital.objects.all(),
+        allow_null=True
+    )
+    unidade_medida = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True
+    )
     qtd_total_programada = serializers.FloatField(required=False)
-    unidade_medida = serializers.CharField(required=False)
     tipo_embalagem = serializers.ChoiceField(
         choices=Cronograma.TIPO_EMBALAGEM_CHOICES, required=False, allow_blank=True)
     etapas = EtapasDoCronogramaCreateSerializer(many=True, required=False)

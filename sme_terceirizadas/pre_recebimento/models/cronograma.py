@@ -3,7 +3,8 @@ from django.db import models
 from ...dados_comuns.behaviors import Logs, ModeloBase, TemIdentificadorExternoAmigavel
 from ...dados_comuns.fluxo_status import FluxoCronograma
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...terceirizada.models import Terceirizada
+from ...terceirizada.models import Contrato, Terceirizada
+from ...produto.models import UnidadeMedida, NomeDeProdutoEdital
 
 
 class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronograma):
@@ -19,15 +20,15 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
     )
 
     numero = models.CharField('Número do Cronograma', blank=True, max_length=50, unique=True)
-    contrato_uuid = models.CharField('UUID do Contrato no SAFI', blank=True, max_length=50)
-    contrato = models.CharField('Contrato', blank=True, max_length=50)
-    empresa_uuid = models.CharField('UUID da Empresa no SAFI', blank=True, max_length=50)
-    nome_empresa = models.CharField('Nome da Empresa', blank=True, max_length=100)
-    processo_sei = models.CharField('Nº Processo SEI', blank=True, max_length=50)
-    produto_uuid = models.CharField('UUID do Produto no SAFI', blank=True, max_length=50)
-    nome_produto = models.CharField('Nome do Produto', blank=True, max_length=100)
+    # Criar validate pra ver se contrato pertence a empresa
+    contrato = models.ForeignKey(Contrato, on_delete=models.CASCADE, blank=True, null=True)
+    empresa = models.ForeignKey(
+        Terceirizada, on_delete=models.CASCADE, blank=True, null=True)
+    produto = models.ForeignKey(
+        NomeDeProdutoEdital, on_delete=models.CASCADE, blank=True, null=True)
     qtd_total_programada = models.FloatField('Qtd Total Programada', blank=True, null=True)
-    unidade_medida = models.CharField('Unidade de Medida', blank=True, max_length=20)
+    unidade_medida = models.ForeignKey(
+        UnidadeMedida, on_delete=models.PROTECT, blank=True, null=True)
     armazem = models.ForeignKey(
         Terceirizada, on_delete=models.CASCADE, blank=True, null=True, related_name='cronogramas')
     tipo_embalagem = models.CharField(choices=TIPO_EMBALAGEM_CHOICES, max_length=15, blank=True)
@@ -54,7 +55,6 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
 class EtapasDoCronograma(ModeloBase):
     cronograma = models.ForeignKey(
         Cronograma, on_delete=models.CASCADE, blank=True, null=True, related_name='etapas')
-    empenho_uuid = models.CharField('UUID do Empenho no SAFI', blank=True, max_length=50)
     numero_empenho = models.CharField('Número do Empenho', blank=True, max_length=50)
     etapa = models.CharField(blank=True, max_length=15)
     parte = models.CharField(blank=True, max_length=15)
