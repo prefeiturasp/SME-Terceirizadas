@@ -57,7 +57,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     def get_data_evento(self, obj):
         if obj.data_evento_fim and obj.data_evento and obj.data_evento != obj.data_evento_fim:
             return f"{obj.data_evento.strftime('%d/%m/%Y')} - {obj.data_evento_fim.strftime('%d/%m/%Y')}"
-        elif obj.tipo_doc in ['INC_ALIMENTA', 'SUSP_ALIMENTACAO', 'INC_ALIMENTA_CEMEI']:
+        elif obj.tipo_doc in ['INC_ALIMENTA', 'SUSP_ALIMENTACAO', 'INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI']:
             return obj.get_raw_model.objects.get(uuid=obj.uuid).datas
         return obj.data_evento.strftime('%d/%m/%Y') if obj.data_evento else None
 

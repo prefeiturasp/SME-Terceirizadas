@@ -13,6 +13,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     MatriculadosQuandoCriado,
     Motivo,
     Nomeavel,
+    Posicao,
     SolicitacaoForaDoPrazo,
     TemChaveExterna,
     TemData,
@@ -38,7 +39,7 @@ from .managers import (
 )
 
 
-class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, TemChaveExterna):
+class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, TemChaveExterna, Posicao):
     """Compõe parte do cardápio.
 
     Dejejum
@@ -62,6 +63,7 @@ class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, 
     class Meta:
         verbose_name = 'Tipo de alimentação'
         verbose_name_plural = 'Tipos de alimentação'
+        ordering = ['posicao']
 
 
 class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar(TemChaveExterna):
@@ -259,6 +261,14 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
         return self.data_para if self.data_para < self.data_de else self.data_de
 
     @property
+    def tipo(self):
+        return 'Inversão de Dia de Cardápio'
+
+    @property
+    def path(self):
+        return f'inversao-de-dia-de-cardapio/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
+
+    @property
     def numero_alunos(self):
         return ''
 
@@ -398,7 +408,7 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     Vide SuspensaoAlimentacao e QuantidadePorPeriodoSuspensaoAlimentacao
     """
 
-    DESCRICAO = 'Suspensão de alimentação'
+    DESCRICAO = 'Suspensão de Alimentação'
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     objects = models.Manager()  # Manager Padrão
     desta_semana = GrupoSuspensaoAlimentacaoDestaSemanaManager()
@@ -430,6 +440,14 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     @property  # type: ignore
     def suspensoes_alimentacao(self):
         return self.suspensoes_alimentacao
+
+    @property
+    def tipo(self):
+        return 'Suspensão de Alimentação'
+
+    @property
+    def path(self):
+        return f'suspensao-de-alimentacao/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
 
     @property
     def data(self):
@@ -544,6 +562,14 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
         )
 
     @property
+    def tipo(self):
+        return 'Suspensão de Alimentação'
+
+    @property
+    def path(self):
+        return f'suspensao-de-alimentacao-cei/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
+
+    @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(
             tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
@@ -648,6 +674,14 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
         return self.substituicoes_periodo_escolar
 
     @property
+    def tipo(self):
+        return 'Alteração do Tipo de Alimentação'
+
+    @property
+    def path(self):
+        return f'alteracao-do-tipo-de-alimentacao/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
+
+    @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(
             tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
@@ -744,7 +778,7 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
                            TemChaveExterna, TemData, TemObservacao, FluxoAprovacaoPartindoDaEscola,
                            TemIdentificadorExternoAmigavel, Logs, TemPrioridade, SolicitacaoForaDoPrazo,
                            EhAlteracaoCardapio, TemTerceirizadaConferiuGestaoAlimentacao):
-    DESCRICAO = 'Alteração de Cardápio CEI'
+    DESCRICAO = 'Alteração do Tipo de Alimentação CEI'
 
     eh_alteracao_com_lanche_repetida = models.BooleanField(default=False)
 
@@ -759,6 +793,14 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
     @property
     def substituicoes(self):
         return self.substituicoes_cei_periodo_escolar
+
+    @property
+    def tipo(self):
+        return 'Alteração do Tipo de Alimentação'
+
+    @property
+    def path(self):
+        return f'alteracao-do-tipo-de-alimentacao/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-cei'
 
     @property
     def template_mensagem(self):
@@ -882,7 +924,7 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
                              Logs, TemPrioridade, SolicitacaoForaDoPrazo, EhAlteracaoCardapio,
                              TemTerceirizadaConferiuGestaoAlimentacao):
 
-    DESCRICAO = 'Alteração de Cardápio CEMEI'
+    DESCRICAO = 'Alteração do Tipo de Alimentação CEMEI'
 
     TODOS = 'TODOS'
     CEI = 'CEI'
@@ -906,6 +948,14 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
     @property
     def data(self):
         return self.alterar_dia or self.data_inicial
+
+    @property
+    def tipo(self):
+        return 'Alteração do Tipo de Alimentação'
+
+    @property
+    def path(self):
+        return f'alteracao-do-tipo-de-alimentacao-cemei/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-cemei'
 
     @property
     def numero_alunos(self):

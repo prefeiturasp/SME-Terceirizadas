@@ -105,6 +105,14 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
         return data
 
     @property
+    def tipo(self):
+        return 'Inclusão de Alimentação'
+
+    @property
+    def path(self):
+        return f'inclusao-de-alimentacao/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-continua'
+
+    @property
     def observacoes(self):
         return ', '.join(self.quantidades_periodo.exclude(
             Q(observacao='') | Q(observacao__isnull=True)
@@ -284,6 +292,14 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
         return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
 
     @property
+    def tipo(self):
+        return 'Inclusão de Alimentação'
+
+    @property
+    def path(self):
+        return f'inclusao-de-alimentacao/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
+
+    @property
     def observacoes(self):
         return ', '.join(self.quantidades_periodo.exclude(
             Q(observacao='') | Q(observacao__isnull=True)
@@ -384,15 +400,13 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExter
         verbose_name_plural = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
 
 
-class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
+class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
                                SolicitacaoForaDoPrazo, CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade,
                                TemTerceirizadaConferiuGestaoAlimentacao):
     DESCRICAO = 'Inclusão de Alimentação Por CEI'
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_por_cei')
-    motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING, blank=True, null=True)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
 
@@ -402,12 +416,34 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     vencidos = InclusaoDeAlimentacaoDeCeiVencidosDiasManager()
 
     @property
+    def data(self):
+        dia_motivo = self.dias_motivos_da_inclusao_cei.order_by('data').first()
+        return dia_motivo.data if dia_motivo else ''
+
+    @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in
+                          self.dias_motivos_da_inclusao_cei.order_by('data').values_list('data', flat=True)])
+
+    @property
     def numero_alunos(self):
         return self.quantidade_alunos_da_inclusao.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
 
     @property
+    def tipo(self):
+        return 'Inclusão de Alimentação'
+
+    @property
+    def path(self):
+        return f'inclusao-de-alimentacao/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-cei'
+
+    @property
     def observacao(self):
         return None
+
+    @property
+    def inclusoes(self):
+        return self.dias_motivos_da_inclusao_cei
 
     @property
     def quantidade_alunos_por_faixas_etarias(self):
@@ -463,8 +499,8 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
                     'quantidade_matriculados': quantidade.matriculados_quando_criado,
                 })
             for fq in faixas_quantidades:
-                total_alunos += fq['quantidade_alunos']
-                total_matriculados += fq['quantidade_matriculados']
+                total_alunos += fq['quantidade_alunos'] or 0
+                total_matriculados += fq['quantidade_matriculados'] or 0
             quantidade_alunos_por_faixas_etarias.append({
                 'tipos_alimentacao': tipos_alimentacao,
                 'periodo': periodo,
@@ -474,6 +510,17 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
             })
         return quantidade_alunos_por_faixas_etarias
 
+    @property
+    def dias_motivos_da_inclusao_cei_simples_dict(self):
+        dias_motivos_da_inclusao_cei = []
+        for inclusao_cei in self.dias_motivos_da_inclusao_cei.all():
+            dias_motivos_da_inclusao_cei.append({
+                'motivo': inclusao_cei.motivo.nome,
+                'data': inclusao_cei.data,
+            })
+        return dias_motivos_da_inclusao_cei
+
+    # aqui
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
@@ -481,10 +528,10 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
             'terceirizada': self.rastro_terceirizada,
             'tipo_doc': 'Inclusão de Alimentação CEI',
             'data_evento': self.data,
+            'datas': self.datas,
             'numero_alunos': self.numero_alunos,
-            'motivo': self.motivo.nome,
-            'outro_motivo': self.outro_motivo,
-            'dias_inclusao': self.data,
+            'dias_inclusao': self.datas,
+            'dias_motivos_da_inclusao_cei': self.dias_motivos_da_inclusao_cei_simples_dict,
             'quantidade_alunos_por_faixas_etarias': self.quantidade_alunos_por_faixas_etarias_simples_dict,
             'label_data': label_data,
             'data_log': data_log
@@ -496,6 +543,24 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     class Meta:
         verbose_name = 'Inclusão de alimentação da CEI'
         verbose_name_plural = 'Inclusões de alimentação da CEI'
+
+
+class DiasMotivosInclusaoDeAlimentacaoCEI(TemData, TemChaveExterna, CanceladoIndividualmente):
+    inclusao_cei = models.ForeignKey('InclusaoAlimentacaoDaCEI',
+                                     on_delete=models.CASCADE,
+                                     related_name='dias_motivos_da_inclusao_cei')
+    motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
+
+    def __str__(self):
+        if self.outro_motivo:
+            return f'Dia {self.data} - Outro motivo: {self.outro_motivo}'
+        return f'Dia {self.data} {self.motivo}'
+
+    class Meta:
+        verbose_name = 'Dia e motivo inclusão de alimentação CEI'
+        verbose_name_plural = 'Dias e motivos inclusão de alimentação CEI'
+        ordering = ('data',)
 
 
 class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm, Logs,
@@ -523,6 +588,14 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
     @property
     def observacao(self):
         return None
+
+    @property
+    def tipo(self):
+        return 'Inclusão de Alimentação'
+
+    @property
+    def path(self):
+        return f'inclusao-de-alimentacao-cemei/relatorio?uuid={self.uuid}'
 
     @property
     def numero_alunos(self):

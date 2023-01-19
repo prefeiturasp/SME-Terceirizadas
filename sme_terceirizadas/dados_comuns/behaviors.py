@@ -405,3 +405,10 @@ class CanceladoIndividualmente(models.Model):
 
     class Meta:
         abstract = True
+
+
+class Posicao(models.Model):
+    posicao = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
+
+    class Meta:
+        abstract = True

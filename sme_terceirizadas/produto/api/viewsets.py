@@ -338,10 +338,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         response = {'results': self.dados_dashboard(query_set=query_set, use_raw=False)}
         return Response(response)
 
-    @action(detail=False,  # noqa C901
+    @action(detail=False,
             methods=['GET', 'POST'],
             url_path=f'filtro-por-status/{constants.FILTRO_STATUS_HOMOLOGACAO}')
-    def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):
+    def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):  # noqa C901
         filtros = {}
         user = self.request.user
         page = request.GET.get('page', False)
@@ -464,11 +464,11 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     serializer_class = HomologacaoProdutoSerializer
     queryset = HomologacaoProduto.objects.all()
 
-    @action(detail=True,  # noqa C901
+    @action(detail=True,
             permission_classes=(UsuarioCODAEGestaoProduto,),
             methods=['patch'],
             url_path=constants.CODAE_HOMOLOGA)
-    def codae_homologa(self, request, uuid=None):
+    def codae_homologa(self, request, uuid=None):  # noqa C901
         homologacao_produto = self.get_object()
         uri = reverse(
             'Produtos-relatorio',
@@ -1319,11 +1319,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
             })
 
-        status = 'CODAE_HOMOLOGADO'
-        quantidade_homologados = Produto.objects.filter(
-            ativo=True,
-            homologacao__status=status
-        ).count()
+        quantidade_homologados = len(produtos_agrupados)
 
         form_data['quantidade_homologados'] = quantidade_homologados
         if isinstance(request.user.vinculo_atual.instituicao, Terceirizada):
@@ -1511,10 +1507,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(produto__vinculos__edital__in=editais)
         return queryset
 
-    @action(detail=False, # noqa C901
+    @action(detail=False,
             methods=['GET'],
             url_path='filtro-relatorio-produto-suspenso')
-    def filtro_relatorio_produto_suspenso(self, request):
+    def filtro_relatorio_produto_suspenso(self, request):  # noqa C901
         if request.query_params.get('data_suspensao_final', None) == 'null':
             data_final = None
         else:
@@ -1697,17 +1693,16 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
     def lista_nomes_unicos(self, request):
         editais = self.get_queryset()
         usuario = request.user
-        lotes = Lote.objects.all().values_list('uuid', flat=True)
+        lotes_uuid = Lote.objects.all().values_list('uuid', flat=True)
 
         if usuario.tipo_usuario == 'escola':
-            lotes = [usuario.vinculo_atual.instituicao.lote]
+            lotes_uuid = [usuario.vinculo_atual.instituicao.lote.uuid]
         elif usuario.tipo_usuario == 'diretoriaregional':
-            lotes = usuario.vinculo_atual.instituicao.lotes
+            lotes_uuid = usuario.vinculo_atual.instituicao.lotes.values_list('uuid', flat=True)
         elif usuario.tipo_usuario == 'terceirizada':
             terceirizada = usuario.vinculo_atual.instituicao
-            lotes = lotes.filter(terceirizada=terceirizada)
+            lotes_uuid = lotes_uuid.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
 
-        lotes_uuid = lotes.values_list('uuid', flat=True)
         editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
         editais = editais.filter(edital__id__in=editais_id)
         nomes_unicos = editais.values_list('edital__numero', flat=True).distinct()
@@ -2046,11 +2041,11 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
     serializer_class = RespostaAnaliseSensorialSearilzerCreate
     queryset = RespostaAnaliseSensorial.objects.all()
 
-    @action(detail=False, # noqa C901
+    @action(detail=False,
             permission_classes=[UsuarioTerceirizada],
             methods=['post'],
             url_path=constants.TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL)
-    def terceirizada_responde(self, request):
+    def terceirizada_responde(self, request):  # noqa C901
         data = request.data.copy()
         uuid_homologacao = data.pop('homologacao_de_produto', None)
         data['homologacao_produto'] = uuid_homologacao

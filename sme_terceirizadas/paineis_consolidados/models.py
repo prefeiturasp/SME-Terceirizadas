@@ -375,6 +375,8 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         if query_params.get('status'):
             queryset = queryset.filter(
                 terceirizada_conferiu_gestao=query_params.get('status') == '1')
+        if query_params.get('diretoria_regional'):
+            queryset = queryset.filter(dre_uuid=query_params.get('diretoria_regional'))
         queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
         queryset = cls.busca_data_evento(queryset, query_params)
         return queryset
@@ -409,8 +411,8 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
             manager = cls.filtro_30_dias
         return manager
 
-    @classmethod  # noqa C901
-    def _filtro_data_status_tipo(cls, data_final,
+    @classmethod
+    def _filtro_data_status_tipo(cls, data_final,  # noqa C901
                                  data_inicial,
                                  query_set,
                                  status_solicitacao,

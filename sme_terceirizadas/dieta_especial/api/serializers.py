@@ -463,6 +463,51 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
         )
 
 
+class SolicitacaoDietaEspecialNutriSupervisaoExportXLSXSerializer(serializers.ModelSerializer):
+    codigo_eol_aluno = serializers.SerializerMethodField()
+    nome_aluno = serializers.SerializerMethodField()
+    nome_escola = serializers.SerializerMethodField()
+    classificacao_dieta = serializers.SerializerMethodField()
+    alergias_intolerancias = serializers.SerializerMethodField()
+    data_ultimo_log = serializers.SerializerMethodField()
+
+    def get_codigo_eol_aluno(self, obj):
+        return obj.aluno.codigo_eol if obj.aluno else None
+
+    def get_nome_aluno(self, obj):
+        return obj.aluno.nome if obj.aluno else None
+
+    def get_nome_escola(self, obj):
+        return obj.escola_destino.nome if obj.escola_destino else None
+
+    def get_classificacao_dieta(self, obj):
+        return obj.classificacao.nome if obj.classificacao else None
+
+    def get_alergias_intolerancias(self, obj):
+        return ','.join(obj.alergias_intolerancias.all().values_list('descricao', flat=True))
+
+    def get_data_ultimo_log(self, obj):
+        return datetime.strftime(obj.logs.last().criado_em, '%d/%m/%Y') if obj.logs else None
+
+    class Meta:
+        model = SolicitacaoDietaEspecial
+        fields = (
+            'codigo_eol_aluno',
+            'nome_aluno',
+            'nome_escola',
+            'classificacao_dieta',
+            'alergias_intolerancias',
+            'data_ultimo_log'
+        )
+
+    def __init__(self, *args, **kwargs):
+        """Não retornar campo data_ultimo_log caso status da solicitação for 'AUTORIZADAS'."""
+        if kwargs['context']['status'] == 'AUTORIZADAS':
+            del self.fields['data_ultimo_log']
+
+        super().__init__(*args, **kwargs)
+
+
 class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
     codigo_eol_aluno = serializers.SerializerMethodField()
     nome_aluno = serializers.SerializerMethodField()
@@ -584,6 +629,7 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
     classificacao = ClassificacaoDietaSerializer()
     protocolo_padrao = ProtocoloPadraoDietaEspecialSimplesSerializer()
     data_ultimo_log = serializers.SerializerMethodField()
+    alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
 
     def get_nome_escola(self, obj):
         return obj.rastro_escola.nome if obj.rastro_escola else None
@@ -612,7 +658,8 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
             'classificacao',
             'protocolo_padrao',
             'nome_protocolo',
-            'data_ultimo_log'
+            'data_ultimo_log',
+            'alergias_intolerancias'
         )
 
 

@@ -129,14 +129,16 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         return solicitacao
 
     def update(self, instance, validated_data):  # noqa C901
-        responsaveis_dict = validated_data.pop('responsaveis', None)
+        responsaveis_dict = self.context['request'].data.get('responsaveis', None)
         key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
 
-        update_instance_from_dict(instance, validated_data)
+        validated_data.pop('responsaveis', None)
+        update_instance_from_dict(instance, validated_data, save=True)
 
         if responsaveis_dict:
+            responsaveis = json.loads(responsaveis_dict)
             instance.responsaveis.all().delete()
-            for responsavel in responsaveis_dict:
+            for responsavel in responsaveis:
                 Responsavel.objects.create(
                     solicitacao_medicao_inicial=instance,
                     nome=responsavel.get('nome', ''),
@@ -241,7 +243,9 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                     }
                 )
                 uuids_criados_atualizados.append(valor_medicao_[0].uuid)
-        instance.valores_medicao.filter(valor=0).delete()
+        eh_observacao = self.context['request'].data.get('eh_observacao',)
+        if not eh_observacao:
+            instance.valores_medicao.filter(valor=0).delete()
         if uuids_criados_atualizados:
             instance.valores_medicao.exclude(uuid__in=uuids_criados_atualizados).delete()
         if not instance.valores_medicao.all().exists():

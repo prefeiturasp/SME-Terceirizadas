@@ -11,12 +11,6 @@ FLUXO_PARTINDO_DRE = [
         'criado_em': '',
         'usuario': None
     },
-    {
-        'titulo': 'Terceirizada',
-        'status': '',
-        'criado_em': '',
-        'usuario': None
-    }
 ]
 
 FLUXO_PARTINDO_ESCOLA = [

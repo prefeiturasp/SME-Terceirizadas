@@ -6,7 +6,6 @@ import os
 
 import environ
 import sentry_sdk
-from celery.schedules import crontab
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
@@ -367,33 +366,6 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TIMEZONE = TIME_ZONE
-
-CELERY_BEAT_SCHEDULE = {
-    'cancela-dietas-ativas-automaticamente': {
-        'task': 'sme_terceirizadas.dieta_especial.tasks.cancela_dietas_ativas_automaticamente_task',
-        'schedule': crontab(hour='8-17', minute='*/5')
-    },
-    'atualiza-totais-das-escolas': {
-        'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
-        'schedule': crontab(hour=0, minute=0)
-    },
-    'atualiza-dados-das-escolas': {
-        'task': 'sme_terceirizadas.escola.tasks.atualiza_dados_escolas',
-        'schedule': crontab(hour=0, minute=30)
-    },
-    'ativa-desativa-vinculos-alimentacao': {
-        'task': 'sme_terceirizadas.cardapio.tasks.ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar',  # noqa E501
-        'schedule': crontab(hour=1, minute=0)
-    },
-    'termina-dietas-especiais': {
-        'task': 'sme_terceirizadas.dieta_especial.tasks.processa_dietas_especiais_task',
-        'schedule': crontab(hour=1, minute=30)
-    },
-    'atualiza-alunos-escolas': {
-        'task': 'sme_terceirizadas.escola.tasks.atualiza_alunos_escolas',
-        'schedule': crontab(hour=2, minute=0)
-    }
-}
 
 # reset password
 PASSWORD_RESET_TIMEOUT_DAYS = 1
