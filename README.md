@@ -246,7 +246,7 @@ pip install pipenv==2022.4.8
 
 ```
 pipenv shell
-pyenv local 3.8.13
+pyenv local 3.8.10
 pipenv install --dev
 
 python manage.py migrate
