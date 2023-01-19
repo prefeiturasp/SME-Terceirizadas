@@ -5,9 +5,11 @@ services:
     build: .
     entrypoint: sh -c "sleep 10 && python manage.py runserver 0.0.0.0:8000"
     env_file:
-      - D:\Documents\repos\prefeiturasp\SME-Terceirizadas\.env
+      - .env
     ports:
       - "8000:8000"
+    volumes: # Sincroniza local com docker
+      - .:/code
     networks:
       - default
     links:
@@ -22,7 +24,7 @@ services:
     build: .
     entrypoint: python manage.py migrate
     env_file:
-      - D:\Documents\repos\prefeiturasp\SME-Terceirizadas\.env
+      - .env
     networks:
       - default
     links:
@@ -34,9 +36,9 @@ services:
   db:
     image: postgres:11.2-alpine
     env_file:
-      - D:\Documents\repos\prefeiturasp\SME-Terceirizadas\.env
+      - .env
     volumes:
-      - ./pgdata:/var/lib/postgresql/data:Z
+      - ./pgdata:/home/ownard/postgresql/data:Z
     ports:
       - "5432:5432"
     networks:
@@ -45,7 +47,7 @@ services:
   redis:
     image: redis:5.0.0-alpine
     env_file:
-      - D:\Documents\repos\prefeiturasp\SME-Terceirizadas\.env
+      - .env
     ports:
       - "6379:6379"
     networks:

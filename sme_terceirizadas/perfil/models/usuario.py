@@ -254,7 +254,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     def enviar_email_recuperacao_senha(self):
         token_generator = PasswordResetTokenGenerator()
         token = token_generator.make_token(self)
-        content = {'uuid': self.uuid, 'confirmation_key': token}
+        content = {'uuid': self.uuid, 'confirmation_key': token, 'visao': self.vinculo_atual.perfil.visao}
         titulo = 'Recuperação de senha'
         template = 'recuperar_senha.html'
         dados_template = {'titulo': titulo, 'link_recuperar_senha': url_configs('RECUPERAR_SENHA', content)}

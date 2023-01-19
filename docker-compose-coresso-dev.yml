@@ -1,0 +1,58 @@
+version: '3.1'
+
+services:
+  api_coresso:
+    build: .
+    entrypoint: sh -c "sleep 10 && python manage.py runserver 0.0.0.0:8000"
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes: # Sincroniza local com docker
+      - .:/code
+    networks:
+      - default
+    links:
+      - db
+      - redis
+    restart: always
+    depends_on:
+      - db
+      - redis
+
+  # api-migrations:
+  #   build: .
+  #   entrypoint: python manage.py migrate
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - default
+  #   links:
+  #     - db
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - db
+
+  # db:
+  #   image: postgres:11.2-alpine
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./pgdata:/home/ownard/postgresql/data:Z
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - default
+
+  # redis:
+  #   image: redis:5.0.0-alpine
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - default
+
+networks:
+  default:
+    driver: bridge
