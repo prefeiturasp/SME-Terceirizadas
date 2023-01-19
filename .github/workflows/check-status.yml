@@ -46,20 +46,14 @@ jobs:
           cp /srv/env/terceirizadas .
 
       - name: Running Python Tests
-        uses: luizhpriotto/action_images@terceirizadas-backend-v1.4
+        uses: prefeiturasp/SME-GithubAction-Images@python38-v1.0
         with:
           command: |
-            echo "Conectando o container a rede python..."
             docker network connect python-network $(hostname)
-            echo "Carregando as variaveis de ambiente..."
+            pip install --user pipenv pipenv==2022.4.8
             source terceirizadas
-            echo "###################################################################################################################################################"
-            echo "### Caso tenha problemas na rotina de testes por conta de conflitos de biblioteca, execute a action sem Pip cache e informe a equipe de DevOps. ###"
-            echo "###################################################################################################################################################"
-            echo "Executando os testes..."
-            #Identificado este path através dos comandos em python "import sys" e "print(sys.path)" no ambiente funcional.
-            export PYTHONPATH="$PYTHONPATH:/runner/.local/lib/python3.8/site-packages"
-            echo "################ FLAKE8 ################"
-            flake8 -v
+            pipenv install --dev
             echo "################ PYTEST ################"
-            pytest
+            pipenv run pytest
+            echo "################ FLAKE8 ################"
+            pipenv run flake8
