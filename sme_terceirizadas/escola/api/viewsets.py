@@ -238,8 +238,8 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
     filterset_fields = ('nome',)
 
     #  TODO: Quebrar esse método um pouco, está complexo e sem teste
-    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')  # noqa C901
-    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
+    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')
+    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):  # noqa C901
         form = AlunosPorFaixaEtariaForm({
             'data_referencia': data_referencia_str
         })
@@ -416,8 +416,8 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     #  TODO: Quebrar esse método um pouco, está complexo e sem teste
-    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')  # noqa C901
-    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
+    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')
+    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):  # noqa C901
         form = AlunosPorFaixaEtariaForm({
             'data_referencia': data_referencia_str
         })

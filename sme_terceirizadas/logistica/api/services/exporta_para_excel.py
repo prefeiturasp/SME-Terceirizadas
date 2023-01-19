@@ -191,8 +191,8 @@ class RequisicoesExcelService(object):
 
         return arquivo if is_async else {'arquivo': arquivo}
 
-    @classmethod  # noqa C901
-    def cria_aba_insucesso(cls, ws, requisicoes, perfil):
+    @classmethod
+    def cria_aba_insucesso(cls, ws, requisicoes, perfil):  # noqa C901
         offset = 0
         cabecalho = ['Número da Requisição', 'Quantidade Total de Guias', 'Número da Guia', 'Data de Entrega',
                      'Nome do Motorista', 'Placa do Veículo',
@@ -279,8 +279,8 @@ class RequisicoesExcelService(object):
 
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
-    @classmethod  # noqa C901
-    def cria_aba_conferencia_dilog(cls, ws, requisicoes):
+    @classmethod
+    def cria_aba_conferencia_dilog(cls, ws, requisicoes):  # noqa C901
         cabecalho = ['Data de Entrega',
                      'Nome do Alimento',
                      'Nome do Distribuidor',
@@ -414,8 +414,8 @@ class RequisicoesExcelService(object):
 
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
-    @classmethod  # noqa C901
-    def cria_aba_conferencia_dre(cls, ws, requisicoes):
+    @classmethod
+    def cria_aba_conferencia_dre(cls, ws, requisicoes):  # noqa C901
         offset = 0
         cabecalho = ['Código EOL',
                      'Código CODAE',
@@ -526,8 +526,8 @@ class RequisicoesExcelService(object):
                     ws.cell(row=ind, column=offset + 25, value=requisicao['primeira_reposicao'].criado_por.nome)
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
-    @classmethod  # noqa C901
-    def cria_aba_conferencia_distribuidor(cls, ws, requisicoes):
+    @classmethod
+    def cria_aba_conferencia_distribuidor(cls, ws, requisicoes):  # noqa C901
         offset = 0
         cabecalho = ['Número da Requisição', 'Data de Entrega', 'Nome do Alimento', 'Código SUPRI',
                      'Número da Guia de Remessa', 'Status da Guia de Remessa', 'Nome da UE', 'Código CODAE', 'Agrup',
