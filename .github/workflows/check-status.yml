@@ -1,5 +1,5 @@
 name: Check Status
- 
+
 on:
 
   push:
@@ -10,10 +10,10 @@ on:
       - 'fix**'
       - 'releases**'
       - 'hotfix**'
-      
+
     paths-ignore:
-    - ".github/workflows/**"  
-  
+    - ".github/workflows/**"
+
   workflow_dispatch:
 
 jobs:
@@ -38,28 +38,54 @@ jobs:
     steps:
       - name: Delete Container..
         run: if [ ! -z $(docker ps -q --filter "name=terceirizadas-db") ]; then docker rm -f terceirizadas-db; fi
-      
+
       - name: Preparing Container...
         #Criação do container de banco de dados e copia das variaveis que serão carregadas.
         run: |
           docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
           cp /srv/env/terceirizadas .
           
+      - name: Ajustando HOME para o cache
+        run: |
+           cd $RUNNER_WORKSPACE
+           cd ..
+           pwd
+           echo "GITHUB_RUN_HOME=$(pwd)" >> $GITHUB_ENV
+      - name: Show envs..
+        run: echo $GITHUB_RUN_HOME
+          
+      - name: Cache Pipenv virtualenv
+        uses: actions/cache@v3
+        id: pipenv-cache
+        with:
+          path: ${{ env.GITHUB_RUN_HOME }}/_temp/_github_home/.local/share/virtualenvs
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-
+
       - name: Running Python Tests
-        uses: luizhpriotto/action_images@terceirizadas-backend-v1.4
+        if: steps.pipenv-cache.outputs.cache-hit != 'true'
+        uses: prefeiturasp/SME-GithubAction-Images@python38-v1.0
         with:
           command: |
-            echo "Conectando o container a rede python..."
             docker network connect python-network $(hostname)
-            echo "Carregando as variaveis de ambiente..."
+            pip install --user pipenv pipenv==2022.4.8
             source terceirizadas
-            echo "###################################################################################################################################################"
-            echo "### Caso tenha problemas na rotina de testes por conta de conflitos de biblioteca, execute a action sem Pip cache e informe a equipe de DevOps. ###"
-            echo "###################################################################################################################################################"
-            echo "Executando os testes..."
-            #Identificado este path através dos comandos em python "import sys" e "print(sys.path)" no ambiente funcional.
-            export PYTHONPATH="$PYTHONPATH:/runner/.local/lib/python3.6/site-packages"
+            pipenv install --dev
             echo "################ FLAKE8 ################"
-            flake8 -v
+            pipenv run flake8
             echo "################ PYTEST ################"
-            pytest
+            pipenv run pytest
+            
+      - name: Running Python Tests with cache
+        if: steps.pipenv-cache.outputs.cache-hit == 'true'
+        uses: prefeiturasp/SME-GithubAction-Images@python38-v1.0
+        with:
+          command: |
+            docker network connect python-network $(hostname)
+            pip install --user pipenv pipenv==2022.4.8
+            source terceirizadas
+            echo "################ FLAKE8 ################"
+            pipenv run flake8
+            echo "################ PYTEST ################"
+            pipenv run pytest
