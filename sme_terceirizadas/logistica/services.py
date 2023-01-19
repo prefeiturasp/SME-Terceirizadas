@@ -73,8 +73,8 @@ def arquiva_guias(numero_requisicao, guias):  # noqa C901
         requisicao.arquivar_requisicao(uuid=requisicao.uuid)
 
 
-@transaction.atomic # noqa C901
-def confirma_cancelamento(numero_requisicao, guias, user):
+@transaction.atomic
+def confirma_cancelamento(numero_requisicao, guias, user):  # noqa C901
     # Método para confirmação de cancelamento da(s) guia(s) e requisições. Importante saber:
     # Se todas as guias para cancelamento forem todas as guias da requisição,
     # além das guias, a requisição também será cancelada.

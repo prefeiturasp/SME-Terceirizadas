@@ -22,9 +22,10 @@ def codae():
 def escola():
     terceirizada = mommy.make('Terceirizada')
     lote = mommy.make('Lote', terceirizada=terceirizada)
+    contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
-    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional,
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional, contato=contato,
                       uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
 
 

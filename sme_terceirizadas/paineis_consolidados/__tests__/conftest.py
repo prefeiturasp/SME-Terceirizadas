@@ -38,7 +38,8 @@ def diretoria_regional2():
 @pytest.fixture
 def escola2(diretoria_regional2):
     lote = mommy.make('Lote')
-    return mommy.make('Escola', diretoria_regional=diretoria_regional2, lote=lote)
+    contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
+    return mommy.make('Escola', diretoria_regional=diretoria_regional2, lote=lote, contato=contato)
 
 
 @pytest.fixture

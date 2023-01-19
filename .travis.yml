@@ -3,7 +3,7 @@ services:
   - postgresql
   - redis-server
 python:
-  - "3.6"
+  - "3.8"
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter
@@ -13,7 +13,7 @@ before_script:
   - export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
 
 install:
-  - pip install pipenv
+  - pip install pipenv==2022.4.8
   - pipenv install --dev
 script:
   - pytest

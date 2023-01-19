@@ -55,6 +55,7 @@ class EditalSerializer(serializers.ModelSerializer):
 
 class ContratoSimplesSerializer(serializers.ModelSerializer):
     edital = EditalSerializer()
+    vigencias = VigenciaContratoSerializer(many=True)
 
     class Meta:
         model = Contrato

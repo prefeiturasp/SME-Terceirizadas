@@ -36,9 +36,8 @@ class CronogramaFilter(filters.FilterSet):
         field_name='status',
         choices=[(str(state), state) for state in CronogramaWorkflow.states],
     )
-    armazem = filters.MultipleChoiceFilter(
+    armazem = filters.ModelMultipleChoiceFilter(
         field_name='armazem__uuid',
-        choices=[(str(value), value) for value in [
-            armazem.uuid for armazem in Terceirizada.objects.filter(tipo_empresa=Terceirizada.ARMAZEM_DISTRIBUIDOR)
-        ]],
+        to_field_name='uuid',
+        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM),
     )
