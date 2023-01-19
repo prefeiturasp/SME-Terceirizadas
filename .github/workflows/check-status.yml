@@ -64,7 +64,7 @@ jobs:
             pipenv run pytest
             
       - name: Running Python Tests with cache
-        if: steps.pipenv-cache.outputs.cache-hit = 'true'
+        if: steps.pipenv-cache.outputs.cache-hit == 'true'
         uses: prefeiturasp/SME-GithubAction-Images@python38-v1.0
         with:
           command: |
