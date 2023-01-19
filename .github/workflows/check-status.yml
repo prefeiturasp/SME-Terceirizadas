@@ -62,14 +62,3 @@ jobs:
             pipenv run flake8
             echo "################ PYTEST ################"
             pipenv run pytest
-            
-      - name: Cache Pipenv virtualenv
-        if: steps.pipenv-cache.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
-        id: pipenv2-cache
-        with:
-          path: ${{ env.GITHUB_RUN_HOME }}/_temp/_github_home/.local/share/virtualenvs
-          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pipenv-
-
