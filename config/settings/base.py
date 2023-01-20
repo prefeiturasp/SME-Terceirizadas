@@ -338,7 +338,7 @@ JWT_AUTH = {
 URL_CONFIGS = {
     # TODO: rever essa logica de link para trabalhar no front, tá dando voltas
     'CONFIRMAR_EMAIL': '/confirmar-email?uuid={uuid}&confirmationKey={confirmation_key}',
-    'RECUPERAR_SENHA': '/recuperar-senha?uuid={uuid}&confirmationKey={confirmation_key}',
+    'RECUPERAR_SENHA': '/recuperar-senha?uuid={uuid}&confirmationKey={confirmation_key}&visao={visao}',
     'LOGIN_TERCEIRIZADAS': '/login?tab=terceirizadas',
     'API': '/api{uri}'
 }
