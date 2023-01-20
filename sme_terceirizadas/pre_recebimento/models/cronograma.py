@@ -3,8 +3,8 @@ from django.db import models
 from ...dados_comuns.behaviors import Logs, ModeloBase, TemIdentificadorExternoAmigavel
 from ...dados_comuns.fluxo_status import FluxoCronograma
 from ...dados_comuns.models import LogSolicitacoesUsuario
+from ...produto.models import NomeDeProdutoEdital, UnidadeMedida
 from ...terceirizada.models import Contrato, Terceirizada
-from ...produto.models import UnidadeMedida, NomeDeProdutoEdital
 
 
 class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronograma):

@@ -12,8 +12,10 @@ from sme_terceirizadas.pre_recebimento.models import (
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma
 )
+from sme_terceirizadas.produto.models import NomeDeProdutoEdital, UnidadeMedida
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
-from sme_terceirizadas.produto.models import UnidadeMedida, NomeDeProdutoEdital
+
+from ..validators import contrato_pertence_a_empresa
 
 
 class ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(serializers.ModelSerializer):
@@ -99,6 +101,9 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
             )
 
     def create(self, validated_data):
+        contrato = validated_data.get('contrato', None)
+        empresa = validated_data.get('empresa', None)
+        contrato_pertence_a_empresa(contrato, empresa)
         user = self.context['request'].user
         cadastro_finalizado = validated_data.pop('cadastro_finalizado', None)
         etapas = validated_data.pop('etapas', [])

@@ -8,7 +8,12 @@ from sme_terceirizadas.pre_recebimento.models import (
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma
 )
-from sme_terceirizadas.terceirizada.api.serializers.serializers import DistribuidorSimplesSerializer
+from sme_terceirizadas.produto.api.serializers.serializers import NomeDeProdutoEditalSerializer, UnidadeMedidaSerialzer
+from sme_terceirizadas.terceirizada.api.serializers.serializers import (
+    ContratoSimplesSerializer,
+    DistribuidorSimplesSerializer,
+    TerceirizadaSimplesSerializer
+)
 
 
 class ProgramacaoDoRecebimentoDoCronogramaSerializer(serializers.ModelSerializer):
@@ -35,12 +40,16 @@ class CronogramaSerializer(serializers.ModelSerializer):
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(many=True)
     armazem = DistribuidorSimplesSerializer()
     status = serializers.CharField(source='get_status_display')
+    empresa = TerceirizadaSimplesSerializer()
+    contrato = ContratoSimplesSerializer()
+    produto = NomeDeProdutoEditalSerializer()
+    unidade_medida = UnidadeMedidaSerialzer()
 
     class Meta:
         model = Cronograma
         fields = ('uuid', 'numero', 'status', 'criado_em', 'alterado_em', 'contrato', 'empresa',
-                           'produto', 'qtd_total_programada','unidade_medida',
-                           'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento')
+                          'produto', 'qtd_total_programada', 'unidade_medida',
+                          'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento')
 
 
 class CronogramaRascunhosSerializer(serializers.ModelSerializer):
