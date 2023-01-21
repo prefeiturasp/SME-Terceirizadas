@@ -322,7 +322,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         response = {'results': self.dados_dashboard(query_set=query_set, use_raw=use_raw)}
         return Response(response)
 
-    @action(detail=False, methods=['POST'], url_path='filtro-homologacoes-por-titulo-marca')
+    @action(detail=False, methods=['POST'], url_path='filtro-homologacoes-por-titulo-marca-edital')
     def solicitacoes_homologacao_por_titulo_marca_edital(self, request):
         query_set = self.get_queryset()
         titulo = request.data.get('titulo_produto',)
