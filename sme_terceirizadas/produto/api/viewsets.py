@@ -323,17 +323,20 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         return Response(response)
 
     @action(detail=False, methods=['POST'], url_path='filtro-homologacoes-por-titulo-marca')
-    def solicitacoes_homologacao_por_titulo_marca(self, request):
+    def solicitacoes_homologacao_por_titulo_marca_edital(self, request):
         query_set = self.get_queryset()
         titulo = request.data.get('titulo_produto',)
         marca = request.data.get('marca_produto',)
-
+        edital = request.data.get('edital_produto', )
         if (titulo):
             query_set = query_set.annotate(id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)).filter(
                 Q(id_amigavel__icontains=titulo) |
                 Q(produto__nome__icontains=titulo))
         if (marca):
             query_set = query_set.filter(produto__marca__nome__icontains=marca)
+        if (edital):
+            query_set = query_set.filter(produto__in=ProdutoEdital.objects.filter(
+                edital__numero=edital).values_list('produto', flat=True))
 
         response = {'results': self.dados_dashboard(query_set=query_set, use_raw=False)}
         return Response(response)
