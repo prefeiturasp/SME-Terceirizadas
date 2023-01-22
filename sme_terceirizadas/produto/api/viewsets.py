@@ -1304,7 +1304,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                                    'criado_em', 'homologacao__uuid', 'tem_aditivos_alergenicos')
 
         produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
-
+        form_data['quantidade_marcas'] = produtos.values_list('marca__nome', flat=True).distinct().count()
         produtos_agrupados = []
         for produto in produtos:
             data_homologacao = logs_homologados.filter(uuid_original=produto['homologacao__uuid']).last()
