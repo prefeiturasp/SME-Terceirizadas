@@ -1,7 +1,8 @@
 from django.db import models
+from multiselectfield import MultiSelectField
 
 from ...dados_comuns.behaviors import Logs, ModeloBase, TemIdentificadorExternoAmigavel
-from ...dados_comuns.fluxo_status import FluxoCronograma
+from ...dados_comuns.fluxo_status import FluxoAlteracaoCronograma, FluxoCronograma
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...terceirizada.models import Terceirizada
 
@@ -108,3 +109,55 @@ class ProgramacaoDoRecebimentoDoCronograma(ModeloBase):
     class Meta:
         verbose_name = 'Programação do Recebimento do Cromograma'
         verbose_name_plural = 'Programações dos Recebimentos dos Cromogramas'
+
+
+class AlteracaoCronogramaEtapa(models.Model):
+    etapa = models.ForeignKey(EtapasDoCronograma, on_delete=models.PROTECT)
+    nova_data_programada = models.DateField('Nova Data Programada', blank=True, null=True)
+    nova_quantidade = models.FloatField(blank=True, null=True)
+
+
+class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma):
+    MOTIVO_ALTERAR_DATA_ENTREGA = 'ALTERAR_DATA_ENTREGA'
+    MOTIVO_ALTERAR_QTD_ALIMENTO = 'ALTERAR_QTD_ALIMENTO'
+    MOTIVO_OUTROS = 'OUTROS'
+    MOTIVO_NOMES = {
+        MOTIVO_ALTERAR_DATA_ENTREGA: 'Alterar data de entrega',
+        MOTIVO_ALTERAR_QTD_ALIMENTO: 'Alterar quantidade de alimento',
+        MOTIVO_OUTROS: 'Outros',
+    }
+
+    MOTIVO_CHOICES = (
+        (MOTIVO_ALTERAR_DATA_ENTREGA, MOTIVO_NOMES[MOTIVO_ALTERAR_DATA_ENTREGA]),
+        (MOTIVO_ALTERAR_QTD_ALIMENTO, MOTIVO_NOMES[MOTIVO_ALTERAR_QTD_ALIMENTO]),
+        (MOTIVO_OUTROS, MOTIVO_NOMES[MOTIVO_OUTROS]),
+    )
+
+    cronograma = models.ForeignKey(Cronograma, on_delete=models.PROTECT,
+                                   related_name='solicitacoes_de_alteracao')
+
+    etapas = models.ManyToManyField(AlteracaoCronogramaEtapa)
+
+    motivo = MultiSelectField(choices=MOTIVO_CHOICES)
+    justificativa = models.TextField('Justificativa de solicitação pelo fornecedor', blank=True)
+    usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+    numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=50, unique=True)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        log_transicao = LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.CRONOGRAMA_SOLICITADO_ALTERACAO_FORNECEDOR,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+        )
+        return log_transicao
+
+    def __str__(self):
+        return f'Solicitação de alteração do cronograma: {self.numero_solicitacao}'
+
+    class Meta:
+        verbose_name = 'Solicitação de Alteração de Cronograma'
+        verbose_name_plural = 'Solicitações de Alteração de Cronograma'

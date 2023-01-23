@@ -22,7 +22,8 @@ from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPaginati
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
     EmbalagemQldCreateSerializer,
-    LaboratorioCreateSerializer
+    LaboratorioCreateSerializer,
+    SolicitacaoDeAlteracaoCronogramaCreateSerializer
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaRascunhosSerializer,
@@ -30,7 +31,13 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     EmbalagemQldSerializer,
     LaboratorioSerializer
 )
-from sme_terceirizadas.pre_recebimento.models import Cronograma, EmbalagemQld, EtapasDoCronograma, Laboratorio
+from sme_terceirizadas.pre_recebimento.models import (
+    Cronograma,
+    EmbalagemQld,
+    EtapasDoCronograma,
+    Laboratorio,
+    SolicitacaoAlteracaoCronograma
+)
 
 
 class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
@@ -138,3 +145,9 @@ class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
         queryset = EmbalagemQld.objects.all().values_list('nome', flat=True)
         response = {'results': queryset}
         return Response(response)
+
+
+class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacaoAlteracaoCronograma.objects.all()
+    serializer_class = SolicitacaoDeAlteracaoCronogramaCreateSerializer

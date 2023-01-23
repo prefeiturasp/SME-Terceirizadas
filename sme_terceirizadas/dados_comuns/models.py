@@ -80,10 +80,12 @@ class LogSolicitacoesUsuario(
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
         MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
         MEDICAO_ENCERRADA_PELA_CODAE,
+        # CRONOGRAMA
         CRONOGRAMA_CRIADO,
         CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
         CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
-    ) = range(59)
+        CRONOGRAMA_SOLICITADO_ALTERACAO_FORNECEDOR,
+    ) = range(60)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -183,6 +185,7 @@ class LogSolicitacoesUsuario(
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
         (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
         (CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR, 'Entrega Confirmada'),
+        (CRONOGRAMA_SOLICITADO_ALTERACAO_FORNECEDOR, 'Alteração Fornecedor')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,

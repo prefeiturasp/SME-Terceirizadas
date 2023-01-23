@@ -1,16 +1,20 @@
 from datetime import date
 
-from rest_framework import serializers
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework import fields, serializers
+from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
+    AlteracaoCronogramaEtapa,
     Cronograma,
     EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
-    ProgramacaoDoRecebimentoDoCronograma
+    ProgramacaoDoRecebimentoDoCronograma,
+    SolicitacaoAlteracaoCronograma
 )
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
@@ -186,3 +190,46 @@ class EmbalagemQldCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmbalagemQld
         exclude = ('id', )
+
+
+def novo_numero_solicitacao(objeto):
+    # Nova regra para sequência de numeração.
+    objeto.numero_solicitacao = f'{str(objeto.pk).zfill(8)}-ALT'
+    objeto.save()
+
+
+class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializer):
+    motivo = fields.MultipleChoiceField(choices=SolicitacaoAlteracaoCronograma.MOTIVO_CHOICES)
+    cronograma = serializers.UUIDField()
+    etapas = serializers.JSONField(write_only=True)
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        uuid_cronograma = validated_data.pop('cronograma', None)
+        etapas = validated_data.pop('etapas', [])
+        try:
+            cronograma = Cronograma.objects.get(uuid=uuid_cronograma)
+            etapas_create = []
+            for etapa in etapas:
+                etapas_create.append(AlteracaoCronogramaEtapa.objects.create(
+                    etapa=EtapasDoCronograma.objects.get(uuid=etapa['uuid']),
+                    nova_data_programada=etapa['nova_data_programada']
+                ))
+            alteracao_cronograma = SolicitacaoAlteracaoCronograma.objects.create(
+                usuario_solicitante=user,
+                cronograma=cronograma, **validated_data,
+            )
+            novo_numero_solicitacao(alteracao_cronograma)
+            alteracao_cronograma.etapas.set(etapas_create)
+            try:
+                cronograma.solicita_alteracao(user=user, justificativa=validated_data.get('justificativa', ''))
+                alteracao_cronograma.inicia_fluxo(user=user, justificativa=validated_data.get('justificativa', ''))
+            except InvalidTransitionError as e:
+                raise serializers.ValidationError(f'Erro de transição de estado: {e}')
+        except ObjectDoesNotExist as e:
+            raise serializers.ValidationError(f'Cronograma não existe: {e}')
+        return alteracao_cronograma
+
+    class Meta:
+        model = SolicitacaoAlteracaoCronograma
+        exclude = ('id', 'usuario_solicitante')
