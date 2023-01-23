@@ -35,7 +35,6 @@ class EtapasDoCronogramaSerializer(serializers.ModelSerializer):
 
 
 class CronogramaSerializer(serializers.ModelSerializer):
-    # TODO: Verificar necessidade de outros serializers
     etapas = EtapasDoCronogramaSerializer(many=True)
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(many=True)
     armazem = DistribuidorSimplesSerializer()

@@ -20,7 +20,6 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
     )
 
     numero = models.CharField('Número do Cronograma', blank=True, max_length=50, unique=True)
-    # Criar validate pra ver se contrato pertence a empresa
     contrato = models.ForeignKey(Contrato, on_delete=models.CASCADE, blank=True, null=True)
     empresa = models.ForeignKey(
         Terceirizada, on_delete=models.CASCADE, blank=True, null=True)
