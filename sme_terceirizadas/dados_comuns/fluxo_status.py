@@ -1689,7 +1689,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         return list(email_query_set_terceirizada)
 
     @property
-    def _partes_interessadas_dre_valida_ou_nao(self):
+    def _partes_interessadas_dre_nao_valida(self):
         email_query_set_escola = self.rastro_escola.vinculos.filter(
             ativo=True
         ).values_list('usuario__email', flat=True)
@@ -1791,15 +1791,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _dre_valida_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de solicitação - #' + self.id_externo
-            # manda email pra escola que solicitou de que a solicitacao foi
-            # validada
-
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
                                       usuario=user)
-            self._preenche_template_e_envia_email(
-                assunto, titulo, user, self._partes_interessadas_dre_valida_ou_nao)
 
     @xworkflows.after_transition('dre_pede_revisao')
     def _dre_pede_revisao_hook(self, *args, **kwargs):
@@ -1821,7 +1814,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                       justificativa=justificativa,
                                       usuario=user)
             self._preenche_template_e_envia_email(
-                assunto, titulo, user, self._partes_interessadas_dre_valida_ou_nao)
+                assunto, titulo, user, self._partes_interessadas_dre_nao_valida)
 
     @xworkflows.after_transition('escola_revisa')
     def _escola_revisa_hook(self, *args, **kwargs):
