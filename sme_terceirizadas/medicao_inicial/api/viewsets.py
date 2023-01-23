@@ -123,8 +123,11 @@ class ValorMedicaoViewSet(
         queryset = ValorMedicao.objects.all()
         nome_periodo_escolar = self.request.query_params.get('nome_periodo_escolar', '')
         uuid_solicitacao_medicao = self.request.query_params.get('uuid_solicitacao_medicao', '')
+        nome_grupo = self.request.query_params.get('nome_grupo', '')
         if nome_periodo_escolar:
             queryset = queryset.filter(medicao__periodo_escolar__nome=nome_periodo_escolar)
+        if nome_grupo:
+            queryset = queryset.filter(medicao__grupo__nome=nome_grupo)
         if uuid_solicitacao_medicao:
             queryset = queryset.filter(medicao__solicitacao_medicao_inicial__uuid=uuid_solicitacao_medicao)
         return queryset

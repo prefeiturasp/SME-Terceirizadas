@@ -20,6 +20,7 @@ from ...dados_comuns.permissions import (
     UsuarioNutricionista,
     UsuarioTerceirizada
 )
+from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
@@ -706,28 +707,34 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         ano = request.query_params.get('ano')
         date = datetime.date(int(ano), int(mes), 1)
         nome_periodo_escolar = request.query_params.get('nome_periodo_escolar')
+
         query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
         query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         query_set = query_set.filter(
             Q(data_evento__month=mes, data_evento__year=ano) |
             Q(data_evento__lt=date, data_evento_2__gte=date)
         )
+        query_set = query_set.filter(
+            data_evento__lt=datetime.date.today()
+        )
         query_set = self._remove_duplicados_do_query_set(query_set)
 
         return_dict = []
 
         def append(dia, periodo, inclusao):
-            alimentacoes = ', '.join([
-                unicodedata.normalize('NFD', alimentacao.nome).encode(
-                    'ascii', 'ignore').decode('utf-8') for alimentacao in periodo.tipos_alimentacao.all()]).lower()
-            return_dict.append({
-                'dia': f'{dia:02d}',
-                'periodo': f'{periodo.periodo_escolar.nome}',
-                'alimentacoes': alimentacoes,
-                'numero_alunos': periodo.numero_alunos,
-                'dias_semana': periodo.dias_semana,
-                'inclusao_id_externo': inclusao.id_externo
-            })
+            if (get_ultimo_dia_mes(datetime.date(int(ano), int(mes), 1)) < datetime.date.today() or
+                    dia < datetime.date.today().day):
+                alimentacoes = ', '.join([
+                    unicodedata.normalize('NFD', alimentacao.nome).encode(
+                        'ascii', 'ignore').decode('utf-8') for alimentacao in periodo.tipos_alimentacao.all()]).lower()
+                return_dict.append({
+                    'dia': f'{dia:02d}',
+                    'periodo': f'{periodo.periodo_escolar.nome}',
+                    'alimentacoes': alimentacoes,
+                    'numero_alunos': periodo.numero_alunos,
+                    'dias_semana': periodo.dias_semana,
+                    'inclusao_id_externo': inclusao.id_externo
+                })
 
         for inclusao in query_set:
             inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
@@ -745,13 +752,12 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                             data_evento_final_no_mes = inclusao.data_evento_2.day
                         if inclusao.data_evento_2.month != inclusao.data_evento.month and not big_range:
                             data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
-                        while (i <= data_evento_final_no_mes):
+                        while i <= data_evento_final_no_mes:
                             if not periodo.dias_semana or datetime.date(int(ano), int(mes), i).weekday() in periodo.dias_semana: # noqa E501
                                 append(i, periodo, inclusao)
                             i += 1
                     else:
                         append(inclusao.data_evento.day, periodo, inclusao)
-
         data = {
             'results': return_dict
         }

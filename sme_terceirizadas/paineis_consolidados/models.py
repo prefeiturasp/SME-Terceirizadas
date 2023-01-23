@@ -360,7 +360,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         return resultado
 
     @classmethod
-    def busca_filtro(cls, queryset, query_params, **kwargs):
+    def busca_filtro(cls, queryset, query_params, **kwargs):  # noqa C901
         if query_params.get('busca'):
             queryset = queryset.filter(
                 Q(uuid__icontains=query_params.get('busca')) |
@@ -377,6 +377,10 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                 terceirizada_conferiu_gestao=query_params.get('status') == '1')
         if query_params.get('diretoria_regional'):
             queryset = queryset.filter(dre_uuid=query_params.get('diretoria_regional'))
+        if query_params.get('tipo_doc'):
+            queryset = queryset.filter(tipo_doc=query_params.get('tipo_doc'))
+        if query_params.get('excluir_inclusoes_continuas'):
+            queryset = queryset.exclude(tipo_doc='INC_ALIMENTA_CONTINUA')
         queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
         queryset = cls.busca_data_evento(queryset, query_params)
         return queryset

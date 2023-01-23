@@ -12,6 +12,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     AnexoOcorrenciaMedicaoInicial,
     CategoriaMedicao,
     DiaSobremesaDoce,
+    GrupoMedicao,
     Medicao,
     Responsavel,
     SolicitacaoMedicaoInicial,
@@ -199,6 +200,11 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         slug_field='nome',
         required=True,
         queryset=PeriodoEscolar.objects.all(),
+    )
+    grupo = serializers.SlugRelatedField(
+        slug_field='nome',
+        required=False,
+        queryset=GrupoMedicao.objects.all(),
     )
     valores_medicao = ValorMedicaoCreateUpdateSerializer(many=True, required=False)
 
