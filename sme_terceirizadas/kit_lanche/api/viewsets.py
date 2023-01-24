@@ -501,7 +501,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, url_path=constants.ESCOLA_CANCELA, methods=['patch'],
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def escola_cancela(self, request, uuid=None):
         DIAS_PARA_CANCELAR = 2
         usuario = request.user
