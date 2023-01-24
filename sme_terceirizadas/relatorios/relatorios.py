@@ -84,27 +84,28 @@ def relatorio_kit_lanche_unificado(request, solicitacao):
 
     if usuario_eh_escola:
         sol_unificada_escola = solicitacao.escolas_quantidades.filter(escola__uuid=instituicao.uuid)[0]
-        inst_sol_unificada_escola = sol_unificada_escola.cancelado_por.vinculo_atual.instituicao
-        if sol_unificada_escola.cancelado and isinstance(inst_sol_unificada_escola, Escola):
-            status_ev = LogSolicitacoesUsuario.ESCOLA_CANCELOU
-            log_criado = LogSolicitacoesUsuario.objects.create(
-                descricao=str(solicitacao),
-                status_evento=status_ev,
-                solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
-                usuario=sol_unificada_escola.cancelado_por,
-                uuid_original=solicitacao.uuid,
-                justificativa=sol_unificada_escola.cancelado_justificativa,
-                resposta_sim_nao=False,
-                criado_em=sol_unificada_escola.cancelado_em
-            )
-            uuid_log_temporario = log_criado.uuid
-            log_criado.criado_em = sol_unificada_escola.cancelado_em
-            log_criado.save()
-            log_temporario = True
-            logs_escola_cancelou = solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU)
-            log_outra_escola = logs_escola_cancelou.exclude(uuid=uuid_log_temporario)
-            if log_outra_escola:
-                logs = solicitacao.logs.exclude(uuid=log_outra_escola.first().uuid)
+        if sol_unificada_escola.cancelado:
+            inst_sol_unificada_escola = sol_unificada_escola.cancelado_por.vinculo_atual.instituicao
+            if sol_unificada_escola.cancelado and isinstance(inst_sol_unificada_escola, Escola):
+                status_ev = LogSolicitacoesUsuario.ESCOLA_CANCELOU
+                log_criado = LogSolicitacoesUsuario.objects.create(
+                    descricao=str(solicitacao),
+                    status_evento=status_ev,
+                    solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
+                    usuario=sol_unificada_escola.cancelado_por,
+                    uuid_original=solicitacao.uuid,
+                    justificativa=sol_unificada_escola.cancelado_justificativa,
+                    resposta_sim_nao=False,
+                    criado_em=sol_unificada_escola.cancelado_em
+                )
+                uuid_log_temporario = log_criado.uuid
+                log_criado.criado_em = sol_unificada_escola.cancelado_em
+                log_criado.save()
+                log_temporario = True
+                logs_escola_cancelou = solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU)
+                log_outra_escola = logs_escola_cancelou.exclude(uuid=uuid_log_temporario)
+                if log_outra_escola:
+                    logs = solicitacao.logs.exclude(uuid=log_outra_escola.first().uuid)
 
     html_string = render_to_string(
         'solicitacao_kit_lanche_unificado.html',
