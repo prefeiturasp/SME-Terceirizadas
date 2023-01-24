@@ -413,6 +413,18 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return ContatoSerializer(obj.instituicao.contato).data
 
+    def get_modulo_gestao(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.modulo_gestao
+
+    def get_eh_cei(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.eh_cei
+
+    def get_eh_cemei(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.eh_cemei
+
     def get_instituicao(self, obj):
         instituicao_dict = {'nome': obj.instituicao.nome,
                             'uuid': obj.instituicao.uuid,
@@ -424,6 +436,9 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                             'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj),
                             'tipo_unidade_escolar_iniciais': self.get_tipo_unidade_escolar_iniciais(obj),
                             'tipo_gestao': self.get_tipo_gestao(obj),
+                            'modulo_gestao': self.get_modulo_gestao(obj),
+                            'eh_cei': self.get_eh_cei(obj),
+                            'eh_cemei': self.get_eh_cemei(obj),
                             'tipos_contagem': self.get_tipos_contagem(obj),
                             'endereco': self.get_endereco(obj),
                             'contato': self.get_contato(obj)}
