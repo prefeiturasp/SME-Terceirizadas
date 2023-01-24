@@ -160,12 +160,13 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 'codigo_eol': '256341',
                 'quantidade_alunos': 450,
                 'lotes': [],
+                'eh_cei': False,
+                'eh_cemei': False,
+                'modulo_gestao': 'TERCEIRIZADA',
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                    'codigo_eol': '987656',
-                    'iniciais': 'IP'
-                },
+                    'codigo_eol': '987656', 'iniciais': 'IP'},
                 'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
                 'tipo_unidade_escolar_iniciais': 'EMEF',
                 'tipo_gestao': 'TERC TOTAL',
@@ -188,9 +189,9 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 }
             },
             'perfil': {
-                'nome': 'ADMINISTRADOR_ESCOLA',
-                'uuid': '48330a6f-c444-4462-971e-476452b328b2',
-                'visao': None
+                'nome': 'ADMINISTRADOR_UE',
+                'visao': None,
+                'uuid': '48330a6f-c444-4462-971e-476452b328b2'
             },
             'ativo': False
         },
@@ -200,7 +201,7 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     usuario_novo = Usuario.objects.get(registro_funcional='5696569')
     assert usuario_novo.is_active is False
     assert usuario_novo.vinculo_atual is not None
-    assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_ESCOLA'
+    assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_UE'
 
 
 def test_erro_403_usuario_nao_pertence_a_escola_cadastro_vinculos(escola, users_diretor_escola, monkeypatch):
@@ -248,7 +249,7 @@ def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
     response.json()[0].pop('uuid')
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
+         'perfil': {'nome': 'ADMINISTRADOR_UE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva', 'cpf': '11111111111',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'tipo_usuario': 'escola',
                      'cargo': ''}}]
@@ -591,6 +592,9 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             'codigo_eol': '256341',
             'quantidade_alunos': 450,
             'lotes': [],
+            'eh_cei': False,
+            'eh_cemei': False,
+            'modulo_gestao': 'TERCEIRIZADA',
             'diretoria_regional': {
                 'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                 'nome': 'DIRETORIA REGIONAL IPIRANGA',
@@ -678,6 +682,9 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
                     'codigo_eol': '987656',
                     'iniciais': 'IP'
                 },
+                'eh_cei': False,
+                'eh_cemei': False,
+                'modulo_gestao': 'TERCEIRIZADA',
                 'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
                 'tipo_unidade_escolar_iniciais': 'EMEF',
                 'tipo_gestao': 'TERC TOTAL',

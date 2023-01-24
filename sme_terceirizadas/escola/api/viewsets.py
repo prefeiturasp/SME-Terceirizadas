@@ -13,10 +13,10 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelV
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DRE,
-    ADMINISTRADOR_ESCOLA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
-    ADMINISTRADOR_SUPERVISAO_NUTRICAO
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+    ADMINISTRADOR_UE
 )
 from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
@@ -120,7 +120,7 @@ class VinculoViewSet(ReadOnlyModelViewSet):
 class VinculoEscolaViewSet(VinculoViewSet):
     queryset = Escola.objects.all()
     permission_classes = [PodeCriarAdministradoresDaEscola]
-    nome_perfil = ADMINISTRADOR_ESCOLA
+    nome_perfil = ADMINISTRADOR_UE
 
 
 class VinculoDiretoriaRegionalViewSet(VinculoViewSet):

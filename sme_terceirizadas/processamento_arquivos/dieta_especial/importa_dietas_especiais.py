@@ -165,7 +165,7 @@ class ProcessadorPlanilha:
         email_fake = f'fake{escola.id}@admin.com'
         usuario_escola = Usuario.objects.filter(email=email_fake).first()
         if not usuario_escola:
-            perfil = Perfil.objects.get(nome='DIRETOR')
+            perfil = Perfil.objects.get(nome='DIRETOR_UE')
             data_atual = date.today()
             # Esse Usuário não consegue acessar o sistema
             # Troquei a senha pra reforçar que essa não funciona

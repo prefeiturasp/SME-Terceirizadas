@@ -38,7 +38,7 @@ def client_autenticado_vinculo_escola(client, django_user_model):
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     lote = mommy.make('Lote', nome='lote', iniciais='lt')
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
     cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
@@ -47,9 +47,10 @@ def client_autenticado_vinculo_escola(client, django_user_model):
                                       iniciais=f.name()[:10],
                                       cardapios=[cardapio1, cardapio2],
                                       uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
-                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar, lote=lote)
+                        tipo_gestao=tipo_gestao, codigo_eol='256341', tipo_unidade=tipo_unidade_escolar, lote=lote)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
@@ -214,7 +215,7 @@ def client_autenticado_escola_abastecimento(client, django_user_model, escola):
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_escola_abastecimento = mommy.make('Perfil',
-                                                   nome=constants.ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
+                                                   nome=constants.ADMINISTRADOR_UE,
                                                    ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_admin_escola_abastecimento,

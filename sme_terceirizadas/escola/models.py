@@ -436,6 +436,12 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         return self.tipo_unidade and self.tipo_unidade.iniciais in ['CEU CEMEI', 'CEMEI']
 
     @property
+    def modulo_gestao(self):
+        if self.tipo_gestao and self.tipo_gestao.nome == 'TERC TOTAL':
+            return 'TERCEIRIZADA'
+        return 'ABASTECIMENTO'
+
+    @property
     def periodos_escolares_com_alunos(self):
         return list(self.aluno_set.values_list('periodo_escolar__nome', flat=True).distinct())
 

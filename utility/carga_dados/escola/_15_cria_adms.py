@@ -13,7 +13,7 @@ perfil_diretor_escola_cei, created = Perfil.objects.get_or_create(
 )
 
 perfil_administrador_escola, created = Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_ESCOLA',
+    nome='ADMINISTRADOR_UE',
     ativo=True,
     super_usuario=True
 )

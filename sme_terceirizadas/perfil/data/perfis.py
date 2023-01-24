@@ -1,31 +1,11 @@
 data_perfis = [
     {
-        'nome': 'DIRETOR',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'DIRETOR_CEI',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'DIRETOR_ABASTECIMENTO',
+        'nome': 'DIRETOR_UE',
         'ativo': True,
         'super_usuario': True,
     },
     {
         'nome': 'COORDENADOR_ESCOLA',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_ESCOLA',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_ESCOLA_ABASTECIMENTO',
         'ativo': True,
         'super_usuario': True,
     },
@@ -130,17 +110,7 @@ data_perfis = [
         'super_usuario': True,
     },
     {
-        'nome': 'ADMINISTRADOR_UE_MISTA',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_UE_DIRETA',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_UE_PARCEIRA',
+        'nome': 'ADMINISTRADOR_UE',
         'ativo': True,
         'super_usuario': True,
     },

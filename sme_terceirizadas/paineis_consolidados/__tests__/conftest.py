@@ -143,9 +143,9 @@ def users_diretor_escola(client, django_user_model, request, escola, templates, 
     user = django_user_model.objects.create_user(username=email, password=password,
                                                  email=email, registro_funcional=rf, cpf=cpf)
     client.login(username=email, password=password)
-    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
+    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,

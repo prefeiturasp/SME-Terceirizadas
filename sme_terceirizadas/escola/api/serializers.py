@@ -413,6 +413,18 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return ContatoSerializer(obj.instituicao.contato).data
 
+    def get_modulo_gestao(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.modulo_gestao
+
+    def get_eh_cei(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.eh_cei
+
+    def get_eh_cemei(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.eh_cemei
+
     def get_instituicao(self, obj):
         instituicao_dict = {'nome': obj.instituicao.nome,
                             'uuid': obj.instituicao.uuid,
@@ -427,9 +439,13 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                             'tipos_contagem': self.get_tipos_contagem(obj),
                             'endereco': self.get_endereco(obj),
                             'contato': self.get_contato(obj)}
-        if isinstance(obj.instituicao, Escola) and obj.instituicao.eh_cemei:
-            instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
-            instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
+        if isinstance(obj.instituicao, Escola):
+            instituicao_dict['eh_cei'] = self.get_eh_cei(obj)
+            instituicao_dict['eh_cemei'] = self.get_eh_cemei(obj)
+            instituicao_dict['modulo_gestao'] = self.get_modulo_gestao(obj)
+            if obj.instituicao.eh_cemei:
+                instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
+                instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
         return instituicao_dict
 
     class Meta:
