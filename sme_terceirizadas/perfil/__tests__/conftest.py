@@ -362,7 +362,7 @@ def users_terceirizada(client, django_user_model, request, usuario_2):
     terceirizada = mommy.make('Terceirizada', nome_fantasia='Alimentos LTDA',
                               uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 
-    perfil_nutri_admin_responsavel = mommy.make('Perfil', nome='NUTRI_ADMIN_RESPONSAVEL', ativo=True,
+    perfil_nutri_admin_responsavel = mommy.make('Perfil', nome='ADMINISTRADOR_EMPRESA', ativo=True,
                                                 uuid='48330a6f-c444-4462-971e-476452b328b2')
     perfil_administrador_terceirizada = mommy.make('Perfil', nome='ADMINISTRADOR_EMPRESA',
                                                    ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')

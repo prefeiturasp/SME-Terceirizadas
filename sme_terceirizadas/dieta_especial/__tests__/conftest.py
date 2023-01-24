@@ -326,7 +326,7 @@ def client_autenticado_vinculo_terceirizada_dieta(client, django_user_model, esc
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_nutri_admin = mommy.make('Perfil', nome=constants.NUTRI_ADMIN_RESPONSAVEL,
+    perfil_nutri_admin = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                     ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_nutri_admin,

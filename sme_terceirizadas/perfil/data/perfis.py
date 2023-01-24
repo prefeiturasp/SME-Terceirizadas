@@ -55,11 +55,6 @@ data_perfis = [
         'super_usuario': True,
     },
     {
-        'nome': 'NUTRI_ADMIN_RESPONSAVEL',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
         'nome': 'ADMINISTRADOR_EMPRESA',
         'ativo': True,
         'super_usuario': True,

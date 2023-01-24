@@ -816,7 +816,7 @@ def client_autenticado_vinculo_terceirizada_cardapio(client, django_user_model, 
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_nutri_admin = mommy.make('Perfil', nome=constants.NUTRI_ADMIN_RESPONSAVEL,
+    perfil_nutri_admin = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                     ativo=True,
                                     uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
     hoje = datetime.date.today()

@@ -1174,7 +1174,6 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     def _partes_interessadas_codae_homologa_ou_nao_homologa(self):
         # Envia email somente para ESCOLAS selecionadas
-        # NUTRI_ADMIN_RESPONSAVEL.
         escolas_ids = m.Escola.objects.filter(
             enviar_email_por_produto=True
         ).values_list('id', flat=True)
@@ -1187,18 +1186,11 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             vinculos__ativo=True
         ).values_list('email', flat=True).distinct()
 
-        usuarios_vinculos_perfil = Usuario.objects.filter(
-            vinculos__ativo=True,
-            vinculos__perfil__nome__in=(
-                'NUTRI_ADMIN_RESPONSAVEL',
-            )
-        ).values_list('email', flat=True).distinct()
-
         usuarios_terceirizada = self.rastro_terceirizada.todos_emails_por_modulo('Gestão de Produto')
         if self.status == self.workflow_class.CODAE_NAO_HOMOLOGADO:
             usuarios_terceirizada = self.rastro_terceirizada.emails_por_modulo('Gestão de Produto')
 
-        return list(usuarios_escolas_selecionadas) + list(usuarios_vinculos_perfil) + usuarios_terceirizada
+        return list(usuarios_escolas_selecionadas) + usuarios_terceirizada
 
     def _envia_email_codae_homologa(self, log_transicao, link_pdf):
         html = render_to_string(
@@ -2681,7 +2673,6 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             vinculos__perfil__nome__in=[
                 'ADMINISTRADOR_UE',
                 'DIRETOR_UE',
-                'NUTRI_ADMIN_RESPONSAVEL',
                 'COORDENADOR_SUPERVISAO_NUTRICAO',
                 'ADMINISTRADOR_SUPERVISAO_NUTRICAO']
         )

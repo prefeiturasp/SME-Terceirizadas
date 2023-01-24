@@ -749,10 +749,10 @@ def test_busca_vinculos_ativos(client, users_terceirizada):
 
 
 def test_busca_vinculos_ativos_com_filtro(client, users_terceirizada):
-    response = client.get(f'/vinculos/vinculos-ativos/?perfil=NUTRI_ADMIN_RESPONSAVEL')
+    response = client.get(f'/vinculos/vinculos-ativos/?perfil=ADMINISTRADOR_EMPRESA')
     assert response.status_code == status.HTTP_200_OK
     for resultado in response.json()['results']:
-        assert resultado.get('nome_perfil') == 'NUTRI_ADMIN_RESPONSAVEL'
+        assert resultado.get('nome_perfil') == 'ADMINISTRADOR_EMPRESA'
 
 
 def test_url_visoes(client_autenticado):

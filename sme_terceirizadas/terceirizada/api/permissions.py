@@ -1,9 +1,9 @@
 from rest_framework import permissions
 
 from ...dados_comuns.constants import (
+    ADMINISTRADOR_EMPRESA,
     COORDENADOR_DIETA_ESPECIAL,
-    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    NUTRI_ADMIN_RESPONSAVEL
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
 
 
@@ -23,7 +23,7 @@ class PodeCriarAdministradoresDaTerceirizada(permissions.BasePermission):
     def has_permission(self, request, view):
         usuario = request.user
         if not usuario.is_anonymous:
-            perfil_nutri_admin = usuario.vinculo_atual.perfil.nome in [NUTRI_ADMIN_RESPONSAVEL,
+            perfil_nutri_admin = usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA,
                                                                        COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                                        COORDENADOR_DIETA_ESPECIAL]
             return perfil_nutri_admin

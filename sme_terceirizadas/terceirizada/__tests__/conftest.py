@@ -77,8 +77,6 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
                                     uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
     mommy.make('Perfil', nome='ADMINISTRADOR_EMPRESA', ativo=True,
                uuid='11c22490-e040-4b4a-903f-54d1b1e57b08')
-    mommy.make('Perfil', nome='NUTRI_ADMIN_RESPONSAVEL', ativo=True,
-               uuid='564fc542-2260-430e-b29d-ddac1ef81d47')
     terceirizada = mommy.make(Terceirizada, uuid='66c1bdd1-9cec-4f1f-a2f6-008f27713e53', ativo=True)
     lote1 = mommy.make('Lote', uuid='143c2550-8bf0-46b4-b001-27965cfcd107')
     lote2 = mommy.make('Lote', uuid='42d3887a-517b-4a72-be78-95d96d857236', terceirizada=terceirizada)
