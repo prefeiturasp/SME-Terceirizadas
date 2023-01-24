@@ -402,6 +402,10 @@ class MatriculadosQuandoCriado(models.Model):
 class CanceladoIndividualmente(models.Model):
     cancelado = models.BooleanField('Esta cancelado?', default=False)
     cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
+    cancelado_em = models.DateTimeField('Cancelado em', null=True, blank=True)
+    cancelado_por = models.ForeignKey(
+        'perfil.Usuario', on_delete=models.DO_NOTHING, null=True, blank=True
+    )
 
     class Meta:
         abstract = True
