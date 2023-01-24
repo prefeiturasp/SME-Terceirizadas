@@ -452,10 +452,10 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_get_detalhe(
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificado_relatorio(
-    client_autenticado,
+    client_autenticado_da_escola,
     solicitacao_unificada_lista_igual_codae_questionado
 ):
-    response = client_autenticado.get(
+    response = client_autenticado_da_escola.get(
         f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual_codae_questionado.uuid}/{constants.RELATORIO}/'
     )
     id_externo = solicitacao_unificada_lista_igual_codae_questionado.id_externo

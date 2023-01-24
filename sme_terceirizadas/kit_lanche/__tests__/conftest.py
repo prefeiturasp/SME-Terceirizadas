@@ -62,6 +62,20 @@ def mocks_kit_lanche_cemei():
 
 
 @pytest.fixture
+def usuario_escola(django_user_model, escola):
+    email = 'userescola@escola.com'
+    password = DJANGO_ADMIN_PASSWORD
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='1234567',
+                                                    )
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    return usuario
+
+
+@pytest.fixture
 def client_autenticado_da_escola(client, django_user_model, escola, aluno, mocks_kit_lanche_cemei):
     email = 'user@escola.com'
     password = DJANGO_ADMIN_PASSWORD
@@ -217,14 +231,19 @@ def solicitacao_avulsa_codae_autorizado(solicitacao_avulsa, escola):
 
 
 @pytest.fixture
-def solicitacao_unificada_lista_igual(escola, diretoria_regional, terceirizada):
+def solicitacao_unificada_lista_igual(escola, diretoria_regional, terceirizada, usuario_escola):
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,
                                         data=datetime.date(2019, 10, 14),
                                         tempo_passeio=models.SolicitacaoKitLanche.OITO_OU_MAIS,
                                         kits=kits)
-    escolas_quantidades = mommy.make('EscolaQuantidade', escola=escola, _quantity=10, quantidade_alunos=100)
+    escolas_quantidades = mommy.make('EscolaQuantidade',
+                                     escola=escola,
+                                     _quantity=10,
+                                     quantidade_alunos=100,
+                                     cancelado_por=usuario_escola,
+                                     )
     solicitacao_unificada = mommy.make(models.SolicitacaoKitLancheUnificada,
                                        local=fake.text()[:160],
                                        lista_kit_lanche_igual=True,
