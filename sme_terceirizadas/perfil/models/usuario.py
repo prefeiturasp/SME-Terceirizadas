@@ -316,9 +316,9 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     @transaction.atomic
     def atualiza_senha_sem_token(self, senha):
+        EOLServicoSGP.redefine_senha(self.username, senha)
         self.set_password(senha)
         self.save()
-        EOLServicoSGP.redefine_senha(self.username, senha)
 
     @transaction.atomic
     def atualiza_email(self, email):
