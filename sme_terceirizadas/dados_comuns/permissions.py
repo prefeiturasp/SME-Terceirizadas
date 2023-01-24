@@ -34,7 +34,7 @@ from .constants import (
     DIRETOR,
     DIRETOR_ABASTECIMENTO,
     DIRETOR_CEI,
-    DIRETOR_UE,
+    DIRETOR_UE
 )
 
 
@@ -53,7 +53,7 @@ class UsuarioEscolaTercTotal(BasePermission):
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Escola) and
             usuario.vinculo_atual.instituicao.modulo_gestao == 'terceirizada' and
-            usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_UE,]
+            usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_UE]
         )
 
     """Permite acesso ao objeto se o objeto pertence a essa escola."""

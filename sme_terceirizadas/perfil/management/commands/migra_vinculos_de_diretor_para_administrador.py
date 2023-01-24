@@ -2,8 +2,8 @@ import logging
 
 from django.core.management import BaseCommand
 
+from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_UE, DIRETOR, DIRETOR_ABASTECIMENTO, DIRETOR_CEI
 from sme_terceirizadas.perfil.models import Perfil, Vinculo
-from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_UE, DIRETOR, DIRETOR_ABASTECIMENTO,DIRETOR_CEI
 
 logger = logging.getLogger('sigpae.migra_vinculos_de_diretor_para_administrador')
 
