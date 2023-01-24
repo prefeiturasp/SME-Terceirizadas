@@ -25,8 +25,9 @@ def escola():
     contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
     return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional, contato=contato,
-                      uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
+                      tipo_gestao=tipo_gestao, uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
 
 
 @pytest.fixture
@@ -371,7 +372,7 @@ def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR, ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR_UE, ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
@@ -385,7 +386,7 @@ def client_autenticado_vinculo_escola_cei_inclusao(client, django_user_model, es
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888889')
-    perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR_CEI, ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR_UE, ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola_cei, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)

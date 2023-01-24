@@ -8,7 +8,6 @@ from .constants import (
     ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DISTRIBUIDORA,
-    ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
     ADMINISTRADOR_FORNECEDOR,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
@@ -17,9 +16,6 @@ from .constants import (
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     ADMINISTRADOR_TERCEIRIZADA,
     ADMINISTRADOR_UE,
-    ADMINISTRADOR_UE_DIRETA,
-    ADMINISTRADOR_UE_MISTA,
-    ADMINISTRADOR_UE_PARCEIRA,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -31,9 +27,6 @@ from .constants import (
     DILOG_DIRETORIA,
     DILOG_QUALIDADE,
     DINUTRE_DIRETORIA,
-    DIRETOR,
-    DIRETOR_ABASTECIMENTO,
-    DIRETOR_CEI,
     DIRETOR_UE
 )
 
@@ -52,7 +45,7 @@ class UsuarioEscolaTercTotal(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Escola) and
-            usuario.vinculo_atual.instituicao.modulo_gestao == 'terceirizada' and
+            usuario.vinculo_atual.instituicao.modulo_gestao == 'TERCEIRIZADA' and
             usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_UE]
         )
 
@@ -351,8 +344,8 @@ class PermissaoParaCriarUsuarioComCoresso(BasePermission):
             usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA, ADMINISTRADOR_FORNECEDOR,
                                                   ADMINISTRADOR_TERCEIRIZADA, COORDENADOR_LOGISTICA,
                                                   COORDENADOR_CODAE_DILOG_LOGISTICA,
-                                                  COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DIRETOR,
-                                                  DIRETOR_ABASTECIMENTO, DIRETOR_CEI, ADMINISTRADOR_REPRESENTANTE_CODAE]
+                                                  COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DIRETOR_UE,
+                                                  ADMINISTRADOR_REPRESENTANTE_CODAE]
         )
 
 
@@ -378,8 +371,8 @@ class UsuarioEscolaAbastecimento(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Escola) and
-            usuario.vinculo_atual.instituicao.modulo_gestao == 'abastecimento' and
-            usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_UE, ]
+            usuario.vinculo_atual.instituicao.modulo_gestao == 'ABASTECIMENTO' and
+            usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_UE]
         )
 
 
@@ -421,10 +414,7 @@ class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
                 ) or
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Escola) and
-                    usuario.vinculo_atual.perfil.nome in [
-                        ADMINISTRADOR_ESCOLA_ABASTECIMENTO, ADMINISTRADOR_UE_DIRETA, ADMINISTRADOR_UE_MISTA,
-                        ADMINISTRADOR_UE_PARCEIRA, DIRETOR_ABASTECIMENTO,
-                    ]
+                    usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_UE
                 )
             )
         )

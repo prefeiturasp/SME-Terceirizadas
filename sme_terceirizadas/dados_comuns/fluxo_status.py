@@ -2682,9 +2682,8 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         queryset = Usuario.objects.filter(
             vinculos__ativo=True,
             vinculos__perfil__nome__in=[
-                'ADMINISTRADOR_ESCOLA',
-                'DIRETOR',
-                'DIRETOR CEI',
+                'ADMINISTRADOR_UE',
+                'DIRETOR_UE',
                 'NUTRI_ADMIN_RESPONSAVEL',
                 'COORDENADOR_SUPERVISAO_NUTRICAO',
                 'ADMINISTRADOR_SUPERVISAO_NUTRICAO']

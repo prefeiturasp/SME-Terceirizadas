@@ -43,7 +43,9 @@ def escola():
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
-    return mommy.make('Escola', nome='EMEF TESTE', lote=lote, diretoria_regional=diretoria_regional)
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    return mommy.make('Escola', nome='EMEF TESTE', lote=lote, diretoria_regional=diretoria_regional,
+                      tipo_gestao=tipo_gestao)
 
 
 @pytest.fixture
@@ -111,7 +113,7 @@ def valor_medicao(medicao, categoria_medicao):
 def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
     password = 'admin@123'
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456',
                                                     )

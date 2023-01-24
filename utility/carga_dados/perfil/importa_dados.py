@@ -50,9 +50,8 @@ def cria_perfis():
 
 def cria_vinculos():
     perfil = {
-        'perfil_diretor_escola': Perfil.objects.get(nome='DIRETOR'),
-        'perfil_diretor_escola_cei': Perfil.objects.get(nome='DIRETOR_CEI'),
-        'perfil_diretor_escola_abastecimento': Perfil.objects.get(nome='DIRETOR_ABASTECIMENTO'),
+        'perfil_diretor_escola': Perfil.objects.get(nome='DIRETOR_UE'),
+        'perfil_administrador_ue': Perfil.objects.get(nome='ADMINISTRADOR_UE'),
         'perfil_cogestor_dre': Perfil.objects.get(nome='COGESTOR'),
         'perfil_usuario_codae': Perfil.objects.get(nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA'),  # noqa
         'perfil_usuario_dilog': Perfil.objects.get(nome='COORDENADOR_LOGISTICA'),  # noqa
@@ -61,14 +60,10 @@ def cria_vinculos():
         'perfil_usuario_nutri_manifestacao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO'),
         'perfil_coordenador_gestao_produto': Perfil.objects.get(nome='COORDENADOR_GESTAO_PRODUTO'),  # noqa
         'perfil_usuario_terceirizada': Perfil.objects.get(nome='NUTRI_ADMIN_RESPONSAVEL'),  # noqa
-        'perfil_usuario_ue': Perfil.objects.get(nome='ADMINISTRADOR_ESCOLA_ABASTECIMENTO'),
         'perfil_usuario_codae_dilog': Perfil.objects.get(nome='COORDENADOR_CODAE_DILOG_LOGISTICA'),
         'perfil_usuario_codae_gabinete': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_GABINETE'),
         'perfil_usuario_dilog_contabil': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_DILOG_CONTABIL'),
         'perfil_usuario_dilog_juridico': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_DILOG_JURIDICO'),
-        'perfil_usuario_ue_mista': Perfil.objects.get(nome='ADMINISTRADOR_UE_MISTA'),
-        'perfil_usuario_ue_direta': Perfil.objects.get(nome='ADMINISTRADOR_UE_DIRETA'),
-        'perfil_usuario_ue_parceira': Perfil.objects.get(nome='ADMINISTRADOR_UE_PARCEIRA'),
         'perfil_admin_fornecedor': Perfil.objects.get(nome='ADMINSTRADOR_FORNECEDOR'),
         'perfil_usuario_cronograma': Perfil.objects.get(nome='DILOG_CRONOGRAMA'),
         'perfil_usuario_qualidade': Perfil.objects.get(nome='DILOG_QUALIDADE'),
@@ -122,17 +117,17 @@ def cria_vinculos():
         },
         {
             'nome': 'CEI DIRET ENEDINA DE SOUSA CARVALHO',
-            'perfil': perfil['perfil_diretor_escola_cei'],
+            'perfil': perfil['perfil_diretor_escola'],
             'usuario': usuario['usuario_escola_cei'],
         },
         {
             'nome': 'CEU CEI MENINOS',
-            'perfil': perfil['perfil_diretor_escola_cei'],
+            'perfil': perfil['perfil_diretor_escola'],
             'usuario': usuario['usuario_escola_cei_ceu'],
         },
         {
             'nome': 'CCI/CIPS CAMARA MUNICIPAL DE SAO PAULO',
-            'perfil': perfil['perfil_diretor_escola_cei'],
+            'perfil': perfil['perfil_diretor_escola'],
             'usuario': usuario['usuario_escola_cci'],
         },
         {
@@ -172,27 +167,27 @@ def cria_vinculos():
         },
         {
             'nome': 'CEI DIRET ROBERTO ARANTES LANHOSO',
-            'perfil': perfil['perfil_usuario_ue'],
+            'perfil': perfil['perfil_administrador_ue'],
             'usuario': usuario['usuario_ue'],
         },
         {
             'nome': 'CEI DIRET PINHEIROS',
-            'perfil': perfil['perfil_usuario_ue_mista'],
+            'perfil': perfil['perfil_administrador_ue'],
             'usuario': usuario['usuario_ue_mista'],
         },
         {
             'nome': 'CIEJA ALUNA JESSICA NUNES HERCULANO',
-            'perfil': perfil['perfil_usuario_ue_direta'],
+            'perfil': perfil['perfil_administrador_ue'],
             'usuario': usuario['usuario_ue_direta'],
         },
         {
             'nome': 'CR.P.CONV FRATERNIDADE MARIA DE NAZARE',
-            'perfil': perfil['perfil_usuario_ue_parceira'],
+            'perfil': perfil['perfil_administrador_ue'],
             'usuario': usuario['usuario_ue_parceira'],
         },
         {
             'nome': 'CEI DIRET ROBERTO ARANTES LANHOSO',
-            'perfil': perfil['perfil_diretor_escola_abastecimento'],
+            'perfil': perfil['perfil_diretor_escola'],
             'usuario': usuario['usuario_diretor_ue_abastecimento'],
         },
         {

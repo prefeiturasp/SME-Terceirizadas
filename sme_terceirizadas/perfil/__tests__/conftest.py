@@ -24,7 +24,7 @@ def perfil_distribuidor():
 
 @pytest.fixture
 def perfil_escola():
-    return mommy.make(models.Perfil, nome='ADMINISTRADOR_ESCOLA', uuid='F38e10da-c5e3-4dd5-9916-010fc250595a')
+    return mommy.make(models.Perfil, nome='ADMINISTRADOR_UE', uuid='F38e10da-c5e3-4dd5-9916-010fc250595a')
 
 
 @pytest.fixture
@@ -103,7 +103,7 @@ def usuario_3():
 def usuario_com_rf_de_diretor(escola):
     hoje = datetime.date.today()
     perfil_diretor = mommy.make(
-        'Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+        'Perfil', nome='DIRETOR_UE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
     user = mommy.make(
         models.Usuario,
         registro_funcional='6580157'
@@ -201,7 +201,7 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
     mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
     perfil_professor = mommy.make(
-        'Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
+        'Perfil', nome='ADMINISTRADOR_UE', ativo=False)
     perfil_admin = mommy.make(
         'Perfil', nome='Admin', ativo=True, uuid='d6fd15cc-52c6-4db4-b604-018d22eeb3dd')
     hoje = datetime.date.today()
@@ -250,7 +250,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
                quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
     mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
-    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
+    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
     perfil_diretor = mommy.make(
         'Perfil', nome='COORDENADOR_ESCOLA', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')

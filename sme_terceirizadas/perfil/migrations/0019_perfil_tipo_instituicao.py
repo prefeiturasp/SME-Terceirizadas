@@ -5,11 +5,7 @@ from django.db import migrations, models
 def migrate_default_values(apps, schmema_editor):
     def get_perfil(nome):
         perfis_choices = {
-            'ADMINISTRADOR_UE_DIRETA': 'ESCOLA',
-            'ADMINISTRADOR_UE_MISTA': 'ESCOLA',
-            'ADMINSITRADOR_UE_PARCEIRA': 'ESCOLA',
-            'ADMINISTRADOR_UE_PARCEIRA': 'ESCOLA',
-            'ADMINISTRADOR_ESCOLA_ABASTECIMENTO': 'ESCOLA',
+            'ADMINISTRADOR_UE': 'ESCOLA',
             'ADMINISTRADOR_DRE': 'DRE',
             'COORDENADOR_CODAE_DILOG_LOGISTICA': 'CODAE',
             'ADMINISTRADOR_CODAE_DILOG_JURIDICO': 'CODAE',
@@ -19,7 +15,7 @@ def migrate_default_values(apps, schmema_editor):
             'ADMINISTRADOR_DISTRIBUIDORA': 'EMPRESA',
             'DIRETOR': 'ESCOLA',
             'DIRETOR_CEI': 'ESCOLA',
-            'ADMINISTRADOR_ESCOLA': 'ESCOLA',
+            'ADMINISTRADOR_UE': 'ESCOLA',
             'COORDENADOR_ESCOLA': 'ESCOLA',
             'COGESTOR': 'DRE',
             'COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO': 'CODAE',

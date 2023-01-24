@@ -268,7 +268,7 @@ def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
 def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
     password = DJANGO_ADMIN_PASSWORD
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456',
                                                     )
@@ -363,7 +363,7 @@ def client_autenticado_vinculo_escola_ue(client, django_user_model, escola):
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
 
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,

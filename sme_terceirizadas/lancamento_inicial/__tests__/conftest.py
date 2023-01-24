@@ -37,7 +37,7 @@ def escola(diretoria_regional, lote):
 def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
     password = DJANGO_ADMIN_PASSWORD
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456',
                                                     )

@@ -39,7 +39,8 @@ def dre_guaianases():
 @pytest.fixture
 def escola_dre_guaianases(dre_guaianases):
     lote = mommy.make('Lote')
-    return mommy.make('Escola', lote=lote, diretoria_regional=dre_guaianases)
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    return mommy.make('Escola', lote=lote, diretoria_regional=dre_guaianases, tipo_gestao=tipo_gestao)
 
 
 @pytest.fixture
@@ -167,7 +168,7 @@ def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_die
 
     mommy.make(AlergiaIntolerancia, id=1)
     perfil_professor = mommy.make(
-        'perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
+        'perfil.Perfil', nome='ADMINISTRADOR_UE', ativo=False)
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
                data_inicial=datetime.date.today(), ativo=True)  # ativo
 
@@ -249,12 +250,14 @@ def escola():
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make(
         'DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
     escola = mommy.make(
         'Escola',
         lote=lote,
         nome='EMEF JOAO MENDES',
         codigo_eol='000546',
-        diretoria_regional=diretoria_regional
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao
     )
     return escola
 
@@ -277,7 +280,7 @@ def client_autenticado_vinculo_escola_dieta(client, django_user_model, escola, t
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)

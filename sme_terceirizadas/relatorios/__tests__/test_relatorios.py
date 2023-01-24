@@ -43,7 +43,7 @@ def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_die
     client.login(username=email, password=password)
 
     perfil_professor = mommy.make(
-        'perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
+        'perfil.Perfil', nome='ADMINISTRADOR_UE', ativo=False)
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
                data_inicial=datetime.date.today(), ativo=True)  # ativo
 

@@ -436,15 +436,16 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                             'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj),
                             'tipo_unidade_escolar_iniciais': self.get_tipo_unidade_escolar_iniciais(obj),
                             'tipo_gestao': self.get_tipo_gestao(obj),
-                            'modulo_gestao': self.get_modulo_gestao(obj),
-                            'eh_cei': self.get_eh_cei(obj),
-                            'eh_cemei': self.get_eh_cemei(obj),
                             'tipos_contagem': self.get_tipos_contagem(obj),
                             'endereco': self.get_endereco(obj),
                             'contato': self.get_contato(obj)}
-        if isinstance(obj.instituicao, Escola) and obj.instituicao.eh_cemei:
-            instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
-            instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
+        if isinstance(obj.instituicao, Escola):
+            instituicao_dict['eh_cei'] = self.get_eh_cei(obj)
+            instituicao_dict['eh_cemei'] = self.get_eh_cemei(obj)
+            instituicao_dict['modulo_gestao'] = self.get_modulo_gestao(obj)
+            if obj.instituicao.eh_cemei:
+                instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
+                instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
         return instituicao_dict
 
     class Meta:

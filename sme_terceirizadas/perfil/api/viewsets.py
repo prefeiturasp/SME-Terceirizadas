@@ -24,9 +24,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_DISTRIBUIDORA,
     ADMINISTRADOR_FORNECEDOR,
     ADMINISTRADOR_TERCEIRIZADA,
-    DIRETOR,
-    DIRETOR_ABASTECIMENTO,
-    DIRETOR_CEI
+    DIRETOR_UE
 )
 from ...dados_comuns.permissions import PermissaoParaCriarUsuarioComCoresso, UsuarioSuperCodae
 from ...escola.api.serializers import UsuarioDetalheSerializer
@@ -219,8 +217,7 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['GET'], url_path='vinculos-ativos', permission_classes=(IsAuthenticated,))
     def lista_vinculos_ativos(self, request):
         usuario = request.user
-        if usuario.vinculo_atual.perfil.nome in [DIRETOR, DIRETOR_CEI, DIRETOR_ABASTECIMENTO,
-                                                 ADMINISTRADOR_TERCEIRIZADA, ADMINISTRADOR_DISTRIBUIDORA,
+        if usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_TERCEIRIZADA, ADMINISTRADOR_DISTRIBUIDORA,
                                                  ADMINISTRADOR_FORNECEDOR]:
             queryset = self.get_queryset().filter(
                 content_type=usuario.vinculo_atual.content_type,
@@ -329,7 +326,7 @@ def exportar_planilha_importacao_usuarios_perfil_escola(request, **kwargs):
         )
     dv = DataValidation(
         type='list',
-        formula1='"DIRETOR, DIRETOR CEI"',
+        formula1='"DIRETOR_UE"',
         allow_blank=True
     )
     dv.error = 'Perfil Inválido'

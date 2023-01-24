@@ -330,7 +330,7 @@ def cria_usuario_diretor(arquivo, in_memory=False):
     diretores_unicos = len(set([item['DIRETOR'] for item in items if item['DIRETOR'] != '']))  # noqa
 
     perfil_diretor, created = Perfil.objects.get_or_create(
-        nome='DIRETOR',
+        nome='DIRETOR_UE',
         ativo=True,
         super_usuario=True
     )

@@ -437,7 +437,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def modulo_gestao(self):
-        if self.tipo_gestao == 'TERC TOTAL':
+        if self.tipo_gestao and self.tipo_gestao.nome == 'TERC TOTAL':
             return 'TERCEIRIZADA'
         return 'ABASTECIMENTO'
 
