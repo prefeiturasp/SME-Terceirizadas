@@ -1,3 +1,5 @@
+import datetime
+
 from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.decorators import action
@@ -497,6 +499,36 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path=constants.ESCOLA_CANCELA, methods=['patch'],
+            permission_classes=(UsuarioEscolaTercTotal,))
+    def escola_cancela(self, request, uuid=None):
+        DIAS_PARA_CANCELAR = 2
+        usuario = request.user
+        justificativa = request.data.get('justificativa', '')
+        solicitacao_unificada = self.get_object()
+        dia_antecedencia = datetime.date.today(
+        ) + datetime.timedelta(days=DIAS_PARA_CANCELAR)
+        data_do_evento = solicitacao_unificada.data
+
+        if (data_do_evento > dia_antecedencia):
+            sol_unificada_escola = solicitacao_unificada.escolas_quantidades.filter(
+                escola__uuid=usuario.vinculo_atual.instituicao.uuid)[0]
+            sol_unificada_escola.cancelado = True
+            sol_unificada_escola.cancelado_justificativa = justificativa
+            sol_unificada_escola.cancelado_em = datetime.datetime.now()
+            sol_unificada_escola.cancelado_por = usuario
+            sol_unificada_escola.save()
+            if not solicitacao_unificada.escolas_quantidades.filter(cancelado=False):
+                try:
+                    solicitacao_unificada.cancelar_pedido(user=usuario, justificativa=justificativa)
+                except InvalidTransitionError as e:
+                    return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        else:
+            return Response(dict(detail=f'Só pode cancelar com no mínimo {DIAS_PARA_CANCELAR} dia(s) de antecedência'),
+                            status=HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
         solicitacao_kit_lanche_unificada = self.get_object()

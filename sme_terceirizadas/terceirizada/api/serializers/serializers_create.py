@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from ....dados_comuns.api.serializers import ContatoSerializer
-from ....dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA
+from ....dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from ....dados_comuns.models import Contato
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.models import DiretoriaRegional, Lote
@@ -269,7 +269,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             usuario.contatos.add(contato)
         usuario.criar_vinculo_administrador(
             terceirizada,
-            nome_perfil=ADMINISTRADOR_TERCEIRIZADA
+            nome_perfil=ADMINISTRADOR_EMPRESA
         )
         usuario.enviar_email_administrador()
 
@@ -303,7 +303,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             super_admin.cargo = cargo
             super_admin.crn_numero = None
             vinculo_atual = super_admin.vinculo_atual
-            vinculo_atual.perfil = Perfil.objects.get(nome='ADMINISTRADOR_TERCEIRIZADA')
+            vinculo_atual.perfil = Perfil.objects.get(nome='ADMINISTRADOR_EMPRESA')
             vinculo_atual.perfil.save()
             vinculo_atual.save()
             super_admin.save()

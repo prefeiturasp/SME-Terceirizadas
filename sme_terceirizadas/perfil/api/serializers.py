@@ -16,12 +16,11 @@ from sme_terceirizadas.perfil.models.usuario import (
 
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
-    ADMINISTRADOR_DISTRIBUIDORA,
     ADMINISTRADOR_DRE,
+    ADMINISTRADOR_EMPRESA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
-    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-    ADMINISTRADOR_TERCEIRIZADA
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO
 )
 from ...dados_comuns.models import Contato
 from ...eol_servico.utils import EOLException, EOLService
@@ -196,7 +195,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         usuario.save()
         usuario.criar_vinculo_administrador(
             terceirizada,
-            nome_perfil=ADMINISTRADOR_TERCEIRIZADA
+            nome_perfil=ADMINISTRADOR_EMPRESA
         )
 
     def create_distribuidor(self, terceirizada, validated_data):
@@ -210,17 +209,17 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         if usuario.super_admin_terceirizadas:
             usuario.criar_vinculo_administrador(
                 terceirizada,
-                nome_perfil=ADMINISTRADOR_DISTRIBUIDORA
+                nome_perfil=ADMINISTRADOR_EMPRESA
             )
         else:
             usuario.criar_vinculo_administrador(
                 terceirizada,
-                nome_perfil=ADMINISTRADOR_TERCEIRIZADA
+                nome_perfil=ADMINISTRADOR_EMPRESA
             )
         usuario.enviar_email_administrador()
 
     def update_distribuidor(self, terceirizada, validated_data):
-        nome_perfil = ADMINISTRADOR_DISTRIBUIDORA
+        nome_perfil = ADMINISTRADOR_EMPRESA
         novo_usuario = False
         email = validated_data.get('email')
         cpf = validated_data.get('cpf', None)
@@ -263,11 +262,11 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         if novo_usuario:
             usuario.criar_vinculo_administrador(
                 terceirizada,
-                nome_perfil=ADMINISTRADOR_TERCEIRIZADA
+                nome_perfil=ADMINISTRADOR_EMPRESA
             )
         else:
             vinculo = usuario.vinculo_atual
-            vinculo.perfil = Perfil.objects.get(nome=ADMINISTRADOR_TERCEIRIZADA)
+            vinculo.perfil = Perfil.objects.get(nome=ADMINISTRADOR_EMPRESA)
             vinculo.save()
 
     def create(self, validated_data):  # noqa C901

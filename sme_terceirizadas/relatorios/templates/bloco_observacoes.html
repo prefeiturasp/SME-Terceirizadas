@@ -1,7 +1,7 @@
 {% load index %}
 
 {% block observacoes %}
-    {% if solicitacao.observacao %}
+    {% if solicitacao.observacao and solicitacao.observacao != "<p></p>" %}
       <div class="observacoes">
         <div>
           <p class="cabecalho">Observações:</p>

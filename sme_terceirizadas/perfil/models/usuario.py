@@ -19,6 +19,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_CODAE_DILOG_CONTABIL,
     ADMINISTRADOR_CODAE_DILOG_JURIDICO,
     ADMINISTRADOR_CODAE_GABINETE,
+    ADMINISTRADOR_EMPRESA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_MEDICAO,
@@ -220,6 +221,26 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         return tipo_usuario
 
     @property
+    def eh_empresa(self):
+        return (
+            self.vinculo_atual and
+            self.vinculo_atual.content_type.app_label == 'terceirizada' and
+            self.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA]
+        )
+
+    @property
+    def eh_distribuidor(self):
+        return self.eh_empresa and self.vinculo_atual.instituicao.eh_distribuidor
+
+    @property
+    def eh_fornecedor(self):
+        return self.eh_empresa and self.vinculo_atual.instituicao.eh_fornecedor
+
+    @property
+    def eh_terceirizada(self):
+        return self.eh_empresa and self.vinculo_atual.instituicao.eh_terceirizada
+
+    @property
     def pode_efetuar_cadastro(self):
         dados_usuario = EOLService.get_informacoes_usuario(self.registro_funcional)  # noqa
         diretor_de_escola = False
@@ -295,9 +316,9 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     @transaction.atomic
     def atualiza_senha_sem_token(self, senha):
+        EOLServicoSGP.redefine_senha(self.username, senha)
         self.set_password(senha)
         self.save()
-        EOLServicoSGP.redefine_senha(self.username, senha)
 
     @transaction.atomic
     def atualiza_email(self, email):

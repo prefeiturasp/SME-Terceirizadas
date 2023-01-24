@@ -502,7 +502,7 @@ def test_get_equipe_administradora_vinculos_terceirizadas(users_terceirizada):
     response.json()[0].pop('uuid')
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'ADMINISTRADOR_TERCEIRIZADA',
+         'perfil': {'nome': 'USUARIO_EMPRESA',
                     'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'tipo_usuario': 'terceirizada', 'cargo': ''}
@@ -749,10 +749,10 @@ def test_busca_vinculos_ativos(client, users_terceirizada):
 
 
 def test_busca_vinculos_ativos_com_filtro(client, users_terceirizada):
-    response = client.get(f'/vinculos/vinculos-ativos/?perfil=NUTRI_ADMIN_RESPONSAVEL')
+    response = client.get(f'/vinculos/vinculos-ativos/?perfil=ADMINISTRADOR_EMPRESA')
     assert response.status_code == status.HTTP_200_OK
     for resultado in response.json()['results']:
-        assert resultado.get('nome_perfil') == 'NUTRI_ADMIN_RESPONSAVEL'
+        assert resultado.get('nome_perfil') == 'ADMINISTRADOR_EMPRESA'
 
 
 def test_url_visoes(client_autenticado):

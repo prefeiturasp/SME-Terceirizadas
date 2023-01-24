@@ -137,10 +137,7 @@ Perfil.objects.get_or_create(
     nome='ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', ativo=True, super_usuario=True)
 
 perfil_usuario_terceirizada, created = Perfil.objects.get_or_create(
-    nome='NUTRI_ADMIN_RESPONSAVEL', ativo=True, super_usuario=True)
-
-Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_TERCEIRIZADA', ativo=True, super_usuario=True)
+    nome='ADMINISTRADOR_EMPRESA', ativo=True, super_usuario=True)
 
 perfil_coordenador_gestao_produto, created = Perfil.objects.get_or_create(
     nome='COORDENADOR_GESTAO_PRODUTO', ativo=True, super_usuario=True)

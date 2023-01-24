@@ -59,7 +59,7 @@ def cria_vinculos():
         'perfil_usuario_nutri_supervisao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO'),  # noqa
         'perfil_usuario_nutri_manifestacao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO'),
         'perfil_coordenador_gestao_produto': Perfil.objects.get(nome='COORDENADOR_GESTAO_PRODUTO'),  # noqa
-        'perfil_usuario_terceirizada': Perfil.objects.get(nome='NUTRI_ADMIN_RESPONSAVEL'),  # noqa
+        'perfil_usuario_terceirizada': Perfil.objects.get(nome='ADMINISTRADOR_EMPRESA'),  # noqa
         'perfil_usuario_codae_dilog': Perfil.objects.get(nome='COORDENADOR_CODAE_DILOG_LOGISTICA'),
         'perfil_usuario_codae_gabinete': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_GABINETE'),
         'perfil_usuario_dilog_contabil': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_DILOG_CONTABIL'),

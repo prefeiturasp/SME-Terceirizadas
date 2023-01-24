@@ -375,7 +375,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
                 if request.user.vinculo_atual.perfil.nome in [constants.COORDENADOR_GESTAO_PRODUTO,
                                                               constants.ADMINISTRADOR_GESTAO_PRODUTO,
-                                                              constants.ADMINISTRADOR_TERCEIRIZADA]:
+                                                              constants.ADMINISTRADOR_EMPRESA]:
                     status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
                     raw_sql += (common_status +
                                 "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' "
