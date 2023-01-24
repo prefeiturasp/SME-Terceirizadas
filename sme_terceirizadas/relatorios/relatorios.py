@@ -11,7 +11,7 @@ from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..escola.api.serializers import FaixaEtariaSerializer
 from ..escola.constants import PERIODOS_ESPECIAIS_CEMEI
-from ..escola.models import EscolaPeriodoEscolar, FaixaEtaria, PeriodoEscolar
+from ..escola.models import Escola, EscolaPeriodoEscolar, FaixaEtaria, PeriodoEscolar
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
 from ..relatorios.utils import html_to_pdf_cancelada, html_to_pdf_file, html_to_pdf_multiple, html_to_pdf_response
@@ -75,14 +75,49 @@ def relatorio_resumo_anual_e_mensal(request, resumos_mes, resumo_ano):
 def relatorio_kit_lanche_unificado(request, solicitacao):
     qtd_escolas = EscolaQuantidade.objects.filter(
         solicitacao_unificada=solicitacao).count()
+    instituicao = request.user.vinculo_atual.instituicao
+    usuario_eh_escola = isinstance(instituicao, Escola)
+    sol_unificada_escola = None
+    log_temporario = False
+    uuid_log_temporario = False
+    logs = solicitacao.logs
+
+    if usuario_eh_escola:
+        sol_unificada_escola = solicitacao.escolas_quantidades.filter(escola__uuid=instituicao.uuid)[0]
+        inst_sol_unificada_escola = sol_unificada_escola.cancelado_por.vinculo_atual.instituicao
+        if sol_unificada_escola.cancelado and isinstance(inst_sol_unificada_escola, Escola):
+            status_ev = LogSolicitacoesUsuario.ESCOLA_CANCELOU
+            log_criado = LogSolicitacoesUsuario.objects.create(
+                descricao=str(solicitacao),
+                status_evento=status_ev,
+                solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
+                usuario=sol_unificada_escola.cancelado_por,
+                uuid_original=solicitacao.uuid,
+                justificativa=sol_unificada_escola.cancelado_justificativa,
+                resposta_sim_nao=False,
+                criado_em=sol_unificada_escola.cancelado_em
+            )
+            uuid_log_temporario = log_criado.uuid
+            log_criado.criado_em = sol_unificada_escola.cancelado_em
+            log_criado.save()
+            log_temporario = True
+            logs_escola_cancelou = solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU)
+            log_outra_escola = logs_escola_cancelou.exclude(uuid=uuid_log_temporario)
+            if log_outra_escola:
+                logs = solicitacao.logs.exclude(uuid=log_outra_escola.first().uuid)
 
     html_string = render_to_string(
         'solicitacao_kit_lanche_unificado.html',
         {'solicitacao': solicitacao, 'qtd_escolas': qtd_escolas,
          'fluxo': constants.FLUXO_PARTINDO_DRE,
-         'width': get_width(constants.FLUXO_PARTINDO_DRE, solicitacao.logs),
-         'logs': formata_logs(solicitacao.logs)}
+         'width': get_width(constants.FLUXO_PARTINDO_DRE, logs),
+         'logs': formata_logs(logs),
+         'usuario_eh_escola': usuario_eh_escola,
+         'nome_instituicao': instituicao.nome,
+         'sol_unificada_escola': sol_unificada_escola}
     )
+    if log_temporario:
+        solicitacao.logs.get(uuid=uuid_log_temporario).delete()
     return html_to_pdf_response(html_string, f'solicitacao_unificada_{solicitacao.id_externo}.pdf')
 
 

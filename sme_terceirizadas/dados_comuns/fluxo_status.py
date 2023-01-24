@@ -1966,7 +1966,10 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
         if (data_do_evento > dia_antecedencia) and (self.status != self.workflow_class.DRE_CANCELOU):
             self.status = self.workflow_class.DRE_CANCELOU
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_CANCELOU,
+            status_ev = LogSolicitacoesUsuario.DRE_CANCELOU
+            if isinstance(user.vinculo_atual.instituicao, m.Escola):
+                status_ev = LogSolicitacoesUsuario.ESCOLA_CANCELOU
+            self.salvar_log_transicao(status_evento=status_ev,
                                       usuario=user, justificativa=justificativa)
             self.save()
             # envia email para partes interessadas
