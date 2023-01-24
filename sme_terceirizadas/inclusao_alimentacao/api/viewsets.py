@@ -11,7 +11,7 @@ from ...dados_comuns.permissions import (
     PermissaoParaRecuperarObjeto,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
-    UsuarioEscola,
+    UsuarioEscolaTercTotal,
     UsuarioTerceirizada
 )
 from ...kit_lanche.models import SolicitacaoKitLancheCEMEI
@@ -37,7 +37,7 @@ from .serializers import serializers, serializers_create
 class EscolaIniciaCancela():
 
     @action(detail=True,
-            permission_classes=(UsuarioEscola,),
+            permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'],
             url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
@@ -50,7 +50,7 @@ class EscolaIniciaCancela():
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
-            permission_classes=(UsuarioEscola,),
+            permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'],
             url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido(self, request, uuid=None):
@@ -221,7 +221,7 @@ class InclusaoAlimentacaoViewSetBase(ModelViewSet, EscolaIniciaCancela, DREValid
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (IsAuthenticated, UsuarioEscola)
+            self.permission_classes = (IsAuthenticated, UsuarioEscolaTercTotal)
         return super(InclusaoAlimentacaoViewSetBase, self).get_permissions()
 
     @action(detail=True,
@@ -242,7 +242,7 @@ class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
             return serializers_create.InclusaoAlimentacaoDaCEICreateSerializer
         return serializers.InclusaoAlimentacaoDaCEISerializer
 
-    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO, permission_classes=(UsuarioEscola,))
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO, permission_classes=(UsuarioEscolaTercTotal,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         alimentacoes_normais = InclusaoAlimentacaoDaCEI.get_solicitacoes_rascunho(
@@ -342,10 +342,10 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         return super(GrupoInclusaoAlimentacaoNormalViewSet, self).get_permissions()
 
-    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO, permission_classes=(UsuarioEscola,))
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO, permission_classes=(UsuarioEscolaTercTotal,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         alimentacoes_normais = GrupoInclusaoAlimentacaoNormal.get_solicitacoes_rascunho(
@@ -456,11 +456,11 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         return super(InclusaoAlimentacaoContinuaViewSet, self).get_permissions()
 
     @action(detail=True,
-            permission_classes=(UsuarioEscola,),
+            permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'],
             url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
@@ -473,7 +473,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
-            permission_classes=(UsuarioEscola,),
+            permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'],
             url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido(self, request, uuid=None):
@@ -493,7 +493,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO, permission_classes=(UsuarioEscola,))
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO, permission_classes=(UsuarioEscolaTercTotal,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         inclusoes_continuas = InclusaoAlimentacaoContinua.get_solicitacoes_rascunho(
@@ -602,7 +602,7 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREVali
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         return super(InclusaoAlimentacaoCEMEIViewSet, self).get_permissions()
 
     def get_queryset(self): # noqa C901

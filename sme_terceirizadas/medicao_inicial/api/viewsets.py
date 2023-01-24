@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from ...dados_comuns.permissions import UsuarioEscola, ViewSetActionPermissionMixin
+from ...dados_comuns.permissions import UsuarioEscolaTercTotal, ViewSetActionPermissionMixin
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
@@ -77,7 +77,7 @@ class SolicitacaoMedicaoInicialViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     lookup_field = 'uuid'
-    permission_classes = (UsuarioEscola,)
+    permission_classes = (UsuarioEscolaTercTotal,)
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
     def get_serializer_class(self):

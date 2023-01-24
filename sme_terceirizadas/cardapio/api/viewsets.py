@@ -12,7 +12,7 @@ from ...dados_comuns.permissions import (
     PermissaoParaRecuperarObjeto,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
-    UsuarioEscola,
+    UsuarioEscolaTercTotal,
     UsuarioTerceirizada
 )
 from ...escola.constants import PERIODOS_ESPECIAIS_CEMEI
@@ -243,7 +243,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         return super(InversaoCardapioViewSet, self).get_permissions()
 
     def get_serializer_class(self):
@@ -299,7 +299,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         inversoes_rascunho = InversaoCardapio.get_solicitacoes_rascunho(
@@ -312,7 +312,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA ESCOLA)
     #
 
-    @action(detail=True, permission_classes=(UsuarioEscola,),
+    @action(detail=True, permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_solicitacao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
@@ -420,7 +420,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=(UsuarioEscola,),
+    @action(detail=True, permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_solicitacao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
@@ -475,7 +475,7 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         return super(SuspensaoAlimentacaoDaCEIViewSet, self).get_permissions()
 
     def get_serializer_class(self):
@@ -489,7 +489,7 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
         serializer = SuspensaoAlimentacaoDaCEISerializer(informados, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['GET'], permission_classes=(UsuarioEscola,))
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioEscolaTercTotal,))
     def meus_rascunhos(self, request):
         usuario = request.user
         suspensoes = SuspensaoAlimentacaoDaCEI.get_rascunhos_do_usuario(
@@ -498,7 +498,7 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
         serializer = SuspensaoAlimentacaoDaCEISerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, permission_classes=(UsuarioEscola,),
+    @action(detail=True, permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'], url_path=constants.ESCOLA_INFORMA_SUSPENSAO)
     def informa_suspensao(self, request, uuid=None):
         suspensao_de_alimentacao = self.get_object()
@@ -509,7 +509,7 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=(UsuarioEscola,),
+    @action(detail=True, permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'], url_path=constants.CANCELA_SUSPENSAO_CEI)
     def cancela_suspensao_cei(self, request, uuid=None):
         suspensao_de_alimentacao = self.get_object()
@@ -562,7 +562,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         elif self.action in ['retrieve', 'update']:
             self.permission_classes = (PermissaoParaRecuperarObjeto,)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         return super(GrupoSuspensaoAlimentacaoSerializerViewSet, self).get_permissions()
 
     def get_serializer_class(self):
@@ -616,7 +616,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         serializer = GrupoSuspensaoAlimentacaoSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'], permission_classes=(UsuarioEscola,))
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioEscolaTercTotal,))
     def meus_rascunhos(self, request):
         usuario = request.user
         grupos_suspensao = GrupoSuspensaoAlimentacao.get_rascunhos_do_usuario(
@@ -629,7 +629,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     # IMPLEMENTAÇÃO DO FLUXO (INFORMATIVO PARTINDO DA ESCOLA)
     #
 
-    @action(detail=True, permission_classes=(UsuarioEscola,),
+    @action(detail=True, permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'], url_path=constants.ESCOLA_INFORMA_SUSPENSAO)
     def informa_suspensao(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
@@ -652,7 +652,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=(UsuarioEscola,),
+    @action(detail=True, permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'], url_path='escola-cancela')
     def escola_cancela(self, request, uuid=None):
         try:
@@ -701,12 +701,12 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['list']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         return super(AlteracoesCardapioViewSet, self).get_permissions()
 
     def get_serializer_class(self):
@@ -719,7 +719,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         alteracoes_cardapio_rascunho = AlteracaoCardapio.get_rascunhos_do_usuario(
@@ -729,7 +729,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='com-lanche-do-mes-corrente/(?P<escola_uuid>[^/.]+)',
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def minhas_solicitacoes_do_mes_com_lanches(self, request, escola_uuid):
         alteracoes_cardapio = AlteracaoCardapio.com_lanche_do_mes_corrente(
             escola_uuid
@@ -798,7 +798,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA ESCOLA)
     #
 
-    @action(detail=True, permission_classes=[UsuarioEscola], # noqa C901
+    @action(detail=True, permission_classes=[UsuarioEscolaTercTotal],  # noqa C901
             methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_solicitacao(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
@@ -927,7 +927,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=[UsuarioEscola],
+    @action(detail=True, permission_classes=[UsuarioEscolaTercTotal],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_solicitacao(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
@@ -987,7 +987,7 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
         return AlteracaoCardapioCEISerializer
 
     @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         alteracoes_cardapio_rascunho = AlteracaoCardapioCEI.get_rascunhos_do_usuario(
