@@ -57,6 +57,9 @@ class UsuarioEscola(BasePermission):
             return usuario.vinculo_atual.instituicao == obj.escola
         elif hasattr(obj, 'rastro_escola'):
             return usuario.vinculo_atual.instituicao == obj.rastro_escola
+        elif obj.tipo == 'Kit Lanche Unificado':
+            return usuario.vinculo_atual.instituicao.id in obj.escolas_quantidades.all().values_list(
+                'escola', flat=True)
         else:
             return False
 
