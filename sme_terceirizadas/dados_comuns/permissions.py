@@ -16,6 +16,7 @@ from .constants import (
     ADMINISTRADOR_REPRESENTANTE_CODAE,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     ADMINISTRADOR_TERCEIRIZADA,
+    ADMINISTRADOR_UE,
     ADMINISTRADOR_UE_DIRETA,
     ADMINISTRADOR_UE_MISTA,
     ADMINISTRADOR_UE_PARCEIRA,
@@ -32,7 +33,8 @@ from .constants import (
     DINUTRE_DIRETORIA,
     DIRETOR,
     DIRETOR_ABASTECIMENTO,
-    DIRETOR_CEI
+    DIRETOR_CEI,
+    DIRETOR_UE,
 )
 
 
@@ -41,7 +43,7 @@ def usuario_eh_nutricodae(user):
                                               ADMINISTRADOR_DIETA_ESPECIAL]
 
 
-class UsuarioEscola(BasePermission):
+class UsuarioEscolaTercTotal(BasePermission):
     """Permite acesso a usuários com vinculo a uma Escola."""
 
     def has_permission(self, request, view):
@@ -49,7 +51,9 @@ class UsuarioEscola(BasePermission):
         return (
             not usuario.is_anonymous and
             usuario.vinculo_atual and
-            isinstance(usuario.vinculo_atual.instituicao, Escola)
+            isinstance(usuario.vinculo_atual.instituicao, Escola) and
+            usuario.vinculo_atual.instituicao.modulo_gestao == 'terceirizada' and
+            usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_UE,]
         )
 
     """Permite acesso ao objeto se o objeto pertence a essa escola."""
@@ -374,10 +378,8 @@ class UsuarioEscolaAbastecimento(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Escola) and
-            usuario.vinculo_atual.perfil.nome in [
-                ADMINISTRADOR_ESCOLA_ABASTECIMENTO, ADMINISTRADOR_UE_DIRETA, ADMINISTRADOR_UE_MISTA,
-                ADMINISTRADOR_UE_PARCEIRA, DIRETOR_ABASTECIMENTO,
-            ]
+            usuario.vinculo_atual.instituicao.modulo_gestao == 'abastecimento' and
+            usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_UE, ]
         )
 
 
