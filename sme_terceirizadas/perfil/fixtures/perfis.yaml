@@ -56,5 +56,5 @@
 - model: perfil.perfil
   pk: 12
   fields:
-    nome: ADMINISTRADOR_DISTRIBUIDORA
+    nome: ADMINISTRADOR_EMPRESA
     visão: EMPRESA

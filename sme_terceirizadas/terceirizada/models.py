@@ -181,6 +181,18 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
         return None
 
     @property
+    def eh_distribuidor(self):
+        return self.tipo_servico in [self.DISTRIBUIDOR_ARMAZEM, self.FORNECEDOR_E_DISTRIBUIDOR]
+
+    @property
+    def eh_fornecedor(self):
+        return self.tipo_servico in [self.FORNECEDOR, self.FORNECEDOR_E_DISTRIBUIDOR]
+
+    @property
+    def eh_terceirizada(self):
+        return self.tipo_servico == self.TERCEIRIZADA
+
+    @property
     def inclusoes_continuas_autorizadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__lote__in=self.lotes.all(),

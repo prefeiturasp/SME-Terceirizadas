@@ -70,7 +70,7 @@ from sme_terceirizadas.logistica.services import (
     envia_email_e_notificacao_confirmacao_guias
 )
 
-from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA, COGESTOR
+from ...dados_comuns.constants import COGESTOR
 from ...escola.models import DiretoriaRegional, Escola
 from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
@@ -185,7 +185,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
+        if user.eh_distribuidor:
             return SolicitacaoRemessa.objects.filter(distribuidor=user.vinculo_atual.instituicao)
         return SolicitacaoRemessa.objects.all()
 
@@ -319,10 +319,10 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(
             self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA))
 
-        if(self.request.user.vinculo_atual.perfil.nome == 'ADMINISTRADOR_DISTRIBUIDORA'):
+        if self.request.user.eh_distribuidor:
             queryset = queryset.filter(distribuidor=self.request.user.vinculo_atual.instituicao)
 
-        if(isinstance(self.request.user.vinculo_atual.instituicao, DiretoriaRegional)):
+        if isinstance(self.request.user.vinculo_atual.instituicao, DiretoriaRegional):
             lista_ids_escolas = self.request.user.vinculo_atual.instituicao.escolas.values_list('id', flat='True')
             queryset = queryset.filter(guias__escola__id__in=lista_ids_escolas).distinct()
 
@@ -522,7 +522,6 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         username = user.get_username()
         numero_requisicao = request.query_params.get('numero_requisicao', False)
         ids_requisicoes = list(self.filter_queryset(self.get_queryset().values_list('id', flat=True)))
-        eh_distribuidor = True if user.vinculo_atual.perfil.nome == ADMINISTRADOR_DISTRIBUIDORA else False
 
         filename = (f'requisicao_{numero_requisicao}.xlsx' if numero_requisicao else 'requisicoes-de-entrega.xlsx')
 
@@ -530,7 +529,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             username=username,
             nome_arquivo=filename,
             ids_requisicoes=ids_requisicoes,
-            eh_distribuidor=eh_distribuidor)
+            eh_distribuidor=user.eh_distribuidor)
 
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=HTTP_200_OK)
@@ -547,7 +546,6 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         tem_insucesso = request.query_params.get('tem_insucesso', None)
         tem_conferencia = eh_true_ou_false(tem_conferencia, 'tem_conferencia')
         tem_insucesso = eh_true_ou_false(tem_insucesso, 'tem_insucesso')
-        eh_distribuidor = True if user.vinculo_atual.perfil.nome == ADMINISTRADOR_DISTRIBUIDORA else False
         eh_dre = True if user.vinculo_atual.perfil.nome == COGESTOR else False
 
         gera_xlsx_entregas_async.delay(
@@ -555,7 +553,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             username=username,
             tem_conferencia=tem_conferencia,
             tem_insucesso=tem_insucesso,
-            eh_distribuidor=eh_distribuidor,
+            eh_distribuidor=user.eh_distribuidor,
             eh_dre=eh_dre,
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
@@ -759,7 +757,7 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
+        if user.eh_distribuidor:
             return SolicitacaoDeAlteracaoRequisicao.objects.filter(
                 requisicao__distribuidor=user.vinculo_atual.instituicao
             )

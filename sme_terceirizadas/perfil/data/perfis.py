@@ -60,7 +60,7 @@ data_perfis = [
         'super_usuario': True,
     },
     {
-        'nome': 'ADMINISTRADOR_TERCEIRIZADA',
+        'nome': 'ADMINISTRADOR_EMPRESA',
         'ativo': True,
         'super_usuario': True,
     },
@@ -71,16 +71,6 @@ data_perfis = [
     },
     {
         'nome': 'ADMINISTRADOR_GESTAO_PRODUTO',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_DISTRIBUIDORA',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_FORNECEDOR',
         'ativo': True,
         'super_usuario': True,
     },

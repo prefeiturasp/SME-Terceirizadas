@@ -64,7 +64,7 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
     tecerizada = escola.lote.terceirizada
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_TERCEIRIZADA,
+    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                            ativo=True,
                                            uuid='41c20c8b-7e57-41ed-9433-ccb95e8afaf0')
     hoje = datetime.date.today()
@@ -89,7 +89,7 @@ def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_mode
     tecerizada = escola.lote.terceirizada
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_diretor = mommy.make('Perfil', nome=constants.ADMINISTRADOR_TERCEIRIZADA,
+    perfil_diretor = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                 ativo=True,
                                 uuid='41c20c8b-7e57-41ed-9433-ccb95e8afaf0')
     hoje = datetime.date.today()
@@ -426,7 +426,7 @@ def client_autenticado_vinculo_codae_nutrisupervisor(
 
 @pytest.fixture
 def homologacao_produto(escola, template_homologacao_produto, user, produto):
-    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_TERCEIRIZADA,
+    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                            ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_admin_terceirizada,

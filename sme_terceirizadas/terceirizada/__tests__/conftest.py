@@ -75,7 +75,7 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
                                             uuid='48330a6f-c444-4462-971e-476452b328b2')
     perfil_coordenador = mommy.make('Perfil', nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', ativo=True,
                                     uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
-    mommy.make('Perfil', nome='ADMINISTRADOR_TERCEIRIZADA', ativo=True,
+    mommy.make('Perfil', nome='ADMINISTRADOR_EMPRESA', ativo=True,
                uuid='11c22490-e040-4b4a-903f-54d1b1e57b08')
     mommy.make('Perfil', nome='NUTRI_ADMIN_RESPONSAVEL', ativo=True,
                uuid='564fc542-2260-430e-b29d-ddac1ef81d47')
@@ -188,4 +188,4 @@ def nutricionista():
 
 @pytest.fixture
 def perfil_distribuidor():
-    return mommy.make(Perfil, nome='ADMINISTRADOR_DISTRIBUIDORA')
+    return mommy.make(Perfil, nome='ADMINISTRADOR_EMPRESA')

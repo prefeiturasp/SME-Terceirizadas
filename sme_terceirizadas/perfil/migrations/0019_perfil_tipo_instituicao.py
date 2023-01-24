@@ -12,7 +12,7 @@ def migrate_default_values(apps, schmema_editor):
             'ADMINISTRADOR_CODAE_DILOG_CONTABIL': 'CODAE',
             'ADMINISTRADOR_CODAE_GABINETE': 'CODAE',
             'COORDENADOR_LOGISTICA': 'CODAE',
-            'ADMINISTRADOR_DISTRIBUIDORA': 'EMPRESA',
+            'ADMINISTRADOR_EMPRESA': 'EMPRESA',
             'DIRETOR': 'ESCOLA',
             'DIRETOR_CEI': 'ESCOLA',
             'ADMINISTRADOR_UE': 'ESCOLA',
@@ -29,7 +29,6 @@ def migrate_default_values(apps, schmema_editor):
             'COORDENADOR_TERCNOLOGIA_INFORMACAO': 'CODAE',
             'COORDENADOR_GESTAO_FINANCEIRA': 'CODAE',
             'COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA': 'CODAE',
-            'ADMINISTRADOR_TERCEIRIZADA': 'EMPRESA',
             'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA': 'CODAE',
             'CODAE': 'CODAE',
             'ADMINISTRADOR_MEDICAO': 'CODAE'

@@ -2344,7 +2344,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
         A dieta especial termina quando a data de término é atingida.
         São as partes interessadas:
-            - perfil "ADMINISTRADOR_TERCEIRIZADA" vinculado à terceirizada relacionada
+            - perfil "ADMINISTRADOR_EMPRESA" vinculado à terceirizada relacionada
               à escola destino da dieta
             - email de contato da escola (escola.contato.email)
         """

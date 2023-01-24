@@ -173,9 +173,9 @@ def client_autenticado_distribuidor(client, django_user_model):
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_distribuidor = mommy.make('Perfil',
-                                           nome=constants.ADMINISTRADOR_DISTRIBUIDORA,
+                                           nome=constants.ADMINISTRADOR_EMPRESA,
                                            ativo=True)
-    distribuidor = mommy.make('Terceirizada')
+    distribuidor = mommy.make('Terceirizada', tipo_servico='DISTRIBUIDOR_ARMAZEM')
     hoje = datetime.date.today()
     mommy.make('Vinculo',
                usuario=user,
@@ -194,9 +194,9 @@ def client_autenticado_fornecedor(client, django_user_model):
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_fornecedor = mommy.make('Perfil',
-                                         nome=constants.ADMINISTRADOR_FORNECEDOR,
+                                         nome=constants.ADMINISTRADOR_EMPRESA,
                                          ativo=True)
-    fornecedor = mommy.make('Terceirizada')
+    fornecedor = mommy.make('Terceirizada', tipo_servico='FORNECEDOR')
     hoje = datetime.date.today()
     mommy.make('Vinculo',
                usuario=user,

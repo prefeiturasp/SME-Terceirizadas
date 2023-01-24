@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
 from xworkflows.base import InvalidTransitionError
 
+from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCadastrarLaboratorio,
@@ -31,8 +32,6 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     LaboratorioSerializer
 )
 from sme_terceirizadas.pre_recebimento.models import Cronograma, EmbalagemQld, EtapasDoCronograma, Laboratorio
-
-from ...dados_comuns.constants import ADMINISTRADOR_FORNECEDOR
 
 
 class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
@@ -62,7 +61,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.order_by('-alterado_em').distinct()
 
-        if vinculo.perfil.nome == ADMINISTRADOR_FORNECEDOR:
+        if vinculo.perfil.nome == ADMINISTRADOR_EMPRESA and vinculo.instituicao.eh_fornecedor:
             queryset = queryset.filter(empresa=vinculo.instituicao)
 
         page = self.paginate_queryset(queryset)

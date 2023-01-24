@@ -61,7 +61,7 @@ perfil_usuario_terceirizada, created = Perfil.objects.get_or_create(
 )
 
 Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_TERCEIRIZADA',
+    nome='ADMINISTRADOR_EMPRESA',
     ativo=True,
     super_usuario=True
 )
