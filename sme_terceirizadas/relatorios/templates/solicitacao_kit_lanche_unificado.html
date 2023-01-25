@@ -59,6 +59,16 @@
               </tr>
             {% endfor %}
         {% else %}
+          {% if usuario_eh_escola %}
+            <tr>
+              <td>{{ sol_unificada_escola.escola.codigo_eol }}</td>
+              <td>{{ sol_unificada_escola.escola.nome }}</td>
+              <td>{{ sol_unificada_escola.quantidade_alunos }}</td>
+              <td>{{ sol_unificada_escola.get_tempo_passeio_display }}</td>
+              <td>{{ sol_unificada_escola.kits.all |join:", " }}</td>
+              <td>{% widthratio sol_unificada_escola.kits.count 1 sol_unificada_escola.quantidade_alunos %}</td>
+            </tr>
+          {% else %}
             {% for i in solicitacao.escolas_quantidades.all %}
               <tr>
                 <td>{{ i.escola.codigo_eol }}</td>
@@ -69,6 +79,7 @@
                 <td>{% widthratio i.kits.count 1 i.quantidade_alunos %}</td>
               </tr>
             {% endfor %}
+          {% endif %}
         {% endif %}
 
         </tbody>
@@ -80,23 +91,38 @@
     <div class="total-unidades-kits">
       <div>
         <p class="cabecalho">Nº total de Unidade Escolares beneficiadas</p>
-        <p class="resultado">{{ qtd_escolas }} Unidade Escolares</p>
+        {% if usuario_eh_escola %}
+          <p class="resultado">1 Unidade Escolar</p>
+        {% else %}
+          <p class="resultado">{{ qtd_escolas }} Unidades Escolares</p>
+        {% endif %}
       </div>
       <div>
         <p class="cabecalho">Nº total de Kits</p>
-        <p class="resultado">{{ solicitacao.total_kit_lanche }} kits</p>
+        {% if usuario_eh_escola %}
+          <p class="resultado">{% widthratio sol_unificada_escola.kits.count 1 sol_unificada_escola.quantidade_alunos %} kits</p>
+        {% else %}
+          <p class="resultado">{{ solicitacao.total_kit_lanche }} kits</p>
+        {% endif %}
       </div>
     </div>
-      {% if solicitacao.solicitacao_kit_lanche.descricao.length > 0 %}
-        <div style="color: #686868">
-          <p>Observações</p>
-          <p>
-              {{ solicitacao.solicitacao_kit_lanche.descricao |safe }}
-          </p>
-        </div>
-        </div>
-      {% endif %}
+    {% if usuario_eh_escola and sol_unificada_escola.cancelado %}
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+      <p class="cabecalho" style="color: #686868; font-weight: bold; font-size: 14px;">Histórico de justificativas</p>
+      <div style="margin-top: 16px; font-size: 14px;">
+        {{ sol_unificada_escola.cancelado_em|date:"d/m/Y H:i" }} - UNIDADE CANCELOU - USUÁRIO {{ sol_unificada_escola.cancelado_por.nome }}
+      </div>
+      <div style="margin-top: 10px; font-size: 12px;">
+        Observação do Cancelamento: {{ sol_unificada_escola.cancelado_justificativa }}
+      </div>
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+    {% else %}
+      {% include "bloco_historico_cancelamento.html" %}
+    {% endif %}
     {% include "bloco_observacoes.html" %}
     {% include "bloco_historico_questionamento.html" %}
-    {% include "bloco_historico_cancelamento.html" %}
 {% endblock %}

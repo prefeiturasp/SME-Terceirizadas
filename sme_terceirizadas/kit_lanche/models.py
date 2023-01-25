@@ -8,6 +8,7 @@ from django.db.models.functions import Coalesce
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (  # noqa I101
+    CanceladoIndividualmente,
     CriadoEm,
     CriadoPor,
     Descritivel,
@@ -489,7 +490,8 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
         verbose_name_plural = 'Solicitações de  kit lanche unificadas'
 
 
-class EscolaQuantidade(ExportModelOperationsMixin('escola_quantidade'), TemChaveExterna, TempoPasseio):
+class EscolaQuantidade(ExportModelOperationsMixin('escola_quantidade'), TemChaveExterna, TempoPasseio,
+                       CanceladoIndividualmente):
     quantidade_alunos = models.PositiveSmallIntegerField()
     solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada,
                                               on_delete=models.CASCADE,
