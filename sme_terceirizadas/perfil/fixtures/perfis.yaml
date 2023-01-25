@@ -58,3 +58,8 @@
   fields:
     nome: ADMINISTRADOR_EMPRESA
     visão: EMPRESA
+- model: perfil.perfil
+  pk: 13
+  fields:
+    nome: USUARIO_EMPRESA
+    visão: EMPRESA

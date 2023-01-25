@@ -60,3 +60,9 @@ Perfil.objects.get_or_create(
     ativo=True,
     super_usuario=True
 )
+
+Perfil.objects.get_or_create(
+    nome='USUARIO_EMPRESA',
+    ativo=True,
+    super_usuario=True
+)

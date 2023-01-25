@@ -104,4 +104,9 @@ data_perfis = [
         'ativo': True,
         'super_usuario': True,
     },
+    {
+        'nome': 'USUARIO_EMPRESA',
+        'ativo': True,
+        'super_usuario': True,
+    },
 ]
