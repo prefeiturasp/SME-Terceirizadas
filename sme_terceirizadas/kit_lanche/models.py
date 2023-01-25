@@ -117,16 +117,6 @@ class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
             return self.quantidade_alunos * self.solicitacao_kit_lanche.kits.count()
 
     @property
-    def solicitacoes_similares(self):
-        tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
-        data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheAvulsa.objects.all()
-        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
-                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
-        solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
-        return solicitacoes_similares
-
-    @property
     def data(self):
         return self.solicitacao_kit_lanche.data
 
@@ -168,6 +158,16 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
+
+    @property
+    def solicitacoes_similares(self):
+        tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
+        data_evento = self.solicitacao_kit_lanche.data
+        all_objects = SolicitacaoKitLancheAvulsa.objects.all()
+        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
+                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
+        solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
+        return solicitacoes_similares
 
     @property
     def observacao(self):
@@ -272,6 +272,16 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
             'faixas_etarias': self.get_faixas_etarias_dict,
             'total_matriculados': self.total_matriculados_quando_criado
         }
+
+    @property
+    def solicitacoes_similares(self):
+        tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
+        data_evento = self.solicitacao_kit_lanche.data
+        all_objects = SolicitacaoKitLancheCEIAvulsa.objects.all()
+        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
+                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
+        solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
+        return solicitacoes_similares
 
     def __str__(self):
         return f'{self.escola} SOLICITA EM {self.local}'
