@@ -2,7 +2,7 @@ from django.db import models
 from multiselectfield import MultiSelectField
 
 from ...dados_comuns.behaviors import Logs, ModeloBase, TemIdentificadorExternoAmigavel
-from ...dados_comuns.fluxo_status import FluxoAlteracaoCronograma, FluxoCronograma
+from ...dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow, FluxoAlteracaoCronograma, FluxoCronograma
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...produto.models import NomeDeProdutoEdital, UnidadeMedida
 from ...terceirizada.models import Contrato, Terceirizada
@@ -116,6 +116,11 @@ class AlteracaoCronogramaEtapa(models.Model):
     nova_quantidade = models.FloatField(blank=True, null=True)
 
 
+class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
+    def em_analise(self):
+        return self.filter(status=CronogramaAlteracaoWorkflow.EM_ANALISE)
+
+
 class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma):
     MOTIVO_ALTERAR_DATA_ENTREGA = 'ALTERAR_DATA_ENTREGA'
     MOTIVO_ALTERAR_QTD_ALIMENTO = 'ALTERAR_QTD_ALIMENTO'
@@ -142,12 +147,21 @@ class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel
     usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
     numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=50, unique=True)
 
+    objects = SolicitacaoAlteracaoCronogramaQuerySet.as_manager()
+
+    def gerar_numero_solicitacao(self):
+        return f'{str(self.pk).zfill(8)}-ALT'
+
+    def save(self, *args, **kwargs):
+        self.numero_solicitacao = self.gerar_numero_solicitacao()
+        super(SolicitacaoAlteracaoCronograma, self).save(*args, **kwargs)
+
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
         log_transicao = LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
-            solicitacao_tipo=LogSolicitacoesUsuario.CRONOGRAMA_SOLICITADO_ALTERACAO_FORNECEDOR,
+            solicitacao_tipo=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
             usuario=usuario,
             uuid_original=self.uuid,
             justificativa=justificativa,

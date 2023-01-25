@@ -84,7 +84,7 @@ class LogSolicitacoesUsuario(
         CRONOGRAMA_CRIADO,
         CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
         CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
-        CRONOGRAMA_SOLICITADO_ALTERACAO_FORNECEDOR,
+        FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
     ) = range(60)
 
     STATUS_POSSIVEIS = (
@@ -185,7 +185,7 @@ class LogSolicitacoesUsuario(
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
         (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
         (CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR, 'Entrega Confirmada'),
-        (CRONOGRAMA_SOLICITADO_ALTERACAO_FORNECEDOR, 'Alteração Fornecedor')
+        (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Alteração Fornecedor')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
