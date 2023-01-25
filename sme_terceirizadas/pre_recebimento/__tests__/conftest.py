@@ -2,6 +2,24 @@
 import pytest
 from model_mommy import mommy
 
+from sme_terceirizadas.terceirizada.models import Terceirizada
+
+
+@pytest.fixture
+def contrato():
+    return mommy.make('Contrato',
+                      numero='0003/2022',
+                      processo='123')
+
+
+@pytest.fixture
+def empresa(contrato):
+    return mommy.make(Terceirizada,
+                      nome_fantasia='Alimentos SA',
+                      contratos=[contrato],
+                      tipo_servico=Terceirizada.FORNECEDOR,
+                      )
+
 
 @pytest.fixture
 def cronograma():
@@ -9,23 +27,23 @@ def cronograma():
 
 
 @pytest.fixture
-def cronograma_rascunho(armazem):
+def cronograma_rascunho(armazem, contrato, empresa):
     return mommy.make(
         'Cronograma',
         numero='002/2022',
-        contrato='1234/2022',
-        contrato_uuid='f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
+        contrato=contrato,
         armazem=armazem,
+        empresa=empresa,
     )
 
 
 @pytest.fixture
-def cronograma_recebido(armazem):
+def cronograma_recebido(armazem, contrato, empresa):
     return mommy.make(
         'Cronograma',
         numero='002/2022',
-        contrato='1234/2022',
-        contrato_uuid='f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
+        contrato=contrato,
+        empresa=empresa,
         armazem=armazem,
         status='ENVIADO_AO_FORNECEDOR'
     )
@@ -43,9 +61,9 @@ def programacao(cronograma):
 
 @pytest.fixture
 def armazem():
-    return mommy.make('Terceirizada',
-                      uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
-                      nome_fantasia='Alimentos SA'
+    return mommy.make(Terceirizada,
+                      nome_fantasia='Alimentos SA',
+                      tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM,
                       )
 
 

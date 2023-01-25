@@ -32,6 +32,8 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
 )
 from sme_terceirizadas.pre_recebimento.models import Cronograma, EmbalagemQld, EtapasDoCronograma, Laboratorio
 
+from ...dados_comuns.constants import ADMINISTRADOR_FORNECEDOR
+
 
 class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -56,8 +58,12 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         return Cronograma.objects.all().order_by('-criado_em')
 
     def list(self, request, *args, **kwargs):
+        vinculo = self.request.user.vinculo_atual
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.order_by('-alterado_em').distinct()
+
+        if vinculo.perfil.nome == ADMINISTRADOR_FORNECEDOR:
+            queryset = queryset.filter(empresa=vinculo.instituicao)
 
         page = self.paginate_queryset(queryset)
         if page is not None:

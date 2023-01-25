@@ -1690,11 +1690,9 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         return list(email_query_set_terceirizada)
 
     @property
-    def _partes_interessadas_dre_valida_ou_nao(self):
-        email_query_set_escola = self.rastro_escola.vinculos.filter(
-            ativo=True
-        ).values_list('usuario__email', flat=True)
-        return [email for email in email_query_set_escola]
+    def _partes_interessadas_dre_nao_valida(self):
+        # Quando DRE nega apenas o contato da escola recebe email
+        return [self.rastro_escola.contato.email]
 
     @property
     def _partes_interessadas_codae_nega(self):
@@ -1728,18 +1726,21 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     # Ex. >>> alimentacao_continua.inicia_fluxo(param1, param2, key1='val')
     #
 
-    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
-        template = 'fluxo_autorizar_negar_cancelar.html'
-        dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
-                          'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
+    def _preenche_template_e_envia_email_dre_nega(self, assunto, titulo, id_externo, criado_em,
+                                                  partes_interessadas):
+        url = f'{env("REACT_APP_URL")}/{self.path}'
+        template = 'fluxo_dre_nega.html'
+        dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO, 'id_externo': id_externo,
+                          'criado_em': criado_em, 'nome_ue': self.rastro_escola.nome, 'url': url,
+                          'nome_dre': self.escola.diretoria_regional.nome, 'nome_lote': self.escola.lote.nome,
+                          'movimentacao_realizada': str(self.status)}
         html = render_to_string(template, dados_template)
         envia_email_em_massa_task.delay(
             assunto=assunto,
             corpo='',
             emails=partes_interessadas,
-            template='fluxo_autorizar_negar_cancelar.html',
-            dados_template={'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
-                            'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome},
+            template='fluxo_dre_nega.html',
+            dados_template=dados_template,
             html=html
         )
 
@@ -1792,15 +1793,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _dre_valida_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de solicitação - #' + self.id_externo
-            # manda email pra escola que solicitou de que a solicitacao foi
-            # validada
-
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
                                       usuario=user)
-            self._preenche_template_e_envia_email(
-                assunto, titulo, user, self._partes_interessadas_dre_valida_ou_nao)
 
     @xworkflows.after_transition('dre_pede_revisao')
     def _dre_pede_revisao_hook(self, *args, **kwargs):
@@ -1816,13 +1810,16 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         # manda email pra escola que solicitou de que a solicitacao NAO foi
         # validada
         if user:
-            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de solicitação - #' + self.id_externo
+            id_externo = '#' + self.id_externo
+            assunto = '[SIGPAE] Status de solicitação - ' + id_externo
+            titulo = f'Solicitação de {self.tipo} Não Validada'
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_NAO_VALIDOU,
                                       justificativa=justificativa,
                                       usuario=user)
-            self._preenche_template_e_envia_email(
-                assunto, titulo, user, self._partes_interessadas_dre_valida_ou_nao)
+            log_criado = self.logs.last().criado_em
+            criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
+            self._preenche_template_e_envia_email_dre_nega(assunto, titulo, id_externo, criado_em,
+                                                           self._partes_interessadas_dre_nao_valida)
 
     @xworkflows.after_transition('escola_revisa')
     def _escola_revisa_hook(self, *args, **kwargs):
@@ -1966,7 +1963,10 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
         if (data_do_evento > dia_antecedencia) and (self.status != self.workflow_class.DRE_CANCELOU):
             self.status = self.workflow_class.DRE_CANCELOU
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_CANCELOU,
+            status_ev = LogSolicitacoesUsuario.DRE_CANCELOU
+            if isinstance(user.vinculo_atual.instituicao, m.Escola):
+                status_ev = LogSolicitacoesUsuario.ESCOLA_CANCELOU
+            self.salvar_log_transicao(status_evento=status_ev,
                                       usuario=user, justificativa=justificativa)
             self.save()
             # envia email para partes interessadas

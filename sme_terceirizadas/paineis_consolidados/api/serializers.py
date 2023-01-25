@@ -3,6 +3,7 @@ import datetime
 from rest_framework import serializers
 
 from ...dados_comuns.utils import remove_tags_html_from_string
+from ...kit_lanche.api.serializers.serializers import EscolaQuantidadeSerializerSimples
 from ..models import SolicitacoesCODAE
 
 
@@ -13,9 +14,21 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
     descricao_dieta_especial = serializers.SerializerMethodField()
     prioridade = serializers.CharField()
     id_externo = serializers.CharField()
+    escolas_quantidades = serializers.SerializerMethodField()
 
     def get_descricao_dieta_especial(self, obj):
         return f'{obj.codigo_eol_aluno if obj.codigo_eol_aluno else "(Aluno não matriculado)"} - {obj.nome_aluno}'
+
+    def get_escolas_quantidades(self, obj):
+        usuario = self.context['request'].user
+        if obj.tipo_doc == 'KIT_LANCHE_UNIFICADA':
+            escolas_quantidades = obj.get_raw_model.objects.get(uuid=obj.uuid).escolas_quantidades
+            serialized = EscolaQuantidadeSerializerSimples(
+                escolas_quantidades.filter(escola__uuid=usuario.vinculo_atual.instituicao.uuid),
+                many=True
+            )
+            return serialized.data
+        return None
 
     def get_numero_alunos(self, obj):
         return obj.get_raw_model.objects.get(uuid=obj.uuid).numero_alunos

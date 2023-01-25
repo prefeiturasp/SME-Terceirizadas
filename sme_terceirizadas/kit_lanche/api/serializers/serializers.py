@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -10,6 +12,7 @@ from ....escola.api.serializers import (
     FaixaEtariaSerializer
 )
 from ....escola.models import FaixaEtaria
+from ....perfil.api.serializers import UsuarioSerializer
 from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
 from ....terceirizada.models import Edital
 from ...models import (
@@ -147,6 +150,21 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
     tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
                                                      required=False,
                                                      read_only=True)
+    cancelado_por = UsuarioSerializer()
+    cancelado_em = serializers.SerializerMethodField()
+    cancelado_em_com_hora = serializers.SerializerMethodField()
+
+    def get_cancelado_em(self, obj):
+        if obj.cancelado:
+            if obj.cancelado_em and obj.cancelado_em.date() == datetime.date.today():
+                return obj.cancelado_em.strftime('%d/%m/%Y %H:%M')
+            return obj.cancelado_em.strftime('%d/%m/%Y')
+        return None
+
+    def get_cancelado_em_com_hora(self, obj):
+        if obj.cancelado:
+            return obj.cancelado_em.strftime('%d/%m/%Y %H:%M')
+        return None
 
     class Meta:
         model = EscolaQuantidade
@@ -183,6 +201,10 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     quantidade_alimentacoes = serializers.IntegerField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
     solicitacoes_similares = SolicitacaoKitLancheUnificadaSimilarSerializer(many=True)
+    tipo = serializers.SerializerMethodField()
+
+    def get_tipo(self, obj):
+        return obj.tipo
 
     class Meta:
         model = SolicitacaoKitLancheUnificada
