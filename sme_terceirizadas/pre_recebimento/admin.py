@@ -1,7 +1,15 @@
 from django.contrib import admin
 
 from .forms import CaixaAltaNomeForm
-from .models import Cronograma, EmbalagemQld, EtapasDoCronograma, Laboratorio, ProgramacaoDoRecebimentoDoCronograma
+from .models import (
+    AlteracaoCronogramaEtapa,
+    Cronograma,
+    EmbalagemQld,
+    EtapasDoCronograma,
+    Laboratorio,
+    ProgramacaoDoRecebimentoDoCronograma,
+    SolicitacaoAlteracaoCronograma
+)
 
 
 @admin.register(Laboratorio)
@@ -20,6 +28,27 @@ class EmbalagemQldAdmin(admin.ModelAdmin):
     list_display = ('nome', 'abreviacao', 'criado_em')
     search_fields = ('nome',)
     readonly_fields = ('uuid',)
+
+
+class AlteracaoCronogramaEtapaInline(admin.StackedInline):
+    model = SolicitacaoAlteracaoCronograma.etapas.through
+    extra = 0  # Quantidade de linhas que serão exibidas.
+    show_change_link = True
+
+
+@admin.register(SolicitacaoAlteracaoCronograma)
+class SolicitacaoAdmin(admin.ModelAdmin):
+    inlines = [AlteracaoCronogramaEtapaInline]
+
+
+@admin.register(AlteracaoCronogramaEtapa)
+class AlteracaoCronogramaEtapaAdmin(admin.ModelAdmin):
+    readonly_fields = [
+        'etapa'
+    ]
+
+    def has_add_permission(self, request) -> bool:
+        return False
 
 
 admin.site.register(Cronograma)

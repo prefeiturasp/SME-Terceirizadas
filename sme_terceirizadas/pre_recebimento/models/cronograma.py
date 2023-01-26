@@ -63,10 +63,11 @@ class EtapasDoCronograma(ModeloBase):
     total_embalagens = models.PositiveSmallIntegerField('Total de Embalagens', blank=True, null=True)
 
     def __str__(self):
-        if self.etapa:
+        if self.etapa and self.cronograma:
             return f'{self.etapa} do cronogrma {self.cronograma.numero}'
-        else:
+        if self.cronograma:
             return f'Etapa do cronogrma {self.cronograma.numero}'
+        return 'Etapa sem cronograma'
 
     class Meta:
         ordering = ('etapa', 'data_programada')
@@ -114,6 +115,9 @@ class AlteracaoCronogramaEtapa(models.Model):
     etapa = models.ForeignKey(EtapasDoCronograma, on_delete=models.PROTECT)
     nova_data_programada = models.DateField('Nova Data Programada', blank=True, null=True)
     nova_quantidade = models.FloatField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f'{self.etapa.etapa} - {self.etapa.parte} (NovaQuantidade:{self.nova_quantidade})'
 
 
 class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
