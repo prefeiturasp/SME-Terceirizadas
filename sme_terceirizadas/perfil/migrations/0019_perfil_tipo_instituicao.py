@@ -13,6 +13,7 @@ def migrate_default_values(apps, schmema_editor):
             'ADMINISTRADOR_CODAE_GABINETE': 'CODAE',
             'COORDENADOR_LOGISTICA': 'CODAE',
             'ADMINISTRADOR_EMPRESA': 'EMPRESA',
+            'USUARIO_EMPRESA': 'EMPRESA',
             'DIRETOR': 'ESCOLA',
             'DIRETOR_CEI': 'ESCOLA',
             'ADMINISTRADOR_UE': 'ESCOLA',

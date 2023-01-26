@@ -34,7 +34,8 @@ from ...dados_comuns.constants import (
     DILOG_CRONOGRAMA,
     DILOG_DIRETORIA,
     DILOG_QUALIDADE,
-    DINUTRE_DIRETORIA
+    DINUTRE_DIRETORIA,
+    USUARIO_EMPRESA
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
@@ -225,7 +226,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         return (
             self.vinculo_atual and
             self.vinculo_atual.content_type.app_label == 'terceirizada' and
-            self.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA]
+            self.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA, USUARIO_EMPRESA]
         )
 
     @property

@@ -20,7 +20,7 @@ from sme_terceirizadas.perfil.models.usuario import (
     ImportacaoPlanilhaUsuarioServidorCoreSSO
 )
 
-from ...dados_comuns.constants import ADMINISTRADOR_EMPRESA, DIRETOR_UE
+from ...dados_comuns.constants import ADMINISTRADOR_EMPRESA, DIRETOR_UE, USUARIO_EMPRESA
 from ...dados_comuns.permissions import PermissaoParaCriarUsuarioComCoresso, UsuarioSuperCodae
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.models import Codae
@@ -214,7 +214,7 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['GET'], url_path='vinculos-ativos', permission_classes=(IsAuthenticated,))
     def lista_vinculos_ativos(self, request):
         usuario = request.user
-        if usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_EMPRESA]:
+        if usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_EMPRESA, USUARIO_EMPRESA]:
             queryset = self.get_queryset().filter(
                 content_type=usuario.vinculo_atual.content_type,
                 object_id=usuario.vinculo_atual.object_id
@@ -237,7 +237,7 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['GET'], url_path='vinculo-empresa', permission_classes=(IsAuthenticated,))
     def vinculo_empresa(self, request):
         usuario = request.user
-        if usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA]:
+        if usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA, USUARIO_EMPRESA]:
             vinculos = Vinculo.objects.filter(usuario=usuario)
             vinculo = [vinc for vinc in vinculos if vinc.status is Vinculo.STATUS_ATIVO][0]
             response = {'nome': vinculo.instituicao.nome, 'cnpj': vinculo.instituicao.cnpj}
