@@ -260,6 +260,9 @@ class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
         inclusoes_alimentacao_cei = diretoria_regional.inclusoes_alimentacao_de_cei_das_minhas_escolas(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao_cei)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -400,6 +403,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         inclusoes_alimentacao_normal = diretoria_regional.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_alimentacao_normal = inclusoes_alimentacao_normal.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao_normal)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -545,6 +551,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
         inclusoes_alimentacao_continua = diretoria_regional.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_continuas = inclusoes_alimentacao_continua.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao_continua)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -635,6 +644,9 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREVali
         inclusoes_alimentacao = diretoria_regional.inclusoes_alimentacao_cemei_das_minhas_escolas(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_alimentacao = inclusoes_alimentacao.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
