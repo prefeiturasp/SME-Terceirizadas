@@ -266,3 +266,7 @@ class ExportExcelAction:
 
 def remove_tags_html_from_string(html_string: str):
     return re.sub(r'<.*?>', '', html_string)
+
+
+def remove_multiplos_espacos(string: str):
+    return ' '.join(string.split())

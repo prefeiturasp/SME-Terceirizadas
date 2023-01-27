@@ -1124,7 +1124,7 @@ class MotivoAlteracaoUEViewSet(mixins.ListModelMixin, GenericViewSet):
 class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
-    queryset = ProtocoloPadraoDietaEspecial.objects.all().order_by('nome_protocolo')
+    queryset = ProtocoloPadraoDietaEspecial.objects.filter(ativo=True).order_by('nome_protocolo')
     serializer_class = ProtocoloPadraoDietaEspecialSerializer
     pagination_class = ProtocoloPadraoPagination
     filter_backends = (filters.DjangoFilterBackend,)
@@ -1136,7 +1136,7 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         return ProtocoloPadraoDietaEspecialSerializer
 
     def get_queryset(self):
-        queryset = ProtocoloPadraoDietaEspecial.objects.all()
+        queryset = ProtocoloPadraoDietaEspecial.objects.filter(ativo=True)
         if 'editais[]' in self.request.query_params:
             queryset = queryset.filter(editais__uuid__in=self.request.query_params.getlist('editais[]')).distinct()
         return queryset.order_by('nome_protocolo')
