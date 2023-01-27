@@ -22,7 +22,7 @@
                 {% else %}{% if logs|fim_de_fluxo %} {% else %}pending{% endif %}{% endif %}"
               style="width: {{ width }}">
             {% if logs|index_exists:forloop.counter %}
-              {{ logs|get_element_by_index:forloop.counter0|get_attribute:'criado_em' }}
+              {{ logs|get_element_by_index:forloop.counter0|get_attribute:'criado_em'|date:"d/m/Y H:i:s" }}
               <br/>
               <span>
                   RF: {{ logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'registro_funcional' }}
