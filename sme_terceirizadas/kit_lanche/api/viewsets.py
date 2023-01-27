@@ -1,3 +1,5 @@
+import datetime
+
 from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.decorators import action
@@ -132,12 +134,12 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         kit_lanches_avulso = codae.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            kit_lanches_avulso = kit_lanches_avulso.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            kit_lanches_avulso = kit_lanches_avulso.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            kit_lanches_avulso = kit_lanches_avulso.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            kit_lanches_avulso = kit_lanches_avulso.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(kit_lanches_avulso)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -360,12 +362,12 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         solicitacoes_unificadas = codae.solicitacoes_unificadas(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            solicitacoes_unificadas = solicitacoes_unificadas.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            solicitacoes_unificadas = solicitacoes_unificadas.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            solicitacoes_unificadas = solicitacoes_unificadas.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            solicitacoes_unificadas = solicitacoes_unificadas.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(solicitacoes_unificadas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -498,6 +500,36 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, url_path=constants.ESCOLA_CANCELA, methods=['patch'],
+            permission_classes=(UsuarioEscola,))
+    def escola_cancela(self, request, uuid=None):
+        DIAS_PARA_CANCELAR = 2
+        usuario = request.user
+        justificativa = request.data.get('justificativa', '')
+        solicitacao_unificada = self.get_object()
+        dia_antecedencia = datetime.date.today(
+        ) + datetime.timedelta(days=DIAS_PARA_CANCELAR)
+        data_do_evento = solicitacao_unificada.data
+
+        if (data_do_evento > dia_antecedencia):
+            sol_unificada_escola = solicitacao_unificada.escolas_quantidades.filter(
+                escola__uuid=usuario.vinculo_atual.instituicao.uuid)[0]
+            sol_unificada_escola.cancelado = True
+            sol_unificada_escola.cancelado_justificativa = justificativa
+            sol_unificada_escola.cancelado_em = datetime.datetime.now()
+            sol_unificada_escola.cancelado_por = usuario
+            sol_unificada_escola.save()
+            if not solicitacao_unificada.escolas_quantidades.filter(cancelado=False):
+                try:
+                    solicitacao_unificada.cancelar_pedido(user=usuario, justificativa=justificativa)
+                except InvalidTransitionError as e:
+                    return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        else:
+            return Response(dict(detail=f'Só pode cancelar com no mínimo {DIAS_PARA_CANCELAR} dia(s) de antecedência'),
+                            status=HTTP_400_BAD_REQUEST)
+
     def destroy(self, request, *args, **kwargs):
         solicitacao_kit_lanche_unificada = self.get_object()
         if solicitacao_kit_lanche_unificada.pode_excluir:
@@ -552,12 +584,12 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
         kit_lanches_avulso = codae.solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            kit_lanches_avulso = kit_lanches_avulso.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            kit_lanches_avulso = kit_lanches_avulso.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            kit_lanches_avulso = kit_lanches_avulso.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            kit_lanches_avulso = kit_lanches_avulso.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(kit_lanches_avulso)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -670,12 +702,12 @@ class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, CodaeAutoriza, CodaeQuestio
         kit_lanches_cemei = codae.solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
-        if request.query_params.getlist('diretorias_regionais[]'):
-            dres_uuids = request.query_params.getlist('diretorias_regionais[]')
-            kit_lanches_cemei = kit_lanches_cemei.filter(rastro_dre__uuid__in=dres_uuids)
-        if request.query_params.getlist('lotes[]'):
-            lotes_uuids = request.query_params.getlist('lotes[]')
-            kit_lanches_cemei = kit_lanches_cemei.filter(rastro_lote__uuid__in=lotes_uuids)
+        if request.query_params.get('diretoria_regional'):
+            dre_uuid = request.query_params.get('diretoria_regional')
+            kit_lanches_cemei = kit_lanches_cemei.filter(rastro_dre__uuid=dre_uuid)
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            kit_lanches_cemei = kit_lanches_cemei.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(kit_lanches_cemei)
         serializer = serializers.SolicitacaoKitLancheCEMEIRetrieveSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)

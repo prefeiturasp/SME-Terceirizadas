@@ -5,19 +5,17 @@ from rest_framework import status
 from sme_terceirizadas.pre_recebimento.models import Cronograma, EmbalagemQld, Laboratorio
 
 
-def test_url_endpoint_cronograma(client_autenticado_dilog, armazem):
+def test_url_endpoint_cronograma(client_autenticado_dilog, armazem, contrato, empresa):
     data = {
-        'armazem': armazem.uuid,
-        'contrato_uuid': 'f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
-        'contrato': '5678/2022',
+        'armazem': str(armazem.uuid),
+        'contrato': str(contrato.uuid),
+        'empresa': str(empresa.uuid),
         'cadastro_finalizado': False,
         'etapas': [
             {
-                'empenho_uuid': 'f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
                 'numero_empenho': '123456789'
             },
             {
-                'empenho_uuid': 'f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
                 'numero_empenho': '1891425',
                 'etapa': 'Etapa 1'
             }
@@ -36,7 +34,7 @@ def test_url_endpoint_cronograma(client_autenticado_dilog, armazem):
     )
     assert response.status_code == status.HTTP_201_CREATED
     obj = Cronograma.objects.last()
-    assert obj.contrato == '5678/2022'
+    assert obj.contrato == contrato
 
 
 def test_url_lista_etapas_authorized_numeros(client_autenticado_dilog):
@@ -79,18 +77,16 @@ def test_url_list_rascunhos_cronogramas(client_autenticado_dilog):
     assert 'results' in json
 
 
-def test_url_endpoint_cronograma_editar(client_autenticado_dilog, cronograma_rascunho):
+def test_url_endpoint_cronograma_editar(client_autenticado_dilog, cronograma_rascunho, contrato, empresa):
     data = {
-        'contrato_uuid': 'f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
-        'contrato': '5678/2022',
+        'empresa': str(empresa.uuid),
+        'contrato': str(contrato.uuid),
         'cadastro_finalizado': True,
         'etapas': [
             {
-                'empenho_uuid': 'f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
                 'numero_empenho': '123456789'
             },
             {
-                'empenho_uuid': 'f1eb5ab9-fdb1-45ea-b43b-9da03f69f280',
                 'numero_empenho': '1891425',
                 'etapa': 'Etapa 1'
             }
@@ -110,8 +106,6 @@ def test_url_endpoint_cronograma_editar(client_autenticado_dilog, cronograma_ras
 
     assert response.status_code == status.HTTP_200_OK
     obj = Cronograma.objects.last()
-    assert cronograma_rascunho.contrato == '1234/2022'
-    assert obj.contrato == '5678/2022'
     assert cronograma_rascunho.status == 'RASCUNHO'
     assert obj.status == 'ENVIADO_AO_FORNECEDOR'
 

@@ -80,10 +80,12 @@ class LogSolicitacoesUsuario(
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
         MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
         MEDICAO_ENCERRADA_PELA_CODAE,
+        # CRONOGRAMA
         CRONOGRAMA_CRIADO,
         CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
         CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
-    ) = range(59)
+        FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
+    ) = range(60)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -183,6 +185,7 @@ class LogSolicitacoesUsuario(
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
         (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
         (CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR, 'Entrega Confirmada'),
+        (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Alteração Fornecedor')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -465,8 +468,8 @@ class Notificacao(models.Model):
     def __str__(self):
         return self.titulo
 
-    @classmethod # noqa C901
-    def notificar(cls, tipo, categoria, titulo, descricao, usuario, link,
+    @classmethod
+    def notificar(cls, tipo, categoria, titulo, descricao, usuario, link,  # noqa C901
                   requisicao=None, solicitacao_alteracao=None, guia=None, renotificar=True):
 
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():

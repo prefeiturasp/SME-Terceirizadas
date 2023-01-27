@@ -699,8 +699,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{INCLUSOES_AUTORIZADAS}') # noqa C901
-    def inclusoes_autorizadas(self, request):
+    @action(detail=False, methods=['GET'], url_path=f'{INCLUSOES_AUTORIZADAS}')
+    def inclusoes_autorizadas(self, request):  # noqa C901
         escola_uuid = request.query_params.get('escola_uuid')
         mes = request.query_params.get('mes')
         ano = request.query_params.get('ano')
