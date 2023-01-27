@@ -41,7 +41,7 @@ from ..models import (
     SolicitacaoKitLancheCEMEI,
     SolicitacaoKitLancheUnificada
 )
-from ..utils import KitLanchePagination
+from ..utils import KitLanchePagination, cancela_solicitacao_kit_lanche_unificada
 from .serializers import serializers, serializers_create, serializers_create_cei
 
 
@@ -491,14 +491,29 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     @action(detail=True, url_path=constants.DRE_CANCELA, methods=['patch'],
             permission_classes=(UsuarioDiretoriaRegional,))
     def diretoria_regional_cancela(self, request, uuid=None):
+        DIAS_PARA_CANCELAR = 2
+        usuario = request.user
         justificativa = request.data.get('justificativa', '')
+        escolas_selecionadas = request.data.get('escolas_selecionadas', '')
         solicitacao_unificada = self.get_object()
-        try:
-            solicitacao_unificada.cancelar_pedido(user=request.user, justificativa=justificativa)
+        dia_antecedencia = datetime.date.today(
+        ) + datetime.timedelta(days=DIAS_PARA_CANCELAR)
+        data_do_evento = solicitacao_unificada.data
+
+        if (data_do_evento > dia_antecedencia):
+            for escola_quantidade in solicitacao_unificada.escolas_quantidades.all():
+                if str(escola_quantidade.escola.uuid) in escolas_selecionadas and not escola_quantidade.cancelado:
+                    escola_quantidade.cancelado = True
+                    escola_quantidade.cancelado_justificativa = justificativa
+                    escola_quantidade.cancelado_em = datetime.datetime.now()
+                    escola_quantidade.cancelado_por = usuario
+                    escola_quantidade.save()
+            cancela_solicitacao_kit_lanche_unificada(solicitacao_unificada, usuario, justificativa)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+        else:
+            return Response(dict(detail=f'Só pode cancelar com no mínimo {DIAS_PARA_CANCELAR} dia(s) de antecedência'),
+                            status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, url_path=constants.ESCOLA_CANCELA, methods=['patch'],
             permission_classes=(UsuarioEscola,))
@@ -519,11 +534,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             sol_unificada_escola.cancelado_em = datetime.datetime.now()
             sol_unificada_escola.cancelado_por = usuario
             sol_unificada_escola.save()
-            if not solicitacao_unificada.escolas_quantidades.filter(cancelado=False):
-                try:
-                    solicitacao_unificada.cancelar_pedido(user=usuario, justificativa=justificativa)
-                except InvalidTransitionError as e:
-                    return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+            cancela_solicitacao_kit_lanche_unificada(solicitacao_unificada, usuario, justificativa)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         else:
