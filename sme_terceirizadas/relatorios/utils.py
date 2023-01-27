@@ -17,9 +17,7 @@ def formata_logs(logs):
         LogSolicitacoesUsuario.CODAE_AUTORIZOU,
         LogSolicitacoesUsuario.CODAE_NEGOU]
     ).exists():
-        logs = logs.exclude(
-            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU)
-    return logs.exclude(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO)
+        return logs
 
 
 def get_width(fluxo, logs):
