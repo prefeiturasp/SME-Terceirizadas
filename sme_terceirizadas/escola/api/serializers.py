@@ -425,6 +425,10 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.eh_cemei
 
+    def get_tipo_servico(self, obj):
+        if isinstance(obj.instituicao, Terceirizada):
+            return obj.instituicao.tipo_servico
+
     def get_instituicao(self, obj):
         instituicao_dict = {'nome': obj.instituicao.nome,
                             'uuid': obj.instituicao.uuid,
@@ -446,6 +450,8 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
             if obj.instituicao.eh_cemei:
                 instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
                 instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
+        if isinstance(obj.instituicao, Terceirizada):
+            instituicao_dict['tipo_servico'] = self.get_tipo_servico(obj)
         return instituicao_dict
 
     class Meta:
