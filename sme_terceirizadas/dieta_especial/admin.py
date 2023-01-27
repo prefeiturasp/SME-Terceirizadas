@@ -2,7 +2,6 @@ import re
 from datetime import date
 
 from django.contrib import admin, messages
-from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import path

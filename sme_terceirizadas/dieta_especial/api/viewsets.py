@@ -1135,18 +1135,6 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
             return ProtocoloPadraoDietaEspecialSerializerCreate
         return ProtocoloPadraoDietaEspecialSerializer
 
-    def create(self, request, *args, **kwargs):
-        try:
-            return super().create(request, *args, **kwargs)
-        except ValidationError as error:
-            return Response({'detail': error}, status=status.HTTP_400_BAD_REQUEST)
-
-    def update(self, request, *args, **kwargs):
-        try:
-            return super().update(request, *args, **kwargs)
-        except ValidationError as error:
-            return Response({'detail': error}, status=status.HTTP_400_BAD_REQUEST)
-
     def get_queryset(self):
         queryset = ProtocoloPadraoDietaEspecial.objects.all()
         if 'editais[]' in self.request.query_params:

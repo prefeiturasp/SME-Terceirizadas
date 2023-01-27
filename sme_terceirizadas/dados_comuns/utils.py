@@ -269,4 +269,4 @@ def remove_tags_html_from_string(html_string: str):
 
 
 def remove_multiplos_espacos(string: str):
-    return " ".join(string.split())
+    return ' '.join(string.split())
