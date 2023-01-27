@@ -1,16 +1,19 @@
 from datetime import date
 
-from rest_framework import serializers
+from rest_framework import fields, serializers
+from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
+    AlteracaoCronogramaEtapa,
     Cronograma,
     EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
-    ProgramacaoDoRecebimentoDoCronograma
+    ProgramacaoDoRecebimentoDoCronograma,
+    SolicitacaoAlteracaoCronograma
 )
 from sme_terceirizadas.produto.models import NomeDeProdutoEdital, UnidadeMedida
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
@@ -206,3 +209,73 @@ class EmbalagemQldCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmbalagemQld
         exclude = ('id', )
+
+
+def novo_numero_solicitacao(objeto):
+    # Nova regra para sequência de numeração.
+    objeto.numero_solicitacao = f'{str(objeto.pk).zfill(8)}-ALT'
+    objeto.save()
+
+
+class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializer):
+    motivo = fields.MultipleChoiceField(choices=SolicitacaoAlteracaoCronograma.MOTIVO_CHOICES)
+    cronograma = serializers.UUIDField()
+    etapas = serializers.JSONField(write_only=True)
+
+    def validate_cronograma(self, value):
+        cronograma = Cronograma.objects.filter(uuid=value)
+        if not cronograma:
+            raise serializers.ValidationError(f'Cronograma não existe')
+        if cronograma.first().solicitacoes_de_alteracao.em_analise().count() > 0:
+            raise serializers.ValidationError(f'Cronograma já possui solicitação de alteração em análise')
+        return value
+
+    def validate(self, attrs):
+        cronograma = Cronograma.objects.filter(uuid=attrs['cronograma'])
+        etapas_uuids = [etapa['uuid'] for etapa in attrs['etapas']]
+        if cronograma.filter(etapas__uuid__in=etapas_uuids).count() != len(etapas_uuids):
+            raise serializers.ValidationError(f'Existem etapas que não pertencem ao cronograma.')
+        return super().validate(attrs)
+
+    def _criar_etapas(self, etapas):
+        etapas_created = []
+        for etapa in etapas:
+            nova_data_programada = etapa.pop('nova_data_programada', None)
+            nova_quantidade = etapa.pop('nova_quantidade', None)
+            etapas_created.append(AlteracaoCronogramaEtapa.objects.create(
+                etapa=EtapasDoCronograma.objects.get(uuid=etapa['uuid']),
+                nova_data_programada=nova_data_programada,
+                nova_quantidade=nova_quantidade,
+            ))
+        return etapas_created
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        uuid_cronograma = validated_data.pop('cronograma', None)
+        etapas = validated_data.pop('etapas', [])
+        cronograma = Cronograma.objects.get(uuid=uuid_cronograma)
+        etapas_created = self._criar_etapas(etapas)
+        alteracao_cronograma = SolicitacaoAlteracaoCronograma.objects.create(
+            usuario_solicitante=user,
+            cronograma=cronograma, **validated_data,
+        )
+        alteracao_cronograma.etapas.set(etapas_created)
+        self._alterna_estado_cronograma(cronograma, user, validated_data)
+        self._alterna_estado_solicitacao_alteracao_cronograma(alteracao_cronograma, user, validated_data)
+        return alteracao_cronograma
+
+    def _alterna_estado_cronograma(self, cronograma, user, validated_data):
+        try:
+            cronograma.solicita_alteracao(user=user, justificativa=validated_data.get('justificativa', ''))
+        except InvalidTransitionError as e:
+            raise serializers.ValidationError(f'Erro de transição de estado do cronograma: {e}')
+
+    def _alterna_estado_solicitacao_alteracao_cronograma(self, alteracao_cronograma, user, validated_data):
+        try:
+            alteracao_cronograma.inicia_fluxo(user=user, justificativa=validated_data.get('justificativa', ''))
+        except InvalidTransitionError as e:
+            raise serializers.ValidationError(f'Erro de transição de estado da alteração: {e}')
+
+    class Meta:
+        model = SolicitacaoAlteracaoCronograma
+        exclude = ('id', 'usuario_solicitante')

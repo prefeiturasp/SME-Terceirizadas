@@ -161,6 +161,16 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
 
     @property
+    def solicitacoes_similares(self):
+        tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
+        data_evento = self.solicitacao_kit_lanche.data
+        all_objects = SolicitacaoKitLancheAvulsa.objects.all()
+        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
+                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
+        solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
+        return solicitacoes_similares
+
+    @property
     def observacao(self):
         return self.solicitacao_kit_lanche.descricao
 
@@ -263,6 +273,16 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
             'faixas_etarias': self.get_faixas_etarias_dict,
             'total_matriculados': self.total_matriculados_quando_criado
         }
+
+    @property
+    def solicitacoes_similares(self):
+        tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
+        data_evento = self.solicitacao_kit_lanche.data
+        all_objects = SolicitacaoKitLancheCEIAvulsa.objects.all()
+        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
+                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
+        solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
+        return solicitacoes_similares
 
     def __str__(self):
         return f'{self.escola} SOLICITA EM {self.local}'
@@ -481,6 +501,16 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
             'escolas_quantidades': self.get_escolas_quantidades_dict,
         }
 
+    @property
+    def solicitacoes_similares(self):
+        tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
+        data_evento = self.solicitacao_kit_lanche.data
+        all_objects = SolicitacaoKitLancheUnificada.objects.all()
+        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
+                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
+        solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
+        return solicitacoes_similares
+
     def __str__(self):
         dre = self.diretoria_regional
         return f'{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}'
@@ -634,6 +664,15 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             'solicitacao_emei': self.get_solicitacao_emei_dict(),
             'total_kits': self.total_kits
         }
+
+    @property
+    def solicitacoes_similares(self):
+        filtros = {'data': self.data}
+        if self.tem_solicitacao_cei:
+            filtros['solicitacao_cei__tempo_passeio'] = self.solicitacao_cei.tempo_passeio
+        if self.tem_solicitacao_emei:
+            filtros['solicitacao_emei__tempo_passeio'] = self.solicitacao_emei.tempo_passeio
+        return SolicitacaoKitLancheCEMEI.objects.filter(**filtros).exclude(uuid=self.uuid)
 
     class Meta:
         verbose_name = 'Solicitação Kit Lanche CEMEI'

@@ -1811,6 +1811,11 @@ class CadastroProdutoEditalViewSet(viewsets.ModelViewSet):
             return CadastroProdutosEditalCreateSerializer
         return CadastroProdutosEditalSerializer
 
+    @action(detail=False, methods=['GET'], url_path='lista-completa')
+    def lista_completa(self, _):
+        queryset = self.queryset.all()
+        return Response({'results': CadastroProdutosEditalSerializer(queryset, many=True).data})
+
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_de_nomes(self, _):
         return Response({'results': [item.nome for item in self.queryset.all()]})

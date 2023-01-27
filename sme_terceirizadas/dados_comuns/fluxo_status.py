@@ -842,7 +842,6 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
             justificativa=kwargs.get('justificativa', ''))
 
         partes_interessadas = self._partes_interessadas_dilog()
-
         self._envia_email_distribuidor_solicita_alteracao(log_transicao=log_transicao,
                                                           partes_interessadas=partes_interessadas)
         # Monta Notificacao
@@ -2925,6 +2924,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
     ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
     VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
     ENTREGA_CONFIRMADA = 'ENTREGA_CONFIRMADA'
+    SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -2935,11 +2935,13 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
         (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
         (ENTREGA_CONFIRMADA, 'Entrega Confirmada'),
+        (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
         ('fornecedor_confirma', ENVIADO_AO_FORNECEDOR, ENTREGA_CONFIRMADA),
+        ('solicita_alteracao', ENTREGA_CONFIRMADA, SOLICITADO_ALTERACAO),
     )
 
     initial_state = RASCUNHO
@@ -2962,3 +2964,43 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
                                       usuario=user)
+
+    @xworkflows.after_transition('solicita_alteracao')
+    def _solicita_alteracao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
+
+class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    EM_ANALISE = 'EM_ANALISE'
+    ACEITA = 'ACEITA'
+    NEGADA = 'NEGADA'
+
+    states = (
+        (EM_ANALISE, 'Em análise'),
+        (ACEITA, 'Aceita'),
+        (NEGADA, 'Negada'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
+    )
+
+    initial_state = EM_ANALISE
+
+
+class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = CronogramaAlteracaoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
