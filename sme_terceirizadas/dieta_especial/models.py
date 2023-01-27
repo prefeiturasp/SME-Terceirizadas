@@ -512,7 +512,7 @@ class AlimentoSubstituto(models.Model):
     alimento = models.ForeignKey(Alimento, on_delete=models.SET_NULL, null=True, blank=True)
 
 
-class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIdentificadorExternoAmigavel):
+class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIdentificadorExternoAmigavel, Ativavel):
     # Mantive para termos um histórico acessível pelo admin
     history = AuditlogHistoryField()
 
