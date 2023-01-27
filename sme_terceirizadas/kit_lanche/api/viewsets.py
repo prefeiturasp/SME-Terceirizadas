@@ -121,6 +121,9 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         kit_lanches_avulso = diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            kit_lanches_avulso = kit_lanches_avulso.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(kit_lanches_avulso)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -571,6 +574,9 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
         kit_lanches_avulso = diretoria_regional.solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            kit_lanches_avulso = kit_lanches_avulso.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(kit_lanches_avulso)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -689,6 +695,10 @@ class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, CodaeAutoriza, CodaeQuestio
         kit_lanches_cemei = diretoria_regional.solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            kit_lanches_cemei = kit_lanches_cemei.filter(rastro_lote__uuid=lote_uuid)
+        page = self.paginate_queryset(kit_lanches_cemei)
         page = self.paginate_queryset(kit_lanches_cemei)
         serializer = serializers.SolicitacaoKitLancheCEMEIRetrieveSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
