@@ -553,7 +553,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
         )
         if request.query_params.get('lote'):
             lote_uuid = request.query_params.get('lote')
-            inclusoes_continuas = inclusoes_alimentacao_continua.filter(rastro_lote__uuid=lote_uuid)
+            inclusoes_alimentacao_continua = inclusoes_alimentacao_continua.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao_continua)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
