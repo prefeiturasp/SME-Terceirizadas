@@ -1,9 +1,7 @@
 import datetime
 
+from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST
-from xworkflows import InvalidTransitionError
 
 
 def date_to_string(date: datetime.date) -> str:
@@ -24,7 +22,9 @@ class KitLanchePagination(PageNumberPagination):
 
 def cancela_solicitacao_kit_lanche_unificada(solicitacao_unificada, usuario, justificativa):
     if not solicitacao_unificada.escolas_quantidades.filter(cancelado=False):
-        try:
-            solicitacao_unificada.cancelar_pedido(user=usuario, justificativa=justificativa)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+        solicitacao_unificada.cancelar_pedido(user=usuario, justificativa=justificativa)
+
+
+def valida_dia_cancelamento(dia_antecedencia, data_do_evento, dias_para_cancelar):
+    if (data_do_evento <= dia_antecedencia):
+        raise ValidationError(f'Só pode cancelar com no mínimo {dias_para_cancelar} dia(s) de antecedência')
