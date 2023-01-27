@@ -881,6 +881,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         diretoria_regional = usuario.vinculo_atual.instituicao
         query_set = SolicitacoesDRE.get_pendentes_validacao(dre_uuid=diretoria_regional.uuid,
                                                             filtro=filtro_aplicado)
+        query_set = SolicitacoesDRE.busca_filtro(query_set, request.query_params)
         response = {'results': self._agrupa_por_tipo_visao(
             tipo_visao=tipo_visao, query_set=query_set)}
         return Response(response)
