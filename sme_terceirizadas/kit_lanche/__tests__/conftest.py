@@ -243,6 +243,8 @@ def solicitacao_unificada_lista_igual(escola, diretoria_regional, terceirizada, 
                                      _quantity=10,
                                      quantidade_alunos=100,
                                      cancelado_por=usuario_escola,
+                                     cancelado=True,
+                                     cancelado_em=datetime.date.today()
                                      )
     solicitacao_unificada = mommy.make(models.SolicitacaoKitLancheUnificada,
                                        local=fake.text()[:160],

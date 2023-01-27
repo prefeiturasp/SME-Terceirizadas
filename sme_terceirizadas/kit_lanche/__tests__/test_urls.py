@@ -424,7 +424,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela_em_cima_da_h
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     json = response.json()
-    assert json == {'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
+    assert json == {'detail': 'Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificado_deletar(client_autenticado_da_dre,
