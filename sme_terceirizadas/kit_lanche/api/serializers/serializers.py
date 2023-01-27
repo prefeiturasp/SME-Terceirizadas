@@ -157,13 +157,13 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
     def get_cancelado_em(self, obj):
         if obj.cancelado:
             if obj.cancelado_em and obj.cancelado_em.date() == datetime.date.today():
-                return obj.cancelado_em.strftime('%d/%m/%Y %H:%M')
+                return obj.cancelado_em.strftime('%d/%m/%Y %H:%M:%S')
             return obj.cancelado_em.strftime('%d/%m/%Y')
         return None
 
     def get_cancelado_em_com_hora(self, obj):
         if obj.cancelado:
-            return obj.cancelado_em.strftime('%d/%m/%Y %H:%M')
+            return obj.cancelado_em.strftime('%d/%m/%Y %H:%M:%S')
         return None
 
     class Meta:
