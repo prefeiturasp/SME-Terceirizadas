@@ -14,6 +14,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.migra_vinculos_escola()
         self.migra_vinculos_empresa()
+        self.migra_vinculos_empresa_usuario_terceirizada()
 
     def migra_vinculos_escola(self):
         adm_ue = Perfil.by_nome(ADMINISTRADOR_UE)
