@@ -753,7 +753,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                         if inclusao.data_evento_2.month != inclusao.data_evento.month and not big_range:
                             data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
                         while i <= data_evento_final_no_mes:
-                            if not periodo.dias_semana or datetime.date(int(ano), int(mes), i).weekday() in periodo.dias_semana: # noqa E501
+                            if (not periodo.dias_semana or
+                                    datetime.date(int(ano), int(mes), i).weekday() in periodo.dias_semana):
                                 append(i, periodo, inclusao)
                             i += 1
                     else:

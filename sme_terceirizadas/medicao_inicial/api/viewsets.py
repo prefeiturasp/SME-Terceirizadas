@@ -123,17 +123,19 @@ class ValorMedicaoViewSet(
         queryset = ValorMedicao.objects.all()
         nome_periodo_escolar = self.request.query_params.get('nome_periodo_escolar', '')
         uuid_solicitacao_medicao = self.request.query_params.get('uuid_solicitacao_medicao', '')
-        nome_grupo = self.request.query_params.get('nome_grupo', '')
+        nome_grupo = self.request.query_params.get('nome_grupo', None)
         if nome_periodo_escolar:
             queryset = queryset.filter(medicao__periodo_escolar__nome=nome_periodo_escolar)
         if nome_grupo:
             queryset = queryset.filter(medicao__grupo__nome=nome_grupo)
+        else:
+            queryset = queryset.filter(medicao__grupo__isnull=True)
         if uuid_solicitacao_medicao:
             queryset = queryset.filter(medicao__solicitacao_medicao_inicial__uuid=uuid_solicitacao_medicao)
         return queryset
 
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
+        instance = ValorMedicao.objects.get(uuid=kwargs.get('uuid'))
         medicao = instance.medicao
         self.perform_destroy(instance)
         if not medicao.valores_medicao.all().exists():
