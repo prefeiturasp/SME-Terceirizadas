@@ -229,11 +229,10 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):  # noqa C901
         valores_medicao_dict = validated_data.pop('valores_medicao', None)
-        uuids_criados_atualizados = []
 
         if valores_medicao_dict:
             for valor_medicao in valores_medicao_dict:
-                valor_medicao_ = ValorMedicao.objects.update_or_create(
+                ValorMedicao.objects.update_or_create(
                     medicao=instance,
                     dia=valor_medicao.get('dia', ''),
                     nome_campo=valor_medicao.get('nome_campo', ''),
@@ -248,12 +247,6 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                         'tipo_alimentacao': valor_medicao.get('tipo_alimentacao', ''),
                     }
                 )
-                uuids_criados_atualizados.append(valor_medicao_[0].uuid)
-        eh_observacao = self.context['request'].data.get('eh_observacao',)
-        if not eh_observacao:
-            instance.valores_medicao.filter(valor=0).delete()
-        if uuids_criados_atualizados:
-            instance.valores_medicao.exclude(uuid__in=uuids_criados_atualizados).delete()
         if not instance.valores_medicao.all().exists():
             instance.delete()
 
