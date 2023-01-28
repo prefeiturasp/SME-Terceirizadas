@@ -847,8 +847,10 @@ class SolicitacoesEscola(MoldeConsolidado):
                           LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                           LogSolicitacoesUsuario.INICIO_FLUXO]
 
-    CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
-    CANCELADOS_EVENTO = [LogSolicitacoesUsuario.ESCOLA_CANCELOU]
+    CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+                         PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU]
+    CANCELADOS_EVENTO = [LogSolicitacoesUsuario.DRE_CANCELOU,
+                         LogSolicitacoesUsuario.ESCOLA_CANCELOU]
 
     NEGADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO,
                       PedidoAPartirDaEscolaWorkflow.DRE_NAO_VALIDOU_PEDIDO_ESCOLA]
@@ -1002,7 +1004,8 @@ class SolicitacoesEscola(MoldeConsolidado):
 
         escola_uuid = kwargs.get('escola_uuid')
         uuids_solicitacao_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
-            escolas_quantidades__escola__uuid=escola_uuid).values_list('uuid', flat=True)
+            escolas_quantidades__escola__uuid=escola_uuid,
+            escolas_quantidades__cancelado=False).values_list('uuid', flat=True)
         return cls.objects.filter(
             Q(escola_uuid=escola_uuid) | Q(uuid__in=uuids_solicitacao_unificadas),
             status_atual__in=cls.AUTORIZADOS_STATUS,
@@ -1020,12 +1023,28 @@ class SolicitacoesEscola(MoldeConsolidado):
 
     @classmethod
     def get_cancelados(cls, **kwargs):
+        from django.db.models import Q
+
+        from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
+
         escola_uuid = kwargs.get('escola_uuid')
-        return cls.objects.filter(
+        uuids_solicitacao_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
+            escolas_quantidades__escola__uuid=escola_uuid).values_list('uuid', flat=True)
+        cancelados = cls.objects.filter(
+            Q(escola_uuid=escola_uuid) | Q(uuid__in=uuids_solicitacao_unificadas),
             status_evento__in=cls.CANCELADOS_EVENTO,
-            status_atual__in=cls.CANCELADOS_STATUS,
-            escola_uuid=escola_uuid
+            status_atual__in=cls.CANCELADOS_STATUS
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+        uuids_solicitacao_unificadas_canceladas_parcialmente = SolicitacaoKitLancheUnificada.objects.filter(
+            escolas_quantidades__escola__uuid=escola_uuid,
+            escolas_quantidades__cancelado=True).values_list('uuid', flat=True)
+        kit_lanche_unificados_parcialmente_cancelados = cls.objects.filter(
+            uuid__in=uuids_solicitacao_unificadas_canceladas_parcialmente,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            tipo_doc=cls.TP_SOL_KIT_LANCHE_UNIFICADA
+        ).distinct().order_by('-data_log')
+        return cancelados | kit_lanche_unificados_parcialmente_cancelados
 
     #
     # Filtros consolidados
