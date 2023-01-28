@@ -99,6 +99,25 @@ def test_url_endpoint_solicitacao_medicao_inicial(client_autenticado_da_escola,
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_url_endpoint_nao_tem_permissao_para_encerrar_medicao(client_autenticado_adm_da_escola,
+                                                              escola, solicitacao_medicao_inicial,
+                                                              solicitacao_medicao_inicial_sem_arquivo,
+                                                              responsavel, tipo_contagem_alimentacao):
+    data_update = {
+        'escola': str(escola.uuid),
+        'tipo_contagem_alimentacoes': str(tipo_contagem_alimentacao.uuid),
+        'com_ocorrencias': True
+    }
+    response = client_autenticado_adm_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_sem_arquivo.uuid}/',
+        content_type='application/json',
+        data=data_update
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    json = response.json()
+    assert json == {'detail': 'Você não tem permissão para executar essa ação.'}
+
+
 def test_url_endpoint_valores_medicao(client_autenticado_da_escola, solicitacao_medicao_inicial):
     url = '/medicao-inicial/valores-medicao/?nome_periodo_escolar=MANHA'
     url += f'&uuid_solicitacao_medicao={solicitacao_medicao_inicial.uuid}'
