@@ -247,6 +247,9 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                         'tipo_alimentacao': valor_medicao.get('tipo_alimentacao', ''),
                     }
                 )
+        eh_observacao = self.context['request'].data.get('eh_observacao', )
+        if not eh_observacao:
+            instance.valores_medicao.filter(valor=-1).delete()
         if not instance.valores_medicao.all().exists():
             instance.delete()
 
