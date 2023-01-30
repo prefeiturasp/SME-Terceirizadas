@@ -257,6 +257,18 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         return queryset
 
     @classmethod
+    def filtrar_tipo_doc(cls, queryset, query_params, **kwargs):
+        if query_params.get('tipo_doc'):
+            queryset = queryset.filter(tipo_doc=query_params.get('tipo_doc'))
+        return queryset
+
+    @classmethod
+    def excluir_inclusoes_continuas(cls, queryset, query_params, **kwargs):
+        if query_params.get('excluir_inclusoes_continuas'):
+            queryset = queryset.exclude(tipo_doc='INC_ALIMENTA_CONTINUA')
+        return queryset
+
+    @classmethod
     def busca_data_evento(cls, queryset, query_params, **kwargs):
         data_evento = query_params.get('data_evento')
         if not data_evento:
@@ -360,7 +372,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         return resultado
 
     @classmethod
-    def busca_filtro(cls, queryset, query_params, **kwargs):  # noqa C901
+    def busca_filtro(cls, queryset, query_params, **kwargs):
         if query_params.get('busca'):
             queryset = queryset.filter(
                 Q(uuid__icontains=query_params.get('busca')) |
@@ -377,10 +389,8 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                 terceirizada_conferiu_gestao=query_params.get('status') == '1')
         if query_params.get('diretoria_regional'):
             queryset = queryset.filter(dre_uuid=query_params.get('diretoria_regional'))
-        if query_params.get('tipo_doc'):
-            queryset = queryset.filter(tipo_doc=query_params.get('tipo_doc'))
-        if query_params.get('excluir_inclusoes_continuas'):
-            queryset = queryset.exclude(tipo_doc='INC_ALIMENTA_CONTINUA')
+        queryset = cls.excluir_inclusoes_continuas(queryset, query_params)
+        queryset = cls.filtrar_tipo_doc(queryset, query_params)
         queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
         queryset = cls.busca_data_evento(queryset, query_params)
         return queryset
