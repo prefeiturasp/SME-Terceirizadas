@@ -25,7 +25,7 @@ def test_class_css():
     solicitacao_escola_canc = FakeSolicitacao(status_dic.get(LogSolicitacoesUsuario.ESCOLA_CANCELOU))
     solicitacao_codae_quest = FakeSolicitacao(status_dic.get(LogSolicitacoesUsuario.CODAE_QUESTIONOU))
 
-    assert class_css(solicitacao_terc_quest) == 'pending'
+    assert class_css(solicitacao_terc_quest) == 'questioned'
     assert class_css(solicitacao_dre_revisou) == 'active'
     assert class_css(solicitacao_codae_aut) == 'active'
     assert class_css(solicitacao_codae_neg_intv) == 'disapproved'
