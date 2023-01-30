@@ -20,7 +20,7 @@ pytest-xdist='==1.29.0'
 pytest-testmon='==0.9.19' # https://testmon.org/
 # Code quality
 # ------------------------------------------------------------------------------
-flake8='==3.7.5'  # https://github.com/PyCQA/flake8
+flake8='==3.7.9'  # https://github.com/PyCQA/flake8
 flake8-import-order='==0.18.1' # https://github.com/PyCQA/flake8-import-order
 flake8-blind-except='==0.1.1'  # https://github.com/elijahandrews/flake8-blind-except
 flake8-bugbear='==19.8.0'      # https://github.com/PyCQA/flake8-bugbear
