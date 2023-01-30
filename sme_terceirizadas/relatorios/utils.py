@@ -17,6 +17,9 @@ def formata_logs(logs):
         LogSolicitacoesUsuario.CODAE_AUTORIZOU,
         LogSolicitacoesUsuario.CODAE_NEGOU]
     ).exists():
+        if (logs.first().solicitacao_tipo != 10):
+            logs = logs.exclude(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU)
+            return logs.exclude(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO)
         return logs
 
 
