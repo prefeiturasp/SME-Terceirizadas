@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (
     CategoriaMedicao,
     DiaSobremesaDoce,
+    GrupoMedicao,
     Medicao,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
@@ -11,6 +12,7 @@ from .models import (
 
 admin.site.register(CategoriaMedicao)
 admin.site.register(DiaSobremesaDoce)
+admin.site.register(GrupoMedicao)
 admin.site.register(Medicao)
 admin.site.register(TipoContagemAlimentacao)
 admin.site.register(ValorMedicao)

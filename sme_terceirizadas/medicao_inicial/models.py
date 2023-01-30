@@ -103,6 +103,16 @@ class TipoContagemAlimentacao(Nomeavel, TemChaveExterna, Ativavel):
         return self.nome
 
 
+class GrupoMedicao(Nomeavel, TemChaveExterna, Ativavel):
+
+    class Meta:
+        verbose_name = 'Grupo de medição'
+        verbose_name_plural = 'Grupos de medição'
+
+    def __str__(self):
+        return self.nome
+
+
 class Medicao(
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
@@ -111,6 +121,7 @@ class Medicao(
     solicitacao_medicao_inicial = models.ForeignKey('SolicitacaoMedicaoInicial', on_delete=models.CASCADE,
                                                     related_name='medicoes')
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+    grupo = models.ForeignKey(GrupoMedicao, blank=True, null=True, on_delete=models.PROTECT)
 
     class Meta:
         verbose_name = 'Medição'
