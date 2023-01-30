@@ -725,7 +725,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             if (get_ultimo_dia_mes(datetime.date(int(ano), int(mes), 1)) < datetime.date.today() or
                     dia < datetime.date.today().day):
                 alimentacoes = ', '.join([
-                    unicodedata.normalize('NFD', alimentacao.nome).encode(
+                    unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
                         'ascii', 'ignore').decode('utf-8') for alimentacao in periodo.tipos_alimentacao.all()]).lower()
                 return_dict.append({
                     'dia': f'{dia:02d}',
