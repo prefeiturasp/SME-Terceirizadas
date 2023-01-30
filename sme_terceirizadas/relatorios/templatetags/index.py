@@ -56,7 +56,7 @@ def class_css(log):
         classe_css = 'disapproved'
     elif log.status_evento_explicacao in ['Questionamento pela CODAE', 'CODAE pediu correção',
                                           'CODAE pediu análise sensorial', 'Escola/Nutricionista reclamou do produto',
-                                          'CODAE pediu análise da reclamação']:
+                                          'CODAE pediu análise da reclamação', 'Terceirizada respondeu questionamento']:
         classe_css = 'questioned'
     return classe_css
 
