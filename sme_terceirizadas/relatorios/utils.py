@@ -13,14 +13,17 @@ from ..dados_comuns.models import LogSolicitacoesUsuario
 
 
 def formata_logs(logs):
+    _tipos = LogSolicitacoesUsuario.TIPOS_SOLICITACOES
+    tipos = {v: k for (k, v) in _tipos}
+    if logs and logs.first().solicitacao_tipo == tipos['Homologação de Produto']:
+        return logs
     if logs.filter(status_evento__in=[
         LogSolicitacoesUsuario.CODAE_AUTORIZOU,
         LogSolicitacoesUsuario.CODAE_NEGOU]
     ).exists():
-        if (logs.first().solicitacao_tipo != 10):
-            logs = logs.exclude(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU)
-            return logs.exclude(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO)
-        return logs
+        logs = logs.exclude(
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU)
+    return logs.exclude(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO)
 
 
 def get_width(fluxo, logs):
