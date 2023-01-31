@@ -155,3 +155,15 @@ class Vinculo(ExportModelOperationsMixin('vinculo_perfil'), Ativavel, TemChaveEx
 
     def __str__(self):
         return f'{self.usuario} de {self.data_inicial} até {self.data_final}'
+
+
+class PerfisVinculados(models.Model):
+    perfil_master = models.OneToOneField(Perfil, on_delete=models.PROTECT, primary_key=True)
+    perfis_subordinados = models.ManyToManyField(Perfil, help_text="Perfis que serão subordinados ao perfil master especificado", related_name='perfis_subordinados')
+
+    class Meta:
+        verbose_name = 'Perfis Vinculados'
+        verbose_name_plural = 'Perfis Vinculados'
+
+    def __str__(self):
+        return self.perfil_master.nome

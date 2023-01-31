@@ -26,7 +26,7 @@ from ...dados_comuns.models import Contato
 from ...eol_servico.utils import EOLException, EOLService
 from ...perfil.api.validators import checa_senha, usuario_com_coresso_validation, usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
-from ..models import Perfil, Usuario, Vinculo
+from ..models import Perfil, Usuario, Vinculo, PerfisVinculados
 from ..services.usuario_coresso_service import EOLUsuarioCoreSSO
 from .validators import (
     deve_ser_email_sme_ou_prefeitura,
@@ -53,6 +53,12 @@ class PerfilSerializer(serializers.ModelSerializer):
         model = Perfil
         exclude = ('id', 'nome', 'ativo')
 
+class PerfisVinculadosSerializer(serializers.ModelSerializer):
+    perfil_master = PerfilSimplesSerializer()
+    perfis_subordinados = PerfilSimplesSerializer(many=True)
+    class Meta:
+        model = PerfisVinculados
+        fields = ('perfil_master', 'perfis_subordinados')
 
 class UsuarioSerializer(serializers.ModelSerializer):
     cpf = serializers.SerializerMethodField()
