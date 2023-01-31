@@ -78,6 +78,7 @@ class PerfilAdmin(admin.ModelAdmin):
     list_display = ('nome', 'super_usuario', 'ativo')
     search_fields = ('nome',)
 
+
 @admin.register(PerfisVinculados)
 class PerfisVinculadosAdmin(admin.ModelAdmin):
     list_display = ('perfil_master',)

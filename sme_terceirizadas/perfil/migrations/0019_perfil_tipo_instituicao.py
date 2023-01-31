@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 
+
 def migrate_default_values(apps, schmema_editor):
     def get_perfil(nome):
         perfis_choices = {

@@ -26,7 +26,7 @@ from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.models import Codae
 from ...terceirizada.models import Terceirizada
 from ..api.helpers import ofuscar_email
-from ..models import Perfil, Usuario, PerfisVinculados
+from ..models import Perfil, PerfisVinculados, Usuario
 from ..tasks import (
     busca_cargo_de_usuario,
     processa_planilha_usuario_externo_coresso_async,
@@ -174,6 +174,7 @@ class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
     def visoes(self, request):
         return Response(Perfil.visoes_to_json())
 
+
 class PerfisVinculadosViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = PerfisVinculados.objects.all()
@@ -193,7 +194,7 @@ class PerfisVinculadosViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({'detail': 'Perfil ou Perfis Vinculados não encontrado'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    
+
 class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
     permission_classes = (AllowAny,)
     serializer_class = UsuarioDetalheSerializer
