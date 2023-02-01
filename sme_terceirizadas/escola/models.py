@@ -1239,3 +1239,15 @@ class DiaCalendario(CriadoEm, TemAlteradoEm, TemData, TemChaveExterna):
         verbose_name = 'Dia'
         verbose_name_plural = 'Dias'
         ordering = ('data',)
+
+
+class LogAtualizaDadosAluno(models.Model):
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
+    codigo_eol = models.CharField('Codigo EOL da escola', max_length=50)
+    status = models.PositiveSmallIntegerField('Status da requisição', default=0)
+    msg_erro = models.TextField('Mensagem erro', blank=True)
+
+    def __str__(self):
+        retorno = f'Requisicao para Escola: "#{str(self.codigo_eol)}"'
+        retorno += f' na data de: "{self.criado_em}"'
+        return retorno

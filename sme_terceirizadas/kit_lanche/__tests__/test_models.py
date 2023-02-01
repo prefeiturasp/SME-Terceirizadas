@@ -157,11 +157,16 @@ def test_solicitacao_avulsa_workflow_partindo_da_escola_with_error(solicitacao_a
 
 @freeze_time('2019-10-11')
 def test_solicitacao_unificada_lista_igual_workflow_case_1_partindo_da_diretoria_regional(
-    solicitacao_unificada_lista_igual
+    solicitacao_unificada_lista_igual,
+    escola
 ):
     """RASCUNHO > CODAE_A_AUTORIZAR > CODAE_PEDIU_DRE_REVISAR > CODAE_A_AUTORIZAR."""
     wc = solicitacao_unificada_lista_igual.workflow_class
     user = mommy.make('perfil.Usuario')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
     assert solicitacao_unificada_lista_igual.status == wc.RASCUNHO
     assert solicitacao_unificada_lista_igual.pode_excluir is True
     assert solicitacao_unificada_lista_igual.ta_na_dre is True

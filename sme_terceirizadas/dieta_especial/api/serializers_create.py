@@ -5,7 +5,13 @@ from copy import deepcopy
 from rest_framework import serializers
 
 from ...dados_comuns.constants import DEZ_MB
-from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size, update_instance_from_dict
+from ...dados_comuns.utils import (
+    convert_base64_to_contentfile,
+    convert_date_format,
+    remove_multiplos_espacos,
+    size,
+    update_instance_from_dict
+)
 from ...dados_comuns.validators import deve_ser_no_passado, deve_ter_extensao_valida
 from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
 from ...escola.models import Aluno, Escola, Responsavel
@@ -313,10 +319,10 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
 
     def create(self, validated_data): # noqa C901
         substituicoes = validated_data.pop('substituicoes')
-        nome_protocolo = validated_data['nome_protocolo']
         editais = validated_data.pop('editais')
+        nome_protocolo = remove_multiplos_espacos(validated_data['nome_protocolo']).upper()
         protocolos = Edital.objects.check_editais_already_has_nome_protocolo(editais, nome_protocolo)
-        if (protocolos):
+        if protocolos:
             edital_ja_existe_protocolo(protocolos, len(editais))
         validated_data['nome_protocolo'] = nome_protocolo.upper()
         protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.create(**validated_data)

@@ -13,6 +13,10 @@ from ..dados_comuns.models import LogSolicitacoesUsuario
 
 
 def formata_logs(logs):
+    _tipos = LogSolicitacoesUsuario.TIPOS_SOLICITACOES
+    tipos = {v: k for (k, v) in _tipos}
+    if logs and logs.first().solicitacao_tipo != tipos['Homologação de Produto']:
+        return logs
     if logs.filter(status_evento__in=[
         LogSolicitacoesUsuario.CODAE_AUTORIZOU,
         LogSolicitacoesUsuario.CODAE_NEGOU]
@@ -218,3 +222,68 @@ def formata_motivos_inclusao(motivos_inclusao):
             'datas': '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.join(datas)
         })
     return motivos_formatados
+
+
+def formata_logs_kit_lanche_unificado_cancelado_por_usuario_escola(solicitacao, uuid_log_temporario, logs):
+    logs_formatado = logs
+    logs_escola_cancelou = solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU)
+    log_outra_escola = logs_escola_cancelou.exclude(uuid=uuid_log_temporario)
+    if log_outra_escola:
+        logs_formatado = solicitacao.logs.exclude(uuid=log_outra_escola.first().uuid)
+    log_dre_cancelou = solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.DRE_CANCELOU)
+    if log_dre_cancelou:
+        logs_formatado = solicitacao.logs.exclude(uuid=log_dre_cancelou.first().uuid)
+    return logs_formatado
+
+
+def formata_logs_kit_lanche_unificado_cancelado_por_usuario_dre(solicitacao, uuid_log_temporario, logs):
+    logs_formatado = logs
+    logs_dre_cancelou = solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.DRE_CANCELOU)
+    log_para_excluir = logs_dre_cancelou.exclude(uuid=uuid_log_temporario)
+    if log_para_excluir:
+        logs_formatado = solicitacao.logs.exclude(uuid=log_para_excluir.first().uuid)
+    return logs_formatado
+
+
+def formata_justificativas_usuario_dre_codae(solicitacao):
+    justificativas_formatadas = []
+    array_horarios_cancelados = []
+    [array_horarios_cancelados.append(escola_quantidade.cancelado_em.replace(microsecond=0))
+        for escola_quantidade in solicitacao.escolas_quantidades.filter(cancelado=True)]
+    unique_array_horarios_cancelados = list(set(array_horarios_cancelados))
+    unique_array_horarios_cancelados.sort(reverse=True)
+    for date_time in unique_array_horarios_cancelados:
+        unidades = []
+        for escola_quantidade in solicitacao.escolas_quantidades.filter(
+            cancelado=True, cancelado_em__year=date_time.year,
+            cancelado_em__month=date_time.month,
+            cancelado_em__day=date_time.day,
+            cancelado_em__hour=date_time.hour,
+            cancelado_em__minute=date_time.minute,
+            cancelado_em__second__gt=date_time.second,
+            cancelado_em__second__lt=date_time.second + 1
+        ):
+            unidades.append(escola_quantidade.escola.nome)
+            cancelado_em = escola_quantidade.cancelado_em
+            justificativa = escola_quantidade.cancelado_justificativa
+            tipo_usuario = escola_quantidade.cancelado_por.tipo_usuario
+            nome_dre = escola_quantidade.escola.diretoria_regional.nome
+            cancelado_por = escola_quantidade.cancelado_por.nome
+        justificativas_formatadas.append({
+            'unidades': unidades,
+            'cancelado_em': cancelado_em,
+            'justificativa': justificativa,
+            'tipo_usuario': tipo_usuario,
+            'nome_dre': nome_dre,
+            'cancelado_por': cancelado_por
+        })
+    return justificativas_formatadas
+
+
+def deleta_log_temporario_se_necessario(log_temporario, solicitacao, uuid_log_temporario):
+    if log_temporario:
+        solicitacao.logs.get(uuid=uuid_log_temporario).delete()
+
+
+def todas_escolas_sol_kit_lanche_unificado_cancelado(solicitacao):
+    return not solicitacao.escolas_quantidades.filter(cancelado=False).exists()

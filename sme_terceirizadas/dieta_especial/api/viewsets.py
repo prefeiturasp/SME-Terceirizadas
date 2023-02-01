@@ -172,9 +172,9 @@ class SolicitacaoDietaEspecialViewSet(
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @transaction.atomic  # noqa C901
+    @transaction.atomic
     @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
-    def autorizar(self, request, uuid=None):
+    def autorizar(self, request, uuid=None):  # noqa C901
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
             solicitacao.aluno.inativar_dieta_especial()
@@ -642,8 +642,8 @@ class SolicitacaoDietaEspecialViewSet(
         except ValidationError as error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial-terceirizada')  # noqa C901
-    def relatorio_dieta_especial_terceirizada(self, request):
+    @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial-terceirizada')
+    def relatorio_dieta_especial_terceirizada(self, request):  # noqa C901
         try:
             query_set = self.get_queryset()
             form = RelatorioDietaTerceirizadaForm(self.request.data)
@@ -1124,7 +1124,7 @@ class MotivoAlteracaoUEViewSet(mixins.ListModelMixin, GenericViewSet):
 class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
-    queryset = ProtocoloPadraoDietaEspecial.objects.all().order_by('nome_protocolo')
+    queryset = ProtocoloPadraoDietaEspecial.objects.filter(ativo=True).order_by('nome_protocolo')
     serializer_class = ProtocoloPadraoDietaEspecialSerializer
     pagination_class = ProtocoloPadraoPagination
     filter_backends = (filters.DjangoFilterBackend,)
@@ -1136,7 +1136,7 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         return ProtocoloPadraoDietaEspecialSerializer
 
     def get_queryset(self):
-        queryset = ProtocoloPadraoDietaEspecial.objects.all()
+        queryset = ProtocoloPadraoDietaEspecial.objects.filter(ativo=True)
         if 'editais[]' in self.request.query_params:
             queryset = queryset.filter(editais__uuid__in=self.request.query_params.getlist('editais[]')).distinct()
         return queryset.order_by('nome_protocolo')

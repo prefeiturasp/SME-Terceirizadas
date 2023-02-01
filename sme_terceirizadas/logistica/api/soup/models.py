@@ -217,8 +217,8 @@ class ArqCancelamento(ComplexModel):
     guias = ArrayOfGuiCan
     IntQtGuia = Integer
 
-    @transaction.atomic # noqa C901
-    def cancel(self, user):
+    @transaction.atomic
+    def cancel(self, user):  # noqa C901
         cancelamento_dict = get_object_as_dict(self)
         num_solicitacao = cancelamento_dict.get('StrNumSol')
         seq_envio = cancelamento_dict.get('IntSeqenv')

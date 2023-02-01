@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
@@ -18,6 +20,8 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO
 )
+from ...dados_comuns.permissions import UsuarioEscola
+from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
@@ -44,6 +48,7 @@ from ...escola.api.serializers_create import (
     LoteCreateSerializer,
     MudancaFaixasEtariasCreateSerializer
 )
+from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..forms import AlunosPorFaixaEtariaForm
@@ -238,8 +243,8 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
     filterset_fields = ('nome',)
 
     #  TODO: Quebrar esse método um pouco, está complexo e sem teste
-    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')  # noqa C901
-    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
+    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')
+    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):  # noqa C901
         form = AlunosPorFaixaEtariaForm({
             'data_referencia': data_referencia_str
         })
@@ -282,6 +287,28 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             'count': len(results),
             'results': results
         })
+
+    @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes', permission_classes=(UsuarioEscola,))
+    def inclusao_continua_por_mes(self, request):
+        try:
+            for param in ['mes', 'ano']:
+                if param not in request.query_params:
+                    raise ValidationError(f'{param} é obrigatório via query_params')
+            mes = request.query_params.get('mes')
+            ano = request.query_params.get('ano')
+            primeiro_dia_mes = datetime.date(int(ano), int(mes), 1)
+            ultimo_dia_mes = get_ultimo_dia_mes(primeiro_dia_mes)
+            periodos = dict(InclusaoAlimentacaoContinua.objects.filter(
+                status='CODAE_AUTORIZADO',
+                rastro_escola=request.user.vinculo_atual.instituicao).filter(
+                    data_inicial__lte=ultimo_dia_mes,
+                    data_final__gte=primeiro_dia_mes,
+            ).values_list(
+                'quantidades_por_periodo__periodo_escolar__nome',
+                'quantidades_por_periodo__periodo_escolar__uuid'))
+            return Response({'periodos': periodos if len(periodos) else None})
+        except ValidationError as e:
+            return Response({'detail': e}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
@@ -416,8 +443,8 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     #  TODO: Quebrar esse método um pouco, está complexo e sem teste
-    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')  # noqa C901
-    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
+    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')
+    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):  # noqa C901
         form = AlunosPorFaixaEtariaForm({
             'data_referencia': data_referencia_str
         })

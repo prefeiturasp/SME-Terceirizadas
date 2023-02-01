@@ -266,3 +266,13 @@ class ExportExcelAction:
 
 def remove_tags_html_from_string(html_string: str):
     return re.sub(r'<.*?>', '', html_string)
+
+
+def get_ultimo_dia_mes(date: datetime.date):
+    if date.month == 12:
+        return date.replace(day=31)
+    return date.replace(month=date.month + 1, day=1) - datetime.timedelta(days=1)
+
+
+def remove_multiplos_espacos(string: str):
+    return ' '.join(string.split())
