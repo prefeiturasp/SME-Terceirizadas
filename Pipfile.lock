@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "884e80dff751a69a7994a6f1e027076c365a4a52f3987b38f92b8d1ec0e3c45d"
+            "sha256": "021c4e627ae64a140a25246e16115ddabb591ce13496d1ae7241e809ef20e609"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -330,7 +330,7 @@
                 "sha256:a0713dc7a1de3f06bc0df5a9567ad19ead2d3d5689b434768a6145bff77c0667",
                 "sha256:f184f0d851d96b6d29297354ed981b7dd71df7ff500d82fa6d11f0856bee8035"
             ],
-            "markers": "python_version < '4.0' and python_full_version >= '3.6.2'",
+            "markers": "python_version < '4' and python_full_version >= '3.6.2'",
             "version": "==0.3.0"
         },
         "click-plugins": {
@@ -455,11 +455,11 @@
         },
         "django-auditlog": {
             "hashes": [
-                "sha256:72a4a94f13a349072716212dc6f7e802857e06ba89c4e589463fb633b60dcb45",
-                "sha256:c5fa676359df1e0bf573410cc1a12b9d0653f6cf44303c8a01edb36f42f5aec0"
+                "sha256:51c724f878fb3bc275c498e2e44583f28565135b1c60e6e8f7faf54e030c804f",
+                "sha256:9ad9a0a04d37aa6dc8956126ceb499d64edf71f8fddb0bc908f1217b0c31ec21"
             ],
             "index": "pypi",
-            "version": "==1.0.0"
+            "version": "==2.2.1"
         },
         "django-celery-beat": {
             "hashes": [
@@ -517,14 +517,6 @@
             ],
             "index": "pypi",
             "version": "==22.1"
-        },
-        "django-jsonfield-backport": {
-            "hashes": [
-                "sha256:40c39b1f1bade47bd2715664de14983f2e0a96175f65abbad2688029c255c685",
-                "sha256:727b402bad632e38539b489e48aefa6ffe03cedba76ac1f11b455423b3225a2d"
-            ],
-            "markers": "python_version >= '3.5'",
-            "version": "==1.0.5"
         },
         "django-model-utils": {
             "hashes": [
@@ -1556,7 +1548,7 @@
                 "sha256:64299f4909223da747622c030b781c0d7811e359c37124b4bd368fb8c6518baa",
                 "sha256:98b1b2782e3c6c4904938b84c0eb932721069dfdb9134313beff7c83c2df24bf"
             ],
-            "markers": "python_version >= '3.7' and python_version < '4.0'",
+            "markers": "python_version >= '3.7' and python_version < '4'",
             "version": "==2.28.2"
         },
         "rfc3986": {
@@ -2148,7 +2140,7 @@
                 "sha256:a0713dc7a1de3f06bc0df5a9567ad19ead2d3d5689b434768a6145bff77c0667",
                 "sha256:f184f0d851d96b6d29297354ed981b7dd71df7ff500d82fa6d11f0856bee8035"
             ],
-            "markers": "python_version < '4.0' and python_full_version >= '3.6.2'",
+            "markers": "python_version < '4' and python_full_version >= '3.6.2'",
             "version": "==0.3.0"
         },
         "click-plugins": {
@@ -3198,7 +3190,7 @@
                 "sha256:64299f4909223da747622c030b781c0d7811e359c37124b4bd368fb8c6518baa",
                 "sha256:98b1b2782e3c6c4904938b84c0eb932721069dfdb9134313beff7c83c2df24bf"
             ],
-            "markers": "python_version >= '3.7' and python_version < '4.0'",
+            "markers": "python_version >= '3.7' and python_version < '4'",
             "version": "==2.28.2"
         },
         "send2trash": {
