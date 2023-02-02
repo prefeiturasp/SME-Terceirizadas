@@ -53,7 +53,7 @@ notebook = "==6.0.0"
 # For production use you are advised to use the source distribution.
 # Ensure no binary package -> export PIP_NO_BINARY=:psycopg2:
 psycopg2='==2.8.4'  # https://github.com/psycopg/psycopg2
-celery = "==5.0.0"   # http://www.celeryproject.org
+celery = "==5.2.2"   # http://www.celeryproject.org
 pytz= '==2022.7'  # https://github.com/stub42/pytz
 python-slugify= '==2.0.1'  # https://github.com/un33k/python-slugify
 Pillow= '==9.4.0'  # https://github.com/python-pillow/Pillow
@@ -70,7 +70,7 @@ django='==3.2.16'          # https://www.djangoproject.com/
 django-environ='==0.4.5'  # https://github.com/joke2k/django-environ
 django-model-utils='==3.1.2'  # https://github.com/jazzband/django-model-utils
 django-redis='==5.2.0'  # https://github.com/niwinz/django-redis
-django-des='==2.4.1' # https://github.com/jamiecounsell/django-des
+django-des={git = "https://github.com/aurestic/django-des.git", editable = true}
 django-auditlog="==1.0a1"   # https://github.com/jazzband/django-auditlog/
 django-cors-headers='==3.10.1'   # https://pypi.org/project/django-cors-headers/
 django-sequences='==2.5'  # https://pypi.org/project/django-sequences/
@@ -79,7 +79,7 @@ django-celery-beat='==2.2.0'  # https://github.com/celery/django-celery-beat
 django-admin-rangefilter='==0.8.1' # https://github.com/silentsokolov/django-admin-rangefilter
 # Django REST Framework
 # ------------------------------------------------------------------------------
-djangorestframework='==3.11.2'  # https://github.com/encode/django-rest-framework
+djangorestframework='==3.12.4'  # https://github.com/encode/django-rest-framework
 coreapi='==2.3.3'  # https://github.com/core-api/python-client
 djangorestframework-jwt='==1.11.0' # https://getblimp.github.io/django-rest-framework-jwt/
 workalendar='==4.3.1' # https://github.com/peopledoc/workalendar
@@ -90,7 +90,7 @@ django-simple-email-confirmation='==0.7' # https://github.com/mfogel/django-simp
 gunicorn='==19.9.0'  # https://github.com/benoitc/gunicorn
 tornado='==6.0.3'    # http://www.tornadoweb.org/en/stable/
 sentry-sdk = "==0.10.2"
-django-prometheus = "==1.1.0"
+django-prometheus = "==2.2.0"
 # Relatórios
 weasyprint = "==52"
 django-sass-processor = "==0.8"
@@ -105,7 +105,7 @@ attrs = "==22.2.0"
 xlrd = "*"
 spyne = "==2.13.16"
 lxml = "*"
-openpyxl = "*"
+openpyxl = "==3.0.10"
 httpx = "*"
 pikepdf = "*"
 PyPDF4 = "*"
