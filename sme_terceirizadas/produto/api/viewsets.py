@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from itertools import chain
 
 import environ
+import numpy as np
+
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import transaction
 from django.db.models import CharField, Count, F, Prefetch, Q, QuerySet
@@ -1191,10 +1193,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         return serializado
 
-    @action(detail=False,
-            methods=['POST'],
-            url_path='filtro-por-parametros-agrupado-terceirizada')
-    def filtro_por_parametros_agrupado_terceirizada(self, request):
+    def get_produtos_agrupados(self, request):
         form = ProdutoPorParametrosFormHomologados(request.data)
 
         if not form.is_valid():
@@ -1217,7 +1216,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos = queryset.values('uuid', 'homologacao__rastro_terceirizada__nome_fantasia', 'nome',
                                    'marca__nome', 'vinculos__tipo_produto', 'vinculos__edital__numero',
                                    'criado_em', 'homologacao__uuid')
-
         produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
 
         produtos_agrupados = []
@@ -1235,7 +1233,125 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 'cadastro': produto['criado_em'].strftime('%d/%m/%Y'),
                 'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
             })
-        return Response(produtos_agrupados)
+
+        return produtos_agrupados
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtro-por-parametros-agrupado-terceirizada')
+    def filtro_por_parametros_agrupado_terceirizada(self, request):
+        produtos_agrupados = self.get_produtos_agrupados(request)
+        return Response(produtos_agrupados, status=status.HTTP_200_OK)
+
+    def build_subtitulo(self):
+        return ''
+
+    def build_xlsx(self, output, serializer, queryset, data, lotes, tipos_solicitacao, tipos_unidade, unidades_educacionais):
+        LINHA_0 = 0
+        LINHA_1 = 1
+        LINHA_2 = 2
+        LINHA_3 = 3
+
+        COLUNA_1 = 1
+        COLUNA_2 = 2
+        COLUNA_3 = 3
+        COLUNA_4 = 4
+        COLUNA_5 = 5
+        COLUNA_6 = 6
+        COLUNA_7 = 7
+
+        ALTURA_COLUNA_30 = 30
+        ALTURA_COLUNA_50 = 50
+
+        import pandas as pd
+        xlwriter = pd.ExcelWriter(output, engine='xlsxwriter')
+
+        df = pd.DataFrame(serializer.data)
+
+        # Adiciona linhas em branco no comeco do arquivo
+        df_auxiliar = pd.DataFrame([[np.nan] * len(df.columns)], columns=df.columns)
+        df = df_auxiliar.append(df, ignore_index=True)
+        df = df_auxiliar.append(df, ignore_index=True)
+        df = df_auxiliar.append(df, ignore_index=True)
+
+        titulo = f'Relatório de Produtos Homologados'
+
+        df.to_excel(xlwriter, f'Relatório de Produtos Homologados')
+        workbook = xlwriter.book
+        worksheet = xlwriter.sheets[f'Relatório de Produtos Homologados']
+        worksheet.set_row(LINHA_0, ALTURA_COLUNA_50)
+        worksheet.set_row(LINHA_1, ALTURA_COLUNA_30)
+        worksheet.set_column('B:H', ALTURA_COLUNA_30)
+        merge_format = workbook.add_format({'align': 'center', 'bg_color': '#a9d18e', 'border_color': '#198459'})
+        merge_format.set_align('vcenter')
+        merge_format.set_bold()
+        cell_format = workbook.add_format()
+        cell_format.set_text_wrap()
+        cell_format.set_align('vcenter')
+        cell_format.set_bold()
+        v_center_format = workbook.add_format()
+        v_center_format.set_align('vcenter')
+        single_cell_format = workbook.add_format({'bg_color': '#a9d18e'})
+        len_cols = len(df.columns)
+        worksheet.merge_range(0, 0, 0, len_cols, titulo, merge_format)
+
+        subtitulo = self.build_subtitulo()
+
+        worksheet.merge_range(LINHA_1, 0, LINHA_2, len_cols, subtitulo, cell_format)
+        worksheet.insert_image('A1', 'sme_terceirizadas/static/images/logo-sigpae-light.png')
+        worksheet.write(LINHA_3, COLUNA_1, 'Lote', single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_2, 'Terceirizada' if status_ == 'Recebidas' else 'Unidade Educacional',
+                        single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_3, 'Tipo de Solicitação', single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_4, 'Data do Evento', single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_5, 'Nª de Alunos', single_cell_format)
+        worksheet.write(LINHA_3, COLUNA_6, 'Observações', single_cell_format)
+        map_data = {
+            'Autorizadas': 'Data de Autorização',
+            'Canceladas': 'Data de Cancelamento',
+            'Negadas': 'Data de Negação',
+            'Recebidas': 'Data de Autorização'
+        }
+        worksheet.write(LINHA_3, COLUNA_7, map_data[status_], single_cell_format)
+
+        df.reset_index(drop=True, inplace=True)
+        xlwriter.save()
+        output.seek(0)
+
+    @action(detail=False, methods=['POST'], url_path='exportar-xlsx')  # noqa C901
+    def exportar_xlsx(self, request):
+        import io
+        produtos_agrupados = self.get_produtos_agrupados(request)
+
+        output = io.BytesIO()
+        self.build_xlsx(output, serializer, queryset, request)
+
+        response = HttpResponse(
+            output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=myfile.xlsx'
+        return response
+
+        """
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        lotes = request.query_params.getlist('lotes[]')
+        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
+        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
+        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
+
+        user = request.user.get_username()
+        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
+            data=self.request.query_params,
+            uuids=uuids,
+            lotes=lotes,
+            tipos_solicitacao=tipos_solicitacao,
+            tipos_unidade=tipos_unidade,
+            unidades_educacionais=unidades_educacionais
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+        """
 
     def get_queryset_filtrado_agrupado(self, request, form):
         form_data = form.cleaned_data.copy()
