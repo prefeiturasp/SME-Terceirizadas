@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from requests import ConnectionError
 
 from ....dados_comuns.constants import DJANGO_EOL_SGP_API_TOKEN, DJANGO_EOL_SGP_API_URL
-from ...models import Aluno, Escola, LogRotinaDiariaAlunos, PeriodoEscolar
+from ...models import Aluno, Escola, LogAtualizaDadosAluno, LogRotinaDiariaAlunos, PeriodoEscolar
 
 env = environ.Env()
 
@@ -55,14 +55,23 @@ class Command(BaseCommand):
         else:
             logger.debug(f'Total time: {round(result, 2)} s')
 
+    def _salva_logs_requisicao(self, r, cod_eol_escola):
+        if not r.status_code == 404:
+            msg_erro = '' if r.status_code == 200 else r.text
+            log_erro = LogAtualizaDadosAluno(status=r.status_code,
+                                             codigo_eol=cod_eol_escola,
+                                             criado_em=datetime.date.today(),
+                                             msg_erro=msg_erro)
+            log_erro.save()
+
     def _obtem_alunos_escola(self, cod_eol_escola, ano_param=None):  # noqa C901
-        from datetime import date
-        ano = date.today().year
+        ano = datetime.date.today().year
         try:
             r = requests.get(
                 f'{DJANGO_EOL_SGP_API_URL}/alunos/ues/{cod_eol_escola}/anosLetivos/{ano_param or ano}',
                 headers=self.headers,
             )
+            self._salva_logs_requisicao(r, cod_eol_escola)
             if r.status_code == 200:
                 json = r.json()
                 return json
@@ -70,6 +79,11 @@ class Command(BaseCommand):
                 return []
         except ConnectionError as e:
             msg = f'Erro de conexão na api do EOL: {e}'
+            log_erro = LogAtualizaDadosAluno(status=502,
+                                             codigo_eol=cod_eol_escola,
+                                             criado_em=datetime.date.today(),
+                                             msg_erro=msg)
+            log_erro.save()
             logger.error(msg)
             self.stdout.write(self.style.ERROR(msg))
 
