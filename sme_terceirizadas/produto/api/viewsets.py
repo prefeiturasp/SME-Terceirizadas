@@ -8,6 +8,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import transaction
 from django.db.models import CharField, Count, F, Prefetch, Q, QuerySet
 from django.db.models.functions import Cast, Substr
+from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
@@ -23,7 +24,7 @@ from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
-from ...dados_comuns.utils import url_configs
+from ...dados_comuns.utils import url_configs, build_xlsx_generico
 from ...dieta_especial.models import Alimento
 from ...escola.models import DiretoriaRegional, Escola, Lote
 from ...relatorios.relatorios import (
@@ -1246,85 +1247,19 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def build_subtitulo(self):
         return ''
 
-    def build_xlsx(self, output, serializer, queryset, data, lotes, tipos_solicitacao, tipos_unidade, unidades_educacionais):
-        LINHA_0 = 0
-        LINHA_1 = 1
-        LINHA_2 = 2
-        LINHA_3 = 3
-
-        COLUNA_1 = 1
-        COLUNA_2 = 2
-        COLUNA_3 = 3
-        COLUNA_4 = 4
-        COLUNA_5 = 5
-        COLUNA_6 = 6
-        COLUNA_7 = 7
-
-        ALTURA_COLUNA_30 = 30
-        ALTURA_COLUNA_50 = 50
-
-        import pandas as pd
-        xlwriter = pd.ExcelWriter(output, engine='xlsxwriter')
-
-        df = pd.DataFrame(serializer.data)
-
-        # Adiciona linhas em branco no comeco do arquivo
-        df_auxiliar = pd.DataFrame([[np.nan] * len(df.columns)], columns=df.columns)
-        df = df_auxiliar.append(df, ignore_index=True)
-        df = df_auxiliar.append(df, ignore_index=True)
-        df = df_auxiliar.append(df, ignore_index=True)
-
-        titulo = f'Relatório de Produtos Homologados'
-
-        df.to_excel(xlwriter, f'Relatório de Produtos Homologados')
-        workbook = xlwriter.book
-        worksheet = xlwriter.sheets[f'Relatório de Produtos Homologados']
-        worksheet.set_row(LINHA_0, ALTURA_COLUNA_50)
-        worksheet.set_row(LINHA_1, ALTURA_COLUNA_30)
-        worksheet.set_column('B:H', ALTURA_COLUNA_30)
-        merge_format = workbook.add_format({'align': 'center', 'bg_color': '#a9d18e', 'border_color': '#198459'})
-        merge_format.set_align('vcenter')
-        merge_format.set_bold()
-        cell_format = workbook.add_format()
-        cell_format.set_text_wrap()
-        cell_format.set_align('vcenter')
-        cell_format.set_bold()
-        v_center_format = workbook.add_format()
-        v_center_format.set_align('vcenter')
-        single_cell_format = workbook.add_format({'bg_color': '#a9d18e'})
-        len_cols = len(df.columns)
-        worksheet.merge_range(0, 0, 0, len_cols, titulo, merge_format)
-
-        subtitulo = self.build_subtitulo()
-
-        worksheet.merge_range(LINHA_1, 0, LINHA_2, len_cols, subtitulo, cell_format)
-        worksheet.insert_image('A1', 'sme_terceirizadas/static/images/logo-sigpae-light.png')
-        worksheet.write(LINHA_3, COLUNA_1, 'Lote', single_cell_format)
-        worksheet.write(LINHA_3, COLUNA_2, 'Terceirizada' if status_ == 'Recebidas' else 'Unidade Educacional',
-                        single_cell_format)
-        worksheet.write(LINHA_3, COLUNA_3, 'Tipo de Solicitação', single_cell_format)
-        worksheet.write(LINHA_3, COLUNA_4, 'Data do Evento', single_cell_format)
-        worksheet.write(LINHA_3, COLUNA_5, 'Nª de Alunos', single_cell_format)
-        worksheet.write(LINHA_3, COLUNA_6, 'Observações', single_cell_format)
-        map_data = {
-            'Autorizadas': 'Data de Autorização',
-            'Canceladas': 'Data de Cancelamento',
-            'Negadas': 'Data de Negação',
-            'Recebidas': 'Data de Autorização'
-        }
-        worksheet.write(LINHA_3, COLUNA_7, map_data[status_], single_cell_format)
-
-        df.reset_index(drop=True, inplace=True)
-        xlwriter.save()
-        output.seek(0)
-
     @action(detail=False, methods=['POST'], url_path='exportar-xlsx')  # noqa C901
     def exportar_xlsx(self, request):
         import io
         produtos_agrupados = self.get_produtos_agrupados(request)
 
         output = io.BytesIO()
-        self.build_xlsx(output, serializer, queryset, request)
+        build_xlsx_generico(
+            output,
+            queryset_serializada=produtos_agrupados,
+            titulo='Relatório de Produtos Homologados',
+            titulo_sheet='Produtos Homologados',
+            titulos_colunas=['Terceirizada', 'Produto', 'Marca', 'Edital', 'Tipo', 'Cadastro', 'Homologação'],
+        )
 
         response = HttpResponse(
             output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
