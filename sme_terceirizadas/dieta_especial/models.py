@@ -2,7 +2,6 @@ from datetime import datetime
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-from django.contrib.postgres import fields
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
@@ -547,7 +546,7 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
     editais = models.ManyToManyField('terceirizada.Edital',
                                      related_name='protocolos_padroes_dieta_especial')
 
-    historico = fields.JSONField(blank=True, null=True)
+    historico = models.JSONField(blank=True, null=True)
 
     class Meta:
         ordering = ('nome_protocolo',)
