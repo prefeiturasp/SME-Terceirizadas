@@ -504,9 +504,6 @@ def relatorio_inclusao_alimentacao_normal(request, solicitacao):
 
 
 def relatorio_inclusao_alimentacao_cei(request, solicitacao):
-    # aqui
-    # solicitacao_inclusao_alimentacao_cei.html
-    # novo_solicitacao_inclusao_alimentacao_cei.html
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
     if solicitacao.periodo_escolar:
