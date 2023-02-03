@@ -51,14 +51,24 @@
   </div>
   <hr style="color: #EEEEEE; margin-top: 15px; margin-bottom: -5px;">
   <div class="section">
-    <h5 style="color: #686868; margin-bottom: -8px;">Editais Vinculados</h5>
+    <h5 style="color: #686868; margin-bottom: -8px;">
+      {% if eh_card_suspensos %}
+        Produto Suspenso nos Editais
+      {% else %}
+        Editais Vinculados
+      {% endif %}
+    </h5>
     <div class="tabela-sem-borda">
       <table class="ficha-produto-table">
         <thead>
           <tr class="sem-border-bottom">
             <td style="color: #686868; margin-left: 0; padding-left: 0;">
               <div>
-                Editais Vinculados ao Produto
+                {% if eh_card_suspensos %}
+                  Produto Suspenso nos Editais
+                {% else %}
+                  Editais Vinculados ao Produto
+                {% endif %}
               </div>
             </td>
           </tr>
@@ -67,7 +77,11 @@
           <tr class="sem-border-bottom">
             <td style="margin-left: 0; padding-left: 0; margin-right: 0; padding-right: 0;">
               <div>
-                {{ editais_vinculados|default:'Ainda não existe nenhum edital vinculado ao produto' }}
+                {% if eh_card_suspensos %}
+                  {{ editais_suspensos }}
+                {% else %}
+                  {{ editais_vinculados|default:'Ainda não existe nenhum edital vinculado ao produto' }}
+                {% endif %}
               </div>
             </td>
           </tr>
