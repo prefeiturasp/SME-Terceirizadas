@@ -68,6 +68,7 @@ from ..utils import (
     CadastroProdutosEditalPagination,
     ItemCadastroPagination,
     StandardResultsSetPagination,
+    atualiza_queryset_codae_suspendeu,
     converte_para_datetime,
     cria_filtro_aditivos,
     cria_filtro_produto_por_parametros_form,
@@ -207,8 +208,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO,
-            HomologacaoProduto.workflow_class.CODAE_SUSPENDEU,
             HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO,
+            HomologacaoProduto.workflow_class.CODAE_SUSPENDEU,
             HomologacaoProduto.workflow_class.CODAE_NAO_HOMOLOGADO,
             HomologacaoProduto.workflow_class.TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO,
             HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_UE,
@@ -274,6 +275,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
     def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
         sumario = []
+        uuids_workflow_homologado_com_vinc_prod_edital_suspenso = []
 
         for workflow in self.get_lista_status():
             if use_raw:
@@ -293,6 +295,12 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 self.reclamacoes_por_usuario(workflow, raw_sql, data, None)
                 raw_sql += 'ORDER BY log_criado_em DESC'
                 qs = query_set.raw(raw_sql % data)
+                if workflow == 'CODAE_HOMOLOGADO':
+                    uuids_workflow_homologado_com_vinc_prod_edital_suspenso = [
+                        str(q.uuid) for q in qs if q.tem_vinculo_produto_edital_suspenso
+                    ]
+                if workflow == 'CODAE_SUSPENDEU':
+                    qs = atualiza_queryset_codae_suspendeu(qs, uuids_workflow_homologado_com_vinc_prod_edital_suspenso)
             else:
                 qs = self.reclamacoes_por_usuario(workflow, None, None, query_set)
                 usuario = self.request.user.tipo_usuario
@@ -307,9 +315,9 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                 key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
             sumario.append({
                 'status': workflow,
-                'dados': self.get_serializer(
+                'dados': HomologacaoProdutoPainelGerencialSerializer(
                     qs[:6],
-                    context={'request': self.request}, many=True).data
+                    context={'request': self.request, 'workflow': workflow}, many=True).data
             })
 
         return sumario
@@ -733,8 +741,32 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.SUSPENDER_PRODUTO)
     def suspender(self, request, uuid=None):
         homologacao_produto = self.get_object()
+        usuario = request.user
+        justificativa = request.data.get('justificativa', '')
+        editais_para_suspensao_ativacao = request.data.get('editais_para_suspensao_ativacao', '')
+        vinculos_produto_edital = homologacao_produto.produto.vinculos.all()
+        numeros_editais_para_justificativa = ', '.join(
+            vinculos_produto_edital.filter(
+                edital__uuid__in=editais_para_suspensao_ativacao
+            ).values_list('edital__numero', flat=True)
+        )
+        justificativa += '<br><p>Editais suspensos:</p>'
+        justificativa += f'<p>{numeros_editais_para_justificativa}</p>'
         try:
-            homologacao_produto.codae_suspende(request=request)
+            vinculos_produto_edital.filter(edital__uuid__in=editais_para_suspensao_ativacao).update(
+                suspenso=True,
+                suspenso_justificativa=justificativa,
+                suspenso_em=datetime.now(),
+                suspenso_por=usuario
+            )
+            if vinculos_produto_edital.filter(suspenso=False):
+                homologacao_produto.salva_log_com_justificativa_e_anexos(
+                    LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS,
+                    request,
+                    justificativa
+                )
+            else:
+                homologacao_produto.codae_suspende(request=request)
             return Response('Homologação suspensa')
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
@@ -746,8 +778,34 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.ATIVAR_PRODUTO)
     def ativar(self, request, uuid=None):
         homologacao_produto = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        editais_para_suspensao_ativacao = request.data.get('editais_para_suspensao_ativacao', '')
+        vinculos_produto_edital = homologacao_produto.produto.vinculos.all()
+        numeros_editais_para_justificativa = ', '.join(
+            vinculos_produto_edital.filter(
+                edital__uuid__in=editais_para_suspensao_ativacao
+            ).values_list('edital__numero', flat=True)
+        )
+        justificativa += '<br><p>Editais ativos:</p>'
+        justificativa += f'<p>{numeros_editais_para_justificativa}</p>'
         try:
-            homologacao_produto.codae_ativa(request=request)
+            vinculos_produto_edital.filter(edital__uuid__in=editais_para_suspensao_ativacao).update(
+                suspenso=False,
+                suspenso_justificativa='',
+                suspenso_em=None,
+                suspenso_por=None
+            )
+            if vinculos_produto_edital.filter(suspenso=True):
+                homologacao_produto.salva_log_com_justificativa_e_anexos(
+                    LogSolicitacoesUsuario.ATIVO_EM_ALGUNS_EDITAIS,
+                    request,
+                    justificativa
+                )
+                if homologacao_produto.status == 'CODAE_SUSPENDEU':
+                    homologacao_produto.status = HomologacaoProduto.workflow_class.states.CODAE_HOMOLOGADO
+                    homologacao_produto.save()
+            else:
+                homologacao_produto.codae_ativa(request=request)
             return Response('Homologação ativada')
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
@@ -805,19 +863,23 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         img_ids = [img.id for img in homologacao_produto.produto.imagens if img.nome.split('.')[len(img.nome.split('.')) - 1] in ['png', 'jpg', 'jpeg']] # noqa E501
         imagens = homologacao_produto.produto.imagens.filter(id__in=img_ids)
         documentos = homologacao_produto.produto.imagens.exclude(id__in=img_ids)
+        eh_card_suspensos = request.query_params.get('eh_card_suspensos')
         html_string = render_to_string(
             'ficha_identificacao_produto.html',
             {
                 'homologacao_produto': homologacao_produto,
                 'contato_empresa': homologacao_produto.rastro_terceirizada.contatos.first(),
                 'editais_vinculados': ', '.join(
-                    vinc.edital.numero for vinc in homologacao_produto.produto.vinculos.all()),
+                    vinc.edital.numero for vinc in homologacao_produto.produto.vinculos.filter(suspenso=False)),
                 'informacoes_nutricionais': homologacao_produto.produto.informacoes_nutricionais.all(),
                 'especificacao_primaria': homologacao_produto.produto.especificacoes.first(),
                 'URL': SERVER_NAME,
                 'imagens': imagens,
                 'documentos': documentos,
-                'base_static_url': staticfiles_storage.location
+                'base_static_url': staticfiles_storage.location,
+                'eh_card_suspensos': eh_card_suspensos,
+                'editais_suspensos': ', '.join(
+                    vinc.edital.numero for vinc in homologacao_produto.produto.vinculos.filter(suspenso=True)),
             }
         )
         return html_to_pdf_response(html_string, f'ficha_identificacao_produto_{homologacao_produto.id_externo}.pdf')

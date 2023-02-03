@@ -432,7 +432,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('terceirizada_responde_analise_sensorial',
          CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
-        ('codae_ativa', CODAE_SUSPENDEU, CODAE_HOMOLOGADO),
+        ('codae_ativa', [CODAE_SUSPENDEU, CODAE_HOMOLOGADO], CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou',
          [CODAE_HOMOLOGADO,
           CODAE_CANCELOU_ANALISE_SENSORIAL], ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
@@ -1511,11 +1511,12 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         if not kwargs.get('nao_enviar_email', None):
             self._envia_email_escola_ou_nutricionista_reclamou(reclamacao)
 
-    def salva_log_com_justificativa_e_anexos(self, evento, request):
+    def salva_log_com_justificativa_e_anexos(self, evento, request, justificativa_suspensao_ativacao=None):
+        justificativa_ = justificativa_suspensao_ativacao
         log_transicao = self.salvar_log_transicao(
             status_evento=evento,
             usuario=request.user,
-            justificativa=request.data['justificativa']
+            justificativa=justificativa_ if justificativa_ else request.data['justificativa']
         )
         for anexo in request.data.pop('anexos', []):
             arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
