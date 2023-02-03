@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.core.management import call_command
 from django.urls import path
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from utility.carga_dados.escola.importa_dados import cria_usuario_cogestor, cria_usuario_diretor
 from utility.carga_dados.perfil.importa_dados import (
     importa_usuarios_perfil_codae,
