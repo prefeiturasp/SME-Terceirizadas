@@ -942,3 +942,13 @@ def test_remover_planilha_servidor_coresso(client_autenticado_dilog, planilha_us
 def test_busca_planilha_coresso_servidor(client_autenticado_dilog, planilha_usuario_servidor):
     response = client_autenticado_dilog.get(f'/planilha-coresso-servidor/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_get_perfis_vinculados(client_autenticado_dilog, perfis_vinculados):
+    response = client_autenticado_dilog.get(f'/perfis-vinculados/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_get_perfis_vinculados_subordinados(client_autenticado_dilog, perfis_vinculados):
+    response = client_autenticado_dilog.get(f'/perfis-vinculados/ADMINISTRADOR_EMPRESA/perfis-subordinados/')
+    assert response.status_code == status.HTTP_200_OK
