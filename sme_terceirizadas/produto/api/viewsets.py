@@ -1348,7 +1348,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                     'nome': produto['nome'],
                     'marca': produto['marca__nome'],
                     'edital': produto['vinculos__edital__numero']
-                    })
+                })
         return produtos_agrupados
 
     @action(detail=False,
