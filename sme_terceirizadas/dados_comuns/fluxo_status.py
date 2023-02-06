@@ -2927,7 +2927,6 @@ class CronogramaWorkflow(xwf_models.Workflow):
     REPROVADO = 'REPROVADO'
     ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
     VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
-    ENTREGA_CONFIRMADA = 'ENTREGA_CONFIRMADA'
     SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
 
     states = (
@@ -2938,14 +2937,13 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (REPROVADO, 'Reprovado'),
         (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
         (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
-        (ENTREGA_CONFIRMADA, 'Entrega Confirmada'),
         (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
-        ('fornecedor_confirma', ENVIADO_AO_FORNECEDOR, ENTREGA_CONFIRMADA),
-        ('solicita_alteracao', ENTREGA_CONFIRMADA, SOLICITADO_ALTERACAO),
+        ('fornecedor_assina', ENVIADO_AO_FORNECEDOR, VALIDADO_FORNECEDOR),
+        ('solicita_alteracao', VALIDADO_FORNECEDOR, SOLICITADO_ALTERACAO),
     )
 
     initial_state = RASCUNHO
@@ -2962,11 +2960,11 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
                                       usuario=user)
 
-    @xworkflows.after_transition('fornecedor_confirma')
-    def _fornecedor_confirma_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('fornecedor_assina')
+    def _fornecedor_assina_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_FORNECEDOR,
                                       usuario=user)
 
     @xworkflows.after_transition('solicita_alteracao')
