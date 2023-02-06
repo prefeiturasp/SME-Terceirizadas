@@ -5,7 +5,6 @@ from rest_framework import serializers
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
     campo_nao_pode_ser_nulo,
-    datas_alteracao_cardapio_devem_ser_diferentes,
     deve_pedir_com_antecedencia,
     deve_ser_dia_letivo,
     deve_ser_no_mesmo_ano_corrente,
@@ -158,7 +157,6 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
             data_troca_nao_pode_ser_superior_a_data_inversao(data_de_2, data_para_2)
             nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de_2, data_para_2, escola)
             nao_pode_ter_mais_que_60_dias_diferenca(data_de_2, data_para_2)
-            datas_alteracao_cardapio_devem_ser_diferentes([data_de, data_para], [data_de_2, data_para_2])
             deve_ser_dia_letivo(escola, data_de_2)
             deve_ser_dia_letivo(escola, data_para_2)
 
