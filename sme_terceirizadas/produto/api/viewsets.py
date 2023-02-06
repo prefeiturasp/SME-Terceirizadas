@@ -2,13 +2,10 @@ from datetime import datetime, timedelta
 from itertools import chain
 
 import environ
-import numpy as np
-
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import transaction
 from django.db.models import CharField, Count, F, Prefetch, Q, QuerySet
 from django.db.models.functions import Cast, Substr
-from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
@@ -24,7 +21,7 @@ from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
-from ...dados_comuns.utils import url_configs, build_xlsx_generico
+from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
 from ...escola.models import DiretoriaRegional, Escola, Lote
 from ...relatorios.relatorios import (
@@ -67,6 +64,7 @@ from ..models import (
     SolicitacaoCadastroProdutoDieta,
     UnidadeMedida
 )
+from ..tasks import gera_xls_relatorio_produtos_homologados_async
 from ..utils import (
     CadastroProdutosEditalPagination,
     ItemCadastroPagination,
@@ -1306,49 +1304,20 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos_agrupados = self.get_produtos_agrupados(request)
         return Response(produtos_agrupados, status=status.HTTP_200_OK)
 
-    def build_subtitulo(self):
-        return ''
-
     @action(detail=False, methods=['POST'], url_path='exportar-xlsx')  # noqa C901
     def exportar_xlsx(self, request):
-        import io
         produtos_agrupados = self.get_produtos_agrupados(request)
 
-        output = io.BytesIO()
-        build_xlsx_generico(
-            output,
-            queryset_serializada=produtos_agrupados,
-            titulo='Relatório de Produtos Homologados',
-            titulo_sheet='Produtos Homologados',
-            titulos_colunas=['Terceirizada', 'Produto', 'Marca', 'Edital', 'Tipo', 'Cadastro', 'Homologação'],
-        )
-
-        response = HttpResponse(
-            output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=myfile.xlsx'
-        return response
-
-        """
-        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
-        lotes = request.query_params.getlist('lotes[]')
-        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
-        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
-        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
-
+        subtitulo = f'Total de Produtos: {len(produtos_agrupados)} | {request.data.get("nome_edital")}'
         user = request.user.get_username()
-        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
+        gera_xls_relatorio_produtos_homologados_async.delay(
             user=user,
-            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
-            data=self.request.query_params,
-            uuids=uuids,
-            lotes=lotes,
-            tipos_solicitacao=tipos_solicitacao,
-            tipos_unidade=tipos_unidade,
-            unidades_educacionais=unidades_educacionais
+            nome_arquivo='relatorio_produtos_homologados.xlsx',
+            array_produtos=produtos_agrupados,
+            subtitulo=subtitulo
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
-        """
 
     def get_queryset_filtrado_agrupado(self, request, form):
         form_data = form.cleaned_data.copy()

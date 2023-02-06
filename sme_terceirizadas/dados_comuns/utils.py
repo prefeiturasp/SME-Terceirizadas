@@ -8,7 +8,6 @@ from typing import Any
 
 import environ
 import numpy as np
-
 from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
 from django.conf import settings
@@ -280,7 +279,7 @@ def remove_multiplos_espacos(string: str):
     return ' '.join(string.split())
 
 
-def build_xlsx_generico(output, queryset_serializada, titulo, titulo_sheet, titulos_colunas):
+def build_xlsx_generico(output, queryset_serializada, titulo, subtitulo, titulo_sheet, titulos_colunas):
     LINHA_0 = 0
     LINHA_1 = 1
     LINHA_2 = 2
@@ -318,8 +317,6 @@ def build_xlsx_generico(output, queryset_serializada, titulo, titulo_sheet, titu
     single_cell_format = workbook.add_format({'bg_color': '#a9d18e'})
     len_cols = len(df.columns)
     worksheet.merge_range(0, 0, 0, len_cols, titulo, merge_format)
-
-    subtitulo = ''
 
     worksheet.merge_range(LINHA_1, 0, LINHA_2, len_cols, subtitulo, cell_format)
     worksheet.insert_image('A1', 'sme_terceirizadas/static/images/logo-sigpae-light.png')
