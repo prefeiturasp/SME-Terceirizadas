@@ -1306,16 +1306,22 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['POST'], url_path='exportar-xlsx')  # noqa C901
     def exportar_xlsx(self, request):
+        agrupado_nome_marca = request.data.get('agrupado_por_nome_e_marca')
         user = request.user.get_username()
         gera_xls_relatorio_produtos_homologados_async.delay(
             user=user,
-            nome_arquivo='relatorio_produtos_homologados.xlsx',
+            nome_arquivo=f'relatorio_produtos_homologados{"_nome_marca" if agrupado_nome_marca else ""}.xlsx',
             data=request.data
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
 
-    def get_queryset_filtrado_agrupado(self, request, form):
+    def get_queryset_filtrado_agrupado(self, data):
+        form = ProdutoPorParametrosForm(data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
@@ -1333,24 +1339,23 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos = queryset.values('nome', 'marca__nome', 'vinculos__edital__numero').order_by('nome', 'marca__nome')
         produtos_agrupados = []
         for produto in produtos:
-            produtos_agrupados.append({
-                'nome': produto['nome'],
-                'marca': produto['marca__nome'],
-                'edital': produto['vinculos__edital__numero']
-            })
-
+            index = next((i for i, produto_ in enumerate(produtos_agrupados)
+                          if produto_['nome'] == produto['nome']), -1)
+            if index != -1:
+                produtos_agrupados[index]['marca'] += f' | {produto["marca__nome"]}'
+            else:
+                produtos_agrupados.append({
+                    'nome': produto['nome'],
+                    'marca': produto['marca__nome'],
+                    'edital': produto['vinculos__edital__numero']
+                    })
         return produtos_agrupados
 
     @action(detail=False,
             methods=['POST'],
             url_path='filtro-por-parametros-agrupado-nome-marcas')
     def filtro_por_parametros_agrupado_nome_marcas(self, request):
-        form = ProdutoPorParametrosForm(request.data)
-
-        if not form.is_valid():
-            return Response(form.errors)
-
-        produtos_e_marcas = self.get_queryset_filtrado_agrupado(request, form)
+        produtos_e_marcas = self.get_queryset_filtrado_agrupado(request.data)
         return Response(produtos_e_marcas)
 
     @action(detail=False, # noqa C901

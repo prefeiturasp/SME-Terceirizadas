@@ -24,18 +24,24 @@ def gera_xls_relatorio_produtos_homologados_async(user, nome_arquivo, data):
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
         from sme_terceirizadas.produto.api.viewsets import ProdutoViewSet
+        agrupado_nome_marca = data.get('agrupado_por_nome_e_marca')
         output = io.BytesIO()
         produto_viewset = ProdutoViewSet()
-        produtos_agrupados = produto_viewset.get_produtos_agrupados(data)
 
+        if agrupado_nome_marca:
+            produtos_agrupados = produto_viewset.get_queryset_filtrado_agrupado(data)
+            titulos_colunas = ['Produto', 'Marca', 'Edital']
+        else:
+            produtos_agrupados = produto_viewset.get_produtos_agrupados(data)
+            titulos_colunas = ['Terceirizada', 'Produto', 'Marca', 'Edital', 'Tipo', 'Cadastro', 'Homologação']
         subtitulo = f'Total de Produtos: {len(produtos_agrupados)} | {data.get("nome_edital")}'
         build_xlsx_generico(
             output,
             queryset_serializada=produtos_agrupados,
-            titulo='Relatório de Produtos Homologados',
+            titulo=f'Relatório de Produtos Homologados{" por Nome e Marca" if agrupado_nome_marca else ""}',
             subtitulo=subtitulo,
-            titulo_sheet='Produtos Homologados',
-            titulos_colunas=['Terceirizada', 'Produto', 'Marca', 'Edital', 'Tipo', 'Cadastro', 'Homologação'],
+            titulo_sheet=f'{"Visão Agrupada" if agrupado_nome_marca else "Produtos Homologados"}',
+            titulos_colunas=titulos_colunas,
         )
         atualiza_central_download(obj_central_download, nome_arquivo, output.read())
     except Exception as e:
