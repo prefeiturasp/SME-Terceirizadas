@@ -19,12 +19,19 @@ def perfil():
 
 @pytest.fixture
 def perfil_distribuidor():
-    return mommy.make(models.Perfil, nome='ADMINISTRADOR_EMPRESA', uuid='d38e10da-c5e3-4dd5-9916-010fc250595a')
+    return mommy.make(models.Perfil, nome='ADMINISTRADOR_EMPRESA', uuid='daf2c069-7cd9-4cd4-8fde-624c08f55ae7')
 
 
 @pytest.fixture
 def perfil_escola():
     return mommy.make(models.Perfil, nome='ADMINISTRADOR_UE', uuid='F38e10da-c5e3-4dd5-9916-010fc250595a')
+
+
+@pytest.fixture
+def perfis_vinculados(perfil, perfil_distribuidor, perfil_escola):
+    return mommy.make(models.PerfisVinculados,
+                      perfil_master=perfil_distribuidor,
+                      perfis_subordinados=(perfil_distribuidor, perfil))
 
 
 @pytest.fixture

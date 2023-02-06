@@ -26,7 +26,7 @@ from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.models import Codae
 from ...terceirizada.models import Terceirizada
 from ..api.helpers import ofuscar_email
-from ..models import Perfil, Usuario
+from ..models import Perfil, PerfisVinculados, Usuario
 from ..tasks import (
     busca_cargo_de_usuario,
     processa_planilha_usuario_externo_coresso_async,
@@ -41,6 +41,7 @@ from .serializers import (
     ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer,
     ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer,
     PerfilSimplesSerializer,
+    PerfisVinculadosSerializer,
     RedefinirSenhaSerializer,
     UsuarioComCoreSSOCreateSerializer,
     UsuarioSerializer,
@@ -172,6 +173,26 @@ class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False)
     def visoes(self, request):
         return Response(Perfil.visoes_to_json())
+
+
+class PerfisVinculadosViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = PerfisVinculados.objects.all()
+    serializer_class = PerfisVinculadosSerializer
+
+    @action(detail=True, methods=['get'], url_path='perfis-subordinados')
+    def retorna_perfis_subordinados(self, request, pk=None):
+        try:
+            perfil_buscado = Perfil.objects.get(nome=pk)
+            perfis_vinculados = PerfisVinculados.objects.get(perfil_master=perfil_buscado)
+            retorno = []
+            for p in perfis_vinculados.perfis_subordinados.all():
+                retorno.append(p.nome)
+            return Response(retorno)
+
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Perfil ou Perfis Vinculados não encontrado'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):

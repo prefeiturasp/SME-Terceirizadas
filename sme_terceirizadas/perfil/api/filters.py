@@ -13,9 +13,10 @@ class VinculoFilter(filters.FilterSet):
         field_name='usuario__nome',
         lookup_expr='icontains',
     )
-    perfil = filters.CharFilter(
+    perfil = filters.ModelMultipleChoiceFilter(
         field_name='perfil__nome',
-        lookup_expr='exact',
+        to_field_name='nome',
+        queryset=Perfil.objects.all(),
     )
     visao = filters.MultipleChoiceFilter(
         field_name='perfil__visao',

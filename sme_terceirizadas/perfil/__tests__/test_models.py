@@ -13,6 +13,11 @@ def test_perfil(perfil):
     assert perfil.__str__() == 'título do perfil'
 
 
+def test_perfis_vinculados(perfis_vinculados, perfil_distribuidor):
+    assert perfis_vinculados.perfil_master == perfil_distribuidor
+    assert isinstance(perfis_vinculados.perfis_subordinados.all()[0], Perfil)
+
+
 def test_usuario(usuario):
     assert usuario.nome == 'Fulano da Silva'
     assert usuario.email == 'fulano@teste.com'

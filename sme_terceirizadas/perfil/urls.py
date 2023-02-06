@@ -10,6 +10,7 @@ router.register('cadastro', viewsets.UsuarioUpdateViewSet, 'Cadastro de Usuário
 router.register('cadastro-com-coresso', viewsets.UsuarioComCoreSSOViewSet, 'Cadastro com CoreSSO')
 router.register('usuarios', viewsets.UsuarioViewSet, 'Usuários')
 router.register('perfis', viewsets.PerfilViewSet, 'Perfis')
+router.register('perfis-vinculados', viewsets.PerfisVinculadosViewSet, 'Perfis Vinculados')
 router.register('vinculos', viewsets.VinculoViewSet, 'Vinculos')
 router.register('planilha-coresso-servidor', viewsets.ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet,
                 'Planilhas de Importação de Usuário Servidor - CoreSSO')
