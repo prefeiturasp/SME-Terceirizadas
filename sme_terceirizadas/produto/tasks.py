@@ -19,15 +19,19 @@ logger = logging.getLogger(__name__)
     time_limit=3000,
     soft_time_limit=3000
 )
-def gera_xls_relatorio_produtos_homologados_async(user, nome_arquivo, array_produtos, subtitulo):
+def gera_xls_relatorio_produtos_homologados_async(user, nome_arquivo, data):
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
-
+        from sme_terceirizadas.produto.api.viewsets import ProdutoViewSet
         output = io.BytesIO()
+        produto_viewset = ProdutoViewSet()
+        produtos_agrupados = produto_viewset.get_produtos_agrupados(data)
+
+        subtitulo = f'Total de Produtos: {len(produtos_agrupados)} | {data.get("nome_edital")}'
         build_xlsx_generico(
             output,
-            queryset_serializada=array_produtos,
+            queryset_serializada=produtos_agrupados,
             titulo='Relatório de Produtos Homologados',
             subtitulo=subtitulo,
             titulo_sheet='Produtos Homologados',

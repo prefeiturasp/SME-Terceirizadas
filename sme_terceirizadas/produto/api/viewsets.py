@@ -1254,8 +1254,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         return serializado
 
-    def get_produtos_agrupados(self, request):
-        form = ProdutoPorParametrosFormHomologados(request.data)
+    def get_produtos_agrupados(self, data):
+        form = ProdutoPorParametrosFormHomologados(data)
 
         if not form.is_valid():
             return Response(form.errors)
@@ -1301,20 +1301,16 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['POST'],
             url_path='filtro-por-parametros-agrupado-terceirizada')
     def filtro_por_parametros_agrupado_terceirizada(self, request):
-        produtos_agrupados = self.get_produtos_agrupados(request)
+        produtos_agrupados = self.get_produtos_agrupados(request.data)
         return Response(produtos_agrupados, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['POST'], url_path='exportar-xlsx')  # noqa C901
     def exportar_xlsx(self, request):
-        produtos_agrupados = self.get_produtos_agrupados(request)
-
-        subtitulo = f'Total de Produtos: {len(produtos_agrupados)} | {request.data.get("nome_edital")}'
         user = request.user.get_username()
         gera_xls_relatorio_produtos_homologados_async.delay(
             user=user,
             nome_arquivo='relatorio_produtos_homologados.xlsx',
-            array_produtos=produtos_agrupados,
-            subtitulo=subtitulo
+            data=request.data
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
