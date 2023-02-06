@@ -703,10 +703,10 @@ def test_gerar_protocolo_dieta_especial_protocolo(client_autenticado, solicitaca
     response = client_autenticado.get(
         f'/solicitacoes-dieta-especial/{solicitacao_dieta_especial_autorizada.uuid}/{constants.PROTOCOLO}/')
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers[
-        'content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', f'filename="dieta_especial_{solicitacao_dieta_especial_autorizada.id_externo}.pdf"')
+    assert response.headers[
+        'content-type'] == 'application/pdf'
+    assert response.headers[
+        'content-disposition'] == f'filename="dieta_especial_{solicitacao_dieta_especial_autorizada.id_externo}.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -715,10 +715,10 @@ def test_gerar_protocolo_dieta_especial_relatorio(client_autenticado, solicitaca
     response = client_autenticado.get(
         f'/solicitacoes-dieta-especial/{solicitacao_dieta_especial_autorizada.uuid}/{constants.RELATORIO}/')
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers[
-        'content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', f'filename="dieta_especial_{solicitacao_dieta_especial_autorizada.id_externo}.pdf"')
+    assert response.headers[
+        'content-type'] == 'application/pdf'
+    assert response.headers[
+        'content-disposition'] == f'filename="dieta_especial_{solicitacao_dieta_especial_autorizada.id_externo}.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
