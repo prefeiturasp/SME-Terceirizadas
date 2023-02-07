@@ -2,6 +2,7 @@ import json
 
 from rest_framework import status
 
+from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.pre_recebimento.models import Cronograma, EmbalagemQld, Laboratorio
 
 
@@ -51,22 +52,26 @@ def test_url_list_cronogramas(client_autenticado_dilog):
     assert 'previous' in json
 
 
-def test_url_fornecedor_confirma_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
+def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
-        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-confirma-cronograma/')
+        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/', data, content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
     obj = Cronograma.objects.get(uuid=cronograma_recebido.uuid)
-    assert obj.status == 'ENTREGA_CONFIRMADA'
+    assert obj.status == 'VALIDADO_FORNECEDOR'
 
 
 def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(client_autenticado_fornecedor, cronograma):
-    response = client_autenticado_fornecedor.patch(f'/cronogramas/{cronograma.uuid}/fornecedor-confirma-cronograma/')
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_fornecedor.patch(
+        f'/cronogramas/{cronograma.uuid}/fornecedor-assina-cronograma/', data,
+        content_type='application/json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_url_fornecedor_confirma_not_authorized(client_autenticado_dilog, cronograma_recebido):
     response = client_autenticado_dilog.patch(
-        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-confirma-cronograma/')
+        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/')
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
