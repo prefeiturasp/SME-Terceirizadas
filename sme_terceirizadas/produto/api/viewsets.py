@@ -277,7 +277,9 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
     def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
         sumario = []
-        uuids_workflow_homologado_com_vinc_prod_edital_suspenso = []
+        uuids_workflow_homologado_com_vinc_prod_edital_suspenso = HomologacaoProduto.objects.filter(
+            status='CODAE_HOMOLOGADO', produto__vinculos__suspenso=True
+        ).distinct().values_list('uuid', flat=True)
 
         for workflow in self.get_lista_status():
             if use_raw:
@@ -297,10 +299,6 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 self.reclamacoes_por_usuario(workflow, raw_sql, data, None)
                 raw_sql += 'ORDER BY log_criado_em DESC'
                 qs = query_set.raw(raw_sql % data)
-                if workflow == 'CODAE_HOMOLOGADO':
-                    uuids_workflow_homologado_com_vinc_prod_edital_suspenso = [
-                        str(q.uuid) for q in qs if q.tem_vinculo_produto_edital_suspenso
-                    ]
                 if workflow == 'CODAE_SUSPENDEU':
                     qs = atualiza_queryset_codae_suspendeu(qs, uuids_workflow_homologado_com_vinc_prod_edital_suspenso)
             else:
