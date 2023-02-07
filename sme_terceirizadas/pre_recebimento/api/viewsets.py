@@ -5,7 +5,7 @@ from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE, HTTP_401_UNAUTHORIZED
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
@@ -102,7 +102,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         if not usuario.verificar_autenticidade(request.data.get('password')):
             return Response(
                 dict(detail=f'Assinatura do cronograma não foi validada. Verifique sua senha.'),
-                status=HTTP_406_NOT_ACCEPTABLE
+                status=HTTP_401_UNAUTHORIZED
             )
 
         try:
