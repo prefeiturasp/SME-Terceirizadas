@@ -336,7 +336,7 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
 
     @property
     def tem_vinculo_produto_edital_suspenso(self):
-        return any(vinculo.suspenso for vinculo in self.produto.vinculos.all())
+        return self.produto.vinculos.filter(suspenso=True).exists()
 
     @property
     def data_edital_suspenso_mais_recente(self):
