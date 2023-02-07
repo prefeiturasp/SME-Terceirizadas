@@ -437,6 +437,7 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
     nome_usuario_log_de_reclamacao = serializers.SerializerMethodField()
     tem_vinculo_produto_edital_suspenso = serializers.SerializerMethodField()
     data_edital_suspenso_mais_recente = serializers.SerializerMethodField()
+    editais = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -476,11 +477,24 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
                 return datetime.datetime.strftime(data, '%d/%m/%Y %H:%M')
             return datetime.datetime.strftime(data, '%d/%m/%Y')
 
+    def get_editais(self, obj):
+        workflow = self.context.get('workflow', '')
+        editais = None
+        if workflow == 'CODAE_HOMOLOGADO':
+            editais = ', '.join(
+                obj.produto.vinculos.filter(suspenso=False).values_list('edital__numero', flat=True)
+            )
+        if workflow == 'CODAE_SUSPENDEU':
+            editais = ', '.join(
+                obj.produto.vinculos.filter(suspenso=True).values_list('edital__numero', flat=True)
+            )
+        return editais
+
     class Meta:
         model = HomologacaoProduto
         fields = ('uuid', 'nome_produto', 'marca_produto', 'fabricante_produto', 'status', 'id_externo',
                   'log_mais_recente', 'nome_usuario_log_de_reclamacao', 'qtde_reclamacoes', 'qtde_questionamentos',
-                  'tem_vinculo_produto_edital_suspenso', 'data_edital_suspenso_mais_recente')
+                  'tem_vinculo_produto_edital_suspenso', 'data_edital_suspenso_mais_recente', 'editais')
 
 
 class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
