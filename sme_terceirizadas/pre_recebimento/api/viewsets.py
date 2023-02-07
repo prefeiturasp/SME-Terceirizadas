@@ -95,13 +95,19 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
     @transaction.atomic
     @action(detail=True, permission_classes=(PermissaoParaConfirmarCronograma,),
-            methods=['patch'], url_path='fornecedor-confirma-cronograma')
+            methods=['patch'], url_path='fornecedor-assina-cronograma')
     def fornecedor_confirma(self, request, uuid=None):
         usuario = request.user
 
+        if not usuario.verificar_autenticidade(request.data.get('password')):
+            return Response(
+                dict(detail=f'Assinatura do cronograma não foi validada. Verifique sua senha.'),
+                status=HTTP_406_NOT_ACCEPTABLE
+            )
+
         try:
             cronograma = Cronograma.objects.get(uuid=uuid)
-            cronograma.fornecedor_confirma(user=usuario, )
+            cronograma.fornecedor_assina(user=usuario, )
             serializer = CronogramaSerializer(cronograma)
             return Response(serializer.data)
 
