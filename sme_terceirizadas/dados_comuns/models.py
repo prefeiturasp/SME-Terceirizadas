@@ -83,7 +83,7 @@ class LogSolicitacoesUsuario(
         # CRONOGRAMA
         CRONOGRAMA_CRIADO,
         CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
-        CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
+        CRONOGRAMA_ASSINADO_PELO_FORNECEDOR,
         FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
         SUSPENSO_EM_ALGUNS_EDITAIS,
         ATIVO_EM_ALGUNS_EDITAIS
@@ -186,7 +186,7 @@ class LogSolicitacoesUsuario(
         (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
         (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
-        (CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR, 'Entrega Confirmada'),
+        (CRONOGRAMA_ASSINADO_PELO_FORNECEDOR, 'Assinado Fornecedor'),
         (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Alteração Fornecedor'),
         (SUSPENSO_EM_ALGUNS_EDITAIS, 'Suspenso em alguns editais'),
         (ATIVO_EM_ALGUNS_EDITAIS, 'Ativo em alguns editais')
