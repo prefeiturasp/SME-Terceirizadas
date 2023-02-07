@@ -1303,7 +1303,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos_agrupados = self.get_produtos_agrupados(request.data)
         return Response(produtos_agrupados, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['POST'], url_path='exportar-xlsx')  # noqa C901
+    @action(detail=False, methods=['POST'], url_path='exportar-xlsx')
     def exportar_xlsx(self, request):
         agrupado_nome_marca = request.data.get('agrupado_por_nome_e_marca')
         user = request.user.get_username()
