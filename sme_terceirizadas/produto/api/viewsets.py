@@ -6,6 +6,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import transaction
 from django.db.models import CharField, Count, F, Prefetch, Q, QuerySet
 from django.db.models.functions import Cast, Substr
+from django.forms.utils import ErrorDict
 from django.template.loader import render_to_string
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
@@ -64,6 +65,7 @@ from ..models import (
     SolicitacaoCadastroProdutoDieta,
     UnidadeMedida
 )
+from ..tasks import gera_xls_relatorio_produtos_homologados_async
 from ..utils import (
     CadastroProdutosEditalPagination,
     ItemCadastroPagination,
@@ -275,7 +277,9 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
     def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
         sumario = []
-        uuids_workflow_homologado_com_vinc_prod_edital_suspenso = []
+        uuids_workflow_homologado_com_vinc_prod_edital_suspenso = HomologacaoProduto.objects.filter(
+            status='CODAE_HOMOLOGADO', produto__vinculos__suspenso=True
+        ).distinct().values_list('uuid', flat=True)
 
         for workflow in self.get_lista_status():
             if use_raw:
@@ -295,10 +299,6 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 self.reclamacoes_por_usuario(workflow, raw_sql, data, None)
                 raw_sql += 'ORDER BY log_criado_em DESC'
                 qs = query_set.raw(raw_sql % data)
-                if workflow == 'CODAE_HOMOLOGADO':
-                    uuids_workflow_homologado_com_vinc_prod_edital_suspenso = [
-                        str(q.uuid) for q in qs if q.tem_vinculo_produto_edital_suspenso
-                    ]
                 if workflow == 'CODAE_SUSPENDEU':
                     qs = atualiza_queryset_codae_suspendeu(qs, uuids_workflow_homologado_com_vinc_prod_edital_suspenso)
             else:
@@ -1253,11 +1253,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         return serializado
 
-    @action(detail=False,
-            methods=['POST'],
-            url_path='filtro-por-parametros-agrupado-terceirizada')
-    def filtro_por_parametros_agrupado_terceirizada(self, request):
-        form = ProdutoPorParametrosFormHomologados(request.data)
+    def get_produtos_agrupados(self, data):
+        form = ProdutoPorParametrosFormHomologados(data)
 
         if not form.is_valid():
             return Response(form.errors)
@@ -1279,7 +1276,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos = queryset.values('uuid', 'homologacao__rastro_terceirizada__nome_fantasia', 'nome',
                                    'marca__nome', 'vinculos__tipo_produto', 'vinculos__edital__numero',
                                    'criado_em', 'homologacao__uuid')
-
         produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
 
         produtos_agrupados = []
@@ -1297,9 +1293,34 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 'cadastro': produto['criado_em'].strftime('%d/%m/%Y'),
                 'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
             })
-        return Response(produtos_agrupados)
 
-    def get_queryset_filtrado_agrupado(self, request, form):
+        return produtos_agrupados
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtro-por-parametros-agrupado-terceirizada')
+    def filtro_por_parametros_agrupado_terceirizada(self, request):
+        produtos_agrupados = self.get_produtos_agrupados(request.data)
+        return Response(produtos_agrupados, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['POST'], url_path='exportar-xlsx')
+    def exportar_xlsx(self, request):
+        agrupado_nome_marca = request.data.get('agrupado_por_nome_e_marca')
+        user = request.user.get_username()
+        gera_xls_relatorio_produtos_homologados_async.delay(
+            user=user,
+            nome_arquivo=f'relatorio_produtos_homologados{"_nome_marca" if agrupado_nome_marca else ""}.xlsx',
+            data=request.data
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    def get_queryset_filtrado_agrupado(self, data):
+        form = ProdutoPorParametrosForm(data)
+
+        if not form.is_valid():
+            return form.errors
+
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
@@ -1317,25 +1338,27 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos = queryset.values('nome', 'marca__nome', 'vinculos__edital__numero').order_by('nome', 'marca__nome')
         produtos_agrupados = []
         for produto in produtos:
-            produtos_agrupados.append({
-                'nome': produto['nome'],
-                'marca': produto['marca__nome'],
-                'edital': produto['vinculos__edital__numero']
-            })
-
+            index = next((i for i, produto_ in enumerate(produtos_agrupados)
+                          if produto_['nome'] == produto['nome']), -1)
+            if index != -1:
+                produtos_agrupados[index]['marca'] += f' | {produto["marca__nome"]}'
+            else:
+                produtos_agrupados.append({
+                    'nome': produto['nome'],
+                    'marca': produto['marca__nome'],
+                    'edital': produto['vinculos__edital__numero']
+                })
         return produtos_agrupados
 
     @action(detail=False,
             methods=['POST'],
             url_path='filtro-por-parametros-agrupado-nome-marcas')
     def filtro_por_parametros_agrupado_nome_marcas(self, request):
-        form = ProdutoPorParametrosForm(request.data)
-
-        if not form.is_valid():
-            return Response(form.errors)
-
-        produtos_e_marcas = self.get_queryset_filtrado_agrupado(request, form)
-        return Response(produtos_e_marcas)
+        produtos_e_marcas = self.get_queryset_filtrado_agrupado(request.data)
+        status_ = status.HTTP_200_OK
+        if type(produtos_e_marcas) == ErrorDict:
+            status_ = status.HTTP_400_BAD_REQUEST
+        return Response(produtos_e_marcas, status=status_)
 
     @action(detail=False, # noqa C901
             methods=['GET'],
