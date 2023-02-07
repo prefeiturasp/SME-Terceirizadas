@@ -6,6 +6,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import transaction
 from django.db.models import CharField, Count, F, Prefetch, Q, QuerySet
 from django.db.models.functions import Cast, Substr
+from django.forms.utils import ErrorDict
 from django.template.loader import render_to_string
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
@@ -1320,7 +1321,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form = ProdutoPorParametrosForm(data)
 
         if not form.is_valid():
-            return Response(form.errors)
+            return form.errors
 
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
@@ -1356,7 +1357,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             url_path='filtro-por-parametros-agrupado-nome-marcas')
     def filtro_por_parametros_agrupado_nome_marcas(self, request):
         produtos_e_marcas = self.get_queryset_filtrado_agrupado(request.data)
-        return Response(produtos_e_marcas)
+        status_ = status.HTTP_200_OK
+        if type(produtos_e_marcas) == ErrorDict:
+            status_ = status.HTTP_400_BAD_REQUEST
+        return Response(produtos_e_marcas, status=status_)
 
     @action(detail=False, # noqa C901
             methods=['GET'],
