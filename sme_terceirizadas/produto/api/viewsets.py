@@ -1277,7 +1277,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                                    'marca__nome', 'vinculos__tipo_produto', 'vinculos__edital__numero',
                                    'criado_em', 'homologacao__uuid')
         produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
-
+        total_produtos = len(produtos)
+        total_marcas = produtos.values_list('marca__nome', flat=True).distinct().count()
         produtos_agrupados = []
 
         for produto in produtos:
@@ -1294,13 +1295,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
             })
 
-        return produtos_agrupados
+        return produtos_agrupados, total_produtos, total_marcas
 
     @action(detail=False,
             methods=['POST'],
             url_path='filtro-por-parametros-agrupado-terceirizada')
     def filtro_por_parametros_agrupado_terceirizada(self, request):
-        produtos_agrupados = self.get_produtos_agrupados(request.data)
+        produtos_agrupados, _, _ = self.get_produtos_agrupados(request.data)
         return Response(produtos_agrupados, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['POST'], url_path='exportar-xlsx')
@@ -1336,25 +1337,34 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset_filtrado(form_data)
 
         produtos = queryset.values('nome', 'marca__nome', 'vinculos__edital__numero').order_by('nome', 'marca__nome')
+        total_produtos = len(produtos)
+        total_marcas = produtos.values_list('marca__nome', flat=True).distinct().count()
         produtos_agrupados = []
         for produto in produtos:
-            index = next((i for i, produto_ in enumerate(produtos_agrupados)
-                          if produto_['nome'] == produto['nome']), -1)
-            if index != -1:
-                produtos_agrupados[index]['marca'] += f' | {produto["marca__nome"]}'
+            if data.get('eh_xlsx'):
+                index = next((i for i, produto_ in enumerate(produtos_agrupados)
+                              if produto_['nome'] == produto['nome']), -1)
+                if index != -1:
+                    produtos_agrupados[index]['marca'] += f' | {produto["marca__nome"]}'
+                else:
+                    produtos_agrupados.append({
+                        'nome': produto['nome'],
+                        'marca': produto['marca__nome'],
+                        'edital': produto['vinculos__edital__numero']
+                    })
             else:
                 produtos_agrupados.append({
                     'nome': produto['nome'],
                     'marca': produto['marca__nome'],
                     'edital': produto['vinculos__edital__numero']
                 })
-        return produtos_agrupados
+        return produtos_agrupados, total_produtos, total_marcas
 
     @action(detail=False,
             methods=['POST'],
             url_path='filtro-por-parametros-agrupado-nome-marcas')
     def filtro_por_parametros_agrupado_nome_marcas(self, request):
-        produtos_e_marcas = self.get_queryset_filtrado_agrupado(request.data)
+        produtos_e_marcas, _, _ = self.get_queryset_filtrado_agrupado(request.data)
         status_ = status.HTTP_200_OK
         if type(produtos_e_marcas) == ErrorDict:
             status_ = status.HTTP_400_BAD_REQUEST
