@@ -1320,7 +1320,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form = ProdutoPorParametrosForm(data)
 
         if not form.is_valid():
-            return form.errors, "", ""
+            return form.errors, '', ''
 
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
