@@ -224,3 +224,35 @@ def test_url_endpoint_embalagem_update(client_autenticado_qualidade, emabalagem_
     assert response.status_code == status.HTTP_200_OK
     obj = EmbalagemQld.objects.last()
     assert obj.nome == 'SACO'
+
+
+def test_url_perfil_cronograma_assina_cronograma_authorized(client_autenticado_dilog_cronograma,
+                                                            cronograma_validado_fornecedor):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/cronogramas/{cronograma_validado_fornecedor.uuid}/cronograma-assina/', data, content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    obj = Cronograma.objects.get(uuid=cronograma_validado_fornecedor.uuid)
+    assert obj.status == 'VALIDADO_CRONOGRAMA'
+
+
+def test_url_perfil_cronograma_assina_cronograma_erro_senha(client_autenticado_dilog_cronograma,
+                                                            cronograma_validado_fornecedor):
+    data = json.dumps({'password': 'senha_errada'})
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/cronogramas/{cronograma_validado_fornecedor.uuid}/cronograma-assina/', data, content_type='application/json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_url_perfil_cronograma_assina_cronograma_erro_transicao_estado(client_autenticado_dilog_cronograma, cronograma):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/cronogramas/{cronograma.uuid}/cronograma-assina/', data,
+        content_type='application/json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_perfil_cronograma_assina_not_authorized(client_autenticado_dilog, cronograma_recebido):
+    response = client_autenticado_dilog.patch(
+        f'/cronogramas/{cronograma_recebido.uuid}/cronograma-assina/')
+    assert response.status_code == status.HTTP_403_FORBIDDEN

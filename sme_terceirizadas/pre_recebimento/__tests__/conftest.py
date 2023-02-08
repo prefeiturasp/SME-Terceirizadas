@@ -75,3 +75,15 @@ def laboratorio():
 @pytest.fixture
 def emabalagem_qld():
     return mommy.make('EmbalagemQld', nome='CAIXA', abreviacao='CX')
+
+
+@pytest.fixture
+def cronograma_validado_fornecedor(armazem, contrato, empresa):
+    return mommy.make(
+        'Cronograma',
+        numero='002/2022',
+        contrato=contrato,
+        empresa=empresa,
+        armazem=armazem,
+        status='VALIDADO_FORNECEDOR'
+    )
