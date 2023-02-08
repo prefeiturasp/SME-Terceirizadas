@@ -461,7 +461,7 @@ class PermissaoParaCriarCronograma(BasePermission):
         )
 
 
-class PermissaoParaConfirmarCronograma(BasePermission):
+class PermissaoParaAssinarCronogramaUsuarioFornecedor(BasePermission):
     # Apenas empresas do tipo fornecedor com perfil ADMINISTRADOR_FORNECEDOR podem confirmar
     def has_permission(self, request, view):
         usuario = request.user
@@ -472,6 +472,21 @@ class PermissaoParaConfirmarCronograma(BasePermission):
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
                     usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_FORNECEDOR
+                )
+            )
+        )
+
+
+class PermissaoParaAssinarCronogramaUsuarioCronograma(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome == DILOG_CRONOGRAMA
                 )
             )
         )

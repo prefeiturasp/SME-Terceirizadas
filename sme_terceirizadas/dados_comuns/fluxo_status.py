@@ -2929,6 +2929,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
     ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
     VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
     SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
+    VALIDADO_CRONOGRAMA = 'VALIDADO_CRONOGRAMA'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -2939,12 +2940,14 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
         (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
         (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
+        (VALIDADO_CRONOGRAMA, 'Validado Cronograma'),
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
         ('fornecedor_assina', ENVIADO_AO_FORNECEDOR, VALIDADO_FORNECEDOR),
         ('solicita_alteracao', VALIDADO_FORNECEDOR, SOLICITADO_ALTERACAO),
+        ('cronograma_assina', VALIDADO_FORNECEDOR, VALIDADO_CRONOGRAMA),
     )
 
     initial_state = RASCUNHO
@@ -2974,6 +2977,13 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('cronograma_assina')
+    def _cronograma_assina_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA,
+                                      usuario=user)
 
 
 class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
