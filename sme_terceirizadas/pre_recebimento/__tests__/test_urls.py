@@ -6,7 +6,7 @@ from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.pre_recebimento.models import Cronograma, EmbalagemQld, Laboratorio
 
 
-def test_url_endpoint_cronograma(client_autenticado_dilog, armazem, contrato, empresa):
+def test_url_endpoint_cronograma(client_autenticado_codae_dilog, armazem, contrato, empresa):
     data = {
         'armazem': str(armazem.uuid),
         'contrato': str(contrato.uuid),
@@ -28,7 +28,7 @@ def test_url_endpoint_cronograma(client_autenticado_dilog, armazem, contrato, em
             }
         ]
     }
-    response = client_autenticado_dilog.post(
+    response = client_autenticado_codae_dilog.post(
         '/cronogramas/',
         content_type='application/json',
         data=json.dumps(data)
@@ -38,13 +38,13 @@ def test_url_endpoint_cronograma(client_autenticado_dilog, armazem, contrato, em
     assert obj.contrato == contrato
 
 
-def test_url_lista_etapas_authorized_numeros(client_autenticado_dilog):
-    response = client_autenticado_dilog.get('/cronogramas/opcoes-etapas/')
+def test_url_lista_etapas_authorized_numeros(client_autenticado_codae_dilog):
+    response = client_autenticado_codae_dilog.get('/cronogramas/opcoes-etapas/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_list_cronogramas(client_autenticado_dilog):
-    response = client_autenticado_dilog.get('/cronogramas/')
+def test_url_list_cronogramas(client_autenticado_codae_dilog):
+    response = client_autenticado_codae_dilog.get('/cronogramas/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert 'count' in json
@@ -69,20 +69,20 @@ def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(client_autenti
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_fornecedor_confirma_not_authorized(client_autenticado_dilog, cronograma_recebido):
-    response = client_autenticado_dilog.patch(
+def test_url_fornecedor_confirma_not_authorized(client_autenticado_codae_dilog, cronograma_recebido):
+    response = client_autenticado_codae_dilog.patch(
         f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/')
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_list_rascunhos_cronogramas(client_autenticado_dilog):
-    response = client_autenticado_dilog.get('/cronogramas/rascunhos/')
+def test_url_list_rascunhos_cronogramas(client_autenticado_codae_dilog):
+    response = client_autenticado_codae_dilog.get('/cronogramas/rascunhos/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert 'results' in json
 
 
-def test_url_endpoint_cronograma_editar(client_autenticado_dilog, cronograma_rascunho, contrato, empresa):
+def test_url_endpoint_cronograma_editar(client_autenticado_codae_dilog, cronograma_rascunho, contrato, empresa):
     data = {
         'empresa': str(empresa.uuid),
         'contrato': str(contrato.uuid),
@@ -103,7 +103,7 @@ def test_url_endpoint_cronograma_editar(client_autenticado_dilog, cronograma_ras
             }
         ]
     }
-    response = client_autenticado_dilog.put(
+    response = client_autenticado_codae_dilog.put(
         f'/cronogramas/{cronograma_rascunho.uuid}/',
         content_type='application/json',
         data=json.dumps(data)

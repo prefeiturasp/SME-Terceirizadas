@@ -436,7 +436,7 @@ class PermissaoParaVisualizarCronograma(BasePermission):
                     isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
                     usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
                                                           DINUTRE_DIRETORIA, COORDENADOR_CODAE_DILOG_LOGISTICA,
-                                                          COORDENADOR_LOGISTICA, ADMINISTRADOR_FORNECEDOR]
+                                                          ADMINISTRADOR_FORNECEDOR]
                 )
             )
         )
@@ -454,8 +454,7 @@ class PermissaoParaCriarCronograma(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA,
-                                                          COORDENADOR_LOGISTICA]
+                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
             )
         )
