@@ -29,12 +29,12 @@ def gera_xls_relatorio_produtos_homologados_async(user, nome_arquivo, data):
         produto_viewset = ProdutoViewSet()
 
         if agrupado_nome_marca:
-            produtos_agrupados = produto_viewset.get_queryset_filtrado_agrupado(data)
+            produtos_agrupados, total_produtos, total_marcas = produto_viewset.get_queryset_filtrado_agrupado(data)
             titulos_colunas = ['Produto', 'Marca', 'Edital']
         else:
-            produtos_agrupados = produto_viewset.get_produtos_agrupados(data)
+            produtos_agrupados, total_produtos, total_marcas = produto_viewset.get_produtos_agrupados(data)
             titulos_colunas = ['Terceirizada', 'Produto', 'Marca', 'Edital', 'Tipo', 'Cadastro', 'Homologação']
-        subtitulo = f'Total de Produtos: {len(produtos_agrupados)} | {data.get("nome_edital")}'
+        subtitulo = f'Total de Produtos: {total_produtos} | Total de Marcas: {total_marcas} | {data.get("nome_edital")}'
         build_xlsx_generico(
             output,
             queryset_serializada=produtos_agrupados,
