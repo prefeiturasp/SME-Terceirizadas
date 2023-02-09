@@ -430,7 +430,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     @property
     def eh_cei(self):
         lista_tipos_unidades = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
-        return self.tipo_unidade and self.tipo_unidade.iniciais in lista_tipos_unidades 
+        return self.tipo_unidade and self.tipo_unidade.iniciais in lista_tipos_unidades
 
     @property
     def eh_cemei(self):
