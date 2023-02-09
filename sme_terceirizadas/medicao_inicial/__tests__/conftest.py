@@ -53,6 +53,36 @@ def solicitacao_medicao_inicial(escola):
 
 
 @pytest.fixture
+def solicitacoes_medicao_inicial(escola):
+    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
+    escola_2 = mommy.make('Escola')
+    s1 = mommy.make('SolicitacaoMedicaoInicial', mes=12, ano=2022, escola=escola,
+                    tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_ENVIADA_PELA_UE')
+    s2 = mommy.make('SolicitacaoMedicaoInicial', mes=1, ano=2023, escola=escola,
+                    tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_ENVIADA_PELA_UE')
+    s3 = mommy.make('SolicitacaoMedicaoInicial', mes=2, ano=2023, escola=escola,
+                    tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_CORRECAO_SOLICITADA')
+    s4 = mommy.make('SolicitacaoMedicaoInicial', mes=2, ano=2023, escola=escola_2,
+                    tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_CORRECAO_SOLICITADA')
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=s1.uuid,
+               status_evento=55,  # MEDICAO_ENVIADA_PELA_UE
+               solicitacao_tipo=16)  # MEDICAO_INICIAL
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=s2.uuid,
+               status_evento=55,  # MEDICAO_ENVIADA_PELA_UE
+               solicitacao_tipo=16)  # MEDICAO_INICIAL
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=s3.uuid,
+               status_evento=63,  # MEDICAO_CORRECAO_SOLICITADA
+               solicitacao_tipo=16)  # MEDICAO_INICIAL
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=s4.uuid,
+               status_evento=63,  # MEDICAO_CORRECAO_SOLICITADA
+               solicitacao_tipo=16)  # MEDICAO_INICIAL
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial_sem_arquivo(escola):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas COloridas')
     return mommy.make('SolicitacaoMedicaoInicial', uuid='fb6d1870-a397-4e87-8218-13d316a0ffea',
@@ -104,6 +134,25 @@ def valor_medicao(medicao, categoria_medicao):
     return mommy.make('ValorMedicao', valor=valor, nome_campo=nome_campo, medicao=medicao,
                       uuid='fc2fbc0a-8dda-4c8e-b5cf-c40ecff52a5c', dia=13,
                       categoria_medicao=categoria_medicao, tipo_alimentacao=tipo_alimentacao)
+
+
+@pytest.fixture
+def client_autenticado_diretoria_regional(client, django_user_model, escola):
+    email = 'test@test.com'
+    password = 'admin@123'
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    perfil_cogestor = mommy.make('Perfil',
+                                 nome='COGESTOR',
+                                 ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=escola.diretoria_regional,
+               perfil=perfil_cogestor,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(email=email, password=password)
+    return client
 
 
 @pytest.fixture

@@ -172,3 +172,18 @@ def test_url_endpoint_medicao(client_autenticado_da_escola,
         data=data_valor_0
     )
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_medicao_dashboard(client_autenticado_diretoria_regional, solicitacoes_medicao_inicial):
+    response = client_autenticado_diretoria_regional.get(
+        '/medicao-inicial/solicitacao-medicao-inicial/dashboard/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 6
+    assert response.json()['results'][0]['status'] == 'MEDICAO_ENVIADA_PELA_UE'
+    assert response.json()['results'][0]['total'] == 2
+    assert response.json()['results'][1]['status'] == 'MEDICAO_CORRECAO_SOLICITADA'
+    assert response.json()['results'][1]['total'] == 1
+    assert response.json()['results'][5]['status'] == 'TODOS_OS_LANCAMENTOS'
+    assert response.json()['results'][5]['total'] == 3

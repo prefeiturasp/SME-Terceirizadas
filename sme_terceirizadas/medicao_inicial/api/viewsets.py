@@ -111,17 +111,28 @@ class SolicitacaoMedicaoInicialViewSet(
             'TODOS_OS_LANCAMENTOS'
         ]
 
-    def condicao_raw_query_por_usuario(self):
+    def condicao_raw_query_por_usuario(self, todos_lancamentos):
         usuario = self.request.user
         if usuario.tipo_usuario == 'diretoriaregional':
-            return f'AND diretoria_regional_id = {self.request.user.vinculo_atual.object_id} '
+            return (f'{"WHERE" if todos_lancamentos else "AND"} '
+                    f'diretoria_regional_id = {self.request.user.vinculo_atual.object_id} ')
         elif usuario.tipo_usuario == 'escola':
-            return f'AND %(solicitacao_medicao_inicial)s.escola_id = {self.request.user.vinculo_atual.object_id} '
+            return (f'{"WHERE" if todos_lancamentos else "AND"} '
+                    f'%(solicitacao_medicao_inicial)s.escola_id = {self.request.user.vinculo_atual.object_id} ')
         return ''
+
+    def condicao_por_usuario(self, queryset):
+        usuario = self.request.user
+        if usuario.tipo_usuario == 'diretoriaregional':
+            return queryset.filter(escola__diretoria_regional=self.request.user.vinculo_atual.instituicao)
+        elif usuario.tipo_usuario == 'escola':
+            return queryset.filter(escola=self.request.user.vinculo_atual.object_id)
+        return queryset
 
     def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
         sumario = []
         for workflow in self.get_lista_status():
+            todos_lancamentos = workflow == 'TODOS_OS_LANCAMENTOS'
             if use_raw:
                 data = {'escola': Escola._meta.db_table,
                         'logs': LogSolicitacoesUsuario._meta.db_table,
@@ -135,13 +146,14 @@ class SolicitacaoMedicaoInicialViewSet(
                            'LEFT JOIN (SELECT id AS escola_id, diretoria_regional_id FROM %(escola)s) '
                            'AS escola_solicitacao_medicao '
                            'ON escola_solicitacao_medicao.escola_id = %(solicitacao_medicao_inicial)s.escola_id ')
-                if workflow != 'TODOS_OS_LANCAMENTOS':
+                if not todos_lancamentos:
                     raw_sql += "WHERE %(solicitacao_medicao_inicial)s.status = '%(status)s' "
-                raw_sql += self.condicao_raw_query_por_usuario()
+                raw_sql += self.condicao_raw_query_por_usuario(todos_lancamentos)
                 raw_sql += 'ORDER BY log_criado_em DESC'
                 qs = query_set.raw(raw_sql % data)
             else:
-                qs = query_set.filter(status=workflow) if workflow != 'TODOS_OS_LANCAMENTOS' else query_set
+                qs = query_set.filter(status=workflow) if not todos_lancamentos else query_set
+                qs = self.condicao_por_usuario(qs)
                 qs = sorted(qs.distinct().all(),
                             key=lambda x: x.log_mais_recente.criado_em
                             if x.log_mais_recente else '-criado_em', reverse=True)
