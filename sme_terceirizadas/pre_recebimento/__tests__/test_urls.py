@@ -233,7 +233,7 @@ def test_url_perfil_cronograma_assina_cronograma_authorized(client_autenticado_d
         f'/cronogramas/{cronograma_validado_fornecedor.uuid}/cronograma-assina/', data, content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
     obj = Cronograma.objects.get(uuid=cronograma_validado_fornecedor.uuid)
-    assert obj.status == 'VALIDADO_CRONOGRAMA'
+    assert obj.status == 'ASSINADO_CRONOGRAMA'
 
 
 def test_url_perfil_cronograma_assina_cronograma_erro_senha(client_autenticado_dilog_cronograma,
