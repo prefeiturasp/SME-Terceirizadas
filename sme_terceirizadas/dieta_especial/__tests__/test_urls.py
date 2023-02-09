@@ -322,7 +322,7 @@ def test_url_endpoint_autorizar_dieta(client_autenticado_vinculo_codae_dieta,
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert json[
-        'detail'] == 'Autorização de dieta especial realizada com sucesso'
+        'detail'] == 'Autorização de Dieta Especial realizada com sucesso!'
 
     obj.refresh_from_db()
 
@@ -450,7 +450,7 @@ def test_url_endpoint_autorizar_dieta_atributos_string_vazios(client_autenticado
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert json[
-        'detail'] == 'Autorização de dieta especial realizada com sucesso'
+        'detail'] == 'Autorização de Dieta Especial realizada com sucesso!'
 
 
 def test_url_endpoint_autorizar_dieta_data_termino_no_passado(client_autenticado_vinculo_codae_dieta,

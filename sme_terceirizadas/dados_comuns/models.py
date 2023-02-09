@@ -20,6 +20,7 @@ class LogSolicitacoesUsuario(
         TERCEIRIZADA_TOMOU_CIENCIA,
         TERCEIRIZADA_RECUSOU,
         CODAE_NEGOU,
+        CODAE_ATUALIZAZOU_PROTOCOLO,
         # ESPECIFICA DO PARTINDO DA DRE
         CODAE_PEDIU_REVISAO,
         DRE_REVISOU,
@@ -88,7 +89,7 @@ class LogSolicitacoesUsuario(
         SUSPENSO_EM_ALGUNS_EDITAIS,
         ATIVO_EM_ALGUNS_EDITAIS,
         CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA
-    ) = range(63)
+    ) = range(64)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -96,6 +97,7 @@ class LogSolicitacoesUsuario(
         (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada tomou ciência'),
         (TERCEIRIZADA_RECUSOU, 'Terceirizada recusou'),
         (CODAE_NEGOU, 'CODAE negou'),
+        (CODAE_ATUALIZAZOU_PROTOCOLO, 'CODAE Atualizou o protocolo'),
         (CODAE_PEDIU_REVISAO, 'CODAE pediu revisão'),
         (DRE_REVISOU, 'DRE revisou'),
         (DRE_VALIDOU, 'DRE validou'),
