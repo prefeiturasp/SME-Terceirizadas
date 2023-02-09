@@ -26,7 +26,11 @@ from .serializers.serializers import (
     TerceirizadaLookUpSerializer,
     TerceirizadaSimplesSerializer
 )
-from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
+from .serializers.serializers_create import (
+    EditalContratosCreateSerializer,
+    EmpresaNaoTerceirizadaCreateSerializer,
+    TerceirizadaCreateSerializer
+)
 
 
 class EditalViewSet(viewsets.ReadOnlyModelViewSet):
@@ -39,6 +43,17 @@ class EditalViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.get_queryset()
         response = {'results': EditalSimplesSerializer(queryset, many=True).data}
         return Response(response)
+
+
+class EmpresaNaoTerceirizadaViewSet(viewsets.mixins.CreateModelMixin,
+                                    viewsets.mixins.UpdateModelMixin,
+                                    viewsets.mixins.DestroyModelMixin,
+                                    viewsets.GenericViewSet):
+    lookup_field = 'uuid'
+    queryset = Terceirizada.objects.all().order_by(Lower('razao_social'))
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = TerceirizadaFilter
+    serializer_class = EmpresaNaoTerceirizadaCreateSerializer
 
 
 class TerceirizadaViewSet(viewsets.ModelViewSet):

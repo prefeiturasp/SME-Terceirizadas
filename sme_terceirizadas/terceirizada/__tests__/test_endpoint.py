@@ -34,7 +34,6 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
         'bairro': 'Teste',
         'cidade': 'Teste',
         'complemento': 'Sim',
-        'eh_distribuidor_ou_fornecedor': True,
         'estado': 'SP',
         'numero': '58',
         'responsavel_cargo': 'Diretor',
@@ -70,11 +69,11 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
     }
 
     response = client_autenticado_dilog.post(
-        '/terceirizadas/',
+        '/empresas-nao-terceirizadas/',
         data=json.dumps(payload),
         content_type='application/json'
     )
-    terceirizada = Terceirizada.objects.first()
+    empresa = Terceirizada.objects.first()
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert terceirizada.tipo_servico == Terceirizada.DISTRIBUIDOR_ARMAZEM
+    assert empresa.tipo_servico == Terceirizada.DISTRIBUIDOR_ARMAZEM
