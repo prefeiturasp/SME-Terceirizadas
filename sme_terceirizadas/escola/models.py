@@ -406,7 +406,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
         elif self.tipo_unidade.iniciais == 'CEU GESTAO':
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
-        elif self.tipo_unidade.iniciais == 'CEI DIRET':
+        elif self.eh_cei:
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_DIRET)
         else:
             # TODO: ver uma forma melhor de fazer essa query
@@ -429,7 +429,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def eh_cei(self):
-        return self.tipo_unidade and self.tipo_unidade.iniciais in ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI']
+        lista_tipos_unidades = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
+        return self.tipo_unidade and self.tipo_unidade.iniciais in lista_tipos_unidades
 
     @property
     def eh_cemei(self):

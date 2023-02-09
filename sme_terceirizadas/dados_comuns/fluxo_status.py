@@ -2941,7 +2941,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
     ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
     VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
     SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
-    VALIDADO_CRONOGRAMA = 'VALIDADO_CRONOGRAMA'
+    ASSINADO_CRONOGRAMA = 'ASSINADO_CRONOGRAMA'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -2952,14 +2952,14 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
         (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
         (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
-        (VALIDADO_CRONOGRAMA, 'Validado Cronograma'),
+        (ASSINADO_CRONOGRAMA, 'Assinado Cronograma'),
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
         ('fornecedor_assina', ENVIADO_AO_FORNECEDOR, VALIDADO_FORNECEDOR),
         ('solicita_alteracao', VALIDADO_FORNECEDOR, SOLICITADO_ALTERACAO),
-        ('cronograma_assina', VALIDADO_FORNECEDOR, VALIDADO_CRONOGRAMA),
+        ('cronograma_assina', VALIDADO_FORNECEDOR, ASSINADO_CRONOGRAMA),
     )
 
     initial_state = RASCUNHO
