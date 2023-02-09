@@ -1,4 +1,5 @@
 from django.db.models import QuerySet
+from django.db.models.query import RawQuerySet
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -107,7 +108,8 @@ class SolicitacaoMedicaoInicialViewSet(
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA,
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE,
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_DRE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE,
+            'TODOS_OS_LANCAMENTOS'
         ]
 
     def condicao_raw_query_por_usuario(self):
@@ -118,7 +120,7 @@ class SolicitacaoMedicaoInicialViewSet(
             return f'AND %(solicitacao_medicao_inicial)s.escola_id = {self.request.user.vinculo_atual.object_id} '
         return ''
 
-    def dados_dashboard(self, query_set: QuerySet, use_raw=False) -> list:
+    def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
         sumario = []
         for workflow in self.get_lista_status():
             if use_raw:
@@ -133,17 +135,19 @@ class SolicitacaoMedicaoInicialViewSet(
                            'ON %(solicitacao_medicao_inicial)s.uuid = most_recent_log.uuid_original '
                            'LEFT JOIN (SELECT id AS escola_id, diretoria_regional_id FROM %(escola)s) '
                            'AS escola_solicitacao_medicao '
-                           'ON escola_solicitacao_medicao.escola_id = %(solicitacao_medicao_inicial)s.escola_id '
-                           "WHERE %(solicitacao_medicao_inicial)s.status = '%(status)s' ")
+                           'ON escola_solicitacao_medicao.escola_id = %(solicitacao_medicao_inicial)s.escola_id ')
+                if workflow != 'TODOS_OS_LANCAMENTOS':
+                    raw_sql += "WHERE %(solicitacao_medicao_inicial)s.status = '%(status)s' "
                 raw_sql += self.condicao_raw_query_por_usuario()
                 raw_sql += 'ORDER BY log_criado_em DESC'
                 qs = query_set.raw(raw_sql % data)
             else:
-                qs = query_set
+                qs = query_set.filter(status=workflow) if workflow != 'TODOS_OS_LANCAMENTOS' else query_set
             sumario.append({
                 'status': workflow,
+                'total': len(qs) if isinstance(qs, RawQuerySet) else qs.count(),
                 'dados': SolicitacaoMedicaoInicialDashboardSerializer(
-                    qs[:6],
+                    qs[:10],
                     context={'request': self.request, 'workflow': workflow}, many=True).data
             })
 
@@ -153,7 +157,7 @@ class SolicitacaoMedicaoInicialViewSet(
             permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional])
     def dashboard(self, request):
         query_set = self.get_queryset()
-        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=False)}
+        response = {'results': self.dados_dashboard(query_set=query_set)}
         return Response(response)
 
 
