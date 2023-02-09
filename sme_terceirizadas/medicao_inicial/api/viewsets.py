@@ -1,5 +1,4 @@
 from django.db.models import QuerySet
-from django.db.models.query import RawQuerySet
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
