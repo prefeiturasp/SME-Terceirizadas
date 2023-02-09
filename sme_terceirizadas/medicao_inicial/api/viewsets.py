@@ -143,9 +143,12 @@ class SolicitacaoMedicaoInicialViewSet(
                 qs = query_set.raw(raw_sql % data)
             else:
                 qs = query_set.filter(status=workflow) if workflow != 'TODOS_OS_LANCAMENTOS' else query_set
+                qs = sorted(qs.distinct().all(),
+                            key=lambda x: x.log_mais_recente.criado_em
+                            if x.log_mais_recente else '-criado_em', reverse=True)
             sumario.append({
                 'status': workflow,
-                'total': len(qs) if isinstance(qs, RawQuerySet) else qs.count(),
+                'total': len(qs),
                 'dados': SolicitacaoMedicaoInicialDashboardSerializer(
                     qs[:10],
                     context={'request': self.request, 'workflow': workflow}, many=True).data
@@ -157,7 +160,7 @@ class SolicitacaoMedicaoInicialViewSet(
             permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional])
     def dashboard(self, request):
         query_set = self.get_queryset()
-        response = {'results': self.dados_dashboard(query_set=query_set)}
+        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=True)}
         return Response(response)
 
 
