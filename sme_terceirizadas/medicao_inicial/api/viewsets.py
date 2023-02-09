@@ -1,9 +1,11 @@
+from django.db.models import QuerySet
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from ...dados_comuns.permissions import UsuarioEscola, ViewSetActionPermissionMixin
+from ...dados_comuns.models import LogSolicitacoesUsuario
+from ...dados_comuns.permissions import UsuarioDiretoriaRegional, UsuarioEscola, ViewSetActionPermissionMixin
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
@@ -18,6 +20,7 @@ from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
+    SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
     ValorMedicaoSerializer
@@ -96,6 +99,62 @@ class SolicitacaoMedicaoInicialViewSet(
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @staticmethod
+    def get_lista_status():
+        return [
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_ENVIADA_PELA_UE,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_DRE,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+        ]
+
+    def condicao_raw_query_por_usuario(self):
+        usuario = self.request.user
+        if usuario.tipo_usuario == 'diretoriaregional':
+            return f'AND diretoria_regional_id = {self.request.user.vinculo_atual.object_id} '
+        elif usuario.tipo_usuario == 'escola':
+            return f'AND %(solicitacao_medicao_inicial)s.escola_id = {self.request.user.vinculo_atual.object_id} '
+        return ''
+
+    def dados_dashboard(self, query_set: QuerySet, use_raw=False) -> list:
+        sumario = []
+        for workflow in self.get_lista_status():
+            if use_raw:
+                data = {'escola': Escola._meta.db_table,
+                        'logs': LogSolicitacoesUsuario._meta.db_table,
+                        'solicitacao_medicao_inicial': SolicitacaoMedicaoInicial._meta.db_table,
+                        'status': workflow}
+                raw_sql = ('SELECT %(solicitacao_medicao_inicial)s.* FROM %(solicitacao_medicao_inicial)s '
+                           'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
+                           'GROUP BY uuid_original) '
+                           'AS most_recent_log '
+                           'ON %(solicitacao_medicao_inicial)s.uuid = most_recent_log.uuid_original '
+                           'LEFT JOIN (SELECT id AS escola_id, diretoria_regional_id FROM %(escola)s) '
+                           'AS escola_solicitacao_medicao '
+                           'ON escola_solicitacao_medicao.escola_id = %(solicitacao_medicao_inicial)s.escola_id '
+                           "WHERE %(solicitacao_medicao_inicial)s.status = '%(status)s' ")
+                raw_sql += self.condicao_raw_query_por_usuario()
+                raw_sql += 'ORDER BY log_criado_em DESC'
+                qs = query_set.raw(raw_sql % data)
+            else:
+                qs = query_set
+            sumario.append({
+                'status': workflow,
+                'dados': SolicitacaoMedicaoInicialDashboardSerializer(
+                    qs[:6],
+                    context={'request': self.request, 'workflow': workflow}, many=True).data
+            })
+
+        return sumario
+
+    @action(detail=False, methods=['GET'], url_path='dashboard',
+            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional])
+    def dashboard(self, request):
+        query_set = self.get_queryset()
+        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=False)}
+        return Response(response)
 
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):

@@ -1,3 +1,5 @@
+import datetime
+
 import environ
 from rest_framework import serializers
 
@@ -60,6 +62,20 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoMedicaoInicial
         exclude = ('id', 'criado_por',)
+
+
+class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
+    escola = serializers.CharField(source='escola.nome')
+    status = serializers.CharField(source='get_status_display')
+    log_mais_recente = serializers.SerializerMethodField()
+
+    def get_log_mais_recente(self, obj):
+        return datetime.datetime.strftime(
+            obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M') if obj.log_mais_recente else None
+
+    class Meta:
+        model = SolicitacaoMedicaoInicial
+        fields = ('uuid', 'escola', 'status', 'log_mais_recente')
 
 
 class ValorMedicaoSerializer(serializers.ModelSerializer):

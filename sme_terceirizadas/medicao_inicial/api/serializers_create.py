@@ -157,7 +157,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                     nome=anexo.get('nome')
                 )
         if key_com_ocorrencias is not None:
-            instance.codae_encerra_medicao_inicial(user=self.context['request'].user)
+            instance.ue_envia(user=self.context['request'].user)
 
         return instance
 
