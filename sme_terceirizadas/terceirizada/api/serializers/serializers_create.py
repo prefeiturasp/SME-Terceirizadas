@@ -15,11 +15,11 @@ from ...models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaCon
 
 
 def cria_contatos(contatos):
-    contatos = []
+    contatos_list = []
     for contato_json in contatos:
         contato = ContatoSerializer().create(contato_json)
-        contatos.append(contato)
-    return contatos
+        contatos_list.append(contato)
+    return contatos_list
 
 
 class NutricionistaCreateSerializer(serializers.ModelSerializer):
@@ -152,8 +152,8 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         Terceirizada.objects.filter(
             uuid__in=checar_terceirizadas_inativacao, lotes__isnull=True).update(ativo=False)
 
-        contatos_set = cria_contatos(contatos)
-        terceirizada.contatos.set(contatos_set)
+        contatos_list = cria_contatos(contatos)
+        terceirizada.contatos.set(contatos_list)
 
         self.criar_super_admin_terceirizada(super_admin, terceirizada)
 
@@ -176,8 +176,8 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
 
         update_instance_from_dict(instance, validated_data, save=True)
 
-        contatos_set = cria_contatos(contatos)
-        instance.contatos.set(contatos_set)
+        contatos_list = cria_contatos(contatos)
+        instance.contatos.set(contatos_list)
         instance.lotes.set(lotes_array)
 
         """ Inativa terceirizadas que nao tem lote """
@@ -293,7 +293,6 @@ class EmpresaNaoTerceirizadaCreateSerializer(serializers.ModelSerializer):
         contatos = validated_data.pop('contatos', [])
         contratos_array = validated_data.pop('contratos', [])
 
-        self.cria_ou_atualiza_responsavel_empresa(instance, validated_data, contatos, eh_update=True)
         contratos = []
         for contrato_json in contratos_array:
             encerrado = contrato_json.pop('encerrado')
@@ -304,9 +303,9 @@ class EmpresaNaoTerceirizadaCreateSerializer(serializers.ModelSerializer):
         instance.contatos.all().delete()
         instance.contratos.filter(encerrado=False).delete()
         update_instance_from_dict(instance, validated_data, save=True)
-
         contatos_list = cria_contatos(contatos)
         instance.contatos.set(contatos_list)
+        self.cria_ou_atualiza_responsavel_empresa(instance, validated_data, contatos_list, eh_update=True)
         for contrato in contratos:
             instance.contratos.add(contrato)
 
