@@ -2884,6 +2884,7 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
     MEDICAO_CORRIGIDA_PELA_UE = 'MEDICAO_CORRIGIDA_PELA_UE'
     MEDICAO_APROVADA_PELA_DRE = 'MEDICAO_APROVADA_PELA_DRE'
     MEDICAO_APROVADA_PELA_CODAE = 'MEDICAO_APROVADA_PELA_CODAE'
+    MEDICAO_ENCERRADA_PELA_CODAE = 'MEDICAO_ENCERRADA_PELA_CODAE'
 
     states = (
         (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
@@ -2891,7 +2892,8 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
         (MEDICAO_CORRECAO_SOLICITADA, 'Correção solicitada'),
         (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido pela UE'),
         (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
-        (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE')
+        (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE'),
+        (MEDICAO_ENCERRADA_PELA_CODAE, '(deprecado) Medição encerrada por CODAE')
     )
 
     transitions = (
