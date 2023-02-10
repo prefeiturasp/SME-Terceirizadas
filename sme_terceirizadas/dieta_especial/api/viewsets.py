@@ -174,7 +174,7 @@ class SolicitacaoDietaEspecialViewSet(
         return self.get_paginated_response(serializer.data)
 
     @transaction.atomic
-    @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
+    @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))
     def autorizar(self, request, uuid=None):  # noqa C901
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
@@ -188,11 +188,11 @@ class SolicitacaoDietaEspecialViewSet(
             if not solicitacao.data_inicio:
                 solicitacao.data_inicio = datetime.now().strftime('%Y-%m-%d')
                 solicitacao.save()
-            return Response({'detail': 'Autorização de Dieta Especial realizada com sucesso!'})  # noqa
+            return Response({'detail': 'Autorização de Dieta Especial realizada com sucesso!'})
         except InvalidTransitionError as e:
-            return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)  # noqa
+            return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)
         except serializers.ValidationError as e:
-            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)  # noqa
+            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
 
     @transaction.atomic
     @action(detail=True,
