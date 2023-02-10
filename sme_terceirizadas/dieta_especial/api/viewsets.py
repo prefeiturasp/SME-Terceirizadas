@@ -20,6 +20,7 @@ from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
+from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEDietaEspecial,
@@ -137,7 +138,7 @@ class SolicitacaoDietaEspecialViewSet(
     def get_serializer_class(self):  # noqa C901
         if self.action == 'create':
             return SolicitacaoDietaEspecialCreateSerializer
-        elif self.action == 'autorizar':
+        elif self.action in ['autorizar', 'atualiza_protocolo']:
             return SolicitacaoDietaEspecialAutorizarSerializer
         elif self.action in ['update', 'partial_update']:
             return SolicitacaoDietaEspecialUpdateSerializer
@@ -173,7 +174,7 @@ class SolicitacaoDietaEspecialViewSet(
         return self.get_paginated_response(serializer.data)
 
     @transaction.atomic
-    @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
+    @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))
     def autorizar(self, request, uuid=None):  # noqa C901
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
@@ -187,11 +188,34 @@ class SolicitacaoDietaEspecialViewSet(
             if not solicitacao.data_inicio:
                 solicitacao.data_inicio = datetime.now().strftime('%Y-%m-%d')
                 solicitacao.save()
-            return Response({'detail': 'Autorização de dieta especial realizada com sucesso'})  # noqa
+            return Response({'detail': 'Autorização de Dieta Especial realizada com sucesso!'})
         except InvalidTransitionError as e:
-            return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)  # noqa
+            return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)
         except serializers.ValidationError as e:
-            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)  # noqa
+            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.CODAE_ATUALIZA_PROTOCOLO,
+            permission_classes=(UsuarioCODAEDietaEspecial,))
+    def atualiza_protocolo(self, request):
+        solicitacao = self.get_object()
+        if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
+            solicitacao.aluno.inativar_dieta_especial()
+        serializer = self.get_serializer()
+        try:
+            if solicitacao.tipo_solicitacao != 'ALTERACAO_UE':
+                serializer.update(solicitacao, request.data)
+                solicitacao.ativo = True
+            solicitacao.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_ATUALIZOU_PROTOCOLO,
+                                             usuario=request.user)
+            if not solicitacao.data_inicio:
+                solicitacao.data_inicio = datetime.now().strftime('%Y-%m-%d')
+                solicitacao.save()
+            return Response({'detail': 'Edição realizada com sucesso!'})
+        except serializers.ValidationError as e:
+            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
             methods=['POST'],
