@@ -87,8 +87,9 @@ class LogSolicitacoesUsuario(
         FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
         SUSPENSO_EM_ALGUNS_EDITAIS,
         ATIVO_EM_ALGUNS_EDITAIS,
-        CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA
-    ) = range(63)
+        CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA,
+        CODAE_ATUALIZOU_PROTOCOLO
+    ) = range(64)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -191,7 +192,8 @@ class LogSolicitacoesUsuario(
         (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Alteração Fornecedor'),
         (SUSPENSO_EM_ALGUNS_EDITAIS, 'Suspenso em alguns editais'),
         (ATIVO_EM_ALGUNS_EDITAIS, 'Ativo em alguns editais'),
-        (CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA, 'Assinado Cronograma')
+        (CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA, 'Assinado Cronograma'),
+        (CODAE_ATUALIZOU_PROTOCOLO, 'CODAE Atualizou o protocolo')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
