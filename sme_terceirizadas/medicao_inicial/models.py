@@ -122,6 +122,7 @@ class Medicao(
                                                     related_name='medicoes')
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     grupo = models.ForeignKey(GrupoMedicao, blank=True, null=True, on_delete=models.PROTECT)
+    alterado_em = models.DateTimeField('Alterado em', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Medição'
