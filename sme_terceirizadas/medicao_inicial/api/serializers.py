@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import environ
 from rest_framework import serializers
 
@@ -64,13 +66,18 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
 
 class ValorMedicaoSerializer(serializers.ModelSerializer):
     medicao_uuid = serializers.SerializerMethodField()
+    medicao_alterado_em = serializers.SerializerMethodField()
 
     def get_medicao_uuid(self, obj):
         return obj.medicao.uuid
 
+    def get_medicao_alterado_em(self, obj):
+        if obj.medicao.alterado_em:
+            return datetime.strftime(obj.medicao.alterado_em, '%d/%m/%Y, às %H:%M:%S')
+
     class Meta:
         model = ValorMedicao
-        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid', 'uuid')
+        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid', 'uuid', 'medicao_alterado_em')
 
 
 class CategoriaMedicaoSerializer(serializers.ModelSerializer):
