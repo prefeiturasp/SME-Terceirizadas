@@ -94,11 +94,11 @@ def solicitacoes_medicao_inicial(escola):
                solicitacao_tipo=16)  # MEDICAO_INICIAL
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=s3.uuid,
-               status_evento=63,  # MEDICAO_CORRECAO_SOLICITADA
+               status_evento=64,  # MEDICAO_CORRECAO_SOLICITADA
                solicitacao_tipo=16)  # MEDICAO_INICIAL
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=s4.uuid,
-               status_evento=63,  # MEDICAO_CORRECAO_SOLICITADA
+               status_evento=64,  # MEDICAO_CORRECAO_SOLICITADA
                solicitacao_tipo=16)  # MEDICAO_INICIAL
 
 

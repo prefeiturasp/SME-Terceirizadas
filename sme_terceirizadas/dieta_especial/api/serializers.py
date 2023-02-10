@@ -174,7 +174,7 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
             create_serializer = SubstituicaoAutorizarSerializer(data=substituicao)  # noqa
             if create_serializer.is_valid(raise_exception=True):
                 instance.substituicaoalimento_set.add(create_serializer.save())
-
+        instance.save()
         return instance
 
 
