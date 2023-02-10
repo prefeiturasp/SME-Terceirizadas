@@ -198,8 +198,8 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=True,
             methods=['patch'],
             url_path=constants.CODAE_ATUALIZA_PROTOCOLO,
-            permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
-    def atualiza_protocolo(self, request, uuid=None):  # noqa C901
+            permission_classes=(UsuarioCODAEDietaEspecial,))
+    def atualiza_protocolo(self, request):
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
             solicitacao.aluno.inativar_dieta_especial()
@@ -208,14 +208,14 @@ class SolicitacaoDietaEspecialViewSet(
             if solicitacao.tipo_solicitacao != 'ALTERACAO_UE':
                 serializer.update(solicitacao, request.data)
                 solicitacao.ativo = True
-            solicitacao.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_ATUALIZAZOU_PROTOCOLO,
+            solicitacao.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_ATUALIZOU_PROTOCOLO,
                                              usuario=request.user)
             if not solicitacao.data_inicio:
                 solicitacao.data_inicio = datetime.now().strftime('%Y-%m-%d')
                 solicitacao.save()
-            return Response({'detail': 'Edição realizada com sucesso!'})  # noqa
+            return Response({'detail': 'Edição realizada com sucesso!'})
         except serializers.ValidationError as e:
-            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)  # noqa
+            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
             methods=['POST'],
