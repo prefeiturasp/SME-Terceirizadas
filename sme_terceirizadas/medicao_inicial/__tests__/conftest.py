@@ -48,8 +48,28 @@ def escola():
 @pytest.fixture
 def solicitacao_medicao_inicial(escola):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
-    return mommy.make('SolicitacaoMedicaoInicial', uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
-                      mes=12, ano=2022, escola=escola, tipo_contagem_alimentacoes=tipo_contagem)
+    periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
+    solicitacao_medicao = mommy.make(
+        'SolicitacaoMedicaoInicial', uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
+        mes=12, ano=2022, escola=escola, tipo_contagem_alimentacoes=tipo_contagem)
+    medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                         periodo_escolar=periodo_manha)
+    mommy.make('ValorMedicao', medicao=medicao)
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_com_grupo(escola):
+    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
+    periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
+    grupo = mommy.make('GrupoMedicao', nome='Programas e Projetos')
+    solicitacao_medicao = mommy.make(
+        'SolicitacaoMedicaoInicial', uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
+        mes=12, ano=2022, escola=escola, tipo_contagem_alimentacoes=tipo_contagem)
+    medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                         periodo_escolar=periodo_manha, grupo=grupo)
+    mommy.make('ValorMedicao', medicao=medicao)
+    return solicitacao_medicao
 
 
 @pytest.fixture

@@ -5,7 +5,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...dados_comuns.permissions import UsuarioDiretoriaRegional, UsuarioEscola, ViewSetActionPermissionMixin
+from ...dados_comuns.permissions import (
+    UsuarioCODAEGestaoAlimentacao,
+    UsuarioDiretoriaRegional,
+    UsuarioEscola,
+    ViewSetActionPermissionMixin
+)
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
@@ -62,7 +67,6 @@ class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
         except AssertionError as error:
             if str(error) == '`create()` did not return an object instance.':
                 return Response(status=status.HTTP_201_CREATED)
-            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['GET'], url_path='lista-dias')
     def lista_dias(self, request):
@@ -168,10 +172,11 @@ class SolicitacaoMedicaoInicialViewSet(
         return sumario
 
     @action(detail=False, methods=['GET'], url_path='dashboard',
-            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional])
+            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def dashboard(self, request):
         query_set = self.get_queryset()
-        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=True)}
+        possui_filtros = len(request.query_params)
+        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=not possui_filtros)}
         return Response(response)
 
 
