@@ -84,6 +84,8 @@ def solicitacoes_medicao_inicial(escola):
                     tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_CORRECAO_SOLICITADA')
     s4 = mommy.make('SolicitacaoMedicaoInicial', mes=2, ano=2023, escola=escola_2,
                     tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_CORRECAO_SOLICITADA')
+    s5 = mommy.make('SolicitacaoMedicaoInicial', mes=3, ano=2023, escola=escola,
+                    tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE')
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=s1.uuid,
                status_evento=55,  # MEDICAO_ENVIADA_PELA_UE
@@ -99,6 +101,10 @@ def solicitacoes_medicao_inicial(escola):
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=s4.uuid,
                status_evento=64,  # MEDICAO_CORRECAO_SOLICITADA
+               solicitacao_tipo=16)  # MEDICAO_INICIAL
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=s5.uuid,
+               status_evento=54,  # MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
                solicitacao_tipo=16)  # MEDICAO_INICIAL
 
 
