@@ -2879,16 +2879,28 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
-    MEDICAO_ENCERRADA_PELA_CODAE = 'MEDICAO_ENCERRADA_PELA_CODAE'
+    MEDICAO_ENVIADA_PELA_UE = 'MEDICAO_ENVIADA_PELA_UE'
+    MEDICAO_CORRECAO_SOLICITADA = 'MEDICAO_CORRECAO_SOLICITADA'
+    MEDICAO_CORRIGIDA_PELA_UE = 'MEDICAO_CORRIGIDA_PELA_UE'
+    MEDICAO_APROVADA_PELA_DRE = 'MEDICAO_APROVADA_PELA_DRE'
+    MEDICAO_APROVADA_PELA_CODAE = 'MEDICAO_APROVADA_PELA_CODAE'
 
     states = (
         (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
-        (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
+        (MEDICAO_ENVIADA_PELA_UE, 'Enviado pela UE'),
+        (MEDICAO_CORRECAO_SOLICITADA, 'Correção solicitada'),
+        (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido pela UE'),
+        (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
+        (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE')
     )
 
     transitions = (
         ('inicia_fluxo', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE),
-        ('codae_encerra_medicao_inicial', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENCERRADA_PELA_CODAE),
+        ('ue_envia', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENVIADA_PELA_UE),
+        ('dre_pede_correcao', MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA),
+        ('ue_corrige', MEDICAO_CORRIGIDA_PELA_UE, MEDICAO_ENVIADA_PELA_UE),
+        ('dre_aprova', MEDICAO_ENVIADA_PELA_UE, MEDICAO_APROVADA_PELA_DRE),
+        ('codae_aprova', MEDICAO_APROVADA_PELA_DRE, MEDICAO_APROVADA_PELA_CODAE)
     )
 
     initial_state = MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
@@ -2905,13 +2917,13 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
                                       usuario=user)
 
-    @xworkflows.after_transition('codae_encerra_medicao_inicial')
-    def _codae_encerra_medicao_inicial_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('ue_envia')
+    def _ue_envia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
             if user.vinculo_atual.perfil.nome not in [DIRETOR, DIRETOR_CEI]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENCERRADA_PELA_CODAE,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
                                       usuario=user)
 
     class Meta:
