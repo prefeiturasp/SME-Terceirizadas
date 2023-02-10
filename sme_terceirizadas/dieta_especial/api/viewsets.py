@@ -199,7 +199,7 @@ class SolicitacaoDietaEspecialViewSet(
             methods=['patch'],
             url_path=constants.CODAE_ATUALIZA_PROTOCOLO,
             permission_classes=(UsuarioCODAEDietaEspecial,))
-    def atualiza_protocolo(self, request):
+    def atualiza_protocolo(self, request, uuid=None):
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
             solicitacao.aluno.inativar_dieta_especial()
