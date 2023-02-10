@@ -25,6 +25,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(atualiza_status_a_ser_excluido),
         migrations.AlterField(
             model_name='solicitacaomedicaoinicial',
             name='status',
