@@ -292,6 +292,11 @@ class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativav
         default=True,
     )
 
+    @property
+    def eh_cei(self):
+        lista_tipos_unidades = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
+        return self.iniciais in lista_tipos_unidades
+
     def get_cardapio(self, data):
         # TODO: ter certeza que tem so um cardapio por dia por tipo de u.e.
         try:
