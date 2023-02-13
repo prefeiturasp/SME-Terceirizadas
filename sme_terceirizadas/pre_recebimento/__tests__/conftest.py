@@ -87,3 +87,15 @@ def cronograma_validado_fornecedor(armazem, contrato, empresa):
         armazem=armazem,
         status='VALIDADO_FORNECEDOR'
     )
+
+
+@pytest.fixture
+def cronograma_assinado_perfil_cronograma(armazem, contrato, empresa):
+    return mommy.make(
+        'Cronograma',
+        numero='002/2022',
+        contrato=contrato,
+        empresa=empresa,
+        armazem=armazem,
+        status='ASSINADO_CRONOGRAMA'
+    )
