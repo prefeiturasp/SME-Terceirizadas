@@ -10,12 +10,14 @@ from .models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 
 logger = logging.getLogger('sigpae.taskCardapio')
 
+
 def bypass_ativa_vinculos(tipo_unidade, periodos_escolares):
     vinculo_tipo_unidade = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
         tipo_unidade_escolar=tipo_unidade
     )
     vinculo_tipo_unidade.filter(periodo_escolar__nome__in=periodos_escolares).update(ativo=True)
     vinculo_tipo_unidade.filter(~Q(periodo_escolar__nome__in=periodos_escolares)).update(ativo=False)
+
 
 @shared_task(
     retry_backoff=5,
