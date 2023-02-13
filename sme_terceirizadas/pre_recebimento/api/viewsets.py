@@ -1,6 +1,7 @@
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
+from django.db.models import QuerySet
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -41,6 +42,7 @@ from sme_terceirizadas.pre_recebimento.models import (
 )
 
 from ...dados_comuns.constants import ADMINISTRADOR_FORNECEDOR
+from ...dados_comuns.models import LogSolicitacoesUsuario
 
 
 class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
@@ -64,6 +66,45 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
     def get_queryset(self):
         return Cronograma.objects.all().order_by('-criado_em')
+
+    def get_lista_status(self):
+        lista_status = [
+            Cronograma.workflow_class.ASSINADO_CRONOGRAMA,
+        ]
+
+        return lista_status
+
+    def dados_dashboard(self, query_set: QuerySet) -> list:
+        qs = None
+        sumario = []
+
+        for workflow in self.get_lista_status():
+            data = {'logs': LogSolicitacoesUsuario._meta.db_table,
+                    'cronograma': Cronograma._meta.db_table,
+                    'status': workflow}
+            raw_sql = ('SELECT %(cronograma)s.* FROM %(cronograma)s '
+                       'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
+                       'GROUP BY uuid_original) '
+                       'AS most_recent_log '
+                       'ON %(cronograma)s.uuid = most_recent_log.uuid_original '
+                       "WHERE %(cronograma)s.status = '%(status)s' ")
+            raw_sql += 'ORDER BY log_criado_em DESC'
+            qs = query_set.raw(raw_sql % data)
+
+            sumario.append({
+                'status': workflow,
+                'dados': CronogramaSerializer(
+                    qs[:5],
+                    context={'request': self.request, 'workflow': workflow}, many=True).data
+            })
+
+        return sumario
+
+    @action(detail=False, methods=['GET'], url_path='dashboard')
+    def dashboard(self, request):
+        query_set = self.get_queryset()
+        response = {'results': self.dados_dashboard(query_set=query_set)}
+        return Response(response)
 
     def list(self, request, *args, **kwargs):
         vinculo = self.request.user.vinculo_atual
