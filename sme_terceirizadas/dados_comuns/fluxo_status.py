@@ -2942,6 +2942,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
     VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
     SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
     ASSINADO_CRONOGRAMA = 'ASSINADO_CRONOGRAMA'
+    ASSINADO_DINUTRE = 'ASSINADO_DINUTRE'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -2953,6 +2954,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
         (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
         (ASSINADO_CRONOGRAMA, 'Assinado Cronograma'),
+        (ASSINADO_DINUTRE, 'Assinado Dinutre'),
     )
 
     transitions = (
@@ -2960,6 +2962,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
         ('fornecedor_assina', ENVIADO_AO_FORNECEDOR, VALIDADO_FORNECEDOR),
         ('solicita_alteracao', VALIDADO_FORNECEDOR, SOLICITADO_ALTERACAO),
         ('cronograma_assina', VALIDADO_FORNECEDOR, ASSINADO_CRONOGRAMA),
+        ('dinutre_assina', ASSINADO_CRONOGRAMA, ASSINADO_DINUTRE),
     )
 
     initial_state = RASCUNHO
@@ -2995,6 +2998,13 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA,
+                                      usuario=user)
+
+    @xworkflows.after_transition('dinutre_assina')
+    def _dinutre_assina_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_DINUTRE,
                                       usuario=user)
 
     class Meta:
