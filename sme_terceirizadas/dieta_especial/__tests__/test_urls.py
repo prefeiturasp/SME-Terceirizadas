@@ -16,6 +16,7 @@ from ..models import (
     AlergiaIntolerancia,
     ClassificacaoDieta,
     MotivoNegacao,
+    ProtocoloPadraoDietaEspecial,
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento
 )
@@ -765,3 +766,94 @@ def test_imprime_relatorio_dieta_especial_validation_error(client_autenticado, s
     data = {'escola': ['a']}
     response = client_autenticado.post('/solicitacoes-dieta-especial/imprime-relatorio-dieta-especial/', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_cadastro_protocolo_dieta_especial(client_autenticado_protocolo_dieta):
+    data = {'nome_protocolo': 'ALERGIA - ABACATE',
+            'orientacoes_gerais': '<ul><li>Substituição do <strong>Abacate,&nbsp;</strong>bem como '
+                                  'preparações contendo este.</li><li>É importante observar sempre os rótulos dos '
+                                  'alimentos,&nbsp;tendo em vista que a composição do produto pode ser alterada pela '
+                                  'empresa fabricante a qualquer tempo.</li></ul>',
+            'status': 'NAO_LIBERADO',
+            'editais': ['b7b6a0a7-b230-4783-94b6-8d3d22041ab3',
+                        '60f5a64e-8652-422d-a6e9-0a36717829c9'],
+            'substituicoes': [{
+                'alimento': '1',
+                'tipo': 'I',
+                'substitutos': [
+                    'e67b6e67-7501-4d6e-8fac-ce219df3ed2b']
+            }]}
+    response = client_autenticado_protocolo_dieta.post('/protocolo-padrao-dieta-especial/',
+                                                       content_type='application/json',
+                                                       data=data)
+    assert response.status_code == status.HTTP_201_CREATED
+    uuid = response.json()['uuid']
+
+    response = client_autenticado_protocolo_dieta.get(
+        '/protocolo-padrao-dieta-especial/?editais[]=b7b6a0a7-b230-4783-94b6-8d3d22041ab3')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+    response = client_autenticado_protocolo_dieta.get(
+        '/protocolo-padrao-dieta-especial/?editais[]=4f7287e5-da63-4b23-8bbc-48cc6722c91e')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 0
+
+    response = client_autenticado_protocolo_dieta.post('/protocolo-padrao-dieta-especial/',
+                                                       content_type='application/json',
+                                                       data=data)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Já existe um protocolo padrão com esse nome' in response.json()[0]
+    data['nome_protocolo'] = 'ALERGIA - BANANA'
+    client_autenticado_protocolo_dieta.post('/protocolo-padrao-dieta-especial/',
+                                            content_type='application/json',
+                                            data=data)
+    response_400 = client_autenticado_protocolo_dieta.put(f'/protocolo-padrao-dieta-especial/{uuid}/',
+                                                          content_type='application/json',
+                                                          data=data)
+    assert response_400.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Já existe um protocolo padrão com esse nome' in response_400.json()[0]
+    data['nome_protocolo'] = 'ALERGIA - ABACATE'
+    data['editais'] = []
+    response = client_autenticado_protocolo_dieta.put(f'/protocolo-padrao-dieta-especial/{uuid}/',
+                                                      content_type='application/json',
+                                                      data=data)
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_cadastro_protocolo_dieta_especial_lista_status(client_autenticado_protocolo_dieta):
+    response = client_autenticado_protocolo_dieta.get(
+        '/protocolo-padrao-dieta-especial/lista-status/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == len(ProtocoloPadraoDietaEspecial.STATUS_NOMES.keys())
+
+
+def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados(client_autenticado_protocolo_dieta,
+                                                                      massa_dados_protocolo_padrao_test):
+    data = {'nome_protocolo': 'ALERGIA - ABACATE',
+            'orientacoes_gerais': '<ul><li>Substituição do <strong>Abacate,&nbsp;</strong>bem como '
+                                  'preparações contendo este.</li><li>É importante observar sempre os rótulos dos '
+                                  'alimentos,&nbsp;tendo em vista que a composição do produto pode ser alterada pela '
+                                  'empresa fabricante a qualquer tempo.</li></ul>',
+            'status': 'LIBERADO',
+            'editais': [massa_dados_protocolo_padrao_test['editais'][0],
+                        massa_dados_protocolo_padrao_test['editais'][1]],
+            'substituicoes': [{
+                'alimento': '1',
+                'tipo': 'I',
+                'substitutos': [
+                    'e67b6e67-7501-4d6e-8fac-ce219df3ed2b']
+            }]}
+    client_autenticado_protocolo_dieta.post('/protocolo-padrao-dieta-especial/',
+                                            content_type='application/json',
+                                            data=data)
+    response = client_autenticado_protocolo_dieta.get(
+        '/protocolo-padrao-dieta-especial/nomes/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+    dieta_especial_uuid = massa_dados_protocolo_padrao_test['dieta_uuid']
+    response = client_autenticado_protocolo_dieta.get(
+        f'/protocolo-padrao-dieta-especial/lista-protocolos-liberados/?dieta_especial_uuid={dieta_especial_uuid}')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 2

@@ -1,3 +1,6 @@
+from django.db.models import Q
+from django.db.models.functions import Lower
+from django_filters import rest_framework as filters
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,14 +10,20 @@ from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSeri
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ...relatorios.relatorios import relatorio_quantitativo_por_terceirizada
 from ..forms import RelatorioQuantitativoForm
-from ..models import Edital, Terceirizada
-from ..utils import obtem_dados_relatorio_quantitativo
+from ..models import Contrato, Edital, EmailTerceirizadaPorModulo, Terceirizada
+from ..utils import TerceirizadasEmailsPagination, obtem_dados_relatorio_quantitativo
+from .filters import EmailTerceirizadaPorModuloFilter, TerceirizadaFilter
 from .permissions import PodeCriarAdministradoresDaTerceirizada
 from .serializers.serializers import (
+    ContratoSerializer,
+    CreateEmailTerceirizadaPorModuloSerializer,
     DistribuidorSimplesSerializer,
     EditalContratosSerializer,
     EditalSerializer,
     EditalSimplesSerializer,
+    EmailsPorModuloSerializer,
+    EmailsTerceirizadaPorModuloSerializer,
+    TerceirizadaLookUpSerializer,
     TerceirizadaSimplesSerializer
 )
 from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
@@ -34,7 +43,9 @@ class EditalViewSet(viewsets.ReadOnlyModelViewSet):
 
 class TerceirizadaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = Terceirizada.objects.all()
+    queryset = Terceirizada.objects.all().order_by(Lower('razao_social'))
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = TerceirizadaFilter
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -43,13 +54,25 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_nomes(self, request):
-        response = {'results': TerceirizadaSimplesSerializer(self.get_queryset(), many=True).data}
+        response = {'results': TerceirizadaSimplesSerializer(self.filter_queryset(self.get_queryset()), many=True).data}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes-distribuidores')
     def lista_nomes_distribuidores(self, request):
-        queryset = Terceirizada.objects.filter(eh_distribuidor=True)
+        queryset = Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM)
         response = {'results': DistribuidorSimplesSerializer(queryset, many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-fornecedores-simples')
+    def lista_fornecedores_simples(self, request):
+        queryset = Terceirizada.objects.filter(tipo_servico=Terceirizada.FORNECEDOR)
+        response = {'results': TerceirizadaSimplesSerializer(queryset, many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-cnpjs')
+    def lista_cnpjs(self, request):
+        queryset = Terceirizada.objects.all().values_list('cnpj', flat=True)
+        response = {'results': queryset}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='relatorio-quantitativo')
@@ -72,6 +95,28 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
 
         return relatorio_quantitativo_por_terceirizada(
             self.request, form.cleaned_data, dados_relatorio)
+
+    @action(
+        detail=False, methods=['GET'],
+        url_path='emails-por-modulo')
+    def emails_por_modulo(self, request):
+        modulo = request.query_params.get('modulo', None)
+        busca = request.query_params.get('busca', None)
+        queryset = Terceirizada.objects.filter(emails_terceirizadas__modulo__nome=modulo).distinct(
+            'razao_social').order_by('razao_social')
+        self.pagination_class = TerceirizadasEmailsPagination
+        if busca:
+            queryset = queryset.filter(Q(emails_terceirizadas__email__icontains=busca) |
+                                       Q(razao_social__icontains=busca))
+        page = self.paginate_queryset(queryset)
+        serializer = EmailsPorModuloSerializer(
+            page if page is not None else queryset, many=True, context={'busca': busca})
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path='lista-razoes')
+    def lista_razoes(self, request):
+        response = {'results': TerceirizadaLookUpSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
 
 
 class EditalContratosViewSet(viewsets.ModelViewSet):
@@ -118,3 +163,33 @@ class VinculoTerceirizadaViewSet(ReadOnlyModelViewSet):
             return Response(self.get_serializer(vinculo).data)
         except AssertionError as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmailTerceirizadaPorModuloViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = EmailsTerceirizadaPorModuloSerializer
+    queryset = EmailTerceirizadaPorModulo.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = EmailTerceirizadaPorModuloFilter
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return CreateEmailTerceirizadaPorModuloSerializer
+        return EmailsTerceirizadaPorModuloSerializer
+
+
+class ContratoViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = ContratoSerializer
+    queryset = Contrato.objects.all()
+
+    @action(detail=True, methods=['patch'], url_path='encerrar-contrato')
+    def encerrar_contrato(self, request, uuid=None):
+        contrato = self.get_object()
+
+        try:
+            dados_encerramento = Contrato.encerra_contrato(uuid=contrato.uuid)
+        except Exception as err:
+            return Response(dict(detail=f'Erro ao encerrar contrato: {err}'), status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(dados_encerramento, status=status.HTTP_200_OK)

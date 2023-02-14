@@ -29,3 +29,10 @@ class AlimentoFilter(filters.FilterSet):
 
 class MotivoNegacaoFilter(filters.FilterSet):
     processo = filters.MultipleChoiceFilter(choices=MotivoNegacao.PROCESSO_CHOICES)
+
+
+class LogQuantidadeDietasEspeciaisFilter(filters.FilterSet):
+    escola_uuid = filters.UUIDFilter(field_name='escola__uuid')
+    classificacao = filters.CharFilter(field_name='classificacao')
+    mes = filters.CharFilter(field_name='data__month', lookup_expr='iexact')
+    ano = filters.CharFilter(field_name='data__year', lookup_expr='iexact')

@@ -9,8 +9,10 @@ from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DISTRIBUIDORA,
     ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
+    ADMINISTRADOR_FORNECEDOR,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_MEDICAO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     ADMINISTRADOR_UE_DIRETA,
     ADMINISTRADOR_UE_MISTA,
@@ -21,7 +23,11 @@ from .constants import (
     COORDENADOR_GESTAO_PRODUTO,
     COORDENADOR_LOGISTICA,
     COORDENADOR_SUPERVISAO_NUTRICAO,
-    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO
+    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+    DILOG_CRONOGRAMA,
+    DILOG_DIRETORIA,
+    DILOG_QUALIDADE,
+    DINUTRE_DIRETORIA
 )
 
 
@@ -45,9 +51,17 @@ class UsuarioEscola(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         usuario = request.user
-        return (
-            usuario.vinculo_atual.instituicao in [obj.escola, obj.rastro_escola]
-        )
+        if hasattr(obj, 'escola') and hasattr(obj, 'rastro_escola'):
+            return usuario.vinculo_atual.instituicao in [obj.escola, obj.rastro_escola]
+        elif hasattr(obj, 'escola'):
+            return usuario.vinculo_atual.instituicao == obj.escola
+        elif hasattr(obj, 'rastro_escola'):
+            return usuario.vinculo_atual.instituicao == obj.rastro_escola
+        elif obj.tipo == 'Kit Lanche Unificado':
+            return usuario.vinculo_atual.instituicao.id in obj.escolas_quantidades.all().values_list(
+                'escola', flat=True)
+        else:
+            return False
 
 
 class UsuarioDiretoriaRegional(BasePermission):
@@ -83,7 +97,8 @@ class UsuarioCODAEGestaoAlimentacao(BasePermission):
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                  ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+                                                  ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                  ADMINISTRADOR_MEDICAO]
         )
 
 
@@ -114,7 +129,8 @@ class UsuarioNutricionista(BasePermission):
                                                   ADMINISTRADOR_DIETA_ESPECIAL,
                                                   COORDENADOR_SUPERVISAO_NUTRICAO,
                                                   ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-                                                  COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
+                                                  COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                  ADMINISTRADOR_MEDICAO]
         )
 
 
@@ -155,6 +171,19 @@ class UsuarioTerceirizada(BasePermission):
         return retorno
 
 
+class UsuarioTerceirizadaOuNutriSupervisao(BasePermission):
+    """Permite acesso a usuários com vinculo a uma Terceirizada ou Nutrisupervisao."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) or
+            isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
+        )
+
+
 class PermissaoParaRecuperarObjeto(BasePermission):
     """Permite acesso ao objeto se o objeto pertence ao usuário."""
 
@@ -173,7 +202,8 @@ class PermissaoParaRecuperarObjeto(BasePermission):
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       COORDENADOR_SUPERVISAO_NUTRICAO,
-                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                      ADMINISTRADOR_MEDICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             try:  # solicitacoes normais
@@ -202,7 +232,8 @@ class PermissaoParaRecuperarSolicitacaoUnificada(BasePermission):
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       COORDENADOR_SUPERVISAO_NUTRICAO,
-                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                      ADMINISTRADOR_MEDICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (
@@ -231,7 +262,8 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
                                                       COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                      ADMINISTRADOR_MEDICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (
@@ -260,8 +292,8 @@ class PermissaoParaReclamarDeProduto(BasePermission):
         )
 
 
-class UsuarioDilogCodae(BasePermission):
-    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+class UsuarioDilog(BasePermission):
+    """Permite acesso a usuários DILOG com vinculo a CODAE."""
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -270,6 +302,19 @@ class UsuarioDilogCodae(BasePermission):
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA]
+        )
+
+
+class UsuarioCodaeDilog(BasePermission):
+    """Permite acesso a usuários do perfil CODAE DILOG."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_CODAE_DILOG_LOGISTICA]
         )
 
 
@@ -374,3 +419,138 @@ class PermissaoParaListarEntregas(BasePermission):
                 )
             )
         )
+
+
+class PermissaoParaVisualizarCronograma(BasePermission):
+    # TODO: Conforme solicitado pelos P.Os, usuários Logistica tem acesso temporariamente p/ visualização do cronograma.
+    #  Após finalização da definição de permissionamento deve se remover COORDENADOR_CODAE_DILOG_LOGISTICA e
+    #  COORDENADOR_LOGISTICA deste permissionamento.
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) or
+                    isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
+                                                          DINUTRE_DIRETORIA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                          COORDENADOR_LOGISTICA, ADMINISTRADOR_FORNECEDOR]
+                )
+            )
+        )
+
+
+class PermissaoParaCriarCronograma(BasePermission):
+    # TODO: Conforme solicitado pelos P.Os, usuários Logistica tem acesso temporariamente ao Cadastro de Cronograma.
+    #  Após finalização da definição de permissionamento deve se remover COORDENADOR_CODAE_DILOG_LOGISTICA e
+    #  COORDENADOR_LOGISTICA deste permissionamento.
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                          COORDENADOR_LOGISTICA]
+                )
+            )
+        )
+
+
+class PermissaoParaConfirmarCronograma(BasePermission):
+    # Apenas empresas do tipo fornecedor com perfil ADMINISTRADOR_FORNECEDOR podem confirmar
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
+                    usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_FORNECEDOR
+                )
+            )
+        )
+
+
+class PermissaoParaCadastrarLaboratorio(BasePermission):
+    # Apenas DILOG_QUALIDADE tem acesso a tela de cadastro de Laboratórios.
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE]
+                )
+            )
+        )
+
+
+class PermissaoParaCadastrarVisualizarEmbalagem(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE, DILOG_CRONOGRAMA]
+                )
+            )
+        )
+
+
+class ViewSetActionPermissionMixin:
+    def get_permissions(self):
+        """Return the permission classes based on action.
+
+        Look for permission classes in a dict mapping action to
+        permission classes array, ie.:
+
+        class MyViewSet(ViewSetActionPermissionMixin, ViewSet):
+            ...
+            permission_classes = [AllowAny]
+            permission_action_classes = {
+                'list': [IsAuthenticated]
+                'create': [IsAdminUser]
+                'my_action': [MyCustomPermission]
+            }
+
+            @action(...)
+            def my_action:
+                ...
+
+        If there is no action in the dict mapping, then the default
+        permission_classes is returned. If a custom action has its
+        permission_classes defined in the action decorator, then that
+        supercedes the value defined in the dict mapping.
+        """
+        try:
+            return [
+                permission()
+                for permission in self.permission_action_classes[self.action]
+            ]
+        except KeyError:
+            if self.action:
+                action_func = getattr(self, self.action, {})
+                action_func_kwargs = getattr(action_func, 'kwargs', {})
+                permission_classes = action_func_kwargs.get(
+                    'permission_classes'
+                )
+            else:
+                permission_classes = None
+
+            return [
+                permission()
+                for permission in (
+                    permission_classes or self.permission_classes
+                )
+            ]

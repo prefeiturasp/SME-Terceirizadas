@@ -30,8 +30,8 @@ NS = f'{env("DJANGO_XMLNS")}'
 
 class SolicitacaoService(ServiceBase):
 
-    @rpc(oWsAcessoModel, ArqSolicitacaoMOD, _returns=SoapResponse) # noqa C901
-    def Solicitacao(ctx, oWsAcessoModel, ArqSolicitacaoMOD):
+    @rpc(oWsAcessoModel, ArqSolicitacaoMOD, _returns=SoapResponse)
+    def Solicitacao(ctx, oWsAcessoModel, ArqSolicitacaoMOD):  # noqa C901
         logger.info('Inicia integração envio de solicitação PAPA x SIGPAE:')
         logger.info(str(ArqSolicitacaoMOD))
 
@@ -64,8 +64,8 @@ class SolicitacaoService(ServiceBase):
         logger.info(f'Solicitação {solicitacao.numero_solicitacao} criada com sucesso.')
         return SoapResponse(str_status='true', str_menssagem='Solicitação criada com sucesso.')
 
-    @rpc(oWsAcessoModel, ArqCancelamento, _returns=SoapResponse) # noqa C901
-    def Cancelamento(ctx, oWsAcessoModel, ArqCancelamento):
+    @rpc(oWsAcessoModel, ArqCancelamento, _returns=SoapResponse)
+    def Cancelamento(ctx, oWsAcessoModel, ArqCancelamento):  # noqa C901
         logger.info('Inicia integração envio de cancelamento PAPA x SIGPAE:')
         logger.info(str(ArqCancelamento))
 
@@ -77,7 +77,14 @@ class SolicitacaoService(ServiceBase):
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
         try:
-            ArqCancelamento.cancel(user)
+            confirma_cancelamento = ArqCancelamento.cancel(user)
+            if confirma_cancelamento:
+                status = 'canc'
+                msg = 'Cancelamento realizado com sucesso'
+            else:
+                status = 'pend'
+                msg = 'Solicitação de cancelamento recebida com sucesso. Pendente de confirmação do distribuidor'
+            return SoapResponse(str_status=status, str_menssagem=msg)
         except ObjectDoesNotExist as e:
             logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
@@ -94,8 +101,6 @@ class SolicitacaoService(ServiceBase):
             msg = f'Houve um erro ao receber a solicitação de cancelamento: {str(e)}'
             logger.info(msg)
             return SoapResponse(str_status='false', str_menssagem=msg)
-
-        return SoapResponse(str_status='true', str_menssagem='Solicitação de cancelamento recebida com sucesso')
 
 
 def _method_return_string(ctx):

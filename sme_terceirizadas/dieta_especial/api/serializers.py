@@ -12,11 +12,13 @@ from ...escola.models import DiretoriaRegional, Escola
 from ...escola.services import NovoSGPServicoLogadoException
 from ...produto.api.serializers.serializers import MarcaSimplesSerializer, ProdutoSimplesSerializer
 from ...produto.models import Produto, SolicitacaoCadastroProdutoDieta
+from ...terceirizada.api.serializers.serializers import EditalSimplesSerializer
 from ..models import (
     AlergiaIntolerancia,
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    LogQuantidadeDietasAutorizadas,
     MotivoAlteracaoUE,
     MotivoNegacao,
     ProtocoloPadraoDietaEspecial,
@@ -352,9 +354,10 @@ class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
 
 
 class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
-    dre = serializers.CharField(source='escola.diretoria_regional.nome')
-    escola = serializers.CharField(source='escola.nome')
-    codigo_eol_escola = serializers.CharField(source='escola.codigo_eol')
+    dre = serializers.SerializerMethodField()
+    escola = serializers.SerializerMethodField()
+    serie = serializers.CharField()
+    codigo_eol_escola = serializers.SerializerMethodField()
     codigo_eol = serializers.CharField()
     foto_aluno = serializers.SerializerMethodField()
     classificacao_dieta_ativa = serializers.SerializerMethodField()
@@ -362,6 +365,21 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     nome = serializers.CharField()
     ativas = serializers.IntegerField()
     inativas = serializers.IntegerField()
+
+    def get_dre(self, obj):
+        if obj.dietas_especiais.filter(ativo=True).exists():
+            return obj.dietas_especiais.filter(ativo=True).first().rastro_escola.diretoria_regional.nome
+        return obj.dietas_especiais.first().rastro_escola.diretoria_regional.nome
+
+    def get_escola(self, obj):
+        if obj.dietas_especiais.filter(ativo=True).exists():
+            return obj.dietas_especiais.filter(ativo=True).first().rastro_escola.nome
+        return obj.dietas_especiais.first().rastro_escola.nome
+
+    def get_codigo_eol_escola(self, obj):
+        if obj.dietas_especiais.filter(ativo=True).exists():
+            return obj.dietas_especiais.filter(ativo=True).first().rastro_escola.codigo_eol
+        return obj.dietas_especiais.first().rastro_escola.codigo_eol
 
     def get_foto_aluno(self, obj):  # noqa C901
         novo_sgp_service = self.context.get('novo_sgp_service', '')
@@ -373,7 +391,7 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
                     string_foto = ('data:' + response.json()['download']['item2'] + ';base64,'
                                    + response.json()['download']['item1'])
                     return string_foto
-            except NovoSGPServicoLogadoException:
+            except (NovoSGPServicoLogadoException, TypeError):
                 return None
         return None
 
@@ -443,6 +461,51 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
             'informacoes_adicionais',
             'tipo_solicitacao'
         )
+
+
+class SolicitacaoDietaEspecialNutriSupervisaoExportXLSXSerializer(serializers.ModelSerializer):
+    codigo_eol_aluno = serializers.SerializerMethodField()
+    nome_aluno = serializers.SerializerMethodField()
+    nome_escola = serializers.SerializerMethodField()
+    classificacao_dieta = serializers.SerializerMethodField()
+    alergias_intolerancias = serializers.SerializerMethodField()
+    data_ultimo_log = serializers.SerializerMethodField()
+
+    def get_codigo_eol_aluno(self, obj):
+        return obj.aluno.codigo_eol if obj.aluno else None
+
+    def get_nome_aluno(self, obj):
+        return obj.aluno.nome if obj.aluno else None
+
+    def get_nome_escola(self, obj):
+        return obj.escola_destino.nome if obj.escola_destino else None
+
+    def get_classificacao_dieta(self, obj):
+        return obj.classificacao.nome if obj.classificacao else None
+
+    def get_alergias_intolerancias(self, obj):
+        return ','.join(obj.alergias_intolerancias.all().values_list('descricao', flat=True))
+
+    def get_data_ultimo_log(self, obj):
+        return datetime.strftime(obj.logs.last().criado_em, '%d/%m/%Y') if obj.logs else None
+
+    class Meta:
+        model = SolicitacaoDietaEspecial
+        fields = (
+            'codigo_eol_aluno',
+            'nome_aluno',
+            'nome_escola',
+            'classificacao_dieta',
+            'alergias_intolerancias',
+            'data_ultimo_log'
+        )
+
+    def __init__(self, *args, **kwargs):
+        """Não retornar campo data_ultimo_log caso status da solicitação for 'AUTORIZADAS'."""
+        if kwargs['context']['status'] == 'AUTORIZADAS':
+            del self.fields['data_ultimo_log']
+
+        super().__init__(*args, **kwargs)
 
 
 class SolicitacaoDietaEspecialExportXLSXSerializer(serializers.ModelSerializer):
@@ -524,6 +587,7 @@ class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
     substituicoes = serializers.SerializerMethodField()
     historico = serializers.SerializerMethodField()
+    editais = EditalSimplesSerializer(many=True)
 
     class Meta:
         model = ProtocoloPadraoDietaEspecial
@@ -533,6 +597,7 @@ class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
             'status',
             'orientacoes_gerais',
             'substituicoes',
+            'editais',
             'historico'
         )
 
@@ -564,6 +629,7 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
     classificacao = ClassificacaoDietaSerializer()
     protocolo_padrao = ProtocoloPadraoDietaEspecialSimplesSerializer()
     data_ultimo_log = serializers.SerializerMethodField()
+    alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
 
     def get_nome_escola(self, obj):
         return obj.rastro_escola.nome if obj.rastro_escola else None
@@ -592,5 +658,27 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
             'classificacao',
             'protocolo_padrao',
             'nome_protocolo',
-            'data_ultimo_log'
+            'data_ultimo_log',
+            'alergias_intolerancias'
         )
+
+
+class LogQuantidadeDietasAutorizadasSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Escola.objects.all()
+    )
+    classificacao = serializers.CharField(
+        source='classificacao.nome',
+        required=False
+    )
+    dia = serializers.SerializerMethodField()
+
+    def get_dia(self, obj):
+        day = str(obj.data.day)
+        return day if len(day) == 2 else '0' + day
+
+    class Meta:
+        model = LogQuantidadeDietasAutorizadas
+        exclude = ('id', 'uuid', 'criado_em')

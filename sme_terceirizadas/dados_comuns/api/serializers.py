@@ -1,3 +1,6 @@
+from datetime import datetime
+
+import environ
 from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
@@ -11,14 +14,23 @@ from ..models import (
     LogSolicitacoesUsuario,
     Notificacao,
     PerguntaFrequente,
+    SolicitacaoAberta,
     TemplateMensagem
 )
 
 
 class AnexoLogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField()
+    arquivo_url = serializers.SerializerMethodField()
+
+    def get_arquivo_url(self, instance):
+        env = environ.Env()
+        api_url = env.str('URL_ANEXO', default='http://localhost:8000')
+        return f'{api_url}{instance.arquivo.url}'
+
     class Meta:
         model = AnexoLogSolicitacoesUsuario
-        fields = ('nome', 'arquivo')
+        fields = ('nome', 'arquivo', 'arquivo_url')
 
 
 class LogSolicitacoesUsuarioComAnexosSerializer(serializers.ModelSerializer):
@@ -109,6 +121,12 @@ class ContatoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class ContatoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contato
+        fields = ('nome', 'telefone', 'email')
+
+
 class CategoriaPerguntaFrequenteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoriaPerguntaFrequente
@@ -193,3 +211,34 @@ class CentralDeDownloadSerializer(serializers.ModelSerializer):
             'msg_erro',
             'visto'
         ]
+
+
+class SolicitacaoAbertaSerializer(serializers.ModelSerializer):
+    uuid_solicitacao = serializers.CharField()
+    usuario = UsuarioSerializer(required=False)
+    datetime_ultimo_acesso = serializers.CharField(required=False)
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        datetime_ultimo_acesso = datetime.now()
+        return SolicitacaoAberta.objects.create(
+            usuario=user,
+            datetime_ultimo_acesso=datetime_ultimo_acesso,
+            **validated_data
+        )
+
+    def update(self, instance, validated_data):
+        datetime_ultimo_acesso = datetime.now()
+        instance.datetime_ultimo_acesso = datetime_ultimo_acesso
+        instance.save()
+
+        return instance
+
+    class Meta:
+        model = SolicitacaoAberta
+        fields = (
+            'id',
+            'uuid_solicitacao',
+            'usuario',
+            'datetime_ultimo_acesso'
+        )

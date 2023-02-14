@@ -22,9 +22,21 @@ def codae():
 def escola():
     terceirizada = mommy.make('Terceirizada')
     lote = mommy.make('Lote', terceirizada=terceirizada)
+    contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
-    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional, contato=contato,
+                      uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
+
+
+@pytest.fixture
+def escola_cei():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL GUAIANASES',
+                                    uuid='e5583462-d6d5-4580-afd4-de2fd94a3440')
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional,
+                      uuid='a7b9cf39-ab0a-4c6f-8e42-230243f9763f')
 
 
 @pytest.fixture
@@ -98,14 +110,29 @@ def inclusao_alimentacao_continua_params(escola, motivo_inclusao_continua, reque
 )
 def inclusao_alimentacao_continua(escola, motivo_inclusao_continua, request, template_inclusao_continua):
     data_inicial, data_final, esperado = request.param
-    return mommy.make(models.InclusaoAlimentacaoContinua,
-                      motivo=motivo_inclusao_continua,
-                      data_inicial=data_inicial,
-                      data_final=data_final,
-                      outro_motivo=fake.name(),
-                      escola=escola,
-                      rastro_escola=escola,
-                      rastro_dre=escola.diretoria_regional)
+    inc_continua = mommy.make(models.InclusaoAlimentacaoContinua,
+                              motivo=motivo_inclusao_continua,
+                              data_inicial=data_inicial,
+                              data_final=data_final,
+                              outro_motivo=fake.name(),
+                              escola=escola,
+                              rastro_escola=escola,
+                              rastro_dre=escola.diretoria_regional)
+    mommy.make('QuantidadePorPeriodo',
+               uuid='6337d4a4-f2e0-475f-9400-24f2db660741',
+               inclusao_alimentacao_continua=inc_continua)
+    mommy.make('QuantidadePorPeriodo',
+               uuid='6f16b41d-151e-4f82-a0d0-43921a9edabe',
+               inclusao_alimentacao_continua=inc_continua)
+    return inc_continua
+
+
+@pytest.fixture
+def inclusao_alimentacao_cemei(escola, motivo_inclusao_normal, template_inclusao_normal):
+    inclusao_cemei = mommy.make('InclusaoDeAlimentacaoCEMEI', escola=escola,
+                                rastro_dre=escola.diretoria_regional, rastro_terceirizada=escola.lote.terceirizada,
+                                uuid='ba5551b3-b770-412b-a923-b0e78301d1fd')
+    return inclusao_cemei
 
 
 @pytest.fixture(params=[
@@ -310,7 +337,21 @@ def inclusao_alimentacao_continua_parametros(request):
 
 @pytest.fixture
 def motivo_inclusao_normal_nome():
-    return mommy.make(models.MotivoInclusaoNormal, nome='Passeio 5h')
+    return mommy.make(models.MotivoInclusaoNormal, nome='Passeio 5h', uuid='803f0508-2abd-4874-ad05-95a4fb29947e')
+
+
+@pytest.fixture
+def periodo_escolar():
+    return mommy.make('PeriodoEscolar', uuid='208f7cb4-b03a-4357-ab6d-bda078a37748')
+
+
+@pytest.fixture
+def escola_periodo_escolar_cei(escola_cei):
+    periodo_escolar = mommy.make('PeriodoEscolar', uuid='208f7cb4-b03a-4357-ab6d-bda078a37598', nome='INTEGRAL')
+    return mommy.make('EscolaPeriodoEscolar',
+                      uuid='208f7cb4-b03a-4357-ab6d-bda078a37223',
+                      periodo_escolar=periodo_escolar,
+                      escola=escola_cei)
 
 
 @pytest.fixture
@@ -319,7 +360,13 @@ def grupo_inclusao_alimentacao_nome():
 
 
 @pytest.fixture
-def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola, template_inclusao_normal):
+def faixa_etaria():
+    return mommy.make('FaixaEtaria', uuid='ee77f350-6af8-4928-86d6-684fbf423ff5')
+
+
+@pytest.fixture
+def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola, motivo_inclusao_normal_nome,
+                                               template_inclusao_normal, periodo_escolar, faixa_etaria):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
@@ -333,14 +380,14 @@ def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola
 
 
 @pytest.fixture
-def client_autenticado_vinculo_escola_cei_inclusao(client, django_user_model, escola, template_inclusao_normal):
-    email = 'test@test.com'
+def client_autenticado_vinculo_escola_cei_inclusao(client, django_user_model, escola_cei, template_inclusao_normal):
+    email = 'testcei@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
-                                                 registro_funcional='8888888')
+                                                 registro_funcional='8888880')
     perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR_CEI, ativo=True)
     hoje = datetime.date.today()
-    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
+    mommy.make('Vinculo', usuario=user, instituicao=escola_cei, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
     client.login(email=email, password=password)
     return client

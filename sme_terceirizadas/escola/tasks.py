@@ -112,11 +112,11 @@ def nega_solicitacoes_vencidas():
     for classe_solicitacao in classes_solicitacoes:
         solicitacoes = classe_solicitacao.objects.filter(uuid__in=uuids_solicitacoes_dre_a_validar)
         for solicitacao in solicitacoes.all():
-            usuario = Vinculo.objects.filter(
+            vinculo_dre = Vinculo.objects.filter(
                 object_id=solicitacao.escola.diretoria_regional.id,
                 content_type__model='diretoriaregional', ativo=True
-            ).get().usuario
-            solicitacao.dre_nao_valida(user=usuario, justificativa=justificativa)
+            ).first()
+            solicitacao.dre_nao_valida(user=vinculo_dre.usuario if vinculo_dre else None, justificativa=justificativa)
 
 
 @shared_task(

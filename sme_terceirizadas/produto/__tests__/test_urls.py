@@ -43,18 +43,25 @@ def test_url_dados_dashboard_usuario_nutrisupervisor(client_autenticado_vinculo_
     response_json = response.json()
     assert len(response_json['results']) == 12
     codae_hom = next((x for x in response_json['results'] if x['status'] == 'TERCEIRIZADA_RESPONDEU_RECLAMACAO'), None)
-    assert len(codae_hom['dados']) == 0
+    assert len(codae_hom['dados']) == 1
 
 
 def test_url_endpoint_homologacao_produto_codae_homologa(client_autenticado_vinculo_codae_produto,
-                                                         homologacao_produto_pendente_homologacao):
+                                                         homologacao_produto_pendente_homologacao,
+                                                         edital):
     assert homologacao_produto_pendente_homologacao.status == HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
     response = client_autenticado_vinculo_codae_produto.patch(
-        f'/homologacoes-produtos/{homologacao_produto_pendente_homologacao.uuid}/{constants.CODAE_HOMOLOGA}/')
+        f'/homologacoes-produtos/{homologacao_produto_pendente_homologacao.uuid}/'
+        f'{constants.CODAE_HOMOLOGA}/',
+        content_type='application/json',
+        data=json.dumps({'editais': [edital.uuid]}))
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO
     response = client_autenticado_vinculo_codae_produto.patch(
-        f'/homologacoes-produtos/{homologacao_produto_pendente_homologacao.uuid}/{constants.CODAE_HOMOLOGA}/')
+        f'/homologacoes-produtos/{homologacao_produto_pendente_homologacao.uuid}/'
+        f'{constants.CODAE_HOMOLOGA}/',
+        content_type='application/json',
+        data=json.dumps({'editais': [edital.uuid]}))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': "Erro de transição de estado: Transition 'codae_homologa' isn't available from state "
@@ -303,10 +310,10 @@ def test_url_endpoint_resposta_analise_sensorial(client_autenticado_vinculo_terc
     response = client.post(f'/{ENDPOINT_ANALISE_SENSORIAL}/{TERCEIRIZADA_RESPONDE}/', data=json.dumps(body_content),
                            content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {'homologacao_produto': '774ad907-d871-4bfd-b1aa-d4e0ecb6c01f', 'data': '23/05/2020',
-                               'hora': '20:01:54', 'anexos': [], 'responsavel_produto': 'RESPONSAVEL TESTE',
-                               'registro_funcional': '02564875', 'observacao': 'OBSERVACAO',
-                               'homologacao_de_produto': None}
+    assert response.json() == {'homologacao_produto': '774ad907-d871-4bfd-b1aa-d4e0ecb6c01f',
+                               'data': '23/05/2020', 'hora': '20:01:54', 'anexos': [],
+                               'responsavel_produto': 'RESPONSAVEL TESTE',
+                               'registro_funcional': '02564875', 'observacao': 'OBSERVACAO'}
 
     homologacao_produto.refresh_from_db()
     assert homologacao_produto.status == HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
@@ -331,6 +338,12 @@ def test_url_endpoint_produtos_filtro_relatorio_reclamacoes(client_autenticado_v
 def test_url_endpoint_nome_de_produto_edital(client_autenticado_vinculo_terceirizada):
     client = client_autenticado_vinculo_terceirizada
     response = client.get(f'/nome-de-produtos-edital/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_cadastro_de_produto_edital(client_autenticado_vinculo_codae_produto):
+    client = client_autenticado_vinculo_codae_produto
+    response = client.get(f'/cadastro-produtos-edital/')
     assert response.status_code == status.HTTP_200_OK
 
 
@@ -679,3 +692,80 @@ def test_url_endpoint_lista_embalagens_produto_sem_paginacao(client_autenticado_
     }
 
     assert resultado == esperado
+
+
+def test_url_endpoint_produtos_editais_filtros(client_autenticado_vinculo_codae_produto,
+                                               vinculo_produto_edital):
+    client = client_autenticado_vinculo_codae_produto
+    response = client.get('/produtos-editais/filtros/')
+    resultado = response.json()
+
+    esperado = {
+        'produtos': [
+            {
+                'produto__nome': 'Produto1',
+                'produto__uuid': 'a37bcf3f-a288-44ae-87ae-dbec181a34d4'
+            }
+        ],
+        'editais': [
+            {
+                'numero': 'Edital de Pregão nº 56/SME/2016',
+                'uuid': '617a8139-02a9-4801-a197-622aa20795b9'
+            }
+        ]
+    }
+    assert resultado == esperado
+
+
+def test_url_endpoint_produtos_editais_filtrar(client_autenticado_vinculo_codae_produto,
+                                               vinculo_produto_edital):
+    client = client_autenticado_vinculo_codae_produto
+    payload = {'page': '1', 'page_size': '10', 'nome': 'Produto1'}
+    response = client.get('/produtos-editais/filtrar/', payload)
+    resultado = response.json()
+
+    assert resultado['count'] == 1
+    assert resultado['page_size'] == 10
+    assert resultado['results'][0]['produto']['nome'] == 'Produto1'
+    assert resultado['results'][0]['ativo'] is True
+    assert resultado['results'][0]['tipo_produto'] == 'Dieta especial'
+    assert resultado['results'][0]['marca']['nome'] == 'Marca1'
+    assert resultado['results'][0]['edital']['numero'] == 'Edital de Pregão nº 56/SME/2016'
+
+
+def test_url_endpoint_produtos_editais_ativar_inativar(client_autenticado_vinculo_codae_produto,
+                                                       vinculo_produto_edital):
+    client = client_autenticado_vinculo_codae_produto
+    response = client.patch(f'/produtos-editais/{vinculo_produto_edital.uuid}/ativar-inativar-produto/')
+    resultado = response.json()
+    assert resultado['data']['ativo'] is False
+
+    response = client.patch(f'/produtos-editais/{vinculo_produto_edital.uuid}/ativar-inativar-produto/')
+    resultado = response.json()
+    assert resultado['data']['ativo'] is True
+
+
+def test_url_endpoint_produtos_editais_lista_editais_dre(client_autenticado_da_dre, contrato, diretoria_regional):
+    client = client_autenticado_da_dre
+    response = client.get(f'/produtos-editais/lista-editais-dre/')
+    resultado = response.json()
+    esperado = {'results': [
+        {'uuid': '617a8139-02a9-4801-a197-622aa20795b9',
+         'numero': 'Edital de Pregão nº 56/SME/2016'}
+    ]}
+    assert resultado == esperado
+
+
+def test_url_endpoint_produtos_editais_filtro_por_parametros_agrupado_terceirizada(client_autenticado_da_dre):
+    client = client_autenticado_da_dre
+    payload = {
+        'agrupado_por_nome_e_marca': False,
+        'data_homologacao': '14/10/2022',
+        'nome_edital': 'Edital de Pregão nº 41/sme/2017',
+        'nome_marca': 'IAGRO',
+        'nome_produto': 'ARROZ LONGO FINO TIPO 1',
+        'nome_terceirizada': 'APETECE'
+    }
+    response = client.post(f'/produtos/filtro-por-parametros-agrupado-terceirizada/',
+                           data=json.dumps(payload), content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK

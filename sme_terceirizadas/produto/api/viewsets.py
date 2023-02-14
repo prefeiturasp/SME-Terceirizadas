@@ -1,9 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import chain
 
+import environ
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import transaction
 from django.db.models import CharField, Count, F, Prefetch, Q, QuerySet
 from django.db.models.functions import Cast, Substr
+from django.template.loader import render_to_string
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -11,7 +14,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
@@ -20,6 +23,7 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
+from ...escola.models import DiretoriaRegional, Escola, Lote
 from ...relatorios.relatorios import (
     relatorio_marcas_por_produto_homologacao,
     relatorio_produto_analise_sensorial,
@@ -31,7 +35,9 @@ from ...relatorios.relatorios import (
     relatorio_produtos_suspensos,
     relatorio_reclamacao
 )
-from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
+from ...relatorios.utils import html_to_pdf_response
+from ...terceirizada.api.serializers.serializers import EditalSimplesSerializer, TerceirizadaSimplesSerializer
+from ...terceirizada.models import Contrato, Edital, Terceirizada
 from ..constants import (
     AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
     AVALIAR_RECLAMACAO_RECLAMACOES_STATUS,
@@ -39,7 +45,7 @@ from ..constants import (
     RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
     RESPONDER_RECLAMACAO_RECLAMACOES_STATUS
 )
-from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm
+from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm, ProdutoPorParametrosFormHomologados
 from ..models import (
     AnaliseSensorial,
     EmbalagemProduto,
@@ -51,6 +57,7 @@ from ..models import (
     Marca,
     NomeDeProdutoEdital,
     Produto,
+    ProdutoEdital,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
@@ -58,16 +65,18 @@ from ..models import (
     UnidadeMedida
 )
 from ..utils import (
+    CadastroProdutosEditalPagination,
     ItemCadastroPagination,
     StandardResultsSetPagination,
-    agrupa_por_terceirizada,
     converte_para_datetime,
     cria_filtro_aditivos,
     cria_filtro_produto_por_parametros_form,
+    cria_filtro_produto_por_parametros_form_homologado,
     get_filtros_data
 )
-from .filters import ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
+from .filters import CadastroProdutosEditalFilter, ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
 from .serializers.serializers import (
+    CadastroProdutosEditalSerializer,
     EmbalagemProdutoSerialzer,
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -80,6 +89,7 @@ from .serializers.serializers import (
     MarcaSerializer,
     MarcaSimplesSerializer,
     NomeDeProdutoEditalSerializer,
+    ProdutoEditalSerializer,
     ProdutoHomologadosPorParametrosSerializer,
     ProdutoListagemSerializer,
     ProdutoReclamacaoSerializer,
@@ -97,11 +107,15 @@ from .serializers.serializers import (
     UnidadeMedidaSerialzer
 )
 from .serializers.serializers_create import (
+    CadastroProdutosEditalCreateSerializer,
+    ProdutoEditalCreateSerializer,
     ProdutoSerializerCreate,
     ReclamacaoDeProdutoSerializerCreate,
     RespostaAnaliseSensorialSearilzerCreate,
     SolicitacaoCadastroProdutoDietaSerializerCreate
 )
+
+env = environ.Env()
 
 DEFAULT_PAGE = 1
 DEFAULT_PAGE_SIZE = 10
@@ -214,6 +228,24 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return lista_status
 
+    def homologados_e_com_reclamacoes(self, qs):
+        status_reclamacao = [
+            HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_UE,
+            HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            HomologacaoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO]
+        status_permitidos = [HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO]
+        instituicao = self.request.user.vinculo_atual.instituicao
+        if isinstance(instituicao, Escola):
+            status_permitidos = status_permitidos + status_reclamacao
+            qs = qs.filter(status__in=status_permitidos)
+            return qs.exclude(reclamacoes__escola=instituicao)
+        else:
+            return qs.filter(status__in=status_permitidos)
+
     def reclamacoes_por_usuario(self, workflow, raw_sql, data, query_set):  # noqa C901
         if (workflow in [
             HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
@@ -238,21 +270,6 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             else:
                 data['escola'] = self.request.user.vinculo_atual.object_id
                 raw_sql += "AND %(reclamacoes_produto)s.escola_id = '%(escola)s' "
-        elif (workflow in [
-            HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-            HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
-            HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_UE,
-            HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
-            HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
-            HomologacaoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
-            HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
-                self.request.user.tipo_usuario == constants.TIPO_USUARIO_NUTRISUPERVISOR):
-            if query_set is not None:
-                query_set = query_set.filter(
-                    reclamacoes__reclamante_registro_funcional=self.request.user.registro_funcional)
-            else:
-                data['registro_funcional'] = self.request.user.registro_funcional
-                raw_sql += "AND %(reclamacoes_produto)s.reclamante_registro_funcional = '%(registro_funcional)s' "
         return query_set
 
     def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
@@ -265,18 +282,29 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                         'reclamacoes_produto': ReclamacaoDeProduto._meta.db_table,
                         'status': workflow}
                 raw_sql = ('SELECT %(homologacao_produto)s.* FROM %(homologacao_produto)s '
-                           'JOIN (SELECT DISTINCT uuid_original FROM %(logs)s) AS most_recent_log '
+                           'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
+                           'GROUP BY uuid_original) '
+                           'AS most_recent_log '
                            'ON %(homologacao_produto)s.uuid = most_recent_log.uuid_original '
-                           'LEFT JOIN %(reclamacoes_produto)s '
-                           'ON %(reclamacoes_produto)s.homologacao_de_produto_id = %(homologacao_produto)s.id '
+                           'LEFT JOIN (SELECT DISTINCT ON (homologacao_produto_id) homologacao_produto_id, escola_id '
+                           'AS escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
+                           'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id '
                            "WHERE %(homologacao_produto)s.status = '%(status)s' ")
                 self.reclamacoes_por_usuario(workflow, raw_sql, data, None)
-                raw_sql += 'ORDER BY criado_em DESC'
+                raw_sql += 'ORDER BY log_criado_em DESC'
                 qs = query_set.raw(raw_sql % data)
             else:
                 qs = self.reclamacoes_por_usuario(workflow, None, None, query_set)
-                qs = sorted(qs.filter(status=workflow).distinct().all(),
-                            key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+                usuario = self.request.user.tipo_usuario
+                status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
+                status_permitidos = [constants.TIPO_USUARIO_ESCOLA, constants.TIPO_USUARIO_NUTRISUPERVISOR]
+                if workflow == status_homologado and usuario in status_permitidos:
+                    qs = self.homologados_e_com_reclamacoes(qs)
+                    qs = sorted(qs.distinct().all(),
+                                key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+                else:
+                    qs = sorted(qs.filter(status=workflow).distinct().all(),
+                                key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
             sumario.append({
                 'status': workflow,
                 'dados': self.get_serializer(
@@ -294,11 +322,12 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         response = {'results': self.dados_dashboard(query_set=query_set, use_raw=use_raw)}
         return Response(response)
 
-    @action(detail=False, methods=['POST'], url_path='filtro-homologacoes-por-titulo-marca')
-    def solicitacoes_homologacao_por_titulo_marca(self, request):
+    @action(detail=False, methods=['POST'], url_path='filtro-homologacoes-por-titulo-marca-edital')
+    def solicitacoes_homologacao_por_titulo_marca_edital(self, request):
         query_set = self.get_queryset()
         titulo = request.data.get('titulo_produto',)
         marca = request.data.get('marca_produto',)
+        edital = request.data.get('edital_produto', )
 
         if (titulo):
             query_set = query_set.annotate(id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)).filter(
@@ -306,35 +335,72 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 Q(produto__nome__icontains=titulo))
         if (marca):
             query_set = query_set.filter(produto__marca__nome__icontains=marca)
+        if (edital):
+            query_set = query_set.filter(produto__in=ProdutoEdital.objects.filter(
+                edital__numero=edital).values_list('produto', flat=True))
 
         response = {'results': self.dados_dashboard(query_set=query_set, use_raw=False)}
         return Response(response)
 
-    @action(detail=False,  # noqa C901
-            methods=['GET'],
+    @action(detail=False,
+            methods=['GET', 'POST'],
             url_path=f'filtro-por-status/{constants.FILTRO_STATUS_HOMOLOGACAO}')
-    def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):
+    def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):  # noqa C901
         filtros = {}
         user = self.request.user
         page = request.GET.get('page', False)
+        titulo = request.data.get('titulo_produto',)
+        query_set = self.get_queryset()
+
+        data = {'logs': LogSolicitacoesUsuario._meta.db_table,
+                'homologacao_produto': HomologacaoProduto._meta.db_table,
+                'reclamacoes_produto': ReclamacaoDeProduto._meta.db_table}
+
+        raw_sql = ('SELECT %(homologacao_produto)s.* FROM %(homologacao_produto)s '
+                   'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
+                   'GROUP BY uuid_original) '
+                   'AS most_recent_log '
+                   'ON %(homologacao_produto)s.uuid = most_recent_log.uuid_original '
+                   'LEFT JOIN (SELECT DISTINCT ON (homologacao_produto_id) homologacao_produto_id, escola_id '
+                   'AS escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
+                   'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id ')
         if filtro_aplicado:
             if filtro_aplicado == 'codae_pediu_analise_reclamacao':
                 status__in = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
                               'CODAE_PEDIU_ANALISE_RECLAMACAO',
                               'CODAE_QUESTIONOU_UE']
+                common_status = ("WHERE (%(homologacao_produto)s.status = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU' "
+                                 "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_UE' "
+                                 f"OR %(homologacao_produto)s.status = '{filtro_aplicado.upper()}' ")
+
                 if request.user.vinculo_atual.perfil.nome in [constants.COORDENADOR_GESTAO_PRODUTO,
-                                                              constants.ADMINISTRADOR_GESTAO_PRODUTO]:
+                                                              constants.ADMINISTRADOR_GESTAO_PRODUTO,
+                                                              constants.ADMINISTRADOR_TERCEIRIZADA]:
                     status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
+                    raw_sql += (common_status +
+                                "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' "
+                                "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_NUTRISUPERVISOR' "
+                                "OR %(homologacao_produto)s.status = 'NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO') ")
                 filtros['status__in'] = status__in
 
                 if request.user.vinculo_atual.perfil.nome == constants.COORDENADOR_SUPERVISAO_NUTRICAO:
                     status__in.append('CODAE_QUESTIONOU_NUTRISUPERVISOR')
+                    raw_sql += (common_status +
+                                "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_NUTRISUPERVISOR') ")
                 filtros['status__in'] = status__in
 
                 if request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
                     filtros['reclamacoes__escola'] = request.user.vinculo_atual.instituicao
                     if 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' not in status__in:
                         status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
+                    raw_sql += common_status
+                    if 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' not in raw_sql:
+                        raw_sql += "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' "
+                    escola_id = user.vinculo_atual.object_id
+                    raw_sql += f') AND escola_reclamacao_id = {escola_id} '
+
+                if 'WHERE' not in raw_sql:
+                    raw_sql += common_status + ') '
 
             elif filtro_aplicado == 'codae_homologado':
 
@@ -342,32 +408,55 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     filtros['status__in'] = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
                                              'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
                                              filtro_aplicado.upper()]
+                    raw_sql += ("WHERE (%(homologacao_produto)s.status = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU' "
+                                "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' "
+                                f"OR %(homologacao_produto)s.status = '{filtro_aplicado.upper()}') ")
 
                 elif user.tipo_usuario == constants.TIPO_USUARIO_GESTAO_PRODUTO:
                     filtros['status'] = filtro_aplicado.upper()
+                    raw_sql += f"WHERE %(homologacao_produto)s.status = '{filtro_aplicado.upper()}' "
 
                 else:
                     filtros['status__in'] = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
                                              'CODAE_PEDIU_ANALISE_RECLAMACAO',
                                              'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
                                              filtro_aplicado.upper()]
+                    raw_sql += ("WHERE (%(homologacao_produto)s.status = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU' "
+                                "OR %(homologacao_produto)s.status = 'CODAE_PEDIU_ANALISE_RECLAMACAO' "
+                                "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' "
+                                f"OR %(homologacao_produto)s.status = '{filtro_aplicado.upper()}') ")
             elif filtro_aplicado == 'codae_nao_homologado':
                 status__in = ['CODAE_NAO_HOMOLOGADO',
                               'TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO']
                 filtros['status__in'] = status__in
+                raw_sql += ("WHERE (%(homologacao_produto)s.status = 'TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO' "
+                            f"OR %(homologacao_produto)s.status = '{filtro_aplicado.upper()}') ")
             elif filtro_aplicado == 'codae_suspendeu':
                 status__in = ['CODAE_SUSPENDEU',
                               'CODAE_AUTORIZOU_RECLAMACAO']
                 filtros['status__in'] = status__in
+                raw_sql += ("WHERE (%(homologacao_produto)s.status = 'CODAE_SUSPENDEU' "
+                            "OR %(homologacao_produto)s.status = 'CODAE_AUTORIZOU_RECLAMACAO') ")
             else:
                 filtros['status'] = filtro_aplicado.upper()
-        query_set = sorted(self.get_queryset().filter(**filtros).distinct(),
-                           key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+                raw_sql += f"WHERE %(homologacao_produto)s.status = '{filtro_aplicado.upper()}' "
+
+        raw_sql += 'ORDER BY log_criado_em DESC'
         if page:
+            query_set = query_set.raw(raw_sql % data)
             page = self.paginate_queryset(query_set)
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         else:
+            if titulo:
+                query_set = query_set.annotate(
+                    id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)
+                ).filter(Q(id_amigavel__icontains=titulo) | Q(produto__nome__icontains=titulo))
+                query_set = sorted(query_set.filter(**filtros).distinct(),
+                                   key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+            else:
+                query_set = sorted(self.get_queryset().filter(**filtros).distinct(),
+                                   key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
             serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
             response = {'results': serializer(
                 query_set, context={'request': request}, many=True).data}
@@ -383,17 +472,35 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             permission_classes=(UsuarioCODAEGestaoProduto,),
             methods=['patch'],
             url_path=constants.CODAE_HOMOLOGA)
-    def codae_homologa(self, request, uuid=None):
+    def codae_homologa(self, request, uuid=None):  # noqa C901
         homologacao_produto = self.get_object()
         uri = reverse(
             'Produtos-relatorio',
             args=[homologacao_produto.produto.uuid]
         )
+        editais = request.data.get('editais', [])
+        if not editais:
+            return Response(dict(detail='É necessario informar algum edital.'),
+                            status=HTTP_406_NOT_ACCEPTABLE)
         try:
-
             homologacao_produto.codae_homologa(
                 user=request.user,
                 link_pdf=url_configs('API', {'uri': uri}))
+            eh_para_alunos_com_dieta = homologacao_produto.produto.eh_para_alunos_com_dieta
+            vinculos_produto_edital = homologacao_produto.produto.vinculos.all()
+            array_uuids_vinc = [str(value)
+                                for value
+                                in [*vinculos_produto_edital.values_list('edital__uuid', flat=True)]]
+            for vinc_prod_edital in vinculos_produto_edital:
+                if str(vinc_prod_edital.edital.uuid) not in editais:
+                    vinc_prod_edital.delete()
+            for edital_uuid in editais:
+                if edital_uuid not in array_uuids_vinc:
+                    ProdutoEdital.objects.create(
+                        produto=homologacao_produto.produto,
+                        edital=Edital.objects.get(uuid=edital_uuid),
+                        tipo_produto=ProdutoEdital.DIETA_ESPECIAL if eh_para_alunos_com_dieta else ProdutoEdital.COMUM
+                    )
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -688,6 +795,33 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         homologacao_produto.save()
         return Response('PDF Homologação gerado')
 
+    @action(detail=True,
+            permission_classes=[IsAuthenticated],
+            methods=['get'],
+            url_path=constants.GERAR_PDF_FICHA_IDENTIFICACAO_PRODUTO)
+    def gerar_pdf_ficha_identificacao_produto(self, request, uuid=None):
+        SERVER_NAME = env.str('SERVER_NAME', default=None)
+        homologacao_produto = self.get_object()
+        img_ids = [img.id for img in homologacao_produto.produto.imagens if img.nome.split('.')[len(img.nome.split('.')) - 1] in ['png', 'jpg', 'jpeg']] # noqa E501
+        imagens = homologacao_produto.produto.imagens.filter(id__in=img_ids)
+        documentos = homologacao_produto.produto.imagens.exclude(id__in=img_ids)
+        html_string = render_to_string(
+            'ficha_identificacao_produto.html',
+            {
+                'homologacao_produto': homologacao_produto,
+                'contato_empresa': homologacao_produto.rastro_terceirizada.contatos.first(),
+                'editais_vinculados': ', '.join(
+                    vinc.edital.numero for vinc in homologacao_produto.produto.vinculos.all()),
+                'informacoes_nutricionais': homologacao_produto.produto.informacoes_nutricionais.all(),
+                'especificacao_primaria': homologacao_produto.produto.especificacoes.first(),
+                'URL': SERVER_NAME,
+                'imagens': imagens,
+                'documentos': documentos,
+                'base_static_url': staticfiles_storage.location
+            }
+        )
+        return html_to_pdf_response(html_string, f'ficha_identificacao_produto_{homologacao_produto.id_externo}.pdf')
+
     @action(detail=False,
             permission_classes=[UsuarioTerceirizada],
             methods=['get'],
@@ -736,6 +870,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related(
             'marca', 'fabricante').order_by('criado_em')
+        if isinstance(request.user.vinculo_atual.instituicao, Escola):
+            contratos = request.user.vinculo_atual.instituicao.lote.contratos_do_lote.all()
+            editais = contratos.values_list('edital', flat=True)
+            queryset = queryset.filter(vinculos__edital__in=editais)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = ProdutoListagemSerializer(page, many=True)
@@ -939,10 +1077,49 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
+        form_data = form.cleaned_data.copy()
+        form_data['status'] = [
+            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
+        ]
+
+        queryset = self.get_queryset_filtrado(form_data)
+
+        produtos = queryset.values('nome', 'marca__nome', 'vinculos__edital__numero')
+        produtos = produtos.order_by('nome', 'marca__nome')
+        produtos_agrupados = []
+        nomes_agrupados = []
+        for produto in produtos:
+            if not produto['nome'] in nomes_agrupados:
+                marcas = produtos.filter(nome=produto['nome']).exclude(marca=None)
+                marcas = marcas.values_list('marca__nome', flat=True).order_by().distinct()
+                editais = produtos.filter(nome=produto['nome']).exclude(vinculos__edital=None)
+                editais = editais.values_list('vinculos__edital__numero', flat=True).order_by().distinct()
+                produtos_agrupados.append({
+                    'nome': produto['nome'],
+                    'marcas': ', '.join(marcas),
+                    'editais': ', '.join(editais)
+                })
+                nomes_agrupados.append(produto['nome'])
+
+        status = 'CODAE_HOMOLOGADO'
+        quantidade_homologados = Produto.objects.filter(
+            ativo=True,
+            homologacao__status=status
+        ).count()
+
+        form_data['quantidade_homologados'] = quantidade_homologados
+
         return relatorio_marcas_por_produto_homologacao(
             request,
-            produtos=self.get_queryset_filtrado_agrupado(request, form),
-            filtros=form.cleaned_data
+            produtos=produtos_agrupados,
+            filtros=form_data
         )
 
     @action(detail=True, url_path=constants.RELATORIO_ANALISE,
@@ -956,12 +1133,38 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return relatorio_produto_analise_sensorial_recebimento(request, produto=self.get_object())
 
     def get_queryset_filtrado(self, cleaned_data):
+        logs_homologados = [log.uuid_original for log in LogSolicitacoesUsuario.objects.filter(
+            status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO)]
         campos_a_pesquisar = cria_filtro_produto_por_parametros_form(cleaned_data)
+        queryset = self.get_queryset().filter(
+            **campos_a_pesquisar).filter(homologacao__uuid__in=logs_homologados)
         if 'aditivos' in cleaned_data:
             filtro_aditivos = cria_filtro_aditivos(cleaned_data['aditivos'])
-            return self.get_queryset().filter(**campos_a_pesquisar).filter(filtro_aditivos).exclude(homologacao=None)
-        else:
-            return self.get_queryset().filter(**campos_a_pesquisar).exclude(homologacao=None)
+            queryset = queryset.filter(filtro_aditivos)
+        return queryset.order_by('-criado_em')
+
+    def get_queryset_filtrado_homologados(self, cleaned_data):
+        homologacao_produtos = HomologacaoProduto.objects.all()
+        logs_homologados = []
+
+        for homologacao in homologacao_produtos:
+            logs = homologacao.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+                                                              LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                                              LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO],)
+            data_homologacao = cleaned_data['data_homologacao']
+            if data_homologacao != '' and data_homologacao is not None:
+
+                log = logs.filter(criado_em__lte=data_homologacao + timedelta(days=1)).last()
+            else:
+                log = logs.last()
+
+            if log and log.status_evento == LogSolicitacoesUsuario.CODAE_HOMOLOGADO:
+                logs_homologados.append(log.uuid_original)
+
+        campos_a_pesquisar = cria_filtro_produto_por_parametros_form_homologado(cleaned_data)
+        queryset = self.get_queryset().filter(
+            **campos_a_pesquisar).filter(homologacao__uuid__in=logs_homologados)
+        return queryset
 
     @action(detail=False,
             methods=['POST'],
@@ -992,7 +1195,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['POST'],
             url_path='filtro-por-parametros-agrupado-terceirizada')
     def filtro_por_parametros_agrupado_terceirizada(self, request):
-        form = ProdutoPorParametrosForm(request.data)
+        form = ProdutoPorParametrosFormHomologados(request.data)
 
         if not form.is_valid():
             return Response(form.errors)
@@ -1000,32 +1203,65 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
         ]
 
-        queryset = self.get_queryset_filtrado(form_data)
-        queryset.order_by('criado_por')
+        queryset = self.get_queryset_filtrado_homologados(form_data)
 
-        dados_agrupados = agrupa_por_terceirizada(queryset)
+        produtos = queryset.values('uuid', 'homologacao__rastro_terceirizada__nome_fantasia', 'nome',
+                                   'marca__nome', 'vinculos__tipo_produto', 'vinculos__edital__numero',
+                                   'criado_em', 'homologacao__uuid')
 
-        return Response(self.serializa_agrupamento(dados_agrupados))
+        produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
+
+        produtos_agrupados = []
+
+        for produto in produtos:
+            data_homologacao = LogSolicitacoesUsuario.objects.filter(
+                uuid_original=produto['homologacao__uuid'],
+                status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).last()
+            produtos_agrupados.append({
+                'terceirizada': produto['homologacao__rastro_terceirizada__nome_fantasia'],
+                'nome': produto['nome'],
+                'marca': produto['marca__nome'],
+                'edital': produto['vinculos__edital__numero'],
+                'tipo': produto['vinculos__tipo_produto'],
+                'cadastro': produto['criado_em'].strftime('%d/%m/%Y'),
+                'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
+            })
+        return Response(produtos_agrupados)
 
     def get_queryset_filtrado_agrupado(self, request, form):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
-        queryset.order_by('criado_por')
 
-        produtos = queryset.values_list('nome', 'marca__nome').order_by('nome', 'marca__nome')
-        produtos_e_marcas = {}
-        for key, value in produtos:
-            produtos_e_marcas[key] = produtos_e_marcas.get(key, [])  # caso a chave não exista, criar a lista vazia
-            produtos_e_marcas[key].append(value)
-        return produtos_e_marcas
+        produtos = queryset.values('nome', 'marca__nome', 'vinculos__edital__numero').order_by('nome', 'marca__nome')
+        produtos_agrupados = []
+        for produto in produtos:
+            produtos_agrupados.append({
+                'nome': produto['nome'],
+                'marca': produto['marca__nome'],
+                'edital': produto['vinculos__edital__numero']
+            })
+
+        return produtos_agrupados
 
     @action(detail=False,
             methods=['POST'],
@@ -1039,7 +1275,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos_e_marcas = self.get_queryset_filtrado_agrupado(request, form)
         return Response(produtos_e_marcas)
 
-    @action(detail=False,
+    @action(detail=False, # noqa C901
             methods=['GET'],
             url_path='relatorio-por-parametros-agrupado-terceirizada')
     def relatorio_por_parametros_agrupado_terceirizada(self, request):
@@ -1051,14 +1287,52 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
+        uuids_homologacao = queryset.values_list('homologacao__uuid', flat=True)
+        status_homologado = LogSolicitacoesUsuario.CODAE_HOMOLOGADO
 
-        dados_agrupados = agrupa_por_terceirizada(queryset)
+        logs_homologados = LogSolicitacoesUsuario.objects.filter(status_evento=status_homologado,
+                                                                 uuid_original__in=uuids_homologacao)
 
-        return relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, form_data)
+        produtos = queryset.values('uuid', 'homologacao__rastro_terceirizada__nome_fantasia', 'nome',
+                                   'marca__nome', 'vinculos__tipo_produto', 'vinculos__edital__numero',
+                                   'criado_em', 'homologacao__uuid', 'tem_aditivos_alergenicos')
+
+        produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
+        form_data['quantidade_marcas'] = produtos.values_list('marca__nome', flat=True).distinct().count()
+        produtos_agrupados = []
+        for produto in produtos:
+            data_homologacao = logs_homologados.filter(uuid_original=produto['homologacao__uuid']).last()
+            produtos_agrupados.append({
+                'terceirizada': produto['homologacao__rastro_terceirizada__nome_fantasia'],
+                'nome': produto['nome'],
+                'marca': produto['marca__nome'],
+                'edital': produto['vinculos__edital__numero'],
+                'tipo': produto['vinculos__tipo_produto'],
+                'tem_aditivos_alergenicos': produto['tem_aditivos_alergenicos'],
+                'cadastro': produto['criado_em'].strftime('%d/%m/%Y'),
+                'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
+            })
+
+        quantidade_homologados = len(produtos_agrupados)
+
+        form_data['quantidade_homologados'] = quantidade_homologados
+        if isinstance(request.user.vinculo_atual.instituicao, Terceirizada):
+            form_data['tipo_usuario'] = 'Terceirizada'
+        elif isinstance(request.user.vinculo_atual.instituicao, Escola):
+            form_data['tipo_usuario'] = 'Escola'
+        else:
+            form_data['tipo_usuario'] = 'Outros'
+        return relatorio_produtos_agrupado_terceirizada(request, produtos_agrupados, form_data)
 
     @action(detail=False,
             methods=['GET'],
@@ -1093,11 +1367,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
             HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
-            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
-        return self.paginated_response(queryset.order_by('criado_em'))
+        return self.paginated_response(queryset)
 
     @action(detail=False,
             methods=['GET'],
@@ -1211,13 +1487,83 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                     para_excluir.append(produto.id)
         return queryset.exclude(id__in=para_excluir)
 
+    def editais_do_ususario(self, usuario, queryset):
+        editais = Edital.objects.all()
+        if isinstance(usuario.vinculo_atual.instituicao, Escola):
+            lote = usuario.vinculo_atual.instituicao.lote
+            editais_id = Contrato.objects.filter(lotes__in=[lote])
+            editais_id = editais_id.values_list('edital_id', flat=True).distinct()
+            editais = editais.filter(id__in=editais_id)
+            queryset = queryset.filter(produto__vinculos__edital__in=editais)
+        if isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
+            terceirizada = usuario.vinculo_atual.instituicao
+            lotes_uuid = Lote.objects.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
+            editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid)
+            editais_id = editais_id.values_list('edital_id', flat=True).distinct()
+            editais = editais.filter(id__in=editais_id)
+            queryset = queryset.filter(produto__vinculos__edital__in=editais)
+        if isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional):
+            diretoria_regional = usuario.vinculo_atual.instituicao
+            lotes_uuid = Lote.objects.filter(diretoria_regional=diretoria_regional).values_list('uuid', flat=True)
+            editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid)
+            editais_id = editais_id.values_list('edital_id', flat=True).distinct()
+            editais = editais.filter(id__in=editais_id)
+            queryset = queryset.filter(produto__vinculos__edital__in=editais)
+        return queryset
+
     @action(detail=False,
             methods=['GET'],
             url_path='filtro-relatorio-produto-suspenso')
-    def filtro_relatorio_produto_suspenso(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).select_related(
-            'marca', 'fabricante').order_by('nome')
-        queryset = self.filtra_produtos_suspensos_por_data(request, queryset)
+    def filtro_relatorio_produto_suspenso(self, request):  # noqa C901
+        if request.query_params.get('data_suspensao_final', None) == 'null':
+            data_final = None
+        else:
+            data_final = request.query_params.get('data_suspensao_final', None)
+        nome_produto = request.query_params.get('nome_produto', None)
+        nome_edital = request.query_params.get('nome_edital', None)
+        nome_marca = request.query_params.get('nome_marca', None)
+        nome_fabricante = request.query_params.get('nome_fabricante', None)
+        tipo = request.query_params.get('tipo', None)
+        status = ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO']
+
+        homologacoes = HomologacaoProduto.objects.all()
+        uuids_homologacao = []
+
+        if data_final:
+            data_final = data_final.split('/')
+            data_final = [int(element) for element in data_final]
+            data_final = datetime(data_final[2], data_final[1], data_final[0], 23, 59)
+
+        for hom in homologacoes:
+            log_homologado = hom.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).last()
+            logs = hom.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                                      LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO])
+            if data_final:
+                logs = logs.filter(criado_em__lte=data_final)
+                if log_homologado:
+                    logs = logs.filter(criado_em__gt=log_homologado.criado_em)
+            if logs.last():
+                uuid = logs.last().uuid_original
+                uuids_homologacao.append(uuid)
+        homologacoes = homologacoes.filter(uuid__in=uuids_homologacao, status__in=status)
+
+        if nome_produto:
+            homologacoes = homologacoes.filter(produto__nome=nome_produto)
+        if nome_marca:
+            homologacoes = homologacoes.filter(produto__marca__nome=nome_marca)
+        if nome_fabricante:
+            homologacoes = homologacoes.filter(produto__fabricante__nome=nome_fabricante)
+        if nome_edital:
+            homologacoes = homologacoes.filter(produto__vinculos__edital__numero=nome_edital)
+        if not nome_edital:
+            usuario = request.user
+            homologacoes = self.editais_do_ususario(usuario, homologacoes)
+        if tipo == 'Comum':
+            homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=False)
+        if tipo == 'Dieta especial':
+            homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=True)
+        queryset = Produto.objects.filter(pk__in=homologacoes.values_list('produto', flat=True))
+        queryset = queryset.order_by('nome')
         return self.paginated_response(queryset)
 
     @action(detail=False, url_path='relatorio-produto-suspenso',
@@ -1321,12 +1667,161 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         })
 
 
+class ProdutosEditaisViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ProdutoEdital.objects.all()
+    pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action in ['create']:
+            return ProdutoEditalCreateSerializer
+        return ProdutoEditalSerializer
+
+    @action(detail=True, methods=['patch'], url_path='ativar-inativar-produto')
+    def ativar_inativar_produto(self, request, uuid=None):
+        try:
+            vinculo = ProdutoEdital.objects.get(uuid=uuid)
+            if vinculo.ativo:
+                vinculo.ativo = False
+            else:
+                vinculo.ativo = True
+            vinculo.save()
+            serializer = self.get_serializer(vinculo)
+            return Response(dict(data=serializer.data),
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao Ativar/inativar vínculo do produto com edital: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-unicos')
+    def lista_nomes_unicos(self, request):
+        editais = self.get_queryset()
+        usuario = request.user
+        lotes_uuid = Lote.objects.all().values_list('uuid', flat=True)
+
+        if usuario.tipo_usuario == 'escola':
+            lotes_uuid = [usuario.vinculo_atual.instituicao.lote.uuid]
+        elif usuario.tipo_usuario == 'diretoriaregional':
+            lotes_uuid = usuario.vinculo_atual.instituicao.lotes.values_list('uuid', flat=True)
+        elif usuario.tipo_usuario == 'terceirizada':
+            terceirizada = usuario.vinculo_atual.instituicao
+            lotes_uuid = lotes_uuid.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
+
+        editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
+        editais = editais.filter(edital__id__in=editais_id)
+        nomes_unicos = editais.values_list('edital__numero', flat=True).distinct()
+        return Response({
+            'results': nomes_unicos,
+            'count': len(nomes_unicos)
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='filtros')
+    def filtros(self, request):
+        try:
+            vinculos = self.get_queryset()
+            produtos = vinculos.distinct('produto__nome').values('produto__nome', 'produto__uuid')
+            editais = Edital.objects.all().values('numero', 'uuid')
+            return Response(dict(produtos=produtos, editais=editais), status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao consultar filtros: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='filtrar') # noqa c901
+    def filtrar(self, request):
+        queryset = self.get_queryset().order_by('produto__nome')
+        nome = request.query_params.get('nome', None)
+        edital = request.query_params.get('edital', None)
+        tipo_dieta = request.query_params.get('tipo', None)
+        if nome:
+            queryset = queryset.filter(produto__nome__in=[nome])
+        if edital:
+            queryset = queryset.filter(edital__numero__in=[edital])
+        if tipo_dieta:
+            queryset = queryset.filter(tipo_produto=tipo_dieta)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
+    def get_queryset_filtrado_homologados(self):
+        homologacao_produtos = HomologacaoProduto.objects.all()
+        logs_homologados = []
+
+        for homologacao in homologacao_produtos:
+            log = homologacao.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+                                                             LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                                             LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO],).last()
+
+            if log and log.status_evento == LogSolicitacoesUsuario.CODAE_HOMOLOGADO:
+                logs_homologados.append(log.uuid_original)
+        queryset = self.get_queryset().filter(produto__homologacao__uuid__in=logs_homologados, ativo=True)
+        return queryset
+
+    @action(detail=False, methods=['get'], url_path='lista-produtos-opcoes') # noqa c901
+    def lista_produtos_opcoes(self, request):
+        try:
+            editais_uuid = request.query_params.get('editais', '')
+            tipo_produto_edital_origem = request.query_params.get('tipo_produto_edital_origem', '')
+            editais_uuid = editais_uuid.split(';')
+            queryset_homologados = self.get_queryset_filtrado_homologados()
+            queryset = queryset_homologados.filter(edital__uuid__in=editais_uuid)
+
+            if tipo_produto_edital_origem.lower() == ProdutoEdital.TIPO_PRODUTO['Comum'].lower():
+                queryset = queryset.filter(tipo_produto__icontains=ProdutoEdital.TIPO_PRODUTO['Comum'])
+            else:
+                queryset = queryset.exclude(tipo_produto__icontains=ProdutoEdital.TIPO_PRODUTO['Comum'])
+            queryset = queryset.order_by('produto__nome', 'produto__marca__nome')
+            data = self.get_serializer(queryset, many=True).data
+            return Response(data=data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao consultar produtos: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='lista-editais-dre')
+    def lista_editais_dre(self, request):
+        user = request.user
+        dre = DiretoriaRegional.objects.get(nome=user.vinculo_atual.instituicao.nome)
+        pks = Contrato.objects.filter(diretorias_regionais__in=[dre]).values_list('edital', flat=True)
+        queryset = Edital.objects.filter(pk__in=pks).order_by('pk').distinct('pk')
+        response = {'results': EditalSimplesSerializer(queryset, many=True).data}
+        return Response(response)
+
+
 class NomeDeProdutoEditalViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = NomeDeProdutoEdital.objects.filter(ativo=True).all()
         data = NomeDeProdutoEditalSerializer(queryset, many=True).data
         return Response({'results': data})
+
+
+class CadastroProdutoEditalViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = NomeDeProdutoEdital.objects.all()
+    pagination_class = CadastroProdutosEditalPagination
+    permission_classes = [IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = CadastroProdutosEditalFilter
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return CadastroProdutosEditalCreateSerializer
+        return CadastroProdutosEditalSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-completa')
+    def lista_completa(self, _):
+        queryset = self.queryset.all()
+        return Response({'results': CadastroProdutosEditalSerializer(queryset, many=True).data})
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_de_nomes(self, _):
+        return Response({'results': [item.nome for item in self.queryset.all()]})
+
+    class Meta:
+        model = NomeDeProdutoEdital
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
@@ -1555,17 +2050,17 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
     serializer_class = RespostaAnaliseSensorialSearilzerCreate
     queryset = RespostaAnaliseSensorial.objects.all()
 
-    @action(detail=False, # noqa C901
+    @action(detail=False,
             permission_classes=[UsuarioTerceirizada],
             methods=['post'],
             url_path=constants.TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL)
-    def terceirizada_responde(self, request):
+    def terceirizada_responde(self, request):  # noqa C901
         data = request.data.copy()
         uuid_homologacao = data.pop('homologacao_de_produto', None)
         data['homologacao_produto'] = uuid_homologacao
         serializer = self.get_serializer(data=data)
         if not serializer.is_valid():
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         homologacao = HomologacaoProduto.objects.get(uuid=uuid_homologacao)
         data['homologacao_produto'] = homologacao
@@ -1585,24 +2080,9 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
                     user=request.user, justificativa=justificativa
                 )
             else:
-                # Respondendo análise sensorial vindo de uma Homologação de produto homologada.
-                logs_homologados = homologacao.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).all()
-
-                # Essa validação não está funcionando
-                # caso de erro:
-                # Tercerizada Solicitou > CODAE Homologou > CODAE Suspendeu
-                # Terceirzada Corrigiu > CODAE Solicita análise sensorial
-                # Produto vai direto para homologado
-                # o último log de CODAE_HOMOLOGADO deve ser novo que o último log de CODAE_PENDENTE_HOMOLOGACAO
-                if logs_homologados:
-                    homologacao.terceirizada_responde_analise_sensorial_homologado(
-                        user=request.user, justificativa=justificativa
-                    )
-                else:
-                    # Respondendo análise sensorial vindo de uma Homologação de produto pendente.
-                    homologacao.terceirizada_responde_analise_sensorial(
-                        user=request.user, justificativa=justificativa
-                    )
+                homologacao.terceirizada_responde_analise_sensorial(
+                    user=request.user, justificativa=justificativa
+                )
             serializer.save()
 
             analise_sensorial = homologacao.ultima_analise
@@ -1683,7 +2163,7 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         if reclamacoes_ativas.count() == 0:
             reclamacao_produto.homologacao_produto.codae_recusou_reclamacao(
                 user=request.user,
-                justificativa='Recusa automática por não haver mais reclamações'
+                justificativa=request.data.get('justificativa') or 'Recusa automática por não haver mais reclamações'
             )
 
         analises_sensoriais = reclamacao_produto.homologacao_produto.analises_sensoriais.filter(

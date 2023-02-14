@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
@@ -12,11 +13,13 @@ from ...terceirizada.models import Terceirizada
 from ..models import (
     Aluno,
     Codae,
+    DiaCalendario,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
     FaixaEtaria,
     FaixaIdadeEscolar,
+    LogAlunosMatriculadosPeriodoEscola,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
@@ -26,6 +29,7 @@ from ..models import (
 
 
 class FaixaEtariaSerializer(serializers.ModelSerializer):
+    __str__ = serializers.CharField(required=False)
 
     class Meta:
         model = FaixaEtaria
@@ -92,6 +96,30 @@ class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
         exclude = ('id', 'cardapios')
 
 
+class LogAlunosMatriculadosPeriodoEscolaSerializer(serializers.ModelSerializer):
+    dia = serializers.SerializerMethodField()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+
+    def get_dia(self, obj):
+        return obj.criado_em.strftime('%d')
+
+    class Meta:
+        model = LogAlunosMatriculadosPeriodoEscola
+        exclude = ('id', 'uuid', 'observacao')
+
+
+class DiaCalendarioSerializer(serializers.ModelSerializer):
+    escola = serializers.CharField(source='escola.nome')
+    dia = serializers.SerializerMethodField()
+
+    def get_dia(self, obj):
+        return obj.data.strftime('%d')
+
+    class Meta:
+        model = DiaCalendario
+        exclude = ('id', 'uuid')
+
+
 class TipoUnidadeEscolarSerializerSimples(serializers.ModelSerializer):
 
     class Meta:
@@ -110,7 +138,7 @@ class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DiretoriaRegional
-        fields = ('uuid', 'nome', 'codigo_eol')
+        fields = ('uuid', 'nome', 'codigo_eol', 'iniciais')
 
 
 class DiretoriaRegionalLookUpSerializer(serializers.ModelSerializer):
@@ -145,18 +173,6 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class LoteSimplesSerializer(serializers.ModelSerializer):
-    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
-    tipo_gestao = TipoGestaoSerializer()
-    escolas = EscolaSimplissimaSerializer(many=True)
-    terceirizada = TerceirizadaSimplesSerializer()
-    subprefeituras = SubprefeituraSerializer(many=True)
-
-    class Meta:
-        model = Lote
-        exclude = ('id',)
-
-
 class LoteNomeSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     tipo_gestao = serializers.CharField()
@@ -173,6 +189,26 @@ class LoteSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome')  # noqa
 
 
+class EscolaNomeCodigoEOLSerializer(serializers.ModelSerializer):
+    lote = LoteSerializer()
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'codigo_eol', 'lote')
+
+
+class LoteSimplesSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+    tipo_gestao = TipoGestaoSerializer()
+    escolas = EscolaNomeCodigoEOLSerializer(many=True)
+    terceirizada = TerceirizadaSimplesSerializer()
+    subprefeituras = SubprefeituraSerializer(many=True)
+
+    class Meta:
+        model = Lote
+        exclude = ('id',)
+
+
 class EscolaSimplesSerializer(serializers.ModelSerializer):
     lote = LoteNomeSerializer()
     tipo_gestao = TipoGestaoSerializer()
@@ -186,6 +222,8 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
             'nome',
             'codigo_eol',
             'quantidade_alunos',
+            'quantidade_alunos_cei_da_cemei',
+            'quantidade_alunos_emei_da_cemei',
             'periodos_escolares',
             'lote',
             'tipo_gestao',
@@ -203,10 +241,18 @@ class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
 
 class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+    lote = serializers.SerializerMethodField()
+    tipo_unidade = serializers.SerializerMethodField()
+
+    def get_lote(self, obj):
+        return obj.lote.uuid if obj.lote else None
+
+    def get_tipo_unidade(self, obj):
+        return obj.tipo_unidade.uuid if obj.tipo_unidade else None
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'diretoria_regional', 'codigo_eol', 'quantidade_alunos')
+        fields = ('uuid', 'nome', 'diretoria_regional', 'codigo_eol', 'quantidade_alunos', 'lote', 'tipo_unidade')
 
 
 class PeriodoEFaixaEtariaCounterSerializer(serializers.BaseSerializer):
@@ -277,6 +323,7 @@ class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):
 class TerceirizadaSerializer(serializers.ModelSerializer):
     tipo_alimento_display = serializers.CharField(source='get_tipo_alimento_display')
     tipo_empresa_display = serializers.CharField(source='get_tipo_empresa_display')
+    tipo_servico_display = serializers.CharField(source='get_tipo_servico_display')
     nutricionistas = serializers.SerializerMethodField()
     contatos = ContatoSerializer(many=True)
     contratos = ContratoSimplesSerializer(many=True)
@@ -332,12 +379,6 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         else:
             return []
 
-    def get_escolas(self, obj):
-        if isinstance(obj.instituicao, DiretoriaRegional):
-            return EscolaListagemSimplesSelializer(obj.instituicao.escolas.all(), many=True).data
-        else:
-            return []
-
     def get_diretoria_regional(self, obj):
         if isinstance(obj.instituicao, Escola):
             return DiretoriaRegionalSimplissimaSerializer(obj.instituicao.diretoria_regional).data
@@ -356,6 +397,8 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
 
     def get_tipo_gestao(self, obj):
         if isinstance(obj.instituicao, Escola):
+            if not obj.instituicao.tipo_gestao:
+                raise ValidationError('Escola não possui tipo de gestão. Favor contatar a CODAE.')
             return obj.instituicao.tipo_gestao.nome
 
     def get_tipos_contagem(self, obj):
@@ -371,20 +414,23 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
             return ContatoSerializer(obj.instituicao.contato).data
 
     def get_instituicao(self, obj):
-        return {'nome': obj.instituicao.nome,
-                'uuid': obj.instituicao.uuid,
-                'codigo_eol': self.get_codigo_eol(obj),
-                'quantidade_alunos': obj.instituicao.quantidade_alunos,
-                'lotes': self.get_lotes(obj),
-                'periodos_escolares': self.get_periodos_escolares(obj),
-                'escolas': self.get_escolas(obj),
-                'diretoria_regional': self.get_diretoria_regional(obj),
-                'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj),
-                'tipo_unidade_escolar_iniciais': self.get_tipo_unidade_escolar_iniciais(obj),
-                'tipo_gestao': self.get_tipo_gestao(obj),
-                'tipos_contagem': self.get_tipos_contagem(obj),
-                'endereco': self.get_endereco(obj),
-                'contato': self.get_contato(obj)}
+        instituicao_dict = {'nome': obj.instituicao.nome,
+                            'uuid': obj.instituicao.uuid,
+                            'codigo_eol': self.get_codigo_eol(obj),
+                            'quantidade_alunos': obj.instituicao.quantidade_alunos,
+                            'lotes': self.get_lotes(obj),
+                            'periodos_escolares': self.get_periodos_escolares(obj),
+                            'diretoria_regional': self.get_diretoria_regional(obj),
+                            'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj),
+                            'tipo_unidade_escolar_iniciais': self.get_tipo_unidade_escolar_iniciais(obj),
+                            'tipo_gestao': self.get_tipo_gestao(obj),
+                            'tipos_contagem': self.get_tipos_contagem(obj),
+                            'endereco': self.get_endereco(obj),
+                            'contato': self.get_contato(obj)}
+        if isinstance(obj.instituicao, Escola) and obj.instituicao.eh_cemei:
+            instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
+            instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
+        return instituicao_dict
 
     class Meta:
         model = Vinculo

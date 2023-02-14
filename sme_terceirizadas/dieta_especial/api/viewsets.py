@@ -9,6 +9,7 @@ from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, mixins, serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -23,8 +24,10 @@ from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEDietaEspecial,
     UsuarioEscola,
-    UsuarioTerceirizada
+    UsuarioTerceirizada,
+    UsuarioTerceirizadaOuNutriSupervisao
 )
+from ...dieta_especial.tasks import gera_pdf_relatorio_dieta_especial_async
 from ...escola.models import Aluno, EscolaPeriodoEscolar, Lote
 from ...escola.services import NovoSGPServicoLogado
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
@@ -33,12 +36,12 @@ from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
     relatorio_dietas_especiais_terceirizada,
-    relatorio_geral_dieta_especial,
     relatorio_quantitativo_classificacao_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas,
     relatorio_quantitativo_solic_dieta_especial
 )
+from ...terceirizada.models import Contrato
 from ..forms import (
     NegaDietaEspecialForm,
     PanoramaForm,
@@ -52,6 +55,7 @@ from ..models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    LogQuantidadeDietasAutorizadas,
     MotivoAlteracaoUE,
     MotivoNegacao,
     ProtocoloPadraoDietaEspecial,
@@ -60,11 +64,12 @@ from ..models import (
     TipoContagem
 )
 from ..utils import ProtocoloPadraoPagination, RelatorioPagination
-from .filters import AlimentoFilter, DietaEspecialFilter, MotivoNegacaoFilter
+from .filters import AlimentoFilter, DietaEspecialFilter, LogQuantidadeDietasEspeciaisFilter, MotivoNegacaoFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
     ClassificacaoDietaSerializer,
+    LogQuantidadeDietasAutorizadasSerializer,
     MotivoAlteracaoUESerializer,
     MotivoNegacaoSerializer,
     PanoramaSerializer,
@@ -73,6 +78,7 @@ from .serializers import (
     RelatorioQuantitativoSolicDietaEspSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
     SolicitacaoDietaEspecialExportXLSXSerializer,
+    SolicitacaoDietaEspecialNutriSupervisaoExportXLSXSerializer,
     SolicitacaoDietaEspecialRelatorioTercSerializer,
     SolicitacaoDietaEspecialSerializer,
     SolicitacaoDietaEspecialSimplesSerializer,
@@ -125,7 +131,7 @@ class SolicitacaoDietaEspecialViewSet(
                 IsAuthenticated, PermissaoParaRecuperarDietaEspecial)
         elif self.action == 'relatorio_dieta_especial_terceirizada':
             self.permission_classes = (
-                IsAuthenticated, UsuarioTerceirizada)
+                IsAuthenticated, UsuarioTerceirizadaOuNutriSupervisao)
         return super(SolicitacaoDietaEspecialViewSet, self).get_permissions()
 
     def get_serializer_class(self):  # noqa C901
@@ -166,9 +172,9 @@ class SolicitacaoDietaEspecialViewSet(
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @transaction.atomic  # noqa C901
+    @transaction.atomic
     @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
-    def autorizar(self, request, uuid=None):
+    def autorizar(self, request, uuid=None):  # noqa C901
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
             solicitacao.aluno.inativar_dieta_especial()
@@ -627,13 +633,17 @@ class SolicitacaoDietaEspecialViewSet(
                 filtros['alergias_intolerancias__id__in'] = [
                     disgnostico.id for disgnostico in data['diagnostico']]
 
-            user = self.request.user
-            return relatorio_geral_dieta_especial(form, queryset.filter(**filtros), user)  # noqa
+            user = request.user.get_username()
+            ids_dietas = list(queryset.filter(**filtros).values_list('id', flat=True))
+            gera_pdf_relatorio_dieta_especial_async.delay(user=user, nome_arquivo='relatorio_dieta_especial.pdf',
+                                                          data=self.request.data, ids_dietas=ids_dietas)
+            return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                            status=status.HTTP_200_OK)
         except ValidationError as error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial-terceirizada')  # noqa C901
-    def relatorio_dieta_especial_terceirizada(self, request):
+    @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial-terceirizada')
+    def relatorio_dieta_especial_terceirizada(self, request):  # noqa C901
         try:
             query_set = self.get_queryset()
             form = RelatorioDietaTerceirizadaForm(self.request.data)
@@ -735,7 +745,8 @@ class SolicitacaoDietaEspecialViewSet(
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     def filtrar_dietas_terceirizadas_xlsx_pdf(  # noqa C901
-        self, queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial, data_final):
+        self, queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial,
+        data_final, alergias_intolerancias=None):
         if status:
             if status.upper() == 'AUTORIZADAS':
                 queryset = queryset.filter(
@@ -752,16 +763,19 @@ class SolicitacaoDietaEspecialViewSet(
 
         filtro = Q()
         if terceirizada_uuid:
-            filtro &= Q(escola_destino__lote__terceirizada__uuid=terceirizada_uuid)
+            filtro &= Q(rastro_terceirizada__uuid=terceirizada_uuid)
         if lotes:
             lotes = lotes.split(',')
-            filtro &= Q(escola_destino__lote__uuid__in=lotes)
+            filtro &= Q(rastro_lote__uuid__in=lotes)
         if classificacoes:
             classificacoes = classificacoes.split(',')
             filtro &= Q(classificacao__id__in=classificacoes)
         if protocolos:
             protocolos = protocolos.split(',')
             filtro &= (Q(protocolo_padrao__nome_protocolo__in=protocolos) | Q(nome_protocolo__in=protocolos))
+        if alergias_intolerancias:
+            alergias_intolerancias = alergias_intolerancias.split(',')
+            filtro &= (Q(alergias_intolerancias__descricao__in=alergias_intolerancias))
         queryset = queryset.filter(filtro)
 
         if data_inicial:
@@ -776,7 +790,7 @@ class SolicitacaoDietaEspecialViewSet(
         return queryset
 
     def build_xlsx(self, output, serializer, queryset, status,  # noqa C901
-                   lotes, classificacoes, protocolos, data_inicial, data_final):
+                   lotes, classificacoes, protocolos, data_inicial, data_final, exibir_diagnostico=False):
         import pandas as pd
         xlwriter = pd.ExcelWriter(output, engine='xlsxwriter')
 
@@ -827,7 +841,10 @@ class SolicitacaoDietaEspecialViewSet(
         worksheet.write(3, 2, 'Nome do Aluno', single_cell_format)
         worksheet.write(3, 3, 'Nome da Escola', single_cell_format)
         worksheet.write(3, 4, 'Classificação da dieta', single_cell_format)
-        worksheet.write(3, 5, 'Protocolo Padrão', single_cell_format)
+        if not exibir_diagnostico:
+            worksheet.write(3, 5, 'Protocolo Padrão', single_cell_format)
+        else:
+            worksheet.write(3, 5, 'Relação por Diagnóstico', single_cell_format)
         if status.upper() == 'CANCELADAS':
             worksheet.set_column('G:G', 30)
             worksheet.write(3, 6, 'Data de cancelamento', single_cell_format)
@@ -841,6 +858,7 @@ class SolicitacaoDietaEspecialViewSet(
         terceirizada_uuid = request.query_params.get('terceirizada_uuid')
         status = request.query_params.get('status')
         lotes = request.query_params.get('lotes')
+        alergias_intolerancias = request.query_params.get('alergias_intolerancias')
         classificacoes = request.query_params.get('classificacoes')
         protocolos = request.query_params.get('protocolos')
         data_inicial = request.query_params.get('data_inicial')
@@ -848,15 +866,22 @@ class SolicitacaoDietaEspecialViewSet(
 
         queryset = self.get_queryset()
         queryset = self.filtrar_dietas_terceirizadas_xlsx_pdf(
-            queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial, data_final)
+            queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos,
+            data_inicial, data_final, alergias_intolerancias)
 
-        serializer = SolicitacaoDietaEspecialExportXLSXSerializer(
-            queryset, context={'request': request, 'status': status.upper()}, many=True)
+        exibir_diagnostico = request.user.tipo_usuario in [
+            constants.TIPO_USUARIO_NUTRISUPERVISOR
+        ]
+        if exibir_diagnostico:
+            serializer = SolicitacaoDietaEspecialNutriSupervisaoExportXLSXSerializer(
+                queryset, context={'request': request, 'status': status.upper()}, many=True)
+        else:
+            serializer = SolicitacaoDietaEspecialExportXLSXSerializer(
+                queryset, context={'request': request, 'status': status.upper()}, many=True)
 
         output = io.BytesIO()
-
         self.build_xlsx(output, serializer, queryset, status,
-                        lotes, classificacoes, protocolos, data_inicial, data_final)
+                        lotes, classificacoes, protocolos, data_inicial, data_final, exibir_diagnostico)
 
         response = HttpResponse(
             output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -912,34 +937,38 @@ class SolicitacaoDietaEspecialViewSet(
         lotes = request.query_params.get('lotes')
         classificacoes = request.query_params.get('classificacoes')
         protocolos = request.query_params.get('protocolos')
+        alergias_intolerancias = request.query_params.get('alergias_intolerancias')
         data_inicial = request.query_params.get('data_inicial')
         data_final = request.query_params.get('data_final')
-
         queryset = self.get_queryset()
         queryset = self.filtrar_dietas_terceirizadas_xlsx_pdf(
-            queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial, data_final)
-
+            queryset, terceirizada_uuid, status, lotes, classificacoes, protocolos, data_inicial,
+            data_final, alergias_intolerancias)
         solicitacoes = []
         for solicitacao in queryset:
+            classificacao = solicitacao.classificacao.nome if solicitacao.classificacao else '--'
             dados_solicitacoes = {
                 'codigo_eol_aluno': solicitacao.aluno.codigo_eol,
                 'nome_aluno': solicitacao.aluno.nome,
                 'nome_escola': solicitacao.escola.nome,
-                'classificacao': solicitacao.classificacao.nome,
-                'protocolo_padrao': solicitacao.nome_protocolo
+                'classificacao': classificacao,
+                'protocolo_padrao': solicitacao.nome_protocolo,
+                'alergias_intolerancias': solicitacao.alergias_intolerancias
             }
             if status.upper() == 'CANCELADAS':
                 dados_solicitacoes['data_cancelamento'] = solicitacao.data_ultimo_log
             solicitacoes.append(dados_solicitacoes)
-
         filtros = self.build_texto(lotes, classificacoes, protocolos, data_inicial, data_final)
-
+        exibir_diagnostico = request.user.tipo_usuario in [
+            constants.TIPO_USUARIO_NUTRISUPERVISOR
+        ]
         dados = {
             'usuario_nome': user.nome,
             'status': status.lower(),
             'filtros': filtros,
             'solicitacoes': solicitacoes,
-            'quantidade_solicitacoes': queryset.count()
+            'quantidade_solicitacoes': queryset.count(),
+            'diagnostico': exibir_diagnostico
         }
 
         return relatorio_dietas_especiais_terceirizada(request, dados=dados)
@@ -1013,13 +1042,13 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         ).filter(Q(ativas__gt=0) | Q(inativas__gt=0))
 
         if user.tipo_usuario == 'escola':
-            qs = qs.filter(escola=user.vinculo_atual.instituicao)
+            qs = qs.filter(dietas_especiais__rastro_escola=user.vinculo_atual.instituicao)
         elif form.cleaned_data['escola']:
-            qs = qs.filter(escola=form.cleaned_data['escola'])
+            qs = qs.filter(dietas_especiais__rastro_escola=form.cleaned_data['escola'])
         elif user.tipo_usuario == 'diretoriaregional':
-            qs = qs.filter(escola__diretoria_regional=user.vinculo_atual.instituicao)
+            qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=user.vinculo_atual.instituicao)
         elif form.cleaned_data['dre']:
-            qs = qs.filter(escola__diretoria_regional=form.cleaned_data['dre'])
+            qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=form.cleaned_data['dre'])
 
         if form.cleaned_data['codigo_eol']:
             codigo_eol = f"{int(form.cleaned_data['codigo_eol']):06d}"
@@ -1035,6 +1064,7 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
             )
         elif self.request.user.tipo_usuario == 'diretoriaregional':
             return qs.order_by('escola__nome', 'nome')
+
         return qs.order_by('nome')
 
 
@@ -1094,17 +1124,22 @@ class MotivoAlteracaoUEViewSet(mixins.ListModelMixin, GenericViewSet):
 class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
-    queryset = ProtocoloPadraoDietaEspecial.objects.all().order_by('nome_protocolo')
+    queryset = ProtocoloPadraoDietaEspecial.objects.filter(ativo=True).order_by('nome_protocolo')
     serializer_class = ProtocoloPadraoDietaEspecialSerializer
     pagination_class = ProtocoloPadraoPagination
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('nome_protocolo', 'status')
+    filterset_fields = ('nome_protocolo', 'status')
 
     def get_serializer_class(self):
         if self.action in ['create', 'update']:
             return ProtocoloPadraoDietaEspecialSerializerCreate
-        else:
-            return ProtocoloPadraoDietaEspecialSerializer
+        return ProtocoloPadraoDietaEspecialSerializer
+
+    def get_queryset(self):
+        queryset = ProtocoloPadraoDietaEspecial.objects.filter(ativo=True)
+        if 'editais[]' in self.request.query_params:
+            queryset = queryset.filter(editais__uuid__in=self.request.query_params.getlist('editais[]')).distinct()
+        return queryset.order_by('nome_protocolo')
 
     @action(detail=False, methods=['GET'], url_path='lista-status')
     def lista_status(self, request):
@@ -1120,7 +1155,12 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='lista-protocolos-liberados')
     def lista_protocolos_liberados(self, request):
-        protocolos_liberados = self.get_queryset().filter(status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO)
+        dieta_uuid = request.query_params.get('dieta_especial_uuid', None)
+        solicitacao = SolicitacaoDietaEspecial.objects.get(uuid=dieta_uuid)
+        escola = solicitacao.escola
+        editais_uuid = Contrato.objects.filter(lotes__in=[escola.lote]).values_list('edital__uuid', flat=True)
+        protocolos_liberados = self.get_queryset().filter(status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO,
+                                                          editais__uuid__in=editais_uuid)
         response = {'results': ProtocoloPadraoDietaEspecialSimplesSerializer(protocolos_liberados, many=True).data}
         return Response(response)
 
@@ -1129,3 +1169,23 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         import json
         protocolo_padrao: ProtocoloPadraoDietaEspecial = self.get_object()
         return Response({'results': json.loads(protocolo_padrao.historico) if protocolo_padrao.historico else []})
+
+
+class LogQuantidadeDietasAutorizadasViewSet(mixins.ListModelMixin, GenericViewSet):
+    serializer_class = LogQuantidadeDietasAutorizadasSerializer
+    queryset = LogQuantidadeDietasAutorizadas.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = LogQuantidadeDietasEspeciaisFilter
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = LogQuantidadeDietasAutorizadas.objects.all()
+
+        escola_uuid = self.request.query_params.get('escola_uuid', '')
+        mes = self.request.query_params.get('mes', '')
+        ano = self.request.query_params.get('ano', '')
+        queryset = queryset.filter(escola__uuid=escola_uuid,
+                                   data__month=mes,
+                                   data__year=ano)
+
+        return queryset

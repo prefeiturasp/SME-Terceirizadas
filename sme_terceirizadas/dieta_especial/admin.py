@@ -1,3 +1,4 @@
+import re
 from datetime import date
 
 from django.contrib import admin, messages
@@ -26,6 +27,7 @@ from .models import (
     ArquivoCargaUsuariosEscola,
     ClassificacaoDieta,
     LogDietasAtivasCanceladasAutomaticamente,
+    LogQuantidadeDietasAutorizadas,
     MotivoAlteracaoUE,
     MotivoNegacao,
     PlanilhaDietasAtivas,
@@ -36,6 +38,7 @@ from .models import (
     TipoContagem
 )
 from .tasks import get_escolas_task, processa_dietas_especiais_task
+from .utils import is_alpha_numeric_and_has_single_space
 
 
 @admin.register(AlergiaIntolerancia)
@@ -43,6 +46,27 @@ class AlergiaIntoleranciaAdmin(admin.ModelAdmin):
     list_display = ('descricao',)
     search_fields = ('descricao',)
     ordering = ('descricao',)
+
+    def message_user(self, *args):
+        pass
+
+    def save_model(self, request, obj, form, change): # noqa C901
+        if obj.descricao in ['', None]:
+            messages.error(request, f'É necessário preencher o campo descrição!')
+            return
+        obj.descricao = obj.descricao.strip().upper()
+        obj.descricao = re.sub(r'\s+', ' ', obj.descricao)
+        acao = 'cadastrado'
+        if change:
+            acao = 'alterado'
+        if AlergiaIntolerancia.objects.filter(descricao=obj.descricao):
+            messages.error(request, f'Diagnóstico já cadastrado!')
+            return
+        if not is_alpha_numeric_and_has_single_space(obj.descricao):
+            messages.error(request, f'Diagnóstico "{obj.descricao}" inválido. Permitido apenas letras e números!')
+            return
+        messages.success(request, f'Diagnóstico {acao} com sucesso!')
+        super(AlergiaIntoleranciaAdmin, self).save_model(request, obj, form, change)  # noqa
 
 
 @admin.register(Alimento)
@@ -223,6 +247,7 @@ class LogDietasAtivasCanceladasAutomaticamenteAdmin(admin.ModelAdmin):
 
 class SubstituicaoAlimentoProtocoloPadraoInline(admin.TabularInline):
     model = SubstituicaoAlimentoProtocoloPadrao
+    filter_horizontal = ('substitutos',)
     extra = 0
 
 
@@ -285,6 +310,12 @@ class ArquivoCargaUsuariosEscolaAdmin(admin.ModelAdmin):
         self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
 
     processa_carga.short_description = 'Realiza a importação dos usuários Diretor e Assistente Diretor'
+
+
+@admin.register(LogQuantidadeDietasAutorizadas)
+class LogQuantidadeDietasAutorizadasAdmin(admin.ModelAdmin):
+    list_display = ('escola', 'data', 'classificacao', 'quantidade')
+    list_filter = ('classificacao__nome',)
 
 
 admin.site.register(Anexo)

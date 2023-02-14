@@ -16,13 +16,13 @@ from ..dados_comuns.behaviors import (
     Logs,
     Nomeavel,
     TemChaveExterna,
+    TemData,
     TemIdentificadorExternoAmigavel,
     TemPrioridade
 )
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
-from ..dados_comuns.validators import nao_pode_ser_no_passado  # noqa
 from ..escola.api.serializers import AlunoSerializer
 from ..escola.models import Aluno, Escola
 from .managers import AlimentoProprioManager
@@ -200,6 +200,10 @@ class SolicitacaoDietaEspecial(
         return self.anexo_set.all()
 
     @property
+    def numero_alunos(self):
+        return ''
+
+    @property
     def escola(self):
         return self.rastro_escola
 
@@ -259,6 +263,16 @@ class SolicitacaoDietaEspecial(
             uuid_original=self.uuid,
             justificativa=justificativa
         )
+
+    @property
+    def display_nutricionista_with_registro_funcional(self):
+        usuario = self.logs.get(
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+            solicitacao_tipo=LogSolicitacoesUsuario.DIETA_ESPECIAL
+        ).usuario
+        if usuario.registro_funcional:
+            return f'Elaborado por {usuario.nome} - RF {usuario.registro_funcional}'
+        return self.registro_funcional_nutricionista
 
     @property
     def data_ultimo_log(self):
@@ -498,7 +512,7 @@ class AlimentoSubstituto(models.Model):
     alimento = models.ForeignKey(Alimento, on_delete=models.SET_NULL, null=True, blank=True)
 
 
-class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIdentificadorExternoAmigavel):
+class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIdentificadorExternoAmigavel, Ativavel):
     # Mantive para termos um histórico acessível pelo admin
     history = AuditlogHistoryField()
 
@@ -530,10 +544,13 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
         default=STATUS_NAO_LIBERADO
     )
 
+    editais = models.ManyToManyField('terceirizada.Edital',
+                                     related_name='protocolos_padroes_dieta_especial')
+
     historico = fields.JSONField(blank=True, null=True)
 
     class Meta:
-        ordering = ('-criado_em',)
+        ordering = ('nome_protocolo',)
         verbose_name = 'Protocolo padrão de dieta especial'
         verbose_name_plural = 'Protocolos padrões de dieta especial'
 
@@ -618,3 +635,19 @@ class ArquivoCargaUsuariosEscola(ArquivoCargaBase):
 
     def __str__(self) -> str:
         return str(self.conteudo)
+
+
+class LogQuantidadeDietasAutorizadas(TemChaveExterna, TemData, CriadoEm):
+    escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE, related_name='logs_dietas_autorizadas')
+    quantidade = models.PositiveIntegerField()
+    classificacao = models.ForeignKey(
+        'ClassificacaoDieta', on_delete=models.CASCADE, related_name='logs_dietas_autorizadas')
+
+    def __str__(self) -> str:
+        return (f'{self.escola.nome} - {self.data.strftime("%d/%m/%Y")} - {self.classificacao.nome} - '
+                f'{self.quantidade} dieta(s)')
+
+    class Meta:
+        verbose_name = 'Log da quantidade de dietas autorizadas por unidade escolar'
+        verbose_name_plural = 'Logs da quantidade de dietas autorizadas por unidade escolar'
+        ordering = ('-data', 'escola__nome')

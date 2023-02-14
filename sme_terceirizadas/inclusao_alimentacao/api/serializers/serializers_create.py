@@ -13,12 +13,17 @@ from ....dados_comuns.validators import (
 )
 from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar
 from ...models import (
+    DiasMotivosInclusaoDeAlimentacaoCEI,
+    DiasMotivosInclusaoDeAlimentacaoCEMEI,
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoDaCEI,
     InclusaoAlimentacaoNormal,
+    InclusaoDeAlimentacaoCEMEI,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal,
+    QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI,
+    QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI,
     QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
     QuantidadePorPeriodo
 )
@@ -32,6 +37,11 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(ser
         required=True,
         queryset=FaixaEtaria.objects.all())
 
+    periodo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all())
+
     def create(self, validated_data):
         quantidade_alunos_faixa_etaria = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI.objects.create(
             **validated_data
@@ -43,6 +53,21 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(ser
         exclude = ('id', 'inclusao_alimentacao_da_cei',)
 
 
+class DiasMotivosInclusaoDeAlimentacaoCEICreateSerializer(serializers.ModelSerializer):
+    motivo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=MotivoInclusaoNormal.objects.all())
+    inclusao_cei = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=InclusaoAlimentacaoDaCEI.objects.all())
+
+    class Meta:
+        model = DiasMotivosInclusaoDeAlimentacaoCEI
+        exclude = ('id',)
+
+
 class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
     escola = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -51,24 +76,21 @@ class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
 
     periodo_escolar = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
+        required=False,
         queryset=PeriodoEscolar.objects.all())
 
     tipos_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
         many=True,
-        required=True,
+        required=False,
         queryset=TipoAlimentacao.objects.all())
-
-    motivo = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=MotivoInclusaoNormal.objects.all())
 
     quantidade_alunos_por_faixas_etarias = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
         many=True,
         required=True
     )
+
+    dias_motivos_da_inclusao_cei = DiasMotivosInclusaoDeAlimentacaoCEICreateSerializer(required=True, many=True)
 
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
@@ -76,13 +98,20 @@ class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
         deve_ser_no_mesmo_ano_corrente(data)
         return data
 
+    def criar_dias_motivos(self, dias_motivos_da_inclusao_cei, instance):
+        dias_motivos_da_inclusao_cei = [dict(item, **{'inclusao_cei': instance})
+                                        for item in dias_motivos_da_inclusao_cei]
+        for dia_motivo in dias_motivos_da_inclusao_cei:
+            DiasMotivosInclusaoDeAlimentacaoCEI.objects.create(**dia_motivo)
+
     def create(self, validated_data):
         quantidade_alunos_por_faixas_etarias = validated_data.pop('quantidade_alunos_por_faixas_etarias')
+        dias_motivos_da_inclusao_cei = validated_data.pop('dias_motivos_da_inclusao_cei')
         validated_data['criado_por'] = self.context['request'].user
-        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
-
         inclusao_alimentacao_da_cei = InclusaoAlimentacaoDaCEI.objects.create(**validated_data)
-        inclusao_alimentacao_da_cei.tipos_alimentacao.set(tipos_alimentacao)
+
+        self.criar_dias_motivos(dias_motivos_da_inclusao_cei, inclusao_alimentacao_da_cei)
+
         for quantidade_json in quantidade_alunos_por_faixas_etarias:
             qtd = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer().create(
                 validated_data=quantidade_json)
@@ -91,12 +120,12 @@ class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         quantidade_alunos_por_faixas_etarias = validated_data.pop('quantidade_alunos_por_faixas_etarias')
-        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
+        dias_motivos_da_inclusao_cei = validated_data.pop('dias_motivos_da_inclusao_cei')
 
         instance.quantidade_alunos_da_inclusao.all().delete()
-        instance.tipos_alimentacao.set([])
-        instance.tipos_alimentacao.set(tipos_alimentacao)
+        instance.dias_motivos_da_inclusao_cei.all().delete()
 
+        self.criar_dias_motivos(dias_motivos_da_inclusao_cei, instance)
         for quantidade_json in quantidade_alunos_por_faixas_etarias:
             qtd = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer().create(
                 validated_data=quantidade_json)
@@ -322,3 +351,125 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
     class Meta:
         model = InclusaoAlimentacaoContinua
         exclude = ('id', 'status')
+
+
+class DiasMotivosInclusaoDeAlimentacaoCEMEICreateSerializer(serializers.ModelSerializer):
+    motivo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=MotivoInclusaoNormal.objects.all())
+    inclusao_alimentacao_cemei = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=InclusaoDeAlimentacaoCEMEI.objects.all())
+
+    class Meta:
+        model = DiasMotivosInclusaoDeAlimentacaoCEMEI
+        exclude = ('id',)
+
+
+class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEICreateSerializer(serializers.ModelSerializer):
+    inclusao_alimentacao_cemei = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=InclusaoDeAlimentacaoCEMEI.objects.all())
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all())
+
+    class Meta:
+        model = QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI
+        exclude = ('id',)
+
+
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEICreateSerializer(serializers.ModelSerializer):
+    inclusao_alimentacao_cemei = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=InclusaoDeAlimentacaoCEMEI.objects.all())
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all())
+    faixa_etaria = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=FaixaEtaria.objects.all())
+
+    class Meta:
+        model = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI
+        exclude = ('id',)
+
+
+class InclusaoDeAlimentacaoCEMEICreateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all())
+    dias_motivos_da_inclusao_cemei = DiasMotivosInclusaoDeAlimentacaoCEMEICreateSerializer(required=True, many=True)
+    quantidade_alunos_cei_da_inclusao_cemei = (
+        QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEICreateSerializer(required=False, many=True)
+    )
+    quantidade_alunos_emei_da_inclusao_cemei = (
+        QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEICreateSerializer(required=False, many=True)
+    )
+
+    def criar_dias_motivos(self, dias_motivos_da_inclusao_cemei, instance):
+        dias_motivos_da_inclusao_cemei = [dict(item, **{'inclusao_alimentacao_cemei': instance})
+                                          for item in dias_motivos_da_inclusao_cemei]
+        for dia_motivo in dias_motivos_da_inclusao_cemei:
+            DiasMotivosInclusaoDeAlimentacaoCEMEI.objects.create(**dia_motivo)
+
+    def criar_quantidade_alunos_cei(self, quantidade_alunos_cei_da_inclusao_cemei, instance):
+        if not quantidade_alunos_cei_da_inclusao_cemei:
+            return
+        quantidade_alunos_cei_da_inclusao_cemei = [dict(item, **{'inclusao_alimentacao_cemei': instance})
+                                                   for item in quantidade_alunos_cei_da_inclusao_cemei]
+        for quantidade_alunos_cei in quantidade_alunos_cei_da_inclusao_cemei:
+            QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI.objects.create(
+                **quantidade_alunos_cei)
+
+    def criar_quantidade_alunos_emei(self, quantidade_alunos_emei_da_inclusao_cemei, instance):
+        if not quantidade_alunos_emei_da_inclusao_cemei:
+            return
+        quantidade_alunos_emei_da_inclusao_cemei = [dict(item, **{'inclusao_alimentacao_cemei': instance})
+                                                    for item in quantidade_alunos_emei_da_inclusao_cemei]
+        for quantidade_alunos_emei in quantidade_alunos_emei_da_inclusao_cemei:
+            QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI.objects.create(
+                **quantidade_alunos_emei)
+
+    def create(self, validated_data):
+        if 'status' in validated_data:
+            validated_data.pop('status')
+
+        validated_data['criado_por'] = self.context['request'].user
+        dias_motivos_da_inclusao_cemei = validated_data.pop('dias_motivos_da_inclusao_cemei')
+        quantidade_alunos_cei_da_inclusao_cemei = validated_data.pop('quantidade_alunos_cei_da_inclusao_cemei', [])
+        quantidade_alunos_emei_da_inclusao_cemei = validated_data.pop('quantidade_alunos_emei_da_inclusao_cemei', [])
+        inclusao_da_cemei = InclusaoDeAlimentacaoCEMEI.objects.create(**validated_data)
+
+        self.criar_dias_motivos(dias_motivos_da_inclusao_cemei, inclusao_da_cemei)
+        self.criar_quantidade_alunos_cei(quantidade_alunos_cei_da_inclusao_cemei, inclusao_da_cemei)
+        self.criar_quantidade_alunos_emei(quantidade_alunos_emei_da_inclusao_cemei, inclusao_da_cemei)
+
+        return inclusao_da_cemei
+
+    def update(self, instance, validated_data):
+        instance.dias_motivos_da_inclusao_cemei.all().delete()
+        instance.quantidade_alunos_cei_da_inclusao_cemei.all().delete()
+        instance.quantidade_alunos_emei_da_inclusao_cemei.all().delete()
+
+        dias_motivos_da_inclusao_cemei = validated_data.pop('dias_motivos_da_inclusao_cemei')
+        quantidade_alunos_cei_da_inclusao_cemei = validated_data.pop('quantidade_alunos_cei_da_inclusao_cemei', [])
+        quantidade_alunos_emei_da_inclusao_cemei = validated_data.pop('quantidade_alunos_emei_da_inclusao_cemei', [])
+
+        self.criar_dias_motivos(dias_motivos_da_inclusao_cemei, instance)
+        self.criar_quantidade_alunos_cei(quantidade_alunos_cei_da_inclusao_cemei, instance)
+        self.criar_quantidade_alunos_emei(quantidade_alunos_emei_da_inclusao_cemei, instance)
+
+        return instance
+
+    class Meta:
+        model = InclusaoDeAlimentacaoCEMEI
+        exclude = ('id',)

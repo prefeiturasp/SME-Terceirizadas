@@ -21,13 +21,18 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_MEDICAO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_PRODUTO,
     COORDENADOR_LOGISTICA,
     COORDENADOR_SUPERVISAO_NUTRICAO,
-    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO
+    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+    DILOG_CRONOGRAMA,
+    DILOG_DIRETORIA,
+    DILOG_QUALIDADE,
+    DINUTRE_DIRETORIA
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
@@ -177,8 +182,8 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                 Q(data_inicial__isnull=False, data_final=None, ativo=True))
         return None
 
-    @property  # noqa C901
-    def tipo_usuario(self):
+    @property
+    def tipo_usuario(self):  # noqa C901
         tipo_usuario = 'indefinido'
         if self.vinculo_atual:
             tipo_usuario = self.vinculo_atual.content_type.model
@@ -198,6 +203,11 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                     tipo_usuario = 'supervisao_nutricao'
                 elif self.vinculo_atual.perfil.nome in [COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]:
                     tipo_usuario = 'nutricao_manifestacao'
+                elif self.vinculo_atual.perfil.nome in [ADMINISTRADOR_MEDICAO]:
+                    tipo_usuario = 'medicao'
+                elif self.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
+                                                        DINUTRE_DIRETORIA]:
+                    tipo_usuario = 'pre_recebimento'
                 else:
                     tipo_usuario = 'dieta_especial'
         return tipo_usuario

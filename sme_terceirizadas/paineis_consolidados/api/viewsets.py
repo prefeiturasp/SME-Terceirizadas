@@ -1,10 +1,15 @@
 import datetime
+import unicodedata
 
+from dateutil.relativedelta import relativedelta
+from django.db.models import Q
 from django.db.models.query import QuerySet
+from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
 
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
@@ -15,6 +20,7 @@ from ...dados_comuns.permissions import (
     UsuarioNutricionista,
     UsuarioTerceirizada
 )
+from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
@@ -22,6 +28,7 @@ from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
 from ..api.constants import PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
 from ..models import (
+    MoldeConsolidado,
     SolicitacoesCODAE,
     SolicitacoesDRE,
     SolicitacoesEscola,
@@ -29,8 +36,10 @@ from ..models import (
     SolicitacoesNutrisupervisao,
     SolicitacoesTerceirizada
 )
+from ..tasks import gera_pdf_relatorio_solicitacoes_alimentacao_async, gera_xls_relatorio_solicitacoes_alimentacao_async
 from ..validators import FiltroValidator
 from .constants import (
+    AGUARDANDO_CODAE,
     AGUARDANDO_INICIO_VIGENCIA_DIETA_ESPECIAL,
     AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
     AUTORIZADOS,
@@ -42,6 +51,7 @@ from .constants import (
     FILTRO_TERCEIRIZADA_UUID,
     INATIVAS_DIETA_ESPECIAL,
     INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
+    INCLUSOES_AUTORIZADAS,
     NEGADOS,
     NEGADOS_DIETA_ESPECIAL,
     PENDENTES_AUTORIZACAO,
@@ -52,6 +62,7 @@ from .constants import (
     RESUMO_ANO,
     RESUMO_MES
 )
+from .filters import SolicitacoesCODAEFilter
 
 
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
@@ -155,6 +166,14 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         except ValueError:
             return False
 
+    @action(detail=False,
+            methods=['GET'],
+            url_path='solicitacoes-detalhadas')
+    def solicitacoes_detalhadas(self, request):
+        solicitacoes = request.query_params.getlist('solicitacoes[]', None)
+        solicitacoes = MoldeConsolidado.solicitacoes_detalhadas(solicitacoes, request)
+        return Response(dict(data=solicitacoes, status=HTTP_200_OK))
+
 
 class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -177,6 +196,7 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioNutricionista,))
     def autorizados(self, request):
         query_set = SolicitacoesNutrisupervisao.get_autorizados()
+        query_set = SolicitacoesNutrisupervisao.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -185,6 +205,7 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioNutricionista,))
     def negados(self, request):
         query_set = SolicitacoesNutrisupervisao.get_negados()
+        query_set = SolicitacoesNutrisupervisao.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -193,6 +214,7 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioNutricionista,))
     def cancelados(self, request):
         query_set = SolicitacoesNutrisupervisao.get_cancelados()
+        query_set = SolicitacoesNutrisupervisao.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -212,10 +234,21 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
 
     @action(detail=False,
             methods=['GET'],
+            url_path=f'{PENDENTES_AUTORIZACAO}')
+    def pendentes_autorizacao_sem_filtro(self, request):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        query_set = SolicitacoesCODAE.get_pendentes_autorizacao(dre_uuid=diretoria_regional.uuid)
+        query_set = SolicitacoesNutrisupervisao.busca_filtro(query_set, request.query_params)
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
             url_path=QUESTIONAMENTOS,
             permission_classes=(UsuarioNutricionista,))
     def questionamentos(self, request):
         query_set = SolicitacoesCODAE.get_questionamentos()
+        query_set = SolicitacoesNutrisupervisao.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
 
@@ -231,6 +264,7 @@ class NutrimanifestacaoSolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioNutricionista,))
     def autorizados(self, request):
         query_set = SolicitacoesNutrimanifestacao.get_autorizados()
+        query_set = SolicitacoesNutrimanifestacao.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -239,6 +273,7 @@ class NutrimanifestacaoSolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioNutricionista,))
     def negados(self, request):
         query_set = SolicitacoesNutrimanifestacao.get_negados()
+        query_set = SolicitacoesNutrimanifestacao.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -247,6 +282,7 @@ class NutrimanifestacaoSolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioNutricionista,))
     def cancelados(self, request):
         query_set = SolicitacoesNutrimanifestacao.get_cancelados()
+        query_set = SolicitacoesNutrimanifestacao.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
 
@@ -255,6 +291,8 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = SolicitacoesCODAE.objects.all()
     serializer_class = SolicitacoesSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = SolicitacoesCODAEFilter
 
     @action(detail=False,
             methods=['GET'],
@@ -266,6 +304,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         diretoria_regional = usuario.vinculo_atual.instituicao
         query_set = SolicitacoesCODAE.get_pendentes_autorizacao(dre_uuid=diretoria_regional.uuid,
                                                                 filtro=filtro_aplicado)
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
         response = {'results': self._agrupa_por_tipo_visao(
             tipo_visao=tipo_visao, query_set=query_set)}
 
@@ -359,10 +398,20 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
 
     @action(detail=False,
             methods=['GET'],
+            url_path=f'{PENDENTES_AUTORIZACAO}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def pendentes_autorizacao_sem_filtro(self, request):
+        query_set = SolicitacoesCODAE.get_pendentes_autorizacao()
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
             url_path=AUTORIZADOS,
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def autorizados(self, request):
         query_set = SolicitacoesCODAE.get_autorizados()
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -371,6 +420,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def negados(self, request):
         query_set = SolicitacoesCODAE.get_negados()
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -379,6 +429,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def cancelados(self, request):
         query_set = SolicitacoesCODAE.get_cancelados()
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -387,6 +438,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def questionamentos(self, request):
         query_set = SolicitacoesCODAE.get_questionamentos()
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(
@@ -400,7 +452,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         ---
         tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
         KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS
-        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|RECEBIDAS|TODOS
         data_inicial -- dd-mm-yyyy
         data_final -- dd-mm-yyyy
         """
@@ -474,6 +526,78 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             query_set=query_set)}
         return Response(response)
 
+    def filtrar_solicitacoes_para_relatorio(self, request):
+        status = request.query_params.get('status', None)
+        queryset = SolicitacoesCODAE.map_queryset_por_status(status)
+
+        # filtra por datas
+        periodo_datas = {
+            'data_evento': request.query_params.get('de', None),
+            'data_evento_fim': request.query_params.get('ate', None)
+        }
+        queryset = SolicitacoesCODAE.busca_periodo_de_datas(queryset, periodo_datas)
+
+        tipo_doc = request.query_params.getlist('tipos_solicitacao[]', None)
+        tipo_doc = SolicitacoesCODAE.map_queryset_por_tipo_doc(tipo_doc)
+        # outros filtros
+        map_filtros = {
+            'lote_uuid__in': request.query_params.getlist('lotes[]', None),
+            'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
+            'terceirizada_uuid': request.query_params.get('terceirizada', None),
+            'tipo_doc__in': tipo_doc,
+            'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
+        }
+        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
+        queryset = queryset.filter(**filtros)
+        return queryset
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtrar-solicitacoes-ga',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def filtrar_solicitacoes_ga(self, request):
+        # queryset por status
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        return self._retorno_base(queryset, False)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')  # noqa C901
+    def exportar_xlsx(self, request):
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        lotes = request.query_params.getlist('lotes[]')
+        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
+        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
+        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
+
+        user = request.user.get_username()
+        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
+            data=self.request.query_params,
+            uuids=uuids,
+            lotes=lotes,
+            tipos_solicitacao=tipos_solicitacao,
+            tipos_unidade=tipos_unidade,
+            unidades_educacionais=unidades_educacionais
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-pdf')  # noqa C901
+    def exportar_pdf(self, request):
+        user = request.user.get_username()
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
+            data=self.request.query_params,
+            uuids=uuids,
+            status=request.query_params.get('status', None)
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
 
 class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -482,10 +606,12 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         IsAuthenticated, PermissaoParaRecuperarDietaEspecial,)
     serializer_class = SolicitacoesSerializer
 
-    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_ESCOLA_UUID}')
-    def pendentes_autorizacao(self, request, escola_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}')
+    def pendentes_autorizacao(self, request):
+        escola_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesEscola.get_pendentes_autorizacao(
             escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
@@ -567,19 +693,90 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_ESCOLA_UUID}')
-    def autorizados(self, request, escola_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}')
+    def autorizados(self, request):
+        escola_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}/{FILTRO_ESCOLA_UUID}')
-    def negados(self, request, escola_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{INCLUSOES_AUTORIZADAS}')
+    def inclusoes_autorizadas(self, request):  # noqa C901
+        escola_uuid = request.query_params.get('escola_uuid')
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+        date = datetime.date(int(ano), int(mes), 1)
+        nome_periodo_escolar = request.query_params.get('nome_periodo_escolar')
+
+        query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
+        query_set = query_set.filter(
+            Q(data_evento__month=mes, data_evento__year=ano) |
+            Q(data_evento__lt=date, data_evento_2__gte=date)
+        )
+        query_set = query_set.filter(
+            data_evento__lt=datetime.date.today()
+        )
+        query_set = self._remove_duplicados_do_query_set(query_set)
+
+        return_dict = []
+
+        def append(dia, periodo, inclusao):
+            if (get_ultimo_dia_mes(datetime.date(int(ano), int(mes), 1)) < datetime.date.today() or
+                    dia < datetime.date.today().day):
+                alimentacoes = ', '.join([
+                    unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
+                        'ascii', 'ignore').decode('utf-8') for alimentacao in periodo.tipos_alimentacao.all()]).lower()
+                return_dict.append({
+                    'dia': f'{dia:02d}',
+                    'periodo': f'{periodo.periodo_escolar.nome}',
+                    'alimentacoes': alimentacoes,
+                    'numero_alunos': periodo.numero_alunos,
+                    'dias_semana': periodo.dias_semana,
+                    'inclusao_id_externo': inclusao.id_externo
+                })
+
+        for inclusao in query_set:
+            inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
+            for periodo in inc.quantidades_periodo.all():
+                if periodo.periodo_escolar.nome == nome_periodo_escolar:
+                    if inclusao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
+                        i = inclusao.data_evento.day
+                        big_range = False
+                        if inclusao.data_evento.month != int(mes) and inclusao.data_evento_2.month != int(mes):
+                            big_range = True
+                            i = datetime.date(int(ano), int(mes), 1)
+                            data_evento_final_no_mes = (i + relativedelta(day=31)).day
+                            i = datetime.date(int(ano), int(mes), 1).day
+                        else:
+                            data_evento_final_no_mes = inclusao.data_evento_2.day
+                        if inclusao.data_evento_2.month != inclusao.data_evento.month and not big_range:
+                            data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
+                        while i <= data_evento_final_no_mes:
+                            if (not periodo.dias_semana or
+                                    datetime.date(int(ano), int(mes), i).weekday() in periodo.dias_semana):
+                                append(i, periodo, inclusao)
+                            i += 1
+                    else:
+                        append(inclusao.data_evento.day, periodo, inclusao)
+        data = {
+            'results': return_dict
+        }
+
+        return Response(data)
+
+    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}')
+    def negados(self, request):
+        escola_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesEscola.get_negados(escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_ESCOLA_UUID}')
-    def cancelados(self, request, escola_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}')
+    def cancelados(self, request):
+        escola_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesEscola.get_cancelados(escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{RESUMO_ANO}')
@@ -656,7 +853,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         ---
         tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
         KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS
-        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|RECEBIDAS|TODOS
         data_inicial -- dd-mm-yyyy
         data_final -- dd-mm-yyyy
         """
@@ -691,6 +888,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         diretoria_regional = usuario.vinculo_atual.instituicao
         query_set = SolicitacoesDRE.get_pendentes_validacao(dre_uuid=diretoria_regional.uuid,
                                                             filtro=filtro_aplicado)
+        query_set = SolicitacoesDRE.busca_filtro(query_set, request.query_params)
         response = {'results': self._agrupa_por_tipo_visao(
             tipo_visao=tipo_visao, query_set=query_set)}
         return Response(response)
@@ -766,6 +964,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         query_set = SolicitacoesDRE.get_pendentes_validacao(dre_uuid=diretoria_regional.uuid)
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}')
@@ -774,6 +973,16 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         diretoria_regional = usuario.vinculo_atual.instituicao
         query_set = SolicitacoesDRE.get_autorizados(
             dre_uuid=diretoria_regional.uuid)
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{AGUARDANDO_CODAE}')
+    def aguardando_codae(self, request, dre_uuid=None):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        query_set = SolicitacoesDRE.get_aguardando_codae(
+            dre_uuid=diretoria_regional.uuid)
+        query_set = SolicitacoesDRE.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}')
@@ -782,6 +991,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         diretoria_regional = usuario.vinculo_atual.instituicao
         query_set = SolicitacoesDRE.get_negados(
             dre_uuid=diretoria_regional.uuid)
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}')
@@ -790,6 +1000,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         diretoria_regional = usuario.vinculo_atual.instituicao
         query_set = SolicitacoesDRE.get_cancelados(
             dre_uuid=diretoria_regional.uuid)
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(
@@ -867,7 +1078,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         ---
         tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
         KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS
-        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|RECEBIDAS|TODOS
         data_inicial -- dd-mm-yyyy
         data_final -- dd-mm-yyyy
         """
@@ -887,6 +1098,78 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
             return self._retorno_base(query_set)
         else:
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def filtrar_solicitacoes_para_relatorio(self, request):
+        dre_uuid = request.user.vinculo_atual.instituicao.uuid
+        status = request.query_params.get('status', None)
+        queryset = SolicitacoesDRE.map_queryset_por_status(status, dre_uuid=dre_uuid)
+        # filtra por datas
+        periodo_datas = {
+            'data_evento': request.query_params.get('de', None),
+            'data_evento_fim': request.query_params.get('ate', None)
+        }
+        queryset = SolicitacoesDRE.busca_periodo_de_datas(queryset, periodo_datas)
+
+        tipo_doc = request.query_params.getlist('tipos_solicitacao[]', None)
+        tipo_doc = SolicitacoesDRE.map_queryset_por_tipo_doc(tipo_doc)
+        # outros filtros
+        map_filtros = {
+            'lote_uuid__in': request.query_params.getlist('lotes[]', None),
+            'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
+            'terceirizada_uuid': request.query_params.get('terceirizada', None),
+            'tipo_doc__in': tipo_doc,
+            'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
+        }
+        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
+        queryset = queryset.filter(**filtros).order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
+        return queryset
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtrar-solicitacoes-ga',
+            permission_classes=(UsuarioDiretoriaRegional,))
+    def filtrar_solicitacoes_ga(self, request):
+        # queryset por status
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        return self._retorno_base(queryset, False)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')  # noqa C901
+    def exportar_xlsx(self, request):
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        lotes = request.query_params.getlist('lotes[]')
+        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
+        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
+        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
+
+        user = request.user.get_username()
+        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
+            data=self.request.query_params,
+            uuids=uuids,
+            lotes=lotes,
+            tipos_solicitacao=tipos_solicitacao,
+            tipos_unidade=tipos_unidade,
+            unidades_educacionais=unidades_educacionais
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-pdf')  # noqa C901
+    def exportar_pdf(self, request):
+        user = request.user.get_username()
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
+            data=self.request.query_params,
+            uuids=uuids,
+            status=request.query_params.get('status', None)
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
 
 
 class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
@@ -980,10 +1263,12 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
             return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{QUESTIONAMENTOS}/{FILTRO_TERCEIRIZADA_UUID}')
-    def questionamentos(self, request, terceirizada_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{QUESTIONAMENTOS}')
+    def questionamentos(self, request):
+        terceirizada_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesTerceirizada.get_questionamentos(
             terceirizada_uuid=terceirizada_uuid)
+        query_set = SolicitacoesTerceirizada.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_TERCEIRIZADA_UUID}')
@@ -992,22 +1277,28 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
             terceirizada_uuid=terceirizada_uuid)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_TERCEIRIZADA_UUID}')
-    def autorizados(self, request, terceirizada_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}')
+    def autorizados(self, request):
+        terceirizada_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesTerceirizada.get_autorizados(
             terceirizada_uuid=terceirizada_uuid)
+        query_set = SolicitacoesTerceirizada.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}/{FILTRO_TERCEIRIZADA_UUID}')
-    def negados(self, request, terceirizada_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}')
+    def negados(self, request):
+        terceirizada_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesTerceirizada.get_negados(
             terceirizada_uuid=terceirizada_uuid)
+        query_set = SolicitacoesTerceirizada.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_TERCEIRIZADA_UUID}')
-    def cancelados(self, request, terceirizada_uuid=None):
+    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}')
+    def cancelados(self, request):
+        terceirizada_uuid = request.user.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesTerceirizada.get_cancelados(
             terceirizada_uuid=terceirizada_uuid)
+        query_set = SolicitacoesTerceirizada.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'],

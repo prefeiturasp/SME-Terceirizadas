@@ -123,7 +123,7 @@ class EOLServicoSGP:
     HEADER = {
         'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}'
     }
-    TIMEOUT = 10
+    TIMEOUT = 30
 
     @classmethod
     def matricula_por_escola(cls, codigo_eol: str, data: str, tipo_turma: int = 1):
@@ -138,7 +138,7 @@ class EOLServicoSGP:
 
 
 class EOLPapaService:
-    TIMEOUT = 20
+    TIMEOUT = 90
 
     @classmethod
     def confirmacao_de_cancelamento(cls, cnpj, numero_solicitacao, sequencia_envio):

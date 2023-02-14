@@ -157,11 +157,16 @@ def test_solicitacao_avulsa_workflow_partindo_da_escola_with_error(solicitacao_a
 
 @freeze_time('2019-10-11')
 def test_solicitacao_unificada_lista_igual_workflow_case_1_partindo_da_diretoria_regional(
-    solicitacao_unificada_lista_igual
+    solicitacao_unificada_lista_igual,
+    escola
 ):
     """RASCUNHO > CODAE_A_AUTORIZAR > CODAE_PEDIU_DRE_REVISAR > CODAE_A_AUTORIZAR."""
     wc = solicitacao_unificada_lista_igual.workflow_class
     user = mommy.make('perfil.Usuario')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
     assert solicitacao_unificada_lista_igual.status == wc.RASCUNHO
     assert solicitacao_unificada_lista_igual.pode_excluir is True
     assert solicitacao_unificada_lista_igual.ta_na_dre is True
@@ -261,3 +266,21 @@ def test_escola_quantidade(escola_quantidade):
     tempo_passeio = escola_quantidade.get_tempo_passeio_display()
     assert escola_quantidade.__str__() == (f'{tempo_passeio} para {escola_quantidade.quantidade_alunos} '
                                            f'alunos, kits diferenciados? {kit_lanche_personalizado}')
+
+
+def test_kit_lanche_cemei(kit_lanche_cemei):
+    assert kit_lanche_cemei.tem_solicitacao_cei is True
+    assert kit_lanche_cemei.tem_solicitacao_emei is True
+    assert kit_lanche_cemei.total_kits == 120
+
+    solicitacao_cei = kit_lanche_cemei.solicitacao_cei
+    assert solicitacao_cei.nomes_kits == 'KIT 1, KIT 2, KIT 3'
+    assert solicitacao_cei.tem_alunos_com_dieta is False
+    assert solicitacao_cei.quantidade_alimentacoes == 90
+    assert solicitacao_cei.quantidade_alunos == 30
+    assert solicitacao_cei.quantidade_matriculados == 60
+
+    solicitacao_emei = kit_lanche_cemei.solicitacao_emei
+    assert solicitacao_emei.nomes_kits == 'KIT 1, KIT 2, KIT 3'
+    assert solicitacao_emei.quantidade_alimentacoes == 30
+    assert solicitacao_emei.tem_alunos_com_dieta is False

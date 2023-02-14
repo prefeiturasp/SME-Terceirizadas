@@ -20,11 +20,20 @@ def inativa_tipos_de_embabalagem(queryset):
 
 
 def confirma_guias(solicitacao, user):
-    guias = Guia.objects.filter(solicitacao=solicitacao)
+    guias = Guia.objects.filter(solicitacao=solicitacao, status=GuiaStatus.AGUARDANDO_CONFIRMACAO)
     try:
         for guia in guias:
 
             guia.distribuidor_confirma_guia(user=user)
+    except InvalidTransitionError as e:
+        return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+
+def envia_email_e_notificacao_confirmacao_guias(solicitacao):
+    guias = Guia.objects.filter(solicitacao=solicitacao, status=GuiaStatus.PENDENTE_DE_CONFERENCIA)
+    try:
+        for guia in guias:
+            guia.distribuidor_confirma_guia_envia_email_e_notificacao()
     except InvalidTransitionError as e:
         return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
@@ -64,8 +73,8 @@ def arquiva_guias(numero_requisicao, guias):  # noqa C901
         requisicao.arquivar_requisicao(uuid=requisicao.uuid)
 
 
-@transaction.atomic # noqa C901
-def confirma_cancelamento(numero_requisicao, guias, user):
+@transaction.atomic
+def confirma_cancelamento(numero_requisicao, guias, user):  # noqa C901
     # Método para confirmação de cancelamento da(s) guia(s) e requisições. Importante saber:
     # Se todas as guias para cancelamento forem todas as guias da requisição,
     # além das guias, a requisição também será cancelada.
@@ -76,9 +85,11 @@ def confirma_cancelamento(numero_requisicao, guias, user):
         requisicao.guias.filter(numero_guia__in=guias).update(status=GuiaStatus.CANCELADA)
         existe_guia_nao_cancelada = requisicao.guias.exclude(status=GuiaStatus.CANCELADA).exists()
         guias_existentes = list(requisicao.guias.values_list('numero_guia', flat=True))
+        envia_email = False
 
         if set(guias_existentes) == set(guias) or not existe_guia_nao_cancelada:
             requisicao.distribuidor_confirma_cancelamento(user=user)
+            envia_email = True
         else:
             requisicao.salvar_log_transicao(
                 status_evento=LogSolicitacoesUsuario.PAPA_CANCELA_SOLICITACAO,
@@ -95,6 +106,8 @@ def confirma_cancelamento(numero_requisicao, guias, user):
                 )
         # Atualiza registros das solicitações de cancelamento
         solicitacoes_de_cancelamento.update(foi_confirmada=True)
+        if envia_email:
+            requisicao.distribuidor_confirma_cancelamento_envia_email_notificacao()
     except ObjectDoesNotExist:
         raise ValidationError(f'Requisição {numero_requisicao} não existe.')
 

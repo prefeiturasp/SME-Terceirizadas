@@ -5,6 +5,7 @@ from rest_framework import status
 
 from ...dados_comuns.constants import SEM_FILTRO
 from ..api.constants import (
+    AGUARDANDO_CODAE,
     AUTORIZADOS,
     CANCELADOS,
     NEGADOS,
@@ -36,6 +37,11 @@ def test_url_endpoint_painel_dre_pendentes_validacao(client_autenticado_dre_pain
     response = base_diretoria_regional(client_autenticado_dre_paineis_consolidados,
                                        f'{PENDENTES_VALIDACAO_DRE}/{SEM_FILTRO}/{TIPO_VISAO_SOLICITACOES}')
     # TODO: Revisar esse teste, vive dando problema pois os valores sempre se alteram
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_painel_dre_aguardando_codae(client_autenticado_dre_paineis_consolidados):
+    response = base_diretoria_regional(client_autenticado_dre_paineis_consolidados, f'{AGUARDANDO_CODAE}')
     assert response.status_code == status.HTTP_200_OK
 
 
@@ -143,7 +149,7 @@ def test_relatorio_filtro_escola_error(users_diretor_escola):
         ],
         'status_solicitacao': [
             'status de solicitação TESTE_XXX não permitida, deve ser um dos: '
-            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']"
+            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'RECEBIDAS', 'TODOS']"
         ],
         'data_inicial': ['Informe uma data válida.'], 'data_final': ['Informe uma data válida.']
     }
@@ -247,7 +253,7 @@ def test_relatorio_filtro_dre_error(solicitacoes_ano_dre):
         ],
         'status_solicitacao': [
             'status de solicitação EM_APROVACAO não permitida, deve ser um dos: '
-            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']"
+            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'RECEBIDAS', 'TODOS']"
         ],
         'data_inicial': ['Informe uma data válida.']
     }
@@ -273,6 +279,6 @@ def test_filtro_dre_error(solicitacoes_ano_dre):
             "'SUSP_ALIMENTACAO', 'KIT_LANCHE_UNIFICADA', 'TODOS']"],
         'status_solicitacao': [
             'status de solicitação URGENTE não permitida, deve ser um dos: '
-            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']"],
+            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'RECEBIDAS', 'TODOS']"],
         'data_final': ['Informe uma data válida.']
     }

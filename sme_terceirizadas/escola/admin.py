@@ -18,6 +18,7 @@ from .models import (
     FaixaIdadeEscolar,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     LogAlunosMatriculadosPeriodoEscola,
+    LogAtualizaDadosAluno,
     LogRotinaDiariaAlunos,
     Lote,
     PeriodoEscolar,
@@ -107,6 +108,7 @@ class DiretoriaRegionalAdmin(admin.ModelAdmin):
 @admin.register(Aluno)
 class AlunoAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'escola')
+    list_filter = ('periodo_escolar',)
     search_fields = ('nome', 'escola__nome', 'codigo_eol', 'escola__codigo_eol')
 
 
@@ -200,6 +202,12 @@ class AlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'alterado_em', 'tipo_turma')
     search_fields = ('escola__nome', 'periodo_escolar__nome')
     list_filter = ('alterado_em', 'tipo_turma')
+
+
+@admin.register(LogAtualizaDadosAluno)
+class LogErroAtualizaDadosAlunoAdmin(admin.ModelAdmin):
+    list_display = ('criado_em', 'codigo_eol', 'status', 'msg_erro')
+    search_fields = ('criado_em', 'codigo_eol', 'status', 'msg_erro')
 
 
 @admin.register(LogAlunosMatriculadosPeriodoEscola)

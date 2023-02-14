@@ -10,6 +10,9 @@ from ...dados_comuns import constants
 from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import TemplateMensagem
+from ...escola.models import DiretoriaRegional, TipoGestao
+from ...terceirizada.models import Contrato
+from ..models import ProdutoEdital
 
 fake = Faker('pt-Br')
 fake.seed(420)
@@ -21,7 +24,9 @@ def escola():
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
-    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
+
+    return mommy.make('Escola', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', lote=lote,
+                      diretoria_regional=diretoria_regional)
 
 
 @pytest.fixture
@@ -153,8 +158,19 @@ def terceirizada():
 
 
 @pytest.fixture
+def edital():
+    return mommy.make('Edital',
+                      uuid='617a8139-02a9-4801-a197-622aa20795b9',
+                      numero='Edital de Pregão nº 56/SME/2016',
+                      tipo_contratacao='Teste',
+                      processo='Teste',
+                      objeto='Teste')
+
+
+@pytest.fixture
 def produto(user, protocolo1, protocolo2, marca1, fabricante):
     return mommy.make('Produto',
+                      uuid='a37bcf3f-a288-44ae-87ae-dbec181a34d4',
                       criado_por=user,
                       eh_para_alunos_com_dieta=True,
                       componentes='Componente1, Componente2',
@@ -187,6 +203,17 @@ def homologacoes_produto(produto, terceirizada):
 
 
 @pytest.fixture
+def vinculo_produto_edital(produto, edital):
+    produto_edital = mommy.make('ProdutoEdital',
+                                produto=produto,
+                                edital=edital,
+                                outras_informacoes='Teste 1',
+                                ativo=True,
+                                tipo_produto=ProdutoEdital.DIETA_ESPECIAL)
+    return produto_edital
+
+
+@pytest.fixture
 def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
     email = 'foo@codae.com'
     password = DJANGO_ADMIN_PASSWORD
@@ -195,6 +222,43 @@ def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
                                                     registro_funcional='123456')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=terceirizada, perfil=perfil_adm_terc,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def tipo_gestao():
+    return mommy.make(TipoGestao,
+                      nome='TERC TOTAL')
+
+
+@pytest.fixture
+def diretoria_regional(tipo_gestao):
+    dre = mommy.make(DiretoriaRegional,
+                     nome=fake.name(),
+                     uuid='d305add2-f070-4ad3-8c17-ba9664a7c655',
+                     make_m2m=True)
+    mommy.make('Escola', diretoria_regional=dre, tipo_gestao=tipo_gestao)
+    mommy.make('Escola', diretoria_regional=dre, tipo_gestao=tipo_gestao)
+    mommy.make('Escola', diretoria_regional=dre, tipo_gestao=tipo_gestao)
+    return dre
+
+
+@pytest.fixture
+def contrato(diretoria_regional, edital):
+    return mommy.make(Contrato, numero='1', processo='12345', diretorias_regionais=[diretoria_regional], edital=edital)
+
+
+@pytest.fixture
+def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
+    email = 'user@dre.com'
+    password = 'admin@123'
+    perfil_adm_dre = mommy.make('Perfil', nome='ADM_DRE', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=diretoria_regional, perfil=perfil_adm_dre,
                data_inicial=hoje, ativo=True)
     client.login(email=email, password=password)
     return client
@@ -267,6 +331,14 @@ def especificacao_produto1(produto, unidade_medida, embalagem_produto):
                       produto=produto,
                       unidade_de_medida=unidade_medida,
                       embalagem_produto=embalagem_produto)
+
+
+@pytest.fixture
+def produto_edital(user):
+    return mommy.make('NomeDeProdutoEdital',
+                      nome='PRODUTO TESTE',
+                      ativo=True,
+                      criado_por=user)
 
 
 @pytest.fixture
@@ -486,3 +558,8 @@ def item_cadastrado_4(embalagem_produto):
                       tipo='EMBALAGEM',
                       content_type=ContentType.objects.get(model='embalagemproduto'),
                       content_object=embalagem_produto)
+
+
+@pytest.fixture
+def usuario():
+    return mommy.make('perfil.Usuario')

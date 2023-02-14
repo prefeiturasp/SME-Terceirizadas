@@ -23,9 +23,15 @@
       <hr style="color: #EEEEEE; opacity: 0.3">
     </div>
     <div class="motivo-local">
-      <div class="info-motivo-local" style="margin-bottom: 0.3em">
-        <div>Local do passeio</div>
-        <div>{{ solicitacao.local }}</div>
+      <div class="id-pedido" style="margin-bottom: 0.3em">
+        <div class="info info-motivo-local " style="margin-right: 3em">
+          <div>Data</div>
+          <div>{{ solicitacao.data|date:"d/m/Y" }}</div>
+        </div>
+        <div class="info info-motivo-local">
+          <div>Local do passeio</div>
+          <div>{{ solicitacao.local }}</div>
+        </div>
       </div>
     </div>
     <div class="tabela-sem-borda">
@@ -53,8 +59,22 @@
               </tr>
             {% endfor %}
         {% else %}
+          {% if usuario_eh_escola %}
+            <tr>
+              <td>{{ sol_unificada_escola.escola.codigo_eol }}</td>
+              <td>{{ sol_unificada_escola.escola.nome }}</td>
+              <td>{{ sol_unificada_escola.quantidade_alunos }}</td>
+              <td>{{ sol_unificada_escola.get_tempo_passeio_display }}</td>
+              <td>{{ sol_unificada_escola.kits.all |join:", " }}</td>
+              <td>{% widthratio sol_unificada_escola.kits.count 1 sol_unificada_escola.quantidade_alunos %}</td>
+            </tr>
+          {% else %}
             {% for i in solicitacao.escolas_quantidades.all %}
+              {% if i.cancelado and usuario_eh_dre_ou_codae and not todos_kits_cancelados %}
+              <tr style="text-decoration: line-through; color: #686868">
+              {% else %}
               <tr>
+              {% endif %}
                 <td>{{ i.escola.codigo_eol }}</td>
                 <td>{{ i.escola.nome }}</td>
                 <td>{{ i.quantidade_alunos }}</td>
@@ -63,6 +83,7 @@
                 <td>{% widthratio i.kits.count 1 i.quantidade_alunos %}</td>
               </tr>
             {% endfor %}
+          {% endif %}
         {% endif %}
 
         </tbody>
@@ -74,23 +95,72 @@
     <div class="total-unidades-kits">
       <div>
         <p class="cabecalho">Nº total de Unidade Escolares beneficiadas</p>
-        <p class="resultado">{{ qtd_escolas }} Unidade Escolares</p>
+        {% if usuario_eh_escola %}
+          <p class="resultado">1 Unidade Escolar</p>
+        {% else %}
+          <p class="resultado">{{ qtd_escolas }} Unidades Escolares</p>
+        {% endif %}
       </div>
       <div>
         <p class="cabecalho">Nº total de Kits</p>
-        <p class="resultado">{{ solicitacao.total_kit_lanche }} kits</p>
+        {% if usuario_eh_escola %}
+          <p class="resultado">{% widthratio sol_unificada_escola.kits.count 1 sol_unificada_escola.quantidade_alunos %} kits</p>
+        {% else %}
+          <p class="resultado">{{ solicitacao.total_kit_lanche }} kits</p>
+        {% endif %}
       </div>
     </div>
-      {% if solicitacao.solicitacao_kit_lanche.descricao.length > 0 %}
-        <div style="color: #686868">
-          <p>Observações</p>
-          <p>
-              {{ solicitacao.solicitacao_kit_lanche.descricao |safe }}
-          </p>
+    {% if usuario_eh_escola and sol_unificada_escola.cancelado %}
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+      <p class="cabecalho" style="color: #686868; font-weight: bold; font-size: 14px;">Histórico de justificativas</p>
+      <div style="margin-top: 16px; font-size: 14px;">
+        {{ sol_unificada_escola.cancelado_em|date:"d/m/Y H:i:s" }} -
+          {% if sol_unificada_escola.cancelado_por.tipo_usuario == "diretoriaregional" %}
+            DRE CANCELOU - {{ sol_unificada_escola.escola.diretoria_regional.nome }}
+          {% else %}
+            UNIDADE CANCELOU - USUÁRIO {{ sol_unificada_escola.cancelado_por.nome }}
+          {% endif %}
+      </div>
+      <div style="margin-top: 10px; font-size: 12px;">
+        Observação do Cancelamento: {{ sol_unificada_escola.cancelado_justificativa }}
+      </div>
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+    {% elif usuario_eh_dre_ou_codae and justificativas_formatadas %}
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+      <p class="cabecalho" style="color: #686868; font-weight: bold; font-size: 14px;">Histórico de justificativas</p>
+      {% for item in justificativas_formatadas %}
+        <div style="margin-top: 16px; font-size: 14px;">
+          {{ item.cancelado_em|date:"d/m/Y H:i:s" }} -
+            {% if item.tipo_usuario == "diretoriaregional" %}
+              DRE CANCELOU - {{ item.nome_dre }}
+            {% else %}
+              UNIDADE CANCELOU - USUÁRIO {{ item.cancelado_por }}
+            {% endif %}
         </div>
+        <div style="margin-top: 6px; margin-bottom: 4px; font-size: 14px;">
+          Unidades canceladas:
         </div>
-      {% endif %}
+        {% for unidade in item.unidades %}
+          <div style="font-size: 14px;">
+            {{ unidade }}
+          </div>
+        {% endfor %}
+        <div style="margin-top: 10px; font-size: 12px;">
+          Observação do Cancelamento: {{ item.justificativa }}
+        </div>
+      {% endfor %}
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+    {% else %}
+      {% include "bloco_historico_cancelamento.html" %}
+    {% endif %}
     {% include "bloco_observacoes.html" %}
     {% include "bloco_historico_questionamento.html" %}
-    {% include "bloco_historico_cancelamento.html" %}
 {% endblock %}

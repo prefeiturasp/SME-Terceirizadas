@@ -56,7 +56,7 @@ def class_css(log):
         classe_css = 'disapproved'
     elif log.status_evento_explicacao in ['Questionamento pela CODAE', 'CODAE pediu correção',
                                           'CODAE pediu análise sensorial', 'Escola/Nutricionista reclamou do produto',
-                                          'CODAE pediu análise da reclamação']:
+                                          'CODAE pediu análise da reclamação', 'Terceirizada respondeu questionamento']:
         classe_css = 'questioned'
     return classe_css
 
@@ -81,6 +81,19 @@ def aceita_nao_aceita_str(aceitou):
 @register.filter
 def tem_questionamentos(logs):
     return logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU).exists()
+
+
+@register.filter
+def tem_cancelamento(logs):
+    return logs.filter(status_evento__in=[LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                                          LogSolicitacoesUsuario.DRE_NAO_VALIDOU,
+                                          LogSolicitacoesUsuario.CODAE_NEGOU,
+                                          LogSolicitacoesUsuario.DRE_CANCELOU]).exists()
+
+
+@register.filter
+def tem_cancelamento_parcial(dias):
+    return dias.filter(cancelado=True).exists()
 
 
 @register.filter
@@ -261,3 +274,11 @@ def existe_inclusao_cancelada(solicitacao):
 @register.filter
 def inclusoes_canceladas(solicitacao):
     return solicitacao.inclusoes.filter(cancelado=True)
+
+
+@register.filter
+def formatar_data_solicitacoes_alimentacao(data):
+    try:
+        return data.strftime('%d/%m/%Y')
+    except Exception:
+        return data

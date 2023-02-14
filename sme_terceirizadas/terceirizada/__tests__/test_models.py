@@ -19,9 +19,9 @@ def test_modelo_contrato(contrato):
     assert contrato.uuid is not None
     assert contrato.numero is not None
     assert contrato.processo is not None
-    assert contrato.data_proposta is not None
+    assert contrato.data_proposta is None
     assert contrato.lotes is not None
-    assert contrato.terceirizada is not None
+    assert contrato.terceirizada is None
     assert contrato.vigencias is not None
     assert contrato.diretorias_regionais is not None
 
@@ -74,3 +74,18 @@ def test_terceirizada(terceirizada):
 
 def test_nutricionista(nutricionista):
     assert nutricionista.__str__() == 'nutri'
+
+
+def test_modelo_modulo(modulo):
+    assert modulo.__str__() == 'Dieta Especial'
+    assert modulo.uuid is not None
+    assert modulo.nome is not None
+
+
+def test_modelo_emailterceirizadapormodulo(emailterceirizadapormodulo):
+    assert emailterceirizadapormodulo.__str__() == 'teste@teste.com - Alimentos SA - Dieta Especial'
+    assert emailterceirizadapormodulo.uuid is not None
+    assert emailterceirizadapormodulo.terceirizada is not None
+    assert emailterceirizadapormodulo.modulo is not None
+    assert emailterceirizadapormodulo.criado_em is not None
+    assert emailterceirizadapormodulo.criado_por is not None

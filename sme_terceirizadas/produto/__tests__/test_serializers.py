@@ -46,3 +46,12 @@ def test_especificacao_produto_serializer(especificacao_produto1):
     assert serializer.data is not None
     assert serializer.data['uuid'] == str(especificacao_produto1.uuid)
     assert serializer.data['volume'] == especificacao_produto1.volume
+
+
+def test_produto_edital(produto_edital):
+    from sme_terceirizadas.produto.api.serializers.serializers import CadastroProdutosEditalSerializer
+    serializer = CadastroProdutosEditalSerializer(produto_edital)
+
+    assert serializer.data is not None
+    assert serializer.data['uuid'] == str(produto_edital.uuid)
+    assert serializer.data['nome'] == produto_edital.nome

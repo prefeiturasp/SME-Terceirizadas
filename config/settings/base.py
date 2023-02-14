@@ -6,7 +6,6 @@ import os
 
 import environ
 import sentry_sdk
-from celery.schedules import crontab
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
@@ -43,6 +42,9 @@ USE_TZ = False
 LOCALE_PATHS = (
     os.path.join(ROOT_DIR, 'locale'),
 )
+
+REDIS_URL = env('REDIS_URL')
+
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
@@ -66,6 +68,17 @@ DATABASES['default']['ATOMIC_REQUESTS'] = True
 ROOT_URLCONF = 'config.urls'
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL]
+        }
+    }
+}
+# DEIXAR ILIMITADO O TAMANHO DO QUERY PARAMS PARA GET E POST
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 
 # APPS
 # ------------------------------------------------------------------------------
@@ -82,6 +95,7 @@ DJANGO_APPS = [
     'django.contrib.postgres'
 ]
 THIRD_PARTY_APPS = [
+    'channels',
     'crispy_forms',
     'django_filters',
     'django_prometheus',
@@ -113,6 +127,8 @@ LOCAL_APPS = [
     'sme_terceirizadas.produto.apps.ProdutoConfig',
     'sme_terceirizadas.lancamento_inicial.apps.LancamentoInicialConfig',
     'sme_terceirizadas.logistica.apps.LogisticaConfig',
+    'sme_terceirizadas.medicao_inicial.apps.MedicaoInicialConfig',
+    'sme_terceirizadas.pre_recebimento.apps.PreRecebimentoConfig'
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -327,8 +343,6 @@ URL_CONFIGS = {
     'API': '/api{uri}'
 }
 
-REDIS_URL = env('REDIS_URL')
-
 # CACHES
 # ------------------------------------------------------------------------------
 CACHES = {
@@ -352,33 +366,6 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TIMEZONE = TIME_ZONE
-
-CELERY_BEAT_SCHEDULE = {
-    'cancela-dietas-ativas-automaticamente': {
-        'task': 'sme_terceirizadas.dieta_especial.tasks.cancela_dietas_ativas_automaticamente_task',
-        'schedule': crontab(hour='8-17', minute='*/5')
-    },
-    'atualiza-totais-das-escolas': {
-        'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
-        'schedule': crontab(hour=0, minute=0)
-    },
-    'atualiza-dados-das-escolas': {
-        'task': 'sme_terceirizadas.escola.tasks.atualiza_dados_escolas',
-        'schedule': crontab(hour=0, minute=30)
-    },
-    'ativa-desativa-vinculos-alimentacao': {
-        'task': 'sme_terceirizadas.cardapio.tasks.ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar',  # noqa E501
-        'schedule': crontab(hour=1, minute=0)
-    },
-    'termina-dietas-especiais': {
-        'task': 'sme_terceirizadas.dieta_especial.tasks.processa_dietas_especiais_task',
-        'schedule': crontab(hour=1, minute=30)
-    },
-    'atualiza-alunos-escolas': {
-        'task': 'sme_terceirizadas.escola.tasks.atualiza_alunos_escolas',
-        'schedule': crontab(hour=2, minute=0)
-    }
-}
 
 # reset password
 PASSWORD_RESET_TIMEOUT_DAYS = 1

@@ -24,6 +24,7 @@ from ..dados_comuns.fluxo_status import (
 from ..dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
 from ..escola.models import Escola
+from ..terceirizada.models import Edital
 
 MAX_NUMERO_PROTOCOLO = 6
 
@@ -180,6 +181,36 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     class Meta:
         verbose_name = 'Produto'
         verbose_name_plural = 'Produtos'
+
+
+class ProdutoEdital(TemChaveExterna, CriadoEm):
+
+    COMUM = 'Comum'
+    DIETA_ESPECIAL = 'Dieta especial'
+
+    TIPO_PRODUTO = {
+        COMUM: 'Comum',
+        DIETA_ESPECIAL: 'Dieta especial',
+    }
+
+    TIPO_PRODUTO_CHOICES = (
+        (COMUM, TIPO_PRODUTO[COMUM]),
+        (DIETA_ESPECIAL, TIPO_PRODUTO[DIETA_ESPECIAL]),
+    )
+
+    produto = models.ForeignKey(Produto, null=False, on_delete=models.DO_NOTHING, related_name='vinculos')
+    edital = models.ForeignKey(Edital, null=False, on_delete=models.DO_NOTHING, related_name='vinculos')
+    tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES, null=False, blank=False)  # noqa DJ01
+    outras_informacoes = models.TextField('Outras Informações', blank=True)
+    ativo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.produto} -- {self.edital.numero}'
+
+    class Meta:
+        verbose_name = 'Vinculo entre produto e edital'
+        verbose_name_plural = 'Vinculos entre produtos e editais'
+        unique_together = ('produto', 'edital')
 
 
 class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
@@ -340,111 +371,8 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         return f'Homologação #{self.id_externo}'
 
 
-class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoProduto,
-                           Logs, TemIdentificadorExternoAmigavel, Ativavel):
-    DESCRICAO = 'Homologação de Produto'
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='homologacoes')
-    necessita_analise_sensorial = models.BooleanField(default=False)
-    protocolo_analise_sensorial = models.CharField(max_length=8, blank=True)
-    pdf_gerado = models.BooleanField(default=False)
-
-    @property
-    def data_cadastro(self):
-        if self.status != self.workflow_class.RASCUNHO:
-            log = self.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO).first()
-            if log:
-                return log.criado_em.date()
-
-    @property
-    def template_mensagem(self):
-        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.HOMOLOGACAO_PRODUTO)
-        template_troca = {
-            '@id': self.id_externo,
-            '@criado_em': str(self.criado_em),
-            '@criado_por': str(self.criado_por),
-            '@status': str(self.status),
-            # TODO: verificar a url padrão do pedido
-            '@link': 'http://teste.com',
-        }
-        corpo = template.template_html
-        for chave, valor in template_troca.items():
-            corpo = corpo.replace(chave, valor)
-        return template.assunto, corpo
-
-    @property
-    def tempo_aguardando_acao_em_dias(self):
-        if self.status in [
-            HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO,
-            HomologacaoProdutoWorkflow.CODAE_QUESTIONADO,
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-            HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
-        ]:
-            intervalo = datetime.today() - self.ultimo_log.criado_em
-        else:
-            try:
-                penultimo_log = self.logs.order_by('-criado_em')[1]
-                intervalo = self.ultimo_log.criado_em - penultimo_log.criado_em
-            except IndexError:
-                intervalo = datetime.today() - self.ultimo_log.criado_em
-        return intervalo.days
-
-    @property
-    def ultimo_log(self):
-        return self.log_mais_recente
-
-    @property
-    def ultima_analise(self):
-        return self.analises_sensoriais.last()
-
-    def gera_protocolo_analise_sensorial(self):
-        id_sequecial = str(get_next_value('protocolo_analise_sensorial'))
-        serial = ''
-        for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
-            serial = serial + '0'
-        serial = serial + str(id_sequecial)
-        self.protocolo_analise_sensorial = f'AS{serial}'
-        self.necessita_analise_sensorial = True
-        self.save()
-
-    @classmethod
-    def retorna_numero_do_protocolo(cls):
-        id_sequecial = get_last_value('protocolo_analise_sensorial')
-        serial = ''
-        if id_sequecial is None:
-            id_sequecial = '1'
-        else:
-            id_sequecial = str(get_last_value('protocolo_analise_sensorial') + 1)
-        for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
-            serial = serial + '0'
-        serial = serial + str(id_sequecial)
-        return f'AS{serial}'
-
-    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
-        justificativa = kwargs.get('justificativa', '')
-        return LogSolicitacoesUsuario.objects.create(
-            descricao=str(self),
-            status_evento=status_evento,
-            solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
-            usuario=usuario,
-            uuid_original=self.uuid,
-            justificativa=justificativa
-        )
-
-    class Meta:
-        ordering = ('-ativo', '-criado_em')
-        verbose_name = 'Homologação de Produto'
-        verbose_name_plural = 'Homologações de Produto'
-
-    def __str__(self):
-        return f'Homologação #{self.id_externo}'
-
-
 class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, CriadoPor,
                           Logs, TemIdentificadorExternoAmigavel):
-    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
-                                               related_name='reclamacoes', null=True, blank=True)
     homologacao_produto = models.ForeignKey('HomologacaoProduto', on_delete=models.CASCADE,
                                             related_name='reclamacoes', null=True, blank=True)
     reclamante_registro_funcional = models.CharField('RF/CRN/CRF', max_length=50)
@@ -495,8 +423,6 @@ class AnexoReclamacaoDeProduto(TemChaveExterna):
 
 
 class RespostaAnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor):
-    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
-                                               related_name='respostas_analise', null=True, blank=True)
     homologacao_produto = models.ForeignKey('HomologacaoProduto', on_delete=models.CASCADE,
                                             related_name='respostas_analise', null=True, blank=True)
     responsavel_produto = models.CharField(max_length=150)
@@ -507,7 +433,7 @@ class RespostaAnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel,
 
     @property
     def numero_protocolo(self):
-        return self.homologacao_de_produto.protocolo_analise_sensorial
+        return self.homologacao_produto.protocolo_analise_sensorial
 
     def __str__(self):
         return f'Resposta {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
@@ -560,8 +486,6 @@ class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoE
         (STATUS_RESPONDIDA, STATUS[STATUS_RESPONDIDA]),
     )
 
-    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
-                                               related_name='analises_sensoriais', null=True, blank=True)
     homologacao_produto = models.ForeignKey('HomologacaoProduto', on_delete=models.CASCADE,
                                             related_name='analises_sensoriais', null=True, blank=True)
 
@@ -578,7 +502,7 @@ class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoE
 
     @property
     def numero_protocolo(self):
-        return self.homologacao_de_produto.protocolo_analise_sensorial
+        return self.homologacao_produto.protocolo_analise_sensorial
 
     def __str__(self):
         return f'Análise Sensorial {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'

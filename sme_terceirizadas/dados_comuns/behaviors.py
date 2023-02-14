@@ -3,7 +3,7 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
 
 from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, REGULAR, StatusProcessamentoArquivo
@@ -200,10 +200,6 @@ class TemPrioridade(object):
     Quando o objeto implementa o TemPrioridade, ele deve ter um property data
     """
 
-    @property
-    def data(self):
-        raise NotImplementedError('Deve implementar um property @data')
-
     @property  # noqa
     def prioridade(self):
         descricao = 'VENCIDO'
@@ -250,6 +246,50 @@ class Logs(object):
     @property
     def log_mais_recente(self):
         return self.logs.last()
+
+    @property
+    def data_autorizacao(self):
+        if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid).first().solicitacao_tipo in [
+                LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO, LogSolicitacoesUsuario.SUSPENSAO_ALIMENTACAO_CEI]:
+            return self.logs.first().criado_em.strftime('%d/%m/%Y') if self.logs.exists() else ''
+        if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid,
+                                                 status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU).exists():
+            log = LogSolicitacoesUsuario.objects.filter(
+                uuid_original=self.uuid, status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU
+            )
+            if log:
+                return log.last().criado_em.strftime('%d/%m/%Y')
+        return ''
+
+    @property
+    def data_cancelamento(self):
+        if LogSolicitacoesUsuario.objects.filter(
+            uuid_original=self.uuid,
+            status_evento__in=[
+                LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]).exists():
+            log = LogSolicitacoesUsuario.objects.filter(
+                uuid_original=self.uuid,
+                status_evento__in=[
+                    LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]
+            )
+            if log:
+                return log.last().criado_em.strftime('%d/%m/%Y')
+        return ''
+
+    @property
+    def data_negacao(self):
+        if LogSolicitacoesUsuario.objects.filter(
+            uuid_original=self.uuid,
+            status_evento__in=[
+                LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]).exists():
+            log = LogSolicitacoesUsuario.objects.filter(
+                uuid_original=self.uuid,
+                status_evento__in=[
+                    LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
+            )
+            if log:
+                return log.last().criado_em.strftime('%d/%m/%Y')
+        return ''
 
 
 class TemVinculos(models.Model):
@@ -315,6 +355,54 @@ class TemTerceirizadaConferiuGestaoAlimentacao(models.Model):
     """Indicação de que a terceirizada realizou avaliação da solicitação na gestão de alimentação."""
 
     terceirizada_conferiu_gestao = models.BooleanField('Terceirizada conferiu?', default=False)
+
+    class Meta:
+        abstract = True
+
+
+class TemAno(models.Model):
+    ano = models.CharField('Ano', max_length=4)
+
+    class Meta:
+        abstract = True
+
+
+class TemMes(models.Model):
+    mes = models.CharField('Mes', max_length=2)
+
+    class Meta:
+        abstract = True
+
+
+class TemDia(models.Model):
+    dia = models.CharField('Dia', max_length=2)
+
+    class Meta:
+        abstract = True
+
+
+class MatriculadosQuandoCriado(models.Model):
+    matriculados_quando_criado = models.PositiveSmallIntegerField(null=True, blank=True,
+                                                                  validators=[MinValueValidator(1)])
+
+    class Meta:
+        abstract = True
+
+
+class CanceladoIndividualmente(models.Model):
+    cancelado = models.BooleanField('Esta cancelado?', default=False)
+    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
+    cancelado_em = models.DateTimeField('Cancelado em', null=True, blank=True)
+    cancelado_por = models.ForeignKey(
+        'perfil.Usuario', on_delete=models.DO_NOTHING, null=True, blank=True
+    )
+
+    class Meta:
+        abstract = True
+
+
+class Posicao(models.Model):
+    posicao = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
 
     class Meta:
         abstract = True

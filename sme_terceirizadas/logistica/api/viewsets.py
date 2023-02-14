@@ -3,7 +3,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Count, F, FloatField, Max, Q, Sum
 from django.db.utils import DataError
-from django.http.response import HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -23,7 +22,8 @@ from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaListarEntregas,
-    UsuarioDilogCodae,
+    UsuarioCodaeDilog,
+    UsuarioDilog,
     UsuarioDilogOuDistribuidor,
     UsuarioDilogOuDistribuidorOuEscolaAbastecimento,
     UsuarioDistribuidor,
@@ -37,7 +37,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
-from sme_terceirizadas.logistica.api.serializers.serializers import ( # noqa
+from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
     ConferenciaComOcorrenciaSerializer,
@@ -59,24 +59,25 @@ from sme_terceirizadas.logistica.api.serializers.serializers import ( # noqa
     SolicitacaoRemessaSimplesSerializer,
     XmlParserSolicitacaoSerializer
 )
-from sme_terceirizadas.logistica.api.services.exporta_para_excel import RequisicoesExcelService
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
-from sme_terceirizadas.logistica.services import arquiva_guias, confirma_cancelamento, confirma_guias, desarquiva_guias
+from sme_terceirizadas.logistica.services import (
+    arquiva_guias,
+    confirma_cancelamento,
+    confirma_guias,
+    desarquiva_guias,
+    envia_email_e_notificacao_confirmacao_guias
+)
 
-from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA
+from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA, COGESTOR
 from ...escola.models import DiretoriaRegional, Escola
 from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
-from ..tasks import gera_pdf_async, gera_xlsx_async
+from ..tasks import gera_pdf_async, gera_xlsx_async, gera_xlsx_entregas_async
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
-from .helpers import (
-    retorna_dados_normalizados_excel_entregas_distribuidor,
-    valida_guia_conferencia,
-    valida_guia_insucesso
-)
+from .helpers import valida_guia_conferencia, valida_guia_insucesso
 from .validators import eh_true_ou_false
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
@@ -89,10 +90,10 @@ class SolicitacaoEnvioEmMassaModelViewSet(viewsets.ModelViewSet):
     http_method_names = ['post']
     queryset = SolicitacaoRemessa.objects.all()
     serializer_class = SolicitacaoRemessaCreateSerializer
-    permission_classes = [UsuarioDilogCodae]
+    permission_classes = [UsuarioDilog]
     pagination_class = None
 
-    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+    @action(detail=False, permission_classes=(UsuarioDilog,),
             methods=['post'], url_path='envia-grade')
     def inicia_fluxo_solicitacoes_em_massa(self, request):
         usuario = request.user
@@ -103,7 +104,7 @@ class SolicitacaoEnvioEmMassaModelViewSet(viewsets.ModelViewSet):
             try:
                 solicitacao.inicia_fluxo(user=usuario)
             except InvalidTransitionError as e:
-                return Response(dict(detail=f'Erro de transição de estado: {e}', status=HTTP_400_BAD_REQUEST))
+                return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
         serializer = SolicitacaoRemessaSerializer(solicitacoes, many=True)
         return Response(serializer.data)
 
@@ -249,7 +250,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
         return Response('Cancelamento realizado com sucesso.', status=HTTP_200_OK)
 
-    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+    @action(detail=False, permission_classes=(UsuarioDilog,),
             methods=['post'], url_path='arquivar')
     def arquiva_guias_e_requisicoes(self, request):
         numero_requisicao = request.data.get('numero_requisicao', '')
@@ -266,7 +267,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
         return Response('Arquivamento realizado com sucesso.', status=HTTP_200_OK)
 
-    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+    @action(detail=False, permission_classes=(UsuarioDilog,),
             methods=['post'], url_path='desarquivar')
     def desarquiva_guias_e_requisicoes(self, request):
         numero_requisicao = request.data.get('numero_requisicao', '')
@@ -289,7 +290,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, permission_classes=(UsuarioDilogCodae,),  # noqa C901
+    @action(detail=False, permission_classes=(UsuarioDilog,),  # noqa C901
             methods=['GET'], url_path='lista-requisicoes-para-envio')
     def lista_requisicoes_para_envio(self, request):
         queryset = self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.AGUARDANDO_ENVIO)
@@ -360,7 +361,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaContagemGuiasSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=True, permission_classes=(UsuarioDilogCodae,),
+    @action(detail=True, permission_classes=(UsuarioDilog,),
             methods=['patch'], url_path='envia-solicitacao')
     def incia_fluxo_solicitacao(self, request, uuid=None):
         solicitacao = SolicitacaoRemessa.objects.get(uuid=uuid,
@@ -390,6 +391,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
                     cnpj=solicitacao.cnpj,
                     numero_solicitacao=solicitacao.numero_solicitacao,
                     sequencia_envio=solicitacao.sequencia_envio)
+                envia_email_e_notificacao_confirmacao_guias(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
@@ -411,6 +413,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
                         cnpj=solicitacao.cnpj,
                         numero_solicitacao=solicitacao.numero_solicitacao,
                         sequencia_envio=solicitacao.sequencia_envio)
+                    envia_email_e_notificacao_confirmacao_guias(solicitacao)
             return Response(status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
@@ -537,35 +540,26 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         url_path='exporta-excel-visao-entregas',
         permission_classes=[PermissaoParaListarEntregas])
     def gerar_excel_entregas(self, request):
+        user = self.request.user
+        username = user.get_username()
         uuid = request.query_params.get('uuid', None)
         tem_conferencia = request.query_params.get('tem_conferencia', None)
         tem_insucesso = request.query_params.get('tem_insucesso', None)
         tem_conferencia = eh_true_ou_false(tem_conferencia, 'tem_conferencia')
         tem_insucesso = eh_true_ou_false(tem_insucesso, 'tem_insucesso')
-        requisicoes_insucesso = None
-        queryset = self.filter_queryset(self.get_queryset())
-        if tem_insucesso:
-            queryset_insucesso = self.get_queryset().filter(
-                uuid=uuid,
-                guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO)
-            requisicoes_insucesso = retorna_dados_normalizados_excel_entregas_distribuidor(queryset_insucesso)
+        eh_distribuidor = True if user.vinculo_atual.perfil.nome == ADMINISTRADOR_DISTRIBUIDORA else False
+        eh_dre = True if user.vinculo_atual.perfil.nome == COGESTOR else False
 
-        requisicoes = retorna_dados_normalizados_excel_entregas_distribuidor(queryset)
-
-        if self.request.user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
-            result = RequisicoesExcelService.exportar_entregas(
-                requisicoes, requisicoes_insucesso, 'DISTRIBUIDOR', tem_conferencia, tem_insucesso)
-        else:
-            result = RequisicoesExcelService.exportar_entregas(
-                requisicoes, requisicoes_insucesso, 'DILOG', tem_conferencia, tem_insucesso)
-
-        response = HttpResponse(
-            result['arquivo'],
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        gera_xlsx_entregas_async.delay(
+            uuid=uuid,
+            username=username,
+            tem_conferencia=tem_conferencia,
+            tem_insucesso=tem_insucesso,
+            eh_distribuidor=eh_distribuidor,
+            eh_dre=eh_dre,
         )
-        response['Content-Disposition'] = 'attachment; filename=%s' % result['filename']
-
-        return response
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=HTTP_200_OK)
 
 
 class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
@@ -592,7 +586,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': GuiaDaRemessaSimplesSerializer(self.get_queryset(), many=True).data}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
+    @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioCodaeDilog,))
     def lista_guias_inconsistencias(self, request):
         queryset = self.filter_queryset(self.get_queryset().filter(escola=None).order_by('-id'))
         page = self.paginate_queryset(queryset)
@@ -638,7 +632,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro: {e}', status=False),
                             status=HTTP_404_NOT_FOUND)
 
-    @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
+    @action(detail=False, methods=['PATCH'], url_path='vincula-guias', permission_classes=(UsuarioCodaeDilog,))
     def vincula_guias_com_escolas(self, request):
         guias_desvinculadas = self.get_queryset().filter(escola=None)
         contagem = 0
@@ -727,7 +721,7 @@ class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = Alimento.objects.all()
     serializer_class = AlimentoDaGuiaDaRemessaSerializer
-    permission_classes = [UsuarioDilogCodae]
+    permission_classes = [UsuarioDilog]
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_nomes(self, request):
@@ -782,7 +776,7 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
         else:
             return SolicitacaoDeAlteracaoRequisicaoCreateSerializer
 
-    @action(detail=True, permission_classes=(UsuarioDilogCodae,),
+    @action(detail=True, permission_classes=(UsuarioDilog,),
             methods=['patch'], url_path='dilog-aceita-alteracao')
     def dilog_aceita_alteracao(self, request, uuid=None):
         usuario = request.user
@@ -802,7 +796,7 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=(UsuarioDilogCodae,),
+    @action(detail=True, permission_classes=(UsuarioDilog,),
             methods=['patch'], url_path='dilog-nega-alteracao')
     def dilog_nega_alteracao(self, request, uuid=None):
         usuario = request.user
