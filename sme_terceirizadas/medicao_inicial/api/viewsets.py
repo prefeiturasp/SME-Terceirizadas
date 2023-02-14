@@ -126,12 +126,15 @@ class SolicitacaoMedicaoInicialViewSet(
     def condicao_por_usuario(self, queryset):
         usuario = self.request.user
         if usuario.tipo_usuario == 'diretoriaregional':
-            return queryset.filter(escola__diretoria_regional=self.request.user.vinculo_atual.instituicao)
+            return queryset.filter(escola__diretoria_regional=usuario.vinculo_atual.instituicao)
         elif usuario.tipo_usuario == 'escola':
-            return queryset.filter(escola=self.request.user.vinculo_atual.object_id)
+            return queryset.filter(escola=usuario.vinculo_atual.instituicao)
         return queryset
 
-    def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
+    def dados_dashboard(self, request, query_set: QuerySet, kwargs: dict, use_raw=True) -> list:
+        limit = int(request.query_params.get('limit', 10))
+        offset = int(request.query_params.get('offset', 0))
+
         sumario = []
         for workflow in self.get_lista_status():
             todos_lancamentos = workflow == 'TODOS_OS_LANCAMENTOS'
@@ -159,6 +162,7 @@ class SolicitacaoMedicaoInicialViewSet(
             else:
                 qs = (query_set.filter(status=workflow) if not todos_lancamentos
                       else query_set.exclude(status='MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'))
+                qs = qs.filter(**kwargs)
                 qs = self.condicao_por_usuario(qs)
                 qs = sorted(qs.distinct().all(),
                             key=lambda x: x.log_mais_recente.criado_em
@@ -167,19 +171,50 @@ class SolicitacaoMedicaoInicialViewSet(
                 'status': workflow,
                 'total': len(qs),
                 'dados': SolicitacaoMedicaoInicialDashboardSerializer(
-                    qs[:10],
+                    qs[offset:limit + offset],
                     context={'request': self.request, 'workflow': workflow}, many=True).data
             })
-
         return sumario
+
+    def formatar_filtros(self, query_params):
+        kwargs = {}
+        if query_params.get('mes_ano'):
+            data_splitted = query_params.get('mes_ano').split('_')
+            kwargs['mes'] = data_splitted[0]
+            kwargs['ano'] = data_splitted[1]
+        if query_params.getlist('lotes_selecionados[]'):
+            kwargs['escola__lote__uuid__in'] = query_params.getlist('lotes_selecionados[]')
+        if query_params.get('tipo_unidade'):
+            kwargs['escola__tipo_unidade__uuid'] = query_params.get('tipo_unidade')
+        if query_params.get('escola'):
+            kwargs['escola__codigo_eol'] = query_params.get('escola').split(' - ')[0]
+        return kwargs
 
     @action(detail=False, methods=['GET'], url_path='dashboard',
             permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def dashboard(self, request):
         query_set = self.get_queryset()
         possui_filtros = len(request.query_params)
-        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=not possui_filtros)}
+        kwargs = self.formatar_filtros(request.query_params)
+        response = {'results': self.dados_dashboard(query_set=query_set,
+                                                    request=request,
+                                                    kwargs=kwargs,
+                                                    use_raw=not possui_filtros)}
         return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='meses-anos',
+            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    def meses_anos(self, request):
+        query_set = self.condicao_por_usuario(self.get_queryset()).exclude(
+            status=SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE)
+        meses_anos = query_set.values_list('mes', 'ano')
+        meses_anos_unicos = []
+        for mes_ano in meses_anos:
+            mes_ano_obj = {'mes': mes_ano[0], 'ano': mes_ano[1]}
+            if mes_ano_obj not in meses_anos_unicos:
+                meses_anos_unicos.append(mes_ano_obj)
+        return Response({'results': sorted(meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True)},
+                        status=status.HTTP_200_OK)
 
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
