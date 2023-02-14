@@ -3007,6 +3007,9 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_DINUTRE,
                                       usuario=user)
 
+    class Meta:
+        abstract = True
+
 
 class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
@@ -3039,3 +3042,6 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
+
+    class Meta:
+        abstract = True
