@@ -72,6 +72,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
     def get_lista_status(self):
         lista_status = [
             Cronograma.workflow_class.ASSINADO_CRONOGRAMA,
+            Cronograma.workflow_class.ASSINADO_DINUTRE,
         ]
 
         return lista_status
