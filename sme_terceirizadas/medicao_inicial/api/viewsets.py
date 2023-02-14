@@ -131,7 +131,7 @@ class SolicitacaoMedicaoInicialViewSet(
             return queryset.filter(escola=self.request.user.vinculo_atual.object_id)
         return queryset
 
-    def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
+    def dados_dashboard(self, query_set: QuerySet, kwargs: dict, use_raw=True) -> list:
         sumario = []
         for workflow in self.get_lista_status():
             todos_lancamentos = workflow == 'TODOS_OS_LANCAMENTOS'
@@ -159,6 +159,7 @@ class SolicitacaoMedicaoInicialViewSet(
             else:
                 qs = (query_set.filter(status=workflow) if not todos_lancamentos
                       else query_set.exclude(status='MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'))
+                qs = qs.filter(**kwargs)
                 qs = self.condicao_por_usuario(qs)
                 qs = sorted(qs.distinct().all(),
                             key=lambda x: x.log_mais_recente.criado_em
@@ -170,15 +171,29 @@ class SolicitacaoMedicaoInicialViewSet(
                     qs[:10],
                     context={'request': self.request, 'workflow': workflow}, many=True).data
             })
-
         return sumario
+
+    def formatar_filtros(self, query_params):
+        kwargs = {}
+        if query_params.get('mes'):
+            kwargs['mes'] = query_params.get('mes')
+        if query_params.getlist('lotes[]'):
+            kwargs['escola__lotes__in'] = query_params.getlist('lotes[]')
+        if query_params.get('tipo_unidade'):
+            kwargs['escola__tipo_unidade__iniciais'] = query_params.get('tipo_unidade')
+        if query_params.get('escola__nome'):
+            kwargs['escola__nome'] = query_params.get('escola__nome')
+        return kwargs
 
     @action(detail=False, methods=['GET'], url_path='dashboard',
             permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def dashboard(self, request):
         query_set = self.get_queryset()
         possui_filtros = len(request.query_params)
-        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=not possui_filtros)}
+        kwargs = self.formatar_filtros(request.query_params)
+        response = {'results': self.dados_dashboard(query_set=query_set,
+                                                    kwargs=kwargs,
+                                                    use_raw=not possui_filtros)}
         return Response(response)
 
 
