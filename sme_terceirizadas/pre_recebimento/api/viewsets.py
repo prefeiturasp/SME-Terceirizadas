@@ -31,7 +31,8 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
     EmbalagemQldSerializer,
-    LaboratorioSerializer
+    LaboratorioSerializer,
+    PainelCronogramaSerializer
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
@@ -93,7 +94,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
             sumario.append({
                 'status': workflow,
-                'dados': CronogramaSerializer(
+                'dados': PainelCronogramaSerializer(
                     qs[:5],
                     context={'request': self.request, 'workflow': workflow}, many=True).data
             })
