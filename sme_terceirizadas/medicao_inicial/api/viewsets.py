@@ -175,14 +175,16 @@ class SolicitacaoMedicaoInicialViewSet(
 
     def formatar_filtros(self, query_params):
         kwargs = {}
-        if query_params.get('mes'):
-            kwargs['mes'] = query_params.get('mes')
-        if query_params.getlist('lotes[]'):
-            kwargs['escola__lotes__in'] = query_params.getlist('lotes[]')
+        if query_params.get('mes_ano'):
+            data_splitted = query_params.get('mes_ano').split('_')
+            kwargs['mes'] = data_splitted[0]
+            kwargs['ano'] = data_splitted[1]
+        if query_params.getlist('lotes_selecionados[]'):
+            kwargs['escola__lotes__uuid__in'] = query_params.getlist('lotes_selecionados[]')
         if query_params.get('tipo_unidade'):
-            kwargs['escola__tipo_unidade__iniciais'] = query_params.get('tipo_unidade')
-        if query_params.get('escola__nome'):
-            kwargs['escola__nome'] = query_params.get('escola__nome')
+            kwargs['escola__tipo_unidade__uuid'] = query_params.get('tipo_unidade')
+        if query_params.get('escola'):
+            kwargs['escola__codigo_eol'] = query_params.get('escola').split('-')[0]
         return kwargs
 
     @action(detail=False, methods=['GET'], url_path='dashboard',
