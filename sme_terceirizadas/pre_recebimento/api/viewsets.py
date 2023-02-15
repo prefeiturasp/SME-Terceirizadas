@@ -103,7 +103,8 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
         return sumario
 
-    @action(detail=False, methods=['GET'], url_path='dashboard')
+    @action(detail=False, methods=['GET'],
+            url_path='dashboard', permission_classes=(PermissaoParaAssinarCronogramaUsuarioDinutre,))
     def dashboard(self, request):
         query_set = self.get_queryset()
         response = {'results': self.dados_dashboard(query_set=query_set)}
