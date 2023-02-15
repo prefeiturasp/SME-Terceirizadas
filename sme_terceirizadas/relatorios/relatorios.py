@@ -539,7 +539,8 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
             quantidade['periodo'] = vinculo.periodo_escolar.nome
             qtd_solicitacao = solicitacao.quantidade_alunos_da_inclusao.filter(periodo=vinculo.periodo_escolar)
             quantidade['total_solicitacao'] = sum(qtd_solicitacao.values_list('quantidade_alunos', flat=True))
-            quantidade['total_matriculados'] = sum([m['count'] for m in matriculados])
+            quantidade['total_matriculados'] = sum(qtd_solicitacao.values_list('matriculados_quando_criado',
+                                                   flat=True))
             quantidade['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.values_list('nome', flat=True))
             inclusoes = []
 
@@ -547,7 +548,7 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
                 q = qtd_solicitacao.filter(faixa_etaria=faixa)
                 if q.first():
                     quantidade_inclusao = q.first().quantidade_alunos
-                    t = sum([m['count'] if m['faixa_etaria']['uuid'] == str(faixa.uuid) else 0 for m in matriculados])
+                    t = q.first().matriculados_quando_criado
                     inclusoes.append({'faixa_etaria': faixa,
                                       'quantidade_alunos': quantidade_inclusao,
                                       'quantidade_matriculados': t})
