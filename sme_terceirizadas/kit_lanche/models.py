@@ -164,7 +164,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
     def solicitacoes_similares(self):
         tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
         data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheAvulsa.objects.all()
+        all_objects = SolicitacaoKitLancheAvulsa.objects.filter(escola=self.escola)
         solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
                                                     solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
         solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
@@ -278,7 +278,7 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
     def solicitacoes_similares(self):
         tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
         data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheCEIAvulsa.objects.all()
+        all_objects = SolicitacaoKitLancheCEIAvulsa.objects.filter(escola=self.escola)
         solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
                                                     solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
         solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
@@ -505,7 +505,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     def solicitacoes_similares(self):
         tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
         data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheUnificada.objects.all()
+        all_objects = SolicitacaoKitLancheUnificada.objects.filter(escola=self.escola)
         solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
                                                     solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
         solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
@@ -667,7 +667,7 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
 
     @property
     def solicitacoes_similares(self):
-        filtros = {'data': self.data}
+        filtros = {'data': self.data, 'escola': self.escola}
         if self.tem_solicitacao_cei:
             filtros['solicitacao_cei__tempo_passeio'] = self.solicitacao_cei.tempo_passeio
         if self.tem_solicitacao_emei:
