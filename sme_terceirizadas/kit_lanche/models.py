@@ -505,7 +505,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     def solicitacoes_similares(self):
         tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
         data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheUnificada.objects.filter(escola=self.escola)
+        all_objects = SolicitacaoKitLancheUnificada.objects.filter(diretoria_regional=self.diretoria_regional)
         solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
                                                     solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
         solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
