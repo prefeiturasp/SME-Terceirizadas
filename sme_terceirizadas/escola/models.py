@@ -76,7 +76,8 @@ class DiretoriaRegional(
 
     @property
     def editais(self):
-        return [str(uuid_) for uuid_ in set(list(self.escolas.filter(lote__isnull=False).values_list(
+        return [str(uuid_) for uuid_ in set(list(self.escolas.filter(
+            lote__isnull=False, lote__contratos_do_lote__edital__isnull=False).values_list(
             'lote__contratos_do_lote__edital__uuid', flat=True)))]
 
     @property
@@ -396,7 +397,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     @property
     def editais(self):
         if self.lote:
-            return [str(edital) for edital in self.lote.contratos_do_lote.values_list('edital__uuid', flat=True)]
+            return [str(edital) for edital in self.lote.contratos_do_lote.filter(
+                edital__isnull=False).values_list('edital__uuid', flat=True)]
         return []
 
     @property
