@@ -1,3 +1,5 @@
+import datetime
+
 import environ
 from rest_framework import serializers
 
@@ -62,15 +64,34 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
         exclude = ('id', 'criado_por',)
 
 
+class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
+    escola = serializers.CharField(source='escola.nome')
+    status = serializers.CharField(source='get_status_display')
+    log_mais_recente = serializers.SerializerMethodField()
+
+    def get_log_mais_recente(self, obj):
+        return datetime.datetime.strftime(
+            obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M') if obj.log_mais_recente else None
+
+    class Meta:
+        model = SolicitacaoMedicaoInicial
+        fields = ('uuid', 'escola', 'status', 'log_mais_recente')
+
+
 class ValorMedicaoSerializer(serializers.ModelSerializer):
     medicao_uuid = serializers.SerializerMethodField()
+    medicao_alterado_em = serializers.SerializerMethodField()
 
     def get_medicao_uuid(self, obj):
         return obj.medicao.uuid
 
+    def get_medicao_alterado_em(self, obj):
+        if obj.medicao.alterado_em:
+            return datetime.datetime.strftime(obj.medicao.alterado_em, '%d/%m/%Y, às %H:%M:%S')
+
     class Meta:
         model = ValorMedicao
-        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid', 'uuid')
+        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid', 'uuid', 'medicao_alterado_em')
 
 
 class CategoriaMedicaoSerializer(serializers.ModelSerializer):

@@ -2,10 +2,11 @@ import json
 
 from rest_framework import status
 
+from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.pre_recebimento.models import Cronograma, EmbalagemQld, Laboratorio
 
 
-def test_url_endpoint_cronograma(client_autenticado_dilog, armazem, contrato, empresa):
+def test_url_endpoint_cronograma(client_autenticado_codae_dilog, armazem, contrato, empresa):
     data = {
         'armazem': str(armazem.uuid),
         'contrato': str(contrato.uuid),
@@ -27,7 +28,7 @@ def test_url_endpoint_cronograma(client_autenticado_dilog, armazem, contrato, em
             }
         ]
     }
-    response = client_autenticado_dilog.post(
+    response = client_autenticado_codae_dilog.post(
         '/cronogramas/',
         content_type='application/json',
         data=json.dumps(data)
@@ -37,13 +38,13 @@ def test_url_endpoint_cronograma(client_autenticado_dilog, armazem, contrato, em
     assert obj.contrato == contrato
 
 
-def test_url_lista_etapas_authorized_numeros(client_autenticado_dilog):
-    response = client_autenticado_dilog.get('/cronogramas/opcoes-etapas/')
+def test_url_lista_etapas_authorized_numeros(client_autenticado_codae_dilog):
+    response = client_autenticado_codae_dilog.get('/cronogramas/opcoes-etapas/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_list_cronogramas(client_autenticado_dilog):
-    response = client_autenticado_dilog.get('/cronogramas/')
+def test_url_list_cronogramas(client_autenticado_codae_dilog):
+    response = client_autenticado_codae_dilog.get('/cronogramas/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert 'count' in json
@@ -51,33 +52,37 @@ def test_url_list_cronogramas(client_autenticado_dilog):
     assert 'previous' in json
 
 
-def test_url_fornecedor_confirma_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
+def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
-        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-confirma-cronograma/')
+        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/', data, content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
     obj = Cronograma.objects.get(uuid=cronograma_recebido.uuid)
-    assert obj.status == 'ENTREGA_CONFIRMADA'
+    assert obj.status == 'VALIDADO_FORNECEDOR'
 
 
 def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(client_autenticado_fornecedor, cronograma):
-    response = client_autenticado_fornecedor.patch(f'/cronogramas/{cronograma.uuid}/fornecedor-confirma-cronograma/')
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_fornecedor.patch(
+        f'/cronogramas/{cronograma.uuid}/fornecedor-assina-cronograma/', data,
+        content_type='application/json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_fornecedor_confirma_not_authorized(client_autenticado_dilog, cronograma_recebido):
-    response = client_autenticado_dilog.patch(
-        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-confirma-cronograma/')
+def test_url_fornecedor_confirma_not_authorized(client_autenticado_codae_dilog, cronograma_recebido):
+    response = client_autenticado_codae_dilog.patch(
+        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/')
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_list_rascunhos_cronogramas(client_autenticado_dilog):
-    response = client_autenticado_dilog.get('/cronogramas/rascunhos/')
+def test_url_list_rascunhos_cronogramas(client_autenticado_codae_dilog):
+    response = client_autenticado_codae_dilog.get('/cronogramas/rascunhos/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert 'results' in json
 
 
-def test_url_endpoint_cronograma_editar(client_autenticado_dilog, cronograma_rascunho, contrato, empresa):
+def test_url_endpoint_cronograma_editar(client_autenticado_codae_dilog, cronograma_rascunho, contrato, empresa):
     data = {
         'empresa': str(empresa.uuid),
         'contrato': str(contrato.uuid),
@@ -98,7 +103,7 @@ def test_url_endpoint_cronograma_editar(client_autenticado_dilog, cronograma_ras
             }
         ]
     }
-    response = client_autenticado_dilog.put(
+    response = client_autenticado_codae_dilog.put(
         f'/cronogramas/{cronograma_rascunho.uuid}/',
         content_type='application/json',
         data=json.dumps(data)
@@ -219,3 +224,35 @@ def test_url_endpoint_embalagem_update(client_autenticado_qualidade, emabalagem_
     assert response.status_code == status.HTTP_200_OK
     obj = EmbalagemQld.objects.last()
     assert obj.nome == 'SACO'
+
+
+def test_url_perfil_cronograma_assina_cronograma_authorized(client_autenticado_dilog_cronograma,
+                                                            cronograma_validado_fornecedor):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/cronogramas/{cronograma_validado_fornecedor.uuid}/cronograma-assina/', data, content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    obj = Cronograma.objects.get(uuid=cronograma_validado_fornecedor.uuid)
+    assert obj.status == 'ASSINADO_CRONOGRAMA'
+
+
+def test_url_perfil_cronograma_assina_cronograma_erro_senha(client_autenticado_dilog_cronograma,
+                                                            cronograma_validado_fornecedor):
+    data = json.dumps({'password': 'senha_errada'})
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/cronogramas/{cronograma_validado_fornecedor.uuid}/cronograma-assina/', data, content_type='application/json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_url_perfil_cronograma_assina_cronograma_erro_transicao_estado(client_autenticado_dilog_cronograma, cronograma):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/cronogramas/{cronograma.uuid}/cronograma-assina/', data,
+        content_type='application/json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_perfil_cronograma_assina_not_authorized(client_autenticado_dilog, cronograma_recebido):
+    response = client_autenticado_dilog.patch(
+        f'/cronogramas/{cronograma_recebido.uuid}/cronograma-assina/')
+    assert response.status_code == status.HTTP_403_FORBIDDEN

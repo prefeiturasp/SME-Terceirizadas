@@ -78,14 +78,24 @@ class LogSolicitacoesUsuario(
         DILOG_NEGA_ALTERACAO,
         CANCELADO_ALUNO_MUDOU_ESCOLA,
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+        # MEDICAO INICIAL
         MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
-        MEDICAO_ENCERRADA_PELA_CODAE,
+        MEDICAO_ENVIADA_PELA_UE,
         # CRONOGRAMA
         CRONOGRAMA_CRIADO,
         CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
-        CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
+        CRONOGRAMA_ASSINADO_PELO_FORNECEDOR,
         FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
-    ) = range(60)
+        SUSPENSO_EM_ALGUNS_EDITAIS,
+        ATIVO_EM_ALGUNS_EDITAIS,
+        CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA,
+        CODAE_ATUALIZOU_PROTOCOLO,
+        # MEDICAO INICIAL - CONTINUACAO
+        MEDICAO_CORRECAO_SOLICITADA,
+        MEDICAO_CORRIGIDA_PELA_UE,
+        MEDICAO_APROVADA_PELA_DRE,
+        MEDICAO_APROVADA_PELA_CODAE
+    ) = range(68)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -181,11 +191,19 @@ class LogSolicitacoesUsuario(
             'Cancelamento para aluno não matriculado na rede municipal',
         ),
         (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
-        (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
+        (MEDICAO_ENVIADA_PELA_UE, 'Enviado pela UE'),
+        (MEDICAO_CORRECAO_SOLICITADA, 'Correção solicitada'),
+        (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido pela UE'),
+        (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
+        (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE'),
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
         (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
-        (CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR, 'Entrega Confirmada'),
-        (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Alteração Fornecedor')
+        (CRONOGRAMA_ASSINADO_PELO_FORNECEDOR, 'Assinado Fornecedor'),
+        (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Alteração Fornecedor'),
+        (SUSPENSO_EM_ALGUNS_EDITAIS, 'Suspenso em alguns editais'),
+        (ATIVO_EM_ALGUNS_EDITAIS, 'Ativo em alguns editais'),
+        (CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA, 'Assinado Cronograma'),
+        (CODAE_ATUALIZOU_PROTOCOLO, 'CODAE Atualizou o protocolo')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,

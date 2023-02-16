@@ -436,7 +436,7 @@ class PermissaoParaVisualizarCronograma(BasePermission):
                     isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
                     usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
                                                           DINUTRE_DIRETORIA, COORDENADOR_CODAE_DILOG_LOGISTICA,
-                                                          COORDENADOR_LOGISTICA, ADMINISTRADOR_FORNECEDOR]
+                                                          ADMINISTRADOR_FORNECEDOR]
                 )
             )
         )
@@ -454,14 +454,13 @@ class PermissaoParaCriarCronograma(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA,
-                                                          COORDENADOR_LOGISTICA]
+                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
             )
         )
 
 
-class PermissaoParaConfirmarCronograma(BasePermission):
+class PermissaoParaAssinarCronogramaUsuarioFornecedor(BasePermission):
     # Apenas empresas do tipo fornecedor com perfil ADMINISTRADOR_FORNECEDOR podem confirmar
     def has_permission(self, request, view):
         usuario = request.user
@@ -472,6 +471,21 @@ class PermissaoParaConfirmarCronograma(BasePermission):
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
                     usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_FORNECEDOR
+                )
+            )
+        )
+
+
+class PermissaoParaAssinarCronogramaUsuarioCronograma(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome == DILOG_CRONOGRAMA
                 )
             )
         )

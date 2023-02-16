@@ -769,3 +769,30 @@ def test_url_endpoint_produtos_editais_filtro_por_parametros_agrupado_terceiriza
     response = client.post(f'/produtos/filtro-por-parametros-agrupado-terceirizada/',
                            data=json.dumps(payload), content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_produtos_agrupados_marca_produto(client_autenticado_vinculo_codae_produto, produtos_edital_41):
+    payload = {
+        'agrupado_por_nome_e_marca': True,
+        'nome_edital': 'Edital de Pregão nº 41/sme/2017',
+        'eh_xlsx': True
+    }
+    response = client_autenticado_vinculo_codae_produto.post(f'/produtos/filtro-por-parametros-agrupado-nome-marcas/',
+                                                             data=json.dumps(payload), content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == [{
+        'edital': 'Edital de Pregão nº 41/sme/2017',
+        'marca': 'NAMORADOS | TIO JOÃO', 'nome': 'ARROZ'
+    }]
+
+
+def test_url_endpoint_produtos_agrupados_marca_produto_erro_form(
+        client_autenticado_vinculo_codae_produto, produtos_edital_41):
+    payload = {
+        'agrupado_por_nome_e_marca': True,
+        'uuid': 'uuid_errado'
+    }
+    response = client_autenticado_vinculo_codae_produto.post(f'/produtos/filtro-por-parametros-agrupado-nome-marcas/',
+                                                             data=json.dumps(payload), content_type='application/json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'uuid': ['Insira um UUID válido.']}

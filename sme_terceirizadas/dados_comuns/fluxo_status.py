@@ -432,7 +432,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('terceirizada_responde_analise_sensorial',
          CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
-        ('codae_ativa', CODAE_SUSPENDEU, CODAE_HOMOLOGADO),
+        ('codae_ativa', [CODAE_SUSPENDEU, CODAE_HOMOLOGADO], CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou',
          [CODAE_HOMOLOGADO,
           CODAE_CANCELOU_ANALISE_SENSORIAL], ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
@@ -1511,11 +1511,12 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         if not kwargs.get('nao_enviar_email', None):
             self._envia_email_escola_ou_nutricionista_reclamou(reclamacao)
 
-    def salva_log_com_justificativa_e_anexos(self, evento, request):
+    def salva_log_com_justificativa_e_anexos(self, evento, request, justificativa_suspensao_ativacao=None):
+        justificativa_ = justificativa_suspensao_ativacao
         log_transicao = self.salvar_log_transicao(
             status_evento=evento,
             usuario=request.user,
-            justificativa=request.data['justificativa']
+            justificativa=justificativa_ if justificativa_ else request.data['justificativa']
         )
         for anexo in request.data.pop('anexos', []):
             arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
@@ -2878,16 +2879,28 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
-    MEDICAO_ENCERRADA_PELA_CODAE = 'MEDICAO_ENCERRADA_PELA_CODAE'
+    MEDICAO_ENVIADA_PELA_UE = 'MEDICAO_ENVIADA_PELA_UE'
+    MEDICAO_CORRECAO_SOLICITADA = 'MEDICAO_CORRECAO_SOLICITADA'
+    MEDICAO_CORRIGIDA_PELA_UE = 'MEDICAO_CORRIGIDA_PELA_UE'
+    MEDICAO_APROVADA_PELA_DRE = 'MEDICAO_APROVADA_PELA_DRE'
+    MEDICAO_APROVADA_PELA_CODAE = 'MEDICAO_APROVADA_PELA_CODAE'
 
     states = (
         (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
-        (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
+        (MEDICAO_ENVIADA_PELA_UE, 'Enviado pela UE'),
+        (MEDICAO_CORRECAO_SOLICITADA, 'Correção solicitada'),
+        (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido pela UE'),
+        (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
+        (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE')
     )
 
     transitions = (
         ('inicia_fluxo', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE),
-        ('codae_encerra_medicao_inicial', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENCERRADA_PELA_CODAE),
+        ('ue_envia', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENVIADA_PELA_UE),
+        ('dre_pede_correcao', MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA),
+        ('ue_corrige', MEDICAO_CORRIGIDA_PELA_UE, MEDICAO_ENVIADA_PELA_UE),
+        ('dre_aprova', MEDICAO_ENVIADA_PELA_UE, MEDICAO_APROVADA_PELA_DRE),
+        ('codae_aprova', MEDICAO_APROVADA_PELA_DRE, MEDICAO_APROVADA_PELA_CODAE)
     )
 
     initial_state = MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
@@ -2904,13 +2917,13 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
                                       usuario=user)
 
-    @xworkflows.after_transition('codae_encerra_medicao_inicial')
-    def _codae_encerra_medicao_inicial_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('ue_envia')
+    def _ue_envia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
             if user.vinculo_atual.perfil.nome not in [DIRETOR, DIRETOR_CEI]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENCERRADA_PELA_CODAE,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
                                       usuario=user)
 
     class Meta:
@@ -2927,8 +2940,8 @@ class CronogramaWorkflow(xwf_models.Workflow):
     REPROVADO = 'REPROVADO'
     ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
     VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
-    ENTREGA_CONFIRMADA = 'ENTREGA_CONFIRMADA'
     SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
+    ASSINADO_CRONOGRAMA = 'ASSINADO_CRONOGRAMA'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -2938,14 +2951,15 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (REPROVADO, 'Reprovado'),
         (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
         (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
-        (ENTREGA_CONFIRMADA, 'Entrega Confirmada'),
         (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
+        (ASSINADO_CRONOGRAMA, 'Assinado Cronograma'),
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
-        ('fornecedor_confirma', ENVIADO_AO_FORNECEDOR, ENTREGA_CONFIRMADA),
-        ('solicita_alteracao', ENTREGA_CONFIRMADA, SOLICITADO_ALTERACAO),
+        ('fornecedor_assina', ENVIADO_AO_FORNECEDOR, VALIDADO_FORNECEDOR),
+        ('solicita_alteracao', VALIDADO_FORNECEDOR, SOLICITADO_ALTERACAO),
+        ('cronograma_assina', VALIDADO_FORNECEDOR, ASSINADO_CRONOGRAMA),
     )
 
     initial_state = RASCUNHO
@@ -2962,11 +2976,11 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
                                       usuario=user)
 
-    @xworkflows.after_transition('fornecedor_confirma')
-    def _fornecedor_confirma_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('fornecedor_assina')
+    def _fornecedor_assina_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_FORNECEDOR,
                                       usuario=user)
 
     @xworkflows.after_transition('solicita_alteracao')
@@ -2975,6 +2989,16 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('cronograma_assina')
+    def _cronograma_assina_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA,
+                                      usuario=user)
+
+    class Meta:
+        abstract = True
 
 
 class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
@@ -3008,3 +3032,6 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
+
+    class Meta:
+        abstract = True

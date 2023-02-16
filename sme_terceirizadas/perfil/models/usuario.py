@@ -2,6 +2,7 @@ import datetime
 import logging
 
 import environ
+from django.contrib.auth import authenticate
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -10,7 +11,7 @@ from django.db import models
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_prometheus.models import ExportModelOperationsMixin
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
@@ -292,6 +293,11 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
             usuario=self,
             ativo=False
         )
+
+    def verificar_autenticidade(self, password):
+        # TODO Após implantação do coresso substituir este método.
+        usuario = authenticate(username=self.email, password=password)
+        return usuario is not None
 
     class Meta:
         ordering = ('-super_admin_terceirizadas',)

@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 import environ
 from rest_framework import serializers
@@ -157,7 +158,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                     nome=anexo.get('nome')
                 )
         if key_com_ocorrencias is not None:
-            instance.codae_encerra_medicao_inicial(user=self.context['request'].user)
+            instance.ue_envia(user=self.context['request'].user)
 
         return instance
 
@@ -181,6 +182,11 @@ class ValorMedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         queryset=TipoAlimentacao.objects.all()
     )
     medicao_uuid = serializers.SerializerMethodField()
+    medicao_alterado_em = serializers.SerializerMethodField()
+
+    def get_medicao_alterado_em(self, obj):
+        if obj.medicao.alterado_em:
+            return datetime.strftime(obj.medicao.alterado_em, '%d/%m/%Y, às %H:%M:%S')
 
     def get_medicao_uuid(self, obj):
         return obj.medicao.uuid
@@ -250,6 +256,8 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         eh_observacao = self.context['request'].data.get('eh_observacao', )
         if not eh_observacao:
             instance.valores_medicao.filter(valor=-1).delete()
+        instance.alterado_em = datetime.now()
+        instance.save()
         if not instance.valores_medicao.all().exists():
             instance.delete()
 

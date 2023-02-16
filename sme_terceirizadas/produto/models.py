@@ -203,6 +203,12 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
     tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES, null=False, blank=False)  # noqa DJ01
     outras_informacoes = models.TextField('Outras Informações', blank=True)
     ativo = models.BooleanField(default=True)
+    suspenso = models.BooleanField('Esta suspenso?', default=False)
+    suspenso_justificativa = models.CharField('Porque foi suspenso individualmente', blank=True, max_length=500)
+    suspenso_em = models.DateTimeField('Suspenso em', null=True, blank=True)
+    suspenso_por = models.ForeignKey(
+        'perfil.Usuario', on_delete=models.DO_NOTHING, null=True, blank=True
+    )
 
     def __str__(self):
         return f'{self.produto} -- {self.edital.numero}'
@@ -327,6 +333,15 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
     @property
     def ultima_analise(self):
         return self.analises_sensoriais.last()
+
+    @property
+    def tem_vinculo_produto_edital_suspenso(self):
+        return self.produto.vinculos.filter(suspenso=True).exists()
+
+    @property
+    def data_edital_suspenso_mais_recente(self):
+        if self.tem_vinculo_produto_edital_suspenso:
+            return max([v.suspenso_em for v in self.produto.vinculos.all() if v.suspenso])
 
     def gera_protocolo_analise_sensorial(self):
         id_sequecial = str(get_next_value('protocolo_analise_sensorial'))
