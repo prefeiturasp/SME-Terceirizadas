@@ -291,3 +291,17 @@ def test_url_dinutre_assina_cronograma_not_authorized(client_autenticado_dilog,
     response = client_autenticado_dilog.patch(
         f'/cronogramas/{cronograma_recebido.uuid}/dinutre-assina/')
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_dados_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
+                                                    cronograma_assinado_perfil_cronograma):
+    response = client_autenticado_dinutre_diretoria.get(
+        f'/cronogramas/dashboard/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert len(response_json['results']) == 2
+    pendente_assinatura = next((x for x in response_json['results'] if x['status'] == 'ASSINADO_CRONOGRAMA'), None)
+    assert len(pendente_assinatura['dados']) == 0
+    aguardando_dilog = next((x for x in response_json['results'] if x['status'] == 'ASSINADO_DINUTRE'), None)
+    assert len(aguardando_dilog['dados']) == 0
