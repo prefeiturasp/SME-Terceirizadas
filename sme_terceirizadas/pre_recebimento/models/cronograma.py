@@ -165,7 +165,7 @@ class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel
         log_transicao = LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
-            solicitacao_tipo=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_DE_ALTERACAO_CRONOGRAMA,
             usuario=usuario,
             uuid_original=self.uuid,
             justificativa=justificativa,
