@@ -302,6 +302,6 @@ def test_url_dados_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_d
     response_json = response.json()
     assert len(response_json['results']) == 2
     pendente_assinatura = next((x for x in response_json['results'] if x['status'] == 'ASSINADO_CRONOGRAMA'), None)
-    aguardando_dilog = next((x for x in response_json['results'] if x['status'] == 'ASSINADO_DINUTRE'), None)
     assert len(pendente_assinatura['dados']) == 0
+    aguardando_dilog = next((x for x in response_json['results'] if x['status'] == 'ASSINADO_DINUTRE'), None)
     assert len(aguardando_dilog['dados']) == 0
