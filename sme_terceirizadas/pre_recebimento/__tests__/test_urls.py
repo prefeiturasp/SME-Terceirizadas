@@ -258,7 +258,7 @@ def test_url_perfil_cronograma_assina_not_authorized(client_autenticado_dilog, c
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_dilog_assina_cronograma_authorized(client_autenticado_dinutre_diretoria,
+def test_url_dinutre_assina_cronograma_authorized(client_autenticado_dinutre_diretoria,
                                                 cronograma_assinado_perfil_cronograma):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_dinutre_diretoria.patch(
@@ -269,7 +269,7 @@ def test_url_dilog_assina_cronograma_authorized(client_autenticado_dinutre_diret
     assert obj.status == 'ASSINADO_DINUTRE'
 
 
-def test_url_dilog_assina_cronograma_erro_senha(client_autenticado_dinutre_diretoria,
+def test_url_dinutre_assina_cronograma_erro_senha(client_autenticado_dinutre_diretoria,
                                                 cronograma_validado_fornecedor):
     data = json.dumps({'password': 'senha_errada'})
     response = client_autenticado_dinutre_diretoria.patch(
