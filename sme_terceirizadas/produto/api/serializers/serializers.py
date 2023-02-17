@@ -572,6 +572,15 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
     fabricante = FabricanteSerializer()
     id_externo = serializers.CharField()
     ultima_homologacao = HomologacaoListagemSerializer()
+    vinculos_produto_edital = serializers.SerializerMethodField()
+
+    def get_vinculos_produto_edital(self, obj):
+        editais = obj.vinculos.all()
+        if obj.homologacao.status.state.name == 'CODAE_HOMOLOGADO':
+            editais = editais.filter(suspenso=False)
+        if obj.homologacao.status.state.name == 'CODAE_SUSPENDEU':
+            editais = editais.filter(suspenso=True)
+        return ', '.join(editais.values_list('edital__numero', flat=True))
 
     class Meta:
         model = Produto
