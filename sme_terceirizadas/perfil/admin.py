@@ -88,7 +88,7 @@ class InputFilter(admin.SimpleListFilter):
         yield all_choice
 
 
-class UIDFilter(InputFilter):
+class IDFilter(InputFilter):
     parameter_name = 'object_id'
     title = _('Object_id')
 
@@ -116,11 +116,28 @@ class CodigoEOLFilter(InputFilter):
             return Vinculo.objects.none()
 
 
+class NomeUEFilter(InputFilter):
+    parameter_name = 'nome_ue'
+    title = _('Nome da UE')
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            nome_ue = self.value()
+
+            content_type_escola = ContentType.objects.get_for_model(Escola)
+            vinculos_escolas = Vinculo.objects.filter(content_type=content_type_escola)
+            escolas = Escola.objects.filter(id__in=vinculos_escolas.values('object_id'),
+                                            nome__icontains=nome_ue).values_list('id', flat=True)
+            if escolas:
+                return Vinculo.objects.filter(content_type=content_type_escola, object_id__in=escolas)
+            return Vinculo.objects.none()
+
+
 @admin.register(Vinculo)
 class VinculoAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'perfil', 'content_type')
+    list_display = ('__str__', 'perfil', 'content_type', 'instituicao')
     search_fields = ('usuario__nome', 'usuario__email', 'usuario__registro_funcional')
-    list_filter = ('content_type', UIDFilter, CodigoEOLFilter)
+    list_filter = ('content_type', IDFilter, CodigoEOLFilter, NomeUEFilter)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'perfil':
