@@ -1,7 +1,8 @@
 name: CI/CD Pip (cache)
  
 on:
-
+  schedule:
+    - cron: "10 5 * * *"
   workflow_dispatch:
 
 jobs:
@@ -33,5 +34,4 @@ jobs:
         with:
           command: |
             pip install --user pipenv pipenv==2022.4.8
-            source terceirizadas
             pipenv install --dev
