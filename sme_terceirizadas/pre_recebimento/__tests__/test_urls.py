@@ -256,3 +256,52 @@ def test_url_perfil_cronograma_assina_not_authorized(client_autenticado_dilog, c
     response = client_autenticado_dilog.patch(
         f'/cronogramas/{cronograma_recebido.uuid}/cronograma-assina/')
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_dinutre_assina_cronograma_authorized(client_autenticado_dinutre_diretoria,
+                                                  cronograma_assinado_perfil_cronograma):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/cronogramas/{cronograma_assinado_perfil_cronograma.uuid}/dinutre-assina/',
+        data, content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    obj = Cronograma.objects.get(uuid=cronograma_assinado_perfil_cronograma.uuid)
+    assert obj.status == 'ASSINADO_DINUTRE'
+
+
+def test_url_dinutre_assina_cronograma_erro_senha(client_autenticado_dinutre_diretoria,
+                                                  cronograma_validado_fornecedor):
+    data = json.dumps({'password': 'senha_errada'})
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/cronogramas/{cronograma_validado_fornecedor.uuid}/dinutre-assina/', data, content_type='application/json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_url_dinutre_assina_cronograma_erro_transicao_estado(client_autenticado_dinutre_diretoria,
+                                                             cronograma):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/cronogramas/{cronograma.uuid}/dinutre-assina/', data,
+        content_type='application/json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_dinutre_assina_cronograma_not_authorized(client_autenticado_dilog,
+                                                      cronograma_recebido):
+    response = client_autenticado_dilog.patch(
+        f'/cronogramas/{cronograma_recebido.uuid}/dinutre-assina/')
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_dados_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
+                                                    cronograma_assinado_perfil_cronograma):
+    response = client_autenticado_dinutre_diretoria.get(
+        f'/cronogramas/dashboard/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    assert len(response_json['results']) == 2
+    pendente_assinatura = next((x for x in response_json['results'] if x['status'] == 'ASSINADO_CRONOGRAMA'), None)
+    assert len(pendente_assinatura['dados']) == 0
+    aguardando_dilog = next((x for x in response_json['results'] if x['status'] == 'ASSINADO_DINUTRE'), None)
+    assert len(aguardando_dilog['dados']) == 0

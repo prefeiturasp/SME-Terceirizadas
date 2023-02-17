@@ -94,8 +94,9 @@ class LogSolicitacoesUsuario(
         MEDICAO_CORRECAO_SOLICITADA,
         MEDICAO_CORRIGIDA_PELA_UE,
         MEDICAO_APROVADA_PELA_DRE,
-        MEDICAO_APROVADA_PELA_CODAE
-    ) = range(68)
+        MEDICAO_APROVADA_PELA_CODAE,
+        CRONOGRAMA_ASSINADO_PELA_DINUTRE
+    ) = range(69)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -203,7 +204,8 @@ class LogSolicitacoesUsuario(
         (SUSPENSO_EM_ALGUNS_EDITAIS, 'Suspenso em alguns editais'),
         (ATIVO_EM_ALGUNS_EDITAIS, 'Ativo em alguns editais'),
         (CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA, 'Assinado Cronograma'),
-        (CODAE_ATUALIZOU_PROTOCOLO, 'CODAE Atualizou o protocolo')
+        (CODAE_ATUALIZOU_PROTOCOLO, 'CODAE Atualizou o protocolo'),
+        (CRONOGRAMA_ASSINADO_PELA_DINUTRE, 'Assinado Dinutre')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -228,8 +230,9 @@ class LogSolicitacoesUsuario(
         MEDICAO_INICIAL,
         INCLUSAO_ALIMENTACAO_CEMEI,
         SOLICITACAO_KIT_LANCHE_CEMEI,
-        CRONOGRAMA
-    ) = range(19)
+        CRONOGRAMA,
+        SOLICITACAO_DE_ALTERACAO_CRONOGRAMA
+    ) = range(20)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -251,7 +254,8 @@ class LogSolicitacoesUsuario(
         (MEDICAO_INICIAL, 'Solicitação de medição inicial'),
         (INCLUSAO_ALIMENTACAO_CEMEI, 'Inclusão de Alimentação CEMEI'),
         (SOLICITACAO_KIT_LANCHE_CEMEI, 'Solicitação de kit lanche CEMEI'),
-        (CRONOGRAMA, 'Cronograma')
+        (CRONOGRAMA, 'Cronograma'),
+        (SOLICITACAO_DE_ALTERACAO_CRONOGRAMA, 'Solicitação de alteração do cronograma')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
