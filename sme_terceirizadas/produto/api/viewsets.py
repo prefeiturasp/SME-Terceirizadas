@@ -6,7 +6,6 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import transaction
 from django.db.models import CharField, Count, F, Prefetch, Q, QuerySet
 from django.db.models.functions import Cast, Substr
-from django.forms.utils import ErrorDict
 from django.template.loader import render_to_string
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
@@ -331,25 +330,24 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         response = {'results': self.dados_dashboard(query_set=query_set, use_raw=use_raw)}
         return Response(response)
 
-    def produtos_sem_agrupamento(self, request, qs_produtos, offset, limit):
+    def produtos_sem_agrupamento(self, nome_edital, qs_produtos, offset, limit):
         produtos_agrupados = []
         for hom_produto in qs_produtos[offset: offset + limit]:
             produtos_agrupados.append({
                 'terceirizada': hom_produto.rastro_terceirizada.nome_fantasia,
                 'nome': hom_produto.produto.nome,
                 'marca': hom_produto.produto.marca.nome,
-                'edital': request.query_params.get('nome_edital'),
-                'tipo': hom_produto.produto.vinculos.get(
-                    edital__numero=request.query_params.get('nome_edital')).tipo_produto,
+                'edital': nome_edital,
+                'tipo': hom_produto.produto.vinculos.get(edital__numero=nome_edital).tipo_produto,
                 'cadastro': hom_produto.produto.criado_em.strftime('%d/%m/%Y'),
                 'homologacao': hom_produto.produto.data_homologacao.strftime('%d/%m/%Y')
             })
         return produtos_agrupados
 
-    def produtos_agrupados_nome_marca(self, request, queryset, offset, limit):
+    def produtos_agrupados_nome_marca(self, nome_edital, queryset, offset, limit):
         produtos_agrupados = []
         produtos_editais = ProdutoEdital.objects.filter(
-            edital__numero=request.query_params.get('nome_edital'),
+            edital__numero=nome_edital,
             produto__id__in=queryset.values_list('id', flat=True)
         ).values('produto__nome', 'produto__marca__nome', 'edital__numero').order_by(
             'produto__nome', 'produto__marca__nome')
@@ -362,7 +360,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 produtos_agrupados.append({
                     'nome': produto['produto__nome'],
                     'marca': produto['produto__marca__nome'],
-                    'edital': request.query_params.get('nome_edital')
+                    'edital': nome_edital
                 })
         return produtos_agrupados[offset: offset + limit]
 
@@ -370,17 +368,20 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             methods=['GET'],
             url_path='filtro-por-parametros-agrupado-terceirizada')
     def filtro_por_parametros_agrupado_terceirizada(self, request):
-        query_set = self.get_queryset_solicitacoes_homologacao_por_status(request, 'codae_homologado')
+        user = request.user
+        query_set = self.get_queryset_solicitacoes_homologacao_por_status(
+            request.query_params, user.vinculo_atual.perfil.nome, user.tipo_usuario, user.vinculo_atual.object_id,
+            'codae_homologado')
         limit = int(request.query_params.get('limit', 10))
         offset = int(request.query_params.get('offset', 0))
         uuids = [hom_prod.uuid for hom_prod in query_set]
         qs_produtos = Produto.objects.filter(homologacao__uuid__in=uuids)
         total_marcas = qs_produtos.values_list('marca__nome', flat=True).distinct().count()
-
+        nome_edital = request.query_params.get('nome_edital')
         if request.query_params.get('agrupado_por_nome_e_marca') == 'true':
-            produtos_agrupados = self.produtos_agrupados_nome_marca(request, qs_produtos, offset, limit)
+            produtos_agrupados = self.produtos_agrupados_nome_marca(nome_edital, qs_produtos, offset, limit)
         else:
-            produtos_agrupados = self.produtos_sem_agrupamento(request, query_set, offset, limit)
+            produtos_agrupados = self.produtos_sem_agrupamento(nome_edital, query_set, offset, limit)
 
         return Response({
             'results': produtos_agrupados,
@@ -408,21 +409,19 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         response = {'results': self.dados_dashboard(query_set=query_set, use_raw=False)}
         return Response(response)
 
-    def get_queryset_solicitacoes_homologacao_por_status(self, request, filtro_aplicado):  # noqa C901
-        """
-        TODO: refatorar para nao utilizar noqa
-        """
+    def get_queryset_solicitacoes_homologacao_por_status(self, request_data, perfil_nome, tipo_usuario, escola_id,  # noqa C901
+                                                         filtro_aplicado):
+        """TODO: refatorar para nao utilizar noqa."""
         filtros = {}
-        user = self.request.user
-        page = request.query_params.get('page', False)
-        nome_edital = request.query_params.get('nome_edital', None)
+        page = request_data.get('page', False)
+        nome_edital = request_data.get('nome_edital', None)
         edital = None
         if nome_edital:
             edital = Edital.objects.get(numero=nome_edital)
-        algum_filtro = (request.query_params.get('nome_terceirizada') or request.query_params.get('data_homologacao')
-                        or request.query_params.get('nome_produto') or request.query_params.get('nome_fabricante')
-                        or request.query_params.get('nome_marca') or request.query_params.get('tipo'))
-        titulo = request.data.get('titulo_produto', None)
+        algum_filtro = (request_data.get('nome_terceirizada') or request_data.get('data_homologacao')
+                        or request_data.get('nome_produto') or request_data.get('nome_fabricante')
+                        or request_data.get('nome_marca') or request_data.get('tipo'))
+        titulo = request_data.get('titulo_produto', None)
         query_set = self.get_queryset()
 
         data = {'logs': LogSolicitacoesUsuario._meta.db_table,
@@ -453,9 +452,9 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                  "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_UE' "
                                  f"OR %(homologacao_produto)s.status = '{filtro_aplicado.upper()}' ")
 
-                if request.user.vinculo_atual.perfil.nome in [constants.COORDENADOR_GESTAO_PRODUTO,
-                                                              constants.ADMINISTRADOR_GESTAO_PRODUTO,
-                                                              constants.ADMINISTRADOR_TERCEIRIZADA]:
+                if perfil_nome in [constants.COORDENADOR_GESTAO_PRODUTO,
+                                   constants.ADMINISTRADOR_GESTAO_PRODUTO,
+                                   constants.ADMINISTRADOR_TERCEIRIZADA]:
                     status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
                     raw_sql += (common_status +
                                 "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' "
@@ -463,20 +462,19 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                 "OR %(homologacao_produto)s.status = 'NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO') ")
                 filtros['status__in'] = status__in
 
-                if request.user.vinculo_atual.perfil.nome == constants.COORDENADOR_SUPERVISAO_NUTRICAO:
+                if perfil_nome == constants.COORDENADOR_SUPERVISAO_NUTRICAO:
                     status__in.append('CODAE_QUESTIONOU_NUTRISUPERVISOR')
                     raw_sql += (common_status +
                                 "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_NUTRISUPERVISOR') ")
                 filtros['status__in'] = status__in
 
-                if request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
-                    filtros['reclamacoes__escola'] = request.user.vinculo_atual.instituicao
+                if tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
+                    filtros['reclamacoes__escola__id'] = escola_id
                     if 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' not in status__in:
                         status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
                     raw_sql += common_status
                     if 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' not in raw_sql:
                         raw_sql += "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' "
-                    escola_id = user.vinculo_atual.object_id
                     raw_sql += f') AND escola_reclamacao_id = {escola_id} '
 
                 if 'WHERE' not in raw_sql:
@@ -484,7 +482,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
             elif filtro_aplicado == 'codae_homologado':
 
-                if user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA:
+                if tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA:
                     filtros['status__in'] = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
                                              'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
                                              filtro_aplicado.upper()]
@@ -492,7 +490,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                 "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' "
                                 f"OR %(homologacao_produto)s.status = '{filtro_aplicado.upper()}') ")
 
-                elif user.tipo_usuario == constants.TIPO_USUARIO_GESTAO_PRODUTO:
+                elif tipo_usuario == constants.TIPO_USUARIO_GESTAO_PRODUTO:
                     filtros['status'] = filtro_aplicado.upper()
                     raw_sql += f"WHERE %(homologacao_produto)s.status = '{filtro_aplicado.upper()}' "
 
@@ -531,15 +529,14 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 query_set = query_set.annotate(
                     id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)
                 ).filter(Q(id_amigavel__icontains=titulo) | Q(produto__nome__icontains=titulo))
-            filtros = cria_filtro_homologacao_produto_por_parametros(request.query_params)
+            filtros = cria_filtro_homologacao_produto_por_parametros(request_data)
             query_set = query_set.filter(**filtros).distinct()
-            if request.query_params.get('data_homologacao'):
+            if request_data.get('data_homologacao'):
                 query_set = [
                     hom_produto for hom_produto in query_set
                     if hom_produto.produto.data_homologacao <= datetime.strptime(
-                        request.query_params.get('data_homologacao'), '%d/%m/%Y')]
-            query_set = sorted(query_set,
-                               key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+                        request_data.get('data_homologacao'), '%d/%m/%Y')]
+            query_set = sorted(query_set, key=lambda x: x.produto.data_homologacao, reverse=True)
         return query_set
 
     @action(detail=False,
@@ -547,7 +544,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             url_path=f'filtro-por-status/{constants.FILTRO_STATUS_HOMOLOGACAO}')
     def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):  # noqa C901
         page = request.query_params.get('page', None)
-        query_set = self.get_queryset_solicitacoes_homologacao_por_status(request, filtro_aplicado)
+        user = self.request.user
+        query_set = self.get_queryset_solicitacoes_homologacao_por_status(
+            request.query_params, user.vinculo_atual.perfil.nome, user.tipo_usuario, user.vinculo_atual.object_id,
+            filtro_aplicado)
         if page:
             page = self.paginate_queryset(query_set)
             serializer = self.get_serializer(page, many=True)
@@ -1348,64 +1348,14 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         gera_xls_relatorio_produtos_homologados_async.delay(
             user=user,
             nome_arquivo=f'relatorio_produtos_homologados{"_nome_marca" if agrupado_nome_marca else ""}.xlsx',
-            data=request.data
+            data=request.data,
+            perfil_nome=request.user.vinculo_atual.perfil.nome,
+            tipo_usuario=request.user.tipo_usuario,
+            object_id=request.user.vinculo_atual.object_id
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
 
-    def get_queryset_filtrado_agrupado(self, data):
-        form = ProdutoPorParametrosForm(data)
-
-        if not form.is_valid():
-            return form.errors, '', ''
-
-        form_data = form.cleaned_data.copy()
-        form_data['status'] = [
-            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
-            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
-            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
-            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
-        ]
-
-        queryset = self.get_queryset_filtrado(form_data)
-
-        produtos = queryset.values('nome', 'marca__nome', 'vinculos__edital__numero').order_by('nome', 'marca__nome')
-        total_produtos = len(produtos)
-        total_marcas = produtos.values_list('marca__nome', flat=True).distinct().count()
-        produtos_agrupados = []
-        for produto in produtos:
-            if data.get('eh_xlsx'):
-                index = next((i for i, produto_ in enumerate(produtos_agrupados)
-                              if produto_['nome'] == produto['nome']), -1)
-                if index != -1:
-                    produtos_agrupados[index]['marca'] += f' | {produto["marca__nome"]}'
-                else:
-                    produtos_agrupados.append({
-                        'nome': produto['nome'],
-                        'marca': produto['marca__nome'],
-                        'edital': produto['vinculos__edital__numero']
-                    })
-            else:
-                produtos_agrupados.append({
-                    'nome': produto['nome'],
-                    'marca': produto['marca__nome'],
-                    'edital': produto['vinculos__edital__numero']
-                })
-        return produtos_agrupados, total_produtos, total_marcas
-
-    @action(detail=False,
-            methods=['POST'],
-            url_path='filtro-por-parametros-agrupado-nome-marcas')
-    def filtro_por_parametros_agrupado_nome_marcas(self, request):
-        produtos_e_marcas, _, _ = self.get_queryset_filtrado_agrupado(request.data)
-        status_ = status.HTTP_200_OK
-        if type(produtos_e_marcas) == ErrorDict:
-            status_ = status.HTTP_400_BAD_REQUEST
-        return Response(produtos_e_marcas, status=status_)
 
     @action(detail=False, # noqa C901
             methods=['GET'],

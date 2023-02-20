@@ -109,8 +109,8 @@ def cria_filtro_homologacao_produto_por_parametros(cleaned_data):
         'nome_terceirizada': 'rastro_terceirizada__nome_fantasia__icontains'
     }
     for (chave, valor) in cleaned_data.items():
-        if not valor:
-            pass
+        if not valor or chave not in filtro.keys():
+            continue
         campos_a_pesquisar[filtro[chave]] = valor
     return campos_a_pesquisar
 
