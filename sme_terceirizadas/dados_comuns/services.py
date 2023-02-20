@@ -44,3 +44,37 @@ def enviar_email_ue_cancelar_pedido_parcialmente(obj):
     criado_em = momento_cancelamento.strftime('%d/%m/%Y - %H:%M')
     _preenche_template_e_envia_email_ue_cancela_parcialmente(obj, assunto, titulo, id_externo, criado_em,
                                                              _partes_interessadas_ue_cancela(obj))
+
+
+def _partes_interessadas_codae_atualiza_protocolo(obj):
+    email_query_set_terceirizada = obj.aluno.escola.lote.terceirizada.emails_terceirizadas.filter(
+        modulo__nome='Dieta Especial'
+    ).values_list('email', flat=True)
+    email_contato_ecola = obj.aluno.escola.contato.email
+    return list(email_query_set_terceirizada) + [email_contato_ecola]
+
+
+def _preenche_template_e_envia_email_codae_atualiza_protocolo(obj, assunto, titulo, criado_em,
+                                                              partes_interessadas):
+    url = f'{env("REACT_APP_URL")}/dieta-especial/relatorio?uuid={obj.uuid}'
+    template = 'fluxo_codae_atualiza_dieta_autorizada.html'
+    dados_template = {'titulo': titulo, 'criado_em': criado_em, 'nome_aluno': obj.aluno.nome, 'url': url}
+    html = render_to_string(template, dados_template)
+    envia_email_em_massa_task.delay(
+        assunto=assunto,
+        corpo='',
+        emails=partes_interessadas,
+        template='fluxo_codae_atualiza_dieta_autorizada.html',
+        dados_template=dados_template,
+        html=html
+    )
+
+
+def enviar_email_codae_atualiza_protocolo(obj):
+
+    assunto = 'Protocolo Padrão de Dieta Atualizado'
+    titulo = 'Protocolo Padrão de Dieta Atualizado'
+    momento_atualização = datetime.datetime.now()
+    criado_em = momento_atualização.strftime('%d/%m/%Y - %H:%M')
+    _preenche_template_e_envia_email_codae_atualiza_protocolo(obj, assunto, titulo, criado_em,
+                                                              _partes_interessadas_codae_atualiza_protocolo(obj))
