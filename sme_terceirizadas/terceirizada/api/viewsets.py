@@ -16,7 +16,6 @@ from .filters import EmailTerceirizadaPorModuloFilter, TerceirizadaFilter
 from .permissions import PodeCriarAdministradoresDaTerceirizada
 from .serializers.serializers import (
     ContratoSerializer,
-    CreateEmailTerceirizadaPorModuloSerializer,
     DistribuidorSimplesSerializer,
     EditalContratosSerializer,
     EditalSerializer,
@@ -27,6 +26,7 @@ from .serializers.serializers import (
     TerceirizadaSimplesSerializer
 )
 from .serializers.serializers_create import (
+    CreateEmailTerceirizadaPorModuloSerializer,
     EditalContratosCreateSerializer,
     EmpresaNaoTerceirizadaCreateSerializer,
     TerceirizadaCreateSerializer

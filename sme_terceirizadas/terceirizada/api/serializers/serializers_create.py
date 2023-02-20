@@ -11,7 +11,15 @@ from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.models import DiretoriaRegional, Lote
 from ....perfil.api.serializers import SuperAdminTerceirizadaSerializer, UsuarioUpdateSerializer
 from ....perfil.models import Perfil, Usuario
-from ...models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
+from ...models import (
+    Contrato,
+    Edital,
+    EmailTerceirizadaPorModulo,
+    Modulo,
+    Nutricionista,
+    Terceirizada,
+    VigenciaContrato
+)
 
 
 def cria_contatos(contatos):
@@ -361,4 +369,31 @@ class EditalContratosCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Edital
+        exclude = ('id',)
+
+
+class CreateEmailTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
+    terceirizada = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Terceirizada.objects.all()
+    )
+    modulo = serializers.SlugRelatedField(
+        slug_field='nome',
+        required=True,
+        queryset=Modulo.objects.all()
+    )
+    criado_por = serializers.CharField(required=False)
+
+    def create(self, validated_data):
+        user = None
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            user = request.user
+        validated_data['criado_por'] = user
+        EmailTerceirizada = EmailTerceirizadaPorModulo.objects.create(**validated_data)
+        return EmailTerceirizada
+
+    class Meta:
+        model = EmailTerceirizadaPorModulo
         exclude = ('id',)
