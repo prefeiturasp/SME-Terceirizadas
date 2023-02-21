@@ -68,7 +68,8 @@ from .filters import SolicitacoesCODAEFilter
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
 
-    def _remove_duplicados_do_query_set(self, query_set):
+    @classmethod
+    def remove_duplicados_do_query_set(self, query_set):
         """_remove_duplicados_do_query_set é criado por não ser possível juntar order_by e distinct na mesma query."""
         # TODO: se alguém descobrir como ordenar a query e tirar os uuids
         # repetidos, por favor melhore
@@ -81,7 +82,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         return sem_uuid_repetido
 
     def _retorno_base(self, query_set, sem_paginacao=None):
-        sem_uuid_repetido = self._remove_duplicados_do_query_set(query_set)
+        sem_uuid_repetido = self.remove_duplicados_do_query_set(query_set)
         if sem_paginacao:
             serializer = self.get_serializer(sem_uuid_repetido, many=True)
             return Response({'results': serializer.data})
@@ -103,7 +104,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def _agrupa_por_tipo_visao(self, tipo_visao: str, query_set: QuerySet) -> dict:
         sumario = {}  # type: dict
-        query_set = self._remove_duplicados_do_query_set(query_set)
+        query_set = self.remove_duplicados_do_query_set(query_set)
         descricao_prioridade = self._agrupar_solicitacoes(
             tipo_visao, query_set)
         for nome_objeto, prioridade in descricao_prioridade:
@@ -509,7 +510,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
                 tipo_solicitacao=cleaned_data.get('tipo_solicitacao'),
                 status_solicitacao=cleaned_data.get('status_solicitacao')
             )
-            query_set = self._remove_duplicados_do_query_set(query_set)
+            query_set = self.remove_duplicados_do_query_set(query_set)
 
             return relatorio_filtro_periodo(request, query_set)
         else:
@@ -717,7 +718,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = query_set.filter(
             data_evento__lt=datetime.date.today()
         )
-        query_set = self._remove_duplicados_do_query_set(query_set)
+        query_set = self.remove_duplicados_do_query_set(query_set)
 
         return_dict = []
 
@@ -837,7 +838,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                 tipo_solicitacao=cleaned_data.get('tipo_solicitacao'),
                 status_solicitacao=cleaned_data.get('status_solicitacao')
             )
-            query_set = self._remove_duplicados_do_query_set(query_set)
+            query_set = self.remove_duplicados_do_query_set(query_set)
 
             return relatorio_filtro_periodo(request, query_set, escola.nome, escola.diretoria_regional.nome)
         else:
@@ -1052,7 +1053,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
                 tipo_solicitacao=cleaned_data.get('tipo_solicitacao'),
                 status_solicitacao=cleaned_data.get('status_solicitacao')
             )
-            query_set = self._remove_duplicados_do_query_set(query_set)
+            query_set = self.remove_duplicados_do_query_set(query_set)
 
             return relatorio_filtro_periodo(request, query_set, dre.nome, escola_uuid)
         else:

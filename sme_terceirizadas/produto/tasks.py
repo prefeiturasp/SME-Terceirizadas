@@ -78,7 +78,7 @@ def gera_pdf_relatorio_produtos_homologados_async(user, nome_arquivo, data, perf
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
         from sme_terceirizadas.produto.api.viewsets import HomologacaoProdutoPainelGerencialViewSet
-        agrupado_nome_marca = data.get('agrupado_por_nome_e_marca')
+        agrupado_nome_marca = data.get('agrupado_por_nome_e_marca') == 'true'
 
         hom_produto_painel_viewset = HomologacaoProdutoPainelGerencialViewSet()
         queryset = hom_produto_painel_viewset.get_queryset_solicitacoes_homologacao_por_status(
