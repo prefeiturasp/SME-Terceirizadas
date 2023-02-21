@@ -58,7 +58,7 @@ def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_forneced
         f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/', data, content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
     obj = Cronograma.objects.get(uuid=cronograma_recebido.uuid)
-    assert obj.status == 'VALIDADO_FORNECEDOR'
+    assert obj.status == 'ASSINADO_FORNECEDOR'
 
 
 def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(client_autenticado_fornecedor, cronograma):
@@ -227,20 +227,20 @@ def test_url_endpoint_embalagem_update(client_autenticado_qualidade, emabalagem_
 
 
 def test_url_perfil_cronograma_assina_cronograma_authorized(client_autenticado_dilog_cronograma,
-                                                            cronograma_validado_fornecedor):
+                                                            cronograma_assinado_fornecedor):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_dilog_cronograma.patch(
-        f'/cronogramas/{cronograma_validado_fornecedor.uuid}/cronograma-assina/', data, content_type='application/json')
+        f'/cronogramas/{cronograma_assinado_fornecedor.uuid}/cronograma-assina/', data, content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
-    obj = Cronograma.objects.get(uuid=cronograma_validado_fornecedor.uuid)
+    obj = Cronograma.objects.get(uuid=cronograma_assinado_fornecedor.uuid)
     assert obj.status == 'ASSINADO_CRONOGRAMA'
 
 
 def test_url_perfil_cronograma_assina_cronograma_erro_senha(client_autenticado_dilog_cronograma,
-                                                            cronograma_validado_fornecedor):
+                                                            cronograma_assinado_fornecedor):
     data = json.dumps({'password': 'senha_errada'})
     response = client_autenticado_dilog_cronograma.patch(
-        f'/cronogramas/{cronograma_validado_fornecedor.uuid}/cronograma-assina/', data, content_type='application/json')
+        f'/cronogramas/{cronograma_assinado_fornecedor.uuid}/cronograma-assina/', data, content_type='application/json')
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
@@ -270,10 +270,10 @@ def test_url_dinutre_assina_cronograma_authorized(client_autenticado_dinutre_dir
 
 
 def test_url_dinutre_assina_cronograma_erro_senha(client_autenticado_dinutre_diretoria,
-                                                  cronograma_validado_fornecedor):
+                                                  cronograma_assinado_fornecedor):
     data = json.dumps({'password': 'senha_errada'})
     response = client_autenticado_dinutre_diretoria.patch(
-        f'/cronogramas/{cronograma_validado_fornecedor.uuid}/dinutre-assina/', data, content_type='application/json')
+        f'/cronogramas/{cronograma_assinado_fornecedor.uuid}/dinutre-assina/', data, content_type='application/json')
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 

@@ -78,14 +78,14 @@ def emabalagem_qld():
 
 
 @pytest.fixture
-def cronograma_validado_fornecedor(armazem, contrato, empresa):
+def cronograma_assinado_fornecedor(armazem, contrato, empresa):
     return mommy.make(
         'Cronograma',
         numero='002/2022',
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        status='VALIDADO_FORNECEDOR'
+        status='ASSINADO_FORNECEDOR'
     )
 
 
