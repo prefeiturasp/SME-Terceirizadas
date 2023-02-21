@@ -100,6 +100,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
             qs = self.get_default_raw_sql(workflow=status, query_set=query_set)
             sumario.append({
                 'status': status,
+                'total': len(qs),
                 'dados': PainelCronogramaSerializer(
                     qs[offset:limit + offset],
                     context={'request': self.request, 'workflow': status}, many=True).data
@@ -110,7 +111,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
                 sumario.append({
                     'status': workflow,
                     'dados': PainelCronogramaSerializer(
-                        qs[:5],
+                        qs[:6],
                         context={'request': self.request, 'workflow': workflow}, many=True).data
                 })
 
