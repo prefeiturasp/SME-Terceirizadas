@@ -797,7 +797,7 @@ def relatorio_produto_homologacao(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
 
 
-def relatorio_marcas_por_produto_homologacao(request, produtos, filtros):
+def relatorio_marcas_por_produto_homologacao(produtos, filtros):
     html_string = render_to_string(
         'homologacao_marcas_por_produto.html',
         {
@@ -806,7 +806,7 @@ def relatorio_marcas_por_produto_homologacao(request, produtos, filtros):
             'filtros': filtros
         }
     )
-    return html_to_pdf_response(html_string, f'relatorio_marcas_por_produto_homologacao.pdf')
+    return html_to_pdf_file(html_string, f'relatorio_marcas_por_produto_homologacao.pdf', True)
 
 
 def relatorio_produtos_suspensos(produtos, filtros):
@@ -902,17 +902,17 @@ def relatorio_produto_analise_sensorial(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_relatorio_{produto.id_externo}.pdf')
 
 
-def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
+def relatorio_produtos_agrupado_terceirizada(tipo_usuario, dados_agrupados, filtros):
     html_string = render_to_string(
         'relatorio_produtos_por_terceirizada.html',
         {
             'dados_agrupados': dados_agrupados,
             'filtros': filtros,
             'qtde_filtros': conta_filtros(filtros),
-            'exibe_coluna_terceirizada': request.user.tipo_usuario not in ['escola', 'terceirizada']
+            'exibe_coluna_terceirizada': tipo_usuario not in ['escola', 'terceirizada']
         }
     )
-    return html_to_pdf_response(html_string, 'produtos_homologados_por_terceirizada.pdf')
+    return html_to_pdf_file(html_string, 'produtos_homologados_por_terceirizada.pdf', True)
 
 
 def relatorio_produtos_situacao(request, queryset, filtros):

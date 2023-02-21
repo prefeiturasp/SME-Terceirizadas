@@ -25,11 +25,9 @@ from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
 from ...escola.models import DiretoriaRegional, Escola, Lote
 from ...relatorios.relatorios import (
-    relatorio_marcas_por_produto_homologacao,
     relatorio_produto_analise_sensorial,
     relatorio_produto_analise_sensorial_recebimento,
     relatorio_produto_homologacao,
-    relatorio_produtos_agrupado_terceirizada,
     relatorio_produtos_em_analise_sensorial,
     relatorio_produtos_situacao,
     relatorio_produtos_suspensos,
@@ -64,7 +62,7 @@ from ..models import (
     SolicitacaoCadastroProdutoDieta,
     UnidadeMedida
 )
-from ..tasks import gera_xls_relatorio_produtos_homologados_async
+from ..tasks import gera_pdf_relatorio_produtos_homologados_async, gera_xls_relatorio_produtos_homologados_async
 from ..utils import (
     CadastroProdutosEditalPagination,
     ItemCadastroPagination,
@@ -339,6 +337,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 'marca': hom_produto.produto.marca.nome,
                 'edital': nome_edital,
                 'tipo': hom_produto.produto.vinculos.get(edital__numero=nome_edital).tipo_produto,
+                'tem_aditivos_alergenicos': hom_produto.produto.tem_aditivos_alergenicos,
                 'cadastro': hom_produto.produto.criado_em.strftime('%d/%m/%Y'),
                 'homologacao': hom_produto.produto.data_homologacao.strftime('%d/%m/%Y')
             })
@@ -388,6 +387,23 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             'count': len(query_set),
             'total_marcas': total_marcas},
             status=status.HTTP_200_OK)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='relatorio-por-parametros-agrupado-terceirizada')
+    def relatorio_por_parametros_agrupado_terceirizada(self, request):
+        agrupado_nome_marca = request.data.get('agrupado_por_nome_e_marca')
+        user = request.user.get_username()
+        gera_pdf_relatorio_produtos_homologados_async.delay(
+            user=user,
+            nome_arquivo=f'relatorio_produtos_homologados{"_nome_marca" if agrupado_nome_marca else ""}.pdf',
+            data=request.query_params,
+            perfil_nome=request.user.vinculo_atual.perfil.nome,
+            tipo_usuario=request.user.tipo_usuario,
+            object_id=request.user.vinculo_atual.object_id
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['POST'], url_path='filtro-homologacoes-por-titulo-marca-edital')
     def solicitacoes_homologacao_por_titulo_marca_edital(self, request):
@@ -1217,61 +1233,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
 
-    @action(detail=False,
-            methods=['GET'],
-            permission_classes=(AllowAny,),
-            url_path='marcas-por-produto')
-    def relatorio_marcas_por_produto(self, request):
-        form = ProdutoPorParametrosForm(request.GET)
-
-        if not form.is_valid():
-            return Response(form.errors)
-
-        form_data = form.cleaned_data.copy()
-        form_data['status'] = [
-            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
-            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
-            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
-            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
-        ]
-
-        queryset = self.get_queryset_filtrado(form_data)
-
-        produtos = queryset.values('nome', 'marca__nome', 'vinculos__edital__numero')
-        produtos = produtos.order_by('nome', 'marca__nome')
-        produtos_agrupados = []
-        nomes_agrupados = []
-        for produto in produtos:
-            if not produto['nome'] in nomes_agrupados:
-                marcas = produtos.filter(nome=produto['nome']).exclude(marca=None)
-                marcas = marcas.values_list('marca__nome', flat=True).order_by().distinct()
-                editais = produtos.filter(nome=produto['nome']).exclude(vinculos__edital=None)
-                editais = editais.values_list('vinculos__edital__numero', flat=True).order_by().distinct()
-                produtos_agrupados.append({
-                    'nome': produto['nome'],
-                    'marcas': ', '.join(marcas),
-                    'editais': ', '.join(editais)
-                })
-                nomes_agrupados.append(produto['nome'])
-
-        status = 'CODAE_HOMOLOGADO'
-        quantidade_homologados = Produto.objects.filter(
-            ativo=True,
-            homologacao__status=status
-        ).count()
-
-        form_data['quantidade_homologados'] = quantidade_homologados
-
-        return relatorio_marcas_por_produto_homologacao(
-            request,
-            produtos=produtos_agrupados,
-            filtros=form_data
-        )
-
     @action(detail=True, url_path=constants.RELATORIO_ANALISE,
             methods=['get'], permission_classes=(IsAuthenticated,))
     def relatorio_analise_sensorial(self, request, uuid=None):
@@ -1355,66 +1316,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
-
-
-    @action(detail=False, # noqa C901
-            methods=['GET'],
-            url_path='relatorio-por-parametros-agrupado-terceirizada')
-    def relatorio_por_parametros_agrupado_terceirizada(self, request):
-        form = ProdutoPorParametrosForm(request.GET)
-
-        if not form.is_valid():
-            return Response(form.errors)
-
-        form_data = form.cleaned_data.copy()
-        form_data['status'] = [
-            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
-            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
-            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
-            HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
-        ]
-
-        queryset = self.get_queryset_filtrado(form_data)
-        uuids_homologacao = queryset.values_list('homologacao__uuid', flat=True)
-        status_homologado = LogSolicitacoesUsuario.CODAE_HOMOLOGADO
-
-        logs_homologados = LogSolicitacoesUsuario.objects.filter(status_evento=status_homologado,
-                                                                 uuid_original__in=uuids_homologacao)
-
-        produtos = queryset.values('uuid', 'homologacao__rastro_terceirizada__nome_fantasia', 'nome',
-                                   'marca__nome', 'vinculos__tipo_produto', 'vinculos__edital__numero',
-                                   'criado_em', 'homologacao__uuid', 'tem_aditivos_alergenicos')
-
-        produtos = produtos.order_by('homologacao__rastro_terceirizada__nome_fantasia', 'nome')
-        form_data['quantidade_marcas'] = produtos.values_list('marca__nome', flat=True).distinct().count()
-        produtos_agrupados = []
-        for produto in produtos:
-            data_homologacao = logs_homologados.filter(uuid_original=produto['homologacao__uuid']).last()
-            produtos_agrupados.append({
-                'terceirizada': produto['homologacao__rastro_terceirizada__nome_fantasia'],
-                'nome': produto['nome'],
-                'marca': produto['marca__nome'],
-                'edital': produto['vinculos__edital__numero'],
-                'tipo': produto['vinculos__tipo_produto'],
-                'tem_aditivos_alergenicos': produto['tem_aditivos_alergenicos'],
-                'cadastro': produto['criado_em'].strftime('%d/%m/%Y'),
-                'homologacao': data_homologacao.criado_em.strftime('%d/%m/%Y')
-            })
-
-        quantidade_homologados = len(produtos_agrupados)
-
-        form_data['quantidade_homologados'] = quantidade_homologados
-        if isinstance(request.user.vinculo_atual.instituicao, Terceirizada):
-            form_data['tipo_usuario'] = 'Terceirizada'
-        elif isinstance(request.user.vinculo_atual.instituicao, Escola):
-            form_data['tipo_usuario'] = 'Escola'
-        else:
-            form_data['tipo_usuario'] = 'Outros'
-        return relatorio_produtos_agrupado_terceirizada(request, produtos_agrupados, form_data)
 
     @action(detail=False,
             methods=['GET'],
