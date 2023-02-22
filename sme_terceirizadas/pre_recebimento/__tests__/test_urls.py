@@ -293,8 +293,8 @@ def test_url_dinutre_assina_cronograma_not_authorized(client_autenticado_dilog,
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_dados_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
-                                                    cronogramas_multiplos_status_com_log):
+def test_url_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
+                                              cronogramas_multiplos_status_com_log):
     response = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard/'
     )
@@ -304,6 +304,18 @@ def test_url_dados_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_d
     assert len(response.json()['results'][0]['dados']) == 3
     assert response.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
     assert len(response.json()['results'][1]['dados']) == 2
+
+
+def test_url_dashboard_painel_usuario_dinutre_com_paginacao(client_autenticado_dinutre_diretoria,
+                                                            cronogramas_multiplos_status_com_log):
+    response = client_autenticado_dinutre_diretoria.get(
+        f'/cronogramas/dashboard/?status=ASSINADO_CRONOGRAMA&limit=2&offset=0'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+    assert response.json()['results'][0]['status'] == 'ASSINADO_CRONOGRAMA'
+    assert response.json()['results'][0]['total'] == 3
+    assert len(response.json()['results'][0]['dados']) == 2
 
 
 def test_url_dashboard_com_filtro_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
