@@ -77,11 +77,8 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
         return lista_status
 
-    def dados_dashboard(self, query_set: QuerySet) -> list:
-        qs = None
-        sumario = []
-
-        for workflow in self.get_lista_status():
+    def get_default_sql(self, workflow, query_set, use_raw):
+        if use_raw:
             data = {'logs': LogSolicitacoesUsuario._meta.db_table,
                     'cronograma': Cronograma._meta.db_table,
                     'status': workflow}
@@ -92,14 +89,37 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
                        'ON %(cronograma)s.uuid = most_recent_log.uuid_original '
                        "WHERE %(cronograma)s.status = '%(status)s' ")
             raw_sql += 'ORDER BY log_criado_em DESC'
-            qs = query_set.raw(raw_sql % data)
 
+            return query_set.raw(raw_sql % data)
+        else:
+            qs = sorted(query_set.filter(status=workflow).distinct().all(),
+                        key=lambda x: x.log_mais_recente.criado_em
+                        if x.log_mais_recente else '-criado_em', reverse=True)
+            return qs
+
+    def dados_dashboard(self, request, query_set: QuerySet, use_raw) -> list:
+        limit = int(request.query_params.get('limit', 10))
+        offset = int(request.query_params.get('offset', 0))
+        status = request.query_params.get('status', None)
+        sumario = []
+        if status:
+            qs = self.get_default_sql(workflow=status, query_set=query_set, use_raw=use_raw)
             sumario.append({
-                'status': workflow,
+                'status': status,
+                'total': len(qs),
                 'dados': PainelCronogramaSerializer(
-                    qs[:5],
-                    context={'request': self.request, 'workflow': workflow}, many=True).data
+                    qs[offset:limit + offset],
+                    context={'request': self.request, 'workflow': status}, many=True).data
             })
+        else:
+            for workflow in self.get_lista_status():
+                qs = self.get_default_sql(workflow=workflow, query_set=query_set, use_raw=use_raw)
+                sumario.append({
+                    'status': workflow,
+                    'dados': PainelCronogramaSerializer(
+                        qs[:6],
+                        context={'request': self.request, 'workflow': workflow}, many=True).data
+                })
 
         return sumario
 
@@ -107,7 +127,25 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
             url_path='dashboard', permission_classes=(PermissaoParaAssinarCronogramaUsuarioDinutre,))
     def dashboard(self, request):
         query_set = self.get_queryset()
-        response = {'results': self.dados_dashboard(query_set=query_set)}
+        response = {'results': self.dados_dashboard(query_set=query_set, request=request, use_raw=False)}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'],
+            url_path='dashboard-com-filtro', permission_classes=(PermissaoParaAssinarCronogramaUsuarioDinutre,))
+    def dashboard_com_filtro(self, request):
+        query_set = self.get_queryset()
+        numero_cronograma = request.query_params.get('numero_cronograma', None)
+        produto = request.query_params.get('nome_produto', None)
+        fornecedor = request.query_params.get('nome_fornecedor', None)
+
+        if numero_cronograma:
+            query_set = query_set.filter(numero__icontains=numero_cronograma)
+        if produto:
+            query_set = query_set.filter(produto__nome__icontains=produto)
+        if fornecedor:
+            query_set = query_set.filter(empresa__razao_social__icontains=fornecedor)
+
+        response = {'results': self.dados_dashboard(query_set=query_set, request=request, use_raw=False)}
         return Response(response)
 
     def list(self, request, *args, **kwargs):

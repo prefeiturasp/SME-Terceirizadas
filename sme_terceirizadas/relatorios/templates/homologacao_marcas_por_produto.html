@@ -33,13 +33,13 @@
         {% for grupo in produtos %}
           <tr>
             <td>{{ grupo.nome }}</td>
-            {% if grupo.marcas %}
-              <td>{{ grupo.marcas }}</td>
+            {% if grupo.marca %}
+              <td>{{ grupo.marca }}</td>
             {% else %}
               <td class="text-center"> - </td>
             {% endif %}
-            {% if grupo.editais %}
-              <td>{{ grupo.editais }}</td>
+            {% if grupo.edital %}
+              <td>{{ grupo.edital }}</td>
             {% else %}
               <td class="text-center"> - </td>
             {% endif %}

@@ -156,7 +156,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
                 .filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO)
                 .order_by('criado_em')
                 .last())
-            return log_homologacao.criado_em
+            return log_homologacao.criado_em if log_homologacao else None
         except HomologacaoProduto.DoesNotExist:
             return ''
 
