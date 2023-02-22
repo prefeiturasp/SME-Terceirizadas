@@ -294,14 +294,47 @@ def test_url_dinutre_assina_cronograma_not_authorized(client_autenticado_dilog,
 
 
 def test_url_dados_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
-                                                    cronograma_assinado_perfil_cronograma):
+                                                    cronogramas_multiplos_status_com_log):
     response = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard/'
     )
     assert response.status_code == status.HTTP_200_OK
-    response_json = response.json()
-    assert len(response_json['results']) == 2
-    pendente_assinatura = next((x for x in response_json['results'] if x['status'] == 'ASSINADO_CRONOGRAMA'), None)
-    assert len(pendente_assinatura['dados']) == 0
-    aguardando_dilog = next((x for x in response_json['results'] if x['status'] == 'ASSINADO_DINUTRE'), None)
-    assert len(aguardando_dilog['dados']) == 0
+    assert len(response.json()['results']) == 2
+    assert response.json()['results'][0]['status'] == 'ASSINADO_CRONOGRAMA'
+    assert len(response.json()['results'][0]['dados']) == 3
+    assert response.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
+    assert len(response.json()['results'][1]['dados']) == 2
+
+
+def test_url_dashboard_com_filtro_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
+                                                         cronogramas_multiplos_status_com_log):
+    response = client_autenticado_dinutre_diretoria.get(
+        f'/cronogramas/dashboard-com-filtro/'
+    )
+    filtro1 = client_autenticado_dinutre_diretoria.get(
+        f'/cronogramas/dashboard-com-filtro/?nome_produto=Arroz'
+    )
+    filtro2 = client_autenticado_dinutre_diretoria.get(
+        f'/cronogramas/dashboard-com-filtro/?numero_cronograma=003/2023'
+    )
+    filtro3 = client_autenticado_dinutre_diretoria.get(
+        f'/cronogramas/dashboard-com-filtro/?nome_fornecedor=Alimentos'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 2
+    assert response.json()['results'][0]['status'] == 'ASSINADO_CRONOGRAMA'
+    assert len(response.json()['results'][0]['dados']) == 3
+    assert response.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
+    assert len(response.json()['results'][1]['dados']) == 2
+    assert filtro1.json()['results'][0]['status'] == 'ASSINADO_CRONOGRAMA'
+    assert len(filtro1.json()['results'][0]['dados']) == 1
+    assert filtro1.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
+    assert len(filtro1.json()['results'][1]['dados']) == 1
+    assert filtro2.json()['results'][0]['status'] == 'ASSINADO_CRONOGRAMA'
+    assert len(filtro2.json()['results'][0]['dados']) == 1
+    assert filtro2.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
+    assert len(filtro2.json()['results'][1]['dados']) == 0
+    assert filtro3.json()['results'][0]['status'] == 'ASSINADO_CRONOGRAMA'
+    assert len(filtro3.json()['results'][0]['dados']) == 3
+    assert filtro3.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
+    assert len(filtro3.json()['results'][1]['dados']) == 2
