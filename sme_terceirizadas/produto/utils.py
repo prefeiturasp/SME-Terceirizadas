@@ -98,6 +98,23 @@ def cria_filtro_produto_por_parametros_form_homologado(cleaned_data):  # noqa C9
     return campos_a_pesquisar
 
 
+def cria_filtro_homologacao_produto_por_parametros(cleaned_data):
+    campos_a_pesquisar = {}
+    filtro = {
+        'nome_fabricante': 'produto__fabricante__nome__icontains',
+        'nome_marca': 'produto__marca__nome__icontains',
+        'nome_produto': 'produto__nome__icontains',
+        'nome_edital': 'produto__vinculos__edital__numero__icontains',
+        'tipo': 'produto__vinculos__tipo_produto__icontains',
+        'nome_terceirizada': 'rastro_terceirizada__nome_fantasia__icontains'
+    }
+    for (chave, valor) in cleaned_data.items():
+        if not valor or chave not in filtro.keys():
+            continue
+        campos_a_pesquisar[filtro[chave]] = valor
+    return campos_a_pesquisar
+
+
 def cria_filtro_aditivos(aditivos):
     lista_aditivos = aditivos.replace(', ', ',').split(',')
     return reduce(operator.and_, (Q(aditivos__icontains=aditivo) for aditivo in lista_aditivos))
