@@ -77,29 +77,43 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
         return lista_status
 
-    def dados_dashboard(self, query_set: QuerySet) -> list:
-        qs = None
+    def get_default_raw_sql(self, workflow, query_set):
+        data = {'logs': LogSolicitacoesUsuario._meta.db_table,
+                'cronograma': Cronograma._meta.db_table,
+                'status': workflow}
+        raw_sql = ('SELECT %(cronograma)s.* FROM %(cronograma)s '
+                   'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
+                   'GROUP BY uuid_original) '
+                   'AS most_recent_log '
+                   'ON %(cronograma)s.uuid = most_recent_log.uuid_original '
+                   "WHERE %(cronograma)s.status = '%(status)s' ")
+        raw_sql += 'ORDER BY log_criado_em DESC'
+
+        return query_set.raw(raw_sql % data)
+
+    def dados_dashboard(self, request, query_set: QuerySet) -> list:
+        limit = int(request.query_params.get('limit', 10))
+        offset = int(request.query_params.get('offset', 0))
+        status = request.query_params.get('status', None)
         sumario = []
-
-        for workflow in self.get_lista_status():
-            data = {'logs': LogSolicitacoesUsuario._meta.db_table,
-                    'cronograma': Cronograma._meta.db_table,
-                    'status': workflow}
-            raw_sql = ('SELECT %(cronograma)s.* FROM %(cronograma)s '
-                       'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
-                       'GROUP BY uuid_original) '
-                       'AS most_recent_log '
-                       'ON %(cronograma)s.uuid = most_recent_log.uuid_original '
-                       "WHERE %(cronograma)s.status = '%(status)s' ")
-            raw_sql += 'ORDER BY log_criado_em DESC'
-            qs = query_set.raw(raw_sql % data)
-
+        if status:
+            qs = self.get_default_raw_sql(workflow=status, query_set=query_set)
             sumario.append({
-                'status': workflow,
+                'status': status,
+                'total': len(qs),
                 'dados': PainelCronogramaSerializer(
-                    qs[:5],
-                    context={'request': self.request, 'workflow': workflow}, many=True).data
+                    qs[offset:limit + offset],
+                    context={'request': self.request, 'workflow': status}, many=True).data
             })
+        else:
+            for workflow in self.get_lista_status():
+                qs = self.get_default_raw_sql(workflow=workflow, query_set=query_set)
+                sumario.append({
+                    'status': workflow,
+                    'dados': PainelCronogramaSerializer(
+                        qs[:6],
+                        context={'request': self.request, 'workflow': workflow}, many=True).data
+                })
 
         return sumario
 
@@ -107,7 +121,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
             url_path='dashboard', permission_classes=(PermissaoParaAssinarCronogramaUsuarioDinutre,))
     def dashboard(self, request):
         query_set = self.get_queryset()
-        response = {'results': self.dados_dashboard(query_set=query_set)}
+        response = {'results': self.dados_dashboard(query_set=query_set, request=request)}
         return Response(response)
 
     def list(self, request, *args, **kwargs):
