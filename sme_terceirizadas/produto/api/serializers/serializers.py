@@ -576,10 +576,10 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
 
     def get_vinculos_produto_edital(self, obj):
         editais = obj.vinculos.all()
-        if obj.homologacao.status.state.name == 'CODAE_HOMOLOGADO':
-            editais = editais.filter(suspenso=False)
-        if obj.homologacao.status.state.name == 'CODAE_SUSPENDEU':
+        if self.context.get('status') and self.context['status'] == ['CODAE_SUSPENDEU']:
             editais = editais.filter(suspenso=True)
+        else:
+            editais = editais.filter(suspenso=False)
         return ', '.join(editais.values_list('edital__numero', flat=True))
 
     class Meta:

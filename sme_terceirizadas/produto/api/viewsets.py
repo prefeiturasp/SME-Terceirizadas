@@ -936,11 +936,18 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             contratos = request.user.vinculo_atual.instituicao.lote.contratos_do_lote.all()
             editais = contratos.values_list('edital', flat=True)
             queryset = queryset.filter(vinculos__edital__in=editais)
+        filter_status = request.query_params.getlist('status')
+        if filter_status:
+            if filter_status == ['CODAE_SUSPENDEU']:
+                queryset = queryset.filter(homologacao__status__in=['CODAE_SUSPENDEU', 'CODAE_HOMOLOGADO'],
+                                           vinculos__suspenso=True).distinct()
+            else:
+                queryset = queryset.filter(homologacao__status__in=filter_status)
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = ProdutoListagemSerializer(page, many=True)
+            serializer = ProdutoListagemSerializer(page, context={'status': filter_status}, many=True)
             return self.get_paginated_response(serializer.data)
-        serializer = ProdutoListagemSerializer(queryset, many=True)
+        serializer = ProdutoListagemSerializer(queryset, context={'status': filter_status}, many=True)
         return Response(serializer.data)
 
     def paginated_response(self, queryset):
