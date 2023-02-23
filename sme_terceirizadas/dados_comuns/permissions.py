@@ -425,7 +425,7 @@ class PermissaoParaListarEntregas(BasePermission):
                     usuario.vinculo_atual.perfil.nome in [
                         COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA, COORDENADOR_SUPERVISAO_NUTRICAO,
                         ADMINISTRADOR_CODAE_GABINETE, ADMINISTRADOR_CODAE_DILOG_CONTABIL,
-                        ADMINISTRADOR_CODAE_DILOG_JURIDICO
+                        ADMINISTRADOR_CODAE_DILOG_JURIDICO, ADMINISTRADOR_SUPERVISAO_NUTRICAO
                     ]
                 ) or
                 usuario.eh_distribuidor or
