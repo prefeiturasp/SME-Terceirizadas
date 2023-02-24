@@ -391,6 +391,8 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExter
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
     quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     periodo = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING, blank=True, null=True)
+    periodo_externo = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING, blank=True,
+                                        null=True, related_name='periodo_externo')
 
     def __str__(self):
         return f'De: {self.faixa_etaria.inicio} até: {self.faixa_etaria.fim} meses - {self.quantidade_alunos} alunos'
