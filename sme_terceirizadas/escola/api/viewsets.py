@@ -445,6 +445,14 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
     #  TODO: Quebrar esse método um pouco, está complexo e sem teste
     @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')
     def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):  # noqa C901
+        """
+        EscolaCEI: Deve retornar a quantidade de alunos por faixa etária e período escolar através do uuid do
+        PeriodoEscolar
+
+        Outras escolas: Deve retornar a quantidade de alunos por faixa etária e período escolar através do uuid do
+        EscolaPeriodoEscolar
+        """
+
         form = AlunosPorFaixaEtariaForm({
             'data_referencia': data_referencia_str
         })
