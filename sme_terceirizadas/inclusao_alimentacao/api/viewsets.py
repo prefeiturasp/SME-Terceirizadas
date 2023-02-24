@@ -493,6 +493,8 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
+            obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar).exclude(cancelado=True).update(
+                cancelado_justificativa=justificativa)
             if (obj.quantidades_periodo.count() != len(uuids_a_cancelar) or
                 (obj.quantidades_periodo.count() == len(uuids_a_cancelar)) and
                     obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar, cancelado=True).exists()):

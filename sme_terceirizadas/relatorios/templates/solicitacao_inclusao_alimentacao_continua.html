@@ -53,10 +53,15 @@
             <td>{{ quantidade_periodo.numero_alunos }}</td>
           </tr>
           <tr class="{% if quantidade_periodo.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}cancelado{% endif %}">
-            <td>
+            <td colspan="2">
               <p>Observações:</p>
               <p>{{ quantidade_periodo.observacao | safe }}</p>
             </td>
+            {% if quantidade_periodo.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}
+              <td colspan="2" style="text-decoration: none">
+                <p>Justificativa: {{ quantidade_periodo.cancelado_justificativa | safe }}</p>
+              </td>
+            {% endif %}
           </tr>
         {% endfor %}
         </tbody>
@@ -64,6 +69,8 @@
     </div>
       {% include "bloco_observacoes.html" %}
       {% include "bloco_historico_questionamento.html" %}
-      {% include "bloco_historico_cancelamento.html" %}
+      {% if not solicitacao|existe_inclusao_cancelada %}
+        {% include "bloco_historico_cancelamento.html" %}
+      {% endif %}
   </div>
 {% endblock %}
