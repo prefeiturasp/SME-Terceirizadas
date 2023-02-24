@@ -53,7 +53,7 @@
       {% include "bloco_observacoes.html" %}
       {% include "bloco_historico_cancelamento_inclusao.html" %}
       {% include "bloco_historico_questionamento.html" %}
-      {% if not solicitacao|existe_inclusao_cancelada %}
+      {% if solicitacao.status != 'ESCOLA_CANCELOU' %}
         {% include "bloco_historico_cancelamento.html" %}
       {% endif %}
   </div>

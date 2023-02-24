@@ -58,6 +58,8 @@ class EscolaIniciaCancela():
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
+            if obj.status == obj.workflow_class.ESCOLA_CANCELOU:
+                raise InvalidTransitionError("Já está cancelada")
             if (type(obj) in [SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI] or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
                 # ISSO OCORRE QUANDO O CANCELAMENTO É TOTAL

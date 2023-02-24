@@ -197,7 +197,7 @@
   {% endif %}
 {% endfor %}
 
-{% if solicitacao.dias_motivos_da_inclusao_cemei.all|tem_cancelamento_parcial %}
+{% if solicitacao|existe_inclusao_cancelada %}
   <div class="row mx-4 my-1">
     <div class="col-12">
       <hr style="color: #EEEEEE; opacity: 0.3">
@@ -206,12 +206,12 @@
   <div class="row mx-5 my-1" style="font-family: 'Roboto'; font-style: normal; font-size: 14px;">
     <div>
       <div>
-        <p>Histórico de cancelamento parcial:</p>
+        <p>Histórico de cancelamento:</p>
       </div>
       {% for dia in solicitacao.dias_motivos_da_inclusao_cemei.all %}
-        {% if dia.cancelado %}
+        {% if dia.cancelado_justificativa %}
           <div>
-            {{ dia.data }} - {{ dia.cancelado_justificativa }}
+            {{ dia.data }} - justificativa: {{ dia.cancelado_justificativa }}
           </div>
         {% endif %}
       {% endfor %}
@@ -228,17 +228,13 @@
   <div class="row mx-5">
     {% include "bloco_observacoes.html" %}
   </div>
-  <div class="row mx-5" style="font-size: 14px;">
-    {% if not solicitacao|inclusao_multiplos_cancelamentos %}
+  <div class="row mx-5">
+    {% if solicitacao.status != 'ESCOLA_CANCELOU' %}
       {% include "bloco_historico_cancelamento.html" %}
     {% endif %}
   </div>
-  <div class="row mx-4 my-1">
-    <div class="col-12">
-      <hr style="color: #EEEEEE; opacity: 0.3">
-    </div>
-  </div>
   <div class="row mx-5" style="font-size: 14px;">
+    <hr style="color: #EEEEEE; opacity: 0.3">
     {% include "bloco_historico_questionamento_com_data.html" %}
   </div>
 {% endif %}
