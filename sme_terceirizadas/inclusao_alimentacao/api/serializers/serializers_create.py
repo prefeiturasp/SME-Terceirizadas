@@ -42,6 +42,11 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(ser
         required=True,
         queryset=PeriodoEscolar.objects.all())
 
+    periodo_externo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all())
+
     def create(self, validated_data):
         quantidade_alunos_faixa_etaria = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI.objects.create(
             **validated_data

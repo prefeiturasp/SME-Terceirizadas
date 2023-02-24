@@ -65,7 +65,7 @@ from ..kit_lanche.models import (
 )
 from .constants import PERIODOS_ESPECIAIS_CEMEI
 from .services import NovoSGPServicoLogado
-from .utils import meses_para_mes_e_ano_string
+from .utils import meses_para_mes_e_ano_string, remove_acentos
 
 logger = logging.getLogger('sigpae.EscolaModels')
 
@@ -631,7 +631,7 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
         faixa_alunos = Counter()
         seis_anos_atras = datetime.date.today() - relativedelta(years=6)
         for aluno in lista_alunos:
-            if aluno['dc_tipo_turno'].strip().upper() == self.periodo_escolar.nome:
+            if remove_acentos(aluno['dc_tipo_turno'].strip()).upper() == self.periodo_escolar.nome:
                 data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
 
                 for faixa_etaria in faixas_etarias:
