@@ -6,11 +6,9 @@ import django.db.models.deletion
 
 def migracao_dados(apps, _):
     nome_modelo = 'QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI'
-    PeriodoEscolar = apps.get_model('escola', 'PeriodoEscolar')
-    periodo = PeriodoEscolar.objects.get(nome='INTEGRAL')
     modelo = apps.get_model('inclusao_alimentacao', nome_modelo)
     for inclusao_cei in modelo.objects.all():
-        inclusao_cei.periodo_externo = periodo
+        inclusao_cei.periodo_externo = inclusao_cei.periodo
         inclusao_cei.save()
 
 
