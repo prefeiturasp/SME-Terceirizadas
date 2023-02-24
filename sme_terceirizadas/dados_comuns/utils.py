@@ -214,7 +214,7 @@ def ordena_dias_semana_comeca_domingo(dias_semana):
 
 
 def gera_objeto_na_central_download(user, identificador):
-    usuario = get_user_model().objects.get(email=user)
+    usuario = get_user_model().objects.get(username=user)
     obj_arquivo_download = CentralDeDownload.objects.create(
         identificador=identificador,
         arquivo=None,
