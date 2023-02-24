@@ -4,29 +4,31 @@
 
 {% block conteudo %}
   <div class="conteudo tabela-sem-borda">
-      {% include "bloco_fluxo_de_status.html" %}
-      {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
+    {% include "bloco_fluxo_de_status.html" %}
+    {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <table class='info-geral-inclusao'>
-        {% for dias_inclusao  in solicitacao.inclusoes.all %}
-          <tr>
-            <th>Motivo</th>
-            <th>Dia</th>
-          </tr>
-          <tr>
-              {% if dias_inclusao.outro_motivo %}
-                <td>{{ dias_inclusao.outro_motivo }}</td>
-              {% else %}
-                <td>
-                  {{ dias_inclusao.motivo.nome }}
-                </td>
-              {% endif %}
-
-            <td>{{ dias_inclusao.data }}</td>
-              {% if dias_inclusao.cancelado %}
-                <td>Cancelado</td>
-              {% endif %}
-          </tr>
-        {% endfor %}
+      {% for dias_inclusao  in solicitacao.inclusoes.all %}
+        <tr>
+          <th>Motivo</th>
+          <th>Dia</th>
+          {% if dias_inclusao.cancelado %}
+            <th>Justificativa</th>
+          {% endif %}
+        </tr>
+        <tr class="{% if dias_inclusao.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}cancelado{% endif %}">
+            {% if dias_inclusao.outro_motivo %}
+              <td>{{ dias_inclusao.outro_motivo }}</td>
+            {% else %}
+              <td>
+                {{ dias_inclusao.motivo.nome }}
+              </td>
+            {% endif %}
+          <td>{{ dias_inclusao.data }}</td>
+          {% if dias_inclusao.cancelado %}
+            <td style="text-decoration: none">Justificativa: {{ dias_inclusao.cancelado_justificativa }}</td>
+          {% endif %}
+        </tr>
+      {% endfor %}
     </table>
     <div class="tabela-sem-borda">
       <table class="thead-black">
@@ -51,6 +53,8 @@
       {% include "bloco_observacoes.html" %}
       {% include "bloco_historico_cancelamento_inclusao.html" %}
       {% include "bloco_historico_questionamento.html" %}
-      {% include "bloco_historico_cancelamento.html" %}
+      {% if not solicitacao|existe_inclusao_cancelada %}
+        {% include "bloco_historico_cancelamento.html" %}
+      {% endif %}
   </div>
 {% endblock %}

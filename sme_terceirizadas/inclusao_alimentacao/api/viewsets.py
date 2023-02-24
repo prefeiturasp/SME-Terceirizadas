@@ -64,6 +64,7 @@ class EscolaIniciaCancela():
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
+            if hasattr(obj, 'inclusoes') and 1 < obj.inclusoes.count() != len(datas):
                 obj.inclusoes.filter(data__in=datas).update(cancelado=True, cancelado_justificativa=justificativa)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
@@ -488,10 +489,13 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
         justificativa = request.data.get('justificativa', '')
         try:
             uuids_a_cancelar = [qtd_periodo['uuid'] for qtd_periodo in quantidades_periodo if qtd_periodo['cancelado']]
-            if len(uuids_a_cancelar) == obj.quantidades_periodo.count():
+            if not uuids_a_cancelar or len(uuids_a_cancelar) == obj.quantidades_periodo.count():
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
+            if (obj.quantidades_periodo.count() != len(uuids_a_cancelar) or
+                (obj.quantidades_periodo.count() == len(uuids_a_cancelar)) and
+                    obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar, cancelado=True).exists()):
                 obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar).exclude(cancelado=True).update(
                     cancelado=True, cancelado_justificativa=justificativa)
             serializer = self.get_serializer(obj)
