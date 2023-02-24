@@ -64,8 +64,10 @@ class EscolaIniciaCancela():
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
-            if hasattr(obj, 'inclusoes') and 1 < obj.inclusoes.count() != len(datas):
-                obj.inclusoes.filter(data__in=datas).update(cancelado=True, cancelado_justificativa=justificativa)
+            if hasattr(obj, 'inclusoes'):
+                obj.inclusoes.filter(data__in=datas).update(cancelado_justificativa=justificativa)
+                if 1 < obj.inclusoes.count() != len(datas):
+                    obj.inclusoes.filter(data__in=datas).update(cancelado=True)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
         except InvalidTransitionError as e:

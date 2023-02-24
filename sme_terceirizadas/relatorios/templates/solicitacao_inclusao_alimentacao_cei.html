@@ -38,6 +38,8 @@
     </div>
       {% include "bloco_observacoes.html" %}
       {% include "bloco_historico_questionamento.html" %}
-      {% include "bloco_historico_cancelamento.html" %}
+      {% if not solicitacao|inclusao_multiplos_cancelamentos %}
+        {% include "bloco_historico_cancelamento.html" %}
+      {% endif %}
   </div>
 {% endblock %}

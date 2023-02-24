@@ -272,6 +272,14 @@ def existe_inclusao_cancelada(solicitacao):
 
 
 @register.filter
+def inclusao_multiplos_cancelamentos(solicitacao):
+    multiplos_cancelamentos = len(set(list(solicitacao.inclusoes.filter(
+        cancelado_justificativa__isnull=False).values_list(
+        'cancelado_justificativa', flat=True)))) > 1
+    return multiplos_cancelamentos
+
+
+@register.filter
 def inclusoes_canceladas(solicitacao):
     return solicitacao.inclusoes.filter(cancelado=True)
 
