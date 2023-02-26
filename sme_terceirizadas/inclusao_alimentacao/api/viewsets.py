@@ -58,11 +58,9 @@ class EscolaIniciaCancela():
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            if obj.status == obj.workflow_class.ESCOLA_CANCELOU:
-                raise InvalidTransitionError("Já está cancelada")
+            assert obj.status != obj.workflow_class.ESCOLA_CANCELOU, 'Já está cancelada'
             if (type(obj) in [SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI] or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
-                # ISSO OCORRE QUANDO O CANCELAMENTO É TOTAL
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
@@ -72,7 +70,7 @@ class EscolaIniciaCancela():
                     obj.inclusoes.filter(data__in=datas).update(cancelado=True)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
-        except InvalidTransitionError as e:
+        except (InvalidTransitionError, AssertionError) as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
 
