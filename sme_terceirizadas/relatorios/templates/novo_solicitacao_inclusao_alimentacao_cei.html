@@ -69,22 +69,29 @@
   <div class="col-4">
     <p>Dia(s) de inclusão:</p>
   </div>
+  {% if solicitacao|existe_inclusao_cancelada or solicitacao.status == 'ESCOLA_CANCELOU' %}
   <div class="col-4">
     <p>justificativa(s) de cancelamento:</p>
   </div>
-
+  {% endif %}
+</div>
+<div class="row mx-5 my-2">
   {% for dia_motivo in dias_motivos_da_inclusao_cei %}
     <div class="col-4">
-      <p><b>{{ dia_motivo.motivo.nome }}</b></p>
+      {% if dia_motivo.cancelado_justificativa %}
+        <p style="color: #a8a8a8; text-decoration: line-through;"><b>{{dia_motivo.motivo.nome}}</b></p>
+      {% else %}
+        <p><b>{{ dia_motivo.motivo.nome }}</b></p>
+      {% endif %}
     </div>
     <div class="col-4">
-      {% if dia_motivo.cancelado %}
+      {% if dia_motivo.cancelado_justificativa %}
         <p style="color: #a8a8a8; text-decoration: line-through;"><b>{{dia_motivo.data}}</b></p>
       {% else %}
         <p><b>{{ dia_motivo.data }}</b></p>
       {% endif %}
     </div>
-    {% if dia_motivo.cancelado %}
+    {% if dia_motivo.cancelado_justificativa or solicitacao.status == 'ESCOLA_CANCELOU' %}
       <div class="col-4">
         <p><b>{{dia_motivo.cancelado_justificativa}}</b></p>
       </div>
@@ -152,14 +159,12 @@
   </div>
 </div>
 
-<div class="row mx-5">
+<div class="mx-4 my-2">
   {% include "bloco_observacoes.html" %}
-</div>
-<div class="row mx-5">
   {% include "bloco_historico_questionamento.html" %}
+  {% include "bloco_historico_cancelamento_inclusao.html" %}
+  {% if solicitacao.status != 'ESCOLA_CANCELOU' %}
+    {% include "bloco_historico_cancelamento.html" %}
+  {% endif %}
 </div>
-<div class="row mx-5">
-  {% include "bloco_historico_cancelamento.html" %}
-</div>
-
 {% endblock %}

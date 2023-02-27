@@ -98,8 +98,13 @@
 
     tr {
       border-bottom: 1px solid $preto;
+
       &.sem-border-bottom {
         border-bottom: none;
+      }
+
+      &.cancelado {
+        text-decoration: line-through;
       }
     }
 
@@ -363,6 +368,13 @@
 
 .info-geral-inclusao {
   width: 100%;
+
+  tr {
+    &.cancelado {
+      text-decoration: line-through;
+    }
+  }
+
 }
 
 .tabela-filtro {

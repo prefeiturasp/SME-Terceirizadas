@@ -268,12 +268,20 @@ def embalagens_filter(embalagens, tipo):
 
 @register.filter
 def existe_inclusao_cancelada(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado=True).exists()
+    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False).exists()
+
+
+@register.filter
+def inclusao_multiplos_cancelamentos(solicitacao):
+    multiplos_cancelamentos = len(set(list(solicitacao.inclusoes.filter(
+        cancelado_justificativa__isnull=False).values_list(
+        'cancelado_justificativa', flat=True)))) > 1
+    return multiplos_cancelamentos
 
 
 @register.filter
 def inclusoes_canceladas(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado=True)
+    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False)
 
 
 @register.filter
