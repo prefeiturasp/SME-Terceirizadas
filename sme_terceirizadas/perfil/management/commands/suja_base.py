@@ -7,7 +7,7 @@ from django.db.models.functions import Concat
 
 from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.perfil.models import Usuario
-from sme_terceirizadas.terceirizada.models import Terceirizada
+from sme_terceirizadas.terceirizada.models import EmailTerceirizadaPorModulo, Terceirizada
 
 logger = logging.getLogger('sigpae.cmd_suja_base')
 
@@ -32,6 +32,7 @@ class Command(BaseCommand):
         self.suja_emails_contatos(filtro_ignorar)
         self.suja_representante_emails_terceirizadas()
         self.suja_responsavel_emails_terceirizadas()
+        self.suja_modulos_emails_terceirizadas()
 
     def suja_emails_usuarios(self, filtro):
         usuarios = Usuario.objects.exclude(filtro)
@@ -71,4 +72,18 @@ class Command(BaseCommand):
                                              f'terceirizadas no campo responsavel_email'))
         qtd_terceirizadas = terceirizadas_responsavel_email.update(
             responsavel_email=Concat(Value('fake_'), 'responsavel_email'))
+        self.stdout.write(self.style.SUCCESS(f'{qtd_terceirizadas} atualizados'))
+
+    def suja_modulos_emails_terceirizadas(self):
+        terceirizadas_modulos_emails = EmailTerceirizadaPorModulo.objects.exclude(
+            Q(email__isnull=True) |
+            Q(email='') |
+            Q(email__icontains='fake_') |
+            Q(email__icontains='@admin.com') |
+            Q(email__icontains='@amcom.com')
+        )
+        self.stdout.write(self.style.SUCCESS(f'Atualizando {terceirizadas_modulos_emails.count()} '
+                                             f'terceirizadas no campo email nos módulos'))
+        qtd_terceirizadas = terceirizadas_modulos_emails.update(
+            email=Concat(Value('fake_'), 'email'))
         self.stdout.write(self.style.SUCCESS(f'{qtd_terceirizadas} atualizados'))
