@@ -135,6 +135,10 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
         return self.quantidades_por_periodo
 
     @property
+    def inclusoes(self):
+        return self.quantidades_por_periodo
+
+    @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(tipo=TemplateMensagem.INCLUSAO_ALIMENTACAO_CONTINUA)
         template_troca = {
