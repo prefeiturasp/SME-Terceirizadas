@@ -12,6 +12,7 @@ from ...terceirizada.api.serializers.serializers import ContratoSimplesSerialize
 from ...terceirizada.models import Terceirizada
 from ..models import (
     Aluno,
+    AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
     DiretoriaRegional,
@@ -555,3 +556,9 @@ class AlunoNaoMatriculadoSerializer(serializers.ModelSerializer):
             'cpf',
             'data_nascimento'
         )
+
+
+class AlunosMatriculadosPeriodoEscolaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlunosMatriculadosPeriodoEscola
+        fields = ('periodo_escolar',)
