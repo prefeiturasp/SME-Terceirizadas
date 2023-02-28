@@ -329,10 +329,7 @@ class PeriodosComMatriculadosPorUEViewSet(ReadOnlyModelViewSet):
         return get_object_or_404(self.get_queryset(), uuid=uuid.rstrip('/'))
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return AlunosMatriculadosPeriodoEscolaSerializer
-        elif self.action == 'retrieve':
-            return AlunosMatriculadosPeriodoEscolaSerializer
+        return AlunosMatriculadosPeriodoEscolaSerializer
 
 
 class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
