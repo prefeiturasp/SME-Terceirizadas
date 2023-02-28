@@ -293,7 +293,13 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializer(SubstituicoesAliment
             instance.alteracao_cardapio.data,
             faixas_etarias_da_solicitacao
         )
-        nome_periodo = 'INTEGRAL' if instance.periodo_escolar.nome == 'PARCIAL' else instance.periodo_escolar.nome
+
+        nome_periodo_correcoes = {
+            'PARCIAL': 'INTEGRAL',
+            'MANHA': 'MANHÃ',
+        }
+        nome_periodo = nome_periodo_correcoes.get(instance.periodo_escolar.nome, instance.periodo_escolar.nome)
+
         for faixa_etaria in retorno['faixas_etarias']:
             uuid_faixa_etaria = faixa_etaria['faixa_etaria']['uuid']
             faixa_etaria['total_alunos_no_periodo'] = qtde_alunos[nome_periodo][uuid_faixa_etaria]
