@@ -526,7 +526,6 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             })
         return dias_motivos_da_inclusao_cei
 
-    # aqui
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
@@ -542,6 +541,12 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             'label_data': label_data,
             'data_log': data_log
         }
+
+    def periodos_da_solicitacao(self, nivel_interno, nome_coluna):
+        qa = self.quantidade_alunos_da_inclusao
+        if nivel_interno:
+            qa = qa.filter(periodo_externo__nome='INTEGRAL')
+        return qa.order_by(f'{nome_coluna}__posicao').values_list(f'{nome_coluna}__nome', flat=True).distinct()
 
     def __str__(self):
         return f'Inclusao da CEI cód: {self.id_externo}'
