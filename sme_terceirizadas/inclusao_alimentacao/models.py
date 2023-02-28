@@ -542,18 +542,11 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             'data_log': data_log
         }
 
-    @property
-    def nomes_periodos_externos(self):
+    def periodos_da_solicitacao(self, nivel_interno, nome_coluna):
         qa = self.quantidade_alunos_da_inclusao
-        periodos_externos = qa.order_by('periodo_externo__posicao').values_list('periodo_externo__nome', flat=True)
-        return periodos_externos.distinct()
-
-    @property
-    def nomes_periodos_internos_integral(self):
-        periodo_nome = 'INTEGRAL'
-        qa = self.quantidade_alunos_da_inclusao.filter(periodo_externo__nome=periodo_nome)
-        periodos_externos = qa.order_by('periodo__posicao').values_list('periodo__nome', flat=True)
-        return periodos_externos.distinct()
+        if nivel_interno:
+            qa = qa.filter(periodo_externo__nome='INTEGRAL')
+        return qa.order_by(f'{nome_coluna}__posicao').values_list(f'{nome_coluna}__nome', flat=True).distinct()
 
     def __str__(self):
         return f'Inclusao da CEI cód: {self.id_externo}'

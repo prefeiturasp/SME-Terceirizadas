@@ -520,7 +520,7 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
         qa = solicitacao.quantidade_alunos_por_faixas_etarias
         vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
         inclusoes = []
-        for periodo_externo in solicitacao.nomes_periodos_externos:
+        for periodo_externo in solicitacao.periodos_da_solicitacao(nivel_interno=False, nome_coluna='periodo_externo'):
             inclusao = {'periodo_externo_nome': periodo_externo}
             vinculo = vinculos_class.objects.filter(periodo_escolar__nome=periodo_externo, ativo=True,
                                                     tipo_unidade_escolar=escola.tipo_unidade).first()
@@ -530,7 +530,7 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
                 inclusao['tipos_alimentacao'] = ''
             if periodo_externo == 'INTEGRAL':
                 inclusao['periodos_internos'] = []
-                for periodo_interno in solicitacao.nomes_periodos_internos_integral:
+                for periodo_interno in solicitacao.periodos_da_solicitacao(nivel_interno=True, nome_coluna='periodo'):
                     p_faixas = qa.filter(periodo__nome=periodo_interno, periodo_externo__nome=periodo_externo)
                     total_inclusao = sum(p_faixas.values_list('quantidade_alunos', flat=True))
                     total_matriculados = sum(p_faixas.values_list('matriculados_quando_criado', flat=True))
