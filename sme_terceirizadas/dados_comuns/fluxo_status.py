@@ -2731,15 +2731,15 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     def _envia_email_aceite_reclamacao(self, log_aceite):
         html = render_to_string(
-            template_name='produto_codae_aceitou_reclamacao.html',
+            template_name='produto_codae_suspende.html',
             context={
-                'titulo': 'Produto suspenso por reclamação',
-                'reclamacao': self,
-                'log_aceite': log_aceite
+                'titulo': 'Suspensão de Produto',
+                'produto': self.homologacao_produto.produto,
+                'log_transicao': log_aceite
             }
         )
         envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Produto suspenso por reclamação',
+            assunto='[SIGPAE] Suspensão de Produto',
             emails=self._partes_interessadas_suspensao_por_reclamacao(),
             corpo='',
             html=html
