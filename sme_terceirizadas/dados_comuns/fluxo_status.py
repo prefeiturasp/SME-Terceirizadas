@@ -2937,35 +2937,32 @@ class CronogramaWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     RASCUNHO = 'RASCUNHO'
-    ENVIADO_AO_FORNECEDOR = 'ENVIADO_AO_FORNECEDOR'
+    ASSINADO_E_ENVIADO_AO_FORNECEDOR = 'ASSINADO_E_ENVIADO_AO_FORNECEDOR'
     ALTERACAO_CODAE = 'ALTERACAO_CODAE'
     APROVADO = 'APROVADO'
     REPROVADO = 'REPROVADO'
     ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
     ASSINADO_FORNECEDOR = 'ASSINADO_FORNECEDOR'
     SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
-    ASSINADO_CRONOGRAMA = 'ASSINADO_CRONOGRAMA'
     ASSINADO_DINUTRE = 'ASSINADO_DINUTRE'
 
     states = (
         (RASCUNHO, 'Rascunho'),
-        (ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
+        (ASSINADO_E_ENVIADO_AO_FORNECEDOR, 'Assinado e Enviado ao Fornecedor'),
         (ALTERACAO_CODAE, 'Alteração CODAE'),
         (APROVADO, 'Aprovado'),
         (REPROVADO, 'Reprovado'),
         (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
         (ASSINADO_FORNECEDOR, 'Assinado Fornecedor'),
         (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
-        (ASSINADO_CRONOGRAMA, 'Assinado Cronograma'),
         (ASSINADO_DINUTRE, 'Assinado Dinutre'),
     )
 
     transitions = (
-        ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
-        ('fornecedor_assina', ENVIADO_AO_FORNECEDOR, ASSINADO_FORNECEDOR),
+        ('inicia_fluxo', RASCUNHO, ASSINADO_E_ENVIADO_AO_FORNECEDOR),
+        ('fornecedor_assina', ASSINADO_E_ENVIADO_AO_FORNECEDOR, ASSINADO_FORNECEDOR),
         ('solicita_alteracao', ASSINADO_FORNECEDOR, SOLICITADO_ALTERACAO),
-        ('cronograma_assina', ASSINADO_FORNECEDOR, ASSINADO_CRONOGRAMA),
-        ('dinutre_assina', ASSINADO_CRONOGRAMA, ASSINADO_DINUTRE),
+        ('dinutre_assina', ASSINADO_FORNECEDOR, ASSINADO_DINUTRE),
     )
 
     initial_state = RASCUNHO

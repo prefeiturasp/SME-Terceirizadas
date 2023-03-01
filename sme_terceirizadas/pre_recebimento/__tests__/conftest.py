@@ -46,7 +46,7 @@ def cronograma_recebido(armazem, contrato, empresa):
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        status='ENVIADO_AO_FORNECEDOR'
+        status='ASSINADO_E_ENVIADO_AO_FORNECEDOR'
     )
 
 
@@ -98,7 +98,7 @@ def cronograma_assinado_perfil_cronograma(armazem, contrato, empresa):
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        status='ASSINADO_CRONOGRAMA'
+        status='ASSINADO_E_ENVIADO_AO_FORNECEDOR'
     )
 
 
@@ -127,11 +127,11 @@ def cronogramas_multiplos_status_com_log(armazem, contrato, empresa, produto_arr
                                          produto_acucar):
     c1 = mommy.make('Cronograma',
                     numero='002/2023', contrato=contrato, empresa=empresa, armazem=armazem, produto=produto_arroz,
-                    status='ASSINADO_CRONOGRAMA'
+                    status='ASSINADO_FORNECEDOR'
                     )
     c2 = mommy.make('Cronograma',
                     numero='003/2023', contrato=contrato, empresa=empresa, armazem=armazem, produto=produto_acucar,
-                    status='ASSINADO_CRONOGRAMA'
+                    status='ASSINADO_FORNECEDOR'
                     )
     c3 = mommy.make('Cronograma',
                     numero='004/2023', contrato=contrato, empresa=empresa, armazem=armazem, produto=produto_arroz,
@@ -143,7 +143,7 @@ def cronogramas_multiplos_status_com_log(armazem, contrato, empresa, produto_arr
                     )
     c5 = mommy.make('Cronograma',
                     numero='006/2023', contrato=contrato, empresa=empresa, armazem=armazem, produto=produto_macarrao,
-                    status='ASSINADO_CRONOGRAMA'
+                    status='ASSINADO_FORNECEDOR'
                     )
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=c1.uuid,

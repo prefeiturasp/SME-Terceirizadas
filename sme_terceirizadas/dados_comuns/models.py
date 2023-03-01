@@ -198,7 +198,7 @@ class LogSolicitacoesUsuario(
         (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
         (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE'),
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
-        (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
+        (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Assinado e Enviado ao Fornecedor'),
         (CRONOGRAMA_ASSINADO_PELO_FORNECEDOR, 'Assinado Fornecedor'),
         (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Alteração Fornecedor'),
         (SUSPENSO_EM_ALGUNS_EDITAIS, 'Suspenso em alguns editais'),
