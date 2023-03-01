@@ -2078,7 +2078,6 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
 
 class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    lookup_field = 'uuid'
     serializer_class = ReclamacaoDeProdutoSerializer
     queryset = ReclamacaoDeProduto.objects.all()
 
