@@ -3,18 +3,20 @@
   <tr>
     <td colspan="6">
       <div class="row mt-2 mb-2 mx-2">
-        <div class="col-4">Motivo:</div>
-        <div class="col-4">Dia(s) de Inclusão:</div>
-        <div class="col-4">Data {{solicitacao.label_data}}:</div>
+        <div class="col-3">ID da Solicitação:</div>
+        <div class="col-3">Motivo:</div>
+        <div class="col-3">Dia(s) de Inclusão:</div>
+        <div class="col-3">Data {{solicitacao.label_data}}:</div>
       </div>
       {% for dia_inclusao in solicitacao.dias_motivos_da_inclusao_cei %}
         <div class="row my-2 mx-2">
-          <div class="col-4"><b>{{dia_inclusao.motivo}}</b></div>
-          <div class="col-4"><b>{{dia_inclusao.data|formatar_data_solicitacoes_alimentacao}}</b></div>
+          <div class="col-3"><b># {{solicitacao.id_externo}}</b></div>
+          <div class="col-3"><b>{{dia_inclusao.motivo}}</b></div>
+          <div class="col-3"><b>{{dia_inclusao.data|formatar_data_solicitacoes_alimentacao}}</b></div>
           {% if forloop.counter0 == 0 %}
-          <div class="col-4"><b>{{solicitacao.data_log}}</b></div>
+          <div class="col-3"><b>{{solicitacao.data_log}}</b></div>
           {% else %}
-          <div class="col-4"></div>
+          <div class="col-3"></div>
           {% endif %}
         </div>
       {% endfor %}

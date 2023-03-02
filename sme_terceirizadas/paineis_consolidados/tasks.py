@@ -68,6 +68,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     COLUNA_5 = 5
     COLUNA_6 = 6
     COLUNA_7 = 7
+    COLUNA_8 = 8
 
     ALTURA_COLUNA_30 = 30
     ALTURA_COLUNA_50 = 50
@@ -98,7 +99,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     worksheet = xlwriter.sheets[f'Relatório - {status_}']
     worksheet.set_row(LINHA_0, ALTURA_COLUNA_50)
     worksheet.set_row(LINHA_1, ALTURA_COLUNA_30)
-    worksheet.set_column('B:H', ALTURA_COLUNA_30)
+    worksheet.set_column('B:I', ALTURA_COLUNA_30)
     merge_format = workbook.add_format({'align': 'center', 'bg_color': '#a9d18e', 'border_color': '#198459'})
     merge_format.set_align('vcenter')
     merge_format.set_bold()
@@ -120,16 +121,17 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     worksheet.write(LINHA_3, COLUNA_2, 'Terceirizada' if status_ == 'Recebidas' else 'Unidade Educacional',
                     single_cell_format)
     worksheet.write(LINHA_3, COLUNA_3, 'Tipo de Solicitação', single_cell_format)
-    worksheet.write(LINHA_3, COLUNA_4, 'Data do Evento', single_cell_format)
-    worksheet.write(LINHA_3, COLUNA_5, 'Nª de Alunos', single_cell_format)
-    worksheet.write(LINHA_3, COLUNA_6, 'Observações', single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_4, 'ID da Solicitação', single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_5, 'Data do Evento', single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_6, 'Nª de Alunos', single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_7, 'Observações', single_cell_format)
     map_data = {
         'Autorizadas': 'Data de Autorização',
         'Canceladas': 'Data de Cancelamento',
         'Negadas': 'Data de Negação',
         'Recebidas': 'Data de Autorização'
     }
-    worksheet.write(LINHA_3, COLUNA_7, map_data[status_], single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_8, map_data[status_], single_cell_format)
 
     df.reset_index(drop=True, inplace=True)
     xlwriter.save()
