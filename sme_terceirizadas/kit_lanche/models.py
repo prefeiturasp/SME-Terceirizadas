@@ -203,6 +203,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
             'total_kits': self.quantidade_alimentacoes,
             'label_data': label_data,
             'data_log': data_log,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -272,7 +273,8 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
             'label_data': label_data,
             'data_log': data_log,
             'faixas_etarias': self.get_faixas_etarias_dict,
-            'total_matriculados': self.total_matriculados_quando_criado
+            'total_matriculados': self.total_matriculados_quando_criado,
+            'id_externo': self.id_externo
         }
 
     @property
@@ -501,6 +503,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
             'label_data': label_data,
             'data_log': data_log,
             'escolas_quantidades': self.get_escolas_quantidades_dict,
+            'id_externo': self.id_externo
         }
 
     @property
@@ -665,7 +668,8 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             'data_autorizacao': self.data_autorizacao,
             'solicitacao_cei': self.get_solicitacao_cei_dict,
             'solicitacao_emei': self.get_solicitacao_emei_dict(),
-            'total_kits': self.total_kits
+            'total_kits': self.total_kits,
+            'id_externo': self.id_externo
         }
 
     @property
