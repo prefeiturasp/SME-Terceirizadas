@@ -28,6 +28,7 @@ from ...dados_comuns.permissions import (
     UsuarioTerceirizada,
     UsuarioTerceirizadaOuNutriSupervisao
 )
+from ...dados_comuns.services import enviar_email_codae_atualiza_protocolo
 from ...dieta_especial.tasks import gera_pdf_relatorio_dieta_especial_async
 from ...escola.models import Aluno, EscolaPeriodoEscolar, Lote
 from ...escola.services import NovoSGPServicoLogado
@@ -158,6 +159,24 @@ class SolicitacaoDietaEspecialViewSet(
             return AlteracaoUESerializer
         return SolicitacaoDietaEspecialSerializer
 
+    def atualiza_solicitacao(self, solicitacao, request):
+        if solicitacao.aluno.possui_dieta_especial_ativa and not solicitacao.tipo_solicitacao == 'ALTERACAO_UE':
+            solicitacao.aluno.inativar_dieta_especial()
+        if not solicitacao.tipo_solicitacao == 'ALTERACAO_UE':
+            serializer = self.get_serializer()
+            serializer.update(solicitacao, request.data)
+            solicitacao.ativo = True
+        self.salva_log_transicao(solicitacao, request.user)
+        if solicitacao.aluno.escola:
+            enviar_email_codae_atualiza_protocolo(solicitacao)
+        if not solicitacao.data_inicio:
+            solicitacao.data_inicio = datetime.now().strftime('%Y-%m-%d')
+            solicitacao.save()
+
+    def salva_log_transicao(self, solicitacao, user):
+        solicitacao.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_ATUALIZOU_PROTOCOLO,
+                                         usuario=user)
+
     @action(
         detail=False,
         methods=['get'],
@@ -201,18 +220,8 @@ class SolicitacaoDietaEspecialViewSet(
             permission_classes=(UsuarioCODAEDietaEspecial,))
     def atualiza_protocolo(self, request, uuid=None):
         solicitacao = self.get_object()
-        if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
-            solicitacao.aluno.inativar_dieta_especial()
-        serializer = self.get_serializer()
         try:
-            if solicitacao.tipo_solicitacao != 'ALTERACAO_UE':
-                serializer.update(solicitacao, request.data)
-                solicitacao.ativo = True
-            solicitacao.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_ATUALIZOU_PROTOCOLO,
-                                             usuario=request.user)
-            if not solicitacao.data_inicio:
-                solicitacao.data_inicio = datetime.now().strftime('%Y-%m-%d')
-                solicitacao.save()
+            self.atualiza_solicitacao(solicitacao, request)
             return Response({'detail': 'Edição realizada com sucesso!'})
         except serializers.ValidationError as e:
             return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)

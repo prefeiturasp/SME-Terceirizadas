@@ -45,6 +45,7 @@ class MotivoInclusaoNormalSerializer(serializers.ModelSerializer):
 class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     faixa_etaria = FaixaEtariaSerializer()
     periodo = PeriodoEscolarSimplesSerializer()
+    periodo_externo = PeriodoEscolarSimplesSerializer()
 
     class Meta:
         model = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI

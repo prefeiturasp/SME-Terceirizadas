@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
@@ -55,6 +57,31 @@ class CronogramaRascunhosSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cronograma
         fields = ('uuid', 'numero', 'alterado_em')
+
+
+class PainelCronogramaSerializer(serializers.ModelSerializer):
+    produto = serializers.SerializerMethodField()
+    empresa = serializers.SerializerMethodField()
+    log_mais_recente = serializers.SerializerMethodField()
+    status = serializers.CharField(source='get_status_display')
+
+    def get_produto(self, obj):
+        return obj.produto.nome if obj.produto else None
+
+    def get_empresa(self, obj):
+        return obj.empresa.razao_social if obj.empresa else None
+
+    def get_log_mais_recente(self, obj):
+        if obj.log_mais_recente:
+            if obj.log_mais_recente.criado_em.date() == datetime.date.today():
+                return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M')
+            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y')
+        else:
+            return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
+
+    class Meta:
+        model = Cronograma
+        fields = ('uuid', 'numero', 'status', 'empresa', 'produto', 'log_mais_recente')
 
 
 class LaboratorioSerializer(serializers.ModelSerializer):

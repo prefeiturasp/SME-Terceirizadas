@@ -145,30 +145,3 @@ class EmailsTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailTerceirizadaPorModulo
         exclude = ('id', 'criado_por')
-
-
-class CreateEmailTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
-    terceirizada = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Terceirizada.objects.all()
-    )
-    modulo = serializers.SlugRelatedField(
-        slug_field='nome',
-        required=True,
-        queryset=Modulo.objects.all()
-    )
-    criado_por = serializers.CharField(required=False)
-
-    def create(self, validated_data):
-        user = None
-        request = self.context.get('request')
-        if request and hasattr(request, 'user'):
-            user = request.user
-        validated_data['criado_por'] = user
-        EmailTerceirizada = EmailTerceirizadaPorModulo.objects.create(**validated_data)
-        return EmailTerceirizada
-
-    class Meta:
-        model = EmailTerceirizadaPorModulo
-        exclude = ('id',)

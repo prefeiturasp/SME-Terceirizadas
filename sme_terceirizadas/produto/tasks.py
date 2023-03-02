@@ -9,6 +9,11 @@ from sme_terceirizadas.dados_comuns.utils import (
     build_xlsx_generico,
     gera_objeto_na_central_download
 )
+from sme_terceirizadas.produto.models import HomologacaoProduto, Produto
+from sme_terceirizadas.relatorios.relatorios import (
+    relatorio_marcas_por_produto_homologacao,
+    relatorio_produtos_agrupado_terceirizada
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,21 +24,33 @@ logger = logging.getLogger(__name__)
     time_limit=3000,
     soft_time_limit=3000
 )
-def gera_xls_relatorio_produtos_homologados_async(user, nome_arquivo, data):
+def gera_xls_relatorio_produtos_homologados_async(user, nome_arquivo, data, perfil_nome, tipo_usuario, object_id):
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
-        from sme_terceirizadas.produto.api.viewsets import ProdutoViewSet
+        from sme_terceirizadas.produto.api.viewsets import HomologacaoProdutoPainelGerencialViewSet
+
         agrupado_nome_marca = data.get('agrupado_por_nome_e_marca')
         output = io.BytesIO()
-        produto_viewset = ProdutoViewSet()
+
+        hom_produto_painel_viewset = HomologacaoProdutoPainelGerencialViewSet()
+        queryset = hom_produto_painel_viewset.get_queryset_solicitacoes_homologacao_por_status(
+            data, perfil_nome, tipo_usuario, object_id, 'codae_homologado'
+        )
+        uuids = [hom_prod.uuid for hom_prod in queryset]
+        qs_produtos = Produto.objects.filter(homologacao__uuid__in=uuids)
+        total_marcas = qs_produtos.values_list('marca__nome', flat=True).distinct().count()
+        total_produtos = len(queryset)
 
         if agrupado_nome_marca:
-            produtos_agrupados, total_produtos, total_marcas = produto_viewset.get_queryset_filtrado_agrupado(data)
             titulos_colunas = ['Produto', 'Marca', 'Edital']
+            produtos_agrupados = hom_produto_painel_viewset.produtos_agrupados_nome_marca(
+                data.get('nome_edital'), qs_produtos, 0, len(queryset))
         else:
-            produtos_agrupados, total_produtos, total_marcas = produto_viewset.get_produtos_agrupados(data)
             titulos_colunas = ['Terceirizada', 'Produto', 'Marca', 'Edital', 'Tipo', 'Cadastro', 'Homologação']
+            produtos_agrupados = hom_produto_painel_viewset.produtos_sem_agrupamento(
+                data.get('nome_edital'), queryset, 0, len(queryset))
+
         subtitulo = f'Total de Produtos: {total_produtos} | Total de Marcas: {total_marcas} | {data.get("nome_edital")}'
         build_xlsx_generico(
             output,
@@ -44,6 +61,50 @@ def gera_xls_relatorio_produtos_homologados_async(user, nome_arquivo, data):
             titulos_colunas=titulos_colunas,
         )
         atualiza_central_download(obj_central_download, nome_arquivo, output.read())
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+
+    logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=3000,
+    soft_time_limit=3000
+)
+def gera_pdf_relatorio_produtos_homologados_async(user, nome_arquivo, data, perfil_nome, tipo_usuario, object_id):
+    logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
+    obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
+    try:
+        from sme_terceirizadas.produto.api.viewsets import HomologacaoProdutoPainelGerencialViewSet
+        agrupado_nome_marca = data.get('agrupado_por_nome_e_marca') == 'true'
+
+        hom_produto_painel_viewset = HomologacaoProdutoPainelGerencialViewSet()
+        queryset = hom_produto_painel_viewset.get_queryset_solicitacoes_homologacao_por_status(
+            data, perfil_nome, tipo_usuario, object_id, 'codae_homologado'
+        )
+        uuids = [hom_prod.uuid for hom_prod in queryset]
+        qs_homs = HomologacaoProduto.objects.filter(uuid__in=uuids).order_by(
+            'rastro_terceirizada__nome_fantasia', 'produto__nome')
+        qs_produtos = Produto.objects.filter(homologacao__uuid__in=uuids)
+        total_marcas = qs_produtos.values_list('marca__nome', flat=True).distinct().count()
+        total_produtos = len(queryset)
+
+        data['quantidade_marcas'] = total_marcas
+        data['quantidade_homologados'] = total_produtos
+        data['tipo_usuario'] = tipo_usuario
+
+        if agrupado_nome_marca:
+            produtos_agrupados = hom_produto_painel_viewset.produtos_agrupados_nome_marca(
+                data.get('nome_edital'), qs_produtos, 0, len(queryset))
+            arquivo = relatorio_marcas_por_produto_homologacao(produtos=produtos_agrupados, filtros=data)
+        else:
+            produtos_agrupados = hom_produto_painel_viewset.produtos_sem_agrupamento(
+                data.get('nome_edital'), qs_homs, 0, len(queryset))
+            arquivo = relatorio_produtos_agrupado_terceirizada(tipo_usuario, produtos_agrupados, data)
+
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
 

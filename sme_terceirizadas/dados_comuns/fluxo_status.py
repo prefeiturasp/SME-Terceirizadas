@@ -2731,15 +2731,15 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     def _envia_email_aceite_reclamacao(self, log_aceite):
         html = render_to_string(
-            template_name='produto_codae_aceitou_reclamacao.html',
+            template_name='produto_codae_suspende.html',
             context={
-                'titulo': 'Produto suspenso por reclamação',
-                'reclamacao': self,
-                'log_aceite': log_aceite
+                'titulo': 'Suspensão de Produto',
+                'produto': self.homologacao_produto.produto,
+                'log_transicao': log_aceite
             }
         )
         envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Produto suspenso por reclamação',
+            assunto='[SIGPAE] Suspensão de Produto',
             emails=self._partes_interessadas_suspensao_por_reclamacao(),
             corpo='',
             html=html
@@ -2942,9 +2942,10 @@ class CronogramaWorkflow(xwf_models.Workflow):
     APROVADO = 'APROVADO'
     REPROVADO = 'REPROVADO'
     ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
-    VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
+    ASSINADO_FORNECEDOR = 'ASSINADO_FORNECEDOR'
     SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
     ASSINADO_CRONOGRAMA = 'ASSINADO_CRONOGRAMA'
+    ASSINADO_DINUTRE = 'ASSINADO_DINUTRE'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -2953,16 +2954,18 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (APROVADO, 'Aprovado'),
         (REPROVADO, 'Reprovado'),
         (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
-        (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
+        (ASSINADO_FORNECEDOR, 'Assinado Fornecedor'),
         (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
         (ASSINADO_CRONOGRAMA, 'Assinado Cronograma'),
+        (ASSINADO_DINUTRE, 'Assinado Dinutre'),
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
-        ('fornecedor_assina', ENVIADO_AO_FORNECEDOR, VALIDADO_FORNECEDOR),
-        ('solicita_alteracao', VALIDADO_FORNECEDOR, SOLICITADO_ALTERACAO),
-        ('cronograma_assina', VALIDADO_FORNECEDOR, ASSINADO_CRONOGRAMA),
+        ('fornecedor_assina', ENVIADO_AO_FORNECEDOR, ASSINADO_FORNECEDOR),
+        ('solicita_alteracao', ASSINADO_FORNECEDOR, SOLICITADO_ALTERACAO),
+        ('cronograma_assina', ASSINADO_FORNECEDOR, ASSINADO_CRONOGRAMA),
+        ('dinutre_assina', ASSINADO_CRONOGRAMA, ASSINADO_DINUTRE),
     )
 
     initial_state = RASCUNHO
@@ -2998,6 +3001,13 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA,
+                                      usuario=user)
+
+    @xworkflows.after_transition('dinutre_assina')
+    def _dinutre_assina_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_DINUTRE,
                                       usuario=user)
 
     class Meta:

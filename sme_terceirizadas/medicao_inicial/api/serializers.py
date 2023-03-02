@@ -67,6 +67,7 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
 class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
     escola = serializers.CharField(source='escola.nome')
     status = serializers.CharField(source='get_status_display')
+    tipo_unidade = serializers.CharField(source='escola.tipo_unidade')
     log_mais_recente = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
@@ -75,7 +76,7 @@ class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoMedicaoInicial
-        fields = ('uuid', 'escola', 'status', 'log_mais_recente')
+        fields = ('uuid', 'escola', 'tipo_unidade', 'status', 'log_mais_recente')
 
 
 class ValorMedicaoSerializer(serializers.ModelSerializer):

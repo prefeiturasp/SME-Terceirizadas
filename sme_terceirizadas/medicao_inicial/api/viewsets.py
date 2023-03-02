@@ -188,6 +188,8 @@ class SolicitacaoMedicaoInicialViewSet(
             kwargs['escola__tipo_unidade__uuid'] = query_params.get('tipo_unidade')
         if query_params.get('escola'):
             kwargs['escola__codigo_eol'] = query_params.get('escola').split(' - ')[0]
+        if query_params.get('dre'):
+            kwargs['escola__diretoria_regional__uuid'] = query_params.get('dre')
         return kwargs
 
     @action(detail=False, methods=['GET'], url_path='dashboard',

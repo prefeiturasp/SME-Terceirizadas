@@ -491,6 +491,21 @@ class PermissaoParaAssinarCronogramaUsuarioCronograma(BasePermission):
         )
 
 
+class PermissaoParaAssinarCronogramaUsuarioDinutre(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome == DINUTRE_DIRETORIA
+                )
+            )
+        )
+
+
 class PermissaoParaCadastrarLaboratorio(BasePermission):
     # Apenas DILOG_QUALIDADE tem acesso a tela de cadastro de Laboratórios.
     def has_permission(self, request, view):
