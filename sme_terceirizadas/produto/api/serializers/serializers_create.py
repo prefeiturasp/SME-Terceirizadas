@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from ....dados_comuns.constants import DEZ_MB
+from ....dados_comuns.models import LogSolicitacoesUsuario
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from ....dados_comuns.validators import deve_ter_extensao_valida
 from ....dieta_especial.models import SolicitacaoDietaEspecial
@@ -318,12 +319,30 @@ class ProdutoEditalCreateSerializer(serializers.Serializer):
         lista_produtos_editais = []
         try:
             for produto_edital in produtos:
+                homologacao_produto = produto_edital.produto.homologacao
+                editais_vinculados = []
                 for edital in editais:
                     if not ProdutoEdital.objects.filter(produto=produto_edital.produto, edital=edital).exists():
+                        editais_vinculados.append(edital.numero)
                         lista_produtos_editais.append(ProdutoEdital(produto=produto_edital.produto,
                                                                     edital=edital,
                                                                     tipo_produto=tipo_produto,
                                                                     outras_informacoes=outras_informacoes))
+                if editais_vinculados:
+                    string_editais_vinculados = ', '.join(editais_vinculados)
+                    justificativa = f'<p>Nome do Produto:</p>'
+                    justificativa += f'<p>{produto_edital.produto.nome}</p>'
+                    justificativa += '<br><p>Editais que foram vinculados:</p>'
+                    justificativa += f'<p>{string_editais_vinculados}</p>'
+                    justificativa += '<br><p>Tipo de Produto em que o produto foi vinculado:</p>'
+                    justificativa += f'<p>{tipo_produto}</p>'
+                    justificativa += '<br><p>Outras informações:</p>'
+                    justificativa += f'<p>{outras_informacoes}</p>'
+                    homologacao_produto.salvar_log_transicao(
+                        status_evento=LogSolicitacoesUsuario.VINCULO_DO_EDITAL_AO_PRODUTO,
+                        usuario=self.context['request'].user,
+                        justificativa=justificativa
+                    )
             resultado = ProdutoEdital.objects.bulk_create(lista_produtos_editais)
             return resultado
         except Exception:
