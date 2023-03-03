@@ -338,7 +338,7 @@ class ProdutoEditalCreateSerializer(serializers.Serializer):
                     justificativa += f'<p>{tipo_produto}</p>'
                     justificativa += '<br><p>Outras informações:</p>'
                     justificativa += f'<p>{outras_informacoes}</p>'
-                    log_transicao_criado = homologacao_produto.salvar_log_transicao(
+                    homologacao_produto.salvar_log_transicao(
                         status_evento=LogSolicitacoesUsuario.VINCULO_DO_EDITAL_AO_PRODUTO,
                         usuario=self.context['request'].user,
                         justificativa=justificativa
