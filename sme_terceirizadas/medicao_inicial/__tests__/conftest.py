@@ -169,7 +169,8 @@ def valor_medicao(medicao, categoria_medicao):
 def client_autenticado_diretoria_regional(client, django_user_model, escola):
     email = 'test@test.com'
     password = 'admin@123'
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888888')
     perfil_cogestor = mommy.make('Perfil',
                                  nome='COGESTOR',
                                  ativo=True)
@@ -180,7 +181,7 @@ def client_autenticado_diretoria_regional(client, django_user_model, escola):
                perfil=perfil_cogestor,
                data_inicial=hoje,
                ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -204,11 +205,11 @@ def client_autenticado_adm_da_escola(client, django_user_model, escola):
     email = 'user@escola_adm.com'
     password = 'admin@1234'
     perfil_diretor = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='1234567',
                                                     )
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client

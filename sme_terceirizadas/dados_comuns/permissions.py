@@ -48,7 +48,6 @@ class UsuarioEscolaTercTotal(BasePermission):
         )
 
     """Permite acesso ao objeto se o objeto pertence a essa escola."""
-
     def has_object_permission(self, request, view, obj):
         usuario = request.user
         if hasattr(obj, 'escola') and hasattr(obj, 'rastro_escola'):

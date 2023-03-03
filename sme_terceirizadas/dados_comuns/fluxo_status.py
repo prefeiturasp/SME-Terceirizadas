@@ -2914,7 +2914,7 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
     def _ue_envia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            if user.vinculo_atual.perfil.nome == DIRETOR_UE:
+            if not user.vinculo_atual.perfil.nome == DIRETOR_UE:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
                                       usuario=user)

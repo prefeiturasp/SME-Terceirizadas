@@ -231,7 +231,8 @@ def client_autenticado_escola_abastecimento(client, django_user_model, escola):
 def client_autenticado_dilog_cronograma(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email,
+                                                 password=password, email=email, registro_funcional='8888888')
     perfil_admin_dilog = mommy.make('Perfil',
                                     nome=constants.DILOG_CRONOGRAMA,
                                     ativo=True)
@@ -243,7 +244,7 @@ def client_autenticado_dilog_cronograma(client, django_user_model):
                perfil=perfil_admin_dilog,
                data_inicial=hoje,
                ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -251,7 +252,8 @@ def client_autenticado_dilog_cronograma(client, django_user_model):
 def client_autenticado_dinutre_diretoria(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888888')
     perfil_admin_dilog = mommy.make('Perfil',
                                     nome=constants.DINUTRE_DIRETORIA,
                                     ativo=True)
@@ -263,7 +265,7 @@ def client_autenticado_dinutre_diretoria(client, django_user_model):
                perfil=perfil_admin_dilog,
                data_inicial=hoje,
                ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -271,7 +273,8 @@ def client_autenticado_dinutre_diretoria(client, django_user_model):
 def client_autenticado_dilog_diretoria(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888888')
     perfil_dilog_diretoria = mommy.make('Perfil',
                                         nome=constants.DILOG_DIRETORIA,
                                         ativo=True)
@@ -283,5 +286,5 @@ def client_autenticado_dilog_diretoria(client, django_user_model):
                perfil=perfil_dilog_diretoria,
                data_inicial=hoje,
                ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
