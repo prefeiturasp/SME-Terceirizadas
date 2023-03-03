@@ -65,7 +65,7 @@ from ..kit_lanche.models import (
 )
 from .constants import PERIODOS_ESPECIAIS_CEMEI
 from .services import NovoSGPServicoLogado
-from .utils import meses_para_mes_e_ano_string
+from .utils import meses_para_mes_e_ano_string, remove_acentos
 
 logger = logging.getLogger('sigpae.EscolaModels')
 
@@ -76,7 +76,8 @@ class DiretoriaRegional(
 
     @property
     def editais(self):
-        return [str(uuid_) for uuid_ in set(list(self.escolas.filter(lote__isnull=False).values_list(
+        return [str(uuid_) for uuid_ in set(list(self.escolas.filter(
+            lote__isnull=False, lote__contratos_do_lote__edital__isnull=False).values_list(
             'lote__contratos_do_lote__edital__uuid', flat=True)))]
 
     @property
@@ -292,6 +293,11 @@ class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativav
         default=True,
     )
 
+    @property
+    def eh_cei(self):
+        lista_tipos_unidades = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
+        return self.iniciais in lista_tipos_unidades
+
     def get_cardapio(self, data):
         # TODO: ter certeza que tem so um cardapio por dia por tipo de u.e.
         try:
@@ -396,7 +402,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     @property
     def editais(self):
         if self.lote:
-            return [str(edital) for edital in self.lote.contratos_do_lote.values_list('edital__uuid', flat=True)]
+            return [str(edital) for edital in self.lote.contratos_do_lote.filter(
+                edital__isnull=False).values_list('edital__uuid', flat=True)]
         return []
 
     @property
@@ -406,7 +413,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
         elif self.tipo_unidade.iniciais == 'CEU GESTAO':
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
-        elif self.tipo_unidade.iniciais == 'CEI DIRET':
+        elif self.eh_cei:
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_DIRET)
         else:
             # TODO: ver uma forma melhor de fazer essa query
@@ -429,7 +436,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def eh_cei(self):
-        return self.tipo_unidade and self.tipo_unidade.iniciais in ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI']
+        lista_tipos_unidades = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
+        return self.tipo_unidade and self.tipo_unidade.iniciais in lista_tipos_unidades
 
     @property
     def eh_cemei(self):
@@ -629,7 +637,7 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
         faixa_alunos = Counter()
         seis_anos_atras = datetime.date.today() - relativedelta(years=6)
         for aluno in lista_alunos:
-            if aluno['dc_tipo_turno'].strip().upper() == self.periodo_escolar.nome:
+            if remove_acentos(aluno['dc_tipo_turno'].strip()).upper() == self.periodo_escolar.nome:
                 data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
 
                 for faixa_etaria in faixas_etarias:
@@ -1245,3 +1253,15 @@ class DiaCalendario(CriadoEm, TemAlteradoEm, TemData, TemChaveExterna):
         verbose_name = 'Dia'
         verbose_name_plural = 'Dias'
         ordering = ('data',)
+
+
+class LogAtualizaDadosAluno(models.Model):
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
+    codigo_eol = models.CharField('Codigo EOL da escola', max_length=50)
+    status = models.PositiveSmallIntegerField('Status da requisição', default=0)
+    msg_erro = models.TextField('Mensagem erro', blank=True)
+
+    def __str__(self):
+        retorno = f'Requisicao para Escola: "#{str(self.codigo_eol)}"'
+        retorno += f' na data de: "{self.criado_em}"'
+        return retorno

@@ -200,7 +200,7 @@ class ProcessadorPlanilha:
         solicitacao.alergias_intolerancias.add(*diagnosticos)
         self.consulta_relacao_lote_terceirizada(solicitacao)
         solicitacao.save()
-        solicitacao.codae_autoriza(user=self.usuario)
+        solicitacao.codae_autoriza(user=self.usuario, eh_importacao=True)
 
     def finaliza_processamento(self) -> None:
         if self.erros:

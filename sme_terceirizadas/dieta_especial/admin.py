@@ -247,6 +247,7 @@ class LogDietasAtivasCanceladasAutomaticamenteAdmin(admin.ModelAdmin):
 
 class SubstituicaoAlimentoProtocoloPadraoInline(admin.TabularInline):
     model = SubstituicaoAlimentoProtocoloPadrao
+    filter_horizontal = ('substitutos',)
     extra = 0
 
 

@@ -11,7 +11,23 @@ from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.models import DiretoriaRegional, Lote
 from ....perfil.api.serializers import SuperAdminTerceirizadaSerializer, UsuarioUpdateSerializer
 from ....perfil.models import Perfil, Usuario
-from ...models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
+from ...models import (
+    Contrato,
+    Edital,
+    EmailTerceirizadaPorModulo,
+    Modulo,
+    Nutricionista,
+    Terceirizada,
+    VigenciaContrato
+)
+
+
+def cria_contatos(contatos):
+    contatos_list = []
+    for contato_json in contatos:
+        contato = ContatoSerializer().create(contato_json)
+        contatos_list.append(contato)
+    return contatos_list
 
 
 class NutricionistaCreateSerializer(serializers.ModelSerializer):
@@ -128,125 +144,58 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
     lotes = serializers.SlugRelatedField(slug_field='uuid', many=True, queryset=Lote.objects.all())
     contatos = ContatoSerializer(many=True)
     super_admin = SuperAdminTerceirizadaSerializer()
-    contratos = ContratoAbastecimentoCreateSerializer(many=True, required=False)
-    eh_distribuidor_ou_fornecedor = serializers.BooleanField(required=False)
 
-    def create(self, validated_data): # noqa C901
+    def create(self, validated_data):
         super_admin = validated_data.pop('super_admin')
         lotes = validated_data.pop('lotes', [])
         contatos = validated_data.pop('contatos', [])
-        contratos_array = validated_data.pop('contratos', [])
-        eh_distribuidor_ou_fornecedor = validated_data.pop('eh_distribuidor_ou_fornecedor', False)
-        if eh_distribuidor_ou_fornecedor:
-            empresa = Terceirizada.objects.create(**validated_data)
-            for contato_json in contatos:
-                contato = ContatoSerializer().create(validated_data=contato_json)
-                empresa.contatos.add(contato)
 
-            distribuidor_json = {
-                'cpf': validated_data.get('responsavel_cpf', None),
-                'nome': validated_data.get('responsavel_nome', None),
-                'email': validated_data.get('responsavel_email', None),
-                'contatos': contatos
-            }
-            UsuarioUpdateSerializer().create_distribuidor(empresa, distribuidor_json)
-            contratos = []
-            for contrato_json in contratos_array:
-                contrato = ContratoAbastecimentoCreateSerializer().create(contrato_json)
-                contratos.append(contrato)
+        terceirizada = Terceirizada.objects.create(**validated_data)
 
-            empresa.contratos.set(contratos)
+        checar_terceirizadas_inativacao = self.checar_terceirizadas_para_inativacao(terceirizada, lotes)
 
-        else:
-            empresa = Terceirizada.objects.create(**validated_data)
+        terceirizada.lotes.set(lotes)
 
-            checar_terceirizadas_inativacao = []
-            for lote in [lote for lote in lotes if lote not in empresa.lotes.all() and lote.terceirizada]:
-                checar_terceirizadas_inativacao.append(lote.terceirizada.uuid)
-                lote.transferir_solicitacoes_gestao_alimentacao(empresa)
-                lote.transferir_dietas_especiais(empresa)
+        """ Inativa terceirizadas que nao tem lote """
+        Terceirizada.objects.filter(
+            uuid__in=checar_terceirizadas_inativacao, lotes__isnull=True).update(ativo=False)
 
-            empresa.lotes.set(lotes)
+        contatos_list = cria_contatos(contatos)
+        terceirizada.contatos.set(contatos_list)
 
-            """ Inativa terceirizadas que nao tem lote """
-            Terceirizada.objects.filter(
-                uuid__in=checar_terceirizadas_inativacao, lotes__isnull=True).update(ativo=False)
+        self.criar_super_admin_terceirizada(super_admin, terceirizada)
 
-            for contato_json in contatos:
-                contato = ContatoSerializer().create(
-                    validated_data=contato_json)
-                empresa.contatos.add(contato)
+        return terceirizada
 
-            self.criar_super_admin_terceirizada(super_admin, empresa)
-
-        return empresa
-
-    def update(self, instance, validated_data):  # noqa C901
+    def update(self, instance, validated_data):
         # TODO: Analisar complexidade
         # TODO: voltar aqui quando uma terceirizada tiver seu painel admin para criar suas nutris
         # aqui está tratando nutris como um dado escravo da Terceirizada
         super_admin_data = validated_data.pop('super_admin')
         lotes_array = validated_data.pop('lotes', [])
-        contato_array = validated_data.pop('contatos', [])
-        contratos_array = validated_data.pop('contratos', [])
-        eh_distribuidor_ou_fornecedor = validated_data.pop('eh_distribuidor_ou_fornecedor', False)
-        if eh_distribuidor_ou_fornecedor:
-            contatos = []
-            for contato_json in contato_array:
+        contatos = validated_data.pop('contatos', [])
 
-                contato = ContatoSerializer().create(contato_json)
-                contatos.append(contato)
-            distribuidor_json = {
-                'cpf': validated_data.get('responsavel_cpf', None),
-                'nome': validated_data.get('responsavel_nome', None),
-                'email': validated_data.get('responsavel_email', None),
-                'contatos': contatos
-            }
-            UsuarioUpdateSerializer().update_distribuidor(instance, distribuidor_json)
-            contratos = []
-            for contrato_json in contratos_array:
-                encerrado = contrato_json.pop('encerrado')
-                if not encerrado:
-                    contrato = ContratoAbastecimentoCreateSerializer().create(contrato_json)
-                    contratos.append(contrato)
+        instance.contatos.clear()
 
-            instance.contatos.all().delete()
-            instance.contratos.filter(encerrado=False).delete()
-            update_instance_from_dict(instance, validated_data, save=True)
-            instance.contatos.set(contatos)
-            for contrato in contratos:
-                instance.contratos.add(contrato)
+        if instance.lotes.exclude(id__in=[lote.id for lote in lotes_array]).exists():
+            raise ValidationError('Não pode remover um lote de uma empresa. É preciso atribuí-lo a outra empresa.')
 
+        checar_terceirizadas_inativacao = self.checar_terceirizadas_para_inativacao(instance, lotes_array)
+
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        contatos_list = cria_contatos(contatos)
+        instance.contatos.set(contatos_list)
+        instance.lotes.set(lotes_array)
+
+        """ Inativa terceirizadas que nao tem lote """
+        Terceirizada.objects.filter(
+            uuid__in=checar_terceirizadas_inativacao, lotes__isnull=True).update(ativo=False)
+
+        if instance.super_admin:
+            self.atualizar_super_admin_terceirizada(super_admin_data, instance)
         else:
-            instance.contatos.clear()
-
-            if instance.lotes.exclude(id__in=[lote.id for lote in lotes_array]).exists():
-                raise ValidationError('Não pode remover um lote de uma empresa. É preciso atribuí-lo a outra empresa.')
-
-            checar_terceirizadas_inativacao = []
-            for lote in [lote for lote in lotes_array if lote not in instance.lotes.all() and lote.terceirizada]:
-                checar_terceirizadas_inativacao.append(lote.terceirizada.uuid)
-                lote.transferir_solicitacoes_gestao_alimentacao(instance)
-                lote.transferir_dietas_especiais(instance)
-
-            contatos = []
-            for contato_json in contato_array:
-                contato = ContatoSerializer().create(contato_json)
-                contatos.append(contato)
-
-            update_instance_from_dict(instance, validated_data, save=True)
-
-            instance.contatos.set(contatos)
-            instance.lotes.set(lotes_array)
-
-            """ Inativa terceirizadas que nao tem lote """
-            Terceirizada.objects.filter(
-                uuid__in=checar_terceirizadas_inativacao, lotes__isnull=True).update(ativo=False)
-
-            if instance.super_admin:
-                self.atualizar_super_admin_terceirizada(super_admin_data, instance)
-            else:
-                self.criar_super_admin_terceirizada(super_admin_data, instance)
+            self.criar_super_admin_terceirizada(super_admin_data, instance)
 
         return instance
 
@@ -313,6 +262,76 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
                 contato = Contato.objects.create(email=email, telefone=telefone)
                 super_admin.contatos.add(contato)
 
+    def checar_terceirizadas_para_inativacao(self, terceirizada, lotes):
+        checar_terceirizadas_inativacao = []
+        for lote in [lote for lote in lotes if lote not in terceirizada.lotes.all() and lote.terceirizada]:
+            checar_terceirizadas_inativacao.append(lote.terceirizada.uuid)
+            lote.transferir_solicitacoes_gestao_alimentacao(terceirizada)
+            lote.transferir_dietas_especiais(terceirizada)
+
+        return checar_terceirizadas_inativacao
+
+    class Meta:
+        model = Terceirizada
+        exclude = ('id',)
+
+
+class EmpresaNaoTerceirizadaCreateSerializer(serializers.ModelSerializer):
+    contatos = ContatoSerializer(many=True)
+    contratos = ContratoAbastecimentoCreateSerializer(many=True, required=False)
+
+    def create(self, validated_data):
+        contatos = validated_data.pop('contatos', [])
+        contratos_array = validated_data.pop('contratos', [])
+
+        empresa = Terceirizada.objects.create(**validated_data)
+        contatos_list = cria_contatos(contatos)
+        empresa.contatos.set(contatos_list)
+
+        self.cria_ou_atualiza_responsavel_empresa(empresa, validated_data, contatos, eh_update=False)
+        contratos = []
+        for contrato_json in contratos_array:
+            contrato = ContratoAbastecimentoCreateSerializer().create(contrato_json)
+            contratos.append(contrato)
+
+        empresa.contratos.set(contratos)
+
+        return empresa
+
+    def update(self, instance, validated_data):
+        contatos = validated_data.pop('contatos', [])
+        contratos_array = validated_data.pop('contratos', [])
+
+        contratos = []
+        for contrato_json in contratos_array:
+            encerrado = contrato_json.pop('encerrado')
+            if not encerrado:
+                contrato = ContratoAbastecimentoCreateSerializer().create(contrato_json)
+                contratos.append(contrato)
+
+        instance.contatos.all().delete()
+        instance.contratos.filter(encerrado=False).delete()
+        update_instance_from_dict(instance, validated_data, save=True)
+        contatos_list = cria_contatos(contatos)
+        instance.contatos.set(contatos_list)
+        self.cria_ou_atualiza_responsavel_empresa(instance, validated_data, contatos_list, eh_update=True)
+        for contrato in contratos:
+            instance.contratos.add(contrato)
+
+        return instance
+
+    def cria_ou_atualiza_responsavel_empresa(self, empresa, validated_data, contatos, eh_update=False):
+        responsavel_empresa_json = {
+            'cpf': validated_data.get('responsavel_cpf', None),
+            'nome': validated_data.get('responsavel_nome', None),
+            'email': validated_data.get('responsavel_email', None),
+            'contatos': contatos
+        }
+        if eh_update:
+            UsuarioUpdateSerializer().update_distribuidor(empresa, responsavel_empresa_json)
+        else:
+            UsuarioUpdateSerializer().create_distribuidor(empresa, responsavel_empresa_json)
+
     class Meta:
         model = Terceirizada
         exclude = ('id',)
@@ -351,4 +370,31 @@ class EditalContratosCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Edital
+        exclude = ('id',)
+
+
+class CreateEmailTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
+    terceirizada = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Terceirizada.objects.all()
+    )
+    modulo = serializers.SlugRelatedField(
+        slug_field='nome',
+        required=True,
+        queryset=Modulo.objects.all()
+    )
+    criado_por = serializers.CharField(required=False)
+
+    def create(self, validated_data):
+        user = None
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            user = request.user
+        validated_data['criado_por'] = user
+        EmailTerceirizada = EmailTerceirizadaPorModulo.objects.create(**validated_data)
+        return EmailTerceirizada
+
+    class Meta:
+        model = EmailTerceirizadaPorModulo
         exclude = ('id',)

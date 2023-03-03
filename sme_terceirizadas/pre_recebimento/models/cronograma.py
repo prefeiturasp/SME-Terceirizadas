@@ -1,7 +1,8 @@
 from django.db import models
+from multiselectfield import MultiSelectField
 
 from ...dados_comuns.behaviors import Logs, ModeloBase, TemIdentificadorExternoAmigavel
-from ...dados_comuns.fluxo_status import FluxoCronograma
+from ...dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow, FluxoAlteracaoCronograma, FluxoCronograma
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...produto.models import NomeDeProdutoEdital, UnidadeMedida
 from ...terceirizada.models import Contrato, Terceirizada
@@ -62,10 +63,11 @@ class EtapasDoCronograma(ModeloBase):
     total_embalagens = models.PositiveSmallIntegerField('Total de Embalagens', blank=True, null=True)
 
     def __str__(self):
-        if self.etapa:
+        if self.etapa and self.cronograma:
             return f'{self.etapa} do cronogrma {self.cronograma.numero}'
-        else:
+        if self.cronograma:
             return f'Etapa do cronogrma {self.cronograma.numero}'
+        return 'Etapa sem cronograma'
 
     class Meta:
         ordering = ('etapa', 'data_programada')
@@ -107,3 +109,72 @@ class ProgramacaoDoRecebimentoDoCronograma(ModeloBase):
     class Meta:
         verbose_name = 'Programação do Recebimento do Cromograma'
         verbose_name_plural = 'Programações dos Recebimentos dos Cromogramas'
+
+
+class AlteracaoCronogramaEtapa(models.Model):
+    etapa = models.ForeignKey(EtapasDoCronograma, on_delete=models.PROTECT)
+    nova_data_programada = models.DateField('Nova Data Programada', blank=True, null=True)
+    nova_quantidade = models.FloatField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f'{self.etapa.etapa} - {self.etapa.parte} (NovaQuantidade:{self.nova_quantidade})'
+
+
+class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
+    def em_analise(self):
+        return self.filter(status=CronogramaAlteracaoWorkflow.EM_ANALISE)
+
+
+class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma):
+    MOTIVO_ALTERAR_DATA_ENTREGA = 'ALTERAR_DATA_ENTREGA'
+    MOTIVO_ALTERAR_QTD_ALIMENTO = 'ALTERAR_QTD_ALIMENTO'
+    MOTIVO_OUTROS = 'OUTROS'
+    MOTIVO_NOMES = {
+        MOTIVO_ALTERAR_DATA_ENTREGA: 'Alterar data de entrega',
+        MOTIVO_ALTERAR_QTD_ALIMENTO: 'Alterar quantidade de alimento',
+        MOTIVO_OUTROS: 'Outros',
+    }
+
+    MOTIVO_CHOICES = (
+        (MOTIVO_ALTERAR_DATA_ENTREGA, MOTIVO_NOMES[MOTIVO_ALTERAR_DATA_ENTREGA]),
+        (MOTIVO_ALTERAR_QTD_ALIMENTO, MOTIVO_NOMES[MOTIVO_ALTERAR_QTD_ALIMENTO]),
+        (MOTIVO_OUTROS, MOTIVO_NOMES[MOTIVO_OUTROS]),
+    )
+
+    cronograma = models.ForeignKey(Cronograma, on_delete=models.PROTECT,
+                                   related_name='solicitacoes_de_alteracao')
+
+    etapas = models.ManyToManyField(AlteracaoCronogramaEtapa)
+
+    motivo = MultiSelectField(choices=MOTIVO_CHOICES)
+    justificativa = models.TextField('Justificativa de solicitação pelo fornecedor', blank=True)
+    usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+    numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=50, unique=True)
+
+    objects = SolicitacaoAlteracaoCronogramaQuerySet.as_manager()
+
+    def gerar_numero_solicitacao(self):
+        return f'{str(self.pk).zfill(8)}-ALT'
+
+    def save(self, *args, **kwargs):
+        self.numero_solicitacao = self.gerar_numero_solicitacao()
+        super(SolicitacaoAlteracaoCronograma, self).save(*args, **kwargs)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        log_transicao = LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_DE_ALTERACAO_CRONOGRAMA,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+        )
+        return log_transicao
+
+    def __str__(self):
+        return f'Solicitação de alteração do cronograma: {self.numero_solicitacao}'
+
+    class Meta:
+        verbose_name = 'Solicitação de Alteração de Cronograma'
+        verbose_name_plural = 'Solicitações de Alteração de Cronograma'

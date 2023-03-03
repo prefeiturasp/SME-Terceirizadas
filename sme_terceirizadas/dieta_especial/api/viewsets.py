@@ -20,6 +20,7 @@ from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
+from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEDietaEspecial,
@@ -27,6 +28,7 @@ from ...dados_comuns.permissions import (
     UsuarioTerceirizada,
     UsuarioTerceirizadaOuNutriSupervisao
 )
+from ...dados_comuns.services import enviar_email_codae_atualiza_protocolo
 from ...dieta_especial.tasks import gera_pdf_relatorio_dieta_especial_async
 from ...escola.models import Aluno, EscolaPeriodoEscolar, Lote
 from ...escola.services import NovoSGPServicoLogado
@@ -137,7 +139,7 @@ class SolicitacaoDietaEspecialViewSet(
     def get_serializer_class(self):  # noqa C901
         if self.action == 'create':
             return SolicitacaoDietaEspecialCreateSerializer
-        elif self.action == 'autorizar':
+        elif self.action in ['autorizar', 'atualiza_protocolo']:
             return SolicitacaoDietaEspecialAutorizarSerializer
         elif self.action in ['update', 'partial_update']:
             return SolicitacaoDietaEspecialUpdateSerializer
@@ -157,6 +159,24 @@ class SolicitacaoDietaEspecialViewSet(
             return AlteracaoUESerializer
         return SolicitacaoDietaEspecialSerializer
 
+    def atualiza_solicitacao(self, solicitacao, request):
+        if solicitacao.aluno.possui_dieta_especial_ativa and not solicitacao.tipo_solicitacao == 'ALTERACAO_UE':
+            solicitacao.aluno.inativar_dieta_especial()
+        if not solicitacao.tipo_solicitacao == 'ALTERACAO_UE':
+            serializer = self.get_serializer()
+            serializer.update(solicitacao, request.data)
+            solicitacao.ativo = True
+        self.salva_log_transicao(solicitacao, request.user)
+        if solicitacao.aluno.escola:
+            enviar_email_codae_atualiza_protocolo(solicitacao)
+        if not solicitacao.data_inicio:
+            solicitacao.data_inicio = datetime.now().strftime('%Y-%m-%d')
+            solicitacao.save()
+
+    def salva_log_transicao(self, solicitacao, user):
+        solicitacao.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_ATUALIZOU_PROTOCOLO,
+                                         usuario=user)
+
     @action(
         detail=False,
         methods=['get'],
@@ -173,7 +193,7 @@ class SolicitacaoDietaEspecialViewSet(
         return self.get_paginated_response(serializer.data)
 
     @transaction.atomic
-    @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
+    @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))
     def autorizar(self, request, uuid=None):  # noqa C901
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
@@ -187,11 +207,24 @@ class SolicitacaoDietaEspecialViewSet(
             if not solicitacao.data_inicio:
                 solicitacao.data_inicio = datetime.now().strftime('%Y-%m-%d')
                 solicitacao.save()
-            return Response({'detail': 'Autorização de dieta especial realizada com sucesso'})  # noqa
+            return Response({'detail': 'Autorização de Dieta Especial realizada com sucesso!'})
         except InvalidTransitionError as e:
-            return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)  # noqa
+            return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)
         except serializers.ValidationError as e:
-            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)  # noqa
+            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.CODAE_ATUALIZA_PROTOCOLO,
+            permission_classes=(UsuarioCODAEDietaEspecial,))
+    def atualiza_protocolo(self, request, uuid=None):
+        solicitacao = self.get_object()
+        try:
+            self.atualiza_solicitacao(solicitacao, request)
+            return Response({'detail': 'Edição realizada com sucesso!'})
+        except serializers.ValidationError as e:
+            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
             methods=['POST'],
@@ -1124,7 +1157,7 @@ class MotivoAlteracaoUEViewSet(mixins.ListModelMixin, GenericViewSet):
 class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
-    queryset = ProtocoloPadraoDietaEspecial.objects.all().order_by('nome_protocolo')
+    queryset = ProtocoloPadraoDietaEspecial.objects.filter(ativo=True).order_by('nome_protocolo')
     serializer_class = ProtocoloPadraoDietaEspecialSerializer
     pagination_class = ProtocoloPadraoPagination
     filter_backends = (filters.DjangoFilterBackend,)
@@ -1136,7 +1169,7 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         return ProtocoloPadraoDietaEspecialSerializer
 
     def get_queryset(self):
-        queryset = ProtocoloPadraoDietaEspecial.objects.all()
+        queryset = ProtocoloPadraoDietaEspecial.objects.filter(ativo=True)
         if 'editais[]' in self.request.query_params:
             queryset = queryset.filter(editais__uuid__in=self.request.query_params.getlist('editais[]')).distinct()
         return queryset.order_by('nome_protocolo')

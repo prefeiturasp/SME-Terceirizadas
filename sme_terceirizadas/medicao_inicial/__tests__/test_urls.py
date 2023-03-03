@@ -99,6 +99,36 @@ def test_url_endpoint_solicitacao_medicao_inicial(client_autenticado_da_escola,
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_url_endpoint_nao_tem_permissao_para_encerrar_medicao(client_autenticado_adm_da_escola,
+                                                              escola, solicitacao_medicao_inicial,
+                                                              solicitacao_medicao_inicial_sem_arquivo,
+                                                              responsavel, tipo_contagem_alimentacao):
+    data_update = {
+        'escola': str(escola.uuid),
+        'tipo_contagem_alimentacoes': str(tipo_contagem_alimentacao.uuid),
+        'com_ocorrencias': True
+    }
+    response = client_autenticado_adm_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_sem_arquivo.uuid}/',
+        content_type='application/json',
+        data=data_update
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    json = response.json()
+    assert json == {'detail': 'Você não tem permissão para executar essa ação.'}
+
+
+def test_url_endpoint_valores_medicao_com_grupo(client_autenticado_da_escola, solicitacao_medicao_inicial_com_grupo):
+    url = '/medicao-inicial/valores-medicao/?nome_periodo_escolar=MANHA&nome_grupo=Programas e Projetos'
+    url += f'&uuid_solicitacao_medicao={solicitacao_medicao_inicial_com_grupo.uuid}'
+    response = client_autenticado_da_escola.get(
+        url,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
+
+
 def test_url_endpoint_valores_medicao(client_autenticado_da_escola, solicitacao_medicao_inicial):
     url = '/medicao-inicial/valores-medicao/?nome_periodo_escolar=MANHA'
     url += f'&uuid_solicitacao_medicao={solicitacao_medicao_inicial.uuid}'
@@ -107,7 +137,7 @@ def test_url_endpoint_valores_medicao(client_autenticado_da_escola, solicitacao_
         content_type='application/json'
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 0
+    assert len(response.json()) == 1
 
 
 def test_url_endpoint_medicao(client_autenticado_da_escola,
@@ -153,3 +183,101 @@ def test_url_endpoint_medicao(client_autenticado_da_escola,
         data=data_valor_0
     )
     assert response.status_code == status.HTTP_200_OK
+
+    response = client_autenticado_da_escola.delete(
+        f'/medicao-inicial/valores-medicao/{medicao.valores_medicao.first().uuid}/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_url_endpoint_medicao_dashboard_dre(client_autenticado_diretoria_regional, solicitacoes_medicao_inicial):
+    response = client_autenticado_diretoria_regional.get(
+        '/medicao-inicial/solicitacao-medicao-inicial/dashboard/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 6
+    assert response.json()['results'][0]['status'] == 'MEDICAO_ENVIADA_PELA_UE'
+    assert response.json()['results'][0]['total'] == 2
+    assert response.json()['results'][1]['status'] == 'MEDICAO_CORRECAO_SOLICITADA'
+    assert response.json()['results'][1]['total'] == 1
+    assert response.json()['results'][5]['status'] == 'TODOS_OS_LANCAMENTOS'
+    assert response.json()['results'][5]['total'] == 3
+
+
+def test_url_endpoint_medicao_dashboard_dre_com_filtros(client_autenticado_diretoria_regional,
+                                                        solicitacoes_medicao_inicial):
+    response = client_autenticado_diretoria_regional.get(
+        '/medicao-inicial/solicitacao-medicao-inicial/dashboard/?status=MEDICAO_ENVIADA_PELA_UE',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 6
+    assert response.json()['results'][0]['status'] == 'MEDICAO_ENVIADA_PELA_UE'
+    assert response.json()['results'][0]['total'] == 2
+    assert response.json()['results'][1]['status'] == 'MEDICAO_CORRECAO_SOLICITADA'
+    assert response.json()['results'][1]['total'] == 1
+    assert response.json()['results'][5]['status'] == 'TODOS_OS_LANCAMENTOS'
+    assert response.json()['results'][5]['total'] == 3
+
+
+def test_url_endpoint_medicao_dashboard_escola(client_autenticado_da_escola, solicitacoes_medicao_inicial):
+    response = client_autenticado_da_escola.get(
+        '/medicao-inicial/solicitacao-medicao-inicial/dashboard/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 6
+    assert response.json()['results'][0]['status'] == 'MEDICAO_ENVIADA_PELA_UE'
+    assert response.json()['results'][0]['total'] == 2
+    assert response.json()['results'][1]['status'] == 'MEDICAO_CORRECAO_SOLICITADA'
+    assert response.json()['results'][1]['total'] == 1
+    assert response.json()['results'][5]['status'] == 'TODOS_OS_LANCAMENTOS'
+    assert response.json()['results'][5]['total'] == 3
+
+
+def test_url_endpoint_medicao_dashboard_escola_com_filtros(client_autenticado_da_escola, solicitacoes_medicao_inicial):
+    response = client_autenticado_da_escola.get(
+        '/medicao-inicial/solicitacao-medicao-inicial/dashboard/?status=MEDICAO_ENVIADA_PELA_UE',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 6
+    assert response.json()['results'][0]['status'] == 'MEDICAO_ENVIADA_PELA_UE'
+    assert response.json()['results'][0]['total'] == 2
+    assert response.json()['results'][1]['status'] == 'MEDICAO_CORRECAO_SOLICITADA'
+    assert response.json()['results'][1]['total'] == 1
+    assert response.json()['results'][5]['status'] == 'TODOS_OS_LANCAMENTOS'
+    assert response.json()['results'][5]['total'] == 3
+
+
+def test_url_endpoint_medicao_dashboard_codae(client_autenticado_coordenador_codae, solicitacoes_medicao_inicial):
+    response = client_autenticado_coordenador_codae.get(
+        '/medicao-inicial/solicitacao-medicao-inicial/dashboard/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 6
+    assert response.json()['results'][0]['status'] == 'MEDICAO_ENVIADA_PELA_UE'
+    assert response.json()['results'][0]['total'] == 2
+    assert response.json()['results'][1]['status'] == 'MEDICAO_CORRECAO_SOLICITADA'
+    assert response.json()['results'][1]['total'] == 2
+    assert response.json()['results'][5]['status'] == 'TODOS_OS_LANCAMENTOS'
+    assert response.json()['results'][5]['total'] == 4
+
+
+def test_url_endpoint_medicao_dashboard_codae_com_filtros(client_autenticado_coordenador_codae,
+                                                          solicitacoes_medicao_inicial):
+    response = client_autenticado_coordenador_codae.get(
+        '/medicao-inicial/solicitacao-medicao-inicial/dashboard/?status=MEDICAO_ENVIADA_PELA_UE',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 6
+    assert response.json()['results'][0]['status'] == 'MEDICAO_ENVIADA_PELA_UE'
+    assert response.json()['results'][0]['total'] == 2
+    assert response.json()['results'][1]['status'] == 'MEDICAO_CORRECAO_SOLICITADA'
+    assert response.json()['results'][1]['total'] == 2
+    assert response.json()['results'][5]['status'] == 'TODOS_OS_LANCAMENTOS'
+    assert response.json()['results'][5]['total'] == 4

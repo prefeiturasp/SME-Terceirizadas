@@ -58,16 +58,19 @@ class EscolaIniciaCancela():
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
+            assert obj.status != obj.workflow_class.ESCOLA_CANCELOU, 'Já está cancelada'
             if (type(obj) in [SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI] or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
-                # ISSO OCORRE QUANDO O CANCELAMENTO É TOTAL
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
-                obj.inclusoes.filter(data__in=datas).update(cancelado=True, cancelado_justificativa=justificativa)
+            if hasattr(obj, 'inclusoes'):
+                obj.inclusoes.filter(data__in=datas).update(cancelado_justificativa=justificativa)
+                if 1 < obj.inclusoes.count() != len(datas):
+                    obj.inclusoes.filter(data__in=datas).update(cancelado=True)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
-        except InvalidTransitionError as e:
+        except (InvalidTransitionError, AssertionError) as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -260,6 +263,9 @@ class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
         inclusoes_alimentacao_cei = diretoria_regional.inclusoes_alimentacao_de_cei_das_minhas_escolas(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao_cei)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -400,6 +406,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         inclusoes_alimentacao_normal = diretoria_regional.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_alimentacao_normal = inclusoes_alimentacao_normal.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao_normal)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -482,10 +491,15 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
         justificativa = request.data.get('justificativa', '')
         try:
             uuids_a_cancelar = [qtd_periodo['uuid'] for qtd_periodo in quantidades_periodo if qtd_periodo['cancelado']]
-            if len(uuids_a_cancelar) == obj.quantidades_periodo.count():
+            if not uuids_a_cancelar or len(uuids_a_cancelar) == obj.quantidades_periodo.count():
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
+            obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar).exclude(cancelado=True).update(
+                cancelado_justificativa=justificativa)
+            if (obj.quantidades_periodo.count() != len(uuids_a_cancelar) or
+                (obj.quantidades_periodo.count() == len(uuids_a_cancelar)) and
+                    obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar, cancelado=True).exists()):
                 obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar).exclude(cancelado=True).update(
                     cancelado=True, cancelado_justificativa=justificativa)
             serializer = self.get_serializer(obj)
@@ -545,6 +559,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
         inclusoes_alimentacao_continua = diretoria_regional.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_alimentacao_continua = inclusoes_alimentacao_continua.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao_continua)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -635,6 +652,9 @@ class InclusaoAlimentacaoCEMEIViewSet(ModelViewSet, EscolaIniciaCancela, DREVali
         inclusoes_alimentacao = diretoria_regional.inclusoes_alimentacao_cemei_das_minhas_escolas(
             filtro_aplicado
         )
+        if request.query_params.get('lote'):
+            lote_uuid = request.query_params.get('lote')
+            inclusoes_alimentacao = inclusoes_alimentacao.filter(rastro_lote__uuid=lote_uuid)
         page = self.paginate_queryset(inclusoes_alimentacao)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

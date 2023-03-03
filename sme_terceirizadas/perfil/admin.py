@@ -1,8 +1,9 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
 from django.urls import path
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from utility.carga_dados.escola.importa_dados import cria_usuario_cogestor, cria_usuario_diretor
 from utility.carga_dados.perfil.importa_dados import (
     importa_usuarios_externos_coresso,
@@ -13,6 +14,7 @@ from utility.carga_dados.perfil.importa_dados import (
     valida_arquivo_importacao_usuarios
 )
 
+from ..escola.models import Escola
 from .api.viewsets import (
     exportar_planilha_importacao_usuarios_externos_coresso,
     exportar_planilha_importacao_usuarios_perfil_codae,
@@ -85,10 +87,72 @@ class PerfisVinculadosAdmin(admin.ModelAdmin):
     search_fields = ('perfil_master',)
 
 
+class InputFilter(admin.SimpleListFilter):
+    template = 'admin/textinput_filter.html'
+
+    def lookups(self, request, model_admin):
+        return ((),)
+
+    def choices(self, changelist):
+        all_choice = next(super().choices(changelist))
+        all_choice['query_parts'] = (
+            (k, v)
+            for k, v in changelist.get_filters_params().items()
+            if k != self.parameter_name
+        )
+        yield all_choice
+
+
+class IDFilter(InputFilter):
+    parameter_name = 'object_id'
+    title = _('Object_id')
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            object_id = self.value()
+
+            return queryset.filter(object_id=object_id)
+
+
+class CodigoEOLFilter(InputFilter):
+    parameter_name = 'codigo_eol'
+    title = _('Código EOL')
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            codigo_eol = self.value()
+
+            content_type_escola = ContentType.objects.get_for_model(Escola)
+            vinculos_escolas = Vinculo.objects.filter(content_type=content_type_escola)
+            escola = Escola.objects.filter(id__in=vinculos_escolas.values('object_id'), codigo_eol=codigo_eol).first()
+
+            if escola:
+                return Vinculo.objects.filter(content_type=content_type_escola, object_id=escola.id)
+            return Vinculo.objects.none()
+
+
+class NomeUEFilter(InputFilter):
+    parameter_name = 'nome_ue'
+    title = _('Nome da UE')
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            nome_ue = self.value()
+
+            content_type_escola = ContentType.objects.get_for_model(Escola)
+            vinculos_escolas = Vinculo.objects.filter(content_type=content_type_escola)
+            escolas = Escola.objects.filter(id__in=vinculos_escolas.values('object_id'),
+                                            nome__icontains=nome_ue).values_list('id', flat=True)
+            if escolas:
+                return Vinculo.objects.filter(content_type=content_type_escola, object_id__in=escolas)
+            return Vinculo.objects.none()
+
+
 @admin.register(Vinculo)
 class VinculoAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'perfil', 'content_type')
+    list_display = ('__str__', 'perfil', 'content_type', 'instituicao')
     search_fields = ('usuario__nome', 'usuario__username', 'usuario__email', 'usuario__registro_funcional')
+    list_filter = ('content_type', IDFilter, CodigoEOLFilter, NomeUEFilter)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'perfil':

@@ -9,9 +9,8 @@ from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidad
 from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
-from ..escola.api.serializers import FaixaEtariaSerializer
 from ..escola.constants import PERIODOS_ESPECIAIS_CEMEI
-from ..escola.models import Escola, EscolaPeriodoEscolar, FaixaEtaria, PeriodoEscolar
+from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
 from ..relatorios.utils import html_to_pdf_cancelada, html_to_pdf_file, html_to_pdf_multiple, html_to_pdf_response
@@ -19,12 +18,17 @@ from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import (
     conta_filtros,
+    deleta_log_temporario_se_necessario,
+    formata_justificativas_usuario_dre_codae,
     formata_logs,
+    formata_logs_kit_lanche_unificado_cancelado_por_usuario_dre,
+    formata_logs_kit_lanche_unificado_cancelado_por_usuario_escola,
     formata_motivos_inclusao,
     get_config_cabecario_relatorio_analise,
     get_diretorias_regionais,
     get_ultima_justificativa_analise_sensorial,
-    get_width
+    get_width,
+    todas_escolas_sol_kit_lanche_unificado_cancelado
 )
 
 env = environ.Env()
@@ -77,7 +81,10 @@ def relatorio_kit_lanche_unificado(request, solicitacao):
         solicitacao_unificada=solicitacao).count()
     instituicao = request.user.vinculo_atual.instituicao
     usuario_eh_escola = isinstance(instituicao, Escola)
+    usuario_eh_dre_ou_codae = isinstance(instituicao, DiretoriaRegional) or isinstance(instituicao, Codae)
     sol_unificada_escola = None
+    justificativas_formatadas = None
+    todos_kits_cancelados = None
     log_temporario = False
     uuid_log_temporario = False
     logs = solicitacao.logs
@@ -102,11 +109,36 @@ def relatorio_kit_lanche_unificado(request, solicitacao):
                 log_criado.criado_em = sol_unificada_escola.cancelado_em
                 log_criado.save()
                 log_temporario = True
-                logs_escola_cancelou = solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU)
-                log_outra_escola = logs_escola_cancelou.exclude(uuid=uuid_log_temporario)
-                if log_outra_escola:
-                    logs = solicitacao.logs.exclude(uuid=log_outra_escola.first().uuid)
-
+                logs = formata_logs_kit_lanche_unificado_cancelado_por_usuario_escola(
+                    solicitacao,
+                    uuid_log_temporario,
+                    logs
+                )
+            cancelado_pela_dre = sol_unificada_escola.cancelado_por.tipo_usuario == 'diretoriaregional'
+            if sol_unificada_escola.cancelado and cancelado_pela_dre:
+                status_ev = LogSolicitacoesUsuario.DRE_CANCELOU
+                log_criado = LogSolicitacoesUsuario.objects.create(
+                    descricao=str(solicitacao),
+                    status_evento=status_ev,
+                    solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
+                    usuario=sol_unificada_escola.cancelado_por,
+                    uuid_original=solicitacao.uuid,
+                    justificativa=sol_unificada_escola.cancelado_justificativa,
+                    resposta_sim_nao=False,
+                    criado_em=sol_unificada_escola.cancelado_em
+                )
+                uuid_log_temporario = log_criado.uuid
+                log_criado.criado_em = sol_unificada_escola.cancelado_em
+                log_criado.save()
+                log_temporario = True
+                logs = formata_logs_kit_lanche_unificado_cancelado_por_usuario_dre(
+                    solicitacao,
+                    uuid_log_temporario,
+                    logs
+                )
+    if usuario_eh_dre_ou_codae:
+        justificativas_formatadas = formata_justificativas_usuario_dre_codae(solicitacao)
+        todos_kits_cancelados = todas_escolas_sol_kit_lanche_unificado_cancelado(solicitacao)
     html_string = render_to_string(
         'solicitacao_kit_lanche_unificado.html',
         {'solicitacao': solicitacao, 'qtd_escolas': qtd_escolas,
@@ -114,11 +146,13 @@ def relatorio_kit_lanche_unificado(request, solicitacao):
          'width': get_width(constants.FLUXO_PARTINDO_DRE, logs),
          'logs': formata_logs(logs),
          'usuario_eh_escola': usuario_eh_escola,
+         'usuario_eh_dre_ou_codae': usuario_eh_dre_ou_codae,
          'nome_instituicao': instituicao.nome,
+         'justificativas_formatadas': justificativas_formatadas,
+         'todos_kits_cancelados': todos_kits_cancelados,
          'sol_unificada_escola': sol_unificada_escola}
     )
-    if log_temporario:
-        solicitacao.logs.get(uuid=uuid_log_temporario).delete()
+    deleta_log_temporario_se_necessario(log_temporario, solicitacao, uuid_log_temporario)
     return html_to_pdf_response(html_string, f'solicitacao_unificada_{solicitacao.id_externo}.pdf')
 
 
@@ -483,42 +517,42 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
             }
         )
     else:
-        quantidade_por_faixa = []
-        matriculados = []
-        periodo_escolar = PeriodoEscolar.objects.get(nome='INTEGRAL')
-        escola_periodo_escolar = EscolaPeriodoEscolar.objects.filter(periodo_escolar=periodo_escolar, escola=escola)
-        faixa_alunos = escola_periodo_escolar.first().alunos_por_faixa_etaria(solicitacao.data)
-
-        for uuid_faixa_etaria in faixa_alunos:
-            matriculados.append({
-                'faixa_etaria': FaixaEtariaSerializer(FaixaEtaria.objects.get(uuid=uuid_faixa_etaria)).data,
-                'count': faixa_alunos[uuid_faixa_etaria]
-            })
+        qa = solicitacao.quantidade_alunos_por_faixas_etarias
         vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-        vinculos = vinculos_class.objects.filter(periodo_escolar__in=escola.periodos_escolares, ativo=True,
-                                                 tipo_unidade_escolar=escola.tipo_unidade)
-        vinculos = vinculos.order_by('periodo_escolar__posicao')
+        inclusoes = []
+        for periodo_externo in solicitacao.periodos_da_solicitacao(nivel_interno=False, nome_coluna='periodo_externo'):
+            inclusao = {'periodo_externo_nome': periodo_externo}
+            vinculo = vinculos_class.objects.filter(periodo_escolar__nome=periodo_externo, ativo=True,
+                                                    tipo_unidade_escolar=escola.tipo_unidade).first()
+            if vinculo:
+                inclusao['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.values_list('nome', flat=True))
+            else:
+                inclusao['tipos_alimentacao'] = ''
+            if periodo_externo == 'INTEGRAL':
+                inclusao['periodos_internos'] = []
+                for periodo_interno in solicitacao.periodos_da_solicitacao(nivel_interno=True, nome_coluna='periodo'):
+                    p_faixas = qa.filter(periodo__nome=periodo_interno, periodo_externo__nome=periodo_externo)
+                    total_inclusao = sum(p_faixas.values_list('quantidade_alunos', flat=True))
+                    total_matriculados = sum(p_faixas.values_list('matriculados_quando_criado', flat=True))
 
-        for vinculo in vinculos:
-            quantidade = {}
-            quantidade['periodo'] = vinculo.periodo_escolar.nome
-            qtd_solicitacao = solicitacao.quantidade_alunos_da_inclusao.filter(periodo=vinculo.periodo_escolar)
-            quantidade['total_solicitacao'] = sum(qtd_solicitacao.values_list('quantidade_alunos', flat=True))
-            quantidade['total_matriculados'] = sum([m['count'] for m in matriculados])
-            quantidade['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.values_list('nome', flat=True))
-            inclusoes = []
-
-            for faixa in FaixaEtaria.objects.all():
-                q = qtd_solicitacao.filter(faixa_etaria=faixa)
-                if q.first():
-                    quantidade_inclusao = q.first().quantidade_alunos
-                    t = sum([m['count'] if m['faixa_etaria']['uuid'] == str(faixa.uuid) else 0 for m in matriculados])
-                    inclusoes.append({'faixa_etaria': faixa,
-                                      'quantidade_alunos': quantidade_inclusao,
-                                      'quantidade_matriculados': t})
-
-            quantidade['quantidade_por_faixa_etaria'] = inclusoes
-            quantidade_por_faixa.append(quantidade)
+                    p_faixas = [{'nome_faixa': x.faixa_etaria.__str__(),
+                                 'quantidade_alunos': x.quantidade_alunos,
+                                 'matriculados_quando_criado': x.matriculados_quando_criado} for x in p_faixas]
+                    inclusao['periodos_internos'].append({'periodo_interno_nome': periodo_interno,
+                                                          'quantidades_faixas': p_faixas,
+                                                          'total_inclusao': total_inclusao,
+                                                          'total_matriculados': total_matriculados})
+            else:
+                p_faixas = qa.filter(periodo__nome=periodo_externo, periodo_externo__nome=periodo_externo)
+                total_inclusao = sum(p_faixas.values_list('quantidade_alunos', flat=True))
+                total_matriculados = sum(p_faixas.values_list('matriculados_quando_criado', flat=True))
+                p_faixas = [{'nome_faixa': x.faixa_etaria.__str__(),
+                             'quantidade_alunos': x.quantidade_alunos,
+                             'matriculados_quando_criado': x.matriculados_quando_criado} for x in p_faixas]
+                inclusao['quantidades_faixas'] = p_faixas
+                inclusao['total_inclusao'] = total_inclusao
+                inclusao['total_matriculados'] = total_matriculados
+            inclusoes.append(inclusao)
         html_string = render_to_string(
             'novo_solicitacao_inclusao_alimentacao_cei.html',
             {
@@ -527,7 +561,7 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
                 'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
                 'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
                 'logs': formata_logs(logs),
-                'inclusoes': quantidade_por_faixa,
+                'inclusoes': inclusoes,
                 'dias_motivos_da_inclusao_cei': solicitacao.inclusoes.all()
             }
         )
@@ -761,7 +795,7 @@ def relatorio_produto_homologacao(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
 
 
-def relatorio_marcas_por_produto_homologacao(request, produtos, filtros):
+def relatorio_marcas_por_produto_homologacao(produtos, filtros):
     html_string = render_to_string(
         'homologacao_marcas_por_produto.html',
         {
@@ -770,7 +804,7 @@ def relatorio_marcas_por_produto_homologacao(request, produtos, filtros):
             'filtros': filtros
         }
     )
-    return html_to_pdf_response(html_string, f'relatorio_marcas_por_produto_homologacao.pdf')
+    return html_to_pdf_file(html_string, f'relatorio_marcas_por_produto_homologacao.pdf', True)
 
 
 def relatorio_produtos_suspensos(produtos, filtros):
@@ -866,17 +900,17 @@ def relatorio_produto_analise_sensorial(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_relatorio_{produto.id_externo}.pdf')
 
 
-def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
+def relatorio_produtos_agrupado_terceirizada(tipo_usuario, dados_agrupados, filtros):
     html_string = render_to_string(
         'relatorio_produtos_por_terceirizada.html',
         {
             'dados_agrupados': dados_agrupados,
             'filtros': filtros,
             'qtde_filtros': conta_filtros(filtros),
-            'exibe_coluna_terceirizada': request.user.tipo_usuario not in ['escola', 'terceirizada']
+            'exibe_coluna_terceirizada': tipo_usuario not in ['escola', 'terceirizada']
         }
     )
-    return html_to_pdf_response(html_string, 'produtos_homologados_por_terceirizada.pdf')
+    return html_to_pdf_file(html_string, 'produtos_homologados_por_terceirizada.pdf', True)
 
 
 def relatorio_produtos_situacao(request, queryset, filtros):

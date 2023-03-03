@@ -58,6 +58,33 @@ def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, 
 
 
 @pytest.fixture
+def produtos_edital_41(escola):
+    edital = mommy.make('Edital', numero='Edital de Pregão nº 41/sme/2017')
+    marca_1 = mommy.make('Marca', nome='NAMORADOS')
+    marca_2 = mommy.make('Marca', nome='TIO JOÃO')
+    produto_1 = mommy.make('Produto', nome='ARROZ', marca=marca_1)
+    produto_2 = mommy.make('Produto', nome='ARROZ', marca=marca_2)
+    homologacao_p1 = mommy.make('HomologacaoProduto',
+                                produto=produto_1,
+                                rastro_terceirizada=escola.lote.terceirizada,
+                                status=HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO)
+    homologacao_p2 = mommy.make('HomologacaoProduto',
+                                produto=produto_2,
+                                rastro_terceirizada=escola.lote.terceirizada,
+                                status=HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO)
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=homologacao_p1.uuid,
+               status_evento=22,  # CODAE_HOMOLOGADO
+               solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=homologacao_p2.uuid,
+               status_evento=22,  # CODAE_HOMOLOGADO
+               solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
+    mommy.make('ProdutoEdital', produto=produto_1, edital=edital)
+    mommy.make('ProdutoEdital', produto=produto_2, edital=edital)
+
+
+@pytest.fixture
 def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, template_homologacao_produto):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD

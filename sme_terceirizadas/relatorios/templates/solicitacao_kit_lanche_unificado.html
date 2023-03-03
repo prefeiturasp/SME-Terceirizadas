@@ -70,7 +70,11 @@
             </tr>
           {% else %}
             {% for i in solicitacao.escolas_quantidades.all %}
+              {% if i.cancelado and usuario_eh_dre_ou_codae and not todos_kits_cancelados %}
+              <tr style="text-decoration: line-through; color: #686868">
+              {% else %}
               <tr>
+              {% endif %}
                 <td>{{ i.escola.codigo_eol }}</td>
                 <td>{{ i.escola.nome }}</td>
                 <td>{{ i.quantidade_alunos }}</td>
@@ -112,11 +116,45 @@
       </div>
       <p class="cabecalho" style="color: #686868; font-weight: bold; font-size: 14px;">Histórico de justificativas</p>
       <div style="margin-top: 16px; font-size: 14px;">
-        {{ sol_unificada_escola.cancelado_em|date:"d/m/Y H:i" }} - UNIDADE CANCELOU - USUÁRIO {{ sol_unificada_escola.cancelado_por.nome }}
+        {{ sol_unificada_escola.cancelado_em|date:"d/m/Y H:i:s" }} -
+          {% if sol_unificada_escola.cancelado_por.tipo_usuario == "diretoriaregional" %}
+            DRE CANCELOU - {{ sol_unificada_escola.escola.diretoria_regional.nome }}
+          {% else %}
+            UNIDADE CANCELOU - USUÁRIO {{ sol_unificada_escola.cancelado_por.nome }}
+          {% endif %}
       </div>
       <div style="margin-top: 10px; font-size: 12px;">
         Observação do Cancelamento: {{ sol_unificada_escola.cancelado_justificativa }}
       </div>
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+    {% elif usuario_eh_dre_ou_codae and justificativas_formatadas %}
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+      <p class="cabecalho" style="color: #686868; font-weight: bold; font-size: 14px;">Histórico de justificativas</p>
+      {% for item in justificativas_formatadas %}
+        <div style="margin-top: 16px; font-size: 14px;">
+          {{ item.cancelado_em|date:"d/m/Y H:i:s" }} -
+            {% if item.tipo_usuario == "diretoriaregional" %}
+              DRE CANCELOU - {{ item.nome_dre }}
+            {% else %}
+              UNIDADE CANCELOU - USUÁRIO {{ item.cancelado_por }}
+            {% endif %}
+        </div>
+        <div style="margin-top: 6px; margin-bottom: 4px; font-size: 14px;">
+          Unidades canceladas:
+        </div>
+        {% for unidade in item.unidades %}
+          <div style="font-size: 14px;">
+            {{ unidade }}
+          </div>
+        {% endfor %}
+        <div style="margin-top: 10px; font-size: 12px;">
+          Observação do Cancelamento: {{ item.justificativa }}
+        </div>
+      {% endfor %}
       <div>
         <hr style="color: #EEEEEE; opacity: 0.3">
       </div>

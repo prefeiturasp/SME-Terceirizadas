@@ -12,6 +12,7 @@ from ...terceirizada.api.serializers.serializers import ContratoSimplesSerialize
 from ...terceirizada.models import Terceirizada
 from ..models import (
     Aluno,
+    AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
     DiretoriaRegional,
@@ -52,6 +53,12 @@ class TipoAlimentacaoSerializer(serializers.ModelSerializer):
 
 class PeriodoEscolarSerializer(serializers.ModelSerializer):
     tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
+    possui_alunos_regulares = serializers.SerializerMethodField()
+
+    def get_possui_alunos_regulares(self, obj):
+        if 'escola' not in self.context:
+            return None
+        return obj.alunos_matriculados.filter(escola=self.context['escola'], tipo_turma='REGULAR').exists()
 
     class Meta:
         model = PeriodoEscolar
@@ -369,7 +376,9 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
 
     def get_periodos_escolares(self, obj):
         if isinstance(obj.instituicao, Escola):
-            return PeriodoEscolarSerializer(obj.instituicao.periodos_escolares.all(), many=True).data
+            return PeriodoEscolarSerializer(obj.instituicao.periodos_escolares.all(),
+                                            many=True,
+                                            context={'escola': obj.instituicao}).data
         else:
             return []
 
@@ -577,3 +586,9 @@ class AlunoNaoMatriculadoSerializer(serializers.ModelSerializer):
             'cpf',
             'data_nascimento'
         )
+
+
+class AlunosMatriculadosPeriodoEscolaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlunosMatriculadosPeriodoEscola
+        fields = ('periodo_escolar',)

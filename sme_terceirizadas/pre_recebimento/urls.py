@@ -9,6 +9,10 @@ router.register('cronogramas', viewsets.CronogramaModelViewSet)
 router.register('laboratorios', viewsets.LaboratorioModelViewSet)
 router.register('embalagens', viewsets.EmbalagemQldModelViewSet)
 
+router.register('solicitacao-de-alteracao-de-cronograma', viewsets.SolicitacaoDeAlteracaoCronogramaViewSet,
+                basename='solicitacao-de-alteracao-de-cronograma')
+
+
 urlpatterns = [
     path('', include(router.urls))
 ]

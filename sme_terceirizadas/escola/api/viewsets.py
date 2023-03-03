@@ -1,5 +1,8 @@
+import datetime
+
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
@@ -18,6 +21,8 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     ADMINISTRADOR_UE
 )
+from ...dados_comuns.permissions import UsuarioEscolaTercTotal
+from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
@@ -44,6 +49,7 @@ from ...escola.api.serializers_create import (
     LoteCreateSerializer,
     MudancaFaixasEtariasCreateSerializer
 )
+from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..forms import AlunosPorFaixaEtariaForm
@@ -61,6 +67,7 @@ from ..models import (
     PeriodoEscolar,
     Subprefeitura,
     TipoGestao,
+    TipoTurma,
     TipoUnidadeEscolar
 )
 from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
@@ -68,6 +75,7 @@ from ..utils import EscolaSimplissimaPagination
 from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
+    AlunosMatriculadosPeriodoEscolaSerializer,
     DiaCalendarioSerializer,
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalLookUpSerializer,
@@ -283,6 +291,47 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             'results': results
         })
 
+    @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes',
+            permission_classes=(UsuarioEscolaTercTotal,))
+    def inclusao_continua_por_mes(self, request):
+        try:
+            for param in ['mes', 'ano']:
+                if param not in request.query_params:
+                    raise ValidationError(f'{param} é obrigatório via query_params')
+            mes = request.query_params.get('mes')
+            ano = request.query_params.get('ano')
+            primeiro_dia_mes = datetime.date(int(ano), int(mes), 1)
+            ultimo_dia_mes = get_ultimo_dia_mes(primeiro_dia_mes)
+            periodos = dict(InclusaoAlimentacaoContinua.objects.filter(
+                status='CODAE_AUTORIZADO',
+                rastro_escola=request.user.vinculo_atual.instituicao).filter(
+                    data_inicial__lte=ultimo_dia_mes,
+                    data_final__gte=primeiro_dia_mes,
+            ).values_list(
+                'quantidades_por_periodo__periodo_escolar__nome',
+                'quantidades_por_periodo__periodo_escolar__uuid'))
+            return Response({'periodos': periodos if len(periodos) else None})
+        except ValidationError as e:
+            return Response({'detail': e}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PeriodosComMatriculadosPorUEViewSet(ReadOnlyModelViewSet):
+    queryset = Escola.objects.all()
+
+    def list(self, request, uuid=None):
+        escola = self.get_object()
+        periodos = escola.alunos_matriculados_por_periodo.filter(
+            tipo_turma=TipoTurma.REGULAR.name, quantidade_alunos__gt=0
+        ).values_list('periodo_escolar__nome', flat=True)
+        return Response(periodos)
+
+    def get_object(self):
+        uuid = self.request.query_params.get('escola_uuid', None)
+        return get_object_or_404(self.get_queryset(), uuid=uuid.rstrip('/'))
+
+    def get_serializer_class(self):
+        return AlunosMatriculadosPeriodoEscolaSerializer
+
 
 class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
@@ -418,6 +467,14 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
     #  TODO: Quebrar esse método um pouco, está complexo e sem teste
     @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')
     def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):  # noqa C901
+        """
+        EscolaCEI: Deve retornar a quantidade de alunos por faixa etária e período escolar através do uuid do
+        PeriodoEscolar
+
+        Outras escolas: Deve retornar a quantidade de alunos por faixa etária e período escolar através do uuid do
+        EscolaPeriodoEscolar
+        """
+
         form = AlunosPorFaixaEtariaForm({
             'data_referencia': data_referencia_str
         })

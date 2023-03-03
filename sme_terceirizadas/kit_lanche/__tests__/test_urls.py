@@ -243,9 +243,8 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_relatorio(
     )
     id_externo = solicitacao_avulsa_dre_validado.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', f'filename="solicitacao_avulsa_{id_externo}.pdf"')
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers['content-disposition'] == f'filename="solicitacao_avulsa_{id_externo}.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -424,7 +423,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela_em_cima_da_h
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     json = response.json()
-    assert json == {'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
+    assert json == {'detail': 'Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificado_deletar(client_autenticado_da_dre,
@@ -460,9 +459,8 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_relatorio(
     )
     id_externo = solicitacao_unificada_lista_igual_codae_questionado.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', f'filename="solicitacao_unificada_{id_externo}.pdf"')
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers['content-disposition'] == f'filename="solicitacao_unificada_{id_externo}.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 

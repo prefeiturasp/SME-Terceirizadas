@@ -759,7 +759,7 @@ def test_url_endpoint_produtos_editais_lista_editais_dre(client_autenticado_da_d
 
 def test_url_endpoint_produtos_editais_filtro_por_parametros_agrupado_terceirizada(client_autenticado_da_dre):
     client = client_autenticado_da_dre
-    payload = {
+    params = {
         'agrupado_por_nome_e_marca': False,
         'data_homologacao': '14/10/2022',
         'nome_edital': 'Edital de Pregão nº 41/sme/2017',
@@ -767,6 +767,18 @@ def test_url_endpoint_produtos_editais_filtro_por_parametros_agrupado_terceiriza
         'nome_produto': 'ARROZ LONGO FINO TIPO 1',
         'nome_terceirizada': 'APETECE'
     }
-    response = client.post(f'/produtos/filtro-por-parametros-agrupado-terceirizada/',
-                           data=json.dumps(payload), content_type='application/json')
+    response = client.get(f'/painel-gerencial-homologacoes-produtos/filtro-por-parametros-agrupado-terceirizada/',
+                          content_type='application/json', **params)
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_produtos_agrupados_marca_produto(client_autenticado_vinculo_codae_produto, produtos_edital_41):
+    response = client_autenticado_vinculo_codae_produto.get(
+        f'/painel-gerencial-homologacoes-produtos/filtro-por-parametros-agrupado-terceirizada/'
+        f'?agrupado_por_nome_e_marca=true&nome_edital=Edital de Pregão nº 41/sme/2017',
+        content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {'results': [
+        {'nome': 'ARROZ', 'marca': 'NAMORADOS | TIO JOÃO', 'edital': 'Edital de Pregão nº 41/sme/2017'}],
+        'count': 2,
+        'total_marcas': 2}

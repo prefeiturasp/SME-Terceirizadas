@@ -1,9 +1,16 @@
+from django.db.models import QuerySet
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from ...dados_comuns.permissions import UsuarioEscolaTercTotal, ViewSetActionPermissionMixin
+from ...dados_comuns.models import LogSolicitacoesUsuario
+from ...dados_comuns.permissions import (
+    UsuarioCODAEGestaoAlimentacao,
+    UsuarioDiretoriaRegional,
+    UsuarioEscolaTercTotal,
+    ViewSetActionPermissionMixin
+)
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
@@ -18,6 +25,7 @@ from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
+    SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
     ValorMedicaoSerializer
@@ -59,7 +67,6 @@ class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
         except AssertionError as error:
             if str(error) == '`create()` did not return an object instance.':
                 return Response(status=status.HTTP_201_CREATED)
-            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['GET'], url_path='lista-dias')
     def lista_dias(self, request):
@@ -97,6 +104,120 @@ class SolicitacaoMedicaoInicialViewSet(
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @staticmethod
+    def get_lista_status():
+        return [
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_ENVIADA_PELA_UE,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_DRE,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE,
+            'TODOS_OS_LANCAMENTOS'
+        ]
+
+    def condicao_raw_query_por_usuario(self):
+        usuario = self.request.user
+        if usuario.tipo_usuario == 'diretoriaregional':
+            return f'AND diretoria_regional_id = {self.request.user.vinculo_atual.object_id} '
+        elif usuario.tipo_usuario == 'escola':
+            return f'AND %(solicitacao_medicao_inicial)s.escola_id = {self.request.user.vinculo_atual.object_id} '
+        return ''
+
+    def condicao_por_usuario(self, queryset):
+        usuario = self.request.user
+        if usuario.tipo_usuario == 'diretoriaregional':
+            return queryset.filter(escola__diretoria_regional=usuario.vinculo_atual.instituicao)
+        elif usuario.tipo_usuario == 'escola':
+            return queryset.filter(escola=usuario.vinculo_atual.instituicao)
+        return queryset
+
+    def dados_dashboard(self, request, query_set: QuerySet, kwargs: dict, use_raw=True) -> list:
+        limit = int(request.query_params.get('limit', 10))
+        offset = int(request.query_params.get('offset', 0))
+
+        sumario = []
+        for workflow in self.get_lista_status():
+            todos_lancamentos = workflow == 'TODOS_OS_LANCAMENTOS'
+            if use_raw:
+                data = {'escola': Escola._meta.db_table,
+                        'logs': LogSolicitacoesUsuario._meta.db_table,
+                        'solicitacao_medicao_inicial': SolicitacaoMedicaoInicial._meta.db_table,
+                        'status': workflow}
+                raw_sql = ('SELECT %(solicitacao_medicao_inicial)s.* FROM %(solicitacao_medicao_inicial)s '
+                           'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
+                           'GROUP BY uuid_original) '
+                           'AS most_recent_log '
+                           'ON %(solicitacao_medicao_inicial)s.uuid = most_recent_log.uuid_original '
+                           'LEFT JOIN (SELECT id AS escola_id, diretoria_regional_id FROM %(escola)s) '
+                           'AS escola_solicitacao_medicao '
+                           'ON escola_solicitacao_medicao.escola_id = %(solicitacao_medicao_inicial)s.escola_id ')
+                if todos_lancamentos:
+                    raw_sql += ('WHERE NOT %(solicitacao_medicao_inicial)s.status = '
+                                "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE' ")
+                else:
+                    raw_sql += "WHERE %(solicitacao_medicao_inicial)s.status = '%(status)s' "
+                raw_sql += self.condicao_raw_query_por_usuario()
+                raw_sql += 'ORDER BY log_criado_em DESC'
+                qs = query_set.raw(raw_sql % data)
+            else:
+                qs = (query_set.filter(status=workflow) if not todos_lancamentos
+                      else query_set.exclude(status='MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'))
+                qs = qs.filter(**kwargs)
+                qs = self.condicao_por_usuario(qs)
+                qs = sorted(qs.distinct().all(),
+                            key=lambda x: x.log_mais_recente.criado_em
+                            if x.log_mais_recente else '-criado_em', reverse=True)
+            sumario.append({
+                'status': workflow,
+                'total': len(qs),
+                'dados': SolicitacaoMedicaoInicialDashboardSerializer(
+                    qs[offset:limit + offset],
+                    context={'request': self.request, 'workflow': workflow}, many=True).data
+            })
+        return sumario
+
+    def formatar_filtros(self, query_params):
+        kwargs = {}
+        if query_params.get('mes_ano'):
+            data_splitted = query_params.get('mes_ano').split('_')
+            kwargs['mes'] = data_splitted[0]
+            kwargs['ano'] = data_splitted[1]
+        if query_params.getlist('lotes_selecionados[]'):
+            kwargs['escola__lote__uuid__in'] = query_params.getlist('lotes_selecionados[]')
+        if query_params.get('tipo_unidade'):
+            kwargs['escola__tipo_unidade__uuid'] = query_params.get('tipo_unidade')
+        if query_params.get('escola'):
+            kwargs['escola__codigo_eol'] = query_params.get('escola').split(' - ')[0]
+        if query_params.get('dre'):
+            kwargs['escola__diretoria_regional__uuid'] = query_params.get('dre')
+        return kwargs
+
+    @action(detail=False, methods=['GET'], url_path='dashboard',
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    def dashboard(self, request):
+        query_set = self.get_queryset()
+        possui_filtros = len(request.query_params)
+        kwargs = self.formatar_filtros(request.query_params)
+        response = {'results': self.dados_dashboard(query_set=query_set,
+                                                    request=request,
+                                                    kwargs=kwargs,
+                                                    use_raw=not possui_filtros)}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='meses-anos',
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    def meses_anos(self, request):
+        query_set = self.condicao_por_usuario(self.get_queryset()).exclude(
+            status=SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE)
+        meses_anos = query_set.values_list('mes', 'ano')
+        meses_anos_unicos = []
+        for mes_ano in meses_anos:
+            mes_ano_obj = {'mes': mes_ano[0], 'ano': mes_ano[1]}
+            if mes_ano_obj not in meses_anos_unicos:
+                meses_anos_unicos.append(mes_ano_obj)
+        return Response({'results': sorted(meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True)},
+                        status=status.HTTP_200_OK)
+
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = TipoContagemAlimentacao.objects.filter(ativo=True)
@@ -123,14 +244,19 @@ class ValorMedicaoViewSet(
         queryset = ValorMedicao.objects.all()
         nome_periodo_escolar = self.request.query_params.get('nome_periodo_escolar', '')
         uuid_solicitacao_medicao = self.request.query_params.get('uuid_solicitacao_medicao', '')
+        nome_grupo = self.request.query_params.get('nome_grupo', None)
         if nome_periodo_escolar:
             queryset = queryset.filter(medicao__periodo_escolar__nome=nome_periodo_escolar)
+        if nome_grupo:
+            queryset = queryset.filter(medicao__grupo__nome=nome_grupo)
+        else:
+            queryset = queryset.filter(medicao__grupo__isnull=True)
         if uuid_solicitacao_medicao:
             queryset = queryset.filter(medicao__solicitacao_medicao_inicial__uuid=uuid_solicitacao_medicao)
         return queryset
 
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
+        instance = ValorMedicao.objects.get(uuid=kwargs.get('uuid'))
         medicao = instance.medicao
         self.perform_destroy(instance)
         if not medicao.valores_medicao.all().exists():

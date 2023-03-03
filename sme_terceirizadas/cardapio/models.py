@@ -330,7 +330,8 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
             'motivo': self.motivo,
             'observacao': self.observacao,
             'tipos_alimentacao': ', '.join(self.tipos_alimentacao.values_list('nome', flat=True)),
-            'datas': self.datas
+            'datas': self.datas,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -479,7 +480,8 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
             'dias_motivos': self.suspensoes_alimentacao,
             'quantidades_periodo': self.quantidades_por_periodo,
             'datas': self.datas,
-            'observacao': self.observacao
+            'observacao': self.observacao,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -609,7 +611,8 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
             'motivo': self.motivo,
             'periodos_escolares': self.periodos_escolares,
             'label_data': label_data,
-            'data_log': data_log
+            'data_log': data_log,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -739,6 +742,7 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             'substituicoes': self.substituicoes_dict,
             'label_data': label_data,
             'data_log': data_log,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -871,6 +875,7 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
             'observacao': self.observacao,
             'label_data': label_data,
             'data_log': data_log,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -1045,6 +1050,7 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             'data_autorizacao': self.data_autorizacao,
             'label_data': label_data,
             'data_log': data_log,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):

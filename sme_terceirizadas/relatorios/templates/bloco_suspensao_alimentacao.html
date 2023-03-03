@@ -3,15 +3,17 @@
   <tr>
     <td colspan="6" style="border-bottom: none">
       <div class="row mt-2 mb-2 mx-2">
-        <div class="col-4">Motivo</div>
-        <div class="col-4">Dia(s) de suspensão:</div>
-        <div class="col-4">Data da Suspensão:</div>
+        <div class="col-3">ID da Solicitação:</div>
+        <div class="col-3">Motivo</div>
+        <div class="col-3">Dia(s) de suspensão:</div>
+        <div class="col-3">Data da Suspensão:</div>
       </div>
       {% for dia_motivo in solicitacao.dias_motivos.all %}
         <div class="row my-2 mx-2">
-          <div class="col-4"><b>{{ dia_motivo.motivo.nome }}</b></div>
-          <div class="col-4"><b>{{ dia_motivo.data|formatar_data_solicitacoes_alimentacao }}</b></div>
-          {% if forloop.first %}<div class="col-4"><b>{{ solicitacao.data_log }}</b></div>{% endif %}
+          <div class="col-3"><b># {{ solicitacao.id_externo }}</b></div>
+          <div class="col-3"><b>{{ dia_motivo.motivo.nome }}</b></div>
+          <div class="col-3"><b>{{ dia_motivo.data|formatar_data_solicitacoes_alimentacao }}</b></div>
+          {% if forloop.first %}<div class="col-3"><b>{{ solicitacao.data_log }}</b></div>{% endif %}
         </div>
       {% endfor %}
       </td>
@@ -19,15 +21,15 @@
   <tr>
     <td colspan="6" style="border-top: none">
       <div class="row mt-2 mb-2 mx-2">
-        <div class="col-4">Período</div>
-        <div class="col-4">Tipos de alimentação:</div>
-        <div class="col-4">Quantidade:</div>
+        <div class="col-3">Período</div>
+        <div class="col-3">Tipos de alimentação:</div>
+        <div class="col-3">Quantidade:</div>
       </div>
       {% for quantidade_periodo in solicitacao.quantidades_periodo.all %}
         <div class="row my-2 mx-2">
-          <div class="col-4"><b>{{ quantidade_periodo.periodo_escolar.nome }}</b></div>
-          <div class="col-4"><b>{{ quantidade_periodo.tipos_alimentacao.all|concatena_str }}</b></div>
-          <div class="col-4"><b>{{ quantidade_periodo.numero_alunos }}</b></div>
+          <div class="col-3"><b>{{ quantidade_periodo.periodo_escolar.nome }}</b></div>
+          <div class="col-3"><b>{{ quantidade_periodo.tipos_alimentacao.all|concatena_str }}</b></div>
+          <div class="col-3"><b>{{ quantidade_periodo.numero_alunos }}</b></div>
         </div>
       {% endfor %}
     </td>

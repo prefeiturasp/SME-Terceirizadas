@@ -56,7 +56,7 @@ def class_css(log):
         classe_css = 'disapproved'
     elif log.status_evento_explicacao in ['Questionamento pela CODAE', 'CODAE pediu correção',
                                           'CODAE pediu análise sensorial', 'Escola/Nutricionista reclamou do produto',
-                                          'CODAE pediu análise da reclamação']:
+                                          'CODAE pediu análise da reclamação', 'Terceirizada respondeu questionamento']:
         classe_css = 'questioned'
     return classe_css
 
@@ -268,12 +268,20 @@ def embalagens_filter(embalagens, tipo):
 
 @register.filter
 def existe_inclusao_cancelada(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado=True).exists()
+    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False).exists()
+
+
+@register.filter
+def inclusao_multiplos_cancelamentos(solicitacao):
+    multiplos_cancelamentos = len(set(list(solicitacao.inclusoes.filter(
+        cancelado_justificativa__isnull=False).values_list(
+        'cancelado_justificativa', flat=True)))) > 1
+    return multiplos_cancelamentos
 
 
 @register.filter
 def inclusoes_canceladas(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado=True)
+    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False)
 
 
 @register.filter

@@ -10,10 +10,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.template.loader import render_to_string
 from django_xworkflows import models as xwf_models
+from rest_framework.exceptions import PermissionDenied
 
 from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
+from .constants import DIRETOR_UE
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory
@@ -430,7 +432,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('terceirizada_responde_analise_sensorial',
          CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
-        ('codae_ativa', CODAE_SUSPENDEU, CODAE_HOMOLOGADO),
+        ('codae_ativa', [CODAE_SUSPENDEU, CODAE_HOMOLOGADO], CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou',
          [CODAE_HOMOLOGADO,
           CODAE_CANCELOU_ANALISE_SENSORIAL], ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
@@ -842,7 +844,6 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
             justificativa=kwargs.get('justificativa', ''))
 
         partes_interessadas = self._partes_interessadas_dilog()
-
         self._envia_email_distribuidor_solicita_alteracao(log_transicao=log_transicao,
                                                           partes_interessadas=partes_interessadas)
         # Monta Notificacao
@@ -1502,11 +1503,12 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         if not kwargs.get('nao_enviar_email', None):
             self._envia_email_escola_ou_nutricionista_reclamou(reclamacao)
 
-    def salva_log_com_justificativa_e_anexos(self, evento, request):
+    def salva_log_com_justificativa_e_anexos(self, evento, request, justificativa_suspensao_ativacao=None):
+        justificativa_ = justificativa_suspensao_ativacao
         log_transicao = self.salvar_log_transicao(
             status_evento=evento,
             usuario=request.user,
-            justificativa=request.data['justificativa']
+            justificativa=justificativa_ if justificativa_ else request.data['justificativa']
         )
         for anexo in request.data.pop('anexos', []):
             arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
@@ -2509,21 +2511,24 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
         user = kwargs['user']
+        eh_importacao = kwargs.get('eh_importacao', None)
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                   usuario=user)
-        if self.tipo_solicitacao == 'ALTERACAO_UE':
-            assunto = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
-            titulo = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
-            dieta_origem = self.aluno.dietas_especiais.filter(
-                tipo_solicitacao='COMUM',
-                status=self.workflow_class.CODAE_AUTORIZADO).last()
-            self._envia_email_autorizar(assunto, titulo, user,
-                                        self._partes_interessadas_codae_autoriza, dieta_origem)
-        else:
-            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = self.str_dre_lote_escola
-            self._preenche_template_e_envia_email(assunto, titulo, user,
-                                                  self._partes_interessadas_codae_autoriza_ou_nega, 'codae_autoriza')
+        if not eh_importacao:
+            if self.tipo_solicitacao == 'ALTERACAO_UE':
+                assunto = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
+                titulo = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
+                dieta_origem = self.aluno.dietas_especiais.filter(
+                    tipo_solicitacao='COMUM',
+                    status=self.workflow_class.CODAE_AUTORIZADO).last()
+                self._envia_email_autorizar(assunto, titulo, user,
+                                            self._partes_interessadas_codae_autoriza, dieta_origem)
+            else:
+                assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
+                titulo = self.str_dre_lote_escola
+                self._preenche_template_e_envia_email(assunto, titulo, user,
+                                                      self._partes_interessadas_codae_autoriza_ou_nega,
+                                                      'codae_autoriza')
 
     @xworkflows.after_transition('inicia_fluxo_inativacao')
     def _inicia_fluxo_inativacao_hook(self, *args, **kwargs):
@@ -2716,15 +2721,15 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     def _envia_email_aceite_reclamacao(self, log_aceite):
         html = render_to_string(
-            template_name='produto_codae_aceitou_reclamacao.html',
+            template_name='produto_codae_suspende.html',
             context={
-                'titulo': 'Produto suspenso por reclamação',
-                'reclamacao': self,
-                'log_aceite': log_aceite
+                'titulo': 'Suspensão de Produto',
+                'produto': self.homologacao_produto.produto,
+                'log_transicao': log_aceite
             }
         )
         envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Produto suspenso por reclamação',
+            assunto='[SIGPAE] Suspensão de Produto',
             emails=self._partes_interessadas_suspensao_por_reclamacao(),
             corpo='',
             html=html
@@ -2867,16 +2872,28 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
-    MEDICAO_ENCERRADA_PELA_CODAE = 'MEDICAO_ENCERRADA_PELA_CODAE'
+    MEDICAO_ENVIADA_PELA_UE = 'MEDICAO_ENVIADA_PELA_UE'
+    MEDICAO_CORRECAO_SOLICITADA = 'MEDICAO_CORRECAO_SOLICITADA'
+    MEDICAO_CORRIGIDA_PELA_UE = 'MEDICAO_CORRIGIDA_PELA_UE'
+    MEDICAO_APROVADA_PELA_DRE = 'MEDICAO_APROVADA_PELA_DRE'
+    MEDICAO_APROVADA_PELA_CODAE = 'MEDICAO_APROVADA_PELA_CODAE'
 
     states = (
         (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
-        (MEDICAO_ENCERRADA_PELA_CODAE, 'Informação encerrada pela CODAE'),
+        (MEDICAO_ENVIADA_PELA_UE, 'Enviado pela UE'),
+        (MEDICAO_CORRECAO_SOLICITADA, 'Correção solicitada'),
+        (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido pela UE'),
+        (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
+        (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE')
     )
 
     transitions = (
         ('inicia_fluxo', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE),
-        ('codae_encerra_medicao_inicial', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENCERRADA_PELA_CODAE),
+        ('ue_envia', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENVIADA_PELA_UE),
+        ('dre_pede_correcao', MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA),
+        ('ue_corrige', MEDICAO_CORRIGIDA_PELA_UE, MEDICAO_ENVIADA_PELA_UE),
+        ('dre_aprova', MEDICAO_ENVIADA_PELA_UE, MEDICAO_APROVADA_PELA_DRE),
+        ('codae_aprova', MEDICAO_APROVADA_PELA_DRE, MEDICAO_APROVADA_PELA_CODAE)
     )
 
     initial_state = MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
@@ -2893,11 +2910,13 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
                                       usuario=user)
 
-    @xworkflows.after_transition('codae_encerra_medicao_inicial')
-    def _codae_encerra_medicao_inicial_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('ue_envia')
+    def _ue_envia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENCERRADA_PELA_CODAE,
+            if user.vinculo_atual.perfil.nome == DIRETOR_UE:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
                                       usuario=user)
 
     class Meta:
@@ -2913,8 +2932,11 @@ class CronogramaWorkflow(xwf_models.Workflow):
     APROVADO = 'APROVADO'
     REPROVADO = 'REPROVADO'
     ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
-    VALIDADO_FORNECEDOR = 'VALIDADO_FORNECEDOR'
-    ENTREGA_CONFIRMADA = 'ENTREGA_CONFIRMADA'
+    ASSINADO_FORNECEDOR = 'ASSINADO_FORNECEDOR'
+    SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
+    ASSINADO_CRONOGRAMA = 'ASSINADO_CRONOGRAMA'
+    ASSINADO_DINUTRE = 'ASSINADO_DINUTRE'
+    ASSINADO_CODAE = 'ASSINADO_CODAE'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -2923,13 +2945,20 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (APROVADO, 'Aprovado'),
         (REPROVADO, 'Reprovado'),
         (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
-        (VALIDADO_FORNECEDOR, 'Validado Fornecedor'),
-        (ENTREGA_CONFIRMADA, 'Entrega Confirmada'),
+        (ASSINADO_FORNECEDOR, 'Assinado Fornecedor'),
+        (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
+        (ASSINADO_CRONOGRAMA, 'Assinado Cronograma'),
+        (ASSINADO_DINUTRE, 'Assinado Dinutre'),
+        (ASSINADO_CODAE, 'Assinado CODAE'),
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, ENVIADO_AO_FORNECEDOR),
-        ('fornecedor_confirma', ENVIADO_AO_FORNECEDOR, ENTREGA_CONFIRMADA),
+        ('fornecedor_assina', ENVIADO_AO_FORNECEDOR, ASSINADO_FORNECEDOR),
+        ('solicita_alteracao', ASSINADO_FORNECEDOR, SOLICITADO_ALTERACAO),
+        ('cronograma_assina', ASSINADO_FORNECEDOR, ASSINADO_CRONOGRAMA),
+        ('dinutre_assina', ASSINADO_CRONOGRAMA, ASSINADO_DINUTRE),
+        ('codae_assina', ASSINADO_DINUTRE, ASSINADO_CODAE),
     )
 
     initial_state = RASCUNHO
@@ -2946,9 +2975,76 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ENVIADO_AO_FORNECEDOR,
                                       usuario=user)
 
-    @xworkflows.after_transition('fornecedor_confirma')
-    def _fornecedor_confirma_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('fornecedor_assina')
+    def _fornecedor_assina_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CONFIRMADO_PELO_FORNECEDOR,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_FORNECEDOR,
                                       usuario=user)
+
+    @xworkflows.after_transition('solicita_alteracao')
+    def _solicita_alteracao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('cronograma_assina')
+    def _cronograma_assina_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA,
+                                      usuario=user)
+
+    @xworkflows.after_transition('dinutre_assina')
+    def _dinutre_assina_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_DINUTRE,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_assina')
+    def _codae_assina_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_CODAE,
+                                      usuario=user)
+
+    class Meta:
+        abstract = True
+
+
+class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    EM_ANALISE = 'EM_ANALISE'
+    ACEITA = 'ACEITA'
+    NEGADA = 'NEGADA'
+
+    states = (
+        (EM_ANALISE, 'Em análise'),
+        (ACEITA, 'Aceita'),
+        (NEGADA, 'Negada'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
+    )
+
+    initial_state = EM_ANALISE
+
+
+class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = CronogramaAlteracaoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    class Meta:
+        abstract = True

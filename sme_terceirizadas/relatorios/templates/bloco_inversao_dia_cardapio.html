@@ -3,26 +3,28 @@
   <tr>
     <td colspan="6" style="border-bottom: none">
       <div class="row mt-2 mb-2 mx-2">
-        <div class="col-4">Substituição De:</div>
-        <div class="col-4">Substituição Para:</div>
-        <div class="col-4">Data {{solicitacao.label_data}}:</div>
+        <div class="col-3">ID da Solicitação:</div>
+        <div class="col-3">Substituição De:</div>
+        <div class="col-3">Substituição Para:</div>
+        <div class="col-3">Data {{solicitacao.label_data}}:</div>
       </div>
       <div class="row my-2 mx-2">
-        <div class="col-4"><b>
+        <div class="col-3"><b># {{solicitacao.id_externo}}</b></div>
+        <div class="col-3"><b>
           {% if solicitacao.data_de_inversao %}
             {{solicitacao.data_de_inversao|date:"d/m/Y"}}
           {% else %}
             {{solicitacao.data_de|date:"d/m/Y"}}
           {% endif %}
         </b></div>
-        <div class="col-4"><b>
+        <div class="col-3"><b>
           {% if solicitacao.data_para_inversao %}
             {{solicitacao.data_para_inversao|date:"d/m/Y"}}
           {% else %}
             {{solicitacao.data_para|date:"d/m/Y"}}
           {% endif %}
         </b></div>
-        <div class="col-4"><b>{{solicitacao.data_log}}</b></div>
+        <div class="col-3"><b>{{solicitacao.data_log}}</b></div>
       </div>
     </td>
   </tr>
@@ -30,12 +32,12 @@
     <tr>
       <td colspan="6" style="border-top: none; border-bottom: none">
         <div class="row mt-2 mb-2 mx-2">
-          <div class="col-4">Substituição De:</div>
-          <div class="col-4">Substituição Para:</div>
+          <div class="col-3">Substituição De:</div>
+          <div class="col-3">Substituição Para:</div>
         </div>
         <div class="row my-2 mx-2">
-          <div class="col-4"><b>{{solicitacao.data_de_inversao_2|date:"d/m/Y"}}</b></div>
-          <div class="col-4"><b>{{solicitacao.data_para_inversao_2|date:"d/m/Y"}}</b></div>
+          <div class="col-3"><b>{{solicitacao.data_de_inversao_2|date:"d/m/Y"}}</b></div>
+          <div class="col-3"><b>{{solicitacao.data_para_inversao_2|date:"d/m/Y"}}</b></div>
         </div>
       </td>
     </tr>
@@ -43,14 +45,14 @@
   <tr>
     <td colspan="6" style="border-top: none;">
       <div class="row mt-2 mb-2 mx-2">
-        <div class="col-4">Tipos de alimentação:</div>
-        <div class="col-4">Motivo:</div>
-        <div class="col-4"></div>
+        <div class="col-6">Tipos de alimentação:</div>
+        <div class="col-3">Motivo:</div>
+        <div class="col-3"></div>
       </div>
       <div class="row my-2 mx-2">
-        <div class="col-4"><b>{{solicitacao.tipos_alimentacao}}</b></div>
-        <div class="col-4"><b>{{solicitacao.motivo|safe}}</b></div>
-        <div class="col-4"></div>
+        <div class="col-6"><b>{{solicitacao.tipos_alimentacao}}</b></div>
+        <div class="col-3"><b>{{solicitacao.motivo|safe}}</b></div>
+        <div class="col-3"></div>
       </div>
     </td>
   </tr>
