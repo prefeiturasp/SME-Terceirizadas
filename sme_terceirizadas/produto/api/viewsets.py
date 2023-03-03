@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime
 from itertools import chain
 
@@ -1080,8 +1081,23 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         filter_status = request.query_params.getlist('status')
         if filter_status:
             if filter_status == ['CODAE_SUSPENDEU']:
-                queryset = queryset.filter(homologacao__status__in=['CODAE_SUSPENDEU', 'CODAE_HOMOLOGADO'],
-                                           vinculos__suspenso=True).distinct()
+                suspensos = queryset.filter(homologacao__status='CODAE_SUSPENDEU').distinct()
+                parcialmente_suspensos_status_homologado = queryset.filter(
+                    homologacao__status='CODAE_HOMOLOGADO',
+                    vinculos__suspenso=True
+                ).distinct()
+                queryset = parcialmente_suspensos_status_homologado | suspensos
+            elif Counter(filter_status) == Counter(['CODAE_SUSPENDEU', 'CODAE_HOMOLOGADO']):
+                homologados = [q for q in queryset.filter(homologacao__status='CODAE_HOMOLOGADO').distinct()]
+                suspensos = [q for q in queryset.filter(homologacao__status='CODAE_SUSPENDEU').distinct()]
+                parcialmente_suspensos_status_homologado = [
+                    q for q in queryset.filter(
+                        homologacao__status='CODAE_HOMOLOGADO',
+                        vinculos__suspenso=True
+                    ).distinct()
+                ]
+                queryset = homologados + suspensos + parcialmente_suspensos_status_homologado
+                queryset = sorted(queryset, key=lambda prod: prod.criado_em)
             else:
                 queryset = queryset.filter(homologacao__status__in=filter_status)
         page = self.paginate_queryset(queryset)
@@ -2061,7 +2077,6 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
 
 
 class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
     lookup_field = 'uuid'
     serializer_class = ReclamacaoDeProdutoSerializer
     queryset = ReclamacaoDeProduto.objects.all()

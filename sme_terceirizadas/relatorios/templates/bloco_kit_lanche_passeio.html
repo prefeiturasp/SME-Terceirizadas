@@ -3,24 +3,26 @@
   <tr>
     <td colspan="6">
       <div class="row mt-2 mb-2 mx-2">
-        <div class="col-4">Local do Passeio:</div>
-        <div class="col-4">Opção Desejada:</div>
-        <div class="col-4">Data {{solicitacao.label_data}}:</div>
+        <div class="col-3">ID da Solicitação:</div>
+        <div class="col-3">Local do Passeio:</div>
+        <div class="col-3">Opção Desejada:</div>
+        <div class="col-3">Data {{solicitacao.label_data}}:</div>
       </div>
       <div class="row my-2 mx-2">
-        <div class="col-4"><b>{{solicitacao.local_passeio}}</b></div>
-        <div class="col-4"><b>{{solicitacao.kits}}</b></div>
-        <div class="col-4"><b>{{solicitacao.data_log}}</b></div>
+        <div class="col-3"><b># {{solicitacao.id_externo}}</b></div>
+        <div class="col-3"><b>{{solicitacao.local_passeio}}</b></div>
+        <div class="col-3"><b>{{solicitacao.kits}}</b></div>
+        <div class="col-3"><b>{{solicitacao.data_log}}</b></div>
       </div>
       <div class="row mt-4 mb-2 mx-2">
-        <div class="col-4">Tempo Previsto de Passeio:</div>
-        <div class="col-4">No Total de Kits:</div>
-        <div class="col-4"></div>
+        <div class="col-3">Tempo Previsto de Passeio:</div>
+        <div class="col-3">No Total de Kits:</div>
+        <div class="col-3"></div>
       </div>
       <div class="row my-2 mx-2">
-        <div class="col-4"><b>{{solicitacao.tempo_passeio}}</b></div>
-        <div class="col-4"><b>{{solicitacao.total_kits}}</b></div>
-        <div class="col-4"></div>
+        <div class="col-3"><b>{{solicitacao.tempo_passeio}}</b></div>
+        <div class="col-3"><b>{{solicitacao.total_kits}}</b></div>
+        <div class="col-3"></div>
       </div>
     </td>
   </tr>

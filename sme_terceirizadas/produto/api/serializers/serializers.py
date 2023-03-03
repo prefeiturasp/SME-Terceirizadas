@@ -572,14 +572,15 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
     fabricante = FabricanteSerializer()
     id_externo = serializers.CharField()
     ultima_homologacao = HomologacaoListagemSerializer()
-    vinculos_produto_edital = serializers.SerializerMethodField()
+    vinculos_produto_edital_ativos = serializers.SerializerMethodField()
+    vinculos_produto_edital_suspensos = serializers.SerializerMethodField()
 
-    def get_vinculos_produto_edital(self, obj):
-        editais = obj.vinculos.all()
-        if self.context.get('status') and self.context['status'] == ['CODAE_SUSPENDEU']:
-            editais = editais.filter(suspenso=True)
-        else:
-            editais = editais.filter(suspenso=False)
+    def get_vinculos_produto_edital_ativos(self, obj):
+        editais = obj.vinculos.filter(suspenso=False)
+        return ', '.join(editais.values_list('edital__numero', flat=True))
+
+    def get_vinculos_produto_edital_suspensos(self, obj):
+        editais = obj.vinculos.filter(suspenso=True)
         return ', '.join(editais.values_list('edital__numero', flat=True))
 
     class Meta:

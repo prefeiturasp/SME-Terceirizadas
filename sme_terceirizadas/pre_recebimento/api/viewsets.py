@@ -11,6 +11,7 @@ from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaAssinarCronogramaUsuarioDilog,
     PermissaoParaAssinarCronogramaUsuarioDinutre,
     PermissaoParaAssinarCronogramaUsuarioFornecedor,
     PermissaoParaCadastrarLaboratorio,
@@ -214,6 +215,29 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         try:
             cronograma = Cronograma.objects.get(uuid=uuid)
             cronograma.dinutre_assina(user=usuario)
+            serializer = CronogramaSerializer(cronograma)
+            return Response(serializer.data)
+
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Cronograma informado não é valido: {e}'), status=HTTP_406_NOT_ACCEPTABLE)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
+    @action(detail=True, permission_classes=(PermissaoParaAssinarCronogramaUsuarioDilog,),
+            methods=['patch'], url_path='codae-assina')
+    def codae_assina(self, request, uuid):
+        usuario = request.user
+
+        if not usuario.verificar_autenticidade(request.data.get('password')):
+            return Response(
+                dict(detail=f'Assinatura do cronograma não foi validada. Verifique sua senha.'),
+                status=HTTP_401_UNAUTHORIZED
+            )
+
+        try:
+            cronograma = Cronograma.objects.get(uuid=uuid)
+            cronograma.codae_assina(user=usuario)
             serializer = CronogramaSerializer(cronograma)
             return Response(serializer.data)
 

@@ -2731,15 +2731,15 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     def _envia_email_aceite_reclamacao(self, log_aceite):
         html = render_to_string(
-            template_name='produto_codae_aceitou_reclamacao.html',
+            template_name='produto_codae_suspende.html',
             context={
-                'titulo': 'Produto suspenso por reclamação',
-                'reclamacao': self,
-                'log_aceite': log_aceite
+                'titulo': 'Suspensão de Produto',
+                'produto': self.homologacao_produto.produto,
+                'log_transicao': log_aceite
             }
         )
         envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Produto suspenso por reclamação',
+            assunto='[SIGPAE] Suspensão de Produto',
             emails=self._partes_interessadas_suspensao_por_reclamacao(),
             corpo='',
             html=html
@@ -2945,6 +2945,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
     ASSINADO_FORNECEDOR = 'ASSINADO_FORNECEDOR'
     SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
     ASSINADO_DINUTRE = 'ASSINADO_DINUTRE'
+    ASSINADO_CODAE = 'ASSINADO_CODAE'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -2956,6 +2957,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (ASSINADO_FORNECEDOR, 'Assinado Fornecedor'),
         (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
         (ASSINADO_DINUTRE, 'Assinado Dinutre'),
+        (ASSINADO_CODAE, 'Assinado CODAE'),
     )
 
     transitions = (
@@ -2963,6 +2965,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
         ('fornecedor_assina', ASSINADO_E_ENVIADO_AO_FORNECEDOR, ASSINADO_FORNECEDOR),
         ('solicita_alteracao', ASSINADO_FORNECEDOR, SOLICITADO_ALTERACAO),
         ('dinutre_assina', ASSINADO_FORNECEDOR, ASSINADO_DINUTRE),
+        ('codae_assina', ASSINADO_DINUTRE, ASSINADO_CODAE),
     )
 
     initial_state = RASCUNHO
@@ -3005,6 +3008,13 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_DINUTRE,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_assina')
+    def _codae_assina_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_CODAE,
                                       usuario=user)
 
     class Meta:

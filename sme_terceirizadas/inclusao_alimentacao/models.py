@@ -196,7 +196,8 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
             'data_inclusao': self.data,
             'quantidades_periodo': self.quantidades_periodo_simples_dict,
             'label_data': label_data,
-            'data_log': data_log
+            'data_log': data_log,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -376,7 +377,8 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
             'quantidades_periodo': self.quantidades_periodo_simples_dict,
             'label_data': label_data,
             'data_log': data_log,
-            'datas': self.datas
+            'datas': self.datas,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -483,38 +485,45 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
 
     @property
     def quantidade_alunos_por_faixas_etarias_simples_dict(self):
-        quantidade_alunos_por_faixas_etarias = []
-        periodos = self.quantidade_alunos_por_faixas_etarias.values_list('periodo__nome', flat=True).distinct()
         escola = self.rastro_escola
-        vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-            periodo_escolar__in=escola.periodos_escolares,
-            ativo=True
-        ).order_by('periodo_escolar__posicao')
-        vinculos = vinculos.filter(tipo_unidade_escolar=escola.tipo_unidade)
-        tipos_alimentacao = [ta for ta in vinculos.values_list('tipos_alimentacao__nome', flat=True) if ta]
-        tipos_alimentacao = ', '.join(tipos_alimentacao)
-        for periodo in periodos:
-            quantidades_por_faixa = self.quantidade_alunos_por_faixas_etarias.filter(periodo__nome=periodo)
-            faixas_quantidades = []
-            total_alunos = 0
-            total_matriculados = 0
-            for quantidade in quantidades_por_faixa:
-                faixas_quantidades.append({
-                    'faixa_etaria': quantidade.faixa_etaria.__str__(),
-                    'quantidade_alunos': quantidade.quantidade_alunos,
-                    'quantidade_matriculados': quantidade.matriculados_quando_criado,
-                })
-            for fq in faixas_quantidades:
-                total_alunos += fq['quantidade_alunos'] or 0
-                total_matriculados += fq['quantidade_matriculados'] or 0
-            quantidade_alunos_por_faixas_etarias.append({
-                'tipos_alimentacao': tipos_alimentacao,
-                'periodo': periodo,
-                'faixas_quantidades': faixas_quantidades,
-                'total_matriculados': total_matriculados,
-                'total_alunos': total_alunos
-            })
-        return quantidade_alunos_por_faixas_etarias
+        qa = self.quantidade_alunos_por_faixas_etarias
+        vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+        inclusoes = []
+        for periodo_externo in self.periodos_da_solicitacao(nivel_interno=False, nome_coluna='periodo_externo'):
+            inclusao = {'periodo_externo_nome': periodo_externo}
+            vinculo = vinculos_class.objects.filter(periodo_escolar__nome=periodo_externo, ativo=True,
+                                                    tipo_unidade_escolar=escola.tipo_unidade).first()
+            if vinculo:
+                inclusao['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.values_list('nome', flat=True))
+            else:
+                inclusao['tipos_alimentacao'] = ''
+            if periodo_externo == 'INTEGRAL':
+                inclusao['periodos_internos'] = []
+                for periodo_interno in self.periodos_da_solicitacao(nivel_interno=True, nome_coluna='periodo'):
+                    p_faixas = qa.filter(periodo__nome=periodo_interno, periodo_externo__nome=periodo_externo)
+                    total_inclusao = sum(p_faixas.exclude(quantidade_alunos=None).values_list(
+                        'quantidade_alunos', flat=True))
+                    total_matriculados = sum(p_faixas.exclude(matriculados_quando_criado=None).values_list(
+                        'matriculados_quando_criado', flat=True))
+                    p_faixas = [{'nome_faixa': x.faixa_etaria.__str__(),
+                                 'quantidade_alunos': x.quantidade_alunos,
+                                 'matriculados_quando_criado': x.matriculados_quando_criado} for x in p_faixas]
+                    inclusao['periodos_internos'].append({'periodo_interno_nome': periodo_interno,
+                                                          'quantidades_faixas': p_faixas,
+                                                          'total_inclusao': total_inclusao,
+                                                          'total_matriculados': total_matriculados})
+            else:
+                p_faixas = qa.filter(periodo__nome=periodo_externo, periodo_externo__nome=periodo_externo)
+                total_inclusao = sum(p_faixas.values_list('quantidade_alunos', flat=True))
+                total_matriculados = sum(p_faixas.values_list('matriculados_quando_criado', flat=True))
+                p_faixas = [{'nome_faixa': x.faixa_etaria.__str__(),
+                             'quantidade_alunos': x.quantidade_alunos,
+                             'matriculados_quando_criado': x.matriculados_quando_criado} for x in p_faixas]
+                inclusao['quantidades_faixas'] = p_faixas
+                inclusao['total_inclusao'] = total_inclusao
+                inclusao['total_matriculados'] = total_matriculados
+            inclusoes.append(inclusao)
+        return inclusoes
 
     @property
     def dias_motivos_da_inclusao_cei_simples_dict(self):
@@ -526,8 +535,9 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             })
         return dias_motivos_da_inclusao_cei
 
-    # aqui
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
+        periodos_externos = self.quantidade_alunos_por_faixas_etarias.values_list(
+            'periodo_externo__nome', flat=True).distinct()
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -540,8 +550,16 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             'dias_motivos_da_inclusao_cei': self.dias_motivos_da_inclusao_cei_simples_dict,
             'quantidade_alunos_por_faixas_etarias': self.quantidade_alunos_por_faixas_etarias_simples_dict,
             'label_data': label_data,
-            'data_log': data_log
+            'data_log': data_log,
+            'periodos_externos': periodos_externos,
+            'id_externo': self.id_externo
         }
+
+    def periodos_da_solicitacao(self, nivel_interno, nome_coluna):
+        qa = self.quantidade_alunos_da_inclusao
+        if nivel_interno:
+            qa = qa.filter(periodo_externo__nome='INTEGRAL')
+        return qa.order_by(f'{nome_coluna}__posicao').values_list(f'{nome_coluna}__nome', flat=True).distinct()
 
     def __str__(self):
         return f'Inclusao da CEI cód: {self.id_externo}'
@@ -712,7 +730,8 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
             'quantidades_alunos': self.quantidades_alunos_simples_dict,
             'label_data': label_data,
             'data_log': data_log,
-            'datas': self.datas
+            'datas': self.datas,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
