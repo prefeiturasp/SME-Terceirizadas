@@ -8,7 +8,8 @@ from sme_terceirizadas.pre_recebimento.models import (
     EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
-    ProgramacaoDoRecebimentoDoCronograma
+    ProgramacaoDoRecebimentoDoCronograma,
+    SolicitacaoAlteracaoCronograma
 )
 from sme_terceirizadas.produto.api.serializers.serializers import NomeDeProdutoEditalSerializer, UnidadeMedidaSerialzer
 from sme_terceirizadas.terceirizada.api.serializers.serializers import (
@@ -34,6 +35,17 @@ class EtapasDoCronogramaSerializer(serializers.ModelSerializer):
         model = EtapasDoCronograma
         fields = ('uuid', 'numero_empenho', 'etapa', 'parte', 'data_programada', 'quantidade',
                   'total_embalagens')
+
+
+class SolicitacaoAlteracaoCronogramaSerializer(serializers.ModelSerializer):
+
+    fornecedor = serializers.CharField(source='cronograma.empresa')
+    cronograma = serializers.CharField(source='cronograma.numero')
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = SolicitacaoAlteracaoCronograma
+        fields = ('uuid', 'numero_solicitacao', 'fornecedor', 'status' , 'criado_em', 'cronograma')
 
 
 class CronogramaSerializer(serializers.ModelSerializer):

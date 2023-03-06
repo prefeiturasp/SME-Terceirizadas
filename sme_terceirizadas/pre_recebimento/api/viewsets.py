@@ -21,7 +21,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarCronograma,
     ViewSetActionPermissionMixin
 )
-from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter
+from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter, SolicitacaoAlteracaoCronogramaFilter
 from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPagination
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
@@ -34,7 +34,8 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSerializer,
     EmbalagemQldSerializer,
     LaboratorioSerializer,
-    PainelCronogramaSerializer
+    PainelCronogramaSerializer,
+    SolicitacaoAlteracaoCronogramaSerializer
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
@@ -315,5 +316,12 @@ class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
 
 class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = SolicitacaoAlteracaoCronograma.objects.all()
-    serializer_class = SolicitacaoDeAlteracaoCronogramaCreateSerializer
+    queryset = SolicitacaoAlteracaoCronograma.objects.all().order_by("-criado_em")
+    filter_backends = (filters.DjangoFilterBackend, )
+    pagination_class = CronogramaPagination
+    filterset_class = SolicitacaoAlteracaoCronogramaFilter
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return SolicitacaoAlteracaoCronogramaSerializer
+        return SolicitacaoDeAlteracaoCronogramaCreateSerializer
