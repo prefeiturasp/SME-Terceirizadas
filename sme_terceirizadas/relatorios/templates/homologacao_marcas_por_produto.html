@@ -11,13 +11,26 @@
     <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
     <h1 class='custom-title'>SIGPAE - RELATÓRIO DE PRODUTOS HOMOLOGADOS</h1>
   </section>
-  <table class="tabela-cabecalho tabela-arredondada">
+  <table class="tabela-cabecalho top-cabecalho">
       <tr class="custom-filtros">
         <td>Relatório de Produtos Homologados por Nome e  Marca</td>
-        <td class="text-center">Total de itens: <b>{{ filtros.quantidade_homologados }}</b></td>
+        <td class="text-center">Total de itens: <b>{{ dados.quantidade_homologados }}</b></td>
         <td class="text-right">Data: <b>{{ hoje }}</b></td>
       </tr>
   </table>
+  </br>
+
+  <table class="tabela-cabecalho tabela-arredondada mt-2">
+  <tr class="custom-filtros">
+    <th colspan="2">Filtros utilizados na busca:</th>
+  </tr>
+    <tr class="custom-filtros">
+    {% for filtro, valor in filtros.items %}
+      <td>{{ filtro }}: <b>{{ valor }}</b></td>
+  {% endfor %}
+  </tr>
+</table>
+
 </header>
 <body>
   <div class="tabela-filtro">
