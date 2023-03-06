@@ -4,6 +4,7 @@ import environ
 from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
 from sme_terceirizadas.escola.api.serializers import TipoUnidadeEscolarSerializer
 from sme_terceirizadas.medicao_inicial.models import (
     CategoriaMedicao,
@@ -69,14 +70,18 @@ class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
     tipo_unidade = serializers.CharField(source='escola.tipo_unidade')
     log_mais_recente = serializers.SerializerMethodField()
+    mes_ano = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         return datetime.datetime.strftime(
             obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M') if obj.log_mais_recente else None
 
+    def get_mes_ano(self, obj):
+        return f'{converte_numero_em_mes(int(obj.mes))} {obj.ano}'
+
     class Meta:
         model = SolicitacaoMedicaoInicial
-        fields = ('uuid', 'escola', 'tipo_unidade', 'status', 'log_mais_recente')
+        fields = ('uuid', 'escola', 'mes_ano', 'tipo_unidade', 'status', 'log_mais_recente')
 
 
 class ValorMedicaoSerializer(serializers.ModelSerializer):
