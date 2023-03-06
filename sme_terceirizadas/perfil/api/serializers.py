@@ -447,6 +447,9 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
             )
             logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
 
+            if not eh_servidor:
+                usuario.envia_email_primeiro_acesso_usuario_empresa()
+
             return usuario
 
         except IntegrityError as e:

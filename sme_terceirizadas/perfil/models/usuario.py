@@ -46,6 +46,8 @@ from ..models import Perfil, Vinculo
 log = logging.getLogger('sigpae.usuario')
 
 env = environ.Env()
+base_url = f'{env("REACT_APP_URL")}'
+senha_provisoria = f'{env("SENHA_PROVISORIA")}'
 
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
@@ -366,6 +368,22 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         # TODO Após implantação do coresso substituir este método.
         usuario = authenticate(username=self.email, password=password)
         return usuario is not None
+
+    def envia_email_primeiro_acesso_usuario_empresa(self):
+        titulo = 'Credenciais de Primeiro Acesso'
+        template = 'email_primeiro_acesso_usuario_empresa.html'
+        dados_template = {
+            'titulo': titulo, 'url': f'{base_url}/login', 'nome': self.nome,
+            'senha_provisoria': senha_provisoria + self.cpf[-4:]
+        }
+        html = render_to_string(template, dados_template)
+        self.email_user(
+            subject='[SIGPAE] Credenciais de Acesso ao SIGPAE',
+            message='',
+            template=template,
+            dados_template=dados_template,
+            html=html
+        )
 
     class Meta:
         ordering = ('-super_admin_terceirizadas',)
