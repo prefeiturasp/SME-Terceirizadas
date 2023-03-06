@@ -795,12 +795,13 @@ def relatorio_produto_homologacao(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
 
 
-def relatorio_marcas_por_produto_homologacao(produtos, filtros):
+def relatorio_marcas_por_produto_homologacao(produtos, dados, filtros):
     html_string = render_to_string(
         'homologacao_marcas_por_produto.html',
         {
             'produtos': produtos,
             'hoje': datetime.date.today(),
+            'dados': dados,
             'filtros': filtros
         }
     )
@@ -900,11 +901,12 @@ def relatorio_produto_analise_sensorial(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_relatorio_{produto.id_externo}.pdf')
 
 
-def relatorio_produtos_agrupado_terceirizada(tipo_usuario, dados_agrupados, filtros):
+def relatorio_produtos_agrupado_terceirizada(tipo_usuario, dados_agrupados, dados, filtros):
     html_string = render_to_string(
         'relatorio_produtos_por_terceirizada.html',
         {
             'dados_agrupados': dados_agrupados,
+            'dados': dados,
             'filtros': filtros,
             'qtde_filtros': conta_filtros(filtros),
             'exibe_coluna_terceirizada': tipo_usuario not in ['escola', 'terceirizada']
