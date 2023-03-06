@@ -45,7 +45,7 @@ class SolicitacaoAlteracaoCronogramaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
-        fields = ('uuid', 'numero_solicitacao', 'fornecedor', 'status' , 'criado_em', 'cronograma')
+        fields = ('uuid', 'numero_solicitacao', 'fornecedor', 'status', 'criado_em', 'cronograma')
 
 
 class CronogramaSerializer(serializers.ModelSerializer):

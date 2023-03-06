@@ -316,7 +316,7 @@ class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
 
 class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = SolicitacaoAlteracaoCronograma.objects.all().order_by("-criado_em")
+    queryset = SolicitacaoAlteracaoCronograma.objects.all().order_by('-criado_em')
     filter_backends = (filters.DjangoFilterBackend, )
     pagination_class = CronogramaPagination
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
