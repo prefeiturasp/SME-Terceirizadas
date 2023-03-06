@@ -395,7 +395,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     def exportar_pdf(self, request):
         agrupado_nome_marca = request.data.get('agrupado_por_nome_e_marca')
         user = request.user.get_username()
-        gera_pdf_relatorio_produtos_homologados_async.delay(
+
+        gera_pdf_relatorio_produtos_homologados_async(
             user=user,
             nome_arquivo=f'relatorio_produtos_homologados{"_nome_marca" if agrupado_nome_marca else ""}.pdf',
             data=request.query_params,
@@ -569,6 +570,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                         or request_data.get('nome_produto') or request_data.get('nome_fabricante')
                         or request_data.get('nome_marca') or request_data.get('tipo'))
         titulo = request_data.get('titulo_produto', None)
+
         query_set = self.get_queryset()
         raw_sql, data = self.build_raw_sql_produtos_por_status(
             filtro_aplicado, edital, perfil_nome, filtros, tipo_usuario, escola_id)
