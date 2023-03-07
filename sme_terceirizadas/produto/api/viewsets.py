@@ -285,6 +285,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 data = {'logs': LogSolicitacoesUsuario._meta.db_table,
                         'homologacao_produto': HomologacaoProduto._meta.db_table,
                         'reclamacoes_produto': ReclamacaoDeProduto._meta.db_table,
+                        'escola': Escola._meta.db_table,
+                        'lote': Lote._meta.db_table,
                         'status': workflow}
                 raw_sql = ('SELECT %(homologacao_produto)s.* FROM %(homologacao_produto)s '
                            'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
@@ -294,10 +296,16 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                            'LEFT JOIN (SELECT DISTINCT ON (homologacao_produto_id) homologacao_produto_id, escola_id '
                            'AS escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
                            'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id '
+                           'LEFT JOIN (SELECT id AS escola_id_escola, lote_id FROM %(escola)s) '
+                           'AS escola_reclamacao '
+                           'ON escola_reclamacao.escola_id_escola = escola_reclamacao_id '
+                           'LEFT JOIN (SELECT id AS lote_id_lote, terceirizada_id FROM %(lote)s) '
+                           'AS escola_lote '
+                           'ON escola_lote.lote_id_lote = lote_id '
                            "WHERE %(homologacao_produto)s.status = '%(status)s' ")
                 if (workflow == 'CODAE_PEDIU_ANALISE_RECLAMACAO' and
                         self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
-                    raw_sql += (f'AND %(homologacao_produto)s.rastro_terceirizada_id = '
+                    raw_sql += (f'AND terceirizada_id = '
                                 f'{self.request.user.vinculo_atual.instituicao.id} ')
                 self.reclamacoes_por_usuario(workflow, raw_sql, data, None)
                 raw_sql += 'ORDER BY log_criado_em DESC'
