@@ -295,6 +295,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                            'AS escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
                            'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id '
                            "WHERE %(homologacao_produto)s.status = '%(status)s' ")
+                if (workflow == 'CODAE_PEDIU_ANALISE_RECLAMACAO' and
+                        self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
+                    raw_sql += (f'AND %(homologacao_produto)s.rastro_terceirizada_id = '
+                                f'{self.request.user.vinculo_atual.instituicao.id} ')
                 self.reclamacoes_por_usuario(workflow, raw_sql, data, None)
                 raw_sql += 'ORDER BY log_criado_em DESC'
                 qs = query_set.raw(raw_sql % data)
