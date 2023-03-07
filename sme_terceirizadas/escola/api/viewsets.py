@@ -726,4 +726,4 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
             'tipos_unidade_escolar': TipoUnidadeParaFiltroSerializer(tipos_unidade_escolar, many=True).data,
             'escolas': EscolaParaFiltroSerializer(escolas, many=True).data,
         }
-        return Response({'data': filtros}, status=status.HTTP_200_OK)
+        return Response(filtros, status=status.HTTP_200_OK)
