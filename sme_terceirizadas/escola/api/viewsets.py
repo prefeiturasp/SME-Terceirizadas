@@ -36,10 +36,14 @@ from ...escola.api.serializers import (
     AlunoSerializer,
     AlunoSimplesSerializer,
     CODAESerializer,
+    DiretoriaRegionalParaFiltroSerializer,
+    EscolaParaFiltroSerializer,
     EscolaPeriodoEscolarSerializer,
     LoteNomeSerializer,
+    LoteParaFiltroSerializer,
     LoteSerializer,
     LoteSimplesSerializer,
+    TipoUnidadeParaFiltroSerializer,
     UsuarioDetalheSerializer
 )
 from ...escola.api.serializers_create import (
@@ -703,3 +707,23 @@ def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):
     workbook.save(response)
 
     return response
+
+
+class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
+
+    @action(detail=False, methods=['GET'], url_path='filtros')
+    def filtros(self, request):
+        terceirizada = request.user.vinculo_atual.instituicao
+        lotes = terceirizada.lotes.all()
+        diretorias_regionais_uuids = lotes.values_list('diretoria_regional__uuid', flat=True).distinct()
+        diretorias_regionais = DiretoriaRegional.objects.filter(uuid__in=diretorias_regionais_uuids)
+        escolas = Escola.objects.filter(diretoria_regional__uuid__in=diretorias_regionais_uuids)
+        tipos_unidade_uuids = escolas.values_list('tipo_unidade__uuid', flat=True)
+        tipos_unidade_escolar = TipoUnidadeEscolar.objects.filter(uuid__in=tipos_unidade_uuids)
+        filtros = {
+            'lotes': LoteParaFiltroSerializer(lotes, many=True).data,
+            'diretorias_regionais': DiretoriaRegionalParaFiltroSerializer(diretorias_regionais, many=True).data,
+            'tipos_unidade_escolar': TipoUnidadeParaFiltroSerializer(tipos_unidade_escolar, many=True).data,
+            'escolas': EscolaParaFiltroSerializer(escolas, many=True).data,
+        }
+        return Response({'data': filtros}, status=status.HTTP_200_OK)
