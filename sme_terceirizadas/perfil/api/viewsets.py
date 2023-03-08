@@ -21,7 +21,11 @@ from sme_terceirizadas.perfil.models.usuario import (
 )
 
 from ...dados_comuns.constants import ADMINISTRADOR_EMPRESA, DIRETOR_UE, USUARIO_EMPRESA
-from ...dados_comuns.permissions import PermissaoParaCriarUsuarioComCoresso, UsuarioSuperCodae
+from ...dados_comuns.permissions import (
+    PermissaoParaCriarUsuarioComCoresso,
+    UsuarioPodeFinalizarVinculo,
+    UsuarioSuperCodae
+)
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.models import Codae
 from ...terceirizada.models import Terceirizada
@@ -514,7 +518,7 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
     }
     queryset = Usuario.objects.all()
 
-    @action(detail=True, permission_classes=(UsuarioSuperCodae,),
+    @action(detail=True, permission_classes=(UsuarioPodeFinalizarVinculo,),
             methods=['post'], url_path='finalizar-vinculo')
     def finaliza_vinculo(self, request, username):
         """(post) /cadastro-com-coresso/{usuario.username}/finalizar-vinculo/."""
