@@ -18,6 +18,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCadastrarVisualizarEmbalagem,
     PermissaoParaCriarCronograma,
     PermissaoParaVisualizarCronograma,
+    PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     ViewSetActionPermissionMixin
 )
 from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter, SolicitacaoAlteracaoCronogramaFilter
@@ -296,6 +297,7 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, )
     pagination_class = CronogramaPagination
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
+    permission_classes = (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,)
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
