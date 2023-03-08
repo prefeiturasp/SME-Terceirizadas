@@ -52,8 +52,8 @@ def test_url_list_cronogramas(client_autenticado_codae_dilog):
     assert 'previous' in json
 
 
-def test_url_list_solicitacoes_alteracao_cronograma(client_autenticado_codae_dilog):
-    response = client_autenticado_codae_dilog.get('/solicitacao-de-alteracao-de-cronograma/')
+def test_url_list_solicitacoes_alteracao_cronograma(client_autenticado_dilog_cronograma):
+    response = client_autenticado_dilog_cronograma.get('/solicitacao-de-alteracao-de-cronograma/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert 'count' in json
