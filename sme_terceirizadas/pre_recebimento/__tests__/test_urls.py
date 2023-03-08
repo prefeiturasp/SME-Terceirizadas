@@ -52,6 +52,15 @@ def test_url_list_cronogramas(client_autenticado_codae_dilog):
     assert 'previous' in json
 
 
+def test_url_list_solicitacoes_alteracao_cronograma(client_autenticado_codae_dilog):
+    response = client_autenticado_codae_dilog.get('/solicitacao-de-alteracao-de-cronograma/')
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert 'count' in json
+    assert 'next' in json
+    assert 'previous' in json
+
+
 def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
