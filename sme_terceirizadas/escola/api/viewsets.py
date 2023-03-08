@@ -21,7 +21,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO
 )
-from ...dados_comuns.permissions import UsuarioEscola
+from ...dados_comuns.permissions import UsuarioDiretoriaRegional, UsuarioEscola
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
@@ -295,7 +295,8 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             'results': results
         })
 
-    @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes', permission_classes=(UsuarioEscola,))
+    @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes',
+            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional])
     def inclusao_continua_por_mes(self, request):
         try:
             for param in ['mes', 'ano']:
@@ -303,11 +304,15 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
                     raise ValidationError(f'{param} é obrigatório via query_params')
             mes = request.query_params.get('mes')
             ano = request.query_params.get('ano')
+            escola = request.query_params.get('escola')
             primeiro_dia_mes = datetime.date(int(ano), int(mes), 1)
             ultimo_dia_mes = get_ultimo_dia_mes(primeiro_dia_mes)
+            instituicao = request.user.vinculo_atual.instituicao
+            if(isinstance(instituicao, DiretoriaRegional) and escola):
+                instituicao = Escola.objects.get(uuid=escola)
             periodos = dict(InclusaoAlimentacaoContinua.objects.filter(
                 status='CODAE_AUTORIZADO',
-                rastro_escola=request.user.vinculo_atual.instituicao).filter(
+                rastro_escola=instituicao).filter(
                     data_inicial__lte=ultimo_dia_mes,
                     data_final__gte=primeiro_dia_mes,
             ).values_list(

@@ -55,6 +55,7 @@ class ResponsavelSerializer(serializers.ModelSerializer):
 
 class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     escola = serializers.CharField(source='escola.nome')
+    escola_uuid = serializers.CharField(source='escola.uuid')
     tipo_contagem_alimentacoes = TipoContagemAlimentacaoSerializer()
     responsaveis = ResponsavelSerializer(many=True)
     anexos = AnexoOcorrenciaMedicaoInicialSerializer(required=False, many=True)
@@ -67,6 +68,7 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
 
 class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
     escola = serializers.CharField(source='escola.nome')
+    escola_uuid = serializers.CharField(source='escola.uuid')
     status = serializers.CharField(source='get_status_display')
     tipo_unidade = serializers.CharField(source='escola.tipo_unidade')
     log_mais_recente = serializers.SerializerMethodField()
@@ -81,7 +83,7 @@ class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoMedicaoInicial
-        fields = ('uuid', 'escola', 'mes_ano', 'tipo_unidade', 'status', 'log_mais_recente')
+        fields = ('uuid', 'escola', 'escola_uuid', 'mes_ano', 'tipo_unidade', 'status', 'log_mais_recente')
 
 
 class ValorMedicaoSerializer(serializers.ModelSerializer):
