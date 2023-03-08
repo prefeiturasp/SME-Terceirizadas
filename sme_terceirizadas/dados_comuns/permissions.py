@@ -321,7 +321,7 @@ class UsuarioSuperCodae(BasePermission):
 
 
 class UsuarioPodeFinalizarVinculo(BasePermission):
-    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+    """Permite usuário finalizar vínculos e remover outros usuários."""
 
     def has_permission(self, request, view):
         usuario = request.user
