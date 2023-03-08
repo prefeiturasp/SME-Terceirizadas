@@ -73,6 +73,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         lista_status = [
             Cronograma.workflow_class.ASSINADO_FORNECEDOR,
             Cronograma.workflow_class.ASSINADO_DINUTRE,
+            Cronograma.workflow_class.ASSINADO_CODAE,
         ]
 
         return lista_status
