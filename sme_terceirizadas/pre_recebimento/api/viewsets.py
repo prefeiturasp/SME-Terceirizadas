@@ -5,6 +5,7 @@ from django.db.models import QuerySet
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_406_NOT_ACCEPTABLE
 from xworkflows.base import InvalidTransitionError
@@ -17,6 +18,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCadastrarLaboratorio,
     PermissaoParaCadastrarVisualizarEmbalagem,
     PermissaoParaCriarCronograma,
+    PermissaoParaCriarSolicitacoesAlteracaoCronograma,
     PermissaoParaVisualizarCronograma,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     ViewSetActionPermissionMixin
@@ -297,10 +299,18 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     queryset = SolicitacaoAlteracaoCronograma.objects.all().order_by('-criado_em')
     filter_backends = (filters.DjangoFilterBackend, )
     pagination_class = CronogramaPagination
+    permission_classes = (IsAuthenticated,)
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
-    permission_classes = (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,)
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
             return SolicitacaoAlteracaoCronogramaSerializer
         return SolicitacaoDeAlteracaoCronogramaCreateSerializer
+
+    def get_permissions(self):
+        if self.action in ['list']:
+            self.permission_classes = (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,)
+        elif self.action in ['create']:
+            self.permission_classes = (PermissaoParaCriarSolicitacoesAlteracaoCronograma,)
+
+        return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
