@@ -2966,9 +2966,9 @@ class CronogramaWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo', RASCUNHO, ASSINADO_E_ENVIADO_AO_FORNECEDOR),
         ('fornecedor_assina', ASSINADO_E_ENVIADO_AO_FORNECEDOR, ASSINADO_FORNECEDOR),
-        ('solicita_alteracao', ASSINADO_FORNECEDOR, SOLICITADO_ALTERACAO),
         ('dinutre_assina', ASSINADO_FORNECEDOR, ASSINADO_DINUTRE),
         ('codae_assina', ASSINADO_DINUTRE, ASSINADO_CODAE),
+        ('solicita_alteracao', ASSINADO_CODAE, SOLICITADO_ALTERACAO),
     )
 
     initial_state = RASCUNHO
