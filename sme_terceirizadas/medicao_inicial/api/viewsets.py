@@ -1,4 +1,6 @@
+from calendar import monthrange
 from django.db.models import QuerySet
+from django.template.loader import render_to_string
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -35,6 +37,7 @@ from .serializers_create import (
     MedicaoCreateUpdateSerializer,
     SolicitacaoMedicaoInicialCreateSerializer
 )
+from ...relatorios.utils import html_to_pdf_file
 
 
 class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
@@ -218,6 +221,71 @@ class SolicitacaoMedicaoInicialViewSet(
                 meses_anos_unicos.append(mes_ano_obj)
         return Response({'results': sorted(meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True)},
                         status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['GET'], url_path='relatorio-pdf')
+    def relatorio_pdf(self, request, uuid):
+        solicitacao = self.get_object()
+        tabelas = [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_categorias': []}]
+        MAX_COLUNAS = 15
+        CATEGORIA = 0
+        CAMPO = 1
+        indice_atual = 0
+        ORDEM_CAMPOS = {
+            'matriculados': -1,
+            'aprovadas': 0,
+            'frequencia': 1,
+            'solicitado': 2,
+            'desjejum': 3,
+            'lanche': 4,
+            'refeicao': 5,
+            'repeticao_refeicao': 6,
+            'lanche_emergencial': 7,
+            'total_refeicoes_pagamento': 8,
+            'sobremesa': 9,
+            'repeticao_sobremesa': 10,
+            'total_sobremesas_pagamento': 11
+        }
+
+        for medicao in solicitacao.medicoes.all():
+            lista_categorias_campos = sorted(list(
+                medicao.valores_medicao.values_list('categoria_medicao__nome', 'nome_campo').distinct()))
+            dict_categorias_campos = {}
+            for categoria_campo in lista_categorias_campos:
+                if categoria_campo[CATEGORIA] not in dict_categorias_campos.keys():
+                    if 'DIETA' in categoria_campo[CATEGORIA]:
+                        dict_categorias_campos[categoria_campo[CATEGORIA]] = ['aprovadas']
+                    else:
+                        dict_categorias_campos[categoria_campo[CATEGORIA]] = [
+                            'matriculados', 'total_refeicoes_pagamento', 'total_sobremesas_pagamento']
+                    dict_categorias_campos[categoria_campo[CATEGORIA]] += [categoria_campo[CAMPO]]
+                else:
+                    dict_categorias_campos[categoria_campo[CATEGORIA]] += [categoria_campo[CAMPO]]
+            for categoria in dict_categorias_campos.keys():
+                if len(tabelas[indice_atual]['nomes_campos']) + len(dict_categorias_campos[categoria]) <= MAX_COLUNAS:
+                    if medicao.periodo_escolar.nome not in tabelas[indice_atual]['periodos']:
+                        tabelas[indice_atual]['periodos'] += [medicao.periodo_escolar.nome]
+                    tabelas[indice_atual]['categorias'] += [categoria]
+                    tabelas[indice_atual]['nomes_campos'] += sorted(
+                        dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k])
+                    tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
+                else:
+                    indice_atual += 1
+                    tabelas += [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_categorias': []}]
+                    tabelas[indice_atual]['periodos'] += [medicao.periodo_escolar.nome]
+                    tabelas[indice_atual]['categorias'] += [categoria]
+                    tabelas[indice_atual]['nomes_campos'] += dict_categorias_campos[categoria]
+                    tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
+        print(tabelas)
+
+        html_string = render_to_string(
+            f'relatorio_solicitacao_medicao_por_escola.html',
+            {
+                'solicitacao': solicitacao,
+                'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
+                'tabelas': tabelas
+            }
+        )
+        return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf')
 
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):

@@ -1210,15 +1210,3 @@ class LogQuantidadeDietasAutorizadasViewSet(mixins.ListModelMixin, GenericViewSe
     filter_backends = (DjangoFilterBackend,)
     filterset_class = LogQuantidadeDietasEspeciaisFilter
     pagination_class = None
-
-    def get_queryset(self):
-        queryset = LogQuantidadeDietasAutorizadas.objects.all()
-
-        escola_uuid = self.request.query_params.get('escola_uuid', '')
-        mes = self.request.query_params.get('mes', '')
-        ano = self.request.query_params.get('ano', '')
-        queryset = queryset.filter(escola__uuid=escola_uuid,
-                                   data__month=mes,
-                                   data__year=ano)
-
-        return queryset

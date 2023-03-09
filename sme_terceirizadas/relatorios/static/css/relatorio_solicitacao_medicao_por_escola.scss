@@ -1,0 +1,45 @@
+@import "variaveis";
+
+@page {
+  size: A4 landscape;
+  margin: 0;
+  font-family: 'Roboto';
+}
+
+@media print {
+  body, page {
+    margin: 0;
+  }
+}
+
+.custom-title {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 14px;
+  text-align: right;
+  color: #000000;
+}
+
+table.tabela-cabecalho {
+  width: 100%;
+}
+
+table.tabela-valores-medicao {
+  width: 98%;
+  margin-left: 1%;
+  font-size: 8px;
+  border: 1px solid #DADADA;
+
+  thead {
+    tr {
+      th {
+        background-color: #20AA73;
+        text-align: center;
+        border: 0.25px;
+      }
+    }
+  }
+}
+

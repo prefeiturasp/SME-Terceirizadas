@@ -1,0 +1,60 @@
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/relatorio_solicitacao_medicao_por_escola.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
+</head>
+<!--header class="header">
+  <section class="titulo-e-logo">
+    <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1 class='custom-title'>
+      SECRETARIA MUNICIPAL DE EDUCAÇÃO - SME | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR - CODAE <br/>
+      MEDIÇÃO INICIAL DO SERVIÇO DE NUTRIÇÃO E ALIMENTAÇÃO ESCOLAR
+    </h1>
+  </section>
+</header-->
+<body>
+  <!--div class="text-center mt-5 mb-5">INFORMAÇÕES BÁSICAS DA MEDIÇÃO</div>
+  <div style="page-break-before: always;"></div-->
+  <header class="header">
+    <section class="titulo-e-logo">
+      <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+      <h1 class='custom-title'>
+        SECRETARIA MUNICIPAL DE EDUCAÇÃO - SME | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR - CODAE <br/>
+        MEDIÇÃO INICIAL DO SERVIÇO DE NUTRIÇÃO E ALIMENTAÇÃO ESCOLAR
+      </h1>
+    </section>
+  </header>
+    {% for tabela in tabelas %}
+      <table style="page-break-before: always;" class="tabela-valores-medicao mt-1">
+        <thead>
+          <tr>
+            <th rowspan="3">Dias</th>
+            {% for periodo in tabela.periodos %}
+              <th colspan="{{ tabela.nomes_campos|length }}">{{ periodo }}</th>
+            {% endfor %}
+          </tr>
+          <tr>
+            {% for categoria in tabela.categorias %}
+              <th colspan="{{ tabela.len_categorias|get_element_by_index:forloop.counter0 }}">{{ categoria }}</th>
+            {% endfor %}
+          </tr>
+          <tr>
+            {% for campo in tabela.nomes_campos %}
+              <th>{{ campo }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for dia in quantidade_dias_mes %}
+            <tr><td>{{ dia }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endfor %}
+</body>
+</html>
