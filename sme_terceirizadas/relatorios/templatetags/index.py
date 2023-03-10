@@ -290,9 +290,3 @@ def formatar_data_solicitacoes_alimentacao(data):
         return data.strftime('%d/%m/%Y')
     except Exception:
         return data
-
-
-@register.filter
-def medica_filtro_por_dia(valores_medicao, dia):
-    return valores_medicao.filter(dia=dia)
-

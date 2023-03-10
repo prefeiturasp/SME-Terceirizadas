@@ -1,5 +1,5 @@
 from calendar import monthrange
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Sum
 from django.template.loader import render_to_string
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -13,8 +13,9 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     ViewSetActionPermissionMixin
 )
+from ...dieta_especial.models import LogQuantidadeDietasAutorizadas
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
-from ...escola.models import Escola
+from ...escola.models import Escola, LogAlunosMatriculadosPeriodoEscola
 from ..models import (
     CategoriaMedicao,
     DiaSobremesaDoce,
@@ -225,7 +226,7 @@ class SolicitacaoMedicaoInicialViewSet(
     @action(detail=True, methods=['GET'], url_path='relatorio-pdf')
     def relatorio_pdf(self, request, uuid):
         solicitacao = self.get_object()
-        tabelas = [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_categorias': []}]
+        tabelas = [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_categorias': [], 'valores_campos': []}]
         MAX_COLUNAS = 15
         CATEGORIA = 0
         CAMPO = 1
@@ -245,7 +246,6 @@ class SolicitacaoMedicaoInicialViewSet(
             'repeticao_sobremesa': 10,
             'total_sobremesas_pagamento': 11
         }
-
         for medicao in solicitacao.medicoes.all():
             lista_categorias_campos = sorted(list(
                 medicao.valores_medicao.values_list('categoria_medicao__nome', 'nome_campo').distinct()))
@@ -270,13 +270,60 @@ class SolicitacaoMedicaoInicialViewSet(
                     tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
                 else:
                     indice_atual += 1
-                    tabelas += [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_categorias': []}]
+                    tabelas += [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_categorias': [],
+                                 'valores_campos': []}]
                     tabelas[indice_atual]['periodos'] += [medicao.periodo_escolar.nome]
                     tabelas[indice_atual]['categorias'] += [categoria]
                     tabelas[indice_atual]['nomes_campos'] += dict_categorias_campos[categoria]
                     tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
-        print(tabelas)
+        dias_no_mes = range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1)
 
+        logs_alunos_matriculados = LogAlunosMatriculadosPeriodoEscola.objects.filter(
+            escola=solicitacao.escola, criado_em__month=solicitacao.mes, criado_em__year=solicitacao.ano)
+        logs_dietas = LogQuantidadeDietasAutorizadas.objects.filter(
+            escola=solicitacao.escola, data__month=solicitacao.mes, data__year=solicitacao.ano)
+        for indice_tabela in range(0, len(tabelas)):
+            tabela = tabelas[indice_tabela]
+            for dia in dias_no_mes:
+                valores_dia = [dia]
+                indice_campo = 0
+                indice_categoria = 0
+                categoria_corrente = tabela['categorias'][indice_categoria]
+                for campo in tabela['nomes_campos']:
+                    if indice_campo > tabela['len_categorias'][indice_categoria] - 1:
+                        indice_campo = 0
+                        indice_categoria += 1
+                        categoria_corrente = tabela['categorias'][indice_categoria]
+                    if campo == 'matriculados':
+                        try:
+                            valores_dia += [logs_alunos_matriculados.get(criado_em__day=dia).quantidade_alunos]
+                        except LogAlunosMatriculadosPeriodoEscola.DoesNotExist:
+                            valores_dia += ['-']
+                    elif campo == 'aprovadas':
+                        try:
+                            if 'ENTERAL' in categoria_corrente:
+                                quantidade = logs_dietas.filter(
+                                    data__day=dia,
+                                    data__month=solicitacao.mes,
+                                    data__year=solicitacao.ano,
+                                    classificacao__nome__in=[
+                                        'Tipo A RESTRIÇÃO DE AMINOÁCIDOS',
+                                        'Tipo A ENTERAL'
+                                    ]).aggregate(Sum('quantidade')).get('quantidade__sum')
+                                valores_dia += [quantidade]
+                            else:
+                                valores_dia += [logs_dietas.get(
+                                    data__day=dia,
+                                    data__month=solicitacao.mes,
+                                    data__year=solicitacao.ano,
+                                    classificacao__nome=categoria_corrente.split(' - ')[1].title()
+                                ).quantidade]
+                        except LogQuantidadeDietasAutorizadas.DoesNotExist:
+                            valores_dia += ['-']
+                    else:
+                        valores_dia += ['-']
+                    indice_campo += 1
+                tabela['valores_campos'] += [valores_dia]
         html_string = render_to_string(
             f'relatorio_solicitacao_medicao_por_escola.html',
             {

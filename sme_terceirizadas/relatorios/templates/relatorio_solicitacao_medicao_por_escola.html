@@ -50,8 +50,12 @@
           </tr>
         </thead>
         <tbody>
-          {% for dia in quantidade_dias_mes %}
-            <tr><td>{{ dia }}</td></tr>
+          {% for valores in tabela.valores_campos %}
+            <tr>
+              {% for valor in valores %}
+                <td>{{ valor }}</td>
+              {% endfor %}
+            </tr>
           {% endfor %}
         </tbody>
       </table>
