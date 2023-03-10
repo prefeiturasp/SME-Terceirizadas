@@ -157,13 +157,17 @@ def cronogramas_multiplos_status_com_log(armazem, contrato, empresa, produto_arr
                     numero='006/2023', contrato=contrato, empresa=empresa, armazem=armazem, produto=produto_macarrao,
                     status='ASSINADO_FORNECEDOR'
                     )
+    c6 = mommy.make('Cronograma',
+                    numero='007/2023', contrato=contrato, empresa=empresa, armazem=armazem, produto=produto_macarrao,
+                    status='ASSINADO_CODAE'
+                    )
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=c1.uuid,
-               status_evento=63,  # CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA
+               status_evento=59,  # CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA
                solicitacao_tipo=19)  # CRONOGRAMA
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=c2.uuid,
-               status_evento=63,  # CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA
+               status_evento=59,  # CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA
                solicitacao_tipo=19)  # CRONOGRAMA
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=c3.uuid,
@@ -175,5 +179,9 @@ def cronogramas_multiplos_status_com_log(armazem, contrato, empresa, produto_arr
                solicitacao_tipo=19)  # CRONOGRAMA
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=c5.uuid,
-               status_evento=63,  # CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA
-               solicitacao_tipo=19)  # MEDICAO_INICIAL
+               status_evento=59,  # CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA
+               solicitacao_tipo=19)  # CRONOGRAMA
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=c6.uuid,
+               status_evento=70,  # CRONOGRAMA_ASSINADO_PELA_CODAE
+               solicitacao_tipo=19)  # CRONOGRAMA

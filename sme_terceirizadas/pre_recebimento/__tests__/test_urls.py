@@ -52,6 +52,15 @@ def test_url_list_cronogramas(client_autenticado_codae_dilog):
     assert 'previous' in json
 
 
+def test_url_list_solicitacoes_alteracao_cronograma(client_autenticado_dilog_cronograma):
+    response = client_autenticado_dilog_cronograma.get('/solicitacao-de-alteracao-de-cronograma/')
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert 'count' in json
+    assert 'next' in json
+    assert 'previous' in json
+
+
 def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
@@ -369,11 +378,13 @@ def test_url_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretor
         f'/cronogramas/dashboard/'
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()['results']) == 2
+    assert len(response.json()['results']) == 3
     assert response.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
     assert len(response.json()['results'][0]['dados']) == 3
     assert response.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
     assert len(response.json()['results'][1]['dados']) == 2
+    assert response.json()['results'][2]['status'] == 'ASSINADO_CODAE'
+    assert len(response.json()['results'][2]['dados']) == 1
 
 
 def test_url_dashboard_painel_usuario_dinutre_com_paginacao(client_autenticado_dinutre_diretoria,
@@ -403,20 +414,28 @@ def test_url_dashboard_com_filtro_painel_usuario_dinutre(client_autenticado_dinu
         f'/cronogramas/dashboard-com-filtro/?nome_fornecedor=Alimentos'
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()['results']) == 2
+    assert len(response.json()['results']) == 3
     assert response.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
     assert len(response.json()['results'][0]['dados']) == 3
     assert response.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
     assert len(response.json()['results'][1]['dados']) == 2
+    assert response.json()['results'][2]['status'] == 'ASSINADO_CODAE'
+    assert len(response.json()['results'][2]['dados']) == 1
     assert filtro1.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
     assert len(filtro1.json()['results'][0]['dados']) == 1
     assert filtro1.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
     assert len(filtro1.json()['results'][1]['dados']) == 1
+    assert filtro1.json()['results'][2]['status'] == 'ASSINADO_CODAE'
+    assert len(filtro1.json()['results'][2]['dados']) == 0
     assert filtro2.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
     assert len(filtro2.json()['results'][0]['dados']) == 1
     assert filtro2.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
     assert len(filtro2.json()['results'][1]['dados']) == 0
+    assert filtro2.json()['results'][2]['status'] == 'ASSINADO_CODAE'
+    assert len(filtro2.json()['results'][2]['dados']) == 0
     assert filtro3.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
     assert len(filtro3.json()['results'][0]['dados']) == 3
     assert filtro3.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
     assert len(filtro3.json()['results'][1]['dados']) == 2
+    assert filtro3.json()['results'][2]['status'] == 'ASSINADO_CODAE'
+    assert len(filtro3.json()['results'][2]['dados']) == 1
