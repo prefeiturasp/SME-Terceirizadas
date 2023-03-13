@@ -219,6 +219,36 @@ class SolicitacaoMedicaoInicialViewSet(
         return Response({'results': sorted(meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True)},
                         status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['GET'], url_path='periodos-grupos-medicao',
+            permission_classes=[UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    def periodos_grupos_medicao(self, request):
+        uuid = request.query_params.get('uuid_solicitacao')
+        solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
+        retorno = []
+        for medicao in solicitacao.medicoes.all():
+            nome = None
+            if medicao.grupo and medicao.periodo_escolar:
+                nome = f'{medicao.grupo.nome} - {medicao.periodo_escolar.nome}'
+            elif medicao.periodo_escolar:
+                nome = medicao.periodo_escolar.nome
+            retorno.append({
+                'uuid_medicao_periodo_grupo': medicao.uuid,
+                'nome_periodo_grupo': nome,
+                'periodo_escolar': medicao.periodo_escolar.nome,
+                'grupo': medicao.grupo.nome if medicao.grupo else None
+            })
+        ORDEM_PERIODOS_GRUPOS = {
+            'MANHA': 1,
+            'Programas e Projetos - MANHA': 2,
+            'TARDE': 3,
+            'Programas e Projetos - TARDE': 4,
+            'INTEGRAL': 5,
+            'NOITE': 6
+        }
+
+        return Response({'results': sorted(retorno, key=lambda k: ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},
+                        status=status.HTTP_200_OK)
+
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = TipoContagemAlimentacao.objects.filter(ativo=True)
@@ -243,17 +273,20 @@ class ValorMedicaoViewSet(
 
     def get_queryset(self):
         queryset = ValorMedicao.objects.all()
-        nome_periodo_escolar = self.request.query_params.get('nome_periodo_escolar', '')
-        uuid_solicitacao_medicao = self.request.query_params.get('uuid_solicitacao_medicao', '')
+        nome_periodo_escolar = self.request.query_params.get('nome_periodo_escolar', None)
+        uuid_solicitacao_medicao = self.request.query_params.get('uuid_solicitacao_medicao', None)
         nome_grupo = self.request.query_params.get('nome_grupo', None)
+        uuid_medicao_periodo_grupo = self.request.query_params.get('uuid_medicao_periodo_grupo', None)
         if nome_periodo_escolar:
             queryset = queryset.filter(medicao__periodo_escolar__nome=nome_periodo_escolar)
         if nome_grupo:
             queryset = queryset.filter(medicao__grupo__nome=nome_grupo)
-        else:
+        elif not uuid_medicao_periodo_grupo:
             queryset = queryset.filter(medicao__grupo__isnull=True)
         if uuid_solicitacao_medicao:
             queryset = queryset.filter(medicao__solicitacao_medicao_inicial__uuid=uuid_solicitacao_medicao)
+        if uuid_medicao_periodo_grupo:
+            queryset = queryset.filter(medicao__uuid=uuid_medicao_periodo_grupo)
         return queryset
 
     def destroy(self, request, *args, **kwargs):
