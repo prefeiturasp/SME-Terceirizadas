@@ -12,7 +12,9 @@ def build_dict_relacao_categorias_e_campos(medicao):
     CAMPO = 1
 
     lista_categorias_campos = sorted(list(
-        medicao.valores_medicao.values_list('categoria_medicao__nome', 'nome_campo').distinct()))
+        medicao.valores_medicao.exclude(
+            nome_campo__in=['observacoes', 'dietas_autorizadas', 'matriculados']
+        ).values_list('categoria_medicao__nome', 'nome_campo').distinct()))
     dict_categorias_campos = {}
     for categoria_campo in lista_categorias_campos:
         if categoria_campo[CATEGORIA] not in dict_categorias_campos.keys():
@@ -25,6 +27,17 @@ def build_dict_relacao_categorias_e_campos(medicao):
         else:
             dict_categorias_campos[categoria_campo[CATEGORIA]] += [categoria_campo[CAMPO]]
     return dict_categorias_campos
+
+
+def get_tamanho_colunas_periodos(tabelas):
+    for tabela in tabelas:
+        if len(tabela['periodos']) == 1:
+            tabela['len_periodos'] = [len(tabela['nomes_campos'])]
+        else:
+            indice_matriculados = next((i for i, categoria in enumerate(tabela['categorias'])
+                                        if categoria == 'ALIMENTAÇÃO'), -1)
+            tabela['len_periodos'] = [sum(tabela['len_categorias'][:indice_matriculados]),
+                                      sum(tabela['len_categorias'][indice_matriculados:])]
 
 
 def build_headers_tabelas(solicitacao):
@@ -71,10 +84,7 @@ def build_headers_tabelas(solicitacao):
                 tabelas[indice_atual]['nomes_campos'] += dict_categorias_campos[categoria]
                 tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
 
-    for tabela in tabelas:
-        tabela['len_periodos'] = ([len(tabela['nomes_campos'])]
-                                  if len(tabela['periodos']) == 1
-                                  else tabela['len_categorias'])
+    get_tamanho_colunas_periodos(tabelas)
 
     return tabelas
 
@@ -89,7 +99,7 @@ def popula_campo_matriculados(tabela, dia, campo, indice_campo, indice_periodo, 
                 periodo = periodo.split(' - ')[1]
             valores_dia += [logs_alunos_matriculados.get(
                 periodo_escolar__nome=periodo,
-                criado_em__day=dia
+                criado_em__day=dia,
             ).quantidade_alunos]
         except LogAlunosMatriculadosPeriodoEscola.DoesNotExist:
             valores_dia += ['0']
