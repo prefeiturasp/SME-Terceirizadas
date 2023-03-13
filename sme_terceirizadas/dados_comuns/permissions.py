@@ -319,6 +319,22 @@ class UsuarioSuperCodae(BasePermission):
         )
 
 
+class UsuarioPermissaoFinalizarVinculoCodae(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                  COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                  ADMINISTRADOR_REPRESENTANTE_CODAE, COORDENADOR_SUPERVISAO_NUTRICAO,
+                                                  COORDENADOR_GESTAO_PRODUTO]
+        )
+
+
 class UsuarioCodaeDilog(BasePermission):
     """Permite acesso a usuários do perfil CODAE DILOG."""
 
@@ -344,7 +360,7 @@ class PermissaoParaCriarUsuarioComCoresso(BasePermission):
             usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA, COORDENADOR_LOGISTICA,
                                                   COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DIRETOR_UE,
-                                                  ADMINISTRADOR_REPRESENTANTE_CODAE]
+                                                  ADMINISTRADOR_REPRESENTANTE_CODAE, COORDENADOR_SUPERVISAO_NUTRICAO]
         )
 
 
