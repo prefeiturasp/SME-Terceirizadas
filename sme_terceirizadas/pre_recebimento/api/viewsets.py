@@ -19,6 +19,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCadastrarVisualizarEmbalagem,
     PermissaoParaCriarCronograma,
     PermissaoParaCriarSolicitacoesAlteracaoCronograma,
+    PermissaoParaDashboardCronograma,
     PermissaoParaVisualizarCronograma,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     ViewSetActionPermissionMixin
@@ -129,14 +130,14 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         return sumario
 
     @action(detail=False, methods=['GET'],
-            url_path='dashboard', permission_classes=(PermissaoParaAssinarCronogramaUsuarioDinutre,))
+            url_path='dashboard', permission_classes=(PermissaoParaDashboardCronograma,))
     def dashboard(self, request):
         query_set = self.get_queryset()
         response = {'results': self.dados_dashboard(query_set=query_set, request=request, use_raw=False)}
         return Response(response)
 
     @action(detail=False, methods=['GET'],
-            url_path='dashboard-com-filtro', permission_classes=(PermissaoParaAssinarCronogramaUsuarioDinutre,))
+            url_path='dashboard-com-filtro', permission_classes=(PermissaoParaDashboardCronograma,))
     def dashboard_com_filtro(self, request):
         query_set = self.get_queryset()
         numero_cronograma = request.query_params.get('numero_cronograma', None)
