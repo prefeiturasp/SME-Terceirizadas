@@ -116,6 +116,7 @@ class GrupoMedicao(Nomeavel, TemChaveExterna, Ativavel):
 class Medicao(
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
+    FluxoSolicitacaoMedicaoInicial,
     CriadoEm, CriadoPor,
 ):
     solicitacao_medicao_inicial = models.ForeignKey('SolicitacaoMedicaoInicial', on_delete=models.CASCADE,
