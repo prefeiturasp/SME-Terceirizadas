@@ -2930,7 +2930,8 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                                             editable=False)
 
     def _salva_rastro_solicitacao(self):
-        self.rastro_terceirizada = self.criado_por.vinculo_atual.instituicao
+        self.rastro_lote = self.escola.lote
+        self.rastro_terceirizada = self.escola.lote.terceirizada
         self.save()
 
     @xworkflows.after_transition('inicia_fluxo')

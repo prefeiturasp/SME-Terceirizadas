@@ -27,7 +27,7 @@ def build_dict_relacao_categorias_e_campos(medicao):
     return dict_categorias_campos
 
 
-def build_tabelas(solicitacao):
+def build_headers_tabelas(solicitacao):
     MAX_COLUNAS = 15
     ORDEM_CAMPOS = {
         'matriculados': -1,
@@ -79,80 +79,110 @@ def build_tabelas(solicitacao):
     return tabelas
 
 
-def build_tabelas_relatorio_medicao(solicitacao):
-    tabelas = build_tabelas(solicitacao)
+def popula_campo_matriculados(tabela, dia, campo, indice_campo, indice_periodo, valores_dia, logs_alunos_matriculados):
+    if campo == 'matriculados':
+        if indice_campo > 1 and len(tabela['periodos']) > 1:
+            indice_periodo += 1
+        try:
+            periodo = tabela['periodos'][indice_periodo]
+            if '-' in periodo:
+                periodo = periodo.split(' - ')[1]
+            valores_dia += [logs_alunos_matriculados.get(
+                periodo_escolar__nome=periodo,
+                criado_em__day=dia
+            ).quantidade_alunos]
+        except LogAlunosMatriculadosPeriodoEscola.DoesNotExist:
+            valores_dia += ['0']
 
+
+def popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_dia, logs_dietas):
+    if campo == 'aprovadas':
+        try:
+            if 'ENTERAL' in categoria_corrente:
+                quantidade = logs_dietas.filter(
+                    data__day=dia,
+                    data__month=solicitacao.mes,
+                    data__year=solicitacao.ano,
+                    classificacao__nome__in=[
+                        'Tipo A RESTRIÇÃO DE AMINOÁCIDOS',
+                        'Tipo A ENTERAL'
+                    ]).aggregate(Sum('quantidade')).get('quantidade__sum')
+                valores_dia += [quantidade]
+            else:
+                valores_dia += [logs_dietas.get(
+                    data__day=dia,
+                    data__month=solicitacao.mes,
+                    data__year=solicitacao.ano,
+                    classificacao__nome=categoria_corrente.split(' - ')[1].title()
+                ).quantidade]
+        except LogQuantidadeDietasAutorizadas.DoesNotExist:
+            valores_dia += ['0']
+
+
+def popula_campos_preenchidos_pela_escola(solicitacao, tabela, campo, dia, indice_periodo, categoria_corrente,
+                                          valores_dia):
+    try:
+        periodo = tabela['periodos'][indice_periodo]
+        grupo = None
+        if '-' in periodo:
+            grupo = GrupoMedicao.objects.get(nome=periodo.split(' - ')[0])
+            periodo = periodo.split(' - ')[1]
+        valores_dia += [solicitacao.medicoes.get(
+            periodo_escolar__nome=periodo,
+            grupo=grupo
+        ).valores_medicao.get(
+            dia=f'{dia:02d}',
+            categoria_medicao__nome=categoria_corrente,
+            nome_campo=campo
+        ).valor]
+    except ValorMedicao.DoesNotExist:
+        valores_dia += ['0']
+
+
+def popula_campos(solicitacao, tabela, dia, indice_periodo, logs_alunos_matriculados, logs_dietas):
+    valores_dia = [dia]
+    indice_campo = 0
+    indice_categoria = 0
+    categoria_corrente = tabela['categorias'][indice_categoria]
+    for campo in tabela['nomes_campos']:
+        if indice_campo > tabela['len_categorias'][indice_categoria] - 1:
+            indice_campo = 0
+            indice_categoria += 1
+            categoria_corrente = tabela['categorias'][indice_categoria]
+        popula_campo_matriculados(tabela, dia, campo, indice_campo, indice_periodo, valores_dia,
+                                  logs_alunos_matriculados)
+        popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_dia, logs_dietas)
+        # TODO: implementar total de refeições e total de sobremesas
+        # TODO: quando categoria de Solicitações de Alimentação estiver implementada, tratar campo 'solicitado'
+        if campo in ['solicitado', 'total_refeicoes_pagamento', 'total_sobremesas_pagamento']:
+            valores_dia += ['0']
+        elif campo not in ['matriculados', 'aprovadas']:
+            popula_campos_preenchidos_pela_escola(solicitacao, tabela, campo, dia, indice_periodo, categoria_corrente,
+                                                  valores_dia)
+        indice_campo += 1
+    tabela['valores_campos'] += [valores_dia]
+
+
+def popula_tabelas(solicitacao, tabelas):
     dias_no_mes = range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1)
-    indice_periodo = 0
     logs_alunos_matriculados = LogAlunosMatriculadosPeriodoEscola.objects.filter(
         escola=solicitacao.escola, criado_em__month=solicitacao.mes, criado_em__year=solicitacao.ano)
     logs_dietas = LogQuantidadeDietasAutorizadas.objects.filter(
         escola=solicitacao.escola, data__month=solicitacao.mes, data__year=solicitacao.ano)
-    for indice_tabela in range(0, len(tabelas)):
+
+    indice_periodo = 0
+    quantidade_tabelas = range(0, len(tabelas))
+
+    for indice_tabela in quantidade_tabelas:
         tabela = tabelas[indice_tabela]
         for dia in dias_no_mes:
-            valores_dia = [dia]
-            indice_campo = 0
-            indice_categoria = 0
-            categoria_corrente = tabela['categorias'][indice_categoria]
-            for campo in tabela['nomes_campos']:
-                if indice_campo > tabela['len_categorias'][indice_categoria] - 1:
-                    indice_campo = 0
-                    indice_categoria += 1
-                    categoria_corrente = tabela['categorias'][indice_categoria]
-                if campo == 'matriculados':
-                    if indice_campo > 1 and len(tabela['periodos']) > 1:
-                        indice_periodo += 1
-                    try:
-                        periodo = tabela['periodos'][indice_periodo]
-                        if '-' in periodo:
-                            periodo = periodo.split(' - ')[1]
-                        valores_dia += [logs_alunos_matriculados.get(
-                            periodo_escolar__nome=periodo,
-                            criado_em__day=dia
-                        ).quantidade_alunos]
-                    except LogAlunosMatriculadosPeriodoEscola.DoesNotExist:
-                        valores_dia += ['0']
-                elif campo == 'aprovadas':
-                    try:
-                        if 'ENTERAL' in categoria_corrente:
-                            quantidade = logs_dietas.filter(
-                                data__day=dia,
-                                data__month=solicitacao.mes,
-                                data__year=solicitacao.ano,
-                                classificacao__nome__in=[
-                                    'Tipo A RESTRIÇÃO DE AMINOÁCIDOS',
-                                    'Tipo A ENTERAL'
-                                ]).aggregate(Sum('quantidade')).get('quantidade__sum')
-                            valores_dia += [quantidade]
-                        else:
-                            valores_dia += [logs_dietas.get(
-                                data__day=dia,
-                                data__month=solicitacao.mes,
-                                data__year=solicitacao.ano,
-                                classificacao__nome=categoria_corrente.split(' - ')[1].title()
-                            ).quantidade]
-                    except LogQuantidadeDietasAutorizadas.DoesNotExist:
-                        valores_dia += ['0']
-                elif campo in ['solicitado', 'total_refeicoes_pagamento', 'total_sobremesas_pagamento']:
-                    valores_dia += ['0']
-                else:
-                    try:
-                        periodo = tabela['periodos'][indice_periodo]
-                        grupo = None
-                        if '-' in periodo:
-                            grupo = GrupoMedicao.objects.get(nome=periodo.split(' - ')[0])
-                            periodo = periodo.split(' - ')[1]
-                        valores_dia += [solicitacao.medicoes.get(
-                            periodo_escolar__nome=periodo,
-                            grupo=grupo
-                        ).valores_medicao.get(
-                            dia=f'{dia:02d}',
-                            categoria_medicao__nome=categoria_corrente,
-                            nome_campo=campo
-                        ).valor]
-                    except ValorMedicao.DoesNotExist:
-                        valores_dia += ['0']
-                indice_campo += 1
-            tabela['valores_campos'] += [valores_dia]
+            popula_campos(solicitacao, tabela, dia, indice_periodo, logs_alunos_matriculados, logs_dietas)
+
     return tabelas
+
+
+def build_tabelas_relatorio_medicao(solicitacao):
+    tabelas_com_headers = build_headers_tabelas(solicitacao)
+    tabelas_populadas = popula_tabelas(solicitacao, tabelas_com_headers)
+
+    return tabelas_populadas
