@@ -335,7 +335,8 @@ class UsuarioPodeFinalizarVinculo(BasePermission):
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                   ADMINISTRADOR_REPRESENTANTE_CODAE, COORDENADOR_GESTAO_PRODUTO,
-                                                  COORDENADOR_DIETA_ESPECIAL]
+                                                  COORDENADOR_DIETA_ESPECIAL, COORDENADOR_GESTAO_PRODUTO,
+                                                  COORDENADOR_SUPERVISAO_NUTRICAO]
         )
 
 
@@ -364,7 +365,7 @@ class PermissaoParaCriarUsuarioComCoresso(BasePermission):
             usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA, COORDENADOR_LOGISTICA,
                                                   COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DIRETOR_UE,
-                                                  ADMINISTRADOR_REPRESENTANTE_CODAE]
+                                                  ADMINISTRADOR_REPRESENTANTE_CODAE, COORDENADOR_SUPERVISAO_NUTRICAO]
         )
 
 
