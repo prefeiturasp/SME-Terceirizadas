@@ -9,8 +9,10 @@ from sme_terceirizadas.perfil.models import Perfil, PerfisVinculados
 from ....dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_DIETA_ESPECIAL,
-    COORDENADOR_GESTAO_PRODUTO
+    COORDENADOR_GESTAO_PRODUTO,
+    COORDENADOR_SUPERVISAO_NUTRICAO
 )
 
 
@@ -33,11 +35,19 @@ class CargaPerfisVinculadosCommandTest(TestCase):
         )
         mommy.make(
             Perfil,
+            nome=ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+        )
+        mommy.make(
+            Perfil,
             nome=COORDENADOR_DIETA_ESPECIAL,
         )
         mommy.make(
             Perfil,
             nome=COORDENADOR_GESTAO_PRODUTO,
+        )
+        mommy.make(
+            Perfil,
+            nome=COORDENADOR_SUPERVISAO_NUTRICAO,
         )
 
     @pytest.mark.django_db(transaction=True)
@@ -45,5 +55,8 @@ class CargaPerfisVinculadosCommandTest(TestCase):
         self.call_command()
         dieta = PerfisVinculados.objects.filter(perfil_master__nome=COORDENADOR_DIETA_ESPECIAL)[0]
         produto = PerfisVinculados.objects.filter(perfil_master__nome=COORDENADOR_GESTAO_PRODUTO)[0]
+        coordenador_supervisao_nutricao = PerfisVinculados.objects.filter(
+            perfil_master__nome=COORDENADOR_SUPERVISAO_NUTRICAO)[0]
         assert dieta.perfis_subordinados.first().nome == ADMINISTRADOR_DIETA_ESPECIAL
         assert produto.perfis_subordinados.first().nome == ADMINISTRADOR_GESTAO_PRODUTO
+        assert coordenador_supervisao_nutricao.perfis_subordinados.first().nome == ADMINISTRADOR_SUPERVISAO_NUTRICAO
