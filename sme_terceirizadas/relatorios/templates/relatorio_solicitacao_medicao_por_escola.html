@@ -8,18 +8,7 @@
   <link rel="stylesheet" href="{% sass_src 'css/relatorio_solicitacao_medicao_por_escola.scss' %}" type="text/css">
   <link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
 </head>
-<!--header class="header">
-  <section class="titulo-e-logo">
-    <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
-    <h1 class='custom-title'>
-      SECRETARIA MUNICIPAL DE EDUCAÇÃO - SME | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR - CODAE <br/>
-      MEDIÇÃO INICIAL DO SERVIÇO DE NUTRIÇÃO E ALIMENTAÇÃO ESCOLAR
-    </h1>
-  </section>
-</header-->
 <body>
-  <!--div class="text-center mt-5 mb-5">INFORMAÇÕES BÁSICAS DA MEDIÇÃO</div>
-  <div style="page-break-before: always;"></div-->
   <header class="header">
     <section class="titulo-e-logo">
       <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
@@ -28,14 +17,37 @@
         MEDIÇÃO INICIAL DO SERVIÇO DE NUTRIÇÃO E ALIMENTAÇÃO ESCOLAR
       </h1>
     </section>
+    <table class="tabela-cabecalho">
+      <tr class="custom-filtros">
+        <td><b>Cód. EOL: </b>{{ solicitacao.escola.codigo_eol }}</td>
+        <td><b>U.E: </b>{{ solicitacao.escola.nome }}</td>
+        <td><b>Telefone da UE: </b>{{ solicitacao.escola.contato.telefone }}</td>
+        <td><b>DRE: </b>{{ solicitacao.escola.diretoria_regional.nome }}</td>
+      </tr>
+      <tr class="custom-filtros">
+        <td><b>Lote: </b>{{ solicitacao.rastro_lote.nome }}</td>
+        <td colspan="2"><b>Empresa Prestadora do Serviço: </b>{{ solicitacao.rastro_terceirizada.razao_social }}</td>
+        <td><b>REFERÊNCIA: </b>{{ solicitacao.mes }}/{{ solicitacao.ano }}</td>
+      </tr>
+    </table>
   </header>
+    <div class="text-center mt-5 mb-5">INFORMAÇÕES BÁSICAS DA MEDIÇÃO</div>
     {% for tabela in tabelas %}
-      <table style="page-break-before: always;" class="tabela-valores-medicao mt-1">
+     <header class="header" style="page-break-before: always;">
+       <section class="titulo-e-logo">
+          <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+          <h1 class='custom-title'>
+            SECRETARIA MUNICIPAL DE EDUCAÇÃO - SME | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR - CODAE <br/>
+            MEDIÇÃO INICIAL DO SERVIÇO DE NUTRIÇÃO E ALIMENTAÇÃO ESCOLAR
+          </h1>
+       </section>
+     </header>
+      <table class="tabela-valores-medicao mt-1">
         <thead>
           <tr>
             <th rowspan="3">Dias</th>
             {% for periodo in tabela.periodos %}
-              <th colspan="{{ tabela.nomes_campos|length }}">{{ periodo }}</th>
+              <th colspan="{{  tabela.len_periodos|get_element_by_index:forloop.counter0 }}">{{ periodo }}</th>
             {% endfor %}
           </tr>
           <tr>
