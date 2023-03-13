@@ -21,7 +21,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     ADMINISTRADOR_UE
 )
-from ...dados_comuns.permissions import UsuarioEscolaTercTotal
+from ...dados_comuns.permissions import UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
@@ -36,10 +36,14 @@ from ...escola.api.serializers import (
     AlunoSerializer,
     AlunoSimplesSerializer,
     CODAESerializer,
+    DiretoriaRegionalParaFiltroSerializer,
+    EscolaParaFiltroSerializer,
     EscolaPeriodoEscolarSerializer,
     LoteNomeSerializer,
+    LoteParaFiltroSerializer,
     LoteSerializer,
     LoteSimplesSerializer,
+    TipoUnidadeParaFiltroSerializer,
     UsuarioDetalheSerializer
 )
 from ...escola.api.serializers_create import (
@@ -292,7 +296,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
         })
 
     @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes',
-            permission_classes=(UsuarioEscolaTercTotal,))
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional])
     def inclusao_continua_por_mes(self, request):
         try:
             for param in ['mes', 'ano']:
@@ -300,11 +304,15 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
                     raise ValidationError(f'{param} é obrigatório via query_params')
             mes = request.query_params.get('mes')
             ano = request.query_params.get('ano')
+            escola = request.query_params.get('escola')
             primeiro_dia_mes = datetime.date(int(ano), int(mes), 1)
             ultimo_dia_mes = get_ultimo_dia_mes(primeiro_dia_mes)
+            instituicao = request.user.vinculo_atual.instituicao
+            if(isinstance(instituicao, DiretoriaRegional) and escola):
+                instituicao = Escola.objects.get(uuid=escola)
             periodos = dict(InclusaoAlimentacaoContinua.objects.filter(
                 status='CODAE_AUTORIZADO',
-                rastro_escola=request.user.vinculo_atual.instituicao).filter(
+                rastro_escola=instituicao).filter(
                     data_inicial__lte=ultimo_dia_mes,
                     data_final__gte=primeiro_dia_mes,
             ).values_list(
@@ -704,3 +712,23 @@ def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):
     workbook.save(response)
 
     return response
+
+
+class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
+
+    @action(detail=False, methods=['GET'], url_path='filtros')
+    def filtros(self, request):
+        terceirizada = request.user.vinculo_atual.instituicao
+        lotes = terceirizada.lotes.all()
+        diretorias_regionais_uuids = lotes.values_list('diretoria_regional__uuid', flat=True).distinct()
+        diretorias_regionais = DiretoriaRegional.objects.filter(uuid__in=diretorias_regionais_uuids)
+        escolas = Escola.objects.filter(diretoria_regional__uuid__in=diretorias_regionais_uuids)
+        tipos_unidade_uuids = escolas.values_list('tipo_unidade__uuid', flat=True)
+        tipos_unidade_escolar = TipoUnidadeEscolar.objects.filter(uuid__in=tipos_unidade_uuids)
+        filtros = {
+            'lotes': LoteParaFiltroSerializer(lotes, many=True).data,
+            'diretorias_regionais': DiretoriaRegionalParaFiltroSerializer(diretorias_regionais, many=True).data,
+            'tipos_unidade_escolar': TipoUnidadeParaFiltroSerializer(tipos_unidade_escolar, many=True).data,
+            'escolas': EscolaParaFiltroSerializer(escolas, many=True).data,
+        }
+        return Response(filtros, status=status.HTTP_200_OK)

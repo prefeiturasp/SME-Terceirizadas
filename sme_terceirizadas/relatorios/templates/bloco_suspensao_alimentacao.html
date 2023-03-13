@@ -10,7 +10,11 @@
       </div>
       {% for dia_motivo in solicitacao.dias_motivos.all %}
         <div class="row my-2 mx-2">
+          {% if forloop.first %}
           <div class="col-3"><b># {{ solicitacao.id_externo }}</b></div>
+          {% else %}
+          <div class="col-3"></div>
+          {% endif %}
           <div class="col-3"><b>{{ dia_motivo.motivo.nome }}</b></div>
           <div class="col-3"><b>{{ dia_motivo.data|formatar_data_solicitacoes_alimentacao }}</b></div>
           {% if forloop.first %}<div class="col-3"><b>{{ solicitacao.data_log }}</b></div>{% endif %}

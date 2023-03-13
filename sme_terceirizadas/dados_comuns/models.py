@@ -96,8 +96,9 @@ class LogSolicitacoesUsuario(
         MEDICAO_APROVADA_PELA_DRE,
         MEDICAO_APROVADA_PELA_CODAE,
         CRONOGRAMA_ASSINADO_PELA_DINUTRE,
-        CRONOGRAMA_ASSINADO_PELA_CODAE
-    ) = range(70)
+        CRONOGRAMA_ASSINADO_PELA_CODAE,
+        VINCULO_DO_EDITAL_AO_PRODUTO
+    ) = range(71)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -199,7 +200,7 @@ class LogSolicitacoesUsuario(
         (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
         (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE'),
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
-        (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Enviado ao Fornecedor'),
+        (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Assinado e Enviado ao Fornecedor'),
         (CRONOGRAMA_ASSINADO_PELO_FORNECEDOR, 'Assinado Fornecedor'),
         (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Alteração Fornecedor'),
         (SUSPENSO_EM_ALGUNS_EDITAIS, 'Suspenso em alguns editais'),
@@ -207,7 +208,8 @@ class LogSolicitacoesUsuario(
         (CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA, 'Assinado Cronograma'),
         (CODAE_ATUALIZOU_PROTOCOLO, 'CODAE Atualizou o protocolo'),
         (CRONOGRAMA_ASSINADO_PELA_DINUTRE, 'Assinado Dinutre'),
-        (CRONOGRAMA_ASSINADO_PELA_CODAE, 'Assinado CODAE')
+        (CRONOGRAMA_ASSINADO_PELA_CODAE, 'Assinado CODAE'),
+        (VINCULO_DO_EDITAL_AO_PRODUTO, 'Vínculo do Edital ao Produto')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
