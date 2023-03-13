@@ -592,3 +592,33 @@ class AlunosMatriculadosPeriodoEscolaSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlunosMatriculadosPeriodoEscola
         fields = ('periodo_escolar',)
+
+
+class DiretoriaRegionalParaFiltroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiretoriaRegional
+        fields = ('uuid', 'nome')
+
+
+class LoteParaFiltroSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalParaFiltroSerializer()
+
+    class Meta:
+        model = Lote
+        fields = ('uuid', 'nome', 'diretoria_regional')
+
+
+class TipoUnidadeParaFiltroSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TipoUnidadeEscolar
+        fields = ('uuid', 'iniciais')
+
+
+class EscolaParaFiltroSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalParaFiltroSerializer()
+    tipo_unidade = TipoUnidadeParaFiltroSerializer()
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade')
