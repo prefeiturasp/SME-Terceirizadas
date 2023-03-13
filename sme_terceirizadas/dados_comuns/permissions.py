@@ -612,11 +612,7 @@ class PermissaoParaVisualizarSolicitacoesAlteracaoCronograma(BasePermission):
 class PermissaoParaCriarSolicitacoesAlteracaoCronograma(BasePermission):
     def has_permission(self, request, view):
         usuario = request.user
-        return (
-            not usuario.is_anonymous and
-            usuario.vinculo_atual and
-            usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_FORNECEDOR]
-        )
+        return usuario.eh_fornecedor
 
 
 class ViewSetActionPermissionMixin:
