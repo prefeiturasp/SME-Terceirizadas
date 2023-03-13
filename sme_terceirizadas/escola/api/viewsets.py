@@ -37,6 +37,7 @@ from ...escola.api.serializers import (
     AlunoSimplesSerializer,
     CODAESerializer,
     DiretoriaRegionalParaFiltroSerializer,
+    EscolaAunoPeriodoSerializer,
     EscolaParaFiltroSerializer,
     EscolaPeriodoEscolarSerializer,
     LoteNomeSerializer,
@@ -732,3 +733,21 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
             'escolas': EscolaParaFiltroSerializer(escolas, many=True).data,
         }
         return Response(filtros, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='filtrar')
+    def filtrar(self, request):
+        terceirizada = request.user.vinculo_atual.instituicao
+        lotes = terceirizada.lotes.all()
+        if request.query_params.getlist('lotes[]'):
+            lotes = lotes.filter(uuid__in=request.query_params.getlist('lotes[]'))
+        if request.query_params.getlist('diretorias_regionais[]'):
+            lotes = lotes.filter(diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]'))
+        diretorias_regionais_uuids = lotes.values_list('diretoria_regional__uuid', flat=True).distinct()
+        escolas = Escola.objects.filter(diretoria_regional__uuid__in=diretorias_regionais_uuids)
+        if request.query_params.getlist('tipos_unidades[]'):
+            escolas = escolas.filter(tipo_unidade__uuid__in=request.query_params.getlist('tipos_unidades[]'))
+        if request.query_params.getlist('unidades_educacionais[]'):
+            escolas = escolas.filter(uuid__in=request.query_params.getlist('unidades_educacionais[]'))
+        page = self.paginate_queryset(escolas)
+        serializer = EscolaAunoPeriodoSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
