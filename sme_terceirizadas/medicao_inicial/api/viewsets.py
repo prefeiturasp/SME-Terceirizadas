@@ -7,7 +7,9 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from xworkflows import InvalidTransitionError
 
+from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
@@ -31,6 +33,7 @@ from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
+    MedicaoSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
@@ -294,7 +297,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 'uuid_medicao_periodo_grupo': medicao.uuid,
                 'nome_periodo_grupo': nome,
                 'periodo_escolar': medicao.periodo_escolar.nome,
-                'grupo': medicao.grupo.nome if medicao.grupo else None
+                'grupo': medicao.grupo.nome if medicao.grupo else None,
+                'status': medicao.status.name,
+                'logs': LogSolicitacoesUsuarioSerializer(medicao.logs.all(), many=True).data
             })
         ORDEM_PERIODOS_GRUPOS = {
             'MANHA': 1,
@@ -367,4 +372,22 @@ class MedicaoViewSet(
     queryset = Medicao.objects.all()
 
     def get_serializer_class(self):
+        if self.action == 'dre_aprova_medicao':
+            return MedicaoSerializer
         return MedicaoCreateUpdateSerializer
+
+    @action(detail=True, methods=['PATCH'], url_path='dre-aporva-medicao',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def dre_aprova_medicao(self, request, uuid=None):
+        medicao = self.get_object()
+        solicitacao_medicao_inicial = medicao.solicitacao_medicao_inicial
+        medicoes_aguardando_aprovacao = solicitacao_medicao_inicial.medicoes.exclude(uuid=medicao.uuid)
+        medicoes_aguardando_aprovacao = medicoes_aguardando_aprovacao.filter(status=medicao.status)
+        try:
+            medicao.dre_aprova(user=request.user)
+            if not medicoes_aguardando_aprovacao:
+                solicitacao_medicao_inicial.dre_aprova(user=request.user)
+            serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
