@@ -68,6 +68,12 @@ class PeriodoEscolarSerializer(serializers.ModelSerializer):
 class PeriodoEscolarSimplesSerializer(serializers.ModelSerializer):
     # TODO: tirar tipos de alimentacao daqui, tipos de alimentacao são
     # relacionados a TIPOUE + PERIODOESCOLAR
+    possui_alunos_regulares = serializers.SerializerMethodField()
+
+    def get_possui_alunos_regulares(self, obj):
+        if 'escola' not in self.context:
+            return None
+        return obj.alunos_matriculados.filter(escola=self.context['escola'], tipo_turma='REGULAR').exists()
 
     class Meta:
         model = PeriodoEscolar
@@ -600,3 +606,33 @@ class EscolaParaFiltroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
         fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade')
+
+
+class EscolaAunoPeriodoSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalParaFiltroSerializer()
+    tipo_unidade = TipoUnidadeParaFiltroSerializer()
+    periodos_escolares = serializers.SerializerMethodField()
+    lote = LoteSerializer()
+    quantidade_alunos = serializers.SerializerMethodField()
+    exibir_faixas = serializers.SerializerMethodField()
+    alunos_por_periodo_e_faixa_etaria = serializers.SerializerMethodField()
+
+    def get_periodos_escolares(self, obj):
+        return PeriodoEscolarSimplesSerializer(obj.periodos_escolares, many=True, context={'escola': obj}).data
+
+    def get_quantidade_alunos(self, obj):
+        return obj.quantidade_alunos
+
+    def get_exibir_faixas(self, obj):
+        return obj.eh_cei or obj.eh_cemei
+
+    def get_alunos_por_periodo_e_faixa_etaria(self, obj):
+        try:
+            return obj.alunos_por_periodo_e_faixa_etaria()
+        except Exception:
+            return None
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade', 'quantidade_alunos', 'lote', 'exibir_faixas',
+                  'periodos_escolares', 'alunos_por_periodo_e_faixa_etaria', 'eh_cei', 'eh_cemei')
