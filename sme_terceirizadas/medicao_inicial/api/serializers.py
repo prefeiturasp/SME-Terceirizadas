@@ -9,6 +9,7 @@ from sme_terceirizadas.escola.api.serializers import TipoUnidadeEscolarSerialize
 from sme_terceirizadas.medicao_inicial.models import (
     CategoriaMedicao,
     DiaSobremesaDoce,
+    Medicao,
     Responsavel,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
@@ -107,3 +108,16 @@ class CategoriaMedicaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoriaMedicao
         fields = '__all__'
+
+
+class MedicaoSerializer(serializers.ModelSerializer):
+    solicitacao_medicao_inicial = SolicitacaoMedicaoInicialSerializer()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    status = serializers.SerializerMethodField()
+
+    def get_status(self, obj):
+        return obj.status.name
+
+    class Meta:
+        model = Medicao
+        fields = ('uuid', 'solicitacao_medicao_inicial', 'status', 'logs')
