@@ -68,7 +68,7 @@ def solicitacao_medicao_inicial_varios_valores(escola, categoria_medicao):
                                      tipo_contagem_alimentacoes=tipo_contagem)
     medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
                          periodo_escolar=periodo_manha)
-    grupo = mommy.make('GrupoMedicao', nome='Programas e Projetos')
+    grupo = mommy.make('GrupoMedicao', nome='Programas Projetos')
     medicao_programas_projetos = mommy.make(
         'Medicao', solicitacao_medicao_inicial=solicitacao_medicao, periodo_escolar=periodo_tarde, grupo=grupo)
     categoria_dieta_a = mommy.make('CategoriaMedicao', nome='DIETA ESPECIAL - TIPO A ENTERAL')

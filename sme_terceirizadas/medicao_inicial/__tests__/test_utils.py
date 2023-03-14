@@ -46,7 +46,7 @@ def test_utils_build_headers_tabelas(solicitacao_medicao_inicial_varios_valores)
         {
             'periodos': [
                 'MANHA',
-                'Programas e Projetos - TARDE'
+                'Programas Projetos - TARDE'
             ],
             'categorias': [
                 'DIETA ESPECIAL - TIPO B',
@@ -62,7 +62,7 @@ def test_utils_build_headers_tabelas(solicitacao_medicao_inicial_varios_valores)
         },
         {
             'periodos': [
-                'Programas e Projetos - TARDE'
+                'Programas Projetos - TARDE'
             ],
             'categorias': [
                 'DIETA ESPECIAL - TIPO A ENTERAL',
@@ -132,7 +132,7 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
         {
             'periodos': [
                 'MANHA',
-                'Programas e Projetos - TARDE'
+                'Programas Projetos - TARDE'
             ],
             'categorias': [
                 'DIETA ESPECIAL - TIPO B',
@@ -180,7 +180,7 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
         },
         {
             'periodos': [
-                'Programas e Projetos - TARDE'
+                'Programas Projetos - TARDE'
             ],
             'categorias': [
                 'DIETA ESPECIAL - TIPO A ENTERAL',
