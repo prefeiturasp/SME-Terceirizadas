@@ -117,7 +117,7 @@ def popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_
                         'Tipo A RESTRIÇÃO DE AMINOÁCIDOS',
                         'Tipo A ENTERAL'
                     ]).aggregate(Sum('quantidade')).get('quantidade__sum')
-                valores_dia += [quantidade]
+                valores_dia += [quantidade or '0']
             else:
                 valores_dia += [logs_dietas.get(
                     data__day=dia,
