@@ -720,11 +720,12 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='filtros')
     def filtros(self, request):
         terceirizada = request.user.vinculo_atual.instituicao
-        lotes = terceirizada.lotes.all()
+        lotes = terceirizada.lotes.filter(escolas__isnull=False)
         diretorias_regionais_uuids = lotes.values_list('diretoria_regional__uuid', flat=True).distinct()
         diretorias_regionais = DiretoriaRegional.objects.filter(uuid__in=diretorias_regionais_uuids)
-        escolas = Escola.objects.filter(diretoria_regional__uuid__in=diretorias_regionais_uuids)
-        tipos_unidade_uuids = escolas.values_list('tipo_unidade__uuid', flat=True)
+        escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
+        escolas = Escola.objects.filter(uuid__in=escolas_uuids, tipo_gestao__nome='TERC TOTAL')
+        tipos_unidade_uuids = escolas.values_list('tipo_unidade__uuid', flat=True).distinct()
         tipos_unidade_escolar = TipoUnidadeEscolar.objects.filter(uuid__in=tipos_unidade_uuids)
         filtros = {
             'lotes': LoteParaFiltroSerializer(lotes, many=True).data,
@@ -737,13 +738,13 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='filtrar')
     def filtrar(self, request):
         terceirizada = request.user.vinculo_atual.instituicao
-        lotes = terceirizada.lotes.all()
+        lotes = terceirizada.lotes.filter(escolas__isnull=False)
         if request.query_params.getlist('lotes[]'):
             lotes = lotes.filter(uuid__in=request.query_params.getlist('lotes[]'))
         if request.query_params.getlist('diretorias_regionais[]'):
             lotes = lotes.filter(diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]'))
-        diretorias_regionais_uuids = lotes.values_list('diretoria_regional__uuid', flat=True).distinct()
-        escolas = Escola.objects.filter(diretoria_regional__uuid__in=diretorias_regionais_uuids)
+        escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
+        escolas = Escola.objects.filter(uuid__in=escolas_uuids, tipo_gestao__nome='TERC TOTAL')
         if request.query_params.getlist('tipos_unidades[]'):
             escolas = escolas.filter(tipo_unidade__uuid__in=request.query_params.getlist('tipos_unidades[]'))
         if request.query_params.getlist('unidades_educacionais[]'):
