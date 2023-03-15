@@ -317,7 +317,7 @@ class MedicaoViewSet(
             return MedicaoSerializer
         return MedicaoCreateUpdateSerializer
 
-    @action(detail=True, methods=['PATCH'], url_path='dre-aporva-medicao',
+    @action(detail=True, methods=['PATCH'], url_path='dre-aprova-medicao',
             permission_classes=[UsuarioDiretoriaRegional])
     def dre_aprova_medicao(self, request, uuid=None):
         medicao = self.get_object()
@@ -328,6 +328,20 @@ class MedicaoViewSet(
             medicao.dre_aprova(user=request.user)
             if not medicoes_aguardando_aprovacao:
                 solicitacao_medicao_inicial.dre_aprova(user=request.user)
+            serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='dre-pede-correcao-medicao',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def dre_pede_correcao_medicao(self, request, uuid=None):
+        medicao = self.get_object()
+        justificativa = request.data.get('justificativa', None)
+        uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', None)
+        try:
+            ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
+            medicao.dre_pede_correcao(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
