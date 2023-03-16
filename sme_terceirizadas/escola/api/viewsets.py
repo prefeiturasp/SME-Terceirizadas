@@ -21,7 +21,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO
 )
-from ...dados_comuns.permissions import UsuarioEscola
+from ...dados_comuns.permissions import UsuarioDiretoriaRegional, UsuarioEscola
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
@@ -36,10 +36,15 @@ from ...escola.api.serializers import (
     AlunoSerializer,
     AlunoSimplesSerializer,
     CODAESerializer,
+    DiretoriaRegionalParaFiltroSerializer,
+    EscolaAunoPeriodoSerializer,
+    EscolaParaFiltroSerializer,
     EscolaPeriodoEscolarSerializer,
     LoteNomeSerializer,
+    LoteParaFiltroSerializer,
     LoteSerializer,
     LoteSimplesSerializer,
+    TipoUnidadeParaFiltroSerializer,
     UsuarioDetalheSerializer
 )
 from ...escola.api.serializers_create import (
@@ -291,7 +296,8 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             'results': results
         })
 
-    @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes', permission_classes=(UsuarioEscola,))
+    @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes',
+            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional])
     def inclusao_continua_por_mes(self, request):
         try:
             for param in ['mes', 'ano']:
@@ -299,11 +305,15 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
                     raise ValidationError(f'{param} é obrigatório via query_params')
             mes = request.query_params.get('mes')
             ano = request.query_params.get('ano')
+            escola = request.query_params.get('escola')
             primeiro_dia_mes = datetime.date(int(ano), int(mes), 1)
             ultimo_dia_mes = get_ultimo_dia_mes(primeiro_dia_mes)
+            instituicao = request.user.vinculo_atual.instituicao
+            if(isinstance(instituicao, DiretoriaRegional) and escola):
+                instituicao = Escola.objects.get(uuid=escola)
             periodos = dict(InclusaoAlimentacaoContinua.objects.filter(
                 status='CODAE_AUTORIZADO',
-                rastro_escola=request.user.vinculo_atual.instituicao).filter(
+                rastro_escola=instituicao).filter(
                     data_inicial__lte=ultimo_dia_mes,
                     data_final__gte=primeiro_dia_mes,
             ).values_list(
@@ -703,3 +713,42 @@ def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):
     workbook.save(response)
 
     return response
+
+
+class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
+
+    @action(detail=False, methods=['GET'], url_path='filtros')
+    def filtros(self, request):
+        terceirizada = request.user.vinculo_atual.instituicao
+        lotes = terceirizada.lotes.filter(escolas__isnull=False)
+        diretorias_regionais_uuids = lotes.values_list('diretoria_regional__uuid', flat=True).distinct()
+        diretorias_regionais = DiretoriaRegional.objects.filter(uuid__in=diretorias_regionais_uuids)
+        escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
+        escolas = Escola.objects.filter(uuid__in=escolas_uuids, tipo_gestao__nome='TERC TOTAL')
+        tipos_unidade_uuids = escolas.values_list('tipo_unidade__uuid', flat=True).distinct()
+        tipos_unidade_escolar = TipoUnidadeEscolar.objects.filter(uuid__in=tipos_unidade_uuids)
+        filtros = {
+            'lotes': LoteParaFiltroSerializer(lotes, many=True).data,
+            'diretorias_regionais': DiretoriaRegionalParaFiltroSerializer(diretorias_regionais, many=True).data,
+            'tipos_unidade_escolar': TipoUnidadeParaFiltroSerializer(tipos_unidade_escolar, many=True).data,
+            'escolas': EscolaParaFiltroSerializer(escolas, many=True).data,
+        }
+        return Response(filtros, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='filtrar')
+    def filtrar(self, request):
+        terceirizada = request.user.vinculo_atual.instituicao
+        lotes = terceirizada.lotes.filter(escolas__isnull=False)
+        if request.query_params.getlist('lotes[]'):
+            lotes = lotes.filter(uuid__in=request.query_params.getlist('lotes[]'))
+        if request.query_params.getlist('diretorias_regionais[]'):
+            lotes = lotes.filter(diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]'))
+        escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
+        escolas = Escola.objects.filter(uuid__in=escolas_uuids, tipo_gestao__nome='TERC TOTAL')
+        if request.query_params.getlist('tipos_unidades[]'):
+            escolas = escolas.filter(tipo_unidade__uuid__in=request.query_params.getlist('tipos_unidades[]'))
+        if request.query_params.getlist('unidades_educacionais[]'):
+            escolas = escolas.filter(uuid__in=request.query_params.getlist('unidades_educacionais[]'))
+        page = self.paginate_queryset(escolas)
+        serializer = EscolaAunoPeriodoSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)

@@ -257,3 +257,23 @@ def client_autenticado_dinutre_diretoria(client, django_user_model):
                ativo=True)
     client.login(email=email, password=password)
     return client
+
+
+@pytest.fixture
+def client_autenticado_dilog_diretoria(client, django_user_model):
+    email = 'test@test.com'
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    perfil_dilog_diretoria = mommy.make('Perfil',
+                                        nome=constants.DILOG_DIRETORIA,
+                                        ativo=True)
+    codae = mommy.make('Codae')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=codae,
+               perfil=perfil_dilog_diretoria,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(email=email, password=password)
+    return client

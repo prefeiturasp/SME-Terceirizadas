@@ -3,7 +3,9 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from xworkflows import InvalidTransitionError
 
+from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
@@ -25,6 +27,7 @@ from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
+    MedicaoSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
@@ -84,7 +87,7 @@ class SolicitacaoMedicaoInicialViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     lookup_field = 'uuid'
-    permission_classes = (UsuarioEscola,)
+    permission_classes = [UsuarioEscola | UsuarioDiretoriaRegional]
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
@@ -109,6 +112,7 @@ class SolicitacaoMedicaoInicialViewSet(
         return [
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_ENVIADA_PELA_UE,
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE,
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE,
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_DRE,
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE,
@@ -218,6 +222,38 @@ class SolicitacaoMedicaoInicialViewSet(
         return Response({'results': sorted(meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True)},
                         status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['GET'], url_path='periodos-grupos-medicao',
+            permission_classes=[UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    def periodos_grupos_medicao(self, request):
+        uuid = request.query_params.get('uuid_solicitacao')
+        solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
+        retorno = []
+        for medicao in solicitacao.medicoes.all():
+            nome = None
+            if medicao.grupo and medicao.periodo_escolar:
+                nome = f'{medicao.grupo.nome} - {medicao.periodo_escolar.nome}'
+            elif medicao.periodo_escolar:
+                nome = medicao.periodo_escolar.nome
+            retorno.append({
+                'uuid_medicao_periodo_grupo': medicao.uuid,
+                'nome_periodo_grupo': nome,
+                'periodo_escolar': medicao.periodo_escolar.nome,
+                'grupo': medicao.grupo.nome if medicao.grupo else None,
+                'status': medicao.status.name,
+                'logs': LogSolicitacoesUsuarioSerializer(medicao.logs.all(), many=True).data
+            })
+        ORDEM_PERIODOS_GRUPOS = {
+            'MANHA': 1,
+            'Programas e Projetos - MANHA': 2,
+            'TARDE': 3,
+            'Programas e Projetos - TARDE': 4,
+            'INTEGRAL': 5,
+            'NOITE': 6
+        }
+
+        return Response({'results': sorted(retorno, key=lambda k: ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},
+                        status=status.HTTP_200_OK)
+
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = TipoContagemAlimentacao.objects.filter(ativo=True)
@@ -242,17 +278,20 @@ class ValorMedicaoViewSet(
 
     def get_queryset(self):
         queryset = ValorMedicao.objects.all()
-        nome_periodo_escolar = self.request.query_params.get('nome_periodo_escolar', '')
-        uuid_solicitacao_medicao = self.request.query_params.get('uuid_solicitacao_medicao', '')
+        nome_periodo_escolar = self.request.query_params.get('nome_periodo_escolar', None)
+        uuid_solicitacao_medicao = self.request.query_params.get('uuid_solicitacao_medicao', None)
         nome_grupo = self.request.query_params.get('nome_grupo', None)
+        uuid_medicao_periodo_grupo = self.request.query_params.get('uuid_medicao_periodo_grupo', None)
         if nome_periodo_escolar:
             queryset = queryset.filter(medicao__periodo_escolar__nome=nome_periodo_escolar)
         if nome_grupo:
             queryset = queryset.filter(medicao__grupo__nome=nome_grupo)
-        else:
+        elif not uuid_medicao_periodo_grupo:
             queryset = queryset.filter(medicao__grupo__isnull=True)
         if uuid_solicitacao_medicao:
             queryset = queryset.filter(medicao__solicitacao_medicao_inicial__uuid=uuid_solicitacao_medicao)
+        if uuid_medicao_periodo_grupo:
+            queryset = queryset.filter(medicao__uuid=uuid_medicao_periodo_grupo)
         return queryset
 
     def destroy(self, request, *args, **kwargs):
@@ -274,4 +313,36 @@ class MedicaoViewSet(
     queryset = Medicao.objects.all()
 
     def get_serializer_class(self):
+        if self.action == 'dre_aprova_medicao':
+            return MedicaoSerializer
         return MedicaoCreateUpdateSerializer
+
+    @action(detail=True, methods=['PATCH'], url_path='dre-aprova-medicao',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def dre_aprova_medicao(self, request, uuid=None):
+        medicao = self.get_object()
+        solicitacao_medicao_inicial = medicao.solicitacao_medicao_inicial
+        medicoes_aguardando_aprovacao = solicitacao_medicao_inicial.medicoes.exclude(uuid=medicao.uuid)
+        medicoes_aguardando_aprovacao = medicoes_aguardando_aprovacao.filter(status=medicao.status)
+        try:
+            medicao.dre_aprova(user=request.user)
+            if not medicoes_aguardando_aprovacao:
+                solicitacao_medicao_inicial.dre_aprova(user=request.user)
+            serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='dre-pede-correcao-medicao',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def dre_pede_correcao_medicao(self, request, uuid=None):
+        medicao = self.get_object()
+        justificativa = request.data.get('justificativa', None)
+        uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', None)
+        try:
+            ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
+            medicao.dre_pede_correcao(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)

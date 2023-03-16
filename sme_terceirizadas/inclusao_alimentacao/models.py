@@ -196,7 +196,8 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
             'data_inclusao': self.data,
             'quantidades_periodo': self.quantidades_periodo_simples_dict,
             'label_data': label_data,
-            'data_log': data_log
+            'data_log': data_log,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -376,7 +377,8 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
             'quantidades_periodo': self.quantidades_periodo_simples_dict,
             'label_data': label_data,
             'data_log': data_log,
-            'datas': self.datas
+            'datas': self.datas,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -549,7 +551,8 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             'quantidade_alunos_por_faixas_etarias': self.quantidade_alunos_por_faixas_etarias_simples_dict,
             'label_data': label_data,
             'data_log': data_log,
-            'periodos_externos': periodos_externos
+            'periodos_externos': periodos_externos,
+            'id_externo': self.id_externo
         }
 
     def periodos_da_solicitacao(self, nivel_interno, nome_coluna):
@@ -727,7 +730,8 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
             'quantidades_alunos': self.quantidades_alunos_simples_dict,
             'label_data': label_data,
             'data_log': data_log,
-            'datas': self.datas
+            'datas': self.datas,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):

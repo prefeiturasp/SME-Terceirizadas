@@ -1,6 +1,7 @@
 from datetime import date
 
 from rest_framework import fields, serializers
+from rest_framework.exceptions import NotAuthenticated
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
@@ -74,6 +75,7 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         queryset=UnidadeMedida.objects.all(),
         allow_null=True
     )
+    password = serializers.CharField(required=False)
     qtd_total_programada = serializers.FloatField(required=False)
     tipo_embalagem = serializers.ChoiceField(
         choices=Cronograma.TIPO_EMBALAGEM_CHOICES, required=False, allow_blank=True)
@@ -102,6 +104,14 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
                 cronograma=cronograma,
                 **programacao
             )
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        cadastro_finalizado = attrs.get('cadastro_finalizado', None)
+        if cadastro_finalizado and not user.verificar_autenticidade(attrs.pop('password', None)):
+            raise NotAuthenticated(
+                'Assinatura do cronograma não foi validada. Verifique sua senha.')
+        return super().validate(attrs)
 
     def create(self, validated_data):
         contrato = validated_data.get('contrato', None)

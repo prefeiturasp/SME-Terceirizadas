@@ -91,18 +91,42 @@ def gera_pdf_relatorio_produtos_homologados_async(user, nome_arquivo, data, perf
         total_marcas = qs_produtos.values_list('marca__nome', flat=True).distinct().count()
         total_produtos = len(queryset)
 
-        data['quantidade_marcas'] = total_marcas
-        data['quantidade_homologados'] = total_produtos
-        data['tipo_usuario'] = tipo_usuario
+        filtros_dict = [
+            ('Agrupado por nome e marca', 'Sim' if data.get('agrupado_por_nome_e_marca') == 'true' else 'Não'),
+            ('Edital', data.get('nome_edital')),
+            ('Marca do Produto', data.get('nome_marca')),
+            ('Fabricante do Produto', data.get('nome_fabricante')),
+            ('Nome do Produto', data.get('nome_produto')),
+            ('Nome da Terceirizada', data.get('nome_terceirizada')),
+            ('Homologados até', data.get('data_homologacao')),
+            ('Tipo', data.get('tipo'))
+        ]
+
+        filtros = dict(f for f in filtros_dict if f[1] is not None)
+
+        mapping = {
+            'escola': 'Escola',
+            'terceirizada': 'Terceirizada',
+        }
+
+        tipo_usuario = mapping.get(tipo_usuario, 'Outros')
+
+        dados = dict(data)
+        dados['quantidade_marcas'] = total_marcas
+        dados['quantidade_homologados'] = total_produtos
+        dados['tipo_usuario'] = tipo_usuario
 
         if agrupado_nome_marca:
             produtos_agrupados = hom_produto_painel_viewset.produtos_agrupados_nome_marca(
                 data.get('nome_edital'), qs_produtos, 0, len(queryset))
-            arquivo = relatorio_marcas_por_produto_homologacao(produtos=produtos_agrupados, filtros=data)
+
+            arquivo = relatorio_marcas_por_produto_homologacao(produtos=produtos_agrupados, dados=dados,
+                                                               filtros=filtros)
         else:
             produtos_agrupados = hom_produto_painel_viewset.produtos_sem_agrupamento(
                 data.get('nome_edital'), qs_homs, 0, len(queryset))
-            arquivo = relatorio_produtos_agrupado_terceirizada(tipo_usuario, produtos_agrupados, data)
+
+            arquivo = relatorio_produtos_agrupado_terceirizada(tipo_usuario, produtos_agrupados, dados, filtros)
 
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
