@@ -720,7 +720,7 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='filtros')
     def filtros(self, request):
         terceirizada = request.user.vinculo_atual.instituicao
-        lotes = terceirizada.lotes.filter(escolas__isnull=False)
+        lotes = terceirizada.lotes.filter(escolas__isnull=False).distinct()
         diretorias_regionais_uuids = lotes.values_list('diretoria_regional__uuid', flat=True).distinct()
         diretorias_regionais = DiretoriaRegional.objects.filter(uuid__in=diretorias_regionais_uuids)
         escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
