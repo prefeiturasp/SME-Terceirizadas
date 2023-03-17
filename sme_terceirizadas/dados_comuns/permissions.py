@@ -1,7 +1,7 @@
 from rest_framework.permissions import BasePermission
 
 from ..escola.models import Codae, DiretoriaRegional, Escola
-from ..medicao_inicial.models import SolicitacaoMedicaoInicial
+from ..medicao_inicial.models import Medicao, SolicitacaoMedicaoInicial
 from ..terceirizada.models import Terceirizada
 from .constants import (
     ADMINISTRADOR_CODAE_DILOG_CONTABIL,
@@ -83,6 +83,8 @@ class UsuarioDiretoriaRegional(BasePermission):
         try:  # solicitacoes normais
             if isinstance(obj, SolicitacaoMedicaoInicial):
                 retorno = usuario.vinculo_atual.instituicao == obj.escola.diretoria_regional
+            elif isinstance(obj, Medicao):
+                retorno = usuario.vinculo_atual.instituicao == obj.solicitacao_medicao_inicial.escola.diretoria_regional
             else:
                 retorno = usuario.vinculo_atual.instituicao in [obj.escola.diretoria_regional, obj.rastro_dre]
         except AttributeError:  # solicitacao unificada
