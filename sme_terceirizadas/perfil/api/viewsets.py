@@ -388,7 +388,7 @@ def exportar_planilha_importacao_usuarios_perfil_dre(request, **kwargs):
         )
     dv = DataValidation(
         type='list',
-        formula1='"COGESTOR, ADMINISTRADOR_DRE"',
+        formula1='"COGESTOR_DRE"',
         allow_blank=True
     )
     dv.error = 'Perfil Inválido'

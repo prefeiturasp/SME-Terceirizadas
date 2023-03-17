@@ -19,7 +19,7 @@ perfil_administrador_escola, created = Perfil.objects.get_or_create(
 )
 
 perfil_cogestor_dre, created = Perfil.objects.get_or_create(
-    nome='COGESTOR',
+    nome='COGESTOR_DRE',
     ativo=True,
     super_usuario=True
 )
@@ -28,7 +28,7 @@ perfil_administrador_diretoria_regional, created = Perfil.objects.get_or_create(
     nome='ADMINISTRADOR_DRE',
     ativo=True,
     super_usuario=True
-)
+) # PODE APAGAR?
 
 perfil_usuario_nutri_codae, created = Perfil.objects.get_or_create(
     nome='COORDENADOR_DIETA_ESPECIAL',

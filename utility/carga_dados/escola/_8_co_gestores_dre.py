@@ -79,15 +79,11 @@ def atribui_e_salva_cargos_a_dre(diretoria_regional, cargos):
 
 def percorre_data_frame():
     perfil_gestor, created = Perfil.objects.get_or_create(
-        nome='COGESTOR',
+        nome='COGESTOR_DRE',
         ativo=True,
         super_usuario=True
     )
-    perfil_suplente, created = Perfil.objects.get_or_create(
-        nome='SUPLENTE',
-        ativo=True,
-        super_usuario=True
-    )
+
     for index, row in df.iterrows():
         dre = busca_diretoria_regional(row['DRE'])
         cogestor = cria_usuario_gestor_ou_suplente(
@@ -111,7 +107,7 @@ def percorre_data_frame():
                 },
                 {
                     'usuario': suplente,
-                    'perfil': perfil_suplente
+                    'perfil': perfil_gestor
                 },
             ]
         )

@@ -52,7 +52,7 @@ def cria_vinculos():
     perfil = {
         'perfil_diretor_escola': Perfil.objects.get(nome='DIRETOR_UE'),
         'perfil_administrador_ue': Perfil.objects.get(nome='ADMINISTRADOR_UE'),
-        'perfil_cogestor_dre': Perfil.objects.get(nome='COGESTOR'),
+        'perfil_cogestor_dre': Perfil.objects.get(nome='COGESTOR_DRE'),
         'perfil_usuario_codae': Perfil.objects.get(nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA'),  # noqa
         'perfil_usuario_dilog': Perfil.objects.get(nome='COORDENADOR_LOGISTICA'),  # noqa
         'perfil_usuario_nutri_codae': Perfil.objects.get(nome='COORDENADOR_DIETA_ESPECIAL'),  # noqa

@@ -11,12 +11,12 @@
 - model: perfil.perfil
   pk: 3
   fields:
-    nome: COGESTOR
+    nome: COGESTOR_DRE
     visão: DRE
 - model: perfil.perfil
   pk: 4
   fields:
-    nome: ADMINISTRADOR_DRE
+    nome: ADMINISTRADOR_DRE #PODE APAGAR?
     visão: DRE
 - model: perfil.perfil
   pk: 5
