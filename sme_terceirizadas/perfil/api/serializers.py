@@ -449,7 +449,8 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
 
             if not eh_servidor:
                 usuario.envia_email_primeiro_acesso_usuario_empresa()
-
+            else:
+                usuario.envia_email_primeiro_acesso_usuario_servidor()
             return usuario
 
         except IntegrityError as e:
