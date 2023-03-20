@@ -13,10 +13,10 @@ class Command(BaseCommand):
     """
 
     def formatar_tamanho_celulas(self, ws):
-        for column in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
-            ws.column_dimensions[column].width = 25 if column in ['C', 'E', 'F', 'H'] else 50
+        for column in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+            ws.column_dimensions[column].width = 25 if column in ['C', 'E', 'F'] else 50
 
-    def exportar_planilha(self, cabecalho, dicts_para_planilha):
+    def exportar_planilha(self, cabecalho, dicts_para_planilha, nome):
         wb = Workbook()
         ws = wb.active
         self.formatar_tamanho_celulas(ws)
@@ -35,13 +35,13 @@ class Command(BaseCommand):
             ws.cell(row=ind, column=5, value=dict_solicitacao['COD EOL ALUNO'])
             ws.cell(row=ind, column=6, value=dict_solicitacao['LOTE'])
             ws.cell(row=ind, column=7, value=dict_solicitacao['NOME PROTOCOLO IMPORTADO DIETA'])
-            ws.cell(row=ind, column=8, value=dict_solicitacao['PROTOCOLO VALIDO'])
 
-        wb.save('relacao-protocolos.xlsx')
+        wb.save(f'relacao-protocolos-{nome}.xlsx')
 
     def handle(self, *args, **options):
         solicitacoes = SolicitacaoDietaEspecial.objects.filter(eh_importado=True)
-        dicts_para_planilha = []
+        dicts_protocolo_invalidos = []
+        dicts_protocolo_validos = []
         for solicitacao in solicitacoes:
             nome_protocolo = solicitacao.nome_protocolo
             editais_uuids = solicitacao.escola.lote.contratos_do_lote.values_list('edital__uuid', flat=True)
@@ -56,7 +56,11 @@ class Command(BaseCommand):
                 'LOTE': solicitacao.escola.lote.nome,
                 'NOME PROTOCOLO IMPORTADO DIETA': nome_protocolo
             }
-            dict_solicitacao['PROTOCOLO VALIDO'] = 'Sim' if nome_protocolo in nomes_protocolos else 'Não'
-            dicts_para_planilha.append(dict_solicitacao)
-        cabecalho = [key for key in dicts_para_planilha[0]]
-        self.exportar_planilha(cabecalho, dicts_para_planilha)
+            if nome_protocolo in nomes_protocolos:
+                dicts_protocolo_validos.append(dict_solicitacao)
+            else:
+                dicts_protocolo_invalidos.append(dict_solicitacao)
+        cabecalho = ['UUID', 'NOME ESCOLA', 'COD EOL ESCOLA', 'NOME ALUNO',
+                     'COD EOL ALUNO', 'LOTE', 'NOME PROTOCOLO IMPORTADO DIETA']
+        self.exportar_planilha(cabecalho, dicts_protocolo_validos, 'validos')
+        self.exportar_planilha(cabecalho, dicts_protocolo_invalidos, 'invalidos')
