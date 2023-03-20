@@ -38,6 +38,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     EmbalagemQldSerializer,
     LaboratorioSerializer,
     PainelCronogramaSerializer,
+    PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaSerializer
 )
 from sme_terceirizadas.pre_recebimento.models import (
@@ -47,6 +48,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     Laboratorio,
     SolicitacaoAlteracaoCronograma
 )
+from sme_terceirizadas.pre_recebimento.utils import DashboardSolicitacaoAlteracaoCronogramaProfiles
 
 from ...dados_comuns.constants import ADMINISTRADOR_FORNECEDOR
 from ...dados_comuns.models import LogSolicitacoesUsuario
@@ -315,3 +317,17 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             self.permission_classes = (PermissaoParaCriarSolicitacoesAlteracaoCronograma,)
 
         return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
+
+    @action(detail=False, methods=['GET'],
+            url_path='dashboard')  # TODO Adicionar permissions
+    def dashboard(self, requests):
+        dados = []
+        lista_status = DashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
+            self.request.user.vinculos.first().perfil.nome)
+        for status in lista_status:
+            dados.append({
+                'status': status,
+                'dados': SolicitacaoAlteracaoCronograma.objects.get_dashboard(status)
+                # .filter(cronograma__empresa__razao_social="PAO FORTE")
+            })
+        return Response(PainelSolicitacaoAlteracaoCronogramaSerializer(dados, many=True).data)

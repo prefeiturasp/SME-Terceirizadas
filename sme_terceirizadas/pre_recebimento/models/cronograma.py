@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import OuterRef
 from multiselectfield import MultiSelectField
 
 from ...dados_comuns.behaviors import Logs, ModeloBase, TemIdentificadorExternoAmigavel
@@ -123,6 +124,13 @@ class AlteracaoCronogramaEtapa(models.Model):
 class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
     def em_analise(self):
         return self.filter(status=CronogramaAlteracaoWorkflow.EM_ANALISE)
+
+    def get_dashboard(self, status, init=0, end=6):
+        log = LogSolicitacoesUsuario.objects.filter(uuid_original=OuterRef('uuid')).order_by('-criado_em'
+                                                                                             ).values('criado_em')[:1]
+        qs = self.filter(status__iexact=status).annotate(
+            log_criado_em=log).order_by('-log_criado_em')[init:end]
+        return qs
 
 
 class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma):
