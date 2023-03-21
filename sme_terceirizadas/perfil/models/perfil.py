@@ -46,6 +46,19 @@ class Perfil(ExportModelOperationsMixin('perfil'), Nomeavel, Descritivel, Ativav
     def by_nome(cls, nome):
         return Perfil.objects.get(nome__iexact=nome)
 
+    @classmethod
+    def cargos_diretor(cls):
+        return [
+            {'codigo': 3360,
+             'cargo': 'DIRETOR DE ESCOLA'},
+            {'codigo': 3085,
+             'cargo': 'ASSISTENTE DE DIREÇÃO DE ESCOLA'}
+        ]
+
+    @classmethod
+    def cargos_adm_escola(cls):
+        return [{'codigo': 3379, 'cargo': 'COORDENADOR PEDAGÓGICO'}]
+
     class Meta:
         verbose_name = 'Perfil'
         verbose_name_plural = 'Perfis'

@@ -279,6 +279,18 @@ class EOLServicoSGP:
         except Exception as err:
             raise EOLException(str(err))
 
+    @classmethod
+    def chamada_externa_dados_usuario(cls, registro_funcional):
+        return requests.get(f'{DJANGO_EOL_SGP_API_URL}/funcionarios/DadosSigpae/{registro_funcional}',
+                            headers=cls.HEADER)
+
+    @classmethod
+    def get_dados_usuario(cls, registro_funcional):
+        from utility.carga_dados.perfil.importa_dados import logger
+        logger.info('Checa dados do usuário no CoreSSO.')
+        response = cls.chamada_externa_dados_usuario(registro_funcional)
+        return response
+
 
 class EOLPapaService:
     TIMEOUT = 90

@@ -2,64 +2,64 @@
   pk: 1
   fields:
     nome: DIRETOR_UE
-    visão: ESCOLA
+    visao: ESCOLA
 - model: perfil.perfil
   pk: 2
   fields:
     nome: ADMINISTRADOR_UE
-    visão: ESCOLA
+    visao: ESCOLA
 - model: perfil.perfil
   pk: 3
   fields:
     nome: COGESTOR
-    visão: DRE
+    visao: DRE
 - model: perfil.perfil
   pk: 4
   fields:
     nome: ADMINISTRADOR_DRE
-    visão: DRE
+    visao: DRE
 - model: perfil.perfil
   pk: 5
   fields:
     nome: ADMINISTRADOR_REPRESENTANTE_CODAE
-    visão: CODAE
+    visao: CODAE
 - model: perfil.perfil
   pk: 6
   fields:
     nome: COORDENADOR_CODAE_DILOG_LOGISTICA
-    visão: CODAE
+    visao: CODAE
 - model: perfil.perfil
   pk: 7
   fields:
     nome: COORDENADOR_LOGISTICA
-    visão: CODAE
+    visao: CODAE
 - model: perfil.perfil
   pk: 8
   fields:
     nome: ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
-    visão: CODAE
+    visao: CODAE
 - model: perfil.perfil
   pk: 9
   fields:
     nome: ADMINISTRADOR_CODAE_DILOG_CONTABIL
-    visão: CODAE
+    visao: CODAE
 - model: perfil.perfil
   pk: 10
   fields:
     nome: ADMINISTRADOR_CODAE_DILOG_JURIDICO
-    visão: CODAE
+    visao: CODAE
 - model: perfil.perfil
   pk: 11
   fields:
     nome: ADMINISTRADOR_CODAE_GABINETE
-    visão: CODAE
+    visao: CODAE
 - model: perfil.perfil
   pk: 12
   fields:
     nome: ADMINISTRADOR_EMPRESA
-    visão: EMPRESA
+    visao: EMPRESA
 - model: perfil.perfil
   pk: 13
   fields:
     nome: USUARIO_EMPRESA
-    visão: EMPRESA
+    visao: EMPRESA
