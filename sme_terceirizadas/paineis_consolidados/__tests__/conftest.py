@@ -316,7 +316,7 @@ def solicitacoes_ano_dre(client, django_user_model, request, diretoria_regional2
                                                         cpf='12312312332')
     client.login(username=email, password=password)
 
-    perfil_adm_dre = mommy.make('Perfil', nome='ADMINISTRADOR_DRE', ativo=True)
+    perfil_adm_dre = mommy.make('Perfil', nome='COGESTOR_DRE', ativo=True)
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user_dre, instituicao=diretoria_regional2, perfil=perfil_adm_dre,
@@ -432,7 +432,7 @@ def client_autenticado_dre_paineis_consolidados(client, django_user_model, diret
     user_escola = django_user_model.objects.create_user(username=email2, password=password, email=email2,
                                                         registro_funcional='123123', cpf='12312312332')
     perfil_cogestor = mommy.make('Perfil',
-                                 nome=constants.COGESTOR,
+                                 nome=constants.COGESTOR_DRE,
                                  ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo',

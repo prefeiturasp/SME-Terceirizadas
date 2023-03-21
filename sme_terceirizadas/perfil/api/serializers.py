@@ -16,11 +16,11 @@ from sme_terceirizadas.perfil.models.usuario import (
 
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
-    ADMINISTRADOR_DRE,
     ADMINISTRADOR_EMPRESA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
-    ADMINISTRADOR_SUPERVISAO_NUTRICAO
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+    COGESTOR_DRE
 )
 from ...dados_comuns.models import Contato
 from ...eol_servico.utils import EOLException, EOLService
@@ -319,7 +319,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])  # noqa
             usuario_pode_efetuar_cadastro(instance)
         if instance.vinculo_atual.perfil.nome in [
-            ADMINISTRADOR_DRE,
+            COGESTOR_DRE,
             ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
             ADMINISTRADOR_DIETA_ESPECIAL,
             ADMINISTRADOR_GESTAO_PRODUTO,
@@ -449,7 +449,8 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
 
             if not eh_servidor:
                 usuario.envia_email_primeiro_acesso_usuario_empresa()
-
+            else:
+                usuario.envia_email_primeiro_acesso_usuario_servidor()
             return usuario
 
         except IntegrityError as e:

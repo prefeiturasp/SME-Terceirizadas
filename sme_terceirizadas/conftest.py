@@ -68,7 +68,7 @@ def client_autenticado_diretoria_regional(client, django_user_model):
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_cogestor = mommy.make('Perfil',
-                                 nome=constants.COGESTOR,
+                                 nome=constants.COGESTOR_DRE,
                                  ativo=True)
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
     hoje = datetime.date.today()

@@ -172,7 +172,7 @@ def client_autenticado_diretoria_regional(client, django_user_model, escola):
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_cogestor = mommy.make('Perfil',
-                                 nome='COGESTOR',
+                                 nome='COGESTOR_DRE',
                                  ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo',

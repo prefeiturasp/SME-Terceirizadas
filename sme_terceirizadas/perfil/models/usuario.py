@@ -385,6 +385,22 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
             html=html
         )
 
+    def envia_email_primeiro_acesso_usuario_servidor(self):
+        titulo = 'Credenciais de Primeiro Acesso'
+        template = 'email_primeiro_acesso_usuario_servidor.html'
+        dados_template = {
+            'titulo': titulo, 'url': f'{base_url}/login', 'nome': self.nome,
+            'senha_provisoria': senha_provisoria + self.cpf[-4:]
+        }
+        html = render_to_string(template, dados_template)
+        self.email_user(
+            subject='[SIGPAE] Credenciais de Acesso ao SIGPAE',
+            message='',
+            template=template,
+            dados_template=dados_template,
+            html=html
+        )
+
     class Meta:
         ordering = ('-super_admin_terceirizadas',)
 
