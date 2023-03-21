@@ -9,7 +9,7 @@ logger = logging.getLogger('sigpae.atualiza_vinculos_de_perfis_removidos')
 
 
 class Command(BaseCommand):
-    help = 'Migra usuários que possuam vinculos de perfis extintos para novos perfis.'
+    help = 'Migra usuários que possuam vinculos de SUPLENTE, ADMINISTRADOR E COGESTOR para COGESTOR_DRE.'
 
     def handle(self, *args, **options):
         self.unificar_perfis_dre()
