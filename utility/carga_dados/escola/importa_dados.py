@@ -414,7 +414,7 @@ def cria_usuario_cogestor(items):
     '''
     cogestores_unicos = len(set([item['ASSISTENTE DE DIRETOR'] for item in items if item['ASSISTENTE DE DIRETOR'] != '']))  # noqa
     perfil_diretor, created = Perfil.objects.get_or_create(
-        nome='COGESTOR',
+        nome='COGESTOR_DRE',
         ativo=True,
         super_usuario=True
     )

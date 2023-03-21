@@ -11,12 +11,7 @@
 - model: perfil.perfil
   pk: 3
   fields:
-    nome: COGESTOR
-    visão: DRE
-- model: perfil.perfil
-  pk: 4
-  fields:
-    nome: ADMINISTRADOR_DRE
+    nome: COGESTOR_DRE
     visão: DRE
 - model: perfil.perfil
   pk: 5

@@ -292,20 +292,15 @@ def users_cogestor_diretoria_regional(client, django_user_model, request, usuari
     client.login(username=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
-                                    uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+                                    uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', codigo_eol='0002')
 
-    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_DRE', ativo=False,
-                                  uuid='48330a6f-c444-4462-971e-476452b328b2')
     perfil_cogestor = mommy.make(
-        'Perfil', nome='COGESTOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+        'Perfil', nome='COGESTOR_DRE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
-    mommy.make('Vinculo', usuario=user, instituicao=diretoria_regional, perfil=perfil_professor,
-               ativo=False, data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30)
-               )  # finalizado
     mommy.make('Vinculo', usuario=user, instituicao=diretoria_regional, perfil=perfil_cogestor,
                data_inicial=hoje, ativo=True)
-    mommy.make('Vinculo', usuario=usuario_2, instituicao=diretoria_regional, perfil=perfil_professor,
+    mommy.make('Vinculo', usuario=usuario_2, instituicao=diretoria_regional, perfil=perfil_cogestor,
                data_inicial=hoje, ativo=True)
 
     return client, email, password, rf, cpf, user

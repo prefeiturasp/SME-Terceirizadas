@@ -762,7 +762,7 @@ def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola, t
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888889')
-    perfil_cogestor = mommy.make('Perfil', nome='COGESTOR', ativo=True)
+    perfil_cogestor = mommy.make('Perfil', nome='COGESTOR_DRE', ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.diretoria_regional, perfil=perfil_cogestor,
                data_inicial=hoje, ativo=True)

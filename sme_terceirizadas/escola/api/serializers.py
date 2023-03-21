@@ -401,6 +401,8 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
     def get_codigo_eol(self, obj):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.codigo_eol
+        if isinstance(obj.instituicao, DiretoriaRegional):
+            return obj.instituicao.codigo_eol
 
     def get_tipo_unidade_escolar(self, obj):
         if isinstance(obj.instituicao, Escola):
