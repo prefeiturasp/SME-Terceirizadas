@@ -292,7 +292,7 @@ def users_cogestor_diretoria_regional(client, django_user_model, request, usuari
     client.login(username=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
-                                    uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+                                    uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', codigo_eol="0002")
 
     perfil_cogestor = mommy.make(
         'Perfil', nome='COGESTOR_DRE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')

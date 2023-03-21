@@ -301,7 +301,7 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
             'instituicao': {
                 'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
                 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                'codigo_eol': None,
+                'codigo_eol': "0002",
                 'quantidade_alunos': 0,
                 'lotes': [],
                 'periodos_escolares': [],
