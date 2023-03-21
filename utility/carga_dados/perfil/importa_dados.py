@@ -976,14 +976,13 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
             vinculo.ativo = False
             vinculo.data_final = date.today()
             vinculo.save()
-        else:
-            Vinculo.objects.create(
-                instituicao=self.get_instituicao(dados_usuario),
-                perfil=self.get_perfil(dados_usuario),
-                usuario=usuario,
-                data_inicial=date.today(),
-                ativo=True,
-            )
+        Vinculo.objects.create(
+            instituicao=self.get_instituicao(dados_usuario),
+            perfil=self.get_perfil(dados_usuario),
+            usuario=usuario,
+            data_inicial=date.today(),
+            ativo=True,
+        )
 
     def validacao_inicial(self) -> bool:
         return self.existe_conteudo()
