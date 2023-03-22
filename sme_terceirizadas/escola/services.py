@@ -48,10 +48,10 @@ class NovoSGPServicoLogado:
         'Content-Type': 'application/json'
     }
 
-    def pegar_token_acesso(self):
+    def pegar_token_acesso(self, login=None, senha=None):
         data = {
-            'login': DJANGO_NOVO_SGP_API_LOGIN,
-            'senha': DJANGO_NOVO_SGP_API_PASSWORD
+            'login': login or DJANGO_NOVO_SGP_API_LOGIN,
+            'senha': senha or DJANGO_NOVO_SGP_API_PASSWORD
         }
         response = requests.post(f'{DJANGO_NOVO_SGP_API_URL}/v1/autenticacao', json=data, headers=self.headers)
         return response

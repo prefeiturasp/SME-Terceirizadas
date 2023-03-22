@@ -783,10 +783,11 @@ def importa_usuarios_perfil_dre(usuario: Usuario, arquivo: ImportacaoPlanilhaUsu
 class ProcessaPlanilhaUsuarioServidorCoreSSO:
     def __init__(self, usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioServidorCoreSSO) -> None:
         """Prepara atributos importantes para o processamento da planilha."""
-        self.usuario = usuario
-        self.arquivo = arquivo
-        self.erros = []
-        self.worksheet = self.abre_worksheet()
+        if isinstance(usuario, Usuario) and isinstance(arquivo, ImportacaoPlanilhaUsuarioServidorCoreSSO):
+            self.usuario = usuario
+            self.arquivo = arquivo
+            self.erros = []
+            self.worksheet = self.abre_worksheet()
 
     @property
     def path(self):
@@ -868,8 +869,12 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
         return True
 
     def monta_dicionario_de_dados(self, linha: tuple) -> dict:
-        return {key: linha[index].value
-                for index, key in enumerate(ImportacaoPlanilhaUsuarioServidorCoreSSOSchema.schema()['properties'].keys())}
+        try:
+            return {key: linha[index].value for index, key in
+                    enumerate(ImportacaoPlanilhaUsuarioServidorCoreSSOSchema.schema()['properties'].keys())}
+        except AttributeError:
+            return {key: linha[index] for index, key in
+                    enumerate(ImportacaoPlanilhaUsuarioServidorCoreSSOSchema.schema()['properties'].keys())}
 
     def cria_usuario_servidor(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):  # noqa C901
         try:
