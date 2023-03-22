@@ -8,7 +8,7 @@ class DashboardSolicitacaoAlteracaoCronogramaProfiles:
     def get_dashboard_status(perfil: str) -> list:
         status = {
             DINUTRE_DIRETORIA: [
-                'EM_ANALISE',
+                'CRONOGRAMA_CIENTE',
             ]
         }
         if perfil not in status:

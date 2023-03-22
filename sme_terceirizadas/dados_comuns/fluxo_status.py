@@ -3051,17 +3051,20 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     EM_ANALISE = 'EM_ANALISE'
+    CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
     ACEITA = 'ACEITA'
     NEGADA = 'NEGADA'
 
     states = (
         (EM_ANALISE, 'Em análise'),
+        (CRONOGRAMA_CIENTE, 'Cronograma Ciente'),
         (ACEITA, 'Aceita'),
         (NEGADA, 'Negada'),
     )
 
     transitions = (
         ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
+        ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE)
     )
 
     initial_state = EM_ANALISE
