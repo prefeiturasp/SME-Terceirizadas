@@ -648,4 +648,4 @@ class AlunosMatriculadosPeriodoEscolaCompletoSerializer(serializers.ModelSeriali
 
     class Meta:
         model = AlunosMatriculadosPeriodoEscola
-        fields = ('periodo_escolar', 'escola', 'alunos_por_faixa_etaria', 'quantidade_alunos')
+        fields = ('periodo_escolar', 'escola', 'alunos_por_faixa_etaria', 'quantidade_alunos', 'tipo_turma')
