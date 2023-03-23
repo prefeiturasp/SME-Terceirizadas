@@ -14,3 +14,7 @@
   pk: 4
   fields:
     nome: DIETA ESPECIAL - TIPO B
+- model: medicao_inicial.categoriamedicao
+  pk: 5
+  fields:
+    nome: SOLICITAÇÕES DE ALIMENTAÇÃO
