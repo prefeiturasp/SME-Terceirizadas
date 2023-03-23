@@ -323,7 +323,7 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=True, permission_classes=(PermissaoParaDarCienciaAlteracaoCronograma,),
             methods=['patch'], url_path='cronograma-ciente')
-    def codae_assina(self, request, uuid):
+    def cronograma_ciente(self, request, uuid):
         usuario = request.user
         justificativa_cronograma = request.data.get('justificativa_cronograma')
         try:
