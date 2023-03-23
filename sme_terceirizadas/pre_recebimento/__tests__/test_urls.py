@@ -3,7 +3,12 @@ import json
 from rest_framework import status
 
 from sme_terceirizadas.dados_comuns import constants
-from sme_terceirizadas.pre_recebimento.models import Cronograma, EmbalagemQld, Laboratorio
+from sme_terceirizadas.pre_recebimento.models import (
+    Cronograma,
+    EmbalagemQld,
+    Laboratorio,
+    SolicitacaoAlteracaoCronograma
+)
 
 
 def test_url_endpoint_cronograma(client_autenticado_codae_dilog, armazem, contrato, empresa):
@@ -59,6 +64,21 @@ def test_url_list_solicitacoes_alteracao_cronograma(client_autenticado_dilog_cro
     assert 'count' in json
     assert 'next' in json
     assert 'previous' in json
+
+
+def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_dilog_cronograma,
+                                                           solicitacao_cronograma_em_analise):
+    data = json.dumps({
+        'justificativa_cronograma': 'teste justificativa'
+    })
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_em_analise.uuid}/cronograma-ciente/',
+        data, content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_em_analise.uuid)
+
+    assert obj.justificativa_dilog_cronograma == 'teste justificativa'
+    assert obj.status == 'CRONOGRAMA_CIENTE'
 
 
 def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):

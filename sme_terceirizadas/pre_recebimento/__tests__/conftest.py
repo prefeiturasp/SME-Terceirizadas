@@ -79,6 +79,29 @@ def emabalagem_qld():
 
 
 @pytest.fixture
+def cronograma_solicitado_alteracao(armazem, contrato, empresa):
+    return mommy.make(
+        'Cronograma',
+        numero='00222/2022',
+        contrato=contrato,
+        empresa=empresa,
+        armazem=armazem,
+        status='SOLICITADO_ALTERACAO'
+    )
+
+
+@pytest.fixture
+def solicitacao_cronograma_em_analise(cronograma):
+
+    return mommy.make(
+        'SolicitacaoAlteracaoCronograma',
+        numero_solicitacao='00222/2022',
+        cronograma=cronograma,
+        status='EM_ANALISE'
+    )
+
+
+@pytest.fixture
 def cronograma_assinado_fornecedor(armazem, contrato, empresa):
     return mommy.make(
         'Cronograma',
