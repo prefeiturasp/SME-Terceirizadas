@@ -325,11 +325,10 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path='cronograma-ciente')
     def cronograma_ciente(self, request, uuid):
         usuario = request.user
-        justificativa_cronograma = request.data.get('justificativa_cronograma')
+        justificativa = request.data.get('justificativa_cronograma')
         try:
             solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
-            solicitacao_cronograma.cronograma_ciente(user=usuario)
-            solicitacao_cronograma.justificativa_dilog_cronograma = justificativa_cronograma
+            solicitacao_cronograma.cronograma_ciente(user=usuario, justificativa=justificativa)
             solicitacao_cronograma.save()
             serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
             return Response(serializer.data)

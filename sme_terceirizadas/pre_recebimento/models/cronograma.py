@@ -150,7 +150,6 @@ class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel
     justificativa = models.TextField('Justificativa de solicitação pelo fornecedor', blank=True)
     usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
     numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=50, unique=True)
-    justificativa_dilog_cronograma = models.TextField('Justificativa de solicitação pela dilog cronograma', blank=True, null=True) # noqa DJ01
 
     objects = SolicitacaoAlteracaoCronogramaQuerySet.as_manager()
 

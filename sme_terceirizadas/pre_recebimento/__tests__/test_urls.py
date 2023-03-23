@@ -76,8 +76,6 @@ def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_di
         data, content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
     obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_em_analise.uuid)
-
-    assert obj.justificativa_dilog_cronograma == 'teste justificativa'
     assert obj.status == 'CRONOGRAMA_CIENTE'
 
 
