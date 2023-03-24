@@ -140,6 +140,24 @@ class EOLServicoSGP:
             raise EOLException(f'API EOL do SGP está com erro. Erro: {str(response)}, Status: {response.status_code}')
 
     @classmethod
+    def usuario_existe_core_sso(cls, login):
+        from utility.carga_dados.perfil.importa_dados import logger
+
+        logger.info('Consultando informação de %s.', login)
+        try:
+            response = requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/UsuarioExisteCoreSSO/',
+                                     headers=cls.HEADER, data={'usuario': login})
+            if response.status_code == status.HTTP_200_OK:
+                logger.info(f'Usuário {login} existe no CoreSSO.')
+                return True
+            else:
+                logger.info(f'Usuário {login} não existe no CoreSSO: {response}')
+                return False
+        except Exception as err:
+            logger.info(f'Erro ao procurar usuário {login} no CoreSSO: {str(err)}')
+            raise EOLException(str(err))
+
+    @classmethod
     def usuario_core_sso_or_none(cls, login):
         from utility.carga_dados.perfil.importa_dados import logger
 

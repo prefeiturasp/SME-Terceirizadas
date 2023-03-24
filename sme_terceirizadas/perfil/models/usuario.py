@@ -340,11 +340,12 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         )
 
     @classmethod
-    def cria_ou_atualiza_usuario_sigpae(cls, dados_usuario, eh_servidor):
+    def cria_ou_atualiza_usuario_sigpae(cls, dados_usuario, eh_servidor, existe_core_sso=False):
         if eh_servidor:
             usuario, criado = Usuario.objects.update_or_create(
                 username=dados_usuario['login'],
                 registro_funcional=dados_usuario['login'],
+                last_login=datetime.datetime.now() if existe_core_sso else None,
                 defaults={
                     'email': dados_usuario.get('email', ''),
                     'nome': dados_usuario['nome'],
