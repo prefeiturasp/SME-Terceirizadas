@@ -22,6 +22,7 @@ class EOLUsuarioCoreSSO:
 
         try:
             info_user_core = EOLServicoSGP.usuario_core_sso_or_none(login=login)
+
             if not info_user_core:
                 # Valida o nome
                 if not dados_usuario.nome:

@@ -4,11 +4,9 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.utils import IntegrityError
-from django.template.loader import render_to_string
 from django_prometheus.models import ExportModelOperationsMixin
 
-from ...dados_comuns.behaviors import Ativavel, Descritivel, Nomeavel, TemChaveExterna
-from ...dados_comuns.tasks import envia_email_unico_task
+from sme_terceirizadas.dados_comuns.behaviors import Ativavel, Descritivel, Nomeavel, TemChaveExterna
 
 
 class Perfil(ExportModelOperationsMixin('perfil'), Nomeavel, Descritivel, Ativavel, TemChaveExterna):
@@ -109,24 +107,9 @@ class Vinculo(ExportModelOperationsMixin('vinculo_perfil'), Ativavel, TemChaveEx
         return status
 
     def finalizar_vinculo(self):
-        self.usuario.is_active = False
-        self.usuario.save()
         self.ativo = False
         self.data_final = datetime.date.today()
         self.save()
-        titulo = 'Vínculo finalizado'
-        conteudo = 'Seu vínculo com o SIGPAE foi finalizado por seu superior.'
-        template = 'email_conteudo_simples.html'
-        dados_template = {'titulo': titulo, 'conteudo': conteudo}
-        html = render_to_string(template, dados_template)
-        envia_email_unico_task.delay(
-            assunto='Vínculo finalizado - SIGPAE',
-            corpo='',
-            email=self.usuario.email,
-            template=template,
-            dados_template=dados_template,
-            html=html
-        )
 
     def ativar_vinculo(self):
         self.ativo = True
