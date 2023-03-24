@@ -1,6 +1,8 @@
+
 import logging
 import re
 
+import environ
 from django.db import transaction
 from django.db.utils import IntegrityError
 from munch import Munch
@@ -38,6 +40,8 @@ from .validators import (
     usuario_nao_possui_vinculo_valido,
     usuario_pode_efetuar_cadastro
 )
+
+env = environ.Env()
 
 logger = logging.getLogger(__name__)
 
@@ -418,6 +422,12 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
         fields = ['uuid', 'username', 'email', 'nome', 'visao', 'subdivisao', 'perfil', 'instituicao', 'cpf', 'cargo',
                   'eh_servidor']
 
+    def enviar_email(self, usuario, eh_servidor):
+        if not eh_servidor:
+            usuario.envia_email_primeiro_acesso_usuario_empresa()
+        elif env('DJANGO_ENV') == 'production':
+            usuario.envia_email_primeiro_acesso_usuario_servidor()
+
     @transaction.atomic # noqa
     def create(self, validated_data):
         dados_usuario_dict = {
@@ -446,11 +456,7 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
                 eh_servidor=dados_usuario.eh_servidor
             )
             logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
-
-            if not eh_servidor:
-                usuario.envia_email_primeiro_acesso_usuario_empresa()
-            else:
-                usuario.envia_email_primeiro_acesso_usuario_servidor()
+            self.enviar_email(usuario, eh_servidor)
             return usuario
 
         except IntegrityError as e:
