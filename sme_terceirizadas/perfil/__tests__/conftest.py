@@ -35,8 +35,9 @@ def perfis_vinculados(perfil, perfil_distribuidor, perfil_escola):
 
 
 @pytest.fixture
-def escola():
-    return mommy.make('Escola', nome='EscolaTeste', codigo_eol='400221', uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
+def escola(tipo_gestao):
+    return mommy.make('Escola', nome='EscolaTeste', codigo_eol='400221', uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6',
+                      tipo_gestao=tipo_gestao)
 
 
 @pytest.fixture
@@ -519,3 +520,53 @@ def planilha_usuario_externo(arquivo_xls):
 @pytest.fixture
 def planilha_usuario_servidor(arquivo_xls):
     return mommy.make('ImportacaoPlanilhaUsuarioServidorCoreSSO', conteudo=arquivo_xls)
+
+
+@pytest.fixture
+def escola_cei():
+    return mommy.make('Escola', nome='CEI DIRET - JOSE DE MOURA, VER.', codigo_eol='400158')
+
+
+@pytest.fixture
+def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
+    email = 'user@escola.com'
+    rf = '1234567'
+    password = 'admin@123'
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
+                                                    email=email, registro_funcional=rf, cpf='93697506064')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(username=rf, password=password)
+    return client
+
+
+def mocked_response_autentica_coresso_diretor():
+    return {
+        'nome': 'RONALDO DIRETOR',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'login': '1234567',
+        'visoes': ['DIRETOR_UE'],
+        'perfis_por_sistema': [
+            {'sistema': 1004, 'perfis': ['DIRETOR_UE']}
+        ]
+    }
+
+
+def mocked_response_get_dados_usuario_coresso():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'cargos': [
+            {'codigoCargo': 3360,
+             'descricaoCargo': 'DIRETOR DE ESCOLA                       ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO DIRETOR'
+    }
