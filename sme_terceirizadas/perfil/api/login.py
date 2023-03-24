@@ -49,7 +49,7 @@ class LoginView(ObtainJSONWebToken):
         data = {'last_login': last_login, **user_dict, **resp.data}
         return data
 
-    def cria_usuario(self, dados_usuario, nome_perfil):
+    def cria_usuario_no_django_e_no_coresso(self, dados_usuario, nome_perfil):
         tupla_dados = (
             dados_usuario['cargos'][0]['codigoUnidade'],
             dados_usuario['nome'],
@@ -89,9 +89,9 @@ class LoginView(ObtainJSONWebToken):
         if not self.usuario_com_cargo_de_acesso_automatico(dados_usuario):
             raise NovoSGPServicoLogadoException('Usuário não possui permissão de acesso ao SIGPAE')
         if self.usuario_com_cargo_diretor(dados_usuario):
-            self.cria_usuario(dados_usuario, DIRETOR_UE)
+            self.cria_usuario_no_django_e_no_coresso(dados_usuario, DIRETOR_UE)
         elif self.usuario_com_cargo_automatico_adm_escola(dados_usuario):
-            self.cria_usuario(dados_usuario, ADMINISTRADOR_UE)
+            self.cria_usuario_no_django_e_no_coresso(dados_usuario, ADMINISTRADOR_UE)
 
     def eh_perfil_escola(self, vinculo_atual):
         return vinculo_atual.perfil.nome in [ADMINISTRADOR_UE, DIRETOR_UE]
@@ -139,11 +139,20 @@ class LoginView(ObtainJSONWebToken):
             vinculo_atual.finalizar_vinculo()
 
     def checa_se_mantem_acesso_e_ou_altera_dados(self, dados_usuario):
+        hoje = datetime.date.today()
         user = User.objects.get(username=dados_usuario['rf'])
         if not user.existe_vinculo_ativo:
-            raise PermissionDenied('Usuário não possui permissão de acesso ao SIGPAE')
+            if not self.usuario_com_cargo_de_acesso_automatico(dados_usuario):
+                raise PermissionDenied('Usuário não possui permissão de acesso ao SIGPAE')
+            elif self.usuario_com_cargo_diretor(dados_usuario):
+                perfil = Perfil.objects.get(nome=DIRETOR_UE)
+                self.cria_vinculo(user, hoje, dados_usuario, perfil)
+                return
+            elif self.usuario_com_cargo_automatico_adm_escola(dados_usuario):
+                perfil = Perfil.objects.get(nome=ADMINISTRADOR_UE)
+                self.cria_vinculo(user, hoje, dados_usuario, perfil)
+                return
         vinculo_atual = user.vinculo_atual
-        hoje = datetime.date.today()
         if not self.eh_perfil_escola(vinculo_atual):
             return
         self.se_diretor(vinculo_atual, dados_usuario, user, hoje)
