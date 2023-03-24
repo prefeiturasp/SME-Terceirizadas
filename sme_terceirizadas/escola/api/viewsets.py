@@ -35,9 +35,9 @@ from ...escola.api.permissions import (
 from ...escola.api.serializers import (
     AlunoSerializer,
     AlunoSimplesSerializer,
+    AlunosMatriculadosPeriodoEscolaCompletoSerializer,
     CODAESerializer,
     DiretoriaRegionalParaFiltroSerializer,
-    EscolaAunoPeriodoSerializer,
     EscolaParaFiltroSerializer,
     EscolaPeriodoEscolarSerializer,
     LoteNomeSerializer,
@@ -60,6 +60,7 @@ from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..forms import AlunosPorFaixaEtariaForm
 from ..models import (
     Aluno,
+    AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
     DiretoriaRegional,
@@ -744,11 +745,15 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
         if request.query_params.getlist('diretorias_regionais[]'):
             lotes = lotes.filter(diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]'))
         escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
-        escolas = Escola.objects.filter(uuid__in=escolas_uuids, tipo_gestao__nome='TERC TOTAL')
+        alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(escola__uuid__in=escolas_uuids,
+                                                                             escola__tipo_gestao__nome='TERC TOTAL')
         if request.query_params.getlist('tipos_unidades[]'):
-            escolas = escolas.filter(tipo_unidade__uuid__in=request.query_params.getlist('tipos_unidades[]'))
+            tipos = request.query_params.getlist('tipos_unidades[]')
+            alunos_matriculados = alunos_matriculados.filter(escola__tipo_unidade__uuid__in=tipos)
         if request.query_params.getlist('unidades_educacionais[]'):
-            escolas = escolas.filter(uuid__in=request.query_params.getlist('unidades_educacionais[]'))
-        page = self.paginate_queryset(escolas)
-        serializer = EscolaAunoPeriodoSerializer(page, many=True)
+            unidades_eudacionais = request.query_params.getlist('unidades_educacionais[]')
+            alunos_matriculados = alunos_matriculados.filter(escola__uuid__in=unidades_eudacionais)
+        alunos_matriculados = alunos_matriculados.order_by('escola__nome')
+        page = self.paginate_queryset(alunos_matriculados)
+        serializer = AlunosMatriculadosPeriodoEscolaCompletoSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
