@@ -720,8 +720,8 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='filtros')
     def filtros(self, request):
-        terceirizada = request.user.vinculo_atual.instituicao
-        lotes = terceirizada.lotes.filter(escolas__isnull=False).distinct()
+        instituicao = request.user.vinculo_atual.instituicao
+        lotes = instituicao.lotes.filter(escolas__isnull=False).distinct()
         diretorias_regionais_uuids = lotes.values_list('diretoria_regional__uuid', flat=True).distinct()
         diretorias_regionais = DiretoriaRegional.objects.filter(uuid__in=diretorias_regionais_uuids)
         escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
@@ -738,8 +738,8 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='filtrar')
     def filtrar(self, request):
-        terceirizada = request.user.vinculo_atual.instituicao
-        lotes = terceirizada.lotes.filter(escolas__isnull=False)
+        instituicao = request.user.vinculo_atual.instituicao
+        lotes = instituicao.lotes.filter(escolas__isnull=False)
         if request.query_params.getlist('lotes[]'):
             lotes = lotes.filter(uuid__in=request.query_params.getlist('lotes[]'))
         if request.query_params.getlist('diretorias_regionais[]'):
