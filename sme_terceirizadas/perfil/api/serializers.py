@@ -425,7 +425,7 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
     def enviar_email(self, usuario, eh_servidor):
         if not eh_servidor:
             usuario.envia_email_primeiro_acesso_usuario_empresa()
-        elif env('DJANGO_ENV') != 'production':
+        elif env('DJANGO_ENV') == 'production':
             usuario.envia_email_primeiro_acesso_usuario_servidor()
 
     @transaction.atomic # noqa
@@ -450,11 +450,11 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
             usuario = Usuario.cria_ou_atualiza_usuario_sigpae(dados_usuario=dados_usuario_dict, eh_servidor=eh_servidor)
             Vinculo.cria_vinculo(usuario=usuario, dados_usuario=dados_usuario_dict)
             eolusuariocoresso = EOLUsuarioCoreSSO()
-            # eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(
-            #     dados_usuario=dados_usuario,
-            #     login=dados_usuario.login,
-            #     eh_servidor=dados_usuario.eh_servidor
-            # )
+            eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(
+                dados_usuario=dados_usuario,
+                login=dados_usuario.login,
+                eh_servidor=dados_usuario.eh_servidor
+            )
             logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
             self.enviar_email(usuario, eh_servidor)
             return usuario
