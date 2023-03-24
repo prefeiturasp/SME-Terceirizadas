@@ -390,7 +390,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         template = 'email_primeiro_acesso_usuario_servidor.html'
         dados_template = {
             'titulo': titulo, 'url': f'{base_url}/login', 'nome': self.nome,
-            'senha_provisoria': senha_provisoria + self.cpf[-4:]
+            'senha': f'{senha_provisoria}{self.registro_funcional[-4:]}'
         }
         html = render_to_string(template, dados_template)
         self.email_user(
