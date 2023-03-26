@@ -56,9 +56,9 @@ class NovoSGPServicoLogado:
         response = requests.post(f'{DJANGO_NOVO_SGP_API_URL}/v1/autenticacao', json=data, headers=self.headers)
         return response
 
-    def __init__(self):
+    def __init__(self, login=None, senha=None):
         """Retorna um objeto para requisições no novosgp com token de acesso."""
-        response = self.pegar_token_acesso()
+        response = self.pegar_token_acesso(login, senha)
         if response.status_code != status.HTTP_200_OK:
             raise NovoSGPServicoLogadoException('Não foi possível logar no sistema novosgp')
         self.access_token = f'Bearer {response.json()["token"]}'

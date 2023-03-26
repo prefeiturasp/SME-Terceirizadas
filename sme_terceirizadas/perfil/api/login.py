@@ -26,7 +26,7 @@ class LoginView(ObtainJSONWebToken):
     permission_classes = (permissions.AllowAny,)
 
     def checa_login_senha_coresso(self, login, senha):
-        novo_sgp = NovoSGPServicoLogado()
+        novo_sgp = NovoSGPServicoLogado(login, senha)
         response_login = novo_sgp.pegar_token_acesso(login, senha)
         if response_login.status_code != status.HTTP_200_OK or len(login) != 7:
             raise NovoSGPServicoLogadoException('Usuário não encontrado')

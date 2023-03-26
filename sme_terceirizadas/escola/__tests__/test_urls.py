@@ -159,7 +159,7 @@ def test_url_endpoint_lista_faixas_etarias(client_autenticado_coordenador_codae,
 
 def test_url_endpoint_get_foto_aluno(client_autenticado_da_escola, aluno, monkeypatch):
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
-                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+                        lambda p1, p2, p3: mocked_response(mocked_token_novosgp(), 200))
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_foto_aluno',
                         lambda p1, p2: mocked_response(mocked_foto_aluno_novosgp(), 200))
     response = client_autenticado_da_escola.get(f'/alunos/{aluno.codigo_eol}/ver-foto/')
@@ -169,7 +169,7 @@ def test_url_endpoint_get_foto_aluno(client_autenticado_da_escola, aluno, monkey
 
 def test_url_endpoint_get_foto_aluno_204(client_autenticado_da_escola, aluno, monkeypatch):
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
-                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+                        lambda p1, p2, p3: mocked_response(mocked_token_novosgp(), 200))
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_foto_aluno',
                         lambda p1, p2: mocked_response(mocked_foto_aluno_novosgp(), 204))
     response = client_autenticado_da_escola.get(f'/alunos/{aluno.codigo_eol}/ver-foto/')
@@ -178,7 +178,7 @@ def test_url_endpoint_get_foto_aluno_204(client_autenticado_da_escola, aluno, mo
 
 def test_url_endpoint_get_foto_aluno_token_invalido(client_autenticado_da_escola, aluno, monkeypatch):
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
-                        lambda p1: mocked_response(None, 204))
+                        lambda p1, p2, p3: mocked_response(None, 204))
     response = client_autenticado_da_escola.get(f'/alunos/{aluno.codigo_eol}/ver-foto/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()['detail'] == 'Não foi possível logar no sistema novosgp'
@@ -187,7 +187,7 @@ def test_url_endpoint_get_foto_aluno_token_invalido(client_autenticado_da_escola
 def test_url_endpoint_update_foto_aluno(client_autenticado_da_escola, aluno, monkeypatch):
     foto = SimpleUploadedFile('file.jpg', str.encode('file_content'), content_type='image/jpg')
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
-                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+                        lambda p1, p2, p3: mocked_response(mocked_token_novosgp(), 200))
     monkeypatch.setattr(NovoSGPServicoLogado, 'atualizar_foto_aluno',
                         lambda p1, p2, p3: mocked_response('c8c564b6-ea7f-4549-9474-6234e2406881', 200))
     response = client_autenticado_da_escola.post(f'/alunos/{aluno.codigo_eol}/atualizar-foto/', {'file': foto})
@@ -198,7 +198,7 @@ def test_url_endpoint_update_foto_aluno(client_autenticado_da_escola, aluno, mon
 def test_url_endpoint_update_foto_aluno_error(client_autenticado_da_escola, aluno, monkeypatch):
     foto = SimpleUploadedFile('file.jpg', str.encode('file_content'), content_type='image/jpg')
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
-                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+                        lambda p1, p2, p3: mocked_response(mocked_token_novosgp(), 200))
     monkeypatch.setattr(NovoSGPServicoLogado, 'atualizar_foto_aluno',
                         lambda p1, p2, p3: mocked_response(None, 400))
     response = client_autenticado_da_escola.post(f'/alunos/{aluno.codigo_eol}/atualizar-foto/', {'file': foto})
@@ -208,7 +208,7 @@ def test_url_endpoint_update_foto_aluno_error(client_autenticado_da_escola, alun
 def test_url_endpoint_update_foto_aluno_token_invalido(client_autenticado_da_escola, aluno, monkeypatch):
     foto = SimpleUploadedFile('file.jpg', str.encode('file_content'), content_type='image/jpg')
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
-                        lambda p1: mocked_response(mocked_token_novosgp(), 204))
+                        lambda p1, p2, p3: mocked_response(mocked_token_novosgp(), 204))
     response = client_autenticado_da_escola.post(f'/alunos/{aluno.codigo_eol}/atualizar-foto/', {'file': foto})
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()['detail'] == 'Não foi possível logar no sistema novosgp'
@@ -216,7 +216,7 @@ def test_url_endpoint_update_foto_aluno_token_invalido(client_autenticado_da_esc
 
 def test_url_endpoint_deletar_foto_aluno(client_autenticado_da_escola, aluno, monkeypatch):
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
-                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+                        lambda p1, p2, p3: mocked_response(mocked_token_novosgp(), 200))
     monkeypatch.setattr(NovoSGPServicoLogado, 'deletar_foto_aluno',
                         lambda p1, p2: mocked_response(None, 200))
     response = client_autenticado_da_escola.delete(f'/alunos/{aluno.codigo_eol}/deletar-foto/')
@@ -225,7 +225,7 @@ def test_url_endpoint_deletar_foto_aluno(client_autenticado_da_escola, aluno, mo
 
 def test_url_endpoint_deletar_foto_aluno_204(client_autenticado_da_escola, aluno, monkeypatch):
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
-                        lambda p1: mocked_response(mocked_token_novosgp(), 200))
+                        lambda p1, p2, p3: mocked_response(mocked_token_novosgp(), 200))
     monkeypatch.setattr(NovoSGPServicoLogado, 'deletar_foto_aluno',
                         lambda p1, p2: mocked_response(None, 204))
     response = client_autenticado_da_escola.delete(f'/alunos/{aluno.codigo_eol}/deletar-foto/')
@@ -234,7 +234,7 @@ def test_url_endpoint_deletar_foto_aluno_204(client_autenticado_da_escola, aluno
 
 def test_url_endpoint_deletar_foto_aluno_token_invalido(client_autenticado_da_escola, aluno, monkeypatch):
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
-                        lambda p1: mocked_response(None, 204))
+                        lambda p1, p2, p3: mocked_response(None, 204))
     response = client_autenticado_da_escola.delete(f'/alunos/{aluno.codigo_eol}/deletar-foto/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()['detail'] == 'Não foi possível logar no sistema novosgp'

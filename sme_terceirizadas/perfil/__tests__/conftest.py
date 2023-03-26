@@ -542,12 +542,54 @@ def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
     return client
 
 
+@pytest.fixture
+def client_autenticado_da_escola_sem_vinculo(client, django_user_model, escola, escola_cei):
+    email = 'user@escola.com'
+    rf = '1234567'
+    password = 'admin@123'
+    mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
+    django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
+                                          email=email, registro_funcional=rf, cpf='93697506064')
+    client.login(username=rf, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_escola_adm(client, django_user_model, escola, escola_cei):
+    email = 'user@escola.com'
+    rf = '1234567'
+    password = 'admin@123'
+    mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    perfil_adm = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
+                                                    email=email, registro_funcional=rf, cpf='93697506064')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_adm,
+               data_inicial=hoje, ativo=True)
+    client.login(username=rf, password=password)
+    return client
+
+
 def mocked_response_autentica_coresso_diretor():
     return {
         'nome': 'RONALDO DIRETOR',
         'cpf': '93697506064',
         'email': 'user@escola.com',
         'login': '1234567',
+        'visoes': ['DIRETOR_UE'],
+        'perfis_por_sistema': [
+            {'sistema': 1004, 'perfis': ['DIRETOR_UE']}
+        ]
+    }
+
+
+def mocked_response_autentica_coresso_diretor_login_errado():
+    return {
+        'nome': 'RONALDO DIRETOR',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'login': '1234568',
         'visoes': ['DIRETOR_UE'],
         'perfis_por_sistema': [
             {'sistema': 1004, 'perfis': ['DIRETOR_UE']}
@@ -563,6 +605,40 @@ def mocked_response_get_dados_usuario_coresso():
         'cargos': [
             {'codigoCargo': 3360,
              'descricaoCargo': 'DIRETOR DE ESCOLA                       ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO DIRETOR'
+    }
+
+
+def mocked_response_get_dados_usuario_coresso_adm_escola():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'cargos': [
+            {'codigoCargo': 3379,
+             'descricaoCargo': 'COORDENADOR PEDAGÓGICO                       ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO DIRETOR'
+    }
+
+
+def mocked_response_get_dados_usuario_coresso_sem_acesso_automatico():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'cargos': [
+            {'codigoCargo': 1,
+             'descricaoCargo': 'ATE                      ',
              'codigoUnidade': '400158',
              'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
              'codigoDre': '108600'
