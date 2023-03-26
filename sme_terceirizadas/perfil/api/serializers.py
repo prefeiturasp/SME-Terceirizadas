@@ -25,7 +25,7 @@ from ...dados_comuns.constants import (
     COGESTOR_DRE
 )
 from ...dados_comuns.models import Contato
-from ...eol_servico.utils import EOLException, EOLService
+from ...eol_servico.utils import EOLException, EOLService, EOLServicoSGP
 from ...perfil.api.validators import checa_senha, usuario_com_coresso_validation, usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
 from ..models import Perfil, PerfisVinculados, Usuario, Vinculo
@@ -447,7 +447,10 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
         eh_servidor = validated_data['eh_servidor'] == 'S'
 
         try:
-            usuario = Usuario.cria_ou_atualiza_usuario_sigpae(dados_usuario=dados_usuario_dict, eh_servidor=eh_servidor)
+            existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=dados_usuario.login)
+            usuario = Usuario.cria_ou_atualiza_usuario_sigpae(dados_usuario=dados_usuario_dict,
+                                                              eh_servidor=eh_servidor,
+                                                              existe_core_sso=existe_core_sso)
             Vinculo.cria_vinculo(usuario=usuario, dados_usuario=dados_usuario_dict)
             eolusuariocoresso = EOLUsuarioCoreSSO()
             eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(
