@@ -336,7 +336,6 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             })
         return Response(PainelSolicitacaoAlteracaoCronogramaSerializer(dados, many=True).data)
 
-
     @transaction.atomic
     @action(detail=True, permission_classes=(PermissaoParaDarCienciaAlteracaoCronograma,),
             methods=['patch'], url_path='cronograma-ciente')
