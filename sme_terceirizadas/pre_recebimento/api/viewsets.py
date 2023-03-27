@@ -19,6 +19,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCadastrarVisualizarEmbalagem,
     PermissaoParaCriarCronograma,
     PermissaoParaCriarSolicitacoesAlteracaoCronograma,
+    PermissaoParaDarCienciaAlteracaoCronograma,
     PermissaoParaDashboardCronograma,
     PermissaoParaVisualizarCronograma,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
@@ -39,6 +40,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     LaboratorioSerializer,
     PainelCronogramaSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
+    SolicitacaoAlteracaoCronogramaCompletoSerializer,
     SolicitacaoAlteracaoCronogramaSerializer
 )
 from sme_terceirizadas.pre_recebimento.models import (
@@ -306,8 +308,10 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ['list']:
             return SolicitacaoAlteracaoCronogramaSerializer
+        if self.action in ['retrieve']:
+            return SolicitacaoAlteracaoCronogramaCompletoSerializer
         return SolicitacaoDeAlteracaoCronogramaCreateSerializer
 
     def get_permissions(self):
@@ -331,3 +335,23 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
                 # .filter(cronograma__empresa__razao_social="PAO FORTE")
             })
         return Response(PainelSolicitacaoAlteracaoCronogramaSerializer(dados, many=True).data)
+
+
+    @transaction.atomic
+    @action(detail=True, permission_classes=(PermissaoParaDarCienciaAlteracaoCronograma,),
+            methods=['patch'], url_path='cronograma-ciente')
+    def cronograma_ciente(self, request, uuid):
+        usuario = request.user
+        justificativa = request.data.get('justificativa_cronograma')
+        try:
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            solicitacao_cronograma.cronograma_ciente(user=usuario, justificativa=justificativa)
+            solicitacao_cronograma.save()
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            return Response(serializer.data)
+
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)

@@ -206,7 +206,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
     )
     periodo_escolar = serializers.SlugRelatedField(
         slug_field='nome',
-        required=True,
+        required=False,
         queryset=PeriodoEscolar.objects.all(),
     )
     grupo = serializers.SlugRelatedField(

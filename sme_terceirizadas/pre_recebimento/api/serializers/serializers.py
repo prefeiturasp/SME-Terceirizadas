@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
 from sme_terceirizadas.pre_recebimento.models import (
+    AlteracaoCronogramaEtapa,
     Cronograma,
     EmbalagemQld,
     EtapasDoCronograma,
@@ -63,6 +64,27 @@ class CronogramaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'numero', 'status', 'criado_em', 'alterado_em', 'contrato', 'empresa',
                           'produto', 'qtd_total_programada', 'unidade_medida',
                           'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento')
+
+
+class SolicitacaoAlteracaoCronogramaEtapaSerializer(serializers.ModelSerializer):
+    etapa = serializers.CharField(source='etapa.uuid')
+
+    class Meta:
+        model = AlteracaoCronogramaEtapa
+        fields = '__all__'
+
+
+class SolicitacaoAlteracaoCronogramaCompletoSerializer(serializers.ModelSerializer):
+
+    fornecedor = serializers.CharField(source='cronograma.empresa')
+    cronograma = CronogramaSerializer()
+    status = serializers.CharField(source='get_status_display')
+    etapas = SolicitacaoAlteracaoCronogramaEtapaSerializer(many=True)
+
+    class Meta:
+        model = SolicitacaoAlteracaoCronograma
+        fields = ('uuid', 'numero_solicitacao', 'fornecedor', 'status', 'criado_em', 'cronograma',
+                  'motivo', 'etapas', 'justificativa')
 
 
 class CronogramaRascunhosSerializer(serializers.ModelSerializer):
