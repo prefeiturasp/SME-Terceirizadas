@@ -3062,15 +3062,18 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     EM_ANALISE = 'EM_ANALISE'
     ACEITA = 'ACEITA'
     NEGADA = 'NEGADA'
+    CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
 
     states = (
         (EM_ANALISE, 'Em análise'),
+        (CRONOGRAMA_CIENTE, 'Cronograma ciente'),
         (ACEITA, 'Aceita'),
         (NEGADA, 'Negada'),
     )
 
     transitions = (
         ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
+        ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE),
     )
 
     initial_state = EM_ANALISE
@@ -3085,6 +3088,14 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('cronograma_ciente')
+    def _cronograma_ciente_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
 
