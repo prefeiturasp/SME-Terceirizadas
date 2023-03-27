@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class LoginView(ObtainJSONWebToken):
-    # Subistitui o login feito por /api-token-auth/
+    # Substitui o login feito por /api-token-auth/
 
     permission_classes = (permissions.AllowAny,)
 
