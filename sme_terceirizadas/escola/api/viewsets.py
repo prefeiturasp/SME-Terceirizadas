@@ -743,7 +743,10 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='filtrar')
     def filtrar(self, request):
         instituicao = request.user.vinculo_atual.instituicao
-        lotes = instituicao.lotes.filter(escolas__isnull=False)
+        if isinstance(instituicao, Codae):
+            lotes = Lote.objects.all()
+        else:
+            lotes = instituicao.lotes.filter(escolas__isnull=False)
         if request.query_params.getlist('lotes[]'):
             lotes = lotes.filter(uuid__in=request.query_params.getlist('lotes[]'))
         if request.query_params.getlist('diretorias_regionais[]'):
