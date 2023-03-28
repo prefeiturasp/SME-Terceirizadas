@@ -2431,12 +2431,21 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             )
 
     def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, transicao):
+        url = None
+        if transicao == 'codae_nega':
+            url = f'{env("REACT_APP_URL")}/dieta-especial'
+            url += f'/relatorio?uuid={self.uuid}&ehInclusaoContinua=false&card=negadas'
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
                           'nome_aluno': self.aluno.nome, 'cod_eol_aluno': self.aluno.codigo_eol,
-                          'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
-        if transicao in ['codae_autoriza', 'codae_nega']:
-            template = 'fluxo_codae_autoriza_ou_nega_dieta.html'
-            dados_template['acao'] = 'negada' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'autorizada'
+                          'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome,
+                          'escola': self.escola.nome, 'lote': self.escola.lote.nome, 'url': url,
+                          'data_log': self.log_mais_recente.criado_em.strftime('%d/%m/%Y - %H:%M')}
+        if transicao == 'codae_autoriza':
+            template = 'fluxo_codae_autoriza_dieta.html'
+            dados_template['acao'] = 'autorizada'
+        elif transicao == 'codae_nega':
+            template = 'fluxo_codae_nega_dieta.html'
+            dados_template['acao'] = 'negada'
         elif transicao == 'cancelar_pedido':
             template = 'fluxo_dieta_alta_medica.html'
         else:
@@ -2501,8 +2510,8 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     @xworkflows.after_transition('codae_nega')
     def _codae_nega_hook(self, *args, **kwargs):
         user = kwargs['user']
-        assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-        titulo = f'Status de solicitação - "{self.aluno.codigo_eol} - {self.aluno.nome}"'
+        assunto = '[SIGPAE] Status de Solicitação - #' + self.id_externo
+        titulo = f'Status de Solicitação - "{self.aluno.codigo_eol} - {self.aluno.nome}"'
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                   usuario=user)
         self._preenche_template_e_envia_email(assunto, titulo, user,
@@ -3043,15 +3052,18 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     EM_ANALISE = 'EM_ANALISE'
     ACEITA = 'ACEITA'
     NEGADA = 'NEGADA'
+    CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
 
     states = (
         (EM_ANALISE, 'Em análise'),
+        (CRONOGRAMA_CIENTE, 'Cronograma ciente'),
         (ACEITA, 'Aceita'),
         (NEGADA, 'Negada'),
     )
 
     transitions = (
         ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
+        ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE),
     )
 
     initial_state = EM_ANALISE
@@ -3066,6 +3078,14 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('cronograma_ciente')
+    def _cronograma_ciente_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
 
