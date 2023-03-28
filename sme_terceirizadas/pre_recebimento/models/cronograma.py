@@ -1,5 +1,7 @@
 from django.db import models
 from django.db.models import OuterRef
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from multiselectfield import MultiSelectField
 
 from ...dados_comuns.behaviors import Logs, ModeloBase, TemIdentificadorExternoAmigavel
@@ -162,11 +164,7 @@ class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel
     objects = SolicitacaoAlteracaoCronogramaQuerySet.as_manager()
 
     def gerar_numero_solicitacao(self):
-        return f'{str(self.pk).zfill(8)}-ALT'
-
-    def save(self, *args, **kwargs):
-        self.numero_solicitacao = self.gerar_numero_solicitacao()
-        super(SolicitacaoAlteracaoCronograma, self).save(*args, **kwargs)
+        self.numero_solicitacao = f'{str(self.pk).zfill(8)}-ALT'
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
@@ -186,3 +184,10 @@ class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel
     class Meta:
         verbose_name = 'Solicitação de Alteração de Cronograma'
         verbose_name_plural = 'Solicitações de Alteração de Cronograma'
+
+
+@receiver(post_save, sender=SolicitacaoAlteracaoCronograma)
+def gerar_numero_solicitacao(sender, instance, created, **kwargs):
+    if created:
+        instance.gerar_numero_solicitacao()
+        instance.save()
