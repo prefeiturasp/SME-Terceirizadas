@@ -1,5 +1,5 @@
 import logging
-from datetime import date
+from datetime import date, datetime
 from tempfile import NamedTemporaryFile
 
 from django.core.files import File
@@ -13,6 +13,8 @@ from sme_terceirizadas.perfil.services.usuario_coresso_service import EOLUsuario
 from sme_terceirizadas.terceirizada.models import Terceirizada
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import ja_existe, progressbar
+
+from sme_terceirizadas.eol_servico.utils import  EOLServicoSGP
 
 from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_TREINAMENTO_PASSWORD
@@ -831,10 +833,11 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
         mensagem = f'Usuário {dados_usuario.rf} criado/atualizado com sucesso.'
         logger.info(mensagem)
 
-    def cria_ou_atualiza_usuario_admin(self, dados_usuario):
+    def cria_ou_atualiza_usuario_admin(self, dados_usuario, existe_core_sso=False):
         usuario, criado = Usuario.objects.update_or_create(
             username=dados_usuario.rf,
             registro_funcional=dados_usuario.rf,
+            last_login=datetime.now() if existe_core_sso else None,
             defaults={
                 'email': dados_usuario.email if dados_usuario.email else "",
                 'nome': dados_usuario.nome,
@@ -884,7 +887,8 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
 
     @transaction.atomic
     def __criar_usuario_servidor(self, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):
-        usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
+        existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=usuario_schema.rf)
+        usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema, existe_core_sso=existe_core_sso)
         self.cria_vinculo(usuario, usuario_schema)
         eolusuariocoresso = EOLUsuarioCoreSSO()
         eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.rf, eh_servidor='S')
