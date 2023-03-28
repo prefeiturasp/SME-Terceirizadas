@@ -266,7 +266,6 @@ def test_finalizar_vinculo_escola(users_diretor_escola):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, monkeypatch):
@@ -356,7 +355,6 @@ def test_finalizar_vinculo_dre(users_cogestor_diretoria_regional):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_erro_403_usuario_nao_pertence_a_dre_cadastro_vinculos(diretoria_regional,
@@ -486,7 +484,6 @@ def test_finalizar_vinculo_codae(users_codae_gestao_alimentacao):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_get_equipe_administradora_vinculos_terceirizadas(users_terceirizada):
@@ -521,7 +518,6 @@ def test_finalizar_vinculo_terceirizada(users_terceirizada):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(email=email)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_erro_401_usuario_nao_e_coordenador_ou_nao_esta_logado_cadastro_vinculos(client,

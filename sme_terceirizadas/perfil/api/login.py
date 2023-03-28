@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 from django.contrib.auth import get_user_model
@@ -10,8 +11,9 @@ from utility.carga_dados.perfil.schemas import ImportacaoPlanilhaUsuarioServidor
 
 from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_UE, DIRETOR_UE
 from sme_terceirizadas.eol_servico.utils import EOLException, EOLServicoSGP
+from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.escola.services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
-from sme_terceirizadas.perfil.models import Perfil
+from sme_terceirizadas.perfil.models import Perfil, Vinculo
 from sme_terceirizadas.perfil.services.autenticacao_service import AutenticacaoService
 
 User = get_user_model()
@@ -19,12 +21,12 @@ logger = logging.getLogger(__name__)
 
 
 class LoginView(ObtainJSONWebToken):
-    # Subistitui o login feito por /api-token-auth/
+    # Substitui o login feito por /api-token-auth/
 
     permission_classes = (permissions.AllowAny,)
 
     def checa_login_senha_coresso(self, login, senha):
-        novo_sgp = NovoSGPServicoLogado()
+        novo_sgp = NovoSGPServicoLogado(login, senha)
         response_login = novo_sgp.pegar_token_acesso(login, senha)
         if response_login.status_code != status.HTTP_200_OK or len(login) != 7:
             raise NovoSGPServicoLogadoException('Usuário não encontrado')
@@ -47,7 +49,9 @@ class LoginView(ObtainJSONWebToken):
         data = {'last_login': last_login, **user_dict, **resp.data}
         return data
 
-    def cria_usuario(self, dados_usuario, nome_perfil):
+    def cria_usuario_no_django_e_no_coresso(self, dados_usuario, nome_perfil):
+        if not dados_usuario['email']:
+            raise PermissionDenied('Usuário sem e-mail cadastrado. E-mail é obrigatório.')
         tupla_dados = (
             dados_usuario['cargos'][0]['codigoUnidade'],
             dados_usuario['nome'],
@@ -79,7 +83,7 @@ class LoginView(ObtainJSONWebToken):
         return (dados_usuario['cargos'][0]['codigoCargo'] in
                 [cargo['codigo'] for cargo in Perfil.cargos_diretor()])
 
-    def usuario_com_cargo_adm_escola(self, dados_usuario):
+    def usuario_com_cargo_automatico_adm_escola(self, dados_usuario):
         return (dados_usuario['cargos'][0]['codigoCargo'] in
                 [cargo['codigo'] for cargo in Perfil.cargos_adm_escola()])
 
@@ -87,9 +91,72 @@ class LoginView(ObtainJSONWebToken):
         if not self.usuario_com_cargo_de_acesso_automatico(dados_usuario):
             raise NovoSGPServicoLogadoException('Usuário não possui permissão de acesso ao SIGPAE')
         if self.usuario_com_cargo_diretor(dados_usuario):
-            self.cria_usuario(dados_usuario, DIRETOR_UE)
-        elif self.usuario_com_cargo_adm_escola(dados_usuario):
-            self.cria_usuario(dados_usuario, ADMINISTRADOR_UE)
+            self.cria_usuario_no_django_e_no_coresso(dados_usuario, DIRETOR_UE)
+        elif self.usuario_com_cargo_automatico_adm_escola(dados_usuario):
+            self.cria_usuario_no_django_e_no_coresso(dados_usuario, ADMINISTRADOR_UE)
+
+    def eh_perfil_escola(self, vinculo_atual):
+        return vinculo_atual.perfil.nome in [ADMINISTRADOR_UE, DIRETOR_UE]
+
+    def cria_vinculo(self, user, hoje, dados_usuario, perfil):
+        novo_vinculo = Vinculo(
+            usuario=user,
+            ativo=True,
+            data_inicial=hoje,
+            instituicao=Escola.objects.get(codigo_eol=dados_usuario['cargos'][0]['codigoUnidade']),
+            perfil=perfil
+        )
+        novo_vinculo.save()
+
+    def checa_se_trocou_de_unidade(self, user, hoje, vinculo_atual, dados_usuario):
+        unidade_atual = dados_usuario['cargos'][0]['codigoUnidade']
+        if vinculo_atual.ativo and vinculo_atual.instituicao.codigo_eol != unidade_atual:
+            vinculo_atual.finalizar_vinculo()
+            self.cria_vinculo(user, hoje, dados_usuario, vinculo_atual.perfil)
+
+    def se_diretor(self, vinculo_atual, dados_usuario, user, hoje):
+        if vinculo_atual.perfil.nome != DIRETOR_UE:
+            return
+        if self.usuario_com_cargo_diretor(dados_usuario):
+            self.checa_se_trocou_de_unidade(user, hoje, vinculo_atual, dados_usuario)
+            return
+        vinculo_atual.finalizar_vinculo()
+        if self.usuario_com_cargo_automatico_adm_escola(dados_usuario):
+            perfil = Perfil.objects.get(nome=ADMINISTRADOR_UE)
+            self.cria_vinculo(user, hoje, dados_usuario, perfil)
+
+    def se_administrador(self, vinculo_atual, dados_usuario, user, hoje):
+        if vinculo_atual.perfil.nome != ADMINISTRADOR_UE:
+            return
+        if self.usuario_com_cargo_automatico_adm_escola(dados_usuario):
+            self.checa_se_trocou_de_unidade(user, hoje, vinculo_atual, dados_usuario)
+            return
+        elif self.usuario_com_cargo_diretor(dados_usuario):
+            vinculo_atual.finalizar_vinculo()
+            perfil = Perfil.objects.get(nome=DIRETOR_UE)
+            self.cria_vinculo(user, hoje, dados_usuario, perfil)
+        elif dados_usuario['cargos'][0]['codigoUnidade'] != vinculo_atual.instituicao.codigo_eol:
+            vinculo_atual.finalizar_vinculo()
+
+    def checa_se_mantem_acesso_e_ou_altera_dados(self, dados_usuario):
+        hoje = datetime.date.today()
+        user = User.objects.get(username=dados_usuario['rf'])
+        if not user.existe_vinculo_ativo:
+            if not self.usuario_com_cargo_de_acesso_automatico(dados_usuario):
+                raise PermissionDenied('Usuário não possui permissão de acesso ao SIGPAE')
+            elif self.usuario_com_cargo_diretor(dados_usuario):
+                perfil = Perfil.objects.get(nome=DIRETOR_UE)
+                self.cria_vinculo(user, hoje, dados_usuario, perfil)
+                return
+            elif self.usuario_com_cargo_automatico_adm_escola(dados_usuario):
+                perfil = Perfil.objects.get(nome=ADMINISTRADOR_UE)
+                self.cria_vinculo(user, hoje, dados_usuario, perfil)
+                return
+        vinculo_atual = user.vinculo_atual
+        if not self.eh_perfil_escola(vinculo_atual):
+            return
+        self.se_diretor(vinculo_atual, dados_usuario, user, hoje)
+        self.se_administrador(vinculo_atual, dados_usuario, user, hoje)
 
     def post(self, request, *args, **kwargs):
         login = request.data.get('login', '')
@@ -98,6 +165,8 @@ class LoginView(ObtainJSONWebToken):
             response = AutenticacaoService.autentica(login, senha)
             user_dict = response.json()
             if 'login' in user_dict.keys():
+                dados_usuario = self.get_dados_usuario_json(login)
+                self.checa_se_mantem_acesso_e_ou_altera_dados(dados_usuario)
                 user, last_login = self.update_user(user_dict, senha)
                 data = self.build_response_data(request, user_dict, senha, last_login, args, kwargs)
                 return Response(data)
