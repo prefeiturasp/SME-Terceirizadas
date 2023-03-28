@@ -140,12 +140,9 @@ class PainelSolicitacaoAlteracaoCronogramaSerializer(serializers.Serializer):
     def get_dados(self, obj):
         return PainelSolicitacaoAlteracaoCronogramaSerializerItem(obj['dados'], many=True).data
 
-    def get_empresa(self, obj):
-        return obj.cronograma.empresa.razao_social if obj.empresa else None
-
     class Meta:
         model = SolicitacaoAlteracaoCronograma
-        fields = ('uuid', 'status')
+        fields = ('uuid', 'status', 'dados')
 
 
 class LaboratorioSerializer(serializers.ModelSerializer):

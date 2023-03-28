@@ -12,7 +12,7 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles:
 
     @staticmethod
     def get_dashboard_status(user) -> list:
-        perfil = user.vinculos.first().perfil.nome
+        perfil = user.vinculo_atual.perfil.nome
         status = {
             DINUTRE_DIRETORIA: [
                 'CRONOGRAMA_CIENTE',
