@@ -3060,7 +3060,6 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     EM_ANALISE = 'EM_ANALISE'
-    CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
     ACEITA = 'ACEITA'
     NEGADA = 'NEGADA'
     CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
