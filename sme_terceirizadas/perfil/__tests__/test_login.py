@@ -2,7 +2,7 @@ import pytest
 from rest_framework import status
 from utility.carga_dados.perfil.importa_dados import ProcessaPlanilhaUsuarioServidorCoreSSO
 
-from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_UE, DIRETOR_UE
+from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_UE, DIRETOR_UE, DJANGO_ADMIN_PASSWORD
 from sme_terceirizadas.eol_servico.utils import EOLServicoSGP
 from sme_terceirizadas.escola.__tests__.conftest import mocked_response
 from sme_terceirizadas.escola.services import NovoSGPServicoLogado
@@ -14,7 +14,8 @@ from sme_terceirizadas.perfil.__tests__.conftest import (
     mocked_response_get_dados_usuario_coresso,
     mocked_response_get_dados_usuario_coresso_adm_escola,
     mocked_response_get_dados_usuario_coresso_cogestor,
-    mocked_response_get_dados_usuario_coresso_sem_acesso_automatico
+    mocked_response_get_dados_usuario_coresso_sem_acesso_automatico,
+    mocked_response_get_dados_usuario_coresso_sem_email
 )
 from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.perfil.services.autenticacao_service import AutenticacaoService
@@ -28,7 +29,7 @@ def test_login_coresso_diretor_sucesso(client_autenticado_da_escola, monkeypatch
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -45,7 +46,7 @@ def test_login_coresso_erro_usuario_nao_existe(client_autenticado_da_escola, mon
     }
     data = {
         'login': '1234568',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -57,13 +58,32 @@ def test_login_coresso_erro_usuario_nao_existe(client_autenticado_da_escola, mon
     assert response.json() == {'detail': 'Usuário não encontrado.'}
 
 
+def test_login_coresso_erro_usuario_sem_email(client_autenticado_da_escola, monkeypatch):
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'login': '1234568',
+        'senha': DJANGO_ADMIN_PASSWORD
+    }
+    monkeypatch.setattr(AutenticacaoService, 'autentica',
+                        lambda p1, p2: mocked_response({}, 200))
+    monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
+                        lambda p1, p2, p3: mocked_response({'token': '#ABC123'}, 200))
+    monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
+                        lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_sem_email(), 200))
+    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'Usuário sem e-mail cadastrado. E-mail é obrigatório.'}
+
+
 def test_login_coresso_diretor_era_adm_escola(client_autenticado_da_escola_adm, monkeypatch):
     headers = {
         'Content-Type': 'application/json'
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -82,7 +102,7 @@ def test_login_coresso_diretor_sem_acesso_ao_coresso(client_autenticado_da_escol
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -105,7 +125,7 @@ def test_login_usuario_com_acesso_automatico_adm_escola(client_autenticado_da_es
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -129,7 +149,7 @@ def test_login_coresso_diretor_sem_vinculo_no_sigpae(client_autenticado_da_escol
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -148,7 +168,7 @@ def test_login_coresso_adm_escola_sem_vinculo_no_sigpae(client_autenticado_da_es
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -168,7 +188,7 @@ def test_login_coresso_cargo_sem_acesso_automatico_sem_vinculo_no_sigpae(client_
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -187,7 +207,7 @@ def test_login_coresso_login_cpf_erro(client_autenticado_da_escola_adm, monkeypa
     }
     data = {
         'login': '123456789012',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -205,7 +225,7 @@ def test_login_coresso_dados_usuario_erro(client_autenticado_da_escola_sem_vincu
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -223,7 +243,7 @@ def test_login_coresso_cogestor_dre(client_autenticado_da_dre, monkeypatch):
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -240,7 +260,7 @@ def test_login_usuario_adm_escola_trocou_unidade_sucesso(client_autenticado_da_e
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -261,7 +281,7 @@ def test_login_usuario_adm_escola_trocou_unidade_erro(client_autenticado_da_esco
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -281,7 +301,7 @@ def test_login_coresso_cargo_sem_acesso_automatico_no_sigpae(client_autenticado_
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -302,7 +322,7 @@ def test_login_coresso_diretor_que_vira_adm_ue(client_autenticado_da_escola, mon
     }
     data = {
         'login': '1234567',
-        'senha': 'admin@123'
+        'senha': DJANGO_ADMIN_PASSWORD
     }
 
     monkeypatch.setattr(AutenticacaoService, 'autentica',

@@ -60,7 +60,7 @@ class NovoSGPServicoLogado:
         """Retorna um objeto para requisições no novosgp com token de acesso."""
         response = self.pegar_token_acesso(login, senha)
         if response.status_code != status.HTTP_200_OK:
-            raise NovoSGPServicoLogadoException('Não foi possível logar no sistema novosgp')
+            raise NovoSGPServicoLogadoException('Não foi possível logar no sistema')
         self.access_token = f'Bearer {response.json()["token"]}'
 
     def pegar_foto_aluno(self, codigo_eol_aluno):

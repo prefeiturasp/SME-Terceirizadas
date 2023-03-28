@@ -181,7 +181,7 @@ def test_url_endpoint_get_foto_aluno_token_invalido(client_autenticado_da_escola
                         lambda p1, p2, p3: mocked_response(None, 204))
     response = client_autenticado_da_escola.get(f'/alunos/{aluno.codigo_eol}/ver-foto/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()['detail'] == 'Não foi possível logar no sistema novosgp'
+    assert response.json()['detail'] == 'Não foi possível logar no sistema'
 
 
 def test_url_endpoint_update_foto_aluno(client_autenticado_da_escola, aluno, monkeypatch):
@@ -211,7 +211,7 @@ def test_url_endpoint_update_foto_aluno_token_invalido(client_autenticado_da_esc
                         lambda p1, p2, p3: mocked_response(mocked_token_novosgp(), 204))
     response = client_autenticado_da_escola.post(f'/alunos/{aluno.codigo_eol}/atualizar-foto/', {'file': foto})
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()['detail'] == 'Não foi possível logar no sistema novosgp'
+    assert response.json()['detail'] == 'Não foi possível logar no sistema'
 
 
 def test_url_endpoint_deletar_foto_aluno(client_autenticado_da_escola, aluno, monkeypatch):
@@ -237,7 +237,7 @@ def test_url_endpoint_deletar_foto_aluno_token_invalido(client_autenticado_da_es
                         lambda p1, p2, p3: mocked_response(None, 204))
     response = client_autenticado_da_escola.delete(f'/alunos/{aluno.codigo_eol}/deletar-foto/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()['detail'] == 'Não foi possível logar no sistema novosgp'
+    assert response.json()['detail'] == 'Não foi possível logar no sistema'
 
 
 def test_escola_simplissima_dre_unpaginated(client_autenticado_da_dre, diretoria_regional):

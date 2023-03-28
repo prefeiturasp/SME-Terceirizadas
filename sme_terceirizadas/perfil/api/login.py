@@ -50,6 +50,8 @@ class LoginView(ObtainJSONWebToken):
         return data
 
     def cria_usuario_no_django_e_no_coresso(self, dados_usuario, nome_perfil):
+        if not dados_usuario['email']:
+            raise PermissionDenied('Usuário sem e-mail cadastrado. E-mail é obrigatório.')
         tupla_dados = (
             dados_usuario['cargos'][0]['codigoUnidade'],
             dados_usuario['nome'],
@@ -108,9 +110,7 @@ class LoginView(ObtainJSONWebToken):
 
     def checa_se_trocou_de_unidade(self, user, hoje, vinculo_atual, dados_usuario):
         unidade_atual = dados_usuario['cargos'][0]['codigoUnidade']
-        if (vinculo_atual.ativo and
-            vinculo_atual.data_inicial != hoje and
-                vinculo_atual.instituicao.codigo_eol != unidade_atual):
+        if vinculo_atual.ativo and vinculo_atual.instituicao.codigo_eol != unidade_atual:
             vinculo_atual.finalizar_vinculo()
             self.cria_vinculo(user, hoje, dados_usuario, vinculo_atual.perfil)
 

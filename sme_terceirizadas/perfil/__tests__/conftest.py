@@ -532,7 +532,7 @@ def escola_cei():
 def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
     email = 'user@escola.com'
     rf = '1234567'
-    password = 'admin@123'
+    password = DJANGO_ADMIN_PASSWORD
     mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     usuario = django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
@@ -548,7 +548,7 @@ def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
 def client_autenticado_da_escola_sem_vinculo(client, django_user_model, escola, escola_cei):
     email = 'user@escola.com'
     rf = '1234567'
-    password = 'admin@123'
+    password = DJANGO_ADMIN_PASSWORD
     mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
     django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
@@ -561,7 +561,7 @@ def client_autenticado_da_escola_sem_vinculo(client, django_user_model, escola, 
 def client_autenticado_da_escola_adm(client, django_user_model, escola, escola_cei):
     email = 'user@escola.com'
     rf = '1234567'
-    password = 'admin@123'
+    password = DJANGO_ADMIN_PASSWORD
     mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     perfil_adm = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
     usuario = django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
@@ -577,7 +577,7 @@ def client_autenticado_da_escola_adm(client, django_user_model, escola, escola_c
 def client_autenticado_da_dre(client, django_user_model, escola, escola_cei):
     email = 'user@escola.com'
     rf = '1234567'
-    password = 'admin@123'
+    password = DJANGO_ADMIN_PASSWORD
     perfil_dre = mommy.make('Perfil', nome='COGESTOR_DRE', ativo=True)
     usuario = django_user_model.objects.create_user(nome='RONALDO COGESTOR', username=rf, password=password,
                                                     email=email, registro_funcional=rf, cpf='93697506064')
@@ -645,6 +645,23 @@ def mocked_response_get_dados_usuario_coresso():
         'rf': '1234567',
         'cpf': '93697506064',
         'email': 'user@escola.com',
+        'cargos': [
+            {'codigoCargo': 3360,
+             'descricaoCargo': 'DIRETOR DE ESCOLA                       ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO DIRETOR'
+    }
+
+
+def mocked_response_get_dados_usuario_coresso_sem_email():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': None,
         'cargos': [
             {'codigoCargo': 3360,
              'descricaoCargo': 'DIRETOR DE ESCOLA                       ',
