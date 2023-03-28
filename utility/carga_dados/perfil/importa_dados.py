@@ -835,14 +835,14 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
 
     def cria_ou_atualiza_usuario_admin(self, dados_usuario, existe_core_sso=False):
         usuario, criado = Usuario.objects.update_or_create(
+            email=dados_usuario.email,
             username=dados_usuario.rf,
-            registro_funcional=dados_usuario.rf,
-            last_login=datetime.now() if existe_core_sso else None,
+            cpf=dados_usuario.cpf,
             defaults={
-                'email': dados_usuario.email if dados_usuario.email else "",
-                'nome': dados_usuario.nome,
+                'registro_funcional': dados_usuario.rf,
                 'cargo': dados_usuario.cargo or "",
-                'cpf': dados_usuario.cpf or "",
+                'nome': dados_usuario.nome,
+                'last_login': datetime.now() if existe_core_sso else None
             }
         )
         return usuario
@@ -891,7 +891,8 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
         usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema, existe_core_sso=existe_core_sso)
         self.cria_vinculo(usuario, usuario_schema)
         eolusuariocoresso = EOLUsuarioCoreSSO()
-        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.rf, eh_servidor='S')
+        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.rf, eh_servidor='S',
+                                                            existe_core_sso=existe_core_sso)
 
     def finaliza_processamento(self) -> None:
         if self.erros:

@@ -51,7 +51,10 @@ class LoginView(ObtainJSONWebToken):
 
     def cria_usuario_no_django_e_no_coresso(self, dados_usuario, nome_perfil):
         if not dados_usuario['email']:
-            raise PermissionDenied('Usuário sem e-mail cadastrado. E-mail é obrigatório.')
+            response_outros_dados_usuario = EOLServicoSGP.usuario_core_sso_or_none(login=dados_usuario['rf'])
+            if not response_outros_dados_usuario or not response_outros_dados_usuario['email']:
+                raise PermissionDenied('Usuário sem e-mail cadastrado. E-mail é obrigatório.')
+            dados_usuario['email'] = response_outros_dados_usuario['email']
         tupla_dados = (
             dados_usuario['cargos'][0]['codigoUnidade'],
             dados_usuario['nome'],

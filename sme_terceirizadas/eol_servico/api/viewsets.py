@@ -14,18 +14,18 @@ class DadosUsuarioEOLCompletoViewSet(ViewSet):
 
     def retrieve(self, request, registro_funcional=None):
         try:
-            dados_ciedu = EOLService.get_informacoes_usuario(registro_funcional)
-            dados_sme = EOLServicoSGP.usuario_core_sso_or_none(registro_funcional)
-            dados_usuario = {}
-            if dados_ciedu[0] and dados_sme:
-                dados_usuario = {
-                    'nome': dados_sme['nome'],
-                    'email': dados_sme['email'],
-                    'cpf': dados_sme['cpf'],
-                    'rf': dados_sme['codigoRf'],
-                    'cargo': dados_ciedu[0]['cargo'],
-                    'codigo_eol_unidade': dados_ciedu[0]['cd_divisao'],
-                }
+            response_dados_usuario = EOLServicoSGP.get_dados_usuario(registro_funcional)
+            if response_dados_usuario.status_code != status.HTTP_200_OK:
+                raise EOLException('Usuário não encontrado')
+            dados_usuario = response_dados_usuario.json()
+            dados_usuario = {
+                'nome': dados_usuario['nome'],
+                'email': dados_usuario['email'],
+                'cpf': dados_usuario['cpf'],
+                'rf': dados_usuario['rf'],
+                'cargo': dados_usuario['cargos'][0]['descricaoCargo'].strip(),
+                'codigo_eol_unidade': dados_usuario['cargos'][0]['codigoUnidade']
+            }
             return Response(dados_usuario)
         except EOLException as e:
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
