@@ -456,7 +456,8 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
             eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(
                 dados_usuario=dados_usuario,
                 login=dados_usuario.login,
-                eh_servidor=dados_usuario.eh_servidor
+                eh_servidor=dados_usuario.eh_servidor,
+                existe_core_sso=existe_core_sso
             )
             logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
             self.enviar_email(usuario, eh_servidor)

@@ -1011,10 +1011,12 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
 
     @transaction.atomic
     def __criar_usuario_externo(self, usuario_schema: ImportacaoPlanilhaUsuarioExternoCoreSSOSchema):
+        existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=usuario_schema.cpf)
         usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
         self.cria_vinculo(usuario, usuario_schema)
         eolusuariocoresso = EOLUsuarioCoreSSO()
-        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.cpf, eh_servidor='N')
+        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.cpf, eh_servidor='N',
+                                                            existe_core_sso=existe_core_sso)
 
     def finaliza_processamento(self) -> None:
         if self.erros:
