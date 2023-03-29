@@ -217,8 +217,11 @@ class EscolaSimplissimaComDREUnpaginatedViewSet(EscolaSimplissimaComDREViewSet):
     def terc_total(self, request):
         escolas = self.get_queryset().filter(tipo_gestao__nome='TERC TOTAL')
         dre = request.query_params.get('dre', None)
+        terceirizada = request.query_params.get('terceirizada', None)
         if dre:
             escolas = escolas.filter(diretoria_regional__uuid=dre)
+        if terceirizada:
+            escolas = escolas.filter(lote__terceirizada__uuid=terceirizada)
         return Response(self.get_serializer(escolas, many=True).data)
 
 
@@ -407,7 +410,7 @@ class LoteSimplesViewSet(ModelViewSet):
     serializer_class = LoteNomeSerializer
     queryset = Lote.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_fields = ('diretoria_regional__uuid',)
+    filterset_fields = ('diretoria_regional__uuid', 'terceirizada__uuid')
 
 
 class CODAESimplesViewSet(ModelViewSet):
