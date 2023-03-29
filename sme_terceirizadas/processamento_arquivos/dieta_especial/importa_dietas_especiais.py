@@ -1,7 +1,5 @@
 import logging
-import re
 from datetime import date
-from difflib import SequenceMatcher
 from tempfile import NamedTemporaryFile
 from typing import List
 
@@ -116,31 +114,18 @@ class ProcessadorPlanilha:
             raise Exception(f'Erro: escola com código codae {solicitacao_dieta_schema.codigo_escola} não encontrada.')
         return escola
 
-    def similar(self, a, b):
-        return SequenceMatcher(None, a, b).ratio()
-
-    def compara_nome_protocolo(self, nome_protocolo, queryset_simples):
-        protocolo = None
-        nome_protocolo = re.sub('[^A-Za-z]+', '', nome_protocolo.upper())
-        for dict_protocolo in queryset_simples:
-            nome_formatado = re.sub('[^A-Za-z]+', '', dict_protocolo['nome_protocolo'].upper())
-            porcentagem_similar = self.similar(nome_protocolo, nome_formatado)
-            if float(porcentagem_similar) > 0.95:  # verifica se a similaridade é maior que 95%
-                protocolo = ProtocoloPadraoDietaEspecial.objects.get(uuid=dict_protocolo['uuid'])
-                break
-        return protocolo
-
     def consulta_protocolo_padrao(self, solicitacao_dieta_schema, escola) -> ProtocoloPadraoDietaEspecial:
         if not escola:
             raise Exception(f'Erro: Escola inválida. Não foi possível encontrar os editais e protocolos.')
         editais = Edital.objects.filter(uuid__in=escola.editais)
         protocolos_uuids = editais.values_list('protocolos_padroes_dieta_especial__uuid', flat=True)
         protocolos = ProtocoloPadraoDietaEspecial.objects.filter(uuid__in=protocolos_uuids)
-        queryset_simples = protocolos.values('uuid', 'nome_protocolo')
-        protocolo = self.compara_nome_protocolo(solicitacao_dieta_schema.protocolo_dieta, queryset_simples)
-        if not protocolo:
-            raise Exception(f'Erro: protocolo com nome {solicitacao_dieta_schema.protocolo_dieta} não encontrada.')
-        return protocolo
+        protocolos = protocolos.filter(nome_protocolo=solicitacao_dieta_schema.protocolo_dieta)
+        if not protocolos:
+            msg_part_1 = 'Erro: protocolo padrão'
+            msg_part_2 = 'não encontrado com este nome ao edital que a escola está relacionada.'
+            raise Exception(f'{msg_part_1} {solicitacao_dieta_schema.protocolo_dieta} {msg_part_2}')
+        return protocolos.first()
 
     def consulta_classificacao(self, dieta_schema) -> ClassificacaoDieta:
         classificacao_dieta = ClassificacaoDieta.objects.filter(
