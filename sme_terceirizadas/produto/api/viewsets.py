@@ -408,7 +408,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         agrupado_nome_marca = request.data.get('agrupado_por_nome_e_marca')
         user = request.user.get_username()
 
-        gera_pdf_relatorio_produtos_homologados_async(
+        gera_pdf_relatorio_produtos_homologados_async.delay(
             user=user,
             nome_arquivo=f'relatorio_produtos_homologados{"_nome_marca" if agrupado_nome_marca else ""}.pdf',
             data=request.query_params,
@@ -514,7 +514,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
                     HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
                     HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
-                    HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
+                    HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
+                    HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
                 ],
                 'raw_sql': ("WHERE (%(homologacao_produto)s.status = 'CODAE_HOMOLOGADO' "
                             "OR %(homologacao_produto)s.status = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU' "
@@ -523,7 +524,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                             "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_UE' "
                             "OR %(homologacao_produto)s.status = 'UE_RESPONDEU_QUESTIONAMENTO' "
                             "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_NUTRISUPERVISOR' "
-                            "OR %(homologacao_produto)s.status = 'NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO') ")
+                            "OR %(homologacao_produto)s.status = 'NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO' "
+                            "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO') ")
             },
             'codae_nao_homologado': {
                 'status__in': [
