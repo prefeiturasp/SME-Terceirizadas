@@ -21,6 +21,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCriarSolicitacoesAlteracaoCronograma,
     PermissaoParaDarCienciaAlteracaoCronograma,
     PermissaoParaDashboardCronograma,
+    PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCronograma,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     ViewSetActionPermissionMixin
@@ -39,6 +40,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     EmbalagemQldSerializer,
     LaboratorioSerializer,
     PainelCronogramaSerializer,
+    PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
     SolicitacaoAlteracaoCronogramaSerializer
 )
@@ -49,6 +51,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     Laboratorio,
     SolicitacaoAlteracaoCronograma
 )
+from sme_terceirizadas.pre_recebimento.utils import ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
 
 from ...dados_comuns.constants import ADMINISTRADOR_FORNECEDOR
 from ...dados_comuns.models import LogSolicitacoesUsuario
@@ -319,6 +322,16 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             self.permission_classes = (PermissaoParaCriarSolicitacoesAlteracaoCronograma,)
 
         return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
+
+    @action(detail=False, methods=['GET'],
+            url_path='dashboard', permission_classes=(PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,))
+    def dashboard(self, request):
+        dados_dashboard = []
+        lista_status = ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(self.request.user)
+        dados_dashboard = [{'status': status, 'dados': SolicitacaoAlteracaoCronograma.objects.get_dashboard(status)}
+                           for status in lista_status]
+        serialized_data = PainelSolicitacaoAlteracaoCronogramaSerializer(dados_dashboard, many=True).data
+        return Response({'results': serialized_data})
 
     @transaction.atomic
     @action(detail=True, permission_classes=(PermissaoParaDarCienciaAlteracaoCronograma,),
