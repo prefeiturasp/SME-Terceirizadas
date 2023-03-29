@@ -140,7 +140,7 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
     def _filtrar_dashboard(self, qs, filtros):
         if filtros:
             if filtros['nome_fornecedor']:
-                qs = qs.filter(cronograma__empresa__razao_social__icontains=filtros['nome_fornecedor'])
+                qs = qs.filter(cronograma__empresa__nome_fantasia__icontains=filtros['nome_fornecedor'])
             if filtros['numero_cronograma']:
                 qs = qs.filter(cronograma__numero__icontains=filtros['numero_cronograma'])
 
