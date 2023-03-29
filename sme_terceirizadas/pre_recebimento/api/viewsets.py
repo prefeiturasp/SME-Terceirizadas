@@ -323,14 +323,27 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
 
         return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
 
+    def _dados_dashboard(self, request, filtros=None):
+        dados_dashboard = []
+        lista_status = ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(self.request.user)
+        dados_dashboard = [{'status': status, 'dados':
+                            SolicitacaoAlteracaoCronograma.objects.get_dashboard(status, filtros)}
+                           for status in lista_status]
+        return dados_dashboard
+
     @action(detail=False, methods=['GET'],
             url_path='dashboard', permission_classes=(PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,))
     def dashboard(self, request):
-        dados_dashboard = []
-        lista_status = ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(self.request.user)
-        dados_dashboard = [{'status': status, 'dados': SolicitacaoAlteracaoCronograma.objects.get_dashboard(status)}
-                           for status in lista_status]
-        serialized_data = PainelSolicitacaoAlteracaoCronogramaSerializer(dados_dashboard, many=True).data
+        serialized_data = PainelSolicitacaoAlteracaoCronogramaSerializer(self._dados_dashboard(request), many=True).data
+        return Response({'results': serialized_data})
+
+    @action(detail=False, methods=['GET'],
+            url_path='dashboard-com-filtro', permission_classes=(
+        PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,))
+    def dashboard_com_filtro(self, request):
+        filtros = request.query_params
+        serialized_data = PainelSolicitacaoAlteracaoCronogramaSerializer(self._dados_dashboard(
+            request, filtros), many=True).data
         return Response({'results': serialized_data})
 
     @transaction.atomic
