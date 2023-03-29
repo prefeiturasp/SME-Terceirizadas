@@ -141,6 +141,12 @@ class LoginView(ObtainJSONWebToken):
         elif dados_usuario['cargos'][0]['codigoUnidade'] != vinculo_atual.instituicao.codigo_eol:
             vinculo_atual.finalizar_vinculo()
 
+    def checa_vinculo_se_servidor(self, login):
+        if len(login) != 7:
+            return
+        dados_usuario = self.get_dados_usuario_json(login)
+        self.checa_se_mantem_acesso_e_ou_altera_dados(dados_usuario)
+
     def checa_se_mantem_acesso_e_ou_altera_dados(self, dados_usuario):
         hoje = datetime.date.today()
         user = User.objects.get(username=dados_usuario['rf'])
@@ -168,8 +174,7 @@ class LoginView(ObtainJSONWebToken):
             response = AutenticacaoService.autentica(login, senha)
             user_dict = response.json()
             if 'login' in user_dict.keys():
-                dados_usuario = self.get_dados_usuario_json(login)
-                self.checa_se_mantem_acesso_e_ou_altera_dados(dados_usuario)
+                self.checa_vinculo_se_servidor(login)
                 user, last_login = self.update_user(user_dict, senha)
                 data = self.build_response_data(request, user_dict, senha, last_login, args, kwargs)
                 return Response(data)
