@@ -407,7 +407,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     def exportar_pdf(self, request):
         agrupado_nome_marca = request.data.get('agrupado_por_nome_e_marca')
         user = request.user.get_username()
-        gera_pdf_relatorio_produtos_homologados_async(
+
+        gera_pdf_relatorio_produtos_homologados_async.delay(
             user=user,
             nome_arquivo=f'relatorio_produtos_homologados{"_nome_marca" if agrupado_nome_marca else ""}.pdf',
             data=request.query_params,
