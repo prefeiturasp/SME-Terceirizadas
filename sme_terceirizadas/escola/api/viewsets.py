@@ -77,7 +77,7 @@ from ..models import (
     TipoUnidadeEscolar
 )
 from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
-from ..utils import EscolaSimplissimaPagination
+from ..utils import EscolaSimplissimaPagination, lotes_endpoint_filtrar_relatorio_alunos_matriculados
 from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
@@ -746,10 +746,7 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='filtrar')
     def filtrar(self, request):
         instituicao = request.user.vinculo_atual.instituicao
-        if isinstance(instituicao, Codae):
-            lotes = Lote.objects.all()
-        else:
-            lotes = instituicao.lotes.filter(escolas__isnull=False)
+        lotes = lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lote)
         if request.query_params.getlist('lotes[]'):
             lotes = lotes.filter(uuid__in=request.query_params.getlist('lotes[]'))
         if request.query_params.getlist('diretorias_regionais[]'):
@@ -757,6 +754,10 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
         escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
         alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(escola__uuid__in=escolas_uuids,
                                                                              escola__tipo_gestao__nome='TERC TOTAL')
+        if request.query_params.getlist('diretorias_regionais[]'):
+            alunos_matriculados = alunos_matriculados.filter(
+                escola__diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]')
+            )
         if request.query_params.getlist('tipos_unidades[]'):
             tipos = request.query_params.getlist('tipos_unidades[]')
             alunos_matriculados = alunos_matriculados.filter(escola__tipo_unidade__uuid__in=tipos)
