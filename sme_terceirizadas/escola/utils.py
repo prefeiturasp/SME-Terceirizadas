@@ -209,3 +209,11 @@ def calendario_sgp():  # noqa C901
 class EscolaSimplissimaPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
+
+
+def lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lote):
+    if isinstance(instituicao, Codae):
+        lotes = Lote.objects.all()
+    else:
+        lotes = instituicao.lotes.filter(escolas__isnull=False)
+    return lotes
