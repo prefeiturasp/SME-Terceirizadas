@@ -3073,7 +3073,7 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
 
     transitions = (
         ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
-        ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE),
+        ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE)
     )
 
     initial_state = EM_ANALISE

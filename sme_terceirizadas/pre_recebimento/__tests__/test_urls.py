@@ -457,3 +457,16 @@ def test_url_dashboard_com_filtro_painel_usuario_dinutre(client_autenticado_dinu
     assert len(filtro3.json()['results'][1]['dados']) == 2
     assert filtro3.json()['results'][2]['status'] == 'ASSINADO_CODAE'
     assert len(filtro3.json()['results'][2]['dados']) == 1
+
+
+def test_url_dashboard_painel_solicitacao_alteracao_dinutre(client_autenticado_dinutre_diretoria,
+                                                            cronogramas_multiplos_status_com_log_cronograma_ciente):
+    response = client_autenticado_dinutre_diretoria.get(
+        f'/solicitacao-de-alteracao-de-cronograma/dashboard/'
+    )
+    QTD_STATUS_DASHBOARD_DINUTRE = 1
+    SOLICITACOES_STATUS_CRONOGRAMA_CIENTE = 2
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == QTD_STATUS_DASHBOARD_DINUTRE
+    assert response.json()['results'][0]['status'] == 'CRONOGRAMA_CIENTE'
+    assert len(response.json()['results'][0]['dados']) == SOLICITACOES_STATUS_CRONOGRAMA_CIENTE

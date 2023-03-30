@@ -65,6 +65,7 @@ def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
                 logger.debug(f'Periodo {turno_resp["turno"]} não encontrado na tabela de Períodos')
                 continue
             periodos.append(periodo)
+            create_update_objeto_escola_periodo_escolar(escola, periodo, turno_resp['quantidade'])
             matricula_sigpae = AlunosMatriculadosPeriodoEscola.objects.filter(tipo_turma=tipo_turma,
                                                                               escola=escola,
                                                                               periodo_escolar=periodo).first()
@@ -87,6 +88,16 @@ def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
             escola=escola).exclude(periodo_escolar__in=periodos).delete()
     AlunosMatriculadosPeriodoEscola.objects.bulk_update(objs, ['quantidade_alunos'])
     update_datetime_LogAlunosMatriculadosPeriodoEscola()
+
+
+def create_update_objeto_escola_periodo_escolar(escola, periodo, quantidade_alunos_periodo):
+    from sme_terceirizadas.escola.models import EscolaPeriodoEscolar
+    escola_periodo, created = EscolaPeriodoEscolar.objects.get_or_create(
+        periodo_escolar=periodo, escola=escola
+    )
+    if escola_periodo.quantidade_alunos != quantidade_alunos_periodo:
+        escola_periodo.quantidade_alunos = quantidade_alunos_periodo
+        escola_periodo.save()
 
 
 def duplica_dia_anterior(dre, ontem, tipo_turma_name):
@@ -198,3 +209,11 @@ def calendario_sgp():  # noqa C901
 class EscolaSimplissimaPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
+
+
+def lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lote):
+    if isinstance(instituicao, Codae):
+        lotes = Lote.objects.all()
+    else:
+        lotes = instituicao.lotes.filter(escolas__isnull=False)
+    return lotes

@@ -582,7 +582,7 @@ class PermissaoParaVisualizarSolicitacoesAlteracaoCronograma(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
+                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DINUTRE_DIRETORIA]
                 )
             )
         )
@@ -610,6 +610,16 @@ class PermissaoParaCriarSolicitacoesAlteracaoCronograma(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_FORNECEDOR]
+        )
+
+
+class PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            usuario.vinculo_atual.perfil.nome in [DINUTRE_DIRETORIA]
         )
 
 
