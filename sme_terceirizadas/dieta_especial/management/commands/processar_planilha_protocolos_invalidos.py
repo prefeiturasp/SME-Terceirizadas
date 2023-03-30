@@ -23,7 +23,7 @@ class Command(BaseCommand):
         return lista_objetos
 
     def formatar_tamanho_celulas(self, ws):
-        for column in ['A', 'B', 'C']:
+        for column in ['A', 'B', 'C', 'D', 'E', 'F']:
             ws.column_dimensions[column].width = 50
 
     def exportar_planilha(self, lista):
@@ -31,7 +31,7 @@ class Command(BaseCommand):
         ws = wb.active
         self.formatar_tamanho_celulas(ws)
         ws.title = 'Dietas não relacionadas'
-        cabecalho = ['uuid', 'nome protocolo na planilha', 'erro']
+        cabecalho = ['uuid', 'nome protocolo na planilha', 'escola', 'aluno', 'lote', 'erro']
         for ind, title in enumerate(cabecalho, 1):
             celula = ws.cell(row=1, column=ind)
             celula.value = str(title)
@@ -40,7 +40,10 @@ class Command(BaseCommand):
         for ind, dict_solicitacao in enumerate(lista, 2):
             ws.cell(row=ind, column=1, value=str(dict_solicitacao['uuid']))
             ws.cell(row=ind, column=2, value=dict_solicitacao['nome protocolo na planilha'])
-            ws.cell(row=ind, column=3, value=dict_solicitacao['erro'])
+            ws.cell(row=ind, column=3, value=dict_solicitacao['escola'])
+            ws.cell(row=ind, column=4, value=dict_solicitacao['aluno'])
+            ws.cell(row=ind, column=5, value=dict_solicitacao['lote'])
+            ws.cell(row=ind, column=6, value=dict_solicitacao['erro'])
 
         wb.save(f'relacao-planilha-invalidos-protocolos-com-erro.xlsx')
 
@@ -52,30 +55,32 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dados_planilha = self.extrair_dados_planilha()
-        # solicitacoes_nao_relacionadas = []
-        # for dado in dados_planilha:
-        #     solicitacao = SolicitacaoDietaEspecial.objects.get(uuid=dado['UUID'])
-        #     editais_uuids = solicitacao.escola.lote.contratos_do_lote.values_list('edital__uuid', flat=True)
-        #     editais = Edital.objects.filter(uuid__in=editais_uuids)
-        #     protocolos_uuids = editais.values_list('protocolos_padroes_dieta_especial__uuid')
-        #     protocolos = None
-        #
-        #     nome_protocolo = None
-        #     nome_planilha = dado['ALTERAR NOME DO PROTOCOLO NO SISTEMA  PARA:']
-        #     nome_db = dado['CRIADO PROTOCOLO PADRÃO COM NOME:']
-        #     if self.check_deletar_solicitacoes(nome_planilha, nome_db):
-        #         solicitacao.delete()
-        #     else:
-        #         nome_protocolo = nome_planilha if nome_planilha else nome_db
-        #         protocolos = ProtocoloPadraoDietaEspecial.objects.filter(uuid__in=protocolos_uuids,
-        #                                                                  nome_protocolo=nome_protocolo)
-        #
-        #         if not protocolos:
-        #             objeto = {'uuid': dado['UUID'], 'nome protocolo na planilha': nome_protocolo,
-        #                       'erro': 'Protocolo não encontrado para o Edital e Lote da Escola '}
-        #             solicitacoes_nao_relacionadas.append(objeto)
-        #         else:
-        #             solicitacao.protocolo_padrao = protocolos.first()
-        #             solicitacao.save()
-        #
-        # self.exportar_planilha(solicitacoes_nao_relacionadas)
+        solicitacoes_nao_relacionadas = []
+        for dado in dados_planilha:
+            solicitacao = SolicitacaoDietaEspecial.objects.filter(uuid=dado['UUID']).first()
+            if solicitacao:
+                editais_uuids = solicitacao.escola.lote.contratos_do_lote.values_list('edital__uuid', flat=True)
+                editais = Edital.objects.filter(uuid__in=editais_uuids)
+                protocolos_uuids = editais.values_list('protocolos_padroes_dieta_especial__uuid')
+                protocolos = None
+
+                nome_protocolo = None
+                nome_planilha = dado['ALTERAR NOME DO PROTOCOLO NO SISTEMA  PARA:']
+                nome_db = dado['CRIADO PROTOCOLO PADRÃO COM NOME:']
+                if self.check_deletar_solicitacoes(nome_planilha, nome_db):
+                    solicitacao.delete()
+                else:
+                    nome_protocolo = nome_planilha if nome_planilha else nome_db
+                    protocolos = ProtocoloPadraoDietaEspecial.objects.filter(uuid__in=protocolos_uuids,
+                                                                             nome_protocolo=nome_protocolo)
+
+                    if not protocolos:
+                        objeto = {'uuid': dado['UUID'], 'nome protocolo na planilha': nome_protocolo,
+                                  'escola': solicitacao.escola.nome, 'aluno': solicitacao.aluno.nome,
+                                  'lote': solicitacao.escola.lote.nome,
+                                  'erro': 'Protocolo não encontrado para o Edital e Lote da Escola '}
+                        solicitacoes_nao_relacionadas.append(objeto)
+                    else:
+                        solicitacao.protocolo_padrao = protocolos.first()
+                        solicitacao.save()
+        self.exportar_planilha(solicitacoes_nao_relacionadas)
