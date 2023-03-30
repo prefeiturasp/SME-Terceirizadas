@@ -126,7 +126,12 @@ class PainelSolicitacaoAlteracaoCronogramaSerializerItem(serializers.ModelSerial
     log_mais_recente = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
-        return datetime.datetime.strftime(obj.log_criado_em, '%d/%m/%Y %H:%M')
+        if obj.log_criado_em:
+            if obj.log_criado_em.date() == datetime.date.today():
+                return datetime.datetime.strftime(obj.log_criado_em, '%d/%m/%Y %H:%M')
+            return datetime.datetime.strftime(obj.log_criado_em, '%d/%m/%Y')
+        else:
+            return datetime.datetime.strftime(obj.log_criado_em, '%d/%m/%Y')
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
