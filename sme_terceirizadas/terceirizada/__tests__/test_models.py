@@ -117,16 +117,16 @@ def test_inclusoes_normais_das_minhas_escolas(terceirizada):
 
 
 def test_alteracoes_cardapio_das_minhas_escolas(terceirizada):
-    inclusoes1 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(filtro_aplicado='hoje')
-    inclusoes2 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(filtro_aplicado='daqui_a_7_dias')
-    inclusoes3 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(filtro_aplicado='daqui_a_30_dias')
-    inclusoes4 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(filtro_aplicado='daqui_a_7_dias')
-    assert len(inclusoes1) == 0
-    assert len(inclusoes2) == 0
-    assert len(inclusoes3) == 0
-    assert len(inclusoes4) == 0
+    alteracao1 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(filtro_aplicado='hoje')
+    alteracao2 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(filtro_aplicado='daqui_a_7_dias')
+    alteracao3 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(filtro_aplicado='daqui_a_30_dias')
+    alteracao4 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(filtro_aplicado='daqui_a_7_dias')
+    assert len(alteracao1) == 0
+    assert len(alteracao2) == 0
+    assert len(alteracao3) == 0
+    assert len(alteracao4) == 0
 
 
 def test_alteracoes_cardapio_das_minhas_escolas_cei(terceirizada):
-    inclusoes = terceirizada.alteracoes_cardapio_cei_das_minhas(filtro_aplicado='hoje')
-    assert len(inclusoes) == 0
+    alteracao = terceirizada.alteracoes_cardapio_cei_das_minhas(filtro_aplicado='hoje')
+    assert len(alteracao) == 0
