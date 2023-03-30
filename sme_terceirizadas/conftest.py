@@ -6,6 +6,7 @@ from model_mommy import mommy
 
 from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
+from .inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 
 f = Faker(locale='pt-Br')
 
@@ -277,3 +278,39 @@ def client_autenticado_dilog_diretoria(client, django_user_model):
                ativo=True)
     client.login(email=email, password=password)
     return client
+
+
+@pytest.fixture
+def diretoria_regional_ip():
+    return mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA', iniciais='IP',
+                      uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
+
+
+@pytest.fixture
+def escola_um(diretoria_regional_ip):
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional_ip,
+                      uuid='a7b9cf39-ab0a-4c6f-8e42-230243f9763f')
+
+
+@pytest.fixture
+def inclusoes_continuas(terceirizada, escola_um):
+    inclusao = mommy.make('InclusaoAlimentacaoContinua',
+                          escola=escola_um,
+                          status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO
+                          )
+    return inclusao
+
+
+@pytest.fixture
+def inclusoes_normais(terceirizada, escola_um):
+    return mommy.make('GrupoInclusaoAlimentacaoNormal',
+                      escola=escola_um,
+                      status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO
+                      )
+
+
+@pytest.fixture
+def alteracoes_cardapio(terceirizada, escola_um):
+    return mommy.make('AlteracaoCardapio')
