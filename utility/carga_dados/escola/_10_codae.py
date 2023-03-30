@@ -68,17 +68,6 @@ def percorre_data_frame():
     # DIFIR - Divisão Financeira
     # GTIC - Gestão de Tecnologia e Informação
 
-    gestao_financeira, created = Perfil.objects.get_or_create(
-        nome='COORDENADOR_GESTAO_FINANCEIRA',
-        ativo=True,
-        super_usuario=True
-    )
-    gestao_tecnologia_informacao, created = Perfil.objects.get_or_create(
-        nome='COORDENADOR_TERCNOLOGIA_INFORMACAO',
-        ativo=True,
-        super_usuario=True
-    )
-
     dieta_especial, created = Perfil.objects.get_or_create(
         nome='COORDENADOR_DIETA_ESPECIAL',
         ativo=True,

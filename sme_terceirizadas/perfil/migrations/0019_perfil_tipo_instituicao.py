@@ -7,7 +7,6 @@ def migrate_default_values(apps, schmema_editor):
     def get_perfil(nome):
         perfis_choices = {
             'ADMINISTRADOR_UE': 'ESCOLA',
-            'ADMINISTRADOR_DRE': 'DRE',
             'COORDENADOR_CODAE_DILOG_LOGISTICA': 'CODAE',
             'ADMINISTRADOR_CODAE_DILOG_JURIDICO': 'CODAE',
             'ADMINISTRADOR_CODAE_DILOG_CONTABIL': 'CODAE',
@@ -18,7 +17,6 @@ def migrate_default_values(apps, schmema_editor):
             'DIRETOR': 'ESCOLA',
             'DIRETOR_CEI': 'ESCOLA',
             'ADMINISTRADOR_UE': 'ESCOLA',
-            'COORDENADOR_ESCOLA': 'ESCOLA',
             'COGESTOR': 'DRE',
             'COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO': 'CODAE',
             'ADMINISTRADOR_SUPERVISAO_NUTRICAO': 'CODAE',
@@ -27,8 +25,6 @@ def migrate_default_values(apps, schmema_editor):
             'COORDENADOR_GESTAO_PRODUTO': 'CODAE',
             'ADMINISTRADOR_DIETA_ESPECIAL': 'CODAE',
             'COORDENADOR_DIETA_ESPECIAL': 'CODAE',
-            'COORDENADOR_TERCNOLOGIA_INFORMACAO': 'CODAE',
-            'COORDENADOR_GESTAO_FINANCEIRA': 'CODAE',
             'COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA': 'CODAE',
             'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA': 'CODAE',
             'CODAE': 'CODAE',

@@ -17,7 +17,7 @@ class Command(BaseCommand):
         self.migra_vinculos_empresa_usuario_terceirizada()
 
     def migra_vinculos_escola(self):
-        adm_ue = Perfil.by_nome(ADMINISTRADOR_UE)
+        adm_ue, created = Perfil.objects.get_or_create(nome=ADMINISTRADOR_UE)
         Vinculo.objects.filter(perfil__nome__in=['DIRETOR',
                                                  'DIRETOR_CEI',
                                                  'DIRETOR_ABASTECIMENTO',
@@ -29,13 +29,13 @@ class Command(BaseCommand):
                                                  'ADMINISTRADOR_ESCOLA_ABASTECIMENTO']).update(perfil=adm_ue)
 
     def migra_vinculos_empresa(self):
-        adm_empresa = Perfil.by_nome(ADMINISTRADOR_EMPRESA)
+        adm_empresa, created = Perfil.objects.get_or_create(nome=ADMINISTRADOR_EMPRESA)
         Vinculo.objects.filter(
             perfil__nome__in=['NUTRI_ADMIN_RESPONSAVEL',
                               'ADMINISTRADOR_DISTRIBUIDORA',
                               'ADMINISTRADOR_FORNECEDOR']).update(perfil=adm_empresa)
 
     def migra_vinculos_empresa_usuario_terceirizada(self):
-        usuario_empresa = Perfil.by_nome(USUARIO_EMPRESA)
+        usuario_empresa, created = Perfil.objects.get_or_create(nome=USUARIO_EMPRESA)
         Vinculo.objects.filter(
             perfil__nome__in=['ADMINISTRADOR_TERCEIRIZADA']).update(perfil=usuario_empresa)

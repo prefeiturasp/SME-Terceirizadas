@@ -36,11 +36,7 @@ from ..dados_comuns.behaviors import (
     TemObservacao,
     TemVinculos
 )
-from ..dados_comuns.constants import (
-    COORDENADOR_DIETA_ESPECIAL,
-    COORDENADOR_ESCOLA,
-    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
-)
+from ..dados_comuns.constants import COORDENADOR_DIETA_ESPECIAL, COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DIRETOR_UE
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
@@ -430,7 +426,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             | Q(  # noqa W504 esperando ativacao
                 data_inicial__isnull=False, data_final=None, ativo=True
             )  # noqa W504 ativo
-        ).exclude(perfil__nome=COORDENADOR_ESCOLA)
+        ).exclude(perfil__nome=DIRETOR_UE)
 
     @property
     def eh_cei(self):
