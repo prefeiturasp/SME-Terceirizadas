@@ -77,3 +77,20 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
 
     assert response.status_code == status.HTTP_201_CREATED
     assert empresa.tipo_servico == Terceirizada.DISTRIBUIDOR_ARMAZEM
+
+
+def test_url_endpoint_terceirizadas_actions(client_autenticado_dilog):
+
+    client = client_autenticado_dilog
+
+    response = client.get(f'/terceirizadas/lista-nomes/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/terceirizadas/lista-nomes-distribuidores/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/terceirizadas/lista-fornecedores-simples/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/terceirizadas/lista-cnpjs/')
+    assert response.status_code == status.HTTP_200_OK

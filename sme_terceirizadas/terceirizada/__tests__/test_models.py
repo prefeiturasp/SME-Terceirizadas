@@ -11,6 +11,7 @@ def test_modelo_edital(edital):
     assert edital.numero is not None
     assert edital.objeto is not None
     assert edital.contratos is not None
+    assert hasattr(edital, 'contratos')
     assert edital.__str__() == '1 - lorem ipsum'
 
 
@@ -46,6 +47,8 @@ def test_terceirizada(terceirizada):
     assert terceirizada.alteracoes_cardapio_reprovadas is not None
     assert terceirizada.inversoes_cardapio_autorizadas is not None
     assert terceirizada.solicitacoes_unificadas_autorizadas is not None
+    assert terceirizada.quantidade_alunos is not None
+    assert terceirizada.nutricionistas is not None
 
     filtro = 'Hoje'
     assert terceirizada.inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(filtro) is not None
@@ -89,3 +92,41 @@ def test_modelo_emailterceirizadapormodulo(emailterceirizadapormodulo):
     assert emailterceirizadapormodulo.modulo is not None
     assert emailterceirizadapormodulo.criado_em is not None
     assert emailterceirizadapormodulo.criado_por is not None
+
+
+def test_inclusoes_continuas_das_minhas_escolas(terceirizada):
+    inclusoes1 = terceirizada.inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(filtro_aplicado='hoje')
+    inclusoes2 = terceirizada.inclusoes_continuas_das_minhas_escolas_no_prazo_limite(filtro_aplicado='daqui_a_7_dias')
+    inclusoes3 = terceirizada.inclusoes_continuas_das_minhas_escolas_no_prazo_regular(filtro_aplicado='daqui_a_30_dias')
+    inclusoes4 = terceirizada.inclusoes_continuas_das_minhas_escolas_no_prazo_regular(filtro_aplicado='daqui_a_7_dias')
+    assert len(inclusoes1) == 0
+    assert len(inclusoes2) == 0
+    assert len(inclusoes3) == 0
+    assert len(inclusoes4) == 0
+
+
+def test_inclusoes_normais_das_minhas_escolas(terceirizada):
+    inclusoes1 = terceirizada.inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(filtro_aplicado='hoje')
+    inclusoes2 = terceirizada.inclusoes_normais_das_minhas_escolas_no_prazo_limite(filtro_aplicado='daqui_a_7_dias')
+    inclusoes3 = terceirizada.inclusoes_normais_das_minhas_escolas_no_prazo_regular(filtro_aplicado='daqui_a_30_dias')
+    inclusoes4 = terceirizada.inclusoes_normais_das_minhas_escolas_no_prazo_regular(filtro_aplicado='daqui_a_7_dias')
+    assert len(inclusoes1) == 0
+    assert len(inclusoes2) == 0
+    assert len(inclusoes3) == 0
+    assert len(inclusoes4) == 0
+
+
+def test_alteracoes_cardapio_das_minhas_escolas(terceirizada):
+    inclusoes1 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(filtro_aplicado='hoje')
+    inclusoes2 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(filtro_aplicado='daqui_a_7_dias')
+    inclusoes3 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(filtro_aplicado='daqui_a_30_dias')
+    inclusoes4 = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(filtro_aplicado='daqui_a_7_dias')
+    assert len(inclusoes1) == 0
+    assert len(inclusoes2) == 0
+    assert len(inclusoes3) == 0
+    assert len(inclusoes4) == 0
+
+
+def test_alteracoes_cardapio_das_minhas_escolas_cei(terceirizada):
+    inclusoes = terceirizada.alteracoes_cardapio_cei_das_minhas(filtro_aplicado='hoje')
+    assert len(inclusoes) == 0
