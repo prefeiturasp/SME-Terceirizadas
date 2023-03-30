@@ -1,4 +1,5 @@
 import datetime
+from collections import OrderedDict
 
 from rest_framework import serializers
 
@@ -141,16 +142,22 @@ class PainelSolicitacaoAlteracaoCronogramaSerializerItem(serializers.ModelSerial
 class PainelSolicitacaoAlteracaoCronogramaSerializer(serializers.Serializer):
     status = serializers.CharField()
     dados = serializers.SerializerMethodField()
+    total = serializers.IntegerField(allow_null=True)
 
     def get_dados(self, obj):
         return PainelSolicitacaoAlteracaoCronogramaSerializerItem(obj['dados'], many=True).data
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
-        fields = ('uuid', 'status', 'dados')
+        fields = ('uuid', 'status', 'total', 'dados')
+
+    def to_representation(self, instance):
+        result = super(PainelSolicitacaoAlteracaoCronogramaSerializer, self).to_representation(instance)
+        return OrderedDict([(key, result[key]) for key in result if result[key] is not None])
 
 
 class LaboratorioSerializer(serializers.ModelSerializer):
+
     contatos = ContatoSimplesSerializer(many=True)
 
     class Meta:
