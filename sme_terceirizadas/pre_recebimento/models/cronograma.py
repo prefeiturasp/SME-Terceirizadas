@@ -145,7 +145,8 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
                 qs = qs.filter(cronograma__empresa__nome_fantasia__icontains=filtros['nome_fornecedor'])
             if 'numero_cronograma' in filtros:
                 qs = qs.filter(cronograma__numero__icontains=filtros['numero_cronograma'])
-
+            if 'nome_produto' in filtros:
+                qs = qs.filter(cronograma__produto__nome__icontains=filtros['nome_produto'])
         return qs
 
 
