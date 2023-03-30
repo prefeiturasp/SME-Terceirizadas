@@ -302,7 +302,7 @@ def test_url_aluno_actions(client_autenticado_da_dre, escola):
                        escola=escola)
 
     client = client_autenticado_da_dre
-    response = client.get(f'/alunos/{aluno.codigo_eol}/aluno-pertence-a-escola/{escola.codigo_eol}/')
+    response = client.get(f'/alunos/{aluno.codigo_eol}/aluno-pertence-a-escola/000546/')
     assert response.status_code == status.HTTP_200_OK
 
 
