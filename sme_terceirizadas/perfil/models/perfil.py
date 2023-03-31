@@ -150,7 +150,7 @@ class Vinculo(ExportModelOperationsMixin('vinculo_perfil'), Ativavel, TemChaveEx
         verbose_name_plural = 'Vínculos'
 
     def __str__(self):
-        return f'{self.usuario} de {self.data_inicial} até {self.data_final}'
+        return f'{self.usuario.username} - {self.usuario.nome} - de {self.data_inicial} até {self.data_final}'
 
 
 class PerfisVinculados(models.Model):
