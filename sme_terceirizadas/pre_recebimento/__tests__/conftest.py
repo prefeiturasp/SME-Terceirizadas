@@ -79,6 +79,38 @@ def emabalagem_qld():
 
 
 @pytest.fixture
+def cronograma_solicitado_alteracao(armazem, contrato, empresa):
+    return mommy.make(
+        'Cronograma',
+        numero='00222/2022',
+        contrato=contrato,
+        empresa=empresa,
+        armazem=armazem,
+        status='SOLICITADO_ALTERACAO'
+    )
+
+
+@pytest.fixture
+def solicitacao_cronograma_em_analise(cronograma):
+    return mommy.make(
+        'SolicitacaoAlteracaoCronograma',
+        numero_solicitacao='00222/2022',
+        cronograma=cronograma,
+        status='EM_ANALISE'
+    )
+
+
+@pytest.fixture
+def solicitacao_cronograma_ciente(cronograma):
+    return mommy.make(
+        'SolicitacaoAlteracaoCronograma',
+        numero_solicitacao='00222/2022',
+        cronograma=cronograma,
+        status='CRONOGRAMA_CIENTE'
+    )
+
+
+@pytest.fixture
 def cronograma_assinado_fornecedor(armazem, contrato, empresa):
     return mommy.make(
         'Cronograma',
@@ -184,4 +216,45 @@ def cronogramas_multiplos_status_com_log(armazem, contrato, empresa, produto_arr
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=c6.uuid,
                status_evento=70,  # CRONOGRAMA_ASSINADO_PELA_CODAE
+               solicitacao_tipo=19)  # CRONOGRAMA
+
+
+@pytest.fixture
+def cronogramas_multiplos_status_com_log_cronograma_ciente(armazem, contrato, empresa,
+                                                           produto_arroz, produto_acucar):
+    c1 = mommy.make('Cronograma',
+                    numero='002/2023', contrato=contrato, empresa=empresa, armazem=armazem, produto=produto_arroz,
+                    status='SOLICITADO_ALTERACAO'
+                    )
+    c2 = mommy.make('Cronograma',
+                    numero='003/2023', contrato=contrato, empresa=empresa, armazem=armazem, produto=produto_acucar,
+                    status='SOLICITADO_ALTERACAO'
+                    )
+    s1 = mommy.make(
+        'SolicitacaoAlteracaoCronograma',
+        numero_solicitacao='00222/2022',
+        cronograma=c1,
+        status='CRONOGRAMA_CIENTE'
+    )
+    s2 = mommy.make(
+        'SolicitacaoAlteracaoCronograma',
+        numero_solicitacao='00223/2022',
+        cronograma=c2,
+        status='CRONOGRAMA_CIENTE'
+    )
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=s1.uuid,
+               status_evento=71,  # CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO
+               solicitacao_tipo=20)  # CRONOGRAMA
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=s2.uuid,
+               status_evento=71,  # CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO
+               solicitacao_tipo=20)  # CRONOGRAMA
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=c1.uuid,
+               status_evento=71,  # CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO
+               solicitacao_tipo=19)  # CRONOGRAMA
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=c2.uuid,
+               status_evento=71,  # CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO
                solicitacao_tipo=19)  # CRONOGRAMA

@@ -17,11 +17,11 @@ class CronogramaFilter(filters.FilterSet):
         lookup_expr='icontains',
     )
     nome_empresa = filters.CharFilter(
-        field_name='nome_empresa',
+        field_name='empresa__nome_fantasia',
         lookup_expr='icontains',
     )
     nome_produto = filters.CharFilter(
-        field_name='nome_produto',
+        field_name='produto__nome',
         lookup_expr='icontains',
     )
     data_inicial = filters.DateFilter(
