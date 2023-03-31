@@ -1,4 +1,5 @@
 import datetime
+from collections import OrderedDict
 
 from rest_framework import serializers
 
@@ -118,7 +119,45 @@ class PainelCronogramaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'numero', 'status', 'empresa', 'produto', 'log_mais_recente')
 
 
+class PainelSolicitacaoAlteracaoCronogramaSerializerItem(serializers.ModelSerializer):
+
+    empresa = serializers.CharField(source='cronograma.empresa')
+    cronograma = serializers.CharField(source='cronograma.numero')
+    status = serializers.CharField(source='get_status_display')
+    log_mais_recente = serializers.SerializerMethodField()
+
+    def get_log_mais_recente(self, obj):
+        if obj.log_criado_em:
+            if obj.log_criado_em.date() == datetime.date.today():
+                return datetime.datetime.strftime(obj.log_criado_em, '%d/%m/%Y %H:%M')
+            return datetime.datetime.strftime(obj.log_criado_em, '%d/%m/%Y')
+        else:
+            return datetime.datetime.strftime(obj.log_criado_em, '%d/%m/%Y')
+
+    class Meta:
+        model = SolicitacaoAlteracaoCronograma
+        fields = ('uuid', 'numero_solicitacao', 'empresa', 'status', 'cronograma', 'log_mais_recente')
+
+
+class PainelSolicitacaoAlteracaoCronogramaSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    dados = serializers.SerializerMethodField()
+    total = serializers.IntegerField(allow_null=True)
+
+    def get_dados(self, obj):
+        return PainelSolicitacaoAlteracaoCronogramaSerializerItem(obj['dados'], many=True).data
+
+    class Meta:
+        model = SolicitacaoAlteracaoCronograma
+        fields = ('uuid', 'status', 'total', 'dados')
+
+    def to_representation(self, instance):
+        result = super(PainelSolicitacaoAlteracaoCronogramaSerializer, self).to_representation(instance)
+        return OrderedDict([(key, result[key]) for key in result if result[key] is not None])
+
+
 class LaboratorioSerializer(serializers.ModelSerializer):
+
     contatos = ContatoSimplesSerializer(many=True)
 
     class Meta:

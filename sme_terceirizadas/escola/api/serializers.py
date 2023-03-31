@@ -626,10 +626,11 @@ class TipoUnidadeParaFiltroSerializer(serializers.ModelSerializer):
 class EscolaParaFiltroSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalParaFiltroSerializer()
     tipo_unidade = TipoUnidadeParaFiltroSerializer()
+    lote = LoteSerializer()
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade')
+        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade', 'lote')
 
 
 class EscolaAlunoPeriodoSerializer(serializers.ModelSerializer):
