@@ -60,6 +60,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     numero_alunos = serializers.SerializerMethodField()
     observacoes = serializers.SerializerMethodField()
     data_autorizacao_negacao_cancelamento = serializers.SerializerMethodField()
+    id_externo = serializers.CharField()
 
     def get_escola_ou_terceirizada_nome(self, obj):
         return obj.terceirizada_nome if self.context['status'] == 'RECEBIDAS' else obj.escola_nome
@@ -97,6 +98,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
             'lote_nome',
             'escola_ou_terceirizada_nome',
             'desc_doc',
+            'id_externo',
             'data_evento',
             'numero_alunos',
             'observacoes',

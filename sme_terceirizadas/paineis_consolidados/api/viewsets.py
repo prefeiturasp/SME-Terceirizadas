@@ -41,6 +41,7 @@ from ..validators import FiltroValidator
 from .constants import (
     AGUARDANDO_CODAE,
     AGUARDANDO_INICIO_VIGENCIA_DIETA_ESPECIAL,
+    ALTERACOES_ALIMENTACAO_AUTORIZADAS,
     AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
     AUTORIZADOS,
     AUTORIZADOS_DIETA_ESPECIAL,
@@ -52,6 +53,7 @@ from .constants import (
     INATIVAS_DIETA_ESPECIAL,
     INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
     INCLUSOES_AUTORIZADAS,
+    KIT_LANCHES_AUTORIZADAS,
     NEGADOS,
     NEGADOS_DIETA_ESPECIAL,
     PENDENTES_AUTORIZACAO,
@@ -60,7 +62,8 @@ from .constants import (
     QUESTIONAMENTOS,
     RELATORIO_RESUMO_MES_ANO,
     RESUMO_ANO,
-    RESUMO_MES
+    RESUMO_MES,
+    SUSPENSOES_AUTORIZADAS
 )
 from .filters import SolicitacoesCODAEFilter
 
@@ -68,7 +71,8 @@ from .filters import SolicitacoesCODAEFilter
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
 
-    def _remove_duplicados_do_query_set(self, query_set):
+    @classmethod
+    def remove_duplicados_do_query_set(self, query_set):
         """_remove_duplicados_do_query_set é criado por não ser possível juntar order_by e distinct na mesma query."""
         # TODO: se alguém descobrir como ordenar a query e tirar os uuids
         # repetidos, por favor melhore
@@ -81,7 +85,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         return sem_uuid_repetido
 
     def _retorno_base(self, query_set, sem_paginacao=None):
-        sem_uuid_repetido = self._remove_duplicados_do_query_set(query_set)
+        sem_uuid_repetido = self.remove_duplicados_do_query_set(query_set)
         if sem_paginacao:
             serializer = self.get_serializer(sem_uuid_repetido, many=True)
             return Response({'results': serializer.data})
@@ -103,7 +107,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def _agrupa_por_tipo_visao(self, tipo_visao: str, query_set: QuerySet) -> dict:
         sumario = {}  # type: dict
-        query_set = self._remove_duplicados_do_query_set(query_set)
+        query_set = self.remove_duplicados_do_query_set(query_set)
         descricao_prioridade = self._agrupar_solicitacoes(
             tipo_visao, query_set)
         for nome_objeto, prioridade in descricao_prioridade:
@@ -509,7 +513,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
                 tipo_solicitacao=cleaned_data.get('tipo_solicitacao'),
                 status_solicitacao=cleaned_data.get('status_solicitacao')
             )
-            query_set = self._remove_duplicados_do_query_set(query_set)
+            query_set = self.remove_duplicados_do_query_set(query_set)
 
             return relatorio_filtro_periodo(request, query_set)
         else:
@@ -717,7 +721,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = query_set.filter(
             data_evento__lt=datetime.date.today()
         )
-        query_set = self._remove_duplicados_do_query_set(query_set)
+        query_set = self.remove_duplicados_do_query_set(query_set)
 
         return_dict = []
 
@@ -759,6 +763,114 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                             i += 1
                     else:
                         append(inclusao.data_evento.day, periodo, inclusao)
+        data = {
+            'results': return_dict
+        }
+
+        return Response(data)
+
+    @action(detail=False, methods=['GET'], url_path=f'{SUSPENSOES_AUTORIZADAS}')
+    def suspensoes_autorizadas(self, request):
+        escola_uuid = request.query_params.get('escola_uuid')
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+        nome_periodo_escolar = request.query_params.get('nome_periodo_escolar')
+
+        query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
+        query_set = query_set.filter(data_evento__month=mes, data_evento__year=ano)
+        query_set = query_set.filter(data_evento__lt=datetime.date.today())
+        query_set = self.remove_duplicados_do_query_set(query_set)
+        return_dict = []
+
+        for suspensao in query_set:
+            susp = suspensao.get_raw_model.objects.get(uuid=suspensao.uuid)
+            s_quant_periodo = susp.quantidades_por_periodo.get(periodo_escolar__nome=nome_periodo_escolar)
+            if s_quant_periodo:
+                tipos_alimentacao = s_quant_periodo.tipos_alimentacao.all()
+                alimentacoes = [unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
+                    'ascii', 'ignore').decode('utf-8').lower() for alimentacao in tipos_alimentacao]
+                return_dict.append({
+                    'dia': f'{susp.data.day:02d}',
+                    'periodo': nome_periodo_escolar,
+                    'alimentacoes': alimentacoes,
+                    'numero_alunos': s_quant_periodo.numero_alunos,
+                    'inclusao_id_externo': susp.id_externo
+                })
+
+        data = {
+            'results': return_dict
+        }
+
+        return Response(data)
+
+    @action(detail=False, methods=['GET'], url_path=f'{ALTERACOES_ALIMENTACAO_AUTORIZADAS}')
+    def alteracoes_alimentacoes_autorizadas(self, request):
+        escola_uuid = request.query_params.get('escola_uuid')
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+        nome_periodo_escolar = request.query_params.get('nome_periodo_escolar')
+        eh_lanche_emergencial = request.query_params.get('eh_lanche_emergencial', '')
+
+        query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
+        query_set = query_set.filter(data_evento__month=mes, data_evento__year=ano)
+        query_set = query_set.filter(data_evento__lt=datetime.date.today())
+        if eh_lanche_emergencial == 'true':
+            query_set = query_set.filter(motivo__icontains='Emergencial')
+        else:
+            query_set = query_set.exclude(motivo__icontains='Emergencial')
+        query_set = self.remove_duplicados_do_query_set(query_set)
+        return_dict = []
+
+        for alteracao_alimentacao in query_set:
+            alteracao = alteracao_alimentacao.get_raw_model.objects.get(uuid=alteracao_alimentacao.uuid)
+            if eh_lanche_emergencial == 'true':
+                return_dict.append({
+                    'dia': f'{alteracao.data.day:02d}',
+                    'numero_alunos': sum([sub.qtd_alunos for sub in alteracao.substituicoes_periodo_escolar.all()]),
+                    'inclusao_id_externo': alteracao.id_externo,
+                    'motivo': alteracao_alimentacao.motivo
+                })
+            else:
+                alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
+                if alt:
+                    return_dict.append({
+                        'dia': f'{alteracao.data.day:02d}',
+                        'periodo': nome_periodo_escolar,
+                        'numero_alunos': alt.qtd_alunos,
+                        'inclusao_id_externo': alteracao.id_externo,
+                        'motivo': alteracao_alimentacao.motivo
+                    })
+
+        data = {
+            'results': return_dict
+        }
+
+        return Response(data)
+
+    @action(detail=False, methods=['GET'], url_path=f'{KIT_LANCHES_AUTORIZADAS}')
+    def kit_lanches_autorizadas(self, request):
+        escola_uuid = request.query_params.get('escola_uuid')
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+
+        query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
+        query_set = query_set.filter(data_evento__month=mes, data_evento__year=ano)
+        query_set = query_set.filter(data_evento__lt=datetime.date.today())
+        query_set = self.remove_duplicados_do_query_set(query_set)
+        return_dict = []
+
+        for kit_lanche in query_set:
+            kit_lanche = kit_lanche.get_raw_model.objects.get(uuid=kit_lanche.uuid)
+            if kit_lanche:
+                return_dict.append({
+                    'dia': f'{kit_lanche.solicitacao_kit_lanche.data.day:02d}',
+                    'numero_alunos': kit_lanche.quantidade_alimentacoes,
+                    'kit_lanche_id_externo': kit_lanche.id_externo,
+                })
+
         data = {
             'results': return_dict
         }
@@ -837,7 +949,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                 tipo_solicitacao=cleaned_data.get('tipo_solicitacao'),
                 status_solicitacao=cleaned_data.get('status_solicitacao')
             )
-            query_set = self._remove_duplicados_do_query_set(query_set)
+            query_set = self.remove_duplicados_do_query_set(query_set)
 
             return relatorio_filtro_periodo(request, query_set, escola.nome, escola.diretoria_regional.nome)
         else:
@@ -1052,7 +1164,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
                 tipo_solicitacao=cleaned_data.get('tipo_solicitacao'),
                 status_solicitacao=cleaned_data.get('status_solicitacao')
             )
-            query_set = self._remove_duplicados_do_query_set(query_set)
+            query_set = self.remove_duplicados_do_query_set(query_set)
 
             return relatorio_filtro_periodo(request, query_set, dre.nome, escola_uuid)
         else:
@@ -1310,6 +1422,78 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
         response = {'results': self._agrupa_por_tipo_visao(
             tipo_visao=tipo_visao, query_set=query_set)}
         return Response(response)
+
+    def filtrar_solicitacoes_para_relatorio(self, request):
+        terceirizada_uuid = request.user.vinculo_atual.instituicao.uuid
+        status = request.query_params.get('status', None)
+        queryset = SolicitacoesTerceirizada.map_queryset_por_status(status, terceirizada_uuid=terceirizada_uuid)
+        # filtra por datas
+        periodo_datas = {
+            'data_evento': request.query_params.get('de', None),
+            'data_evento_fim': request.query_params.get('ate', None)
+        }
+        queryset = SolicitacoesTerceirizada.busca_periodo_de_datas(queryset, periodo_datas)
+
+        tipo_doc = request.query_params.getlist('tipos_solicitacao[]', None)
+        tipo_doc = SolicitacoesTerceirizada.map_queryset_por_tipo_doc(tipo_doc)
+        # outros filtros
+        map_filtros = {
+            'lote_uuid__in': request.query_params.getlist('lotes[]', None),
+            'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
+            'terceirizada_uuid': request.query_params.get('terceirizada', None),
+            'tipo_doc__in': tipo_doc,
+            'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
+        }
+        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
+        queryset = queryset.filter(**filtros).order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
+        return queryset
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtrar-solicitacoes-ga',
+            permission_classes=(UsuarioTerceirizada,))
+    def filtrar_solicitacoes_ga(self, request):
+        # queryset por status
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        return self._retorno_base(queryset, False)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')  # noqa C901
+    def exportar_xlsx(self, request):
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        lotes = request.query_params.getlist('lotes[]')
+        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
+        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
+        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
+
+        user = request.user.get_username()
+        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
+            data=self.request.query_params,
+            uuids=uuids,
+            lotes=lotes,
+            tipos_solicitacao=tipos_solicitacao,
+            tipos_unidade=tipos_unidade,
+            unidades_educacionais=unidades_educacionais
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='exportar-pdf')  # noqa C901
+    def exportar_pdf(self, request):
+        user = request.user.get_username()
+        queryset = self.filtrar_solicitacoes_para_relatorio(request)
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
+            data=self.request.query_params,
+            uuids=uuids,
+            status=request.query_params.get('status', None)
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
 
 
 class DietaEspecialSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):

@@ -34,7 +34,6 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
         'bairro': 'Teste',
         'cidade': 'Teste',
         'complemento': 'Sim',
-        'eh_distribuidor_ou_fornecedor': True,
         'estado': 'SP',
         'numero': '58',
         'responsavel_cargo': 'Diretor',
@@ -70,11 +69,28 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
     }
 
     response = client_autenticado_dilog.post(
-        '/terceirizadas/',
+        '/empresas-nao-terceirizadas/',
         data=json.dumps(payload),
         content_type='application/json'
     )
-    terceirizada = Terceirizada.objects.first()
+    empresa = Terceirizada.objects.first()
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert terceirizada.tipo_servico == Terceirizada.DISTRIBUIDOR_ARMAZEM
+    assert empresa.tipo_servico == Terceirizada.DISTRIBUIDOR_ARMAZEM
+
+
+def test_url_endpoint_terceirizadas_actions(client_autenticado_dilog):
+
+    client = client_autenticado_dilog
+
+    response = client.get(f'/terceirizadas/lista-nomes/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/terceirizadas/lista-nomes-distribuidores/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/terceirizadas/lista-fornecedores-simples/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/terceirizadas/lista-cnpjs/')
+    assert response.status_code == status.HTTP_200_OK

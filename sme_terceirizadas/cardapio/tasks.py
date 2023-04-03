@@ -4,11 +4,19 @@ import logging
 from celery import shared_task
 from django.db.models import Q
 
-from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
-from ..escola.models import EscolaPeriodoEscolar, PeriodoEscolar, TipoUnidadeEscolar
+from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI, PERIODOS_ESPECIAIS_CEI_DIRET
+from ..escola.models import AlunosMatriculadosPeriodoEscola, EscolaPeriodoEscolar, PeriodoEscolar, TipoUnidadeEscolar
 from .models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 
 logger = logging.getLogger('sigpae.taskCardapio')
+
+
+def bypass_ativa_vinculos(tipo_unidade, periodos_escolares):
+    vinculo_tipo_unidade = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+        tipo_unidade_escolar=tipo_unidade
+    )
+    vinculo_tipo_unidade.filter(periodo_escolar__nome__in=periodos_escolares).update(ativo=True)
+    vinculo_tipo_unidade.filter(~Q(periodo_escolar__nome__in=periodos_escolares)).update(ativo=False)
 
 
 @shared_task(
@@ -40,12 +48,20 @@ def ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escol
             ).exists()
             vinculo.ativo = tem_alunos_neste_periodo_e_tipo_ue
             vinculo.save()
+            if tipo_unidade.iniciais in ['EMEF P FOM', 'EMEI P FOM']:
+                tem_alunos_neste_periodo_e_eh_p_fom = AlunosMatriculadosPeriodoEscola.objects.filter(
+                    periodo_escolar=periodo_escolar,
+                    escola__tipo_unidade__iniciais=tipo_unidade,
+                    tipo_turma='REGULAR'
+                ).exists()
+                vinculo.ativo = tem_alunos_neste_periodo_e_eh_p_fom
+                vinculo.save()
 
         if tipo_unidade.tem_somente_integral_e_parcial:
             # deve ter periodo INTEGRAL E PARCIAL somente
             periodos_escolares = PERIODOS_ESPECIAIS_CEI_CEU_CCI
-            vinculo_tipo_unidade = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-                tipo_unidade_escolar=tipo_unidade
-            )
-            vinculo_tipo_unidade.filter(periodo_escolar__nome__in=periodos_escolares).update(ativo=True)
-            vinculo_tipo_unidade.filter(~Q(periodo_escolar__nome__in=periodos_escolares)).update(ativo=False)
+            bypass_ativa_vinculos(tipo_unidade, periodos_escolares)
+        if tipo_unidade.eh_cei:
+            # deve ativar INTEGRAL, MANHA E TARDE PARA CEIS DA PROPERTY CRIADA
+            periodos_escolares = PERIODOS_ESPECIAIS_CEI_DIRET
+            bypass_ativa_vinculos(tipo_unidade, periodos_escolares)

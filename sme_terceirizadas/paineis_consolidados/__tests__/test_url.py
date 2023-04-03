@@ -111,9 +111,9 @@ def test_relatorio_filtro_escola(users_diretor_escola):
         f'/escola-solicitacoes/{RELATORIO_PERIODO}/?tipo_solicitacao={tipo}'
         f'&data_inicial=2019-02-01&data_final=2019-02-28&status_solicitacao=TODOS')
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', 'filename="relatorio_filtro_de_2019-02-01 00:00:00_ate_2019-02-28 00:00:00.pdf"')
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers[
+        'content-disposition'] == 'filename="relatorio_filtro_de_2019-02-01 00:00:00_ate_2019-02-28 00:00:00.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -124,9 +124,8 @@ def test_relatorio_mes_ano_escola(users_diretor_escola):
     response = client.get(
         f'/escola-solicitacoes/{RELATORIO_RESUMO_MES_ANO}/')
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', 'filename="relatorio_resumo_anual_e_mensal.pdf"')
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers['content-disposition'] == 'filename="relatorio_resumo_anual_e_mensal.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -140,7 +139,7 @@ def test_relatorio_filtro_escola_error(users_diretor_escola):
         f'/escola-solicitacoes/{RELATORIO_PERIODO}/?tipo_solicitacao={tipo}'
         f'&data_inicial=20190201&data_final=20190228&status_solicitacao={status_solicitacao}')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response._headers['content-type'] == ('Content-Type', 'application/json')
+    assert response.headers['content-type'] == 'application/json'
     assert response.json() == {
         'tipo_solicitacao': [
             'tipo de solicitação INCLUSAO_QUE_NAO_EXISTE não permitida, deve ser um dos: '
@@ -214,9 +213,10 @@ def test_relatorio_filtro_dre(solicitacoes_ano_dre):
         f'/diretoria-regional-solicitacoes/{RELATORIO_PERIODO}/{escola}/?tipo_solicitacao=TODOS'
         f'&data_inicial=2019-02-01&data_final=2019-02-28&status_solicitacao=TODOS')
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', 'filename="relatorio_filtro_de_2019-02-01 00:00:00_ate_2019-02-28 00:00:00.pdf"')
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers[
+        'content-disposition'
+    ] == 'filename="relatorio_filtro_de_2019-02-01 00:00:00_ate_2019-02-28 00:00:00.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -227,9 +227,8 @@ def test_relatorio_mes_ano_dre(solicitacoes_ano_dre):
     response = client.get(
         f'/diretoria-regional-solicitacoes/{RELATORIO_RESUMO_MES_ANO}/')
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', 'filename="relatorio_resumo_anual_e_mensal.pdf"')
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers['content-disposition'] == 'filename="relatorio_resumo_anual_e_mensal.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -244,7 +243,7 @@ def test_relatorio_filtro_dre_error(solicitacoes_ano_dre):
         f'/diretoria-regional-solicitacoes/{RELATORIO_PERIODO}/{escola}/?tipo_solicitacao={tipo_solicitacao}'
         f'&data_inicial=20201008&data_final=2019-02-28&status_solicitacao={status_solicitacao}')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response._headers['content-type'] == ('Content-Type', 'application/json')
+    assert response.headers['content-type'] == 'application/json'
     assert response.json() == {
         'tipo_solicitacao': [
             'tipo de solicitação QUALQUERUM não permitida, deve ser um dos: '

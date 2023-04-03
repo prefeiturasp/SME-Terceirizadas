@@ -3,34 +3,36 @@
   <tr>
     <td colspan="6">
       <div class="row mt-2 mb-2 mx-2">
-        <div class="col-4">Tipo de Alteração:</div>
-        <div class="col-4">Data(s) do Evento:</div>
-        <div class="col-4">Data {{solicitacao.label_data}}:</div>
+        <div class="col-3">ID da Solicitação:</div>
+        <div class="col-3">Tipo de Alteração:</div>
+        <div class="col-3">Data(s) do Evento:</div>
+        <div class="col-3">Data {{solicitacao.label_data}}:</div>
       </div>
       <div class="row my-2 mx-2">
-        <div class="col-4"><b>{{solicitacao.motivo}}</b></div>
+        <div class="col-3"><b># {{solicitacao.id_externo}}</b></div>
+        <div class="col-3"><b>{{solicitacao.motivo}}</b></div>
         {% if solicitacao.data_inicial == solicitacao.data_final %}
-          <div class="col-4"><b>{{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}}</b></div>
+          <div class="col-3"><b>{{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}}</b></div>
         {% else %}
-          <div class="col-4">
+          <div class="col-3">
             <b>
               {{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}} - {{solicitacao.data_final|formatar_data_solicitacoes_alimentacao}}
             </b>
           </div>
         {% endif %}
-        <div class="col-4">{{solicitacao.data_log}}</div>
+        <div class="col-3">{{solicitacao.data_log}}</div>
       </div>
       <div class="row mt-4 mb-2 mx-2">
-        <div class="col-4">Período:</div>
-        <div class="col-4">Alteração de Alimentação De:</div>
-        <div class="col-4">Alteração de Alimentação Para:</div>
+        <div class="col-3">Período:</div>
+        <div class="col-3">Alteração de Alimentação De:</div>
+        <div class="col-3">Alteração de Alimentação Para:</div>
       </div>
       {% if solicitacao.substituicoes %}
         {% for substituicao in solicitacao.substituicoes %}
           <div class="row my-2 mx-2">
-            <div class="col-4"><b>{{substituicao.periodo}}</b></div>
-            <div class="col-4"><b>{{substituicao.alteracao_de}}</b></div>
-            <div class="col-4"><b>{{substituicao.alteracao_para}}</b></div>
+            <div class="col-3"><b>{{substituicao.periodo}}</b></div>
+            <div class="col-3"><b>{{substituicao.alteracao_de}}</b></div>
+            <div class="col-3"><b>{{substituicao.alteracao_para}}</b></div>
           </div>
         {% endfor %}
       {% endif %}

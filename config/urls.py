@@ -27,6 +27,9 @@ from sme_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
 
 env = environ.Env()
 
+admin.autodiscover()
+admin.site.enable_nav_sidebar = False
+
 schema_view = get_swagger_view(title='API de Terceirizadas', url=env.str('DJANGO_API_URL', default=''))
 
 urlpatterns = [path('docs/', schema_view, name='docs'),

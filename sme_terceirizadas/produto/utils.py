@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_framework.pagination import PageNumberPagination
 
 from ..dados_comuns import constants
-from .models import ImagemDoProduto
+from .models import HomologacaoProduto, ImagemDoProduto
 
 
 def agrupa_por_terceirizada(queryset):  # noqa C901
@@ -95,6 +95,23 @@ def cria_filtro_produto_por_parametros_form_homologado(cleaned_data):  # noqa C9
                 campos_a_pesquisar['vinculos__tipo_produto__icontains'] = valor
             elif chave == 'nome_terceirizada':
                 campos_a_pesquisar['homologacao__rastro_terceirizada__nome_fantasia__icontains'] = valor
+    return campos_a_pesquisar
+
+
+def cria_filtro_homologacao_produto_por_parametros(cleaned_data):
+    campos_a_pesquisar = {}
+    filtro = {
+        'nome_fabricante': 'produto__fabricante__nome__icontains',
+        'nome_marca': 'produto__marca__nome__icontains',
+        'nome_produto': 'produto__nome__icontains',
+        'nome_edital': 'produto__vinculos__edital__numero__icontains',
+        'tipo': 'produto__vinculos__tipo_produto__icontains',
+        'nome_terceirizada': 'rastro_terceirizada__nome_fantasia__icontains'
+    }
+    for (chave, valor) in cleaned_data.items():
+        if not valor or chave not in filtro.keys():
+            continue
+        campos_a_pesquisar[filtro[chave]] = valor
     return campos_a_pesquisar
 
 
@@ -326,3 +343,15 @@ def cria_item_cadastro(object, tipo):
     except ItemCadastro.DoesNotExist:
         item = ItemCadastro(content_object=object, tipo=tipo)
         item.save()
+
+
+def data_para_ordenacao(hom):
+    data = hom.data_edital_suspenso_mais_recente if hom.data_edital_suspenso_mais_recente else hom.ultimo_log.criado_em
+    return data
+
+
+def atualiza_queryset_codae_suspendeu(qs, uuids_workflow_homologado_com_vinc_prod_edital_suspenso):
+    qs = [q for q in qs]
+    for uuid in uuids_workflow_homologado_com_vinc_prod_edital_suspenso:
+        qs.insert(0, HomologacaoProduto.objects.get(uuid=uuid))
+    return sorted(qs, key=lambda hom: data_para_ordenacao(hom), reverse=True)

@@ -36,7 +36,7 @@ flake8-docstrings='==1.4.0'    # https://github.com/PyCQA/flake8-docstrings
 coverage='==4.5.2'             # https://github.com/nedbat/coveragepy
 django-stubs='==1.2.0'         # https://github.com/typeddjango/django-stubs
 bandit='==1.6.2'               # https://github.com/PyCQA/bandit
-django-debug-toolbar='==1.11.1'  # https://github.com/jazzband/django-debug-toolbar
+django-debug-toolbar='==3.2.4'  # https://github.com/jazzband/django-debug-toolbar
 django-extensions='==2.2.3'    # https://github.com/django-extensions/django-extensions
 django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_plugin
 pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
@@ -53,49 +53,49 @@ notebook = "==6.0.0"
 # For production use you are advised to use the source distribution.
 # Ensure no binary package -> export PIP_NO_BINARY=:psycopg2:
 psycopg2='==2.8.4'  # https://github.com/psycopg/psycopg2
-celery = "==5.0.0"   # http://www.celeryproject.org
+celery = "==5.2.2"   # http://www.celeryproject.org
 pytz= '==2022.7'  # https://github.com/stub42/pytz
 python-slugify= '==2.0.1'  # https://github.com/un33k/python-slugify
 Pillow= '==9.4.0'  # https://github.com/python-pillow/Pillow
 argon2-cffi= '==19.1.0'  # https://github.com/hynek/argon2_cffi
 redis= '==4.4.2'  # https://github.com/antirez/redis
-django-xworkflows='==0.12.3' # https://github.com/rbarrois/django_xworkflows
+django-xworkflows='==1.0.0' # https://github.com/rbarrois/django_xworkflows
 drf_base64='==2.0' # https://pypi.org/project/drf_base64/
 pandas='==1.5.2' # https://github.com/pandas-dev/pandas/
 numpy='==1.23.0' # https://github.com/numpy/numpy/
 XlsxWriter='==3.0.3' # https://github.com/jmcnamara/XlsxWriter
 # Django
 # ------------------------------------------------------------------------------
-django='==2.2.13'          # https://www.djangoproject.com/
+django='==3.2.16'          # https://www.djangoproject.com/
 django-environ='==0.4.5'  # https://github.com/joke2k/django-environ
 django-model-utils='==3.1.2'  # https://github.com/jazzband/django-model-utils
-django-redis='==4.10.0'  # https://github.com/niwinz/django-redis
-django-des='==2.4.1' # https://github.com/jamiecounsell/django-des
-django-auditlog="==1.0a1"   # https://github.com/jazzband/django-auditlog/
-django-cors-headers='==3.0.2'   # https://pypi.org/project/django-cors-headers/
+django-redis='==5.2.0'  # https://github.com/niwinz/django-redis
+django-des = {editable = true, ref = "3.0.0", git = "https://github.com/prefeiturasp/django-des-fork.git"}
+django-auditlog="==2.2.1"   # https://github.com/jazzband/django-auditlog/
+django-cors-headers='==3.10.1'   # https://pypi.org/project/django-cors-headers/
 django-sequences='==2.5'  # https://pypi.org/project/django-sequences/
 django-multiselectfield='==0.1.12' # https://github.com/goinnn/django-multiselectfield
 django-celery-beat='==2.2.0'  # https://github.com/celery/django-celery-beat
-django-admin-rangefilter='==0.8.1' # https://github.com/silentsokolov/django-admin-rangefilter
+django-admin-rangefilter='==0.9.0' # https://github.com/silentsokolov/django-admin-rangefilter
 # Django REST Framework
 # ------------------------------------------------------------------------------
-djangorestframework='==3.11.2'  # https://github.com/encode/django-rest-framework
+djangorestframework='==3.12.4'  # https://github.com/encode/django-rest-framework
 coreapi='==2.3.3'  # https://github.com/core-api/python-client
 djangorestframework-jwt='==1.11.0' # https://getblimp.github.io/django-rest-framework-jwt/
 workalendar='==4.3.1' # https://github.com/peopledoc/workalendar
 django-rest-swagger='==2.2.0' # https://github.com/marcgibbons/django-rest-swagger
 djangorestframework-xml = "==2.0.0"
-django-simple-email-confirmation='==0.6' # https://github.com/mfogel/django-simple-email-confirmation/
+django-simple-email-confirmation='==0.7' # https://github.com/mfogel/django-simple-email-confirmation/
 # Produção
 gunicorn='==19.9.0'  # https://github.com/benoitc/gunicorn
 tornado='==6.0.3'    # http://www.tornadoweb.org/en/stable/
 sentry-sdk = "==0.10.2"
-django-prometheus = "==1.1.0"
+django-prometheus = "==2.2.0"
 # Relatórios
 weasyprint = "==52"
-django-sass-processor = "==0.8"
-django-compressor = "==2.4"
-libsass = "==0.19.4"
+django-sass-processor = "==1.2.2"
+django-compressor = "==4.3.1"
+libsass = "==0.22.0"
 django-crispy-forms = "*"
 django-weasyprint = "==1.1.0"
 django-filter = "*"
@@ -105,7 +105,7 @@ attrs = "==22.2.0"
 xlrd = "*"
 spyne = "==2.13.16"
 lxml = "*"
-openpyxl = "*"
+openpyxl = "==3.0.10"
 httpx = "*"
 pikepdf = "*"
 PyPDF4 = "*"

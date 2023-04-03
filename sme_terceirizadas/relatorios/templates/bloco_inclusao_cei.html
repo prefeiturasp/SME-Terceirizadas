@@ -3,40 +3,91 @@
   <tr>
     <td colspan="6">
       <div class="row mt-2 mb-2 mx-2">
-        <div class="col-4">Motivo:</div>
-        <div class="col-4">Dia(s) de Inclusão:</div>
-        <div class="col-4">Data {{solicitacao.label_data}}:</div>
+        <div class="col-3">ID da Solicitação:</div>
+        <div class="col-3">Motivo:</div>
+        <div class="col-3">Dia(s) de Inclusão:</div>
+        <div class="col-3">Data {{solicitacao.label_data}}:</div>
       </div>
       {% for dia_inclusao in solicitacao.dias_motivos_da_inclusao_cei %}
         <div class="row my-2 mx-2">
-          <div class="col-4"><b>{{dia_inclusao.motivo}}</b></div>
-          <div class="col-4"><b>{{dia_inclusao.data|formatar_data_solicitacoes_alimentacao}}</b></div>
           {% if forloop.counter0 == 0 %}
-          <div class="col-4"><b>{{solicitacao.data_log}}</b></div>
+          <div class="col-3"><b># {{solicitacao.id_externo}}</b></div>
           {% else %}
-          <div class="col-4"></div>
+          <div class="col-3"></div>
+          {% endif %}
+          <div class="col-3"><b>{{dia_inclusao.motivo}}</b></div>
+          <div class="col-3"><b>{{dia_inclusao.data|formatar_data_solicitacoes_alimentacao}}</b></div>
+          {% if forloop.counter0 == 0 %}
+          <div class="col-3"><b>{{solicitacao.data_log}}</b></div>
+          {% else %}
+          <div class="col-3"></div>
           {% endif %}
         </div>
       {% endfor %}
-      <div class="row mt-4 mx-2">
-        <div class="col-12 pr-5">
-          <p class="detalhes-cei">
-            INTEGRAL
-          </p>
+    </td>
+  </tr>
+  {% for periodo_externo in solicitacao.quantidade_alunos_por_faixas_etarias %}
+    <tr>
+      <td colspan="6">
+        <div class="row mt-4 mx-2">
+          <div class="col-12 pr-5">
+            <p class="detalhes-cei">
+              {{periodo_externo.periodo_externo_nome}}
+            </p>
+          </div>
         </div>
-      </div>
-      {% if solicitacao.quantidade_alunos_por_faixas_etarias %}
-        {% for quantidade_aluno in solicitacao.quantidade_alunos_por_faixas_etarias %}
-          <div class="row mb-2 mx-2">
-            <div class="col-12 mb-2 pl-5 pr-5">
-              <p class="detalhes-cei">
-                {{quantidade_aluno.periodo}}
-              </p>
+      </td>
+    </tr>
+    {% if periodo_externo.periodo_externo_nome == 'INTEGRAL' %}
+      {% for periodo_interno in periodo_externo.periodos_internos %}
+        <tr>
+          <td colspan="6">
+            <div class="row mb-2 mx-2">
+              <div class="col-12 mb-2 pl-5 pr-5">
+                <p class="detalhes-cei">
+                  {{ periodo_interno.periodo_interno_nome }}
+                </p>
+              </div>
+              <div class="col-12 mb-2 pl-5 pr-5">
+                Tipos de Inclusão de Alimentação: <b>{{periodo_externo.tipos_alimentacao}}</b>
+              </div>
+              <div class="col-12 mb-2 pl-5">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Faixa Etária</th>
+                      <th class="text-center">Alunos Matriculados	</th>
+                      <th class="text-center">Quantidade</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for faixa in periodo_interno.quantidades_faixas %}
+                      <tr>
+                        <td>{{faixa.nome_faixa}}</td>
+                        <td class="text-center">{{faixa.matriculados_quando_criado}}</td>
+                        <td class="text-center">{{faixa.quantidade_alunos}}</td>
+                      </tr>
+                    {% endfor %}
+                    <tr class="style-total-table">
+                      <td>Total</td>
+                      <td class="text-center">{{periodo_interno.total_matriculados}}</td>
+                      <td class="text-center">{{periodo_interno.total_inclusao}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div class="col-12 mb-2 pl-5 pr-5">
-              Tipos de Inclusão de Alimentação: <b>{{quantidade_aluno.tipos_alimentacao}}</b>
+          </td>
+        </tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td colspan="6">
+          <div class="row mt-4 mx-2">
+            <div class="col-12 my-2 pr-5">
+              Tipos de Inclusão de Alimentação: <b>{{periodo_externo.tipos_alimentacao}}</b>
             </div>
-            <div class="col-12 mb-2 pl-5">
+            <div class="col-12 mb-2 pr-5">
               <table>
                 <thead>
                   <tr>
@@ -46,30 +97,23 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% if quantidade_aluno.faixas_quantidades %}
-                    {% for quantidade_faixa in quantidade_aluno.faixas_quantidades %}
+                  {% for faixa in periodo_externo.quantidades_faixas %}
                       <tr>
-                        <td>{{quantidade_faixa.faixa_etaria}}</td>
-                        {% if quantidade_faixa.quantidade_matriculados %}
-                        <td class="text-center">{{quantidade_faixa.quantidade_matriculados}}</td>
-                        {% else %}
-                        <td class="text-center">Não preenchido</td>
-                        {% endif %}
-                        <td class="text-center">{{quantidade_faixa.quantidade_alunos}}</td>
+                        <td>{{faixa.nome_faixa}}</td>
+                        <td class="text-center">{{faixa.matriculados_quando_criado}}</td>
+                        <td class="text-center">{{faixa.quantidade_alunos}}</td>
                       </tr>
                     {% endfor %}
-                  {% endif %}
                   <tr class="style-total-table">
                     <td>Total</td>
-                    <td class="text-center">{{quantidade_aluno.total_matriculados}}</td>
-                    <td class="text-center">{{quantidade_aluno.total_alunos}}</td>
+                    <td class="text-center">{{periodo_externo.total_matriculados}}</td>
+                    <td class="text-center">{{periodo_externo.total_inclusao}}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-          </div>
-        {% endfor %}
-      {% endif %}
-    </td>
-  </tr>
+        </td>
+      </tr>
+    {% endif %}
+  {% endfor %}
 {% endblock %}

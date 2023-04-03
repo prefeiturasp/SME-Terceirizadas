@@ -12,6 +12,7 @@ from ...terceirizada.api.serializers.serializers import ContratoSimplesSerialize
 from ...terceirizada.models import Terceirizada
 from ..models import (
     Aluno,
+    AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
     DiretoriaRegional,
@@ -52,6 +53,12 @@ class TipoAlimentacaoSerializer(serializers.ModelSerializer):
 
 class PeriodoEscolarSerializer(serializers.ModelSerializer):
     tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
+    possui_alunos_regulares = serializers.SerializerMethodField()
+
+    def get_possui_alunos_regulares(self, obj):
+        if 'escola' not in self.context:
+            return None
+        return obj.alunos_matriculados.filter(escola=self.context['escola'], tipo_turma='REGULAR').exists()
 
     class Meta:
         model = PeriodoEscolar
@@ -61,6 +68,12 @@ class PeriodoEscolarSerializer(serializers.ModelSerializer):
 class PeriodoEscolarSimplesSerializer(serializers.ModelSerializer):
     # TODO: tirar tipos de alimentacao daqui, tipos de alimentacao são
     # relacionados a TIPOUE + PERIODOESCOLAR
+    possui_alunos_regulares = serializers.SerializerMethodField()
+
+    def get_possui_alunos_regulares(self, obj):
+        if 'escola' not in self.context:
+            return None
+        return obj.alunos_matriculados.filter(escola=self.context['escola'], tipo_turma='REGULAR').exists()
 
     class Meta:
         model = PeriodoEscolar
@@ -369,7 +382,9 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
 
     def get_periodos_escolares(self, obj):
         if isinstance(obj.instituicao, Escola):
-            return PeriodoEscolarSerializer(obj.instituicao.periodos_escolares.all(), many=True).data
+            return PeriodoEscolarSerializer(obj.instituicao.periodos_escolares.all(),
+                                            many=True,
+                                            context={'escola': obj.instituicao}).data
         else:
             return []
 
@@ -555,3 +570,83 @@ class AlunoNaoMatriculadoSerializer(serializers.ModelSerializer):
             'cpf',
             'data_nascimento'
         )
+
+
+class AlunosMatriculadosPeriodoEscolaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlunosMatriculadosPeriodoEscola
+        fields = ('periodo_escolar',)
+
+
+class DiretoriaRegionalParaFiltroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiretoriaRegional
+        fields = ('uuid', 'nome')
+
+
+class LoteParaFiltroSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalParaFiltroSerializer()
+
+    class Meta:
+        model = Lote
+        fields = ('uuid', 'nome', 'diretoria_regional')
+
+
+class TipoUnidadeParaFiltroSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TipoUnidadeEscolar
+        fields = ('uuid', 'iniciais')
+
+
+class EscolaParaFiltroSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalParaFiltroSerializer()
+    tipo_unidade = TipoUnidadeParaFiltroSerializer()
+    lote = LoteSerializer()
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade', 'lote')
+
+
+class EscolaAlunoPeriodoSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalParaFiltroSerializer()
+    tipo_unidade = TipoUnidadeParaFiltroSerializer()
+    lote = LoteSerializer()
+    quantidade_alunos = serializers.SerializerMethodField()
+    exibir_faixas = serializers.SerializerMethodField()
+
+    def get_periodos_escolares(self, obj):
+        return PeriodoEscolarSimplesSerializer(obj.periodos_escolares, many=True, context={'escola': obj}).data
+
+    def get_quantidade_alunos(self, obj):
+        return obj.quantidade_alunos
+
+    def get_exibir_faixas(self, obj):
+        return obj.eh_cei or obj.eh_cemei
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade', 'quantidade_alunos',
+                  'lote', 'exibir_faixas', 'eh_cei', 'eh_cemei')
+
+
+class AlunosMatriculadosPeriodoEscolaCompletoSerializer(serializers.ModelSerializer):
+    escola = EscolaAlunoPeriodoSerializer()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+    alunos_por_faixa_etaria = serializers.SerializerMethodField()
+
+    def get_alunos_por_faixa_etaria(self, obj):
+        try:
+            periodos_faixas = obj.escola.alunos_por_periodo_e_faixa_etaria()
+            if obj.periodo_escolar.nome == 'MANHA':
+                return periodos_faixas['MANHÃ']
+            if obj.periodo_escolar.nome == 'INTERMEDIARIO':
+                return periodos_faixas['INTERMEDIÁRIO']
+            return periodos_faixas[obj.periodo_escolar.nome]
+        except Exception:
+            return None
+
+    class Meta:
+        model = AlunosMatriculadosPeriodoEscola
+        fields = ('periodo_escolar', 'escola', 'alunos_por_faixa_etaria', 'quantidade_alunos', 'tipo_turma')

@@ -3,7 +3,7 @@ import uuid
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django_prometheus.models import ExportModelOperationsMixin
 
@@ -164,7 +164,8 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
     def solicitacoes_similares(self):
         tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
         data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheAvulsa.objects.filter(escola=self.escola)
+        all_objects = SolicitacaoKitLancheAvulsa.objects.filter(escola=self.escola).exclude(
+            status=SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO)
         solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
                                                     solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
         solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
@@ -202,6 +203,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
             'total_kits': self.quantidade_alimentacoes,
             'label_data': label_data,
             'data_log': data_log,
+            'id_externo': self.id_externo
         }
 
     def __str__(self):
@@ -271,14 +273,16 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
             'label_data': label_data,
             'data_log': data_log,
             'faixas_etarias': self.get_faixas_etarias_dict,
-            'total_matriculados': self.total_matriculados_quando_criado
+            'total_matriculados': self.total_matriculados_quando_criado,
+            'id_externo': self.id_externo
         }
 
     @property
     def solicitacoes_similares(self):
         tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
         data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheCEIAvulsa.objects.filter(escola=self.escola)
+        all_objects = SolicitacaoKitLancheCEIAvulsa.objects.filter(escola=self.escola).exclude(
+            status=SolicitacaoKitLancheCEIAvulsa.workflow_class.RASCUNHO)
         solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
                                                     solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
         solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
@@ -499,13 +503,15 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
             'label_data': label_data,
             'data_log': data_log,
             'escolas_quantidades': self.get_escolas_quantidades_dict,
+            'id_externo': self.id_externo
         }
 
     @property
     def solicitacoes_similares(self):
         tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
         data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheUnificada.objects.filter(diretoria_regional=self.diretoria_regional)
+        all_objects = SolicitacaoKitLancheUnificada.objects.filter(diretoria_regional=self.diretoria_regional).exclude(
+            status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO)
         solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
                                                     solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
         solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
@@ -662,7 +668,8 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             'data_autorizacao': self.data_autorizacao,
             'solicitacao_cei': self.get_solicitacao_cei_dict,
             'solicitacao_emei': self.get_solicitacao_emei_dict(),
-            'total_kits': self.total_kits
+            'total_kits': self.total_kits,
+            'id_externo': self.id_externo
         }
 
     @property
@@ -672,7 +679,8 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             filtros['solicitacao_cei__tempo_passeio'] = self.solicitacao_cei.tempo_passeio
         if self.tem_solicitacao_emei:
             filtros['solicitacao_emei__tempo_passeio'] = self.solicitacao_emei.tempo_passeio
-        return SolicitacaoKitLancheCEMEI.objects.filter(**filtros).exclude(uuid=self.uuid)
+        return SolicitacaoKitLancheCEMEI.objects.filter(**filtros).exclude(
+            Q(uuid=self.uuid) | Q(status=SolicitacaoKitLancheCEMEI.workflow_class.RASCUNHO))
 
     class Meta:
         verbose_name = 'Solicitação Kit Lanche CEMEI'

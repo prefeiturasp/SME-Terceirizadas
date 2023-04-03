@@ -3,7 +3,6 @@ from datetime import timedelta
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
-from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 from ..models import Produto
 from ..utils import converte_para_datetime, cria_filtro_aditivos
 
@@ -19,11 +18,6 @@ class ProdutoFilter(filters.FilterSet):
                                            lookup_expr='icontains')
     aditivos = filters.CharFilter(field_name='aditivos', method='filtra_aditivos')
     nome_edital = filters.CharFilter(field_name='vinculos__edital__numero', lookup_expr='iexact')
-
-    status = filters.MultipleChoiceFilter(
-        field_name='homologacao__status',
-        choices=[(str(state), state) for state in HomologacaoProdutoWorkflow.states]
-    )
 
     class Meta:
         model = Produto

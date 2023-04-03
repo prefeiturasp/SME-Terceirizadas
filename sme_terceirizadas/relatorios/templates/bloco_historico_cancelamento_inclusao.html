@@ -4,9 +4,14 @@
     {% if solicitacao|existe_inclusao_cancelada %}
       <div class="observacoes">
         <div>
-          <p class="cabecalho">Histórico de cancelamento parcial:</p>
+          <p class="cabecalho">Histórico de cancelamento:</p>
           {% for inclusao in solicitacao|inclusoes_canceladas %}
-            <div>{{ inclusao.data }} - {{ inclusao.cancelado_justificativa }}</div>
+            {% if inclusao.data %}
+              <div>{{ inclusao.data }} - justificativa: {{ inclusao.cancelado_justificativa }}</div>
+            {% else %}
+              <div>{{ inclusao.periodo_escolar.nome }} - {{ inclusao.tipos_alimentacao.all|concatena_str }} -
+                {{ inclusao.numero_alunos }} - justificativa: {{ inclusao.cancelado_justificativa }}</div>
+            {% endif %}
           {% endfor %}
         </div>
       </div>

@@ -174,7 +174,7 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
             create_serializer = SubstituicaoAutorizarSerializer(data=substituicao)  # noqa
             if create_serializer.is_valid(raise_exception=True):
                 instance.substituicaoalimento_set.add(create_serializer.save())
-
+        instance.save()
         return instance
 
 
@@ -363,8 +363,22 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     classificacao_dieta_ativa = serializers.SerializerMethodField()
     uuid = serializers.CharField()
     nome = serializers.CharField()
-    ativas = serializers.IntegerField()
-    inativas = serializers.IntegerField()
+    ativas = serializers.SerializerMethodField()
+    inativas = serializers.SerializerMethodField()
+
+    def get_ativas(self, obj):
+        return obj.dietas_especiais.filter(status__in=[
+            'CODAE_AUTORIZADO',
+            'CODAE_AUTORIZOU_INATIVACAO',
+            'TERMINADA_AUTOMATICAMENTE_SISTEMA'
+        ], ativo=True).count()
+
+    def get_inativas(self, obj):
+        return obj.dietas_especiais.filter(status__in=[
+            'CODAE_AUTORIZADO',
+            'CODAE_AUTORIZOU_INATIVACAO',
+            'TERMINADA_AUTOMATICAMENTE_SISTEMA'
+        ], ativo=False).count()
 
     def get_dre(self, obj):
         if obj.dietas_especiais.filter(ativo=True).exists():

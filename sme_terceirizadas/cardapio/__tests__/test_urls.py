@@ -91,9 +91,8 @@ def test_url_endpoint_solicitacoes_inversao_relatorio(client_autenticado,
     )
     id_externo = inversao_dia_cardapio.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', f'filename="solicitacao_inversao_{id_externo}.pdf"')
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers['content-disposition'] == f'filename="solicitacao_inversao_{id_externo}.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -470,9 +469,8 @@ def test_url_endpoint_suspensoes_relatorio(client_autenticado,
     )
     id_externo = grupo_suspensao_alimentacao_informado.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', f'filename="solicitacao_suspensao_{id_externo}.pdf"')
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers['content-disposition'] == f'filename="solicitacao_suspensao_{id_externo}.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -831,9 +829,8 @@ def test_url_endpoint_alt_card_relatorio(client_autenticado, alteracao_cardapio)
     )
     id_externo = alteracao_cardapio.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', f'filename="alteracao_cardapio_{id_externo}.pdf"')
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers['content-disposition'] == f'filename="alteracao_cardapio_{id_externo}.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -844,9 +841,8 @@ def test_url_endpoint_alt_card_cei_relatorio(client_autenticado, alteracao_carda
     )
     id_externo = alteracao_cardapio_cei.id_externo
     assert response.status_code == status.HTTP_200_OK
-    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
-    assert response._headers['content-disposition'] == (
-        'Content-Disposition', f'filename="alteracao_cardapio_{id_externo}.pdf"')
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.headers['content-disposition'] == f'filename="alteracao_cardapio_{id_externo}.pdf"'
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -892,7 +888,8 @@ def test_endpoint_horario_do_combo_tipo_alimentacao_unidade_escolar(client_auten
         'uuid': '22596464-271e-448d-bcb3-adaba43fffc8',
         'tipo_turno': None,
         'nome': 'TARDE',
-        'posicao': None
+        'posicao': None,
+        'possui_alunos_regulares': None
     }
     assert json[0]['escola'] == {
         'uuid': 'a627fc63-16fd-482c-a877-16ebc1a82e57',

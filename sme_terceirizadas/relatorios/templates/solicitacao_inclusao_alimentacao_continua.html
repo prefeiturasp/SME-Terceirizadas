@@ -32,7 +32,7 @@
         </thead>
         <tbody>
         {% for quantidade_periodo in solicitacao.quantidades_por_periodo.all %}
-          <tr class="sem-border-bottom">
+          <tr class="sem-border-bottom {% if quantidade_periodo.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %} cancelado{% endif %}">
             {% if solicitacao.motivo.nome != 'ETEC'%}
               <td style="width: 30%" class="weekly">
                 {% for key, value in week.items %}
@@ -52,15 +52,16 @@
             <td>{{ quantidade_periodo.tipos_alimentacao.all | concatena_label }}</td>
             <td>{{ quantidade_periodo.numero_alunos }}</td>
           </tr>
-          <tr>
-            {% if solicitacao.motivo.nome != 'ETEC'%}
-              <td colspan="4">
-            {% else %}
-              <td>
-            {%endif%}
+          <tr class="{% if quantidade_periodo.cancelado_justificativa or solicitacao.status == 'ESCOLA_CANCELOU' %}cancelado{% endif %}">
+            <td colspan="2">
               <p>Observações:</p>
               <p>{{ quantidade_periodo.observacao | safe }}</p>
             </td>
+            {% if quantidade_periodo.cancelado_justificativa or solicitacao.status == 'ESCOLA_CANCELOU' %}
+              <td colspan="2" style="text-decoration: none">
+                <p>Justificativa: {{ quantidade_periodo.cancelado_justificativa | safe }}</p>
+              </td>
+            {% endif %}
           </tr>
         {% endfor %}
         </tbody>
@@ -68,5 +69,9 @@
     </div>
       {% include "bloco_observacoes.html" %}
       {% include "bloco_historico_questionamento.html" %}
+      {% include "bloco_historico_cancelamento_inclusao.html" %}
+      {% if solicitacao.status != 'ESCOLA_CANCELOU' %}
+        {% include "bloco_historico_cancelamento.html" %}
+      {% endif %}
   </div>
 {% endblock %}

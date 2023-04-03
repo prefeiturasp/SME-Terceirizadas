@@ -65,7 +65,7 @@ from ..kit_lanche.models import (
 )
 from .constants import PERIODOS_ESPECIAIS_CEMEI
 from .services import NovoSGPServicoLogado
-from .utils import meses_para_mes_e_ano_string
+from .utils import meses_para_mes_e_ano_string, remove_acentos
 
 logger = logging.getLogger('sigpae.EscolaModels')
 
@@ -293,6 +293,11 @@ class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativav
         default=True,
     )
 
+    @property
+    def eh_cei(self):
+        lista_tipos_unidades = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
+        return self.iniciais in lista_tipos_unidades
+
     def get_cardapio(self, data):
         # TODO: ter certeza que tem so um cardapio por dia por tipo de u.e.
         try:
@@ -408,7 +413,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
         elif self.tipo_unidade.iniciais == 'CEU GESTAO':
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
-        elif self.tipo_unidade.iniciais == 'CEI DIRET':
+        elif self.eh_cei:
             periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_DIRET)
         else:
             # TODO: ver uma forma melhor de fazer essa query
@@ -431,7 +436,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def eh_cei(self):
-        return self.tipo_unidade and self.tipo_unidade.iniciais in ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI']
+        lista_tipos_unidades = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
+        return self.tipo_unidade and self.tipo_unidade.iniciais in lista_tipos_unidades
 
     @property
     def eh_cemei(self):
@@ -625,7 +631,7 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
         faixa_alunos = Counter()
         seis_anos_atras = datetime.date.today() - relativedelta(years=6)
         for aluno in lista_alunos:
-            if aluno['dc_tipo_turno'].strip().upper() == self.periodo_escolar.nome:
+            if remove_acentos(aluno['dc_tipo_turno'].strip()).upper() == self.periodo_escolar.nome:
                 data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
 
                 for faixa_etaria in faixas_etarias:
