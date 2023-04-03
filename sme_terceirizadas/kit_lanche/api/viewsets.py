@@ -16,7 +16,7 @@ from ...dados_comuns.permissions import (
     PermissaoParaRecuperarSolicitacaoUnificada,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
-    UsuarioEscola,
+    UsuarioEscolaTercTotal,
     UsuarioTerceirizada
 )
 from ...inclusao_alimentacao.api.viewsets import (
@@ -104,7 +104,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         elif self.action in ['retrieve', 'update']:
             self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         return super(SolicitacaoKitLancheAvulsaViewSet, self).get_permissions()
 
     def get_serializer_class(self):
@@ -161,7 +161,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         solicitacoes_unificadas = self.get_queryset().filter(
@@ -178,7 +178,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
 
     @action(detail=True,
             methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO,
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def inicio_de_solicitacao(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
@@ -296,7 +296,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
 
     @action(detail=True,
             methods=['patch'], url_path=constants.ESCOLA_CANCELA,
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def escola_cancela_solicitacao(self, request, uuid=None):
         justificativa = request.data.get('justificativa', '')
         solicitacao_kit_lanche_avulsa = self.get_object()
@@ -522,7 +522,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, url_path=constants.ESCOLA_CANCELA, methods=['patch'],
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def escola_cancela(self, request, uuid=None):
         DIAS_PARA_CANCELAR = 2
         usuario = request.user
@@ -628,7 +628,7 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         solicitacoes_unificadas = self.get_queryset().filter(
@@ -674,12 +674,12 @@ class SolicitacaoKitLancheCEMEIViewSet(ModelViewSet, CodaeAutoriza, CodaeQuestio
 
     def get_permissions(self):
         if self.action in ['list']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         elif self.action in ['retrieve', 'update']:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         return super(SolicitacaoKitLancheCEMEIViewSet, self).get_permissions()
 
     def get_queryset(self):

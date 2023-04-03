@@ -10,7 +10,7 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
-    UsuarioEscola,
+    UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin
 )
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
@@ -87,7 +87,7 @@ class SolicitacaoMedicaoInicialViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     lookup_field = 'uuid'
-    permission_classes = [UsuarioEscola | UsuarioDiretoriaRegional]
+    permission_classes = [UsuarioEscolaTercTotal | UsuarioDiretoriaRegional]
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
@@ -197,7 +197,7 @@ class SolicitacaoMedicaoInicialViewSet(
         return kwargs
 
     @action(detail=False, methods=['GET'], url_path='dashboard',
-            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def dashboard(self, request):
         query_set = self.get_queryset()
         possui_filtros = len(request.query_params)
@@ -209,7 +209,7 @@ class SolicitacaoMedicaoInicialViewSet(
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='meses-anos',
-            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def meses_anos(self, request):
         query_set = self.condicao_por_usuario(self.get_queryset()).exclude(
             status=SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE)
@@ -232,23 +232,28 @@ class SolicitacaoMedicaoInicialViewSet(
             nome = None
             if medicao.grupo and medicao.periodo_escolar:
                 nome = f'{medicao.grupo.nome} - {medicao.periodo_escolar.nome}'
+            elif medicao.grupo and not medicao.periodo_escolar:
+                nome = f'{medicao.grupo.nome}'
             elif medicao.periodo_escolar:
                 nome = medicao.periodo_escolar.nome
             retorno.append({
                 'uuid_medicao_periodo_grupo': medicao.uuid,
                 'nome_periodo_grupo': nome,
-                'periodo_escolar': medicao.periodo_escolar.nome,
+                'periodo_escolar': medicao.periodo_escolar.nome if medicao.periodo_escolar else None,
                 'grupo': medicao.grupo.nome if medicao.grupo else None,
                 'status': medicao.status.name,
                 'logs': LogSolicitacoesUsuarioSerializer(medicao.logs.all(), many=True).data
             })
         ORDEM_PERIODOS_GRUPOS = {
             'MANHA': 1,
-            'Programas e Projetos - MANHA': 2,
-            'TARDE': 3,
-            'Programas e Projetos - TARDE': 4,
-            'INTEGRAL': 5,
-            'NOITE': 6
+            'TARDE': 2,
+            'INTEGRAL': 3,
+            'NOITE': 4,
+            'VESPERTINO': 5,
+            'Programas e Projetos - MANHA': 6,
+            'Programas e Projetos - TARDE': 7,
+            'Solicitações de Alimentação': 8,
+            'ETEC': 9
         }
 
         return Response({'results': sorted(retorno, key=lambda k: ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},

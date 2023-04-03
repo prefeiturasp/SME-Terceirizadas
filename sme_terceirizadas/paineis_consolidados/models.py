@@ -1554,3 +1554,26 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
                                LogSolicitacoesUsuario.INICIO_FLUXO],
             terceirizada_uuid=terceirizada_uuid
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('uuid')
+
+    @classmethod
+    def get_recebidas(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        return cls.objects.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            terceirizada_uuid=terceirizada_uuid,
+            data_evento__lte=datetime.date.today()
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
+    def map_queryset_por_status(cls, status, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        if not status:
+            return cls.objects.all()
+        mapeador = {
+            'AUTORIZADOS': f'cls.get_autorizados(terceirizada_uuid="{terceirizada_uuid}")',
+            'CANCELADOS': f'cls.get_cancelados(terceirizada_uuid="{terceirizada_uuid}")',
+            'NEGADOS': f'cls.get_negados(terceirizada_uuid="{terceirizada_uuid}")',
+            'RECEBIDAS': f'cls.get_recebidas(terceirizada_uuid="{terceirizada_uuid}")'
+        }
+        return eval(mapeador[status])

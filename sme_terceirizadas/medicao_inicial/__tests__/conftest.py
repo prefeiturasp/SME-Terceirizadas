@@ -18,8 +18,9 @@ def dia_sobremesa_doce(tipo_unidade_escolar):
 @pytest.fixture
 def client_autenticado_coordenador_codae(client, django_user_model):
     email, password, rf, cpf = ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052')
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password, email=email, registro_funcional=rf,
+                                                 cpf=cpf)
+    client.login(username=email, password=password)
 
     codae = mommy.make('Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 
@@ -42,7 +43,9 @@ def escola():
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
-    return mommy.make('Escola', nome='EMEF TESTE', lote=lote, diretoria_regional=diretoria_regional)
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    return mommy.make('Escola', nome='EMEF TESTE', lote=lote, diretoria_regional=diretoria_regional,
+                      tipo_gestao=tipo_gestao)
 
 
 @pytest.fixture
@@ -166,9 +169,10 @@ def valor_medicao(medicao, categoria_medicao):
 def client_autenticado_diretoria_regional(client, django_user_model, escola):
     email = 'test@test.com'
     password = 'admin@123'
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888888')
     perfil_cogestor = mommy.make('Perfil',
-                                 nome='COGESTOR',
+                                 nome='COGESTOR_DRE',
                                  ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo',
@@ -177,7 +181,7 @@ def client_autenticado_diretoria_regional(client, django_user_model, escola):
                perfil=perfil_cogestor,
                data_inicial=hoje,
                ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -185,14 +189,14 @@ def client_autenticado_diretoria_regional(client, django_user_model, escola):
 def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
     password = 'admin@123'
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456',
                                                     )
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -201,11 +205,11 @@ def client_autenticado_adm_da_escola(client, django_user_model, escola):
     email = 'user@escola_adm.com'
     password = 'admin@1234'
     perfil_diretor = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='1234567',
                                                     )
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client

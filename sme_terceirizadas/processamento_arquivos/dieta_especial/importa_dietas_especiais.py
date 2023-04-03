@@ -13,11 +13,13 @@ from sme_terceirizadas.dieta_especial.models import (
     AlergiaIntolerancia,
     ArquivoCargaDietaEspecial,
     ClassificacaoDieta,
+    ProtocoloPadraoDietaEspecial,
     SolicitacaoDietaEspecial
 )
 from sme_terceirizadas.escola.models import Aluno, Escola
 from sme_terceirizadas.perfil.models.perfil import Perfil, Vinculo
 from sme_terceirizadas.perfil.models.usuario import Usuario
+from sme_terceirizadas.terceirizada.models import Edital
 
 from .schemas import ArquivoCargaDietaEspecialSchema
 
@@ -59,12 +61,15 @@ class ProcessadorPlanilha:
 
                 escola = self.consulta_escola(solicitacao_dieta_schema)
 
+                protocolo_padrao = self.consulta_protocolo_padrao(solicitacao_dieta_schema, escola)
+
                 classificacao_dieta = self.consulta_classificacao(solicitacao_dieta_schema)
 
                 diagnosticos = self.monta_diagnosticos(solicitacao_dieta_schema.codigo_diagnostico)
 
                 self.checa_existencia_solicitacao(solicitacao_dieta_schema, aluno)
-                self.cria_solicitacao(solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos, escola)
+                self.cria_solicitacao(solicitacao_dieta_schema, aluno, classificacao_dieta,
+                                      diagnosticos, escola, protocolo_padrao)
             except Exception as exc:
                 self.erros.append(f'Linha {ind} - {exc}')
 
@@ -108,6 +113,19 @@ class ProcessadorPlanilha:
         if not escola:
             raise Exception(f'Erro: escola com código codae {solicitacao_dieta_schema.codigo_escola} não encontrada.')
         return escola
+
+    def consulta_protocolo_padrao(self, solicitacao_dieta_schema, escola) -> ProtocoloPadraoDietaEspecial:
+        if not escola:
+            raise Exception(f'Erro: Escola inválida. Não foi possível encontrar os editais e protocolos.')
+        editais = Edital.objects.filter(uuid__in=escola.editais)
+        protocolos_uuids = editais.values_list('protocolos_padroes_dieta_especial__uuid', flat=True)
+        protocolos = ProtocoloPadraoDietaEspecial.objects.filter(uuid__in=protocolos_uuids)
+        protocolos = protocolos.filter(nome_protocolo=solicitacao_dieta_schema.protocolo_dieta)
+        if not protocolos:
+            msg_part_1 = 'Erro: protocolo padrão'
+            msg_part_2 = 'não encontrado com este nome ao edital que a escola está relacionada.'
+            raise Exception(f'{msg_part_1} {solicitacao_dieta_schema.protocolo_dieta} {msg_part_2}')
+        return protocolos.first()
 
     def consulta_classificacao(self, dieta_schema) -> ClassificacaoDieta:
         classificacao_dieta = ClassificacaoDieta.objects.filter(
@@ -156,7 +174,8 @@ class ProcessadorPlanilha:
             SolicitacaoDietaEspecial.objects.filter(aluno=aluno, ativo=True, eh_importado=False).update(ativo=False)
 
     @transaction.atomic
-    def cria_solicitacao(self, solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos, escola):  # noqa C901
+    def cria_solicitacao(self, solicitacao_dieta_schema, aluno,
+                         classificacao_dieta, diagnosticos, escola, protocolo_padrao):  # noqa C901
         observacoes = """Essa Dieta Especial foi autorizada anteriormente a implantação do SIGPAE.
         Para ter acesso ao Protocolo da Dieta Especial,
         entre em contato com o Núcleo de Dieta Especial através do e-mail:
@@ -165,7 +184,7 @@ class ProcessadorPlanilha:
         email_fake = f'fake{escola.id}@admin.com'
         usuario_escola = Usuario.objects.filter(email=email_fake).first()
         if not usuario_escola:
-            perfil = Perfil.objects.get(nome='DIRETOR')
+            perfil = Perfil.objects.get(nome='DIRETOR_UE')
             data_atual = date.today()
             # Esse Usuário não consegue acessar o sistema
             # Troquei a senha pra reforçar que essa não funciona
@@ -191,6 +210,7 @@ class ProcessadorPlanilha:
             escola_destino=escola,
             ativo=True,
             nome_protocolo=solicitacao_dieta_schema.protocolo_dieta.upper(),
+            protocolo_padrao=protocolo_padrao,
             classificacao=classificacao_dieta,
             observacoes=observacoes,
             conferido=True,

@@ -1,14 +1,20 @@
 import logging
-from datetime import date
+from datetime import date, datetime
 from tempfile import NamedTemporaryFile
 
 from django.core.files import File
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import F, Func, Q, Value
 from openpyxl import Workbook, load_workbook, styles
 
+from sme_terceirizadas.perfil.models.usuario import ImportacaoPlanilhaUsuarioServidorCoreSSO, \
+    ImportacaoPlanilhaUsuarioExternoCoreSSO
+from sme_terceirizadas.perfil.services.usuario_coresso_service import EOLUsuarioCoreSSO
+from sme_terceirizadas.terceirizada.models import Terceirizada
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import ja_existe, progressbar
+
+from sme_terceirizadas.eol_servico.utils import  EOLServicoSGP
 
 from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_TREINAMENTO_PASSWORD
@@ -26,7 +32,8 @@ import magic
 from .schemas import (
     ImportacaoPlanilhaUsuarioPerfilCodaeSchema,
     ImportacaoPlanilhaUsuarioPerfilDreSchema,
-    ImportacaoPlanilhaUsuarioPerfilEscolaSchema
+    ImportacaoPlanilhaUsuarioPerfilEscolaSchema,
+    ImportacaoPlanilhaUsuarioServidorCoreSSOSchema, ImportacaoPlanilhaUsuarioExternoCoreSSOSchema
 )
 
 logger = logging.getLogger('sigpae.carga_dados_perfil_importa_dados')
@@ -45,28 +52,26 @@ def cria_perfis():
 
 def cria_vinculos():
     perfil = {
-        'perfil_diretor_escola': Perfil.objects.get(nome='DIRETOR'),
-        'perfil_diretor_escola_cei': Perfil.objects.get(nome='DIRETOR_CEI'),
-        'perfil_cogestor_dre': Perfil.objects.get(nome='COGESTOR'),
+        'perfil_diretor_escola': Perfil.objects.get(nome='DIRETOR_UE'),
+        'perfil_administrador_ue': Perfil.objects.get(nome='ADMINISTRADOR_UE'),
+        'perfil_cogestor_dre': Perfil.objects.get(nome='COGESTOR_DRE'),
         'perfil_usuario_codae': Perfil.objects.get(nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA'),  # noqa
         'perfil_usuario_dilog': Perfil.objects.get(nome='COORDENADOR_LOGISTICA'),  # noqa
         'perfil_usuario_nutri_codae': Perfil.objects.get(nome='COORDENADOR_DIETA_ESPECIAL'),  # noqa
         'perfil_usuario_nutri_supervisao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO'),  # noqa
         'perfil_usuario_nutri_manifestacao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO'),
         'perfil_coordenador_gestao_produto': Perfil.objects.get(nome='COORDENADOR_GESTAO_PRODUTO'),  # noqa
-        'perfil_usuario_terceirizada': Perfil.objects.get(nome='NUTRI_ADMIN_RESPONSAVEL'),  # noqa
-        'perfil_usuario_ue': Perfil.objects.get(nome='ADMINISTRADOR_ESCOLA_ABASTECIMENTO'),
+        'perfil_usuario_terceirizada': Perfil.objects.get(nome='ADMINISTRADOR_EMPRESA'),  # noqa
         'perfil_usuario_codae_dilog': Perfil.objects.get(nome='COORDENADOR_CODAE_DILOG_LOGISTICA'),
         'perfil_usuario_codae_gabinete': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_GABINETE'),
         'perfil_usuario_dilog_contabil': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_DILOG_CONTABIL'),
         'perfil_usuario_dilog_juridico': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_DILOG_JURIDICO'),
-        'perfil_usuario_ue_mista': Perfil.objects.get(nome='ADMINISTRADOR_UE_MISTA'),
-        'perfil_usuario_ue_direta': Perfil.objects.get(nome='ADMINISTRADOR_UE_DIRETA'),
-        'perfil_usuario_ue_parceira': Perfil.objects.get(nome='ADMINISTRADOR_UE_PARCEIRA'),
+        'perfil_admin_fornecedor': Perfil.objects.get(nome='ADMINSTRADOR_FORNECEDOR'),
         'perfil_usuario_cronograma': Perfil.objects.get(nome='DILOG_CRONOGRAMA'),
         'perfil_usuario_qualidade': Perfil.objects.get(nome='DILOG_QUALIDADE'),
         'perfil_usuario_dilog_diretoria': Perfil.objects.get(nome='DILOG_DIRETORIA'),
-        'perfil_usuario_dinutre_diretoria': Perfil.objects.get(nome='DINUTRE_DIRETORIA')
+        'perfil_usuario_dinutre_diretoria': Perfil.objects.get(nome='DINUTRE_DIRETORIA'),
+        'perfil_usuario_representante_codae': Perfil.objects.get(nome='ADMINISTRADOR_REPRESENTANTE_CODAE')
     }
 
     usuario = {
@@ -97,10 +102,13 @@ def cria_vinculos():
         'usuario_ue_mista': Usuario.objects.get(email='uemista@admin.com'),
         'usuario_ue_direta': Usuario.objects.get(email='uedireta@admin.com'),
         'usuario_ue_parceira': Usuario.objects.get(email='ueparceira@admin.com'),
+        'usuario_diretor_ue_abastecimento': Usuario.objects.get(email='diretorabastecimento@admin.com'),
+        'usuario_admin_fornecedor': Usuario.objects.get(email='fornecedor@admin.com'),
         'usuario_cronograma': Usuario.objects.get(email='cronograma@admin.com'),
         'usuario_qualidade': Usuario.objects.get(email='qualidade@admin.com'),
         'usuario_dilog_diretoria': Usuario.objects.get(email='dilogdiretoria@admin.com'),
         'usuario_dinutre_diretoria': Usuario.objects.get(email='dinutrediretoria@admin.com'),
+        'usuario_representante_codae': Usuario.objects.get(email='representantecodae@admin.com'),
     }
 
     items = [
@@ -111,17 +119,17 @@ def cria_vinculos():
         },
         {
             'nome': 'CEI DIRET ENEDINA DE SOUSA CARVALHO',
-            'perfil': perfil['perfil_diretor_escola_cei'],
+            'perfil': perfil['perfil_diretor_escola'],
             'usuario': usuario['usuario_escola_cei'],
         },
         {
             'nome': 'CEU CEI MENINOS',
-            'perfil': perfil['perfil_diretor_escola_cei'],
+            'perfil': perfil['perfil_diretor_escola'],
             'usuario': usuario['usuario_escola_cei_ceu'],
         },
         {
             'nome': 'CCI/CIPS CAMARA MUNICIPAL DE SAO PAULO',
-            'perfil': perfil['perfil_diretor_escola_cei'],
+            'perfil': perfil['perfil_diretor_escola'],
             'usuario': usuario['usuario_escola_cci'],
         },
         {
@@ -161,25 +169,39 @@ def cria_vinculos():
         },
         {
             'nome': 'CEI DIRET ROBERTO ARANTES LANHOSO',
-            'perfil': perfil['perfil_usuario_ue'],
+            'perfil': perfil['perfil_administrador_ue'],
             'usuario': usuario['usuario_ue'],
         },
         {
             'nome': 'CEI DIRET PINHEIROS',
-            'perfil': perfil['perfil_usuario_ue_mista'],
+            'perfil': perfil['perfil_administrador_ue'],
             'usuario': usuario['usuario_ue_mista'],
         },
         {
             'nome': 'CIEJA ALUNA JESSICA NUNES HERCULANO',
-            'perfil': perfil['perfil_usuario_ue_direta'],
+            'perfil': perfil['perfil_administrador_ue'],
             'usuario': usuario['usuario_ue_direta'],
         },
         {
             'nome': 'CR.P.CONV FRATERNIDADE MARIA DE NAZARE',
-            'perfil': perfil['perfil_usuario_ue_parceira'],
+            'perfil': perfil['perfil_administrador_ue'],
             'usuario': usuario['usuario_ue_parceira'],
         },
-
+        {
+            'nome': 'CEI DIRET ROBERTO ARANTES LANHOSO',
+            'perfil': perfil['perfil_diretor_escola'],
+            'usuario': usuario['usuario_diretor_ue_abastecimento'],
+        },
+        {
+            'nome': 'FORNECEDOR ADMIN',
+            'perfil': perfil['perfil_admin_fornecedor'],
+            'usuario': usuario['usuario_admin_fornecedor'],
+        },
+        {
+            'nome': 'REPRESENTANTE CODAE ADM',
+            'perfil': perfil['perfil_usuario_representante_codae'],
+            'usuario': usuario['usuario_representante_codae'],
+        },
     ]
 
     data_atual = date.today()
@@ -758,3 +780,295 @@ def importa_usuarios_perfil_dre(usuario: Usuario, arquivo: ImportacaoPlanilhaUsu
         processador.finaliza_processamento()
     except Exception as exc:
         logger.error(f'Erro genérico: {exc}')
+
+
+class ProcessaPlanilhaUsuarioServidorCoreSSO:
+    def __init__(self, usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioServidorCoreSSO) -> None:
+        """Prepara atributos importantes para o processamento da planilha."""
+        if isinstance(usuario, Usuario) and isinstance(arquivo, ImportacaoPlanilhaUsuarioServidorCoreSSO):
+            self.usuario = usuario
+            self.arquivo = arquivo
+            self.erros = []
+            self.worksheet = self.abre_worksheet()
+
+    @property
+    def path(self):
+        return self.arquivo.conteudo.path
+
+    def processamento(self):  # noqa C901
+        self.arquivo.inicia_processamento()
+        if not self.validacao_inicial():
+            return
+
+        linhas = list(self.worksheet.rows)
+        logger.info(f'Quantidade de linhas: {len(linhas)} -- Quantidade de colunas: {len(linhas[0])}')
+
+        for ind, linha in enumerate(linhas[1:], 2):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
+            try:
+                dicionario_dados = self.monta_dicionario_de_dados(linha)
+                usuario_schema = ImportacaoPlanilhaUsuarioServidorCoreSSOSchema(**dicionario_dados)
+                logger.info(f'Criando usuário: {usuario_schema.nome} -- {usuario_schema.email}')
+                self.cria_usuario_servidor(ind, usuario_schema)
+                self.loga_sucesso_carga_usuario(usuario_schema)
+
+            except Exception as exc:
+                self.erros.append(f'Linha {ind} - {exc}')
+
+    def abre_worksheet(self):
+        return load_workbook(self.path).active
+
+    def get_instituicao(self, dados_usuario):
+        if dados_usuario.tipo_perfil == 'ESCOLA':
+            return Escola.objects.get(codigo_eol=format(int(dados_usuario.codigo_eol), '06d'))
+        elif dados_usuario.tipo_perfil == 'DRE':
+            return DiretoriaRegional.objects.get(codigo_eol=format(int(dados_usuario.codigo_eol), '06d'))
+        else:
+            return Codae.objects.annotate(nome_sem_espacos=Func(F('nome'), Value(' '), Value(''), function='replace')
+                                          ).get(nome_sem_espacos__icontains=f'codae-{dados_usuario.codae}')
+
+    def get_perfil(self, dados_usuario):
+        return Perfil.objects.get(nome__iexact=dados_usuario.perfil)
+
+    def loga_sucesso_carga_usuario(self, dados_usuario):
+        mensagem = f'Usuário {dados_usuario.rf} criado/atualizado com sucesso.'
+        logger.info(mensagem)
+
+    def cria_ou_atualiza_usuario_admin(self, dados_usuario, existe_core_sso=False):
+        usuario, criado = Usuario.objects.update_or_create(
+            email=dados_usuario.email,
+            username=dados_usuario.rf,
+            cpf=dados_usuario.cpf,
+            defaults={
+                'registro_funcional': dados_usuario.rf,
+                'cargo': dados_usuario.cargo or "",
+                'nome': dados_usuario.nome,
+                'last_login': datetime.now() if existe_core_sso else None
+            }
+        )
+        return usuario
+
+    def cria_vinculo(self, usuario, dados_usuario):
+        if usuario.existe_vinculo_ativo:
+            vinculo = usuario.vinculo_atual
+            vinculo.ativo = False
+            vinculo.data_final = date.today()
+            vinculo.save()
+        Vinculo.objects.create(
+            instituicao=self.get_instituicao(dados_usuario),
+            perfil=self.get_perfil(dados_usuario),
+            usuario=usuario,
+            data_inicial=date.today(),
+            ativo=True,
+        )
+
+    def validacao_inicial(self) -> bool:
+        return self.existe_conteudo()
+
+    def existe_conteudo(self) -> bool:
+        if not self.arquivo.conteudo:
+            self.arquivo.log = 'Não foi feito o upload da planilha'
+            self.arquivo.erro_no_processamento()
+            return False
+        return True
+
+    def monta_dicionario_de_dados(self, linha: tuple) -> dict:
+        try:
+            return {key: linha[index].value for index, key in
+                    enumerate(ImportacaoPlanilhaUsuarioServidorCoreSSOSchema.schema()['properties'].keys())}
+        except AttributeError:
+            return {key: linha[index] for index, key in
+                    enumerate(ImportacaoPlanilhaUsuarioServidorCoreSSOSchema.schema()['properties'].keys())}
+
+    def cria_usuario_servidor(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):  # noqa C901
+        try:
+            self.__criar_usuario_servidor(usuario_schema)
+        except Exception as exd:
+            self.erros.append(f'Linha {ind} - {exd}')
+
+    @transaction.atomic
+    def __criar_usuario_servidor(self, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):
+        existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=usuario_schema.rf)
+        usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema, existe_core_sso=existe_core_sso)
+        self.cria_vinculo(usuario, usuario_schema)
+        eolusuariocoresso = EOLUsuarioCoreSSO()
+        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.rf, eh_servidor='S',
+                                                            existe_core_sso=existe_core_sso)
+
+    def finaliza_processamento(self) -> None:
+        if self.erros:
+            self.arquivo.log = '\n'.join(self.erros)
+            self.arquivo.processamento_com_erro()
+            self.cria_planilha_de_erros()
+            logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
+        else:
+            self.arquivo.log = 'Planilha processada com sucesso.'
+            self.arquivo.processamento_com_sucesso()
+            logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
+
+    def cria_planilha_de_erros(self) -> None:
+        workbook: Workbook = Workbook()
+        ws = workbook.active
+        ws.title = 'Erros'
+        cabecalho = ws.cell(row=1, column=1, value='Erros encontrados no processamento da planilha')
+        cabecalho.fill = styles.PatternFill('solid', fgColor='808080')
+        for index, erro in enumerate(self.erros, 2):
+            ws.cell(row=index, column=1, value=erro)
+
+        filename = f'arquivo_resultado_{self.arquivo.pk}.xlsx'
+        with NamedTemporaryFile() as tmp:
+            workbook.save(tmp.name)
+            self.arquivo.resultado.save(name=filename, content=File(tmp))
+
+
+class ProcessaPlanilhaUsuarioExternoCoreSSO:
+    def __init__(self, usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioServidorCoreSSO) -> None:
+        """Prepara atributos importantes para o processamento da planilha."""
+        self.usuario = usuario
+        self.arquivo = arquivo
+        self.erros = []
+        self.worksheet = self.abre_worksheet()
+
+    @property
+    def path(self):
+        return self.arquivo.conteudo.path
+
+    def processamento(self):  # noqa C901
+        self.arquivo.inicia_processamento()
+        if not self.validacao_inicial():
+            return
+
+        linhas = list(self.worksheet.rows)
+        logger.info(f'Quantidade de linhas: {len(linhas)} -- Quantidade de colunas: {len(linhas[0])}')
+
+        for ind, linha in enumerate(linhas[1:], 2):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
+            try:
+                dicionario_dados = self.monta_dicionario_de_dados(linha)
+                usuario_schema = ImportacaoPlanilhaUsuarioExternoCoreSSOSchema(**dicionario_dados)
+                logger.info(f'Criando usuário: {usuario_schema.nome} -- {usuario_schema.email}')
+                self.cria_usuario_externo(ind, usuario_schema)
+                self.loga_sucesso_carga_usuario(usuario_schema)
+
+            except Exception as exc:
+                self.erros.append(f'Linha {ind} - {exc}')
+
+    def abre_worksheet(self):
+        return load_workbook(self.path).active
+
+    def get_instituicao(self, dados_usuario):
+        return Terceirizada.objects.get(cnpj=dados_usuario.cnpj_terceirizada)
+
+    def get_perfil(self, dados_usuario):
+        return Perfil.objects.get(nome__iexact=dados_usuario.perfil)
+
+    def loga_sucesso_carga_usuario(self, dados_usuario):
+        mensagem = f'Usuário {dados_usuario.cpf} criado/atualizado com sucesso.'
+        logger.info(mensagem)
+
+    def cria_ou_atualiza_usuario_admin(self, dados_usuario):
+        usuario, criado = Usuario.objects.update_or_create(
+            username=dados_usuario.cpf,
+            defaults={
+                'email': dados_usuario.email if dados_usuario.email else "",
+                'nome': dados_usuario.nome,
+                'cpf': dados_usuario.cpf
+            }
+        )
+        return usuario
+
+    def cria_vinculo(self, usuario, dados_usuario):
+        if usuario.existe_vinculo_ativo:
+            vinculo = usuario.vinculo_atual
+            vinculo.ativo = False
+            vinculo.data_final = date.today()
+            vinculo.save()
+        Vinculo.objects.create(
+            instituicao=self.get_instituicao(dados_usuario),
+            perfil=self.get_perfil(dados_usuario),
+            usuario=usuario,
+            data_inicial=date.today(),
+            ativo=True,
+        )
+
+    def validacao_inicial(self) -> bool:
+        return self.existe_conteudo()
+
+    def existe_conteudo(self) -> bool:
+        if not self.arquivo.conteudo:
+            self.arquivo.log = 'Não foi feito o upload da planilha'
+            self.arquivo.erro_no_processamento()
+            return False
+        return True
+
+    def monta_dicionario_de_dados(self, linha: tuple) -> dict:
+        return {key: linha[index].value
+                for index, key in enumerate(ImportacaoPlanilhaUsuarioExternoCoreSSOSchema.schema()['properties'].keys())}
+
+    def cria_usuario_externo(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioExternoCoreSSOSchema):  # noqa C901
+        try:
+            self.__criar_usuario_externo(usuario_schema)
+        except Exception as exd:
+            self.erros.append(f'Linha {ind} - {exd}')
+
+    @transaction.atomic
+    def __criar_usuario_externo(self, usuario_schema: ImportacaoPlanilhaUsuarioExternoCoreSSOSchema):
+        existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=usuario_schema.cpf)
+        usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
+        self.cria_vinculo(usuario, usuario_schema)
+        eolusuariocoresso = EOLUsuarioCoreSSO()
+        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.cpf, eh_servidor='N',
+                                                            existe_core_sso=existe_core_sso)
+
+    def finaliza_processamento(self) -> None:
+        if self.erros:
+            self.arquivo.log = '\n'.join(self.erros)
+            self.arquivo.processamento_com_erro()
+            self.cria_planilha_de_erros()
+            logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
+        else:
+            self.arquivo.log = 'Planilha processada com sucesso.'
+            self.arquivo.processamento_com_sucesso()
+            logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
+
+    def cria_planilha_de_erros(self) -> None:
+        workbook: Workbook = Workbook()
+        ws = workbook.active
+        ws.title = 'Erros'
+        cabecalho = ws.cell(row=1, column=1, value='Erros encontrados no processamento da planilha')
+        cabecalho.fill = styles.PatternFill('solid', fgColor='808080')
+        for index, erro in enumerate(self.erros, 2):
+            ws.cell(row=index, column=1, value=erro)
+
+        filename = f'arquivo_resultado_{self.arquivo.pk}.xlsx'
+        with NamedTemporaryFile() as tmp:
+            workbook.save(tmp.name)
+            self.arquivo.resultado.save(name=filename, content=File(tmp))
+
+
+def importa_usuarios_servidores_coresso(usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioServidorCoreSSO) -> None:
+    logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
+
+    try:
+        processador = ProcessaPlanilhaUsuarioServidorCoreSSO(usuario, arquivo)
+        processador.processamento()
+        processador.finaliza_processamento()
+    except Exception as exc:
+        logger.error(f'Erro genérico: {exc}')
+
+
+class ProcessaPlanilhaUsuarioServidorCoreSSOException(Exception):
+    pass
+
+
+def importa_usuarios_externos_coresso(usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioExternoCoreSSO) -> None:
+    logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
+
+    try:
+        processador = ProcessaPlanilhaUsuarioExternoCoreSSO(usuario, arquivo)
+        processador.processamento()
+        processador.finaliza_processamento()
+    except Exception as exc:
+        logger.error(f'Erro genérico: {exc}')
+
+
+class ProcessaPlanilhaUsuarioExternoCoreSSOException(Exception):
+    pass

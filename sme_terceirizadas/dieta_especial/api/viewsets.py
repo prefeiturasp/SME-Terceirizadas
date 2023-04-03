@@ -24,7 +24,7 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEDietaEspecial,
-    UsuarioEscola,
+    UsuarioEscolaTercTotal,
     UsuarioTerceirizada,
     UsuarioTerceirizadaOuNutriSupervisao
 )
@@ -123,7 +123,7 @@ class SolicitacaoDietaEspecialViewSet(
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarDietaEspecial)
         elif self.action == 'create':
-            self.permission_classes = (UsuarioEscola,)
+            self.permission_classes = (UsuarioEscolaTercTotal,)
         elif self.action in [
             'imprime_relatorio_dieta_especial',
             'relatorio_dieta_especial'
@@ -228,7 +228,7 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=True,
             methods=['POST'],
             url_path=constants.ESCOLA_SOLICITA_INATIVACAO,
-            permission_classes=(UsuarioEscola,))
+            permission_classes=(UsuarioEscolaTercTotal,))
     def escola_solicita_inativacao(self, request, uuid=None):
         # TODO: colocar essa lógica dentro de um serializer
         dieta_cancelada = self.get_object()

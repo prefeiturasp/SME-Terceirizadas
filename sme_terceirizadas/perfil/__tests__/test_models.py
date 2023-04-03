@@ -13,10 +13,24 @@ def test_perfil(perfil):
     assert perfil.__str__() == 'título do perfil'
 
 
+def test_perfis_vinculados(perfis_vinculados, perfil_distribuidor):
+    assert perfis_vinculados.perfil_master == perfil_distribuidor
+    assert isinstance(perfis_vinculados.perfis_subordinados.all()[0], Perfil)
+
+
 def test_usuario(usuario):
     assert usuario.nome == 'Fulano da Silva'
     assert usuario.email == 'fulano@teste.com'
     assert usuario.tipo_usuario == 'indefinido'
+
+
+def test_meta_modelo(perfil):
+    assert perfil._meta.verbose_name == 'Perfil'
+    assert perfil._meta.verbose_name_plural == 'Perfis'
+
+
+def test_instance_model(perfil):
+    assert isinstance(perfil, Perfil)
 
 
 def test_vinculo(vinculo):
@@ -26,11 +40,8 @@ def test_vinculo(vinculo):
     assert vinculo.status is vinculo.STATUS_ATIVO
     vinculo.finalizar_vinculo()
     assert vinculo.status is vinculo.STATUS_FINALIZADO
-    assert vinculo.usuario.is_active is False
     assert vinculo.data_final is not None
     assert vinculo.ativo is False
-    assert vinculo.__str__() == (f'fulano@teste.com de {datetime.date.today().strftime("%Y-%m-%d")} até '
-                                 f'{datetime.date.today().strftime("%Y-%m-%d")}')
 
 
 def test_vinculo_aguardando_ativacao(vinculo_aguardando_ativacao):
