@@ -21,6 +21,12 @@ class Command(BaseCommand):
             return
         self.cria_usuarios_servidores_no_coresso()
 
+    def checa_se_atribui_perfil(self, usuario, atribuidos_qtd):
+        if usuario.vinculo_atual.perfil:
+            perfil = usuario.vinculo_atual.perfil.nome
+            EOLServicoSGP.atribuir_perfil_coresso(login=usuario.username, perfil=perfil)
+            atribuidos_qtd += 1
+
     def cria_usuarios_servidores_no_coresso(self):
         logger.info(f'Inicia criação/atribuição de usuários servidores no CoreSSO.')
 
@@ -42,22 +48,19 @@ class Command(BaseCommand):
         atribuidos_qtd = 0
         for usuario in usuarios:
             try:
-                existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=usuario.username)
-                if not existe_core_sso:
-                    EOLServicoSGP.cria_usuario_core_sso(
-                        login=usuario.username,
-                        nome=usuario.nome,
-                        email=usuario.email,
-                        e_servidor=True
-                    )
-                    logger.info(f'Usuario {usuario.username} criado no CoreSSO.')
-                    usuarios_qtd += 1
-
-                if usuario.vinculo_atual.perfil:
-                    perfil = usuario.vinculo_atual.perfil.nome
-                    EOLServicoSGP.atribuir_perfil_coresso(login=usuario.username, perfil=perfil)
-                    atribuidos_qtd += 1
-                time.sleep(1)
+                if len(usuario.registro_funcional) == 7:
+                    existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=usuario.username)
+                    if not existe_core_sso:
+                        EOLServicoSGP.cria_usuario_core_sso(
+                            login=usuario.username,
+                            nome=usuario.nome,
+                            email=usuario.email,
+                            e_servidor=True
+                        )
+                        logger.info(f'Usuario {usuario.username} criado no CoreSSO.')
+                        usuarios_qtd += 1
+                    self.checa_se_atribui_perfil(usuario, atribuidos_qtd)
+                    time.sleep(1)
 
             except Exception as e:
                 msg = f'Erro ao tentar criar/atribuir usuário {usuario.username} no CoreSSO/SIGPAE: {str(e)}'
