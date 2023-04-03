@@ -749,6 +749,7 @@ def test_url_endpoint_produtos_editais_ativar_inativar(client_autenticado_vincul
 def test_url_endpoint_produtos_editais_lista_editais_dre(client_autenticado_da_dre, contrato, diretoria_regional):
     client = client_autenticado_da_dre
     response = client.get(f'/produtos-editais/lista-editais-dre/')
+    assert response.status_code == status.HTTP_200_OK
     resultado = response.json()
     esperado = {'results': [
         {'uuid': '617a8139-02a9-4801-a197-622aa20795b9',

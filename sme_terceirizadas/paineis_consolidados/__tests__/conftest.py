@@ -140,11 +140,12 @@ def inclusoes_de_alimentacao_continua(escola):
 def users_diretor_escola(client, django_user_model, request, escola, templates, alteracoes_cardapio,
                          solicitacoes_kit_lanche, inclusoes_de_alimentacao_continua):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
-    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
+    user = django_user_model.objects.create_user(username=email, password=password,
+                                                 email=email, registro_funcional=rf, cpf=cpf)
+    client.login(username=email, password=password)
+    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
@@ -303,15 +304,19 @@ def inclusoes_de_alimentacao_continua_dre(escola2):
 def solicitacoes_ano_dre(client, django_user_model, request, diretoria_regional2, templates, alteracoes_cardapio_dre,
                          solicitacoes_kit_lanche_dre, inclusoes_de_alimentacao_continua_dre):
     email, password, rf, cpf = request.param
-    user_dre = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
-    user_codae = django_user_model.objects.create_user(password=constants.DJANGO_ADMIN_PASSWORD, email='xxx@email.com',
-                                                       registro_funcional='9987634', cpf='12oiu3123')
-    user_escola = django_user_model.objects.create_user(password=constants.DJANGO_ADMIN_PASSWORD,
+    user_dre = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                     registro_funcional=rf, cpf=cpf)
+    user_codae = django_user_model.objects.create_user(username='xxx@email.com',
+                                                       password=constants.DJANGO_ADMIN_PASSWORD,
+                                                       email='xxx@email.com', registro_funcional='9987634',
+                                                       cpf='12oiu3123')
+    user_escola = django_user_model.objects.create_user(username='user@escola.com',
+                                                        password=constants.DJANGO_ADMIN_PASSWORD,
                                                         email='user@escola.com', registro_funcional='123123',
                                                         cpf='12312312332')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
 
-    perfil_adm_dre = mommy.make('Perfil', nome='ADMINISTRADOR_DRE', ativo=True)
+    perfil_adm_dre = mommy.make('Perfil', nome='COGESTOR_DRE', ativo=True)
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user_dre, instituicao=diretoria_regional2, perfil=perfil_adm_dre,
@@ -420,12 +425,14 @@ def status_and_endpoint(request):
 def client_autenticado_dre_paineis_consolidados(client, django_user_model, diretoria_regional2, templates,
                                                 alteracoes_cardapio_dre_atual):
     email = 'test@test.com'
+    email2 = 'user@escola.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
-    user_escola = django_user_model.objects.create_user(password=password, email='user@escola.com',
+    user = django_user_model.objects.create_user(username=email, password=password,
+                                                 email=email, registro_funcional='8888888')
+    user_escola = django_user_model.objects.create_user(username=email2, password=password, email=email2,
                                                         registro_funcional='123123', cpf='12312312332')
     perfil_cogestor = mommy.make('Perfil',
-                                 nome=constants.COGESTOR,
+                                 nome=constants.COGESTOR_DRE,
                                  ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo',
@@ -434,7 +441,7 @@ def client_autenticado_dre_paineis_consolidados(client, django_user_model, diret
                perfil=perfil_cogestor,
                data_inicial=hoje,
                ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     alt1, alt2, alt3 = alteracoes_cardapio_dre_atual
     alt1.inicia_fluxo(user=user_escola)
     alt2.inicia_fluxo(user=user_escola)

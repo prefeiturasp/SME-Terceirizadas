@@ -7,7 +7,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -20,9 +20,11 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_CODAE_DILOG_CONTABIL,
     ADMINISTRADOR_CODAE_DILOG_JURIDICO,
     ADMINISTRADOR_CODAE_GABINETE,
+    ADMINISTRADOR_EMPRESA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_MEDICAO,
+    ADMINISTRADOR_REPRESENTANTE_CODAE,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -33,16 +35,19 @@ from ...dados_comuns.constants import (
     DILOG_CRONOGRAMA,
     DILOG_DIRETORIA,
     DILOG_QUALIDADE,
-    DINUTRE_DIRETORIA
+    DINUTRE_DIRETORIA,
+    USUARIO_EMPRESA
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
-from ...eol_servico.utils import EOLService
+from ...eol_servico.utils import EOLService, EOLServicoSGP
 from ..models import Perfil, Vinculo
 
 log = logging.getLogger('sigpae.usuario')
 
 env = environ.Env()
+base_url = f'{env("REACT_APP_URL")}'
+senha_provisoria = f'{env("SENHA_PROVISORIA")}'
 
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
@@ -142,6 +147,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     email = models.EmailField(_('email address'), unique=True)
     tipo_email = models.PositiveSmallIntegerField(choices=TIPOS_EMAIL,
                                                   null=True, blank=True)
+    username = models.CharField(max_length=100, unique=True)
 
     registro_funcional = models.CharField(_('RF'), max_length=7, blank=True, null=True, unique=True,  # noqa DJ01
                                           validators=[MinLengthValidator(7)])
@@ -157,7 +163,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                                                     default=False)  # noqa
     crn_numero = models.CharField('Nutricionista crn', max_length=160, blank=True, null=True)  # noqa DJ01
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []  # type: ignore
 
     def atualizar_cargo(self):
@@ -184,6 +190,10 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         return None
 
     @property
+    def existe_vinculo_ativo(self):
+        return self.vinculos.filter(Q(data_inicial__isnull=False, data_final=None, ativo=True)).exists()
+
+    @property
     def tipo_usuario(self):  # noqa C901
         tipo_usuario = 'indefinido'
         if self.vinculo_atual:
@@ -191,7 +201,8 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
             if tipo_usuario == 'codae':
                 if self.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                       ADMINISTRADOR_CODAE_GABINETE, ADMINISTRADOR_CODAE_DILOG_JURIDICO,
-                                                      ADMINISTRADOR_CODAE_DILOG_CONTABIL]:
+                                                      ADMINISTRADOR_CODAE_DILOG_CONTABIL,
+                                                      ADMINISTRADOR_REPRESENTANTE_CODAE]:
                     tipo_usuario = 'logistica_abastecimento'
                 elif self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                         ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]:
@@ -212,6 +223,26 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                 else:
                     tipo_usuario = 'dieta_especial'
         return tipo_usuario
+
+    @property
+    def eh_empresa(self):
+        return (
+            self.vinculo_atual and
+            self.vinculo_atual.content_type.app_label == 'terceirizada' and
+            self.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA, USUARIO_EMPRESA]
+        )
+
+    @property
+    def eh_distribuidor(self):
+        return self.eh_empresa and self.vinculo_atual.instituicao.eh_distribuidor
+
+    @property
+    def eh_fornecedor(self):
+        return self.eh_empresa and self.vinculo_atual.instituicao.eh_fornecedor
+
+    @property
+    def eh_terceirizada(self):
+        return self.eh_empresa and self.vinculo_atual.instituicao.eh_terceirizada
 
     @property
     def pode_efetuar_cadastro(self):
@@ -248,12 +279,12 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     def enviar_email_recuperacao_senha(self):
         token_generator = PasswordResetTokenGenerator()
         token = token_generator.make_token(self)
-        content = {'uuid': self.uuid, 'confirmation_key': token}
+        visao_perfil = self.vinculo_atual.perfil.visao
+        content = {'uuid': self.uuid, 'confirmation_key': token, 'visao': visao_perfil}
         titulo = 'Recuperação de senha'
-        conteudo = f'Clique neste link para criar uma nova senha no SIGPAE: {url_configs("RECUPERAR_SENHA", content)}'
-        template = 'email_conteudo_simples.html'
-        dados_template = {'titulo': titulo, 'conteudo': conteudo}
-        html = render_to_string(template, dados_template)
+        template = 'recuperar_senha.html'
+        dados_template = {'titulo': titulo, 'link_recuperar_senha': url_configs('RECUPERAR_SENHA', content)}
+        html = render_to_string(template, context=dados_template)
         self.email_user(
             subject='Email de recuperação de senha - SIGPAE',
             message='',
@@ -277,13 +308,27 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
             html=html
         )
 
+    @transaction.atomic
     def atualiza_senha(self, senha, token):
         token_generator = PasswordResetTokenGenerator()
         if token_generator.check_token(self, token):
             self.set_password(senha)
             self.save()
+            EOLServicoSGP.redefine_senha(self.username, senha)
             return True
         return False
+
+    @transaction.atomic
+    def atualiza_senha_sem_token(self, senha):
+        EOLServicoSGP.redefine_senha(self.username, senha)
+        self.set_password(senha)
+        self.save()
+
+    @transaction.atomic
+    def atualiza_email(self, email):
+        self.email = email
+        self.save()
+        EOLServicoSGP.redefine_email(self.username, email)
 
     def criar_vinculo_administrador(self, instituicao, nome_perfil):
         perfil = Perfil.objects.get(nome=nome_perfil)
@@ -294,10 +339,68 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
             ativo=False
         )
 
+    @classmethod
+    def cria_ou_atualiza_usuario_sigpae(cls, dados_usuario, eh_servidor, existe_core_sso=False):
+        if eh_servidor:
+            usuario, criado = Usuario.objects.update_or_create(
+                username=dados_usuario['login'],
+                registro_funcional=dados_usuario['login'],
+                last_login=datetime.datetime.now() if existe_core_sso else None,
+                defaults={
+                    'email': dados_usuario.get('email', ''),
+                    'nome': dados_usuario['nome'],
+                    'cargo': dados_usuario.get('cargo', ''),
+                    'cpf': dados_usuario.get('cpf', ''),
+                }
+            )
+            return usuario
+        else:
+            usuario, criado = Usuario.objects.update_or_create(
+                username=dados_usuario['cpf'],
+                defaults={
+                    'email': dados_usuario.get('email', ''),
+                    'nome': dados_usuario['nome'],
+                    'cpf': dados_usuario['cpf']
+                }
+            )
+            return usuario
+
     def verificar_autenticidade(self, password):
         # TODO Após implantação do coresso substituir este método.
         usuario = authenticate(username=self.email, password=password)
         return usuario is not None
+
+    def envia_email_primeiro_acesso_usuario_empresa(self):
+        titulo = 'Credenciais de Primeiro Acesso'
+        template = 'email_primeiro_acesso_usuario_empresa.html'
+        dados_template = {
+            'titulo': titulo, 'url': f'{base_url}/login', 'nome': self.nome,
+            'senha_provisoria': senha_provisoria + self.cpf[-4:]
+        }
+        html = render_to_string(template, dados_template)
+        self.email_user(
+            subject='[SIGPAE] Credenciais de Acesso ao SIGPAE',
+            message='',
+            template=template,
+            dados_template=dados_template,
+            html=html
+        )
+
+    def envia_email_primeiro_acesso_usuario_servidor(self):
+        titulo = 'Credenciais de Primeiro Acesso'
+        template = 'email_primeiro_acesso_usuario_servidor.html'
+        dados_template = {
+            'titulo': titulo, 'url': f'{base_url}/login', 'nome': self.nome,
+            'senha': f'{senha_provisoria}{self.registro_funcional[-4:]}'
+        }
+        html = render_to_string(template, dados_template)
+        self.email_user(
+            subject='[SIGPAE] Credenciais de Acesso ao SIGPAE',
+            message='',
+            template=template,
+            dados_template=dados_template,
+            html=html
+        )
 
     class Meta:
         ordering = ('-super_admin_terceirizadas',)
@@ -386,6 +489,32 @@ class ImportacaoPlanilhaUsuarioPerfilDre(ArquivoCargaBase):
     class Meta:
         verbose_name = 'Arquivo para importação de usuário perfil Dre'
         verbose_name_plural = 'Arquivos para importação de usuários perfil Dre'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
+class ImportacaoPlanilhaUsuarioServidorCoreSSO(ArquivoCargaBase):
+    """Importa dados de planilha de usuários com perfil servidor."""
+
+    resultado = models.FileField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Arquivo para importação/atualização de usuários servidores no CoreSSO'
+        verbose_name_plural = 'Arquivos para importação/atualização de usuários servidores no CoreSSO'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
+class ImportacaoPlanilhaUsuarioExternoCoreSSO(ArquivoCargaBase):
+    """Importa dados de planilha de usuários com perfil externo."""
+
+    resultado = models.FileField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Arquivo para importação/atualização de usuários externos no CoreSSO'
+        verbose_name_plural = 'Arquivos para importação/atualização de usuários externos no CoreSSO'
 
     def __str__(self) -> str:
         return str(self.conteudo)

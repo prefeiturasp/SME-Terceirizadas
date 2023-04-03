@@ -123,7 +123,10 @@ def update_instance_from_dict(instance, attrs, save=False):
 
 def url_configs(variable, content):
     # TODO: rever essa logica de link para trabalhar no front, tá dando voltas
-    return env('REACT_APP_URL') + URL_CONFIGS[variable].format(**content)
+    if 'http' in env('REACT_APP_URL'):
+        return env('REACT_APP_URL') + URL_CONFIGS[variable].format(**content)
+    http_ou_https = 'http://' if ':' in env('REACT_APP_URL') else 'https://'
+    return http_ou_https + env('REACT_APP_URL') + URL_CONFIGS[variable].format(**content)
 
 
 def convert_base64_to_contentfile(base64_str: str):
@@ -212,7 +215,7 @@ def ordena_dias_semana_comeca_domingo(dias_semana):
 
 
 def gera_objeto_na_central_download(user, identificador):
-    usuario = get_user_model().objects.get(email=user)
+    usuario = get_user_model().objects.get(username=user)
     obj_arquivo_download = CentralDeDownload.objects.create(
         identificador=identificador,
         arquivo=None,
