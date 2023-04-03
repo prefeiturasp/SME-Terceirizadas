@@ -471,7 +471,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         filtros_dict = {
             constants.COORDENADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae,
             constants.ADMINISTRADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae,
-            constants.ADMINISTRADOR_TERCEIRIZADA: filtros_terceirizada_ou_codae,
+            constants.ADMINISTRADOR_EMPRESA: filtros_terceirizada_ou_codae,
             constants.COORDENADOR_SUPERVISAO_NUTRICAO: {
                 'status__in': status__in + ['CODAE_QUESTIONOU_NUTRISUPERVISOR'],
                 'raw_sql': (common_status +
@@ -481,7 +481,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         if perfil_nome in [constants.COORDENADOR_GESTAO_PRODUTO,
                            constants.ADMINISTRADOR_GESTAO_PRODUTO,
-                           constants.ADMINISTRADOR_TERCEIRIZADA,
+                           constants.ADMINISTRADOR_EMPRESA,
                            constants.COORDENADOR_SUPERVISAO_NUTRICAO]:
             filtros['status__in'] = filtros_dict[perfil_nome]['status__in']
             raw_sql += filtros_dict[perfil_nome]['raw_sql']

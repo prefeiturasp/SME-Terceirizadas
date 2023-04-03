@@ -15,7 +15,7 @@ from rest_framework.exceptions import PermissionDenied
 from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
-from .constants import COGESTOR, DIRETOR, DIRETOR_CEI
+from .constants import COGESTOR_DRE, DIRETOR_UE
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory
@@ -1175,7 +1175,6 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     def _partes_interessadas_codae_homologa_ou_nao_homologa(self):
         # Envia email somente para ESCOLAS selecionadas
-        # NUTRI_ADMIN_RESPONSAVEL.
         escolas_ids = m.Escola.objects.filter(
             enviar_email_por_produto=True
         ).values_list('id', flat=True)
@@ -1188,18 +1187,11 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             vinculos__ativo=True
         ).values_list('email', flat=True).distinct()
 
-        usuarios_vinculos_perfil = Usuario.objects.filter(
-            vinculos__ativo=True,
-            vinculos__perfil__nome__in=(
-                'NUTRI_ADMIN_RESPONSAVEL',
-            )
-        ).values_list('email', flat=True).distinct()
-
         usuarios_terceirizada = self.rastro_terceirizada.todos_emails_por_modulo('Gestão de Produto')
         if self.status == self.workflow_class.CODAE_NAO_HOMOLOGADO:
             usuarios_terceirizada = self.rastro_terceirizada.emails_por_modulo('Gestão de Produto')
 
-        return list(usuarios_escolas_selecionadas) + list(usuarios_vinculos_perfil) + usuarios_terceirizada
+        return list(usuarios_escolas_selecionadas) + usuarios_terceirizada
 
     def _envia_email_codae_homologa(self, log_transicao, link_pdf):
         html = render_to_string(
@@ -2349,7 +2341,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
         A dieta especial termina quando a data de término é atingida.
         São as partes interessadas:
-            - perfil "ADMINISTRADOR_TERCEIRIZADA" vinculado à terceirizada relacionada
+            - perfil "ADMINISTRADOR_EMPRESA" vinculado à terceirizada relacionada
               à escola destino da dieta
             - email de contato da escola (escola.contato.email)
         """
@@ -2696,10 +2688,8 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         queryset = Usuario.objects.filter(
             vinculos__ativo=True,
             vinculos__perfil__nome__in=[
-                'ADMINISTRADOR_ESCOLA',
-                'DIRETOR',
-                'DIRETOR CEI',
-                'NUTRI_ADMIN_RESPONSAVEL',
+                'ADMINISTRADOR_UE',
+                'DIRETOR_UE',
                 'COORDENADOR_SUPERVISAO_NUTRICAO',
                 'ADMINISTRADOR_SUPERVISAO_NUTRICAO']
         )
@@ -2939,7 +2929,7 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
     def _ue_envia_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            if user.vinculo_atual.perfil.nome not in [DIRETOR, DIRETOR_CEI]:
+            if not user.vinculo_atual.perfil.nome == DIRETOR_UE:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
                                       usuario=user)
@@ -2948,7 +2938,7 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
     def _dre_aprova_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            if user.vinculo_atual.perfil.nome not in [COGESTOR]:
+            if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
                                       usuario=user)
@@ -2958,7 +2948,7 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
-            if user.vinculo_atual.perfil.nome not in [COGESTOR]:
+            if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
                                       usuario=user,

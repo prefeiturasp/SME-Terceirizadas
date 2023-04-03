@@ -1,24 +1,35 @@
+
+import logging
 import re
 
+import environ
+from django.db import transaction
 from django.db.utils import IntegrityError
+from munch import Munch
+from requests import ConnectTimeout, ReadTimeout
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from sme_terceirizadas.perfil.models.usuario import (
+    ImportacaoPlanilhaUsuarioExternoCoreSSO,
+    ImportacaoPlanilhaUsuarioServidorCoreSSO
+)
+
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
-    ADMINISTRADOR_DISTRIBUIDORA,
-    ADMINISTRADOR_DRE,
+    ADMINISTRADOR_EMPRESA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-    ADMINISTRADOR_TERCEIRIZADA
+    COGESTOR_DRE
 )
 from ...dados_comuns.models import Contato
-from ...eol_servico.utils import EOLException, EOLService
-from ...perfil.api.validators import usuario_e_das_terceirizadas
+from ...eol_servico.utils import EOLException, EOLService, EOLServicoSGP
+from ...perfil.api.validators import checa_senha, usuario_com_coresso_validation, usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
-from ..models import Perfil, Usuario, Vinculo
+from ..models import Perfil, PerfisVinculados, Usuario, Vinculo
+from ..services.usuario_coresso_service import EOLUsuarioCoreSSO
 from .validators import (
     deve_ser_email_sme_ou_prefeitura,
     deve_ter_mesmo_cpf,
@@ -30,17 +41,30 @@ from .validators import (
     usuario_pode_efetuar_cadastro
 )
 
+env = environ.Env()
+
+logger = logging.getLogger(__name__)
+
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Perfil
-        fields = ('nome', 'uuid')
+        fields = ('nome', 'visao', 'uuid')
 
 
 class PerfilSerializer(serializers.ModelSerializer):
     class Meta:
         model = Perfil
         exclude = ('id', 'nome', 'ativo')
+
+
+class PerfisVinculadosSerializer(serializers.ModelSerializer):
+    perfil_master = PerfilSimplesSerializer()
+    perfis_subordinados = PerfilSimplesSerializer(many=True)
+
+    class Meta:
+        model = PerfisVinculados
+        fields = ('perfil_master', 'perfis_subordinados')
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -88,6 +112,27 @@ class VinculoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vinculo
         fields = ('uuid', 'data_inicial', 'data_final', 'perfil', 'usuario')
+
+
+class VinculoSimplesSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='usuario.username')
+    nome_usuario = serializers.CharField(source='usuario.nome')
+    email_usuario = serializers.CharField(source='usuario.email')
+    cpf_usuario = serializers.CharField(source='usuario.cpf')
+    uuid_usuario = serializers.CharField(source='usuario.uuid')
+    cnpj_empresa = serializers.SerializerMethodField()
+    nome_perfil = serializers.CharField(source='perfil.nome')
+    visao_perfil = serializers.CharField(source='perfil.visao')
+
+    def get_cnpj_empresa(self, obj):
+        if obj.content_type.name == 'Terceirizada':
+            return obj.instituicao.cnpj
+        return None
+
+    class Meta:
+        model = Vinculo
+        fields = ('uuid', 'username', 'nome_usuario', 'email_usuario', 'cpf_usuario', 'uuid_usuario', 'cnpj_empresa',
+                  'nome_perfil', 'visao_perfil', )
 
 
 class UsuarioUpdateSerializer(serializers.ModelSerializer):
@@ -163,7 +208,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         usuario.save()
         usuario.criar_vinculo_administrador(
             terceirizada,
-            nome_perfil=ADMINISTRADOR_TERCEIRIZADA
+            nome_perfil=ADMINISTRADOR_EMPRESA
         )
 
     def create_distribuidor(self, terceirizada, validated_data):
@@ -177,17 +222,17 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         if usuario.super_admin_terceirizadas:
             usuario.criar_vinculo_administrador(
                 terceirizada,
-                nome_perfil=ADMINISTRADOR_DISTRIBUIDORA
+                nome_perfil=ADMINISTRADOR_EMPRESA
             )
         else:
             usuario.criar_vinculo_administrador(
                 terceirizada,
-                nome_perfil=ADMINISTRADOR_TERCEIRIZADA
+                nome_perfil=ADMINISTRADOR_EMPRESA
             )
         usuario.enviar_email_administrador()
 
     def update_distribuidor(self, terceirizada, validated_data):
-        nome_perfil = ADMINISTRADOR_DISTRIBUIDORA
+        nome_perfil = ADMINISTRADOR_EMPRESA
         novo_usuario = False
         email = validated_data.get('email')
         cpf = validated_data.get('cpf', None)
@@ -230,11 +275,11 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         if novo_usuario:
             usuario.criar_vinculo_administrador(
                 terceirizada,
-                nome_perfil=ADMINISTRADOR_TERCEIRIZADA
+                nome_perfil=ADMINISTRADOR_EMPRESA
             )
         else:
             vinculo = usuario.vinculo_atual
-            vinculo.perfil = Perfil.objects.get(nome=ADMINISTRADOR_TERCEIRIZADA)
+            vinculo.perfil = Perfil.objects.get(nome=ADMINISTRADOR_EMPRESA)
             vinculo.save()
 
     def create(self, validated_data):  # noqa C901
@@ -278,7 +323,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])  # noqa
             usuario_pode_efetuar_cadastro(instance)
         if instance.vinculo_atual.perfil.nome in [
-            ADMINISTRADOR_DRE,
+            COGESTOR_DRE,
             ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
             ADMINISTRADOR_DIETA_ESPECIAL,
             ADMINISTRADOR_GESTAO_PRODUTO,
@@ -351,3 +396,175 @@ class SuperAdminTerceirizadaSerializer(serializers.ModelSerializer):
             'contatos',
             'cargo'
         )
+
+
+class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
+    eh_servidor = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    username = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    nome = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    visao = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    subdivisao = serializers.UUIDField(write_only=True, required=False, allow_null=True)
+    perfil = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    instituicao = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    cpf = serializers.CharField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    email = serializers.EmailField(write_only=True, required=True, allow_blank=False, allow_null=False)
+    cargo = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=False)
+
+    def validate(self, attrs):
+        visao = attrs.get('visao')
+        subdivisao = attrs.get('subdivisao')
+        usuario_com_coresso_validation(visao, subdivisao)
+
+        return attrs
+
+    class Meta:
+        model = Usuario
+        fields = ['uuid', 'username', 'email', 'nome', 'visao', 'subdivisao', 'perfil', 'instituicao', 'cpf', 'cargo',
+                  'eh_servidor']
+
+    def enviar_email(self, usuario, eh_servidor):
+        if not eh_servidor:
+            usuario.envia_email_primeiro_acesso_usuario_empresa()
+        elif env('DJANGO_ENV') == 'production':
+            usuario.envia_email_primeiro_acesso_usuario_servidor()
+
+    @transaction.atomic # noqa
+    def create(self, validated_data):
+        dados_usuario_dict = {
+            'login': validated_data['username'],
+            'nome': validated_data['nome'],
+            'email': validated_data['email'],
+            'cargo': validated_data.get('cargo', None),
+            'cpf': validated_data['cpf'],
+            'perfil': validated_data['perfil'],
+            'visao': validated_data['visao'],
+            'subdivisao': validated_data.get('subdivisao', None),
+            'instituicao': validated_data['instituicao'],
+            'eh_servidor': validated_data['eh_servidor']
+        }
+
+        dados_usuario = Munch.fromDict(dados_usuario_dict)
+        eh_servidor = validated_data['eh_servidor'] == 'S'
+
+        try:
+            existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=dados_usuario.login)
+            usuario = Usuario.cria_ou_atualiza_usuario_sigpae(dados_usuario=dados_usuario_dict,
+                                                              eh_servidor=eh_servidor,
+                                                              existe_core_sso=existe_core_sso)
+            Vinculo.cria_vinculo(usuario=usuario, dados_usuario=dados_usuario_dict)
+            eolusuariocoresso = EOLUsuarioCoreSSO()
+            eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(
+                dados_usuario=dados_usuario,
+                login=dados_usuario.login,
+                eh_servidor=dados_usuario.eh_servidor,
+                existe_core_sso=existe_core_sso
+            )
+            logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
+            self.enviar_email(usuario, eh_servidor)
+            return usuario
+
+        except IntegrityError as e:
+            if 'unique constraint' in str(e):
+                error = str(e)
+                msg = error.split('Key')
+                raise IntegrityError('Erro, informação duplicada:' + msg[1])
+            raise IntegrityError('Erro ao tentar criar/atualizar usuário: ' + str(e))
+
+        except Exception as e:
+            msg = f'Erro ao tentar criar/atualizar usuário {validated_data["username"]} no CoreSSO/SIGPAE: {str(e)}'
+            logger.error(msg)
+            raise serializers.ValidationError(msg)
+
+
+class AlteraEmailSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
+
+    def update(self, instance, validated_data): # noqa
+        try:
+            instance.atualiza_email(validated_data.get('email'))
+
+        except EOLException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError:
+            return Response({'detail': 'Já existe um usuário com este e-mail'}, status=status.HTTP_400_BAD_REQUEST)
+        except ReadTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        except ConnectTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        return instance
+
+    class Meta:
+        model = Usuario
+        fields = ['uuid', 'username', 'email']
+
+
+class RedefinirSenhaSerializer(serializers.ModelSerializer):
+    senha_atual = serializers.CharField(required=True)
+    senha = serializers.CharField(required=True)
+    confirmar_senha = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        senha_deve_ser_igual_confirmar_senha(attrs.get('senha'), attrs.get('confirmar_senha'))
+        attrs.pop('confirmar_senha')
+        return attrs
+
+    def update(self, instance, validated_data): # noqa
+        try:
+            checa_senha(instance, validated_data['senha_atual'])
+            instance.atualiza_senha_sem_token(validated_data['senha'])
+
+        except EOLException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except ReadTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        except ConnectTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        return instance
+
+    class Meta:
+        model = Usuario
+        fields = ['senha_atual', 'senha', 'confirmar_senha']
+
+
+class ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImportacaoPlanilhaUsuarioServidorCoreSSO
+        exclude = ['id']
+
+
+class ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImportacaoPlanilhaUsuarioExternoCoreSSO
+        exclude = ['id']
+
+
+class ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer(serializers.ModelSerializer):
+    conteudo = serializers.FileField(required=True)
+
+    def validate(self, attrs):
+        conteudo = attrs.get('conteudo')
+        if conteudo:
+            if not conteudo.name.split('.')[-1] in ['xlsx', 'xls']:
+                raise serializers.ValidationError({'detail': 'Extensão do arquivo não suportada.'})
+
+        return attrs
+
+    class Meta:
+        model = ImportacaoPlanilhaUsuarioServidorCoreSSO
+        exclude = ('id',)
+
+
+class ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer(serializers.ModelSerializer):
+    conteudo = serializers.FileField(required=True)
+
+    def validate(self, attrs):
+        conteudo = attrs.get('conteudo')
+        if conteudo:
+            if not conteudo.name.split('.')[-1] in ['xlsx', 'xls']:
+                raise serializers.ValidationError({'detail': 'Extensão do arquivo não suportada.'})
+
+        return attrs
+
+    class Meta:
+        model = ImportacaoPlanilhaUsuarioExternoCoreSSO
+        exclude = ('id',)

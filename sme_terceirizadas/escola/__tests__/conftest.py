@@ -111,8 +111,9 @@ def aluno(escola):
 @pytest.fixture
 def client_autenticado_coordenador_codae(client, django_user_model):
     email, password, rf, cpf = ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052')
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password, email=email, registro_funcional=rf,
+                                                 cpf=cpf)
+    client.login(username=email, password=password)
 
     codae = mommy.make('Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 
@@ -130,14 +131,13 @@ def client_autenticado_coordenador_codae(client, django_user_model):
 def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
     password = 'admin@123'
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
-                                                    registro_funcional='123456',
-                                                    )
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                    registro_funcional='123456',)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -146,12 +146,12 @@ def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
     email = 'user@dre.com'
     password = 'admin@123'
     perfil_adm_dre = mommy.make('Perfil', nome='ADM_DRE', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(password=password, username=email, email=email,
                                                     registro_funcional='123456')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=diretoria_regional, perfil=perfil_adm_dre,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -284,9 +284,11 @@ def mocked_response(*args, **kwargs):
         def __init__(self, json_data, status_code):
             self.json_data = json_data
             self.status_code = status_code
+            self.content = b'erro'
 
         def json(self):
             return self.json_data
+
     return MockResponse(*args, **kwargs)
 
 

@@ -110,19 +110,13 @@ usuario_escola_ceu_emef.save()
 # PROD
 
 perfil_diretor_escola, created = Perfil.objects.get_or_create(
-    nome='DIRETOR', ativo=True, super_usuario=True)
-
-perfil_diretor_escola_cei, created = Perfil.objects.get_or_create(
-    nome='DIRETOR CEI', ativo=True, super_usuario=True)
+    nome='DIRETOR_UE', ativo=True, super_usuario=True)
 
 perfil_administrador_escola, created = Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_ESCOLA', ativo=True, super_usuario=True)
+    nome='ADMINISTRADOR_UE', ativo=True, super_usuario=True)
 
 perfil_cogestor_dre, created = Perfil.objects.get_or_create(
-    nome='COGESTOR', ativo=True, super_usuario=True)
-
-perfil_administrador_diretoria_regional, created = Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_DRE', ativo=True, super_usuario=True)
+    nome='COGESTOR_DRE', ativo=True, super_usuario=True)
 
 perfil_usuario_nutri_codae, created = Perfil.objects.get_or_create(
     nome='COORDENADOR_DIETA_ESPECIAL', ativo=True, super_usuario=True)
@@ -140,10 +134,7 @@ Perfil.objects.get_or_create(
     nome='ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', ativo=True, super_usuario=True)
 
 perfil_usuario_terceirizada, created = Perfil.objects.get_or_create(
-    nome='NUTRI_ADMIN_RESPONSAVEL', ativo=True, super_usuario=True)
-
-Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_TERCEIRIZADA', ativo=True, super_usuario=True)
+    nome='ADMINISTRADOR_EMPRESA', ativo=True, super_usuario=True)
 
 perfil_coordenador_gestao_produto, created = Perfil.objects.get_or_create(
     nome='COORDENADOR_GESTAO_PRODUTO', ativo=True, super_usuario=True)
@@ -176,13 +167,13 @@ terceirizada = escola.lote.terceirizada
 Vinculo.objects.create(instituicao=escola, perfil=perfil_diretor_escola,
                        usuario=usuario_escola, data_inicial=data_atual)
 
-Vinculo.objects.create(instituicao=escola_cei, perfil=perfil_diretor_escola_cei,
+Vinculo.objects.create(instituicao=escola_cei, perfil=perfil_diretor_escola,
                        usuario=usuario_escola_cei, data_inicial=data_atual)
 
-Vinculo.objects.create(instituicao=escola_cei_ceu, perfil=perfil_diretor_escola_cei,
+Vinculo.objects.create(instituicao=escola_cei_ceu, perfil=perfil_diretor_escola,
                        usuario=usuario_escola_cei_ceu, data_inicial=data_atual)
 
-Vinculo.objects.create(instituicao=escola_cci, perfil=perfil_diretor_escola_cei,
+Vinculo.objects.create(instituicao=escola_cci, perfil=perfil_diretor_escola,
                        usuario=usuario_escola_cci, data_inicial=data_atual)
 
 Vinculo.objects.create(instituicao=escola_emef, perfil=perfil_diretor_escola,

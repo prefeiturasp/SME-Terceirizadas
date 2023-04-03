@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_406_NOT_ACCEPTABLE
 from xworkflows.base import InvalidTransitionError
 
+from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaAssinarCronogramaUsuarioDilog,
@@ -53,7 +54,6 @@ from sme_terceirizadas.pre_recebimento.models import (
 )
 from sme_terceirizadas.pre_recebimento.utils import ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
 
-from ...dados_comuns.constants import ADMINISTRADOR_FORNECEDOR
 from ...dados_comuns.models import LogSolicitacoesUsuario
 
 
@@ -164,7 +164,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.order_by('-alterado_em').distinct()
 
-        if vinculo.perfil.nome == ADMINISTRADOR_FORNECEDOR:
+        if vinculo.perfil.nome == ADMINISTRADOR_EMPRESA and vinculo.instituicao.eh_fornecedor:
             queryset = queryset.filter(empresa=vinculo.instituicao)
 
         page = self.paginate_queryset(queryset)

@@ -13,19 +13,13 @@ perfil_diretor_escola_cei, created = Perfil.objects.get_or_create(
 )
 
 perfil_administrador_escola, created = Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_ESCOLA',
+    nome='ADMINISTRADOR_UE',
     ativo=True,
     super_usuario=True
 )
 
 perfil_cogestor_dre, created = Perfil.objects.get_or_create(
-    nome='COGESTOR',
-    ativo=True,
-    super_usuario=True
-)
-
-perfil_administrador_diretoria_regional, created = Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_DRE',
+    nome='COGESTOR_DRE',
     ativo=True,
     super_usuario=True
 )
@@ -54,14 +48,15 @@ Perfil.objects.get_or_create(
     super_usuario=True
 )
 
-perfil_usuario_terceirizada, created = Perfil.objects.get_or_create(
-    nome='NUTRI_ADMIN_RESPONSAVEL',
+
+Perfil.objects.get_or_create(
+    nome='ADMINISTRADOR_EMPRESA',
     ativo=True,
     super_usuario=True
 )
 
 Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_TERCEIRIZADA',
+    nome='USUARIO_EMPRESA',
     ativo=True,
     super_usuario=True
 )

@@ -10,7 +10,7 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
-    UsuarioEscola,
+    UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin
 )
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
@@ -87,7 +87,7 @@ class SolicitacaoMedicaoInicialViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     lookup_field = 'uuid'
-    permission_classes = [UsuarioEscola | UsuarioDiretoriaRegional]
+    permission_classes = [UsuarioEscolaTercTotal | UsuarioDiretoriaRegional]
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
@@ -197,7 +197,7 @@ class SolicitacaoMedicaoInicialViewSet(
         return kwargs
 
     @action(detail=False, methods=['GET'], url_path='dashboard',
-            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def dashboard(self, request):
         query_set = self.get_queryset()
         possui_filtros = len(request.query_params)
@@ -209,7 +209,7 @@ class SolicitacaoMedicaoInicialViewSet(
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='meses-anos',
-            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def meses_anos(self, request):
         query_set = self.condicao_por_usuario(self.get_queryset()).exclude(
             status=SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE)

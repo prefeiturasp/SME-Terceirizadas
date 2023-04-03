@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 import environ
@@ -14,6 +15,7 @@ from ..dados_comuns.constants import (
     DJANGO_EOL_SGP_API_TOKEN,
     DJANGO_EOL_SGP_API_URL
 )
+from ..perfil.services.autenticacao_service import AutenticacaoService
 
 env = environ.Env()
 
@@ -121,6 +123,7 @@ class EOLService(object):
 
 class EOLServicoSGP:
     HEADER = {
+        'accept': 'application/json',
         'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}'
     }
     TIMEOUT = 30
@@ -135,6 +138,176 @@ class EOLServicoSGP:
             return resultado
         else:
             raise EOLException(f'API EOL do SGP está com erro. Erro: {str(response)}, Status: {response.status_code}')
+
+    @classmethod
+    def usuario_existe_core_sso(cls, login):
+        from utility.carga_dados.perfil.importa_dados import logger
+
+        logger.info('Consultando informação de %s.', login)
+        try:
+            response = requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/UsuarioExisteCoreSSO/',
+                                     headers=cls.HEADER, data={'usuario': login})
+            if response.status_code == status.HTTP_200_OK:
+                logger.info(f'Usuário {login} existe no CoreSSO.')
+                return True
+            else:
+                logger.info(f'Usuário {login} não existe no CoreSSO: {response}')
+                return False
+        except Exception as err:
+            logger.info(f'Erro ao procurar usuário {login} no CoreSSO: {str(err)}')
+            raise EOLException(str(err))
+
+    @classmethod
+    def usuario_core_sso_or_none(cls, login):
+        from utility.carga_dados.perfil.importa_dados import logger
+
+        logger.info('Consultando informação de %s.', login)
+        try:
+            response = requests.get(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/{login}/dados',
+                                    headers=cls.HEADER)
+            if response.status_code == status.HTTP_200_OK:
+                logger.info(f'Usuário {login} encontrado no CoreSSO.')
+                return response.json()
+            else:
+                logger.info(f'Usuário {login} não encontrado no CoreSSO: {response}')
+                return None
+        except Exception as err:
+            logger.info(f'Erro ao procurar usuário {login} no CoreSSO: {str(err)}')
+            raise EOLException(str(err))
+
+    @classmethod
+    def atribuir_perfil_coresso(cls, login, perfil):
+        from utility.carga_dados.perfil.importa_dados import logger
+        """ Atribuição de Perfil:
+
+        /api/perfis/servidores/{codigoRF}/perfil/{perfil}/atribuirPerfil - GET
+
+        """
+        logger.info(f'Atribuindo perfil {perfil} ao usuário {login}.')
+
+        sys_grupo_ids = AutenticacaoService.get_perfis_do_sistema()
+        try:
+            grupo_id = next(el['id'] for el in sys_grupo_ids if el['nome'] == perfil)
+            url = f'{DJANGO_EOL_SGP_API_URL}/perfis/servidores/{login}/perfil/{grupo_id}/atribuirPerfil'
+            response = requests.get(url, headers=cls.HEADER)
+            if response.status_code == status.HTTP_200_OK:
+                return ''
+            else:
+                logger.info('Falha ao tentar fazer atribuição de perfil: %s', response)
+                raise EOLException('Falha ao fazer atribuição de perfil.')
+        except Exception as err:
+            logger.info('Erro ao tentar fazer atribuição de perfil: %s', str(err))
+            raise EOLException(str(err))
+
+    @classmethod
+    def chamada_externa_criar_usuario_coresso(cls, headers, payload):
+        return requests.request('POST', f'{DJANGO_EOL_SGP_API_URL}/v1/usuarios/coresso', headers=headers, data=payload)
+
+    @classmethod
+    def cria_usuario_core_sso(cls, login, nome, email, e_servidor=False):
+        from utility.carga_dados.perfil.importa_dados import logger
+        """ Cria um novo usuário no CoreSSO
+
+        /api/v1/usuarios/coresso - POST
+
+        Payload =
+            {
+              "nome": "Nome do Usuário",
+              "documento": "CPF em caso de não funcionário, caso de funcionário, enviar vazio",
+              "codigoRf": "Código RF do funcionário, caso não funcionario, enviar vazio",
+              "email": "Email do usuário"
+            }
+        """
+
+        headers = {
+            'accept': 'application/json',
+            'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}',
+            'Content-Type': 'application/json-patch+json'
+        }
+
+        logger.info('Criando usuário no CoreSSO.')
+
+        try:
+            payload = json.dumps({
+                'nome': nome,
+                'documento': login if not e_servidor else '',
+                'codigoRf': login if e_servidor else '',
+                'email': email
+            })
+
+            response = cls.chamada_externa_criar_usuario_coresso(headers, payload)
+            if response.status_code == status.HTTP_200_OK:
+                result = 'OK'
+                return result
+            else:
+                logger.info('Erro ao tentar criar o usuário: %s', response.json())
+                raise EOLException(f'Erro ao tentar criar o usuário {nome}.')
+        except Exception as err:
+            raise EOLException(str(err))
+
+    @classmethod
+    def chamada_externa_altera_email_coresso(cls, data):
+        return requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/AlterarEmail', data=data,
+                             headers=cls.HEADER)
+
+    @classmethod
+    def redefine_email(cls, registro_funcional, email):
+        from utility.carga_dados.perfil.importa_dados import logger
+        logger.info('Alterando email.')
+        try:
+            data = {
+                'Usuario': registro_funcional,
+                'Email': email
+            }
+            response = cls.chamada_externa_altera_email_coresso(data)
+            if response.status_code == status.HTTP_200_OK:
+                result = 'OK'
+                return result
+            else:
+                logger.info('Erro ao redefinir email: %s', response.json())
+                raise EOLException('Erro ao redefinir email')
+        except Exception as err:
+            raise EOLException(str(err))
+
+    @classmethod
+    def chamada_externa_altera_senha(cls, data):
+        return requests.post(f'{DJANGO_EOL_SGP_API_URL}/AutenticacaoSgp/AlterarSenha', data=data,
+                             headers=cls.HEADER)
+
+    @classmethod
+    def redefine_senha(cls, registro_funcional, senha):
+        from utility.carga_dados.perfil.importa_dados import logger
+        """Se a nova senha for uma das senhas padões, a API do SME INTEGRAÇÃO
+        não deixa fazer a atualização.
+        Para resetar para a senha padrão é preciso usar o endpoint ReiniciarSenha da API SME INTEGRAÇÃO"""
+        logger.info('Alterando senha.')
+
+        try:
+            data = {
+                'Usuario': registro_funcional,
+                'Senha': senha
+            }
+            response = cls.chamada_externa_altera_senha(data)
+            if response.status_code == status.HTTP_200_OK:
+                result = 'OK'
+                return result
+            else:
+                logger.info('Erro ao redefinir senha: %s', response.content.decode('utf-8'))
+                raise EOLException(f"Erro ao redefinir senha: {response.content.decode('utf-8')}")
+        except Exception as err:
+            raise EOLException(str(err))
+
+    @classmethod
+    def chamada_externa_dados_usuario(cls, registro_funcional):
+        return requests.get(f'{DJANGO_EOL_SGP_API_URL}/funcionarios/DadosSigpae/{registro_funcional}',
+                            headers=cls.HEADER)
+
+    @classmethod
+    def get_dados_usuario(cls, registro_funcional):
+        from utility.carga_dados.perfil.importa_dados import logger
+        logger.info('Checa dados do usuário no CoreSSO.')
+        response = cls.chamada_externa_dados_usuario(registro_funcional)
+        return response
 
 
 class EOLPapaService:
