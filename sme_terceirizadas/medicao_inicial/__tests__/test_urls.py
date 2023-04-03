@@ -64,6 +64,7 @@ def test_url_endpoint_solicitacao_medicao_inicial(client_autenticado_da_escola,
                                                   escola, solicitacao_medicao_inicial,
                                                   solicitacao_medicao_inicial_sem_arquivo,
                                                   responsavel, tipo_contagem_alimentacao):
+    assert escola.modulo_gestao == 'TERCEIRIZADA'
     response = client_autenticado_da_escola.get(
         f'/medicao-inicial/solicitacao-medicao-inicial/?escola={escola.uuid}&mes=09&ano=2022',
         content_type='application/json'

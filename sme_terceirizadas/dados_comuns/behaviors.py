@@ -93,6 +93,10 @@ class TemData(models.Model):
 class TemChaveExterna(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
+    @classmethod
+    def by_uuid(cls, uuid):
+        return cls.objects.get(uuid=uuid)
+
     class Meta:
         abstract = True
 
@@ -345,6 +349,12 @@ class ArquivoCargaBase(ModeloBase):
 
     def erro_no_processamento(self):
         self.status = StatusProcessamentoArquivo.ERRO.value
+        self.save()
+
+    def removido(self):
+        if self.conteudo:
+            self.conteudo.storage.delete(self.conteudo.name)
+        self.status = StatusProcessamentoArquivo.REMOVIDO.value
         self.save()
 
     class Meta:

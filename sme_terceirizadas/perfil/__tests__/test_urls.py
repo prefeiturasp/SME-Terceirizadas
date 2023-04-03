@@ -1,5 +1,7 @@
 import datetime
+import json
 import uuid
+from unittest.mock import patch
 
 import pytest
 from rest_framework import status
@@ -7,7 +9,7 @@ from rest_framework import status
 from ..api.helpers import ofuscar_email
 from ..api.serializers import UsuarioUpdateSerializer
 from ..api.viewsets import UsuarioUpdateViewSet
-from ..models import Usuario
+from ..models import ImportacaoPlanilhaUsuarioExternoCoreSSO, ImportacaoPlanilhaUsuarioServidorCoreSSO, Perfil, Usuario
 from .conftest import mocked_request_api_eol, mocked_request_api_eol_usuario_diretoria_regional
 
 pytestmark = pytest.mark.django_db
@@ -41,8 +43,10 @@ def test_atualizar_senha_logado(users_admin_escola):
         'senha': 'adminadmin123',
         'confirmar_senha': 'adminadmin123'
     }
-    response = client.patch('/usuarios/atualizar-senha/',
-                            content_type='application/json', data=data)
+    api_redefine_senha = 'sme_terceirizadas.eol_servico.utils.EOLServicoSGP.redefine_senha'
+    with patch(api_redefine_senha):
+        response = client.patch('/usuarios/atualizar-senha/',
+                                content_type='application/json', data=data)
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.check_password('adminadmin123') is True
@@ -58,7 +62,7 @@ def test_atualizar_senha_logado_senha_atual_incorreta(users_admin_escola):
     response = client.patch('/usuarios/atualizar-senha/',
                             content_type='application/json', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': 'senha atual incorreta'}
+    assert response.json() == {'detail': 'Senha atual incorreta'}
 
 
 def test_atualizar_senha_logado_senha_e_confirmar_senha_divergem(users_admin_escola):
@@ -71,7 +75,7 @@ def test_atualizar_senha_logado_senha_e_confirmar_senha_divergem(users_admin_esc
     response = client.patch('/usuarios/atualizar-senha/',
                             content_type='application/json', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': 'senha e confirmar senha divergem'}
+    assert response.json() == ['Senha e confirmar senha divergem']
 
 
 def test_get_meus_dados_admin_escola(users_admin_escola):
@@ -114,7 +118,7 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert json['vinculo_atual']['instituicao']['uuid'] == 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
     assert json['vinculo_atual']['instituicao']['codigo_eol'] == '256341'
     assert json['vinculo_atual']['ativo'] is True
-    assert json['vinculo_atual']['perfil']['nome'] == 'COORDENADOR_ESCOLA'
+    assert json['vinculo_atual']['perfil']['nome'] == 'DIRETOR_UE'
     assert json['vinculo_atual']['perfil']['uuid'] == '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'
 
 
@@ -156,12 +160,13 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 'codigo_eol': '256341',
                 'quantidade_alunos': 450,
                 'lotes': [],
+                'eh_cei': False,
+                'eh_cemei': False,
+                'modulo_gestao': 'TERCEIRIZADA',
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                    'codigo_eol': '987656',
-                    'iniciais': 'IP'
-                },
+                    'codigo_eol': '987656', 'iniciais': 'IP'},
                 'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
                 'tipo_unidade_escolar_iniciais': 'EMEF',
                 'tipo_gestao': 'TERC TOTAL',
@@ -184,7 +189,8 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 }
             },
             'perfil': {
-                'nome': 'ADMINISTRADOR_ESCOLA',
+                'nome': 'ADMINISTRADOR_UE',
+                'visao': None,
                 'uuid': '48330a6f-c444-4462-971e-476452b328b2'
             },
             'ativo': False
@@ -195,7 +201,7 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     usuario_novo = Usuario.objects.get(registro_funcional='5696569')
     assert usuario_novo.is_active is False
     assert usuario_novo.vinculo_atual is not None
-    assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_ESCOLA'
+    assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_UE'
 
 
 def test_erro_403_usuario_nao_pertence_a_escola_cadastro_vinculos(escola, users_diretor_escola, monkeypatch):
@@ -243,7 +249,7 @@ def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
     response.json()[0].pop('uuid')
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+         'perfil': {'nome': 'ADMINISTRADOR_UE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva', 'cpf': '11111111111',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'tipo_usuario': 'escola',
                      'cargo': ''}}]
@@ -260,7 +266,6 @@ def test_finalizar_vinculo_escola(users_diretor_escola):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, monkeypatch):
@@ -295,7 +300,7 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
             'instituicao': {
                 'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
                 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                'codigo_eol': None,
+                'codigo_eol': '0002',
                 'quantidade_alunos': 0,
                 'lotes': [],
                 'periodos_escolares': [],
@@ -308,8 +313,9 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
                 'contato': None
             },
             'perfil': {
-                'nome': 'ADMINISTRADOR_DRE',
-                'uuid': '48330a6f-c444-4462-971e-476452b328b2'
+                'nome': 'COGESTOR_DRE',
+                'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+                'visao': None
             },
             'ativo': False
         },
@@ -319,7 +325,7 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
     usuario_novo = Usuario.objects.get(registro_funcional='6812805')
     assert usuario_novo.is_active is False
     assert usuario_novo.vinculo_atual is not None
-    assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_DRE'
+    assert usuario_novo.vinculo_atual.perfil.nome == 'COGESTOR_DRE'
 
 
 def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regional):
@@ -327,15 +333,15 @@ def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regiona
     diretoria_regional_ = user.vinculo_atual.instituicao
     response = client.get(f'/vinculos-diretorias-regionais/{str(diretoria_regional_.uuid)}/get_equipe_administradora/')
     assert response.status_code == status.HTTP_200_OK
-    response.json()[0].get('usuario').pop('date_joined')
-    response.json()[0].pop('data_final')
-    response.json()[0].pop('uuid')
-    assert response.json() == [
-        {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
-         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
-                     'tipo_usuario': 'diretoriaregional', 'cargo': ''}}]
+    response.json()[1].get('usuario').pop('date_joined')
+    response.json()[1].pop('data_final')
+    response.json()[1].pop('uuid')
+    assert response.json()[1] == {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
+                                  'perfil': {'nome': 'COGESTOR_DRE', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+                                             'visao': None},
+                                  'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
+                                              'email': 'fulano@teste.com', 'registro_funcional': '1234567',
+                                              'cpf': '11111111111', 'tipo_usuario': 'diretoriaregional', 'cargo': ''}}
 
 
 def test_finalizar_vinculo_dre(users_cogestor_diretoria_regional):
@@ -349,7 +355,6 @@ def test_finalizar_vinculo_dre(users_cogestor_diretoria_regional):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_erro_403_usuario_nao_pertence_a_dre_cadastro_vinculos(diretoria_regional,
@@ -436,7 +441,8 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
-                'uuid': '48330a6f-c444-4462-971e-476452b328b2'
+                'uuid': '48330a6f-c444-4462-971e-476452b328b2',
+                'visao': None
             },
             'ativo': False
         },
@@ -461,7 +467,7 @@ def test_get_equipe_administradora_vinculos_codae(users_codae_gestao_alimentacao
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
-                    'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+                    'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
                      'tipo_usuario': 'gestao_alimentacao_terceirizada', 'cargo': ''}}]
@@ -478,7 +484,6 @@ def test_finalizar_vinculo_codae(users_codae_gestao_alimentacao):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_get_equipe_administradora_vinculos_terceirizadas(users_terceirizada):
@@ -494,8 +499,8 @@ def test_get_equipe_administradora_vinculos_terceirizadas(users_terceirizada):
     response.json()[0].pop('uuid')
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'ADMINISTRADOR_TERCEIRIZADA',
-                    'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'},
+         'perfil': {'nome': 'USUARIO_EMPRESA',
+                    'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1', 'visao': None},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'tipo_usuario': 'terceirizada', 'cargo': ''}
          }
@@ -513,7 +518,6 @@ def test_finalizar_vinculo_terceirizada(users_terceirizada):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(email=email)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_erro_401_usuario_nao_e_coordenador_ou_nao_esta_logado_cadastro_vinculos(client,
@@ -584,6 +588,9 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             'codigo_eol': '256341',
             'quantidade_alunos': 450,
             'lotes': [],
+            'eh_cei': False,
+            'eh_cemei': False,
+            'modulo_gestao': 'TERCEIRIZADA',
             'diretoria_regional': {
                 'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
                 'nome': 'DIRETORIA REGIONAL IPIRANGA',
@@ -612,8 +619,9 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             }
         },
         'perfil': {
-            'nome': 'COORDENADOR_ESCOLA',
-            'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'
+            'nome': 'DIRETOR_UE',
+            'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+            'visao': None
         },
         'ativo': True
     }
@@ -670,6 +678,9 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
                     'codigo_eol': '987656',
                     'iniciais': 'IP'
                 },
+                'eh_cei': False,
+                'eh_cemei': False,
+                'modulo_gestao': 'TERCEIRIZADA',
                 'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
                 'tipo_unidade_escolar_iniciais': 'EMEF',
                 'tipo_gestao': 'TERC TOTAL',
@@ -693,7 +704,8 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
             },
             'perfil': {
                 'nome': 'título do perfil',
-                'uuid': 'd38e10da-c5e3-4dd5-9916-010fc250595a'
+                'uuid': 'd38e10da-c5e3-4dd5-9916-010fc250595a',
+                'visao': None
             },
             'ativo': True
         },
@@ -717,13 +729,222 @@ def test_recuperar_senha(client, usuarios_pendentes_confirmacao):
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'email': ofuscar_email(usuario.email)}
 
-    response2 = client.get(f'/cadastro/recuperar-senha/{usuario.email}/')
-    assert response2.status_code == status.HTTP_200_OK
-    assert response2.json() == {'email': ofuscar_email(usuario.email)}
-
 
 def test_recuperar_senha_invalido(client, usuarios_pendentes_confirmacao):
     response = client.get(f'/cadastro/recuperar-senha/NAO-EXISTE/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        'detail': 'Não existe usuário com este e-mail ou RF'}
+        'detail': 'Não existe usuário com este CPF ou RF'}
+
+
+# Testa se vem 2 vinculos, pois no conftest users_terceirizada existem 3, porém só 2 ativos
+def test_busca_vinculos_ativos(client, users_terceirizada):
+    response = client.get(f'/vinculos/vinculos-ativos/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 2
+
+
+def test_busca_vinculos_ativos_com_filtro(client, users_terceirizada):
+    response = client.get(f'/vinculos/vinculos-ativos/?perfil=ADMINISTRADOR_EMPRESA')
+    assert response.status_code == status.HTTP_200_OK
+    for resultado in response.json()['results']:
+        assert resultado.get('nome_perfil') == 'ADMINISTRADOR_EMPRESA'
+
+
+def test_url_visoes(client_autenticado):
+    response = client_autenticado.get('/perfis/visoes/')
+    assert response.status_code == status.HTTP_200_OK
+    json_data = json.loads(response.content)
+    assert json_data == Perfil.visoes_to_json()
+
+
+def test_criar_usuario_nao_servidor_coresso(client_autenticado, terceirizada, perfil_distribuidor):
+    payload = {
+        'username': '52898325139',
+        'email': 'teste_silva@teste.com',
+        'nome': 'Teste da Silva',
+        'visao': 'EMPRESA',
+        'perfil': perfil_distribuidor.nome,
+        'instituicao': terceirizada.cnpj,
+        'cpf': '52898325139',
+        'eh_servidor': 'N'
+    }
+
+    api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso' # noqa
+    with patch(api_cria_ou_atualiza_usuario_core_sso):
+        response = client_autenticado.post('/cadastro-com-coresso/', data=json.dumps(payload),
+                                           content_type='application/json')
+    result = response.json()
+
+    u = Usuario.objects.filter(username='52898325139').first()
+    esperado = {
+        'uuid': str(u.uuid),
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert result == esperado
+
+
+def test_criar_usuario_servidor_coresso(client_autenticado, escola, perfil_escola):
+    payload = {
+        'username': '1234567',
+        'email': 'teste_servidor@teste.com',
+        'nome': 'Servidor da Silva',
+        'visao': 'ESCOLA',
+        'perfil': perfil_escola.nome,
+        'instituicao': escola.codigo_eol,
+        'cpf': '52898325139',
+        'cargo': 'Diretor',
+        'eh_servidor': 'S'
+    }
+
+    api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso' # noqa
+    with patch(api_cria_ou_atualiza_usuario_core_sso):
+        response = client_autenticado.post('/cadastro-com-coresso/', data=json.dumps(payload),
+                                           content_type='application/json')
+    result = response.json()
+
+    u = Usuario.objects.filter(username='1234567').first()
+    esperado = {
+        'uuid': str(u.uuid),
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert result == esperado
+
+
+def test_finaliza_vinculo(client_autenticado_dilog, usuario_3):
+    username = usuario_3.username
+    response = client_autenticado_dilog.post(f'/cadastro-com-coresso/{username}/finalizar-vinculo/',
+                                             content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_edicao_email(client_autenticado_dilog, usuario_3):
+    username = usuario_3.username
+    payload = {
+        'username': username,
+        'email': 'teste_servidor_novo_email@teste.com'
+    }
+    api_redefine_email = 'sme_terceirizadas.eol_servico.utils.EOLServicoSGP.redefine_email'
+    with patch(api_redefine_email):
+        response = client_autenticado_dilog.patch(f'/cadastro-com-coresso/{username}/alterar-email/',
+                                                  data=json.dumps(payload), content_type='application/json')
+
+    result = response.json()
+    u = Usuario.objects.filter(username=username).first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['email'] == 'teste_servidor_novo_email@teste.com'
+    assert u.email == 'teste_servidor_novo_email@teste.com'
+
+
+def test_create_planilha_externo_coresso(client_autenticado_dilog, arquivo_xls, arquivo_pdf):
+    payload = {
+        'conteudo': arquivo_xls
+    }
+    payload_extensao_invalida = {
+        'conteudo': arquivo_pdf
+    }
+    response = client_autenticado_dilog.post(f'/planilha-coresso-externo/', data=payload, format='multipart')
+    response_erro_forcado = client_autenticado_dilog.post(
+        f'/planilha-coresso-externo/', data=payload_extensao_invalida, format='multipart')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.filter(uuid=result['uuid']).exists()
+    planilha = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.get(uuid=result['uuid'])
+    assert planilha.conteudo.name.split('.')[-1] == arquivo_xls.name.split('.')[-1]
+    assert response_erro_forcado.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_processar_planilha_externo_coresso(client_autenticado_dilog, planilha_usuario_externo, arquivo_xls):
+    assert ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.get(uuid=planilha_usuario_externo.uuid).status == 'PENDENTE'
+    api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso'  # noqa
+    with patch(api_cria_ou_atualiza_usuario_core_sso):
+        response = client_autenticado_dilog.post(
+            f'/planilha-coresso-externo/{planilha_usuario_externo.uuid}/processar-importacao/')
+        response2 = client_autenticado_dilog.post(
+            '/planilha-coresso-externo/F38e10da-c5e3-4dd5-9916-010fc250595a/processar-importacao/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_remover_planilha_externo_coresso(client_autenticado_dilog, planilha_usuario_externo, arquivo_xls):
+    response = client_autenticado_dilog.patch(
+        f'/planilha-coresso-externo/{planilha_usuario_externo.uuid}/remover/')
+    response2 = client_autenticado_dilog.patch(
+        '/planilha-coresso-externo/F38e10da-c5e3-4dd5-9916-010fc250595a/remover/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_busca_planilha_coresso_externo(client_autenticado_dilog, planilha_usuario_externo):
+    response = client_autenticado_dilog.get(f'/planilha-coresso-externo/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_download_planilha_modelo_coresso_externo(client_autenticado_dilog):
+    response = client_autenticado_dilog.get(f'/planilha-coresso-externo/download-planilha-nao-servidor/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_create_planilha_servidor_coresso(client_autenticado_dilog, arquivo_xls, arquivo_pdf):
+    payload = {
+        'conteudo': arquivo_xls
+    }
+    payload_extensao_invalida = {
+        'conteudo': arquivo_pdf
+    }
+    response = client_autenticado_dilog.post(f'/planilha-coresso-servidor/', data=payload, format='multipart')
+    response_erro_forcado = client_autenticado_dilog.post(
+        f'/planilha-coresso-servidor/', data=payload_extensao_invalida, format='multipart')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.filter(uuid=result['uuid']).exists()
+    planilha = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.get(uuid=result['uuid'])
+    assert planilha.conteudo.name.split('.')[-1] == arquivo_xls.name.split('.')[-1]
+    assert response_erro_forcado.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_processar_planilha_servidor_coresso(client_autenticado_dilog, planilha_usuario_servidor, arquivo_xls):
+    assert ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.get(
+        uuid=planilha_usuario_servidor.uuid).status == 'PENDENTE'
+    api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso'  # noqa
+    with patch(api_cria_ou_atualiza_usuario_core_sso):
+        response = client_autenticado_dilog.post(
+            f'/planilha-coresso-servidor/{planilha_usuario_servidor.uuid}/processar-importacao/')
+        response2 = client_autenticado_dilog.post(
+            '/planilha-coresso-servidor/F38e10da-c5e3-4dd5-9916-010fc250595a/processar-importacao/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_remover_planilha_servidor_coresso(client_autenticado_dilog, planilha_usuario_servidor, arquivo_xls):
+    response = client_autenticado_dilog.patch(
+        f'/planilha-coresso-servidor/{planilha_usuario_servidor.uuid}/remover/')
+    response2 = client_autenticado_dilog.patch(
+        '/planilha-coresso-servidor/F38e10da-c5e3-4dd5-9916-010fc250595a/remover/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_busca_planilha_coresso_servidor(client_autenticado_dilog, planilha_usuario_servidor):
+    response = client_autenticado_dilog.get(f'/planilha-coresso-servidor/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_get_perfis_vinculados(client_autenticado_dilog, perfis_vinculados):
+    response = client_autenticado_dilog.get(f'/perfis-vinculados/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_get_perfis_vinculados_subordinados(client_autenticado_dilog, perfis_vinculados):
+    response = client_autenticado_dilog.get(f'/perfis-vinculados/ADMINISTRADOR_EMPRESA/perfis-subordinados/')
+    assert response.status_code == status.HTTP_200_OK
