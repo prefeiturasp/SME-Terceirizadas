@@ -117,13 +117,24 @@ class Medicao(
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
     FluxoSolicitacaoMedicaoInicial,
-    CriadoEm, CriadoPor,
+    CriadoEm, CriadoPor, Logs
 ):
     solicitacao_medicao_inicial = models.ForeignKey('SolicitacaoMedicaoInicial', on_delete=models.CASCADE,
                                                     related_name='medicoes')
-    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', blank=True, null=True, on_delete=models.DO_NOTHING)
     grupo = models.ForeignKey(GrupoMedicao, blank=True, null=True, on_delete=models.PROTECT)
     alterado_em = models.DateTimeField('Alterado em', null=True, blank=True)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            justificativa=justificativa,
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+            usuario=usuario,
+            uuid_original=self.uuid,
+        )
 
     class Meta:
         verbose_name = 'Medição'
@@ -132,7 +143,14 @@ class Medicao(
     def __str__(self):
         ano = f'{self.solicitacao_medicao_inicial.ano}'
         mes = f'{self.solicitacao_medicao_inicial.mes}'
-        return f'Medição #{self.id_externo} -- {self.periodo_escolar.nome} -- {mes}/{ano}'
+        if self.grupo and self.periodo_escolar:
+            nome_periodo_grupo = f'{self.grupo.nome} - ' + f'{self.periodo_escolar.nome}'
+        elif self.grupo and not self.periodo_escolar:
+            nome_periodo_grupo = f'{self.grupo.nome}'
+        else:
+            nome_periodo_grupo = f'{self.periodo_escolar.nome}'
+
+        return f'Medição #{self.id_externo} -- {nome_periodo_grupo} -- {mes}/{ano}'
 
 
 class CategoriaMedicao(Nomeavel, Ativavel, TemChaveExterna):
@@ -157,6 +175,7 @@ class ValorMedicao(
                                           related_name='valores_medicao')
     tipo_alimentacao = models.ForeignKey('cardapio.TipoAlimentacao', blank=True,
                                          null=True, on_delete=models.DO_NOTHING)
+    habilitado_correcao = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Valor da Medição'

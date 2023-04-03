@@ -340,11 +340,12 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         )
 
     @classmethod
-    def cria_ou_atualiza_usuario_sigpae(cls, dados_usuario, eh_servidor):
+    def cria_ou_atualiza_usuario_sigpae(cls, dados_usuario, eh_servidor, existe_core_sso=False):
         if eh_servidor:
             usuario, criado = Usuario.objects.update_or_create(
                 username=dados_usuario['login'],
                 registro_funcional=dados_usuario['login'],
+                last_login=datetime.datetime.now() if existe_core_sso else None,
                 defaults={
                     'email': dados_usuario.get('email', ''),
                     'nome': dados_usuario['nome'],
@@ -375,6 +376,22 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         dados_template = {
             'titulo': titulo, 'url': f'{base_url}/login', 'nome': self.nome,
             'senha_provisoria': senha_provisoria + self.cpf[-4:]
+        }
+        html = render_to_string(template, dados_template)
+        self.email_user(
+            subject='[SIGPAE] Credenciais de Acesso ao SIGPAE',
+            message='',
+            template=template,
+            dados_template=dados_template,
+            html=html
+        )
+
+    def envia_email_primeiro_acesso_usuario_servidor(self):
+        titulo = 'Credenciais de Primeiro Acesso'
+        template = 'email_primeiro_acesso_usuario_servidor.html'
+        dados_template = {
+            'titulo': titulo, 'url': f'{base_url}/login', 'nome': self.nome,
+            'senha': f'{senha_provisoria}{self.registro_funcional[-4:]}'
         }
         html = render_to_string(template, dados_template)
         self.email_user(

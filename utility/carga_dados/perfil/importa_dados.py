@@ -1,5 +1,5 @@
 import logging
-from datetime import date
+from datetime import date, datetime
 from tempfile import NamedTemporaryFile
 
 from django.core.files import File
@@ -13,6 +13,8 @@ from sme_terceirizadas.perfil.services.usuario_coresso_service import EOLUsuario
 from sme_terceirizadas.terceirizada.models import Terceirizada
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import ja_existe, progressbar
+
+from sme_terceirizadas.eol_servico.utils import  EOLServicoSGP
 
 from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_TREINAMENTO_PASSWORD
@@ -52,7 +54,7 @@ def cria_vinculos():
     perfil = {
         'perfil_diretor_escola': Perfil.objects.get(nome='DIRETOR_UE'),
         'perfil_administrador_ue': Perfil.objects.get(nome='ADMINISTRADOR_UE'),
-        'perfil_cogestor_dre': Perfil.objects.get(nome='COGESTOR'),
+        'perfil_cogestor_dre': Perfil.objects.get(nome='COGESTOR_DRE'),
         'perfil_usuario_codae': Perfil.objects.get(nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA'),  # noqa
         'perfil_usuario_dilog': Perfil.objects.get(nome='COORDENADOR_LOGISTICA'),  # noqa
         'perfil_usuario_nutri_codae': Perfil.objects.get(nome='COORDENADOR_DIETA_ESPECIAL'),  # noqa
@@ -783,10 +785,11 @@ def importa_usuarios_perfil_dre(usuario: Usuario, arquivo: ImportacaoPlanilhaUsu
 class ProcessaPlanilhaUsuarioServidorCoreSSO:
     def __init__(self, usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioServidorCoreSSO) -> None:
         """Prepara atributos importantes para o processamento da planilha."""
-        self.usuario = usuario
-        self.arquivo = arquivo
-        self.erros = []
-        self.worksheet = self.abre_worksheet()
+        if isinstance(usuario, Usuario) and isinstance(arquivo, ImportacaoPlanilhaUsuarioServidorCoreSSO):
+            self.usuario = usuario
+            self.arquivo = arquivo
+            self.erros = []
+            self.worksheet = self.abre_worksheet()
 
     @property
     def path(self):
@@ -830,15 +833,16 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
         mensagem = f'Usuário {dados_usuario.rf} criado/atualizado com sucesso.'
         logger.info(mensagem)
 
-    def cria_ou_atualiza_usuario_admin(self, dados_usuario):
+    def cria_ou_atualiza_usuario_admin(self, dados_usuario, existe_core_sso=False):
         usuario, criado = Usuario.objects.update_or_create(
+            email=dados_usuario.email,
             username=dados_usuario.rf,
-            registro_funcional=dados_usuario.rf,
+            cpf=dados_usuario.cpf,
             defaults={
-                'email': dados_usuario.email if dados_usuario.email else "",
-                'nome': dados_usuario.nome,
+                'registro_funcional': dados_usuario.rf,
                 'cargo': dados_usuario.cargo or "",
-                'cpf': dados_usuario.cpf or "",
+                'nome': dados_usuario.nome,
+                'last_login': datetime.now() if existe_core_sso else None
             }
         )
         return usuario
@@ -868,8 +872,12 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
         return True
 
     def monta_dicionario_de_dados(self, linha: tuple) -> dict:
-        return {key: linha[index].value
-                for index, key in enumerate(ImportacaoPlanilhaUsuarioServidorCoreSSOSchema.schema()['properties'].keys())}
+        try:
+            return {key: linha[index].value for index, key in
+                    enumerate(ImportacaoPlanilhaUsuarioServidorCoreSSOSchema.schema()['properties'].keys())}
+        except AttributeError:
+            return {key: linha[index] for index, key in
+                    enumerate(ImportacaoPlanilhaUsuarioServidorCoreSSOSchema.schema()['properties'].keys())}
 
     def cria_usuario_servidor(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):  # noqa C901
         try:
@@ -879,10 +887,12 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
 
     @transaction.atomic
     def __criar_usuario_servidor(self, usuario_schema: ImportacaoPlanilhaUsuarioServidorCoreSSOSchema):
-        usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
+        existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=usuario_schema.rf)
+        usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema, existe_core_sso=existe_core_sso)
         self.cria_vinculo(usuario, usuario_schema)
         eolusuariocoresso = EOLUsuarioCoreSSO()
-        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.rf, eh_servidor='S')
+        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.rf, eh_servidor='S',
+                                                            existe_core_sso=existe_core_sso)
 
     def finaliza_processamento(self) -> None:
         if self.erros:
@@ -1001,10 +1011,12 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
 
     @transaction.atomic
     def __criar_usuario_externo(self, usuario_schema: ImportacaoPlanilhaUsuarioExternoCoreSSOSchema):
+        existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=usuario_schema.cpf)
         usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
         self.cria_vinculo(usuario, usuario_schema)
         eolusuariocoresso = EOLUsuarioCoreSSO()
-        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.cpf, eh_servidor='N')
+        eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(usuario_schema, login=usuario_schema.cpf, eh_servidor='N',
+                                                            existe_core_sso=existe_core_sso)
 
     def finaliza_processamento(self) -> None:
         if self.erros:

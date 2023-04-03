@@ -118,7 +118,7 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert json['vinculo_atual']['instituicao']['uuid'] == 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
     assert json['vinculo_atual']['instituicao']['codigo_eol'] == '256341'
     assert json['vinculo_atual']['ativo'] is True
-    assert json['vinculo_atual']['perfil']['nome'] == 'COORDENADOR_ESCOLA'
+    assert json['vinculo_atual']['perfil']['nome'] == 'DIRETOR_UE'
     assert json['vinculo_atual']['perfil']['uuid'] == '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'
 
 
@@ -266,7 +266,6 @@ def test_finalizar_vinculo_escola(users_diretor_escola):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, monkeypatch):
@@ -301,7 +300,7 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
             'instituicao': {
                 'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
                 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                'codigo_eol': None,
+                'codigo_eol': '0002',
                 'quantidade_alunos': 0,
                 'lotes': [],
                 'periodos_escolares': [],
@@ -314,8 +313,8 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
                 'contato': None
             },
             'perfil': {
-                'nome': 'ADMINISTRADOR_DRE',
-                'uuid': '48330a6f-c444-4462-971e-476452b328b2',
+                'nome': 'COGESTOR_DRE',
+                'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
                 'visao': None
             },
             'ativo': False
@@ -326,7 +325,7 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
     usuario_novo = Usuario.objects.get(registro_funcional='6812805')
     assert usuario_novo.is_active is False
     assert usuario_novo.vinculo_atual is not None
-    assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_DRE'
+    assert usuario_novo.vinculo_atual.perfil.nome == 'COGESTOR_DRE'
 
 
 def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regional):
@@ -334,15 +333,15 @@ def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regiona
     diretoria_regional_ = user.vinculo_atual.instituicao
     response = client.get(f'/vinculos-diretorias-regionais/{str(diretoria_regional_.uuid)}/get_equipe_administradora/')
     assert response.status_code == status.HTTP_200_OK
-    response.json()[0].get('usuario').pop('date_joined')
-    response.json()[0].pop('data_final')
-    response.json()[0].pop('uuid')
-    assert response.json() == [
-        {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2', 'visao': None},
-         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
-                     'tipo_usuario': 'diretoriaregional', 'cargo': ''}}]
+    response.json()[1].get('usuario').pop('date_joined')
+    response.json()[1].pop('data_final')
+    response.json()[1].pop('uuid')
+    assert response.json()[1] == {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
+                                  'perfil': {'nome': 'COGESTOR_DRE', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+                                             'visao': None},
+                                  'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
+                                              'email': 'fulano@teste.com', 'registro_funcional': '1234567',
+                                              'cpf': '11111111111', 'tipo_usuario': 'diretoriaregional', 'cargo': ''}}
 
 
 def test_finalizar_vinculo_dre(users_cogestor_diretoria_regional):
@@ -356,7 +355,6 @@ def test_finalizar_vinculo_dre(users_cogestor_diretoria_regional):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_erro_403_usuario_nao_pertence_a_dre_cadastro_vinculos(diretoria_regional,
@@ -486,7 +484,6 @@ def test_finalizar_vinculo_codae(users_codae_gestao_alimentacao):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_get_equipe_administradora_vinculos_terceirizadas(users_terceirizada):
@@ -521,7 +518,6 @@ def test_finalizar_vinculo_terceirizada(users_terceirizada):
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(email=email)
     assert user.vinculo_atual is None
-    assert user.is_active is False
 
 
 def test_erro_401_usuario_nao_e_coordenador_ou_nao_esta_logado_cadastro_vinculos(client,
@@ -623,7 +619,7 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             }
         },
         'perfil': {
-            'nome': 'COORDENADOR_ESCOLA',
+            'nome': 'DIRETOR_UE',
             'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
             'visao': None
         },

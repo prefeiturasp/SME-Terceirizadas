@@ -5,17 +5,7 @@ data_perfis = [
         'super_usuario': True,
     },
     {
-        'nome': 'COORDENADOR_ESCOLA',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'COGESTOR',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_DRE',
+        'nome': 'COGESTOR_DRE',
         'ativo': True,
         'super_usuario': True,
     },

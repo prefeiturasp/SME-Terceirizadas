@@ -1,6 +1,8 @@
+
 import logging
 import re
 
+import environ
 from django.db import transaction
 from django.db.utils import IntegrityError
 from munch import Munch
@@ -16,14 +18,14 @@ from sme_terceirizadas.perfil.models.usuario import (
 
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
-    ADMINISTRADOR_DRE,
     ADMINISTRADOR_EMPRESA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
-    ADMINISTRADOR_SUPERVISAO_NUTRICAO
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+    COGESTOR_DRE
 )
 from ...dados_comuns.models import Contato
-from ...eol_servico.utils import EOLException, EOLService
+from ...eol_servico.utils import EOLException, EOLService, EOLServicoSGP
 from ...perfil.api.validators import checa_senha, usuario_com_coresso_validation, usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
 from ..models import Perfil, PerfisVinculados, Usuario, Vinculo
@@ -38,6 +40,8 @@ from .validators import (
     usuario_nao_possui_vinculo_valido,
     usuario_pode_efetuar_cadastro
 )
+
+env = environ.Env()
 
 logger = logging.getLogger(__name__)
 
@@ -319,7 +323,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])  # noqa
             usuario_pode_efetuar_cadastro(instance)
         if instance.vinculo_atual.perfil.nome in [
-            ADMINISTRADOR_DRE,
+            COGESTOR_DRE,
             ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
             ADMINISTRADOR_DIETA_ESPECIAL,
             ADMINISTRADOR_GESTAO_PRODUTO,
@@ -418,6 +422,12 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
         fields = ['uuid', 'username', 'email', 'nome', 'visao', 'subdivisao', 'perfil', 'instituicao', 'cpf', 'cargo',
                   'eh_servidor']
 
+    def enviar_email(self, usuario, eh_servidor):
+        if not eh_servidor:
+            usuario.envia_email_primeiro_acesso_usuario_empresa()
+        elif env('DJANGO_ENV') == 'production':
+            usuario.envia_email_primeiro_acesso_usuario_servidor()
+
     @transaction.atomic # noqa
     def create(self, validated_data):
         dados_usuario_dict = {
@@ -437,19 +447,20 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
         eh_servidor = validated_data['eh_servidor'] == 'S'
 
         try:
-            usuario = Usuario.cria_ou_atualiza_usuario_sigpae(dados_usuario=dados_usuario_dict, eh_servidor=eh_servidor)
+            existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=dados_usuario.login)
+            usuario = Usuario.cria_ou_atualiza_usuario_sigpae(dados_usuario=dados_usuario_dict,
+                                                              eh_servidor=eh_servidor,
+                                                              existe_core_sso=existe_core_sso)
             Vinculo.cria_vinculo(usuario=usuario, dados_usuario=dados_usuario_dict)
             eolusuariocoresso = EOLUsuarioCoreSSO()
             eolusuariocoresso.cria_ou_atualiza_usuario_core_sso(
                 dados_usuario=dados_usuario,
                 login=dados_usuario.login,
-                eh_servidor=dados_usuario.eh_servidor
+                eh_servidor=dados_usuario.eh_servidor,
+                existe_core_sso=existe_core_sso
             )
             logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
-
-            if not eh_servidor:
-                usuario.envia_email_primeiro_acesso_usuario_empresa()
-
+            self.enviar_email(usuario, eh_servidor)
             return usuario
 
         except IntegrityError as e:

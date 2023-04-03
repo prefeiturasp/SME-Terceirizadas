@@ -70,7 +70,7 @@ from sme_terceirizadas.logistica.services import (
     envia_email_e_notificacao_confirmacao_guias
 )
 
-from ...dados_comuns.constants import COGESTOR
+from ...dados_comuns.constants import COGESTOR_DRE
 from ...escola.models import DiretoriaRegional, Escola
 from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
@@ -546,7 +546,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         tem_insucesso = request.query_params.get('tem_insucesso', None)
         tem_conferencia = eh_true_ou_false(tem_conferencia, 'tem_conferencia')
         tem_insucesso = eh_true_ou_false(tem_insucesso, 'tem_insucesso')
-        eh_dre = True if user.vinculo_atual.perfil.nome == COGESTOR else False
+        eh_dre = True if user.vinculo_atual.perfil.nome == COGESTOR_DRE else False
 
         gera_xlsx_entregas_async.delay(
             uuid=uuid,

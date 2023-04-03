@@ -5,7 +5,7 @@ from sme_terceirizadas.eol_servico.utils import EOLException, EOLServicoSGP
 
 
 class EOLUsuarioCoreSSO:
-    def cria_ou_atualiza_usuario_core_sso(self, dados_usuario, login, eh_servidor):  # noqa C901
+    def cria_ou_atualiza_usuario_core_sso(self, dados_usuario, login, eh_servidor, existe_core_sso):  # noqa C901
         """Verifica se usuário já existe no CoreSSO e cria se não existir.
 
         :param dados_usuario: {
@@ -21,8 +21,7 @@ class EOLUsuarioCoreSSO:
         from utility.carga_dados.perfil.importa_dados import logger, ProcessaPlanilhaUsuarioServidorCoreSSOException
 
         try:
-            info_user_core = EOLServicoSGP.usuario_core_sso_or_none(login=login)
-            if not info_user_core:
+            if not existe_core_sso:
                 # Valida o nome
                 if not dados_usuario.nome:
                     raise ProcessaPlanilhaUsuarioServidorCoreSSOException(
@@ -40,6 +39,7 @@ class EOLUsuarioCoreSSO:
                 )
                 logger.info(f'Criado usuário no CoreSSO {login}.')
 
+            info_user_core = EOLServicoSGP.usuario_core_sso_or_none(login=login)
             if info_user_core and dados_usuario.email and info_user_core['email'] != dados_usuario.email:
                 EOLServicoSGP.redefine_email(login, dados_usuario.email)
                 logger.info(f'Atualizado e-mail do usuário no CoreSSO {login}, {dados_usuario.email}.')

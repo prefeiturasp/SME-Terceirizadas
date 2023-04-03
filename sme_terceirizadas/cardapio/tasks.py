@@ -5,7 +5,7 @@ from celery import shared_task
 from django.db.models import Q
 
 from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI, PERIODOS_ESPECIAIS_CEI_DIRET
-from ..escola.models import EscolaPeriodoEscolar, PeriodoEscolar, TipoUnidadeEscolar
+from ..escola.models import AlunosMatriculadosPeriodoEscola, EscolaPeriodoEscolar, PeriodoEscolar, TipoUnidadeEscolar
 from .models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 
 logger = logging.getLogger('sigpae.taskCardapio')
@@ -48,6 +48,14 @@ def ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escol
             ).exists()
             vinculo.ativo = tem_alunos_neste_periodo_e_tipo_ue
             vinculo.save()
+            if tipo_unidade.iniciais in ['EMEF P FOM', 'EMEI P FOM']:
+                tem_alunos_neste_periodo_e_eh_p_fom = AlunosMatriculadosPeriodoEscola.objects.filter(
+                    periodo_escolar=periodo_escolar,
+                    escola__tipo_unidade__iniciais=tipo_unidade,
+                    tipo_turma='REGULAR'
+                ).exists()
+                vinculo.ativo = tem_alunos_neste_periodo_e_eh_p_fom
+                vinculo.save()
 
         if tipo_unidade.tem_somente_integral_e_parcial:
             # deve ter periodo INTEGRAL E PARCIAL somente

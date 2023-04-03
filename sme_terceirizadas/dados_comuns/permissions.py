@@ -1,7 +1,7 @@
 from rest_framework.permissions import BasePermission
 
 from ..escola.models import Codae, DiretoriaRegional, Escola
-from ..medicao_inicial.models import SolicitacaoMedicaoInicial
+from ..medicao_inicial.models import Medicao, SolicitacaoMedicaoInicial
 from ..terceirizada.models import Terceirizada
 from .constants import (
     ADMINISTRADOR_CODAE_DILOG_CONTABIL,
@@ -15,6 +15,7 @@ from .constants import (
     ADMINISTRADOR_REPRESENTANTE_CODAE,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     ADMINISTRADOR_UE,
+    COGESTOR_DRE,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -83,6 +84,8 @@ class UsuarioDiretoriaRegional(BasePermission):
         try:  # solicitacoes normais
             if isinstance(obj, SolicitacaoMedicaoInicial):
                 retorno = usuario.vinculo_atual.instituicao == obj.escola.diretoria_regional
+            elif isinstance(obj, Medicao):
+                retorno = usuario.vinculo_atual.instituicao == obj.solicitacao_medicao_inicial.escola.diretoria_regional
             else:
                 retorno = usuario.vinculo_atual.instituicao in [obj.escola.diretoria_regional, obj.rastro_dre]
         except AttributeError:  # solicitacao unificada
@@ -335,7 +338,11 @@ class UsuarioPodeFinalizarVinculo(BasePermission):
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                   ADMINISTRADOR_REPRESENTANTE_CODAE, COORDENADOR_GESTAO_PRODUTO,
-                                                  COORDENADOR_DIETA_ESPECIAL]
+                                                  COORDENADOR_DIETA_ESPECIAL, COORDENADOR_GESTAO_PRODUTO,
+                                                  COORDENADOR_SUPERVISAO_NUTRICAO] or
+            isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional) and
+            usuario.vinculo_atual.perfil.nome in [COGESTOR_DRE]
+
         )
 
 
@@ -364,7 +371,7 @@ class PermissaoParaCriarUsuarioComCoresso(BasePermission):
             usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA, COORDENADOR_LOGISTICA,
                                                   COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DIRETOR_UE,
-                                                  ADMINISTRADOR_REPRESENTANTE_CODAE]
+                                                  ADMINISTRADOR_REPRESENTANTE_CODAE, COORDENADOR_SUPERVISAO_NUTRICAO]
         )
 
 
@@ -603,6 +610,21 @@ class PermissaoParaVisualizarSolicitacoesAlteracaoCronograma(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DINUTRE_DIRETORIA]
+                )
+            )
+        )
+
+
+class PermissaoParaDarCienciaAlteracaoCronograma(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
                     usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
                 )
             )
@@ -613,6 +635,16 @@ class PermissaoParaCriarSolicitacoesAlteracaoCronograma(BasePermission):
     def has_permission(self, request, view):
         usuario = request.user
         return usuario.eh_fornecedor
+
+
+class PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            usuario.vinculo_atual.perfil.nome in [DINUTRE_DIRETORIA]
+        )
 
 
 class ViewSetActionPermissionMixin:

@@ -5,7 +5,7 @@ from datetime import date, datetime
 
 import numpy as np
 from django.db import transaction
-from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
+from django.db.models import Case, CharField, Count, F, Q, Value, When
 from django.forms import ValidationError
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
@@ -33,7 +33,6 @@ from ...dieta_especial.tasks import gera_pdf_relatorio_dieta_especial_async
 from ...escola.models import Aluno, EscolaPeriodoEscolar, Lote
 from ...escola.services import NovoSGPServicoLogado
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
-from ...paineis_consolidados.models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
 from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
@@ -1012,8 +1011,8 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        total_ativas = queryset.aggregate(Sum('ativas'))
-        total_inativas = queryset.aggregate(Sum('inativas'))
+        total_ativas = SolicitacaoDietaEspecial.objects.filter(aluno__in=queryset, ativo=True).distinct().count()
+        total_inativas = SolicitacaoDietaEspecial.objects.filter(aluno__in=queryset, ativo=False).distinct().count()
 
         tem_parametro_page = request.GET.get('page', False)
 
@@ -1025,15 +1024,15 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
                 page, context={'novo_sgp_service': novo_sgp_service}, many=True)
 
             return self.get_paginated_response({
-                'total_ativas': total_ativas['ativas__sum'],
-                'total_inativas': total_inativas['inativas__sum'],
+                'total_ativas': total_ativas,
+                'total_inativas': total_inativas,
                 'solicitacoes': serializer.data
             })
 
         serializer = self.get_serializer(queryset, many=True)
         return Response({
-            'total_ativas': total_ativas['ativas__sum'],
-            'total_inativas': total_inativas['inativas__sum'],
+            'total_ativas': total_ativas,
+            'total_inativas': total_inativas,
             'solicitacoes': serializer.data
         })
 
@@ -1044,35 +1043,13 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
 
         user = self.request.user
 
-        instituicao = user.vinculo_atual.instituicao
-        if user.tipo_usuario == 'escola':
-            dietas_autorizadas = SolicitacoesEscola.get_autorizados_dieta_especial(escola_uuid=instituicao.uuid)
-            dietas_inativas = SolicitacoesEscola.get_inativas_dieta_especial(escola_uuid=instituicao.uuid)
-        elif user.tipo_usuario == 'diretoriaregional':
-            dietas_autorizadas = SolicitacoesDRE.get_autorizados_dieta_especial(dre_uuid=instituicao.uuid)
-            dietas_inativas = SolicitacoesDRE.get_inativas_dieta_especial(dre_uuid=instituicao.uuid)
-        else:
-            dietas_autorizadas = SolicitacoesCODAE.get_autorizados_dieta_especial()
-            dietas_inativas = SolicitacoesCODAE.get_inativas_dieta_especial()
-
-        # Retorna somente Dietas Autorizadas
-        ids_dietas_autorizadas = dietas_autorizadas.values_list('id', flat=True)
-
-        # Retorna somente Dietas Inativas.
-        ids_dietas_inativas = dietas_inativas.values_list('id', flat=True)
-
         INATIVOS_STATUS_DIETA_ESPECIAL = [
             'CODAE_AUTORIZADO',
             'CODAE_AUTORIZOU_INATIVACAO',
             'TERMINADA_AUTOMATICAMENTE_SISTEMA'
         ]
 
-        # Retorna somente Dietas Autorizadas e Inativas.
-        qs = Aluno.objects.filter(
-            dietas_especiais__status__in=INATIVOS_STATUS_DIETA_ESPECIAL).annotate(
-            ativas=Count('dietas_especiais', filter=Q(dietas_especiais__id__in=ids_dietas_autorizadas)),
-            inativas=Count('dietas_especiais', filter=Q(dietas_especiais__id__in=ids_dietas_inativas)),
-        ).filter(Q(ativas__gt=0) | Q(inativas__gt=0))
+        qs = Aluno.objects.filter(dietas_especiais__status__in=INATIVOS_STATUS_DIETA_ESPECIAL)
 
         if user.tipo_usuario == 'escola':
             qs = qs.filter(dietas_especiais__rastro_escola=user.vinculo_atual.instituicao)
@@ -1090,15 +1067,15 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
             qs = qs.filter(nome__icontains=form.cleaned_data['nome_aluno'])
 
         if self.request.user.tipo_usuario == 'dieta_especial':
-            return qs.order_by(
+            return qs.distinct().order_by(
                 'escola__diretoria_regional__nome',
                 'escola__nome',
                 'nome'
             )
         elif self.request.user.tipo_usuario == 'diretoriaregional':
-            return qs.order_by('escola__nome', 'nome')
+            return qs.distinct().order_by('escola__nome', 'nome')
 
-        return qs.order_by('nome')
+        return qs.distinct().order_by('nome')
 
 
 class AlergiaIntoleranciaViewSet(

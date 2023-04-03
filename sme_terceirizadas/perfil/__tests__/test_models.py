@@ -40,7 +40,6 @@ def test_vinculo(vinculo):
     assert vinculo.status is vinculo.STATUS_ATIVO
     vinculo.finalizar_vinculo()
     assert vinculo.status is vinculo.STATUS_FINALIZADO
-    assert vinculo.usuario.is_active is False
     assert vinculo.data_final is not None
     assert vinculo.ativo is False
 

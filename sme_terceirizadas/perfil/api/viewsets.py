@@ -20,7 +20,7 @@ from sme_terceirizadas.perfil.models.usuario import (
     ImportacaoPlanilhaUsuarioServidorCoreSSO
 )
 
-from ...dados_comuns.constants import ADMINISTRADOR_EMPRESA, DIRETOR_UE, USUARIO_EMPRESA
+from ...dados_comuns.constants import ADMINISTRADOR_EMPRESA, COGESTOR_DRE, DIRETOR_UE, USUARIO_EMPRESA
 from ...dados_comuns.permissions import (
     PermissaoParaCriarUsuarioComCoresso,
     UsuarioPodeFinalizarVinculo,
@@ -239,7 +239,7 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['GET'], url_path='vinculos-ativos', permission_classes=(IsAuthenticated,))
     def lista_vinculos_ativos(self, request):
         usuario = request.user
-        if usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_EMPRESA, USUARIO_EMPRESA]:
+        if usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_EMPRESA, USUARIO_EMPRESA, COGESTOR_DRE]:
             queryset = self.get_queryset().filter(
                 content_type=usuario.vinculo_atual.content_type,
                 object_id=usuario.vinculo_atual.object_id
@@ -388,7 +388,7 @@ def exportar_planilha_importacao_usuarios_perfil_dre(request, **kwargs):
         )
     dv = DataValidation(
         type='list',
-        formula1='"COGESTOR, ADMINISTRADOR_DRE"',
+        formula1='"COGESTOR_DRE"',
         allow_blank=True
     )
     dv.error = 'Perfil Inválido'

@@ -159,6 +159,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 )
         if key_com_ocorrencias is not None:
             instance.ue_envia(user=self.context['request'].user)
+            for medicao in instance.medicoes.all():
+                medicao.ue_envia(user=self.context['request'].user)
 
         return instance
 
@@ -204,7 +206,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
     )
     periodo_escolar = serializers.SlugRelatedField(
         slug_field='nome',
-        required=True,
+        required=False,
         queryset=PeriodoEscolar.objects.all(),
     )
     grupo = serializers.SlugRelatedField(

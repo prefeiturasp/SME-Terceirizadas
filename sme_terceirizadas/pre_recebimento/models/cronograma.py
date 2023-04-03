@@ -1,4 +1,7 @@
 from django.db import models
+from django.db.models import OuterRef
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from multiselectfield import MultiSelectField
 
 from ...dados_comuns.behaviors import Logs, ModeloBase, TemIdentificadorExternoAmigavel
@@ -124,6 +127,28 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
     def em_analise(self):
         return self.filter(status=CronogramaAlteracaoWorkflow.EM_ANALISE)
 
+    def get_dashboard(self, status, filtros=None, init=None, end=None):
+        log = LogSolicitacoesUsuario.objects.filter(uuid_original=OuterRef('uuid')).order_by(
+            '-criado_em').values('criado_em')[:1]
+        qs = self.filter(status__iexact=status).annotate(
+            log_criado_em=log).order_by('-log_criado_em')
+        if filtros:
+            qs = self._filtrar_dashboard(qs, filtros)
+
+        if init is not None and end is not None:
+            return qs[init:end]
+        return qs
+
+    def _filtrar_dashboard(self, qs, filtros):
+        if filtros:
+            if 'nome_fornecedor' in filtros:
+                qs = qs.filter(cronograma__empresa__nome_fantasia__icontains=filtros['nome_fornecedor'])
+            if 'numero_cronograma' in filtros:
+                qs = qs.filter(cronograma__numero__icontains=filtros['numero_cronograma'])
+            if 'nome_produto' in filtros:
+                qs = qs.filter(cronograma__produto__nome__icontains=filtros['nome_produto'])
+        return qs
+
 
 class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma):
     MOTIVO_ALTERAR_DATA_ENTREGA = 'ALTERAR_DATA_ENTREGA'
@@ -154,11 +179,7 @@ class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel
     objects = SolicitacaoAlteracaoCronogramaQuerySet.as_manager()
 
     def gerar_numero_solicitacao(self):
-        return f'{str(self.pk).zfill(8)}-ALT'
-
-    def save(self, *args, **kwargs):
-        self.numero_solicitacao = self.gerar_numero_solicitacao()
-        super(SolicitacaoAlteracaoCronograma, self).save(*args, **kwargs)
+        self.numero_solicitacao = f'{str(self.pk).zfill(8)}-ALT'
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
@@ -178,3 +199,10 @@ class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel
     class Meta:
         verbose_name = 'Solicitação de Alteração de Cronograma'
         verbose_name_plural = 'Solicitações de Alteração de Cronograma'
+
+
+@receiver(post_save, sender=SolicitacaoAlteracaoCronograma)
+def gerar_numero_solicitacao(sender, instance, created, **kwargs):
+    if created:
+        instance.gerar_numero_solicitacao()
+        instance.save()
