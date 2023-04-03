@@ -5,7 +5,30 @@ from rest_framework.viewsets import ViewSet
 
 from sme_terceirizadas.escola.models import Aluno
 
-from ..utils import EOLException, EOLService
+from ..utils import EOLException, EOLService, EOLServicoSGP
+
+
+class DadosUsuarioEOLCompletoViewSet(ViewSet):
+    lookup_field = 'registro_funcional'
+    permission_classes = (IsAuthenticated,)
+
+    def retrieve(self, request, registro_funcional=None):
+        try:
+            response_dados_usuario = EOLServicoSGP.get_dados_usuario(registro_funcional)
+            if response_dados_usuario.status_code != status.HTTP_200_OK:
+                raise EOLException('Usuário não encontrado')
+            dados_usuario = response_dados_usuario.json()
+            dados_usuario = {
+                'nome': dados_usuario['nome'],
+                'email': dados_usuario['email'],
+                'cpf': dados_usuario['cpf'],
+                'rf': dados_usuario['rf'],
+                'cargo': dados_usuario['cargos'][0]['descricaoCargo'].strip(),
+                'codigo_eol_unidade': dados_usuario['cargos'][0]['codigoUnidade']
+            }
+            return Response(dados_usuario)
+        except EOLException as e:
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DadosUsuarioEOLViewSet(ViewSet):

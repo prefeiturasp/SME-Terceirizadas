@@ -17,7 +17,7 @@ from ..dados_comuns.behaviors import (
     TemIdentificadorExternoAmigavel,
     TemVinculos
 )
-from ..dados_comuns.constants import NUTRI_ADMIN_RESPONSAVEL
+from ..dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from ..dados_comuns.utils import queryset_por_data
 from ..escola.models import DiretoriaRegional, Lote
 from ..inclusao_alimentacao.models import (
@@ -156,7 +156,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
-        ).exclude(perfil__nome=NUTRI_ADMIN_RESPONSAVEL)
+        ).exclude(perfil__nome=ADMINISTRADOR_EMPRESA)
 
     @property
     def quantidade_alunos(self):
@@ -179,6 +179,18 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
         if vinculo:
             return vinculo.usuario
         return None
+
+    @property
+    def eh_distribuidor(self):
+        return self.tipo_servico in [self.DISTRIBUIDOR_ARMAZEM, self.FORNECEDOR_E_DISTRIBUIDOR]
+
+    @property
+    def eh_fornecedor(self):
+        return self.tipo_servico in [self.FORNECEDOR, self.FORNECEDOR_E_DISTRIBUIDOR]
+
+    @property
+    def eh_terceirizada(self):
+        return self.tipo_servico == self.TERCEIRIZADA
 
     @property
     def inclusoes_continuas_autorizadas(self):

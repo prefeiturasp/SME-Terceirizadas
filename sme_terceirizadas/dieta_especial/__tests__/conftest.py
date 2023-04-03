@@ -39,7 +39,8 @@ def dre_guaianases():
 @pytest.fixture
 def escola_dre_guaianases(dre_guaianases):
     lote = mommy.make('Lote')
-    return mommy.make('Escola', lote=lote, diretoria_regional=dre_guaianases)
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    return mommy.make('Escola', lote=lote, diretoria_regional=dre_guaianases, tipo_gestao=tipo_gestao)
 
 
 @pytest.fixture
@@ -162,13 +163,12 @@ def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_die
     email = 'escola@admin.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     rf = '1545933'
-    user = Usuario.objects.create_user(
-        password=password, email=email, registro_funcional=rf)
-    client.login(email=email, password=password)
+    user = Usuario.objects.create_user(username=email, password=password, email=email, registro_funcional=rf)
+    client.login(username=email, password=password)
 
     mommy.make(AlergiaIntolerancia, id=1)
     perfil_professor = mommy.make(
-        'perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
+        'perfil.Perfil', nome='ADMINISTRADOR_UE', ativo=False)
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
                data_inicial=datetime.date.today(), ativo=True)  # ativo
 
@@ -189,9 +189,8 @@ def solicitacao_dieta_especial_autorizada(client, escola, solicitacao_dieta_espe
     email = 'terceirizada@admin.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     rf = '4545454'
-    user = Usuario.objects.create_user(
-        password=password, email=email, registro_funcional=rf)
-    client.login(email=email, password=password)
+    user = Usuario.objects.create_user(username=email, password=password, email=email, registro_funcional=rf)
+    client.login(username=email, password=password)
 
     perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,
@@ -207,9 +206,8 @@ def solicitacao_dieta_especial_escola_solicitou_inativacao(client, escola, solic
     email = 'terceirizada2@admin.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     rf = '4545455'
-    user = Usuario.objects.create_user(
-        password=password, email=email, registro_funcional=rf)
-    client.login(email=email, password=password)
+    user = Usuario.objects.create_user(username=email, password=password, email=email, registro_funcional=rf)
+    client.login(username=email, password=password)
 
     perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,
@@ -227,9 +225,8 @@ def solicitacao_dieta_especial_codae_autorizou_inativacao(client,
     email = 'terceirizada3@admin.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     rf = '4545456'
-    user = Usuario.objects.create_user(
-        password=password, email=email, registro_funcional=rf)
-    client.login(email=email, password=password)
+    user = Usuario.objects.create_user(username=email, password=password, email=email, registro_funcional=rf)
+    client.login(username=email, password=password)
 
     perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,
@@ -253,12 +250,14 @@ def escola():
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make(
         'DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
     escola = mommy.make(
         'Escola',
         lote=lote,
         nome='EMEF JOAO MENDES',
         codigo_eol='000546',
-        diretoria_regional=diretoria_regional
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao
     )
     return escola
 
@@ -279,13 +278,13 @@ def massa_dados_protocolo_padrao_test(solicitacao_dieta_especial):
 def client_autenticado_vinculo_escola_dieta(client, django_user_model, escola, template_mensagem_dieta_especial):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -293,14 +292,14 @@ def client_autenticado_vinculo_escola_dieta(client, django_user_model, escola, t
 def client_autenticado_vinculo_codae_dieta(client, django_user_model, escola, codae, template_mensagem_dieta_especial):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_dieta_especial = mommy.make('Perfil', nome=constants.ADMINISTRADOR_DIETA_ESPECIAL,
                                              ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_dieta_especial,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -309,14 +308,14 @@ def client_autenticado_vinculo_codae_gestao_alimentacao_dieta(client, django_use
                                                               template_mensagem_dieta_especial):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_alimentacao = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                  ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_gestao_alimentacao,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -325,14 +324,14 @@ def client_autenticado_vinculo_terceirizada_dieta(client, django_user_model, esc
                                                   template_mensagem_dieta_especial):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_nutri_admin = mommy.make('Perfil', nome=constants.NUTRI_ADMIN_RESPONSAVEL,
+    perfil_nutri_admin = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                     ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_nutri_admin,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -551,14 +550,14 @@ def substituicao_padrao_dieta_especial_2(alimentos, produtos, protocolo_padrao_d
 def client_autenticado_protocolo_dieta(client, django_user_model, escola, codae):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_dieta_especial = mommy.make('Perfil', nome=constants.ADMINISTRADOR_DIETA_ESPECIAL,
                                              ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_dieta_especial,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     mommy.make('Edital', uuid='b7b6a0a7-b230-4783-94b6-8d3d22041ab3')
     mommy.make('Edital', uuid='60f5a64e-8652-422d-a6e9-0a36717829c9')
     mommy.make('Edital', uuid='4f7287e5-da63-4b23-8bbc-48cc6722c91e')

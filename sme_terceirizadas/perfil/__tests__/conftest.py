@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 from model_mommy import mommy
 
@@ -17,14 +18,43 @@ def perfil():
 
 
 @pytest.fixture
-def escola():
-    return mommy.make('Escola', nome='EscolaTeste', uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
+def perfil_distribuidor():
+    return mommy.make(models.Perfil, nome='ADMINISTRADOR_EMPRESA', uuid='daf2c069-7cd9-4cd4-8fde-624c08f55ae7')
+
+
+@pytest.fixture
+def perfil_escola():
+    return mommy.make(models.Perfil, nome='ADMINISTRADOR_UE', uuid='F38e10da-c5e3-4dd5-9916-010fc250595a')
+
+
+@pytest.fixture
+def perfis_vinculados(perfil, perfil_distribuidor, perfil_escola):
+    return mommy.make(models.PerfisVinculados,
+                      perfil_master=perfil_distribuidor,
+                      perfis_subordinados=(perfil_distribuidor, perfil))
+
+
+@pytest.fixture
+def escola(tipo_gestao):
+    dre = mommy.make('DiretoriaRegional')
+    return mommy.make('Escola', diretoria_regional=dre, nome='EscolaTeste', codigo_eol='400221',
+                      uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6', tipo_gestao=tipo_gestao)
 
 
 @pytest.fixture
 def diretoria_regional():
     return mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL DE EDUCACAO ITAQUERA',
                       uuid='7bb20934-e740-4621-a906-bccb8ea98414')
+
+
+@pytest.fixture
+def terceirizada():
+    return mommy.make('Terceirizada',
+                      contatos=[mommy.make('dados_comuns.Contato')],
+                      make_m2m=True,
+                      nome_fantasia='Alimentos SA',
+                      cnpj='85786774000142'
+                      )
 
 
 @pytest.fixture
@@ -60,6 +90,7 @@ def usuario_2():
 def usuario_3():
     user = mommy.make(
         models.Usuario,
+        username='7654321',
         uuid='155743d3-b16d-4899-8224-efc694053055',
         nome='Siclano Souza',
         email='siclano@teste.com',
@@ -81,7 +112,7 @@ def usuario_3():
 def usuario_com_rf_de_diretor(escola):
     hoje = datetime.date.today()
     perfil_diretor = mommy.make(
-        'Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+        'Perfil', nome='DIRETOR_UE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
     user = mommy.make(
         models.Usuario,
         registro_funcional='6580157'
@@ -153,9 +184,9 @@ def tipo_gestao():
 ])
 def users_admin_escola(client, django_user_model, request, tipo_gestao):
     email, password, rf = request.param
-    user = django_user_model.objects.create_user(
-        password=password, email=email, registro_funcional=rf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password,
+                                                 email=email, registro_funcional=rf)
+    client.login(username=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
@@ -179,7 +210,7 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
     mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
     perfil_professor = mommy.make(
-        'Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
+        'Perfil', nome='ADMINISTRADOR_UE', ativo=False)
     perfil_admin = mommy.make(
         'Perfil', nome='Admin', ativo=True, uuid='d6fd15cc-52c6-4db4-b604-018d22eeb3dd')
     hoje = datetime.date.today()
@@ -203,9 +234,9 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
 ])
 def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_gestao):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(
-        password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional=rf, cpf=cpf)
+    client.login(username=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA', iniciais='IP',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
@@ -228,10 +259,10 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
                quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
     mommy.make('AlunosMatriculadosPeriodoEscola', escola=escola,
                quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
-    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
+    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
     perfil_diretor = mommy.make(
-        'Perfil', nome='COORDENADOR_ESCOLA', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+        'Perfil', nome='DIRETOR_UE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
@@ -258,25 +289,20 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
 ])
 def users_cogestor_diretoria_regional(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(
-        password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password,
+                                                 email=email, registro_funcional=rf, cpf=cpf)
+    client.login(username=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
-                                    uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+                                    uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', codigo_eol='0002')
 
-    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_DRE', ativo=False,
-                                  uuid='48330a6f-c444-4462-971e-476452b328b2')
     perfil_cogestor = mommy.make(
-        'Perfil', nome='COGESTOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+        'Perfil', nome='COGESTOR_DRE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
-    mommy.make('Vinculo', usuario=user, instituicao=diretoria_regional, perfil=perfil_professor,
-               ativo=False, data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30)
-               )  # finalizado
     mommy.make('Vinculo', usuario=user, instituicao=diretoria_regional, perfil=perfil_cogestor,
                data_inicial=hoje, ativo=True)
-    mommy.make('Vinculo', usuario=usuario_2, instituicao=diretoria_regional, perfil=perfil_professor,
+    mommy.make('Vinculo', usuario=usuario_2, instituicao=diretoria_regional, perfil=perfil_cogestor,
                data_inicial=hoje, ativo=True)
 
     return client, email, password, rf, cpf, user
@@ -296,9 +322,9 @@ def users_cogestor_diretoria_regional(client, django_user_model, request, usuari
 ])
 def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(
-        password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password,
+                                                 email=email, registro_funcional=rf, cpf=cpf)
+    client.login(username=email, password=password)
 
     codae = mommy.make('Codae', nome='CODAE',
                        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
@@ -333,16 +359,16 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
 ])
 def users_terceirizada(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(
-        password=password, email=email, registro_funcional=rf, cpf=cpf)
-    client.login(email=email, password=password)
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional=rf, cpf=cpf)
+    client.login(username=email, password=password)
     mommy.make('Codae')
     terceirizada = mommy.make('Terceirizada', nome_fantasia='Alimentos LTDA',
                               uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 
-    perfil_nutri_admin_responsavel = mommy.make('Perfil', nome='NUTRI_ADMIN_RESPONSAVEL', ativo=True,
+    perfil_nutri_admin_responsavel = mommy.make('Perfil', nome='ADMINISTRADOR_EMPRESA', ativo=True,
                                                 uuid='48330a6f-c444-4462-971e-476452b328b2')
-    perfil_administrador_terceirizada = mommy.make('Perfil', nome='ADMINISTRADOR_TERCEIRIZADA',
+    perfil_administrador_terceirizada = mommy.make('Perfil', nome='USUARIO_EMPRESA',
                                                    ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=terceirizada, perfil=perfil_administrador_terceirizada,
@@ -387,7 +413,7 @@ def mocked_request_api_eol_usuario_diretoria_regional():
 def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
     nome = 'Bruno da Conceição'
     uuid = 'd36fa08e-e91e-4acb-9d54-b88115147e8e'
-    usuario = mommy.make('Usuario', nome=nome, uuid=uuid,
+    usuario = mommy.make('Usuario', nome=nome, uuid=uuid, username='1234567',
                          is_active=False, registro_funcional='1234567', email='GrVdXIhxqb@example.com')
     hoje = datetime.date.today()
 
@@ -463,12 +489,237 @@ def fake_user(client):
 def usuario_autenticado(client):
     email = 'admin@admin.com'
     password = DJANGO_ADMIN_PASSWORD
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
 @pytest.fixture
 def authenticated_client(client, fake_user):
     user, password = fake_user
-    client.login(email=user.email, password=password)
+    client.login(username=user.email, password=password)
     return client
+
+
+@pytest.fixture
+def arquivo_pdf():
+    type_pdf = 'application/pdf'
+    return SimpleUploadedFile('arquivo-teste.pdf', str.encode('file_content'), content_type=type_pdf)
+
+
+@pytest.fixture
+def arquivo_xls():
+    return SimpleUploadedFile(
+        f'arquivo.xls',
+        bytes(f'Código eol,\n93238,', encoding='utf-8'))
+
+
+@pytest.fixture
+def planilha_usuario_externo(arquivo_xls):
+    return mommy.make('ImportacaoPlanilhaUsuarioExternoCoreSSO', conteudo=arquivo_xls)
+
+
+@pytest.fixture
+def planilha_usuario_servidor(arquivo_xls):
+    return mommy.make('ImportacaoPlanilhaUsuarioServidorCoreSSO', conteudo=arquivo_xls)
+
+
+@pytest.fixture
+def escola_cei():
+    return mommy.make('Escola', nome='CEI DIRET - JOSE DE MOURA, VER.', codigo_eol='400158')
+
+
+@pytest.fixture
+def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
+    email = 'user@escola.com'
+    rf = '1234567'
+    password = DJANGO_ADMIN_PASSWORD
+    mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
+                                                    email=email, registro_funcional=rf, cpf='93697506064')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(username=rf, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_escola_sem_vinculo(client, django_user_model, escola, escola_cei):
+    email = 'user@escola.com'
+    rf = '1234567'
+    password = DJANGO_ADMIN_PASSWORD
+    mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
+    django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
+                                          email=email, registro_funcional=rf, cpf='93697506064')
+    client.login(username=rf, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_escola_adm(client, django_user_model, escola, escola_cei):
+    email = 'user@escola.com'
+    rf = '1234567'
+    password = DJANGO_ADMIN_PASSWORD
+    mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    perfil_adm = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
+                                                    email=email, registro_funcional=rf, cpf='93697506064')
+    ontem = datetime.date.today() - datetime.timedelta(days=1)
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_adm,
+               data_inicial=ontem, ativo=True)
+    client.login(username=rf, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_dre(client, django_user_model, escola, escola_cei):
+    email = 'user@escola.com'
+    rf = '1234567'
+    password = DJANGO_ADMIN_PASSWORD
+    perfil_dre = mommy.make('Perfil', nome='COGESTOR_DRE', ativo=True)
+    usuario = django_user_model.objects.create_user(nome='RONALDO COGESTOR', username=rf, password=password,
+                                                    email=email, registro_funcional=rf, cpf='93697506064')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola.diretoria_regional, perfil=perfil_dre,
+               data_inicial=hoje, ativo=True)
+    client.login(username=rf, password=password)
+    return client
+
+
+def mocked_response_autentica_coresso_adm_ue():
+    return {
+        'nome': 'RONALDO DIRETOR',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'login': '1234567',
+        'visoes': ['ADMINISTRADOR_UE'],
+        'perfis_por_sistema': [
+            {'sistema': 1004, 'perfis': ['ADMINISTRADOR_UE']}
+        ]
+    }
+
+
+def mocked_response_autentica_coresso_diretor():
+    return {
+        'nome': 'RONALDO DIRETOR',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'login': '1234567',
+        'visoes': ['DIRETOR_UE'],
+        'perfis_por_sistema': [
+            {'sistema': 1004, 'perfis': ['DIRETOR_UE']}
+        ]
+    }
+
+
+def mocked_response_autentica_coresso_cogestor():
+    return {
+        'nome': 'RONALDO COGESTOR',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'login': '1234567',
+        'visoes': ['COGESTOR_DRE'],
+        'perfis_por_sistema': [
+            {'sistema': 1004, 'perfis': ['COGESTOR_DRE']}
+        ]
+    }
+
+
+def mocked_response_autentica_coresso_diretor_login_errado():
+    return {
+        'nome': 'RONALDO DIRETOR',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'login': '1234568',
+        'visoes': ['DIRETOR_UE'],
+        'perfis_por_sistema': [
+            {'sistema': 1004, 'perfis': ['DIRETOR_UE']}
+        ]
+    }
+
+
+def mocked_response_get_dados_usuario_coresso():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'cargos': [
+            {'codigoCargo': 3360,
+             'descricaoCargo': 'DIRETOR DE ESCOLA                       ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO DIRETOR'
+    }
+
+
+def mocked_response_get_dados_usuario_coresso_sem_email():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': None,
+        'cargos': [
+            {'codigoCargo': 3360,
+             'descricaoCargo': 'DIRETOR DE ESCOLA                       ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO DIRETOR'
+    }
+
+
+def mocked_response_get_dados_usuario_coresso_cogestor():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'cargos': [
+            {'codigoCargo': 2,
+             'descricaoCargo': 'COGESTOR                       ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO COGESTOR'
+    }
+
+
+def mocked_response_get_dados_usuario_coresso_adm_escola():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'cargos': [
+            {'codigoCargo': 3379,
+             'descricaoCargo': 'COORDENADOR PEDAGÓGICO                       ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO DIRETOR'
+    }
+
+
+def mocked_response_get_dados_usuario_coresso_sem_acesso_automatico():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'cargos': [
+            {'codigoCargo': 1,
+             'descricaoCargo': 'ATE                      ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO DIRETOR'
+    }
