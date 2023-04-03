@@ -1,3 +1,4 @@
+import datetime
 import logging
 import time
 
@@ -21,13 +22,7 @@ class Command(BaseCommand):
             return
         self.cria_usuarios_servidores_no_coresso()
 
-    def checa_se_atribui_perfil(self, usuario, atribuidos_qtd):
-        if usuario.vinculo_atual.perfil:
-            perfil = usuario.vinculo_atual.perfil.nome
-            EOLServicoSGP.atribuir_perfil_coresso(login=usuario.username, perfil=perfil)
-            atribuidos_qtd += 1
-
-    def cria_usuarios_servidores_no_coresso(self):
+    def cria_usuarios_servidores_no_coresso(self):   # noqa
         logger.info(f'Inicia criação/atribuição de usuários servidores no CoreSSO.')
 
         usuarios = Usuario.objects.exclude(
@@ -40,12 +35,15 @@ class Command(BaseCommand):
             registro_funcional=None
         ).exclude(
             registro_funcional=''
+        ).exclude(
+            vinculos__isnull=True
         )
 
         logger.info(f'Foram encontrados {usuarios.count()} usuários para serem criados/atribuidos no CoreSSO.')
 
         usuarios_qtd = 0
         atribuidos_qtd = 0
+        usuarios_sem_coresso = []
         for usuario in usuarios:
             try:
                 if len(usuario.registro_funcional) == 7:
@@ -58,13 +56,24 @@ class Command(BaseCommand):
                             e_servidor=True
                         )
                         logger.info(f'Usuario {usuario.username} criado no CoreSSO.')
+                        usuarios_sem_coresso.append(usuario.registro_funcional)
                         usuarios_qtd += 1
-                    self.checa_se_atribui_perfil(usuario, atribuidos_qtd)
-                    time.sleep(1)
+                        usuario.last_login = None
+                        usuario.save()
+                    else:
+                        usuario.last_login = datetime.datetime.now()
+                        usuario.save()
+                    if usuario.vinculo_atual and usuario.vinculo_atual.perfil:
+                        perfil = usuario.vinculo_atual.perfil.nome
+                        EOLServicoSGP.atribuir_perfil_coresso(login=usuario.username, perfil=perfil)
+                        atribuidos_qtd += 1
+                    time.sleep(0.3)
 
             except Exception as e:
                 msg = f'Erro ao tentar criar/atribuir usuário {usuario.username} no CoreSSO/SIGPAE: {str(e)}'
                 logger.error(msg)
+                self.stdout.write(self.style.ERROR(msg))
 
             logger.info(
                 f'{usuarios_qtd} usuarios foram criados e {atribuidos_qtd} tiveram perfis atribuidos no CoreSSO.')
+        logger.info(usuarios_sem_coresso)
