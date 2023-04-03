@@ -57,7 +57,7 @@ class Command(BaseCommand):
                     perfil = usuario.vinculo_atual.perfil.nome
                     EOLServicoSGP.atribuir_perfil_coresso(login=usuario.username, perfil=perfil)
                     atribuidos_qtd += 1
-                time.sleep(3)
+                time.sleep(1)
 
             except Exception as e:
                 msg = f'Erro ao tentar criar/atribuir usuário {usuario.username} no CoreSSO/SIGPAE: {str(e)}'
