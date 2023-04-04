@@ -333,10 +333,11 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             self.request.user)
         dados_dashboard = [{'status': status, 'dados':
                             SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(status,
-                                                                                 filtros, offset, limit + offset)}
+                                                                                      filtros, offset, limit + offset)}
                            for status in lista_status]
         if status:
-            dados_dashboard[0]['total'] = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(status, filtros).count()
+            dados_dashboard[0]['total'] = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+                status, filtros).count()
         return dados_dashboard
 
     @action(detail=False, methods=['GET'],
