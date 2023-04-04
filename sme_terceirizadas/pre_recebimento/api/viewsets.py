@@ -302,12 +302,17 @@ class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
 
 class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = SolicitacaoAlteracaoCronograma.objects.all().order_by('-criado_em')
     filter_backends = (filters.DjangoFilterBackend, )
     pagination_class = CronogramaPagination
     permission_classes = (IsAuthenticated,)
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.eh_fornecedor:
+            return SolicitacaoAlteracaoCronograma.objects.filter(cronograma__empresa=user.vinculo_atual.instituicao).order_by('-criado_em')
+        return SolicitacaoAlteracaoCronograma.objects.all().order_by('-criado_em')
+    
     def get_serializer_class(self):
         if self.action in ['list']:
             return SolicitacaoAlteracaoCronogramaSerializer
