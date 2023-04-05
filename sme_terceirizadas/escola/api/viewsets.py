@@ -15,13 +15,11 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelV
 
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
-    ADMINISTRADOR_DRE,
-    ADMINISTRADOR_ESCOLA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO
 )
-from ...dados_comuns.permissions import UsuarioDiretoriaRegional, UsuarioEscola
+from ...dados_comuns.permissions import UsuarioDiretoriaRegional
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
@@ -135,13 +133,11 @@ class VinculoViewSet(ReadOnlyModelViewSet):
 class VinculoEscolaViewSet(VinculoViewSet):
     queryset = Escola.objects.all()
     permission_classes = [PodeCriarAdministradoresDaEscola]
-    nome_perfil = ADMINISTRADOR_ESCOLA
 
 
 class VinculoDiretoriaRegionalViewSet(VinculoViewSet):
     queryset = DiretoriaRegional.objects.all()
     permission_classes = [PodeCriarAdministradoresDaDiretoriaRegional]
-    nome_perfil = ADMINISTRADOR_DRE
 
 
 class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(VinculoViewSet):
@@ -221,6 +217,7 @@ class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
         lote = request.data.get('lote', None)
         if lote:
             escolas = escolas.filter(lote__uuid__in=lote)
+
         serializer = self.serializer_class(escolas, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -317,7 +314,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
         })
 
     @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes',
-            permission_classes=[UsuarioEscola | UsuarioDiretoriaRegional])
+            permission_classes=[UsuarioDiretoriaRegional])
     def inclusao_continua_por_mes(self, request):
         try:
             for param in ['mes', 'ano']:
