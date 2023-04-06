@@ -1309,6 +1309,26 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _envia_email_codae_questiona_produto(self, reclamacao, log_transicao, emails, link):
+        html = render_to_string(
+            template_name='codae_questiona_reclamacao.html',
+            context={
+                'produto': self.produto,
+                'reclamacao': reclamacao,
+                'marca': self.produto.marca,
+                'criado_em': log_transicao.criado_em.strftime('%d/%m/%Y - %I:%M'),
+                'log_transicao': log_transicao,
+                'link_questionamento': link
+            }
+        )
+
+        envia_email_em_massa_task.delay(
+            assunto='Questionamento da CODAE',
+            emails=emails,
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         self._salva_rastro_solicitacao()
@@ -1426,7 +1446,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('codae_pediu_analise_reclamacao')
     def _codae_pediu_analise_reclamacao_hook(self, *args, **kwargs):
         user = kwargs['user']
+        reclamacao = kwargs.get('reclamacao', None)
         justificativa = kwargs.get('justificativa', '')
+        link = f'{base_url}/gestao-produto/responder-reclamacao/consulta?uuid={self.uuid}'
         log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_RECLAMACAO,
             usuario=user,
@@ -1439,11 +1461,16 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 arquivo=arquivo,
                 nome=anexo['nome']
             )
+        if reclamacao:
+            emails = self.rastro_terceirizada.emails_por_modulo('Gestão de Produto')
+            self._envia_email_codae_questiona_produto(reclamacao, log_transicao, emails, link)
 
     @xworkflows.after_transition('codae_questiona_nutrisupervisor')
     def _codae_questiona_nutrisupervisor_hook(self, *args, **kwargs):
         user = kwargs['user']
+        reclamacao = kwargs.get('reclamacao', None)
         justificativa = kwargs.get('justificativa', '')
+        link = f'{base_url}/gestao-produto/responder-questionamento-nutrisupervisor/?nome_produto={self.produto.nome}'
         log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_NUTRISUPERVISOR,
             usuario=user,
@@ -1456,11 +1483,16 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 arquivo=arquivo,
                 nome=anexo['nome']
             )
+        if reclamacao:
+            emails = [reclamacao.criado_por.email]
+            self._envia_email_codae_questiona_produto(reclamacao, log_transicao, emails, link)
 
     @xworkflows.after_transition('codae_questiona_ue')
     def _codae_questiona_ue_hook(self, *args, **kwargs):
         user = kwargs['user']
+        reclamacao = kwargs.get('reclamacao', None)
         justificativa = kwargs.get('justificativa', '')
+        link = f'{base_url}/gestao-produto/responder-questionamento-ue/?nome_produto={self.produto.nome}'
         log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_UE,
             usuario=user,
@@ -1473,6 +1505,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 arquivo=arquivo,
                 nome=anexo['nome']
             )
+        if reclamacao:
+            emails = [reclamacao.criado_por.email, reclamacao.escola.contato.email]
+            self._envia_email_codae_questiona_produto(reclamacao, log_transicao, emails, link)
 
     @xworkflows.after_transition('codae_autorizou_reclamacao')
     def _codae_autorizou_reclamacao_hook(self, *args, **kwargs):
