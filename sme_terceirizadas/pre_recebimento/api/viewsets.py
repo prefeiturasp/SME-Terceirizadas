@@ -309,18 +309,20 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
 
     def get_serializer_class(self):
-        if self.action in ['list']:
-            return SolicitacaoAlteracaoCronogramaSerializer
-        if self.action in ['retrieve']:
-            return SolicitacaoAlteracaoCronogramaCompletoSerializer
-        return SolicitacaoDeAlteracaoCronogramaCreateSerializer
+        serializer_classes_map = {
+            'list': SolicitacaoAlteracaoCronogramaSerializer,
+            'retrieve': SolicitacaoAlteracaoCronogramaCompletoSerializer,
+        }
+        return serializer_classes_map.get(self.action, SolicitacaoDeAlteracaoCronogramaCreateSerializer)
 
     def get_permissions(self):
-        if self.action in ['list']:
-            self.permission_classes = (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,)
-        elif self.action in ['create']:
-            self.permission_classes = (PermissaoParaCriarSolicitacoesAlteracaoCronograma,)
-
+        permission_classes_map = {
+            'list': (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,),
+            'retrieve': (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,),
+            'create': (PermissaoParaCriarSolicitacoesAlteracaoCronograma,),
+        }
+        action_permissions = permission_classes_map.get(self.action, [])
+        self.permission_classes = (*self.permission_classes, *action_permissions)
         return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
 
     def _dados_dashboard(self, request, filtros=None):
@@ -332,11 +334,12 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             status] if status else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
             self.request.user)
         dados_dashboard = [{'status': status, 'dados':
-                            SolicitacaoAlteracaoCronograma.objects.get_dashboard(status,
-                                                                                 filtros, offset, limit + offset)}
+                            SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(status,
+                                                                                      filtros, offset, limit + offset)}
                            for status in lista_status]
         if status:
-            dados_dashboard[0]['total'] = SolicitacaoAlteracaoCronograma.objects.get_dashboard(status, filtros).count()
+            dados_dashboard[0]['total'] = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+                status, filtros).count()
         return dados_dashboard
 
     @action(detail=False, methods=['GET'],
