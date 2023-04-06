@@ -366,8 +366,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
             return usuario
 
     def verificar_autenticidade(self, password):
-        # TODO Após implantação do coresso substituir este método.
-        usuario = authenticate(username=self.email, password=password)
+        usuario = authenticate(username=self.username, password=password)
         return usuario is not None
 
     def envia_email_primeiro_acesso_usuario_empresa(self):
