@@ -37,6 +37,7 @@ from ..models import (
     SolicitacoesTerceirizada
 )
 from ..tasks import gera_pdf_relatorio_solicitacoes_alimentacao_async, gera_xls_relatorio_solicitacoes_alimentacao_async
+from ..utils import formata_resultado_inclusoes_etec_autorizadas, tratar_dias_duplicados
 from ..validators import FiltroValidator
 from .constants import (
     AGUARDANDO_CODAE,
@@ -53,6 +54,7 @@ from .constants import (
     INATIVAS_DIETA_ESPECIAL,
     INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
     INCLUSOES_AUTORIZADAS,
+    INCLUSOES_ETEC_AUTORIZADAS,
     KIT_LANCHES_AUTORIZADAS,
     NEGADOS,
     NEGADOS_DIETA_ESPECIAL,
@@ -873,6 +875,52 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         data = {
             'results': return_dict
+        }
+
+        return Response(data)
+
+    @action(detail=False, methods=['GET'], url_path=f'{INCLUSOES_ETEC_AUTORIZADAS}')
+    def inclusoes_etec_autorizadas(self, request):
+        escola_uuid = request.query_params.get('escola_uuid')
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+        date = datetime.date(int(ano), int(mes), 1)
+
+        query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
+        query_set = query_set.filter(
+            Q(data_evento__month=mes, data_evento__year=ano) |
+            Q(data_evento__lt=date, data_evento_2__gte=date)
+        )
+        query_set = query_set.filter(
+            data_evento__lt=datetime.date.today(),
+            motivo='ETEC'
+        )
+        query_set = self.remove_duplicados_do_query_set(query_set)
+
+        return_dict = []
+
+        def append(dia, inclusao):
+            return_dict.append(formata_resultado_inclusoes_etec_autorizadas(dia, mes, ano, inclusao))
+
+        for sol_escola in query_set:
+            inclusao = sol_escola.get_raw_model.objects.get(uuid=sol_escola.uuid)
+            dia = sol_escola.data_evento.day
+            big_range = False
+            if sol_escola.data_evento.month != int(mes) and sol_escola.data_evento_2.month != int(mes):
+                big_range = True
+                dia = datetime.date(int(ano), int(mes), 1)
+                data_evento_final_no_mes = (dia + relativedelta(day=31)).day
+                dia = datetime.date(int(ano), int(mes), 1).day
+            else:
+                data_evento_final_no_mes = sol_escola.data_evento_2.day
+            if sol_escola.data_evento_2.month != sol_escola.data_evento.month and not big_range:
+                data_evento_final_no_mes = (sol_escola.data_evento + relativedelta(day=31)).day
+            while dia <= data_evento_final_no_mes:
+                append(dia, inclusao)
+                dia += 1
+        data = {
+            'results': tratar_dias_duplicados(return_dict)
         }
 
         return Response(data)
