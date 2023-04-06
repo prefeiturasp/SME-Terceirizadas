@@ -1316,7 +1316,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 'produto': self.produto,
                 'reclamacao': reclamacao,
                 'marca': self.produto.marca,
-                'criado_em': log_transicao.criado_em.strftime('%d/%m/%Y - %I:%M'),
+                'criado_em': log_transicao.criado_em.strftime('%d/%m/%Y - %H:%M'),
                 'log_transicao': log_transicao,
                 'link_questionamento': link
             }
