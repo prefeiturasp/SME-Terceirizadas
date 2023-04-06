@@ -127,19 +127,19 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
     def em_analise(self):
         return self.filter(status=CronogramaAlteracaoWorkflow.EM_ANALISE)
 
-    def get_dashboard(self, status, filtros=None, init=None, end=None):
+    def filtrar_por_status(self, status, filtros=None, init=None, end=None):
         log = LogSolicitacoesUsuario.objects.filter(uuid_original=OuterRef('uuid')).order_by(
             '-criado_em').values('criado_em')[:1]
         qs = self.filter(status__iexact=status).annotate(
             log_criado_em=log).order_by('-log_criado_em')
         if filtros:
-            qs = self._filtrar_dashboard(qs, filtros)
+            qs = self._filtrar_por_atributos_adicionais(qs, filtros)
 
         if init is not None and end is not None:
             return qs[init:end]
         return qs
 
-    def _filtrar_dashboard(self, qs, filtros):
+    def _filtrar_por_atributos_adicionais(self, qs, filtros):
         if filtros:
             if 'nome_fornecedor' in filtros:
                 qs = qs.filter(cronograma__empresa__nome_fantasia__icontains=filtros['nome_fornecedor'])

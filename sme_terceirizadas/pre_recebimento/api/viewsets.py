@@ -332,11 +332,12 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             status] if status else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
             self.request.user)
         dados_dashboard = [{'status': status, 'dados':
-                            SolicitacaoAlteracaoCronograma.objects.get_dashboard(status,
-                                                                                 filtros, offset, limit + offset)}
+                            SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(status,
+                                                                                      filtros, offset, limit + offset)}
                            for status in lista_status]
         if status:
-            dados_dashboard[0]['total'] = SolicitacaoAlteracaoCronograma.objects.get_dashboard(status, filtros).count()
+            dados_dashboard[0]['total'] = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+                status, filtros).count()
         return dados_dashboard
 
     @action(detail=False, methods=['GET'],
