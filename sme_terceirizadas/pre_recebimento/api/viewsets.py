@@ -309,19 +309,20 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
 
     def get_serializer_class(self):
-        if self.action in ['list']:
-            return SolicitacaoAlteracaoCronogramaSerializer
-        if self.action in ['retrieve']:
-            return SolicitacaoAlteracaoCronogramaCompletoSerializer
-        return SolicitacaoDeAlteracaoCronogramaCreateSerializer
+        serializer_classes_map = {
+            'list': SolicitacaoAlteracaoCronogramaSerializer,
+            'retrieve': SolicitacaoAlteracaoCronogramaCompletoSerializer,
+        }
+        return serializer_classes_map.get(self.action, SolicitacaoDeAlteracaoCronogramaCreateSerializer)
 
     def get_permissions(self):
-        if self.action in ['list']:
-            self.permission_classes = (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,)
-        elif self.action in ['create']:
-            self.permission_classes = (PermissaoParaCriarSolicitacoesAlteracaoCronograma,)
-
-        return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
+        permission_classes_map = {
+            'list': (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,),
+            'retrieve': (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,),
+            'create': (PermissaoParaCriarSolicitacoesAlteracaoCronograma,),
+        }
+        self.permission_classes = permission_classes_map.get(self.action, [])
+        return super().get_permissions()
 
     def _dados_dashboard(self, request, filtros=None):
         limit = int(request.query_params.get('limit', 10)) if 'limit' in request.query_params else 6
