@@ -17,9 +17,11 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
-    ADMINISTRADOR_SUPERVISAO_NUTRICAO
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+    ADMINISTRADOR_UE,
+    COGESTOR_DRE
 )
-from ...dados_comuns.permissions import UsuarioDiretoriaRegional
+from ...dados_comuns.permissions import UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
@@ -133,11 +135,13 @@ class VinculoViewSet(ReadOnlyModelViewSet):
 class VinculoEscolaViewSet(VinculoViewSet):
     queryset = Escola.objects.all()
     permission_classes = [PodeCriarAdministradoresDaEscola]
+    nome_perfil = ADMINISTRADOR_UE
 
 
 class VinculoDiretoriaRegionalViewSet(VinculoViewSet):
     queryset = DiretoriaRegional.objects.all()
     permission_classes = [PodeCriarAdministradoresDaDiretoriaRegional]
+    nome_perfil = COGESTOR_DRE
 
 
 class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(VinculoViewSet):
@@ -200,12 +204,6 @@ class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSe
         return Response(self.get_serializer(escolas, many=True).data)
 
 
-class EscolaSimplissimaComDREViewSet(ReadOnlyModelViewSet):
-    lookup_field = 'uuid'
-    queryset = Escola.objects.all().prefetch_related('diretoria_regional')
-    serializer_class = EscolaListagemSimplissimaComDRESelializer
-
-
 class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
@@ -214,12 +212,17 @@ class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
     @action(detail=False, methods=['POST'], url_path='terc-total')
     def terc_total(self, request):
         escolas = self.get_queryset().filter(tipo_gestao__nome='TERC TOTAL')
-        lote = request.data.get('lote', None)
-        if lote:
-            escolas = escolas.filter(lote__uuid__in=lote)
-
+        lotes = request.data.get('lotes', None)
+        if lotes:
+            escolas = escolas.filter(lote__uuid__in=lotes)
         serializer = self.serializer_class(escolas, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class EscolaSimplissimaComDREViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Escola.objects.all().prefetch_related('diretoria_regional')
+    serializer_class = EscolaListagemSimplissimaComDRESelializer
 
 
 class EscolaSimplissimaComDREUnpaginatedViewSet(EscolaSimplissimaComDREViewSet):
@@ -314,7 +317,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
         })
 
     @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes',
-            permission_classes=[UsuarioDiretoriaRegional])
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional])
     def inclusao_continua_por_mes(self, request):
         try:
             for param in ['mes', 'ano']:
