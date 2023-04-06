@@ -321,7 +321,8 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             'retrieve': (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,),
             'create': (PermissaoParaCriarSolicitacoesAlteracaoCronograma,),
         }
-        self.permission_classes = permission_classes_map.get(self.action, [])
+        action_permissions = permission_classes_map.get(self.action, super().get_permissions())
+        self.permission_classes = [*self.permission_classes, *action_permissions]
         return super().get_permissions()
 
     def _dados_dashboard(self, request, filtros=None):
