@@ -325,7 +325,6 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
         self.permission_classes = (*self.permission_classes, *action_permissions)
         return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
 
-
     def _dados_dashboard(self, request, filtros=None):
         limit = int(request.query_params.get('limit', 10)) if 'limit' in request.query_params else 6
         offset = int(request.query_params.get('offset', 0)) if 'offset' in request.query_params else 0
