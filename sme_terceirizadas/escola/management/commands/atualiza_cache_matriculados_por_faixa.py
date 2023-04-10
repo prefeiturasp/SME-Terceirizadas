@@ -8,8 +8,11 @@ env = environ.Env()
 
 REDIS_HOST = env('REDIS_HOST')
 REDIS_PORT = env('REDIS_PORT')
+REDIS_DB = env('REDIS_DB')
+REDIS_PREFIX = env('REDIS_PREFIX')
 
-redis_connection = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=0, charset='utf-8', decode_responses=True)
+redis_connection = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB,
+                                     charset='utf-8', decode_responses=True)
 
 
 class Command(BaseCommand):
@@ -28,7 +31,7 @@ class Command(BaseCommand):
             periodos_faixas = escola.alunos_por_periodo_e_faixa_etaria()
             for periodo, qtdFaixas in periodos_faixas.items():
                 nome_periodo = self._formatar_periodo_eol(periodo)
-                redis_connection.hmset(f'{str(escola.uuid)}:{nome_periodo}', dict(qtdFaixas))
+                redis_connection.hmset(f'{REDIS_PREFIX}-{str(escola.uuid)}-{nome_periodo}', dict(qtdFaixas))
         except Exception as e:
             self.stdout.write(self.style.ERROR(str(e)))
 
