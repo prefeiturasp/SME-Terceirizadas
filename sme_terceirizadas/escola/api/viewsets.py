@@ -38,6 +38,7 @@ from ...escola.api.serializers import (
     AlunosMatriculadosPeriodoEscolaCompletoSerializer,
     CODAESerializer,
     DiretoriaRegionalParaFiltroSerializer,
+    EscolaEolSimplesSerializer,
     EscolaParaFiltroSerializer,
     EscolaPeriodoEscolarSerializer,
     LoteNomeSerializer,
@@ -201,6 +202,21 @@ class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSe
     def filtro_por_diretoria_regional(self, request, dre_uuid=None):
         escolas = Escola.objects.filter(diretoria_regional__uuid=dre_uuid)
         return Response(self.get_serializer(escolas, many=True).data)
+
+
+class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Escola.objects.all()
+    serializer_class = EscolaEolSimplesSerializer
+
+    @action(detail=False, methods=['POST'], url_path='terc-total')
+    def terc_total(self, request):
+        escolas = self.get_queryset().filter(tipo_gestao__nome='TERC TOTAL')
+        lotes = request.data.get('lotes', None)
+        if lotes:
+            escolas = escolas.filter(lote__uuid__in=lotes)
+        serializer = self.serializer_class(escolas, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class EscolaSimplissimaComDREViewSet(ReadOnlyModelViewSet):
