@@ -66,6 +66,7 @@ def test_url_list_solicitacoes_alteracao_cronograma(client_autenticado_dilog_cro
     assert 'previous' in json
 
 
+
 def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_dilog_cronograma,
                                                            solicitacao_cronograma_em_analise):
     data = json.dumps({
@@ -77,6 +78,35 @@ def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_di
     assert response.status_code == status.HTTP_200_OK
     obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_em_analise.uuid)
     assert obj.status == 'CRONOGRAMA_CIENTE'
+
+
+def test_url_perfil_dinutre_aprova_alteracao_cronograma(client_autenticado_dinutre_diretoria,
+                                                        solicitacao_cronograma_ciente):
+    data = json.dumps({
+        'justificativa_cronograma': 'teste justificativa',
+        'aprovado': 'true'
+    })
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dinutre/',
+        data, content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_ciente.uuid)
+    assert obj.status == 'APROVADO_DINUTRE'
+
+
+def test_url_perfil_dinutre_reprova_alteracao_cronograma(client_autenticado_dinutre_diretoria,
+                                                         solicitacao_cronograma_ciente):
+    data = json.dumps({
+        'justificativa_cronograma': 'teste justificativa',
+        'aprovado': 'true'
+    })
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dinutre/',
+        data, content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_ciente.uuid)
+    assert obj.status == 'APROVADO_DINUTRE'
 
 
 def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):

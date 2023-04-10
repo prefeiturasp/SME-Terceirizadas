@@ -13,6 +13,7 @@ from xworkflows.base import InvalidTransitionError
 from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,
     PermissaoParaAssinarCronogramaUsuarioDilog,
     PermissaoParaAssinarCronogramaUsuarioDinutre,
     PermissaoParaAssinarCronogramaUsuarioFornecedor,
@@ -27,6 +28,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     ViewSetActionPermissionMixin
 )
+from sme_terceirizadas.logistica.api.validators import eh_true_ou_false
 from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter, SolicitacaoAlteracaoCronogramaFilter
 from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPagination
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
@@ -366,6 +368,29 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
         try:
             solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
             solicitacao_cronograma.cronograma_ciente(user=usuario, justificativa=justificativa)
+            solicitacao_cronograma.save()
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            return Response(serializer.data)
+
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
+    @action(detail=True, permission_classes=(PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,),
+            methods=['patch'], url_path='analise-dinutre')
+    def analise_dinutre(self, request, uuid):
+        usuario = request.user
+        justificativa = request.data.get('justificativa_cronograma')
+        aprovado = eh_true_ou_false(request.data.get('aprovado'), 'aprovado')
+        try:
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            if aprovado is True:
+                solicitacao_cronograma.dinutre_aprova(user=usuario, justificativa=justificativa)
+            if aprovado is False:
+                solicitacao_cronograma.dinutre_reprova(user=usuario, justificativa=justificativa)
             solicitacao_cronograma.save()
             serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
             return Response(serializer.data)
