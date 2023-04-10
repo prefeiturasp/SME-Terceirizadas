@@ -336,6 +336,8 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
                 rastro_escola=instituicao).filter(
                     data_inicial__lte=ultimo_dia_mes,
                     data_final__gte=primeiro_dia_mes,
+            ).exclude(
+                motivo__nome='ETEC'
             ).values_list(
                 'quantidades_por_periodo__periodo_escolar__nome',
                 'quantidades_por_periodo__periodo_escolar__uuid'))
