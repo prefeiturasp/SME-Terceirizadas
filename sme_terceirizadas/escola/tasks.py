@@ -212,3 +212,13 @@ def calendario_escolas():  # noqa C901
     """
 
     calendario_sgp()
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=5,
+    retry_kwargs={'max_retries': 2},
+)
+def atualiza_cache_matriculados_por_faixa():
+    logger.debug(f'Iniciando task atualiza_cache_matriculados_por_faixa às {datetime.datetime.now()}')
+    management.call_command('atualiza_cache_matriculados_por_faixa', verbosity=0)
