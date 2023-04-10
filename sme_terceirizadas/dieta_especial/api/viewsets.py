@@ -834,7 +834,7 @@ class SolicitacaoDietaEspecialViewSet(
         if not unidades_educacionais:
             return Q()
         unidades_educacionais = unidades_educacionais.split(',')
-        return Q(rastro_escola__codigo_eol__in=unidades_educacionais)
+        return Q(escola_destino__codigo_eol__in=unidades_educacionais)
 
     def filter_by_alergias_intolerancias(self, alergias_intolerancias):
         if not alergias_intolerancias:

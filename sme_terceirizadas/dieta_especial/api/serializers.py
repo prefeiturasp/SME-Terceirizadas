@@ -647,10 +647,10 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
     alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
 
     def get_nome_escola(self, obj):
-        return obj.rastro_escola.nome if obj.rastro_escola else None
+        return obj.escola_destino.nome if obj.escola_destino else None
 
     def get_codigo_eol_escola(self, obj):
-        return obj.rastro_escola.codigo_eol if obj.rastro_escola else None
+        return obj.escola_destino.codigo_eol if obj.escola_destino else None
 
     def get_cod_eol_aluno(self, obj):
         return obj.aluno.codigo_eol if obj.aluno else None
