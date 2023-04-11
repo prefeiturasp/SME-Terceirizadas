@@ -37,7 +37,11 @@ from ..models import (
     SolicitacoesTerceirizada
 )
 from ..tasks import gera_pdf_relatorio_solicitacoes_alimentacao_async, gera_xls_relatorio_solicitacoes_alimentacao_async
-from ..utils import formata_resultado_inclusoes_etec_autorizadas, tratar_dias_duplicados
+from ..utils import (
+    formata_resultado_inclusoes_etec_autorizadas,
+    tratar_data_evento_final_no_mes,
+    tratar_dias_duplicados
+)
 from ..validators import FiltroValidator
 from .constants import (
     AGUARDANDO_CODAE,
@@ -907,15 +911,19 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             inclusao = sol_escola.get_raw_model.objects.get(uuid=sol_escola.uuid)
             dia = sol_escola.data_evento.day
             big_range = False
+            data_evento_final_no_mes = None
             if sol_escola.data_evento.month != int(mes) and sol_escola.data_evento_2.month != int(mes):
                 big_range = True
-                dia = datetime.date(int(ano), int(mes), 1)
-                data_evento_final_no_mes = (dia + relativedelta(day=31)).day
+                i = datetime.date(int(ano), int(mes), 1)
+                data_evento_final_no_mes = (i + relativedelta(day=31)).day
+                dia = datetime.date(int(ano), int(mes), 1).day
+            elif sol_escola.data_evento.month != int(mes):
+                big_range = True
+                data_evento_final_no_mes = sol_escola.data_evento_2.day
                 dia = datetime.date(int(ano), int(mes), 1).day
             else:
                 data_evento_final_no_mes = sol_escola.data_evento_2.day
-            if sol_escola.data_evento_2.month != sol_escola.data_evento.month and not big_range:
-                data_evento_final_no_mes = (sol_escola.data_evento + relativedelta(day=31)).day
+            data_evento_final_no_mes = tratar_data_evento_final_no_mes(data_evento_final_no_mes, sol_escola, big_range)
             while dia <= data_evento_final_no_mes:
                 append(dia, inclusao)
                 dia += 1

@@ -1,6 +1,8 @@
 import datetime
 import unicodedata
 
+from dateutil.relativedelta import relativedelta
+
 from ..dados_comuns.utils import get_ultimo_dia_mes
 
 
@@ -42,3 +44,11 @@ def tratar_dias_duplicados(return_dict):
                 dict_tratado.append(obj)
             dias_tratados.append(obj['dia'])
     return dict_tratado
+
+
+def tratar_data_evento_final_no_mes(data_evento_final_no_mes, sol_escola, big_range):
+    if sol_escola.data_evento_2.month != sol_escola.data_evento.month and not big_range:
+        retorno = (sol_escola.data_evento + relativedelta(day=31)).day
+    else:
+        retorno = data_evento_final_no_mes
+    return retorno
