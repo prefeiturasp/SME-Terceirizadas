@@ -58,12 +58,12 @@ def test_login_coresso_erro_usuario_nao_existe(client_autenticado_da_escola, mon
     assert response.json() == {'detail': 'Usuário não encontrado.'}
 
 
-def test_login_coresso_erro_usuario_sem_email(client_autenticado_da_escola, monkeypatch):
+def test_login_coresso_erro_usuario_sem_email(client_autenticado_da_escola_email_invalido, monkeypatch):
     headers = {
         'Content-Type': 'application/json'
     }
     data = {
-        'login': '1234568',
+        'login': '1234567',
         'senha': DJANGO_ADMIN_PASSWORD
     }
     monkeypatch.setattr(AutenticacaoService, 'autentica',
@@ -72,7 +72,7 @@ def test_login_coresso_erro_usuario_sem_email(client_autenticado_da_escola, monk
                         lambda p1, p2, p3: mocked_response({'token': '#ABC123'}, 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_sem_email(), 200))
-    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_email_invalido.post('/login/', headers=headers, data=data)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Usuário sem e-mail cadastrado. E-mail é obrigatório.'}
 

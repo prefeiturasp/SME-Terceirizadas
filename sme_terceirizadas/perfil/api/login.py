@@ -1,5 +1,6 @@
 import datetime
 import logging
+import re
 
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, status
@@ -167,6 +168,31 @@ class LoginView(ObtainJSONWebToken):
         self.se_diretor(vinculo_atual, dados_usuario, user, hoje)
         self.se_administrador(vinculo_atual, dados_usuario, user, hoje)
 
+    def validar_email(self, email):
+        if not email:
+            return False
+
+        padrao = r'[^\@]+@\S+\.[^\@]+'
+        return re.match(padrao, email) is not None
+
+    def buscar_email_usuario_sigpae(self, login):
+        email = None
+        usuario_sigpae = User.objects.get(username=login)
+        if usuario_sigpae:
+            if self.validar_email(usuario_sigpae.email):
+                email = usuario_sigpae.email
+
+        return email
+
+    def validar_email_usuario_coresso(self, email, login):
+        if not self.validar_email(email):
+            novo_email = self.buscar_email_usuario_sigpae(login)
+            if novo_email:
+                email = novo_email
+                EOLServicoSGP.redefine_email(login, email)
+
+        return email
+
     def post(self, request, *args, **kwargs):
         login = request.data.get('login', '')
         senha = request.data.get('password', '')
@@ -174,6 +200,7 @@ class LoginView(ObtainJSONWebToken):
             response = AutenticacaoService.autentica(login, senha)
             user_dict = response.json()
             if 'login' in user_dict.keys():
+                user_dict['email'] = self.validar_email_usuario_coresso(user_dict['email'], login)
                 self.checa_vinculo_se_servidor(login)
                 user, last_login = self.update_user(user_dict, senha)
                 data = self.build_response_data(request, user_dict, senha, last_login, args, kwargs)
@@ -181,6 +208,7 @@ class LoginView(ObtainJSONWebToken):
             else:
                 self.checa_login_senha_coresso(login, senha)
                 dados_usuario = self.get_dados_usuario_json(login)
+                dados_usuario['email'] = self.validar_email_usuario_coresso(dados_usuario['email'], login)
                 self.checa_se_cria_usuario(dados_usuario)
                 user_dict = {'login': login, **dados_usuario}
                 user, last_login = self.update_user(user_dict, senha)
