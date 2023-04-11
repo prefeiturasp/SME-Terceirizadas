@@ -66,6 +66,15 @@ def test_url_list_solicitacoes_alteracao_cronograma(client_autenticado_dilog_cro
     assert 'previous' in json
 
 
+def test_url_list_solicitacoes_alteracao_cronograma_fornecedor(client_autenticado_fornecedor):
+    response = client_autenticado_fornecedor.get('/solicitacao-de-alteracao-de-cronograma/')
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert 'count' in json
+    assert 'next' in json
+    assert 'previous' in json
+
+
 def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_dilog_cronograma,
                                                            solicitacao_cronograma_em_analise):
     data = json.dumps({
