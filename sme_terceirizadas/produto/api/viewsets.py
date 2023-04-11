@@ -2183,7 +2183,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_pediu_analise_reclamacao(
                 user=request.user,
                 anexos=anexos,
-                justificativa=justificativa
+                justificativa=justificativa,
+                reclamacao=reclamacao_produto
             )
             homologacao_produto.rastro_terceirizada = reclamacao_produto.escola.lote.terceirizada
             homologacao_produto.save()
@@ -2205,7 +2206,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_questiona_ue(
                 user=request.user,
                 anexos=anexos,
-                justificativa=justificativa
+                justificativa=justificativa,
+                reclamacao=reclamacao_produto
             )
             homologacao_produto.save()
 
@@ -2227,7 +2229,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_questiona_nutrisupervisor(
                 user=request.user,
                 anexos=anexos,
-                justificativa=justificativa
+                justificativa=justificativa,
+                reclamacao=reclamacao_produto
             )
             homologacao_produto.save()
 

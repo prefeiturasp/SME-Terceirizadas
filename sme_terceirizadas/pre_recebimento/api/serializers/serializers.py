@@ -20,6 +20,8 @@ from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     TerceirizadaSimplesSerializer
 )
 
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+
 
 class ProgramacaoDoRecebimentoDoCronogramaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -81,11 +83,12 @@ class SolicitacaoAlteracaoCronogramaCompletoSerializer(serializers.ModelSerializ
     cronograma = CronogramaSerializer()
     status = serializers.CharField(source='get_status_display')
     etapas = SolicitacaoAlteracaoCronogramaEtapaSerializer(many=True)
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
         fields = ('uuid', 'numero_solicitacao', 'fornecedor', 'status', 'criado_em', 'cronograma',
-                  'motivo', 'etapas', 'justificativa')
+                  'motivo', 'etapas', 'justificativa', 'logs')
 
 
 class CronogramaRascunhosSerializer(serializers.ModelSerializer):

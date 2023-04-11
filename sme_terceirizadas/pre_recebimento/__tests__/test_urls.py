@@ -86,6 +86,34 @@ def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_di
     assert obj.status == 'CRONOGRAMA_CIENTE'
 
 
+def test_url_perfil_dinutre_aprova_alteracao_cronograma(client_autenticado_dinutre_diretoria,
+                                                        solicitacao_cronograma_ciente):
+    data = json.dumps({
+        'aprovado': True
+    })
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dinutre/',
+        data, content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_ciente.uuid)
+    assert obj.status == 'APROVADO_DINUTRE'
+
+
+def test_url_perfil_dinutre_reprova_alteracao_cronograma(client_autenticado_dinutre_diretoria,
+                                                         solicitacao_cronograma_ciente):
+    data = json.dumps({
+        'justificativa_dinutre': 'teste justificativa',
+        'aprovado': False
+    })
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dinutre/',
+        data, content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_ciente.uuid)
+    assert obj.status == 'REPROVADO_DINUTRE'
+
+
 def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(

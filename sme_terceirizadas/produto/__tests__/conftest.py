@@ -24,9 +24,10 @@ def escola():
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
+    contato = mommy.make('Contato', email='test@test2.com')
 
     return mommy.make('Escola', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', lote=lote,
-                      diretoria_regional=diretoria_regional)
+                      diretoria_regional=diretoria_regional, contato=contato)
 
 
 @pytest.fixture
