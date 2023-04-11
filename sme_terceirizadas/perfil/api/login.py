@@ -169,7 +169,7 @@ class LoginView(ObtainJSONWebToken):
         self.se_administrador(vinculo_atual, dados_usuario, user, hoje)
 
     def validar_email(self, email):
-        if email is None:
+        if not email:
             return False
 
         padrao = r'[^\@]+@\S+\.[^\@]+'
