@@ -190,6 +190,7 @@ class ProcessadorPlanilha:
             # Troquei a senha pra reforçar que essa não funciona
             # já que o usuário não tem acesso ao sistema
             usuario_escola = Usuario.objects.create(
+                username=email_fake,
                 email=email_fake,
                 password=DJANGO_ADMIN_PASSWORD,
                 nome=escola.nome,
