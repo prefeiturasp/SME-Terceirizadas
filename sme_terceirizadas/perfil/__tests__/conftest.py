@@ -545,6 +545,22 @@ def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
 
 
 @pytest.fixture
+def client_autenticado_da_escola_email_invalido(client, django_user_model, escola, escola_cei):
+    email = 'invalido'
+    rf = '1234567'
+    password = DJANGO_ADMIN_PASSWORD
+    mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
+                                                    email=email, registro_funcional=rf, cpf='93697506064')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(username=rf, password=password)
+    return client
+
+
+@pytest.fixture
 def client_autenticado_da_escola_sem_vinculo(client, django_user_model, escola, escola_cei):
     email = 'user@escola.com'
     rf = '1234567'
