@@ -619,6 +619,8 @@ class PermissaoParaVisualizarSolicitacoesAlteracaoCronograma(BasePermission):
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
                     usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DINUTRE_DIRETORIA, DILOG_DIRETORIA]
                 )
+                or
+                usuario.eh_fornecedor
             )
         )
 
