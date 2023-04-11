@@ -5,6 +5,7 @@ from django.db.models import QuerySet
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_406_NOT_ACCEPTABLE
@@ -13,6 +14,7 @@ from xworkflows.base import InvalidTransitionError
 from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,
     PermissaoParaAssinarCronogramaUsuarioDilog,
     PermissaoParaAssinarCronogramaUsuarioDinutre,
     PermissaoParaAssinarCronogramaUsuarioFornecedor,
@@ -366,6 +368,31 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
         try:
             solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
             solicitacao_cronograma.cronograma_ciente(user=usuario, justificativa=justificativa)
+            solicitacao_cronograma.save()
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            return Response(serializer.data)
+
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
+    @action(detail=True, permission_classes=(PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,),
+            methods=['patch'], url_path='analise-dinutre')
+    def analise_dinutre(self, request, uuid):
+        usuario = request.user
+        aprovado = request.data.get(('aprovado'), 'aprovado')
+        try:
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            if aprovado is True:
+                solicitacao_cronograma.dinutre_aprova(user=usuario)
+            elif aprovado is False:
+                justificativa = request.data.get('justificativa_dinutre')
+                solicitacao_cronograma.dinutre_reprova(user=usuario, justificativa=justificativa)
+            else:
+                raise ValidationError(f'Parametro aprovado deve ser true ou false.')
             solicitacao_cronograma.save()
             serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
             return Response(serializer.data)

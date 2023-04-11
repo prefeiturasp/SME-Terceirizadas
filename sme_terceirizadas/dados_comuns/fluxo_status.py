@@ -3088,17 +3088,23 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     ACEITA = 'ACEITA'
     NEGADA = 'NEGADA'
     CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
+    APROVADO_DINUTRE = 'APROVADO_DINUTRE'
+    REPROVADO_DINUTRE = 'REPROVADO_DINUTRE'
 
     states = (
         (EM_ANALISE, 'Em análise'),
         (CRONOGRAMA_CIENTE, 'Cronograma ciente'),
+        (APROVADO_DINUTRE, 'Aprovado DINUTRE'),
+        (REPROVADO_DINUTRE, 'Reprovado DINUTRE'),
         (ACEITA, 'Aceita'),
         (NEGADA, 'Negada'),
     )
 
     transitions = (
         ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
-        ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE)
+        ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE),
+        ('dinutre_aprova', CRONOGRAMA_CIENTE, APROVADO_DINUTRE),
+        ('dinutre_reprova', CRONOGRAMA_CIENTE, REPROVADO_DINUTRE)
     )
 
     initial_state = EM_ANALISE
@@ -3121,6 +3127,22 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dinutre_aprova')
+    def _dinutre_aprova_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.APROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dinutre_reprova')
+    def _dinutre_reprova_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
 
