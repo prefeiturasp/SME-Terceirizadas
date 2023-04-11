@@ -312,9 +312,11 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.eh_fornecedor:
-            return SolicitacaoAlteracaoCronograma.objects.filter(cronograma__empresa=user.vinculo_atual.instituicao).order_by('-criado_em')
+            return SolicitacaoAlteracaoCronograma.objects.filter(
+                cronograma__empresa=user.vinculo_atual.instituicao
+            ).order_by('-criado_em')
         return SolicitacaoAlteracaoCronograma.objects.all().order_by('-criado_em')
-    
+
     def get_serializer_class(self):
         serializer_classes_map = {
             'list': SolicitacaoAlteracaoCronogramaSerializer,
