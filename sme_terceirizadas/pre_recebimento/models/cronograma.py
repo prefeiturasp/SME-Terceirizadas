@@ -150,7 +150,7 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
         return qs
 
 
-class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma):
+class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma, Logs):
     MOTIVO_ALTERAR_DATA_ENTREGA = 'ALTERAR_DATA_ENTREGA'
     MOTIVO_ALTERAR_QTD_ALIMENTO = 'ALTERAR_QTD_ALIMENTO'
     MOTIVO_OUTROS = 'OUTROS'

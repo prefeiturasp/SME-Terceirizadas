@@ -5,6 +5,7 @@ from django.db.models import QuerySet
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_406_NOT_ACCEPTABLE
@@ -28,7 +29,6 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     ViewSetActionPermissionMixin
 )
-from sme_terceirizadas.logistica.api.validators import eh_true_ou_false
 from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter, SolicitacaoAlteracaoCronogramaFilter
 from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPagination
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
@@ -383,14 +383,16 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path='analise-dinutre')
     def analise_dinutre(self, request, uuid):
         usuario = request.user
-        justificativa = request.data.get('justificativa_cronograma')
-        aprovado = eh_true_ou_false(request.data.get('aprovado'), 'aprovado')
+        aprovado = request.data.get(('aprovado'), 'aprovado')
         try:
             solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
             if aprovado is True:
-                solicitacao_cronograma.dinutre_aprova(user=usuario, justificativa=justificativa)
-            if aprovado is False:
+                solicitacao_cronograma.dinutre_aprova(user=usuario)
+            elif aprovado is False:
+                justificativa = request.data.get('justificativa_dinutre')
                 solicitacao_cronograma.dinutre_reprova(user=usuario, justificativa=justificativa)
+            else:
+                raise ValidationError(f'Parametro aprovado deve ser true ou false.')
             solicitacao_cronograma.save()
             serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
             return Response(serializer.data)
