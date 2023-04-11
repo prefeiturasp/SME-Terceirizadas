@@ -654,6 +654,16 @@ class PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma(BasePermission)
         )
 
 
+class PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            usuario.vinculo_atual.perfil.nome in [DINUTRE_DIRETORIA]
+        )
+
+
 class ViewSetActionPermissionMixin:
     def get_permissions(self):
         """Return the permission classes based on action.
