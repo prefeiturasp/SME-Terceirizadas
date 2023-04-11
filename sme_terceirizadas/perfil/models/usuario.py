@@ -344,10 +344,10 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         if eh_servidor:
             usuario, criado = Usuario.objects.update_or_create(
                 email=dados_usuario.get('email'),
-                username=dados_usuario.get('rf'),
+                username=dados_usuario.get('login'),
                 cpf=dados_usuario.get('cpf'),
                 defaults={
-                    'registro_funcional': dados_usuario.get('rf'),
+                    'registro_funcional': dados_usuario.get('login'),
                     'cargo': dados_usuario.get('cargo', ''),
                     'nome': dados_usuario.get('nome'),
                     'last_login': datetime.datetime.now() if existe_core_sso else None
@@ -361,7 +361,6 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                 cpf=dados_usuario.get('cpf'),
                 defaults={
                     'nome': dados_usuario['nome'],
-                    'cpf': dados_usuario['cpf']
                 }
             )
             return usuario
