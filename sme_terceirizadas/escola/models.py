@@ -4,6 +4,8 @@ from collections import Counter
 from datetime import date
 from enum import Enum
 
+import environ
+import redis
 import unidecode
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
@@ -61,7 +63,14 @@ from .constants import PERIODOS_ESPECIAIS_CEMEI
 from .services import NovoSGPServicoLogado
 from .utils import meses_para_mes_e_ano_string, remove_acentos
 
+env = environ.Env()
+REDIS_HOST = env('REDIS_HOST')
+REDIS_PORT = env('REDIS_PORT')
+REDIS_DB = env('REDIS_DB')
+REDIS_PREFIX = env('REDIS_PREFIX')
+
 logger = logging.getLogger('sigpae.EscolaModels')
+redis_conn = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, charset='utf-8', decode_responses=True)
 
 
 class DiretoriaRegional(
@@ -520,6 +529,16 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     def __str__(self):
         return f'{self.codigo_eol}: {self.nome}'
+
+    def matriculados_por_periodo_e_faixa_etaria(self):
+        periodos = self.periodos_escolares.values_list('nome', flat=True)
+        matriculados_por_faixa = {}
+        if self.eh_cei or self.eh_cemei:
+            for periodo in periodos:
+                faixas = redis_conn.hgetall(f'{REDIS_PREFIX}-{self.uuid}-{periodo}')
+                faixas = Counter({f'{key}': int(faixas[key]) for key in faixas})
+                matriculados_por_faixa[periodo] = faixas
+        return matriculados_por_faixa
 
     def alunos_por_periodo_e_faixa_etaria(self, data_referencia=None, faixas_etarias=None):  # noqa C901
         if data_referencia is None:
@@ -1184,6 +1203,20 @@ class AlunosMatriculadosPeriodoEscola(CriadoEm, TemAlteradoEm, TemChaveExterna):
 
         return f"""Escola {self.escola.nome} do tipo {self.tipo_turma} no periodo da {periodo_nome}
         tem {self.quantidade_alunos} alunos"""
+
+    def formata_para_relatorio(self):
+        return {
+            'dre': self.escola.diretoria_regional.nome,
+            'lote': self.escola.lote.nome if self.escola.lote else ' - ',
+            'tipo_unidade': self.escola.tipo_unidade.iniciais,
+            'escola': self.escola.nome,
+            'periodo_escolar': self.periodo_escolar.nome,
+            'tipo_turma': self.tipo_turma,
+            'eh_cei': self.escola.eh_cei,
+            'eh_cemei': self.escola.eh_cemei,
+            'matriculados': self.quantidade_alunos,
+            'alunos_por_faixa_etaria': self.escola.matriculados_por_periodo_e_faixa_etaria(),
+        }
 
     class Meta:
         verbose_name = 'Alunos Matriculados por Período e Escola'
