@@ -183,9 +183,13 @@ def gera_xlsx_async(username, nome_arquivo, ids_requisicoes, eh_distribuidor=Fal
     time_limet=600,
     soft_time_limit=300
 )
-def gera_xlsx_entregas_async(uuid, username, tem_conferencia, tem_insucesso, eh_distribuidor=False, eh_dre=False):
+def gera_xlsx_entregas_async(uuid, username, tem_conferencia, tem_insucesso, eh_distribuidor=False, eh_dre=False, status_guia=None):
 
     queryset = SolicitacaoRemessa.objects.filter(uuid=uuid)
+    
+    if status_guia:
+        queryset = queryset.filter(guias__status__in=status_guia)
+
     nome_arquivo = f'entregas_requisicao_{queryset.first().numero_solicitacao}.xlsx'
 
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
