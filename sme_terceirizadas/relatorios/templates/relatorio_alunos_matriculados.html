@@ -1,0 +1,98 @@
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/relatorio_solicitacoes_alimentacao.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
+  <style>
+    @page {
+      margin-bottom: 4em;
+      @bottom-left {
+        background: #EEEEEE;
+        color: #000000;
+        content: "Solcitado por {{usuario}}, impresso em {% now "d/m/Y" %}" ;
+        font-size: 11px;
+        width: 100%;
+        padding: 2em 2em 2em 2em;
+        margin-top: 2em;
+      }
+      @bottom-right {
+        color: #000000;
+        content: "Página " counter(page) " de " counter(pages);
+        font-size: 11px;
+        width: 50%;
+        padding: 2em 2em 2em 2em;
+        margin-top: 2em;
+      }
+    }
+  </style>
+
+</head>
+<header class="header">
+  <section class="titulo-e-logo">
+    <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1 class='custom-title'>Relatório SIGPAE - Alunos matriculados</h1>
+  </section>
+</header>
+<body>
+  <div class="tabela-filtro">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-3">DRE</th>
+          <th class="col-1">Lote</th>
+          <th class="col-1">Tipo de unid.</th>
+          <th class="col-3">Unid. educacional</th>
+          <th class="col-2 text-center">Tipo de turma</th>
+          <th class="col-1 text-center">Período</th>
+          <th class="col-1 text-center">Matriculados</th>
+        </tr>
+      </thead>
+      <tbody style="page-break-inside: avoid">
+        {% for alunos_matriculados in queryset %}
+          <tr>
+            <td>{{alunos_matriculados.dre}}</td>
+            <td>{{alunos_matriculados.lote}}</td>
+            <td>{{alunos_matriculados.tipo_unidade}}</td>
+            <td>{{alunos_matriculados.escola}}</td>
+            <td class="text-center">{{alunos_matriculados.tipo_turma}}</td>
+            <td class="text-center">{{alunos_matriculados.periodo_escolar}}</td>
+            <td class="text-center">{{alunos_matriculados.matriculados}}</td>
+          </tr>
+          {% if alunos_matriculados.eh_cei or alunos_matriculados.eh_cemei %}
+            <tr>
+              <td colspan="7">
+                <table>
+                  <thead>
+                    <tr>
+                      <th class="col-6">Faixa Etária</th>
+                      <th class="col-6 text-center">Alunos matriculados</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for faixa in faixas_etarias %}
+                      <tr>
+                        <td class="col-6">{{faixa.nome}}</td>
+                        <td class="col-6 text-center">
+                          {{ faixa.uuid|get_matriculados:alunos_matriculados}}
+                        </td>
+                      </tr>
+                    {% endfor%}
+                    <tr>
+                      <th class="col-6">Total</th>
+                      <th class="col-6 text-center">{{alunos_matriculados.matriculados}}</th>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
