@@ -427,6 +427,8 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             else:
                 raise ValidationError(f'Parametro aprovado deve ser true ou false.')
             solicitacao_cronograma.save()
+            solicitacao_cronograma.cronograma.status = CronogramaWorkflow.ASSINADO_CODAE
+            solicitacao_cronograma.cronograma.save()
             serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
             return Response(serializer.data)
 
