@@ -9,11 +9,12 @@
   <link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
   <style>
     @page {
+      size: A4;
       margin-bottom: 4em;
       @bottom-left {
         background: #EEEEEE;
         color: #000000;
-        content: "Solcitado por {{usuario}}, impresso em {% now "d/m/Y" %}" ;
+        content: "Solicitado por {{usuario}}, impresso em {% now "d/m/Y" %}" ;
         font-size: 11px;
         width: 100%;
         padding: 2em 2em 2em 2em;
@@ -34,8 +35,13 @@
 <header class="header">
   <section class="titulo-e-logo">
     <img class='custom-logo' src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
-    <h1 class='custom-title'>Relatório SIGPAE - Alunos matriculados</h1>
+    <h1 class='custom-title'>Sistema gestão do programa de alimentação escolar </h1>
   </section>
+  <table class="tabela-cabecalho tabela-arredondada">
+      <tr class="custom-filtros">
+        <td class="text-center"><b>Relatório SIGPAE - Alunos matriculados</b></td>
+      </tr>
+  </table>
 </header>
 <body>
   <div class="tabela-filtro">
