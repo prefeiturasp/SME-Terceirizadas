@@ -14,6 +14,7 @@ from xworkflows.base import InvalidTransitionError
 from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaAnalisarDilogSolicitacaoAlteracaoCronograma,
     PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,
     PermissaoParaAssinarCronogramaUsuarioDilog,
     PermissaoParaAssinarCronogramaUsuarioDinutre,
@@ -398,6 +399,31 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             elif aprovado is False:
                 justificativa = request.data.get('justificativa_dinutre')
                 solicitacao_cronograma.dinutre_reprova(user=usuario, justificativa=justificativa)
+            else:
+                raise ValidationError(f'Parametro aprovado deve ser true ou false.')
+            solicitacao_cronograma.save()
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            return Response(serializer.data)
+
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
+    @action(detail=True, permission_classes=(PermissaoParaAnalisarDilogSolicitacaoAlteracaoCronograma,),
+            methods=['patch'], url_path='analise-dilog')
+    def analise_dilog(self, request, uuid):
+        usuario = request.user
+        aprovado = request.data.get(('aprovado'), 'aprovado')
+        try:
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            if aprovado is True:
+                solicitacao_cronograma.dilog_aprova(user=usuario)
+            elif aprovado is False:
+                justificativa = request.data.get('justificativa_dilog')
+                solicitacao_cronograma.dilog_reprova(user=usuario, justificativa=justificativa)
             else:
                 raise ValidationError(f'Parametro aprovado deve ser true ou false.')
             solicitacao_cronograma.save()
