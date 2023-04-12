@@ -116,6 +116,34 @@ def test_url_perfil_dinutre_reprova_alteracao_cronograma(client_autenticado_dinu
     assert obj.status == 'REPROVADO_DINUTRE'
 
 
+def test_url_perfil_dilog_aprova_alteracao_cronograma(client_autenticado_dilog_diretoria,
+                                                      solicitacao_cronograma_aprovado_dinutre):
+    data = json.dumps({
+        'aprovado': True
+    })
+    response = client_autenticado_dilog_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_aprovado_dinutre.uuid}/analise-dilog/',
+        data, content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_aprovado_dinutre.uuid)
+    assert obj.status == 'APROVADO_DILOG'
+
+
+def test_url_perfil_dilog_reprova_alteracao_cronograma(client_autenticado_dilog_diretoria,
+                                                       solicitacao_cronograma_aprovado_dinutre):
+    data = json.dumps({
+        'justificativa_dilog': 'teste justificativa',
+        'aprovado': False
+    })
+    response = client_autenticado_dilog_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_aprovado_dinutre.uuid}/analise-dilog/',
+        data, content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_aprovado_dinutre.uuid)
+    assert obj.status == 'REPROVADO_DILOG'
+
+
 def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
