@@ -189,8 +189,8 @@ def gera_xlsx_entregas_async(uuid, username, tem_conferencia, tem_insucesso, eh_
     
     if status_guia:
         queryset = queryset.filter(guias__status__in=status_guia)
-
-    nome_arquivo = f'entregas_requisicao_{queryset.first().numero_solicitacao}.xlsx'
+    numero_solicitacao = queryset.first().numero_solicitacao if queryset.first() else 'vazio'
+    nome_arquivo = f'entregas_requisicao_{numero_solicitacao}.xlsx'
 
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=username, identificador=nome_arquivo)
