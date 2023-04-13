@@ -136,6 +136,16 @@ class Medicao(
             uuid_original=self.uuid,
         )
 
+    @property
+    def nome_periodo_grupo(self):
+        if self.grupo and self.periodo_escolar:
+            nome_periodo_grupo = f'{self.grupo.nome} - ' + f'{self.periodo_escolar.nome}'
+        elif self.grupo and not self.periodo_escolar:
+            nome_periodo_grupo = f'{self.grupo.nome}'
+        else:
+            nome_periodo_grupo = f'{self.periodo_escolar.nome}'
+        return nome_periodo_grupo
+
     class Meta:
         verbose_name = 'Medição'
         verbose_name_plural = 'Medições'
@@ -143,14 +153,8 @@ class Medicao(
     def __str__(self):
         ano = f'{self.solicitacao_medicao_inicial.ano}'
         mes = f'{self.solicitacao_medicao_inicial.mes}'
-        if self.grupo and self.periodo_escolar:
-            nome_periodo_grupo = f'{self.grupo.nome} - ' + f'{self.periodo_escolar.nome}'
-        elif self.grupo and not self.periodo_escolar:
-            nome_periodo_grupo = f'{self.grupo.nome}'
-        else:
-            nome_periodo_grupo = f'{self.periodo_escolar.nome}'
 
-        return f'Medição #{self.id_externo} -- {nome_periodo_grupo} -- {mes}/{ano}'
+        return f'Medição #{self.id_externo} -- {self.nome_periodo_grupo} -- {mes}/{ano}'
 
 
 class CategoriaMedicao(Nomeavel, Ativavel, TemChaveExterna):
