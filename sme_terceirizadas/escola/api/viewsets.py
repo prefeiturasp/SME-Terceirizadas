@@ -78,6 +78,7 @@ from ..models import (
     TipoUnidadeEscolar
 )
 from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
+from ..tasks import gera_pdf_relatorio_alunos_matriculados_async
 from ..utils import EscolaSimplissimaPagination, lotes_endpoint_filtrar_relatorio_alunos_matriculados
 from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .permissions import PodeVerEditarFotoAlunoNoSGP
@@ -739,6 +740,27 @@ def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):
 
 class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
 
+    def filtrar_matriculados(self, request, lotes):
+        if request.query_params.getlist('lotes[]'):
+            lotes = lotes.filter(uuid__in=request.query_params.getlist('lotes[]'))
+        if request.query_params.getlist('diretorias_regionais[]'):
+            lotes = lotes.filter(diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]'))
+        escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
+        alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(escola__uuid__in=escolas_uuids,
+                                                                             escola__tipo_gestao__nome='TERC TOTAL')
+        if request.query_params.getlist('diretorias_regionais[]'):
+            alunos_matriculados = alunos_matriculados.filter(
+                escola__diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]')
+            )
+        if request.query_params.getlist('tipos_unidades[]'):
+            tipos = request.query_params.getlist('tipos_unidades[]')
+            alunos_matriculados = alunos_matriculados.filter(escola__tipo_unidade__uuid__in=tipos)
+        if request.query_params.getlist('unidades_educacionais[]'):
+            unidades_eudacionais = request.query_params.getlist('unidades_educacionais[]')
+            alunos_matriculados = alunos_matriculados.filter(escola__uuid__in=unidades_eudacionais)
+        alunos_matriculados = alunos_matriculados.order_by('escola__nome')
+        return alunos_matriculados
+
     @action(detail=False, methods=['GET'], url_path='filtros')
     def filtros(self, request):
         instituicao = request.user.vinculo_atual.instituicao
@@ -765,24 +787,22 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
     def filtrar(self, request):
         instituicao = request.user.vinculo_atual.instituicao
         lotes = lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lote)
-        if request.query_params.getlist('lotes[]'):
-            lotes = lotes.filter(uuid__in=request.query_params.getlist('lotes[]'))
-        if request.query_params.getlist('diretorias_regionais[]'):
-            lotes = lotes.filter(diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]'))
-        escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
-        alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(escola__uuid__in=escolas_uuids,
-                                                                             escola__tipo_gestao__nome='TERC TOTAL')
-        if request.query_params.getlist('diretorias_regionais[]'):
-            alunos_matriculados = alunos_matriculados.filter(
-                escola__diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]')
-            )
-        if request.query_params.getlist('tipos_unidades[]'):
-            tipos = request.query_params.getlist('tipos_unidades[]')
-            alunos_matriculados = alunos_matriculados.filter(escola__tipo_unidade__uuid__in=tipos)
-        if request.query_params.getlist('unidades_educacionais[]'):
-            unidades_eudacionais = request.query_params.getlist('unidades_educacionais[]')
-            alunos_matriculados = alunos_matriculados.filter(escola__uuid__in=unidades_eudacionais)
-        alunos_matriculados = alunos_matriculados.order_by('escola__nome')
+        alunos_matriculados = self.filtrar_matriculados(request, lotes)
         page = self.paginate_queryset(alunos_matriculados)
         serializer = AlunosMatriculadosPeriodoEscolaCompletoSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path='gerar-pdf')
+    def gerar_pdf(self, request):
+        user = request.user.get_username()
+        instituicao = request.user.vinculo_atual.instituicao
+        lotes = lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lote)
+        alunos_matriculados = self.filtrar_matriculados(request, lotes)
+        uuids = [str(matriculados.uuid) for matriculados in alunos_matriculados]
+        gera_pdf_relatorio_alunos_matriculados_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
+            uuids=uuids
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
