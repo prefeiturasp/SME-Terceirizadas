@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from model_mommy import mommy
 from rest_framework import status
 
 from ...dados_comuns import constants
@@ -748,6 +749,7 @@ def test_url_endpoint_produtos_editais_ativar_inativar(client_autenticado_vincul
 def test_url_endpoint_produtos_editais_lista_editais_dre(client_autenticado_da_dre, contrato, diretoria_regional):
     client = client_autenticado_da_dre
     response = client.get(f'/produtos-editais/lista-editais-dre/')
+    assert response.status_code == status.HTTP_200_OK
     resultado = response.json()
     esperado = {'results': [
         {'uuid': '617a8139-02a9-4801-a197-622aa20795b9',
@@ -781,3 +783,59 @@ def test_url_endpoint_produtos_agrupados_marca_produto(client_autenticado_vincul
         {'nome': 'ARROZ', 'marca': 'NAMORADOS | TIO JOÃO', 'edital': 'Edital de Pregão nº 41/sme/2017'}],
         'count': 2,
         'total_marcas': 2}
+
+
+def test_url_endpoint_homologacao_produto_actions(client_autenticado_vinculo_codae_produto,
+                                                  homologacao_produto_escola_ou_nutri_reclamou):
+
+    client = client_autenticado_vinculo_codae_produto
+
+    response = client.get(f'/homologacoes-produtos/{homologacao_produto_escola_ou_nutri_reclamou.uuid}/reclamacao/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/homologacoes-produtos/numero_protocolo/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/homologacoes-produtos/{homologacao_produto_escola_ou_nutri_reclamou.uuid}/'
+                          f'gerar-pdf-ficha-identificacao-produto/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_produto_actions(client_autenticado_vinculo_codae_produto, produto, terceirizada):
+    hom = mommy.make('HomologacaoProduto',
+                     produto=produto,
+                     rastro_terceirizada=terceirizada,
+                     status=HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO)
+    mommy.make('LogSolicitacoesUsuario', uuid_original=hom.uuid)
+
+    client = client_autenticado_vinculo_codae_produto
+
+    response = client.get(f'/produtos/lista-nomes/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/produtos/lista-nomes-unicos/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/produtos/lista-nomes-avaliar-reclamacao/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/produtos/lista-substitutos/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/produtos/todos-produtos/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/produtos/{produto.uuid}/relatorio/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/produtos/{produto.uuid}/relatorio-analise-sensorial/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/produtos/{produto.uuid}/relatorio-analise-sensorial-recebimento/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/produtos/filtro-relatorio-situacao-produto/')
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/produtos/relatorio-situacao-produto/')
+    assert response.status_code == status.HTTP_200_OK

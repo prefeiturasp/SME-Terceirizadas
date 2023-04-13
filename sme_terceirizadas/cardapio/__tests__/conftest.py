@@ -110,6 +110,7 @@ def email_por_modulo(terceirizada):
 def escola():
     terceirizada = mommy.make('Terceirizada')
     lote = mommy.make('Lote', terceirizada=terceirizada)
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
     contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='012f7722-9ab4-4e21-b0f6-85e17b58b0d1')
@@ -120,7 +121,8 @@ def escola():
         codigo_eol='000546',
         uuid='a627fc63-16fd-482c-a877-16ebc1a82e57',
         contato=contato,
-        diretoria_regional=diretoria_regional
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao
     )
     return escola
 
@@ -721,10 +723,12 @@ def horario_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com_perio
 def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio,
                                                cardapio_valido2, cardapio_valido3):
     email = 'test@test.com'
+    rf = '8888888'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=rf, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    assert escola.tipo_gestao.nome == 'TERC TOTAL'
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
@@ -748,7 +752,7 @@ def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola
                criado_por=user,
                escola=escola,
                rastro_escola=escola)
-    client.login(email=email, password=password)
+    client.login(username=rf, password=password)
     return client
 
 
@@ -756,14 +760,14 @@ def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola
 def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio):
     email = 'test@test1.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888889')
-    perfil_cogestor = mommy.make('Perfil', nome='COGESTOR', ativo=True)
+    perfil_cogestor = mommy.make('Perfil', nome='COGESTOR_DRE', ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.diretoria_regional, perfil=perfil_cogestor,
                data_inicial=hoje, ativo=True)
 
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -771,7 +775,7 @@ def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola, t
 def client_autenticado_vinculo_codae_cardapio(client, django_user_model, escola, codae):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_alimentacao = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                  ativo=True,
@@ -782,7 +786,7 @@ def client_autenticado_vinculo_codae_cardapio(client, django_user_model, escola,
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -790,7 +794,7 @@ def client_autenticado_vinculo_codae_cardapio(client, django_user_model, escola,
 def client_autenticado_vinculo_codae_dieta_cardapio(client, django_user_model, escola, codae):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_dieta = mommy.make('Perfil',
                               nome=constants.ADMINISTRADOR_DIETA_ESPECIAL,
@@ -802,7 +806,7 @@ def client_autenticado_vinculo_codae_dieta_cardapio(client, django_user_model, e
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -810,9 +814,9 @@ def client_autenticado_vinculo_codae_dieta_cardapio(client, django_user_model, e
 def client_autenticado_vinculo_terceirizada_cardapio(client, django_user_model, escola, codae):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_nutri_admin = mommy.make('Perfil', nome=constants.NUTRI_ADMIN_RESPONSAVEL,
+    perfil_nutri_admin = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                     ativo=True,
                                     uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
     hoje = datetime.date.today()
@@ -821,5 +825,5 @@ def client_autenticado_vinculo_terceirizada_cardapio(client, django_user_model, 
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client

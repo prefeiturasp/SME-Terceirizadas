@@ -177,6 +177,17 @@ class EscolaSimplissimaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'codigo_eol', 'codigo_codae', 'lote', 'quantidade_alunos')
 
 
+class EscolaEolSimplesSerializer(serializers.ModelSerializer):
+    codigo_eol_escola = serializers.SerializerMethodField()
+
+    def get_codigo_eol_escola(self, obj):
+        return f'{obj.codigo_eol} - {obj.nome}' if obj.codigo_eol else None
+
+    class Meta:
+        model = Escola
+        fields = ('codigo_eol', 'codigo_eol_escola')
+
+
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
     escolas = EscolaSimplissimaSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
@@ -401,6 +412,8 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
     def get_codigo_eol(self, obj):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.codigo_eol
+        if isinstance(obj.instituicao, DiretoriaRegional):
+            return obj.instituicao.codigo_eol
 
     def get_tipo_unidade_escolar(self, obj):
         if isinstance(obj.instituicao, Escola):
@@ -428,6 +441,22 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return ContatoSerializer(obj.instituicao.contato).data
 
+    def get_modulo_gestao(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.modulo_gestao
+
+    def get_eh_cei(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.eh_cei
+
+    def get_eh_cemei(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.eh_cemei
+
+    def get_tipo_servico(self, obj):
+        if isinstance(obj.instituicao, Terceirizada):
+            return obj.instituicao.tipo_servico
+
     def get_instituicao(self, obj):
         instituicao_dict = {'nome': obj.instituicao.nome,
                             'uuid': obj.instituicao.uuid,
@@ -442,9 +471,15 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                             'tipos_contagem': self.get_tipos_contagem(obj),
                             'endereco': self.get_endereco(obj),
                             'contato': self.get_contato(obj)}
-        if isinstance(obj.instituicao, Escola) and obj.instituicao.eh_cemei:
-            instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
-            instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
+        if isinstance(obj.instituicao, Escola):
+            instituicao_dict['eh_cei'] = self.get_eh_cei(obj)
+            instituicao_dict['eh_cemei'] = self.get_eh_cemei(obj)
+            instituicao_dict['modulo_gestao'] = self.get_modulo_gestao(obj)
+            if obj.instituicao.eh_cemei:
+                instituicao_dict['quantidade_alunos_cei_da_cemei'] = obj.instituicao.quantidade_alunos_cei_da_cemei
+                instituicao_dict['quantidade_alunos_emei_da_cemei'] = obj.instituicao.quantidade_alunos_emei_da_cemei
+        if isinstance(obj.instituicao, Terceirizada):
+            instituicao_dict['tipo_servico'] = self.get_tipo_servico(obj)
         return instituicao_dict
 
     class Meta:
@@ -602,20 +637,19 @@ class TipoUnidadeParaFiltroSerializer(serializers.ModelSerializer):
 class EscolaParaFiltroSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalParaFiltroSerializer()
     tipo_unidade = TipoUnidadeParaFiltroSerializer()
+    lote = LoteSerializer()
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade')
+        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade', 'lote')
 
 
-class EscolaAunoPeriodoSerializer(serializers.ModelSerializer):
+class EscolaAlunoPeriodoSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalParaFiltroSerializer()
     tipo_unidade = TipoUnidadeParaFiltroSerializer()
-    periodos_escolares = serializers.SerializerMethodField()
     lote = LoteSerializer()
     quantidade_alunos = serializers.SerializerMethodField()
     exibir_faixas = serializers.SerializerMethodField()
-    alunos_por_periodo_e_faixa_etaria = serializers.SerializerMethodField()
 
     def get_periodos_escolares(self, obj):
         return PeriodoEscolarSimplesSerializer(obj.periodos_escolares, many=True, context={'escola': obj}).data
@@ -626,13 +660,28 @@ class EscolaAunoPeriodoSerializer(serializers.ModelSerializer):
     def get_exibir_faixas(self, obj):
         return obj.eh_cei or obj.eh_cemei
 
-    def get_alunos_por_periodo_e_faixa_etaria(self, obj):
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade', 'quantidade_alunos',
+                  'lote', 'exibir_faixas', 'eh_cei', 'eh_cemei')
+
+
+class AlunosMatriculadosPeriodoEscolaCompletoSerializer(serializers.ModelSerializer):
+    escola = EscolaAlunoPeriodoSerializer()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+    alunos_por_faixa_etaria = serializers.SerializerMethodField()
+
+    def get_alunos_por_faixa_etaria(self, obj):
         try:
-            return obj.alunos_por_periodo_e_faixa_etaria()
+            periodos_faixas = obj.escola.matriculados_por_periodo_e_faixa_etaria()
+            if obj.periodo_escolar.nome == 'MANHA':
+                return periodos_faixas['MANHÃ']
+            if obj.periodo_escolar.nome == 'INTERMEDIARIO':
+                return periodos_faixas['INTERMEDIÁRIO']
+            return periodos_faixas[obj.periodo_escolar.nome]
         except Exception:
             return None
 
     class Meta:
-        model = Escola
-        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_unidade', 'quantidade_alunos', 'lote', 'exibir_faixas',
-                  'periodos_escolares', 'alunos_por_periodo_e_faixa_etaria', 'eh_cei', 'eh_cemei')
+        model = AlunosMatriculadosPeriodoEscola
+        fields = ('periodo_escolar', 'escola', 'alunos_por_faixa_etaria', 'quantidade_alunos', 'tipo_turma')

@@ -408,7 +408,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         agrupado_nome_marca = request.data.get('agrupado_por_nome_e_marca')
         user = request.user.get_username()
 
-        gera_pdf_relatorio_produtos_homologados_async(
+        gera_pdf_relatorio_produtos_homologados_async.delay(
             user=user,
             nome_arquivo=f'relatorio_produtos_homologados{"_nome_marca" if agrupado_nome_marca else ""}.pdf',
             data=request.query_params,
@@ -471,7 +471,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         filtros_dict = {
             constants.COORDENADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae,
             constants.ADMINISTRADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae,
-            constants.ADMINISTRADOR_TERCEIRIZADA: filtros_terceirizada_ou_codae,
+            constants.ADMINISTRADOR_EMPRESA: filtros_terceirizada_ou_codae,
             constants.COORDENADOR_SUPERVISAO_NUTRICAO: {
                 'status__in': status__in + ['CODAE_QUESTIONOU_NUTRISUPERVISOR'],
                 'raw_sql': (common_status +
@@ -481,7 +481,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         if perfil_nome in [constants.COORDENADOR_GESTAO_PRODUTO,
                            constants.ADMINISTRADOR_GESTAO_PRODUTO,
-                           constants.ADMINISTRADOR_TERCEIRIZADA,
+                           constants.ADMINISTRADOR_EMPRESA,
                            constants.COORDENADOR_SUPERVISAO_NUTRICAO]:
             filtros['status__in'] = filtros_dict[perfil_nome]['status__in']
             raw_sql += filtros_dict[perfil_nome]['raw_sql']
@@ -514,7 +514,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
                     HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO,
                     HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
-                    HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO
+                    HomologacaoProdutoWorkflow.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
+                    HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
                 ],
                 'raw_sql': ("WHERE (%(homologacao_produto)s.status = 'CODAE_HOMOLOGADO' "
                             "OR %(homologacao_produto)s.status = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU' "
@@ -523,7 +524,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                             "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_UE' "
                             "OR %(homologacao_produto)s.status = 'UE_RESPONDEU_QUESTIONAMENTO' "
                             "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_NUTRISUPERVISOR' "
-                            "OR %(homologacao_produto)s.status = 'NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO') ")
+                            "OR %(homologacao_produto)s.status = 'NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO' "
+                            "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO') ")
             },
             'codae_nao_homologado': {
                 'status__in': [
@@ -2181,7 +2183,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_pediu_analise_reclamacao(
                 user=request.user,
                 anexos=anexos,
-                justificativa=justificativa
+                justificativa=justificativa,
+                reclamacao=reclamacao_produto
             )
             homologacao_produto.rastro_terceirizada = reclamacao_produto.escola.lote.terceirizada
             homologacao_produto.save()
@@ -2203,7 +2206,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_questiona_ue(
                 user=request.user,
                 anexos=anexos,
-                justificativa=justificativa
+                justificativa=justificativa,
+                reclamacao=reclamacao_produto
             )
             homologacao_produto.save()
 
@@ -2225,7 +2229,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_questiona_nutrisupervisor(
                 user=request.user,
                 anexos=anexos,
-                justificativa=justificativa
+                justificativa=justificativa,
+                reclamacao=reclamacao_produto
             )
             homologacao_produto.save()
 

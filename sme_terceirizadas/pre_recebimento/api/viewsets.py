@@ -5,13 +5,17 @@ from django.db.models import QuerySet
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_406_NOT_ACCEPTABLE
 from xworkflows.base import InvalidTransitionError
 
+from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaAnalisarDilogSolicitacaoAlteracaoCronograma,
+    PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,
     PermissaoParaAssinarCronogramaUsuarioDilog,
     PermissaoParaAssinarCronogramaUsuarioDinutre,
     PermissaoParaAssinarCronogramaUsuarioFornecedor,
@@ -19,7 +23,9 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCadastrarVisualizarEmbalagem,
     PermissaoParaCriarCronograma,
     PermissaoParaCriarSolicitacoesAlteracaoCronograma,
+    PermissaoParaDarCienciaAlteracaoCronograma,
     PermissaoParaDashboardCronograma,
+    PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCronograma,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     ViewSetActionPermissionMixin
@@ -38,6 +44,8 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     EmbalagemQldSerializer,
     LaboratorioSerializer,
     PainelCronogramaSerializer,
+    PainelSolicitacaoAlteracaoCronogramaSerializer,
+    SolicitacaoAlteracaoCronogramaCompletoSerializer,
     SolicitacaoAlteracaoCronogramaSerializer
 )
 from sme_terceirizadas.pre_recebimento.models import (
@@ -47,8 +55,8 @@ from sme_terceirizadas.pre_recebimento.models import (
     Laboratorio,
     SolicitacaoAlteracaoCronograma
 )
+from sme_terceirizadas.pre_recebimento.utils import ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
 
-from ...dados_comuns.constants import ADMINISTRADOR_FORNECEDOR
 from ...dados_comuns.models import LogSolicitacoesUsuario
 
 
@@ -159,7 +167,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.order_by('-alterado_em').distinct()
 
-        if vinculo.perfil.nome == ADMINISTRADOR_FORNECEDOR:
+        if vinculo.perfil.nome == ADMINISTRADOR_EMPRESA and vinculo.instituicao.eh_fornecedor:
             queryset = queryset.filter(empresa=vinculo.instituicao)
 
         page = self.paginate_queryset(queryset)
@@ -297,21 +305,135 @@ class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
 
 class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = SolicitacaoAlteracaoCronograma.objects.all().order_by('-criado_em')
     filter_backends = (filters.DjangoFilterBackend, )
     pagination_class = CronogramaPagination
     permission_classes = (IsAuthenticated,)
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.eh_fornecedor:
+            return SolicitacaoAlteracaoCronograma.objects.filter(
+                cronograma__empresa=user.vinculo_atual.instituicao
+            ).order_by('-criado_em')
+        return SolicitacaoAlteracaoCronograma.objects.all().order_by('-criado_em')
+
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
-            return SolicitacaoAlteracaoCronogramaSerializer
-        return SolicitacaoDeAlteracaoCronogramaCreateSerializer
+        serializer_classes_map = {
+            'list': SolicitacaoAlteracaoCronogramaSerializer,
+            'retrieve': SolicitacaoAlteracaoCronogramaCompletoSerializer,
+        }
+        return serializer_classes_map.get(self.action, SolicitacaoDeAlteracaoCronogramaCreateSerializer)
 
     def get_permissions(self):
-        if self.action in ['list']:
-            self.permission_classes = (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,)
-        elif self.action in ['create']:
-            self.permission_classes = (PermissaoParaCriarSolicitacoesAlteracaoCronograma,)
-
+        permission_classes_map = {
+            'list': (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,),
+            'retrieve': (PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,),
+            'create': (PermissaoParaCriarSolicitacoesAlteracaoCronograma,),
+        }
+        action_permissions = permission_classes_map.get(self.action, [])
+        self.permission_classes = (*self.permission_classes, *action_permissions)
         return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
+
+    def _dados_dashboard(self, request, filtros=None):
+        limit = int(request.query_params.get('limit', 10)) if 'limit' in request.query_params else 6
+        offset = int(request.query_params.get('offset', 0)) if 'offset' in request.query_params else 0
+        status = request.query_params.get('status', None)
+        dados_dashboard = []
+        lista_status = [
+            status] if status else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
+            self.request.user)
+        dados_dashboard = [{'status': status, 'dados':
+                            SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(status,
+                                                                                      filtros, offset, limit + offset)}
+                           for status in lista_status]
+        if status:
+            dados_dashboard[0]['total'] = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+                status, filtros).count()
+        return dados_dashboard
+
+    @action(detail=False, methods=['GET'],
+            url_path='dashboard', permission_classes=(PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,))
+    def dashboard(self, request):
+        serialized_data = PainelSolicitacaoAlteracaoCronogramaSerializer(self._dados_dashboard(request), many=True).data
+        return Response({'results': serialized_data})
+
+    @action(detail=False, methods=['GET'],
+            url_path='dashboard-com-filtro', permission_classes=(
+        PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,))
+    def dashboard_com_filtro(self, request):
+        filtros = request.query_params
+        serialized_data = PainelSolicitacaoAlteracaoCronogramaSerializer(self._dados_dashboard(
+            request, filtros), many=True).data
+        return Response({'results': serialized_data})
+
+    @transaction.atomic
+    @action(detail=True, permission_classes=(PermissaoParaDarCienciaAlteracaoCronograma,),
+            methods=['patch'], url_path='cronograma-ciente')
+    def cronograma_ciente(self, request, uuid):
+        usuario = request.user
+        justificativa = request.data.get('justificativa_cronograma')
+        try:
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            solicitacao_cronograma.cronograma_ciente(user=usuario, justificativa=justificativa)
+            solicitacao_cronograma.save()
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            return Response(serializer.data)
+
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
+    @action(detail=True, permission_classes=(PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,),
+            methods=['patch'], url_path='analise-dinutre')
+    def analise_dinutre(self, request, uuid):
+        usuario = request.user
+        aprovado = request.data.get(('aprovado'), 'aprovado')
+        try:
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            if aprovado is True:
+                solicitacao_cronograma.dinutre_aprova(user=usuario)
+            elif aprovado is False:
+                justificativa = request.data.get('justificativa_dinutre')
+                solicitacao_cronograma.dinutre_reprova(user=usuario, justificativa=justificativa)
+            else:
+                raise ValidationError(f'Parametro aprovado deve ser true ou false.')
+            solicitacao_cronograma.save()
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            return Response(serializer.data)
+
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @transaction.atomic
+    @action(detail=True, permission_classes=(PermissaoParaAnalisarDilogSolicitacaoAlteracaoCronograma,),
+            methods=['patch'], url_path='analise-dilog')
+    def analise_dilog(self, request, uuid):
+        usuario = request.user
+        aprovado = request.data.get(('aprovado'), 'aprovado')
+        try:
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            if aprovado is True:
+                solicitacao_cronograma.dilog_aprova(user=usuario)
+            elif aprovado is False:
+                justificativa = request.data.get('justificativa_dilog')
+                solicitacao_cronograma.dilog_reprova(user=usuario, justificativa=justificativa)
+            else:
+                raise ValidationError(f'Parametro aprovado deve ser true ou false.')
+            solicitacao_cronograma.save()
+            solicitacao_cronograma.cronograma.status = CronogramaWorkflow.ASSINADO_CODAE
+            solicitacao_cronograma.cronograma.save()
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            return Response(serializer.data)
+
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)

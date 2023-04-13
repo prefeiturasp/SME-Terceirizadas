@@ -1,36 +1,11 @@
 data_perfis = [
     {
-        'nome': 'DIRETOR',
+        'nome': 'DIRETOR_UE',
         'ativo': True,
         'super_usuario': True,
     },
     {
-        'nome': 'DIRETOR_CEI',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'COORDENADOR_ESCOLA',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_ESCOLA',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_ESCOLA_ABASTECIMENTO',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'COGESTOR',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_DRE',
+        'nome': 'COGESTOR_DRE',
         'ativo': True,
         'super_usuario': True,
     },
@@ -70,12 +45,7 @@ data_perfis = [
         'super_usuario': True,
     },
     {
-        'nome': 'NUTRI_ADMIN_RESPONSAVEL',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_TERCEIRIZADA',
+        'nome': 'ADMINISTRADOR_EMPRESA',
         'ativo': True,
         'super_usuario': True,
     },
@@ -86,11 +56,6 @@ data_perfis = [
     },
     {
         'nome': 'ADMINISTRADOR_GESTAO_PRODUTO',
-        'ativo': True,
-        'super_usuario': True,
-    },
-    {
-        'nome': 'ADMINISTRADOR_DISTRIBUIDORA',
         'ativo': True,
         'super_usuario': True,
     },
@@ -120,17 +85,17 @@ data_perfis = [
         'super_usuario': True,
     },
     {
-        'nome': 'ADMINISTRADOR_UE_MISTA',
+        'nome': 'ADMINISTRADOR_UE',
         'ativo': True,
         'super_usuario': True,
     },
     {
-        'nome': 'ADMINISTRADOR_UE_DIRETA',
+        'nome': 'ADMINISTRADOR_REPRESENTANTE_CODAE',
         'ativo': True,
         'super_usuario': True,
     },
     {
-        'nome': 'ADMINISTRADOR_UE_PARCEIRA',
+        'nome': 'USUARIO_EMPRESA',
         'ativo': True,
         'super_usuario': True,
     },

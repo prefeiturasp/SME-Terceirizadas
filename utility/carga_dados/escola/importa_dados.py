@@ -330,7 +330,7 @@ def cria_usuario_diretor(arquivo, in_memory=False):
     diretores_unicos = len(set([item['DIRETOR'] for item in items if item['DIRETOR'] != '']))  # noqa
 
     perfil_diretor, created = Perfil.objects.get_or_create(
-        nome='DIRETOR',
+        nome='DIRETOR_UE',
         ativo=True,
         super_usuario=True
     )
@@ -414,7 +414,7 @@ def cria_usuario_cogestor(items):
     '''
     cogestores_unicos = len(set([item['ASSISTENTE DE DIRETOR'] for item in items if item['ASSISTENTE DE DIRETOR'] != '']))  # noqa
     perfil_diretor, created = Perfil.objects.get_or_create(
-        nome='COGESTOR',
+        nome='COGESTOR_DRE',
         ativo=True,
         super_usuario=True
     )

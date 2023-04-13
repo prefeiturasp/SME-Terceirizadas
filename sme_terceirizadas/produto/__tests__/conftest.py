@@ -24,9 +24,10 @@ def escola():
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
+    contato = mommy.make('Contato', email='test@test2.com')
 
     return mommy.make('Escola', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', lote=lote,
-                      diretoria_regional=diretoria_regional)
+                      diretoria_regional=diretoria_regional, contato=contato)
 
 
 @pytest.fixture
@@ -45,7 +46,7 @@ def template_homologacao_produto():
 def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, codae, template_homologacao_produto):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_produto = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_PRODUTO,
                                              ativo=True,
@@ -53,7 +54,7 @@ def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_gestao_produto,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -89,15 +90,15 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     tecerizada = escola.lote.terceirizada
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_TERCEIRIZADA,
+    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                            ativo=True,
                                            uuid='41c20c8b-7e57-41ed-9433-ccb95e8afaf0')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=tecerizada, perfil=perfil_admin_terceirizada,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -105,7 +106,7 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
 def user(django_user_model):
     email = 'test@test1.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    return django_user_model.objects.create_user(password=password, email=email,
+    return django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888881')
 
 
@@ -114,9 +115,9 @@ def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_mode
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     tecerizada = escola.lote.terceirizada
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_diretor = mommy.make('Perfil', nome=constants.ADMINISTRADOR_TERCEIRIZADA,
+    perfil_diretor = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                 ativo=True,
                                 uuid='41c20c8b-7e57-41ed-9433-ccb95e8afaf0')
     hoje = datetime.date.today()
@@ -131,7 +132,7 @@ def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_mode
                                      uuid='774ad907-d871-4bfd-b1aa-d4e0ecb6c01f')
     homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL
     homologacao_produto.save()
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client, homologacao_produto
 
 
@@ -245,12 +246,12 @@ def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
     email = 'foo@codae.com'
     password = DJANGO_ADMIN_PASSWORD
     perfil_adm_terc = mommy.make('Perfil', nome='TERCEIRIZADA', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=terceirizada, perfil=perfil_adm_terc,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -282,12 +283,12 @@ def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
     email = 'user@dre.com'
     password = 'admin@123'
     perfil_adm_dre = mommy.make('Perfil', nome='ADM_DRE', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=diretoria_regional, perfil=perfil_adm_dre,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -295,14 +296,14 @@ def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
 def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
     password = DJANGO_ADMIN_PASSWORD
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
-    usuario = django_user_model.objects.create_user(password=password, email=email,
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                     registro_funcional='123456',
                                                     )
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -387,10 +388,10 @@ def imagem_produto2(produto, arquivo):
 def client_autenticado_vinculo_escola_ue(client, django_user_model, escola):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
 
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
@@ -398,7 +399,7 @@ def client_autenticado_vinculo_escola_ue(client, django_user_model, escola):
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -410,7 +411,7 @@ def client_autenticado_vinculo_escola_nutrisupervisor(
 
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
 
     perfil_nutri = mommy.make('Perfil', nome='COORDENADOR_SUPERVISAO_NUTRICAO',
@@ -422,7 +423,7 @@ def client_autenticado_vinculo_escola_nutrisupervisor(
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
@@ -434,7 +435,7 @@ def client_autenticado_vinculo_codae_nutrisupervisor(
 
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(password=password, email=email,
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
 
     perfil_nutri = mommy.make('Perfil', nome='COORDENADOR_SUPERVISAO_NUTRICAO',
@@ -447,13 +448,13 @@ def client_autenticado_vinculo_codae_nutrisupervisor(
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
-    client.login(email=email, password=password)
+    client.login(username=email, password=password)
     return client
 
 
 @pytest.fixture
 def homologacao_produto(escola, template_homologacao_produto, user, produto):
-    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_TERCEIRIZADA,
+    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                            ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_admin_terceirizada,

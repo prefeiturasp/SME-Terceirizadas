@@ -16,6 +16,14 @@ USUARIOS = [
         'cargo': 'Admin',
     },
     {
+        'email': 'fornecedor@admin.com',
+        'password': DJANGO_ADMIN_PASSWORD,
+        'cpf': '13262731838',
+        'registro_funcional': '1111122',
+        'nome': 'FORNECEDOR ADMIN',
+        'cargo': 'Fornecedor',
+    },
+    {
         'email': 'escola@admin.com',
         'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111101',
@@ -251,6 +259,14 @@ USUARIOS = [
         'cargo': 'Diretor',
     },
     {
+        'email': 'diretorabastecimento@admin.com',
+        'password': DJANGO_ADMIN_PASSWORD,
+        'cpf': '11111111127',
+        'registro_funcional': '1238000',
+        'nome': 'DIRETOR ESCOLA ABASTECIMENTO',
+        'cargo': 'Diretor',
+    },
+    {
         'email': 'cronograma@admin.com',
         'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111128',
@@ -280,6 +296,14 @@ USUARIOS = [
         'cpf': '11111111131',
         'registro_funcional': '1242000',
         'nome': 'SUPER USUARIO DINUTRE DIRETORIA',
+        'cargo': 'Coordenador',
+    },
+    {
+        'email': 'representantecodae@admin.com',
+        'password': DJANGO_ADMIN_PASSWORD,
+        'cpf': '71641794330',
+        'registro_funcional': '1242055',
+        'nome': 'REPRESENTANTE CODAE ADM',
         'cargo': 'Coordenador',
     },
 ]

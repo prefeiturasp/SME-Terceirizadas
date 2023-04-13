@@ -363,8 +363,22 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     classificacao_dieta_ativa = serializers.SerializerMethodField()
     uuid = serializers.CharField()
     nome = serializers.CharField()
-    ativas = serializers.IntegerField()
-    inativas = serializers.IntegerField()
+    ativas = serializers.SerializerMethodField()
+    inativas = serializers.SerializerMethodField()
+
+    def get_ativas(self, obj):
+        return obj.dietas_especiais.filter(status__in=[
+            'CODAE_AUTORIZADO',
+            'CODAE_AUTORIZOU_INATIVACAO',
+            'TERMINADA_AUTOMATICAMENTE_SISTEMA'
+        ], ativo=True).count()
+
+    def get_inativas(self, obj):
+        return obj.dietas_especiais.filter(status__in=[
+            'CODAE_AUTORIZADO',
+            'CODAE_AUTORIZOU_INATIVACAO',
+            'TERMINADA_AUTOMATICAMENTE_SISTEMA'
+        ], ativo=False).count()
 
     def get_dre(self, obj):
         if obj.dietas_especiais.filter(ativo=True).exists():
@@ -620,6 +634,7 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
     cod_eol_aluno = serializers.SerializerMethodField()
     nome_aluno = serializers.SerializerMethodField()
     nome_escola = serializers.SerializerMethodField()
+    codigo_eol_escola = serializers.SerializerMethodField()
     status_solicitacao = serializers.CharField(
         source='status',
         required=False,
@@ -632,7 +647,10 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
     alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
 
     def get_nome_escola(self, obj):
-        return obj.rastro_escola.nome if obj.rastro_escola else None
+        return obj.escola_destino.nome if obj.escola_destino else None
+
+    def get_codigo_eol_escola(self, obj):
+        return obj.escola_destino.codigo_eol if obj.escola_destino else None
 
     def get_cod_eol_aluno(self, obj):
         return obj.aluno.codigo_eol if obj.aluno else None
@@ -652,6 +670,7 @@ class SolicitacaoDietaEspecialRelatorioTercSerializer(serializers.ModelSerialize
             'criado_em',
             'cod_eol_aluno',
             'nome_aluno',
+            'codigo_eol_escola',
             'nome_escola',
             'status_solicitacao',
             'rastro_lote',
