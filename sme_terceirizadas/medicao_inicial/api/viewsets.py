@@ -23,6 +23,7 @@ from ..models import (
     TipoContagemAlimentacao,
     ValorMedicao
 )
+from ..utils import tratar_valores
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     CategoriaMedicaoSerializer,
@@ -258,6 +259,39 @@ class SolicitacaoMedicaoInicialViewSet(
 
         return Response({'results': sorted(retorno, key=lambda k: ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},
                         status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='quantidades-alimentacoes-lancadas-periodo-grupo',
+            permission_classes=[UsuarioEscolaTercTotal])
+    def quantidades_alimentacoes_lancadas_periodo_grupo(self, request):
+        usuario = self.request.user
+        escola = usuario.vinculo_atual.instituicao
+        uuid = request.query_params.get('uuid_solicitacao')
+        solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
+        retorno = []
+        campos_a_desconsiderar = ['matriculados', 'numero_de_alunos', 'frequencia', 'observacoes']
+        for medicao in solicitacao.medicoes.all():
+            valores = []
+            for valor_medicao in medicao.valores_medicao.exclude(categoria_medicao__nome__icontains='DIETA'):
+                tem_nome_campo = [valor for valor in valores if valor['nome_campo'] == valor_medicao.nome_campo]
+                if valor_medicao.nome_campo not in campos_a_desconsiderar:
+                    if tem_nome_campo:
+                        valores = [valor for valor in valores if valor['nome_campo'] != valor_medicao.nome_campo]
+                        valores.append({
+                            'nome_campo': valor_medicao.nome_campo,
+                            'valor': tem_nome_campo[0]['valor'] + int(valor_medicao.valor)
+                        })
+                    else:
+                        valores.append({
+                            'nome_campo': valor_medicao.nome_campo,
+                            'valor': int(valor_medicao.valor),
+                        })
+            valores = tratar_valores(escola, valores)
+            retorno.append({
+                'nome_periodo_grupo': medicao.nome_periodo_grupo,
+                'valores': valores,
+                'valor_total': sum(v['valor'] for v in valores)
+            })
+        return Response({'results': retorno}, status=status.HTTP_200_OK)
 
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
