@@ -3090,12 +3090,16 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
     APROVADO_DINUTRE = 'APROVADO_DINUTRE'
     REPROVADO_DINUTRE = 'REPROVADO_DINUTRE'
+    APROVADO_DILOG = 'APROVADO_DILOG'
+    REPROVADO_DILOG = 'REPROVADO_DILOG'
 
     states = (
         (EM_ANALISE, 'Em análise'),
         (CRONOGRAMA_CIENTE, 'Cronograma ciente'),
         (APROVADO_DINUTRE, 'Aprovado DINUTRE'),
         (REPROVADO_DINUTRE, 'Reprovado DINUTRE'),
+        (APROVADO_DILOG, 'Aprovado DILOG'),
+        (REPROVADO_DILOG, 'Reprovado DILOG'),
         (ACEITA, 'Aceita'),
         (NEGADA, 'Negada'),
     )
@@ -3104,7 +3108,9 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
         ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
         ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE),
         ('dinutre_aprova', CRONOGRAMA_CIENTE, APROVADO_DINUTRE),
-        ('dinutre_reprova', CRONOGRAMA_CIENTE, REPROVADO_DINUTRE)
+        ('dinutre_reprova', CRONOGRAMA_CIENTE, REPROVADO_DINUTRE),
+        ('dilog_aprova', [APROVADO_DINUTRE, REPROVADO_DINUTRE], APROVADO_DILOG),
+        ('dilog_reprova', [APROVADO_DINUTRE, REPROVADO_DINUTRE], REPROVADO_DILOG)
     )
 
     initial_state = EM_ANALISE
@@ -3143,6 +3149,22 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dilog_aprova')
+    def _dilog_aprova_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.APROVADO_DILOG_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dilog_reprova')
+    def _dilog_reprova_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.REPROVADO_DILOG_SOLICITACAO_ALTERACAO,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
 

@@ -396,6 +396,23 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         return queryset
 
     @classmethod
+    def busca_filtro_dietas_especiais(cls, queryset, query_params, **kwargs):
+        if query_params.get('titulo'):
+            queryset = queryset.filter(
+                Q(uuid__icontains=query_params.get('titulo')) |
+                Q(escola_nome__icontains=query_params.get('titulo')) |
+                Q(lote_nome__icontains=query_params.get('titulo')) |
+                Q(nome_aluno__icontains=query_params.get('titulo')) |
+                Q(codigo_eol_aluno__icontains=query_params.get('titulo'))
+            )
+        if query_params.get('lote'):
+            queryset = queryset.filter(lote_uuid__icontains=query_params.get('lote'))
+        if query_params.get('status'):
+            queryset = queryset.filter(
+                conferido=query_params.get('status') == '1')
+        return queryset
+
+    @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
         raise NotImplementedError('Precisa implementar')
 
