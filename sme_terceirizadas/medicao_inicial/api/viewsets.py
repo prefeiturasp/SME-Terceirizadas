@@ -270,6 +270,9 @@ class SolicitacaoMedicaoInicialViewSet(
             f'relatorio_solicitacao_medicao_por_escola.html',
             {
                 'solicitacao': solicitacao,
+                'diretor': solicitacao.escola.vinculos.filter(usuario__cargo='DIRETOR').first().usuario,
+                'data_enviado_ue': solicitacao.logs.get(status_evento=55).criado_em.strftime('%d/%m/%Y às %H:%M'),
+                'responsaveis': solicitacao.responsaveis.all(),
                 'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
                 'tabelas': tabelas,
                 'tabela_observacoes': tabela_observacoes,
