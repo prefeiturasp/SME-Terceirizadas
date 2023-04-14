@@ -49,7 +49,7 @@ def escola():
 
 
 @pytest.fixture
-def solicitacao_medicao_inicial(escola):
+def solicitacao_medicao_inicial(escola, categoria_medicao):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
     solicitacao_medicao = mommy.make(
@@ -57,7 +57,32 @@ def solicitacao_medicao_inicial(escola):
         mes=12, ano=2022, escola=escola, tipo_contagem_alimentacoes=tipo_contagem)
     medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
                          periodo_escolar=periodo_manha)
-    mommy.make('ValorMedicao', medicao=medicao)
+    mommy.make('ValorMedicao', dia='01', nome_campo='lanche', medicao=medicao, categoria_medicao=categoria_medicao,
+               valor='10')
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_varios_valores(escola, categoria_medicao):
+    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
+    periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
+    periodo_tarde = mommy.make('PeriodoEscolar', nome='TARDE')
+    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', mes=12, ano=2022, escola=escola,
+                                     tipo_contagem_alimentacoes=tipo_contagem)
+    medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                         periodo_escolar=periodo_manha)
+    grupo = mommy.make('GrupoMedicao', nome='Programas Projetos')
+    medicao_programas_projetos = mommy.make(
+        'Medicao', solicitacao_medicao_inicial=solicitacao_medicao, periodo_escolar=periodo_tarde, grupo=grupo)
+    categoria_dieta_a = mommy.make('CategoriaMedicao', nome='DIETA ESPECIAL - TIPO A ENTERAL')
+    categoria_dieta_b = mommy.make('CategoriaMedicao', nome='DIETA ESPECIAL - TIPO B')
+    for dia in ['01', '02', '03', '04', '05']:
+        for campo in ['lanche', 'refeicao', 'lanche_emergencial', 'sobremesa']:
+            for categoria in [categoria_medicao, categoria_dieta_a, categoria_dieta_b]:
+                for medicao_ in [medicao, medicao_programas_projetos]:
+                    mommy.make('ValorMedicao', dia=dia, nome_campo=campo, medicao=medicao_,
+                               categoria_medicao=categoria,
+                               valor='10')
     return solicitacao_medicao
 
 
