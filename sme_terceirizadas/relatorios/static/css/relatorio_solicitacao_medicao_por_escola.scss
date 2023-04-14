@@ -6,24 +6,197 @@
   font-family: 'Roboto';
 }
 
+@page :nth(n+2) {
+  margin-top: 0;
+}
+
+@page :nth(1) {
+  //WTF bug...
+  margin-top: 0;
+}
+
 @media print {
   body, page {
     margin: 0;
   }
 }
 
-.custom-title {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 14px;
-  text-align: right;
-  color: #000000;
+.header {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background: $verde;
+  img {
+    width: 103.5px;
+    height: 37.26px;
+  }
+  h1 {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 10px;
+    color: $branco;
+  }
+  .page-number:before {
+    width: 100%;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 10px;
+    color: $branco;
+    margin-right: 5px;
+    content: counter(page) " / " counter(pages);
+  }
+
+
+  .tabela-cabecalho {
+    background-color: $branco;
+    width: 100%;
+    .custom-filtros {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-size: 10px;
+      line-height: 15px;
+      color: $preto;
+      td {
+        padding: 5px;
+      }
+    }
+  }
 }
 
-table.tabela-cabecalho {
-  width: 100%;
+.titulo-body-p1 {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 15px;
+  color: $cinza-meio-escuro;
+}
+
+.tipo-contagem {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 15px;
+  text-align: center;
+  .label-contagem {
+    height: 30px;
+    padding-top: 20px;
+    padding-bottom: 5px;
+    color: $branco;
+    background: $verde;
+    border: solid 1px $verde;
+    border-radius: 4px 0px 0px 4px;
+  }
+  .value-contagem {
+    height: 30px;
+    padding-top: 20px;
+    padding-bottom: 5px;
+    border: solid 1px $cinza-claro;
+    border-radius: 0px 4px 4px 0px;
+    color: $cinza-meio-escuro;
+    background: $branco;
+  }
+}
+
+.tipo-avaliacao {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 15px;
+  text-align: center;
+  .avaliacao-left {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: $branco;
+    background: $verde;
+    border: solid 1px $verde;
+    border-radius: 4px 0px 0px 4px;
+  }
+  .avaliacao-center {
+    font-weight: normal;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border: solid 1px $cinza-claro;
+    color: $cinza-meio-escuro;
+    background: $branco;
+  }
+  .avaliacao-right {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border: solid 1px $cinza-claro;
+    border-radius: 0px 4px 4px 0px;
+    color: $cinza-meio-escuro;
+    background: $branco;
+  }
+}
+
+.usuario-title {
+  padding: 0;
+  margin: 0;
+  font-family: 'Roboto';
+  font-style: normal;
+  font-size: 10px;
+}
+
+.usuarios {
+  min-height: 150px;
+  .usuario-label {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-size: 10px;
+    width: 79%;
+    height: 15px;
+    padding: 5px;
+
+    border: solid 1px $cinza-input;
+    border-radius: 4px 4px 4px 4px;
+  }
+
+  .usuario-values {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-size: 10px;
+    height: 15px;
+    padding: 5px;
+    border: solid 1px $cinza-input;
+    border-radius: 4px 4px 4px 4px;
+    width: 18%
+  }
+}
+
+.titulo-assinatura {
+  padding: 0;
+  font-family: 'Roboto';
+  font-style: normal;
+  font-size: 10px;
+}
+
+.assinatura {
+  height: 100px;
+  border: solid 1px $cinza-assinatura;
+  border-radius: 4px 4px 4px 4px;
+  img {
+    padding-top: 32.5px;
+    padding-bottom: 32.5px;
+    width: 35px;
+    height: 35px;
+  }
+  .texto {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    text-align: justify;
+    padding-left: 0;
+    padding-right: 0;
+    span {
+      text-align: justify;
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 400;
+      font-size: 9px;
+    }
+  }
 }
 
 table.tabela-valores-medicao {
@@ -42,4 +215,3 @@ table.tabela-valores-medicao {
     }
   }
 }
-
