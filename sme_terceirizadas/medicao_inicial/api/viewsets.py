@@ -278,7 +278,8 @@ class SolicitacaoMedicaoInicialViewSet(
             ).values_list('nome_campo', flat=True).distinct():
                 nome_periodo = (medicao.periodo_escolar.nome
                                 if not medicao.grupo
-                                else medicao.grupo.nome + ' - ' + medicao.periodo_escolar.nome)
+                                else (f'{medicao.grupo.nome} - {medicao.periodo_escolar.nome}'
+                                      if medicao.periodo_escolar else medicao.grupo.nome))
                 if nome_periodo not in tabela_somatorio_lista_periodos:
                     tabela_somatorio_lista_periodos.append(nome_periodo)
                 if campo not in tabela_somatorio_lista_campos:

@@ -43,6 +43,7 @@ def get_tamanho_colunas_periodos(tabelas):
 def build_headers_tabelas(solicitacao):
     MAX_COLUNAS = 15
     ORDEM_CAMPOS = {
+        'numero_de_alunos': -2,
         'matriculados': -1,
         'aprovadas': 0,
         'frequencia': 1,
@@ -53,10 +54,11 @@ def build_headers_tabelas(solicitacao):
         'refeicao': 6,
         'repeticao_refeicao': 7,
         'lanche_emergencial': 8,
-        'total_refeicoes_pagamento': 9,
-        'sobremesa': 10,
-        'repeticao_sobremesa': 11,
-        'total_sobremesas_pagamento': 12
+        'kit_lanche': 9,
+        'total_refeicoes_pagamento': 10,
+        'sobremesa': 11,
+        'repeticao_sobremesa': 12,
+        'total_sobremesas_pagamento': 13
     }
 
     tabelas = [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_periodos': [], 'len_categorias': [],
@@ -68,7 +70,8 @@ def build_headers_tabelas(solicitacao):
         for categoria in dict_categorias_campos.keys():
             nome_periodo = (medicao.periodo_escolar.nome
                             if not medicao.grupo
-                            else medicao.grupo.nome + ' - ' + medicao.periodo_escolar.nome)
+                            else (f'{medicao.grupo.nome} - {medicao.periodo_escolar.nome}'
+                                  if medicao.periodo_escolar else medicao.grupo.nome))
             if len(tabelas[indice_atual]['nomes_campos']) + len(dict_categorias_campos[categoria]) <= MAX_COLUNAS:
                 if nome_periodo not in tabelas[indice_atual]['periodos']:
                     tabelas[indice_atual]['periodos'] += [nome_periodo]
