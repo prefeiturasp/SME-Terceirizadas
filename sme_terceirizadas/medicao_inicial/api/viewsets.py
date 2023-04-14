@@ -1,4 +1,8 @@
-from django.db.models import QuerySet
+from calendar import monthrange
+
+from django.db.models import IntegerField, QuerySet, Sum
+from django.db.models.functions import Cast
+from django.template.loader import render_to_string
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,6 +19,7 @@ from ...dados_comuns.permissions import (
 )
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
+from ...relatorios.utils import html_to_pdf_file
 from ..models import (
     CategoriaMedicao,
     DiaSobremesaDoce,
@@ -23,7 +28,7 @@ from ..models import (
     TipoContagemAlimentacao,
     ValorMedicao
 )
-from ..utils import tratar_valores
+from ..utils import build_tabelas_relatorio_medicao, tratar_valores
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     CategoriaMedicaoSerializer,
@@ -197,6 +202,31 @@ class SolicitacaoMedicaoInicialViewSet(
             kwargs['escola__diretoria_regional__uuid'] = query_params.get('dre')
         return kwargs
 
+    def assinatura_ue(self, solicitacao):
+        log_enviado_ue = solicitacao.logs.filter(status_evento=55)
+        assinatura_escola = None
+        if log_enviado_ue:
+            razao_social = solicitacao.rastro_terceirizada.razao_social if solicitacao.rastro_terceirizada else ''
+            usuario_escola = log_enviado_ue.first().usuario
+            data_enviado_ue = log_enviado_ue.first().criado_em.strftime('%d/%m/%Y às %H:%M')
+            assinatura_escola = f"""Documento conferido e registrado eletronicamente por {usuario_escola.nome},
+                                    {usuario_escola.cargo}, {usuario_escola.registro_funcional},
+                                    {solicitacao.escola.nome} em {data_enviado_ue}. O registro eletrônico da Medição
+                                    Inicial é comprovação e ateste do serviço prestado à Unidade Educacional,
+                                    pela empresa {razao_social}."""
+        return assinatura_escola
+
+    def assinatura_dre(self, solicitacao):
+        log_aprovado_dre = solicitacao.logs.filter(status_evento=66)
+        assinatura_dre = None
+        if log_aprovado_dre:
+            usuario_dre = log_aprovado_dre.first().usuario
+            data_aprovado_dre = log_aprovado_dre.first().criado_em.strftime('%d/%m/%Y às %H:%M')
+            assinatura_dre = f"""Documento conferido e aprovado eletronicamente por {usuario_dre.nome},
+                                 {usuario_dre.cargo}, {usuario_dre.registro_funcional},
+                                 {usuario_dre.vinculo_atual.instituicao.nome} em {data_aprovado_dre}."""
+        return assinatura_dre
+
     @action(detail=False, methods=['GET'], url_path='dashboard',
             permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def dashboard(self, request):
@@ -222,6 +252,62 @@ class SolicitacaoMedicaoInicialViewSet(
                 meses_anos_unicos.append(mes_ano_obj)
         return Response({'results': sorted(meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True)},
                         status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['GET'], url_path='relatorio-pdf')
+    def relatorio_pdf(self, request, uuid):
+        solicitacao = self.get_object()
+        tabelas = build_tabelas_relatorio_medicao(solicitacao)
+        tabela_observacoes = list(
+            solicitacao.medicoes.filter(
+                valores_medicao__nome_campo='observacoes'
+            ).values_list(
+                'valores_medicao__dia',
+                'periodo_escolar__nome',
+                'valores_medicao__categoria_medicao__nome',
+                'valores_medicao__valor'
+            ).order_by(
+                'valores_medicao__dia',
+                'periodo_escolar__nome',
+                'valores_medicao__categoria_medicao__nome'))
+        tabela_somatorio = []
+        tabela_somatorio_lista_periodos = []
+        tabela_somatorio_lista_campos = []
+        for medicao in solicitacao.medicoes.all():
+            for campo in medicao.valores_medicao.exclude(
+                nome_campo__in=['observacoes', 'dietas_autorizadas', 'frequencia', 'matriculados']
+            ).values_list('nome_campo', flat=True).distinct():
+                nome_periodo = (medicao.periodo_escolar.nome
+                                if not medicao.grupo
+                                else medicao.grupo.nome + ' - ' + medicao.periodo_escolar.nome)
+                if nome_periodo not in tabela_somatorio_lista_periodos:
+                    tabela_somatorio_lista_periodos.append(nome_periodo)
+                if campo not in tabela_somatorio_lista_campos:
+                    tabela_somatorio_lista_campos.append(campo)
+                valor_campo = medicao.valores_medicao.filter(nome_campo=campo, medicao=medicao).annotate(
+                    campo_como_inteiro=Cast('valor', IntegerField())).aggregate(
+                    Sum('campo_como_inteiro')).get('campo_como_inteiro__sum')
+                tabela_somatorio.append({
+                    'campo': campo,
+                    'periodo': nome_periodo,
+                    'valor': valor_campo
+                })
+        html_string = render_to_string(
+            f'relatorio_solicitacao_medicao_por_escola.html',
+            {
+                'solicitacao': solicitacao,
+                'responsaveis': solicitacao.responsaveis.all(),
+                'assinatura_escola': self.assinatura_ue(solicitacao),
+                'assinatura_dre': self.assinatura_dre(solicitacao),
+                'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
+                'tabelas': tabelas,
+                'tabela_observacoes': tabela_observacoes,
+                'tabela_somatorio': tabela_somatorio,
+                'tabela_somatorio_lista_periodos': tabela_somatorio_lista_periodos,
+                'tabela_somatorio_lista_campos': tabela_somatorio_lista_campos
+            }
+        )
+
+        return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf')
 
     @action(detail=False, methods=['GET'], url_path='periodos-grupos-medicao',
             permission_classes=[UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])

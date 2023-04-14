@@ -34,5 +34,5 @@ class MotivoNegacaoFilter(filters.FilterSet):
 class LogQuantidadeDietasEspeciaisFilter(filters.FilterSet):
     escola_uuid = filters.UUIDFilter(field_name='escola__uuid')
     classificacao = filters.CharFilter(field_name='classificacao')
-    mes = filters.CharFilter(field_name='data__month', lookup_expr='iexact')
+    mes = filters.CharFilter(field_name='data__month', lookup_expr='exact')
     ano = filters.CharFilter(field_name='data__year', lookup_expr='iexact')
