@@ -614,9 +614,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         query_set = self.get_queryset_solicitacoes_homologacao_por_status(
             request.query_params, user.vinculo_atual.perfil.nome, user.tipo_usuario, user.vinculo_atual.object_id,
             filtro_aplicado)
+
+        solicitacoes_viewset = SolicitacoesViewSet()
+        query_set = solicitacoes_viewset.remove_duplicados_do_query_set(query_set)
         if page:
-            solicitacoes_viewset = SolicitacoesViewSet()
-            query_set = solicitacoes_viewset.remove_duplicados_do_query_set(query_set)
             page = self.paginate_queryset(query_set)
             serializer = HomologacaoProdutoPainelGerencialSerializer(page,
                                                                      context={'request': request,
