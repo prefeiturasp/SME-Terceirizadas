@@ -177,6 +177,17 @@ class EscolaSimplissimaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'codigo_eol', 'codigo_codae', 'lote', 'quantidade_alunos')
 
 
+class EscolaEolSimplesSerializer(serializers.ModelSerializer):
+    codigo_eol_escola = serializers.SerializerMethodField()
+
+    def get_codigo_eol_escola(self, obj):
+        return f'{obj.codigo_eol} - {obj.nome}' if obj.codigo_eol else None
+
+    class Meta:
+        model = Escola
+        fields = ('codigo_eol', 'codigo_eol_escola')
+
+
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
     escolas = EscolaSimplissimaSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
@@ -662,7 +673,7 @@ class AlunosMatriculadosPeriodoEscolaCompletoSerializer(serializers.ModelSeriali
 
     def get_alunos_por_faixa_etaria(self, obj):
         try:
-            periodos_faixas = obj.escola.alunos_por_periodo_e_faixa_etaria()
+            periodos_faixas = obj.escola.matriculados_por_periodo_e_faixa_etaria()
             if obj.periodo_escolar.nome == 'MANHA':
                 return periodos_faixas['MANHÃ']
             if obj.periodo_escolar.nome == 'INTERMEDIARIO':

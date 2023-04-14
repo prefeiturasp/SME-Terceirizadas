@@ -584,12 +584,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                         or request_data.get('nome_produto') or request_data.get('nome_fabricante')
                         or request_data.get('nome_marca') or request_data.get('tipo'))
         titulo = request_data.get('titulo_produto', None)
-
         query_set = self.get_queryset()
         raw_sql, data = self.build_raw_sql_produtos_por_status(
             filtro_aplicado, edital, perfil_nome, filtros, tipo_usuario, escola_id)
-
-        if page or (edital and not algum_filtro):
+        if page or (edital and not algum_filtro and not titulo):
             query_set = query_set.raw(raw_sql % data)
         else:
             if titulo:
@@ -620,12 +618,16 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             solicitacoes_viewset = SolicitacoesViewSet()
             query_set = solicitacoes_viewset.remove_duplicados_do_query_set(query_set)
             page = self.paginate_queryset(query_set)
-            serializer = self.get_serializer(page, many=True)
+            serializer = HomologacaoProdutoPainelGerencialSerializer(page,
+                                                                     context={'request': request,
+                                                                              'workflow': filtro_aplicado.upper()},
+                                                                     many=True)
             return self.get_paginated_response(serializer.data)
         else:
-            serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
+            serializer = (HomologacaoProdutoPainelGerencialSerializer if filtro_aplicado != constants.RASCUNHO
+                          else HomologacaoProdutoSerializer)
             response = {'results': serializer(
-                query_set, context={'request': request}, many=True).data}
+                query_set, context={'request': request, 'workflow': filtro_aplicado.upper()}, many=True).data}
             return Response(response)
 
 
@@ -2183,7 +2185,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_pediu_analise_reclamacao(
                 user=request.user,
                 anexos=anexos,
-                justificativa=justificativa
+                justificativa=justificativa,
+                reclamacao=reclamacao_produto
             )
             homologacao_produto.rastro_terceirizada = reclamacao_produto.escola.lote.terceirizada
             homologacao_produto.save()
@@ -2205,7 +2208,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_questiona_ue(
                 user=request.user,
                 anexos=anexos,
-                justificativa=justificativa
+                justificativa=justificativa,
+                reclamacao=reclamacao_produto
             )
             homologacao_produto.save()
 
@@ -2227,7 +2231,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_questiona_nutrisupervisor(
                 user=request.user,
                 anexos=anexos,
-                justificativa=justificativa
+                justificativa=justificativa,
+                reclamacao=reclamacao_produto
             )
             homologacao_produto.save()
 

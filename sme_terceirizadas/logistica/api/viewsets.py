@@ -547,7 +547,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         tem_conferencia = eh_true_ou_false(tem_conferencia, 'tem_conferencia')
         tem_insucesso = eh_true_ou_false(tem_insucesso, 'tem_insucesso')
         eh_dre = True if user.vinculo_atual.perfil.nome == COGESTOR_DRE else False
-
+        status_guia = request.query_params.getlist('status_guia', None)
         gera_xlsx_entregas_async.delay(
             uuid=uuid,
             username=username,
@@ -555,6 +555,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             tem_insucesso=tem_insucesso,
             eh_distribuidor=user.eh_distribuidor,
             eh_dre=eh_dre,
+            status_guia=status_guia
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=HTTP_200_OK)
