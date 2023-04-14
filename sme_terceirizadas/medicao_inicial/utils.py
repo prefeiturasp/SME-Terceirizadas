@@ -49,13 +49,14 @@ def build_headers_tabelas(solicitacao):
         'solicitado': 2,
         'desjejum': 3,
         'lanche': 4,
-        'refeicao': 5,
-        'repeticao_refeicao': 6,
-        'lanche_emergencial': 7,
-        'total_refeicoes_pagamento': 8,
-        'sobremesa': 9,
-        'repeticao_sobremesa': 10,
-        'total_sobremesas_pagamento': 11
+        'lanche_4h': 5,
+        'refeicao': 6,
+        'repeticao_refeicao': 7,
+        'lanche_emergencial': 8,
+        'total_refeicoes_pagamento': 9,
+        'sobremesa': 10,
+        'repeticao_sobremesa': 11,
+        'total_sobremesas_pagamento': 12
     }
 
     tabelas = [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_periodos': [], 'len_categorias': [],
@@ -176,7 +177,8 @@ def popula_campos(solicitacao, tabela, dia, indice_periodo, logs_alunos_matricul
 def popula_tabelas(solicitacao, tabelas):
     dias_no_mes = range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1)
     logs_alunos_matriculados = LogAlunosMatriculadosPeriodoEscola.objects.filter(
-        escola=solicitacao.escola, criado_em__month=solicitacao.mes, criado_em__year=solicitacao.ano)
+        escola=solicitacao.escola, criado_em__month=solicitacao.mes,
+        criado_em__year=solicitacao.ano, tipo_turma='REGULAR')
     logs_dietas = LogQuantidadeDietasAutorizadas.objects.filter(
         escola=solicitacao.escola, data__month=solicitacao.mes, data__year=solicitacao.ano)
 
