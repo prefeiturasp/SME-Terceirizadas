@@ -320,7 +320,7 @@ class UsuarioSuperCodae(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
-            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                   ADMINISTRADOR_REPRESENTANTE_CODAE]
         )
@@ -335,7 +335,7 @@ class UsuarioPodeFinalizarVinculo(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
-            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                   ADMINISTRADOR_REPRESENTANTE_CODAE, COORDENADOR_DIETA_ESPECIAL,
                                                   COORDENADOR_GESTAO_PRODUTO, COORDENADOR_SUPERVISAO_NUTRICAO] or
@@ -371,9 +371,8 @@ class PermissaoParaCriarUsuarioComCoresso(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
-            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_GESTAO_PRODUTO,
-                                                  COORDENADOR_CODAE_DILOG_LOGISTICA, COORDENADOR_DIETA_ESPECIAL,
-                                                  COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_PRODUTO, COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                  COORDENADOR_DIETA_ESPECIAL, COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                   ADMINISTRADOR_REPRESENTANTE_CODAE, COORDENADOR_SUPERVISAO_NUTRICAO] or
             isinstance(usuario.vinculo_atual.instituicao, Escola) and
             usuario.vinculo_atual.perfil.nome in [DIRETOR_UE] or
