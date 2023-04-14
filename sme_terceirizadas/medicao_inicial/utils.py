@@ -68,7 +68,8 @@ def build_headers_tabelas(solicitacao):
         for categoria in dict_categorias_campos.keys():
             nome_periodo = (medicao.periodo_escolar.nome
                             if not medicao.grupo
-                            else medicao.grupo.nome + ' - ' + medicao.periodo_escolar.nome)
+                            else (f'{medicao.grupo.nome} - {medicao.periodo_escolar.nome}'
+                                  if medicao.periodo_escolar else medicao.grupo.nome))
             if len(tabelas[indice_atual]['nomes_campos']) + len(dict_categorias_campos[categoria]) <= MAX_COLUNAS:
                 if nome_periodo not in tabelas[indice_atual]['periodos']:
                     tabelas[indice_atual]['periodos'] += [nome_periodo]
