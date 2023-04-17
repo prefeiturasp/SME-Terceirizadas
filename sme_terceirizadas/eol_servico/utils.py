@@ -311,7 +311,7 @@ class EOLServicoSGP:
 
 
 class EOLPapaService:
-    TIMEOUT = 90
+    TIMEOUT = 120
 
     @classmethod
     def confirmacao_de_cancelamento(cls, cnpj, numero_solicitacao, sequencia_envio):
