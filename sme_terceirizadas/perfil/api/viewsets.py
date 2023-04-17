@@ -236,7 +236,8 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = VinculoFilter
 
-    @action(detail=False, methods=['GET'], url_path='vinculos-ativos', permission_classes=(IsAuthenticated,))
+    @action(detail=False, methods=['GET'], url_path='vinculos-ativos',
+            permission_classes=(PermissaoParaCriarUsuarioComCoresso,))
     def lista_vinculos_ativos(self, request):
         usuario = request.user
         if usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_EMPRESA, USUARIO_EMPRESA, COGESTOR_DRE]:
