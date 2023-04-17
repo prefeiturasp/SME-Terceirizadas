@@ -1309,6 +1309,26 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _envia_email_codae_questiona_produto(self, reclamacao, log_transicao, emails, link):
+        html = render_to_string(
+            template_name='codae_questiona_reclamacao.html',
+            context={
+                'produto': self.produto,
+                'reclamacao': reclamacao,
+                'marca': self.produto.marca,
+                'criado_em': log_transicao.criado_em.strftime('%d/%m/%Y - %H:%M'),
+                'log_transicao': log_transicao,
+                'link_questionamento': link
+            }
+        )
+
+        envia_email_em_massa_task.delay(
+            assunto='Questionamento da CODAE',
+            emails=emails,
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         self._salva_rastro_solicitacao()
@@ -1426,7 +1446,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('codae_pediu_analise_reclamacao')
     def _codae_pediu_analise_reclamacao_hook(self, *args, **kwargs):
         user = kwargs['user']
+        reclamacao = kwargs.get('reclamacao', None)
         justificativa = kwargs.get('justificativa', '')
+        link = f'{base_url}/gestao-produto/responder-reclamacao/consulta?uuid={self.uuid}'
         log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_RECLAMACAO,
             usuario=user,
@@ -1439,11 +1461,16 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 arquivo=arquivo,
                 nome=anexo['nome']
             )
+        if reclamacao:
+            emails = self.rastro_terceirizada.emails_por_modulo('Gestão de Produto')
+            self._envia_email_codae_questiona_produto(reclamacao, log_transicao, emails, link)
 
     @xworkflows.after_transition('codae_questiona_nutrisupervisor')
     def _codae_questiona_nutrisupervisor_hook(self, *args, **kwargs):
         user = kwargs['user']
+        reclamacao = kwargs.get('reclamacao', None)
         justificativa = kwargs.get('justificativa', '')
+        link = f'{base_url}/gestao-produto/responder-questionamento-nutrisupervisor/?nome_produto={self.produto.nome}'
         log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_NUTRISUPERVISOR,
             usuario=user,
@@ -1456,11 +1483,16 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 arquivo=arquivo,
                 nome=anexo['nome']
             )
+        if reclamacao:
+            emails = [reclamacao.criado_por.email]
+            self._envia_email_codae_questiona_produto(reclamacao, log_transicao, emails, link)
 
     @xworkflows.after_transition('codae_questiona_ue')
     def _codae_questiona_ue_hook(self, *args, **kwargs):
         user = kwargs['user']
+        reclamacao = kwargs.get('reclamacao', None)
         justificativa = kwargs.get('justificativa', '')
+        link = f'{base_url}/gestao-produto/responder-questionamento-ue/?nome_produto={self.produto.nome}'
         log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_UE,
             usuario=user,
@@ -1473,6 +1505,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 arquivo=arquivo,
                 nome=anexo['nome']
             )
+        if reclamacao:
+            emails = [reclamacao.criado_por.email, reclamacao.escola.contato.email]
+            self._envia_email_codae_questiona_produto(reclamacao, log_transicao, emails, link)
 
     @xworkflows.after_transition('codae_autorizou_reclamacao')
     def _codae_autorizou_reclamacao_hook(self, *args, **kwargs):
@@ -2918,8 +2953,27 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = SolicitacaoMedicaoInicialWorkflow
     status = xwf_models.StateField(workflow_class)
 
+    rastro_lote = models.ForeignKey('escola.Lote',
+                                    on_delete=models.DO_NOTHING,
+                                    null=True,
+                                    blank=True,
+                                    related_name='%(app_label)s_%(class)s_rastro_lote',
+                                    editable=False)
+    rastro_terceirizada = models.ForeignKey('terceirizada.Terceirizada',
+                                            on_delete=models.DO_NOTHING,
+                                            null=True,
+                                            blank=True,
+                                            related_name='%(app_label)s_%(class)s_rastro_terceirizada',
+                                            editable=False)
+
+    def _salva_rastro_solicitacao(self):
+        self.rastro_lote = self.escola.lote
+        self.rastro_terceirizada = self.escola.lote.terceirizada
+        self.save()
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
@@ -3053,17 +3107,29 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     ACEITA = 'ACEITA'
     NEGADA = 'NEGADA'
     CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
+    APROVADO_DINUTRE = 'APROVADO_DINUTRE'
+    REPROVADO_DINUTRE = 'REPROVADO_DINUTRE'
+    APROVADO_DILOG = 'APROVADO_DILOG'
+    REPROVADO_DILOG = 'REPROVADO_DILOG'
 
     states = (
         (EM_ANALISE, 'Em análise'),
         (CRONOGRAMA_CIENTE, 'Cronograma ciente'),
+        (APROVADO_DINUTRE, 'Aprovado DINUTRE'),
+        (REPROVADO_DINUTRE, 'Reprovado DINUTRE'),
+        (APROVADO_DILOG, 'Aprovado DILOG'),
+        (REPROVADO_DILOG, 'Reprovado DILOG'),
         (ACEITA, 'Aceita'),
         (NEGADA, 'Negada'),
     )
 
     transitions = (
         ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
-        ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE)
+        ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE),
+        ('dinutre_aprova', CRONOGRAMA_CIENTE, APROVADO_DINUTRE),
+        ('dinutre_reprova', CRONOGRAMA_CIENTE, REPROVADO_DINUTRE),
+        ('dilog_aprova', [APROVADO_DINUTRE, REPROVADO_DINUTRE], APROVADO_DILOG),
+        ('dilog_reprova', [APROVADO_DINUTRE, REPROVADO_DINUTRE], REPROVADO_DILOG)
     )
 
     initial_state = EM_ANALISE
@@ -3086,6 +3152,38 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dinutre_aprova')
+    def _dinutre_aprova_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.APROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dinutre_reprova')
+    def _dinutre_reprova_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dilog_aprova')
+    def _dilog_aprova_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.APROVADO_DILOG_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dilog_reprova')
+    def _dilog_reprova_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.REPROVADO_DILOG_SOLICITACAO_ALTERACAO,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
 
