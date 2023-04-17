@@ -813,15 +813,15 @@ def test_criar_usuario_servidor_coresso(client_autenticado, escola, perfil_escol
     assert result == esperado
 
 
-def test_finaliza_vinculo(client_autenticado_dilog, usuario_3):
+def test_finaliza_vinculo(client_autenticado_codae_dilog, usuario_3):
     username = usuario_3.username
-    response = client_autenticado_dilog.post(f'/cadastro-com-coresso/{username}/finalizar-vinculo/',
+    response = client_autenticado_codae_dilog.post(f'/cadastro-com-coresso/{username}/finalizar-vinculo/',
                                              content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_edicao_email(client_autenticado_dilog, usuario_3):
+def test_edicao_email(client_autenticado_codae_dilog, usuario_3):
     username = usuario_3.username
     payload = {
         'username': username,
@@ -829,7 +829,7 @@ def test_edicao_email(client_autenticado_dilog, usuario_3):
     }
     api_redefine_email = 'sme_terceirizadas.eol_servico.utils.EOLServicoSGP.redefine_email'
     with patch(api_redefine_email):
-        response = client_autenticado_dilog.patch(f'/cadastro-com-coresso/{username}/alterar-email/',
+        response = client_autenticado_codae_dilog.patch(f'/cadastro-com-coresso/{username}/alterar-email/',
                                                   data=json.dumps(payload), content_type='application/json')
 
     result = response.json()
