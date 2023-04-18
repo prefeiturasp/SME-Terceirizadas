@@ -6,6 +6,7 @@ from rest_framework import status
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
+from ..models import ProdutoEdital
 
 pytestmark = pytest.mark.django_db
 
@@ -839,3 +840,66 @@ def test_url_endpoint_produto_actions(client_autenticado_vinculo_codae_produto, 
 
     response = client.get(f'/produtos/relatorio-situacao-produto/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_create_produtos_vinculos(client_autenticado_vinculo_codae_produto, produtos_edital_41):
+    data = {
+        'edital_origem': '12288b47-9d27-4089-8c2e-48a6061d83ea',
+        'tipo_produto_edital_origem': 'Comum',
+        'tipo_produto': 'Comum',
+        'editais_destino_selecionados': [
+            'b30a2102-2ae0-404d-8a56-8e5ecd73f868'
+        ],
+        'outras_informacoes': 'outras informações',
+        'produtos_editais': [
+            '0f81a49b-0836-42d5-af9e-12cbd7ca76a8'
+        ]
+    }
+    response = client_autenticado_vinculo_codae_produto.post(f'/produtos-editais/', data=json.dumps(data),
+                                                             content_type='application/json')
+    assert response.status_code == status.HTTP_201_CREATED
+    produto = ProdutoEdital.objects.get(uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8').produto
+    assert produto.vinculos.count() == 3
+    assert produto.vinculos.filter(edital__numero='Edital de Pregão nº 78/sme/2016').exists()
+    log = produto.homologacao.logs.last()
+    assert log.justificativa == (
+        '<p>Nome do Produto:</p>'
+        '<p>ARROZ</p><br>'
+        '<p>Editais que foram vinculados:</p>'
+        '<p>Edital de Pregão nº 78/sme/2016</p><br>'
+        '<p>Tipo de Produto em que o produto foi vinculado:</p>'
+        '<p>Comum</p><br>'
+        '<p>Outras informações:</p>'
+        '<p>outras informações</p>')
+
+
+def test_create_produtos_altera_vinculos_tipo_produto(client_autenticado_vinculo_codae_produto, produtos_edital_41):
+    data = {
+        'edital_origem': '12288b47-9d27-4089-8c2e-48a6061d83ea',
+        'tipo_produto_edital_origem': 'Comum',
+        'tipo_produto': 'Dieta especial',
+        'editais_destino_selecionados': [
+            '131f4000-3e31-44f1-9ba5-e7df001a8426'
+        ],
+        'outras_informacoes': 'outras informações',
+        'produtos_editais': [
+            '0f81a49b-0836-42d5-af9e-12cbd7ca76a8'
+        ]
+    }
+    response = client_autenticado_vinculo_codae_produto.post(f'/produtos-editais/', data=json.dumps(data),
+                                                             content_type='application/json')
+    assert response.status_code == status.HTTP_201_CREATED
+    produto = ProdutoEdital.objects.get(uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8').produto
+    assert produto.vinculos.count() == 2
+    assert produto.vinculos.filter(
+        edital__numero='Edital de Pregão nº 78/sme/2022', tipo_produto='Dieta especial').exists()
+    log = produto.homologacao.logs.last()
+    assert log.justificativa == (
+        '<p>Nome do Produto:</p>'
+        '<p>ARROZ</p><br>'
+        '<p>Editais que foram vinculados:</p>'
+        '<p>Edital de Pregão nº 78/sme/2022</p><br>'
+        '<p>Tipo de Produto alterado para:</p>'
+        '<p>Dieta especial</p><br>'
+        '<p>Outras informações:</p>'
+        '<p>outras informações</p>')
