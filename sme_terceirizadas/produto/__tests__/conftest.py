@@ -60,7 +60,10 @@ def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, 
 
 @pytest.fixture
 def produtos_edital_41(escola):
-    edital = mommy.make('Edital', numero='Edital de Pregão nº 41/sme/2017')
+    edital = mommy.make('Edital', numero='Edital de Pregão nº 41/sme/2017', uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
+    mommy.make('Edital', numero='Edital de Pregão nº 78/sme/2016', uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868')
+    edital_3 = mommy.make('Edital', numero='Edital de Pregão nº 78/sme/2022',
+                          uuid='131f4000-3e31-44f1-9ba5-e7df001a8426')
     marca_1 = mommy.make('Marca', nome='NAMORADOS')
     marca_2 = mommy.make('Marca', nome='TIO JOÃO')
     produto_1 = mommy.make('Produto', nome='ARROZ', marca=marca_1)
@@ -81,8 +84,12 @@ def produtos_edital_41(escola):
                uuid_original=homologacao_p2.uuid,
                status_evento=22,  # CODAE_HOMOLOGADO
                solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
-    mommy.make('ProdutoEdital', produto=produto_1, edital=edital)
-    mommy.make('ProdutoEdital', produto=produto_2, edital=edital)
+    mommy.make('ProdutoEdital', produto=produto_1, edital=edital, tipo_produto='Comum',
+               uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
+    mommy.make('ProdutoEdital', produto=produto_1, edital=edital_3, tipo_produto='Comum',
+               uuid='e42e3b97-6853-4327-841d-34292c33963c')
+    mommy.make('ProdutoEdital', produto=produto_2, edital=edital, tipo_produto='Comum',
+               uuid='38cdf4a8-6621-4248-8f5c-378d1bdbfb71')
 
 
 @pytest.fixture
