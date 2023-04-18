@@ -248,6 +248,8 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             queryset = self.get_queryset().order_by('-data_inicial')
 
+        queryset = queryset.filtrar_por_usernames_validos()
+
         queryset = [vinc for vinc in self.filter_queryset(
             queryset) if vinc.status is Vinculo.STATUS_ATIVO]
         page = self.paginate_queryset(queryset)
