@@ -579,6 +579,7 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
     ultima_homologacao = HomologacaoListagemSerializer()
     vinculos_produto_edital_ativos = serializers.SerializerMethodField()
     vinculos_produto_edital_suspensos = serializers.SerializerMethodField()
+    produto_edital_tipo_produto = serializers.SerializerMethodField()
 
     def get_vinculos_produto_edital_ativos(self, obj):
         editais = obj.vinculos.filter(suspenso=False)
@@ -587,6 +588,16 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
     def get_vinculos_produto_edital_suspensos(self, obj):
         editais = obj.vinculos.filter(suspenso=True)
         return ', '.join(editais.values_list('edital__numero', flat=True))
+
+    def get_produto_edital_tipo_produto(self, obj):
+        nome_edital = self.context.get('nome_edital')
+        try:
+            if nome_edital:
+                produto_edital = ProdutoEdital.objects.get(produto=obj, edital__numero=nome_edital)
+                return produto_edital.tipo_produto
+            return None
+        except ProdutoEdital.DoesNotExist:
+            return None
 
     class Meta:
         model = Produto
