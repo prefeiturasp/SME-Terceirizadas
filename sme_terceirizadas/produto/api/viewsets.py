@@ -1120,10 +1120,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             else:
                 queryset = queryset.filter(homologacao__status__in=filter_status)
         page = self.paginate_queryset(queryset)
+        nome_edital = request.query_params.get('nome_edital', None)
         if page is not None:
-            serializer = ProdutoListagemSerializer(page, context={'status': filter_status}, many=True)
+            serializer = ProdutoListagemSerializer(
+                page, context={'status': filter_status, 'nome_edital': nome_edital}, many=True)
             return self.get_paginated_response(serializer.data)
-        serializer = ProdutoListagemSerializer(queryset, context={'status': filter_status}, many=True)
+        serializer = ProdutoListagemSerializer(
+            queryset, context={'status': filter_status, 'nome_edital': nome_edital}, many=True)
         return Response(serializer.data)
 
     def paginated_response(self, queryset):
