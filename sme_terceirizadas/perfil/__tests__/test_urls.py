@@ -736,11 +736,11 @@ def test_recuperar_senha_invalido(client, usuarios_pendentes_confirmacao):
     assert response.json() == {
         'detail': 'Não existe usuário com este CPF ou RF'}
 
-
+# Vinculo do usuário logado não conta como ativo, retornando 0
 def test_busca_vinculos_ativos(client_autenticado_codae_dilog, users_terceirizada):
     response = client_autenticado_codae_dilog.get(f'/vinculos/vinculos-ativos/')
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()['count'] == 1
+    assert response.json()['count'] == 0
 
 
 def test_busca_vinculos_ativos_com_filtro(client_autenticado_codae_dilog, users_terceirizada):
