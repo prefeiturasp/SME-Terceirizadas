@@ -903,3 +903,15 @@ def test_create_produtos_altera_vinculos_tipo_produto(client_autenticado_vinculo
         '<p>Dieta especial</p><br>'
         '<p>Outras informações:</p>'
         '<p>outras informações</p>')
+
+
+def test_produto_viewset_list(client_autenticado_vinculo_codae_produto, produtos_edital_41):
+    response = client_autenticado_vinculo_codae_produto.get(
+        f'/produtos/?nome_edital=Edital de Pregão nº 41/sme/2017'
+        f'&tipo_produto_comum=true'
+        f'&eh_para_alunos_com_dieta=false'
+        f'&page=1'
+        f'&page_size=10')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 2
+    assert response.json()['results'][0]['produto_edital_tipo_produto'] == 'Comum'
