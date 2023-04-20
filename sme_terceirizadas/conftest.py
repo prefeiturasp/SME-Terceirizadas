@@ -147,6 +147,27 @@ def client_autenticado_codae_dilog(client, django_user_model):
 
 
 @pytest.fixture
+def client_autenticado_representante_codae(client, django_user_model):
+    email = 'test@test.com'
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(username='8888888', password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_admin_dilog = mommy.make('Perfil',
+                                    nome=constants.ADMINISTRADOR_REPRESENTANTE_CODAE,
+                                    ativo=True)
+    codae = mommy.make('Codae')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=codae,
+               perfil=perfil_admin_dilog,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
 def client_autenticado_qualidade(client, django_user_model):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
