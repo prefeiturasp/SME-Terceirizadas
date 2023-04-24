@@ -36,7 +36,6 @@ from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
-    relatorio_dietas_especiais_terceirizada,
     relatorio_quantitativo_classificacao_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas,
@@ -63,6 +62,7 @@ from ..models import (
     SubstituicaoAlimento,
     TipoContagem
 )
+from ..tasks import gera_pdf_relatorio_dietas_especiais_terceirizadas_async
 from ..utils import ProtocoloPadraoPagination, RelatorioPagination
 from .filters import AlimentoFilter, DietaEspecialFilter, LogQuantidadeDietasEspeciaisFilter, MotivoNegacaoFilter
 from .serializers import (
@@ -982,7 +982,7 @@ class SolicitacaoDietaEspecialViewSet(
 
     @action(detail=False, methods=['GET'], url_path='exportar-pdf')
     def exportar_pdf(self, request):
-        user = self.request.user
+        user = request.user.get_username()
         query_set = self.filter_queryset(self.get_queryset())
         map_filtros = {
             'protocolo_padrao__uuid__in': request.query_params.getlist('protocolos_padrao_selecionados[]', None),
@@ -1006,39 +1006,22 @@ class SolicitacaoDietaEspecialViewSet(
                 SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
                 SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
             ])
-        solicitacoes = []
-        for solicitacao in query_set:
-            classificacao = solicitacao.classificacao.nome if solicitacao.classificacao else '--'
-            dados_solicitacoes = {
-                'codigo_eol_aluno': solicitacao.aluno.codigo_eol,
-                'nome_aluno': solicitacao.aluno.nome,
-                'nome_escola': solicitacao.escola.nome,
-                'classificacao': classificacao,
-                'protocolo_padrao': solicitacao.nome_protocolo,
-                'alergias_intolerancias': solicitacao.alergias_intolerancias
-            }
-            if data.get('status_selecionado') == 'CANCELADAS':
-                dados_solicitacoes['data_cancelamento'] = solicitacao.data_ultimo_log
-            solicitacoes.append(dados_solicitacoes)
+        ids_dietas = list(query_set.values_list('id', flat=True))
         filtros = self.build_texto(
             request.query_params.getlist('lotes_selecionados[]', None),
             request.query_params.getlist('classificacoes_selecionadas[]', None),
             request.query_params.getlist('protocolos_padrao_selecionados[]', None),
-            None,
-            None)
-        exibir_diagnostico = request.user.tipo_usuario in [
-            constants.TIPO_USUARIO_NUTRISUPERVISOR
-        ]
-        dados = {
-            'usuario_nome': user.nome,
-            'status': data.get('status_selecionado').lower(),
-            'filtros': filtros,
-            'solicitacoes': solicitacoes,
-            'quantidade_solicitacoes': query_set.count(),
-            'diagnostico': exibir_diagnostico
-        }
-
-        return relatorio_dietas_especiais_terceirizada(request, dados=dados)
+            request.query_params.get('data_inicial', None),
+            request.query_params.get('data_final', None))
+        gera_pdf_relatorio_dietas_especiais_terceirizadas_async.delay(
+            user=user,
+            data=request.query_params,
+            nome_arquivo=f'relatorio_dietas_especiais.pdf',
+            ids_dietas=ids_dietas,
+            filtros=filtros
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
