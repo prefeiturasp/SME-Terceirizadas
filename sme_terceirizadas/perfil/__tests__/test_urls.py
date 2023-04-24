@@ -737,10 +737,11 @@ def test_recuperar_senha_invalido(client, usuarios_pendentes_confirmacao):
         'detail': 'Não existe usuário com este CPF ou RF'}
 
 
-def test_busca_vinculos_ativos(client_autenticado_representante_codae, users_terceirizada):
+def test_busca_sem_vinculos_ativos(client_autenticado_representante_codae, users_terceirizada):
+    """Teste para verificar se não retorna o usuário logado no vínculo."""
     response = client_autenticado_representante_codae.get(f'/vinculos/vinculos-ativos/')
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()['count'] == 2
+    assert response.json()['count'] == 0
 
 
 def test_busca_vinculos_ativos_com_filtro(client_autenticado_codae_dilog, users_terceirizada):
