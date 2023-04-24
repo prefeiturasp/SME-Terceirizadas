@@ -944,7 +944,7 @@ class SolicitacoesEscola(MoldeConsolidado):
                 status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL_TEMP,
                 status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP,
             ) | Q(
-                tipo_solicitacao_dieta='COMUM',
+                tipo_solicitacao_dieta__in=['COMUM', 'ALUNO_NAO_MATRICULADO'],
                 status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
                 status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
                 escola_uuid=escola_uuid
