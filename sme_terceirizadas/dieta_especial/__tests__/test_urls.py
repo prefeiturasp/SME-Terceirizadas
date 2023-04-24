@@ -725,33 +725,23 @@ def test_gerar_protocolo_dieta_especial_relatorio(client_autenticado, solicitaca
 
 def test_relatorio_dieta_especial_terceirizada_lista_autorizadas(client_autenticado,
                                                                  solicitacao_dieta_especial_autorizada):
-    data = {'status': 'AUTORIZADAS',
-            'terceirizada_uuid': 'a8fefdd3-b5ff-47e0-8338-ce5d7c6d8a52'}
     assert Terceirizada.objects.count() == 1
-    response = client_autenticado.post(
-        '/solicitacoes-dieta-especial/relatorio-dieta-especial-terceirizada/', data=data
+    response = client_autenticado.get(
+        '/solicitacoes-dieta-especial/relatorio-dieta-especial-terceirizada/'
+        '?status_selecionado=AUTORIZADAS&'
+        'terceirizada=a8fefdd3-b5ff-47e0-8338-ce5d7c6d8a52'
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()) == 1
+    assert len(response.json()['results']) == 1
 
 
 def test_relatorio_dieta_especial_terceirizada_lista_canceladas(client_autenticado,
                                                                 solicitacao_dieta_especial_codae_autorizou_inativacao):
-    data = {'status': 'CANCELADAS'}
-    response = client_autenticado.post(
-        '/solicitacoes-dieta-especial/relatorio-dieta-especial-terceirizada/', data=data
+    response = client_autenticado.get(
+        '/solicitacoes-dieta-especial/relatorio-dieta-especial-terceirizada/?status_selecionado=CANCELADAS'
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()) == 1
-
-
-def test_relatorio_dieta_especial_terceirizada_lista_validation_error(
-        client_autenticado, solicitacao_dieta_especial_codae_autorizou_inativacao):
-    data = {'status': 'canceladas'}
-    response = client_autenticado.post(
-        '/solicitacoes-dieta-especial/relatorio-dieta-especial-terceirizada/', data=data
-    )
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert len(response.json()['results']) == 1
 
 
 def test_imprime_relatorio_dieta_especial(client_autenticado, solicitacao_dieta_especial_autorizada):
