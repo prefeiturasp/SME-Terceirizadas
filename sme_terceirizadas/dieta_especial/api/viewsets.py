@@ -1071,12 +1071,6 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         response = {'results': ProtocoloPadraoDietaEspecialSimplesSerializer(protocolos_liberados, many=True).data}
         return Response(response)
 
-    @action(detail=True, methods=['GET'], url_path='historico')
-    def historico(self, request, uuid=None):
-        import json
-        protocolo_padrao: ProtocoloPadraoDietaEspecial = self.get_object()
-        return Response({'results': json.loads(protocolo_padrao.historico) if protocolo_padrao.historico else []})
-
 
 class LogQuantidadeDietasAutorizadasViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = LogQuantidadeDietasAutorizadasSerializer
