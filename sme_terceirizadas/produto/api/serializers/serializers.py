@@ -438,6 +438,7 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
     tem_vinculo_produto_edital_suspenso = serializers.SerializerMethodField()
     data_edital_suspenso_mais_recente = serializers.SerializerMethodField()
     editais = serializers.SerializerMethodField()
+    produto_editais = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -490,11 +491,15 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
             )
         return editais
 
+    def get_produto_editais(self, obj):
+        return obj.produto.vinculos.all().values_list('edital__numero', flat=True)
+
     class Meta:
         model = HomologacaoProduto
         fields = ('uuid', 'nome_produto', 'marca_produto', 'fabricante_produto', 'status', 'id_externo',
                   'log_mais_recente', 'nome_usuario_log_de_reclamacao', 'qtde_reclamacoes', 'qtde_questionamentos',
-                  'tem_vinculo_produto_edital_suspenso', 'data_edital_suspenso_mais_recente', 'editais')
+                  'tem_vinculo_produto_edital_suspenso', 'data_edital_suspenso_mais_recente', 'editais',
+                  'produto_editais')
 
 
 class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
@@ -574,6 +579,7 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
     ultima_homologacao = HomologacaoListagemSerializer()
     vinculos_produto_edital_ativos = serializers.SerializerMethodField()
     vinculos_produto_edital_suspensos = serializers.SerializerMethodField()
+    produto_edital_tipo_produto = serializers.SerializerMethodField()
 
     def get_vinculos_produto_edital_ativos(self, obj):
         editais = obj.vinculos.filter(suspenso=False)
@@ -582,6 +588,16 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
     def get_vinculos_produto_edital_suspensos(self, obj):
         editais = obj.vinculos.filter(suspenso=True)
         return ', '.join(editais.values_list('edital__numero', flat=True))
+
+    def get_produto_edital_tipo_produto(self, obj):
+        nome_edital = self.context.get('nome_edital')
+        try:
+            if nome_edital:
+                produto_edital = ProdutoEdital.objects.get(produto=obj, edital__numero=nome_edital)
+                return produto_edital.tipo_produto
+            return None
+        except ProdutoEdital.DoesNotExist:
+            return None
 
     class Meta:
         model = Produto

@@ -737,15 +737,15 @@ def test_recuperar_senha_invalido(client, usuarios_pendentes_confirmacao):
         'detail': 'Não existe usuário com este CPF ou RF'}
 
 
-# Testa se vem 2 vinculos, pois no conftest users_terceirizada existem 3, porém só 2 ativos
-def test_busca_vinculos_ativos(client, users_terceirizada):
-    response = client.get(f'/vinculos/vinculos-ativos/')
+def test_busca_sem_vinculos_ativos(client_autenticado_representante_codae, users_terceirizada):
+    """Teste para verificar se não retorna o usuário logado no vínculo."""
+    response = client_autenticado_representante_codae.get(f'/vinculos/vinculos-ativos/')
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()['count'] == 2
+    assert response.json()['count'] == 0
 
 
-def test_busca_vinculos_ativos_com_filtro(client, users_terceirizada):
-    response = client.get(f'/vinculos/vinculos-ativos/?perfil=ADMINISTRADOR_EMPRESA')
+def test_busca_vinculos_ativos_com_filtro(client_autenticado_codae_dilog, users_terceirizada):
+    response = client_autenticado_codae_dilog.get(f'/vinculos/vinculos-ativos/?perfil=ADMINISTRADOR_EMPRESA')
     assert response.status_code == status.HTTP_200_OK
     for resultado in response.json()['results']:
         assert resultado.get('nome_perfil') == 'ADMINISTRADOR_EMPRESA'
@@ -813,15 +813,15 @@ def test_criar_usuario_servidor_coresso(client_autenticado, escola, perfil_escol
     assert result == esperado
 
 
-def test_finaliza_vinculo(client_autenticado_dilog, usuario_3):
+def test_finaliza_vinculo(client_autenticado_codae_dilog, usuario_3):
     username = usuario_3.username
-    response = client_autenticado_dilog.post(f'/cadastro-com-coresso/{username}/finalizar-vinculo/',
-                                             content_type='application/json')
+    response = client_autenticado_codae_dilog.post(f'/cadastro-com-coresso/{username}/finalizar-vinculo/',
+                                                   content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_edicao_email(client_autenticado_dilog, usuario_3):
+def test_edicao_email(client_autenticado_codae_dilog, usuario_3):
     username = usuario_3.username
     payload = {
         'username': username,
@@ -829,8 +829,8 @@ def test_edicao_email(client_autenticado_dilog, usuario_3):
     }
     api_redefine_email = 'sme_terceirizadas.eol_servico.utils.EOLServicoSGP.redefine_email'
     with patch(api_redefine_email):
-        response = client_autenticado_dilog.patch(f'/cadastro-com-coresso/{username}/alterar-email/',
-                                                  data=json.dumps(payload), content_type='application/json')
+        response = client_autenticado_codae_dilog.patch(f'/cadastro-com-coresso/{username}/alterar-email/',
+                                                        data=json.dumps(payload), content_type='application/json')
 
     result = response.json()
     u = Usuario.objects.filter(username=username).first()
@@ -840,15 +840,15 @@ def test_edicao_email(client_autenticado_dilog, usuario_3):
     assert u.email == 'teste_servidor_novo_email@teste.com'
 
 
-def test_create_planilha_externo_coresso(client_autenticado_dilog, arquivo_xls, arquivo_pdf):
+def test_create_planilha_externo_coresso(client_autenticado_codae_dilog, arquivo_xls, arquivo_pdf):
     payload = {
         'conteudo': arquivo_xls
     }
     payload_extensao_invalida = {
         'conteudo': arquivo_pdf
     }
-    response = client_autenticado_dilog.post(f'/planilha-coresso-externo/', data=payload, format='multipart')
-    response_erro_forcado = client_autenticado_dilog.post(
+    response = client_autenticado_codae_dilog.post(f'/planilha-coresso-externo/', data=payload, format='multipart')
+    response_erro_forcado = client_autenticado_codae_dilog.post(
         f'/planilha-coresso-externo/', data=payload_extensao_invalida, format='multipart')
     result = json.loads(response.content)
 
@@ -859,48 +859,48 @@ def test_create_planilha_externo_coresso(client_autenticado_dilog, arquivo_xls, 
     assert response_erro_forcado.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_processar_planilha_externo_coresso(client_autenticado_dilog, planilha_usuario_externo, arquivo_xls):
+def test_processar_planilha_externo_coresso(client_autenticado_codae_dilog, planilha_usuario_externo, arquivo_xls):
     assert ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.get(uuid=planilha_usuario_externo.uuid).status == 'PENDENTE'
     api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso'  # noqa
     with patch(api_cria_ou_atualiza_usuario_core_sso):
-        response = client_autenticado_dilog.post(
+        response = client_autenticado_codae_dilog.post(
             f'/planilha-coresso-externo/{planilha_usuario_externo.uuid}/processar-importacao/')
-        response2 = client_autenticado_dilog.post(
+        response2 = client_autenticado_codae_dilog.post(
             '/planilha-coresso-externo/F38e10da-c5e3-4dd5-9916-010fc250595a/processar-importacao/')
 
     assert response.status_code == status.HTTP_200_OK
     assert response2.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_remover_planilha_externo_coresso(client_autenticado_dilog, planilha_usuario_externo, arquivo_xls):
-    response = client_autenticado_dilog.patch(
+def test_remover_planilha_externo_coresso(client_autenticado_codae_dilog, planilha_usuario_externo, arquivo_xls):
+    response = client_autenticado_codae_dilog.patch(
         f'/planilha-coresso-externo/{planilha_usuario_externo.uuid}/remover/')
-    response2 = client_autenticado_dilog.patch(
+    response2 = client_autenticado_codae_dilog.patch(
         '/planilha-coresso-externo/F38e10da-c5e3-4dd5-9916-010fc250595a/remover/')
 
     assert response.status_code == status.HTTP_200_OK
     assert response2.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_busca_planilha_coresso_externo(client_autenticado_dilog, planilha_usuario_externo):
-    response = client_autenticado_dilog.get(f'/planilha-coresso-externo/')
+def test_busca_planilha_coresso_externo(client_autenticado_codae_dilog, planilha_usuario_externo):
+    response = client_autenticado_codae_dilog.get(f'/planilha-coresso-externo/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_download_planilha_modelo_coresso_externo(client_autenticado_dilog):
-    response = client_autenticado_dilog.get(f'/planilha-coresso-externo/download-planilha-nao-servidor/')
+def test_download_planilha_modelo_coresso_externo(client_autenticado_codae_dilog):
+    response = client_autenticado_codae_dilog.get(f'/planilha-coresso-externo/download-planilha-nao-servidor/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_create_planilha_servidor_coresso(client_autenticado_dilog, arquivo_xls, arquivo_pdf):
+def test_create_planilha_servidor_coresso(client_autenticado_codae_dilog, arquivo_xls, arquivo_pdf):
     payload = {
         'conteudo': arquivo_xls
     }
     payload_extensao_invalida = {
         'conteudo': arquivo_pdf
     }
-    response = client_autenticado_dilog.post(f'/planilha-coresso-servidor/', data=payload, format='multipart')
-    response_erro_forcado = client_autenticado_dilog.post(
+    response = client_autenticado_codae_dilog.post(f'/planilha-coresso-servidor/', data=payload, format='multipart')
+    response_erro_forcado = client_autenticado_codae_dilog.post(
         f'/planilha-coresso-servidor/', data=payload_extensao_invalida, format='multipart')
     result = json.loads(response.content)
 
@@ -911,40 +911,40 @@ def test_create_planilha_servidor_coresso(client_autenticado_dilog, arquivo_xls,
     assert response_erro_forcado.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_processar_planilha_servidor_coresso(client_autenticado_dilog, planilha_usuario_servidor, arquivo_xls):
+def test_processar_planilha_servidor_coresso(client_autenticado_codae_dilog, planilha_usuario_servidor, arquivo_xls):
     assert ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.get(
         uuid=planilha_usuario_servidor.uuid).status == 'PENDENTE'
     api_cria_ou_atualiza_usuario_core_sso = 'sme_terceirizadas.perfil.services.usuario_coresso_service.EOLUsuarioCoreSSO.cria_ou_atualiza_usuario_core_sso'  # noqa
     with patch(api_cria_ou_atualiza_usuario_core_sso):
-        response = client_autenticado_dilog.post(
+        response = client_autenticado_codae_dilog.post(
             f'/planilha-coresso-servidor/{planilha_usuario_servidor.uuid}/processar-importacao/')
-        response2 = client_autenticado_dilog.post(
+        response2 = client_autenticado_codae_dilog.post(
             '/planilha-coresso-servidor/F38e10da-c5e3-4dd5-9916-010fc250595a/processar-importacao/')
 
     assert response.status_code == status.HTTP_200_OK
     assert response2.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_remover_planilha_servidor_coresso(client_autenticado_dilog, planilha_usuario_servidor, arquivo_xls):
-    response = client_autenticado_dilog.patch(
+def test_remover_planilha_servidor_coresso(client_autenticado_codae_dilog, planilha_usuario_servidor, arquivo_xls):
+    response = client_autenticado_codae_dilog.patch(
         f'/planilha-coresso-servidor/{planilha_usuario_servidor.uuid}/remover/')
-    response2 = client_autenticado_dilog.patch(
+    response2 = client_autenticado_codae_dilog.patch(
         '/planilha-coresso-servidor/F38e10da-c5e3-4dd5-9916-010fc250595a/remover/')
 
     assert response.status_code == status.HTTP_200_OK
     assert response2.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_busca_planilha_coresso_servidor(client_autenticado_dilog, planilha_usuario_servidor):
-    response = client_autenticado_dilog.get(f'/planilha-coresso-servidor/')
+def test_busca_planilha_coresso_servidor(client_autenticado_codae_dilog, planilha_usuario_servidor):
+    response = client_autenticado_codae_dilog.get(f'/planilha-coresso-servidor/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_get_perfis_vinculados(client_autenticado_dilog, perfis_vinculados):
-    response = client_autenticado_dilog.get(f'/perfis-vinculados/')
+def test_get_perfis_vinculados(client_autenticado_codae_dilog, perfis_vinculados):
+    response = client_autenticado_codae_dilog.get(f'/perfis-vinculados/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_get_perfis_vinculados_subordinados(client_autenticado_dilog, perfis_vinculados):
-    response = client_autenticado_dilog.get(f'/perfis-vinculados/ADMINISTRADOR_EMPRESA/perfis-subordinados/')
+def test_get_perfis_vinculados_subordinados(client_autenticado_codae_dilog, perfis_vinculados):
+    response = client_autenticado_codae_dilog.get(f'/perfis-vinculados/ADMINISTRADOR_EMPRESA/perfis-subordinados/')
     assert response.status_code == status.HTTP_200_OK

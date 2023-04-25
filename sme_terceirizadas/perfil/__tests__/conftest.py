@@ -359,9 +359,9 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
 ])
 def users_terceirizada(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+    user = django_user_model.objects.create_user(username=rf, password=password, email=email,
                                                  registro_funcional=rf, cpf=cpf)
-    client.login(username=email, password=password)
+    client.login(username=rf, password=password)
     mommy.make('Codae')
     terceirizada = mommy.make('Terceirizada', nome_fantasia='Alimentos LTDA',
                               uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
