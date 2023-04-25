@@ -571,7 +571,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path='filtrar-solicitacoes-ga',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+            permission_classes=([UsuarioCODAEGestaoAlimentacao | UsuarioNutricionista]))
     def filtrar_solicitacoes_ga(self, request):
         # queryset por status
         queryset = self.filtrar_solicitacoes_para_relatorio(request)
