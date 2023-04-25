@@ -1,7 +1,7 @@
 from django_filters import rest_framework as filters
 
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
-from ..models import Alimento, ClassificacaoDieta, MotivoNegacao
+from ..models import Alimento, ClassificacaoDieta, MotivoNegacao, ProtocoloPadraoDietaEspecial
 
 
 class DietaEspecialFilter(filters.FilterSet):
@@ -21,6 +21,9 @@ class DietaEspecialFilter(filters.FilterSet):
                                                       queryset=ClassificacaoDieta.objects.all())
     status = filters.MultipleChoiceFilter(choices=[(str(state), state) for state in DietaEspecialWorkflow.states])
     terceirizada = filters.CharFilter(field_name='rastro_terceirizada__uuid', lookup_expr='iexact')
+    protocolos_padrao = filters.ModelMultipleChoiceFilter(field_name='protocolo_padrao__uuid',
+                                                          to_field_name='uuid',
+                                                          queryset=ProtocoloPadraoDietaEspecial.objects.all())
 
 
 class AlimentoFilter(filters.FilterSet):
