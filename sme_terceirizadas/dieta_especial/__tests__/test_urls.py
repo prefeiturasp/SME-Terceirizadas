@@ -856,7 +856,7 @@ def test_filtros_relatorio_dieta_especial_validation_error(client_autenticado_vi
         '&status=AUTORIZADAS')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        "status": ["Faça uma escolha válida. AUTORIZADAS não é uma das escolhas disponíveis."]
+        'status': ['Faça uma escolha válida. AUTORIZADAS não é uma das escolhas disponíveis.']
     }
 
 
