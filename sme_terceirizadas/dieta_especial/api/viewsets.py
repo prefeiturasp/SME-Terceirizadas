@@ -679,8 +679,7 @@ class SolicitacaoDietaEspecialViewSet(
                 'alergias_intolerancias_selecionadas[]', None),
             'classificacao__id__in': request.query_params.getlist('classificacoes_selecionadas[]', None),
             'escola_destino__lote__uuid__in': request.query_params.getlist('lotes_selecionados[]', None),
-            'escola_destino__codigo_eol__in': request.query_params.getlist('unidades_educacionais_selecionadas[]',
-                                                                           None),
+            'escola_destino__codigo_eol__in': request.query_params.getlist('unidades_educacionais_selecionadas[]', None)
         }
         filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
         query_set = query_set.filter(**filtros)
@@ -701,48 +700,42 @@ class SolicitacaoDietaEspecialViewSet(
 
     @action(detail=False, methods=('get',), url_path='filtros-relatorio-dieta-especial')
     def filtros_relatorio_dieta_especial(self, request):
-        try:
-            query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
 
-            lotes_dict = dict(
-                set(query_set.values_list('escola_destino__lote__nome', 'escola_destino__lote__uuid')))
-            lotes = sorted([{'nome': key, 'uuid': lotes_dict[key]} for key in lotes_dict.keys() if key],
-                           key=lambda lote: lote['nome'])
+        lotes_dict = dict(
+            set(query_set.values_list('escola_destino__lote__nome', 'escola_destino__lote__uuid')))
+        lotes = sorted([{'nome': key, 'uuid': lotes_dict[key]} for key in lotes_dict.keys() if key],
+                       key=lambda lote: lote['nome'])
 
-            classificacoes_dict = dict(set(query_set.values_list('classificacao__nome', 'classificacao__id')))
-            classificacoes = sorted([{'nome': key, 'id': classificacoes_dict[key]}
-                                     for key in classificacoes_dict.keys() if key],
-                                    key=lambda classificacao: classificacao['nome'])
+        classificacoes_dict = dict(set(query_set.values_list('classificacao__nome', 'classificacao__id')))
+        classificacoes = sorted([{'nome': key, 'id': classificacoes_dict[key]}
+                                 for key in classificacoes_dict.keys() if key],
+                                key=lambda classificacao: classificacao['nome'])
 
-            protocolos_padrao_dict = dict(
-                set(query_set.values_list('protocolo_padrao__nome_protocolo', 'protocolo_padrao__uuid')))
-            protocolos_padrao = sorted([{'nome': key, 'uuid': protocolos_padrao_dict[key]}
-                                        for key in protocolos_padrao_dict.keys() if key],
-                                       key=lambda protocolo_padrao: protocolo_padrao['nome'])
+        protocolos_padrao_dict = dict(
+            set(query_set.values_list('protocolo_padrao__nome_protocolo', 'protocolo_padrao__uuid')))
+        protocolos_padrao = sorted([{'nome': key, 'uuid': protocolos_padrao_dict[key]}
+                                    for key in protocolos_padrao_dict.keys() if key],
+                                   key=lambda protocolo_padrao: protocolo_padrao['nome'])
 
-            alergias_intolerancias_dict = dict(
-                set(query_set.values_list('alergias_intolerancias__descricao', 'alergias_intolerancias__id')))
-            alergias_intolerancias = sorted([{'nome': key, 'id': alergias_intolerancias_dict[key]}
-                                             for key in alergias_intolerancias_dict.keys() if key],
-                                            key=lambda alergia_intolerancia: alergia_intolerancia['nome'])
+        alergias_intolerancias_dict = dict(
+            set(query_set.values_list('alergias_intolerancias__descricao', 'alergias_intolerancias__id')))
+        alergias_intolerancias = sorted([{'nome': key, 'id': alergias_intolerancias_dict[key]}
+                                         for key in alergias_intolerancias_dict.keys() if key],
+                                        key=lambda alergia_intolerancia: alergia_intolerancia['nome'])
 
-            return Response({'alergias_intolerancias': alergias_intolerancias,
-                             'classificacoes': classificacoes,
-                             'lotes': lotes,
-                             'protocolos_padrao': protocolos_padrao},
-                            status=status.HTTP_200_OK)
-        except ValidationError as error:
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'alergias_intolerancias': alergias_intolerancias,
+                         'classificacoes': classificacoes,
+                         'lotes': lotes,
+                         'protocolos_padrao': protocolos_padrao},
+                        status=status.HTTP_200_OK)
 
     @action(detail=False, methods=('get',), url_path='relatorio-dieta-especial-terceirizada')
     def relatorio_dieta_especial_terceirizada(self, request):  # noqa C901
-        try:
-            query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
-            page = self.paginate_queryset(query_set)
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        except ValidationError as error:
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=['POST'], url_path='panorama-escola')
     def panorama_escola(self, request):

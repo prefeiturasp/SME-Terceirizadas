@@ -847,3 +847,28 @@ def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados(client_aut
         f'/protocolo-padrao-dieta-especial/lista-protocolos-liberados/?dieta_especial_uuid={dieta_especial_uuid}')
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']) == 2
+
+
+def test_filtros_relatorio_dieta_especial_validation_error(client_autenticado_vinculo_terceirizada_dieta):
+    response = client_autenticado_vinculo_terceirizada_dieta.get(
+        '/solicitacoes-dieta-especial/filtros-relatorio-dieta-especial/'
+        '?terceirizada=a8fefdd3-b5ff-47e0-8338-ce5d7c6d8a52'
+        '&status=AUTORIZADAS')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        "status": ["Faça uma escolha válida. AUTORIZADAS não é uma das escolhas disponíveis."]
+    }
+
+
+def test_filtros_relatorio_dieta_especial_success(client_autenticado_vinculo_terceirizada_dieta):
+    response = client_autenticado_vinculo_terceirizada_dieta.get(
+        '/solicitacoes-dieta-especial/filtros-relatorio-dieta-especial/'
+        '?terceirizada=a8fefdd3-b5ff-47e0-8338-ce5d7c6d8a52'
+        '&status_selecionado=AUTORIZADAS')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        'alergias_intolerancias': [],
+        'classificacoes': [{'nome': 'Tipo A', 'id': 1}],
+        'lotes': [{'nome': 'LOTE 07', 'uuid': '429446c2-5b17-4ada-96ae-cce369dd4ae1'}],
+        'protocolos_padrao': [{'nome': 'ALERGIA - OVO', 'uuid': '5d7f80b8-7b62-441b-89da-4d5dd5c1e7e8'}]
+    }
