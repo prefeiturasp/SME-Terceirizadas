@@ -671,23 +671,36 @@ class SolicitacaoDietaEspecialViewSet(
         except ValidationError as error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
+    def filtrar_queryset_relatorio_dieta_especial(self, request):
+        query_set = self.filter_queryset(self.get_queryset())
+        map_filtros = {
+            'protocolo_padrao__uuid__in': request.query_params.getlist('protocolos_padrao_selecionados[]', None),
+            'classificacao__id__in': request.query_params.getlist('classificacoes_selecionadas[]', None),
+            'escola_destino__lote__uuid__in': request.query_params.getlist('lotes_selecionados[]', None),
+            'escola_destino__codigo_eol__in': request.query_params.getlist('unidades_educacionais_selecionadas[]',
+                                                                           None),
+        }
+        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
+        query_set = query_set.filter(**filtros)
+        data = request.query_params
+        if data.get('status_selecionado') == 'AUTORIZADAS':
+            query_set = query_set.filter(
+                status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO,
+                ativo=True
+            )
+        elif data.get('status_selecionado') == 'CANCELADAS':
+            query_set = query_set.filter(status__in=[
+                SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
+                SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZOU_INATIVACAO,
+                SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
+                SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+            ])
+        return query_set
+
     @action(detail=False, methods=('get',), url_path='filtros-relatorio-dieta-especial')
     def filtros_relatorio_dieta_especial(self, request):
         try:
-            query_set = self.filter_queryset(self.get_queryset())
-            data = request.query_params
-            if data.get('status_selecionado') == 'AUTORIZADAS':
-                query_set = query_set.filter(
-                    status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO,
-                    ativo=True
-                )
-            elif data.get('status_selecionado') == 'CANCELADAS':
-                query_set = query_set.filter(status__in=[
-                    SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
-                    SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZOU_INATIVACAO,
-                    SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
-                    SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-                ])
+            query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
 
             lotes_dict = dict(
                 set(query_set.values_list('escola_destino__lote__nome', 'escola_destino__lote__uuid')))
@@ -722,29 +735,7 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=False, methods=('get',), url_path='relatorio-dieta-especial-terceirizada')
     def relatorio_dieta_especial_terceirizada(self, request):  # noqa C901
         try:
-            query_set = self.filter_queryset(self.get_queryset())
-            map_filtros = {
-                'protocolo_padrao__uuid__in': request.query_params.getlist('protocolos_padrao_selecionados[]', None),
-                'classificacao__id__in': request.query_params.getlist('classificacoes_selecionadas[]', None),
-                'escola_destino__lote__uuid__in': request.query_params.getlist('lotes_selecionados[]', None),
-                'escola_destino__codigo_eol__in': request.query_params.getlist('unidades_educacionais_selecionadas[]',
-                                                                               None),
-            }
-            filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
-            query_set = query_set.filter(**filtros)
-            data = request.query_params
-            if data.get('status_selecionado') == 'AUTORIZADAS':
-                query_set = query_set.filter(
-                    status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO,
-                    ativo=True
-                )
-            elif data.get('status_selecionado') == 'CANCELADAS':
-                query_set = query_set.filter(status__in=[
-                    SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
-                    SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZOU_INATIVACAO,
-                    SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
-                    SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-                ])
+            query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
             page = self.paginate_queryset(query_set)
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
@@ -826,31 +817,10 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=False, methods=['GET'], url_path='exportar-xlsx')
     def exportar_xlsx(self, request):
         """TODO: ver porque nao pode importar o pandas via pytest."""
-        query_set = self.filter_queryset(self.get_queryset())
-        map_filtros = {
-            'protocolo_padrao__uuid__in': request.query_params.getlist('protocolos_padrao_selecionados[]', None),
-            'classificacao__id__in': request.query_params.getlist('classificacoes_selecionadas[]', None),
-            'escola_destino__lote__uuid__in': request.query_params.getlist('lotes_selecionados[]', None),
-            'escola_destino__codigo_eol__in': request.query_params.getlist('unidades_educacionais_selecionadas[]',
-                                                                           None),
-        }
-        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
-        query_set = query_set.filter(**filtros)
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
         data = request.query_params
-        if data.get('status_selecionado') == 'AUTORIZADAS':
-            query_set = query_set.filter(
-                status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO,
-                ativo=True
-            )
-        elif data.get('status_selecionado') == 'CANCELADAS':
-            query_set = query_set.filter(status__in=[
-                SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
-                SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZOU_INATIVACAO,
-                SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
-                SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-            ])
         user = request.user.get_username()
-        ids_dietas = list(query_set.filter(**filtros).values_list('id', flat=True))
+        ids_dietas = list(query_set.values_list('id', flat=True))
         lotes = data.getlist('lotes_selecionados[]', None)
         classificacoes = data.getlist('classificacoes_selecionadas[]', None)
         protocolos_padrao = data.getlist('protocolos_padrao_selecionados[]', None)
@@ -909,29 +879,7 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=False, methods=['GET'], url_path='exportar-pdf')
     def exportar_pdf(self, request):
         user = request.user.get_username()
-        query_set = self.filter_queryset(self.get_queryset())
-        map_filtros = {
-            'protocolo_padrao__uuid__in': request.query_params.getlist('protocolos_padrao_selecionados[]', None),
-            'classificacao__id__in': request.query_params.getlist('classificacoes_selecionadas[]', None),
-            'escola_destino__lote__uuid__in': request.query_params.getlist('lotes_selecionados[]', None),
-            'escola_destino__codigo_eol__in': request.query_params.getlist('unidades_educacionais_selecionadas[]',
-                                                                           None),
-        }
-        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
-        query_set = query_set.filter(**filtros)
-        data = request.query_params
-        if data.get('status_selecionado') == 'AUTORIZADAS':
-            query_set = query_set.filter(
-                status=SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZADO,
-                ativo=True
-            )
-        elif data.get('status_selecionado') == 'CANCELADAS':
-            query_set = query_set.filter(status__in=[
-                SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
-                SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZOU_INATIVACAO,
-                SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
-                SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-            ])
+        query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
         ids_dietas = list(query_set.values_list('id', flat=True))
         filtros = self.build_texto(
             request.query_params.getlist('lotes_selecionados[]', None),
