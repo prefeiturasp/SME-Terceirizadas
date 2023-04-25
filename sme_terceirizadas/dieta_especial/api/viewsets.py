@@ -675,6 +675,8 @@ class SolicitacaoDietaEspecialViewSet(
         query_set = self.filter_queryset(self.get_queryset())
         map_filtros = {
             'protocolo_padrao__uuid__in': request.query_params.getlist('protocolos_padrao_selecionados[]', None),
+            'alergias_intolerancias__id__in': request.query_params.getlist(
+                'alergias_intolerancias_selecionadas[]', None),
             'classificacao__id__in': request.query_params.getlist('classificacoes_selecionadas[]', None),
             'escola_destino__lote__uuid__in': request.query_params.getlist('lotes_selecionados[]', None),
             'escola_destino__codigo_eol__in': request.query_params.getlist('unidades_educacionais_selecionadas[]',
@@ -836,7 +838,7 @@ class SolicitacaoDietaEspecialViewSet(
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
 
-    def build_texto(self, lotes, classificacoes, protocolos, data_inicial, data_final):  # noqa C901
+    def build_texto(self, lotes, classificacoes, protocolos, alergias_intolerancias, data_inicial, data_final):  # noqa C901
         filtros = ''
         if lotes:
             nomes_lotes = ', '.join([lote.nome for lote in Lote.objects.filter(uuid__in=lotes)])
@@ -862,6 +864,15 @@ class SolicitacaoDietaEspecialViewSet(
             else:
                 filtros += f' | Protocolo(s) padrão(ões): {nomes_protocolos}'
 
+        if alergias_intolerancias:
+            nomes_alergias_intolerancias = ', '.join([
+                alergia_intolerancia.descricao for alergia_intolerancia in AlergiaIntolerancia.objects.filter(
+                    id__in=alergias_intolerancias)])
+            if len(filtros) == 0:
+                filtros += f'Diagnóstico(s) da dieta: {nomes_alergias_intolerancias}'
+            else:
+                filtros += f' | Diagnóstico(s) da dieta: {nomes_alergias_intolerancias}'
+
         if data_inicial:
             if len(filtros) == 0:
                 filtros += f'Data inicial: {data_inicial}'
@@ -885,6 +896,7 @@ class SolicitacaoDietaEspecialViewSet(
             request.query_params.getlist('lotes_selecionados[]', None),
             request.query_params.getlist('classificacoes_selecionadas[]', None),
             request.query_params.getlist('protocolos_padrao_selecionados[]', None),
+            request.query_params.getlist('alergias_intolerancias_selecionadas[]', None),
             request.query_params.get('data_inicial', None),
             request.query_params.get('data_final', None))
         gera_pdf_relatorio_dietas_especiais_terceirizadas_async.delay(
