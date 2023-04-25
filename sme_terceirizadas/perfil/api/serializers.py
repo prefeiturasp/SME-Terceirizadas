@@ -498,6 +498,44 @@ class AlteraEmailSerializer(serializers.ModelSerializer):
         fields = ['uuid', 'username', 'email']
 
 
+class AlterarVinculoSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
+
+    def atualizar_email(self, usuario, dados_usuario_dict):
+        try:
+            usuario.atualiza_email(dados_usuario_dict['email'])
+        except IntegrityError:
+            return Response({'detail': 'Já existe um usuário com este e-mail'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def atribuir_perfil_coresso(self, usuario, dados_usuario_dict):
+        if usuario.vinculo_atual.perfil.nome != dados_usuario_dict['perfil']:
+            try:
+                Vinculo.cria_vinculo(usuario=usuario, dados_usuario=dados_usuario_dict)
+                EOLServicoSGP.atribuir_perfil_coresso(login=usuario.username, perfil=dados_usuario_dict['perfil'])
+            except EOLException as e:
+                return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            except ReadTimeout:
+                return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+            except ConnectTimeout:
+                return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, usuario, validated_data):
+        dados_usuario_dict = {
+            'email': validated_data['email'],
+            'perfil': validated_data['perfil'],
+            'visao': usuario.vinculo_atual.perfil.visao,
+            'instituicao': usuario.vinculo_atual.instituicao.cnpj,
+        }
+
+        self.atualizar_email(usuario, dados_usuario_dict)
+        self.atribuir_perfil_coresso(usuario, dados_usuario_dict)
+        return usuario
+
+    class Meta:
+        model = Usuario
+        fields = ['uuid', 'username', 'email', 'perfil']
+
+
 class RedefinirSenhaSerializer(serializers.ModelSerializer):
     senha_atual = serializers.CharField(required=True)
     senha = serializers.CharField(required=True)
