@@ -23,6 +23,7 @@ from sme_terceirizadas.perfil.models.usuario import (
 from ...dados_comuns.constants import ADMINISTRADOR_EMPRESA, COGESTOR_DRE, DIRETOR_UE, USUARIO_EMPRESA
 from ...dados_comuns.permissions import (
     PermissaoParaCriarUsuarioComCoresso,
+    UsuarioPodeAlterarVinculo,
     UsuarioPodeFinalizarVinculo,
     UsuarioSuperCodae
 )
@@ -40,6 +41,7 @@ from ..utils import PerfilPagination
 from .filters import ImportacaoPlanilhaUsuarioCoreSSOFilter, VinculoFilter
 from .serializers import (
     AlteraEmailSerializer,
+    AlterarVinculoSerializer,
     ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer,
     ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer,
     ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer,
@@ -548,6 +550,20 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
         """(patch) /cadastro-com-coresso/{usuario.username}/alterar-email/."""
         data = request.data
         serialize = AlteraEmailSerializer()
+        validated_data = serialize.validate(data)
+        user = Usuario.objects.get(username=username)
+        instance = serialize.update(user, validated_data)
+        if isinstance(instance, Response):
+            return instance
+        return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, permission_classes=(UsuarioPodeAlterarVinculo,),
+            url_path='alterar-vinculo', methods=['patch'])
+    @transaction.atomic
+    def altera_vinculo(self, request, username):
+        """(patch) /cadastro-com-coresso/{usuario.username}/alterar-vinculo/."""
+        data = request.data
+        serialize = AlterarVinculoSerializer()
         validated_data = serialize.validate(data)
         user = Usuario.objects.get(username=username)
         instance = serialize.update(user, validated_data)
