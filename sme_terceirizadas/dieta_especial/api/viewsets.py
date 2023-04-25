@@ -1,13 +1,10 @@
-import io
 import uuid as uuid_generator
 from copy import deepcopy
 from datetime import date, datetime
 
-import numpy as np
 from django.db import transaction
 from django.db.models import Case, CharField, Count, F, Q, Value, When
 from django.forms import ValidationError
-from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, mixins, serializers, status
@@ -62,7 +59,10 @@ from ..models import (
     SubstituicaoAlimento,
     TipoContagem
 )
-from ..tasks import gera_pdf_relatorio_dietas_especiais_terceirizadas_async
+from ..tasks import (
+    gera_pdf_relatorio_dietas_especiais_terceirizadas_async,
+    gera_xlsx_relatorio_dietas_especiais_terceirizadas_async
+)
 from ..utils import ProtocoloPadraoPagination, RelatorioPagination
 from .filters import AlimentoFilter, DietaEspecialFilter, LogQuantidadeDietasEspeciaisFilter, MotivoNegacaoFilter
 from .serializers import (
@@ -77,8 +77,6 @@ from .serializers import (
     ProtocoloPadraoDietaEspecialSimplesSerializer,
     RelatorioQuantitativoSolicDietaEspSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
-    SolicitacaoDietaEspecialExportXLSXSerializer,
-    SolicitacaoDietaEspecialNutriSupervisaoExportXLSXSerializer,
     SolicitacaoDietaEspecialRelatorioTercSerializer,
     SolicitacaoDietaEspecialSerializer,
     SolicitacaoDietaEspecialSimplesSerializer,
@@ -825,79 +823,9 @@ class SolicitacaoDietaEspecialViewSet(
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
-    def build_xlsx(self, output, serializer, queryset, status,  # noqa C901
-                   lotes, classificacoes, protocolos, data_inicial, data_final, exibir_diagnostico=False):
-        import pandas as pd
-        xlwriter = pd.ExcelWriter(output, engine='xlsxwriter')
-
-        df = pd.DataFrame(serializer.data)
-
-        # Adiciona linhas em branco no comeco do arquivo
-        df_auxiliar = pd.DataFrame([[np.nan] * len(df.columns)], columns=df.columns)
-        df = df_auxiliar.append(df, ignore_index=True)
-        df = df_auxiliar.append(df, ignore_index=True)
-        df = df_auxiliar.append(df, ignore_index=True)
-
-        df.to_excel(xlwriter, 'Solicitações de dieta especial')
-        workbook = xlwriter.book
-        worksheet = xlwriter.sheets['Solicitações de dieta especial']
-        worksheet.set_row(0, 30)
-        worksheet.set_row(1, 30)
-        worksheet.set_column('B:F', 30)
-        merge_format = workbook.add_format({'align': 'center', 'bg_color': '#a9d18e'})
-        merge_format.set_align('vcenter')
-        cell_format = workbook.add_format()
-        cell_format.set_text_wrap()
-        cell_format.set_align('vcenter')
-        v_center_format = workbook.add_format()
-        v_center_format.set_align('vcenter')
-        single_cell_format = workbook.add_format({'bg_color': '#a9d18e'})
-        len_cols = len(df.columns)
-        worksheet.merge_range(0, 0, 0, len_cols, 'Relatório de dietas especiais', merge_format)
-        titulo = f'Dietas {"Autorizadas" if status.upper() == "AUTORIZADAS" else "Canceladas"}:'
-        if lotes:
-            nomes_lotes = ','.join([lote.nome for lote in Lote.objects.filter(uuid__in=lotes)])
-            titulo += f' | {nomes_lotes}'
-        if classificacoes:
-            nomes_classificacoes = ','.join([
-                classificacao.nome for classificacao in ClassificacaoDieta.objects.filter(id__in=classificacoes)])
-            titulo += f' | Classificação(ões) da dieta: {nomes_classificacoes}'
-        if protocolos:
-            nomes_protocolos = ', '.join([
-                protocolo.nome_protocolo for protocolo in
-                ProtocoloPadraoDietaEspecial.objects.filter(uuid__in=protocolos)])
-            titulo += f' | Protocolo(s) padrão(ões): {nomes_protocolos}'
-        if data_inicial:
-            titulo += f' | Data inicial: {data_inicial}'
-        if data_final:
-            titulo += f' | Data final: {data_final}'
-        worksheet.merge_range(1, 0, 2, len_cols - 1, titulo, cell_format)
-        worksheet.merge_range(1, len_cols, 2, len_cols, f'Total de dietas: {queryset.count()}', v_center_format)
-        worksheet.write(3, 1, 'COD.EOL do Aluno', single_cell_format)
-        worksheet.write(3, 2, 'Nome do Aluno', single_cell_format)
-        worksheet.write(3, 3, 'Nome da Escola', single_cell_format)
-        worksheet.write(3, 4, 'Classificação da dieta', single_cell_format)
-        if not exibir_diagnostico:
-            worksheet.write(3, 5, 'Protocolo Padrão', single_cell_format)
-        else:
-            worksheet.write(3, 5, 'Relação por Diagnóstico', single_cell_format)
-        if status.upper() == 'CANCELADAS':
-            worksheet.set_column('G:G', 30)
-            worksheet.write(3, 6, 'Data de cancelamento', single_cell_format)
-        df.reset_index(drop=True, inplace=True)
-        xlwriter.save()
-        output.seek(0)
-
     @action(detail=False, methods=['GET'], url_path='exportar-xlsx')
     def exportar_xlsx(self, request):
         """TODO: ver porque nao pode importar o pandas via pytest."""
-        status = request.query_params.get('status_selecionado')
-        lotes = request.query_params.getlist('lotes_selecionados[]')
-        classificacoes = request.query_params.getlist('classificacoes_selecionadas[]')
-        protocolos_padrao = request.query_params.getlist('protocolos_padrao_selecionados[]')
-        data_inicial = request.query_params.get('data_inicial')
-        data_final = request.query_params.get('data_final')
-
         query_set = self.filter_queryset(self.get_queryset())
         map_filtros = {
             'protocolo_padrao__uuid__in': request.query_params.getlist('protocolos_padrao_selecionados[]', None),
@@ -921,24 +849,22 @@ class SolicitacaoDietaEspecialViewSet(
                 SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
                 SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
             ])
-
-        exibir_diagnostico = request.user.tipo_usuario != 'terceirizada'
-        if exibir_diagnostico:
-            serializer = SolicitacaoDietaEspecialNutriSupervisaoExportXLSXSerializer(
-                query_set, context={'request': request, 'status': status.upper()}, many=True)
-        else:
-            serializer = SolicitacaoDietaEspecialExportXLSXSerializer(
-                query_set, context={'request': request, 'status': status.upper()}, many=True)
-
-        output = io.BytesIO()
-        self.build_xlsx(output, serializer, query_set, status,
-                        lotes, classificacoes, protocolos_padrao, data_inicial, data_final, exibir_diagnostico)
-
-        response = HttpResponse(
-            output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        user = request.user.get_username()
+        ids_dietas = list(query_set.filter(**filtros).values_list('id', flat=True))
+        lotes = data.getlist('lotes_selecionados[]', None)
+        classificacoes = data.getlist('classificacoes_selecionadas[]', None)
+        protocolos_padrao = data.getlist('protocolos_padrao_selecionados[]', None)
+        gera_xlsx_relatorio_dietas_especiais_terceirizadas_async.delay(
+            user=user,
+            nome_arquivo='relatorio_dietas_especiais.xlsx',
+            ids_dietas=ids_dietas,
+            data=request.query_params,
+            lotes=lotes,
+            classificacoes=classificacoes,
+            protocolos_padrao=protocolos_padrao
         )
-        response['Content-Disposition'] = 'attachment; filename=myfile.xlsx'
-        return response
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
 
     def build_texto(self, lotes, classificacoes, protocolos, data_inicial, data_final):  # noqa C901
         filtros = ''
