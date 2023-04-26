@@ -290,3 +290,38 @@ def formatar_data_solicitacoes_alimentacao(data):
         return data.strftime('%d/%m/%Y')
     except Exception:
         return data
+
+
+@register.simple_tag
+def get_valor_somatorio_campo_periodo(tabela_somatorio, campo, periodo):
+    for item in tabela_somatorio:
+        if item['campo'] == campo and item['periodo'] == periodo:
+            return item['valor']
+    return '-'
+
+
+@register.simple_tag
+def total_periodo_ou_campo_medicao(tabela_somatorio, periodo_ou_campo):
+    total = 0
+    for item in tabela_somatorio:
+        if item['periodo'] == periodo_ou_campo or item['campo'] == periodo_ou_campo:
+            total += item['valor']
+    return total
+
+
+@register.filter
+def get_total_medicao(tabela_somatorio):
+    total = 0
+    for item in tabela_somatorio:
+        total += item['valor']
+    return total
+
+
+@register.filter
+def get_matriculados(uuid, alunos_matriculados):
+    periodo = alunos_matriculados['periodo_escolar']
+    alunos_no_periodo = alunos_matriculados['alunos_por_faixa_etaria'][periodo]
+    if alunos_no_periodo and alunos_no_periodo[uuid]:
+        return alunos_matriculados['alunos_por_faixa_etaria'][periodo][uuid]
+    else:
+        return 0

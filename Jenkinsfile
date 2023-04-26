@@ -6,7 +6,7 @@ pipeline {
     }
 
     agent {
-      node { label 'python-36-sigpae' }
+      node { label 'jenkins-slave' }
     }
 
     options {
@@ -114,7 +114,7 @@ pipeline {
                             sh 'kubectl rollout restart deployment/sigpae-backend -n sme-sigpae'
                             sh 'kubectl rollout restart deployment/sigpae-beat -n sme-sigpae'
                             sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae'
-			    sh 'kubectl rollout restart deployment/sigpae-frontend -n sme-sigpae'
+			                      sh 'kubectl rollout restart deployment/sigpae-frontend -n sme-sigpae'
                             sh('rm -f '+"$home"+'/.kube/config')
                     }
                 }
@@ -123,6 +123,7 @@ pipeline {
     }
 
   post {
+    always { cleanWs notFailBuild: true }
     success { sendTelegram("🚀 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Success \nLog: \n${env.BUILD_URL}console") }
     unstable { sendTelegram("💣 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Unstable \nLog: \n${env.BUILD_URL}console") }
     failure { sendTelegram("💥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Failure \nLog: \n${env.BUILD_URL}console") }

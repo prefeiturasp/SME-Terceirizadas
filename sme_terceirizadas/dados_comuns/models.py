@@ -98,8 +98,12 @@ class LogSolicitacoesUsuario(
         CRONOGRAMA_ASSINADO_PELA_DINUTRE,
         CRONOGRAMA_ASSINADO_PELA_CODAE,
         VINCULO_DO_EDITAL_AO_PRODUTO,
-        CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO
-    ) = range(72)
+        CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO,
+        APROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
+        REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
+        APROVADO_DILOG_SOLICITACAO_ALTERACAO,
+        REPROVADO_DILOG_SOLICITACAO_ALTERACAO
+    ) = range(76)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -211,7 +215,11 @@ class LogSolicitacoesUsuario(
         (CRONOGRAMA_ASSINADO_PELA_DINUTRE, 'Assinado Dinutre'),
         (CRONOGRAMA_ASSINADO_PELA_CODAE, 'Assinado CODAE'),
         (VINCULO_DO_EDITAL_AO_PRODUTO, 'Vínculo do Edital ao Produto'),
-        (CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO, 'Cronograma ciente alteração cronograma')
+        (CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO, 'Cronograma ciente alteração cronograma'),
+        (APROVADO_DINUTRE_SOLICITACAO_ALTERACAO, 'Alteração cronograma aprovada pela DINUTRE'),
+        (REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO, 'Alteração cronograma reprovada pela DINUTRE'),
+        (APROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Alteração cronograma aprovada pela DILOG'),
+        (REPROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Alteração cronograma reprovada pela DILOG')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
