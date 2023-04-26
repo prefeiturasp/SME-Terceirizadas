@@ -230,7 +230,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return lista_status
 
-    def homologados_e_com_reclamacoes(self, qs):
+    def homologados_e_com_reclamacoes(self, workflow, qs, edital):
         status_reclamacao = [
             HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
@@ -244,9 +244,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if isinstance(instituicao, Escola):
             status_permitidos = status_permitidos + status_reclamacao
             qs = qs.filter(status__in=status_permitidos)
-            return qs.exclude(reclamacoes__escola=instituicao)
+            qs = qs.exclude(reclamacoes__escola=instituicao)
         else:
-            return qs.filter(status__in=status_permitidos)
+            qs = qs.filter(status__in=status_permitidos)
+        return qs
 
     def reclamacoes_por_usuario(self, workflow, raw_sql, data, query_set):  # noqa C901
         if (workflow in [
@@ -274,9 +275,35 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 raw_sql += "AND %(reclamacoes_produto)s.escola_id = '%(escola)s' "
         return query_set
 
-    def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
+    def tratar_parcialmente_suspensos(self, workflow, qs, edital):
+        if workflow == 'CODAE_SUSPENDEU':
+            if edital:
+                qs_parc_suspensos = qs.filter(status='CODAE_HOMOLOGADO',
+                                              produto__vinculos__suspenso=True,
+                                              produto__vinculos__edital__numero=edital)
+            else:
+                qs_parc_suspensos = qs.filter(status='CODAE_HOMOLOGADO',
+                                              produto__vinculos__suspenso=True)
+            qs = qs_parc_suspensos | qs.filter(status=workflow)
+        elif workflow == 'CODAE_HOMOLOGADO' and edital:
+            qs = qs.filter(status='CODAE_HOMOLOGADO',
+                           produto__vinculos__suspenso=False,
+                           produto__vinculos__edital__numero=edital)
+        else:
+            qs = qs.filter(status=workflow).distinct().all()
+        return qs
+
+    def get_edital(self, edital, usuario):
+        if not edital and usuario == 'escola':
+            try:
+                return Edital.objects.get(uuid=self.request.user.vinculo_atual.instituicao.editais[0]).numero
+            except (IndexError, Edital.DoesNotExist):
+                return None
+        return edital
+
+    def dados_dashboard(self, query_set: QuerySet, edital: str, use_raw=True) -> list:
         sumario = []
-        uuids_workflow_homologado_com_vinc_prod_edital_suspenso = HomologacaoProduto.objects.filter(
+        uuids_homologados_com_vinc_prod_edital_suspenso = HomologacaoProduto.objects.filter(
             status='CODAE_HOMOLOGADO', produto__vinculos__suspenso=True
         ).distinct().values_list('uuid', flat=True)
 
@@ -311,19 +338,21 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 raw_sql += 'ORDER BY log_criado_em DESC'
                 qs = query_set.raw(raw_sql % data)
                 if workflow == 'CODAE_SUSPENDEU':
-                    qs = atualiza_queryset_codae_suspendeu(qs, uuids_workflow_homologado_com_vinc_prod_edital_suspenso)
+                    qs = atualiza_queryset_codae_suspendeu(qs, uuids_homologados_com_vinc_prod_edital_suspenso)
             else:
                 qs = self.reclamacoes_por_usuario(workflow, None, None, query_set)
                 usuario = self.request.user.tipo_usuario
                 status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
                 status_permitidos = [constants.TIPO_USUARIO_ESCOLA, constants.TIPO_USUARIO_NUTRISUPERVISOR]
+                solicitacoes_viewset = SolicitacoesViewSet()
+                edital = self.get_edital(edital, usuario)
                 if workflow == status_homologado and usuario in status_permitidos:
-                    qs = self.homologados_e_com_reclamacoes(qs)
-                    qs = sorted(qs.distinct().all(),
-                                key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
-                else:
-                    qs = sorted(qs.filter(status=workflow).distinct().all(),
-                                key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+                    qs = self.homologados_e_com_reclamacoes(workflow, qs, edital)
+                qs = self.tratar_parcialmente_suspensos(workflow, qs, edital)
+                qs = solicitacoes_viewset.remove_duplicados_do_query_set(qs)
+                qs = sorted(qs,
+                            key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+
             sumario.append({
                 'status': workflow,
                 'dados': HomologacaoProdutoPainelGerencialSerializer(
@@ -338,7 +367,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         query_set = self.get_queryset()
         use_raw = self.request.user.tipo_usuario not in [constants.TIPO_USUARIO_ESCOLA,
                                                          constants.TIPO_USUARIO_NUTRISUPERVISOR]
-        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=use_raw)}
+        response = {'results': self.dados_dashboard(query_set=query_set, edital=None, use_raw=use_raw)}
         return Response(response)
 
     def produtos_sem_agrupamento(self, nome_edital, qs_produtos, offset, limit):
@@ -432,11 +461,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 Q(produto__nome__icontains=titulo))
         if marca:
             query_set = query_set.filter(produto__marca__nome__icontains=marca)
-        if edital:
-            query_set = query_set.filter(produto__in=ProdutoEdital.objects.filter(
-                edital__numero=edital).values_list('produto', flat=True))
 
-        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=False)}
+        response = {'results': self.dados_dashboard(query_set=query_set, edital=edital, use_raw=False)}
         return Response(response)
 
     def build_raw_sql_filtro_escola(self, raw_sql, status__in, common_status, tipo_usuario, filtros, escola_id):
