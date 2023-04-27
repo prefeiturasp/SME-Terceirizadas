@@ -176,10 +176,7 @@ class ProcessadorPlanilha:
     @transaction.atomic
     def cria_solicitacao(self, solicitacao_dieta_schema, aluno,
                          classificacao_dieta, diagnosticos, escola, protocolo_padrao):  # noqa C901
-        observacoes = """Essa Dieta Especial foi autorizada anteriormente a implantação do SIGPAE.
-        Para ter acesso ao Protocolo da Dieta Especial,
-        entre em contato com o Núcleo de Dieta Especial através do e-mail:
-        smecodaedietaespecial@sme.prefeitura.sp.gov.br."""
+        observacoes = """Essa Dieta Especial foi autorizada anteriormente a implantação do SIGPAE."""
 
         email_fake = f'fake{escola.id}@admin.com'
         usuario_escola = Usuario.objects.filter(email=email_fake).first()

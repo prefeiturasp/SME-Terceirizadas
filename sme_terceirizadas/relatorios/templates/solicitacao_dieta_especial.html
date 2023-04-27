@@ -174,7 +174,13 @@
             {% endfor %}
         {% endif %}
     </div>
-    {% if solicitacao.escola.tipo_gestao.nome == 'MISTA' or solicitacao.escola.tipo_gestao.nome == 'PARCEIRA' or solicitacao.escola.tipo_gestao.nome == 'DIRETA' %}
+        <div class="bloco-pescritor-dieta-especial">
+        {% if solicitacao.eh_importado == True  and solicitacao.protocolo_padrao %}
+          <h5>Orientações Gerais</h5>
+              <p style="text-transform: uppercase">{{ solicitacao.orientacoes_gerais | safe }}</p>
+        {% endif %}
+    </div>
+   {% if solicitacao.escola.tipo_gestao.nome == 'MISTA' or solicitacao.escola.tipo_gestao.nome == 'PARCEIRA' or solicitacao.escola.tipo_gestao.nome == 'DIRETA' or solicitacao.eh_importado and solicitacao.protocolo_padrao %}
       {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
         <div class="bloco-identificacao-nutri tabela-sem-borda">
           <h5>Substituições</h5>
@@ -210,7 +216,7 @@
           </table>
         </div>
       {% endif %}
-
+  {% endif %}
       {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
         <div class="bloco-identificacao-nutri">
           <h5>Descrever características do alimento</h5>
@@ -220,7 +226,12 @@
           <p style="color: red">Os Produtos (Alimentos) devem ser adquiridos utilizando a verba PTRF ou outro recurso disponível.</p>
         </div>
       {% endif %}
-    {% endif %}
+    <div class="bloco-pescritor-dieta-especial">
+        {% if solicitacao.eh_importado == True  and solicitacao.protocolo_padrao %}
+          <h5>Informações Adicionais</h5>
+              <p style="text-transform: uppercase">{{ solicitacao.informacoes_adicionais | safe }}</p>
+        {% endif %}
+    </div>
     <div class="bloco-identificacao-nutri">
         {% if solicitacao.registro_funcional_nutricionista %}
           <h5>Identificação do Nutricionista</h5>
