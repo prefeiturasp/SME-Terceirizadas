@@ -29,20 +29,6 @@ jobs:
              docker build . --tag ${{ secrets.REGISTRY_HOST }}/${GITHUB_REF##*/}/sme-sigpae-api
              docker push ${{ secrets.REGISTRY_HOST }}/${GITHUB_REF##*/}/sme-sigpae-api
              
-      - name: send failure message
-        if: ${{ failure() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            💥 Failed in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-             
   deploy:
   
     runs-on: self-hosted
@@ -57,31 +43,3 @@ jobs:
           RANCHER_URL: ${{ secrets.RANCHER_URL }}
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
           NAMESPACE: sme-sigpae
-          
-      - name: send failure message
-        if: ${{ failure() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            💥 Failed in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-      - name: send success message
-        if: ${{ success() }}
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            🚀 Success in ${{ github.ref_name	}}!
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}            
-            Repository: ${{ github.repository }}            
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
