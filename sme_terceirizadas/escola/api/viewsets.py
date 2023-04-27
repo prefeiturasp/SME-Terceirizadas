@@ -78,7 +78,7 @@ from ..models import (
     TipoUnidadeEscolar
 )
 from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
-from ..tasks import gera_pdf_relatorio_alunos_matriculados_async
+from ..tasks import gera_pdf_relatorio_alunos_matriculados_async, gera_xlsx_relatorio_alunos_matriculados_async
 from ..utils import EscolaSimplissimaPagination, lotes_endpoint_filtrar_relatorio_alunos_matriculados
 from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .permissions import PodeVerEditarFotoAlunoNoSGP
@@ -739,6 +739,7 @@ def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):
 
 
 class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
+    queryset = AlunosMatriculadosPeriodoEscola.objects.all()
 
     def filtrar_matriculados(self, request, lotes):
         if request.query_params.getlist('lotes[]'):
@@ -801,7 +802,22 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
         uuids = [str(matriculados.uuid) for matriculados in alunos_matriculados]
         gera_pdf_relatorio_alunos_matriculados_async.delay(
             user=user,
-            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
+            nome_arquivo='relatorio_alunos_matriculados.pdf',
+            uuids=uuids
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='gerar-xlsx')
+    def gerar_xlsx(self, request):
+        user = request.user.get_username()
+        instituicao = request.user.vinculo_atual.instituicao
+        lotes = lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lote)
+        alunos_matriculados = self.filtrar_matriculados(request, lotes)
+        uuids = [str(matriculados.uuid) for matriculados in alunos_matriculados]
+        gera_xlsx_relatorio_alunos_matriculados_async.delay(
+            user=user,
+            nome_arquivo='relatorio_alunos_matriculados.xlsx',
             uuids=uuids
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
