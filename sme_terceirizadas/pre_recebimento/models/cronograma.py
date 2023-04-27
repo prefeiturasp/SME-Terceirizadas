@@ -130,7 +130,9 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
     def filtrar_por_status(self, status, filtros=None, init=None, end=None):
         log = LogSolicitacoesUsuario.objects.filter(uuid_original=OuterRef('uuid')).order_by(
             '-criado_em').values('criado_em')[:1]
-        qs = self.filter(status__iexact=status).annotate(
+        if not isinstance(status, list):
+            status = [status]
+        qs = self.filter(status__in=status).annotate(
             log_criado_em=log).order_by('-log_criado_em')
         if filtros:
             qs = self._filtrar_por_atributos_adicionais(qs, filtros)
