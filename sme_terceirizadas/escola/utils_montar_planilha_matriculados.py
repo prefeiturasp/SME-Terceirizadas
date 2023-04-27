@@ -122,6 +122,7 @@ def build_xlsx_alunos_matriculados(dados, nome_arquivo, output):
         if dado['eh_cei'] or dado['eh_cemei']:
             cabecalho_count = cabecalho_count + 12
             montar_faixas_etarias(ws, row_calculada, dado, dados['faixas_etarias'])
-            montar_cabecalho_padrao((row_calculada + 12), ws)
+            if not len(dados['queryset']) == (row + 1):
+                montar_cabecalho_padrao((row_calculada + 12), ws)
     wb.save(output)
     output.seek(0)
