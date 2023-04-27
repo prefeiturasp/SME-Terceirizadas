@@ -667,7 +667,7 @@ class PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma(BasePermission)
         return (
             not usuario.is_anonymous and
             usuario.vinculo_atual and
-            usuario.vinculo_atual.perfil.nome in [DINUTRE_DIRETORIA]
+            usuario.vinculo_atual.perfil.nome in [DINUTRE_DIRETORIA, DILOG_DIRETORIA]
         )
 
 
