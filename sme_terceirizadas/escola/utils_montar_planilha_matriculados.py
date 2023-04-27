@@ -106,7 +106,7 @@ def build_xlsx_alunos_matriculados(dados, nome_arquivo, output):
     celula.alignment = Alignment(horizontal='left', vertical='center')
     celula.fill = PatternFill('solid', start_color='ffffff')
     celula.border = Border(top=thin, left=thin, right=thin, bottom=thin)
-    celula.value = f'Solicitado por {dados["usuario"]}, impresso em {datetime.today().strftime("%Y-%m-%d %H:%M:%S")}'
+    celula.value = f'Solicitado por {dados["usuario"]}, impresso em {datetime.today().strftime("%d/%m/%Y")}'
 
     montar_cabecalho_padrao(5, ws)
 
