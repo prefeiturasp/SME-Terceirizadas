@@ -3018,9 +3018,6 @@ class CronogramaWorkflow(xwf_models.Workflow):
     RASCUNHO = 'RASCUNHO'
     ASSINADO_E_ENVIADO_AO_FORNECEDOR = 'ASSINADO_E_ENVIADO_AO_FORNECEDOR'
     ALTERACAO_CODAE = 'ALTERACAO_CODAE'
-    APROVADO = 'APROVADO'
-    REPROVADO = 'REPROVADO'
-    ALTERACAO_FORNECEDOR = 'ALTERACAO_FORNECEDOR'
     ASSINADO_FORNECEDOR = 'ASSINADO_FORNECEDOR'
     SOLICITADO_ALTERACAO = 'SOLICITADO_ALTERACAO'
     ASSINADO_DINUTRE = 'ASSINADO_DINUTRE'
@@ -3030,9 +3027,6 @@ class CronogramaWorkflow(xwf_models.Workflow):
         (RASCUNHO, 'Rascunho'),
         (ASSINADO_E_ENVIADO_AO_FORNECEDOR, 'Assinado e Enviado ao Fornecedor'),
         (ALTERACAO_CODAE, 'Alteração CODAE'),
-        (APROVADO, 'Aprovado'),
-        (REPROVADO, 'Reprovado'),
-        (ALTERACAO_FORNECEDOR, 'Alteração Fornecedor'),
         (ASSINADO_FORNECEDOR, 'Assinado Fornecedor'),
         (SOLICITADO_ALTERACAO, 'Solicitado Alteração'),
         (ASSINADO_DINUTRE, 'Assinado Dinutre'),
@@ -3104,8 +3098,6 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     EM_ANALISE = 'EM_ANALISE'
-    ACEITA = 'ACEITA'
-    NEGADA = 'NEGADA'
     CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
     APROVADO_DINUTRE = 'APROVADO_DINUTRE'
     REPROVADO_DINUTRE = 'REPROVADO_DINUTRE'
@@ -3119,8 +3111,6 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
         (REPROVADO_DINUTRE, 'Reprovado DINUTRE'),
         (APROVADO_DILOG, 'Aprovado DILOG'),
         (REPROVADO_DILOG, 'Reprovado DILOG'),
-        (ACEITA, 'Aceita'),
-        (NEGADA, 'Negada'),
     )
 
     transitions = (
