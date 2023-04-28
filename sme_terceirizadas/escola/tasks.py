@@ -1,4 +1,5 @@
 import datetime
+import io
 import logging
 
 from celery import shared_task
@@ -28,6 +29,7 @@ from ..paineis_consolidados.models import SolicitacoesDRE
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_file
 from .utils import calendario_sgp, registro_quantidade_alunos_matriculados_por_escola_periodo
+from .utils_montar_planilha_matriculados import build_xlsx_alunos_matriculados
 
 # https://docs.celeryproject.org/en/latest/userguide/tasks.html
 logger = logging.getLogger('sigpae.taskEscola')
@@ -259,6 +261,34 @@ def gera_pdf_relatorio_alunos_matriculados_async(user, nome_arquivo, uuids):
         }
         arquivo = build_pdf_alunos_matriculados(dados, nome_arquivo)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+    logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=15000,
+    soft_time_limit=15000
+)
+def gera_xlsx_relatorio_alunos_matriculados_async(user, nome_arquivo, uuids):
+    logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
+    obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
+    try:
+        queryset = []
+        alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(uuid__in=uuids).order_by('escola__nome')
+        fxs = [{'nome': faixa.__str__(), 'uuid': str(faixa.uuid)} for faixa in FaixaEtaria.objects.filter(ativo=True)]
+        for matriculados in alunos_matriculados:
+            queryset.append(matriculados.formata_para_relatorio())
+        dados = {
+            'faixas_etarias': fxs,
+            'queryset': queryset,
+            'usuario': Usuario.objects.get(username=user).nome,
+        }
+        output = io.BytesIO()
+        build_xlsx_alunos_matriculados(dados, nome_arquivo, output)
+        atualiza_central_download(obj_central_download, nome_arquivo, output.read())
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
     logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
