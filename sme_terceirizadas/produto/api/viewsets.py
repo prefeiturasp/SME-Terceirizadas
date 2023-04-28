@@ -1118,6 +1118,19 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProdutoFilter
 
+    def filtra_editais_dieta_ou_comum(self, request, queryset):
+        if request.query_params.get('eh_para_alunos_com_dieta', None):
+            eh_para_alunos_com_dieta = ('Dieta especial'
+                                        if request.query_params.get('eh_para_alunos_com_dieta') == 'true'
+                                        else 'Comum')
+            edital = request.query_params.get('nome_edital', None)
+            if edital:
+                queryset = queryset.filter(vinculos__edital__numero=edital,
+                                           vinculos__tipo_produto=eh_para_alunos_com_dieta)
+            else:
+                queryset = queryset.filter(vinculos__tipo_produto=eh_para_alunos_com_dieta)
+        return queryset
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related(
             'marca', 'fabricante').order_by('criado_em')
@@ -1147,6 +1160,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 queryset = sorted(queryset, key=lambda prod: prod.criado_em)
             else:
                 queryset = queryset.filter(homologacao__status__in=filter_status)
+        queryset = self.filtra_editais_dieta_ou_comum(request, queryset)
         page = self.paginate_queryset(queryset)
         nome_edital = request.query_params.get('nome_edital', None)
         if page is not None:
