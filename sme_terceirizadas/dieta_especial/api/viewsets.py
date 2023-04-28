@@ -947,15 +947,32 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         ]
 
         qs = Aluno.objects.filter(dietas_especiais__status__in=INATIVOS_STATUS_DIETA_ESPECIAL)
-
+        incluir_alteracao_ue = (self.request.query_params.get('incluir_alteracao_ue', None) == 'true')
         if user.tipo_usuario == 'escola':
-            qs = qs.filter(dietas_especiais__rastro_escola=user.vinculo_atual.instituicao)
+            if incluir_alteracao_ue:
+                qs = qs.filter(Q(dietas_especiais__rastro_escola=user.vinculo_atual.instituicao) |
+                               Q(dietas_especiais__escola_destino=user.vinculo_atual.instituicao))
+            else:
+                qs = qs.filter(dietas_especiais__rastro_escola=user.vinculo_atual.instituicao)
         elif form.cleaned_data['escola']:
-            qs = qs.filter(dietas_especiais__rastro_escola=form.cleaned_data['escola'])
+            if incluir_alteracao_ue:
+                qs = qs.filter(Q(dietas_especiais__rastro_escola=form.cleaned_data['escola']) |
+                               Q(dietas_especiais__escola_destino=form.cleaned_data['escola']))
+            else:
+                qs = qs.filter(dietas_especiais__rastro_escola=form.cleaned_data['escola'])
         elif user.tipo_usuario == 'diretoriaregional':
-            qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=user.vinculo_atual.instituicao)
+            if incluir_alteracao_ue:
+                qs = qs.filter(Q(dietas_especiais__rastro_escola__diretoria_regional=user.vinculo_atual.instituicao) |
+                               Q(dietas_especiais__escola_destino__diretoria_regional=user.vinculo_atual.instituicao))
+            else:
+                qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=user.vinculo_atual.instituicao)
+
         elif form.cleaned_data['dre']:
-            qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=form.cleaned_data['dre'])
+            if incluir_alteracao_ue:
+                qs = qs.filter(Q(dietas_especiais__rastro_escola__diretoria_regional=form.cleaned_data['dre']) |
+                               Q(dietas_especiais__escola_destino__diretoria_regional=form.cleaned_data['dre']))
+            else:
+                qs = qs.filter(dietas_especiais__rastro_escola__diretoria_regional=form.cleaned_data['dre'])
 
         if form.cleaned_data['codigo_eol']:
             codigo_eol = f"{int(form.cleaned_data['codigo_eol']):06d}"
