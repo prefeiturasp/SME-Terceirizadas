@@ -4,6 +4,13 @@ from openpyxl import Workbook, drawing
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 
+def style_range(ws, cell_range):
+    thin = Side(border_style='thin', color='000000')
+    for merged_cell in ws[cell_range]:
+        for cell in merged_cell:
+            cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+
+
 def montar_cabecalho_padrao(row_idx, ws):
     thin = Side(border_style='thin', color='000000')
     cabecalho_label = ['DRE', 'Lote', 'Tipo de unid.', 'Unid. educacional', 'Tipo de Turma', 'Período', 'Matriculados']
@@ -124,5 +131,8 @@ def build_xlsx_alunos_matriculados(dados, nome_arquivo, output):
             montar_faixas_etarias(ws, row_calculada, dado, dados['faixas_etarias'])
             if not len(dados['queryset']) == (row + 1):
                 montar_cabecalho_padrao((row_calculada + 12), ws)
+
+    for cell_range in ws.merged_cells.ranges:
+        style_range(ws, str(cell_range))
     wb.save(output)
     output.seek(0)
