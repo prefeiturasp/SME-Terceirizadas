@@ -296,6 +296,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     def get_edital(self, edital, usuario):
         if not edital and usuario == 'escola':
             try:
+                if len(self.request.user.vinculo_atual.instituicao.editais) > 1:
+                    return None
                 return Edital.objects.get(uuid=self.request.user.vinculo_atual.instituicao.editais[0]).numero
             except (IndexError, Edital.DoesNotExist):
                 return None
