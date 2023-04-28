@@ -174,7 +174,7 @@
             {% endfor %}
         {% endif %}
     </div>
-    {% if solicitacao.escola.tipo_gestao.nome == 'MISTA' or solicitacao.escola.tipo_gestao.nome == 'PARCEIRA' or solicitacao.escola.tipo_gestao.nome == 'DIRETA' %}
+   {% if solicitacao.escola.tipo_gestao.nome == 'MISTA' or solicitacao.escola.tipo_gestao.nome == 'PARCEIRA' or solicitacao.escola.tipo_gestao.nome == 'DIRETA' %}
       {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
         <div class="bloco-identificacao-nutri tabela-sem-borda">
           <h5>Substituições</h5>
@@ -210,7 +210,7 @@
           </table>
         </div>
       {% endif %}
-
+  {% endif %}
       {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
         <div class="bloco-identificacao-nutri">
           <h5>Descrever características do alimento</h5>
@@ -220,7 +220,6 @@
           <p style="color: red">Os Produtos (Alimentos) devem ser adquiridos utilizando a verba PTRF ou outro recurso disponível.</p>
         </div>
       {% endif %}
-    {% endif %}
     <div class="bloco-identificacao-nutri">
         {% if solicitacao.registro_funcional_nutricionista %}
           <h5>Identificação do Nutricionista</h5>
