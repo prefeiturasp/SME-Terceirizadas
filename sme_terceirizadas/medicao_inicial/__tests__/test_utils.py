@@ -32,7 +32,8 @@ def test_utils_build_headers_tabelas(solicitacao_medicao_inicial_varios_valores)
             'categorias': ['ALIMENTAÇÃO', 'DIETA ESPECIAL - TIPO A ENTERAL'],
             'nomes_campos': [
                 'matriculados', 'lanche', 'refeicao', 'lanche_emergencial', 'total_refeicoes_pagamento',
-                'sobremesa', 'total_sobremesas_pagamento', 'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa'
+                'sobremesa', 'total_sobremesas_pagamento', 'aprovadas', 'lanche', 'refeicao',
+                'lanche_emergencial', 'sobremesa'
             ],
             'len_periodos': [7, 5],
             'len_categorias': [7, 5],
@@ -70,11 +71,6 @@ def test_utils_build_headers_tabelas(solicitacao_medicao_inicial_varios_valores)
 
 
 def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valores):
-    print('')
-    print('')
-    print(build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valores))
-    print('')
-    print('')
     assert build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valores) == [
         {
             'periodos': ['MANHA'],
@@ -128,8 +124,11 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
         {
             'periodos': ['MANHA', 'TARDE'],
             'categorias': ['DIETA ESPECIAL - TIPO B', 'ALIMENTAÇÃO'],
-            'nomes_campos': ['aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa', 'matriculados', 'lanche', 'refeicao',
-            'lanche_emergencial', 'total_refeicoes_pagamento', 'sobremesa', 'total_sobremesas_pagamento'],
+            'nomes_campos': [
+                'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa', 'matriculados',
+                'lanche', 'refeicao', 'lanche_emergencial', 'total_refeicoes_pagamento', 'sobremesa',
+                'total_sobremesas_pagamento'
+            ],
             'len_periodos': [5, 7],
             'len_categorias': [5, 7],
             'valores_campos': [
@@ -175,8 +174,10 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
         {
             'periodos': ['TARDE'],
             'categorias': ['DIETA ESPECIAL - TIPO A ENTERAL', 'DIETA ESPECIAL - TIPO B'],
-            'nomes_campos': ['aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa', 'aprovadas', 'lanche', 'refeicao',
-            'lanche_emergencial', 'sobremesa'],
+            'nomes_campos': [
+                'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa',
+                'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa'
+            ],
             'len_periodos': [5, 5],
             'len_categorias': [5, 5],
             'valores_campos': [

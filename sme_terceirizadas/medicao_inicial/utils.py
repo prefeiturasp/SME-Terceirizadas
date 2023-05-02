@@ -270,14 +270,7 @@ def popula_campo_total(tabela, campo, valores_dia):
             valores_dia += ['0']
 
 
-def popula_campos(
-    solicitacao,
-    tabela, dia,
-    indice_periodo,
-    logs_alunos_matriculados,
-    logs_dietas, alteracoes_lanche_emergencial
-):
-    valores_dia = [dia]
+def get_eh_dia_letivo(dia, solicitacao):
     if not dia == 'Total':
         try:
             eh_dia_letivo = DiaCalendario.objects.get(
@@ -286,8 +279,20 @@ def popula_campos(
                 data__month=solicitacao.mes,
                 data__year=solicitacao.ano
             ).dia_letivo
+            return eh_dia_letivo
         except Exception:
-            eh_dia_letivo = False
+            return False
+
+
+def popula_campos(
+    solicitacao,
+    tabela, dia,
+    indice_periodo,
+    logs_alunos_matriculados,
+    logs_dietas, alteracoes_lanche_emergencial
+):
+    valores_dia = [dia]
+    eh_dia_letivo = get_eh_dia_letivo(dia, solicitacao)
     indice_campo = 0
     indice_categoria = 0
     categoria_corrente = tabela['categorias'][indice_categoria]
