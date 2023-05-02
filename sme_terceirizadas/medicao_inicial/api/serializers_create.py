@@ -229,23 +229,32 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         elif validated_data.get('periodo_escolar', '') and not validated_data.get('grupo', ''):
             medicao, created = Medicao.objects.get_or_create(
                 solicitacao_medicao_inicial=validated_data.get('solicitacao_medicao_inicial', ''),
-                periodo_escolar=validated_data.get('periodo_escolar', '')
+                periodo_escolar=validated_data.get('periodo_escolar', ''),
+                grupo=None
             )
         else:
             medicao, created = Medicao.objects.get_or_create(
                 solicitacao_medicao_inicial=validated_data.get('solicitacao_medicao_inicial', ''),
-                grupo=validated_data.get('grupo', '')
+                grupo=validated_data.get('grupo', ''),
+                periodo_escolar=None
             )
         medicao.save()
 
         for valor_medicao in valores_medicao_dict:
-            ValorMedicao.objects.create(
+            ValorMedicao.objects.update_or_create(
                 medicao=medicao,
                 dia=valor_medicao.get('dia', ''),
-                valor=valor_medicao.get('valor', ''),
                 nome_campo=valor_medicao.get('nome_campo', ''),
                 categoria_medicao=valor_medicao.get('categoria_medicao', ''),
                 tipo_alimentacao=valor_medicao.get('tipo_alimentacao', ''),
+                defaults={
+                    'medicao': medicao,
+                    'dia': valor_medicao.get('dia', ''),
+                    'valor': valor_medicao.get('valor', ''),
+                    'nome_campo': valor_medicao.get('nome_campo', ''),
+                    'categoria_medicao': valor_medicao.get('categoria_medicao', ''),
+                    'tipo_alimentacao': valor_medicao.get('tipo_alimentacao', ''),
+                }
             )
 
         return medicao

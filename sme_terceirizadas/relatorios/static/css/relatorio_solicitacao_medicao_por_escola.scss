@@ -203,14 +203,80 @@ table.tabela-valores-medicao {
   width: 98%;
   margin-left: 1%;
   font-size: 8px;
-  border: 1px solid #DADADA;
+  border: 0.5px solid #DADADA;
+  border-collapse: collapse;
+  text-align: center;
+
+  .texto-branco {
+    color: $branco;
+  }
+
+  .periodo-grupo {
+    font-size: 9px;
+  }
+
+  .categoria {
+    background-color: $verde-escuro;
+    font-size: 9px;
+  }
+
+  .cor-periodo-grupo-1 {
+    background-color : #198459
+  }
+
+  .cor-periodo-grupo-2 {
+    background-color : #D06D12
+  }
+
+  .cor-periodo-grupo-3 {
+    background-color : #2F80ED
+  }
+
+  .cor-periodo-grupo-4 {
+    background-color : #831d1c
+  }
+
+  .cor-periodo-grupo-5 {
+    background-color : #00f7ff
+  }
+
+  .cor-periodo-grupo-6 {
+    background-color : #1F861F
+  }
+
+  .cor-periodo-grupo-7 {
+    background-color : #ff0095
+  }
+
+  .cor-periodo-grupo-8 {
+    background-color : #9b51e0
+  }
+
+  .cor-periodo-grupo-9 {
+    background-color : #B58B00
+  }
+
+  .nao-dia-letivo {
+    background-color: $cinza-claro;
+  }
 
   thead {
     tr {
       th {
-        background-color: #20AA73;
-        text-align: center;
-        border: 0.25px;
+        background-color: $verde;
+        border: 0.5px solid #DADADA;
+        padding-top: 3px;
+        padding-bottom: 3px;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      td {
+        border: 0.5px solid #DADADA;
+        padding-top: 3px;
+        padding-bottom: 3px;
       }
     }
   }
