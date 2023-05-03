@@ -18,7 +18,7 @@ def get_lista_categorias_campos(medicao):
         lista_ = []
         if ('SOLICITAÇÕES DE ALIMENTAÇÃO', 'lanche_emergencial') in lista_categorias_campos:
             lista_ += [('LANCHE EMERGENCIAL', 'solicitado'), ('LANCHE EMERGENCIAL', 'consumido')]
-        elif ('SOLICITAÇÕES DE ALIMENTAÇÃO', 'kit_lanche') in lista_categorias_campos:
+        if ('SOLICITAÇÕES DE ALIMENTAÇÃO', 'kit_lanche') in lista_categorias_campos:
             lista_ += [('KIT LANCHE', 'solicitado'), ('KIT LANCHE', 'consumido')]
         lista_categorias_campos = lista_
     return lista_categorias_campos
@@ -51,6 +51,19 @@ def build_dict_relacao_categorias_e_campos(medicao):
 def get_tamanho_colunas_periodos(tabelas):
     for tabela in tabelas:
         tabela['len_periodos'] = tabela['len_categorias']
+        if len(tabela['periodos']) == 1:
+            tabela['len_periodos'] = [len(tabela['nomes_campos'])]
+        if 'Solicitações de Alimentação' in tabela['periodos']:
+            categorias = tabela['categorias']
+            len_periodos = []
+            soma = 0
+            for idx, categoria in enumerate(categorias):
+                if categoria not in ['LANCHE EMERGENCIAL', 'KIT LANCHE']:
+                    len_periodos += [tabela['len_periodos'][idx]]
+                else:
+                    soma += tabela['len_periodos'][idx]
+            len_periodos += [soma]
+            tabela['len_periodos'] = len_periodos
 
 
 def build_headers_tabelas(solicitacao):
@@ -249,22 +262,35 @@ def popula_campo_total_sobremesas_pagamento(solicitacao, tabela, campo, categori
 def popula_campo_solicitado(
     solicitacao, tabela,
     campo, dia, categoria_corrente,
-    valores_dia, alteracoes_lanche_emergencial
+    valores_dia, alteracoes_lanche_emergencial,
+    kits_lanches
 ):
     if campo == 'solicitado':
         try:
-            alteracao = [alt for alt in alteracoes_lanche_emergencial if alt['dia'] == f'{dia:02d}'][0]
-            valores_dia += [alteracao['numero_alunos']]
+            if categoria_corrente == 'LANCHE EMERGENCIAL':
+                alteracao = [alt for alt in alteracoes_lanche_emergencial if alt['dia'] == f'{dia:02d}'][0]
+                valores_dia += [alteracao['numero_alunos']]
+            else:
+                kit = [kit for kit in kits_lanches if kit['dia'] == f'{dia:02d}'][0]
+                valores_dia += [kit['numero_alunos']]
         except Exception:
             valores_dia += ['0']
 
 
-def popula_campo_total(tabela, campo, valores_dia):
+def popula_campo_total(tabela, campo, valores_dia, indice_categoria, indice_campo, categoria_corrente):
     if campo in ['matriculados', 'numero_de_alunos', 'frequencia', 'aprovadas']:
         valores_dia += ['-']
     else:
         try:
-            values = [valores[tabela['nomes_campos'].index(campo) + 1] for valores in tabela['valores_campos']]
+            if indice_categoria == 1:
+                indice_valor_campo = tabela['len_categorias'][indice_categoria - 1] + indice_campo
+                values = [valores[indice_valor_campo + 1] for valores in tabela['valores_campos']]
+            elif indice_categoria == 2:
+                indice_valor_campo = tabela['len_categorias'][indice_categoria - 1]
+                indice_valor_campo += tabela['len_categorias'][indice_categoria - 2] + indice_campo
+                values = [valores[indice_valor_campo + 1] for valores in tabela['valores_campos']]
+            else:
+                values = [valores[tabela['nomes_campos'].index(campo) + 1] for valores in tabela['valores_campos']]
             valores_dia += [sum(int(x) for x in values)]
         except Exception:
             valores_dia += ['0']
@@ -289,7 +315,8 @@ def popula_campos(
     tabela, dia,
     indice_periodo,
     logs_alunos_matriculados,
-    logs_dietas, alteracoes_lanche_emergencial
+    logs_dietas, alteracoes_lanche_emergencial,
+    kits_lanches
 ):
     valores_dia = [dia]
     eh_dia_letivo = get_eh_dia_letivo(dia, solicitacao)
@@ -302,7 +329,7 @@ def popula_campos(
             indice_categoria += 1
             categoria_corrente = tabela['categorias'][indice_categoria]
         if dia == 'Total':
-            popula_campo_total(tabela, campo, valores_dia)
+            popula_campo_total(tabela, campo, valores_dia, indice_categoria, indice_campo, categoria_corrente)
         else:
             popula_campo_matriculados(
                 tabela, dia, campo, indice_campo,
@@ -315,7 +342,8 @@ def popula_campos(
             popula_campo_solicitado(
                 solicitacao, tabela, campo, dia,
                 categoria_corrente, valores_dia,
-                alteracoes_lanche_emergencial)
+                alteracoes_lanche_emergencial,
+                kits_lanches)
             if campo not in [
                 'matriculados',
                 'aprovadas',
@@ -333,14 +361,7 @@ def popula_campos(
     tabela['dias_letivos'] += [eh_dia_letivo if not dia == 'Total' else False]
 
 
-def popula_tabelas(solicitacao, tabelas):
-    dias_no_mes = range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1)
-    logs_alunos_matriculados = LogAlunosMatriculadosPeriodoEscola.objects.filter(
-        escola=solicitacao.escola, criado_em__month=solicitacao.mes,
-        criado_em__year=solicitacao.ano, tipo_turma='REGULAR')
-    logs_dietas = LogQuantidadeDietasAutorizadas.objects.filter(
-        escola=solicitacao.escola, data__month=solicitacao.mes, data__year=solicitacao.ano)
-
+def get_alteracoes_lanche_emergencial(solicitacao):
     escola_uuid = solicitacao.escola.uuid
     mes = solicitacao.mes
     ano = solicitacao.ano
@@ -362,6 +383,46 @@ def popula_tabelas(solicitacao, tabelas):
             'dia': f'{alteracao.data.day:02d}',
             'numero_alunos': sum([sub.qtd_alunos for sub in alteracao.substituicoes_periodo_escolar.all()]),
         })
+    return alteracoes_lanche_emergencial
+
+
+def get_kit_lanche(solicitacao):
+    escola_uuid = solicitacao.escola.uuid
+    mes = solicitacao.mes
+    ano = solicitacao.ano
+    query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
+    query_set = query_set.filter(data_evento__month=mes, data_evento__year=ano)
+    query_set = query_set.filter(data_evento__lt=datetime.date.today())
+    query_set = query_set.filter(desc_doc__icontains='Kit Lanche')
+    aux = []
+    sem_uuid_repetido = []
+    for resultado in query_set:
+        if resultado.uuid not in aux:
+            aux.append(resultado.uuid)
+            sem_uuid_repetido.append(resultado)
+    query_set = sem_uuid_repetido
+    kits_lanches = []
+    for kit_lanche in query_set:
+        kit_lanche = kit_lanche.get_raw_model.objects.get(uuid=kit_lanche.uuid)
+        if kit_lanche:
+            kits_lanches.append({
+                'dia': f'{kit_lanche.solicitacao_kit_lanche.data.day:02d}',
+                'numero_alunos': kit_lanche.quantidade_alimentacoes
+            })
+
+    return kits_lanches
+
+
+def popula_tabelas(solicitacao, tabelas):
+    dias_no_mes = range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1)
+    logs_alunos_matriculados = LogAlunosMatriculadosPeriodoEscola.objects.filter(
+        escola=solicitacao.escola, criado_em__month=solicitacao.mes,
+        criado_em__year=solicitacao.ano, tipo_turma='REGULAR')
+    logs_dietas = LogQuantidadeDietasAutorizadas.objects.filter(
+        escola=solicitacao.escola, data__month=solicitacao.mes, data__year=solicitacao.ano)
+
+    alteracoes_lanche_emergencial = get_alteracoes_lanche_emergencial(solicitacao)
+    kits_lanches = get_kit_lanche(solicitacao)
 
     indice_periodo = 0
     quantidade_tabelas = range(0, len(tabelas))
@@ -372,7 +433,8 @@ def popula_tabelas(solicitacao, tabelas):
             popula_campos(
                 solicitacao, tabela, dia, indice_periodo,
                 logs_alunos_matriculados, logs_dietas,
-                alteracoes_lanche_emergencial)
+                alteracoes_lanche_emergencial,
+                kits_lanches)
 
     return tabelas
 
