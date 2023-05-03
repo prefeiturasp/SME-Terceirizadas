@@ -35,7 +35,7 @@ def test_utils_build_headers_tabelas(solicitacao_medicao_inicial_varios_valores)
                 'sobremesa', 'total_sobremesas_pagamento', 'aprovadas', 'lanche', 'refeicao',
                 'lanche_emergencial', 'sobremesa'
             ],
-            'len_periodos': [7, 5],
+            'len_periodos': [12],
             'len_categorias': [7, 5],
             'valores_campos': [],
             'ordem_periodos_grupos': [1, 1],
@@ -61,7 +61,7 @@ def test_utils_build_headers_tabelas(solicitacao_medicao_inicial_varios_valores)
                 'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa', 'aprovadas', 'lanche',
                 'refeicao', 'lanche_emergencial', 'sobremesa'
             ],
-            'len_periodos': [5, 5],
+            'len_periodos': [10],
             'len_categorias': [5, 5],
             'valores_campos': [],
             'ordem_periodos_grupos': [2, 2],
@@ -79,7 +79,7 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
                 'matriculados', 'lanche', 'refeicao', 'lanche_emergencial', 'total_refeicoes_pagamento', 'sobremesa',
                 'total_sobremesas_pagamento', 'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa'
             ],
-            'len_periodos': [7, 5],
+            'len_periodos': [12],
             'len_categorias': [7, 5],
             'valores_campos': [
                 [1, '0', '10', '10', '10', '0', '10', '0', '0', '10', '10', '10', '10'],
@@ -178,7 +178,7 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
                 'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa',
                 'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa'
             ],
-            'len_periodos': [5, 5],
+            'len_periodos': [10],
             'len_categorias': [5, 5],
             'valores_campos': [
                 [1, '0', '10', '10', '10', '10', '0', '10', '10', '10', '10'],
