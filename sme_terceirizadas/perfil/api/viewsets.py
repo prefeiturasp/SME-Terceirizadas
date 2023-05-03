@@ -23,6 +23,7 @@ from sme_terceirizadas.perfil.models.usuario import (
 from ...dados_comuns.constants import ADMINISTRADOR_EMPRESA, COGESTOR_DRE, DIRETOR_UE, USUARIO_EMPRESA
 from ...dados_comuns.permissions import (
     PermissaoParaCriarUsuarioComCoresso,
+    UsuarioPodeAlterarVinculo,
     UsuarioPodeFinalizarVinculo,
     UsuarioSuperCodae
 )
@@ -40,6 +41,7 @@ from ..utils import PerfilPagination
 from .filters import ImportacaoPlanilhaUsuarioCoreSSOFilter, VinculoFilter
 from .serializers import (
     AlteraEmailSerializer,
+    AlterarVinculoSerializer,
     ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer,
     ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer,
     ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer,
@@ -152,20 +154,27 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=['POST'], url_path='atualizar-senha/(?P<usuario_uuid>.*)/(?P<token_reset>.*)')  # noqa
     def atualizar_senha(self, request, usuario_uuid=None, token_reset=None):
-        # TODO: melhorar este método
-        senha1 = request.data.get('senha1')
-        senha2 = request.data.get('senha2')
-        if senha1 != senha2:
-            return Response({'detail': 'Senhas divergem'}, status.HTTP_400_BAD_REQUEST)
+        serializer = RedefinirSenhaSerializer()
+        data = {
+            'senha': request.data.get('senha1'),
+            'confirmar_senha': request.data.get('senha2'),
+            'token': token_reset,
+        }
+        validated_data = serializer.validate(data)
         try:
             usuario = Usuario.objects.get(uuid=usuario_uuid)
         except ObjectDoesNotExist:
             return Response({'detail': 'Não existe usuário com este e-mail ou RF'},
                             status=status.HTTP_400_BAD_REQUEST)
-        if usuario.atualiza_senha(senha=senha1, token=token_reset):
-            return Response({'sucesso!': 'senha atualizada com sucesso'})
-        else:
-            return Response({'detail': 'Token inválido'}, status.HTTP_400_BAD_REQUEST)
+        result = serializer.update(usuario, validated_data)
+        usuario.last_login = datetime.datetime.now()
+        usuario.save()
+        if isinstance(result, Response):
+            usuario.last_login = None
+            usuario.save()
+            logger.error('Erro ao alterar a senha:', result)
+            return result
+        return Response({'detail': 'Senha alterada com sucesso'}, status=status.HTTP_200_OK)
 
 
 class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
@@ -236,7 +245,8 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = VinculoFilter
 
-    @action(detail=False, methods=['GET'], url_path='vinculos-ativos', permission_classes=(IsAuthenticated,))
+    @action(detail=False, methods=['GET'], url_path='vinculos-ativos',
+            permission_classes=(PermissaoParaCriarUsuarioComCoresso,))
     def lista_vinculos_ativos(self, request):
         usuario = request.user
         if usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_EMPRESA, USUARIO_EMPRESA, COGESTOR_DRE]:
@@ -246,6 +256,10 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
             ).order_by('-data_inicial')
         else:
             queryset = self.get_queryset().order_by('-data_inicial')
+
+        queryset = queryset.filtrar_por_usernames_validos().exclude(
+            usuario=request.user
+        )
 
         queryset = [vinc for vinc in self.filter_queryset(
             queryset) if vinc.status is Vinculo.STATUS_ATIVO]
@@ -536,6 +550,20 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
         """(patch) /cadastro-com-coresso/{usuario.username}/alterar-email/."""
         data = request.data
         serialize = AlteraEmailSerializer()
+        validated_data = serialize.validate(data)
+        user = Usuario.objects.get(username=username)
+        instance = serialize.update(user, validated_data)
+        if isinstance(instance, Response):
+            return instance
+        return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, permission_classes=(UsuarioPodeAlterarVinculo,),
+            url_path='alterar-vinculo', methods=['patch'])
+    @transaction.atomic
+    def altera_vinculo(self, request, username):
+        """(patch) /cadastro-com-coresso/{usuario.username}/alterar-vinculo/."""
+        data = request.data
+        serialize = AlterarVinculoSerializer()
         validated_data = serialize.validate(data)
         user = Usuario.objects.get(username=username)
         instance = serialize.update(user, validated_data)

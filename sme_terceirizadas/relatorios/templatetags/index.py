@@ -325,3 +325,32 @@ def get_matriculados(uuid, alunos_matriculados):
         return alunos_matriculados['alunos_por_faixa_etaria'][periodo][uuid]
     else:
         return 0
+
+
+@register.filter
+def get_nao_eh_dia_letivo(dias_letivos, i):
+    return not dias_letivos[i]
+
+
+@register.filter
+def get_nome_campo(campo):
+    campos = {
+        'numero_de_alunos': 'Número de Alunos',
+        'matriculados': 'Matriculados',
+        'aprovadas': 'Aprovadas',
+        'frequencia': 'Frequência',
+        'solicitado': 'Solicitado',
+        'consumido': 'Consumido',
+        'desjejum': 'Desjejum',
+        'lanche': 'Lanche',
+        'lanche_4h': 'Lanche 4h',
+        'refeicao': 'Refeição 1 Oferta',
+        'repeticao_refeicao': 'Repetição de Refeição',
+        'lanche_emergencial': 'Lanche Emergencial',
+        'kit_lanche': 'Kit Lanche',
+        'total_refeicoes_pagamento': 'Total de Refeições para Pagamento',
+        'sobremesa': 'Sobremesa 1 Oferta',
+        'repeticao_sobremesa': 'Repetição de Sobremesa',
+        'total_sobremesas_pagamento': 'Total de Sobremesas para Pagamento'
+    }
+    return campos.get(campo, campo)

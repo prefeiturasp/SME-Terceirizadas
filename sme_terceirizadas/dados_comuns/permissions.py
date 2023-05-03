@@ -320,9 +320,24 @@ class UsuarioSuperCodae(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
-            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                   ADMINISTRADOR_REPRESENTANTE_CODAE]
+        )
+
+
+class UsuarioPodeAlterarVinculo(BasePermission):
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                  COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                  ADMINISTRADOR_REPRESENTANTE_CODAE] or
+            usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA]
         )
 
 
@@ -335,7 +350,7 @@ class UsuarioPodeFinalizarVinculo(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
-            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                   ADMINISTRADOR_REPRESENTANTE_CODAE, COORDENADOR_DIETA_ESPECIAL,
                                                   COORDENADOR_GESTAO_PRODUTO, COORDENADOR_SUPERVISAO_NUTRICAO] or
@@ -371,8 +386,8 @@ class PermissaoParaCriarUsuarioComCoresso(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
-            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_GESTAO_PRODUTO,
-                                                  COORDENADOR_CODAE_DILOG_LOGISTICA, COORDENADOR_DIETA_ESPECIAL,
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_PRODUTO, COORDENADOR_DIETA_ESPECIAL,
+                                                  COORDENADOR_CODAE_DILOG_LOGISTICA,
                                                   COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                   ADMINISTRADOR_REPRESENTANTE_CODAE, COORDENADOR_SUPERVISAO_NUTRICAO] or
             isinstance(usuario.vinculo_atual.instituicao, Escola) and
@@ -652,7 +667,7 @@ class PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma(BasePermission)
         return (
             not usuario.is_anonymous and
             usuario.vinculo_atual and
-            usuario.vinculo_atual.perfil.nome in [DINUTRE_DIRETORIA]
+            usuario.vinculo_atual.perfil.nome in [DINUTRE_DIRETORIA, DILOG_DIRETORIA]
         )
 
 

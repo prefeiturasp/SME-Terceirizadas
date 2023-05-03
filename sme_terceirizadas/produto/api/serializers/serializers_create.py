@@ -308,11 +308,67 @@ class ProdutoEditalCreateSerializer(serializers.Serializer):
     tipo_produto = serializers.CharField(required=False)
     outras_informacoes = serializers.CharField(required=False)
 
-    def create(self, validated_data): # noqa c901
+    def checa_se_existe_edital_ou_se_altera_tipo_produto(
+        self, editais, produto_edital, tipo_produto, outras_informacoes, editais_vinculados, lista_produtos_editais,
+            editais_com_tipos_alterados, outro_tipo_produto):
+        for edital in editais:
+            if not ProdutoEdital.objects.filter(produto=produto_edital.produto, edital=edital).exists():
+                editais_vinculados.append(edital.numero)
+                lista_produtos_editais.append(ProdutoEdital(produto=produto_edital.produto,
+                                                            edital=edital,
+                                                            tipo_produto=tipo_produto,
+                                                            outras_informacoes=outras_informacoes))
+            elif ProdutoEdital.objects.filter(produto=produto_edital.produto, edital=edital,
+                                              tipo_produto=outro_tipo_produto).exists():
+                editais_com_tipos_alterados.append(edital.numero)
+
+    def cria_vinculos_inexistentes(self, editais_vinculados, produto_edital, tipo_produto, outras_informacoes,
+                                   homologacao_produto):
+        if editais_vinculados:
+            string_editais_vinculados = ', '.join(editais_vinculados)
+            justificativa = f'<p>Nome do Produto:</p>'
+            justificativa += f'<p>{produto_edital.produto.nome}</p>'
+            justificativa += '<br><p>Editais que foram vinculados:</p>'
+            justificativa += f'<p>{string_editais_vinculados}</p>'
+            justificativa += '<br><p>Tipo de Produto em que o produto foi vinculado:</p>'
+            justificativa += f'<p>{tipo_produto}</p>'
+            justificativa += '<br><p>Outras informações:</p>'
+            justificativa += f'<p>{outras_informacoes}</p>'
+            homologacao_produto.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.VINCULO_DO_EDITAL_AO_PRODUTO,
+                usuario=self.context['request'].user,
+                justificativa=justificativa
+            )
+
+    def altera_vinculos_tipo_produto(self, editais_com_tipos_alterados, produto_edital, tipo_produto,
+                                     outras_informacoes, homologacao_produto, outro_tipo_produto):
+        if editais_com_tipos_alterados:
+            ProdutoEdital.objects.filter(
+                produto=produto_edital.produto, edital__numero__in=editais_com_tipos_alterados,
+                tipo_produto=outro_tipo_produto).update(
+                tipo_produto=tipo_produto
+            )
+            string_editais_alterados = ', '.join(editais_com_tipos_alterados)
+            justificativa = f'<p>Nome do Produto:</p>'
+            justificativa += f'<p>{produto_edital.produto.nome}</p>'
+            justificativa += '<br><p>Editais que foram vinculados:</p>'
+            justificativa += f'<p>{string_editais_alterados}</p>'
+            justificativa += '<br><p>Tipo de Produto alterado para:</p>'
+            justificativa += f'<p>{tipo_produto}</p>'
+            justificativa += '<br><p>Outras informações:</p>'
+            justificativa += f'<p>{outras_informacoes}</p>'
+            homologacao_produto.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.VINCULO_DO_EDITAL_AO_PRODUTO,
+                usuario=self.context['request'].user,
+                justificativa=justificativa
+            )
+
+    def create(self, validated_data):
         editais_destino_selecionados = validated_data.get('editais_destino_selecionados', [])
         produtos_editais = validated_data.get('produtos_editais', [])
         outras_informacoes = validated_data.get('outras_informacoes', '')
         tipo_produto = validated_data.get('tipo_produto', '')
+        outro_tipo_produto = 'Comum' if tipo_produto == 'Dieta especial' else 'Dieta especial'
 
         produtos = ProdutoEdital.objects.filter(uuid__in=produtos_editais)
         editais = Edital.objects.filter(uuid__in=editais_destino_selecionados)
@@ -321,32 +377,19 @@ class ProdutoEditalCreateSerializer(serializers.Serializer):
             for produto_edital in produtos:
                 homologacao_produto = produto_edital.produto.homologacao
                 editais_vinculados = []
-                for edital in editais:
-                    if not ProdutoEdital.objects.filter(produto=produto_edital.produto, edital=edital).exists():
-                        editais_vinculados.append(edital.numero)
-                        lista_produtos_editais.append(ProdutoEdital(produto=produto_edital.produto,
-                                                                    edital=edital,
-                                                                    tipo_produto=tipo_produto,
-                                                                    outras_informacoes=outras_informacoes))
-                if editais_vinculados:
-                    string_editais_vinculados = ', '.join(editais_vinculados)
-                    justificativa = f'<p>Nome do Produto:</p>'
-                    justificativa += f'<p>{produto_edital.produto.nome}</p>'
-                    justificativa += '<br><p>Editais que foram vinculados:</p>'
-                    justificativa += f'<p>{string_editais_vinculados}</p>'
-                    justificativa += '<br><p>Tipo de Produto em que o produto foi vinculado:</p>'
-                    justificativa += f'<p>{tipo_produto}</p>'
-                    justificativa += '<br><p>Outras informações:</p>'
-                    justificativa += f'<p>{outras_informacoes}</p>'
-                    homologacao_produto.salvar_log_transicao(
-                        status_evento=LogSolicitacoesUsuario.VINCULO_DO_EDITAL_AO_PRODUTO,
-                        usuario=self.context['request'].user,
-                        justificativa=justificativa
-                    )
+                editais_com_tipos_alterados = []
+                self.checa_se_existe_edital_ou_se_altera_tipo_produto(
+                    editais, produto_edital, tipo_produto, outras_informacoes, editais_vinculados,
+                    lista_produtos_editais, editais_com_tipos_alterados, outro_tipo_produto)
+                self.cria_vinculos_inexistentes(editais_vinculados, produto_edital, tipo_produto, outras_informacoes,
+                                                homologacao_produto)
+                self.altera_vinculos_tipo_produto(editais_com_tipos_alterados, produto_edital, tipo_produto,
+                                                  outras_informacoes, homologacao_produto, outro_tipo_produto)
+
             resultado = ProdutoEdital.objects.bulk_create(lista_produtos_editais)
             return resultado
-        except Exception:
-            raise serializers.ValidationError('Erro ao criar Produto Proviniente do Edital.')
+        except Exception as e:
+            raise serializers.ValidationError(f'Erro ao criar Produto Proviniente do Edital.: {str(e)}')
 
     class Meta:
         model = SolicitacaoCadastroProdutoDieta

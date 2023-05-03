@@ -529,7 +529,7 @@ def test_url_dashboard_painel_solicitacao_alteracao_dinutre(client_autenticado_d
     response = client_autenticado_dinutre_diretoria.get(
         f'/solicitacao-de-alteracao-de-cronograma/dashboard/'
     )
-    QTD_STATUS_DASHBOARD_DINUTRE = 1
+    QTD_STATUS_DASHBOARD_DINUTRE = 3
     SOLICITACOES_STATUS_CRONOGRAMA_CIENTE = 2
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']) == QTD_STATUS_DASHBOARD_DINUTRE
