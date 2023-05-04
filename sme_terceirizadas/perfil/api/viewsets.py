@@ -550,16 +550,14 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
         """(patch) /cadastro-com-coresso/{usuario.username}/alterar-email/."""
         data = request.data
         user = Usuario.objects.filter(username=username).first()
+        serializer = AlteraEmailSerializer()
+        validated_data = serializer.validate(data)
         if user:
-            serializer = AlteraEmailSerializer()
-            validated_data = serializer.validate(data)
             instance = serializer.update(user, validated_data)
             if isinstance(instance, Response):
                 return instance
             return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
         else:
-            serializer = AlteraEmailSerializer()
-            validated_data = serializer.validate(data)
             response = serializer.update_eol(username, validated_data)
             return response
 
