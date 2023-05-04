@@ -549,13 +549,19 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
     def altera_email(self, request, username):
         """(patch) /cadastro-com-coresso/{usuario.username}/alterar-email/."""
         data = request.data
-        serialize = AlteraEmailSerializer()
-        validated_data = serialize.validate(data)
-        user = Usuario.objects.get(username=username)
-        instance = serialize.update(user, validated_data)
-        if isinstance(instance, Response):
-            return instance
-        return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
+        user = Usuario.objects.filter(username=username).first()
+        if user:
+            serializer = AlteraEmailSerializer()
+            validated_data = serializer.validate(data)
+            instance = serializer.update(user, validated_data)
+            if isinstance(instance, Response):
+                return instance
+            return Response(UsuarioSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
+        else:
+            serializer = AlteraEmailSerializer()
+            validated_data = serializer.validate(data)
+            response = serializer.update_eol(username, validated_data)
+            return response
 
     @action(detail=True, permission_classes=(UsuarioPodeAlterarVinculo,),
             url_path='alterar-vinculo', methods=['patch'])
