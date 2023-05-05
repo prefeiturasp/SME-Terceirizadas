@@ -230,7 +230,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return lista_status
 
-    def homologados_e_com_reclamacoes(self, qs):
+    def homologados_e_com_reclamacoes(self, workflow, qs, edital):
         status_reclamacao = [
             HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
@@ -244,9 +244,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if isinstance(instituicao, Escola):
             status_permitidos = status_permitidos + status_reclamacao
             qs = qs.filter(status__in=status_permitidos)
-            return qs.exclude(reclamacoes__escola=instituicao)
+            qs = qs.exclude(reclamacoes__escola=instituicao)
         else:
-            return qs.filter(status__in=status_permitidos)
+            qs = qs.filter(status__in=status_permitidos)
+        return qs
 
     def reclamacoes_por_usuario(self, workflow, raw_sql, data, query_set):  # noqa C901
         if (workflow in [
@@ -274,9 +275,37 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 raw_sql += "AND %(reclamacoes_produto)s.escola_id = '%(escola)s' "
         return query_set
 
-    def dados_dashboard(self, query_set: QuerySet, use_raw=True) -> list:
+    def tratar_parcialmente_suspensos(self, workflow, qs, edital):
+        if workflow == 'CODAE_SUSPENDEU':
+            if edital:
+                qs_parc_suspensos = qs.filter(status='CODAE_HOMOLOGADO',
+                                              produto__vinculos__suspenso=True,
+                                              produto__vinculos__edital__numero=edital)
+            else:
+                qs_parc_suspensos = qs.filter(status='CODAE_HOMOLOGADO',
+                                              produto__vinculos__suspenso=True)
+            qs = qs_parc_suspensos | qs.filter(status=workflow)
+        elif workflow == 'CODAE_HOMOLOGADO' and edital:
+            qs = qs.filter(status='CODAE_HOMOLOGADO',
+                           produto__vinculos__suspenso=False,
+                           produto__vinculos__edital__numero=edital)
+        else:
+            qs = qs.filter(status=workflow).distinct().all()
+        return qs
+
+    def get_edital(self, edital, usuario):
+        if not edital and usuario == 'escola':
+            try:
+                if len(self.request.user.vinculo_atual.instituicao.editais) > 1:
+                    return None
+                return Edital.objects.get(uuid=self.request.user.vinculo_atual.instituicao.editais[0]).numero
+            except (IndexError, Edital.DoesNotExist):
+                return None
+        return edital
+
+    def dados_dashboard(self, query_set: QuerySet, edital: str, use_raw=True) -> list:
         sumario = []
-        uuids_workflow_homologado_com_vinc_prod_edital_suspenso = HomologacaoProduto.objects.filter(
+        uuids_homologados_com_vinc_prod_edital_suspenso = HomologacaoProduto.objects.filter(
             status='CODAE_HOMOLOGADO', produto__vinculos__suspenso=True
         ).distinct().values_list('uuid', flat=True)
 
@@ -311,19 +340,21 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 raw_sql += 'ORDER BY log_criado_em DESC'
                 qs = query_set.raw(raw_sql % data)
                 if workflow == 'CODAE_SUSPENDEU':
-                    qs = atualiza_queryset_codae_suspendeu(qs, uuids_workflow_homologado_com_vinc_prod_edital_suspenso)
+                    qs = atualiza_queryset_codae_suspendeu(qs, uuids_homologados_com_vinc_prod_edital_suspenso)
             else:
                 qs = self.reclamacoes_por_usuario(workflow, None, None, query_set)
                 usuario = self.request.user.tipo_usuario
                 status_homologado = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
                 status_permitidos = [constants.TIPO_USUARIO_ESCOLA, constants.TIPO_USUARIO_NUTRISUPERVISOR]
+                solicitacoes_viewset = SolicitacoesViewSet()
+                edital = self.get_edital(edital, usuario)
                 if workflow == status_homologado and usuario in status_permitidos:
-                    qs = self.homologados_e_com_reclamacoes(qs)
-                    qs = sorted(qs.distinct().all(),
-                                key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
-                else:
-                    qs = sorted(qs.filter(status=workflow).distinct().all(),
-                                key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+                    qs = self.homologados_e_com_reclamacoes(workflow, qs, edital)
+                qs = self.tratar_parcialmente_suspensos(workflow, qs, edital)
+                qs = solicitacoes_viewset.remove_duplicados_do_query_set(qs)
+                qs = sorted(qs,
+                            key=lambda x: x.ultimo_log.criado_em if x.ultimo_log else '-criado_em', reverse=True)
+
             sumario.append({
                 'status': workflow,
                 'dados': HomologacaoProdutoPainelGerencialSerializer(
@@ -338,7 +369,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         query_set = self.get_queryset()
         use_raw = self.request.user.tipo_usuario not in [constants.TIPO_USUARIO_ESCOLA,
                                                          constants.TIPO_USUARIO_NUTRISUPERVISOR]
-        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=use_raw)}
+        response = {'results': self.dados_dashboard(query_set=query_set, edital=None, use_raw=use_raw)}
         return Response(response)
 
     def produtos_sem_agrupamento(self, nome_edital, qs_produtos, offset, limit):
@@ -432,11 +463,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 Q(produto__nome__icontains=titulo))
         if marca:
             query_set = query_set.filter(produto__marca__nome__icontains=marca)
-        if edital:
-            query_set = query_set.filter(produto__in=ProdutoEdital.objects.filter(
-                edital__numero=edital).values_list('produto', flat=True))
 
-        response = {'results': self.dados_dashboard(query_set=query_set, use_raw=False)}
+        response = {'results': self.dados_dashboard(query_set=query_set, edital=edital, use_raw=False)}
         return Response(response)
 
     def build_raw_sql_filtro_escola(self, raw_sql, status__in, common_status, tipo_usuario, filtros, escola_id):
@@ -1090,6 +1118,19 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProdutoFilter
 
+    def filtra_editais_dieta_ou_comum(self, request, queryset):
+        if request.query_params.get('eh_para_alunos_com_dieta', None):
+            eh_para_alunos_com_dieta = ('Dieta especial'
+                                        if request.query_params.get('eh_para_alunos_com_dieta') == 'true'
+                                        else 'Comum')
+            edital = request.query_params.get('nome_edital', None)
+            if edital:
+                queryset = queryset.filter(vinculos__edital__numero=edital,
+                                           vinculos__tipo_produto=eh_para_alunos_com_dieta)
+            else:
+                queryset = queryset.filter(vinculos__tipo_produto=eh_para_alunos_com_dieta)
+        return queryset
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).select_related(
             'marca', 'fabricante').order_by('criado_em')
@@ -1119,11 +1160,15 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 queryset = sorted(queryset, key=lambda prod: prod.criado_em)
             else:
                 queryset = queryset.filter(homologacao__status__in=filter_status)
+        queryset = self.filtra_editais_dieta_ou_comum(request, queryset)
         page = self.paginate_queryset(queryset)
+        nome_edital = request.query_params.get('nome_edital', None)
         if page is not None:
-            serializer = ProdutoListagemSerializer(page, context={'status': filter_status}, many=True)
+            serializer = ProdutoListagemSerializer(
+                page, context={'status': filter_status, 'nome_edital': nome_edital}, many=True)
             return self.get_paginated_response(serializer.data)
-        serializer = ProdutoListagemSerializer(queryset, context={'status': filter_status}, many=True)
+        serializer = ProdutoListagemSerializer(
+            queryset, context={'status': filter_status, 'nome_edital': nome_edital}, many=True)
         return Response(serializer.data)
 
     def paginated_response(self, queryset):
@@ -1745,29 +1790,13 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response({'results': serializer.data})
 
-    def get_queryset_filtrado_homologados(self):
-        homologacao_produtos = HomologacaoProduto.objects.all()
-        logs_homologados = []
-
-        for homologacao in homologacao_produtos:
-            log = homologacao.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
-                                                             LogSolicitacoesUsuario.CODAE_SUSPENDEU,
-                                                             LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO],).last()
-
-            if log and log.status_evento == LogSolicitacoesUsuario.CODAE_HOMOLOGADO:
-                logs_homologados.append(log.uuid_original)
-        queryset = self.get_queryset().filter(produto__homologacao__uuid__in=logs_homologados, ativo=True)
-        return queryset
-
     @action(detail=False, methods=['get'], url_path='lista-produtos-opcoes') # noqa c901
     def lista_produtos_opcoes(self, request):
         try:
             editais_uuid = request.query_params.get('editais', '')
             tipo_produto_edital_origem = request.query_params.get('tipo_produto_edital_origem', '')
             editais_uuid = editais_uuid.split(';')
-            queryset_homologados = self.get_queryset_filtrado_homologados()
-            queryset = queryset_homologados.filter(edital__uuid__in=editais_uuid)
-
+            queryset = self.get_queryset().filter(edital__uuid__in=editais_uuid)
             if tipo_produto_edital_origem.lower() == ProdutoEdital.TIPO_PRODUTO['Comum'].lower():
                 queryset = queryset.filter(tipo_produto__icontains=ProdutoEdital.TIPO_PRODUTO['Comum'])
             else:

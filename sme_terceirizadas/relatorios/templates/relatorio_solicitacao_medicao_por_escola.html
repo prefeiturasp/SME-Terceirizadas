@@ -148,28 +148,30 @@
         </div>
       </div>
     </header>
-    <table class="tabela-valores-medicao mt-1">
-      <thead>
+    <table class="tabela-valores-medicao mt-3">
+      <thead class="texto-branco">
         <tr>
           <th rowspan="3">Dias</th>
           {% for periodo in tabela.periodos %}
-            <th colspan="{{  tabela.len_periodos|get_element_by_index:forloop.counter0 }}">{{ periodo }}</th>
+            <th class="periodo-grupo cor-periodo-grupo-{{ tabela.ordem_periodos_grupos|get_element_by_index:forloop.counter0 }}" colspan="{{ tabela.len_periodos|get_element_by_index:forloop.counter0 }}">
+              {{ periodo|upper }}
+            </th>
           {% endfor %}
         </tr>
         <tr>
           {% for categoria in tabela.categorias %}
-            <th colspan="{{ tabela.len_categorias|get_element_by_index:forloop.counter0 }}">{{ categoria }}</th>
+            <th class="categoria" colspan="{{ tabela.len_categorias|get_element_by_index:forloop.counter0 }}">{{ categoria|upper }}</th>
           {% endfor %}
         </tr>
         <tr>
           {% for campo in tabela.nomes_campos %}
-            <th>{{ campo }}</th>
+            <th>{{ campo|get_nome_campo }}</th>
           {% endfor %}
         </tr>
       </thead>
       <tbody>
         {% for valores in tabela.valores_campos %}
-          <tr>
+          <tr class="{% if tabela.dias_letivos|get_nao_eh_dia_letivo:forloop.counter0 %} nao-dia-letivo {% endif %}">
             {% for valor in valores %}
               <td>{{ valor }}</td>
             {% endfor %}
@@ -201,7 +203,7 @@
   <div class="text-center mt-5 mb-5">OBSERVAÇÕES DIÁRIAS DO LANÇAMENTO</div>
   <table class="tabela-valores-medicao mt-1">
     <thead>
-      <tr>
+      <tr class="texto-branco">
         <th>DIA</th>
         <th>PERÍODO</th>
         <th>TIPO</th>
@@ -255,11 +257,11 @@
   <table class="tabela-valores-medicao mt-1">
     <thead>
       <tr>
-        <th>Tipos de Alimentação</th>
+        <th class="texto-branco">Tipos de Alimentação</th>
         {% for periodo in tabela_somatorio_lista_periodos %}
-          <th>{{ periodo }}</th>
+          <th class="texto-branco">{{ periodo }}</th>
         {% endfor %}
-        <th>Total</th>
+        <th class="texto-branco">Total</th>
       </tr>
     <tbody>
       {% for campo in tabela_somatorio_lista_campos %}

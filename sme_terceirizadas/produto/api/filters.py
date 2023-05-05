@@ -27,8 +27,7 @@ class ProdutoFilter(filters.FilterSet):
                   'nome_terceirizada',
                   'data_inicial',
                   'data_final',
-                  'tem_aditivos_alergenicos',
-                  'eh_para_alunos_com_dieta']
+                  'tem_aditivos_alergenicos']
 
     def filtra_aditivos(self, qs, name, value):
         filtro = cria_filtro_aditivos(value)

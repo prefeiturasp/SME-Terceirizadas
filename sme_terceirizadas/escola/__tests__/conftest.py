@@ -44,7 +44,7 @@ def diretoria_regional(tipo_gestao):
 
 @pytest.fixture
 def lote():
-    return mommy.make(models.Lote, nome='lote', iniciais='lt')
+    return mommy.make(models.Lote, nome='lote', iniciais='lt', uuid='49696643-7a47-4324-989b-9380177fef2d')
 
 
 @pytest.fixture

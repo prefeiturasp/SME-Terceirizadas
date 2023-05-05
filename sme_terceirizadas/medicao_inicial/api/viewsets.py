@@ -272,7 +272,18 @@ class SolicitacaoMedicaoInicialViewSet(
         tabela_somatorio = []
         tabela_somatorio_lista_periodos = []
         tabela_somatorio_lista_campos = []
-        for medicao in solicitacao.medicoes.all():
+        ORDEM_PERIODOS_GRUPOS = {
+            'MANHA': 1,
+            'TARDE': 2,
+            'INTEGRAL': 3,
+            'NOITE': 4,
+            'VESPERTINO': 5,
+            'Programas e Projetos - MANHA': 6,
+            'Programas e Projetos - TARDE': 7,
+            'Solicitações de Alimentação': 8,
+            'ETEC': 9
+        }
+        for medicao in sorted(solicitacao.medicoes.all(), key=lambda k: ORDEM_PERIODOS_GRUPOS[k.nome_periodo_grupo]):
             for campo in medicao.valores_medicao.exclude(
                 nome_campo__in=['observacoes', 'dietas_autorizadas', 'frequencia', 'matriculados']
             ).values_list('nome_campo', flat=True).distinct():
