@@ -31,41 +31,58 @@ def test_utils_build_headers_tabelas(solicitacao_medicao_inicial_varios_valores)
             'periodos': ['MANHA'],
             'categorias': ['ALIMENTAÇÃO', 'DIETA ESPECIAL - TIPO A ENTERAL'],
             'nomes_campos': [
-                'matriculados', 'lanche', 'refeicao', 'lanche_emergencial', 'total_refeicoes_pagamento',
-                'sobremesa', 'total_sobremesas_pagamento', 'aprovadas', 'lanche', 'refeicao',
-                'lanche_emergencial', 'sobremesa'
+                'matriculados', 'lanche', 'refeicao', 'total_refeicoes_pagamento', 'sobremesa',
+                'total_sobremesas_pagamento', 'lanche_emergencial', 'aprovadas', 'lanche',
+                'refeicao', 'sobremesa', 'lanche_emergencial'
             ],
             'len_periodos': [12],
             'len_categorias': [7, 5],
             'valores_campos': [],
-            'ordem_periodos_grupos': [1, 1],
-            'dias_letivos': []
+            'ordem_periodos_grupos': [1],
+            'dias_letivos': [],
+            'categorias_dos_periodos': {
+                'MANHA': [
+                    {'categoria': 'ALIMENTAÇÃO', 'numero_campos': 7},
+                    {'categoria': 'DIETA ESPECIAL - TIPO A ENTERAL', 'numero_campos': 5}
+                ]
+            }
         },
         {
             'periodos': ['MANHA', 'TARDE'],
             'categorias': ['DIETA ESPECIAL - TIPO B', 'ALIMENTAÇÃO'],
             'nomes_campos': [
-                'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa', 'matriculados', 'lanche',
-                'refeicao', 'lanche_emergencial', 'total_refeicoes_pagamento', 'sobremesa', 'total_sobremesas_pagamento'
+                'aprovadas', 'lanche', 'refeicao', 'sobremesa', 'lanche_emergencial', 'matriculados',
+                'lanche', 'refeicao', 'total_refeicoes_pagamento', 'sobremesa', 'total_sobremesas_pagamento',
+                'lanche_emergencial'
             ],
             'len_periodos': [5, 7],
             'len_categorias': [5, 7],
             'valores_campos': [],
             'ordem_periodos_grupos': [1, 2],
-            'dias_letivos': []
+            'dias_letivos': [],
+            'categorias_dos_periodos': {
+                'MANHA': [{'categoria': 'DIETA ESPECIAL - TIPO B', 'numero_campos': 5}],
+                'TARDE': [{'categoria': 'ALIMENTAÇÃO', 'numero_campos': 7}]
+            }
         },
         {
             'periodos': ['TARDE'],
             'categorias': ['DIETA ESPECIAL - TIPO A ENTERAL', 'DIETA ESPECIAL - TIPO B'],
             'nomes_campos': [
-                'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa', 'aprovadas', 'lanche',
-                'refeicao', 'lanche_emergencial', 'sobremesa'
+                'aprovadas', 'lanche', 'refeicao', 'sobremesa', 'lanche_emergencial', 'aprovadas',
+                'lanche', 'refeicao', 'sobremesa', 'lanche_emergencial'
             ],
             'len_periodos': [10],
             'len_categorias': [5, 5],
             'valores_campos': [],
-            'ordem_periodos_grupos': [2, 2],
-            'dias_letivos': []
+            'ordem_periodos_grupos': [2],
+            'dias_letivos': [],
+            'categorias_dos_periodos': {
+                'TARDE': [
+                    {'categoria': 'DIETA ESPECIAL - TIPO A ENTERAL', 'numero_campos': 5},
+                    {'categoria': 'DIETA ESPECIAL - TIPO B', 'numero_campos': 5}
+                ]
+            }
         }
     ]
 
@@ -76,17 +93,18 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
             'periodos': ['MANHA'],
             'categorias': ['ALIMENTAÇÃO', 'DIETA ESPECIAL - TIPO A ENTERAL'],
             'nomes_campos': [
-                'matriculados', 'lanche', 'refeicao', 'lanche_emergencial', 'total_refeicoes_pagamento', 'sobremesa',
-                'total_sobremesas_pagamento', 'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa'
+                'matriculados', 'lanche', 'refeicao', 'total_refeicoes_pagamento', 'sobremesa',
+                'total_sobremesas_pagamento', 'lanche_emergencial', 'aprovadas', 'lanche', 'refeicao',
+                'sobremesa', 'lanche_emergencial'
             ],
             'len_periodos': [12],
             'len_categorias': [7, 5],
             'valores_campos': [
-                [1, '0', '10', '10', '10', '0', '10', '0', '0', '10', '10', '10', '10'],
-                [2, '0', '10', '10', '10', '0', '10', '0', '0', '10', '10', '10', '10'],
-                [3, '0', '10', '10', '10', '0', '10', '0', '0', '10', '10', '10', '10'],
-                [4, '0', '10', '10', '10', '0', '10', '0', '0', '10', '10', '10', '10'],
-                [5, '0', '10', '10', '10', '0', '10', '0', '0', '10', '10', '10', '10'],
+                [1, '0', '10', '10', '0', '10', '0', '10', '0', '10', '10', '10', '10'],
+                [2, '0', '10', '10', '0', '10', '0', '10', '0', '10', '10', '10', '10'],
+                [3, '0', '10', '10', '0', '10', '0', '10', '0', '10', '10', '10', '10'],
+                [4, '0', '10', '10', '0', '10', '0', '10', '0', '10', '10', '10', '10'],
+                [5, '0', '10', '10', '0', '10', '0', '10', '0', '10', '10', '10', '10'],
                 [6, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
                 [7, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
                 [8, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
@@ -113,30 +131,37 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
                 [29, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
                 [30, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
                 [31, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-                ['Total', '-', 50, 50, 50, 0, 50, 0, '-', 50, 50, 50, 50]],
-            'ordem_periodos_grupos': [1, 1],
+                ['Total', '-', 50, 50, 0, 50, 0, 50, '-', 50, 50, 50, 50]
+            ],
+            'ordem_periodos_grupos': [1],
             'dias_letivos': [
-                False, False, False, False, False, False, False, False, False,
                 False, False, False, False, False, False, False, False, False, False, False,
-                False, False, False, False, False, False, False, False, False, False, False, False
-            ]
+                False, False, False, False, False, False, False, False, False, False, False,
+                False, False, False, False, False, False, False, False, False, False
+            ],
+            'categorias_dos_periodos': {
+                'MANHA': [
+                    {'categoria': 'ALIMENTAÇÃO', 'numero_campos': 7},
+                    {'categoria': 'DIETA ESPECIAL - TIPO A ENTERAL', 'numero_campos': 5}
+                ]
+            }
         },
         {
             'periodos': ['MANHA', 'TARDE'],
             'categorias': ['DIETA ESPECIAL - TIPO B', 'ALIMENTAÇÃO'],
             'nomes_campos': [
-                'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa', 'matriculados',
-                'lanche', 'refeicao', 'lanche_emergencial', 'total_refeicoes_pagamento', 'sobremesa',
-                'total_sobremesas_pagamento'
+                'aprovadas', 'lanche', 'refeicao', 'sobremesa', 'lanche_emergencial', 'matriculados',
+                'lanche', 'refeicao', 'total_refeicoes_pagamento', 'sobremesa', 'total_sobremesas_pagamento',
+                'lanche_emergencial'
             ],
             'len_periodos': [5, 7],
             'len_categorias': [5, 7],
             'valores_campos': [
-                [1, '0', '10', '10', '10', '10', '0', '10', '10', '10', '0', '10', '0'],
-                [2, '0', '10', '10', '10', '10', '0', '10', '10', '10', '0', '10', '0'],
-                [3, '0', '10', '10', '10', '10', '0', '10', '10', '10', '0', '10', '0'],
-                [4, '0', '10', '10', '10', '10', '0', '10', '10', '10', '0', '10', '0'],
-                [5, '0', '10', '10', '10', '10', '0', '10', '10', '10', '0', '10', '0'],
+                [1, '0', '10', '10', '10', '10', '0', '10', '10', '0', '10', '0', '10'],
+                [2, '0', '10', '10', '10', '10', '0', '10', '10', '0', '10', '0', '10'],
+                [3, '0', '10', '10', '10', '10', '0', '10', '10', '0', '10', '0', '10'],
+                [4, '0', '10', '10', '10', '10', '0', '10', '10', '0', '10', '0', '10'],
+                [5, '0', '10', '10', '10', '10', '0', '10', '10', '0', '10', '0', '10'],
                 [6, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
                 [7, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
                 [8, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
@@ -163,20 +188,24 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
                 [29, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
                 [30, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
                 [31, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
-                ['Total', '-', 50, 50, 50, 50, '-', 50, 50, 50, 0, 50, 0]],
+                ['Total', '-', 50, 50, 50, 50, '-', 50, 50, 0, 50, 0, 50]
+            ],
             'ordem_periodos_grupos': [1, 2],
             'dias_letivos': [
-                False, False, False, False, False, False, False, False, False, False,
-                False, False, False, False, False, False, False, False, False, False, False, False,
+                False, False, False, False, False, False, False, False, False, False, False,
+                False, False, False, False, False, False, False, False, False, False, False,
                 False, False, False, False, False, False, False, False, False, False
-            ]
+            ],
+            'categorias_dos_periodos': {
+                'MANHA': [{'categoria': 'DIETA ESPECIAL - TIPO B', 'numero_campos': 5}],
+                'TARDE': [{'categoria': 'ALIMENTAÇÃO', 'numero_campos': 7}]}
         },
         {
             'periodos': ['TARDE'],
             'categorias': ['DIETA ESPECIAL - TIPO A ENTERAL', 'DIETA ESPECIAL - TIPO B'],
             'nomes_campos': [
-                'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa',
-                'aprovadas', 'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa'
+                'aprovadas', 'lanche', 'refeicao', 'sobremesa', 'lanche_emergencial', 'aprovadas',
+                'lanche', 'refeicao', 'sobremesa', 'lanche_emergencial'
             ],
             'len_periodos': [10],
             'len_categorias': [5, 5],
@@ -214,11 +243,17 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
                 [31, '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'],
                 ['Total', '-', 50, 50, 50, 50, '-', 50, 50, 50, 50]
             ],
-            'ordem_periodos_grupos': [2, 2],
+            'ordem_periodos_grupos': [2],
             'dias_letivos': [
                 False, False, False, False, False, False, False, False, False, False, False,
                 False, False, False, False, False, False, False, False, False, False, False,
                 False, False, False, False, False, False, False, False, False, False
-            ]
+            ],
+            'categorias_dos_periodos': {
+                'TARDE': [
+                    {'categoria': 'DIETA ESPECIAL - TIPO A ENTERAL', 'numero_campos': 5},
+                    {'categoria': 'DIETA ESPECIAL - TIPO B', 'numero_campos': 5}
+                ]
+            }
         }
     ]

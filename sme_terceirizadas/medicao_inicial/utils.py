@@ -48,48 +48,50 @@ def build_dict_relacao_categorias_e_campos(medicao):
     return dict_categorias_campos
 
 
-def get_tamanho_colunas_periodos(tabelas):
+def get_tamanho_colunas_periodos(tabelas, ORDEM_PERIODOS_GRUPOS):
     for tabela in tabelas:
-        tabela['len_periodos'] = tabela['len_categorias']
-        if len(tabela['periodos']) == 1:
-            tabela['len_periodos'] = [len(tabela['nomes_campos'])]
-        if 'Solicitações de Alimentação' in tabela['periodos']:
-            categorias = tabela['categorias']
-            len_periodos = []
-            soma = 0
-            for idx, categoria in enumerate(categorias):
-                if categoria not in ['LANCHE EMERGENCIAL', 'KIT LANCHE']:
-                    len_periodos += [tabela['len_periodos'][idx]]
-                else:
-                    soma += tabela['len_periodos'][idx]
-            len_periodos += [soma]
-            tabela['len_periodos'] = len_periodos
+        for periodo in tabela['periodos']:
+            tabela['len_periodos'] += [sum(x['numero_campos'] for x in tabela['categorias_dos_periodos'][periodo])]
+            tabela['ordem_periodos_grupos'] += [ORDEM_PERIODOS_GRUPOS[periodo]]
+
+
+def get_categorias_dos_periodos(nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos):
+    if nome_periodo in tabelas[indice_atual]['categorias_dos_periodos'].keys():
+        tabelas[indice_atual]['categorias_dos_periodos'][nome_periodo].append({
+            'categoria': categoria,
+            'numero_campos': len(dict_categorias_campos[categoria])
+        })
+    else:
+        tabelas[indice_atual]['categorias_dos_periodos'][nome_periodo] = [{
+            'categoria': categoria,
+            'numero_campos': len(dict_categorias_campos[categoria])
+        }]
 
 
 def build_headers_tabelas(solicitacao):
     MAX_COLUNAS = 15
     ORDEM_CAMPOS = {
-        'numero_de_alunos': -2,
-        'matriculados': -1,
-        'aprovadas': 0,
-        'frequencia': 1,
-        'solicitado': 2,
-        'consumido': 3,
-        'desjejum': 4,
-        'lanche': 5,
-        'lanche_4h': 6,
-        'refeicao': 7,
-        'repeticao_refeicao': 8,
-        'lanche_emergencial': 9,
-        'kit_lanche': 10,
-        'total_refeicoes_pagamento': 11,
-        'sobremesa': 12,
-        'repeticao_sobremesa': 13,
-        'total_sobremesas_pagamento': 14
+        'numero_de_alunos': 1,
+        'matriculados': 2,
+        'aprovadas': 3,
+        'frequencia': 4,
+        'solicitado': 5,
+        'consumido': 6,
+        'desjejum': 7,
+        'lanche': 8,
+        'lanche_4h': 9,
+        'refeicao': 10,
+        'repeticao_refeicao': 11,
+        'kit_lanche': 12,
+        'total_refeicoes_pagamento': 13,
+        'sobremesa': 14,
+        'repeticao_sobremesa': 15,
+        'total_sobremesas_pagamento': 16,
+        'lanche_emergencial': 17
     }
 
     tabelas = [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_periodos': [], 'len_categorias': [],
-                'valores_campos': [], 'ordem_periodos_grupos': [], 'dias_letivos': []}]
+                'valores_campos': [], 'ordem_periodos_grupos': [], 'dias_letivos': [], 'categorias_dos_periodos': {}}]
 
     indice_atual = 0
     ORDEM_PERIODOS_GRUPOS = {
@@ -117,28 +119,31 @@ def build_headers_tabelas(solicitacao):
                 tabelas[indice_atual]['nomes_campos'] += sorted(
                     dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k])
                 tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
-                tabelas[indice_atual]['ordem_periodos_grupos'] += [ORDEM_PERIODOS_GRUPOS[nome_periodo]]
+                get_categorias_dos_periodos(nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos)
             else:
                 indice_atual += 1
                 tabelas += [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_periodos': [],
                              'len_categorias': [], 'valores_campos': [], 'ordem_periodos_grupos': [],
-                             'dias_letivos': []}]
+                             'dias_letivos': [], 'categorias_dos_periodos': {}}]
                 tabelas[indice_atual]['periodos'] += [nome_periodo]
                 tabelas[indice_atual]['categorias'] += [categoria]
                 tabelas[indice_atual]['nomes_campos'] += sorted(
                     dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k])
                 tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
-                tabelas[indice_atual]['ordem_periodos_grupos'] += [ORDEM_PERIODOS_GRUPOS[nome_periodo]]
+                get_categorias_dos_periodos(nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos)
 
-    get_tamanho_colunas_periodos(tabelas)
+    get_tamanho_colunas_periodos(tabelas, ORDEM_PERIODOS_GRUPOS)
 
     return tabelas
 
 
-def popula_campo_matriculados(tabela, dia, campo, indice_campo, indice_periodo, valores_dia, logs_alunos_matriculados):
+def popula_campo_matriculados(
+    tabela, dia, campo, indice_campo,
+    indice_periodo, valores_dia,
+    logs_alunos_matriculados,
+    categoria_corrente
+):
     if campo == 'matriculados':
-        if indice_campo > 1 and len(tabela['periodos']) > 1:
-            indice_periodo += 1
         try:
             periodo = tabela['periodos'][indice_periodo]
             if '-' in periodo:
@@ -211,11 +216,21 @@ def popula_campo_consumido_solicitacoes_alimentacao(solicitacao, dia, campo, cat
             valores_dia += ['0']
 
 
-def popula_campo_total_refeicoes_pagamento(solicitacao, tabela, campo, categoria_corrente, valores_dia):
+def get_index_refeicao(indexes_refeicao, indice_periodo):
+    if len(indexes_refeicao) > 1:
+        index_refeicao = indexes_refeicao[indice_periodo]
+    else:
+        index_refeicao = indexes_refeicao[0]
+    return index_refeicao
+
+
+def popula_campo_total_refeicoes_pagamento(solicitacao, tabela, campo, categoria_corrente, valores_dia, indice_periodo):
     if campo == 'total_refeicoes_pagamento':
         try:
             campos = tabela['nomes_campos']
-            valor_refeicao = valores_dia[campos.index('refeicao') + 1] if 'refeicao' in campos else 0
+            indexes_refeicao = [i for i, campo in enumerate(campos) if campo == 'refeicao']
+            index_refeicao = get_index_refeicao(indexes_refeicao, indice_periodo)
+            valor_refeicao = valores_dia[index_refeicao + 1] if 'refeicao' in campos else 0
             valor_repeticao_refeicao = (
                 valores_dia[campos.index('repeticao_refeicao') + 1] if 'repeticao_refeicao' in campos
                 else 0)
@@ -328,16 +343,23 @@ def popula_campos(
             indice_campo = 0
             indice_categoria += 1
             categoria_corrente = tabela['categorias'][indice_categoria]
+            periodo_corrente = tabela['periodos'][indice_periodo]
+            if indice_categoria > len(tabela['categorias_dos_periodos'][periodo_corrente]) - 1:
+                indice_periodo += 1
         if dia == 'Total':
             popula_campo_total(tabela, campo, valores_dia, indice_categoria, indice_campo, categoria_corrente)
         else:
             popula_campo_matriculados(
                 tabela, dia, campo, indice_campo,
                 indice_periodo, valores_dia,
-                logs_alunos_matriculados)
+                logs_alunos_matriculados,
+                categoria_corrente)
             popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_dia, logs_dietas)
             popula_campo_consumido_solicitacoes_alimentacao(solicitacao, dia, campo, categoria_corrente, valores_dia)
-            popula_campo_total_refeicoes_pagamento(solicitacao, tabela, campo, categoria_corrente, valores_dia)
+            popula_campo_total_refeicoes_pagamento(
+                solicitacao, tabela,
+                campo, categoria_corrente,
+                valores_dia, indice_periodo)
             popula_campo_total_sobremesas_pagamento(solicitacao, tabela, campo, categoria_corrente, valores_dia)
             popula_campo_solicitado(
                 solicitacao, tabela, campo, dia,
