@@ -493,6 +493,17 @@ class AlteraEmailSerializer(serializers.ModelSerializer):
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
         return instance
 
+    def update_eol(self, username, validated_data):
+        try:
+            EOLServicoSGP.redefine_email(username, validated_data.get('email'))
+        except EOLException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except ReadTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        except ConnectTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'E-mail atualizado com sucesso!'}, status=status.HTTP_200_OK)
+
     class Meta:
         model = Usuario
         fields = ['uuid', 'username', 'email']
