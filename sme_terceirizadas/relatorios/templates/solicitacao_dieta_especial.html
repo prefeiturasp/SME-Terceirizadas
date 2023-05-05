@@ -13,7 +13,7 @@
   </style>
 
   <div class="conteudo tabela-sem-borda">
-  {% include "bloco_fluxo_status_homologacao.html" with eh_importado=solicitacao.eh_importado %}
+    {% include "bloco_fluxo_status_homologacao.html" with eh_importado=solicitacao.eh_importado %}
     {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <div class="bloco-pescritor-dieta-especial">
       <div class="row">
@@ -210,23 +210,14 @@
           </table>
         </div>
       {% endif %}
-  {% endif %}
-      {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
-        <div class="bloco-identificacao-nutri">
-          <h5>Descrever características do alimento</h5>
-          <div style="border-color: #686868; width: 100%">
-            <p>{{ solicitacao.caracteristicas_do_alimento|safe }}</p>
-          </div>
-          <p style="color: red">Os Produtos (Alimentos) devem ser adquiridos utilizando a verba PTRF ou outro recurso disponível.</p>
+    {% endif %}
+    <div class="bloco-identificacao-nutri">
+      {% if solicitacao.registro_funcional_nutricionista %}
+        <h5>Identificação do Nutricionista</h5>
+        <div style="border-color: #686868; width: 100%">
+          <p style="text-transform: uppercase">{{ solicitacao.display_nutricionista_with_registro_funcional }}</p>
         </div>
       {% endif %}
-    <div class="bloco-identificacao-nutri">
-        {% if solicitacao.registro_funcional_nutricionista %}
-          <h5>Identificação do Nutricionista</h5>
-          <div style="border-color: #686868; width: 100%">
-            <p style="text-transform: uppercase">{{ solicitacao.display_nutricionista_with_registro_funcional }}</p>
-          </div>
-        {% endif %}
     </div>
     {% include "bloco_historico_questionamento.html" %}
   </div>
