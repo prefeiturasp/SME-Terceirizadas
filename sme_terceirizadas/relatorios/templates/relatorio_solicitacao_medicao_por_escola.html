@@ -180,46 +180,49 @@
       </tbody>
     </table>
   {% endfor %}
-  <header class="header" style="page-break-before: always;">
-    <div class="row p-0 mx-4">
-      <div class="col-2">
-        <img src="{% static 'images/LOGO_FUNDO_CLARO.png' %}" alt=""/>
+  {% for tabela in tabela_observacoes|formatar_observacoes %}
+    <header class="header" style="page-break-before: always;">
+      <div class="row p-0 mx-4">
+        <div class="col-2">
+          <img src="{% static 'images/LOGO_FUNDO_CLARO.png' %}" alt=""/>
+        </div>
+        <div class="col-8">
+          <h1 class="text-center">
+            SECRETARIA MUNICIPAL DE EDUCAÇÃO - SME | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR - CODAE
+          </h1>
+          <h1 class="text-center">
+            MEDIÇÃO INICIAL DO SERVIÇO DE NUTRIÇÃO E ALIMENTAÇÃO ESCOLAR
+          </h1>
+        </div>
+        <div class="col-1"></div>
+        <div class="col-1">
+          <h1 class="text-right">Página</h1>
+          <h1 class="page-number text-right"></h1>
+        </div>
       </div>
-      <div class="col-8">
-        <h1 class="text-center">
-          SECRETARIA MUNICIPAL DE EDUCAÇÃO - SME | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR - CODAE
-        </h1>
-        <h1 class="text-center">
-          MEDIÇÃO INICIAL DO SERVIÇO DE NUTRIÇÃO E ALIMENTAÇÃO ESCOLAR
-        </h1>
-      </div>
-      <div class="col-1"></div>
-      <div class="col-1">
-        <h1 class="text-right">Página</h1>
-        <h1 class="page-number text-right"></h1>
-      </div>
-    </div>
-  </header>
-  <div class="text-center mt-5 mb-5">OBSERVAÇÕES DIÁRIAS DO LANÇAMENTO</div>
-  <table class="tabela-valores-medicao mt-1">
-    <thead>
-      <tr class="texto-branco">
-        <th>DIA</th>
-        <th>PERÍODO</th>
-        <th>TIPO</th>
-        <th>OBSERVAÇÕES</th>
-      </tr>
-    <tbody>
-      {% for row in tabela_observacoes %}
-        <tr>
-          <td>{{ row.0|safe }}</td>
-          <td>{{ row.1|safe }}</td>
-          <td>{{ row.2|safe }}</td>
-          <td>{{ row.3|safe }}</td>
+    </header>
+    <h1 class="titulo-tabela-observacoes text-center mt-3 mb-3">OBSERVAÇÕES DIÁRIAS DOS LANÇAMENTOS</h1>
+    <table class="tabela-valores-medicao mt-1">
+      <thead class="head-tabela-observacoes">
+        <tr class="texto-branco">
+          <th class="col-1">DIA</th>
+          <th class="col-2">PERÍODO</th>
+          <th class="col-3">TIPO</th>
+          <th class="col-6">OBSERVAÇÕES</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody class="body-tabela-observacoes">
+        {% for row in tabela %}
+          <tr>
+            <td class="col-1">{{ row.0|safe }}</td>
+            <td class="col-2">{{ row.4|safe }}</td>
+            <td class="col-3">{{ row.2|safe }}</td>
+            <td class="col-6 text-left">{{ row.3|safe }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endfor %}
   <header class="header" style="page-break-before: always;">
     <div class="row p-0 mx-4">
       <div class="col-2">
