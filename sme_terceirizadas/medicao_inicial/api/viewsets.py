@@ -264,7 +264,8 @@ class SolicitacaoMedicaoInicialViewSet(
                 'valores_medicao__dia',
                 'periodo_escolar__nome',
                 'valores_medicao__categoria_medicao__nome',
-                'valores_medicao__valor'
+                'valores_medicao__valor',
+                'grupo__nome'
             ).order_by(
                 'valores_medicao__dia',
                 'periodo_escolar__nome',
