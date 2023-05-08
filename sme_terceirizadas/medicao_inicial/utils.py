@@ -297,15 +297,16 @@ def popula_campo_total(tabela, campo, valores_dia, indice_categoria, indice_camp
         valores_dia += ['-']
     else:
         try:
-            if indice_categoria == 1:
-                indice_valor_campo = tabela['len_categorias'][indice_categoria - 1] + indice_campo
-                values = [valores[indice_valor_campo + 1] for valores in tabela['valores_campos']]
-            elif indice_categoria == 2:
-                indice_valor_campo = tabela['len_categorias'][indice_categoria - 1]
-                indice_valor_campo += tabela['len_categorias'][indice_categoria - 2] + indice_campo
-                values = [valores[indice_valor_campo + 1] for valores in tabela['valores_campos']]
-            else:
+            if indice_categoria == 0:
                 values = [valores[tabela['nomes_campos'].index(campo) + 1] for valores in tabela['valores_campos']]
+            else:
+                i = 1
+                indice_valor_campo = 0
+                while i <= indice_categoria:
+                    indice_valor_campo += tabela['len_categorias'][indice_categoria - i]
+                    i += 1
+                indice_valor_campo += indice_campo
+                values = [valores[indice_valor_campo + 1] for valores in tabela['valores_campos']]
             valores_dia += [sum(int(x) for x in values)]
         except Exception:
             valores_dia += ['0']
@@ -344,7 +345,10 @@ def popula_campos(
             indice_categoria += 1
             categoria_corrente = tabela['categorias'][indice_categoria]
             periodo_corrente = tabela['periodos'][indice_periodo]
-            if indice_categoria > len(tabela['categorias_dos_periodos'][periodo_corrente]) - 1:
+            if (
+                indice_categoria > len(tabela['categorias_dos_periodos'][periodo_corrente]) - 1
+                and indice_periodo + 1 < len(tabela['periodos'])
+            ):
                 indice_periodo += 1
         if dia == 'Total':
             popula_campo_total(tabela, campo, valores_dia, indice_categoria, indice_campo, categoria_corrente)
