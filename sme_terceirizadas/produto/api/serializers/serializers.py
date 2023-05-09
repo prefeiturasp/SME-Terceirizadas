@@ -485,7 +485,7 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
             editais = ', '.join(
                 obj.produto.vinculos.filter(suspenso=False).values_list('edital__numero', flat=True)
             )
-        if workflow == 'CODAE_SUSPENDEU':
+        if workflow in ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO']:
             editais = ', '.join(
                 obj.produto.vinculos.filter(suspenso=True).values_list('edital__numero', flat=True)
             )
