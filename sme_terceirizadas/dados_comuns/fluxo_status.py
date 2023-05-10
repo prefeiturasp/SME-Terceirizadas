@@ -8,7 +8,6 @@ import environ
 import xworkflows
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q
 from django.template.loader import render_to_string
 from django_xworkflows import models as xwf_models
 from rest_framework.exceptions import PermissionDenied
@@ -3134,19 +3133,18 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
             )
 
-    def _usuarios_partes_interessadas_cronograma_e_administrador_empresa(self):
-        queryset = Usuario.objects.filter(Q(
-            vinculos__perfil__nome__in=[
-                'DILOG_CRONOGRAMA',
-            ]) | Q(
-            vinculos__perfil__nome__in=[
-                'ADMINISTRADOR_EMPRESA'
-            ],
-            vinculos__ativo=True,
-            vinculos__content_type__model='terceirizada',
-            vinculos__object_id=self.empresa.id
-        ))
+    def _usuarios_partes_interessadas_cronograma(self):
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=['DILOG_CRONOGRAMA'])
         return [usuario for usuario in queryset]
+
+    def _usuarios_partes_interessadas_terceirizadas(self):
+        if self.empresa:
+            vinculos = self.empresa.vinculos.filter(
+                ativo=True
+            )
+            return [vinculo.usuario for vinculo in vinculos]
+        return []
 
     @xworkflows.after_transition('codae_assina')
     def _codae_assina_hook(self, *args, **kwargs):
@@ -3157,7 +3155,9 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
             # Montar Notificação
             log_transicao = self.log_mais_recente
-            usuarios = self._usuarios_partes_interessadas_cronograma_e_administrador_empresa()
+            usuarios = [
+                *self._usuarios_partes_interessadas_cronograma(),
+                *self._usuarios_partes_interessadas_terceirizadas()]
             template_notif = 'pre_recebimento_notificacao_assinatura_codae.html'
             tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
             titulo_notificacao = f'Cronograma { self.numero } assinado pela CODAE'
