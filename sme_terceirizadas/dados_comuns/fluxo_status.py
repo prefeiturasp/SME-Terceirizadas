@@ -8,6 +8,7 @@ import environ
 import xworkflows
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django_xworkflows import models as xwf_models
 from rest_framework.exceptions import PermissionDenied
@@ -3059,23 +3060,29 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         return [usuario for usuario in queryset]
 
-    def _preenche_template_e_cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo,
-                                              log_transicao=None):
+    def _preenche_template(self, template_notif, log_transicao, perfil=None):
+        esconder_dados = perfil in [
+            'ADMINISTRADOR_EMPRESA'
+        ]
+        texto_notificacao = render_to_string(
+            template_name=template_notif,
+            context={
+                'solicitacao': self.numero,
+                'log_transicao': log_transicao,
+                'objeto': self,
+                'esconder_dados': esconder_dados
+            }
+        )
+        return texto_notificacao
+
+    def _cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo, log_transicao=None):
         if usuarios:
-            texto_notificacao = render_to_string(
-                template_name=template_notif,
-                context={
-                    'solicitacao': self.numero,
-                    'log_transicao': log_transicao,
-                    'objeto': self,
-                }
-            )
             for usuario in usuarios:
                 Notificacao.notificar(
                     tipo=tipo,
                     categoria=Notificacao.CATEGORIA_NOTIFICACAO_CRONOGRAMA,
                     titulo=titulo_notif,
-                    descricao=texto_notificacao,
+                    descricao=self._preenche_template(template_notif, log_transicao, usuario.vinculo_atual.perfil.nome),
                     usuario=usuario,
                     link=link,
                     cronograma=self
@@ -3123,9 +3130,23 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
             titulo_notificacao = f'Cronograma { self.numero } assinado pela DINUTRE'
             link = f'/pre-recebimento/detalhe-cronograma?uuid={self.uuid}'
-            self._preenche_template_e_cria_notificacao(
+            self._cria_notificacao(
                 template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
             )
+
+    def _usuarios_partes_interessadas_cronograma_e_administrador_empresa(self):
+        queryset = Usuario.objects.filter(Q(
+            vinculos__perfil__nome__in=[
+                'DILOG_CRONOGRAMA',
+            ]) | Q(
+            vinculos__perfil__nome__in=[
+                'ADMINISTRADOR_EMPRESA'
+            ],
+            vinculos__ativo=True,
+            vinculos__content_type__model='terceirizada',
+            vinculos__object_id=self.empresa.id
+        ))
+        return [usuario for usuario in queryset]
 
     @xworkflows.after_transition('codae_assina')
     def _codae_assina_hook(self, *args, **kwargs):
@@ -3133,6 +3154,17 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_CODAE,
                                       usuario=user)
+
+            # Montar Notificação
+            log_transicao = self.log_mais_recente
+            usuarios = self._usuarios_partes_interessadas_cronograma_e_administrador_empresa()
+            template_notif = 'pre_recebimento_notificacao_assinatura_codae.html'
+            tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
+            titulo_notificacao = f'Cronograma { self.numero } assinado pela CODAE'
+            link = f'/pre-recebimento/detalhe-cronograma?uuid={self.uuid}'
+            self._cria_notificacao(
+                template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
+            )
 
     class Meta:
         abstract = True
