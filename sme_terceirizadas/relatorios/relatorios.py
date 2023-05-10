@@ -1061,8 +1061,9 @@ def get_pdf_cronograma(request, cronograma):
             'contrato': cronograma.contrato,
             'cronograma': cronograma,
             'etapas': cronograma.etapas.all(),
-            'programacao': cronograma.programacoes_de_recebimento.all(),
+            'programacoes': cronograma.programacoes_de_recebimento.all(),
             'logs': logs
         }
     )
-    return html_to_pdf_response(html_string, f'cronogram_{cronograma.numero}.pdf')
+    data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
+    return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), f'cronogram_{cronograma.numero}.pdf')
