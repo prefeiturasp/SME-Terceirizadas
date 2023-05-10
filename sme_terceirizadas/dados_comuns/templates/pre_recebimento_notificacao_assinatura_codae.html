@@ -1,7 +1,7 @@
-<p> O cronograma <strong>{{ objeto.numero }}</strong> foi assinado eletronicamente pela 
+<p> O cronograma <strong>{{ objeto.numero }}</strong> foi assinado eletronicamente 
     {% if esconder_dados %}
-        CODAE
+        pela CODAE
     {% else %}
-        servidor(a): 
+        pelo servidor(a): 
         <strong>{{ log_transicao.usuario.nome }} - RF: {{ log_transicao.usuario.registro_funcional }}</strong></p>
     {% endif %}
