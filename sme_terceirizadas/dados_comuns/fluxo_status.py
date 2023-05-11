@@ -3258,6 +3258,16 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         return [usuario for usuario in queryset]
 
+    def _usuarios_partes_interessadas_cronograma(self):
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'DILOG_CRONOGRAMA',
+            ),
+            vinculos__ativo=True
+        )
+
+        return [usuario for usuario in queryset]
+
     @xworkflows.after_transition('cronograma_ciente')
     def _cronograma_ciente_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -3306,6 +3316,27 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                                       justificativa=kwargs.get('justificativa', ''))
             self._montar_dinutre_notificacao()
 
+    def _usuarios_partes_interessadas_empresas(self):
+        if self.cronograma.empresa:
+            vinculos = self.cronograma.empresa.vinculos.filter(
+                ativo=True
+            )
+            return [vinculo.usuario for vinculo in vinculos]
+        return []
+
+    def _montar_dilog_notificacao(self):
+        log_transicao = self.log_mais_recente
+        usuarios = [*self._usuarios_partes_interessadas_dinutre(),
+                    *self._usuarios_partes_interessadas_empresas(),
+                    *self._usuarios_partes_interessadas_cronograma()]
+        template_notif = 'pre_recebimento_notificacao_solicitacao_parecer_codae.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
+        titulo_notificacao = f' Solicitação de Alteração do Cronograma Nº { self.cronograma.numero }'
+        link = f'/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
+        self._cria_notificacao(
+            template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
+        )
+
     @xworkflows.after_transition('dilog_aprova')
     def _dilog_aprova_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -3313,6 +3344,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.APROVADO_DILOG_SOLICITACAO_ALTERACAO,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
+            self._montar_dilog_notificacao()
 
     @xworkflows.after_transition('dilog_reprova')
     def _dilog_reprova_hook(self, *args, **kwargs):
@@ -3321,6 +3353,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.REPROVADO_DILOG_SOLICITACAO_ALTERACAO,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
+            self._montar_dilog_notificacao()
 
     class Meta:
         abstract = True
