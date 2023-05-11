@@ -1,7 +1,6 @@
 from calendar import monthrange
 
-from django.db.models import IntegerField, QuerySet, Sum
-from django.db.models.functions import Cast
+from django.db.models import QuerySet
 from django.template.loader import render_to_string
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -28,7 +27,7 @@ from ..models import (
     TipoContagemAlimentacao,
     ValorMedicao
 )
-from ..utils import build_tabelas_relatorio_medicao, tratar_valores
+from ..utils import build_tabela_somatorio_body, build_tabelas_relatorio_medicao, tratar_valores
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     CategoriaMedicaoSerializer,
@@ -270,40 +269,7 @@ class SolicitacaoMedicaoInicialViewSet(
                 'valores_medicao__dia',
                 'periodo_escolar__nome',
                 'valores_medicao__categoria_medicao__nome'))
-        tabela_somatorio = []
-        tabela_somatorio_lista_periodos = []
-        tabela_somatorio_lista_campos = []
-        ORDEM_PERIODOS_GRUPOS = {
-            'MANHA': 1,
-            'TARDE': 2,
-            'INTEGRAL': 3,
-            'NOITE': 4,
-            'VESPERTINO': 5,
-            'Programas e Projetos - MANHA': 6,
-            'Programas e Projetos - TARDE': 7,
-            'Solicitações de Alimentação': 8,
-            'ETEC': 9
-        }
-        for medicao in sorted(solicitacao.medicoes.all(), key=lambda k: ORDEM_PERIODOS_GRUPOS[k.nome_periodo_grupo]):
-            for campo in medicao.valores_medicao.exclude(
-                nome_campo__in=['observacoes', 'dietas_autorizadas', 'frequencia', 'matriculados']
-            ).values_list('nome_campo', flat=True).distinct():
-                nome_periodo = (medicao.periodo_escolar.nome
-                                if not medicao.grupo
-                                else (f'{medicao.grupo.nome} - {medicao.periodo_escolar.nome}'
-                                      if medicao.periodo_escolar else medicao.grupo.nome))
-                if nome_periodo not in tabela_somatorio_lista_periodos:
-                    tabela_somatorio_lista_periodos.append(nome_periodo)
-                if campo not in tabela_somatorio_lista_campos:
-                    tabela_somatorio_lista_campos.append(campo)
-                valor_campo = medicao.valores_medicao.filter(nome_campo=campo, medicao=medicao).annotate(
-                    campo_como_inteiro=Cast('valor', IntegerField())).aggregate(
-                    Sum('campo_como_inteiro')).get('campo_como_inteiro__sum')
-                tabela_somatorio.append({
-                    'campo': campo,
-                    'periodo': nome_periodo,
-                    'valor': valor_campo
-                })
+        tabela_somatorio = build_tabela_somatorio_body(solicitacao)
         html_string = render_to_string(
             f'relatorio_solicitacao_medicao_por_escola.html',
             {
@@ -314,9 +280,7 @@ class SolicitacaoMedicaoInicialViewSet(
                 'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
                 'tabelas': tabelas,
                 'tabela_observacoes': tabela_observacoes,
-                'tabela_somatorio': tabela_somatorio,
-                'tabela_somatorio_lista_periodos': tabela_somatorio_lista_periodos,
-                'tabela_somatorio_lista_campos': tabela_somatorio_lista_campos
+                'tabela_somatorio': tabela_somatorio
             }
         )
 
