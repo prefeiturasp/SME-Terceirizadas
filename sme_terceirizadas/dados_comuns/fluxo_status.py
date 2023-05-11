@@ -3135,7 +3135,8 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
     def _usuarios_partes_interessadas_cronograma(self):
         queryset = Usuario.objects.filter(
-            vinculos__perfil__nome__in=['DILOG_CRONOGRAMA'])
+            vinculos__perfil__nome__in=['DILOG_CRONOGRAMA'],
+            vinculos__ativo=True)
         return [usuario for usuario in queryset]
 
     def _usuarios_partes_interessadas_terceirizadas(self):
