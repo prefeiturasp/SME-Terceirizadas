@@ -1050,3 +1050,20 @@ def get_pdf_guia_distribuidor(data=None, many=False):
     data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
 
     return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
+
+
+def get_pdf_cronograma(request, cronograma):
+    logs = cronograma.logs
+    html_string = render_to_string(
+        'pre_recebimento/cronogramas/cronograma.html',
+        {
+            'empresa': cronograma.empresa,
+            'contrato': cronograma.contrato,
+            'cronograma': cronograma,
+            'etapas': cronograma.etapas.all(),
+            'programacoes': cronograma.programacoes_de_recebimento.all(),
+            'logs': logs
+        }
+    )
+    data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
+    return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), f'cronogram_{cronograma.numero}.pdf')

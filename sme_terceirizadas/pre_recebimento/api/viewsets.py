@@ -58,6 +58,7 @@ from sme_terceirizadas.pre_recebimento.models import (
 from sme_terceirizadas.pre_recebimento.utils import ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
 
 from ...dados_comuns.models import LogSolicitacoesUsuario
+from ...relatorios.relatorios import get_pdf_cronograma
 
 
 class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
@@ -259,6 +260,12 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
             return Response(dict(detail=f'Cronograma informado não é valido: {e}'), status=HTTP_406_NOT_ACCEPTABLE)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['GET'], url_path='gerar-pdf-cronograma')
+    def gerar_pdf_cronograma(self, request, uuid=None):
+        cronograma = self.get_object()
+
+        return get_pdf_cronograma(request, cronograma)
 
 
 class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
