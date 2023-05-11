@@ -2150,8 +2150,24 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.CODAE_ACEITA)
     def codae_aceita(self, request, uuid=None):
         reclamacao_produto = self.get_object()
+        usuario = request.user
         anexos = request.data.get('anexos', [])
         justificativa = request.data.get('justificativa', '')
+
+        vinculos_produto_edital = reclamacao_produto.homologacao_produto.produto.vinculos.all()
+        numeros_editais_para_justificativa = ', '.join(
+            vinculos_produto_edital.values_list('edital__numero', flat=True)
+        )
+        justificativa += '<br><p>Editais suspensos:</p>'
+        justificativa += f'<p>{numeros_editais_para_justificativa}</p>'
+
+        vinculos_produto_edital.update(
+            suspenso=True,
+            suspenso_justificativa=justificativa,
+            suspenso_em=datetime.now(),
+            suspenso_por=usuario
+        )
+
         reclamacao_produto.homologacao_produto.codae_autorizou_reclamacao(
             user=request.user,
             anexos=anexos,

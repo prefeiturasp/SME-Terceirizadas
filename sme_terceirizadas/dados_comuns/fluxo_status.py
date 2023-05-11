@@ -3048,6 +3048,45 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = CronogramaWorkflow
     status = xwf_models.StateField(workflow_class)
 
+    def _usuarios_partes_interessadas_cronograma_e_dilog_diretoria(self):
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'DILOG_CRONOGRAMA',
+                'DILOG_DIRETORIA'
+            ),
+            vinculos__ativo=True
+        )
+
+        return [usuario for usuario in queryset]
+
+    def _preenche_template(self, template_notif, log_transicao, perfil=None):
+        esconder_dados = perfil in [
+            'ADMINISTRADOR_EMPRESA'
+        ]
+        texto_notificacao = render_to_string(
+            template_name=template_notif,
+            context={
+                'solicitacao': self.numero,
+                'log_transicao': log_transicao,
+                'objeto': self,
+                'esconder_dados': esconder_dados
+            }
+        )
+        return texto_notificacao
+
+    def _cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo, log_transicao=None):
+        if usuarios:
+            for usuario in usuarios:
+                Notificacao.notificar(
+                    tipo=tipo,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_CRONOGRAMA,
+                    titulo=titulo_notif,
+                    descricao=self._preenche_template(template_notif, log_transicao, usuario.vinculo_atual.perfil.nome),
+                    usuario=usuario,
+                    link=link,
+                    cronograma=self
+                )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -3083,12 +3122,50 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_DINUTRE,
                                       usuario=user)
 
+            # Montar Notificação
+            log_transicao = self.log_mais_recente
+            usuarios = self._usuarios_partes_interessadas_cronograma_e_dilog_diretoria()
+            template_notif = 'pre_recebimento_notificacao_assinatura_cronograma.html'
+            tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
+            titulo_notificacao = f'Cronograma { self.numero } assinado pela DINUTRE'
+            link = f'/pre-recebimento/detalhe-cronograma?uuid={self.uuid}'
+            self._cria_notificacao(
+                template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
+            )
+
+    def _usuarios_partes_interessadas_cronograma(self):
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=['DILOG_CRONOGRAMA'],
+            vinculos__ativo=True)
+        return [usuario for usuario in queryset]
+
+    def _usuarios_partes_interessadas_empresas(self):
+        if self.empresa:
+            vinculos = self.empresa.vinculos.filter(
+                ativo=True
+            )
+            return [vinculo.usuario for vinculo in vinculos]
+        return []
+
     @xworkflows.after_transition('codae_assina')
     def _codae_assina_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_CODAE,
                                       usuario=user)
+
+            # Montar Notificação
+            log_transicao = self.log_mais_recente
+            usuarios = [
+                *self._usuarios_partes_interessadas_cronograma(),
+                *self._usuarios_partes_interessadas_empresas()]
+            template_notif = 'pre_recebimento_notificacao_assinatura_codae.html'
+            tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
+            titulo_notificacao = f'Cronograma { self.numero } assinado pela CODAE'
+            link = f'/pre-recebimento/detalhe-cronograma?uuid={self.uuid}'
+            self._cria_notificacao(
+                template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
+            )
 
     class Meta:
         abstract = True
@@ -3137,6 +3214,40 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
 
+    def _preenche_template(self, template_notif, log_transicao, perfil=None):
+        texto_notificacao = render_to_string(
+            template_name=template_notif,
+            context={
+                'solicitacao': self.numero_solicitacao,
+                'log_transicao': log_transicao,
+                'objeto': self
+            }
+        )
+        return texto_notificacao
+
+    def _cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo, log_transicao=None):
+        if usuarios:
+            for usuario in usuarios:
+                Notificacao.notificar(
+                    tipo=tipo,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA,
+                    titulo=titulo_notif,
+                    descricao=self._preenche_template(template_notif, log_transicao, usuario.vinculo_atual.perfil.nome),
+                    usuario=usuario,
+                    link=link,
+                    cronograma=self
+                )
+
+    def _usuarios_partes_interessadas_dinutre(self):
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'DINUTRE_DIRETORIA',
+            ),
+            vinculos__ativo=True
+        )
+
+        return [usuario for usuario in queryset]
+
     @xworkflows.after_transition('cronograma_ciente')
     def _cronograma_ciente_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -3144,6 +3255,17 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
+
+            # Montar Notificação
+            log_transicao = self.log_mais_recente
+            usuarios = self._usuarios_partes_interessadas_dinutre()
+            template_notif = 'pre_recebimento_notificacao_solicitacao_cronograma_ciente.html'
+            tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
+            titulo_notificacao = f' Solicitação de Alteração do Cronograma Nº { self.cronograma.numero }'
+            link = f'/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
+            self._cria_notificacao(
+                template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
+            )
 
     @xworkflows.after_transition('dinutre_aprova')
     def _dinutre_aprova_hook(self, *args, **kwargs):

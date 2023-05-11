@@ -1,3 +1,6 @@
+import math
+import re
+
 from django import template
 
 from ...dados_comuns import constants
@@ -384,3 +387,53 @@ def get_nome_campo(campo):
         'total_sobremesas_pagamento': 'Total de Sobremesas para Pagamento'
     }
     return campos.get(campo, campo)
+
+
+def get_dias(observacoes_tuple):
+    dias = []
+    for obs in observacoes_tuple:
+        if obs[0] not in dias:
+            dias.append(obs[0])
+    return dias
+
+
+@register.filter
+def formatar_observacoes(observacoes):
+    MAX_LINHAS_POR_PAGINA = 26
+    ORDEM_PERIODOS_GRUPOS = {
+        'MANHA': 1,
+        'TARDE': 2,
+        'INTEGRAL': 3,
+        'NOITE': 4,
+        'VESPERTINO': 5,
+        'Programas e Projetos - MANHA': 6,
+        'Programas e Projetos - TARDE': 7,
+        'Solicitações de Alimentação': 8,
+        'ETEC': 9
+    }
+    observacoes_tuple = []
+    for observacao in observacoes:
+        obs_list = list(observacao)
+        if obs_list[4] and obs_list[1]:
+            obs_list[4] = f'{obs_list[4]} - ' + f'{obs_list[1]}'
+        elif obs_list[4] and not obs_list[1]:
+            obs_list[4] = obs_list[4]
+        else:
+            obs_list[4] = obs_list[1]
+        obs_list[3] = re.sub(r'<.*?>', '', obs_list[3])
+        observacoes_tuple.append(tuple(obs_list))
+    observacoes_ordenadas_corretamente = []
+    dias = get_dias(observacoes_tuple)
+    for dia in dias:
+        obs_filtradas_por_dia = tuple(filter(lambda obs: obs[0] == dia, observacoes_tuple))
+        obs_ordenadas_periodo_grupo = sorted(obs_filtradas_por_dia, key=lambda k: ORDEM_PERIODOS_GRUPOS[k[4]])
+        [observacoes_ordenadas_corretamente.append(i) for i in obs_ordenadas_periodo_grupo]
+    tabelas_observacoes = []
+    i = 1
+    while i <= math.ceil(len(observacoes_ordenadas_corretamente) / MAX_LINHAS_POR_PAGINA):
+        tabelas_observacoes.append(
+            observacoes_ordenadas_corretamente[(MAX_LINHAS_POR_PAGINA * (i - 1)):(MAX_LINHAS_POR_PAGINA * i)]
+        )
+        i += 1
+
+    return tabelas_observacoes
