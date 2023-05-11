@@ -3139,7 +3139,7 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             vinculos__ativo=True)
         return [usuario for usuario in queryset]
 
-    def _usuarios_partes_interessadas_terceirizadas(self):
+    def _usuarios_partes_interessadas_empresas(self):
         if self.empresa:
             vinculos = self.empresa.vinculos.filter(
                 ativo=True
@@ -3158,7 +3158,7 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             log_transicao = self.log_mais_recente
             usuarios = [
                 *self._usuarios_partes_interessadas_cronograma(),
-                *self._usuarios_partes_interessadas_terceirizadas()]
+                *self._usuarios_partes_interessadas_empresas()]
             template_notif = 'pre_recebimento_notificacao_assinatura_codae.html'
             tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
             titulo_notificacao = f'Cronograma { self.numero } assinado pela CODAE'
