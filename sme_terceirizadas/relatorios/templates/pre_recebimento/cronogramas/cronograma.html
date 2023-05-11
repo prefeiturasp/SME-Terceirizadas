@@ -1,10 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
+{% include 'relatorio_base.html' %} {% load static %} {% load index %} {% load sass_tags %}
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Title</title>
+	<link rel="stylesheet" href="{% sass_src 'css/logistica/cabecalho.scss' %}" type="text/css">
+	<link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/logistica/relatorio_guia.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/logistica/barra_status.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/pre_recebimento/relatorio_cronograma.scss' %}" type="text/css">
 </head>
 <body>
-
+  {% include "pre_recebimento/cronogramas/cabecalho.html" %}
+  {% include "pre_recebimento/cronogramas/relatorio_cronograma.html" %}
+  {% include "logistica/guia_remessa/rodape.html" %}
 </body>
 </html>
