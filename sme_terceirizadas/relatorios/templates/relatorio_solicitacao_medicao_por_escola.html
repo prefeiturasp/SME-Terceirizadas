@@ -27,10 +27,9 @@
         <h1 class="page-number text-right"></h1>
       </div>
     </div>
-
-    <div class="row p-0 mx-4">
+    <div class="row p-0 mx-2">
       <div class="col-12">
-        <table class="tabela-cabecalho table-bordered">
+        <table class="tabela-cabecalho">
           <tr class="custom-filtros">
             <td><b>Cód. EOL: </b>{{ solicitacao.escola.codigo_eol }}</td>
             <td><b>U.E: </b>{{ solicitacao.escola.nome }}</td>
@@ -205,19 +204,19 @@
     <table class="tabela-valores-medicao mt-1">
       <thead class="head-tabela-observacoes">
         <tr class="texto-branco">
-          <th class="col-1">DIA</th>
-          <th class="col-2">PERÍODO</th>
-          <th class="col-3">TIPO</th>
-          <th class="col-6">OBSERVAÇÕES</th>
+          <th class="tabela-observacoes-dia">DIA</th>
+          <th class="tabela-observacoes-periodo">PERÍODO</th>
+          <th class="tabela-observacoes-tipo">TIPO</th>
+          <th class="tabela-observacoes-observacoes">OBSERVAÇÕES</th>
         </tr>
       </thead>
       <tbody class="body-tabela-observacoes">
         {% for row in tabela %}
           <tr>
-            <td class="col-1">{{ row.0|safe }}</td>
-            <td class="col-2">{{ row.4|safe }}</td>
-            <td class="col-3">{{ row.2|safe }}</td>
-            <td class="col-6 text-left">{{ row.3|safe }}</td>
+            <td class="tabela-observacoes-dia">{{ row.0|safe }}</td>
+            <td class="tabela-observacoes-periodo">{{ row.4|safe }}</td>
+            <td class="tabela-observacoes-tipo">{{ row.2|safe }}</td>
+            <td class="tabela-observacoes-observacoes text-left">{{ row.3|safe }}</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -242,48 +241,117 @@
         <h1 class="page-number text-right"></h1>
       </div>
     </div>
-    <table class="tabela-cabecalho table-bordered">
-      <tr class="custom-filtros">
-        <td><b>Cód. EOL: </b>{{ solicitacao.escola.codigo_eol }}</td>
-        <td><b>U.E: </b>{{ solicitacao.escola.nome }}</td>
-        <td><b>Telefone da UE: </b>{{ solicitacao.escola.contato.telefone }}</td>
-        <td><b>DRE: </b>{{ solicitacao.escola.diretoria_regional.nome }}</td>
-      </tr>
-      <tr class="custom-filtros">
-        <td><b>Lote: </b>{{ solicitacao.rastro_lote.nome }}</td>
-        <td colspan="2"><b>Empresa Prestadora do Serviço: </b>{{ solicitacao.rastro_terceirizada.razao_social }}</td>
-        <td><b>REFERÊNCIA: </b>{{ solicitacao.mes }}/{{ solicitacao.ano }}</td>
-      </tr>
-    </table>
+    <div class="row p-0 mx-2">
+      <div class="col-12">
+        <table class="tabela-cabecalho">
+          <tr class="custom-filtros">
+            <td><b>Cód. EOL: </b>{{ solicitacao.escola.codigo_eol }}</td>
+            <td><b>U.E: </b>{{ solicitacao.escola.nome }}</td>
+            <td><b>Telefone da UE: </b>{{ solicitacao.escola.contato.telefone }}</td>
+            <td><b>DRE: </b>{{ solicitacao.escola.diretoria_regional.nome }}</td>
+          </tr>
+          <tr class="custom-filtros">
+            <td><b>Lote: </b>{{ solicitacao.rastro_lote.nome }}</td>
+            <td colspan="2"><b>Empresa Prestadora do Serviço: </b>{{ solicitacao.rastro_terceirizada.razao_social }}</td>
+            <td><b>REFERÊNCIA: </b>{{ solicitacao.mes }}/{{ solicitacao.ano }}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
   </header>
-  <div class="text-center mt-5 mb-5">SOMATÓRIO DE ALIMENTAÇÕES OFERTADAS NO PERÍODO</div>
-  <table class="tabela-valores-medicao mt-1">
-    <thead>
-      <tr>
-        <th class="texto-branco">Tipos de Alimentação</th>
-        {% for periodo in tabela_somatorio_lista_periodos %}
-          <th class="texto-branco">{{ periodo }}</th>
-        {% endfor %}
-        <th class="texto-branco">Total</th>
-      </tr>
-    <tbody>
-      {% for campo in tabela_somatorio_lista_campos %}
-        <tr>
-          <td>{{ campo }}</td>
-          {% for periodo in tabela_somatorio_lista_periodos %}
-            <td>{% get_valor_somatorio_campo_periodo tabela_somatorio campo periodo %}</td>
+  <h1 class="titulo-tabela-somatorio text-center mt-4 mb-4">SOMATÓRIO DE ALIMENTAÇÕES OFERTADAS NO PERÍODO</h1>
+  <div class="tabelas-somatorio">
+    <div>
+      <table class="mr-1">
+        <thead class="head-tabelas-somatorio">
+          <tr class="texto-branco">
+            <th class="col-2">TIPOS DE ALIMENTAÇÃO</th>
+            <th class="col-1">MANHÃ</th>
+            <th class="col-1">TARDE</th>
+            <th class="col-1">INTEGRAL</th>
+            <th class="col-1">PROGRAMAS E PROJETOS</th>
+            <th class="col-2">SOLICITAÇÕES DE ALIMENTAÇÃO</th>
+            <th class="col-1">TOTAL</th>
+          </tr>
+        </thead>
+        <tbody class="body-tabelas-somatorio">
+          {% for row in tabela_somatorio %}
+            <tr>
+              <td class="col-2">{{ row.0|safe }}</td>
+              <td class="col-1">{{ row.1|safe }}</td>
+              <td class="col-1">{{ row.2|safe }}</td>
+              <td class="col-1">{{ row.3|safe }}</td>
+              <td class="col-1">{{ row.4|safe }}</td>
+              <td class="col-2">{{ row.5|safe }}</td>
+              <td class="col-1">{{ row.6|safe }}</td>
+            </tr>
           {% endfor %}
-          <td>{% total_periodo_ou_campo_medicao tabela_somatorio campo %}</td>
-        </tr>
-      {% endfor %}
-      <tr>
-        <td>Total</td>
-        {% for periodo in tabela_somatorio_lista_periodos %}
-          <td>{% total_periodo_ou_campo_medicao tabela_somatorio periodo %}</td>
-        {% endfor %}
-        <td>{{ tabela_somatorio|get_total_medicao }}</td>
-      </tr>
-    </tbody>
-  </table>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <table>
+        <thead class="head-tabelas-somatorio">
+          <tr class="texto-branco">
+            <th class="col-1">NOITE/EJA</th>
+            <th class="col-1">ETEC</th>
+            <th class="col-1">TOTAL</th>
+          </tr>
+        </thead>
+        <tbody class="body-tabelas-somatorio">
+          {% for row in tabela_somatorio %}
+            <tr>
+              <td class="col-1">{{ row.7|safe }}</td>
+              <td class="col-1">{{ row.8|safe }}</td>
+              <td class="col-1">{{ row.9|safe }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="info-abaixo-tabela">
+    * A tabela acima representa a soma das alimentações lançadas em todos os períodos da UE
+  </div>
+  <div class="bloco-assinatura">
+    <div class="row p-0 mx-4 mt-5">
+      <div class="col-6 mr-3 titulo-assinatura">
+        <b>ASSINATURA UNIDADE EDUCACIONAL</b>
+      </div>
+      <div class="col-5 titulo-assinatura">
+        <b>RESPONSÁVEL PELA CONFERÊNCIA NA DRE</b>
+      </div>
+    </div>
+    <div class="row p-0 mx-4 mt-3">
+      <div class="col-6 mr-3 assinatura">
+        {% if assinatura_escola %}
+        <div class="row p-0 mx-1">
+          <div class="col-2">
+            <img src="{% static 'images/logo-sigpae.png' %}" alt=""/>
+          </div>
+          <div class="col-10 texto">
+            <span>
+              {{assinatura_escola}}
+            </span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-6 assinatura">
+        {% if assinatura_dre %}
+        <div class="row p-0 mx-1">
+          <div class="col-2">
+            <img src="{% static 'images/logo-sigpae.png' %}" alt=""/>
+          </div>
+          <div class="col-10 texto">
+            <span>
+              {{assinatura_dre}}
+            </span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </body>
 </html>
