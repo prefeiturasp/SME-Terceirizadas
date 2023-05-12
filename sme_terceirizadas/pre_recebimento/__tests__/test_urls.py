@@ -535,3 +535,8 @@ def test_url_dashboard_painel_solicitacao_alteracao_dinutre(client_autenticado_d
     assert len(response.json()['results']) == QTD_STATUS_DASHBOARD_DINUTRE
     assert response.json()['results'][0]['status'] == 'CRONOGRAMA_CIENTE'
     assert len(response.json()['results'][0]['dados']) == SOLICITACOES_STATUS_CRONOGRAMA_CIENTE
+
+
+def test_url_relatorio_cronograma_authorized(client_autenticado_dinutre_diretoria, cronograma):
+    response = client_autenticado_dinutre_diretoria.get(f'/cronogramas/{str(cronograma.uuid)}/gerar-pdf-cronograma/')
+    assert response.status_code == status.HTTP_200_OK
