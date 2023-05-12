@@ -269,9 +269,39 @@ def embalagens_filter(embalagens, tipo):
         return False
 
 
+@register.simple_tag
+def get_assinatura_cronograma(logs):
+    return logs.filter(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ENVIADO_AO_FORNECEDOR).last()
+
+
+@register.simple_tag
+def get_assinatura_fornecedor(logs):
+    return logs.filter(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_FORNECEDOR).last()
+
+
+@register.simple_tag
+def get_assinatura_dinutre(logs):
+    return logs.filter(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_DINUTRE).last()
+
+
+@register.simple_tag
+def get_assinatura_codae(logs):
+    return logs.filter(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_CODAE).last()
+
+
 @register.filter
 def existe_inclusao_cancelada(solicitacao):
     return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False).exists()
+
+
+@register.filter
+def formatar_cpf(cpf):
+    try:
+        inicio = cpf[:2]
+        fim = cpf[-2:]
+        return inicio + '*.***.***-' + fim
+    except Exception:
+        return cpf
 
 
 @register.filter
