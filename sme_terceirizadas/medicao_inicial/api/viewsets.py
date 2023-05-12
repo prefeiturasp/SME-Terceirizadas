@@ -20,6 +20,7 @@ from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlime
 from ...escola.models import Escola
 from ...relatorios.utils import html_to_pdf_file
 from ..models import (
+    AnexoOcorrenciaMedicaoInicial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     Medicao,
@@ -30,6 +31,7 @@ from ..models import (
 from ..utils import build_tabela_somatorio_body, build_tabelas_relatorio_medicao, tratar_valores
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
+    AnexoOcorrenciaMedicaoInicialSerializer,
     CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
     MedicaoSerializer,
@@ -445,6 +447,32 @@ class MedicaoViewSet(
             ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
             medicao.dre_pede_correcao(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+
+class OcorrenciaViewSet(
+        mixins.RetrieveModelMixin,
+        mixins.ListModelMixin,
+        mixins.CreateModelMixin,
+        mixins.UpdateModelMixin,
+        GenericViewSet):
+    lookup_field = 'uuid'
+    queryset = AnexoOcorrenciaMedicaoInicial.objects.all()
+
+    def get_serializer_class(self):
+        return AnexoOcorrenciaMedicaoInicialSerializer
+
+    @action(detail=True, methods=['PATCH'], url_path='dre-pede-correcao-ocorrencia',)
+    def dre_pede_correcao_ocorrencia(self, request, uuid=None):
+        object = self.get_object()
+        ocorrencias = object.solicitacao_medicao_inicial.anexos.all()
+        justificativa = request.data.get('justificativa', None)
+        try:
+            for ocorrencia in ocorrencias:
+                ocorrencia.dre_pede_correcao(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.anexos.all(), many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
