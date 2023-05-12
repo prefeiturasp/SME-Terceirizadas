@@ -234,6 +234,7 @@ class LoteSimplesSerializer(serializers.ModelSerializer):
 
 
 class EscolaSimplesSerializer(serializers.ModelSerializer):
+    tipo_unidade = TipoUnidadeEscolarSerializer()
     lote = LoteNomeSerializer()
     tipo_gestao = TipoGestaoSerializer()
     periodos_escolares = PeriodoEscolarSerializer(many=True)
@@ -245,6 +246,7 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
             'uuid',
             'nome',
             'codigo_eol',
+            'tipo_unidade',
             'quantidade_alunos',
             'quantidade_alunos_cei_da_cemei',
             'quantidade_alunos_emei_da_cemei',
