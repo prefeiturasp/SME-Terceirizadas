@@ -72,21 +72,25 @@
 	  	</div>
     </div>
 
-    <div class="dados_recebimento">
-      <h4 class="title titulo-secao">Dados do Recebimento</h4>
+    {% if programacoes|length > 0 %}
 
-      {% for programacao in programacoes %}
-        <div class="dados font-weight-bold">
-          <div>Data Programada: </div>
-          <div>Tipo de Carga: </div>
-        </div>
+      <div class="dados_recebimento">
+        <h4 class="title titulo-secao">Dados do Recebimento</h4>
 
-        <div class="dados pb-3">
-          <div>{{programacao.data_programada}} </div>
-          <div>{{programacao.get_tipo_carga_display}}</div>
-        </div>
-      {% endfor %}
-    </div>
+        {% for programacao in programacoes %}
+          <div class="dados font-weight-bold">
+            <div>Data Programada: </div>
+            <div>Tipo de Carga: </div>
+          </div>
+
+          <div class="dados pb-3">
+            <div>{{programacao.data_programada}} </div>
+            <div>{{programacao.get_tipo_carga_display}}</div>
+          </div>
+        {% endfor %}
+      </div>
+
+    {% endif %}
 
     <div class="assinaturas">
 
