@@ -2938,7 +2938,8 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE),
         ('ue_envia', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENVIADA_PELA_UE),
-        ('dre_pede_correcao', MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA),
+        ('dre_pede_correcao', [MEDICAO_CORRECAO_SOLICITADA, MEDICAO_ENVIADA_PELA_UE,
+                               MEDICAO_APROVADA_PELA_DRE], MEDICAO_CORRECAO_SOLICITADA),
         ('codae_pede_correcao', MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA_CODAE),
         ('ue_corrige_', MEDICAO_CORRECAO_SOLICITADA, MEDICAO_CORRIGIDA_PELA_UE),
         ('ue_corrige_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
@@ -2999,14 +3000,20 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('dre_pede_correcao')
     def _dre_pede_correcao_hook(self, *args, **kwargs):
+        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
             if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
-                                      usuario=user,
-                                      justificativa=justificativa)
+            if isinstance(self, AnexoOcorrenciaMedicaoInicial):
+                self.salvar_ou_aualizar_log_correcao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
+                                                     usuario=user,
+                                                     justificativa=justificativa)
+            else:
+                self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
+                                          usuario=user,
+                                          justificativa=justificativa)
 
     class Meta:
         abstract = True
