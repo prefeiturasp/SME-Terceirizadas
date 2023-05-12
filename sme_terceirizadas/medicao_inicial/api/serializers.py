@@ -28,12 +28,21 @@ class DiaSobremesaDoceSerializer(serializers.ModelSerializer):
 
 
 class AnexoOcorrenciaMedicaoInicialSerializer(serializers.ModelSerializer):
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
     arquivo = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    extensao = serializers.SerializerMethodField()
+
+    def get_extensao(self, obj):
+        return f'.{obj.nome.split(".")[-1]}'
 
     def get_arquivo(self, obj):
         env = environ.Env()
         api_url = env.str('URL_ANEXO', default='http://localhost:8000')
         return f'{api_url}{obj.arquivo.url}'
+
+    def get_status(self, obj):
+        return obj.status.name
 
     class Meta:
         model = TipoContagemAlimentacao
