@@ -76,15 +76,13 @@ class AnexoOcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedic
         on_delete=models.CASCADE
     )
 
-    def salvar_ou_aualizar_log_correcao(self, status_evento, usuario, **kwargs):
-        justificativa = kwargs.get('justificativa', '')
-        obj, created = LogSolicitacoesUsuario.objects.update_or_create(
+    def deletar_log_correcao(self, status_evento, **kwargs):
+        LogSolicitacoesUsuario.objects.filter(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
             uuid_original=self.uuid,
-            defaults={'justificativa': justificativa, 'usuario': usuario},
-        )
+        ).delete()
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')

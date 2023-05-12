@@ -3007,13 +3007,10 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
             if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
             if isinstance(self, AnexoOcorrenciaMedicaoInicial):
-                self.salvar_ou_aualizar_log_correcao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
-                                                     usuario=user,
-                                                     justificativa=justificativa)
-            else:
-                self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
-                                          usuario=user,
-                                          justificativa=justificativa)
+                self.deletar_log_correcao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA)
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
+                                      usuario=user,
+                                      justificativa=justificativa)
 
     class Meta:
         abstract = True
