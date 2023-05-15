@@ -478,8 +478,8 @@ def relatorio_inclusao_alimentacao_continua(request, solicitacao):
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_INCLUSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_INCLUSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs),
             'week': {'D': 6, 'S': 0, 'T': 1, 'Q': 2, 'Qi': 3, 'Sx': 4, 'Sb': 5}
         }

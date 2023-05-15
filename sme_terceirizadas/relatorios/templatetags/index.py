@@ -291,7 +291,7 @@ def get_assinatura_codae(logs):
 
 @register.filter
 def existe_inclusao_cancelada(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False).exists()
+    return solicitacao.inclusoes.filter(cancelado=True).exists()
 
 
 @register.filter
