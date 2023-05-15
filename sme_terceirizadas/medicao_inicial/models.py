@@ -67,7 +67,7 @@ class SolicitacaoMedicaoInicial(
         return f'Solicitação #{self.id_externo} -- Escola {self.escola.nome} -- {self.mes}/{self.ano}'
 
 
-class AnexoOcorrenciaMedicaoInicial(TemChaveExterna):
+class AnexoOcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedicaoInicial):
     nome = models.CharField(max_length=100)
     arquivo = models.FileField()
     solicitacao_medicao_inicial = models.ForeignKey(
@@ -75,6 +75,25 @@ class AnexoOcorrenciaMedicaoInicial(TemChaveExterna):
         related_name='anexos',
         on_delete=models.CASCADE
     )
+
+    def deletar_log_correcao(self, status_evento, **kwargs):
+        LogSolicitacoesUsuario.objects.filter(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+            uuid_original=self.uuid,
+        ).delete()
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            justificativa=justificativa,
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+            usuario=usuario,
+            uuid_original=self.uuid,
+        )
 
     def __str__(self):
         return f'Anexo Ocorrência {self.uuid} - {self.nome}'
