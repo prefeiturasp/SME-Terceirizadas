@@ -453,8 +453,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['POST'], url_path='filtro-homologacoes-por-titulo-marca-edital')
     def solicitacoes_homologacao_por_titulo_marca_edital(self, request):
         query_set = self.get_queryset()
-        titulo = request.data.get('titulo_produto',)
-        marca = request.data.get('marca_produto',)
+        titulo = request.data.get('titulo_produto', )
+        marca = request.data.get('marca_produto', )
         edital = request.data.get('edital_produto', )
 
         if titulo:
@@ -566,10 +566,14 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             'codae_suspendeu': {
                 'status__in': [
                     HomologacaoProdutoWorkflow.CODAE_SUSPENDEU,
-                    HomologacaoProdutoWorkflow.CODAE_AUTORIZOU_RECLAMACAO
+                    HomologacaoProdutoWorkflow.CODAE_AUTORIZOU_RECLAMACAO,
+                    HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO
                 ],
-                'raw_sql': ("WHERE (%(homologacao_produto)s.status = 'CODAE_SUSPENDEU' "
-                            "OR %(homologacao_produto)s.status = 'CODAE_AUTORIZOU_RECLAMACAO') ")
+                'raw_sql': (
+                    'JOIN %(produto_edital)s ON %(homologacao_produto)s.produto_id = %(produto_edital)s.produto_id '
+                    "WHERE (%(homologacao_produto)s.status IN ('CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO') "
+                    "OR (%(homologacao_produto)s.status = 'CODAE_HOMOLOGADO' "
+                    'AND %(produto_edital)s.suspenso = True))')
             }
         }
 
@@ -595,8 +599,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if filtro_aplicado and filtro_aplicado != 'codae_pediu_analise_reclamacao':
             filtros['status__in'] = filtros_dict[filtro_aplicado]['status__in']
             raw_sql += filtros_dict[filtro_aplicado]['raw_sql']
+        if filtro_aplicado == 'codae_suspendeu':
+            filtros['produto__vinculos__suspenso'] = True
         if edital:
-            raw_sql += f'AND produto_edital.edital_id_prod_edit = {edital.id} '
+            raw_sql += f' AND produto_edital.edital_id_prod_edit = {edital.id} '
         raw_sql += 'ORDER BY log_criado_em DESC'
         return raw_sql, data
 
@@ -1049,7 +1055,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     def gerar_pdf_ficha_identificacao_produto(self, request, uuid=None):
         SERVER_NAME = env.str('SERVER_NAME', default=None)
         homologacao_produto = self.get_object()
-        img_ids = [img.id for img in homologacao_produto.produto.imagens if img.nome.split('.')[len(img.nome.split('.')) - 1] in ['png', 'jpg', 'jpeg']] # noqa E501
+        img_ids = [img.id for img in homologacao_produto.produto.imagens if
+                   img.nome.split('.')[len(img.nome.split('.')) - 1] in ['png', 'jpg', 'jpeg']]  # noqa E501
         imagens = homologacao_produto.produto.imagens.filter(id__in=img_ids)
         documentos = homologacao_produto.produto.imagens.exclude(id__in=img_ids)
         eh_card_suspensos = request.query_params.get('eh_card_suspensos')
@@ -1437,9 +1444,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         queryset = self.filter_queryset(self.get_queryset()).filter(
             **filtro_homologacao).prefetch_related(
-                Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
-                    **filtro_reclamacao))).annotate(
-                        qtde_questionamentos=qtde_questionamentos).order_by('criado_em').distinct()
+            Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+                **filtro_reclamacao))).annotate(
+            qtde_questionamentos=qtde_questionamentos).order_by('criado_em').distinct()
 
         return self.paginated_response(queryset)
 
@@ -1460,9 +1467,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         queryset = self.filter_queryset(self.get_queryset()).filter(
             **filtro_homologacao).prefetch_related(
-                Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
-                    **filtro_reclamacao))).annotate(
-                        qtde_questionamentos=qtde_questionamentos).order_by('criado_em').distinct()
+            Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+                **filtro_reclamacao))).annotate(
+            qtde_questionamentos=qtde_questionamentos).order_by('criado_em').distinct()
 
         return self.paginated_response(queryset)
 
@@ -1472,9 +1479,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def filtro_reclamacoes_nutrisupervisor(self, request):
         user = self.request.user
         filtro_homologacao = {'homologacao__reclamacoes__status__in': [
-                              ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_NUTRISUPERVISOR,
-                              ReclamacaoProdutoWorkflow.RESPONDIDO_NUTRISUPERVISOR],
-                              'homologacao__reclamacoes__reclamante_registro_funcional': user.registro_funcional}
+            ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_NUTRISUPERVISOR,
+            ReclamacaoProdutoWorkflow.RESPONDIDO_NUTRISUPERVISOR],
+            'homologacao__reclamacoes__reclamante_registro_funcional': user.registro_funcional}
         filtro_reclamacao = {'status__in': [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_NUTRISUPERVISOR,
                                             ReclamacaoProdutoWorkflow.RESPONDIDO_NUTRISUPERVISOR],
                              'reclamante_registro_funcional': user.registro_funcional}
@@ -1485,9 +1492,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         queryset = self.filter_queryset(self.get_queryset()).filter(
             **filtro_homologacao).prefetch_related(
-                Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
-                    **filtro_reclamacao))).annotate(
-                        qtde_questionamentos=qtde_questionamentos).order_by('criado_em').distinct()
+            Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+                **filtro_reclamacao))).annotate(
+            qtde_questionamentos=qtde_questionamentos).order_by('criado_em').distinct()
 
         return self.paginated_response(queryset)
 
@@ -1629,8 +1636,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def filtro_relatorio_em_analise_sensorial(self, request):
         queryset = self.filter_queryset(
             self.get_queryset()).filter(homologacao__respostas_analise__isnull=False).prefetch_related(
-                Prefetch('homologacao', queryset=HomologacaoProduto.objects.all().exclude(
-                    respostas_analise__exact=None))).distinct()
+            Prefetch('homologacao', queryset=HomologacaoProduto.objects.all().exclude(
+                respostas_analise__exact=None))).distinct()
         queryset = self.filtra_produtos_em_analise_sensorial(
             request, queryset).select_related('marca', 'fabricante')
         return self.paginated_response(queryset)
@@ -1642,8 +1649,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio_em_analise_sensorial(self, request):
         queryset = self.filter_queryset(
             self.get_queryset()).filter(homologacao__respostas_analise__isnull=False).prefetch_related(
-                Prefetch('homologacao', queryset=HomologacaoProduto.objects.all().exclude(
-                    respostas_analise__exact=None))).distinct()
+            Prefetch('homologacao', queryset=HomologacaoProduto.objects.all().exclude(
+                respostas_analise__exact=None))).distinct()
         queryset = self.filtra_produtos_em_analise_sensorial(
             request, queryset).select_related('marca', 'fabricante')
         filtros = self.request.query_params.dict()
@@ -1659,9 +1666,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             request)
         queryset = self.filter_queryset(
             self.get_queryset()).filter(**filtro_homologacao).prefetch_related(
-                Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
-                    **filtro_reclamacao))).order_by(
-                        'nome').select_related('marca', 'fabricante').distinct()
+            Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+                **filtro_reclamacao))).order_by(
+            'nome').select_related('marca', 'fabricante').distinct()
         return self.paginated_response(queryset)
 
     @action(detail=False,
@@ -1673,7 +1680,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             'status_reclamacao')
         queryset = self.filter_queryset(self.get_queryset()).prefetch_related('homologacao__reclamacoes').filter(
             homologacao__reclamacoes__status__in=status_reclamacao).order_by('nome').select_related(
-                'marca', 'fabricante').distinct()
+            'marca', 'fabricante').distinct()
         return self.paginated_response(queryset)
 
     @action(detail=False,
@@ -1684,9 +1691,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             request)
         queryset = self.filter_queryset(
             self.get_queryset()).filter(**filtro_homologacao).prefetch_related(
-                Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
-                    **filtro_reclamacao))).order_by(
-                        'nome').distinct()
+            Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+                **filtro_reclamacao))).order_by(
+            'nome').distinct()
         filtros = self.request.query_params.dict()
         return relatorio_reclamacao(queryset, filtros)
 
@@ -1699,7 +1706,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         queryset = self.get_queryset().filter(
             **form.cleaned_data).exclude(
-                homologacao__status=HomologacaoProdutoWorkflow.RASCUNHO)
+            homologacao__status=HomologacaoProdutoWorkflow.RASCUNHO)
 
         return Response({
             'produto_existe': queryset.count() > 0
@@ -1770,7 +1777,7 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro ao consultar filtros: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get'], url_path='filtrar') # noqa c901
+    @action(detail=False, methods=['get'], url_path='filtrar')  # noqa c901
     def filtrar(self, request):
         queryset = self.get_queryset().order_by('produto__nome')
         nome = request.query_params.get('nome', None)
@@ -1790,7 +1797,7 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response({'results': serializer.data})
 
-    @action(detail=False, methods=['get'], url_path='lista-produtos-opcoes') # noqa c901
+    @action(detail=False, methods=['get'], url_path='lista-produtos-opcoes')  # noqa c901
     def lista_produtos_opcoes(self, request):
         try:
             editais_uuid = request.query_params.get('editais', '')
@@ -2365,7 +2372,7 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
                 request=request)
         return resposta
 
-    @action(detail=True, # noqa C901
+    @action(detail=True,  # noqa C901
             permission_classes=(UsuarioCODAEGestaoProduto,),
             methods=['patch'],
             url_path=constants.CODAE_PEDE_ANALISE_SENSORIAL)
