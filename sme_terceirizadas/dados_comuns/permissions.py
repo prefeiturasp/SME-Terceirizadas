@@ -729,7 +729,7 @@ class ViewSetActionPermissionMixin:
 class PermissaoRelatorioDietasEspeciais(BasePermission):
     """Permite acesso ao objeto se a dieta especial pertence ao usuário."""
 
-    def has_object_permission(self, request, view, obj):  # noqa
+    def has_object_permission(self, request, view, obj):
         usuario = request.user
         if isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional):
             return (
