@@ -1592,7 +1592,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         for hom in homologacoes:
             log_homologado = hom.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).last()
             logs = hom.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_SUSPENDEU,
-                                                      LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO])
+                                                      LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO,
+                                                      LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS])
             if data_final:
                 logs = logs.filter(criado_em__lte=data_final)
                 if log_homologado:
