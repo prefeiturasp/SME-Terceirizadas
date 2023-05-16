@@ -820,7 +820,8 @@ class ProdutoSuspensoSerializer(ProdutoBaseSerializer):
     def get_vinculos_produto_edital(self, obj):
         return ProdutoEditalSerializer(
             ProdutoEdital.objects.filter(
-                produto=obj
+                produto=obj,
+                suspenso=True
             ), many=True
         ).data
 
