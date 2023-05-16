@@ -1578,7 +1578,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         nome_marca = request.query_params.get('nome_marca', None)
         nome_fabricante = request.query_params.get('nome_fabricante', None)
         tipo = request.query_params.get('tipo', None)
-        status = ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO']
+        status = ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO', 'CODAE_HOMOLOGADO']
 
         homologacoes = HomologacaoProduto.objects.all()
         uuids_homologacao = []
@@ -1599,7 +1599,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             if logs.last():
                 uuid = logs.last().uuid_original
                 uuids_homologacao.append(uuid)
-        homologacoes = homologacoes.filter(uuid__in=uuids_homologacao, status__in=status)
+        homologacoes = homologacoes.filter(uuid__in=uuids_homologacao, status__in=status,
+                                           produto__vinculos__suspenso=True)
 
         if nome_produto:
             homologacoes = homologacoes.filter(produto__nome=nome_produto)
