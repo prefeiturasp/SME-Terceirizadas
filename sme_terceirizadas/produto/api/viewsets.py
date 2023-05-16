@@ -285,10 +285,11 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 qs_parc_suspensos = qs.filter(status='CODAE_HOMOLOGADO',
                                               produto__vinculos__suspenso=True)
             qs = qs_parc_suspensos | qs.filter(status=workflow)
-        elif workflow == 'CODAE_HOMOLOGADO' and edital:
-            qs = qs.filter(status='CODAE_HOMOLOGADO',
-                           produto__vinculos__suspenso=False,
-                           produto__vinculos__edital__numero=edital)
+        elif workflow == 'CODAE_HOMOLOGADO':
+            if edital:
+                qs = qs.filter(status='CODAE_HOMOLOGADO',
+                               produto__vinculos__suspenso=False,
+                               produto__vinculos__edital__numero=edital)
         else:
             qs = qs.filter(status=workflow).distinct().all()
         return qs
