@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from xworkflows import InvalidTransitionError
 
+from ...dados_comuns import constants
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
@@ -186,6 +187,20 @@ class SolicitacaoMedicaoInicialViewSet(
                     qs[offset:limit + offset],
                     context={'request': self.request, 'workflow': workflow}, many=True).data
             })
+        if request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
+            status_medicao_corrigida = ['MEDICAO_CORRIGIDA_PELA_UE', 'MEDICAO_CORRIGIDA_PARA_CODAE']
+            sumario_medicoes_corrigidas = [s for s in sumario if s['status'] == status_medicao_corrigida]
+            total_medicao_corrigida = 0
+            total_dados = []
+            for s in sumario_medicoes_corrigidas:
+                total_medicao_corrigida += s['total']
+                total_dados += s['dados']
+            sumario.insert(2, {
+                'status': 'MEDICAO_CORRIGIDA',
+                'total': total_medicao_corrigida,
+                'dados': total_dados
+            })
+            sumario = [s for s in sumario if s['status'] not in status_medicao_corrigida]
         return sumario
 
     def formatar_filtros(self, query_params):
@@ -290,7 +305,7 @@ class SolicitacaoMedicaoInicialViewSet(
         return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf')
 
     @action(detail=False, methods=['GET'], url_path='periodos-grupos-medicao',
-            permission_classes=[UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+            permission_classes=[UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao | UsuarioEscolaTercTotal])
     def periodos_grupos_medicao(self, request):
         uuid = request.query_params.get('uuid_solicitacao')
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
