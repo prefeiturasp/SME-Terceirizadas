@@ -660,7 +660,7 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
                 for faixa_etaria in faixas_etarias:
                     if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
                         faixa_alunos[faixa_etaria.uuid] += 1
-                    elif data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:  # ultima faixa
+                    if data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:  # alunos maiores de 6 anos
                         faixa_alunos[faixa_etaria.uuid] += 1
         return faixa_alunos
 
