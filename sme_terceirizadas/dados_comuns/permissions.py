@@ -177,19 +177,6 @@ class UsuarioTerceirizada(BasePermission):
         return retorno
 
 
-class UsuarioTerceirizadaOuNutriSupervisao(BasePermission):
-    """Permite acesso a usuários com vinculo a uma Terceirizada ou Nutrisupervisao."""
-
-    def has_permission(self, request, view):
-        usuario = request.user
-        return (
-            not usuario.is_anonymous and
-            usuario.vinculo_atual and
-            isinstance(usuario.vinculo_atual.instituicao, Codae) or
-            isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
-        )
-
-
 class PermissaoParaRecuperarObjeto(BasePermission):
     """Permite acesso ao objeto se o objeto pertence ao usuário."""
 
@@ -737,3 +724,29 @@ class ViewSetActionPermissionMixin:
                     permission_classes or self.permission_classes
                 )
             ]
+
+
+class PermissaoRelatorioDietasEspeciais(BasePermission):
+    """Permite acesso ao objeto se a dieta especial pertence ao usuário."""
+
+    def has_object_permission(self, request, view, obj):  # noqa
+        usuario = request.user
+        if isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional):
+            return (
+                usuario.vinculo_atual.instituicao in [obj.escola.diretoria_regional, obj.rastro_dre]
+            )
+        elif isinstance(usuario.vinculo_atual.instituicao, Codae):
+            return (
+                usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
+                                                      ADMINISTRADOR_DIETA_ESPECIAL,
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO,
+                                                      COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                      ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
+                                                      ADMINISTRADOR_MEDICAO]
+            )
+        elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
+            return (
+                usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
+            )
