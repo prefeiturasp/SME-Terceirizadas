@@ -148,10 +148,11 @@ def popula_campo_matriculados(
             periodo = tabela['periodos'][indice_periodo]
             if '-' in periodo:
                 periodo = periodo.split(' - ')[1]
-            valores_dia += [logs_alunos_matriculados.get(
-                periodo_escolar__nome=periodo,
-                criado_em__day=dia,
-            ).quantidade_alunos]
+            log = logs_alunos_matriculados.filter(periodo_escolar__nome=periodo, criado_em__day=dia).first()
+            if log:
+                valores_dia += [log.quantidade_alunos]
+            else:
+                valores_dia += ['0']
         except LogAlunosMatriculadosPeriodoEscola.DoesNotExist:
             valores_dia += ['0']
 
