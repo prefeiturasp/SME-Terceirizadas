@@ -171,12 +171,16 @@ def popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_
                     ]).aggregate(Sum('quantidade')).get('quantidade__sum')
                 valores_dia += [quantidade or '0']
             else:
-                valores_dia += [logs_dietas.get(
+                log_selec = logs_dietas.filter(
                     data__day=dia,
                     data__month=solicitacao.mes,
                     data__year=solicitacao.ano,
                     classificacao__nome=categoria_corrente.split(' - ')[1].title()
-                ).quantidade]
+                ).first()
+                if not log_selec:
+                    valores_dia += ['0']
+                else:
+                    valores_dia += log_selec.quantidade
         except LogQuantidadeDietasAutorizadas.DoesNotExist:
             valores_dia += ['0']
 
