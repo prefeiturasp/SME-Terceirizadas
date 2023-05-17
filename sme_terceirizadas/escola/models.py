@@ -652,16 +652,19 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
             raise ObjectDoesNotExist()
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.escola.codigo_eol)
         faixa_alunos = Counter()
-        seis_anos_atras = datetime.date.today() - relativedelta(years=6)
         for aluno in lista_alunos:
             if remove_acentos(aluno['dc_tipo_turno'].strip()).upper() == self.periodo_escolar.nome:
                 data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
-
-                for faixa_etaria in faixas_etarias:
-                    if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
-                        faixa_alunos[faixa_etaria.uuid] += 1
-                    if data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:  # alunos maiores de 6 anos
-                        faixa_alunos[faixa_etaria.uuid] += 1
+                meses = (data_nascimento.year - data_referencia.year) * 12
+                meses = meses + (data_nascimento.month - data_referencia.month)
+                meses = meses * (-1)
+                if meses >= 73:
+                    faixa_etaria = FaixaEtaria.objects.filter(inicio=48, fim=73, ativo=True).first()
+                else:
+                    faixa_etaria = FaixaEtaria.objects.filter(inicio__lte=int(meses),
+                                                              fim__gt=int(meses), ativo=True).first()
+                if faixa_etaria:
+                    faixa_alunos[faixa_etaria.uuid] += 1
         return faixa_alunos
 
     class Meta:

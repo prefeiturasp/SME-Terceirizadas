@@ -160,7 +160,7 @@ def test_escola_periodo_escolar_alunos_por_faixa_etaria(faixas_etarias,
                                                         eolservice_get_informacoes_escola_turma_aluno):
     faixas_alunos = escola_periodo_escolar.alunos_por_faixa_etaria(
         datetime.date(2020, 10, 25))
-    assert [i for i in faixas_alunos.values()] == [94, 18, 26]
+    assert [i for i in faixas_alunos.values()] == [93, 18, 27]
 
 
 def test_faixa_str():
