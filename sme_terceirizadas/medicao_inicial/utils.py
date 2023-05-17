@@ -180,7 +180,7 @@ def popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_
                 if not log_selec:
                     valores_dia += ['0']
                 else:
-                    valores_dia += log_selec.quantidade
+                    valores_dia += [log_selec.quantidade]
         except LogQuantidadeDietasAutorizadas.DoesNotExist:
             valores_dia += ['0']
 
