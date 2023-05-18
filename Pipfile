@@ -89,7 +89,7 @@ django-simple-email-confirmation='==0.7' # https://github.com/mfogel/django-simp
 # Produção
 gunicorn='==19.9.0'  # https://github.com/benoitc/gunicorn
 tornado='==6.0.3'    # http://www.tornadoweb.org/en/stable/
-sentry-sdk = "==0.10.2"
+sentry-sdk = "==1.14.0"
 django-prometheus = "==2.2.0"
 # Relatórios
 weasyprint = "==52"
