@@ -478,8 +478,8 @@ def relatorio_inclusao_alimentacao_continua(request, solicitacao):
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_INCLUSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_INCLUSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs),
             'week': {'D': 6, 'S': 0, 'T': 1, 'Q': 2, 'Qi': 3, 'Sx': 4, 'Sb': 5}
         }
@@ -1050,3 +1050,20 @@ def get_pdf_guia_distribuidor(data=None, many=False):
     data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
 
     return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
+
+
+def get_pdf_cronograma(request, cronograma):
+    logs = cronograma.logs
+    html_string = render_to_string(
+        'pre_recebimento/cronogramas/cronograma.html',
+        {
+            'empresa': cronograma.empresa,
+            'contrato': cronograma.contrato,
+            'cronograma': cronograma,
+            'etapas': cronograma.etapas.all(),
+            'programacoes': cronograma.programacoes_de_recebimento.all(),
+            'logs': logs
+        }
+    )
+    data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
+    return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), f'cronogram_{cronograma.numero}.pdf')

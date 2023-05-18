@@ -1024,6 +1024,16 @@ class SolicitacoesEscola(MoldeConsolidado):
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
     @classmethod
+    def get_recebidas(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            escola_uuid=escola_uuid,
+            data_evento__lte=datetime.date.today()
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
     def get_autorizados(cls, **kwargs):
         from django.db.models import Q
 
@@ -1120,6 +1130,19 @@ class SolicitacoesEscola(MoldeConsolidado):
         )
 
         return cls._conta_totais(query_set, query_set_mes_passado)
+
+    @classmethod
+    def map_queryset_por_status(cls, status, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        if not status:
+            return cls.objects.all()
+        mapeador = {
+            'AUTORIZADOS': f'cls.get_autorizados(escola_uuid="{escola_uuid}")',
+            'CANCELADOS': f'cls.get_cancelados(escola_uuid="{escola_uuid}")',
+            'NEGADOS': f'cls.get_negados(escola_uuid="{escola_uuid}")',
+            'RECEBIDAS': f'cls.get_recebidas(escola_uuid="{escola_uuid}")'
+        }
+        return eval(mapeador[status])
 
 
 class SolicitacoesDRE(MoldeConsolidado):

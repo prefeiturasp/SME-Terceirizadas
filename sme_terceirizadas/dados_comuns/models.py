@@ -439,11 +439,15 @@ class Notificacao(models.Model):
     CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA = 'REQUISICAO_DE_ENTREGA'
     CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA = 'ALTERACAO_REQUISICAO_ENTREGA'
     CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA = 'GUIA_DE_REMESSA'
+    CATEGORIA_NOTIFICACAO_CRONOGRAMA = 'CRONOGRAMA'
+    CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA = 'ALTERACAO_CRONOGRAMA'
 
     CATEGORIA_NOTIFICACAO_NOMES = {
         CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA: 'Requisição de entrega',
         CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA: 'Alteração de requisição de entrega',
         CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA: 'Guia de Remessa',
+        CATEGORIA_NOTIFICACAO_CRONOGRAMA: 'Assinatura do Cronograma',
+        CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA: 'Solicitação de Alteração do Cronograma'
     }
 
     CATEGORIA_NOTIFICACAO_CHOICES = (
@@ -452,6 +456,9 @@ class Notificacao(models.Model):
         (CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA,
          CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA]),
         (CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA]),
+        (CATEGORIA_NOTIFICACAO_CRONOGRAMA, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_CRONOGRAMA]),
+        (CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA,
+         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA]),
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -497,6 +504,9 @@ class Notificacao(models.Model):
     guia = models.ForeignKey('logistica.Guia', on_delete=models.CASCADE, related_name='notificacoes_da_guia',
                              blank=True, null=True)
 
+    cronograma = models.ForeignKey('pre_recebimento.Cronograma', on_delete=models.CASCADE,
+                                   related_name='notificacoes_do_cronograma', blank=True, null=True)
+
     class Meta:
         verbose_name = 'Notificação'
         verbose_name_plural = 'Notificações'
@@ -506,7 +516,7 @@ class Notificacao(models.Model):
 
     @classmethod
     def notificar(cls, tipo, categoria, titulo, descricao, usuario, link,  # noqa C901
-                  requisicao=None, solicitacao_alteracao=None, guia=None, renotificar=True):
+                  requisicao=None, solicitacao_alteracao=None, guia=None, renotificar=True, cronograma=None):
 
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
             raise NotificacaoException(f'Tipo {tipo} não é um tipo válido.')

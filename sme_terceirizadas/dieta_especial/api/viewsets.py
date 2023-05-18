@@ -20,14 +20,14 @@ from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
+    PermissaoRelatorioDietasEspeciais,
     UsuarioCODAEDietaEspecial,
     UsuarioEscolaTercTotal,
-    UsuarioTerceirizada,
-    UsuarioTerceirizadaOuNutriSupervisao
+    UsuarioTerceirizada
 )
 from ...dados_comuns.services import enviar_email_codae_atualiza_protocolo
 from ...dieta_especial.tasks import gera_pdf_relatorio_dieta_especial_async
-from ...escola.models import Aluno, EscolaPeriodoEscolar, Lote
+from ...escola.models import Aluno, DiretoriaRegional, EscolaPeriodoEscolar, Lote
 from ...escola.services import NovoSGPServicoLogado
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import (
@@ -123,13 +123,12 @@ class SolicitacaoDietaEspecialViewSet(
             self.permission_classes = (UsuarioEscolaTercTotal,)
         elif self.action in [
             'imprime_relatorio_dieta_especial',
-            'relatorio_dieta_especial'
         ]:
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarDietaEspecial)
         elif self.action == 'relatorio_dieta_especial_terceirizada':
             self.permission_classes = (
-                IsAuthenticated, UsuarioTerceirizadaOuNutriSupervisao)
+                IsAuthenticated, PermissaoRelatorioDietasEspeciais)
         return super(SolicitacaoDietaEspecialViewSet, self).get_permissions()
 
     def get_serializer_class(self):  # noqa C901
@@ -673,12 +672,19 @@ class SolicitacaoDietaEspecialViewSet(
 
     def filtrar_queryset_relatorio_dieta_especial(self, request):
         query_set = self.filter_queryset(self.get_queryset())
+
+        lotes_filtro = request.query_params.getlist('lotes_selecionados[]', None)
+        if not lotes_filtro:
+            instituicao = request.user.vinculo_atual.instituicao
+            if isinstance(instituicao, DiretoriaRegional):
+                lotes_list = list(instituicao.lotes.all().values_list('uuid'))
+                lotes_filtro = [str(u[0]) for u in lotes_list]
         map_filtros = {
             'protocolo_padrao__uuid__in': request.query_params.getlist('protocolos_padrao_selecionados[]', None),
             'alergias_intolerancias__id__in': request.query_params.getlist(
                 'alergias_intolerancias_selecionadas[]', None),
             'classificacao__id__in': request.query_params.getlist('classificacoes_selecionadas[]', None),
-            'escola_destino__lote__uuid__in': request.query_params.getlist('lotes_selecionados[]', None),
+            'escola_destino__lote__uuid__in': lotes_filtro,
             'escola_destino__codigo_eol__in': request.query_params.getlist('unidades_educacionais_selecionadas[]', None)
         }
         filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
@@ -701,9 +707,12 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=False, methods=('get',), url_path='filtros-relatorio-dieta-especial')
     def filtros_relatorio_dieta_especial(self, request):
         query_set = self.filtrar_queryset_relatorio_dieta_especial(request)
-
-        lotes_dict = dict(
-            set(query_set.values_list('escola_destino__lote__nome', 'escola_destino__lote__uuid')))
+        instituicao = request.user.vinculo_atual.instituicao
+        if isinstance(instituicao, DiretoriaRegional):
+            lotes_dict = dict(instituicao.lotes.all().values_list('nome', 'uuid'))
+        else:
+            lotes_dict = dict(
+                set(query_set.values_list('escola_destino__lote__nome', 'escola_destino__lote__uuid')))
         lotes = sorted([{'nome': key, 'uuid': lotes_dict[key]} for key in lotes_dict.keys() if key],
                        key=lambda lote: lote['nome'])
 

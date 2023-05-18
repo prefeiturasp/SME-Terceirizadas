@@ -1,0 +1,199 @@
+{% include 'relatorio_base.html' %}
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+<body>
+  <div class="page-container mt-3">
+    
+    <div class="status">
+      <div class="title pt-0">
+        Status do Cronograma
+      </div>
+      <div class="barra-status pl-0">
+        <div class="card-barra-status">
+          {{cronograma.get_status_display}}
+        </div>
+      </div>
+    </div>
+
+    <div class="dados_cronograma">
+      <h4 class="title titulo-secao">Dados do Produto e Datas de Entregas</h4>
+
+      <div class="dados font-weight-bold">
+        <div>Produto: </div>
+        <div>Quantidade Total Programada: </div>
+        <div>Unidade de Medida: </div>
+      </div>
+
+      <div class="dados pb-3">
+        <div>{{cronograma.produto.nome}} </div>
+        <div>{{cronograma.qtd_total_programada}}</div>
+        <div>{{cronograma.unidade_medida.nome}} </div>
+      </div>
+
+      <div class="dados font-weight-bold">
+        <div>Armazém: </div>
+        <div>Tipo de Embalagem: </div>
+      </div>
+
+      <div class="dados pb-3">
+        <div>{{cronograma.armazem.nome_fantasia}} </div>
+        <div>{{cronograma.tipo_embalagem}}</div>
+      </div>
+    
+
+      <div class="table-responsive-sm">
+	  		<table class="table table-lg table-bordered table-cronograma">
+          <thead>
+            <tr>
+              <th scope="col">Nº do Empenho</th>
+              <th scope="col">Etapa</th>
+              <th scope="col">Parte</th>
+              <th scope="col">Data Programada</th>
+              <th scope="col">Quantidade</th>
+              <th scope="col">Total de Embalagens</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for etapa in etapas %}
+            <tr>
+              <td>{{etapa.numero_empenho}}</td>
+              <td>{{etapa.etapa}}</td>
+              <td>{{etapa.parte}}</td>
+              <td>{{etapa.data_programada}}</td>
+              <td>{{etapa.quantidade}}</td>
+              <td>{{etapa.total_embalagens}}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+	  		</table>
+	  	</div>
+    </div>
+
+    {% if programacoes|length > 0 %}
+
+      <div class="dados_recebimento">
+        <h4 class="title titulo-secao">Dados do Recebimento</h4>
+
+        {% for programacao in programacoes %}
+          <div class="dados font-weight-bold">
+            <div>Data Programada: </div>
+            <div>Tipo de Carga: </div>
+          </div>
+
+          <div class="dados pb-3">
+            <div>{{programacao.data_programada}} </div>
+            <div>{{programacao.get_tipo_carga_display}}</div>
+          </div>
+        {% endfor %}
+      </div>
+
+    {% endif %}
+
+    <div class="assinaturas">
+
+      {% get_assinatura_fornecedor logs as log_fornecedor %}
+
+      {% if log_fornecedor %}
+
+      <div class="assinatura">
+        <div class="title titulo-assinatura">
+          Assinatura Eletrônica Fornecedor
+        </div>
+        <div class="assinatura-container">
+          <div class="col-2 logo-sigpae">
+            <img src="{% static 'images/logo-sigpae.png' %}" alt="" />
+          </div>
+          <div class="col-10 ml-3">
+            <span class="texto-assinatura">
+              Cronograma de Entrega aceito, validado e assinado eletronicamente por
+              <strong>{{ log_fornecedor.usuario.nome }}</strong>, {{ log_fornecedor.usuario.username|formatar_cpf }},
+              em {{ log_fornecedor.criado_em|date:"d/m/Y" }}, às {{ log_fornecedor.criado_em|time:"H:i" }}.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {% endif %}
+
+      {% get_assinatura_cronograma logs as log_cronograma %}
+
+      {% if log_cronograma %}
+
+      <div class="assinatura">
+        <div class="title titulo-assinatura">
+          Assinatura Eletrônica Cronograma
+        </div>
+        <div class="assinatura-container">
+          <div class="col-2 logo-sigpae">
+            <img src="{% static 'images/logo-sigpae.png' %}" alt="" />
+          </div>
+          <div class="col-10 ml-3">
+            <span class="texto-assinatura">
+              Cronograma de Entrega assinado eletronicamente por
+              <strong>{{ log_cronograma.usuario.nome }}</strong>, <strong>{{ log_cronograma.usuario.cargo }}</strong>, <strong>{{ log_cronograma.usuario.username }}</strong>,
+              em {{ log_cronograma.criado_em|date:"d/m/Y" }}, às {{ log_cronograma.criado_em|time:"H:i" }}.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {% endif %}
+
+
+
+      {% get_assinatura_dinutre logs as log_dinutre %}
+
+      {% if log_dinutre %}
+
+      <div class="assinatura">
+        <div class="title titulo-assinatura">
+          Assinatura Eletrônica DINUTRE
+        </div>
+        <div class="assinatura-container">
+
+          <div class="col-2 logo-sigpae">
+            <img src="{% static 'images/logo-sigpae.png' %}" alt="" />
+          </div>
+          <div class="col-10 ml-3">
+            <span class="texto-assinatura">
+              Cronograma de Entrega assinado eletronicamente por
+              <strong>{{ log_dinutre.usuario.nome }}</strong>, <strong>{{ log_dinutre.usuario.cargo }}</strong>, <strong>{{ log_dinutre.usuario.username }}</strong>,
+              em {{ log_dinutre.criado_em|date:"d/m/Y" }}, às {{ log_dinutre.criado_em|time:"H:i" }}.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {% endif %}
+
+      {% get_assinatura_codae logs as log_codae %}
+
+      {% if log_codae %}
+
+      <div class="assinatura">
+        <div class="title titulo-assinatura">
+          Assinatura Eletrônica DILOG
+        </div>
+        <div class="assinatura-container">
+          <div class="col-2 logo-sigpae">
+            <img src="{% static 'images/logo-sigpae.png' %}" alt="" />
+          </div>
+          <div class="col-10 ml-3">
+            <span class="texto-assinatura">
+              Cronograma de Entrega assinado eletronicamente por
+              <strong>{{ log_codae.usuario.nome }}</strong>, <strong>{{ log_codae.usuario.cargo }}</strong>, <strong>{{ log_codae.usuario.username }}</strong>,
+              em {{ log_codae.criado_em|date:"d/m/Y" }}, às {{ log_codae.criado_em|time:"H:i" }}.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {% endif %}
+    </div>
+
+  </div>
+</body>
+</html>

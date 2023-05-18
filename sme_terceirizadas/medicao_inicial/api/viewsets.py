@@ -1,7 +1,6 @@
 from calendar import monthrange
 
-from django.db.models import IntegerField, QuerySet, Sum
-from django.db.models.functions import Cast
+from django.db.models import QuerySet
 from django.template.loader import render_to_string
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -9,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from xworkflows import InvalidTransitionError
 
+from ...dados_comuns import constants
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
@@ -21,6 +21,7 @@ from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlime
 from ...escola.models import Escola
 from ...relatorios.utils import html_to_pdf_file
 from ..models import (
+    AnexoOcorrenciaMedicaoInicial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     Medicao,
@@ -28,9 +29,10 @@ from ..models import (
     TipoContagemAlimentacao,
     ValorMedicao
 )
-from ..utils import build_tabelas_relatorio_medicao, tratar_valores
+from ..utils import build_tabela_somatorio_body, build_tabelas_relatorio_medicao, tratar_valores
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
+    AnexoOcorrenciaMedicaoInicialSerializer,
     CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
     MedicaoSerializer,
@@ -118,9 +120,10 @@ class SolicitacaoMedicaoInicialViewSet(
         return [
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_ENVIADA_PELA_UE,
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE,
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE,
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_DRE,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE,
             SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE,
             'TODOS_OS_LANCAMENTOS'
         ]
@@ -184,6 +187,20 @@ class SolicitacaoMedicaoInicialViewSet(
                     qs[offset:limit + offset],
                     context={'request': self.request, 'workflow': workflow}, many=True).data
             })
+        if request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
+            status_medicao_corrigida = ['MEDICAO_CORRIGIDA_PELA_UE', 'MEDICAO_CORRIGIDA_PARA_CODAE']
+            sumario_medicoes_corrigidas = [s for s in sumario if s['status'] == status_medicao_corrigida]
+            total_medicao_corrigida = 0
+            total_dados = []
+            for s in sumario_medicoes_corrigidas:
+                total_medicao_corrigida += s['total']
+                total_dados += s['dados']
+            sumario.insert(2, {
+                'status': 'MEDICAO_CORRIGIDA',
+                'total': total_medicao_corrigida,
+                'dados': total_dados
+            })
+            sumario = [s for s in sumario if s['status'] not in status_medicao_corrigida]
         return sumario
 
     def formatar_filtros(self, query_params):
@@ -264,45 +281,13 @@ class SolicitacaoMedicaoInicialViewSet(
                 'valores_medicao__dia',
                 'periodo_escolar__nome',
                 'valores_medicao__categoria_medicao__nome',
-                'valores_medicao__valor'
+                'valores_medicao__valor',
+                'grupo__nome'
             ).order_by(
                 'valores_medicao__dia',
                 'periodo_escolar__nome',
                 'valores_medicao__categoria_medicao__nome'))
-        tabela_somatorio = []
-        tabela_somatorio_lista_periodos = []
-        tabela_somatorio_lista_campos = []
-        ORDEM_PERIODOS_GRUPOS = {
-            'MANHA': 1,
-            'TARDE': 2,
-            'INTEGRAL': 3,
-            'NOITE': 4,
-            'VESPERTINO': 5,
-            'Programas e Projetos - MANHA': 6,
-            'Programas e Projetos - TARDE': 7,
-            'Solicitações de Alimentação': 8,
-            'ETEC': 9
-        }
-        for medicao in sorted(solicitacao.medicoes.all(), key=lambda k: ORDEM_PERIODOS_GRUPOS[k.nome_periodo_grupo]):
-            for campo in medicao.valores_medicao.exclude(
-                nome_campo__in=['observacoes', 'dietas_autorizadas', 'frequencia', 'matriculados']
-            ).values_list('nome_campo', flat=True).distinct():
-                nome_periodo = (medicao.periodo_escolar.nome
-                                if not medicao.grupo
-                                else (f'{medicao.grupo.nome} - {medicao.periodo_escolar.nome}'
-                                      if medicao.periodo_escolar else medicao.grupo.nome))
-                if nome_periodo not in tabela_somatorio_lista_periodos:
-                    tabela_somatorio_lista_periodos.append(nome_periodo)
-                if campo not in tabela_somatorio_lista_campos:
-                    tabela_somatorio_lista_campos.append(campo)
-                valor_campo = medicao.valores_medicao.filter(nome_campo=campo, medicao=medicao).annotate(
-                    campo_como_inteiro=Cast('valor', IntegerField())).aggregate(
-                    Sum('campo_como_inteiro')).get('campo_como_inteiro__sum')
-                tabela_somatorio.append({
-                    'campo': campo,
-                    'periodo': nome_periodo,
-                    'valor': valor_campo
-                })
+        tabela_somatorio = build_tabela_somatorio_body(solicitacao)
         html_string = render_to_string(
             f'relatorio_solicitacao_medicao_por_escola.html',
             {
@@ -313,16 +298,14 @@ class SolicitacaoMedicaoInicialViewSet(
                 'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
                 'tabelas': tabelas,
                 'tabela_observacoes': tabela_observacoes,
-                'tabela_somatorio': tabela_somatorio,
-                'tabela_somatorio_lista_periodos': tabela_somatorio_lista_periodos,
-                'tabela_somatorio_lista_campos': tabela_somatorio_lista_campos
+                'tabela_somatorio': tabela_somatorio
             }
         )
 
         return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf')
 
     @action(detail=False, methods=['GET'], url_path='periodos-grupos-medicao',
-            permission_classes=[UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+            permission_classes=[UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao | UsuarioEscolaTercTotal])
     def periodos_grupos_medicao(self, request):
         uuid = request.query_params.get('uuid_solicitacao')
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
@@ -480,6 +463,32 @@ class MedicaoViewSet(
             ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
             medicao.dre_pede_correcao(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+
+class OcorrenciaViewSet(
+        mixins.RetrieveModelMixin,
+        mixins.ListModelMixin,
+        mixins.CreateModelMixin,
+        mixins.UpdateModelMixin,
+        GenericViewSet):
+    lookup_field = 'uuid'
+    queryset = AnexoOcorrenciaMedicaoInicial.objects.all()
+
+    def get_serializer_class(self):
+        return AnexoOcorrenciaMedicaoInicialSerializer
+
+    @action(detail=True, methods=['PATCH'], url_path='dre-pede-correcao-ocorrencia',)
+    def dre_pede_correcao_ocorrencia(self, request, uuid=None):
+        object = self.get_object()
+        ocorrencias = object.solicitacao_medicao_inicial.anexos.all()
+        justificativa = request.data.get('justificativa', None)
+        try:
+            for ocorrencia in ocorrencias:
+                ocorrencia.dre_pede_correcao(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.anexos.all(), many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
