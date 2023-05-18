@@ -4,7 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-Werkzeug='==0.15.3'  # https://github.com/pallets/werkzeug
+Werkzeug='==2.2.3'  # https://github.com/pallets/werkzeug
 ipdb='==0.13.9'  # https://github.com/gotcha/ipdb
 Sphinx='==1.8.4'  # https://github.com/sphinx-doc/sphinx
 # Testing
