@@ -1,7 +1,4 @@
-from calendar import monthrange
-
 from django.db.models import QuerySet
-from django.template.loader import render_to_string
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -19,7 +16,6 @@ from ...dados_comuns.permissions import (
 )
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
-from ...relatorios.utils import html_to_pdf_file
 from ..models import (
     AnexoOcorrenciaMedicaoInicial,
     CategoriaMedicao,
@@ -29,7 +25,8 @@ from ..models import (
     TipoContagemAlimentacao,
     ValorMedicao
 )
-from ..utils import build_tabela_somatorio_body, build_tabelas_relatorio_medicao, tratar_valores
+from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
+from ..utils import tratar_valores
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     AnexoOcorrenciaMedicaoInicialSerializer,
@@ -95,7 +92,7 @@ class SolicitacaoMedicaoInicialViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     lookup_field = 'uuid'
-    permission_classes = [UsuarioEscolaTercTotal | UsuarioDiretoriaRegional]
+    permission_classes = [UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao]
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
@@ -270,39 +267,18 @@ class SolicitacaoMedicaoInicialViewSet(
         return Response({'results': sorted(meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True)},
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['GET'], url_path='relatorio-pdf')
-    def relatorio_pdf(self, request, uuid):
-        solicitacao = self.get_object()
-        tabelas = build_tabelas_relatorio_medicao(solicitacao)
-        tabela_observacoes = list(
-            solicitacao.medicoes.filter(
-                valores_medicao__nome_campo='observacoes'
-            ).values_list(
-                'valores_medicao__dia',
-                'periodo_escolar__nome',
-                'valores_medicao__categoria_medicao__nome',
-                'valores_medicao__valor',
-                'grupo__nome'
-            ).order_by(
-                'valores_medicao__dia',
-                'periodo_escolar__nome',
-                'valores_medicao__categoria_medicao__nome'))
-        tabela_somatorio = build_tabela_somatorio_body(solicitacao)
-        html_string = render_to_string(
-            f'relatorio_solicitacao_medicao_por_escola.html',
-            {
-                'solicitacao': solicitacao,
-                'responsaveis': solicitacao.responsaveis.all(),
-                'assinatura_escola': self.assinatura_ue(solicitacao),
-                'assinatura_dre': self.assinatura_dre(solicitacao),
-                'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
-                'tabelas': tabelas,
-                'tabela_observacoes': tabela_observacoes,
-                'tabela_somatorio': tabela_somatorio
-            }
+    @action(detail=False, methods=['GET'], url_path='relatorio-pdf')
+    def relatorio_pdf(self, request):
+        user = request.user.get_username()
+        uuid_sol_medicao = request.query_params['uuid']
+        solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid_sol_medicao)
+        gera_pdf_relatorio_solicitacao_medicao_por_escola_async.delay(
+            user=user,
+            nome_arquivo=f'Relatório Medição Inicial - {solicitacao.mes}/{solicitacao.ano}.pdf',
+            uuid_sol_medicao=uuid_sol_medicao
         )
-
-        return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf')
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path='periodos-grupos-medicao',
             permission_classes=[UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao | UsuarioEscolaTercTotal])
