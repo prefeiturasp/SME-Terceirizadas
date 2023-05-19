@@ -2943,7 +2943,8 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
         ('codae_pede_correcao', MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA_CODAE),
         ('ue_corrige_', MEDICAO_CORRECAO_SOLICITADA, MEDICAO_CORRIGIDA_PELA_UE),
         ('ue_corrige_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
-        ('dre_aprova', [MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_APROVADA_PELA_DRE),
+        ('dre_aprova', [MEDICAO_ENVIADA_PELA_UE, MEDICAO_APROVADA_PELA_DRE,
+                        MEDICAO_CORRECAO_SOLICITADA], MEDICAO_APROVADA_PELA_DRE),
         ('codae_aprova', [MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE)
     )
 
@@ -2991,10 +2992,14 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('dre_aprova')
     def _dre_aprova_hook(self, *args, **kwargs):
+        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial
         user = kwargs['user']
         if user:
             if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            if isinstance(self, AnexoOcorrenciaMedicaoInicial):
+                self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
+                                                         LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE])
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
                                       usuario=user)
 
@@ -3007,7 +3012,8 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
             if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
             if isinstance(self, AnexoOcorrenciaMedicaoInicial):
-                self.deletar_log_correcao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA)
+                self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
+                                                         LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE])
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
                                       usuario=user,
                                       justificativa=justificativa)
