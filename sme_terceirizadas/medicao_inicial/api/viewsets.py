@@ -492,3 +492,15 @@ class OcorrenciaViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='dre-aprova-ocorrencia',)
+    def dre_aprova_ocorrencia(self, request, uuid=None):
+        object = self.get_object()
+        ocorrencias = object.solicitacao_medicao_inicial.anexos.all()
+        try:
+            for ocorrencia in ocorrencias:
+                ocorrencia.dre_aprova(user=request.user)
+            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.anexos.all(), many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
