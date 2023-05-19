@@ -79,7 +79,7 @@ class AnexoOcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedic
     def deletar_log_correcao(self, status_evento, **kwargs):
         LogSolicitacoesUsuario.objects.filter(
             descricao=str(self),
-            status_evento=status_evento,
+            status_evento__in=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
             uuid_original=self.uuid,
         ).delete()
