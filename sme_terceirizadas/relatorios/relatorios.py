@@ -1,4 +1,5 @@
 import datetime
+from calendar import monthrange
 
 import environ
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -13,6 +14,8 @@ from ..escola.constants import PERIODOS_ESPECIAIS_CEMEI
 from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
+from ..medicao_inicial.api.viewsets import SolicitacaoMedicaoInicialViewSet
+from ..medicao_inicial.utils import build_tabela_somatorio_body, build_tabelas_relatorio_medicao
 from ..relatorios.utils import html_to_pdf_cancelada, html_to_pdf_file, html_to_pdf_multiple, html_to_pdf_response
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
@@ -1021,6 +1024,45 @@ def relatorio_geral_dieta_especial_pdf(form, queryset, user):
             'user': user
         }
     )
+    return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
+
+
+def relatorio_solicitacao_medicao_por_escola(solicitacao):
+    tabelas = build_tabelas_relatorio_medicao(solicitacao)
+    tabela_observacoes = list(
+        solicitacao.medicoes.filter(
+            valores_medicao__nome_campo='observacoes'
+        ).values_list(
+            'valores_medicao__dia',
+            'periodo_escolar__nome',
+            'valores_medicao__categoria_medicao__nome',
+            'valores_medicao__valor',
+            'grupo__nome'
+        ).order_by(
+            'valores_medicao__dia',
+            'periodo_escolar__nome',
+            'valores_medicao__categoria_medicao__nome'))
+    tabela_somatorio = build_tabela_somatorio_body(solicitacao)
+    html_string = render_to_string(
+        f'relatorio_solicitacao_medicao_por_escola.html',
+        {
+            'solicitacao': solicitacao,
+            'responsaveis': solicitacao.responsaveis.all(),
+            'assinatura_escola': SolicitacaoMedicaoInicialViewSet.assinatura_ue(
+                SolicitacaoMedicaoInicialViewSet,
+                solicitacao
+            ),
+            'assinatura_dre': SolicitacaoMedicaoInicialViewSet.assinatura_dre(
+                SolicitacaoMedicaoInicialViewSet,
+                solicitacao
+            ),
+            'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
+            'tabelas': tabelas,
+            'tabela_observacoes': tabela_observacoes,
+            'tabela_somatorio': tabela_somatorio
+        }
+    )
+
     return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
 
 
