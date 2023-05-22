@@ -63,7 +63,7 @@ from ..tasks import (
     gera_pdf_relatorio_dietas_especiais_terceirizadas_async,
     gera_xlsx_relatorio_dietas_especiais_terceirizadas_async
 )
-from ..utils import ProtocoloPadraoPagination, RelatorioPagination
+from ..utils import ProtocoloPadraoPagination, RelatorioPagination, filtrar_alunos_com_dietas_nos_status_e_rastro_escola
 from .filters import AlimentoFilter, DietaEspecialFilter, LogQuantidadeDietasEspeciaisFilter, MotivoNegacaoFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
@@ -949,13 +949,13 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
 
         user = self.request.user
 
-        INATIVOS_STATUS_DIETA_ESPECIAL = [
+        STATUS_DIETA_ESPECIAL = [
             'CODAE_AUTORIZADO',
             'CODAE_AUTORIZOU_INATIVACAO',
             'TERMINADA_AUTOMATICAMENTE_SISTEMA'
         ]
 
-        qs = Aluno.objects.filter(dietas_especiais__status__in=INATIVOS_STATUS_DIETA_ESPECIAL)
+        qs = Aluno.objects.filter(dietas_especiais__status__in=STATUS_DIETA_ESPECIAL)
         incluir_alteracao_ue = (self.request.query_params.get('incluir_alteracao_ue', None) == 'true')
         if user.tipo_usuario == 'escola':
             if incluir_alteracao_ue:
@@ -973,6 +973,11 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
                                  dietas_especiais__tipo_solicitacao='ALTERACAO_UE'))
             else:
                 qs = qs.filter(dietas_especiais__rastro_escola=form.cleaned_data['escola'])
+                qs = filtrar_alunos_com_dietas_nos_status_e_rastro_escola(
+                    qs,
+                    STATUS_DIETA_ESPECIAL,
+                    form.cleaned_data['escola']
+                )
         elif user.tipo_usuario == 'diretoriaregional':
             if incluir_alteracao_ue:
                 qs = qs.filter(Q(dietas_especiais__rastro_escola__diretoria_regional=user.vinculo_atual.instituicao,
