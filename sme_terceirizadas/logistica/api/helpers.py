@@ -314,6 +314,8 @@ def retorna_ocorrencias_alimento(ocorrencias):
         validade_expirada = ConferenciaIndividualPorAlimento.OCORRENCIA_VALIDADE_EXPIRADA
         atraso_entrega = ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA
         ausencia_produto = ConferenciaIndividualPorAlimento.OCORRENCIA_AUSENCIA_PRODUTO
+        falta_urbanidade = ConferenciaIndividualPorAlimento.OCORRENCIA_FALTA_URBANIDADE
+        falta_espaco_armazenamento = ConferenciaIndividualPorAlimento.OCORRENCIA_FALTA_ESPACO_ARMAZENAMENTO
 
         switcher = {
             qtd_menor: nomes_ocorrencias[qtd_menor],
@@ -323,7 +325,9 @@ def retorna_ocorrencias_alimento(ocorrencias):
             embalagem_violada: nomes_ocorrencias[embalagem_violada],
             validade_expirada: nomes_ocorrencias[validade_expirada],
             atraso_entrega: nomes_ocorrencias[atraso_entrega],
-            ausencia_produto: nomes_ocorrencias[ausencia_produto]
+            ausencia_produto: nomes_ocorrencias[ausencia_produto],
+            falta_urbanidade: nomes_ocorrencias[falta_urbanidade],
+            falta_espaco_armazenamento: nomes_ocorrencias[falta_espaco_armazenamento]
         }
         ocorrencias_retorno.insert(0, switcher.get(ocorrencia, 'Ocorrência Inválida'))
     return ', '.join(ocorrencias_retorno)
