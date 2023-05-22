@@ -137,6 +137,7 @@ CODAE_QUESTIONA_TERCEIRIZADA = 'codae-questiona-terceirizada'
 CODAE_QUESTIONA_UE = 'codae-questiona-ue'
 CODAE_QUESTIONA_NUTRISUPERVISOR = 'codae-questiona-nutrisupervisor'
 CODAE_RESPONDE = 'codae-responde'
+CODAE_CANCELA_SOLICITACAO_CORRECAO = 'codae-cancela-solicitacao-correcao'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
