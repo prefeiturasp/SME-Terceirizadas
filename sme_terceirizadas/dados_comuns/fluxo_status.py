@@ -518,9 +518,9 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                 'url': url
             }
         )
-        envia_email_unico_task.delay(
+        envia_email_em_massa_task.delay(
             assunto=f'[SIGPAE] Nova Requisição de Entrega N° {self.numero_solicitacao}',
-            email=self.distribuidor.responsavel_email,
+            emails=[self.distribuidor.responsavel_email] + self._partes_interessadas_codae_dilog_logistica(),
             corpo='',
             html=html
         )
@@ -536,9 +536,9 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                 'url': url
             }
         )
-        envia_email_unico_task.delay(
+        envia_email_em_massa_task.delay(
             assunto=f'[SIGPAE] Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}',
-            email=self.distribuidor.responsavel_email,
+            emails=[self.distribuidor.responsavel_email] + self._partes_interessadas_codae_dilog_logistica(),
             corpo='',
             html=html
         )
@@ -600,6 +600,16 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=(
                 'COORDENADOR_LOGISTICA',
+                'COORDENADOR_CODAE_DILOG_LOGISTICA',
+            ),
+            vinculos__ativo=True
+        )
+        return [usuario.email for usuario in queryset]
+
+    def _partes_interessadas_codae_dilog_logistica(self):
+        # Envia email somente para COORDENADOR_CODAE_DILOG_LOGISTICA.
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
                 'COORDENADOR_CODAE_DILOG_LOGISTICA',
             ),
             vinculos__ativo=True
@@ -752,6 +762,15 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         )
         return [usuario.email for usuario in queryset]
 
+    def _partes_interessadas_codae_dilog(self):
+        # Envia email somente para COORDENADOR_CODAE_DILOG_LOGISTICA.
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'COORDENADOR_CODAE_DILOG_LOGISTICA',
+            )
+        )
+        return [usuario.email for usuario in queryset]
+
     def _usuarios_partes_interessadas_codae_dilog(self):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=(
@@ -843,7 +862,7 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
 
-        partes_interessadas = self._partes_interessadas_dilog()
+        partes_interessadas = self._partes_interessadas_dilog() + self._partes_interessadas_codae_dilog()
         self._envia_email_distribuidor_solicita_alteracao(log_transicao=log_transicao,
                                                           partes_interessadas=partes_interessadas)
         # Monta Notificacao
@@ -865,7 +884,7 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
         situacao = 'aceita'
         template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
-        partes_interessadas = self._partes_interessadas_distribuidor()
+        partes_interessadas = self._partes_interessadas_distribuidor() + self._partes_interessadas_codae_dilog()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, situacao)
 
@@ -886,7 +905,7 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
         situacao = 'negada'
         template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
-        partes_interessadas = self._partes_interessadas_distribuidor()
+        partes_interessadas = self._partes_interessadas_distribuidor() + self._partes_interessadas_codae_dilog()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, situacao)
 
@@ -968,6 +987,15 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         titulo_notif = f'Registre a conferência da Guia de Remessa de alimentos! | Guia: {self.numero_guia}'
         Notificacao.resolver_pendencia(titulo=titulo_notif, guia=self)
 
+    def _partes_interessadas_codae_dilog(self):
+        # Envia email somente para COORDENADOR_CODAE_DILOG_LOGISTICA.
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'COORDENADOR_CODAE_DILOG_LOGISTICA',
+            )
+        )
+        return [usuario.email for usuario in queryset]
+
     def _partes_interessadas_escola(self):
         # Envia email somente para usuários ativos vinculados a escola da guia
         if self.escola:
@@ -1005,7 +1033,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         titulo = f'Nova Guia de Remessa N° {self.numero_guia}'
         assunto = f'[SIGPAE] Nova Guia de Remessa N° {self.numero_guia}'
         template = 'logistica_distribuidor_confirma_requisicao.html'
-        partes_interessadas = self._partes_interessadas_escola()
+        partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, None, url)
 
@@ -1057,7 +1085,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         titulo = f'Prepare-se para uma possível reposição dos alimentos não recebidos!'
         assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
         template = 'logistica_escola_aviso_reposicao.html'
-        partes_interessadas = self._partes_interessadas_escola()
+        partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
 
