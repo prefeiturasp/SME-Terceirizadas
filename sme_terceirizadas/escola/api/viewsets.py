@@ -247,6 +247,14 @@ class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
     queryset = Escola.objects.all()
     serializer_class = PeriodoEFaixaEtariaCounterSerializer
 
+    def formata_resultado_faixa_etaria(self, counter_faixas_etarias, resultado):
+        for periodo in counter_faixas_etarias:
+            for faixa in counter_faixas_etarias[periodo]:
+                for faixa_resultado in resultado:
+                    if (faixa == faixa_resultado['faixa_etaria']['uuid']):
+                        faixa_resultado['count'] += counter_faixas_etarias[periodo][faixa]
+        return resultado
+
     @action(detail=True, url_path='(?P<data_referencia_str>[^/.]+)')  # noqa C901
     def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
         form = AlunosPorFaixaEtariaForm({
@@ -262,6 +270,33 @@ class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
         counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)  # noqa
         serializer = PeriodoEFaixaEtariaCounterSerializer(counter_faixas_etarias)  # noqa
         return Response(serializer.data)
+
+    @action(detail=True, url_path='somatorio-faixas-etarias/(?P<data_referencia_str>[^/.]+)')
+    def somatorio_faixas_etarias(self, request, uuid, data_referencia_str):
+        form = AlunosPorFaixaEtariaForm({
+            'data_referencia': data_referencia_str
+        })
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        escola = self.get_object()
+        data_referencia = form.cleaned_data['data_referencia']
+        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)
+        faixas_uuids = []
+
+        for k in counter_faixas_etarias:
+            faixas_uuids += counter_faixas_etarias[k].keys()
+        faixas_uuids = list(set(faixas_uuids))
+
+        resultado = []
+        for faixa_etaria in FaixaEtaria.objects.filter(uuid__in=faixas_uuids):
+            resultado.append({
+                'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
+                'count': 0
+            })
+        resultado = self.formata_resultado_faixa_etaria(counter_faixas_etarias, resultado)
+        return Response({'count': len(resultado), 'results': resultado})
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
