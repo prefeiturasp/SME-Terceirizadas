@@ -3105,12 +3105,37 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_FORNECEDOR,
                                       usuario=user)
 
+    def _envia_email_solicita_alteracao_para_cronograma(self, user):
+        log_transicao = self.log_mais_recente
+        uuid_solicitacao_alteracao = self.solicitacoes_de_alteracao.last().uuid
+        url = f'{env("REACT_APP_URL")}/pre-recebimento/detalhe-alteracao-cronograma?uuid={uuid_solicitacao_alteracao}'
+
+        html = render_to_string(
+            template_name='pre_recebumento_notificacao_alteracao_cronograma.html',
+            context={
+                'titulo': f'Solicitação de Alteração do Cronograma {self.numero}',
+                'solicitacao': self.numero,
+                'url': url,
+                'usuario': user.nome,
+                'log_transicao': log_transicao,
+                'hidden_email': True
+            }
+        )
+        partes_interessadas = self._usuarios_partes_interessadas_cronograma(only_email=True)
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Solicitação de Alteração do Cronograma {self.numero}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('solicita_alteracao')
     def _solicita_alteracao_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
+        self._envia_email_solicita_alteracao_para_cronograma(user)
 
     @xworkflows.after_transition('cronograma_assina')
     def _cronograma_assina_hook(self, *args, **kwargs):
@@ -3137,10 +3162,12 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
             )
 
-    def _usuarios_partes_interessadas_cronograma(self):
+    def _usuarios_partes_interessadas_cronograma(self, only_email=False):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=['DILOG_CRONOGRAMA'],
             vinculos__ativo=True)
+        if only_email:
+            return [usuario.email for usuario in queryset]
         return [usuario for usuario in queryset]
 
     def _usuarios_partes_interessadas_empresas(self):
