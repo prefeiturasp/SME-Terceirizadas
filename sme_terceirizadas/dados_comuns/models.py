@@ -104,7 +104,8 @@ class LogSolicitacoesUsuario(
         APROVADO_DILOG_SOLICITACAO_ALTERACAO,
         REPROVADO_DILOG_SOLICITACAO_ALTERACAO,
         CODAE_CANCELOU_SOLICITACAO_CORRECAO,
-    ) = range(77)
+        TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO,
+    ) = range(78)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -221,7 +222,8 @@ class LogSolicitacoesUsuario(
         (REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO, 'Alteração cronograma reprovada pela DINUTRE'),
         (APROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Alteração cronograma aprovada pela DILOG'),
         (REPROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Alteração cronograma reprovada pela DILOG'),
-        (CODAE_CANCELOU_SOLICITACAO_CORRECAO, 'GPCODAE cancelou solicitação de correção')
+        (CODAE_CANCELOU_SOLICITACAO_CORRECAO, 'CODAE cancelou solicitação de correção'),
+        (TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO, 'Terceirizada cancelou solicitação de correção')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
