@@ -485,7 +485,11 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('terceirizada_responde_analise_sensorial_da_reclamacao',
          CODAE_PEDIU_ANALISE_SENSORIAL, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
         ('terceirizada_responde_analise_sensorial_homologado',
-         CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_HOMOLOGADO)
+         CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_HOMOLOGADO),
+        ('codae_cancela_solicitacao_correcao',
+         CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
+        ('terceirizada_cancela_solicitacao_correcao',
+         CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
     )
 
     initial_state = RASCUNHO
@@ -1598,6 +1602,26 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             LogSolicitacoesUsuario.NUTRISUPERVISOR_RESPONDEU_RECLAMACAO,
             kwargs['request']
         )
+
+    @xworkflows.after_transition('codae_cancela_solicitacao_correcao')
+    def _codae_cancela_solicitacao_correcao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = f'<p>{self.produto.nome}</p>'
+        justificativa += f'<br><p>Justificativa:</p>'
+        justificativa += kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_CANCELOU_SOLICITACAO_CORRECAO,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
+    @xworkflows.after_transition('terceirizada_cancela_solicitacao_correcao')
+    def _terceirizada_cancela_solicitacao_correcao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = f'<p>{self.produto.nome}</p>'
+        justificativa += f'<br><p>Justificativa:</p>'
+        justificativa += kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO,
+                                  usuario=user,
+                                  justificativa=justificativa)
 
     class Meta:
         abstract = True
