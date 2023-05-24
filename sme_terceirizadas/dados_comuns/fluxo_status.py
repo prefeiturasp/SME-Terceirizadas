@@ -3100,6 +3100,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
         ('dinutre_assina', ASSINADO_FORNECEDOR, ASSINADO_DINUTRE),
         ('codae_assina', ASSINADO_DINUTRE, ASSINADO_CODAE),
         ('solicita_alteracao', ASSINADO_CODAE, SOLICITADO_ALTERACAO),
+        ('finaliza_solicitacao_alteracao', SOLICITADO_ALTERACAO, ASSINADO_CODAE),
     )
 
     initial_state = RASCUNHO
@@ -3254,6 +3255,13 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self._cria_notificacao(
                 template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
             )
+
+    @xworkflows.after_transition('finaliza_solicitacao_alteracao')
+    def _codae_finaliza_solicitacao_alteracao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_CODAE,
+                                      usuario=user)
 
     class Meta:
         abstract = True
