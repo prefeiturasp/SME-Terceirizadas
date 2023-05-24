@@ -39,6 +39,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     SolicitacaoDeAlteracaoCronogramaCreateSerializer
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
+    CronogramaComLogSerializer,
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
     EmbalagemQldSerializer,
@@ -266,6 +267,12 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         cronograma = self.get_object()
 
         return get_pdf_cronograma(request, cronograma)
+
+    @action(detail=True, methods=['GET'], url_path='detalhar-com-log')
+    def detalhar_com_log(self, request, uuid=None):
+        cronograma = self.get_object()
+        response = CronogramaComLogSerializer(cronograma, many=False).data
+        return Response(response)
 
 
 class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):

@@ -89,6 +89,24 @@ class CronogramaSerializer(serializers.ModelSerializer):
                           'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento')
 
 
+class CronogramaComLogSerializer(serializers.ModelSerializer):
+    etapas = EtapasDoCronogramaSerializer(many=True)
+    programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(many=True)
+    armazem = DistribuidorSimplesSerializer()
+    status = serializers.CharField(source='get_status_display')
+    empresa = TerceirizadaSimplesSerializer()
+    contrato = ContratoSimplesSerializer()
+    produto = NomeDeProdutoEditalSerializer()
+    unidade_medida = UnidadeMedidaSerialzer()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+
+    class Meta:
+        model = Cronograma
+        fields = ('uuid', 'numero', 'status', 'criado_em', 'alterado_em', 'contrato', 'empresa',
+                          'produto', 'qtd_total_programada', 'unidade_medida',
+                          'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento', 'logs')
+
+
 class SolicitacaoAlteracaoCronogramaEtapaSerializer(serializers.ModelSerializer):
     etapa = serializers.CharField(source='etapa.uuid')
 
