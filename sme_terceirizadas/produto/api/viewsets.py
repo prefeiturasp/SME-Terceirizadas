@@ -869,7 +869,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
-            permission_classes=(UsuarioTerceirizada,),
+            permission_classes=(IsAuthenticated,),
             methods=['patch'],
             url_path=constants.TERCEIRIZADA_CANCELA_SOLICITACAO_CORRECAO)
     def terceiriazada_cancela_solicitacao_correcao(self, request, uuid=None):
