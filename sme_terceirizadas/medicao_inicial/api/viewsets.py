@@ -350,6 +350,23 @@ class SolicitacaoMedicaoInicialViewSet(
             })
         return Response({'results': retorno}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['PATCH'], url_path='dre-aprova-solicitacao-medicao',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def dre_aprova_solicitacao_medicao(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            medicoes = solicitacao_medicao_inicial.medicoes.all()
+            anexos = solicitacao_medicao_inicial.anexos.all()
+            status_medicao_aprovada = 'MEDICAO_APROVADA_PELA_DRE'
+            if medicoes.exclude(status=status_medicao_aprovada) or anexos.exclude(status=status_medicao_aprovada):
+                mensagem = 'Erro: existe(m) pendência(s) de análise'
+                return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
+            solicitacao_medicao_inicial.dre_aprova(user=request.user)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = TipoContagemAlimentacao.objects.filter(ativo=True)
@@ -417,13 +434,8 @@ class MedicaoViewSet(
             permission_classes=[UsuarioDiretoriaRegional])
     def dre_aprova_medicao(self, request, uuid=None):
         medicao = self.get_object()
-        solicitacao_medicao_inicial = medicao.solicitacao_medicao_inicial
-        medicoes_aguardando_aprovacao = solicitacao_medicao_inicial.medicoes.exclude(uuid=medicao.uuid)
-        medicoes_aguardando_aprovacao = medicoes_aguardando_aprovacao.filter(status=medicao.status)
         try:
             medicao.dre_aprova(user=request.user)
-            if not medicoes_aguardando_aprovacao:
-                solicitacao_medicao_inicial.dre_aprova(user=request.user)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
