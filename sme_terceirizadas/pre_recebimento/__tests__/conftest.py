@@ -111,11 +111,11 @@ def solicitacao_cronograma_ciente(cronograma):
 
 
 @pytest.fixture
-def solicitacao_cronograma_aprovado_dinutre(cronograma):
+def solicitacao_cronograma_aprovado_dinutre(cronograma_solicitado_alteracao):
     return mommy.make(
         'SolicitacaoAlteracaoCronograma',
         numero_solicitacao='00222/2022',
-        cronograma=cronograma,
+        cronograma=cronograma_solicitado_alteracao,
         status='APROVADO_DINUTRE'
     )
 
