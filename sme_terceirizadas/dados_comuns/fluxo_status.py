@@ -1115,7 +1115,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         titulo = f'Prepare-se para uma possível reposição dos alimentos não recebidos!'
         assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
         template = 'logistica_escola_aviso_reposicao.html'
-        partes_interessadas = self._partes_interessadas_escola()
+        partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
 
