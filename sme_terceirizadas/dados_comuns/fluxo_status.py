@@ -3306,7 +3306,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
 
