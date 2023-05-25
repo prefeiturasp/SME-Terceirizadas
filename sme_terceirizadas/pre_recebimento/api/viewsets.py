@@ -39,6 +39,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     SolicitacaoDeAlteracaoCronogramaCreateSerializer
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
+    CronogramaComLogSerializer,
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
     EmbalagemQldSerializer,
@@ -267,6 +268,12 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
         return get_pdf_cronograma(request, cronograma)
 
+    @action(detail=True, methods=['GET'], url_path='detalhar-com-log')
+    def detalhar_com_log(self, request, uuid=None):
+        cronograma = self.get_object()
+        response = CronogramaComLogSerializer(cronograma, many=False).data
+        return Response(response)
+
 
 class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -434,8 +441,7 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             else:
                 raise ValidationError(f'Parametro aprovado deve ser true ou false.')
             solicitacao_cronograma.save()
-            solicitacao_cronograma.cronograma.status = CronogramaWorkflow.ASSINADO_CODAE
-            solicitacao_cronograma.cronograma.save()
+            solicitacao_cronograma.cronograma.finaliza_solicitacao_alteracao(user=usuario)
             serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
             return Response(serializer.data)
 
