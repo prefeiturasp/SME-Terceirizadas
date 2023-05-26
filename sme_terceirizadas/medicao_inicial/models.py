@@ -144,6 +144,14 @@ class Medicao(
     grupo = models.ForeignKey(GrupoMedicao, blank=True, null=True, on_delete=models.PROTECT)
     alterado_em = models.DateTimeField('Alterado em', null=True, blank=True)
 
+    def deletar_log_correcao(self, status_evento, **kwargs):
+        LogSolicitacoesUsuario.objects.filter(
+            descricao=str(self),
+            status_evento__in=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+            uuid_original=self.uuid,
+        ).delete()
+
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
         LogSolicitacoesUsuario.objects.create(

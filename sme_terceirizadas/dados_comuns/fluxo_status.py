@@ -3043,12 +3043,12 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('dre_aprova')
     def _dre_aprova_hook(self, *args, **kwargs):
-        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial
+        from ..medicao_inicial.models import Medicao, AnexoOcorrenciaMedicaoInicial
         user = kwargs['user']
         if user:
             if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
-            if isinstance(self, AnexoOcorrenciaMedicaoInicial):
+            if isinstance(self, AnexoOcorrenciaMedicaoInicial) or isinstance(self, Medicao):
                 self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
                                                          LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE])
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
@@ -3056,13 +3056,13 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('dre_pede_correcao')
     def _dre_pede_correcao_hook(self, *args, **kwargs):
-        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial
+        from ..medicao_inicial.models import Medicao, AnexoOcorrenciaMedicaoInicial
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
             if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
-            if isinstance(self, AnexoOcorrenciaMedicaoInicial):
+            if isinstance(self, AnexoOcorrenciaMedicaoInicial) or isinstance(self, Medicao):
                 self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
                                                          LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE])
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
