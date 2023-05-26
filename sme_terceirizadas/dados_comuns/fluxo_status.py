@@ -3075,7 +3075,7 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('dre_pede_correcao')
     def _dre_pede_correcao_hook(self, *args, **kwargs):
-        from ..medicao_inicial.models import Medicao, AnexoOcorrenciaMedicaoInicial
+        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial, Medicao
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
