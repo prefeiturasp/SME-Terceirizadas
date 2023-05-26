@@ -3043,7 +3043,8 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('dre_aprova')
     def _dre_aprova_hook(self, *args, **kwargs):
-        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial
+        from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
+        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial, SolicitacaoMedicaoInicial
         user = kwargs['user']
         if user:
             if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
@@ -3053,6 +3054,24 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                                                          LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE])
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
                                       usuario=user)
+            if isinstance(self, SolicitacaoMedicaoInicial):
+                url = f'{env("REACT_APP_URL")}/lancamento-inicial'
+                url += f'/lancamento-medicao-inicial?mes={self.mes}&ano={self.ano}'
+                html = render_to_string(
+                    template_name='medicao_dre_aprova_solicitacao.html',
+                    context={
+                        'titulo': 'Medição Inicial aprovada pela DRE',
+                        'url': url,
+                        'mes': converte_numero_em_mes(int(self.mes)).lower,
+                        'ano': self.ano
+                    }
+                )
+                envia_email_unico_task.delay(
+                    assunto='[SIGPAE] Medição Inicial aprovada pela DRE',
+                    email=self.escola.contato.email,
+                    corpo='',
+                    html=html
+                )
 
     @xworkflows.after_transition('dre_pede_correcao')
     def _dre_pede_correcao_hook(self, *args, **kwargs):
