@@ -345,6 +345,7 @@ class SolicitacaoMedicaoInicialViewSet(
             valores = tratar_valores(escola, valores)
             retorno.append({
                 'nome_periodo_grupo': medicao.nome_periodo_grupo,
+                'status': medicao.status.name,
                 'valores': valores,
                 'valor_total': sum(v['valor'] for v in valores)
             })
