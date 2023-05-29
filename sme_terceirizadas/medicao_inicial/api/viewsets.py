@@ -368,6 +368,23 @@ class SolicitacaoMedicaoInicialViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['PATCH'], url_path='dre-solicita-correcao-medicao',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def dre_solicita_correcao_medicao(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            medicoes = solicitacao_medicao_inicial.medicoes.all()
+            anexos = solicitacao_medicao_inicial.anexos.all()
+            status_medicao_aprovada = 'MEDICAO_ENVIADA_PELA_UE'
+            if medicoes.filter(status=status_medicao_aprovada) or anexos.filter(status=status_medicao_aprovada):
+                mensagem = 'Erro: existe(m) pendência(s) de análise'
+                return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
+            solicitacao_medicao_inicial._dre_pede_correcao_hook(user=request.user)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = TipoContagemAlimentacao.objects.filter(ativo=True)
