@@ -379,7 +379,7 @@ class SolicitacaoMedicaoInicialViewSet(
             if medicoes.filter(status=status_medicao_aprovada) or anexos.filter(status=status_medicao_aprovada):
                 mensagem = 'Erro: existe(m) pendência(s) de análise'
                 return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
-            solicitacao_medicao_inicial._dre_pede_correcao_hook(user=request.user)
+            solicitacao_medicao_inicial.dre_pede_correcao(user=request.user)
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
