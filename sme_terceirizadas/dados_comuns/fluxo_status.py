@@ -3075,7 +3075,8 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('dre_pede_correcao')
     def _dre_pede_correcao_hook(self, *args, **kwargs):
-        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial, Medicao
+        from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
+        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial, Medicao, SolicitacaoMedicaoInicial
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
@@ -3087,6 +3088,24 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
                                       usuario=user,
                                       justificativa=justificativa)
+            if isinstance(self, SolicitacaoMedicaoInicial):
+                url = f'{env("REACT_APP_URL")}/lancamento-inicial'
+                url += f'/lancamento-medicao-inicial?mes={self.mes}&ano={self.ano}'
+                html = render_to_string(
+                    template_name='medicao_dre_solicita_correcao.html',
+                    context={
+                        'titulo': 'Solicitação de correção da Medição Inicial pela DRE',
+                        'url': url,
+                        'mes': converte_numero_em_mes(int(self.mes)).lower,
+                        'ano': self.ano
+                    }
+                )
+                envia_email_unico_task.delay(
+                    assunto='Solicitação de correção da Medição Inicial pela DRE',
+                    email=self.escola.contato.email,
+                    corpo='',
+                    html=html
+                )
 
     class Meta:
         abstract = True
