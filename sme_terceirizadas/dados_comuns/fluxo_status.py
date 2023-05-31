@@ -3120,6 +3120,7 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
     def _ue_corrige_hook(self, *args, **kwargs):
         from ..medicao_inicial.models import OcorrenciaMedicaoInicial
         user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
         if user:
             if not user.vinculo_atual.perfil.nome == DIRETOR_UE:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
@@ -3134,7 +3135,9 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                     log_antigo.anexos.all().delete()
                     log_antigo.delete()
 
-                log_transicao = self.salvar_log_transicao(status_evento=status, usuario=user)
+                log_transicao = self.salvar_log_transicao(status_evento=status,
+                                                          usuario=user,
+                                                          justificativa=justificativa)
                 for anexo in kwargs.get('anexos', []):
                     arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
                     AnexoLogSolicitacoesUsuario.objects.create(
@@ -3143,7 +3146,9 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                         nome=anexo['nome']
                     )
             else:
-                log_transicao = self.salvar_log_transicao(status_evento=status, usuario=user)
+                log_transicao = self.salvar_log_transicao(status_evento=status,
+                                                          usuario=user,
+                                                          justificativa=justificativa)
 
     class Meta:
         abstract = True
