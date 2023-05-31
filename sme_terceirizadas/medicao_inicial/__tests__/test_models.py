@@ -12,7 +12,9 @@ def test_solicitacao_medicao_inicial_model(solicitacao_medicao_inicial):
 
 
 def test_anexo_ocorrencia_medicao_inicial_model(anexo_ocorrencia_medicao_inicial):
-    str_model = 'Anexo Ocorrência 1ace193a-6c2c-4686-b9ed-60a922ad0e1a - arquivo_teste.pdf'
+    uuid_ocorrencia = '1ace193a-6c2c-4686-b9ed-60a922ad0e1a'
+    uuid_solicitacao = 'bed4d779-2d57-4c5f-bf9c-9b93ddac54d9'
+    str_model = f'Ocorrência {uuid_ocorrencia} da Solicitação de Medição Inicial {uuid_solicitacao}'
     assert anexo_ocorrencia_medicao_inicial.__str__() == str_model
 
 

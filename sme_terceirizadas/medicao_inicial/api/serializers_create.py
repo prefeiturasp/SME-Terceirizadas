@@ -160,7 +160,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                     )
         if key_com_ocorrencias is not None:
             instance.ue_envia(user=self.context['request'].user)
-            instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
+            if hasattr(instance, 'ocorrencia'):
+                instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
             for medicao in instance.medicoes.all():
                 medicao.ue_envia(user=self.context['request'].user)
 
