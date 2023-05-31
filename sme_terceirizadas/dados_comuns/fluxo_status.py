@@ -2993,7 +2993,7 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
         ('dre_pede_correcao', [MEDICAO_CORRECAO_SOLICITADA, MEDICAO_ENVIADA_PELA_UE,
                                MEDICAO_APROVADA_PELA_DRE], MEDICAO_CORRECAO_SOLICITADA),
         ('codae_pede_correcao', MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA_CODAE),
-        ('ue_corrige_', MEDICAO_CORRECAO_SOLICITADA, MEDICAO_CORRIGIDA_PELA_UE),
+        ('ue_corrige', [MEDICAO_CORRECAO_SOLICITADA, MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_CORRIGIDA_PELA_UE),
         ('ue_corrige_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
         ('dre_aprova', [MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA], MEDICAO_APROVADA_PELA_DRE),
         ('codae_aprova', [MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE)
@@ -3034,22 +3034,31 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('ue_envia')
     def _ue_envia_hook(self, *args, **kwargs):
+        from ..medicao_inicial.models import OcorrenciaMedicaoInicial
         user = kwargs['user']
         if user:
             if not user.vinculo_atual.perfil.nome == DIRETOR_UE:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
-                                      usuario=user)
+            log_transicao = self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
+                                                      usuario=user)
+            if isinstance(self, OcorrenciaMedicaoInicial):
+                for anexo in kwargs.get('anexos', []):
+                    arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+                    AnexoLogSolicitacoesUsuario.objects.create(
+                        log=log_transicao,
+                        arquivo=arquivo,
+                        nome=anexo['nome']
+                    )
 
     @xworkflows.after_transition('dre_aprova')
     def _dre_aprova_hook(self, *args, **kwargs):
         from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
-        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial, Medicao, SolicitacaoMedicaoInicial
+        from ..medicao_inicial.models import OcorrenciaMedicaoInicial, Medicao, SolicitacaoMedicaoInicial
         user = kwargs['user']
         if user:
             if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
-            if isinstance(self, AnexoOcorrenciaMedicaoInicial) or isinstance(self, Medicao):
+            if isinstance(self, OcorrenciaMedicaoInicial) or isinstance(self, Medicao):
                 self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
                                                          LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE])
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
@@ -3076,13 +3085,13 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('dre_pede_correcao')
     def _dre_pede_correcao_hook(self, *args, **kwargs):
         from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
-        from ..medicao_inicial.models import AnexoOcorrenciaMedicaoInicial, Medicao, SolicitacaoMedicaoInicial
+        from ..medicao_inicial.models import OcorrenciaMedicaoInicial, Medicao, SolicitacaoMedicaoInicial
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
             if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
-            if isinstance(self, AnexoOcorrenciaMedicaoInicial) or isinstance(self, Medicao):
+            if isinstance(self, OcorrenciaMedicaoInicial) or isinstance(self, Medicao):
                 self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
                                                          LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE])
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
@@ -3106,6 +3115,37 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                     corpo='',
                     html=html
                 )
+
+    @xworkflows.after_transition('ue_corrige')
+    def _ue_corrige_hook(self, *args, **kwargs):
+        from ..medicao_inicial.models import OcorrenciaMedicaoInicial
+        user = kwargs['user']
+        if user:
+            if not user.vinculo_atual.perfil.nome == DIRETOR_UE:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+
+            status = LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PELA_UE
+
+            if isinstance(self, OcorrenciaMedicaoInicial):
+                log_antigo = self.logs.filter(status_evento=status)
+
+                if log_antigo:
+                    log_antigo = log_antigo.first()
+                    log_antigo.anexos.all().delete()
+                    log_antigo.delete()
+
+                log_transicao = self.salvar_log_transicao(status_evento=status, usuario=user)
+                for anexo in kwargs.get('anexos', []):
+                    arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+                    AnexoLogSolicitacoesUsuario.objects.create(
+                        log=log_transicao,
+                        arquivo=arquivo,
+                        nome=anexo['nome']
+                    )
+            else:
+                log_transicao = self.salvar_log_transicao(status_evento=status, usuario=user)
+
+
 
     class Meta:
         abstract = True
