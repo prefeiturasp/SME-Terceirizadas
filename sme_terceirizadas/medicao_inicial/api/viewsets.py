@@ -1,4 +1,5 @@
 import json
+
 from django.db.models import QuerySet
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -15,26 +16,26 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin
 )
+from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
-    OcorrenciaMedicaoInicial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     Medicao,
+    OcorrenciaMedicaoInicial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao
 )
 from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
 from ..utils import tratar_valores
-from ...dados_comuns.utils import convert_base64_to_contentfile
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
-    OcorrenciaMedicaoInicialSerializer,
     CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
     MedicaoSerializer,
+    OcorrenciaMedicaoInicialSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
@@ -382,7 +383,7 @@ class SolicitacaoMedicaoInicialViewSet(
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['PATCH'], url_path='ue-atualiza-ocorrencia',)
-    def dre_solicita_correcao_medicao(self, request, uuid=None):
+    def ue_atualiza_ocorrencia(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()
         try:
             anexos_string = request.data.get('anexos', None)
@@ -397,10 +398,12 @@ class SolicitacaoMedicaoInicialViewSet(
                         solicitacao_medicao_inicial.ocorrencia.ultimo_arquivo = arquivo
                         solicitacao_medicao_inicial.ocorrencia.nome_ultimo_arquivo = anexo.get('nome')
                         solicitacao_medicao_inicial.ocorrencia.save()
-                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user, anexos=anexos)
+                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user,
+                                                                  anexos=anexos,
+                                                                  justificativa=justificativa)
             else:
                 solicitacao_medicao_inicial.com_ocorrencias = False
-                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user)
+                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user, justificativa=justificativa)
             solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)

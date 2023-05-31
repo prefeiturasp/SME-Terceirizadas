@@ -3145,8 +3145,6 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
             else:
                 log_transicao = self.salvar_log_transicao(status_evento=status, usuario=user)
 
-
-
     class Meta:
         abstract = True
 
