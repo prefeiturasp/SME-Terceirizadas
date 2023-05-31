@@ -466,8 +466,8 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
         except IntegrityError as e:
             if 'unique constraint' in str(e):
                 error = str(e)
-                msg = error.split('Key')
-                raise IntegrityError('Erro, informação duplicada:' + msg[1])
+                msg = 'Erro, informação duplicada:' + error.split('Key')[1]
+                raise serializers.ValidationError(msg)
             raise IntegrityError('Erro ao tentar criar/atualizar usuário: ' + str(e))
 
         except Exception as e:
