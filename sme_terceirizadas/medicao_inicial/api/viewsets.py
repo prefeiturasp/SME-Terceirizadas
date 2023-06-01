@@ -1,3 +1,5 @@
+import json
+
 from django.db.models import QuerySet
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -14,13 +16,14 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin
 )
+from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
-    AnexoOcorrenciaMedicaoInicial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     Medicao,
+    OcorrenciaMedicaoInicial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao
@@ -29,10 +32,10 @@ from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
 from ..utils import tratar_valores
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
-    AnexoOcorrenciaMedicaoInicialSerializer,
     CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
     MedicaoSerializer,
+    OcorrenciaMedicaoInicialSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
@@ -379,6 +382,34 @@ class SolicitacaoMedicaoInicialViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['PATCH'], url_path='ue-atualiza-ocorrencia',)
+    def ue_atualiza_ocorrencia(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            anexos_string = request.data.get('anexos', None)
+            com_ocorrencias = request.data.get('com_ocorrencias', None)
+            justificativa = request.data.get('justificativa', '')
+            if com_ocorrencias == 'true' and anexos_string:
+                solicitacao_medicao_inicial.com_ocorrencias = True
+                anexos = json.loads(anexos_string)
+                for anexo in anexos:
+                    if '.pdf' in anexo['nome']:
+                        arquivo = convert_base64_to_contentfile(anexo['base64'])
+                        solicitacao_medicao_inicial.ocorrencia.ultimo_arquivo = arquivo
+                        solicitacao_medicao_inicial.ocorrencia.nome_ultimo_arquivo = anexo.get('nome')
+                        solicitacao_medicao_inicial.ocorrencia.save()
+                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user,
+                                                                  anexos=anexos,
+                                                                  justificativa=justificativa)
+            else:
+                solicitacao_medicao_inicial.com_ocorrencias = False
+                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user, justificativa=justificativa)
+            solicitacao_medicao_inicial.save()
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = TipoContagemAlimentacao.objects.filter(ativo=True)
@@ -475,20 +506,19 @@ class OcorrenciaViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     lookup_field = 'uuid'
-    queryset = AnexoOcorrenciaMedicaoInicial.objects.all()
+    queryset = OcorrenciaMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
-        return AnexoOcorrenciaMedicaoInicialSerializer
+        return OcorrenciaMedicaoInicialSerializer
 
     @action(detail=True, methods=['PATCH'], url_path='dre-pede-correcao-ocorrencia',)
     def dre_pede_correcao_ocorrencia(self, request, uuid=None):
         object = self.get_object()
-        ocorrencias = object.solicitacao_medicao_inicial.anexos.all()
+        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
         justificativa = request.data.get('justificativa', None)
         try:
-            for ocorrencia in ocorrencias:
-                ocorrencia.dre_pede_correcao(user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.anexos.all(), many=True)
+            ocorrencia.dre_pede_correcao(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
@@ -496,11 +526,10 @@ class OcorrenciaViewSet(
     @action(detail=True, methods=['PATCH'], url_path='dre-aprova-ocorrencia',)
     def dre_aprova_ocorrencia(self, request, uuid=None):
         object = self.get_object()
-        ocorrencias = object.solicitacao_medicao_inicial.anexos.all()
+        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
         try:
-            for ocorrencia in ocorrencias:
-                ocorrencia.dre_aprova(user=request.user)
-            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.anexos.all(), many=True)
+            ocorrencia.dre_aprova(user=request.user)
+            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)

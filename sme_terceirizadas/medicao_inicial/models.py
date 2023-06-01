@@ -67,14 +67,29 @@ class SolicitacaoMedicaoInicial(
         return f'Solicitação #{self.id_externo} -- Escola {self.escola.nome} -- {self.mes}/{self.ano}'
 
 
-class AnexoOcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedicaoInicial):
-    nome = models.CharField(max_length=100)
-    arquivo = models.FileField()
-    solicitacao_medicao_inicial = models.ForeignKey(
+class OcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedicaoInicial):
+    """Modelo para mapear a tabela Ocorrência e salvar objetos ocorrêcia da medição inicial."""
+
+    nome_ultimo_arquivo = models.CharField(max_length=100)
+    ultimo_arquivo = models.FileField()
+    solicitacao_medicao_inicial = models.OneToOneField(
         SolicitacaoMedicaoInicial,
-        related_name='anexos',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='ocorrencia',
+        blank=True, null=True
     )
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        log_transicao = LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            justificativa=justificativa,
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+            usuario=usuario,
+            uuid_original=self.uuid,
+        )
+        return log_transicao
 
     def deletar_log_correcao(self, status_evento, **kwargs):
         LogSolicitacoesUsuario.objects.filter(
@@ -84,19 +99,8 @@ class AnexoOcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedic
             uuid_original=self.uuid,
         ).delete()
 
-    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
-        justificativa = kwargs.get('justificativa', '')
-        LogSolicitacoesUsuario.objects.create(
-            descricao=str(self),
-            justificativa=justificativa,
-            status_evento=status_evento,
-            solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
-            usuario=usuario,
-            uuid_original=self.uuid,
-        )
-
     def __str__(self):
-        return f'Anexo Ocorrência {self.uuid} - {self.nome}'
+        return f'Ocorrência {self.uuid} da Solicitação de Medição Inicial {self.solicitacao_medicao_inicial.uuid}'
 
 
 class Responsavel(models.Model):
