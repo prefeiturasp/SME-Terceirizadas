@@ -146,8 +146,9 @@ def solicitacao_medicao_inicial_sem_arquivo(escola):
 def anexo_ocorrencia_medicao_inicial(solicitacao_medicao_inicial):
     nome = 'arquivo_teste.pdf'
     arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
-    return mommy.make('AnexoOcorrenciaMedicaoInicial', uuid='1ace193a-6c2c-4686-b9ed-60a922ad0e1a',
-                      nome=nome, arquivo=arquivo, solicitacao_medicao_inicial=solicitacao_medicao_inicial)
+    return mommy.make('OcorrenciaMedicaoInicial', uuid='1ace193a-6c2c-4686-b9ed-60a922ad0e1a',
+                      nome_ultimo_arquivo=nome, ultimo_arquivo=arquivo,
+                      solicitacao_medicao_inicial=solicitacao_medicao_inicial)
 
 
 @pytest.fixture
