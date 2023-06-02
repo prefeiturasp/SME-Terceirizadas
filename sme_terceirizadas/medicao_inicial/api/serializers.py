@@ -10,6 +10,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     CategoriaMedicao,
     DiaSobremesaDoce,
     Medicao,
+    OcorrenciaMedicaoInicial,
     Responsavel,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
@@ -27,25 +28,21 @@ class DiaSobremesaDoceSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class AnexoOcorrenciaMedicaoInicialSerializer(serializers.ModelSerializer):
+class OcorrenciaMedicaoInicialSerializer(serializers.ModelSerializer):
     logs = LogSolicitacoesUsuarioSerializer(many=True)
-    arquivo = serializers.SerializerMethodField()
+    ultimo_arquivo = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    extensao = serializers.SerializerMethodField()
 
-    def get_extensao(self, obj):
-        return f'.{obj.nome.split(".")[-1]}'
-
-    def get_arquivo(self, obj):
+    def get_ultimo_arquivo(self, obj):
         env = environ.Env()
         api_url = env.str('URL_ANEXO', default='http://localhost:8000')
-        return f'{api_url}{obj.arquivo.url}'
+        return f'{api_url}{obj.ultimo_arquivo.url}'
 
     def get_status(self, obj):
         return obj.status.name
 
     class Meta:
-        model = TipoContagemAlimentacao
+        model = OcorrenciaMedicaoInicial
         exclude = ('id',)
 
 
@@ -68,7 +65,7 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     escola_uuid = serializers.CharField(source='escola.uuid')
     tipo_contagem_alimentacoes = TipoContagemAlimentacaoSerializer()
     responsaveis = ResponsavelSerializer(many=True)
-    anexos = AnexoOcorrenciaMedicaoInicialSerializer(required=False, many=True)
+    ocorrencia = OcorrenciaMedicaoInicialSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
@@ -93,7 +90,8 @@ class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoMedicaoInicial
-        fields = ('uuid', 'escola', 'escola_uuid', 'mes_ano', 'tipo_unidade', 'status', 'log_mais_recente')
+        fields = ('uuid', 'escola', 'escola_uuid', 'mes', 'ano', 'mes_ano',
+                  'tipo_unidade', 'status', 'log_mais_recente')
 
 
 class ValorMedicaoSerializer(serializers.ModelSerializer):

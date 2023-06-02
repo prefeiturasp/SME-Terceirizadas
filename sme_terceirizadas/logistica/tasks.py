@@ -14,6 +14,7 @@ from ..dados_comuns.utils import (
     gera_objeto_na_central_download
 )
 from ..logistica.models.guia import Guia
+from ..perfil.models import Usuario
 from ..relatorios.relatorios import relatorio_guia_de_remessa
 from .api.helpers import (
     retorna_dados_normalizados_excel_entregas_distribuidor,
@@ -42,7 +43,13 @@ def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
                 ativo=True
             )
 
-            partes_interessadas = [email for email in email_query_set_escola]
+            qs_codae = Usuario.objects.filter(
+                vinculos__perfil__nome__in=(
+                    'COORDENADOR_CODAE_DILOG_LOGISTICA',
+                )
+            )
+
+            partes_interessadas = [email for email in email_query_set_escola] + [usuario.email for usuario in qs_codae]
             users = [vinculo.usuario for vinculo in vinculos]
         else:
             partes_interessadas = []
@@ -90,7 +97,13 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
             )
             email_query_set_escola = vinculos.values_list('usuario__email', flat=True)
 
-            partes_interessadas = [email for email in email_query_set_escola]
+            qs_codae = Usuario.objects.filter(
+                vinculos__perfil__nome__in=(
+                    'COORDENADOR_CODAE_DILOG_LOGISTICA',
+                )
+            )
+
+            partes_interessadas = [email for email in email_query_set_escola] + [usuario.email for usuario in qs_codae]
             users = [vinculo.usuario for vinculo in vinculos]
         else:
             partes_interessadas = []

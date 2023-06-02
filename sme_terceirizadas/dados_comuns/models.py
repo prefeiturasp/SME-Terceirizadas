@@ -102,8 +102,11 @@ class LogSolicitacoesUsuario(
         APROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
         REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
         APROVADO_DILOG_SOLICITACAO_ALTERACAO,
-        REPROVADO_DILOG_SOLICITACAO_ALTERACAO
-    ) = range(76)
+        REPROVADO_DILOG_SOLICITACAO_ALTERACAO,
+        CODAE_CANCELOU_SOLICITACAO_CORRECAO,
+        TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO,
+        SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE
+    ) = range(79)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -207,19 +210,22 @@ class LogSolicitacoesUsuario(
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
         (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Assinado e Enviado ao Fornecedor'),
         (CRONOGRAMA_ASSINADO_PELO_FORNECEDOR, 'Assinado Fornecedor'),
-        (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Alteração Fornecedor'),
+        (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Solicitada Alteração'),
         (SUSPENSO_EM_ALGUNS_EDITAIS, 'Suspenso em alguns editais'),
         (ATIVO_EM_ALGUNS_EDITAIS, 'Ativo em alguns editais'),
         (CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA, 'Assinado Cronograma'),
         (CODAE_ATUALIZOU_PROTOCOLO, 'CODAE Atualizou o protocolo'),
-        (CRONOGRAMA_ASSINADO_PELA_DINUTRE, 'Assinado Dinutre'),
+        (CRONOGRAMA_ASSINADO_PELA_DINUTRE, 'Assinado DINUTRE'),
         (CRONOGRAMA_ASSINADO_PELA_CODAE, 'Assinado CODAE'),
         (VINCULO_DO_EDITAL_AO_PRODUTO, 'Vínculo do Edital ao Produto'),
-        (CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO, 'Cronograma ciente alteração cronograma'),
-        (APROVADO_DINUTRE_SOLICITACAO_ALTERACAO, 'Alteração cronograma aprovada pela DINUTRE'),
-        (REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO, 'Alteração cronograma reprovada pela DINUTRE'),
-        (APROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Alteração cronograma aprovada pela DILOG'),
-        (REPROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Alteração cronograma reprovada pela DILOG')
+        (CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO, 'Cronograma Ciente'),
+        (APROVADO_DINUTRE_SOLICITACAO_ALTERACAO, 'Aprovado DINUTRE'),
+        (REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO, 'Reprovado DINUTRE'),
+        (APROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Aprovado DILOG'),
+        (REPROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Reprovado DILOG'),
+        (CODAE_CANCELOU_SOLICITACAO_CORRECAO, 'CODAE cancelou solicitação de correção'),
+        (TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO, 'Terceirizada cancelou solicitação de correção'),
+        (SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE, 'Em Análise')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
