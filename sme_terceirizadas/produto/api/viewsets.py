@@ -537,6 +537,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             'codae_homologado': {
                 'status__in': [
                     HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+                    HomologacaoProdutoWorkflow.CODAE_QUESTIONADO,
                     HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
                     HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
                     HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
@@ -547,6 +548,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
                 ],
                 'raw_sql': ("WHERE (%(homologacao_produto)s.status = 'CODAE_HOMOLOGADO' "
+                            "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONADO' "
                             "OR %(homologacao_produto)s.status = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU' "
                             "OR %(homologacao_produto)s.status = 'CODAE_PEDIU_ANALISE_SENSORIAL' "
                             "OR %(homologacao_produto)s.status = 'CODAE_PEDIU_ANALISE_RECLAMACAO' "
@@ -1464,6 +1466,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONADO,
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
