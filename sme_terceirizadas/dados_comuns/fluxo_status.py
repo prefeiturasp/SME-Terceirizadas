@@ -3097,7 +3097,10 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA,
                                       usuario=user,
                                       justificativa=justificativa)
-            if isinstance(self, SolicitacaoMedicaoInicial):
+            if (isinstance(self, SolicitacaoMedicaoInicial) and
+                self.escola and
+                self.escola.contato and
+                    self.escola.contato.email):
                 url = f'{env("REACT_APP_URL")}/lancamento-inicial'
                 url += f'/lancamento-medicao-inicial?mes={self.mes}&ano={self.ano}'
                 html = render_to_string(

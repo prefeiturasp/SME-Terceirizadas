@@ -63,6 +63,20 @@ def solicitacao_medicao_inicial(escola, categoria_medicao):
 
 
 @pytest.fixture
+def solicitacao_medicao_inicial_medicao_enviada_pela_ue(solicitacao_medicao_inicial):
+    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_ENVIADA_PELA_UE
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_medicao_correcao_solicitada(solicitacao_medicao_inicial):
+    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial_varios_valores(escola, categoria_medicao):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
