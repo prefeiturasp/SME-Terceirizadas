@@ -349,6 +349,7 @@ class SolicitacaoMedicaoInicialViewSet(
             retorno.append({
                 'nome_periodo_grupo': medicao.nome_periodo_grupo,
                 'status': medicao.status.name,
+                'justificativa': medicao.logs.last().justificativa,
                 'valores': valores,
                 'valor_total': sum(v['valor'] for v in valores)
             })
@@ -493,6 +494,24 @@ class MedicaoViewSet(
         try:
             ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
             medicao.dre_pede_correcao(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao',
+            permission_classes=[UsuarioEscolaTercTotal])
+    def escola_corrige_medicao(self, request, uuid=None):
+        medicao = self.get_object()
+        try:
+            for valor_medicao in request.data:
+                ValorMedicao.objects.filter(
+                    medicao=medicao,
+                    dia=valor_medicao.get('dia', ''),
+                    nome_campo=valor_medicao.get('nome_campo', ''),
+                    categoria_medicao=valor_medicao.get('categoria_medicao', '')
+                ).update(valor=valor_medicao.get('valor', ''))
+            medicao.ue_corrige(user=request.user)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
