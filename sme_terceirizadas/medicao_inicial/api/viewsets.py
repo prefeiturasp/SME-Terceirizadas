@@ -12,6 +12,7 @@ from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
+    UsuarioDiretorEscolaTercTotal,
     UsuarioDiretoriaRegional,
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin
@@ -378,6 +379,22 @@ class SolicitacaoMedicaoInicialViewSet(
         solicitacao_medicao_inicial = self.get_object()
         try:
             solicitacao_medicao_inicial.dre_pede_correcao(user=request.user)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao-para-dre',
+            permission_classes=[UsuarioDiretorEscolaTercTotal])
+    def escola_corrige_medicao_para_dre(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            if solicitacao_medicao_inicial.status == SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE:
+                raise InvalidTransitionError('solicitação já está no status Corrigido para DRE')
+            solicitacao_medicao_inicial.ue_corrige(user=request.user)
+            ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
+            ).update(habilitado_correcao=False)
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
