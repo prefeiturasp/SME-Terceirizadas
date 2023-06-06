@@ -349,7 +349,7 @@ class SolicitacaoMedicaoInicialViewSet(
             retorno.append({
                 'nome_periodo_grupo': medicao.nome_periodo_grupo,
                 'status': medicao.status.name,
-                'justificativa': medicao.logs.last().justificativa,
+                'justificativa': medicao.logs.last().justificativa if medicao.logs.last() else None,
                 'valores': valores,
                 'valor_total': sum(v['valor'] for v in valores)
             })
