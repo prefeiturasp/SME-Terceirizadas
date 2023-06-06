@@ -294,3 +294,80 @@ def test_url_endpoint_medicao_dashboard_codae_com_filtros(client_autenticado_coo
     assert response.json()['results'][6]['total'] == 0
     assert response.json()['results'][7]['status'] == 'TODOS_OS_LANCAMENTOS'
     assert response.json()['results'][7]['total'] == 4
+
+
+def test_url_escola_corrige_medicao_para_dre_sucesso(client_autenticado_da_escola,
+                                                     solicitacao_medicao_inicial_medicao_correcao_solicitada):
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_correcao_solicitada.uuid}/'
+        f'escola-corrige-medicao-para-dre/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_correcao_solicitada.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_correcao_solicitada.status ==
+            solicitacao_medicao_inicial_medicao_correcao_solicitada.workflow_class.MEDICAO_CORRIGIDA_PELA_UE)
+
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_correcao_solicitada.uuid}/'
+        f'escola-corrige-medicao-para-dre/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': 'Erro de transição de estado: solicitação já está no status Corrigido para DRE'
+    }
+
+
+def test_url_escola_corrige_medicao_para_dre_erro_transicao(client_autenticado_da_escola,
+                                                            solicitacao_medicao_inicial):
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial.uuid}/'
+        f'escola-corrige-medicao-para-dre/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'ue_corrige' isn't available from state "
+                  "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'."
+    }
+
+
+def test_url_escola_corrige_medicao_para_dre_erro_403(client_autenticado_diretoria_regional,
+                                                      solicitacao_medicao_inicial):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial.uuid}/'
+        f'escola-corrige-medicao-para-dre/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_dre_solicita_correcao_medicao(client_autenticado_diretoria_regional,
+                                           solicitacao_medicao_inicial_medicao_enviada_pela_ue):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue.uuid}/'
+        f'dre-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_enviada_pela_ue.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_enviada_pela_ue.status ==
+            solicitacao_medicao_inicial_medicao_enviada_pela_ue.workflow_class.MEDICAO_CORRECAO_SOLICITADA)
+
+
+def test_url_dre_solicita_correcao_medicao_erro_transicao(client_autenticado_diretoria_regional,
+                                                          solicitacao_medicao_inicial):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial.uuid}/'
+        f'dre-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'dre_pede_correcao' isn't available from state "
+                  "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'."
+    }
+
+
+def test_url_dre_solicita_correcao_medicao_erro_403(client_autenticado_da_escola,
+                                                    solicitacao_medicao_inicial_medicao_enviada_pela_ue):
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue.uuid}/'
+        f'dre-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN

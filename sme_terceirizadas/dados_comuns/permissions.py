@@ -67,6 +67,20 @@ class UsuarioEscolaTercTotal(BasePermission):
             return False
 
 
+class UsuarioDiretorEscolaTercTotal(UsuarioEscolaTercTotal):
+    """Permite acesso a usuários com vinculo a uma Escola."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Escola) and
+            usuario.vinculo_atual.instituicao.modulo_gestao == 'TERCEIRIZADA' and
+            usuario.vinculo_atual.perfil.nome == DIRETOR_UE
+        )
+
+
 class UsuarioDiretoriaRegional(BasePermission):
     """Permite acesso a usuários com vinculo a uma Diretoria Regional."""
 

@@ -204,7 +204,7 @@ class LogSolicitacoesUsuario(
         (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
         (MEDICAO_ENVIADA_PELA_UE, 'Enviado pela UE'),
         (MEDICAO_CORRECAO_SOLICITADA, 'Correção solicitada'),
-        (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido pela UE'),
+        (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido para DRE'),
         (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
         (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE'),
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
