@@ -107,7 +107,8 @@ class ValorMedicaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ValorMedicao
-        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid', 'uuid', 'medicao_alterado_em')
+        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid',
+                  'uuid', 'medicao_alterado_em', 'habilitado_correcao')
 
 
 class CategoriaMedicaoSerializer(serializers.ModelSerializer):
