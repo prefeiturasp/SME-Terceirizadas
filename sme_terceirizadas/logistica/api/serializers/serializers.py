@@ -273,7 +273,7 @@ class GuiaDaRemessaComOcorrenciasSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Guia
-        fields = ('uuid', 'numero_guia', 'status', 'data_entrega')
+        fields = ('uuid', 'numero_guia', 'status', 'data_entrega', 'nome_distribuidor')
 
 
 class InfoUnidadesSimplesDaGuiaSerializer(serializers.ModelSerializer):
