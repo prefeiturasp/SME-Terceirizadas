@@ -634,7 +634,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
                             status=HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['GET'],
-            url_path='guia-para-conferencia', permission_classes=(PermissaoParaVisualizarGuiasComOcorrencias,))
+            url_path='guias-com-ocorrencias-sem-notificacao', permission_classes=(PermissaoParaVisualizarGuiasComOcorrencias,))
     def lista_guias_com_ocorrencias_sem_notificacao(self, request):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.annotate(
