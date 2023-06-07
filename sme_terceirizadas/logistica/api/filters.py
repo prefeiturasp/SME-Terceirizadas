@@ -7,6 +7,7 @@ from django_filters import rest_framework as filters
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
 from ...dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
+from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento
 
 
 class SolicitacaoFilter(filters.FilterSet):
@@ -91,6 +92,17 @@ class GuiaFilter(filters.FilterSet):
         field_name='status',
         choices=[(str(state), state) for state in GuiaRemessaWorkFlow.states],
     )
+
+    ocorrencia = filters.MultipleChoiceFilter(
+        field_name='conferencias__conferencia_dos_alimentos__ocorrencia__icontains',
+        choices=[(str(state), state) for state in ConferenciaIndividualPorAlimento.OCORRENCIA_NOMES],
+    )
+
+    alimento = filters.CharFilter(
+        field_name='conferencias__conferencia_dos_alimentos__nome_alimento',
+        lookup_expr='icontains',
+    )
+
 
 
 class SolicitacaoAlteracaoFilter(filters.FilterSet):
