@@ -646,7 +646,8 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         ).exclude(status__in=(
             GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
             GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO,
-            GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)
+            GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA,
+            GuiaRemessaWorkFlow.CANCELADA)
         ).order_by('data_entrega').distinct()
         page = self.paginate_queryset(queryset)
         if page is not None:
