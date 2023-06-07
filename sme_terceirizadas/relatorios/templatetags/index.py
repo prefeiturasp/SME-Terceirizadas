@@ -399,7 +399,7 @@ def get_dias(observacoes_tuple):
 
 @register.filter
 def formatar_observacoes(observacoes):
-    MAX_LINHAS_POR_PAGINA = 26
+    MAX_LINHAS_POR_PAGINA = 22
     ORDEM_PERIODOS_GRUPOS = {
         'MANHA': 1,
         'TARDE': 2,
