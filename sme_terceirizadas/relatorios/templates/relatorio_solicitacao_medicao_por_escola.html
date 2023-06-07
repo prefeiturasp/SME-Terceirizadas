@@ -146,6 +146,23 @@
           <h1 class="page-number text-right"></h1>
         </div>
       </div>
+      <div class="row p-0 mx-2">
+        <div class="col-12">
+          <table class="tabela-cabecalho">
+            <tr class="custom-filtros">
+              <td><b>Cód. EOL: </b>{{ solicitacao.escola.codigo_eol }}</td>
+              <td><b>U.E: </b>{{ solicitacao.escola.nome }}</td>
+              <td><b>Telefone da UE: </b>{{ solicitacao.escola.contato.telefone }}</td>
+              <td><b>DRE: </b>{{ solicitacao.escola.diretoria_regional.nome }}</td>
+            </tr>
+            <tr class="custom-filtros">
+              <td><b>Lote: </b>{{ solicitacao.rastro_lote.nome }}</td>
+              <td colspan="2"><b>Empresa Prestadora do Serviço: </b>{{ solicitacao.rastro_terceirizada.razao_social }}</td>
+              <td><b>REFERÊNCIA: </b>{{ solicitacao.mes }}/{{ solicitacao.ano }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
     </header>
     <table class="tabela-valores-medicao mt-3">
       <thead class="texto-branco">
@@ -197,6 +214,23 @@
         <div class="col-1">
           <h1 class="text-right">Página</h1>
           <h1 class="page-number text-right"></h1>
+        </div>
+      </div>
+      <div class="row p-0 mx-2">
+        <div class="col-12">
+          <table class="tabela-cabecalho">
+            <tr class="custom-filtros">
+              <td><b>Cód. EOL: </b>{{ solicitacao.escola.codigo_eol }}</td>
+              <td><b>U.E: </b>{{ solicitacao.escola.nome }}</td>
+              <td><b>Telefone da UE: </b>{{ solicitacao.escola.contato.telefone }}</td>
+              <td><b>DRE: </b>{{ solicitacao.escola.diretoria_regional.nome }}</td>
+            </tr>
+            <tr class="custom-filtros">
+              <td><b>Lote: </b>{{ solicitacao.rastro_lote.nome }}</td>
+              <td colspan="2"><b>Empresa Prestadora do Serviço: </b>{{ solicitacao.rastro_terceirizada.razao_social }}</td>
+              <td><b>REFERÊNCIA: </b>{{ solicitacao.mes }}/{{ solicitacao.ano }}</td>
+            </tr>
+          </table>
         </div>
       </div>
     </header>
