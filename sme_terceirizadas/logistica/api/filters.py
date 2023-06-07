@@ -92,7 +92,7 @@ class GuiaFilter(filters.FilterSet):
         field_name='status',
         choices=[(str(state), state) for state in GuiaRemessaWorkFlow.states],
     )
-    motivo_ocorrencia = filters.MultipleChoiceFilter(
+    motivos_ocorrencia = filters.MultipleChoiceFilter(
         field_name='conferencias__conferencia_dos_alimentos__ocorrencia__icontains',
         choices=[(str(state), state) for state in ConferenciaIndividualPorAlimento.OCORRENCIA_NOMES],
     )
