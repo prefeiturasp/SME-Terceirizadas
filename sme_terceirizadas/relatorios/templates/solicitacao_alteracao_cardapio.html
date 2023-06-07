@@ -8,19 +8,27 @@
       {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <div class="motivo-local">
       <div class="info-motivo-alterar-dia" style="margin-bottom: 0.3em">
-        <div>Motivo</div>
-        <div>{{ solicitacao.motivo.nome }}</div>
-
+        <div class="row">
+          <div class="col-6">
+            <p>Tipo de Alteração:</p>
+            <label>{{solicitacao.motivo.nome }}</label>
+          </div>
           {% if solicitacao.eh_unico_dia %}
-            <div>Alterar dia:</div>
-            <div>{{ solicitacao.data }}</div>
+          <div class="col-6">
+            <p>Alterar de:</p>
+            <label>{{solicitacao.data}}</label>
+          </div>
           {% else %}
-            <div>Alterar de:</div>
-            <div>{{ solicitacao.data_inicial }}</div>
-            <div>Alterar para:</div>
-            <div>{{ solicitacao.data_final }}</div>
+          <div class="col-3">
+            <p>Alterar de:</p>
+            <label>{{solicitacao.data_inicial}}</label>
+          </div>
+          <div class="col-3">
+            <p> Até:</p>
+            <label>{{solicitacao.data_final}}</label>
+          </div>
           {% endif %}
-
+        </div>
       </div>
     </div>
     <div class="tabela-sem-borda">
