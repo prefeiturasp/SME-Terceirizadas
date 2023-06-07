@@ -22,6 +22,7 @@ from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaListarEntregas,
+    PermissaoParaVisualizarGuiasComOcorrencias,
     UsuarioCodaeDilog,
     UsuarioDilog,
     UsuarioDilogOuDistribuidor,
@@ -44,6 +45,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     ConferenciaDaGuiaSerializer,
     ConferenciaIndividualPorAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
+    GuiaDaRemessaComOcorrenciasSerializer,
     GuiaDaRemessaCompletaSerializer,
     GuiaDaRemessaComStatusRequisicaoSerializer,
     GuiaDaRemessaLookUpSerializer,
@@ -630,6 +632,31 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             return Response(dict(detail=f'Erro: {e}', status=False),
                             status=HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['GET'],
+            url_path='guia-para-conferencia', permission_classes=(PermissaoParaVisualizarGuiasComOcorrencias,))
+    def lista_guias_com_ocorrencias_sem_notificacao(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.annotate(
+            nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
+        ).filter(
+            conferencias__conferencia_dos_alimentos__tem_ocorrencia=True,
+            notificacao__isnull=True
+        ).exclude(status__in=(
+            GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO,
+            GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)
+        ).order_by('data_entrega').distinct()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = GuiaDaRemessaComOcorrenciasSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = GuiaDaRemessaComOcorrenciasSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias', permission_classes=(UsuarioCodaeDilog,))
     def vincula_guias_com_escolas(self, request):

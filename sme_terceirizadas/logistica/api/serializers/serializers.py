@@ -263,6 +263,19 @@ class GuiaDaRemessaComDistribuidorSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class GuiaDaRemessaComOcorrenciasSerializer(serializers.ModelSerializer):
+    nome_distribuidor = serializers.CharField()
+    status = serializers.CharField(source='get_status_display')
+    data_entrega = serializers.SerializerMethodField()
+
+    def get_data_entrega(self, obj):
+        return obj.data_entrega.strftime('%d/%m/%Y')
+
+    class Meta:
+        model = Guia
+        fields = ('uuid', 'numero_guia', 'status', 'data_entrega')
+
+
 class InfoUnidadesSimplesDaGuiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
