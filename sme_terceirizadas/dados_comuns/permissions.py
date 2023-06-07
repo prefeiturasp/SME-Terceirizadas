@@ -751,6 +751,7 @@ class PermissaoRelatorioDietasEspeciais(BasePermission):
                 usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
             )
 
+
 class PermissaoParaVisualizarGuiasComOcorrencias(BasePermission):
     def has_permission(self, request, view):
         usuario = request.user
