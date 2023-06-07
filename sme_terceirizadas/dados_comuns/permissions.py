@@ -58,11 +58,27 @@ class UsuarioEscolaTercTotal(BasePermission):
             return usuario.vinculo_atual.instituicao == obj.escola
         elif hasattr(obj, 'rastro_escola'):
             return usuario.vinculo_atual.instituicao == obj.rastro_escola
+        elif isinstance(obj, Medicao):
+            return usuario.vinculo_atual.instituicao == obj.solicitacao_medicao_inicial.escola
         elif obj.tipo == 'Kit Lanche Unificado':
             return usuario.vinculo_atual.instituicao.id in obj.escolas_quantidades.all().values_list(
                 'escola', flat=True)
         else:
             return False
+
+
+class UsuarioDiretorEscolaTercTotal(UsuarioEscolaTercTotal):
+    """Permite acesso a usuários com vinculo a uma Escola."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Escola) and
+            usuario.vinculo_atual.instituicao.modulo_gestao == 'TERCEIRIZADA' and
+            usuario.vinculo_atual.perfil.nome == DIRETOR_UE
+        )
 
 
 class UsuarioDiretoriaRegional(BasePermission):
