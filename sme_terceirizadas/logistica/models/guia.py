@@ -40,7 +40,7 @@ class NotificacaoOcorrenciasGuia(ModeloBase, TemIdentificadorExternoAmigavel, Lo
     numero = models.CharField('Número da Notificação', blank=True, max_length=50, unique=True)
     processo_sei = models.CharField('Nº do Processo SEI', max_length=20)
     link_processo_sei = models.URLField('Link do Processo SEI', max_length=20)
-    distribuidor = models.ForeignKey(
+    empresa = models.ForeignKey(
         Terceirizada, on_delete=models.PROTECT, blank=True, null=True, related_name='notificacoes')
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
