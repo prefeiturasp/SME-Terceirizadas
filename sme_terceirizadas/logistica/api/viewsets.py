@@ -21,6 +21,7 @@ from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, Sol
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaCriarNotificacaoDeGuiasComOcorrencias,
     PermissaoParaListarEntregas,
     PermissaoParaVisualizarGuiasComOcorrencias,
     UsuarioCodaeDilog,
@@ -28,13 +29,15 @@ from sme_terceirizadas.dados_comuns.permissions import (
     UsuarioDilogOuDistribuidor,
     UsuarioDilogOuDistribuidorOuEscolaAbastecimento,
     UsuarioDistribuidor,
-    UsuarioEscolaAbastecimento
+    UsuarioEscolaAbastecimento,
+    ViewSetActionPermissionMixin
 )
 from sme_terceirizadas.eol_servico.utils import EOLPapaService
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaComOcorrenciaCreateSerializer,
     ConferenciaDaGuiaCreateSerializer,
     InsucessoDeEntregaGuiaCreateSerializer,
+    NotificacaoOcorrenciasCreateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
@@ -53,6 +56,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
     InsucessoDeEntregaGuiaSerializer,
+    NotificacaoOcorrenciasGuiaSerializer,
     SolicitacaoDeAlteracaoSerializer,
     SolicitacaoDeAlteracaoSimplesSerializer,
     SolicitacaoRemessaContagemGuiasSerializer,
@@ -63,7 +67,11 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
 )
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
-from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
+from sme_terceirizadas.logistica.models import (
+    NotificacaoOcorrenciasGuia,
+    SolicitacaoDeAlteracaoRequisicao,
+    SolicitacaoRemessa
+)
 from sme_terceirizadas.logistica.services import (
     arquiva_guias,
     confirma_cancelamento,
@@ -919,3 +927,19 @@ class ConferenciaindividualModelViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
             return ConferenciaIndividualPorAlimentoSerializer
+
+
+class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = NotificacaoOcorrenciasGuia.objects.all()
+    serializer_class = NotificacaoOcorrenciasGuiaSerializer
+    permission_classes = (PermissaoParaVisualizarGuiasComOcorrencias,)
+    permission_action_classes = {
+        'create': [PermissaoParaCriarNotificacaoDeGuiasComOcorrencias]
+    }
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return NotificacaoOcorrenciasGuiaSerializer
+        else:
+            return NotificacaoOcorrenciasCreateSerializer
