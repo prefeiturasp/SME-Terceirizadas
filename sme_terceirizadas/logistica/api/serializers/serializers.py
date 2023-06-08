@@ -6,6 +6,7 @@ from sme_terceirizadas.logistica.models import (
     ConferenciaGuia,
     Embalagem,
     Guia,
+    NotificacaoOcorrenciasGuia,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
     TipoEmbalagem
@@ -375,4 +376,12 @@ class GuiaDaRemessaCompletaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Guia
+        exclude = ('id',)
+
+
+class NotificacaoOcorrenciasGuiaSerializer(serializers.ModelSerializer):
+    guias_notificadas = GuiaLookUpSerializer(many=True)
+
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
         exclude = ('id',)
