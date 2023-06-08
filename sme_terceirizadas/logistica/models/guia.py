@@ -232,12 +232,12 @@ class PrevisaoContratualNotificacao(ModeloBase):
     notificacao = models.ForeignKey(
         NotificacaoOcorrenciasGuia,
         on_delete=models.PROTECT, blank=True, null=True, default=None, related_name='previsoes_contratuais')
-    tipo_ocorrencia = models.CharField(
+    motivo_ocorrencia = models.CharField(
         choices=ConferenciaIndividualPorAlimento.OCORRENCIA_CHOICES, max_length=40, blank=True)
     previsao_contratual = models.TextField('Previsão Contratual', max_length=500, blank=True)
 
     def __str__(self):
-        return f'Previsao: {self.tipo_ocorrencia}'
+        return f'Previsao: {self.motivo_ocorrencia}'
 
     class Meta:
         verbose_name = 'Previsão Contratual'
