@@ -777,7 +777,22 @@ class PermissaoParaVisualizarGuiasComOcorrencias(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [DILOG_DIRETORIA, COORDENADOR_CODAE_DILOG_LOGISTICA]
+                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_CODAE_DILOG_JURIDICO, COORDENADOR_CODAE_DILOG_LOGISTICA]
+                )
+            )
+        )
+
+
+class PermissaoParaCriarNotificacaoDeGuiasComOcorrencias(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_CODAE_DILOG_JURIDICO, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
             )
         )
