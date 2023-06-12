@@ -23,6 +23,8 @@ router.register('insucesso-de-entrega', viewsets.InsucessoDeEntregaGuiaModelView
                 basename='insucesso-de-entrega')
 router.register('solicitacao-de-alteracao-de-requisicao', viewsets.SolicitacaoDeAlteracaoDeRequisicaoViewset,
                 basename='solicitacao-de-alteracao-de-requisicao')
+router.register('notificacao-guias-com-ocorrencias', viewsets.NotificacaoOcorrenciaGuiaModelViewSet,
+                basename='notificacao-guias-com-ocorrencias')
 
 router.register('webserver/solicitacao-remessa/wsdl', soup_views.WSDLSolicitacaoServiceViewSet,
                 basename='solicitacao-remessa-wsdl')
