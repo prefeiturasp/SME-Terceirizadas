@@ -1,3 +1,4 @@
+import datetime
 import json
 
 from django.db.models import QuerySet
@@ -5,6 +6,7 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
@@ -47,6 +49,8 @@ from .serializers_create import (
     MedicaoCreateUpdateSerializer,
     SolicitacaoMedicaoInicialCreateSerializer
 )
+
+calendario = BrazilSaoPauloCity()
 
 
 class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
@@ -312,10 +316,9 @@ class SolicitacaoMedicaoInicialViewSet(
             'INTEGRAL': 3,
             'NOITE': 4,
             'VESPERTINO': 5,
-            'Programas e Projetos - MANHA': 6,
-            'Programas e Projetos - TARDE': 7,
-            'Solicitações de Alimentação': 8,
-            'ETEC': 9
+            'Programas e Projetos': 6,
+            'Solicitações de Alimentação': 7,
+            'ETEC': 8
         }
 
         return Response({'results': sorted(retorno, key=lambda k: ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},
@@ -533,6 +536,20 @@ class MedicaoViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='feriados-no-mes',
+            permission_classes=[UsuarioEscolaTercTotal])
+    def feriados_no_mes(self, request, uuid=None):
+        mes = request.query_params.get('mes', '')
+        ano = request.query_params.get('ano', '')
+
+        def formatar_data(data):
+            return datetime.date.strftime(data, '%d')
+
+        retorno = [
+            formatar_data(h[0]) for h in calendario.holidays() if h[0].month == int(mes) and h[0].year == int(ano)
+        ]
+        return Response({'results': retorno}, status=status.HTTP_200_OK)
 
 
 class OcorrenciaViewSet(
