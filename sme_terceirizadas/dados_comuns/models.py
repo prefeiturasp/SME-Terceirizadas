@@ -251,8 +251,9 @@ class LogSolicitacoesUsuario(
         INCLUSAO_ALIMENTACAO_CEMEI,
         SOLICITACAO_KIT_LANCHE_CEMEI,
         CRONOGRAMA,
-        SOLICITACAO_DE_ALTERACAO_CRONOGRAMA
-    ) = range(20)
+        SOLICITACAO_DE_ALTERACAO_CRONOGRAMA,
+        NOTIFICACAO_OCORRENCIA_GUIA
+    ) = range(21)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -275,7 +276,8 @@ class LogSolicitacoesUsuario(
         (INCLUSAO_ALIMENTACAO_CEMEI, 'Inclusão de Alimentação CEMEI'),
         (SOLICITACAO_KIT_LANCHE_CEMEI, 'Solicitação de kit lanche CEMEI'),
         (CRONOGRAMA, 'Cronograma'),
-        (SOLICITACAO_DE_ALTERACAO_CRONOGRAMA, 'Solicitação de alteração do cronograma')
+        (SOLICITACAO_DE_ALTERACAO_CRONOGRAMA, 'Solicitação de alteração do cronograma'),
+        (NOTIFICACAO_OCORRENCIA_GUIA, 'Notificação de guia com ocorrência')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

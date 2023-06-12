@@ -766,3 +766,35 @@ class PermissaoRelatorioDietasEspeciais(BasePermission):
             return (
                 usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
             )
+
+
+class PermissaoParaVisualizarGuiasComOcorrencias(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_CODAE_DILOG_JURIDICO,
+                                                          COORDENADOR_CODAE_DILOG_LOGISTICA]
+                )
+            )
+        )
+
+
+class PermissaoParaCriarNotificacaoDeGuiasComOcorrencias(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_CODAE_DILOG_JURIDICO,
+                                                          COORDENADOR_CODAE_DILOG_LOGISTICA]
+                )
+            )
+        )

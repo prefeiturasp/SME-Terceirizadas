@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import fields, serializers
@@ -13,6 +13,8 @@ from sme_terceirizadas.logistica.models import (
     Alimento,
     ConferenciaGuia,
     Guia,
+    NotificacaoOcorrenciasGuia,
+    PrevisaoContratualNotificacao,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa
 )
@@ -286,3 +288,72 @@ class InsucessoDeEntregaGuiaCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f'Guia de remessa não existe.')
 
         return insucesso_entrega
+
+
+class PrevisoesContratuaisDaNotificacaoCreateSerializer(serializers.ModelSerializer):
+    previsao_contratual = serializers.CharField(required=False, allow_blank=True)
+    tipo_ocorrencia = serializers.ChoiceField(
+        choices=ConferenciaIndividualPorAlimento.OCORRENCIA_CHOICES, required=False, allow_blank=True)
+
+    class Meta:
+        model = PrevisaoContratualNotificacao
+        exclude = ('id', 'notificacao')
+
+
+class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
+    empresa = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM)
+    )
+
+    guias = serializers.ListField(required=False)
+    processo_sei = serializers.CharField(required=False)
+    link_processo_sei = serializers.URLField(required=False)
+    previsoes = PrevisoesContratuaisDaNotificacaoCreateSerializer(many=True, required=False)
+
+    def gera_proximo_numero_notificacao(self):
+        ano = date.today().year
+        ultima_notificacao = NotificacaoOcorrenciasGuia.objects.last()
+        if ultima_notificacao:
+            return f'{str(int(ultima_notificacao.numero[:3]) + 1).zfill(3)}/{ano}'
+        else:
+            return f'001/{ano}'
+
+    def vincula_guias_a_notificacao(self, guias, notificacao):
+        Guia.objects.filter(uuid__in=guias).update(notificacao=notificacao)
+
+    def cria_previsoes(self, previsoes, notificacao):
+        for previsao in previsoes:
+            PrevisaoContratualNotificacao.objects.create(
+                notificacao=notificacao,
+                **previsao
+            )
+
+    def validate(self, attrs):
+        guias = attrs.get('guias', None)
+        if not guias:
+            raise serializers.ValidationError(
+                {'guias': ['Este campo é obrigatório.']}
+            )
+        existe_guia_notificada = Guia.objects.filter(uuid__in=guias, notificacao__isnull=False)
+        if existe_guia_notificada:
+            raise serializers.ValidationError(
+                {'guias': ['Existem uma ou mais guias que já estão notificadas.']}
+            )
+        return attrs
+
+    def create(self, validated_data):
+        previsoes = validated_data.pop('previsoes', [])
+        guias = validated_data.pop('guias', [])
+        numero_notificacao = self.gera_proximo_numero_notificacao()
+        notificacao = NotificacaoOcorrenciasGuia.objects.create(numero=numero_notificacao, **validated_data)
+
+        self.vincula_guias_a_notificacao(guias, notificacao)
+        self.cria_previsoes(previsoes, notificacao)
+
+        return notificacao
+
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
+        exclude = ('id', )

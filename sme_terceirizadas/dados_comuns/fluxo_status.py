@@ -3537,3 +3537,27 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+
+class NotificacaoOcorrenciaWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    RASCUNHO = 'RASCUNHO'
+
+    states = (
+        (RASCUNHO, 'Rascunho'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', RASCUNHO, RASCUNHO),
+    )
+
+    initial_state = RASCUNHO
+
+
+class FluxoNotificacaoOcorrencia(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = NotificacaoOcorrenciaWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    class Meta:
+        abstract = True
