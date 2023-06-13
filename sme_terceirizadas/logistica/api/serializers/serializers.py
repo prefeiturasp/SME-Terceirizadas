@@ -385,3 +385,11 @@ class NotificacaoOcorrenciasGuiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificacaoOcorrenciasGuia
         exclude = ('id',)
+
+
+class NotificacaoOcorrenciasGuiaSimplesSerializer(serializers.ModelSerializer):
+    nome_empresa = serializers.CharField()
+
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
+        fields = ('numero', 'status', 'processo_sei', 'nome_empresa')

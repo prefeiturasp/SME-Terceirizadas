@@ -57,6 +57,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     InfoUnidadesSimplesDaGuiaSerializer,
     InsucessoDeEntregaGuiaSerializer,
     NotificacaoOcorrenciasGuiaSerializer,
+    NotificacaoOcorrenciasGuiaSimplesSerializer,
     SolicitacaoDeAlteracaoSerializer,
     SolicitacaoDeAlteracaoSimplesSerializer,
     SolicitacaoRemessaContagemGuiasSerializer,
@@ -86,7 +87,7 @@ from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
 from ..tasks import gera_pdf_async, gera_xlsx_async, gera_xlsx_entregas_async
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
-from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
+from .filters import GuiaFilter, NotificacaoFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import valida_guia_conferencia, valida_guia_insucesso
 from .validators import eh_true_ou_false
 
@@ -656,7 +657,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
             GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO,
             GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA,
             GuiaRemessaWorkFlow.CANCELADA)
-        ).order_by('data_entrega').distinct()
+        ).order_by('-data_entrega').distinct()
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = GuiaDaRemessaComOcorrenciasSerializer(page, many=True)
@@ -937,9 +938,28 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
     permission_action_classes = {
         'create': [PermissaoParaCriarNotificacaoDeGuiasComOcorrencias]
     }
+    pagination_class = GuiaPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = NotificacaoFilter
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
             return NotificacaoOcorrenciasGuiaSerializer
         else:
             return NotificacaoOcorrenciasCreateSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.annotate(
+            nome_empresa=F('empresa__nome_fantasia')
+        ).distinct()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = NotificacaoOcorrenciasGuiaSimplesSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = NotificacaoOcorrenciasGuiaSimplesSerializer(queryset, many=True)
+        return Response(serializer.data)
