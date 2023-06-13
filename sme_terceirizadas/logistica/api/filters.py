@@ -96,6 +96,11 @@ class GuiaFilter(filters.FilterSet):
         field_name='conferencias__conferencia_dos_alimentos__ocorrencia__icontains',
         choices=[(str(state), state) for state in ConferenciaIndividualPorAlimento.OCORRENCIA_NOMES],
     )
+    empresa = filters.ModelMultipleChoiceFilter(
+        field_name='solicitacao__distribuidor__uuid',
+        to_field_name='uuid',
+        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM),
+    )
 
 
 class SolicitacaoAlteracaoFilter(filters.FilterSet):
