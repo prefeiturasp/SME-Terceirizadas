@@ -270,13 +270,13 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
             cronograma=cronograma, **validated_data,
         )
         alteracao_cronograma.etapas.set(etapas_created)
-        self._alterna_estado_cronograma(cronograma, user, validated_data)
+        self._alterna_estado_cronograma(cronograma, user, alteracao_cronograma)
         self._alterna_estado_solicitacao_alteracao_cronograma(alteracao_cronograma, user, validated_data)
         return alteracao_cronograma
 
-    def _alterna_estado_cronograma(self, cronograma, user, validated_data):
+    def _alterna_estado_cronograma(self, cronograma, user, alteracao_cronograma):
         try:
-            cronograma.solicita_alteracao(user=user, justificativa=validated_data.get('justificativa', ''))
+            cronograma.solicita_alteracao(user=user, justificativa=alteracao_cronograma.uuid)
         except InvalidTransitionError as e:
             raise serializers.ValidationError(f'Erro de transição de estado do cronograma: {e}')
 

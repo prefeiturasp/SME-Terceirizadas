@@ -1,7 +1,6 @@
-from calendar import monthrange
+import json
 
 from django.db.models import QuerySet
-from django.template.loader import render_to_string
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -17,25 +16,26 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin
 )
+from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
-from ...relatorios.utils import html_to_pdf_file
 from ..models import (
-    AnexoOcorrenciaMedicaoInicial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     Medicao,
+    OcorrenciaMedicaoInicial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao
 )
-from ..utils import build_tabela_somatorio_body, build_tabelas_relatorio_medicao, tratar_valores
+from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
+from ..utils import tratar_valores
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
-    AnexoOcorrenciaMedicaoInicialSerializer,
     CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
     MedicaoSerializer,
+    OcorrenciaMedicaoInicialSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
@@ -95,7 +95,7 @@ class SolicitacaoMedicaoInicialViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     lookup_field = 'uuid'
-    permission_classes = [UsuarioEscolaTercTotal | UsuarioDiretoriaRegional]
+    permission_classes = [UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao]
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
@@ -270,39 +270,18 @@ class SolicitacaoMedicaoInicialViewSet(
         return Response({'results': sorted(meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True)},
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['GET'], url_path='relatorio-pdf')
-    def relatorio_pdf(self, request, uuid):
-        solicitacao = self.get_object()
-        tabelas = build_tabelas_relatorio_medicao(solicitacao)
-        tabela_observacoes = list(
-            solicitacao.medicoes.filter(
-                valores_medicao__nome_campo='observacoes'
-            ).values_list(
-                'valores_medicao__dia',
-                'periodo_escolar__nome',
-                'valores_medicao__categoria_medicao__nome',
-                'valores_medicao__valor',
-                'grupo__nome'
-            ).order_by(
-                'valores_medicao__dia',
-                'periodo_escolar__nome',
-                'valores_medicao__categoria_medicao__nome'))
-        tabela_somatorio = build_tabela_somatorio_body(solicitacao)
-        html_string = render_to_string(
-            f'relatorio_solicitacao_medicao_por_escola.html',
-            {
-                'solicitacao': solicitacao,
-                'responsaveis': solicitacao.responsaveis.all(),
-                'assinatura_escola': self.assinatura_ue(solicitacao),
-                'assinatura_dre': self.assinatura_dre(solicitacao),
-                'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
-                'tabelas': tabelas,
-                'tabela_observacoes': tabela_observacoes,
-                'tabela_somatorio': tabela_somatorio
-            }
+    @action(detail=False, methods=['GET'], url_path='relatorio-pdf')
+    def relatorio_pdf(self, request):
+        user = request.user.get_username()
+        uuid_sol_medicao = request.query_params['uuid']
+        solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid_sol_medicao)
+        gera_pdf_relatorio_solicitacao_medicao_por_escola_async.delay(
+            user=user,
+            nome_arquivo=f'Relatório Medição Inicial - {solicitacao.mes}/{solicitacao.ano}.pdf',
+            uuid_sol_medicao=uuid_sol_medicao
         )
-
-        return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf')
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path='periodos-grupos-medicao',
             permission_classes=[UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao | UsuarioEscolaTercTotal])
@@ -369,10 +348,67 @@ class SolicitacaoMedicaoInicialViewSet(
             valores = tratar_valores(escola, valores)
             retorno.append({
                 'nome_periodo_grupo': medicao.nome_periodo_grupo,
+                'status': medicao.status.name,
                 'valores': valores,
                 'valor_total': sum(v['valor'] for v in valores)
             })
         return Response({'results': retorno}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['PATCH'], url_path='dre-aprova-solicitacao-medicao',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def dre_aprova_solicitacao_medicao(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            medicoes = solicitacao_medicao_inicial.medicoes.all()
+            anexos = solicitacao_medicao_inicial.anexos.all()
+            status_medicao_aprovada = 'MEDICAO_APROVADA_PELA_DRE'
+            if medicoes.exclude(status=status_medicao_aprovada) or anexos.exclude(status=status_medicao_aprovada):
+                mensagem = 'Erro: existe(m) pendência(s) de análise'
+                return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
+            solicitacao_medicao_inicial.dre_aprova(user=request.user)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='dre-solicita-correcao-medicao',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def dre_solicita_correcao_medicao(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            solicitacao_medicao_inicial.dre_pede_correcao(user=request.user)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='ue-atualiza-ocorrencia',)
+    def ue_atualiza_ocorrencia(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            anexos_string = request.data.get('anexos', None)
+            com_ocorrencias = request.data.get('com_ocorrencias', None)
+            justificativa = request.data.get('justificativa', '')
+            if com_ocorrencias == 'true' and anexos_string:
+                solicitacao_medicao_inicial.com_ocorrencias = True
+                anexos = json.loads(anexos_string)
+                for anexo in anexos:
+                    if '.pdf' in anexo['nome']:
+                        arquivo = convert_base64_to_contentfile(anexo['base64'])
+                        solicitacao_medicao_inicial.ocorrencia.ultimo_arquivo = arquivo
+                        solicitacao_medicao_inicial.ocorrencia.nome_ultimo_arquivo = anexo.get('nome')
+                        solicitacao_medicao_inicial.ocorrencia.save()
+                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user,
+                                                                  anexos=anexos,
+                                                                  justificativa=justificativa)
+            else:
+                solicitacao_medicao_inicial.com_ocorrencias = False
+                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user, justificativa=justificativa)
+            solicitacao_medicao_inicial.save()
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -441,13 +477,8 @@ class MedicaoViewSet(
             permission_classes=[UsuarioDiretoriaRegional])
     def dre_aprova_medicao(self, request, uuid=None):
         medicao = self.get_object()
-        solicitacao_medicao_inicial = medicao.solicitacao_medicao_inicial
-        medicoes_aguardando_aprovacao = solicitacao_medicao_inicial.medicoes.exclude(uuid=medicao.uuid)
-        medicoes_aguardando_aprovacao = medicoes_aguardando_aprovacao.filter(status=medicao.status)
         try:
             medicao.dre_aprova(user=request.user)
-            if not medicoes_aguardando_aprovacao:
-                solicitacao_medicao_inicial.dre_aprova(user=request.user)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -475,20 +506,30 @@ class OcorrenciaViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     lookup_field = 'uuid'
-    queryset = AnexoOcorrenciaMedicaoInicial.objects.all()
+    queryset = OcorrenciaMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
-        return AnexoOcorrenciaMedicaoInicialSerializer
+        return OcorrenciaMedicaoInicialSerializer
 
     @action(detail=True, methods=['PATCH'], url_path='dre-pede-correcao-ocorrencia',)
     def dre_pede_correcao_ocorrencia(self, request, uuid=None):
         object = self.get_object()
-        ocorrencias = object.solicitacao_medicao_inicial.anexos.all()
+        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
         justificativa = request.data.get('justificativa', None)
         try:
-            for ocorrencia in ocorrencias:
-                ocorrencia.dre_pede_correcao(user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.anexos.all(), many=True)
+            ocorrencia.dre_pede_correcao(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='dre-aprova-ocorrencia',)
+    def dre_aprova_ocorrencia(self, request, uuid=None):
+        object = self.get_object()
+        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
+        try:
+            ocorrencia.dre_aprova(user=request.user)
+            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)

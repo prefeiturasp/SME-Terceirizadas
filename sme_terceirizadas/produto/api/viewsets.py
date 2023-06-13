@@ -847,6 +847,52 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True,
+            permission_classes=(UsuarioCODAEGestaoProduto,),
+            methods=['patch'],
+            url_path=constants.CODAE_CANCELA_SOLICITACAO_CORRECAO)
+    def codae_cancela_solicitacao_correcao(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        uri = reverse(
+            'Produtos-relatorio',
+            args=[homologacao_produto.produto.uuid]
+        )
+        try:
+            justificativa = request.data.get('justificativa', '')
+            homologacao_produto.codae_cancela_solicitacao_correcao(
+                user=request.user,
+                justificativa=justificativa,
+                link_pdf=url_configs('API', {'uri': uri})
+            )
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=(IsAuthenticated,),
+            methods=['patch'],
+            url_path=constants.TERCEIRIZADA_CANCELA_SOLICITACAO_CORRECAO)
+    def terceiriazada_cancela_solicitacao_correcao(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        uri = reverse(
+            'Produtos-relatorio',
+            args=[homologacao_produto.produto.uuid]
+        )
+        try:
+            justificativa = request.data.get('justificativa', '')
+            homologacao_produto.terceirizada_cancela_solicitacao_correcao(
+                user=request.user,
+                justificativa=justificativa,
+                link_pdf=url_configs('API', {'uri': uri})
+            )
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=True,  # noqa C901
             permission_classes=[PermissaoParaReclamarDeProduto],
             methods=['patch'],
