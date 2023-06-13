@@ -606,7 +606,9 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                 'COORDENADOR_LOGISTICA',
                 'COORDENADOR_CODAE_DILOG_LOGISTICA',
             ),
-            vinculos__ativo=True
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
         return [usuario.email for usuario in queryset]
 
@@ -616,7 +618,9 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
             vinculos__perfil__nome__in=(
                 'COORDENADOR_CODAE_DILOG_LOGISTICA',
             ),
-            vinculos__ativo=True
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
         return [usuario.email for usuario in queryset]
 
@@ -626,7 +630,9 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                 'COORDENADOR_LOGISTICA',
                 'COORDENADOR_CODAE_DILOG_LOGISTICA',
             ),
-            vinculos__ativo=True
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
         return [usuario for usuario in queryset]
 
@@ -762,7 +768,10 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=(
                 'COORDENADOR_LOGISTICA',
-            )
+            ),
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
         return [usuario.email for usuario in queryset]
 
@@ -771,7 +780,10 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=(
                 'COORDENADOR_CODAE_DILOG_LOGISTICA',
-            )
+            ),
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
         return [usuario.email for usuario in queryset]
 
@@ -781,7 +793,9 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
                 'COORDENADOR_LOGISTICA',
                 'COORDENADOR_CODAE_DILOG_LOGISTICA',
             ),
-            vinculos__ativo=True
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
         return [usuario for usuario in queryset]
 
@@ -996,7 +1010,10 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=(
                 'COORDENADOR_CODAE_DILOG_LOGISTICA',
-            )
+            ),
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
         return [usuario.email for usuario in queryset]
 
@@ -1290,10 +1307,15 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 'reclamacao': reclamacao
             }
         )
-        partes_interessadas = Usuario.objects.filter(vinculos__perfil__nome__in=[
-            'COORDENADOR_GESTAO_PRODUTO',
-            'ADMINISTRADOR_GESTAO_PRODUTO'
-        ])
+        partes_interessadas = Usuario.objects.filter(
+            vinculos__perfil__nome__in=[
+                'COORDENADOR_GESTAO_PRODUTO',
+                'ADMINISTRADOR_GESTAO_PRODUTO'
+            ],
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
+        )
         envia_email_em_massa_task.delay(
             assunto='Nova reclamação de produto requer análise',
             emails=[usuario.email for usuario in partes_interessadas],
@@ -2774,6 +2796,8 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _partes_interessadas_suspensao_por_reclamacao(self):
         queryset = Usuario.objects.filter(
             vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True,
             vinculos__perfil__nome__in=[
                 'ADMINISTRADOR_UE',
                 'DIRETOR_UE',
@@ -3197,7 +3221,9 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 'DILOG_CRONOGRAMA',
                 'DILOG_DIRETORIA'
             ),
-            vinculos__ativo=True
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
 
         return [usuario for usuario in queryset]
@@ -3304,7 +3330,9 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
     def _usuarios_partes_interessadas_cronograma(self, only_email=False):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=['DILOG_CRONOGRAMA'],
-            vinculos__ativo=True)
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True)
         if only_email:
             return [usuario.email for usuario in queryset]
         return [usuario for usuario in queryset]
@@ -3420,7 +3448,9 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             vinculos__perfil__nome__in=(
                 'DINUTRE_DIRETORIA',
             ),
-            vinculos__ativo=True
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
 
         return [usuario for usuario in queryset]
@@ -3430,7 +3460,9 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             vinculos__perfil__nome__in=(
                 'DILOG_DIRETORIA',
             ),
-            vinculos__ativo=True
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
 
         return [usuario for usuario in queryset]
@@ -3440,7 +3472,9 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             vinculos__perfil__nome__in=(
                 'DILOG_CRONOGRAMA',
             ),
-            vinculos__ativo=True
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
         )
 
         return [usuario for usuario in queryset]
