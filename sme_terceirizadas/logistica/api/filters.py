@@ -6,7 +6,7 @@ from django_filters import rest_framework as filters
 
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
-from ...dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
+from ...dados_comuns.fluxo_status import GuiaRemessaWorkFlow, NotificacaoOcorrenciaWorkflow, SolicitacaoRemessaWorkFlow
 from ..models.guia import ConferenciaIndividualPorAlimento
 
 
@@ -96,6 +96,11 @@ class GuiaFilter(filters.FilterSet):
         field_name='conferencias__conferencia_dos_alimentos__ocorrencia__icontains',
         choices=[(str(state), state) for state in ConferenciaIndividualPorAlimento.OCORRENCIA_NOMES],
     )
+    empresa = filters.ModelMultipleChoiceFilter(
+        field_name='solicitacao__distribuidor__uuid',
+        to_field_name='uuid',
+        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM),
+    )
 
 
 class SolicitacaoAlteracaoFilter(filters.FilterSet):
@@ -133,3 +138,19 @@ class SolicitacaoAlteracaoFilter(filters.FilterSet):
             operator.or_, (Q(motivo__icontains=motivo) for motivo in motivos)
         )
         return qs.filter(filtro)
+
+
+class NotificacaoFilter(filters.FilterSet):
+    numero = filters.CharFilter(
+        field_name='numero',
+        lookup_expr='exact',
+    )
+    empresa = filters.ModelMultipleChoiceFilter(
+        field_name='empresa__uuid',
+        to_field_name='uuid',
+        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM),
+    )
+    status = filters.MultipleChoiceFilter(
+        field_name='status',
+        choices=[(str(state), state) for state in NotificacaoOcorrenciaWorkflow.states],
+    )
