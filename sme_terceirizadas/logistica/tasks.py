@@ -13,14 +13,15 @@ from sme_terceirizadas.dados_comuns.utils import (
     atualiza_central_download_com_erro,
     gera_objeto_na_central_download
 )
-from sme_terceirizadas.logistica.models.guia import Guia
-from sme_terceirizadas.perfil.models import Usuario
-from sme_terceirizadas.relatorios.relatorios import relatorio_guia_de_remessa
-from .api.helpers import (
+from sme_terceirizadas.logistica.api.helpers import (
     retorna_dados_normalizados_excel_entregas_distribuidor,
     retorna_dados_normalizados_excel_visao_dilog,
     retorna_dados_normalizados_excel_visao_distribuidor
 )
+from sme_terceirizadas.logistica.models.guia import Guia
+from sme_terceirizadas.perfil.models import Usuario
+from sme_terceirizadas.relatorios.relatorios import relatorio_guia_de_remessa
+
 from .api.services.exporta_para_excel import RequisicoesExcelService
 from .models import SolicitacaoRemessa
 
