@@ -486,7 +486,8 @@ def tratar_valores(escola, valores):
         repeticao_sobremesa = [valor for valor in valores if valor['nome_campo'] == 'repeticao_sobremesa']
         if repeticao_refeicao:
             valor_repeticao_refeicao = repeticao_refeicao[0]['valor']
-            valor_refeicao = [valor for valor in valores if valor['nome_campo'] == 'refeicao'][0]['valor']
+            obj_refeicao = [valor for valor in valores if valor['nome_campo'] == 'refeicao']
+            valor_refeicao = obj_refeicao[0]['valor'] if obj_refeicao else 0
             campos_refeicao = ['refeicao', 'repeticao_refeicao']
             valores = [valor for valor in valores if valor['nome_campo'] not in campos_refeicao]
             valores.append({
@@ -495,7 +496,8 @@ def tratar_valores(escola, valores):
             })
         if repeticao_sobremesa:
             valor_repeticao_sobremesa = repeticao_sobremesa[0]['valor']
-            valor_sobremesa = [valor for valor in valores if valor['nome_campo'] == 'sobremesa'][0]['valor']
+            obj_sobremesa = [valor for valor in valores if valor['nome_campo'] == 'sobremesa']
+            valor_sobremesa = obj_sobremesa[0]['valor'] if obj_sobremesa else 0
             campos_sobremesa = ['sobremesa', 'repeticao_sobremesa']
             valores = [valor for valor in valores if valor['nome_campo'] not in campos_sobremesa]
             valores.append({
