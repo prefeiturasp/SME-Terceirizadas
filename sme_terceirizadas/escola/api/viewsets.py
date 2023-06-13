@@ -21,7 +21,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_UE,
     COGESTOR_DRE
 )
-from ...dados_comuns.permissions import UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
+from ...dados_comuns.permissions import UsuarioCODAEGestaoAlimentacao, UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
@@ -353,7 +353,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
         })
 
     @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes',
-            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional])
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def inclusao_continua_por_mes(self, request):
         try:
             for param in ['mes', 'ano']:
@@ -365,7 +365,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             primeiro_dia_mes = datetime.date(int(ano), int(mes), 1)
             ultimo_dia_mes = get_ultimo_dia_mes(primeiro_dia_mes)
             instituicao = request.user.vinculo_atual.instituicao
-            if(isinstance(instituicao, DiretoriaRegional) and escola):
+            if((isinstance(instituicao, DiretoriaRegional) or isinstance(instituicao, Codae)) and escola):
                 instituicao = Escola.objects.get(uuid=escola)
             periodos = dict(InclusaoAlimentacaoContinua.objects.filter(
                 status='CODAE_AUTORIZADO',
