@@ -5,17 +5,17 @@ from celery import shared_task
 from config import celery
 from django.template.loader import render_to_string
 
-from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow
-from ..dados_comuns.models import Notificacao
-from ..dados_comuns.tasks import envia_email_em_massa_task
-from ..dados_comuns.utils import (
+from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow
+from sme_terceirizadas.dados_comuns.models import Notificacao
+from sme_terceirizadas.dados_comuns.tasks import envia_email_em_massa_task
+from sme_terceirizadas.dados_comuns.utils import (
     atualiza_central_download,
     atualiza_central_download_com_erro,
     gera_objeto_na_central_download
 )
-from ..logistica.models.guia import Guia
-from ..perfil.models import Usuario
-from ..relatorios.relatorios import relatorio_guia_de_remessa
+from sme_terceirizadas.logistica.models.guia import Guia
+from sme_terceirizadas.perfil.models import Usuario
+from sme_terceirizadas.relatorios.relatorios import relatorio_guia_de_remessa
 from .api.helpers import (
     retorna_dados_normalizados_excel_entregas_distribuidor,
     retorna_dados_normalizados_excel_visao_dilog,
@@ -36,17 +36,24 @@ def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
     for guia in guias.all():
         if guia.escola:
             email_query_set_escola = guia.escola.vinculos.filter(
-                ativo=True
+                ativo=True,
+                data_inicial__isnull=False,
+                data_final__isnull=True
             ).values_list('usuario__email', flat=True)
 
             vinculos = guia.escola.vinculos.filter(
-                ativo=True
+                ativo=True,
+                data_inicial__isnull=False,
+                data_final__isnull=True
             )
 
             qs_codae = Usuario.objects.filter(
                 vinculos__perfil__nome__in=(
                     'COORDENADOR_CODAE_DILOG_LOGISTICA',
-                )
+                ),
+                vinculos__ativo=True,
+                vinculos__data_inicial__isnull=False,
+                vinculos__data_final__isnull=True,
             )
 
             partes_interessadas = [email for email in email_query_set_escola] + [usuario.email for usuario in qs_codae]
@@ -93,14 +100,19 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
     for guia in guias.all():
         if guia.escola:
             vinculos = guia.escola.vinculos.filter(
-                ativo=True
+                ativo=True,
+                data_inicial__isnull=False,
+                data_final__isnull=True
             )
             email_query_set_escola = vinculos.values_list('usuario__email', flat=True)
 
             qs_codae = Usuario.objects.filter(
                 vinculos__perfil__nome__in=(
                     'COORDENADOR_CODAE_DILOG_LOGISTICA',
-                )
+                ),
+                vinculos__ativo=True,
+                vinculos__data_inicial__isnull=False,
+                vinculos__data_final__isnull=True,
             )
 
             partes_interessadas = [email for email in email_query_set_escola] + [usuario.email for usuario in qs_codae]
