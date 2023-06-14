@@ -632,12 +632,26 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)
                 ).filter(Q(id_amigavel__icontains=titulo) | Q(produto__nome__icontains=titulo))
             filtros_params = cria_filtro_homologacao_produto_por_parametros(request_data)
+            query_set_nao_homologados = query_set.filter(status='CODAE_NAO_HOMOLOGADO').filter(
+                **filtros_params).distinct()
             query_set = query_set.filter(**filtros).filter(**filtros_params).distinct()
             if request_data.get('data_homologacao'):
+                query_set_nao_homologados = [
+                    hom_produto for hom_produto in query_set_nao_homologados
+                    if hom_produto.logs.filter(
+                        status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO
+                    ).exists() and hom_produto.logs.filter(
+                        status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO
+                    ).first().criado_em.date() <= datetime.strptime(
+                        request_data.get('data_homologacao'), '%d/%m/%Y').date() < hom_produto.logs.filter(
+                        status_evento=LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO).first().criado_em.date()
+                ]
                 query_set = [
                     hom_produto for hom_produto in query_set
-                    if hom_produto.produto.data_homologacao.date() <= datetime.strptime(
+                    if hom_produto.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO
+                                               ).first().criado_em.date() <= datetime.strptime(
                         request_data.get('data_homologacao'), '%d/%m/%Y').date()]
+                query_set = query_set + query_set_nao_homologados
             query_set = sorted(query_set, key=lambda x: x.produto.data_homologacao or x.produto.criado_em, reverse=True)
 
         return query_set
