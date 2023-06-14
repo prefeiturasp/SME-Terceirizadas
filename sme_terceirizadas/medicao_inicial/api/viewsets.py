@@ -310,19 +310,10 @@ class SolicitacaoMedicaoInicialViewSet(
                 'status': medicao.status.name,
                 'logs': LogSolicitacoesUsuarioSerializer(medicao.logs.all(), many=True).data
             })
-        ORDEM_PERIODOS_GRUPOS = {
-            'MANHA': 1,
-            'TARDE': 2,
-            'INTEGRAL': 3,
-            'NOITE': 4,
-            'VESPERTINO': 5,
-            'Programas e Projetos': 6,
-            'Solicitações de Alimentação': 7,
-            'ETEC': 8
-        }
 
-        return Response({'results': sorted(retorno, key=lambda k: ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},
-                        status=status.HTTP_200_OK)
+        return Response({
+            'results': sorted(retorno, key=lambda k: constants.ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},
+            status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path='quantidades-alimentacoes-lancadas-periodo-grupo',
             permission_classes=[UsuarioEscolaTercTotal])
