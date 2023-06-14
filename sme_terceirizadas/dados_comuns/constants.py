@@ -217,6 +217,18 @@ TIPO_SOLICITACAO_DIETA = {'COMUM': 'COMUM',
                           'ALUNO_NAO_MATRICULADO': 'ALUNO_NAO_MATRICULADO'}
 
 
+ORDEM_PERIODOS_GRUPOS = {
+    'MANHA': 1,
+    'TARDE': 2,
+    'INTEGRAL': 3,
+    'NOITE': 4,
+    'VESPERTINO': 5,
+    'Programas e Projetos': 6,
+    'Solicitações de Alimentação': 7,
+    'ETEC': 8
+}
+
+
 class StatusProcessamentoArquivo(Enum):
     PENDENTE = 'PENDENTE'
     SUCESSO = 'SUCESSO'
