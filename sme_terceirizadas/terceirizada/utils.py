@@ -14,19 +14,19 @@ MAPEAMENTO_STATUS_LABEL = {'CODAE_AUTORIZOU_RECLAMACAO': 'RECLAMACAO_DE_PRODUTO'
 
 SQL_RELATORIO_QUANTITATIVO = """
     SELECT terceirizada_terceirizada.nome_fantasia nome_terceirizada,
-       produto_homologacaodoproduto.status,
+       produto_HomologacaoProduto.status,
        count(*)
     FROM django_content_type,
          perfil_vinculo,
          perfil_usuario,
-         produto_homologacaodoproduto,
+         produto_HomologacaoProduto,
          produto_produto,
          terceirizada_terceirizada
     WHERE perfil_vinculo.content_type_id = django_content_type.id
       AND terceirizada_terceirizada.id = object_id
       AND perfil_vinculo.usuario_id = perfil_usuario.id
       AND produto_produto.criado_por_id = perfil_usuario.id
-      AND produto_homologacaodoproduto.produto_id = produto_produto.id
+      AND produto_HomologacaoProduto.produto_id = produto_produto.id
       AND django_content_type.app_label = 'terceirizada'
       AND django_content_type.model = 'terceirizada'
       AND status != 'HOMOLOGACAO_INATIVA'
@@ -113,7 +113,10 @@ def transforma_dados_relatorio_quantitativo(dados):  # noqa C901
             qtde = status_e_qtde['qtde']
             total_produtos_terceirizada += qtde
             total_produtos += qtde
-            qtde_por_status[MAPEAMENTO_STATUS_LABEL[status_e_qtde['status']]] += qtde
+            try:
+                qtde_por_status[MAPEAMENTO_STATUS_LABEL[status_e_qtde['status']]] += qtde
+            except Exception:
+                pass
         relatorio.append({
             'nomeTerceirizada': dados_terceirizada['nome_terceirizada'],
             'qtdePorStatus': qtde_por_status,
