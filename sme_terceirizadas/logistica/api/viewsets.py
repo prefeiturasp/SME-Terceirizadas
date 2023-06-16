@@ -21,19 +21,23 @@ from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, Sol
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaCriarNotificacaoDeGuiasComOcorrencias,
     PermissaoParaListarEntregas,
+    PermissaoParaVisualizarGuiasComOcorrencias,
     UsuarioCodaeDilog,
     UsuarioDilog,
     UsuarioDilogOuDistribuidor,
     UsuarioDilogOuDistribuidorOuEscolaAbastecimento,
     UsuarioDistribuidor,
-    UsuarioEscolaAbastecimento
+    UsuarioEscolaAbastecimento,
+    ViewSetActionPermissionMixin
 )
 from sme_terceirizadas.eol_servico.utils import EOLPapaService
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaComOcorrenciaCreateSerializer,
     ConferenciaDaGuiaCreateSerializer,
     InsucessoDeEntregaGuiaCreateSerializer,
+    NotificacaoOcorrenciasCreateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
@@ -44,6 +48,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     ConferenciaDaGuiaSerializer,
     ConferenciaIndividualPorAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
+    GuiaDaRemessaComOcorrenciasSerializer,
     GuiaDaRemessaCompletaSerializer,
     GuiaDaRemessaComStatusRequisicaoSerializer,
     GuiaDaRemessaLookUpSerializer,
@@ -51,6 +56,8 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
     InsucessoDeEntregaGuiaSerializer,
+    NotificacaoOcorrenciasGuiaSerializer,
+    NotificacaoOcorrenciasGuiaSimplesSerializer,
     SolicitacaoDeAlteracaoSerializer,
     SolicitacaoDeAlteracaoSimplesSerializer,
     SolicitacaoRemessaContagemGuiasSerializer,
@@ -61,7 +68,11 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
 )
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
-from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
+from sme_terceirizadas.logistica.models import (
+    NotificacaoOcorrenciasGuia,
+    SolicitacaoDeAlteracaoRequisicao,
+    SolicitacaoRemessa
+)
 from sme_terceirizadas.logistica.services import (
     arquiva_guias,
     confirma_cancelamento,
@@ -76,7 +87,7 @@ from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
 from ..tasks import gera_pdf_async, gera_xlsx_async, gera_xlsx_entregas_async
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
-from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
+from .filters import GuiaFilter, NotificacaoFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import valida_guia_conferencia, valida_guia_insucesso
 from .validators import eh_true_ou_false
 
@@ -631,6 +642,33 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro: {e}', status=False),
                             status=HTTP_404_NOT_FOUND)
 
+    @action(detail=False, methods=['GET'],
+            url_path='guias-com-ocorrencias-sem-notificacao',
+            permission_classes=(PermissaoParaVisualizarGuiasComOcorrencias,))
+    def lista_guias_com_ocorrencias_sem_notificacao(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.annotate(
+            nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
+        ).filter(
+            conferencias__conferencia_dos_alimentos__tem_ocorrencia=True,
+            notificacao__isnull=True
+        ).exclude(status__in=(
+            GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO,
+            GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA,
+            GuiaRemessaWorkFlow.CANCELADA)
+        ).order_by('-data_entrega').distinct()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = GuiaDaRemessaComOcorrenciasSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = GuiaDaRemessaComOcorrenciasSerializer(queryset, many=True)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias', permission_classes=(UsuarioCodaeDilog,))
     def vincula_guias_com_escolas(self, request):
         guias_desvinculadas = self.get_queryset().filter(escola=None)
@@ -890,3 +928,38 @@ class ConferenciaindividualModelViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
             return ConferenciaIndividualPorAlimentoSerializer
+
+
+class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = NotificacaoOcorrenciasGuia.objects.all()
+    serializer_class = NotificacaoOcorrenciasGuiaSerializer
+    permission_classes = (PermissaoParaVisualizarGuiasComOcorrencias,)
+    permission_action_classes = {
+        'create': [PermissaoParaCriarNotificacaoDeGuiasComOcorrencias]
+    }
+    pagination_class = GuiaPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = NotificacaoFilter
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return NotificacaoOcorrenciasGuiaSerializer
+        else:
+            return NotificacaoOcorrenciasCreateSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.annotate(
+            nome_empresa=F('empresa__nome_fantasia')
+        ).distinct()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = NotificacaoOcorrenciasGuiaSimplesSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = NotificacaoOcorrenciasGuiaSimplesSerializer(queryset, many=True)
+        return Response(serializer.data)

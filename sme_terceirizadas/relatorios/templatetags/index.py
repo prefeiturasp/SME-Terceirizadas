@@ -399,18 +399,7 @@ def get_dias(observacoes_tuple):
 
 @register.filter
 def formatar_observacoes(observacoes):
-    MAX_LINHAS_POR_PAGINA = 26
-    ORDEM_PERIODOS_GRUPOS = {
-        'MANHA': 1,
-        'TARDE': 2,
-        'INTEGRAL': 3,
-        'NOITE': 4,
-        'VESPERTINO': 5,
-        'Programas e Projetos - MANHA': 6,
-        'Programas e Projetos - TARDE': 7,
-        'Solicitações de Alimentação': 8,
-        'ETEC': 9
-    }
+    MAX_LINHAS_POR_PAGINA = 22
     observacoes_tuple = []
     for observacao in observacoes:
         obs_list = list(observacao)
@@ -426,7 +415,7 @@ def formatar_observacoes(observacoes):
     dias = get_dias(observacoes_tuple)
     for dia in dias:
         obs_filtradas_por_dia = tuple(filter(lambda obs: obs[0] == dia, observacoes_tuple))
-        obs_ordenadas_periodo_grupo = sorted(obs_filtradas_por_dia, key=lambda k: ORDEM_PERIODOS_GRUPOS[k[4]])
+        obs_ordenadas_periodo_grupo = sorted(obs_filtradas_por_dia, key=lambda k: constants.ORDEM_PERIODOS_GRUPOS[k[4]])
         [observacoes_ordenadas_corretamente.append(i) for i in obs_ordenadas_periodo_grupo]
     tabelas_observacoes = []
     i = 1

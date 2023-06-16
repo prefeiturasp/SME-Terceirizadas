@@ -6,6 +6,7 @@ from sme_terceirizadas.logistica.models import (
     ConferenciaGuia,
     Embalagem,
     Guia,
+    NotificacaoOcorrenciasGuia,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
     TipoEmbalagem
@@ -263,6 +264,19 @@ class GuiaDaRemessaComDistribuidorSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class GuiaDaRemessaComOcorrenciasSerializer(serializers.ModelSerializer):
+    nome_distribuidor = serializers.CharField()
+    status = serializers.CharField(source='get_status_display')
+    data_entrega = serializers.SerializerMethodField()
+
+    def get_data_entrega(self, obj):
+        return obj.data_entrega.strftime('%d/%m/%Y')
+
+    class Meta:
+        model = Guia
+        fields = ('uuid', 'numero_guia', 'status', 'data_entrega', 'nome_distribuidor')
+
+
 class InfoUnidadesSimplesDaGuiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
@@ -363,3 +377,19 @@ class GuiaDaRemessaCompletaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
         exclude = ('id',)
+
+
+class NotificacaoOcorrenciasGuiaSerializer(serializers.ModelSerializer):
+    guias_notificadas = GuiaLookUpSerializer(many=True)
+
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
+        exclude = ('id',)
+
+
+class NotificacaoOcorrenciasGuiaSimplesSerializer(serializers.ModelSerializer):
+    nome_empresa = serializers.CharField()
+
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
+        fields = ('numero', 'status', 'processo_sei', 'nome_empresa')

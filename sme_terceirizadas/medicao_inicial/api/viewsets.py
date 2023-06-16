@@ -1,3 +1,4 @@
+import datetime
 import json
 
 from django.db.models import QuerySet
@@ -5,6 +6,7 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
@@ -12,6 +14,7 @@ from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
+    UsuarioDiretorEscolaTercTotal,
     UsuarioDiretoriaRegional,
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin
@@ -46,6 +49,8 @@ from .serializers_create import (
     MedicaoCreateUpdateSerializer,
     SolicitacaoMedicaoInicialCreateSerializer
 )
+
+calendario = BrazilSaoPauloCity()
 
 
 class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
@@ -305,20 +310,10 @@ class SolicitacaoMedicaoInicialViewSet(
                 'status': medicao.status.name,
                 'logs': LogSolicitacoesUsuarioSerializer(medicao.logs.all(), many=True).data
             })
-        ORDEM_PERIODOS_GRUPOS = {
-            'MANHA': 1,
-            'TARDE': 2,
-            'INTEGRAL': 3,
-            'NOITE': 4,
-            'VESPERTINO': 5,
-            'Programas e Projetos - MANHA': 6,
-            'Programas e Projetos - TARDE': 7,
-            'Solicitações de Alimentação': 8,
-            'ETEC': 9
-        }
 
-        return Response({'results': sorted(retorno, key=lambda k: ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},
-                        status=status.HTTP_200_OK)
+        return Response({
+            'results': sorted(retorno, key=lambda k: constants.ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},
+            status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path='quantidades-alimentacoes-lancadas-periodo-grupo',
             permission_classes=[UsuarioEscolaTercTotal])
@@ -349,6 +344,7 @@ class SolicitacaoMedicaoInicialViewSet(
             retorno.append({
                 'nome_periodo_grupo': medicao.nome_periodo_grupo,
                 'status': medicao.status.name,
+                'justificativa': medicao.logs.last().justificativa if medicao.logs.last() else None,
                 'valores': valores,
                 'valor_total': sum(v['valor'] for v in valores)
             })
@@ -377,6 +373,22 @@ class SolicitacaoMedicaoInicialViewSet(
         solicitacao_medicao_inicial = self.get_object()
         try:
             solicitacao_medicao_inicial.dre_pede_correcao(user=request.user)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao-para-dre',
+            permission_classes=[UsuarioDiretorEscolaTercTotal])
+    def escola_corrige_medicao_para_dre(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            if solicitacao_medicao_inicial.status == SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE:
+                raise InvalidTransitionError('solicitação já está no status Corrigido para DRE')
+            solicitacao_medicao_inicial.ue_corrige(user=request.user)
+            ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
+            ).update(habilitado_correcao=False)
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -497,6 +509,38 @@ class MedicaoViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao',
+            permission_classes=[UsuarioEscolaTercTotal])
+    def escola_corrige_medicao(self, request, uuid=None):
+        medicao = self.get_object()
+        try:
+            for valor_medicao in request.data:
+                ValorMedicao.objects.filter(
+                    medicao=medicao,
+                    dia=valor_medicao.get('dia', ''),
+                    nome_campo=valor_medicao.get('nome_campo', ''),
+                    categoria_medicao=valor_medicao.get('categoria_medicao', '')
+                ).update(valor=valor_medicao.get('valor', ''))
+            medicao.ue_corrige(user=request.user)
+            serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='feriados-no-mes',
+            permission_classes=[UsuarioEscolaTercTotal])
+    def feriados_no_mes(self, request, uuid=None):
+        mes = request.query_params.get('mes', '')
+        ano = request.query_params.get('ano', '')
+
+        def formatar_data(data):
+            return datetime.date.strftime(data, '%d')
+
+        retorno = [
+            formatar_data(h[0]) for h in calendario.holidays() if h[0].month == int(mes) and h[0].year == int(ano)
+        ]
+        return Response({'results': retorno}, status=status.HTTP_200_OK)
 
 
 class OcorrenciaViewSet(

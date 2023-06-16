@@ -732,7 +732,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         mes = request.query_params.get('mes')
         ano = request.query_params.get('ano')
         date = datetime.date(int(ano), int(mes), 1)
-        nome_periodo_escolar = request.query_params.get('nome_periodo_escolar')
+        periodos_escolares = request.query_params.getlist('periodos_escolares[]')
 
         query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
         query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
@@ -765,7 +765,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         for inclusao in query_set:
             inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
             for periodo in inc.quantidades_periodo.all():
-                if periodo.periodo_escolar.nome == nome_periodo_escolar:
+                if periodo.periodo_escolar.nome in periodos_escolares:
                     if inclusao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
                         i = inclusao.data_evento.day
                         big_range = False

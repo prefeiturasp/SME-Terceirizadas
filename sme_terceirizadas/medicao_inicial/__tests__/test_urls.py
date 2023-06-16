@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import status
 
 from sme_terceirizadas.medicao_inicial.models import DiaSobremesaDoce
@@ -294,3 +296,162 @@ def test_url_endpoint_medicao_dashboard_codae_com_filtros(client_autenticado_coo
     assert response.json()['results'][6]['total'] == 0
     assert response.json()['results'][7]['status'] == 'TODOS_OS_LANCAMENTOS'
     assert response.json()['results'][7]['total'] == 4
+
+
+def test_url_escola_corrige_medicao_para_dre_sucesso(client_autenticado_da_escola,
+                                                     solicitacao_medicao_inicial_medicao_correcao_solicitada):
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_correcao_solicitada.uuid}/'
+        f'escola-corrige-medicao-para-dre/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_correcao_solicitada.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_correcao_solicitada.status ==
+            solicitacao_medicao_inicial_medicao_correcao_solicitada.workflow_class.MEDICAO_CORRIGIDA_PELA_UE)
+
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_correcao_solicitada.uuid}/'
+        f'escola-corrige-medicao-para-dre/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': 'Erro de transição de estado: solicitação já está no status Corrigido para DRE'
+    }
+
+
+def test_url_escola_corrige_medicao_para_dre_erro_transicao(client_autenticado_da_escola,
+                                                            solicitacao_medicao_inicial):
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial.uuid}/'
+        f'escola-corrige-medicao-para-dre/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'ue_corrige' isn't available from state "
+                  "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'."
+    }
+
+
+def test_url_escola_corrige_medicao_para_dre_erro_403(client_autenticado_diretoria_regional,
+                                                      solicitacao_medicao_inicial):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial.uuid}/'
+        f'escola-corrige-medicao-para-dre/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_dre_solicita_correcao_medicao(client_autenticado_diretoria_regional,
+                                           solicitacao_medicao_inicial_medicao_enviada_pela_ue):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue.uuid}/'
+        f'dre-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_enviada_pela_ue.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_enviada_pela_ue.status ==
+            solicitacao_medicao_inicial_medicao_enviada_pela_ue.workflow_class.MEDICAO_CORRECAO_SOLICITADA)
+
+
+def test_url_dre_solicita_correcao_medicao_erro_transicao(client_autenticado_diretoria_regional,
+                                                          solicitacao_medicao_inicial):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial.uuid}/'
+        f'dre-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'dre_pede_correcao' isn't available from state "
+                  "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'."
+    }
+
+
+def test_url_dre_solicita_correcao_medicao_erro_403(client_autenticado_da_escola,
+                                                    solicitacao_medicao_inicial_medicao_enviada_pela_ue):
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue.uuid}/'
+        f'dre-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_dre_solicita_correcao_ocorrencia(client_autenticado_diretoria_regional,
+                                              anexo_ocorrencia_medicao_inicial,
+                                              anexo_ocorrencia_medicao_inicial_status_inicial):
+    data = {'justificativa': 'TESTE JUSTIFICATIVA'}
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/ocorrencia/{anexo_ocorrencia_medicao_inicial.uuid}/dre-pede-correcao-ocorrencia/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['logs'][-1]['status_evento_explicacao'] == 'Correção solicitada'
+    assert response.data['logs'][-1]['justificativa'] == data['justificativa']
+
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/ocorrencia/{anexo_ocorrencia_medicao_inicial_status_inicial.uuid}'
+        f'/dre-pede-correcao-ocorrencia/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
+
+
+def test_url_dre_aprova_ocorrencia(client_autenticado_diretoria_regional,
+                                   anexo_ocorrencia_medicao_inicial,
+                                   anexo_ocorrencia_medicao_inicial_status_inicial):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/ocorrencia/{anexo_ocorrencia_medicao_inicial.uuid}/dre-aprova-ocorrencia/',
+        content_type='application/json',
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['logs'][-1]['status_evento_explicacao'] == 'Aprovado pela DRE'
+
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/ocorrencia/{anexo_ocorrencia_medicao_inicial_status_inicial.uuid}'
+        f'/dre-pede-correcao-ocorrencia/',
+        content_type='application/json',
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
+
+
+def test_url_ue_atualiza_ocorrencia(client_autenticado_da_escola,
+                                    sol_med_inicial_devolvida_para_ue,
+                                    anexo_ocorrencia_medicao_inicial_status_inicial):
+    solicitacao = sol_med_inicial_devolvida_para_ue
+    data = {'com_ocorrencias': 'false', 'justificativa': 'TESTE 1'}
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao.uuid}/ue-atualiza-ocorrencia/',
+        content_type='application/json',
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['com_ocorrencias'] is False
+    assert len(response.data['ocorrencia']['logs'][-1]['anexos']) == 0
+    assert response.data['ocorrencia']['logs'][-1]['status_evento_explicacao'] == 'Corrigido para DRE'
+
+    anexos = [
+        {'nome': '2.pdf', 'base64': 'data:application/pdf;base64,'},
+        {'nome': '1.xlsx', 'base64': 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,'}
+    ]
+    anexos_json_string = json.dumps(anexos)
+    data = {'com_ocorrencias': 'true', 'justificativa': 'TESTE 2', 'anexos': anexos_json_string}
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao.uuid}/ue-atualiza-ocorrencia/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['com_ocorrencias'] is True
+    assert len(response.data['ocorrencia']['logs'][-1]['anexos']) == 2
+    assert response.data['ocorrencia']['logs'][-1]['status_evento_explicacao'] == 'Corrigido para DRE'
+
+    solicitacao = anexo_ocorrencia_medicao_inicial_status_inicial.solicitacao_medicao_inicial
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao.uuid}/ue-atualiza-ocorrencia/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
