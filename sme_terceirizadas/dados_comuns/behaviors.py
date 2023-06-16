@@ -216,18 +216,17 @@ class TemPrioridade(object):
         minimo_dias_para_pedido = obter_dias_uteis_apos(hoje, PRIORITARIO)
         dias_uteis_limite_inferior = obter_dias_uteis_apos(hoje, LIMITE_INFERIOR)
         dias_uteis_limite_superior = obter_dias_uteis_apos(hoje, LIMITE_SUPERIOR)
-        dias_de_prazo_regular_em_diante = obter_dias_uteis_apos(hoje, REGULAR)
 
         if ultimo_dia_util and minimo_dias_para_pedido >= ultimo_dia_util >= hoje:
             descricao = 'PRIORITARIO'
         elif (
             ultimo_dia_util
             and dias_uteis_limite_superior
-            >= ultimo_dia_util
+            >= data_pedido
             >= dias_uteis_limite_inferior
         ):
             descricao = 'LIMITE'
-        elif ultimo_dia_util and ultimo_dia_util >= dias_de_prazo_regular_em_diante:
+        elif ultimo_dia_util and ultimo_dia_util >= dias_uteis_limite_superior:
             descricao = 'REGULAR'
         return descricao
 
