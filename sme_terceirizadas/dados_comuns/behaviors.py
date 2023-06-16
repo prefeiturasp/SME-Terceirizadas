@@ -6,7 +6,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
 
-from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, REGULAR, StatusProcessamentoArquivo
+from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, StatusProcessamentoArquivo
 from .models import LogSolicitacoesUsuario
 from .utils import eh_dia_util, obter_dias_uteis_apos, ordena_dias_semana_comeca_domingo
 
