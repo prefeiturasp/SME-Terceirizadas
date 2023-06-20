@@ -1,3 +1,4 @@
+import json
 from collections import Counter
 from datetime import datetime
 from itertools import chain
@@ -2159,12 +2160,15 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
         data = request.data.copy()
         uuid_homologacao = data.pop('homologacao_de_produto', None)
         data['homologacao_produto'] = uuid_homologacao
+        json_data = json.dumps(data['anexos'])
+        anexos = json.loads(json_data)
         serializer = self.get_serializer(data=data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         homologacao = HomologacaoProduto.objects.get(uuid=uuid_homologacao)
         data['homologacao_produto'] = homologacao
+
         try:
             serializer.create(data)
             justificativa = request.data.get('justificativa', '')
@@ -2178,11 +2182,11 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
                 reclamacao.terceirizada_responde_analise_sensorial(user=request.user, justificativa=justificativa)
                 # Assim a homologação volta a aparecer no card de aguardando análise reclamações.
                 homologacao.terceirizada_responde_analise_sensorial_da_reclamacao(
-                    user=request.user, justificativa=justificativa
+                    user=request.user, justificativa=justificativa, anexos=anexos
                 )
             else:
                 homologacao.terceirizada_responde_analise_sensorial(
-                    user=request.user, justificativa=justificativa
+                    user=request.user, justificativa=justificativa, anexos=anexos
                 )
             serializer.save()
 
