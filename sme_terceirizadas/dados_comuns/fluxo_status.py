@@ -1477,9 +1477,18 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
-                                  usuario=user,
-                                  justificativa=justificativa)
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+            usuario=user,
+            justificativa=justificativa
+        )
+        for anexo in kwargs.get('anexos', []):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
 
     @xworkflows.after_transition('terceirizada_responde_analise_sensorial_da_reclamacao')
     def _terceirizada_responde_analise_sensorial_da_reclamacao_hook(self, *args, **kwargs):
