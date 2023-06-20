@@ -5,6 +5,7 @@ from rest_framework import serializers
 from ...dados_comuns.utils import remove_tags_html_from_string
 from ...kit_lanche.api.serializers.serializers import EscolaQuantidadeSerializerSimples
 from ..models import SolicitacoesCODAE
+from ..utils import get_dias_inclusao
 
 
 class SolicitacoesSerializer(serializers.ModelSerializer):
@@ -86,6 +87,12 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
 
     def get_observacoes(self, obj):
         model_obj = obj.get_raw_model.objects.get(uuid=obj.uuid)
+        if obj.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI']:
+            dias = get_dias_inclusao(obj, model_obj)
+            if model_obj.status == 'ESCOLA_CANCELOU':
+                return ', '.join(['cancelado' for dia in dias])
+            if model_obj.existe_dia_cancelado:
+                return ', '.join(['cancelado' if dia.cancelado else 'autorizado' for dia in dias])
         if hasattr(model_obj, 'observacao'):
             return remove_tags_html_from_string(model_obj.observacao) if model_obj.observacao else None
         elif hasattr(model_obj, 'observacoes'):

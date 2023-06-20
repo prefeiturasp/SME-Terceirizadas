@@ -52,3 +52,10 @@ def tratar_data_evento_final_no_mes(data_evento_final_no_mes, sol_escola, big_ra
     else:
         retorno = data_evento_final_no_mes
     return retorno
+
+
+def get_dias_inclusao(obj, model_obj):
+    if obj.tipo_doc == 'INC_ALIMENTA_CEI':
+        return model_obj.dias_motivos_da_inclusao_cei.all()
+    else:
+        return model_obj.dias_motivos_da_inclusao_cemei.all()

@@ -532,8 +532,14 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             dias_motivos_da_inclusao_cei.append({
                 'motivo': inclusao_cei.motivo.nome,
                 'data': inclusao_cei.data,
+                'cancelado': inclusao_cei.cancelado,
+                'cancelado_justificativa': inclusao_cei.cancelado_justificativa
             })
         return dias_motivos_da_inclusao_cei
+
+    @property
+    def existe_dia_cancelado(self):
+        return self.dias_motivos_da_inclusao_cei.all().filter(cancelado=True).exists()
 
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         periodos_externos = self.quantidade_alunos_por_faixas_etarias.values_list(
@@ -552,7 +558,9 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
             'label_data': label_data,
             'data_log': data_log,
             'periodos_externos': periodos_externos,
-            'id_externo': self.id_externo
+            'id_externo': self.id_externo,
+            'existe_dia_cancelado': self.existe_dia_cancelado,
+            'status': self.status
         }
 
     def periodos_da_solicitacao(self, nivel_interno, nome_coluna):
@@ -654,8 +662,14 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
             dias_motivos_da_inclusao_cemei.append({
                 'motivo': inclusao_cemei.motivo.nome,
                 'data': inclusao_cemei.data,
+                'cancelado': inclusao_cemei.cancelado,
+                'cancelado_justificativa': inclusao_cemei.cancelado_justificativa
             })
         return dias_motivos_da_inclusao_cemei
+
+    @property
+    def existe_dia_cancelado(self):
+        return self.dias_motivos_da_inclusao_cemei.all().filter(cancelado=True).exists()
 
     @property
     def quantidades_alunos_simples_dict(self):
@@ -731,7 +745,9 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
             'label_data': label_data,
             'data_log': data_log,
             'datas': self.datas,
-            'id_externo': self.id_externo
+            'id_externo': self.id_externo,
+            'existe_dia_cancelado': self.existe_dia_cancelado,
+            'status': self.status
         }
 
     def __str__(self):
