@@ -767,6 +767,7 @@ class DataIntervaloAlteracaoCardapio(CanceladoIndividualmente, CriadoEm, TemData
     class Meta:
         verbose_name = 'Data do intervalo de Alteração de cardápio'
         verbose_name_plural = 'Datas do intervalo de Alteração de cardápio'
+        ordering = ('data',)
 
 
 class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substituicao_alimentacao_periodo_escolar'),

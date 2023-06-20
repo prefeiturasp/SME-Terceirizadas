@@ -527,6 +527,23 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
 
         return alteracao_cardapio
 
+    def update(self, instance, validated_data):
+        instance.substituicoes.all().delete()
+        instance.datas_intervalo.all().delete()
+
+        if 'status' in validated_data:
+            validated_data.pop('status')
+
+        validated_data['criado_por'] = self.context['request'].user
+        substituicoes = validated_data.pop('substituicoes')
+        datas_intervalo = validated_data.pop('datas_intervalo', [])
+        update_instance_from_dict(instance, validated_data)
+
+        self.criar_substituicoes(substituicoes, instance)
+        self.criar_datas_intervalo(datas_intervalo, instance)
+
+        return instance
+
     class Meta:
         model = AlteracaoCardapio
         serializer_substituicao = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate

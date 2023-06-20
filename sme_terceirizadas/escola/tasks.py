@@ -15,16 +15,22 @@ from sme_terceirizadas.dados_comuns.utils import (
 from sme_terceirizadas.escola.utils_escola import atualiza_codigo_codae_das_escolas, atualiza_tipo_gestao_das_escolas
 from sme_terceirizadas.perfil.models.perfil import Vinculo
 
-from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, InversaoCardapio
+from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, AlteracaoCardapioCEMEI, InversaoCardapio
 from ..dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..escola.models import AlunosMatriculadosPeriodoEscola, FaixaEtaria, TipoTurma
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
-    InclusaoAlimentacaoDaCEI
+    InclusaoAlimentacaoDaCEI,
+    InclusaoDeAlimentacaoCEMEI
 )
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..kit_lanche.models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheUnificada
+)
 from ..paineis_consolidados.models import SolicitacoesDRE
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_file
@@ -112,15 +118,20 @@ def nega_solicitacoes_vencidas():
         SolicitacaoKitLancheAvulsa,
         SolicitacaoKitLancheCEIAvulsa,
         SolicitacaoKitLancheUnificada,
+        SolicitacaoKitLancheCEMEI,
         GrupoInclusaoAlimentacaoNormal,
         InclusaoAlimentacaoContinua,
         InclusaoAlimentacaoDaCEI,
+        InclusaoDeAlimentacaoCEMEI,
         AlteracaoCardapio,
         AlteracaoCardapioCEI,
+        AlteracaoCardapioCEMEI,
         InversaoCardapio]
 
     for classe_solicitacao in classes_solicitacoes:
         solicitacoes = classe_solicitacao.objects.filter(uuid__in=uuids_solicitacoes_dre_a_validar)
+        if classe_solicitacao == AlteracaoCardapio:
+            solicitacoes = solicitacoes.exclude(motivo__nome='Lanche Emergencial')
         for solicitacao in solicitacoes.all():
             vinculo_dre = Vinculo.objects.filter(
                 object_id=solicitacao.escola.diretoria_regional.id,
