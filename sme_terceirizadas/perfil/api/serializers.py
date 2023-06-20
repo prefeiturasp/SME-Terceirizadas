@@ -562,7 +562,8 @@ class RedefinirSenhaSerializer(serializers.ModelSerializer):
             if 'token' in validated_data:
                 retorno = instance.atualiza_senha(senha=validated_data['senha'], token=validated_data['token'])
                 if retorno is False:
-                    return Response({'detail': 'Token inválido'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'detail': 'O Link para o reset de senha já foi utilizado/é inválido. '
+                                               'É necessário gerar um novo link.'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 checa_senha(instance, validated_data['senha_atual'])
                 instance.atualiza_senha_sem_token(validated_data['senha'])

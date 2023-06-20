@@ -400,7 +400,7 @@ class ProtocoloSimplesSerializer(serializers.ModelSerializer):
 
 class HomologacaoProdutoSerializer(serializers.ModelSerializer):
     produto = ProdutoSerializer()
-    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    logs = LogSolicitacoesUsuarioComAnexosSerializer(many=True)
     rastro_terceirizada = TerceirizadaSimplesSerializer()
     ultima_analise = AnaliseSensorialSerializer()
 
