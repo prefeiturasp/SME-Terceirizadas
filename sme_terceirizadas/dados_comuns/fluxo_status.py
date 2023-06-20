@@ -1737,6 +1737,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
             # vez de date
             data_do_evento = data_do_evento.date()
         eh_alteracao_lanche_emergencial = (isinstance(self, AlteracaoCardapio) and
+                                           self.motivo and
                                            self.motivo.nome == 'Lanche Emergencial')
         if (eh_alteracao_lanche_emergencial or
                 (data_do_evento > dia_antecedencia and self.status != self.workflow_class.ESCOLA_CANCELOU)):
@@ -1958,7 +1959,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         from sme_terceirizadas.cardapio.models import AlteracaoCardapio
         if (self.foi_solicitado_fora_do_prazo and
             self.status != PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO):  # noqa #129
-            if (isinstance(self, AlteracaoCardapio) and self.motivo.nome == 'Lanche Emergencial'):
+            if isinstance(self, AlteracaoCardapio) and self.motivo.nome == 'Lanche Emergencial':
                 return
             raise xworkflows.InvalidTransitionError(
                 f'CODAE não pode autorizar direto caso seja em cima da hora, deve questionar')
