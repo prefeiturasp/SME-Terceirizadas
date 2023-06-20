@@ -452,7 +452,8 @@ class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA]
+                    usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                          ADMINISTRADOR_CODAE_DILOG_JURIDICO]
                 ) or
                 usuario.eh_distribuidor or
                 (
