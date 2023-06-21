@@ -323,6 +323,9 @@ class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
     def vincula_guias_a_notificacao(self, guias, notificacao):
         Guia.objects.filter(uuid__in=guias).update(notificacao=notificacao)
 
+    def desvincula_guias_a_notificacao(self, guias):
+        Guia.objects.filter(uuid__in=guias).update(notificacao=None)
+
     def cria_previsoes(self, previsoes, notificacao):
         for previsao in previsoes:
             PrevisaoContratualNotificacao.objects.create(
@@ -362,6 +365,19 @@ class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
 
         return notificacao
 
+    def update(self, instance, validated_data):
+        previsoes = validated_data.pop('previsoes', [])
+        guias = validated_data.pop('guias', [])
+
+        guias_notificadas = [guia.uuid for guia in instance.guias_notificadas.all()]
+        self.desvincula_guias_a_notificacao(guias_notificadas)
+        instance.previsoes_contratuais.all().delete()
+
+        self.vincula_guias_a_notificacao(guias, instance)
+        self.cria_previsoes(previsoes, instance)
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        return instance
 
 class NotificacaoOcorrenciasUpdateRascunhoSerializer(serializers.ModelSerializer):
     def vincula_guias_a_notificacao(self, guias, notificacao):
