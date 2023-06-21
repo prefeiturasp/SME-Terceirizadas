@@ -17,7 +17,11 @@ from rest_framework.status import (
 )
 from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    GuiaRemessaWorkFlow,
+    NotificacaoOcorrenciaWorkflow,
+    SolicitacaoRemessaWorkFlow
+)
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import (
@@ -963,3 +967,12 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
 
         serializer = NotificacaoOcorrenciasGuiaSimplesSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['PUT'], url_path='edicao-rascunho')
+    def edicao_rascunho(self, request, uuid):
+        instance = self.get_object()
+        if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
+            return super().update(request)
+        else:
+            return Response(dict(detail=f'Erro de transição de estado: Status da Notificação não é RASCUNHO'),
+                            status=HTTP_400_BAD_REQUEST)
