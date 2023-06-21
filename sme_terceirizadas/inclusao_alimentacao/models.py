@@ -183,7 +183,7 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
                 'cancelado_justificativa': quantidade_periodo.cancelado_justificativa
             })
         return qtd_periodo
-    
+
     @property
     def existe_periodo_cancelado(self):
         return self.quantidades_periodo.all().filter(cancelado=True).exists()
@@ -373,7 +373,7 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
                 'tipos_alimentacao': tipos_alimentacao
             })
         return quantidades_periodo
-    
+
     @property
     def existe_dia_cancelado(self):
         return self.inclusoes_normais.all().filter(cancelado=True).exists()
