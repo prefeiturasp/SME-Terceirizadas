@@ -42,6 +42,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaDaGuiaCreateSerializer,
     InsucessoDeEntregaGuiaCreateSerializer,
     NotificacaoOcorrenciasCreateSerializer,
+    NotificacaoOcorrenciasUpdateRascunhoSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
@@ -972,7 +973,10 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
     def edicao_rascunho(self, request, uuid):
         instance = self.get_object()
         if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
-            return super().update(request)
+            serializer = NotificacaoOcorrenciasUpdateRascunhoSerializer()
+            validated_data = serializer.validate(request.data, instance)
+            res = serializer.update(instance, validated_data)
+            return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
         else:
             return Response(dict(detail=f'Erro de transição de estado: Status da Notificação não é RASCUNHO'),
                             status=HTTP_400_BAD_REQUEST)
