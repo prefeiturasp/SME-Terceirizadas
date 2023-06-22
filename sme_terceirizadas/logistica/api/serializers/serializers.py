@@ -13,6 +13,7 @@ from sme_terceirizadas.logistica.models import (
 )
 from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
+from sme_terceirizadas.terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 
 
 class EmbalagemSerializer(serializers.ModelSerializer):
@@ -381,6 +382,7 @@ class GuiaDaRemessaCompletaSerializer(serializers.ModelSerializer):
 
 class NotificacaoOcorrenciasGuiaSerializer(serializers.ModelSerializer):
     guias_notificadas = GuiaLookUpSerializer(many=True)
+    empresa = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = NotificacaoOcorrenciasGuia
@@ -392,4 +394,4 @@ class NotificacaoOcorrenciasGuiaSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NotificacaoOcorrenciasGuia
-        fields = ('numero', 'status', 'processo_sei', 'nome_empresa')
+        fields = ('uuid', 'numero', 'status', 'processo_sei', 'nome_empresa')

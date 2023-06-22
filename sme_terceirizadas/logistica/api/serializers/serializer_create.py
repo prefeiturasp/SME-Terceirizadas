@@ -378,6 +378,10 @@ class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
         update_instance_from_dict(instance, validated_data, save=True)
 
         return instance
+    
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
+        exclude = ('id', )
 
 class NotificacaoOcorrenciasUpdateRascunhoSerializer(serializers.ModelSerializer):
     def vincula_guias_a_notificacao(self, guias, notificacao):
