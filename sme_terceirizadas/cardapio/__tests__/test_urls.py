@@ -553,8 +553,8 @@ def test_url_endpoint_alt_card_inicio_403(client_autenticado_vinculo_dre_cardapi
     assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
 
 
-def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
-                                     tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar):
+def test_url_endpoint_alt_card_criar_update(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio,
+                                            escola, tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar):
     hoje = datetime.date.today()
     if hoje.month == 12 and hoje.day in [29, 30, 31]:
         return
@@ -573,12 +573,22 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
     assert resp_json['escola'] == str(alteracao_substituicoes_params['escola'])
     assert resp_json['motivo'] == str(alteracao_substituicoes_params['motivo'])
 
+    assert len(resp_json['datas_intervalo']) == 3
+
     substituicao = resp_json['substituicoes'][0]
     payload_substituicao = alteracao_substituicoes_params['substituicoes'][0]
     assert substituicao['periodo_escolar'] == str(payload_substituicao['periodo_escolar'])
     assert substituicao['tipos_alimentacao_de'][0] == str(payload_substituicao['tipos_alimentacao_de'][0])
     assert substituicao['tipos_alimentacao_para'][0] == str(payload_substituicao['tipos_alimentacao_para'][0])
     assert substituicao['qtd_alunos'] == 10
+
+    response_update = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{resp_json["uuid"]}/',
+        content_type='application/json',
+        data=json.dumps(alteracao_substituicoes_params)
+    )
+    assert response_update.status_code == status.HTTP_200_OK
+    assert len(resp_json['datas_intervalo']) == 3
 
 
 def test_url_endpoint_alterar_tipos_alimentacao(client_autenticado_vinculo_escola_cardapio,
@@ -712,6 +722,32 @@ def test_url_endpoint_alt_card_escola_cancela(client_autenticado_vinculo_escola_
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Erro de transição de estado: Já está cancelada'}
+
+
+@freeze_time('2019-10-1')
+def test_url_endpoint_alt_card_escola_cancela_datas_intervalo(
+        client_autenticado_vinculo_escola_cardapio, alteracao_cardapio_com_datas_intervalo):
+    data = {'datas': [i.data.strftime('%Y-%m-%d') for i in
+                      alteracao_cardapio_com_datas_intervalo.datas_intervalo.all()[:1]]}
+    response = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_com_datas_intervalo.uuid}/{constants.ESCOLA_CANCELA}/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    alteracao_cardapio_com_datas_intervalo.refresh_from_db()
+    assert alteracao_cardapio_com_datas_intervalo.status == 'DRE_A_VALIDAR'
+
+    data = {'datas': [i.data.strftime('%Y-%m-%d') for i in
+                      alteracao_cardapio_com_datas_intervalo.datas_intervalo.all()[1:]]}
+    response = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_com_datas_intervalo.uuid}/{constants.ESCOLA_CANCELA}/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    alteracao_cardapio_com_datas_intervalo.refresh_from_db()
+    assert alteracao_cardapio_com_datas_intervalo.status == 'ESCOLA_CANCELOU'
 
 
 def test_url_endpoint_alt_card_dre_valida_error(client_autenticado_vinculo_dre_cardapio, alteracao_cardapio):

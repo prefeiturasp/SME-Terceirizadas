@@ -178,9 +178,15 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
                 'dias_semana': dias_semana,
                 'tipos_alimentacao': tipos_alimentacao,
                 'numero_alunos': quantidade_periodo.numero_alunos,
-                'observacao': quantidade_periodo.observacao
+                'observacao': quantidade_periodo.observacao,
+                'cancelado': quantidade_periodo.cancelado,
+                'cancelado_justificativa': quantidade_periodo.cancelado_justificativa
             })
         return qtd_periodo
+
+    @property
+    def existe_periodo_cancelado(self):
+        return self.quantidades_periodo.all().filter(cancelado=True).exists()
 
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
@@ -197,7 +203,9 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
             'quantidades_periodo': self.quantidades_periodo_simples_dict,
             'label_data': label_data,
             'data_log': data_log,
-            'id_externo': self.id_externo
+            'id_externo': self.id_externo,
+            'existe_periodo_cancelado': self.existe_periodo_cancelado,
+            'status': self.status
         }
 
     def __str__(self):
@@ -348,7 +356,9 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
             inclusoes.append({
                 'motivo': inclusao.motivo.nome,
                 'outro_motivo': inclusao.outro_motivo,
-                'data': inclusao.data
+                'data': inclusao.data,
+                'cancelado': inclusao.cancelado,
+                'cancelado_justificativa': inclusao.cancelado_justificativa
             })
         return inclusoes
 
@@ -364,6 +374,10 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
             })
         return quantidades_periodo
 
+    @property
+    def existe_dia_cancelado(self):
+        return self.inclusoes_normais.all().filter(cancelado=True).exists()
+
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
@@ -378,7 +392,9 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
             'label_data': label_data,
             'data_log': data_log,
             'datas': self.datas,
-            'id_externo': self.id_externo
+            'id_externo': self.id_externo,
+            'existe_dia_cancelado': self.existe_dia_cancelado,
+            'status': self.status
         }
 
     def __str__(self):
