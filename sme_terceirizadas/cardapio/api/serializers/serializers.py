@@ -38,6 +38,7 @@ from ...models import (
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
+from .serializers_create import DatasIntervaloAlteracaoCardapioSerializerCreateSerializer
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -323,6 +324,7 @@ class AlteracaoCardapioSerializerBase(serializers.ModelSerializer):
 
 class AlteracaoCardapioSerializer(AlteracaoCardapioSerializerBase):
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(many=True)
+    datas_intervalo = DatasIntervaloAlteracaoCardapioSerializerCreateSerializer(many=True)
     rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:

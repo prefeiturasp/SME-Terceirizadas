@@ -4,6 +4,7 @@ from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (  # noqa I101
     Ativavel,
+    CanceladoIndividualmente,
     CriadoEm,
     CriadoPor,
     Descritivel,
@@ -751,6 +752,22 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
     class Meta:
         verbose_name = 'Alteração de cardápio'
         verbose_name_plural = 'Alterações de cardápio'
+
+
+class DataIntervaloAlteracaoCardapio(CanceladoIndividualmente, CriadoEm, TemData, TemChaveExterna,
+                                     TemIdentificadorExternoAmigavel):
+    alteracao_cardapio = models.ForeignKey('AlteracaoCardapio',
+                                           on_delete=models.CASCADE,
+                                           related_name='datas_intervalo')
+
+    def __str__(self):
+        return (f'Data {self.data} da Alteração de cardápio #{self.alteracao_cardapio.id_externo} de '
+                f'{self.alteracao_cardapio.data_inicial} - {self.alteracao_cardapio.data_inicial}')
+
+    class Meta:
+        verbose_name = 'Data do intervalo de Alteração de cardápio'
+        verbose_name_plural = 'Datas do intervalo de Alteração de cardápio'
+        ordering = ('data',)
 
 
 class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substituicao_alimentacao_periodo_escolar'),

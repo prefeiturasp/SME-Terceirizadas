@@ -1724,6 +1724,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         self.save()
 
     def cancelar_pedido(self, user, justificativa):
+        from sme_terceirizadas.cardapio.models import AlteracaoCardapio
         """O objeto que herdar de FluxoAprovacaoPartindoDaEscola, deve ter um property data.
 
         Dado dias de antecedencia de prazo, verifica se pode e altera o estado
@@ -1735,8 +1736,11 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
             # TODO: verificar por que os models estao retornando datetime em
             # vez de date
             data_do_evento = data_do_evento.date()
-
-        if (data_do_evento > dia_antecedencia) and (self.status != self.workflow_class.ESCOLA_CANCELOU):
+        eh_alteracao_lanche_emergencial = (isinstance(self, AlteracaoCardapio) and
+                                           self.motivo and
+                                           self.motivo.nome == 'Lanche Emergencial')
+        if (eh_alteracao_lanche_emergencial or
+                (data_do_evento > dia_antecedencia and self.status != self.workflow_class.ESCOLA_CANCELOU)):
             self.status = self.workflow_class.ESCOLA_CANCELOU
 
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
@@ -1955,7 +1959,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         from sme_terceirizadas.cardapio.models import AlteracaoCardapio
         if (self.foi_solicitado_fora_do_prazo and
             self.status != PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO):  # noqa #129
-            if (isinstance(self, AlteracaoCardapio) and self.motivo.nome == 'Lanche Emergencial'):
+            if isinstance(self, AlteracaoCardapio) and self.motivo.nome == 'Lanche Emergencial':
                 return
             raise xworkflows.InvalidTransitionError(
                 f'CODAE não pode autorizar direto caso seja em cima da hora, deve questionar')
