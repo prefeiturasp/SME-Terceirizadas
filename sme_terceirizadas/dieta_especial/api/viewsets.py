@@ -38,7 +38,7 @@ from ...relatorios.relatorios import (
     relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas,
     relatorio_quantitativo_solic_dieta_especial
 )
-from ...terceirizada.models import Contrato
+from ...terceirizada.models import Contrato, Edital
 from ..forms import (
     NegaDietaEspecialForm,
     PanoramaForm,
@@ -1109,6 +1109,34 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
                                                           editais__uuid__in=editais_uuid)
         response = {'results': ProtocoloPadraoDietaEspecialSimplesSerializer(protocolos_liberados, many=True).data}
         return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-protocolos-liberados-por-edital')
+    def lista_protocolos_liberados_por_edital(self, request):
+        edital_uuid = request.query_params.get('edital_uuid', None)
+        protocolos_liberados = self.get_queryset().filter(status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO,
+                                                          editais__uuid__in=[edital_uuid])
+        response = {'results': ProtocoloPadraoDietaEspecialSimplesSerializer(protocolos_liberados, many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['PUT'], url_path='atualizar-editais')
+    def atualizar_editais(self, request):
+        protocolos_padrao = request.data.get('protocolos_padrao', None)
+        editais_destino = request.data.get('editais_destino', None)
+        outras_informacoes = request.data.get('outras_informacoes', '')
+
+        if protocolos_padrao and editais_destino:
+            editais = Edital.objects.filter(uuid__in=editais_destino)
+            protocolos = self.get_queryset().filter(uuid__in=protocolos_padrao)
+            for protocolo in protocolos:
+                protocolo.outras_informacoes = outras_informacoes
+                protocolo.editais.add(*editais)
+                protocolo.save()
+            return Response({'results': 'Protacolos relacionados com sucesso.'}, status=status.HTTP_200_OK)
+        if not protocolos_padrao:
+            return Response({'results': 'É necessário selecionar um Protocolo Padrão.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if not editais_destino:
+            return Response({'results': 'É necessário selecionar um Edital.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogQuantidadeDietasAutorizadasViewSet(mixins.ListModelMixin, GenericViewSet):
