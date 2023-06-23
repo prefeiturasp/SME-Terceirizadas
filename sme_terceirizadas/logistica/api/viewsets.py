@@ -17,7 +17,11 @@ from rest_framework.status import (
 )
 from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    GuiaRemessaWorkFlow,
+    NotificacaoOcorrenciaWorkflow,
+    SolicitacaoRemessaWorkFlow
+)
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import (
@@ -38,6 +42,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaDaGuiaCreateSerializer,
     InsucessoDeEntregaGuiaCreateSerializer,
     NotificacaoOcorrenciasCreateSerializer,
+    NotificacaoOcorrenciasUpdateRascunhoSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
@@ -658,6 +663,10 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
             GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA,
             GuiaRemessaWorkFlow.CANCELADA)
         ).order_by('-data_entrega').distinct()
+        if request.query_params.get('notificacao_uuid'):
+            queryset_guias_do_numero = GuiasDasRequisicoes.objects.filter(
+                notificacao__uuid=request.query_params.get('notificacao_uuid')).distinct()
+            queryset = queryset | queryset_guias_do_numero
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = GuiaDaRemessaComOcorrenciasSerializer(page, many=True)
@@ -963,3 +972,15 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
 
         serializer = NotificacaoOcorrenciasGuiaSimplesSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['PUT'], url_path='edicao-rascunho')
+    def edicao_rascunho(self, request, uuid):
+        instance = self.get_object()
+        if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
+            serializer = NotificacaoOcorrenciasUpdateRascunhoSerializer()
+            validated_data = serializer.validate(request.data, instance)
+            res = serializer.update(instance, validated_data)
+            return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
+        else:
+            return Response(dict(detail=f'Erro de transição de estado: Status da Notificação não é RASCUNHO'),
+                            status=HTTP_400_BAD_REQUEST)
