@@ -337,6 +337,14 @@ class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
                 {'guias': ['Este campo é obrigatório.']}
             )
         existe_guia_notificada = Guia.objects.filter(uuid__in=guias, notificacao__isnull=False)
+
+        instance = getattr(self, 'instance', None)
+
+        if instance:
+            guias_atuais = set(instance.guias_notificadas.all())
+            guias_novas = set(existe_guia_notificada)
+            existe_guia_notificada = list(guias_novas - guias_atuais)
+
         if existe_guia_notificada:
             raise serializers.ValidationError(
                 {'guias': ['Existem uma ou mais guias que já estão notificadas.']}
@@ -353,6 +361,45 @@ class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
         self.cria_previsoes(previsoes, notificacao)
 
         return notificacao
+
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
+        exclude = ('id', )
+
+
+class NotificacaoOcorrenciasUpdateRascunhoSerializer(serializers.ModelSerializer):
+    def vincula_guias_a_notificacao(self, guias, notificacao):
+        Guia.objects.filter(uuid__in=guias).update(notificacao=notificacao)
+
+    def desvincula_guias_a_notificacao(self, guias):
+        Guia.objects.filter(uuid__in=guias).update(notificacao=None)
+
+    def validate(self, attrs, instance):
+        guias = attrs.get('guias', None)
+        if not guias:
+            raise serializers.ValidationError(
+                {'guias': ['Este campo é obrigatório.']}
+            )
+        existe_guia_notificada = Guia.objects.filter(uuid__in=guias, notificacao__isnull=False)
+
+        guias_atuais = set(instance.guias_notificadas.all())
+        guias_novas = set(existe_guia_notificada)
+        existe_guia_notificada = list(guias_novas - guias_atuais)
+
+        if existe_guia_notificada:
+            raise serializers.ValidationError(
+                {'guias': ['Existem uma ou mais guias que já estão notificadas.']}
+            )
+        return attrs
+
+    def update(self, instance, validated_data):
+        guias = validated_data.pop('guias', [])
+
+        guias_notificadas = [guia.uuid for guia in instance.guias_notificadas.all()]
+        self.desvincula_guias_a_notificacao(guias_notificadas)
+        self.vincula_guias_a_notificacao(guias, instance)
+
+        return instance
 
     class Meta:
         model = NotificacaoOcorrenciasGuia
