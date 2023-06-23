@@ -361,6 +361,10 @@ class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
         self.cria_previsoes(previsoes, notificacao)
 
         return notificacao
+    
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
+        exclude = ('id', )
 
 
 class NotificacaoOcorrenciasUpdateRascunhoSerializer(serializers.ModelSerializer):
