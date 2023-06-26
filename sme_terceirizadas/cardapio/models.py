@@ -678,6 +678,10 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
         return self.substituicoes_periodo_escolar
 
     @property
+    def inclusoes(self):
+        return self.datas_intervalo
+
+    @property
     def tipo(self):
         return 'Alteração do Tipo de Alimentação'
 
