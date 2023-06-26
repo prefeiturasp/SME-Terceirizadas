@@ -229,7 +229,7 @@
     {% include "bloco_observacoes.html" %}
   </div>
   <div class="row mx-5">
-    {% if solicitacao.status != 'ESCOLA_CANCELOU' %}
+    {% if solicitacao.status == 'ESCOLA_CANCELOU' %}
       {% include "bloco_historico_cancelamento.html" %}
     {% endif %}
   </div>
