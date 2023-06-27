@@ -1413,10 +1413,18 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _codae_recusou_reclamacao_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        self.salvar_log_transicao(
-            status_evento=LogSolicitacoesUsuario.CODAE_RECUSOU_RECLAMACAO,
-            justificativa=justificativa,
-            usuario=user)
+
+        if kwargs['suspensao_parcial']:
+            self.salva_log_com_justificativa_e_anexos(
+                LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS,
+                kwargs['request'],
+                justificativa
+            )
+        else:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.CODAE_RECUSOU_RECLAMACAO,
+                justificativa=justificativa,
+                usuario=user)
 
     @xworkflows.after_transition('terceirizada_inativa')
     def _inativa_homologacao_hook(self, *args, **kwargs):
@@ -2784,6 +2792,7 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
                           AGUARDANDO_ANALISE_SENSORIAL,
                           ANALISE_SENSORIAL_RESPONDIDA,
                           AGUARDANDO_RESPOSTA_UE,
+                          AGUARDANDO_RESPOSTA_NUTRISUPERVISOR,
                           RESPONDIDO_UE], CODAE_RECUSOU),
         ('codae_responde', [AGUARDANDO_AVALIACAO,
                             ANALISE_SENSORIAL_RESPONDIDA,
