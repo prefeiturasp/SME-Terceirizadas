@@ -142,6 +142,11 @@ def substituicoes(alimentos, produtos):
 
 
 @pytest.fixture
+def edital():
+    return mommy.make('Edital', uuid='b7b6a0a7-b230-4783-94b6-8d3d22041ab3', numero='edital-teste-1')
+
+
+@pytest.fixture
 def payload_autorizar(alergias_intolerancias, classificacoes_dieta, substituicoes, protocolo_padrao_dieta_especial):
     return {
         'classificacao': classificacoes_dieta[0].id,
@@ -533,11 +538,13 @@ def protocolo_padrao_dieta_especial():
 
 @pytest.fixture
 def protocolo_padrao_dieta_especial_2():
+    edital = mommy.make('Edital', uuid='60f5a64e-8652-422d-a6e9-0a36717829c9', numero='edital-teste-2')
     return mommy.make(
         'ProtocoloPadraoDietaEspecial',
         nome_protocolo='ALERGIA A ABACAXI',
         status='LIBERADO',
-        orientacoes_gerais='Orientação Geral'
+        orientacoes_gerais='Orientação Geral',
+        editais=[edital]
     )
 
 
