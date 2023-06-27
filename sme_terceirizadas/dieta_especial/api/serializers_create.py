@@ -349,6 +349,8 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
         return protocolo_padrao
 
     def update(self, instance, validated_data): # noqa C901
+        new_editais = validated_data.get('editais')
+        new_editais = Edital.objects.filter(uuid__in=new_editais)
         editais = validated_data.pop('editais')
         nome_protocolo = validated_data['nome_protocolo']
         protocolos = Edital.objects.check_editais_already_has_nome_protocolo(
@@ -357,9 +359,6 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
             protocolos = protocolos.exclude(uuid__in=list(instance.editais.values_list('uuid', flat=True)))
         if (protocolos):
             edital_ja_existe_protocolo(protocolos, len(editais))
-        instance.editais.clear()
-        if editais and len(editais):
-            instance.editais.set(Edital.objects.filter(uuid__in=editais))
 
         substituicoes = validated_data.pop('substituicoes')
 
@@ -368,7 +367,12 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and hasattr(request, 'user'):
             user = request.user
-        log_update(instance, validated_data, instance.substituicoes, substituicoes, user)
+
+        log_update(instance, validated_data, instance.substituicoes, substituicoes, new_editais, instance.editais, user)
+
+        instance.editais.clear()
+        if editais and len(editais):
+            instance.editais.set(Edital.objects.filter(uuid__in=editais))
 
         instance.substituicoes.all().delete()
         update_instance_from_dict(instance, validated_data, save=True)
