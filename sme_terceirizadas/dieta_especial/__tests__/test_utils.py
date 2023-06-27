@@ -1,9 +1,8 @@
 import pytest
 
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
-from ..models import SolicitacaoDietaEspecial
 from ...terceirizada.models import Edital
-
+from ..models import SolicitacaoDietaEspecial
 from ..utils import dietas_especiais_a_terminar, termina_dietas_especiais
 
 
