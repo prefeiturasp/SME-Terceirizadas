@@ -1,3 +1,4 @@
+import json
 import uuid as uuid_generator
 from copy import deepcopy
 from datetime import date, datetime
@@ -1118,16 +1119,59 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         response = {'results': ProtocoloPadraoDietaEspecialSimplesSerializer(protocolos_liberados, many=True).data}
         return Response(response)
 
+    def criar_historico_editais(self, protocolo, validated_data):
+        historico = {}
+        changes = []
+
+        outras_informacoes = validated_data.get('outras_informacoes')
+
+        editais_antes = protocolo.editais.all()
+        editais_depois = Edital.objects.filter(uuid__in=validated_data.get('editais_destino', []))
+        soma_todos_editais = editais_antes | editais_depois
+        diferenca = editais_antes.difference(editais_depois)
+
+        if diferenca and diferenca.count() > 1:
+            changes.append({
+                'field': 'editais',
+                'from': [edital.numero for edital in editais_antes.order_by('numero')],
+                'to': [edital.numero for edital in soma_todos_editais.distinct().order_by('numero')]
+            })
+
+        if ((protocolo.outras_informacoes != outras_informacoes) and (outras_informacoes != '')):
+            changes.append({
+                'field': 'outras informacoes',
+                'from': protocolo.outras_informacoes,
+                'to': outras_informacoes
+            })
+
+        if changes and len(changes) > 0:
+            historico['updated_at'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+            historico['user'] = {'uuid': str(self.request.user.uuid), 'email': self.request.user.email}
+            historico['action'] = 'UPDATE'
+            historico['changes'] = changes
+        return historico
+
     @action(detail=False, methods=['PUT'], url_path='atualizar-editais')
     def atualizar_editais(self, request):
         protocolos_padrao = request.data.get('protocolos_padrao', None)
         editais_destino = request.data.get('editais_destino', None)
         outras_informacoes = request.data.get('outras_informacoes', '')
 
+        validated_data = {
+            'editais_destino': editais_destino,
+            'outras_informacoes': outras_informacoes
+        }
+
         if protocolos_padrao and editais_destino:
             editais = Edital.objects.filter(uuid__in=editais_destino)
             protocolos = self.get_queryset().filter(uuid__in=protocolos_padrao)
             for protocolo in protocolos:
+                historico = self.criar_historico_editais(protocolo, validated_data)
+                if len(historico) > 0:
+                    hist = json.loads(protocolo.historico) if protocolo.historico else []
+                    hist.append(historico)
+                    protocolo.historico = json.dumps(hist)
+
                 protocolo.outras_informacoes = outras_informacoes
                 protocolo.editais.add(*editais)
                 protocolo.save()
