@@ -731,6 +731,10 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             })
         return substituicoes
 
+    @property
+    def existe_dia_cancelado(self):
+        return self.datas_intervalo.filter(cancelado=True).exists()
+
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
@@ -738,6 +742,7 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             'terceirizada': self.rastro_terceirizada,
             'tipo_doc': 'Alteração do tipo de Alimentação',
             'data_evento': self.data,
+            'datas_intervalo': self.datas_intervalo,
             'numero_alunos': self.numero_alunos,
             'motivo': self.motivo.nome,
             'data_inicial': self.data_inicial,
@@ -747,7 +752,8 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             'substituicoes': self.substituicoes_dict,
             'label_data': label_data,
             'data_log': data_log,
-            'id_externo': self.id_externo
+            'id_externo': self.id_externo,
+            'status': self.status
         }
 
     def __str__(self):
