@@ -612,7 +612,8 @@ class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
             'orientacoes_gerais',
             'substituicoes',
             'editais',
-            'historico'
+            'historico',
+            'outras_informacoes'
         )
 
     def get_historico(self, obj):
