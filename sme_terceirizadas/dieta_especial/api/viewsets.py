@@ -1128,9 +1128,9 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         editais_antes = protocolo.editais.all()
         editais_depois = Edital.objects.filter(uuid__in=validated_data.get('editais_destino', []))
         soma_todos_editais = editais_antes | editais_depois
-        diferenca = editais_antes.difference(editais_depois)
+        diferenca = soma_todos_editais.distinct().difference(editais_antes)
 
-        if diferenca and diferenca.count() > 1:
+        if diferenca and diferenca.count() > 0:
             changes.append({
                 'field': 'editais',
                 'from': [edital.numero for edital in editais_antes.order_by('numero')],
@@ -1146,8 +1146,13 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
 
         if changes and len(changes) > 0:
             historico['updated_at'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-            historico['user'] = {'uuid': str(self.request.user.uuid), 'email': self.request.user.email}
-            historico['action'] = 'UPDATE'
+            historico['user'] = {
+                'uuid': str(self.request.user.uuid),
+                'email': self.request.user.email,
+                'nome': self.request.user.nome,
+                'username': self.request.user.username
+            }
+            historico['action'] = 'UPDATE_VINCULOS'
             historico['changes'] = changes
         return historico
 

@@ -300,7 +300,8 @@ def log_create(protocolo_padrao, user=None):
     historico = {}
 
     historico['created_at'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-    historico['user'] = {'uuid': str(user.uuid), 'email': user.email} if user else user
+    historico['user'] = {'uuid': str(user.uuid), 'email': user.email,
+                         'username': user.username, 'nome': user.nome} if user else user
     historico['action'] = 'CREATE'
 
     editais = []
@@ -350,7 +351,8 @@ def log_update(instance, validated_data, substituicoes_old, substituicoes_new, n
 
     if changes:
         historico['updated_at'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-        historico['user'] = {'uuid': str(user.uuid), 'email': user.email} if user else user
+        historico['user'] = {'uuid': str(user.uuid), 'email': user.email,
+                             'username': user.username, 'nome': user.nome} if user else user
         historico['action'] = 'UPDATE'
         historico['changes'] = changes
 
