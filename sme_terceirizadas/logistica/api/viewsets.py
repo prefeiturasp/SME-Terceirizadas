@@ -983,7 +983,7 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
         if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
             serializer = NotificacaoOcorrenciasUpdateRascunhoSerializer()
             validated_data = serializer.validate(request.data, instance)
-            res = serializer.update(instance, validated_data, '1')
+            res = serializer.update(instance, validated_data)
             return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
         else:
             return Response(dict(detail=f'Erro de transição de estado: Status da Notificação não é RASCUNHO'),
@@ -999,7 +999,8 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
     def criar_notificacao(self, request, uuid):
         usuario = request.user
         instance = self.get_object()
-        res = self.atualiza_notificacao(instance, request)
+        serializer = NotificacaoOcorrenciasUpdateSerializer()
+        res = serializer.update(instance, request.data)
         if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
             instance.cria_notificacao(user=usuario)
         return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
