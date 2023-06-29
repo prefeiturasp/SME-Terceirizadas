@@ -38,7 +38,7 @@ class GuiaManager(models.Manager):
 
 class NotificacaoOcorrenciasGuia(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoNotificacaoOcorrencia):
     numero = models.CharField('Número da Notificação', blank=True, max_length=50, unique=True)
-    processo_sei = models.CharField('Nº do Processo SEI', max_length=20, null=True)
+    processo_sei = models.CharField('Nº do Processo SEI', max_length=20, blank=True, default='')
     empresa = models.ForeignKey(
         Terceirizada, on_delete=models.PROTECT, blank=True, null=True, related_name='notificacoes')
 
