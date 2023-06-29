@@ -665,6 +665,10 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
             GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA,
             GuiaRemessaWorkFlow.CANCELADA)
         ).order_by('-data_entrega').distinct()
+        if request.query_params.get('notificacao_uuid'):
+            queryset_guias_do_numero = GuiasDasRequisicoes.objects.filter(
+                notificacao__uuid=request.query_params.get('notificacao_uuid')).distinct()
+            queryset = queryset | queryset_guias_do_numero
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = GuiaDaRemessaComOcorrenciasSerializer(page, many=True)

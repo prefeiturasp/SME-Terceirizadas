@@ -314,6 +314,22 @@ def alteracao_cardapio(escola, template_mensagem_alteracao_cardapio):
 
 
 @pytest.fixture
+def alteracao_cardapio_com_datas_intervalo(escola, template_mensagem_alteracao_cardapio):
+    alteracao = mommy.make(AlteracaoCardapio,
+                           escola=escola,
+                           observacao='teste',
+                           data_inicial=datetime.date(2019, 10, 4),
+                           data_final=datetime.date(2019, 10, 6),
+                           rastro_escola=escola,
+                           rastro_dre=escola.diretoria_regional,
+                           status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR)
+    mommy.make('DataIntervaloAlteracaoCardapio', data='2019-10-04', alteracao_cardapio=alteracao)
+    mommy.make('DataIntervaloAlteracaoCardapio', data='2019-10-05', alteracao_cardapio=alteracao)
+    mommy.make('DataIntervaloAlteracaoCardapio', data='2019-10-06', alteracao_cardapio=alteracao)
+    return alteracao
+
+
+@pytest.fixture
 def alteracao_cardapio_cei(escola, template_mensagem_alteracao_cardapio):
     return mommy.make(AlteracaoCardapioCEI,
                       escola=escola,
@@ -618,6 +634,7 @@ def alteracao_substituicoes_params(request, daqui_dez_dias_ou_ultimo_dia_do_ano)
     data_inicial, data_final = request.param
     return {'observacao': '<p>teste</p>\n',
             'motivo': str(motivo.uuid),
+            'status': 'DRE_A VALIDAR',
             'alterar_dia': daqui_dez_dias_ou_ultimo_dia_do_ano.isoformat(),
             'quantidades_periodo_TARDE': {'numero_de_alunos': '30'},
             'eh_alteracao_com_lanche_repetida': False,
@@ -626,6 +643,7 @@ def alteracao_substituicoes_params(request, daqui_dez_dias_ou_ultimo_dia_do_ano)
                                'tipos_alimentacao_de': [str(alimentacao1.uuid), str(alimentacao2.uuid)],
                                'tipos_alimentacao_para': [str(alimentacao3.uuid)],
                                'qtd_alunos': 10}],
+            'datas_intervalo': [{'data': '2019-10-17'}, {'data': '2019-10-18'}, {'data': '2019-10-19'}],
             'data_inicial': daqui_dez_dias_ou_ultimo_dia_do_ano.isoformat(),
             'data_final': daqui_dez_dias_ou_ultimo_dia_do_ano.isoformat()}
 

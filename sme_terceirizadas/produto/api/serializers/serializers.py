@@ -831,6 +831,22 @@ class ProdutoSuspensoSerializer(ProdutoBaseSerializer):
                   'ultima_homologacao', 'criado_em', 'vinculos_produto_edital')
 
 
+class VinculosProdutosEditalAtivosSerializer(ProdutoBaseSerializer):
+    vinculos_produto_edital = serializers.SerializerMethodField()
+
+    def get_vinculos_produto_edital(self, obj):
+        return ProdutoEditalSerializer(
+            ProdutoEdital.objects.filter(
+                produto=obj,
+                suspenso=False
+            ), many=True
+        ).data
+
+    class Meta:
+        model = Produto
+        fields = ('vinculos_produto_edital',)
+
+
 class ItensCadastroSerializer(serializers.ModelSerializer):
     nome = serializers.SerializerMethodField()
     tipo_display = serializers.SerializerMethodField()

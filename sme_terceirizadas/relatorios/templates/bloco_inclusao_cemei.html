@@ -35,13 +35,13 @@
   {% if solicitacao.existe_dia_cancelado %}
     <tr>
       <td colspan="6">
-        <div class="row mx-2">
+        <div class="row mx-4">
           <b>Histórico de cancelamento:</b>
         </div>
         {% for dia_inclusao in solicitacao.dias_motivos_da_inclusao_cemei %}
           {% if dia_inclusao.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}
             {% if dia_inclusao.cancelado_justificativa %}
-              <div class="mx-2 cancelado_justificativa">
+              <div class="mx-4">
                 <p class="cancelado_justificativa">
                   {{ dia_inclusao.data|formatar_data_solicitacoes_alimentacao }} - justificativa: {{ dia_inclusao.cancelado_justificativa }}
                 </p>

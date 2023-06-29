@@ -107,7 +107,8 @@ from .serializers.serializers import (
     ReclamacaoDeProdutoSimplesSerializer,
     SolicitacaoCadastroProdutoDietaSerializer,
     SubstitutosSerializer,
-    UnidadeMedidaSerialzer
+    UnidadeMedidaSerialzer,
+    VinculosProdutosEditalAtivosSerializer
 )
 from .serializers.serializers_create import (
     CadastroProdutosEditalCreateSerializer,
@@ -291,6 +292,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 qs = qs.filter(status='CODAE_HOMOLOGADO',
                                produto__vinculos__suspenso=False,
                                produto__vinculos__edital__numero=edital)
+            else:
+                qs = qs.filter(status='CODAE_HOMOLOGADO', produto__vinculos__suspenso=False)
         else:
             qs = qs.filter(status=workflow).distinct().all()
         return qs
@@ -1011,6 +1014,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         )
         justificativa += '<br><p>Editais suspensos:</p>'
         justificativa += f'<p>{numeros_editais_para_justificativa}</p>'
+
         try:
             vinculos_produto_edital.filter(edital__uuid__in=editais_para_suspensao_ativacao).update(
                 suspenso=True,
@@ -1179,6 +1183,17 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         else:
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['get'],
+            url_path=constants.VINCULOS_ATIVOS_PRODUTO_EDITAL)
+    def homologacao_produtos_vinculos_ativos_editais(self, request, uuid=None):  # noqa C901
+        homologacao_produto = self.get_object()
+        produto = homologacao_produto.produto
+        serializer = VinculosProdutosEditalAtivosSerializer(
+            produto).data
+        return Response(serializer)
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
@@ -2221,6 +2236,24 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    def update_analise_sensorial_status(self, analises_sensoriais, status):
+        if analises_sensoriais:
+            for analise_sensorial in analises_sensoriais:
+                analise_sensorial.status = status
+                analise_sensorial.save()
+
+    def quantidade_reclamacoes_ativas(self, reclamacao_produto):
+        quantidade_reclamacoes_ativas = reclamacao_produto.homologacao_produto.reclamacoes.filter(
+            status__in=[
+                ReclamacaoProdutoWorkflow.AGUARDANDO_AVALIACAO,
+                ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+                ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA,
+                ReclamacaoProdutoWorkflow.AGUARDANDO_ANALISE_SENSORIAL,
+                ReclamacaoProdutoWorkflow.ANALISE_SENSORIAL_RESPONDIDA,
+            ]
+        )
+        return quantidade_reclamacoes_ativas.count()
+
     @action(detail=True,
             permission_classes=[UsuarioCODAEGestaoProduto],
             methods=['patch'],
@@ -2228,38 +2261,57 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
     def codae_aceita(self, request, uuid=None):
         reclamacao_produto = self.get_object()
         usuario = request.user
+        editais_para_suspensao = request.data.get('editais_para_suspensao', '')
         anexos = request.data.get('anexos', [])
         justificativa = request.data.get('justificativa', '')
-
         vinculos_produto_edital = reclamacao_produto.homologacao_produto.produto.vinculos.all()
         numeros_editais_para_justificativa = ', '.join(
             vinculos_produto_edital.values_list('edital__numero', flat=True)
         )
         justificativa += '<br><p>Editais suspensos:</p>'
         justificativa += f'<p>{numeros_editais_para_justificativa}</p>'
+        try:
+            vinculos_produto_edital.filter(edital__uuid__in=editais_para_suspensao).update(
+                suspenso=True,
+                suspenso_justificativa=justificativa,
+                suspenso_em=datetime.now(),
+                suspenso_por=usuario
+            )
+            analises_sensoriais = reclamacao_produto.homologacao_produto.analises_sensoriais.filter(
+                status=AnaliseSensorial.STATUS_AGUARDANDO_RESPOSTA).all()
 
-        vinculos_produto_edital.update(
-            suspenso=True,
-            suspenso_justificativa=justificativa,
-            suspenso_em=datetime.now(),
-            suspenso_por=usuario
-        )
+            if vinculos_produto_edital.filter(suspenso=False):
+                resposta = self.muda_status_com_justificativa_e_anexo(
+                    request,
+                    reclamacao_produto.codae_recusa)
 
-        reclamacao_produto.homologacao_produto.codae_autorizou_reclamacao(
-            user=request.user,
-            anexos=anexos,
-            justificativa=justificativa
-        )
-        analises_sensoriais = reclamacao_produto.homologacao_produto.analises_sensoriais.filter(
-            status=AnaliseSensorial.STATUS_AGUARDANDO_RESPOSTA).all()
-        if analises_sensoriais:
-            for analise_sensorial in analises_sensoriais:
-                analise_sensorial.status = AnaliseSensorial.STATUS_RESPONDIDA
-                analise_sensorial.save()
+                reclamacoes_ativas = self.quantidade_reclamacoes_ativas(reclamacao_produto)
 
-        return self.muda_status_com_justificativa_e_anexo(
-            request,
-            reclamacao_produto.codae_aceita)
+                if reclamacoes_ativas == 0:
+                    reclamacao_produto.homologacao_produto.codae_recusou_reclamacao(
+                        user=request.user,
+                        justificativa=justificativa,
+                        request=request,
+                        suspensao_parcial=True
+                    )
+                analises_sensoriais = reclamacao_produto.homologacao_produto.analises_sensoriais.filter(
+                    status=AnaliseSensorial.STATUS_AGUARDANDO_RESPOSTA).all()
+
+                self.update_analise_sensorial_status(analises_sensoriais, AnaliseSensorial.STATUS_RESPONDIDA)
+                return resposta
+            else:
+                reclamacao_produto.homologacao_produto.codae_autorizou_reclamacao(
+                    user=request.user,
+                    anexos=anexos,
+                    justificativa=justificativa
+                )
+                self.update_analise_sensorial_status(analises_sensoriais, AnaliseSensorial.STATUS_RESPONDIDA)
+                return self.muda_status_com_justificativa_e_anexo(
+                    request,
+                    reclamacao_produto.codae_aceita)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
             permission_classes=[UsuarioCODAEGestaoProduto],
@@ -2271,16 +2323,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         resposta = self.muda_status_com_justificativa_e_anexo(
             request,
             reclamacao_produto.codae_recusa)
-        reclamacoes_ativas = reclamacao_produto.homologacao_produto.reclamacoes.filter(
-            status__in=[
-                ReclamacaoProdutoWorkflow.AGUARDANDO_AVALIACAO,
-                ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
-                ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA,
-                ReclamacaoProdutoWorkflow.AGUARDANDO_ANALISE_SENSORIAL,
-                ReclamacaoProdutoWorkflow.ANALISE_SENSORIAL_RESPONDIDA,
-            ]
-        )
-        if reclamacoes_ativas.count() == 0:
+        reclamacoes_ativas = self.quantidade_reclamacoes_ativas
+        if reclamacoes_ativas == 0:
             reclamacao_produto.homologacao_produto.codae_recusou_reclamacao(
                 user=request.user,
                 justificativa=request.data.get('justificativa') or 'Recusa automática por não haver mais reclamações'
@@ -2288,10 +2332,7 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
 
         analises_sensoriais = reclamacao_produto.homologacao_produto.analises_sensoriais.filter(
             status=AnaliseSensorial.STATUS_AGUARDANDO_RESPOSTA).all()
-        if analises_sensoriais:
-            for analise_sensorial in analises_sensoriais:
-                analise_sensorial.status = AnaliseSensorial.STATUS_RESPONDIDA
-                analise_sensorial.save()
+        self.update_analise_sensorial_status(analises_sensoriais, AnaliseSensorial.STATUS_RESPONDIDA)
         return resposta
 
     @action(detail=True,

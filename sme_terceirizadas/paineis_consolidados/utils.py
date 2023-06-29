@@ -55,7 +55,10 @@ def tratar_data_evento_final_no_mes(data_evento_final_no_mes, sol_escola, big_ra
 
 
 def get_dias_inclusao(obj, model_obj):
-    if obj.tipo_doc == 'INC_ALIMENTA_CEI':
-        return model_obj.dias_motivos_da_inclusao_cei.all()
-    else:
-        return model_obj.dias_motivos_da_inclusao_cemei.all()
+    objects = {
+        'ALT_CARDAPIO': 'datas_intervalo',
+        'INC_ALIMENTA': 'inclusoes_normais',
+        'INC_ALIMENTA_CEI': 'dias_motivos_da_inclusao_cei',
+        'INC_ALIMENTA_CEMEI': 'dias_motivos_da_inclusao_cemei',
+    }
+    return getattr(model_obj, objects[obj.tipo_doc]).all()

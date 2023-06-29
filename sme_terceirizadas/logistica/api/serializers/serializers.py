@@ -56,15 +56,20 @@ class GuiaSerializer(serializers.ModelSerializer):
 class GuiaLookUpSerializer(serializers.ModelSerializer):
     alimentos = AlimentoLookUpSerializer(many=True)
     status = serializers.SerializerMethodField()
+    nome_distribuidor = serializers.SerializerMethodField()
 
     def get_status(self, obj):
         return obj.get_status_display()
+
+    def get_nome_distribuidor(self, obj):
+        return obj.notificacao.empresa.nome_fantasia if obj.notificacao and obj.notificacao.empresa else None
 
     class Meta:
         model = Guia
         fields = ('uuid', 'numero_guia', 'data_entrega', 'codigo_unidade', 'nome_unidade', 'endereco_unidade',
                   'numero_unidade', 'bairro_unidade', 'bairro_unidade', 'cep_unidade', 'cidade_unidade',
-                  'estado_unidade', 'contato_unidade', 'telefone_unidade', 'alimentos', 'status', 'situacao')
+                  'estado_unidade', 'contato_unidade', 'telefone_unidade', 'alimentos', 'status', 'situacao',
+                  'nome_distribuidor')
 
 
 class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
@@ -275,7 +280,7 @@ class GuiaDaRemessaComOcorrenciasSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Guia
-        fields = ('uuid', 'numero_guia', 'status', 'data_entrega', 'nome_distribuidor')
+        fields = ('uuid', 'numero_guia', 'status', 'data_entrega', 'nome_distribuidor', 'notificacao')
 
 
 class InfoUnidadesSimplesDaGuiaSerializer(serializers.ModelSerializer):
@@ -383,6 +388,9 @@ class GuiaDaRemessaCompletaSerializer(serializers.ModelSerializer):
 class NotificacaoOcorrenciasGuiaSerializer(serializers.ModelSerializer):
     guias_notificadas = GuiaLookUpSerializer(many=True)
     empresa = TerceirizadaSimplesSerializer()
+
+    def get_empresa(self, obj):
+        return {'uuid': obj.empresa.uuid, 'nome': obj.empresa.nome_fantasia}
 
     class Meta:
         model = NotificacaoOcorrenciasGuia
