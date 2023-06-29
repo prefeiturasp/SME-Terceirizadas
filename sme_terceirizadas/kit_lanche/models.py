@@ -623,6 +623,8 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
 
     @property
     def get_solicitacao_cei_dict(self):
+        if not self.tem_solicitacao_cei:
+            return {}
         alunos_cei = []
         total_matriculados = 0
         total_alunos = 0
@@ -643,8 +645,9 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             'total_matriculados': total_matriculados
         }
 
+    @property
     def get_solicitacao_emei_dict(self):
-        if not self.solicitacao_emei:
+        if not self.tem_solicitacao_emei:
             return {}
         return {
             'tempo_passeio': self.solicitacao_emei.get_tempo_passeio_display(),
@@ -667,7 +670,7 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             'observacao': self.observacao,
             'data_autorizacao': self.data_autorizacao,
             'solicitacao_cei': self.get_solicitacao_cei_dict,
-            'solicitacao_emei': self.get_solicitacao_emei_dict(),
+            'solicitacao_emei': self.get_solicitacao_emei_dict,
             'total_kits': self.total_kits,
             'id_externo': self.id_externo
         }
