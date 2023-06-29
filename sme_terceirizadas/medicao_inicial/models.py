@@ -57,6 +57,10 @@ class SolicitacaoMedicaoInicial(
             uuid_original=self.uuid,
         )
 
+    @property
+    def tem_ocorrencia(self):
+        return hasattr(self, 'ocorrencia')
+
     class Meta:
         verbose_name = 'Solicitação de medição inicial'
         verbose_name_plural = 'Solicitações de medição inicial'
