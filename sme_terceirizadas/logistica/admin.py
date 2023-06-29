@@ -214,7 +214,7 @@ class PrevisaoInline(admin.TabularInline):
 
 @admin.register(NotificacaoOcorrenciasGuia)
 class NotificacaoOcorrenciaAdmin(admin.ModelAdmin):
-    list_display = ('numero', 'status', 'processo_sei', 'link_processo_sei', 'get_guias')
+    list_display = ('numero', 'status', 'processo_sei', 'get_guias')
     ordering = ('-alterado_em',)
     search_fields = ('numero',)
     list_filter = ('status',)
