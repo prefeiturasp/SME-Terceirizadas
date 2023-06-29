@@ -391,7 +391,17 @@ class NotificacaoOcorrenciasGuiaSerializer(serializers.ModelSerializer):
 
 class NotificacaoOcorrenciasGuiaSimplesSerializer(serializers.ModelSerializer):
     nome_empresa = serializers.CharField()
+    status = serializers.CharField(source='get_status_display')
 
     class Meta:
         model = NotificacaoOcorrenciasGuia
         fields = ('uuid', 'numero', 'status', 'processo_sei', 'nome_empresa')
+
+
+class NotificacaoOcorrenciasGuiaDetalheSerializer(serializers.ModelSerializer):
+    guias_notificadas = GuiaDaRemessaComAlimentoSerializer(many=True)
+    empresa = TerceirizadaSimplesSerializer()
+
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
+        exclude = ('id',)
