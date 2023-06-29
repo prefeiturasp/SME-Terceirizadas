@@ -3600,13 +3600,19 @@ class NotificacaoOcorrenciaWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     RASCUNHO = 'RASCUNHO'
+    NOTIFICACAO_CRIADA = 'NOTIFICACAO_CRIADA'
+    NOTIFICACAO_ENVIADA_FISCAL = 'NOTIFICACAO_ENVIADA_FISCAL'
 
     states = (
         (RASCUNHO, 'Rascunho'),
+        (NOTIFICACAO_CRIADA, 'Notificação Criada'),
+        (NOTIFICACAO_ENVIADA_FISCAL, 'Notificação Enviada Fiscal'),
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, RASCUNHO),
+        ('cria_notificacao', RASCUNHO, NOTIFICACAO_CRIADA),
+        ('envia_fiscal', NOTIFICACAO_CRIADA, NOTIFICACAO_ENVIADA_FISCAL),
     )
 
     initial_state = RASCUNHO
@@ -3615,6 +3621,22 @@ class NotificacaoOcorrenciaWorkflow(xwf_models.Workflow):
 class FluxoNotificacaoOcorrencia(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = NotificacaoOcorrenciaWorkflow
     status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('cria_notificacao')
+    def _cria_notificacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.NOTIFICACAO_CRIADA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('envia_fiscal')
+    def _envia_fiscal_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.NOTIFICACAO_ENVIADA_FISCAL,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
 
     class Meta:
         abstract = True
