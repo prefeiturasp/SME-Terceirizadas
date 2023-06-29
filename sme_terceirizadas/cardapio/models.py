@@ -735,6 +735,10 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
     def existe_dia_cancelado(self):
         return self.datas_intervalo.filter(cancelado=True).exists()
 
+    @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in self.datas_intervalo.values_list('data', flat=True)])
+
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
