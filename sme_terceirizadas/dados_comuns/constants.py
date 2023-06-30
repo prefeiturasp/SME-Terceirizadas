@@ -241,3 +241,6 @@ class StatusProcessamentoArquivo(Enum):
     @classmethod
     def choices(cls):
         return [(key.value, key.name) for key in cls]
+
+
+PERIODOS_INCLUSAO_MOTIVO_ESPECIFICO = ['MANHA', 'TARDE', 'NOITE', 'INTEGRAL']
