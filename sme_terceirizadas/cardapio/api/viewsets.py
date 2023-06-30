@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -177,6 +178,21 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
             return self.get_paginated_response(serializer.data)
         except AssertionError as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='motivo_inclusao_especifico')
+    def motivo_inclusao_especifico(self, request):
+        try:
+            tipo_unidade_escolar_iniciais = request.query_params.get('tipo_unidade_escolar_iniciais', '')
+            if tipo_unidade_escolar_iniciais:
+                vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+                    tipo_unidade_escolar__iniciais=tipo_unidade_escolar_iniciais,
+                    periodo_escolar__nome__in=constants.PERIODOS_INCLUSAO_MOTIVO_ESPECIFICO)
+                serializer = self.get_serializer(vinculos, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                raise ValidationError('tipo_unidade_escolar_iniciais é obrigatório via query_params')
+        except ValidationError as e:
+            return Response({'detail': e}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
