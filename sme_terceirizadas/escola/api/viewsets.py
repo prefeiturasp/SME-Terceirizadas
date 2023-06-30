@@ -92,7 +92,6 @@ from .serializers import (
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
     LogAlunosMatriculadosPeriodoEscolaSerializer,
-    PeriodoEFaixaEtariaCounterSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
     SubprefeituraSerializerSimples,
@@ -245,7 +244,6 @@ class EscolaSimplissimaComDREUnpaginatedViewSet(EscolaSimplissimaComDREViewSet):
 class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
-    serializer_class = PeriodoEFaixaEtariaCounterSerializer
 
     def formata_resultado_faixa_etaria(self, counter_faixas_etarias, resultado):
         for periodo in counter_faixas_etarias:
@@ -254,22 +252,6 @@ class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
                     if (faixa == faixa_resultado['faixa_etaria']['uuid']):
                         faixa_resultado['count'] += counter_faixas_etarias[periodo][faixa]
         return resultado
-
-    @action(detail=True, url_path='(?P<data_referencia_str>[^/.]+)')  # noqa C901
-    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
-        form = AlunosPorFaixaEtariaForm({
-            'data_referencia': data_referencia_str
-        })
-
-        if not form.is_valid():
-            return Response(form.errors)
-
-        escola = self.get_object()
-        data_referencia = form.cleaned_data['data_referencia']
-
-        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)  # noqa
-        serializer = PeriodoEFaixaEtariaCounterSerializer(counter_faixas_etarias)  # noqa
-        return Response(serializer.data)
 
     @action(detail=True, url_path='somatorio-faixas-etarias/(?P<data_referencia_str>[^/.]+)')
     def somatorio_faixas_etarias(self, request, uuid, data_referencia_str):
