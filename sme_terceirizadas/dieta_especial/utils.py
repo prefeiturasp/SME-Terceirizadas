@@ -382,7 +382,9 @@ def diff_protocolo_padrao(instance, validated_data, new_editais, old_editais):
         changes.append(
             {'field': 'status', 'from': instance.status, 'to': validated_data['status']})
 
-    if new_editais != old_editais:
+    new_editais_list_ordered = set(new_editais.order_by('uuid').values_list('uuid', flat=True))
+    old_editais_list_ordered = set(old_editais.all().order_by('uuid').values_list('uuid', flat=True))
+    if new_editais_list_ordered != old_editais_list_ordered:
         changes.append({
             'field': 'editais',
             'from': [edital.numero for edital in old_editais.all()],
