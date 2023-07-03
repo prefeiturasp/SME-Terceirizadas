@@ -329,7 +329,8 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API da aplicação SIGPAE',
     'VERSION': api_version,
     'SERVE_INCLUDE_SCHEMA': False,
-    'SCHEMA_PATH_PREFIX': r'/api/'
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    'SCHEMA_PATH_PREFIX_INSERT': '/api'
 }
 
 JWT_AUTH = {
