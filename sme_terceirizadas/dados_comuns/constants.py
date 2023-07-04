@@ -139,6 +139,7 @@ CODAE_QUESTIONA_NUTRISUPERVISOR = 'codae-questiona-nutrisupervisor'
 CODAE_RESPONDE = 'codae-responde'
 CODAE_CANCELA_SOLICITACAO_CORRECAO = 'codae-cancela-solicitacao-correcao'
 TERCEIRIZADA_CANCELA_SOLICITACAO_CORRECAO = 'terceirizada-cancela-solicitacao-correcao'
+VINCULOS_ATIVOS_PRODUTO_EDITAL = 'vinculos-ativos-produto-edital'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
@@ -217,6 +218,18 @@ TIPO_SOLICITACAO_DIETA = {'COMUM': 'COMUM',
                           'ALUNO_NAO_MATRICULADO': 'ALUNO_NAO_MATRICULADO'}
 
 
+ORDEM_PERIODOS_GRUPOS = {
+    'MANHA': 1,
+    'TARDE': 2,
+    'INTEGRAL': 3,
+    'NOITE': 4,
+    'VESPERTINO': 5,
+    'Programas e Projetos': 6,
+    'Solicitações de Alimentação': 7,
+    'ETEC': 8
+}
+
+
 class StatusProcessamentoArquivo(Enum):
     PENDENTE = 'PENDENTE'
     SUCESSO = 'SUCESSO'
@@ -228,3 +241,6 @@ class StatusProcessamentoArquivo(Enum):
     @classmethod
     def choices(cls):
         return [(key.value, key.name) for key in cls]
+
+
+PERIODOS_INCLUSAO_MOTIVO_ESPECIFICO = ['MANHA', 'TARDE', 'NOITE', 'INTEGRAL']

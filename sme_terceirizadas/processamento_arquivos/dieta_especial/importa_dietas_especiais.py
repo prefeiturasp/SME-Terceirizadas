@@ -14,7 +14,9 @@ from sme_terceirizadas.dieta_especial.models import (
     ArquivoCargaDietaEspecial,
     ClassificacaoDieta,
     ProtocoloPadraoDietaEspecial,
-    SolicitacaoDietaEspecial
+    SolicitacaoDietaEspecial,
+    SubstituicaoAlimento,
+    SubstituicaoAlimentoProtocoloPadrao
 )
 from sme_terceirizadas.escola.models import Aluno, Escola
 from sme_terceirizadas.perfil.models.perfil import Perfil, Vinculo
@@ -68,6 +70,7 @@ class ProcessadorPlanilha:
                 diagnosticos = self.monta_diagnosticos(solicitacao_dieta_schema.codigo_diagnostico)
 
                 self.checa_existencia_solicitacao(solicitacao_dieta_schema, aluno)
+
                 self.cria_solicitacao(solicitacao_dieta_schema, aluno, classificacao_dieta,
                                       diagnosticos, escola, protocolo_padrao)
             except Exception as exc:
@@ -180,6 +183,7 @@ class ProcessadorPlanilha:
 
         email_fake = f'fake{escola.id}@admin.com'
         usuario_escola = Usuario.objects.filter(email=email_fake).first()
+        registro_funcional_nutricionista = f'Elaborado por {self.usuario.nome} - RF {self.usuario.registro_funcional}'
         if not usuario_escola:
             perfil = Perfil.objects.get(nome='DIRETOR_UE')
             data_atual = date.today()
@@ -209,8 +213,10 @@ class ProcessadorPlanilha:
             ativo=True,
             nome_protocolo=solicitacao_dieta_schema.protocolo_dieta.upper(),
             protocolo_padrao=protocolo_padrao,
+            orientacoes_gerais=protocolo_padrao.orientacoes_gerais,
             classificacao=classificacao_dieta,
             observacoes=observacoes,
+            registro_funcional_nutricionista=registro_funcional_nutricionista,
             conferido=True,
             eh_importado=True
         )
@@ -218,6 +224,15 @@ class ProcessadorPlanilha:
         solicitacao.alergias_intolerancias.add(*diagnosticos)
         self.consulta_relacao_lote_terceirizada(solicitacao)
         solicitacao.save()
+        substituicoes = SubstituicaoAlimentoProtocoloPadrao.objects.filter(protocolo_padrao=protocolo_padrao)
+        for substituicao in substituicoes:
+            substituicao_alimento = SubstituicaoAlimento.objects.create(
+                solicitacao_dieta_especial=solicitacao,
+                alimento=substituicao.alimento,
+                tipo=substituicao.tipo
+            )
+            substituicao_alimento.substitutos.set(substituicao.substitutos.all())
+            substituicao_alimento.alimentos_substitutos.set(substituicao.alimentos_substitutos.all())
         solicitacao.codae_autoriza(user=self.usuario, eh_importacao=True)
 
     def finaliza_processamento(self) -> None:
@@ -246,7 +261,6 @@ class ProcessadorPlanilha:
 
 def importa_dietas_especiais(usuario: Usuario, arquivo: ArquivoCargaDietaEspecial) -> None:
     logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
-
     try:
         processador = ProcessadorPlanilha(usuario, arquivo)
         processador.processamento()

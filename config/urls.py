@@ -5,8 +5,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views import defaults as default_views
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
-from rest_framework_swagger.views import get_swagger_view
 
 from sme_terceirizadas.cardapio.urls import urlpatterns as cardapio_urls
 from sme_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
@@ -30,15 +30,15 @@ env = environ.Env()
 admin.autodiscover()
 admin.site.enable_nav_sidebar = False
 
-schema_view = get_swagger_view(title='API de Terceirizadas', url=env.str('DJANGO_API_URL', default=''))
-
-urlpatterns = [path('docs/', schema_view, name='docs'),
-               path('django-des/', include(des_urls)),
+urlpatterns = [path('django-des/', include(des_urls)),
                path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                path(settings.ADMIN_URL, admin.site.urls),
                path('api-token-auth/', obtain_jwt_token),
                path('api-token-refresh/', refresh_jwt_token),
                path('', include('django_prometheus.urls')),
+               path('docs/', SpectacularAPIView.as_view(), name='schema'),
+               path('docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+               path('docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc')
                ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )

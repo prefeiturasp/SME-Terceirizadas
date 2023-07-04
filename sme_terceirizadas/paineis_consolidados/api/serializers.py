@@ -5,6 +5,7 @@ from rest_framework import serializers
 from ...dados_comuns.utils import remove_tags_html_from_string
 from ...kit_lanche.api.serializers.serializers import EscolaQuantidadeSerializerSimples
 from ..models import SolicitacoesCODAE
+from ..utils import get_dias_inclusao
 
 
 class SolicitacoesSerializer(serializers.ModelSerializer):
@@ -71,7 +72,8 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     def get_data_evento(self, obj):
         if obj.data_evento_fim and obj.data_evento and obj.data_evento != obj.data_evento_fim:
             return f"{obj.data_evento.strftime('%d/%m/%Y')} - {obj.data_evento_fim.strftime('%d/%m/%Y')}"
-        elif obj.tipo_doc in ['INC_ALIMENTA', 'SUSP_ALIMENTACAO', 'INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI']:
+        elif obj.tipo_doc in ['ALT_CARDAPIO', 'INC_ALIMENTA', 'SUSP_ALIMENTACAO', 'INC_ALIMENTA_CEMEI',
+                              'INC_ALIMENTA_CEI']:
             return obj.get_raw_model.objects.get(uuid=obj.uuid).datas
         return obj.data_evento.strftime('%d/%m/%Y') if obj.data_evento else None
 
@@ -86,6 +88,12 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
 
     def get_observacoes(self, obj):
         model_obj = obj.get_raw_model.objects.get(uuid=obj.uuid)
+        if obj.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI', 'INC_ALIMENTA', 'ALT_CARDAPIO']:
+            dias = get_dias_inclusao(obj, model_obj)
+            if model_obj.status == 'ESCOLA_CANCELOU':
+                return ('cancelado, ' * len(dias))[:-2]
+            if model_obj.existe_dia_cancelado:
+                return ', '.join(['cancelado' if dia.cancelado else 'autorizado' for dia in dias])
         if hasattr(model_obj, 'observacao'):
             return remove_tags_html_from_string(model_obj.observacao) if model_obj.observacao else None
         elif hasattr(model_obj, 'observacoes'):

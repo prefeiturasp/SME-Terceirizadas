@@ -105,8 +105,10 @@ class LogSolicitacoesUsuario(
         REPROVADO_DILOG_SOLICITACAO_ALTERACAO,
         CODAE_CANCELOU_SOLICITACAO_CORRECAO,
         TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO,
-        SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE
-    ) = range(79)
+        SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE,
+        NOTIFICACAO_CRIADA,
+        NOTIFICACAO_ENVIADA_FISCAL
+    ) = range(81)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -204,7 +206,7 @@ class LogSolicitacoesUsuario(
         (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
         (MEDICAO_ENVIADA_PELA_UE, 'Enviado pela UE'),
         (MEDICAO_CORRECAO_SOLICITADA, 'Correção solicitada'),
-        (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido pela UE'),
+        (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido para DRE'),
         (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
         (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE'),
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
@@ -225,7 +227,9 @@ class LogSolicitacoesUsuario(
         (REPROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Reprovado DILOG'),
         (CODAE_CANCELOU_SOLICITACAO_CORRECAO, 'CODAE cancelou solicitação de correção'),
         (TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO, 'Terceirizada cancelou solicitação de correção'),
-        (SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE, 'Em Análise')
+        (SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE, 'Em Análise'),
+        (NOTIFICACAO_CRIADA, 'Notificação criada'),
+        (NOTIFICACAO_ENVIADA_FISCAL, 'Notificação enviada para o fiscal')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -251,8 +255,9 @@ class LogSolicitacoesUsuario(
         INCLUSAO_ALIMENTACAO_CEMEI,
         SOLICITACAO_KIT_LANCHE_CEMEI,
         CRONOGRAMA,
-        SOLICITACAO_DE_ALTERACAO_CRONOGRAMA
-    ) = range(20)
+        SOLICITACAO_DE_ALTERACAO_CRONOGRAMA,
+        NOTIFICACAO_OCORRENCIA_GUIA
+    ) = range(21)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -275,7 +280,8 @@ class LogSolicitacoesUsuario(
         (INCLUSAO_ALIMENTACAO_CEMEI, 'Inclusão de Alimentação CEMEI'),
         (SOLICITACAO_KIT_LANCHE_CEMEI, 'Solicitação de kit lanche CEMEI'),
         (CRONOGRAMA, 'Cronograma'),
-        (SOLICITACAO_DE_ALTERACAO_CRONOGRAMA, 'Solicitação de alteração do cronograma')
+        (SOLICITACAO_DE_ALTERACAO_CRONOGRAMA, 'Solicitação de alteração do cronograma'),
+        (NOTIFICACAO_OCORRENCIA_GUIA, 'Notificação de guia com ocorrência')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

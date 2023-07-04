@@ -7,6 +7,8 @@ from .models import (
     Embalagem,
     Guia,
     LogSolicitacaoDeCancelamentoPeloPapa,
+    NotificacaoOcorrenciasGuia,
+    PrevisaoContratualNotificacao,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
     TipoEmbalagem
@@ -203,3 +205,24 @@ class LogSolicitacaoDeCancelamentoPeloPapaAdmin(admin.ModelAdmin):
     get_requisicao.short_description = 'Número Solicitação'
     list_display = ('get_requisicao', 'sequencia_envio', 'foi_confirmada', 'criado_em')
     readonly_fields = ('requisicao', 'guias', 'sequencia_envio', 'criado_em', 'alterado_em', 'foi_confirmada')
+
+
+class PrevisaoInline(admin.TabularInline):
+    model = PrevisaoContratualNotificacao
+    extra = 1  # Quantidade de linhas que serão exibidas.
+
+
+@admin.register(NotificacaoOcorrenciasGuia)
+class NotificacaoOcorrenciaAdmin(admin.ModelAdmin):
+    list_display = ('numero', 'status', 'processo_sei', 'get_guias')
+    ordering = ('-alterado_em',)
+    search_fields = ('numero',)
+    list_filter = ('status',)
+    readonly_fields = ('uuid',)
+    inlines = [GuiaInline, PrevisaoInline]
+
+    def get_guias(self, obj):
+        return ', '.join([
+            guias.numero_guia for guias in obj.guias_notificadas.all()
+        ])
+    get_guias.short_description = 'Guias'

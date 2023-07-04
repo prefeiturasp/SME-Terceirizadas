@@ -291,7 +291,10 @@ def get_assinatura_codae(logs):
 
 @register.filter
 def existe_inclusao_cancelada(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado=True).exists()
+    status_ = solicitacao['status'] if isinstance(solicitacao, dict) else solicitacao.status
+    inclusoes_ = solicitacao['datas_intervalo'] if isinstance(solicitacao, dict) else solicitacao.inclusoes
+    return (status_ == 'ESCOLA_CANCELOU' or
+            inclusoes_.filter(cancelado_justificativa__isnull=False).exists())
 
 
 @register.filter
@@ -314,7 +317,9 @@ def inclusao_multiplos_cancelamentos(solicitacao):
 
 @register.filter
 def inclusoes_canceladas(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False)
+    if solicitacao.status == 'ESCOLA_CANCELOU':
+        return solicitacao.inclusoes.all()
+    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False).exclude(cancelado_justificativa='')
 
 
 @register.filter
@@ -399,18 +404,7 @@ def get_dias(observacoes_tuple):
 
 @register.filter
 def formatar_observacoes(observacoes):
-    MAX_LINHAS_POR_PAGINA = 26
-    ORDEM_PERIODOS_GRUPOS = {
-        'MANHA': 1,
-        'TARDE': 2,
-        'INTEGRAL': 3,
-        'NOITE': 4,
-        'VESPERTINO': 5,
-        'Programas e Projetos - MANHA': 6,
-        'Programas e Projetos - TARDE': 7,
-        'Solicitações de Alimentação': 8,
-        'ETEC': 9
-    }
+    MAX_LINHAS_POR_PAGINA = 22
     observacoes_tuple = []
     for observacao in observacoes:
         obs_list = list(observacao)
@@ -426,7 +420,7 @@ def formatar_observacoes(observacoes):
     dias = get_dias(observacoes_tuple)
     for dia in dias:
         obs_filtradas_por_dia = tuple(filter(lambda obs: obs[0] == dia, observacoes_tuple))
-        obs_ordenadas_periodo_grupo = sorted(obs_filtradas_por_dia, key=lambda k: ORDEM_PERIODOS_GRUPOS[k[4]])
+        obs_ordenadas_periodo_grupo = sorted(obs_filtradas_por_dia, key=lambda k: constants.ORDEM_PERIODOS_GRUPOS[k[4]])
         [observacoes_ordenadas_corretamente.append(i) for i in obs_ordenadas_periodo_grupo]
     tabelas_observacoes = []
     i = 1

@@ -8,6 +8,8 @@ import environ
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
+from sme_terceirizadas import __version__ as api_version
+
 # (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
 
 ROOT_DIR = environ.Path(__file__) - 3
@@ -100,7 +102,6 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'django_prometheus',
     'rest_framework',
-    'rest_framework_swagger',
     'rest_framework_xml',
     'rest_framework.authtoken',
     'des',  # for email configuration in database
@@ -112,6 +113,7 @@ THIRD_PARTY_APPS = [
     'django_celery_beat',
     'multiselectfield',
     'rangefilter',
+    'drf_spectacular',
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',
@@ -316,16 +318,19 @@ REST_FRAMEWORK = {
     'TIME_FORMAT': '%H:%M:%S',
     'TIME_INPUT_FORMATS': ['%H:%M:%S', 'iso-8601'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 100
+    'PAGE_SIZE': 100,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
 }
 
-SWAGGER_SETTINGS = {
-    'LOGIN_URL': 'rest_framework:login',
-    'LOGOUT_URL': 'rest_framework:logout',
-    'USE_SESSION_AUTH': True,
-    'DOC_EXPANSION': 'list',
-    'APIS_SORTER': 'alpha',
-    'SECURITY_DEFINITIONS': None,
+# DRF-SPECTACULAR SETTINGS
+# ------------------------------------------------------------------------------
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SIGPAE API',
+    'DESCRIPTION': 'API da aplicação SIGPAE',
+    'VERSION': api_version,
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    'SCHEMA_PATH_PREFIX_INSERT': '/api'
 }
 
 JWT_AUTH = {

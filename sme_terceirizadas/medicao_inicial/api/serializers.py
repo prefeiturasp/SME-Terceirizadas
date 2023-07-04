@@ -3,7 +3,10 @@ import datetime
 import environ
 from rest_framework import serializers
 
-from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from sme_terceirizadas.dados_comuns.api.serializers import (
+    LogSolicitacoesUsuarioComAnexosSerializer,
+    LogSolicitacoesUsuarioSerializer
+)
 from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
 from sme_terceirizadas.escola.api.serializers import TipoUnidadeEscolarSerializer
 from sme_terceirizadas.medicao_inicial.models import (
@@ -29,7 +32,7 @@ class DiaSobremesaDoceSerializer(serializers.ModelSerializer):
 
 
 class OcorrenciaMedicaoInicialSerializer(serializers.ModelSerializer):
-    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    logs = LogSolicitacoesUsuarioComAnexosSerializer(many=True)
     ultimo_arquivo = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
 
@@ -107,7 +110,8 @@ class ValorMedicaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ValorMedicao
-        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid', 'uuid', 'medicao_alterado_em')
+        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid',
+                  'uuid', 'medicao_alterado_em', 'habilitado_correcao')
 
 
 class CategoriaMedicaoSerializer(serializers.ModelSerializer):

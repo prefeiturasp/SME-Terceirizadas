@@ -4,6 +4,7 @@ from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (  # noqa I101
     Ativavel,
+    CanceladoIndividualmente,
     CriadoEm,
     CriadoPor,
     Descritivel,
@@ -677,6 +678,10 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
         return self.substituicoes_periodo_escolar
 
     @property
+    def inclusoes(self):
+        return self.datas_intervalo
+
+    @property
     def tipo(self):
         return 'Alteração do Tipo de Alimentação'
 
@@ -726,6 +731,14 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             })
         return substituicoes
 
+    @property
+    def existe_dia_cancelado(self):
+        return self.datas_intervalo.filter(cancelado=True).exists()
+
+    @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in self.datas_intervalo.values_list('data', flat=True)])
+
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
@@ -733,6 +746,7 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             'terceirizada': self.rastro_terceirizada,
             'tipo_doc': 'Alteração do tipo de Alimentação',
             'data_evento': self.data,
+            'datas_intervalo': self.datas_intervalo,
             'numero_alunos': self.numero_alunos,
             'motivo': self.motivo.nome,
             'data_inicial': self.data_inicial,
@@ -742,7 +756,8 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             'substituicoes': self.substituicoes_dict,
             'label_data': label_data,
             'data_log': data_log,
-            'id_externo': self.id_externo
+            'id_externo': self.id_externo,
+            'status': self.status
         }
 
     def __str__(self):
@@ -751,6 +766,22 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
     class Meta:
         verbose_name = 'Alteração de cardápio'
         verbose_name_plural = 'Alterações de cardápio'
+
+
+class DataIntervaloAlteracaoCardapio(CanceladoIndividualmente, CriadoEm, TemData, TemChaveExterna,
+                                     TemIdentificadorExternoAmigavel):
+    alteracao_cardapio = models.ForeignKey('AlteracaoCardapio',
+                                           on_delete=models.CASCADE,
+                                           related_name='datas_intervalo')
+
+    def __str__(self):
+        return (f'Data {self.data} da Alteração de cardápio #{self.alteracao_cardapio.id_externo} de '
+                f'{self.alteracao_cardapio.data_inicial} - {self.alteracao_cardapio.data_inicial}')
+
+    class Meta:
+        verbose_name = 'Data do intervalo de Alteração de cardápio'
+        verbose_name_plural = 'Datas do intervalo de Alteração de cardápio'
+        ordering = ('data',)
 
 
 class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substituicao_alimentacao_periodo_escolar'),

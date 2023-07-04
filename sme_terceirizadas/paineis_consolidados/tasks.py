@@ -134,6 +134,16 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     worksheet.write(LINHA_3, COLUNA_8, map_data[status_], single_cell_format)
 
     df.reset_index(drop=True, inplace=True)
+    for index, solicitacao in enumerate(queryset):
+        model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
+        if solicitacao.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI', 'INC_ALIMENTA', 'ALT_CARDAPIO']:
+            if model_obj.existe_dia_cancelado or model_obj.status == 'ESCOLA_CANCELOU':
+                worksheet.write(
+                    LINHA_3 + 1 + index,
+                    COLUNA_5,
+                    df.values[LINHA_3 + index][COLUNA_5 - 1],
+                    workbook.add_format({'bg_color': 'yellow'})
+                )
     xlwriter.save()
     output.seek(0)
 

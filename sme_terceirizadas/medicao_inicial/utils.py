@@ -3,9 +3,10 @@ from calendar import monthrange
 
 from django.db.models import Sum
 
+from sme_terceirizadas.dados_comuns.constants import ORDEM_PERIODOS_GRUPOS
 from sme_terceirizadas.dieta_especial.models import LogQuantidadeDietasAutorizadas
 from sme_terceirizadas.escola.models import DiaCalendario, LogAlunosMatriculadosPeriodoEscola
-from sme_terceirizadas.medicao_inicial.models import GrupoMedicao, ValorMedicao
+from sme_terceirizadas.medicao_inicial.models import ValorMedicao
 from sme_terceirizadas.paineis_consolidados.models import SolicitacoesEscola
 
 
@@ -94,17 +95,6 @@ def build_headers_tabelas(solicitacao):
                 'valores_campos': [], 'ordem_periodos_grupos': [], 'dias_letivos': [], 'categorias_dos_periodos': {}}]
 
     indice_atual = 0
-    ORDEM_PERIODOS_GRUPOS = {
-        'MANHA': 1,
-        'TARDE': 2,
-        'INTEGRAL': 3,
-        'NOITE': 4,
-        'VESPERTINO': 5,
-        'Programas e Projetos - MANHA': 6,
-        'Programas e Projetos - TARDE': 7,
-        'Solicitações de Alimentação': 8,
-        'ETEC': 9
-    }
     for medicao in sorted(solicitacao.medicoes.all(), key=lambda k: ORDEM_PERIODOS_GRUPOS[k.nome_periodo_grupo]):
         dict_categorias_campos = build_dict_relacao_categorias_e_campos(medicao)
         for categoria in dict_categorias_campos.keys():
@@ -146,8 +136,6 @@ def popula_campo_matriculados(
     if campo == 'matriculados':
         try:
             periodo = tabela['periodos'][indice_periodo]
-            if '-' in periodo:
-                periodo = periodo.split(' - ')[1]
             log = logs_alunos_matriculados.filter(periodo_escolar__nome=periodo, criado_em__day=dia).first()
             if log:
                 valores_dia += [log.quantidade_alunos]
@@ -189,13 +177,8 @@ def popula_campos_preenchidos_pela_escola(solicitacao, tabela, campo, dia, indic
                                           valores_dia):
     try:
         periodo = tabela['periodos'][indice_periodo]
-        grupo = None
         medicoes = solicitacao.medicoes.all()
-        if '-' in periodo:
-            grupo = GrupoMedicao.objects.get(nome=periodo.split(' - ')[0])
-            periodo = periodo.split(' - ')[1]
-            medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=grupo)
-        elif periodo in ['ETEC', 'Solicitações de Alimentação']:
+        if periodo in ['ETEC', 'Solicitações de Alimentação', 'Programas e Projetos']:
             medicao = medicoes.get(grupo__nome=periodo)
         else:
             medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
@@ -486,7 +469,8 @@ def tratar_valores(escola, valores):
         repeticao_sobremesa = [valor for valor in valores if valor['nome_campo'] == 'repeticao_sobremesa']
         if repeticao_refeicao:
             valor_repeticao_refeicao = repeticao_refeicao[0]['valor']
-            valor_refeicao = [valor for valor in valores if valor['nome_campo'] == 'refeicao'][0]['valor']
+            obj_refeicao = [valor for valor in valores if valor['nome_campo'] == 'refeicao']
+            valor_refeicao = obj_refeicao[0]['valor'] if obj_refeicao else 0
             campos_refeicao = ['refeicao', 'repeticao_refeicao']
             valores = [valor for valor in valores if valor['nome_campo'] not in campos_refeicao]
             valores.append({
@@ -495,7 +479,8 @@ def tratar_valores(escola, valores):
             })
         if repeticao_sobremesa:
             valor_repeticao_sobremesa = repeticao_sobremesa[0]['valor']
-            valor_sobremesa = [valor for valor in valores if valor['nome_campo'] == 'sobremesa'][0]['valor']
+            obj_sobremesa = [valor for valor in valores if valor['nome_campo'] == 'sobremesa']
+            valor_sobremesa = obj_sobremesa[0]['valor'] if obj_sobremesa else 0
             campos_sobremesa = ['sobremesa', 'repeticao_sobremesa']
             valores = [valor for valor in valores if valor['nome_campo'] not in campos_sobremesa]
             valores.append({
@@ -642,17 +627,6 @@ def get_somatorio_etec(campo, solicitacao):
 
 
 def build_tabela_somatorio_body(solicitacao):
-    ORDEM_PERIODOS_GRUPOS = {
-        'MANHA': 1,
-        'TARDE': 2,
-        'INTEGRAL': 3,
-        'NOITE': 4,
-        'VESPERTINO': 5,
-        'Programas e Projetos - MANHA': 6,
-        'Programas e Projetos - TARDE': 7,
-        'Solicitações de Alimentação': 8,
-        'ETEC': 9
-    }
     ORDEM_CAMPOS = {
         'numero_de_alunos': 1,
         'matriculados': 2,
