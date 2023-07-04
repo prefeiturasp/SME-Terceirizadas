@@ -7,7 +7,7 @@
     {% include "bloco_fluxo_de_status.html" %}
     {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <table class='info-geral-inclusao'>
-      {% for dias_inclusao  in solicitacao.inclusoes.all %}
+      {% for dias_inclusao in solicitacao.inclusoes.all %}
         <tr>
           <th>Motivo</th>
           <th>Dia</th>
@@ -53,7 +53,7 @@
       {% include "bloco_observacoes.html" %}
       {% include "bloco_historico_cancelamento_inclusao.html" %}
       {% include "bloco_historico_questionamento.html" %}
-      {% if solicitacao.status != 'ESCOLA_CANCELOU' %}
+      {% if solicitacao.status == 'ESCOLA_CANCELOU' %}
         {% include "bloco_historico_cancelamento.html" %}
       {% endif %}
   </div>

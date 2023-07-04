@@ -98,3 +98,12 @@
     padding: 0.75em;
   }
 }
+
+.dia-cancelado {
+  text-decoration: line-through;
+}
+
+.cancelado_justificativa {
+  width: 1000px !important;
+  word-wrap: break-word;
+}

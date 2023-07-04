@@ -291,7 +291,10 @@ def get_assinatura_codae(logs):
 
 @register.filter
 def existe_inclusao_cancelada(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado=True).exists()
+    status_ = solicitacao['status'] if isinstance(solicitacao, dict) else solicitacao.status
+    inclusoes_ = solicitacao['datas_intervalo'] if isinstance(solicitacao, dict) else solicitacao.inclusoes
+    return (status_ == 'ESCOLA_CANCELOU' or
+            inclusoes_.filter(cancelado_justificativa__isnull=False).exists())
 
 
 @register.filter
@@ -314,7 +317,9 @@ def inclusao_multiplos_cancelamentos(solicitacao):
 
 @register.filter
 def inclusoes_canceladas(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False)
+    if solicitacao.status == 'ESCOLA_CANCELOU':
+        return solicitacao.inclusoes.all()
+    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False).exclude(cancelado_justificativa='')
 
 
 @register.filter

@@ -1413,10 +1413,18 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _codae_recusou_reclamacao_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        self.salvar_log_transicao(
-            status_evento=LogSolicitacoesUsuario.CODAE_RECUSOU_RECLAMACAO,
-            justificativa=justificativa,
-            usuario=user)
+
+        if kwargs['suspensao_parcial']:
+            self.salva_log_com_justificativa_e_anexos(
+                LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS,
+                kwargs['request'],
+                justificativa
+            )
+        else:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.CODAE_RECUSOU_RECLAMACAO,
+                justificativa=justificativa,
+                usuario=user)
 
     @xworkflows.after_transition('terceirizada_inativa')
     def _inativa_homologacao_hook(self, *args, **kwargs):
@@ -1477,9 +1485,18 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
-                                  usuario=user,
-                                  justificativa=justificativa)
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+            usuario=user,
+            justificativa=justificativa
+        )
+        for anexo in kwargs.get('anexos', []):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
 
     @xworkflows.after_transition('terceirizada_responde_analise_sensorial_da_reclamacao')
     def _terceirizada_responde_analise_sensorial_da_reclamacao_hook(self, *args, **kwargs):
@@ -1715,6 +1732,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         self.save()
 
     def cancelar_pedido(self, user, justificativa):
+        from sme_terceirizadas.cardapio.models import AlteracaoCardapio
         """O objeto que herdar de FluxoAprovacaoPartindoDaEscola, deve ter um property data.
 
         Dado dias de antecedencia de prazo, verifica se pode e altera o estado
@@ -1726,8 +1744,11 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
             # TODO: verificar por que os models estao retornando datetime em
             # vez de date
             data_do_evento = data_do_evento.date()
-
-        if (data_do_evento > dia_antecedencia) and (self.status != self.workflow_class.ESCOLA_CANCELOU):
+        eh_alteracao_lanche_emergencial = (isinstance(self, AlteracaoCardapio) and
+                                           self.motivo and
+                                           self.motivo.nome == 'Lanche Emergencial')
+        if (eh_alteracao_lanche_emergencial or
+                (data_do_evento > dia_antecedencia and self.status != self.workflow_class.ESCOLA_CANCELOU)):
             self.status = self.workflow_class.ESCOLA_CANCELOU
 
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
@@ -1946,7 +1967,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         from sme_terceirizadas.cardapio.models import AlteracaoCardapio
         if (self.foi_solicitado_fora_do_prazo and
             self.status != PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO):  # noqa #129
-            if (isinstance(self, AlteracaoCardapio) and self.motivo.nome == 'Lanche Emergencial'):
+            if isinstance(self, AlteracaoCardapio) and self.motivo.nome == 'Lanche Emergencial':
                 return
             raise xworkflows.InvalidTransitionError(
                 f'CODAE não pode autorizar direto caso seja em cima da hora, deve questionar')
@@ -2771,6 +2792,7 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
                           AGUARDANDO_ANALISE_SENSORIAL,
                           ANALISE_SENSORIAL_RESPONDIDA,
                           AGUARDANDO_RESPOSTA_UE,
+                          AGUARDANDO_RESPOSTA_NUTRISUPERVISOR,
                           RESPONDIDO_UE], CODAE_RECUSOU),
         ('codae_responde', [AGUARDANDO_AVALIACAO,
                             ANALISE_SENSORIAL_RESPONDIDA,
@@ -3015,11 +3037,12 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
         ('inicia_fluxo', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE),
         ('ue_envia', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENVIADA_PELA_UE),
         ('dre_pede_correcao', [MEDICAO_CORRECAO_SOLICITADA, MEDICAO_ENVIADA_PELA_UE,
-                               MEDICAO_APROVADA_PELA_DRE], MEDICAO_CORRECAO_SOLICITADA),
+                               MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_CORRECAO_SOLICITADA),
         ('codae_pede_correcao', MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA_CODAE),
         ('ue_corrige', [MEDICAO_CORRECAO_SOLICITADA, MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_CORRIGIDA_PELA_UE),
         ('ue_corrige_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
-        ('dre_aprova', [MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA], MEDICAO_APROVADA_PELA_DRE),
+        ('dre_aprova', [MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA,
+                        MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_APROVADA_PELA_DRE),
         ('codae_aprova', [MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE)
     )
 
@@ -3577,13 +3600,19 @@ class NotificacaoOcorrenciaWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     RASCUNHO = 'RASCUNHO'
+    NOTIFICACAO_CRIADA = 'NOTIFICACAO_CRIADA'
+    NOTIFICACAO_ENVIADA_FISCAL = 'NOTIFICACAO_ENVIADA_FISCAL'
 
     states = (
         (RASCUNHO, 'Rascunho'),
+        (NOTIFICACAO_CRIADA, 'Notificação Criada'),
+        (NOTIFICACAO_ENVIADA_FISCAL, 'Notificação Enviada Fiscal'),
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, RASCUNHO),
+        ('cria_notificacao', RASCUNHO, NOTIFICACAO_CRIADA),
+        ('envia_fiscal', NOTIFICACAO_CRIADA, NOTIFICACAO_ENVIADA_FISCAL),
     )
 
     initial_state = RASCUNHO
@@ -3592,6 +3621,22 @@ class NotificacaoOcorrenciaWorkflow(xwf_models.Workflow):
 class FluxoNotificacaoOcorrencia(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = NotificacaoOcorrenciaWorkflow
     status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('cria_notificacao')
+    def _cria_notificacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.NOTIFICACAO_CRIADA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('envia_fiscal')
+    def _envia_fiscal_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.NOTIFICACAO_ENVIADA_FISCAL,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
 
     class Meta:
         abstract = True

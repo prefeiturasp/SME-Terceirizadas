@@ -41,6 +41,11 @@ class LogSolicitacoesUsuarioComAnexosSerializer(serializers.ModelSerializer):
         required=False,
         read_only=True
     )
+    tipo_solicitacao_explicacao = serializers.CharField(
+        source='get_solicitacao_tipo_display',
+        required=False,
+        read_only=True
+    )
 
     def get_anexos(self, obj):
         return AnexoLogSolicitacoesUsuarioSerializer(
@@ -53,7 +58,7 @@ class LogSolicitacoesUsuarioComAnexosSerializer(serializers.ModelSerializer):
         model = LogSolicitacoesUsuario
         fields = (
             'anexos', 'status_evento_explicacao', 'usuario', 'criado_em', 'descricao', 'justificativa',
-            'resposta_sim_nao')
+            'resposta_sim_nao', 'tipo_solicitacao_explicacao')
 
 
 class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):

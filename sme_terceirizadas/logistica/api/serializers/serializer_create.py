@@ -309,7 +309,6 @@ class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
 
     guias = serializers.ListField(required=False)
     processo_sei = serializers.CharField(required=False)
-    link_processo_sei = serializers.URLField(required=False)
     previsoes = PrevisoesContratuaisDaNotificacaoCreateSerializer(many=True, required=False)
 
     def gera_proximo_numero_notificacao(self):
@@ -337,6 +336,7 @@ class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
                 {'guias': ['Este campo é obrigatório.']}
             )
         existe_guia_notificada = Guia.objects.filter(uuid__in=guias, notificacao__isnull=False)
+
         if existe_guia_notificada:
             raise serializers.ValidationError(
                 {'guias': ['Existem uma ou mais guias que já estão notificadas.']}
@@ -353,6 +353,82 @@ class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
         self.cria_previsoes(previsoes, notificacao)
 
         return notificacao
+
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
+        exclude = ('id', )
+
+
+class NotificacaoOcorrenciasUpdateRascunhoSerializer(serializers.ModelSerializer):
+    def vincula_guias_a_notificacao(self, guias, notificacao):
+        Guia.objects.filter(uuid__in=guias).update(notificacao=notificacao)
+
+    def validate(self, attrs, instance):
+        guias = attrs.get('guias', None)
+        if not guias:
+            raise serializers.ValidationError(
+                {'guias': ['Este campo é obrigatório.']}
+            )
+        existe_guia_notificada = Guia.objects.filter(uuid__in=guias, notificacao__isnull=False)
+
+        guias_atuais = set(instance.guias_notificadas.all())
+        guias_novas = set(existe_guia_notificada)
+        existe_guia_notificada = list(guias_novas - guias_atuais)
+
+        if existe_guia_notificada:
+            raise serializers.ValidationError(
+                {'guias': ['Existem uma ou mais guias que já estão notificadas.']}
+            )
+        return attrs
+
+    def update(self, instance, validated_data):
+        guias = validated_data.pop('guias', [])
+
+        instance.guias_notificadas.clear()
+        self.vincula_guias_a_notificacao(guias, instance)
+
+        return instance
+
+    class Meta:
+        model = NotificacaoOcorrenciasGuia
+        exclude = ('id', )
+
+
+class NotificacaoOcorrenciasUpdateSerializer(serializers.ModelSerializer):
+    processo_sei = serializers.CharField(required=False)
+    previsoes = PrevisoesContratuaisDaNotificacaoCreateSerializer(many=True, required=False)
+
+    def cria_previsoes(self, previsoes, notificacao):
+        for previsao in previsoes:
+            PrevisaoContratualNotificacao.objects.create(
+                notificacao=notificacao,
+                **previsao
+            )
+
+    def validate(self, attrs, instance):
+        previsoes = attrs.get('previsoes', None)
+        processo_sei = attrs.get('processo_sei', None)
+        if not previsoes:
+            raise serializers.ValidationError(
+                {'previsoes': ['Este campo é obrigatório.']}
+            )
+        if not processo_sei:
+            raise serializers.ValidationError(
+                {'processo_sei': ['Este campo é obrigatório.']}
+            )
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        previsoes = validated_data.pop('previsoes', [])
+
+        instance.previsoes_contratuais.all().delete()
+
+        self.cria_previsoes(previsoes, instance)
+        instance.processo_sei = validated_data.pop('processo_sei', None)
+        instance.save()
+
+        return instance
 
     class Meta:
         model = NotificacaoOcorrenciasGuia

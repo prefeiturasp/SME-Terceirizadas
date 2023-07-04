@@ -17,7 +17,11 @@ from rest_framework.status import (
 )
 from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    GuiaRemessaWorkFlow,
+    NotificacaoOcorrenciaWorkflow,
+    SolicitacaoRemessaWorkFlow
+)
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import (
@@ -38,6 +42,8 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaDaGuiaCreateSerializer,
     InsucessoDeEntregaGuiaCreateSerializer,
     NotificacaoOcorrenciasCreateSerializer,
+    NotificacaoOcorrenciasUpdateRascunhoSerializer,
+    NotificacaoOcorrenciasUpdateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
@@ -56,6 +62,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
     InsucessoDeEntregaGuiaSerializer,
+    NotificacaoOcorrenciasGuiaDetalheSerializer,
     NotificacaoOcorrenciasGuiaSerializer,
     NotificacaoOcorrenciasGuiaSimplesSerializer,
     SolicitacaoDeAlteracaoSerializer,
@@ -658,6 +665,10 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
             GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA,
             GuiaRemessaWorkFlow.CANCELADA)
         ).order_by('-data_entrega').distinct()
+        if request.query_params.get('notificacao_uuid'):
+            queryset_guias_do_numero = GuiasDasRequisicoes.objects.filter(
+                notificacao__uuid=request.query_params.get('notificacao_uuid')).distinct()
+            queryset = queryset | queryset_guias_do_numero
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = GuiaDaRemessaComOcorrenciasSerializer(page, many=True)
@@ -943,8 +954,10 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
     filterset_class = NotificacaoFilter
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ['list']:
             return NotificacaoOcorrenciasGuiaSerializer
+        elif self.action in ['retrieve']:
+            return NotificacaoOcorrenciasGuiaDetalheSerializer
         else:
             return NotificacaoOcorrenciasCreateSerializer
 
@@ -963,3 +976,48 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
 
         serializer = NotificacaoOcorrenciasGuiaSimplesSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['PUT'], url_path='edicao-rascunho')
+    def edicao_rascunho(self, request, uuid):
+        instance = self.get_object()
+        if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
+            serializer = NotificacaoOcorrenciasUpdateRascunhoSerializer()
+            validated_data = serializer.validate(request.data, instance)
+            res = serializer.update(instance, validated_data)
+            return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
+        else:
+            return Response(dict(detail=f'Erro de transição de estado: Status da Notificação não é RASCUNHO'),
+                            status=HTTP_400_BAD_REQUEST)
+
+    def atualiza_notificacao(self, instance, request):
+        serializer = NotificacaoOcorrenciasUpdateSerializer()
+        validated_data = serializer.validate(request.data, instance)
+        res = serializer.update(instance, validated_data)
+        return res
+
+    @action(detail=True, methods=['PATCH'], url_path='criar-notificacao')
+    def criar_notificacao(self, request, uuid):
+        usuario = request.user
+        instance = self.get_object()
+        serializer = NotificacaoOcorrenciasUpdateSerializer()
+        res = serializer.update(instance, request.data)
+        if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
+            instance.cria_notificacao(user=usuario)
+        return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
+
+    @action(detail=True, methods=['PATCH'], url_path='enviar-notificacao')
+    def enviar_notificacao(self, request, uuid):
+        usuario = request.user
+        instance = self.get_object()
+        if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
+            res = self.atualiza_notificacao(instance, request)
+            instance.cria_notificacao(user=usuario)
+            instance.envia_fiscal(user=usuario)
+        elif instance.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_CRIADA:
+            res = self.atualiza_notificacao(instance, request)
+            instance.envia_fiscal(user=usuario)
+        else:
+            return Response(dict(detail=f"""Erro de transição de estado:
+                                          Status da Notificação não é RASCUNHO ou NOTIFICACAO_CRIADA"""),
+                            status=HTTP_400_BAD_REQUEST)
+        return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
