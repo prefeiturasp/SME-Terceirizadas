@@ -948,7 +948,10 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
     def solicitacoes_unificadas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheUnificada)
-        return queryset.filter(status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_AUTORIZAR)
+        return queryset.filter(status__in=[
+            SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_AUTORIZAR,
+            SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+        ])
 
     @property
     def solicitacoes_unificadas_autorizadas(self):
