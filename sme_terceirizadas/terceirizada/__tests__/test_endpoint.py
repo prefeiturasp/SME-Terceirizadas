@@ -89,7 +89,7 @@ def test_url_endpoint_terceirizadas_actions(client_autenticado_dilog):
     response = client.get(f'/terceirizadas/lista-nomes-distribuidores/')
     assert response.status_code == status.HTTP_200_OK
 
-    response = client.get(f'/terceirizadas/lista-fornecedores-simples/')
+    response = client.get(f'/terceirizadas/lista-empresas-cronograma/')
     assert response.status_code == status.HTTP_200_OK
 
     response = client.get(f'/terceirizadas/lista-cnpjs/')

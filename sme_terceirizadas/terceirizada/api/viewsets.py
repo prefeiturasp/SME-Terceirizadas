@@ -78,9 +78,10 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
         response = {'results': DistribuidorSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='lista-fornecedores-simples')
-    def lista_fornecedores_simples(self, request):
-        queryset = Terceirizada.objects.filter(tipo_servico=Terceirizada.FORNECEDOR)
+    @action(detail=False, methods=['GET'], url_path='lista-empresas-cronograma')
+    def lista_empresas_cronograma(self, request):
+        queryset = Terceirizada.objects.filter(
+            tipo_servico__in=[Terceirizada.FORNECEDOR, Terceirizada.FORNECEDOR_E_DISTRIBUIDOR])
         response = {'results': TerceirizadaSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
