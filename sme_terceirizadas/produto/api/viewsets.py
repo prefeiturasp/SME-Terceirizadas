@@ -268,13 +268,17 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
             HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
             HomologacaoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
-            HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
-                self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA):
-            if query_set is not None:
-                query_set = query_set.filter(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
-            else:
-                data['escola'] = self.request.user.vinculo_atual.object_id
-                raw_sql += "AND %(reclamacoes_produto)s.escola_id = '%(escola)s' "
+            HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO]):
+            if self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
+                if query_set is not None:
+                    query_set = query_set.filter(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
+                else:
+                    data['escola'] = self.request.user.vinculo_atual.object_id
+                    raw_sql += "AND %(reclamacoes_produto)s.escola_id = '%(escola)s' "
+            elif self.request.user.tipo_usuario == constants.TIPO_USUARIO_DIRETORIA_REGIONAL:
+                if query_set is not None:
+                    query_set = query_set.filter(
+                        reclamacoes__escola__lote__diretoria_regional_id=self.request.user.vinculo_atual.instituicao)
         return query_set
 
     def tratar_parcialmente_suspensos(self, workflow, qs, edital):
@@ -314,6 +318,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             status='CODAE_HOMOLOGADO', produto__vinculos__suspenso=True
         ).distinct().values_list('uuid', flat=True)
 
+        instituicao_id = self.request.user.vinculo_atual.object_id
+
         for workflow in self.get_lista_status():
             if use_raw:
                 data = {'logs': LogSolicitacoesUsuario._meta.db_table,
@@ -327,16 +333,25 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                            'GROUP BY uuid_original) '
                            'AS most_recent_log '
                            'ON %(homologacao_produto)s.uuid = most_recent_log.uuid_original '
-                           'LEFT JOIN (SELECT DISTINCT ON (homologacao_produto_id) homologacao_produto_id, escola_id '
-                           'AS escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
+                           'LEFT JOIN (SELECT homologacao_produto_id, escola_id '
+                           'as escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
                            'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id '
                            'LEFT JOIN (SELECT id AS escola_id_escola, lote_id FROM %(escola)s) '
                            'AS escola_reclamacao '
                            'ON escola_reclamacao.escola_id_escola = escola_reclamacao_id '
-                           'LEFT JOIN (SELECT id AS lote_id_lote, terceirizada_id FROM %(lote)s) '
-                           'AS escola_lote '
+                           'LEFT JOIN (SELECT id AS lote_id_lote, terceirizada_id, '
+                           'diretoria_regional_id FROM %(lote)s) AS escola_lote '
                            'ON escola_lote.lote_id_lote = lote_id '
                            "WHERE %(homologacao_produto)s.status = '%(status)s' ")
+                if (self.request.user.tipo_usuario == constants.TIPO_USUARIO_DIRETORIA_REGIONAL and
+                    workflow in [HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+                                 HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_UE,
+                                 HomologacaoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
+                                 HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+                                 HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
+                                 HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
+                                 HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO]):
+                    raw_sql += f'AND escola_lote.diretoria_regional_id = {instituicao_id}'
                 if (workflow == 'CODAE_PEDIU_ANALISE_RECLAMACAO' and
                         self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
                     raw_sql += (f'AND terceirizada_id = '
@@ -472,20 +487,27 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         response = {'results': self.dados_dashboard(query_set=query_set, edital=edital, use_raw=False)}
         return Response(response)
 
-    def build_raw_sql_filtro_escola(self, raw_sql, status__in, common_status, tipo_usuario, filtros, escola_id):
+    def build_raw_sql_filtro_escola(self, raw_sql, status__in, common_status, tipo_usuario, filtros, escola_ou_dre_id):
         if tipo_usuario != constants.TIPO_USUARIO_ESCOLA:
             return raw_sql, filtros
-        filtros['reclamacoes__escola__id'] = escola_id
+        filtros['reclamacoes__escola__id'] = escola_ou_dre_id
         if 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' not in status__in:
             status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
         raw_sql += common_status
         if 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' not in raw_sql:
-            raw_sql += "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' "
-        raw_sql += f') AND escola_reclamacao_id = {escola_id} '
+            raw_sql += "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO')"
+        raw_sql += f' AND escola_reclamacao.escola_id_escola = {escola_ou_dre_id} '
+        return raw_sql, filtros
+
+    def build_raw_sql_filtro_dre(self, raw_sql, status__in, common_status, tipo_usuario, filtros, escola_ou_dre_id):
+        if tipo_usuario != constants.TIPO_USUARIO_DIRETORIA_REGIONAL:
+            return raw_sql, filtros
+        filtros['reclamacoes__escola__lote__diretoria_regional_id'] = escola_ou_dre_id
+        raw_sql += f'AND escola_lote.diretoria_regional_id = {escola_ou_dre_id}'
         return raw_sql, filtros
 
     def build_raw_sql_filtro_codae_pediu_analise_reclamacao(self, raw_sql, filtro_aplicado, perfil_nome, filtros,
-                                                            tipo_usuario, escola_id):
+                                                            tipo_usuario, escola_ou_dre_id):
         if filtro_aplicado != 'codae_pediu_analise_reclamacao':
             return raw_sql, filtros
         status__in = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
@@ -494,17 +516,19 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         common_status = ("WHERE (%(homologacao_produto)s.status = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU' "
                          "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_UE' "
                          f"OR %(homologacao_produto)s.status = '{filtro_aplicado.upper()}' ")
-        filtros_terceirizada_ou_codae = {
-            'status__in': status__in + ['TERCEIRIZADA_RESPONDEU_RECLAMACAO'],
+        filtros_terceirizada_ou_codae_ou_dre = {
+            'status__in': status__in + ['UE_RESPONDEU_QUESTIONAMENTO', 'TERCEIRIZADA_RESPONDEU_RECLAMACAO'],
             'raw_sql': (common_status +
+                        "OR %(homologacao_produto)s.status = 'UE_RESPONDEU_QUESTIONAMENTO' "
                         "OR %(homologacao_produto)s.status = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' "
                         "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_NUTRISUPERVISOR' "
                         "OR %(homologacao_produto)s.status = 'NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO') ")
         }
         filtros_dict = {
-            constants.COORDENADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae,
-            constants.ADMINISTRADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae,
-            constants.ADMINISTRADOR_EMPRESA: filtros_terceirizada_ou_codae,
+            constants.COGESTOR_DRE: filtros_terceirizada_ou_codae_ou_dre,
+            constants.COORDENADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae_ou_dre,
+            constants.ADMINISTRADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae_ou_dre,
+            constants.ADMINISTRADOR_EMPRESA: filtros_terceirizada_ou_codae_ou_dre,
             constants.COORDENADOR_SUPERVISAO_NUTRICAO: {
                 'status__in': status__in + ['CODAE_QUESTIONOU_NUTRISUPERVISOR'],
                 'raw_sql': (common_status +
@@ -512,26 +536,29 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             }
         }
 
-        if perfil_nome in [constants.COORDENADOR_GESTAO_PRODUTO,
+        if perfil_nome in [constants.COGESTOR_DRE,
+                           constants.COORDENADOR_GESTAO_PRODUTO,
                            constants.ADMINISTRADOR_GESTAO_PRODUTO,
                            constants.ADMINISTRADOR_EMPRESA,
                            constants.COORDENADOR_SUPERVISAO_NUTRICAO]:
             filtros['status__in'] = filtros_dict[perfil_nome]['status__in']
             raw_sql += filtros_dict[perfil_nome]['raw_sql']
-
         raw_sql, filtros = self.build_raw_sql_filtro_escola(raw_sql, status__in, common_status, tipo_usuario, filtros,
-                                                            escola_id)
-
+                                                            escola_ou_dre_id)
+        raw_sql, filtros = self.build_raw_sql_filtro_dre(raw_sql, status__in, common_status, tipo_usuario, filtros,
+                                                         escola_ou_dre_id)
         if 'WHERE' not in raw_sql:
             raw_sql += common_status + ') '
         return raw_sql, filtros
 
     def build_raw_sql_produtos_por_status(self, filtro_aplicado, edital, perfil_nome, filtros, tipo_usuario,
-                                          escola_id):
+                                          escola_ou_dre_id):
         data = {'logs': LogSolicitacoesUsuario._meta.db_table,
                 'homologacao_produto': HomologacaoProduto._meta.db_table,
                 'reclamacoes_produto': ReclamacaoDeProduto._meta.db_table,
-                'produto_edital': ProdutoEdital._meta.db_table}
+                'produto_edital': ProdutoEdital._meta.db_table,
+                'escola': Escola._meta.db_table,
+                'lote': Lote._meta.db_table}
 
         filtros_dict = {
             filtro_aplicado: {
@@ -597,12 +624,18 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                         'AS produto_edital '
                         'ON produto_edital.produto_id_prod_edit = %(homologacao_produto)s.produto_id AND '
                         f'produto_edital.edital_id_prod_edit = {edital.id} ')
-        raw_sql += ('LEFT JOIN (SELECT DISTINCT ON (homologacao_produto_id) homologacao_produto_id, escola_id '
+        raw_sql += ('LEFT JOIN (SELECT homologacao_produto_id, escola_id '
                     'AS escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
-                    'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id ')
+                    'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id '
+                    'LEFT JOIN (SELECT id AS escola_id_escola, lote_id FROM %(escola)s) '
+                    'AS escola_reclamacao '
+                    'ON escola_reclamacao.escola_id_escola = escola_reclamacao_id '
+                    'LEFT JOIN (SELECT id AS lote_id_lote, terceirizada_id, '
+                    'diretoria_regional_id FROM %(lote)s) AS escola_lote '
+                    'ON escola_lote.lote_id_lote = lote_id ')
 
         raw_sql, filtros = self.build_raw_sql_filtro_codae_pediu_analise_reclamacao(
-            raw_sql, filtro_aplicado, perfil_nome, filtros, tipo_usuario, escola_id)
+            raw_sql, filtro_aplicado, perfil_nome, filtros, tipo_usuario, escola_ou_dre_id)
         if filtro_aplicado and filtro_aplicado != 'codae_pediu_analise_reclamacao':
             filtros['status__in'] = filtros_dict[filtro_aplicado]['status__in']
             raw_sql += filtros_dict[filtro_aplicado]['raw_sql']
@@ -613,8 +646,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         raw_sql += 'ORDER BY log_criado_em DESC'
         return raw_sql, data
 
-    def get_queryset_solicitacoes_homologacao_por_status(self, request_data, perfil_nome, tipo_usuario, escola_id,
-                                                         filtro_aplicado):
+    def get_queryset_solicitacoes_homologacao_por_status(self, request_data, perfil_nome, tipo_usuario,
+                                                         escola_ou_dre_id, filtro_aplicado):
         filtros = {}
         page = request_data.get('page', False)
         nome_edital = request_data.get('nome_edital', None)
@@ -627,7 +660,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         titulo = request_data.get('titulo_produto', None)
         query_set = self.get_queryset()
         raw_sql, data = self.build_raw_sql_produtos_por_status(
-            filtro_aplicado, edital, perfil_nome, filtros, tipo_usuario, escola_id)
+            filtro_aplicado, edital, perfil_nome, filtros, tipo_usuario, escola_ou_dre_id)
         if page or (edital and not algum_filtro and not titulo):
             query_set = query_set.raw(raw_sql % data)
         else:
