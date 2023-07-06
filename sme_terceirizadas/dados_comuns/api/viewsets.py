@@ -11,6 +11,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
+from workalendar.america import BrazilSaoPauloCity
 
 from ... import __version__
 from ..behaviors import DiasSemana, TempoPasseio
@@ -37,6 +38,8 @@ from .serializers import (
     PerguntaFrequenteSerializer,
     SolicitacaoAbertaSerializer
 )
+
+calendario = BrazilSaoPauloCity()
 
 DEFAULT_PAGE = 1
 DEFAULT_PAGE_SIZE = 5
@@ -106,6 +109,20 @@ class DiasUteisViewSet(ViewSet):
         }
 
         return Response(dias_uteis)
+
+
+class FeriadosAnoViewSet(ViewSet):
+    permission_classes = (AllowAny,)
+
+    def list(self, request):
+        calendario.holidays()
+
+        def formatar_data(data):
+            return datetime.date.strftime(data, '%d/%m/%Y')
+
+        retorno = [formatar_data(h[0]) for h in calendario.holidays()]
+
+        return Response({'results': retorno}, status=status.HTTP_200_OK)
 
 
 class ConfiguracaoEmailViewSet(ModelViewSet):
