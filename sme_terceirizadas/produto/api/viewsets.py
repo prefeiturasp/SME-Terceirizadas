@@ -20,9 +20,15 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
+from ...dados_comuns.constants import TIPO_USUARIO_DIRETORIA_REGIONAL
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
+from ...dados_comuns.permissions import (
+    PermissaoParaReclamarDeProduto,
+    UsuarioCODAEGestaoProduto,
+    UsuarioDiretoriaRegional,
+    UsuarioTerceirizada
+)
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
 from ...escola.models import DiretoriaRegional, Escola, Lote
@@ -321,7 +327,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                          HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
                          HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
                          HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO]):
-            raw_sql += f'AND escola_lote.diretoria_regional_id = {instituicao_id}'
+            raw_sql += f'AND escola_lote.diretoria_regional_id = {instituicao_id} '
+        return raw_sql
 
     def dados_dashboard(self, query_set: QuerySet, edital: str, use_raw=True) -> list:
         sumario = []
@@ -344,7 +351,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                            'GROUP BY uuid_original) '
                            'AS most_recent_log '
                            'ON %(homologacao_produto)s.uuid = most_recent_log.uuid_original '
-                           'LEFT JOIN (SELECT homologacao_produto_id, escola_id '
+                           'LEFT JOIN (SELECT DISTINCT ON (homologacao_produto_id) homologacao_produto_id, escola_id '
                            'as escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
                            'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id '
                            'LEFT JOIN (SELECT id AS escola_id_escola, lote_id FROM %(escola)s) '
@@ -354,7 +361,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                            'diretoria_regional_id FROM %(lote)s) AS escola_lote '
                            'ON escola_lote.lote_id_lote = lote_id '
                            "WHERE %(homologacao_produto)s.status = '%(status)s' ")
-                self.trata_dre_raw_sql(raw_sql, workflow, instituicao_id)
+                raw_sql = self.trata_dre_raw_sql(raw_sql, workflow, instituicao_id)
                 if (workflow == 'CODAE_PEDIU_ANALISE_RECLAMACAO' and
                         self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
                     raw_sql += (f'AND terceirizada_id = '
@@ -509,6 +516,11 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         raw_sql += f'AND escola_lote.diretoria_regional_id = {escola_ou_dre_id}'
         return raw_sql, filtros
 
+    def trata_edital(self, raw_sql, edital):
+        if edital:
+            raw_sql += f' AND produto_edital.edital_id_prod_edit = {edital.id} '
+        return raw_sql
+
     def build_raw_sql_filtro_codae_pediu_analise_reclamacao(self, raw_sql, filtro_aplicado, perfil_nome, filtros,
                                                             tipo_usuario, escola_ou_dre_id):
         if filtro_aplicado != 'codae_pediu_analise_reclamacao':
@@ -552,6 +564,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                                          escola_ou_dre_id)
         if 'WHERE' not in raw_sql:
             raw_sql += common_status + ') '
+
         return raw_sql, filtros
 
     def build_raw_sql_produtos_por_status(self, filtro_aplicado, edital, perfil_nome, filtros, tipo_usuario,
@@ -611,7 +624,17 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     "WHERE (%(homologacao_produto)s.status IN ('CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO') "
                     "OR (%(homologacao_produto)s.status = 'CODAE_HOMOLOGADO' "
                     'AND %(produto_edital)s.suspenso = True))')
-            }
+            },
+            'responder_questionamentos_da_codae': {
+                'status__in': [
+                    HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+                    HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+                    HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO
+                ],
+                'raw_sql': ("WHERE (%(homologacao_produto)s.status = 'CODAE_QUESTIONOU_UE' "
+                            "OR %(homologacao_produto)s.status = 'CODAE_QUESTIONOU_NUTRISUPERVISOR' "
+                            "OR %(homologacao_produto)s.status = 'CODAE_PEDIU_ANALISE_RECLAMACAO') ")
+            },
         }
 
         raw_sql = ('SELECT %(homologacao_produto)s.* FROM %(homologacao_produto)s '
@@ -642,10 +665,12 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if filtro_aplicado and filtro_aplicado != 'codae_pediu_analise_reclamacao':
             filtros['status__in'] = filtros_dict[filtro_aplicado]['status__in']
             raw_sql += filtros_dict[filtro_aplicado]['raw_sql']
+            if filtro_aplicado == 'responder_questionamentos_da_codae':
+                raw_sql, filtros = self.build_raw_sql_filtro_dre(raw_sql, None, None, tipo_usuario, filtros,
+                                                                 escola_ou_dre_id)
         if filtro_aplicado == 'codae_suspendeu':
             filtros['produto__vinculos__suspenso'] = True
-        if edital:
-            raw_sql += f' AND produto_edital.edital_id_prod_edit = {edital.id} '
+        raw_sql += self.trata_edital(edital)
         raw_sql += 'ORDER BY log_criado_em DESC'
         return raw_sql, data
 
@@ -1548,22 +1573,24 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path='filtro-reclamacoes-terceirizada',
-            permission_classes=[UsuarioTerceirizada])
+            permission_classes=[UsuarioTerceirizada | UsuarioDiretoriaRegional])
     def filtro_reclamacoes_terceirizada(self, request):
-        filtro_homologacao = {'homologacao__reclamacoes__status':
-                              ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA}
-        filtro_reclamacao = {'status__in': [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
-                                            ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA
-                                            ]}
-        qtde_questionamentos = Count('homologacao__reclamacoes', filter=Q(
-            homologacao__reclamacoes__status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA))
+        if self.request.user.tipo_usuario == TIPO_USUARIO_DIRETORIA_REGIONAL:
+            queryset = Produto.objects.filter(homologacao__uuid=request.query_params.get('uuid'))
+        else:
+            filtro_homologacao = {'homologacao__reclamacoes__status':
+                                  ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA}
+            filtro_reclamacao = {'status__in': [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+                                                ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA
+                                                ]}
+            qtde_questionamentos = Count('homologacao__reclamacoes', filter=Q(
+                homologacao__reclamacoes__status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA))
 
-        queryset = self.filter_queryset(self.get_queryset()).filter(
-            **filtro_homologacao).prefetch_related(
-            Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
-                **filtro_reclamacao))).annotate(
-            qtde_questionamentos=qtde_questionamentos).order_by('criado_em').distinct()
-
+            queryset = self.filter_queryset(self.get_queryset()).filter(
+                **filtro_homologacao).prefetch_related(
+                Prefetch('homologacao__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+                    **filtro_reclamacao))).annotate(
+                qtde_questionamentos=qtde_questionamentos).order_by('criado_em').distinct()
         return self.paginated_response(queryset)
 
     @action(detail=False,
