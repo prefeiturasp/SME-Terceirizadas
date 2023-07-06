@@ -268,7 +268,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
             HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
             HomologacaoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
-            HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO]):
+                HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO]):
             if self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
                 if query_set is not None:
                     query_set = query_set.filter(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
@@ -312,6 +312,17 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 return None
         return edital
 
+    def trata_dre_raw_sql(self, raw_sql, workflow, instituicao_id):
+        if (self.request.user.tipo_usuario == constants.TIPO_USUARIO_DIRETORIA_REGIONAL and
+            workflow in [HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+                         HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_UE,
+                         HomologacaoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
+                         HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+                         HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
+                         HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
+                         HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO]):
+            raw_sql += f'AND escola_lote.diretoria_regional_id = {instituicao_id}'
+
     def dados_dashboard(self, query_set: QuerySet, edital: str, use_raw=True) -> list:
         sumario = []
         uuids_homologados_com_vinc_prod_edital_suspenso = HomologacaoProduto.objects.filter(
@@ -343,15 +354,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                            'diretoria_regional_id FROM %(lote)s) AS escola_lote '
                            'ON escola_lote.lote_id_lote = lote_id '
                            "WHERE %(homologacao_produto)s.status = '%(status)s' ")
-                if (self.request.user.tipo_usuario == constants.TIPO_USUARIO_DIRETORIA_REGIONAL and
-                    workflow in [HomologacaoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-                                 HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_UE,
-                                 HomologacaoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
-                                 HomologacaoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
-                                 HomologacaoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
-                                 HomologacaoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
-                                 HomologacaoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO]):
-                    raw_sql += f'AND escola_lote.diretoria_regional_id = {instituicao_id}'
+                self.trata_dre_raw_sql(raw_sql, workflow, instituicao_id)
                 if (workflow == 'CODAE_PEDIU_ANALISE_RECLAMACAO' and
                         self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
                     raw_sql += (f'AND terceirizada_id = '
