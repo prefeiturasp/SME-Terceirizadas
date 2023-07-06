@@ -329,6 +329,10 @@ class NomeDeProdutoEditalSerializer(serializers.ModelSerializer):
 class CadastroProdutosEditalSerializer(serializers.ModelSerializer):
     nome = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
+    criado_em = serializers.SerializerMethodField()
+
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime('%d/%m/%Y')
 
     def get_nome(self, obj):
         return obj.nome
@@ -338,7 +342,7 @@ class CadastroProdutosEditalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NomeDeProdutoEdital
-        fields = ('uuid', 'nome', 'status')
+        fields = ('uuid', 'nome', 'status', 'criado_em')
 
 
 class ProdutosSubstitutosSerializer(serializers.ModelSerializer):

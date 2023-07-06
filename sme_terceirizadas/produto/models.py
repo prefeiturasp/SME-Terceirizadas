@@ -220,10 +220,25 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
 
 
 class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
+    TERCEIRIZADA = 'TERCEIRIZADA'
+    LOGISTICA = 'LOGISTICA'
+
+    TIPO_PRODUTO = {
+        TERCEIRIZADA: 'Terceirizada',
+        LOGISTICA: 'Logistica',
+    }
+
+    TIPO_PRODUTO_CHOICES = (
+        (TERCEIRIZADA, TIPO_PRODUTO[TERCEIRIZADA]),
+        (LOGISTICA, TIPO_PRODUTO[LOGISTICA]),
+    )
+
+    tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES,
+                                    null=False, blank=False, default=TERCEIRIZADA)
 
     class Meta:
         ordering = ('nome',)
-        unique_together = ('nome',)
+        unique_together = ('nome', 'tipo_produto')
         verbose_name = 'Produto proveniente do Edital'
         verbose_name_plural = 'Produtos provenientes do Edital'
 

@@ -377,6 +377,15 @@ def produto_edital(user):
 
 
 @pytest.fixture
+def produto_logistica(user):
+    return mommy.make('NomeDeProdutoEdital',
+                      nome='PRODUTO TESTE',
+                      tipo_produto='LOGISTICA',
+                      ativo=True,
+                      criado_por=user)
+
+
+@pytest.fixture
 def arquivo():
     return SimpleUploadedFile(f'planilha-teste.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8'))
 

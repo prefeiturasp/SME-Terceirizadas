@@ -1928,14 +1928,36 @@ class CadastroProdutoEditalViewSet(viewsets.ModelViewSet):
             return CadastroProdutosEditalCreateSerializer
         return CadastroProdutosEditalSerializer
 
+    def get_queryset(self):
+        if self.action in ['list']:
+            return NomeDeProdutoEdital.objects.filter(tipo_produto=NomeDeProdutoEdital.TERCEIRIZADA)
+        return NomeDeProdutoEdital.objects.all()
+
     @action(detail=False, methods=['GET'], url_path='lista-completa')
     def lista_completa(self, _):
         queryset = self.queryset.all()
         return Response({'results': CadastroProdutosEditalSerializer(queryset, many=True).data})
 
+    @action(detail=False, methods=['GET'], url_path='produtos-logistica')
+    def produtos_logistica(self, _):
+        queryset = NomeDeProdutoEdital.objects.filter(tipo_produto=NomeDeProdutoEdital.LOGISTICA)
+        queryset = self.filter_queryset(queryset)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_de_nomes(self, _):
-        return Response({'results': [item.nome for item in self.queryset.all()]})
+        return Response({'results': [item.nome for item in
+                                     self.queryset.filter(tipo_produto=NomeDeProdutoEdital.TERCEIRIZADA)]})
 
     class Meta:
         model = NomeDeProdutoEdital
