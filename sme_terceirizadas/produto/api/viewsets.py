@@ -670,7 +670,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                                                  escola_ou_dre_id)
         if filtro_aplicado == 'codae_suspendeu':
             filtros['produto__vinculos__suspenso'] = True
-        raw_sql += self.trata_edital(edital)
+        raw_sql += self.trata_edital(raw_sql, edital)
         raw_sql += 'ORDER BY log_criado_em DESC'
         return raw_sql, data
 
