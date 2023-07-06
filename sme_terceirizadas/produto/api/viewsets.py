@@ -650,7 +650,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                         'AS produto_edital '
                         'ON produto_edital.produto_id_prod_edit = %(homologacao_produto)s.produto_id AND '
                         f'produto_edital.edital_id_prod_edit = {edital.id} ')
-        raw_sql += ('LEFT JOIN (SELECT homologacao_produto_id, escola_id '
+        raw_sql += ('LEFT JOIN (SELECT DISTINCT ON (homologacao_produto_id) homologacao_produto_id, escola_id '
                     'AS escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
                     'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id '
                     'LEFT JOIN (SELECT id AS escola_id_escola, lote_id FROM %(escola)s) '
@@ -670,7 +670,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                                                  escola_ou_dre_id)
         if filtro_aplicado == 'codae_suspendeu':
             filtros['produto__vinculos__suspenso'] = True
-        raw_sql += self.trata_edital(raw_sql, edital)
+        raw_sql = self.trata_edital(raw_sql, edital)
         raw_sql += 'ORDER BY log_criado_em DESC'
         return raw_sql, data
 
