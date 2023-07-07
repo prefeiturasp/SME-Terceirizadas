@@ -20,7 +20,11 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
-from ...dados_comuns.constants import TIPO_USUARIO_DIRETORIA_REGIONAL, TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA
+from ...dados_comuns.constants import (
+    TIPO_USUARIO_DIRETORIA_REGIONAL,
+    TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    TIPO_USUARIO_NUTRIMANIFESTACAO
+)
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
@@ -28,6 +32,7 @@ from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
     UsuarioCODAEGestaoProduto,
     UsuarioDiretoriaRegional,
+    UsuarioNutricionista,
     UsuarioTerceirizada
 )
 from ...dados_comuns.utils import url_configs
@@ -543,6 +548,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         filtros_dict = {
             constants.COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA: filtros_terceirizada_ou_codae_ou_dre,
             constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA: filtros_terceirizada_ou_codae_ou_dre,
+            constants.COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO: filtros_terceirizada_ou_codae_ou_dre,
             constants.COGESTOR_DRE: filtros_terceirizada_ou_codae_ou_dre,
             constants.COORDENADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae_ou_dre,
             constants.ADMINISTRADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae_ou_dre,
@@ -557,6 +563,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if perfil_nome in [constants.COGESTOR_DRE,
                            constants.COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                            constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                           constants.COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
                            constants.COORDENADOR_GESTAO_PRODUTO,
                            constants.ADMINISTRADOR_GESTAO_PRODUTO,
                            constants.ADMINISTRADOR_EMPRESA,
@@ -1579,10 +1586,12 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path='filtro-reclamacoes-terceirizada',
-            permission_classes=[UsuarioTerceirizada | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+            permission_classes=[UsuarioTerceirizada | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao |
+                                UsuarioNutricionista])
     def filtro_reclamacoes_terceirizada(self, request):
         if self.request.user.tipo_usuario in [TIPO_USUARIO_DIRETORIA_REGIONAL,
-                                              TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA]:
+                                              TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                              TIPO_USUARIO_NUTRIMANIFESTACAO]:
             queryset = Produto.objects.filter(homologacao__uuid=request.query_params.get('uuid'))
         else:
             filtro_homologacao = {'homologacao__reclamacoes__status':
