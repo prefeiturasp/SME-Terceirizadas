@@ -20,11 +20,12 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
-from ...dados_comuns.constants import TIPO_USUARIO_DIRETORIA_REGIONAL
+from ...dados_comuns.constants import TIPO_USUARIO_DIRETORIA_REGIONAL, TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     PermissaoParaReclamarDeProduto,
+    UsuarioCODAEGestaoAlimentacao,
     UsuarioCODAEGestaoProduto,
     UsuarioDiretoriaRegional,
     UsuarioTerceirizada
@@ -540,6 +541,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                         "OR %(homologacao_produto)s.status = 'NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO') ")
         }
         filtros_dict = {
+            constants.COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA: filtros_terceirizada_ou_codae_ou_dre,
+            constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA: filtros_terceirizada_ou_codae_ou_dre,
             constants.COGESTOR_DRE: filtros_terceirizada_ou_codae_ou_dre,
             constants.COORDENADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae_ou_dre,
             constants.ADMINISTRADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae_ou_dre,
@@ -552,6 +555,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         }
 
         if perfil_nome in [constants.COGESTOR_DRE,
+                           constants.COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                           constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                            constants.COORDENADOR_GESTAO_PRODUTO,
                            constants.ADMINISTRADOR_GESTAO_PRODUTO,
                            constants.ADMINISTRADOR_EMPRESA,
@@ -733,6 +738,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         solicitacoes_viewset = SolicitacoesViewSet()
         query_set = solicitacoes_viewset.remove_duplicados_do_query_set(query_set)
+
         if page:
             page = self.paginate_queryset(query_set)
             serializer = HomologacaoProdutoPainelGerencialSerializer(page,
@@ -1573,9 +1579,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path='filtro-reclamacoes-terceirizada',
-            permission_classes=[UsuarioTerceirizada | UsuarioDiretoriaRegional])
+            permission_classes=[UsuarioTerceirizada | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def filtro_reclamacoes_terceirizada(self, request):
-        if self.request.user.tipo_usuario == TIPO_USUARIO_DIRETORIA_REGIONAL:
+        if self.request.user.tipo_usuario in [TIPO_USUARIO_DIRETORIA_REGIONAL,
+                                              TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA]:
             queryset = Produto.objects.filter(homologacao__uuid=request.query_params.get('uuid'))
         else:
             filtro_homologacao = {'homologacao__reclamacoes__status':
