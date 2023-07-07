@@ -1958,7 +1958,7 @@ class CadastroProdutoEditalViewSet(viewsets.ModelViewSet):
     def lista_de_nomes(self, _):
         return Response({'results': [item.nome for item in
                                      self.queryset.filter(tipo_produto=NomeDeProdutoEdital.TERCEIRIZADA)]})
-    
+
     @action(detail=False, methods=['GET'], url_path='lista-nomes-logistica')
     def lista_de_nomes_logistica(self, _):
         return Response({'results': [item.nome for item in
