@@ -2429,7 +2429,7 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         resposta = self.muda_status_com_justificativa_e_anexo(
             request,
             reclamacao_produto.codae_recusa)
-        reclamacoes_ativas = self.quantidade_reclamacoes_ativas
+        reclamacoes_ativas = self.quantidade_reclamacoes_ativas(reclamacao_produto)
         if reclamacoes_ativas == 0:
             reclamacao_produto.homologacao_produto.codae_recusou_reclamacao(
                 user=request.user,
