@@ -1414,7 +1414,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
 
-        if kwargs['suspensao_parcial']:
+        if kwargs.get('suspensao_parcial'):
             self.salva_log_com_justificativa_e_anexos(
                 LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS,
                 kwargs['request'],
