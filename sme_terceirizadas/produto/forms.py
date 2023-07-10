@@ -44,7 +44,7 @@ class ProdutoJaExisteForm(forms.Form):
 class NomeDeProdutoEditalForm(forms.ModelForm):
 
     class Meta:
-        fields = ('nome', 'ativo')
+        fields = ('nome', 'ativo', 'tipo_produto')
 
     def __init__(self, *args, **kwargs):  # noqa D107
         super().__init__(*args, **kwargs)

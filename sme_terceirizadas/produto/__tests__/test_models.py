@@ -46,3 +46,8 @@ def test_modelo_unidade_medida(unidade_medida):
 
 def test_modelo_embalagem(embalagem_produto):
     assert embalagem_produto.nome == 'Bag'
+
+
+def test_produto_logistica(produto_logistica):
+    assert produto_logistica.nome == 'PRODUTO TESTE'
+    assert produto_logistica.tipo_produto == 'LOGISTICA'
