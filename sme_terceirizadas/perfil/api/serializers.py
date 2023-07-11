@@ -211,53 +211,6 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             nome_perfil=ADMINISTRADOR_EMPRESA
         )
 
-    def create_distribuidor(self, terceirizada, validated_data):
-        email = validated_data.get('email')
-        if Usuario.objects.filter(email=email).exists():
-            raise ValidationError('E-mail já cadastrado')
-        usuario = Usuario()
-        usuario = self.criar_distribuidor(usuario, validated_data)
-        usuario.is_active = False
-        usuario.save()
-        if usuario.super_admin_terceirizadas:
-            usuario.criar_vinculo_administrador(
-                terceirizada,
-                nome_perfil=ADMINISTRADOR_EMPRESA
-            )
-        else:
-            usuario.criar_vinculo_administrador(
-                terceirizada,
-                nome_perfil=ADMINISTRADOR_EMPRESA
-            )
-        usuario.enviar_email_administrador()
-
-    def update_distribuidor(self, terceirizada, validated_data):
-        nome_perfil = ADMINISTRADOR_EMPRESA
-        novo_usuario = False
-        email = validated_data.get('email')
-        cpf = validated_data.get('cpf', None)
-        if Usuario.objects.filter(email=email).exists():
-            usuario = Usuario.objects.get(email=email)
-            usuario.contatos.all().delete()
-        elif Usuario.objects.filter(cpf=cpf).exists():
-            usuario = Usuario.objects.get(cpf=cpf)
-            usuario.contatos.all().delete()
-            vinculo = Vinculo.objects.filter(object_id=terceirizada.id).last()
-            vinculo.finalizar_vinculo()
-            novo_usuario = True
-        else:
-            usuario = Usuario()
-            usuario.is_active = False
-            vinculo = Vinculo.objects.filter(object_id=terceirizada.id).last()
-            vinculo.finalizar_vinculo()
-            novo_usuario = True
-        usuario = self.atualizar_distribuidor(usuario, validated_data)
-        if novo_usuario:
-            usuario.criar_vinculo_administrador(
-                terceirizada,
-                nome_perfil=nome_perfil
-            )
-            usuario.enviar_email_administrador()
 
     def update_nutricionista(self, terceirizada, validated_data):
         novo_usuario = False
