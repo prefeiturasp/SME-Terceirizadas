@@ -59,3 +59,22 @@ class SolicitacaoAlteracaoCronogramaFilter(filters.FilterSet):
         field_name='status',
         choices=[(str(state), state) for state in CronogramaAlteracaoWorkflow.states],
     )
+
+
+class EmbalagensQldFilter(filters.FilterSet):
+    uuid = filters.CharFilter(
+        field_name='uuid',
+        lookup_expr='exact',
+    )
+    nome = filters.CharFilter(
+        field_name='nome',
+        lookup_expr='icontains',
+    )
+    abreviacao = filters.CharFilter(
+        field_name='abreviacao',
+        lookup_expr='exact',
+    )
+    data_cadastro = filters.DateFilter(
+        field_name='criado_em__date',
+        lookup_expr='exact',
+    )
