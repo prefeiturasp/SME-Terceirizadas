@@ -304,6 +304,11 @@ def test_url_lista_nomes_embalagens_authorized(client_autenticado_qualidade):
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_url_abreviacao_nomes_embalagens_authorized(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get('/embalagens/lista-abreviacao-embalagens/')
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_url_endpoint_embalagem_update(client_autenticado_qualidade, emabalagem_qld):
     data = {
         'nome': 'saco',

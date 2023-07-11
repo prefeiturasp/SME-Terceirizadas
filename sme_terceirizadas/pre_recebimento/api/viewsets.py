@@ -30,8 +30,12 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     ViewSetActionPermissionMixin
 )
-from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter, SolicitacaoAlteracaoCronogramaFilter
-from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPagination
+from sme_terceirizadas.pre_recebimento.api.filters import (
+    CronogramaFilter,
+    EmbalagensQldFilter,
+    SolicitacaoAlteracaoCronogramaFilter
+)
+from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPagination, EmbalagemQldPagination
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
     EmbalagemQldCreateSerializer,
@@ -300,9 +304,12 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
 
 class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = EmbalagemQld.objects.all()
+    queryset = EmbalagemQld.objects.all().order_by('-criado_em')
     serializer_class = EmbalagemQldSerializer
     permission_classes = (PermissaoParaCadastrarVisualizarEmbalagem,)
+    pagination_class = EmbalagemQldPagination
+    filterset_class = EmbalagensQldFilter
+    filter_backends = (filters.DjangoFilterBackend,)
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
@@ -313,6 +320,12 @@ class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes-embalagens')
     def lista_nomes_embalagens(self, request):
         queryset = EmbalagemQld.objects.all().values_list('nome', flat=True)
+        response = {'results': queryset}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-abreviacao-embalagens')
+    def lista_abreviacoes_embalagens(self, request):
+        queryset = EmbalagemQld.objects.all().values_list('abreviacao', flat=True)
         response = {'results': queryset}
         return Response(response)
 
