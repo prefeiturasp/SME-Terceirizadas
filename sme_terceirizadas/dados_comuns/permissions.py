@@ -621,7 +621,9 @@ class PermissaoParaCadastrarVisualizarEmbalagem(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE, DILOG_CRONOGRAMA]
+                    usuario.vinculo_atual.perfil.nome in [
+                        DILOG_QUALIDADE, DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA
+                    ]
                 )
             )
         )
