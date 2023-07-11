@@ -349,6 +349,58 @@ def test_url_endpoint_cadastro_de_produto_edital(client_autenticado_vinculo_coda
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_url_endpoint_produtos_logistica(client_autenticado_vinculo_codae_produto,
+                                         produto_edital, produto_logistica):
+    client = client_autenticado_vinculo_codae_produto
+    response = client.get(f'/cadastro-produtos-edital/produtos-logistica/')
+    resultado = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert resultado['count'] == 1
+
+
+def test_url_endpoint_cria_produto_terceirizada(client_autenticado_vinculo_codae_produto):
+    client = client_autenticado_vinculo_codae_produto
+    payload = {
+        'nome': 'BATATA',
+        'ativo': 'Ativo'
+    }
+    response = client.post(f'/cadastro-produtos-edital/', data=json.dumps(payload), content_type='application/json')
+    assert response.status_code == status.HTTP_201_CREATED
+
+
+def test_url_endpoint_cria_produto_logistica(client_autenticado_vinculo_codae_produto):
+    client = client_autenticado_vinculo_codae_produto
+    payload = {
+        'nome': 'ARROZ',
+        'ativo': 'Ativo',
+        'tipo_produto': 'LOGISTICA'
+    }
+    response = client.post(f'/cadastro-produtos-edital/', data=json.dumps(payload), content_type='application/json')
+    assert response.status_code == status.HTTP_201_CREATED
+
+
+def test_url_endpoint_cria_produto_repetido(client_autenticado_vinculo_codae_produto, produto_logistica):
+    client = client_autenticado_vinculo_codae_produto
+    payload = {
+        'nome': 'PRODUTO TESTE',
+        'ativo': 'Ativo',
+        'tipo_produto': 'LOGISTICA'
+    }
+    response = client.post(f'/cadastro-produtos-edital/', data=json.dumps(payload), content_type='application/json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_endpoint_atualiza_produto(client_autenticado_vinculo_codae_produto, produto_logistica):
+    client = client_autenticado_vinculo_codae_produto
+    payload = {
+        'nome': 'FEIJAO',
+        'ativo': 'Ativo'
+    }
+    response = client.patch(f'/cadastro-produtos-edital/{produto_logistica.uuid}/', data=json.dumps(payload),
+                            content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_url_endpoint_cadastro_produto_os_steps_sem_rascunho(client_autenticado_vinculo_terceirizada,
                                                              marca1, fabricante, info_nutricional1,
                                                              unidade_medida, embalagem_produto):
