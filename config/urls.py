@@ -36,9 +36,9 @@ urlpatterns = [path('django-des/', include(des_urls)),
                path('api-token-auth/', obtain_jwt_token),
                path('api-token-refresh/', refresh_jwt_token),
                path('', include('django_prometheus.urls')),
-               path('docs/', SpectacularAPIView.as_view(), name='schema'),
-               path('docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-               path('docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc')
+               path('docs-swagger/', SpectacularAPIView.as_view(), name='schema'),
+               path('docs-swagger/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+               path('docs-swagger/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc')
                ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
