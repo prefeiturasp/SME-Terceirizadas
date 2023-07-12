@@ -27,16 +27,6 @@
                     </div>
                   </div>
                 {% endif %}
-                {% if log.status_evento_explicacao == "CODAE autorizou" %}
-                  <div class="is-it-possible">
-                    <div class="title">Autorizou</div>
-                      {% if log.justificativa %}
-                        <div class="obs">
-                          Observação da CODAE: {{ log.justificativa | safe }}
-                        </div>
-                      {% endif %}
-                  </div>
-                {% endif %}
                 {% if log.status_evento_explicacao == "CODAE negou" %}
                   <div class="is-it-possible">
                     <div class="title">Negou</div>
