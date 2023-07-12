@@ -3,15 +3,17 @@
 {% block observacao_codae_autoriza %}
   <div class="observacoes">
     <div>
-      {% for log in solicitacao.logs%}
-        {% if log.status_evento_explicacao == "CODAE autorizou" %}
-          <p class="cabecalho mb-2"><b>Autorizou</b></p>
-          <div>{{ log.criado_em }} - Informações da CODAE</div>
-          <div class="mt-2 justificativa-cancelamento-escola-dre">
-            {{ log.justificativa }}
-          </div>
-        {% endif %}
-      {% endfor %}
+      {% if not solicitacao.logs.all|tem_questionamentos %}
+        {% for log in solicitacao.logs%}
+          {% if log.status_evento_explicacao == "CODAE autorizou" %}
+            <p class="cabecalho mb-2"><b>Autorizou</b></p>
+            <div>{{ log.criado_em|date:"d/m/Y H:i:s" }} - Informações da CODAE</div>
+            <div class="mt-2 justificativa-cancelamento-escola-dre">
+              {{ log.justificativa }}
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
     </div>
   </div>
 
