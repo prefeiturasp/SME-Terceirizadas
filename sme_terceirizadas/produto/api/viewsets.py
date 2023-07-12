@@ -1769,7 +1769,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if nome_fabricante:
             homologacoes = homologacoes.filter(produto__fabricante__nome=nome_fabricante)
         if nome_edital:
-            homologacoes = homologacoes.filter(produto__vinculos__edital__numero=nome_edital)
+            homologacoes = homologacoes.filter(produto__vinculos__edital__numero=nome_edital,
+                                               produto__vinculos__suspenso=True)
         if not nome_edital:
             usuario = request.user
             homologacoes = self.editais_do_ususario(usuario, homologacoes)
