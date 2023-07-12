@@ -1707,24 +1707,21 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             editais_id = Contrato.objects.filter(lotes__in=[lote])
             editais_id = editais_id.values_list('edital_id', flat=True).distinct()
             editais = editais.filter(id__in=editais_id)
-            queryset = queryset.filter(produto__vinculos__edital__in=editais,
-                                       produto__vinculos__suspenso=True)
+            queryset = queryset.filter(produto__vinculos__edital__in=editais)
         if isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             terceirizada = usuario.vinculo_atual.instituicao
             lotes_uuid = Lote.objects.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
             editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid)
             editais_id = editais_id.values_list('edital_id', flat=True).distinct()
             editais = editais.filter(id__in=editais_id)
-            queryset = queryset.filter(produto__vinculos__edital__in=editais,
-                                       produto__vinculos__suspenso=True)
+            queryset = queryset.filter(produto__vinculos__edital__in=editais)
         if isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional):
             diretoria_regional = usuario.vinculo_atual.instituicao
             lotes_uuid = Lote.objects.filter(diretoria_regional=diretoria_regional).values_list('uuid', flat=True)
             editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid)
             editais_id = editais_id.values_list('edital_id', flat=True).distinct()
             editais = editais.filter(id__in=editais_id)
-            queryset = queryset.filter(produto__vinculos__edital__in=editais,
-                                       produto__vinculos__suspenso=True)
+            queryset = queryset.filter(produto__vinculos__edital__in=editais)
         return queryset
 
     @action(detail=False,
