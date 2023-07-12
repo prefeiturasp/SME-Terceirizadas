@@ -9,7 +9,7 @@ from ....dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from ....dados_comuns.models import Contato
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.models import DiretoriaRegional, Lote
-from ....perfil.api.serializers import SuperAdminTerceirizadaSerializer, UsuarioUpdateSerializer
+from ....perfil.api.serializers import SuperAdminTerceirizadaSerializer
 from ....perfil.models import Perfil, Usuario
 from ...models import (
     Contrato,

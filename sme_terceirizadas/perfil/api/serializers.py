@@ -211,7 +211,6 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             nome_perfil=ADMINISTRADOR_EMPRESA
         )
 
-
     def update_nutricionista(self, terceirizada, validated_data):
         novo_usuario = False
         email = validated_data['contatos'][0]['email']
