@@ -195,10 +195,15 @@
 
 <div class="mx-4 my-2">
   {% include "bloco_observacoes.html" %}
-  {% include "bloco_historico_questionamento.html" %}
+  <div class="conteudo">
+    {% include "bloco_historico_questionamento_com_data.html" %}
+  </div>
   {% include "bloco_historico_cancelamento_inclusao.html" %}
   {% if solicitacao.status == 'ESCOLA_CANCELOU' %}
     {% include "bloco_historico_cancelamento.html" %}
   {% endif %}
+  <div class="conteudo">
+    {% include "bloco_observacao_codae_autoriza.html" %}
+  </div>
 </div>
 {% endblock %}
