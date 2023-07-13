@@ -55,35 +55,45 @@ def build_subtitulo(data, status_, queryset, lotes, tipos_solicitacao, tipos_uni
     return subtitulo
 
 
+def formata_data(model_obj):
+    data_inicial = model_obj.data_inicial.strftime('%d/%m/%Y')
+    data_final = model_obj.data_final.strftime('%d/%m/%Y')
+    return f'{data_inicial} - {data_final}'
+
+
+def cria_tipos_alimentacao(qt_periodo):
+    tipos_alimentacao = ''
+    for tipo in qt_periodo.tipos_alimentacao.all():
+        tipos_alimentacao = ''.join(tipo.nome)
+    return tipos_alimentacao
+
+
+def cria_nova_linha(df, index, solicitacao, model_obj, qt_periodo):
+    nova_linha = df.iloc[index].copy()
+    nova_linha['data_evento'] = formata_data(model_obj)
+    nova_linha['dia_semana'] = qt_periodo.dias_semana_display()
+    nova_linha['periodo_inclusao'] = qt_periodo.periodo_escolar.nome
+    if qt_periodo.cancelado:
+        nova_linha['observacoes'] = qt_periodo.cancelado_justificativa
+    nova_linha['tipo_alimentacao'] = cria_tipos_alimentacao(qt_periodo)
+    nova_linha['numero_alunos'] = qt_periodo.numero_alunos
+    return nova_linha
+
+
 def novas_linhas_inc_continua(df, queryset):
-    try:
-        novas_linhas, lista_uuids = [], []
-        for index, solicitacao in enumerate(queryset):
-            model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
-            if solicitacao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
-                for qt_periodo in model_obj.quantidades_periodo.all():
-                    nova_linha = df.iloc[index].copy()
-                    data_inicial = model_obj.data_inicial.strftime('%d/%m/%Y')
-                    data_final = model_obj.data_final.strftime('%d/%m/%Y')
-                    nova_linha['data_evento'] = f'{data_inicial} - {data_final}'
-                    nova_linha['dia_semana'] = qt_periodo.dias_semana_display()
-                    nova_linha['periodo_inclusao'] = qt_periodo.periodo_escolar.nome
-                    if qt_periodo.cancelado == True:
-                        nova_linha['observacoes'] = qt_periodo.cancelado_justificativa
-                    tipos_alimentacao = ''
-                    for tipo in qt_periodo.tipos_alimentacao.all():
-                        tipos_alimentacao = ''.join(tipo.nome)
-                    nova_linha['tipo_alimentacao'] = tipos_alimentacao
-                    nova_linha['numero_alunos'] = qt_periodo.numero_alunos
-                    novas_linhas.append(nova_linha)
-                    lista_uuids.append(solicitacao)
-            else:
-                linha = df.iloc[index].copy()
-                novas_linhas.append(linha)
+    novas_linhas, lista_uuids = [], []
+    for index, solicitacao in enumerate(queryset):
+        model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
+        if solicitacao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
+            for qt_periodo in model_obj.quantidades_periodo.all():
+                nova_linha = cria_nova_linha(df, index, solicitacao, model_obj, qt_periodo)
+                novas_linhas.append(nova_linha)
                 lista_uuids.append(solicitacao)
-        return novas_linhas, lista_uuids
-    except Exception as e:
-        print("\033[91m", f"Erro ao inserir a coluna '{nova_coluna}': {e}")
+        else:
+            linha = df.iloc[index].copy()
+            novas_linhas.append(linha)
+            lista_uuids.append(solicitacao)
+    return novas_linhas, lista_uuids
 
 
 def get_formats(workbook):
@@ -122,6 +132,33 @@ def nomes_colunas(worksheet, status_, LINHAS, COLUNAS, single_cell_format):
     worksheet.write(LINHAS[3], COLUNAS[11], map_data[status_], single_cell_format)
 
 
+def aplica_fundo_amarelo_tipo1(df, worksheet, workbook, solicitacao, model_obj, LINHAS, COLUNAS, index):
+    if solicitacao.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI', 'INC_ALIMENTA']:
+        if model_obj.existe_dia_cancelado or model_obj.status == 'ESCOLA_CANCELOU':
+            worksheet.write(
+                LINHAS[3] + 1 + index,
+                COLUNAS[5],
+                df.values[LINHAS[3] + index][COLUNAS[5]],
+                workbook.add_format({'align': 'left', 'bg_color': 'yellow'})
+            )
+
+
+def aplica_fundo_amarelo_tipo2(df, worksheet, workbook, solicitacao, model_obj, LINHAS, COLUNAS, index, idx):
+    if solicitacao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
+        qts_periodos = model_obj.quantidades_periodo.all()
+        if idx < len(qts_periodos):
+            qt_periodo = qts_periodos[idx]
+            if qt_periodo.cancelado:
+                worksheet.write(
+                    LINHAS[3] + 1 + index,
+                    COLUNAS[10],
+                    df.values[LINHAS[3] + index][COLUNAS[10]],
+                    workbook.add_format({'align': 'left', 'bg_color': 'yellow'})
+                )
+            idx += 1
+    return idx
+
+
 def aplica_fundo_amareclo_canceladas(df, worksheet, workbook, lista_uuids, LINHAS, COLUNAS):
     df.reset_index(drop=True, inplace=True)
     previous_solicitacao = None
@@ -133,26 +170,9 @@ def aplica_fundo_amareclo_canceladas(df, worksheet, workbook, lista_uuids, LINHA
             idx = 0
             previous_solicitacao = solicitacao
 
-        if solicitacao.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI', 'INC_ALIMENTA']:
-            if model_obj.existe_dia_cancelado or model_obj.status == 'ESCOLA_CANCELOU':
-                worksheet.write(
-                    LINHAS[3] + 1 + index,
-                    COLUNAS[5],
-                    df.values[LINHAS[3] + index][COLUNAS[5]],
-                    workbook.add_format({'align': 'left', 'bg_color': 'yellow'})
-                )
-        if solicitacao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
-            qts_periodos = model_obj.quantidades_periodo.all()
-            if idx < len(qts_periodos):
-                qt_periodo = qts_periodos[idx]
-                if qt_periodo.cancelado:
-                    worksheet.write(
-                        LINHAS[3] + 1 + index,
-                        COLUNAS[10],
-                        df.values[LINHAS[3] + index][COLUNAS[10]],
-                        workbook.add_format({'align': 'left', 'bg_color': 'yellow'})
-                    )
-                idx += 1
+        aplica_fundo_amarelo_tipo1(df, worksheet, workbook, solicitacao, model_obj, LINHAS, COLUNAS, index)
+        idx = aplica_fundo_amarelo_tipo2(df, worksheet, workbook, solicitacao, model_obj,  LINHAS, COLUNAS,
+                                         index, idx)
 
 
 def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tipos_unidade, unidades_educacionais):
