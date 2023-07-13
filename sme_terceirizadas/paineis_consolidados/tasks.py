@@ -171,7 +171,7 @@ def aplica_fundo_amareclo_canceladas(df, worksheet, workbook, lista_uuids, LINHA
             previous_solicitacao = solicitacao
 
         aplica_fundo_amarelo_tipo1(df, worksheet, workbook, solicitacao, model_obj, LINHAS, COLUNAS, index)
-        idx = aplica_fundo_amarelo_tipo2(df, worksheet, workbook, solicitacao, model_obj,  LINHAS, COLUNAS,
+        idx = aplica_fundo_amarelo_tipo2(df, worksheet, workbook, solicitacao, model_obj, LINHAS, COLUNAS,
                                          index, idx)
 
 
