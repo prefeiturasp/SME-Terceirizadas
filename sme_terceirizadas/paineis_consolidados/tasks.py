@@ -82,9 +82,9 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
 
     df = pd.DataFrame(serializer.data)
 
-    novas_colunas = ["dia_semana", "periodo_inclusao", "tipo_alimentacao"]
+    novas_colunas = ['dia_semana', 'periodo_inclusao', 'tipo_alimentacao']
     for i, nova_coluna in enumerate(novas_colunas):
-        df.insert(5 + i, nova_coluna, "-")
+        df.insert(5 + i, nova_coluna, '-')
 
     novas_linhas, lista_uuids = [], []
     for index, solicitacao in enumerate(queryset):
@@ -93,18 +93,18 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
         if solicitacao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
             for qt_periodo in model_obj.quantidades_periodo.all():
                 nova_linha = df.iloc[index].copy()
-                data_inicial = model_obj.data_inicial.strftime("%d/%m/%Y")
-                data_final = model_obj.data_final.strftime("%d/%m/%Y")
-                nova_linha["data_evento"] = f'{data_inicial} - {data_final}'
-                nova_linha["dia_semana"] = qt_periodo.dias_semana_display()
-                nova_linha["periodo_inclusao"] = qt_periodo.periodo_escolar.nome
+                data_inicial = model_obj.data_inicial.strftime('%d/%m/%Y')
+                data_final = model_obj.data_final.strftime('%d/%m/%Y')
+                nova_linha['data_evento'] = f'{data_inicial} - {data_final}'
+                nova_linha['dia_semana'] = qt_periodo.dias_semana_display()
+                nova_linha['periodo_inclusao'] = qt_periodo.periodo_escolar.nome
                 if qt_periodo.cancelado == True:
-                    nova_linha["observacoes"] = qt_periodo.cancelado_justificativa
+                    nova_linha['observacoes'] = qt_periodo.cancelado_justificativa
                 tipos_alimentacao = ''
                 for tipo in qt_periodo.tipos_alimentacao.all():
                     tipos_alimentacao = ''.join(tipo.nome)
-                nova_linha["tipo_alimentacao"] = tipos_alimentacao
-                nova_linha["numero_alunos"] = qt_periodo.numero_alunos
+                nova_linha['tipo_alimentacao'] = tipos_alimentacao
+                nova_linha['numero_alunos'] = qt_periodo.numero_alunos
                 novas_linhas.append(nova_linha)
                 lista_uuids.append(solicitacao)
         else:
@@ -191,7 +191,6 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     for index, solicitacao in enumerate(lista_uuids):
         model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
 
-        # resetar o idx para 0 se a solicitacao atual for diferente da anterior
         if previous_solicitacao != solicitacao:
             idx = 0
             previous_solicitacao = solicitacao
