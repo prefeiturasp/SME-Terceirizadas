@@ -61,6 +61,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     LINHA_2 = 2
     LINHA_3 = 3
 
+    COLUNA_0 = 0
     COLUNA_1 = 1
     COLUNA_2 = 2
     COLUNA_3 = 3
@@ -69,6 +70,9 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     COLUNA_6 = 6
     COLUNA_7 = 7
     COLUNA_8 = 8
+    COLUNA_9 = 9
+    COLUNA_10 = 10
+    COLUNA_11 = 11
 
     ALTURA_COLUNA_30 = 30
     ALTURA_COLUNA_50 = 50
@@ -78,11 +82,47 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
 
     df = pd.DataFrame(serializer.data)
 
-    # Adiciona linhas em branco no comeco do arquivo
+    novas_colunas = ["dia_semana", "periodo_inclusao", "tipo_alimentacao"]
+    for i, nova_coluna in enumerate(novas_colunas):
+        df.insert(5 + i, nova_coluna, "-")
+
+    novas_linhas, lista_uuids = [], []
+    for index, solicitacao in enumerate(queryset):
+        model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
+
+        if solicitacao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
+            for qt_periodo in model_obj.quantidades_periodo.all():
+                nova_linha = df.iloc[index].copy()
+                data_inicial = model_obj.data_inicial.strftime("%d/%m/%Y")
+                data_final = model_obj.data_final.strftime("%d/%m/%Y")
+                nova_linha["data_evento"] = f'{data_inicial} - {data_final}'
+                nova_linha["dia_semana"] = qt_periodo.dias_semana_display()
+                nova_linha["periodo_inclusao"] = qt_periodo.periodo_escolar.nome
+                if qt_periodo.cancelado == True:
+                    nova_linha["observacoes"] = qt_periodo.cancelado_justificativa
+                tipos_alimentacao = ''
+                for tipo in qt_periodo.tipos_alimentacao.all():
+                    tipos_alimentacao = ''.join(tipo.nome)
+                nova_linha["tipo_alimentacao"] = tipos_alimentacao
+                nova_linha["numero_alunos"] = qt_periodo.numero_alunos
+                novas_linhas.append(nova_linha)
+                lista_uuids.append(solicitacao)
+        else:
+            linha = df.iloc[index].copy()
+            novas_linhas.append(linha)
+            lista_uuids.append(solicitacao)
+
+    df = pd.DataFrame(novas_linhas)
+    df.reset_index(drop=True, inplace=True)
+
+    df.insert(0, 'N', range(1, len(df) + 1))
     df_auxiliar = pd.DataFrame([[np.nan] * len(df.columns)], columns=df.columns)
     df = df_auxiliar.append(df, ignore_index=True)
     df = df_auxiliar.append(df, ignore_index=True)
     df = df_auxiliar.append(df, ignore_index=True)
+
+    df['N'] = df['N'].apply(lambda x: str(int(x)) if pd.notnull(x) else '')
+    df['numero_alunos'] = df['numero_alunos'].astype(str)
 
     status_ = data.get('status').capitalize()
     if status_ == 'Em_andamento':
@@ -94,12 +134,22 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
 
     titulo = f'Relatório de Solicitações de Alimentação {status_}'
 
-    df.to_excel(xlwriter, f'Relatório - {status_}')
+    df.to_excel(xlwriter, f'Relatório - {status_}', index=False)
     workbook = xlwriter.book
     worksheet = xlwriter.sheets[f'Relatório - {status_}']
     worksheet.set_row(LINHA_0, ALTURA_COLUNA_50)
     worksheet.set_row(LINHA_1, ALTURA_COLUNA_30)
-    worksheet.set_column('B:I', ALTURA_COLUNA_30)
+    worksheet.set_column('A:A', 5)
+    worksheet.set_column('B:B', 8)
+    worksheet.set_column('C:C', 40)
+    worksheet.set_column('D:D', 30)
+    worksheet.set_column('E:E', 15)
+    worksheet.set_column('F:G', 30)
+    worksheet.set_column('H:H', 10)
+    worksheet.set_column('I:I', 30)
+    worksheet.set_column('J:J', 13)
+    worksheet.set_column('K:K', 30)
+    worksheet.set_column('L:L', 20)
     merge_format = workbook.add_format({'align': 'center', 'bg_color': '#a9d18e', 'border_color': '#198459'})
     merge_format.set_align('vcenter')
     merge_format.set_bold()
@@ -107,43 +157,66 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     cell_format.set_text_wrap()
     cell_format.set_align('vcenter')
     cell_format.set_bold()
-    v_center_format = workbook.add_format()
-    v_center_format.set_align('vcenter')
     single_cell_format = workbook.add_format({'bg_color': '#a9d18e'})
-    len_cols = len(df.columns)
+    len_cols = len(df.columns) - 1
     worksheet.merge_range(0, 0, 0, len_cols, titulo, merge_format)
 
     subtitulo = build_subtitulo(data, status_, queryset, lotes, tipos_solicitacao, tipos_unidade, unidades_educacionais)
 
     worksheet.merge_range(LINHA_1, 0, LINHA_2, len_cols, subtitulo, cell_format)
     worksheet.insert_image('A1', 'sme_terceirizadas/static/images/logo-sigpae-light.png')
+    worksheet.write(LINHA_3, COLUNA_0, 'N', single_cell_format)
     worksheet.write(LINHA_3, COLUNA_1, 'Lote', single_cell_format)
     worksheet.write(LINHA_3, COLUNA_2, 'Terceirizada' if status_ == 'Recebidas' else 'Unidade Educacional',
                     single_cell_format)
     worksheet.write(LINHA_3, COLUNA_3, 'Tipo de Solicitação', single_cell_format)
     worksheet.write(LINHA_3, COLUNA_4, 'ID da Solicitação', single_cell_format)
     worksheet.write(LINHA_3, COLUNA_5, 'Data do Evento', single_cell_format)
-    worksheet.write(LINHA_3, COLUNA_6, 'Nª de Alunos', single_cell_format)
-    worksheet.write(LINHA_3, COLUNA_7, 'Observações', single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_6, 'Dia da semana', single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_7, 'Período', single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_8, 'Tipo de Alimentação', single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_9, 'Nª de Alunos', single_cell_format)
+    worksheet.write(LINHA_3, COLUNA_10, 'Observações', single_cell_format)
     map_data = {
         'Autorizadas': 'Data de Autorização',
         'Canceladas': 'Data de Cancelamento',
         'Negadas': 'Data de Negação',
         'Recebidas': 'Data de Autorização'
     }
-    worksheet.write(LINHA_3, COLUNA_8, map_data[status_], single_cell_format)
-
+    worksheet.write(LINHA_3, COLUNA_11, map_data[status_], single_cell_format)
     df.reset_index(drop=True, inplace=True)
-    for index, solicitacao in enumerate(queryset):
+
+    previous_solicitacao = None
+    idx = 0
+    for index, solicitacao in enumerate(lista_uuids):
         model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
-        if solicitacao.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI', 'INC_ALIMENTA', 'ALT_CARDAPIO']:
+
+        # resetar o idx para 0 se a solicitacao atual for diferente da anterior
+        if previous_solicitacao != solicitacao:
+            idx = 0
+            previous_solicitacao = solicitacao
+
+        if solicitacao.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI', 'INC_ALIMENTA']:
             if model_obj.existe_dia_cancelado or model_obj.status == 'ESCOLA_CANCELOU':
                 worksheet.write(
                     LINHA_3 + 1 + index,
                     COLUNA_5,
-                    df.values[LINHA_3 + index][COLUNA_5 - 1],
-                    workbook.add_format({'bg_color': 'yellow'})
+                    df.values[LINHA_3 + index][COLUNA_5],
+                    workbook.add_format({'align': 'left', 'bg_color': 'yellow'})
                 )
+        if solicitacao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
+            qts_periodos = model_obj.quantidades_periodo.all()
+            if idx < len(qts_periodos):
+                qt_periodo = qts_periodos[idx]
+                if qt_periodo.cancelado:
+                    worksheet.write(
+                        LINHA_3 + 1 + index,
+                        COLUNA_10,
+                        df.values[LINHA_3 + index][COLUNA_10],
+                        workbook.add_format({'align': 'left', 'bg_color': 'yellow'})
+                    )
+                idx += 1
+
     xlwriter.save()
     output.seek(0)
 
