@@ -977,3 +977,25 @@ def test_terceirizada_marca_conferencia_alteracao_cardapio_viewset(client_autent
         client_autenticado,
         AlteracaoCardapio,
         'alteracoes-cardapio')
+
+
+def test_motivos_alteracao_cardapio_escola_cei_queryset(client_autenticado_vinculo_escola_cei_cardapio,
+                                                        motivo_alteracao_cardapio,
+                                                        motivo_alteracao_cardapio_lanche_emergencial,
+                                                        motivo_alteracao_cardapio_inativo):
+    response = client_autenticado_vinculo_escola_cei_cardapio.get(
+        f'/motivos-alteracao-cardapio/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
+def test_motivos_alteracao_cardapio_queryset(client_autenticado_vinculo_escola_cardapio,
+                                             motivo_alteracao_cardapio,
+                                             motivo_alteracao_cardapio_lanche_emergencial,
+                                             motivo_alteracao_cardapio_inativo):
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/motivos-alteracao-cardapio/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 2
