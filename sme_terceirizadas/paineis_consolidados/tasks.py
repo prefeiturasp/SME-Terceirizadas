@@ -159,7 +159,7 @@ def aplica_fundo_amarelo_tipo2(df, worksheet, workbook, solicitacao, model_obj, 
     return idx
 
 
-def aplica_fundo_amareclo_canceladas(df, worksheet, workbook, lista_uuids, LINHAS, COLUNAS):
+def aplica_fundo_amarelo_canceladas(df, worksheet, workbook, lista_uuids, LINHAS, COLUNAS):
     df.reset_index(drop=True, inplace=True)
     previous_solicitacao = None
     idx = 0
@@ -228,7 +228,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
 
     nomes_colunas(worksheet, status_, LINHAS, COLUNAS, single_cell_format)
 
-    aplica_fundo_amareclo_canceladas(df, worksheet, workbook, lista_uuids, LINHAS, COLUNAS)
+    aplica_fundo_amarelo_canceladas(df, worksheet, workbook, lista_uuids, LINHAS, COLUNAS)
 
     xlwriter.save()
     output.seek(0)
