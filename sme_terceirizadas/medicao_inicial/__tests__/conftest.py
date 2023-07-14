@@ -49,6 +49,17 @@ def escola():
 
 
 @pytest.fixture
+def escola_emei():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL TESTE')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='EMEI')
+    return mommy.make('Escola', nome='EMEI TESTE', lote=lote, diretoria_regional=diretoria_regional,
+                      tipo_gestao=tipo_gestao, tipo_unidade=tipo_unidade_escolar)
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial(escola, categoria_medicao):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
@@ -97,6 +108,64 @@ def solicitacao_medicao_inicial_varios_valores(escola, categoria_medicao):
                                categoria_medicao=categoria,
                                valor='10')
     return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_com_valores_repeticao(escola, categoria_medicao):
+    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
+    periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
+    periodo_tarde = mommy.make('PeriodoEscolar', nome='TARDE')
+    periodo_integral = mommy.make('PeriodoEscolar', nome='INTEGRAL')
+    periodo_noite = mommy.make('PeriodoEscolar', nome='NOITE')
+    grupo_solicitacoes_alimentacao = mommy.make('GrupoMedicao', nome='Solicitações de Alimentação')
+    grupo_programas_e_projetos = mommy.make('GrupoMedicao', nome='Programas e Projetos')
+    grupo_etec = mommy.make('GrupoMedicao', nome='ETEC')
+    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', mes=4, ano=2023, escola=escola,
+                                     tipo_contagem_alimentacoes=tipo_contagem)
+    medicao_manha = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                               periodo_escolar=periodo_manha)
+    medicao_tarde = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                               periodo_escolar=periodo_tarde)
+    medicao_integral = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                                  periodo_escolar=periodo_integral)
+    medicao_noite = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                               periodo_escolar=periodo_noite)
+    medicao_solicitacoes_alimentacao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                                                  grupo=grupo_solicitacoes_alimentacao)
+    medicao_programas_e_projetos = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                                              grupo=grupo_programas_e_projetos)
+    medicao_etec = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                              grupo=grupo_etec)
+    for dia in ['10', '11']:
+        campos = [
+            'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa',
+            'repeticao_refeicao', 'kit_lanche', 'repeticao_sobremesa'
+        ]
+        for campo in campos:
+            for medicao_ in [
+                medicao_manha, medicao_tarde, medicao_integral,
+                medicao_noite, medicao_solicitacoes_alimentacao,
+                medicao_programas_e_projetos, medicao_etec
+            ]:
+                mommy.make('ValorMedicao', dia=dia, nome_campo=campo, medicao=medicao_,
+                           categoria_medicao=categoria_medicao, valor='25')
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def medicao_solicitacoes_alimentacao(escola):
+    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
+    categoria = mommy.make('CategoriaMedicao', nome='SOLICITAÇÕES DE ALIMENTAÇÃO')
+    grupo = mommy.make('GrupoMedicao', nome='Solicitações de Alimentação')
+    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', mes=6, ano=2023, escola=escola,
+                                     tipo_contagem_alimentacoes=tipo_contagem)
+    medicao_solicitacoes_alimentacao = mommy.make(
+        'Medicao', solicitacao_medicao_inicial=solicitacao_medicao, periodo_escolar=None, grupo=grupo)
+    for dia in ['01', '02', '03', '04', '05']:
+        for campo in ['lanche', 'refeicao', 'lanche_emergencial', 'sobremesa', 'kit_lanche']:
+            mommy.make('ValorMedicao', dia=dia, nome_campo=campo, medicao=medicao_solicitacoes_alimentacao,
+                       categoria_medicao=categoria, valor='10')
+    return medicao_solicitacoes_alimentacao
 
 
 @pytest.fixture
