@@ -3,7 +3,19 @@ import pytest
 from sme_terceirizadas.medicao_inicial.utils import (
     build_dict_relacao_categorias_e_campos,
     build_headers_tabelas,
-    build_tabelas_relatorio_medicao
+    build_tabela_somatorio_body,
+    build_tabelas_relatorio_medicao,
+    get_lista_categorias_campos,
+    get_nome_campo,
+    get_somatorio_etec,
+    get_somatorio_integral,
+    get_somatorio_manha,
+    get_somatorio_noite_eja,
+    get_somatorio_programas_e_projetos,
+    get_somatorio_solicitacoes_de_alimentacao,
+    get_somatorio_tarde,
+    get_somatorio_total_tabela,
+    tratar_valores
 )
 
 pytestmark = pytest.mark.django_db
@@ -256,4 +268,145 @@ def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valo
                 ]
             }
         }
+    ]
+
+
+def test_utils_get_lista_categorias_campos(medicao_solicitacoes_alimentacao):
+    assert get_lista_categorias_campos(medicao_solicitacoes_alimentacao) == [
+        ('LANCHE EMERGENCIAL', 'solicitado'),
+        ('LANCHE EMERGENCIAL', 'consumido'),
+        ('KIT LANCHE', 'solicitado'),
+        ('KIT LANCHE', 'consumido')
+    ]
+
+
+def test_utils_tratar_valores(escola, escola_emei):
+    campos = [
+        'lanche', 'refeicao', 'lanche_emergencial', 'sobremesa',
+        'repeticao_refeicao', 'kit_lanche', 'repeticao_sobremesa'
+    ]
+    valores = []
+    for campo in campos:
+        valores.append({
+            'nome_campo': campo,
+            'valor': 10,
+        })
+    assert tratar_valores(escola_emei, valores) == [
+        {
+            'nome_campo': 'lanche',
+            'valor': 10
+        },
+        {
+            'nome_campo': 'refeicao',
+            'valor': 10
+        },
+        {
+            'nome_campo': 'lanche_emergencial',
+            'valor': 10
+        },
+        {
+            'nome_campo': 'sobremesa',
+            'valor': 10
+        },
+        {
+            'nome_campo': 'kit_lanche',
+            'valor': 10
+        }
+    ]
+    assert tratar_valores(escola, valores) == [
+        {
+            'nome_campo': 'lanche',
+            'valor': 10
+        },
+        {
+            'nome_campo': 'lanche_emergencial',
+            'valor': 10
+        },
+        {
+            'nome_campo': 'kit_lanche',
+            'valor': 10
+        },
+        {
+            'nome_campo': 'refeicao',
+            'valor': 20
+        },
+        {
+            'nome_campo': 'sobremesa',
+            'valor': 20
+        }
+    ]
+
+
+def test_utils_get_nome_campo():
+    assert get_nome_campo('lanche_4h') == 'Lanche 4h'
+    assert get_nome_campo('repeticao_sobremesa') == 'Repetição de Sobremesa'
+
+
+def test_utils_get_somatorio_manha(solicitacao_medicao_inicial_com_valores_repeticao):
+    assert get_somatorio_manha('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_manha('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_manha('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+
+
+def test_utils_get_somatorio_tarde(solicitacao_medicao_inicial_com_valores_repeticao):
+    assert get_somatorio_tarde('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_tarde('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_tarde('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+
+
+def test_utils_get_somatorio_integral(solicitacao_medicao_inicial_com_valores_repeticao):
+    assert get_somatorio_integral('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_integral('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_integral('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+
+
+def test_utils_get_somatorio_noite_eja(solicitacao_medicao_inicial_com_valores_repeticao):
+    assert get_somatorio_noite_eja('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_noite_eja('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_noite_eja('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+
+
+def test_utils_get_somatorio_etec(solicitacao_medicao_inicial_com_valores_repeticao):
+    assert get_somatorio_etec('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_etec('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_etec('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+
+
+def test_utils_get_somatorio_solicitacoes_de_alimentacao(solicitacao_medicao_inicial_com_valores_repeticao):
+    solicitacao = solicitacao_medicao_inicial_com_valores_repeticao
+    assert get_somatorio_solicitacoes_de_alimentacao('lanche_emergencial', solicitacao) == 50
+    assert get_somatorio_solicitacoes_de_alimentacao('kit_lanche', solicitacao) == 50
+    assert get_somatorio_solicitacoes_de_alimentacao('lanche_4h', solicitacao) == ' - '
+
+
+def test_utils_get_somatorio_programas_e_projetos(solicitacao_medicao_inicial_com_valores_repeticao):
+    assert get_somatorio_programas_e_projetos('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_programas_e_projetos('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
+    assert get_somatorio_programas_e_projetos('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+
+
+def test_utils_get_somatorio_total_tabela(solicitacao_medicao_inicial_com_valores_repeticao):
+    solicitacao = solicitacao_medicao_inicial_com_valores_repeticao
+    somatorio_manha = get_somatorio_manha('refeicao', solicitacao)
+    somatorio_tarde = get_somatorio_tarde('refeicao', solicitacao)
+    somatorio_integral = get_somatorio_integral('refeicao', solicitacao)
+    somatorio_programas_e_projetos = get_somatorio_programas_e_projetos('refeicao', solicitacao)
+    somatorio_solicitacoes_de_alimentacao = get_somatorio_solicitacoes_de_alimentacao('refeicao', solicitacao)
+    valores_somatorios_tabela = [
+        somatorio_manha,
+        somatorio_tarde,
+        somatorio_integral,
+        somatorio_programas_e_projetos,
+        somatorio_solicitacoes_de_alimentacao
+    ]
+    assert get_somatorio_total_tabela(valores_somatorios_tabela) == 450
+
+
+def test_utils_build_tabela_somatorio_body(solicitacao_medicao_inicial_com_valores_repeticao):
+    assert build_tabela_somatorio_body(solicitacao_medicao_inicial_com_valores_repeticao) == [
+        ['Lanche', 50, 50, 50, 50, 50, 250, 50, 50, 100],
+        ['Refeição', 100, 100, 100, 100, 50, 450, 100, 100, 200],
+        ['Kit Lanche', 50, 50, 50, 50, 50, 250, 50, 50, 100],
+        ['Sobremesa', 100, 100, 100, 100, 50, 450, 100, 100, 200],
+        ['Lanche Emergencial', 50, 50, 50, 50, 50, 250, 50, 50, 100]
     ]
