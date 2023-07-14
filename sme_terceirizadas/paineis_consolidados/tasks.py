@@ -62,13 +62,11 @@ def formata_data(model_obj):
 
 
 def cria_tipos_alimentacao(qt_periodo):
-    tipos_alimentacao = ''
-    for tipo in qt_periodo.tipos_alimentacao.all():
-        tipos_alimentacao = ''.join(tipo.nome)
-    return tipos_alimentacao
+    tipos_alimentacao = [tipo.nome for tipo in qt_periodo.tipos_alimentacao.all()]
+    return ', '.join(tipos_alimentacao)
 
 
-def cria_nova_linha(df, index, solicitacao, model_obj, qt_periodo):
+def cria_nova_linha(df, index, model_obj, qt_periodo):
     nova_linha = df.iloc[index].copy()
     nova_linha['data_evento'] = formata_data(model_obj)
     nova_linha['dia_semana'] = qt_periodo.dias_semana_display()
@@ -86,7 +84,7 @@ def novas_linhas_inc_continua(df, queryset):
         model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
         if solicitacao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
             for qt_periodo in model_obj.quantidades_periodo.all():
-                nova_linha = cria_nova_linha(df, index, solicitacao, model_obj, qt_periodo)
+                nova_linha = cria_nova_linha(df, index, model_obj, qt_periodo)
                 novas_linhas.append(nova_linha)
                 lista_uuids.append(solicitacao)
         else:
@@ -200,7 +198,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
         df = df_auxiliar.append(df, ignore_index=True)
 
     df['N'] = df['N'].apply(lambda x: str(int(x)) if pd.notnull(x) else '')
-    df['numero_alunos'] = df['numero_alunos'].astype(str)
+    df['numero_alunos'] = df['numero_alunos'].apply(lambda x: str(int(x)) if pd.notnull(x) else '')
 
     status_map = {'Em_andamento': 'Recebidas'}
     status_ = data.get('status').capitalize()
