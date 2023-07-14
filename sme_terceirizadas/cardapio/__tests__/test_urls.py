@@ -999,3 +999,24 @@ def test_motivos_alteracao_cardapio_queryset(client_autenticado_vinculo_escola_c
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']) == 2
+
+
+@freeze_time('2023-07-14')
+def test_alteracao_cemei_solicitacoes_dre(client_autenticado_vinculo_dre_escola_cemei, alteracao_cemei_dre_a_validar):
+    response = client_autenticado_vinculo_dre_escola_cemei.get(
+        f'/alteracoes-cardapio-cemei/{constants.PEDIDOS_DRE}/{constants.DAQUI_A_TRINTA_DIAS}/'
+        f'?lote={alteracao_cemei_dre_a_validar.rastro_lote.uuid}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
+@freeze_time('2023-07-14')
+def test_alteracao_cemei_solicitacoes_codae(client_autenticado_vinculo_codae_cardapio, alteracao_cemei_dre_validado):
+    response = client_autenticado_vinculo_codae_cardapio.get(
+        f'/alteracoes-cardapio-cemei/{constants.PEDIDOS_CODAE}/{constants.DAQUI_A_TRINTA_DIAS}/'
+        f'?lote={alteracao_cemei_dre_validado.rastro_lote.uuid}'
+        f'&diretoria_regional={alteracao_cemei_dre_validado.rastro_dre.uuid}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
