@@ -6,6 +6,12 @@ from django import template
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
+from ...inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
+    InclusaoDeAlimentacaoCEMEI
+)
 
 register = template.Library()
 
@@ -294,7 +300,17 @@ def existe_inclusao_cancelada(solicitacao):
     status_ = solicitacao['status'] if isinstance(solicitacao, dict) else solicitacao.status
     inclusoes_ = solicitacao['datas_intervalo'] if isinstance(solicitacao, dict) else solicitacao.inclusoes
     return (status_ == 'ESCOLA_CANCELOU' or
-            inclusoes_.filter(cancelado_justificativa__isnull=False).exists())
+            inclusoes_.filter(cancelado_justificativa__isnull=False).exclude(cancelado_justificativa='').exists())
+
+
+@register.filter
+def eh_inclusao(solicitacao):
+    return (
+        isinstance(solicitacao, GrupoInclusaoAlimentacaoNormal) or
+        isinstance(solicitacao, InclusaoAlimentacaoContinua) or
+        isinstance(solicitacao, InclusaoAlimentacaoDaCEI) or
+        isinstance(solicitacao, InclusaoDeAlimentacaoCEMEI)
+    )
 
 
 @register.filter

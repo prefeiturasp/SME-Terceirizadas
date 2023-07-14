@@ -9,7 +9,7 @@
             <p class="cabecalho mb-2"><b>Autorizou</b></p>
             <div>{{ log.criado_em|date:"d/m/Y H:i:s" }} - Informações da CODAE</div>
             <div class="mt-2 justificativa-cancelamento-escola-dre">
-              {{ log.justificativa }}
+              {{ log.justificativa | observacao_padrao:"CODAE" | safe }}
             </div>
           {% endif %}
         {% endfor %}

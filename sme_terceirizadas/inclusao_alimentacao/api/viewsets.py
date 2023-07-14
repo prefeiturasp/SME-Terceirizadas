@@ -132,7 +132,7 @@ class CodaeAutoriza():
         justificativa = request.data.get('justificativa', '')
         try:
             if obj.status == obj.workflow_class.DRE_VALIDADO:
-                obj.codae_autoriza(user=request.user)
+                obj.codae_autoriza(user=request.user, justificativa=justificativa)
             else:
                 obj.codae_autoriza_questionamento(
                     user=request.user, justificativa=justificativa)
