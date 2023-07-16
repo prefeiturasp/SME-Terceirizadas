@@ -11,7 +11,8 @@ from .models import (
     PrevisaoContratualNotificacao,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
-    TipoEmbalagem
+    TipoEmbalagem,
+    UnidadeMedida
 )
 from .models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 from .services import inativa_tipos_de_embabalagem
@@ -226,3 +227,9 @@ class NotificacaoOcorrenciaAdmin(admin.ModelAdmin):
             guias.numero_guia for guias in obj.guias_notificadas.all()
         ])
     get_guias.short_description = 'Guias'
+
+
+@admin.register(UnidadeMedida)
+class UnidadeMedidaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'abreviacao', 'criado_em')
+    search_fields = ('nome', 'abreviacao')

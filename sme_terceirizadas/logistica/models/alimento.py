@@ -1,6 +1,7 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
-from ...dados_comuns.behaviors import ModeloBase
+from ...dados_comuns.behaviors import CriadoEm, ModeloBase, Nomeavel, TemChaveExterna
 from .guia import Guia
 
 
@@ -88,3 +89,23 @@ class Embalagem(ModeloBase):
         verbose_name = 'Embalagem'
         verbose_name_plural = 'Embalagens'
         ordering = ['criado_em', 'tipo_embalagem']
+
+
+class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
+    abreviacao = models.CharField('Abreviação', max_length=25)
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        ordering = ('nome',)
+        verbose_name = 'Unidade de Medida'
+        verbose_name_plural = 'Unidades de Medida'
+        unique_together = ('nome',)
+
+    def clean(self):
+        if self.nome and not self.nome.isupper():
+            raise ValidationError('O campo deve conter apenas letras maiúsculas.')
+
+        if self.abreviacao and not self.abreviacao.islower():
+            raise ValidationError('O campo deve conter apenas letras minúsculas.')
