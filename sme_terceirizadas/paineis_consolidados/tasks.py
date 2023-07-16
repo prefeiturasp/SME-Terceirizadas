@@ -1,6 +1,7 @@
 import datetime
 import io
 import logging
+import re
 
 import numpy as np
 from celery import shared_task
@@ -66,13 +67,12 @@ def cria_tipos_alimentacao(qt_periodo):
     return ', '.join(tipos_alimentacao)
 
 
-def cria_nova_linha(df, index, model_obj, qt_periodo):
+def cria_nova_linha(df, index, model_obj, qt_periodo, observacoes):
     nova_linha = df.iloc[index].copy()
     nova_linha['data_evento'] = formata_data(model_obj)
     nova_linha['dia_semana'] = qt_periodo.dias_semana_display()
     nova_linha['periodo_inclusao'] = qt_periodo.periodo_escolar.nome
-    if qt_periodo.cancelado:
-        nova_linha['observacoes'] = qt_periodo.cancelado_justificativa
+    nova_linha['observacoes'] = qt_periodo.cancelado_justificativa if qt_periodo.cancelado else observacoes
     nova_linha['tipo_alimentacao'] = cria_tipos_alimentacao(qt_periodo)
     nova_linha['numero_alunos'] = qt_periodo.numero_alunos
     return nova_linha
@@ -83,8 +83,10 @@ def novas_linhas_inc_continua(df, queryset):
     for index, solicitacao in enumerate(queryset):
         model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
         if solicitacao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
-            for qt_periodo in model_obj.quantidades_periodo.all():
-                nova_linha = cria_nova_linha(df, index, model_obj, qt_periodo)
+            observacoes = re.sub(r'<p>|</p>', '', re.sub(r'</p>,\s*<p>', '::', model_obj.observacoes)).split('::')
+            for idx, qt_periodo in enumerate(model_obj.quantidades_periodo.all()):
+                obs_periodo = observacoes[idx] if model_obj.observacoes else ''
+                nova_linha = cria_nova_linha(df, index, model_obj, qt_periodo, obs_periodo)
                 novas_linhas.append(nova_linha)
                 lista_uuids.append(solicitacao)
         else:
