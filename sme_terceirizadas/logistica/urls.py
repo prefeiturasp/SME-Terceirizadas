@@ -25,6 +25,8 @@ router.register('solicitacao-de-alteracao-de-requisicao', viewsets.SolicitacaoDe
                 basename='solicitacao-de-alteracao-de-requisicao')
 router.register('notificacao-guias-com-ocorrencias', viewsets.NotificacaoOcorrenciaGuiaModelViewSet,
                 basename='notificacao-guias-com-ocorrencias')
+router.register('unidades-medida-logistica', viewsets.UnidadeMedidaViewset,
+                basename='unidades-medida-logistica')
 
 router.register('webserver/solicitacao-remessa/wsdl', soup_views.WSDLSolicitacaoServiceViewSet,
                 basename='solicitacao-remessa-wsdl')

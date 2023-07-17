@@ -71,6 +71,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
     SolicitacaoRemessaSimplesSerializer,
+    UnidadeMedidaSerialzer,
     XmlParserSolicitacaoSerializer
 )
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
@@ -78,7 +79,8 @@ from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import (
     NotificacaoOcorrenciasGuia,
     SolicitacaoDeAlteracaoRequisicao,
-    SolicitacaoRemessa
+    SolicitacaoRemessa,
+    UnidadeMedida
 )
 from sme_terceirizadas.logistica.services import (
     arquiva_guias,
@@ -93,7 +95,7 @@ from ...escola.models import DiretoriaRegional, Escola
 from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
 from ..tasks import gera_pdf_async, gera_xlsx_async, gera_xlsx_entregas_async
-from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
+from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination, UnidadeMedidaPagination
 from .filters import GuiaFilter, NotificacaoFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import valida_guia_conferencia, valida_guia_insucesso
 from .validators import eh_true_ou_false
@@ -1021,3 +1023,11 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
                                           Status da Notificação não é RASCUNHO ou NOTIFICACAO_CRIADA"""),
                             status=HTTP_400_BAD_REQUEST)
         return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
+
+
+class UnidadeMedidaViewset(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = UnidadeMedida.objects.all()
+    serializer_class = UnidadeMedidaSerialzer
+    permission_classes = [IsAuthenticated]
+    pagination_class = UnidadeMedidaPagination
