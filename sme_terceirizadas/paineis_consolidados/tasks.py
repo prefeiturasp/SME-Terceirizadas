@@ -85,7 +85,7 @@ def novas_linhas_inc_continua(df, queryset):
         if solicitacao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
             observacoes = re.sub(r'<p>|</p>', '', re.sub(r'</p>,\s*<p>', '::', model_obj.observacoes)).split('::')
             for idx, qt_periodo in enumerate(model_obj.quantidades_periodo.all()):
-                obs_periodo = observacoes[idx] if model_obj.observacoes else ''
+                obs_periodo = observacoes[idx] if observacoes and len(observacoes) > idx else ''
                 nova_linha = cria_nova_linha(df, index, model_obj, qt_periodo, obs_periodo)
                 novas_linhas.append(nova_linha)
                 lista_uuids.append(solicitacao)
