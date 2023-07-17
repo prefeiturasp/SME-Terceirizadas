@@ -1,6 +1,5 @@
 import pytest
 from django.conf import settings
-from rest_framework import serializers
 
 from ...api.serializers.serializers import UnidadeMedidaSerialzer
 
@@ -8,8 +7,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_unidade_medida_serializer_serialization(unidade_medida_logistica):
-    """Deve serializar corretamente a instância de Unidade de Medida"""
-
+    """Deve serializar corretamente a instância de Unidade de Medida."""
     serializer = UnidadeMedidaSerialzer(unidade_medida_logistica)
 
     drf_date_format = settings.REST_FRAMEWORK['DATETIME_FORMAT']
@@ -19,9 +17,9 @@ def test_unidade_medida_serializer_serialization(unidade_medida_logistica):
     assert serializer.data['abreviacao'] == str(unidade_medida_logistica.abreviacao)
     assert serializer.data['criado_em'] == unidade_medida_logistica.criado_em.strftime(drf_date_format)
 
-def test_unidade_medida_serializer_deserialization():
-    """Deve criar corretamente uma instância de Unidade de Medida"""
 
+def test_unidade_medida_serializer_deserialization():
+    """Deve criar corretamente uma instância de Unidade de Medida."""
     data = {
         'nome': 'UNIDADE MEDIDA',
         'abreviacao': 'um'
@@ -29,7 +27,7 @@ def test_unidade_medida_serializer_deserialization():
 
     serializer = UnidadeMedidaSerialzer(data=data)
 
-    assert serializer.is_valid() == True
+    assert serializer.is_valid() is True
     assert serializer.validated_data['nome'] == data['nome']
     assert serializer.validated_data['abreviacao'] == data['abreviacao']
 
@@ -39,9 +37,7 @@ def test_unidade_medida_serializer_deserialization():
 
 
 def test_unidade_medida_serializer_nome_validation():
-    """Deve lançar exceção ao tentar desserializar objeto sem que o
-    campo nome esteja em caixa alta"""
-
+    """Deve ser inválido para desserialização de objeto cujo atributo nome não esteja em caixa alta."""
     data = {
         'nome': 'unidade de medida',
         'abreviacao': 'um'
@@ -51,14 +47,12 @@ def test_unidade_medida_serializer_nome_validation():
 
     serializer = UnidadeMedidaSerialzer(data=data)
 
-    assert serializer.is_valid() == False
+    assert serializer.is_valid() is False
     assert str(serializer.errors['nome'][0]) == expected_error_title
 
 
 def test_unidade_medida_serializer_abreviacao_validation():
-    """Deve lançar exceção ao tentar desserializar objeto sem que o
-    campo abreviacao esteja em caixa baixa"""
-
+    """Deve ser inválido para desserialização de objeto cujo atributo abreviacao não esteja em caixa baixa."""
     data = {
         'nome': 'UNIDADE DE MEDIDA',
         'abreviacao': 'UM'
@@ -68,5 +62,5 @@ def test_unidade_medida_serializer_abreviacao_validation():
 
     serializer = UnidadeMedidaSerialzer(data=data)
 
-    assert serializer.is_valid() == False
+    assert serializer.is_valid() is False
     assert str(serializer.errors['abreviacao'][0]) == expected_error_title
