@@ -154,3 +154,9 @@ class NotificacaoFilter(filters.FilterSet):
         field_name='status',
         choices=[(str(state), state) for state in NotificacaoOcorrenciaWorkflow.states],
     )
+
+
+class UnidadeMedidaFilter(filters.FilterSet):
+    nome = filters.CharFilter(field_name='nome', lookup_expr='icontains')
+    abreviacao = filters.CharFilter(field_name='abreviacao', lookup_expr='icontains')
+    criado_em = filters.DateFilter(field_name='criado_em__date', lookup_expr='exact')

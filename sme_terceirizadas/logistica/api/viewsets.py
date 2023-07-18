@@ -96,7 +96,7 @@ from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
 from ..tasks import gera_pdf_async, gera_xlsx_async, gera_xlsx_entregas_async
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination, UnidadeMedidaPagination
-from .filters import GuiaFilter, NotificacaoFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
+from .filters import GuiaFilter, NotificacaoFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter, UnidadeMedidaFilter
 from .helpers import valida_guia_conferencia, valida_guia_insucesso
 from .validators import eh_true_ou_false
 
@@ -1031,3 +1031,5 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
     serializer_class = UnidadeMedidaSerialzer
     permission_classes = [IsAuthenticated]
     pagination_class = UnidadeMedidaPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = UnidadeMedidaFilter

@@ -247,3 +247,13 @@ def unidades_medida_logistica():
     ]
     objects = [mommy.make(UnidadeMedida, **attrs) for attrs in data]
     return objects
+
+
+@pytest.fixture
+def unidades_medida_reais_logistica():
+    data = [
+        {'nome': 'KILOGRAMA', 'abreviacao': 'kg'},
+        {'nome': 'LITRO', 'abreviacao': 'l'}
+    ]
+    objects = [mommy.make(UnidadeMedida, **attrs) for attrs in data]
+    return objects
