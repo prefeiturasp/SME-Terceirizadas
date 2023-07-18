@@ -1,5 +1,6 @@
 import json
 
+from freezegun import freeze_time
 from rest_framework import status
 
 from sme_terceirizadas.medicao_inicial.models import DiaSobremesaDoce
@@ -455,3 +456,15 @@ def test_url_ue_atualiza_ocorrencia(client_autenticado_da_escola,
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Erro de transição de estado:' in response.data['detail']
+
+
+@freeze_time('2023-07-18')
+def test_url_endpoint_solicitacoes_lancadas(client_autenticado_da_escola,
+                                            escola, solicitacoes_medicao_inicial):
+    assert escola.modulo_gestao == 'TERCEIRIZADA'
+    response = client_autenticado_da_escola.get(
+        f'/medicao-inicial/solicitacao-medicao-inicial/solicitacoes-lancadas/?escola={escola.uuid}',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 2

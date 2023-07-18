@@ -186,7 +186,7 @@ def solicitacao_medicao_inicial_com_grupo(escola):
 def solicitacoes_medicao_inicial(escola):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     escola_2 = mommy.make('Escola')
-    s1 = mommy.make('SolicitacaoMedicaoInicial', mes=12, ano=2022, escola=escola,
+    s1 = mommy.make('SolicitacaoMedicaoInicial', mes=6, ano=2022, escola=escola,
                     tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_ENVIADA_PELA_UE')
     s2 = mommy.make('SolicitacaoMedicaoInicial', mes=1, ano=2023, escola=escola,
                     tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_ENVIADA_PELA_UE')
