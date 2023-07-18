@@ -552,7 +552,7 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name='logistica_distribuidor_confirma_cancelamento.html',
             context={
-                'titulo': f'Cancelamento Confirmado - Guias de Remessa da Requisição N° {self.numero_solicitacao}',
+                'titulo': f'Cancelamento de Guia(s) Confirmado',
                 'objeto': self,
                 'log_transicao': log_transicao,
                 'url': url,
@@ -859,7 +859,7 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name='logistica_distribuidor_solicita_alteracao.html',
             context={
-                'titulo': f'Solicitação de alteração N° {self.numero_solicitacao}',
+                'titulo': f'Solicitação de Alteração',
                 'solicitacao': self,
                 'log_transicao': log_transicao,
                 'url': url
