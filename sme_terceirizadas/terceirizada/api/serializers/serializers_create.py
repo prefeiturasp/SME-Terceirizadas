@@ -9,7 +9,7 @@ from ....dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from ....dados_comuns.models import Contato
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.models import DiretoriaRegional, Lote
-from ....perfil.api.serializers import SuperAdminTerceirizadaSerializer, UsuarioUpdateSerializer
+from ....perfil.api.serializers import SuperAdminTerceirizadaSerializer
 from ....perfil.models import Perfil, Usuario
 from ...models import (
     Contrato,
@@ -288,7 +288,6 @@ class EmpresaNaoTerceirizadaCreateSerializer(serializers.ModelSerializer):
         contatos_list = cria_contatos(contatos)
         empresa.contatos.set(contatos_list)
 
-        self.cria_ou_atualiza_responsavel_empresa(empresa, validated_data, contatos, eh_update=False)
         contratos = []
         for contrato_json in contratos_array:
             contrato = ContratoAbastecimentoCreateSerializer().create(contrato_json)
@@ -314,23 +313,10 @@ class EmpresaNaoTerceirizadaCreateSerializer(serializers.ModelSerializer):
         update_instance_from_dict(instance, validated_data, save=True)
         contatos_list = cria_contatos(contatos)
         instance.contatos.set(contatos_list)
-        self.cria_ou_atualiza_responsavel_empresa(instance, validated_data, contatos_list, eh_update=True)
         for contrato in contratos:
             instance.contratos.add(contrato)
 
         return instance
-
-    def cria_ou_atualiza_responsavel_empresa(self, empresa, validated_data, contatos, eh_update=False):
-        responsavel_empresa_json = {
-            'cpf': validated_data.get('responsavel_cpf', None),
-            'nome': validated_data.get('responsavel_nome', None),
-            'email': validated_data.get('responsavel_email', None),
-            'contatos': contatos
-        }
-        if eh_update:
-            UsuarioUpdateSerializer().update_distribuidor(empresa, responsavel_empresa_json)
-        else:
-            UsuarioUpdateSerializer().create_distribuidor(empresa, responsavel_empresa_json)
 
     class Meta:
         model = Terceirizada

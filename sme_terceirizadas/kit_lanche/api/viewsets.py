@@ -241,7 +241,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         justificativa = request.data.get('justificativa', '')
         try:
             if solicitacao_kit_lanche_avulsa.status == solicitacao_kit_lanche_avulsa.workflow_class.DRE_VALIDADO:
-                solicitacao_kit_lanche_avulsa.codae_autoriza(user=request.user)
+                solicitacao_kit_lanche_avulsa.codae_autoriza(user=request.user, justificativa=justificativa)
             else:
                 solicitacao_kit_lanche_avulsa.codae_autoriza_questionamento(user=request.user,
                                                                             justificativa=justificativa)

@@ -400,17 +400,24 @@ class ProdutoEditalCreateSerializer(serializers.Serializer):
 class CadastroProdutosEditalCreateSerializer(serializers.Serializer):
     nome = serializers.CharField(required=True, write_only=True)
     ativo = serializers.CharField(required=True)
+    tipo_produto = serializers.ChoiceField(
+        choices=NomeDeProdutoEdital.TIPO_PRODUTO_CHOICES, required=False)
 
     def create(self, validated_data):
         nome = validated_data['nome']
         status = validated_data.pop('ativo')
+        tipo_produto = validated_data.pop('tipo_produto', None)
+        if not tipo_produto:
+            tipo_produto = NomeDeProdutoEdital.TERCEIRIZADA
         ativo = False if status == 'Inativo' else True
         validated_data['criado_por'] = self.context['request'].user
+        lista_produtos = NomeDeProdutoEdital.objects.filter(tipo_produto=tipo_produto)
 
-        if nome.upper() in (produto.nome.upper() for produto in NomeDeProdutoEdital.objects.all()):
+        if nome.upper() in (produto.nome.upper() for produto in lista_produtos):
             raise serializers.ValidationError('Item já cadastrado.')
         try:
-            produto = NomeDeProdutoEdital(nome=nome, ativo=ativo, criado_por=self.context['request'].user)
+            produto = NomeDeProdutoEdital(nome=nome, ativo=ativo, tipo_produto=tipo_produto,
+                                          criado_por=self.context['request'].user)
             produto.save()
             return produto
         except Exception:
@@ -420,9 +427,10 @@ class CadastroProdutosEditalCreateSerializer(serializers.Serializer):
         nome = validated_data['nome']
         status = validated_data.pop('ativo')
         ativo = False if status == 'Inativo' else True
+        lista_produtos = NomeDeProdutoEdital.objects.filter(tipo_produto=instance.tipo_produto)
 
         if (nome.upper(), ativo) in ((produto.nome.upper(), produto.ativo)
-                                     for produto in NomeDeProdutoEdital.objects.all()):
+                                     for produto in lista_produtos):
             raise serializers.ValidationError('Item já cadastrado.')
 
         try:

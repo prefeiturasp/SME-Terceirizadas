@@ -512,7 +512,7 @@ class MedicaoViewSet(
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao',
-            permission_classes=[UsuarioEscolaTercTotal])
+            permission_classes=[UsuarioDiretorEscolaTercTotal])
     def escola_corrige_medicao(self, request, uuid=None):
         medicao = self.get_object()
         try:

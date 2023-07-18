@@ -895,7 +895,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         justificativa = request.data.get('justificativa', '')
         try:
             if alteracao_cardapio.status == alteracao_cardapio.workflow_class.DRE_VALIDADO:
-                alteracao_cardapio.codae_autoriza(user=request.user)
+                alteracao_cardapio.codae_autoriza(user=request.user, justificativa=justificativa)
             else:
                 alteracao_cardapio.codae_autoriza_questionamento(
                     user=request.user, justificativa=justificativa)
