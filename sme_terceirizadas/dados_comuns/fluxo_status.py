@@ -1019,12 +1019,8 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
 
     def _partes_interessadas_escola(self):
         # Envia email somente para usuários ativos vinculados a escola da guia
-        if self.escola:
-            email_query_set_escola = self.escola.vinculos.filter(
-                ativo=True
-            ).values_list('usuario__email', flat=True)
-
-            return [email for email in email_query_set_escola]
+        if self.escola and self.escola.contato:
+            return [self.escola.contato.email]
         else:
             return []
 

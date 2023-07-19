@@ -105,7 +105,7 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
                 data_inicial__isnull=False,
                 data_final__isnull=True
             )
-            email_query_set_escola = vinculos.values_list('usuario__email', flat=True)
+            email_escola = [guia.escola.contato.email] if guia.escola.contato else []
 
             qs_codae = Usuario.objects.filter(
                 vinculos__perfil__nome__in=(
@@ -116,26 +116,27 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
                 vinculos__data_final__isnull=True,
             )
 
-            partes_interessadas = [email for email in email_query_set_escola] + [usuario.email for usuario in qs_codae]
+            partes_interessadas = email_escola + [usuario.email for usuario in qs_codae]
             users = [vinculo.usuario for vinculo in vinculos]
         else:
             partes_interessadas = []
             users = []
 
-        html = render_to_string(
-            template_name='logistica_avisa_ue_que_prazo_para_conferencia_foi_ultrapassado.html',
-            context={
-                'titulo': 'Registre a conferência da Guia de Remessa de alimentos!',
-                'numero_guia': guia.numero_guia,
-                'data_entrega': guia.data_entrega,
-            }
-        )
-        envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Registre a conferência da Guia de Remessa de alimentos!',
-            emails=partes_interessadas,
-            corpo='',
-            html=html
-        )
+        if partes_interessadas:
+            html = render_to_string(
+                template_name='logistica_avisa_ue_que_prazo_para_conferencia_foi_ultrapassado.html',
+                context={
+                    'titulo': 'Registre a conferência da Guia de Remessa de alimentos!',
+                    'numero_guia': guia.numero_guia,
+                    'data_entrega': guia.data_entrega,
+                }
+            )
+            envia_email_em_massa_task.delay(
+                assunto='[SIGPAE] Registre a conferência da Guia de Remessa de alimentos!',
+                emails=partes_interessadas,
+                corpo='',
+                html=html
+            )
 
         if users:
             texto_notificacao = render_to_string(
