@@ -1,3 +1,5 @@
+import uuid as uuid_generator
+from copy import deepcopy
 from datetime import datetime
 
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -9,6 +11,7 @@ from ..dados_comuns.behaviors import (
     Ativavel,
     CriadoEm,
     CriadoPor,
+    EhCopia,
     Logs,
     Nomeavel,
     TemAlteradoEm,
@@ -22,7 +25,7 @@ from ..dados_comuns.fluxo_status import (
     HomologacaoProdutoWorkflow
 )
 from ..dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, TemplateMensagem
-from ..dados_comuns.utils import convert_base64_to_contentfile
+from ..dados_comuns.utils import convert_base64_to_contentfile, cria_copias_fk
 from ..escola.models import Escola
 from ..terceirizada.models import Edital
 
@@ -97,7 +100,7 @@ class ImagemDoProduto(TemChaveExterna):
         verbose_name_plural = 'Imagens do Produto'
 
 
-class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
+class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel, EhCopia):
     eh_para_alunos_com_dieta = models.BooleanField('É para alunos com dieta especial', default=False)
 
     protocolos = models.ManyToManyField(ProtocoloDeDietaEspecial,
@@ -292,7 +295,7 @@ class InformacoesNutricionaisDoProduto(TemChaveExterna):
 
 
 class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoProduto,
-                         Logs, TemIdentificadorExternoAmigavel, Ativavel):
+                         Logs, TemIdentificadorExternoAmigavel, Ativavel, EhCopia):
     DESCRICAO = 'Homologação de Produto'
     produto = models.OneToOneField(Produto, on_delete=models.CASCADE, related_name='homologacao')
     necessita_analise_sensorial = models.BooleanField(default=False)
@@ -391,6 +394,39 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
             uuid_original=self.uuid,
             justificativa=justificativa
         )
+
+    def cria_copia(self):
+        produto = self.produto
+
+        produto_copia = deepcopy(produto)
+        produto_copia.id = None
+        produto_copia.uuid = uuid_generator.uuid4()
+        produto_copia.eh_copia = True
+        produto_copia.save()
+
+        campos_fk = ['especificacoes', 'imagemdoproduto_set', 'informacoes_nutricionais', 'protocolos', 'vinculos']
+        for campo_fk in campos_fk:
+            cria_copias_fk(produto_copia, campo_fk, 'produto')
+
+        hom_copia = deepcopy(self)
+        hom_copia.id = None
+        hom_copia.status = None
+        hom_copia.uuid = uuid_generator.uuid4()
+        hom_copia.produto = produto_copia
+        hom_copia.eh_copia = True
+        hom_copia.save()
+        hom_copia.status = self.status
+        hom_copia.save()
+
+        for log in self.logs.all():
+            log_copia = deepcopy(log)
+            log_copia.id = None
+            log_copia.uuid = uuid_generator.uuid4()
+            log_copia.uuid_original = hom_copia.uuid
+            log_copia.save()
+            LogSolicitacoesUsuario.objects.filter(id=log_copia.id).update(criado_em=log.criado_em)
+
+        return hom_copia
 
     class Meta:
         ordering = ('-ativo', '-criado_em')

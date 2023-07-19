@@ -3,6 +3,7 @@ import datetime
 import os
 import re
 import uuid
+from copy import deepcopy
 from mimetypes import guess_extension, guess_type
 from typing import Any
 
@@ -348,3 +349,12 @@ def converte_numero_em_mes(mes):
     }
 
     return meses.get(mes, 'Mês inválido')
+
+
+def cria_copias_fk(obj, attr, attr_fk):
+    for original in getattr(obj, attr).all():
+        copia = deepcopy(original)
+        copia.id = None
+        copia.uuid = uuid.uuid4()
+        setattr(obj, attr_fk, copia)
+        copia.save()

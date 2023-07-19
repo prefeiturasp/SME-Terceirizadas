@@ -184,6 +184,8 @@ class UsuarioTerceirizada(BasePermission):
     """Permite acesso ao objeto se o objeto pertence a essa Diretoria Regional"""
 
     def has_object_permission(self, request, view, obj):
+        if view.action == 'alteracao_produto_homologado':
+            return True
         usuario = request.user
         # TODO: ver uma melhor forma de organizar esse try-except
         try:  # solicitacoes normais

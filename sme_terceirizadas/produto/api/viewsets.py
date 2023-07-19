@@ -1262,12 +1262,22 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             permission_classes=[UsuarioCODAEGestaoProduto],
             methods=['get'],
             url_path=constants.VINCULOS_ATIVOS_PRODUTO_EDITAL)
-    def homologacao_produtos_vinculos_ativos_editais(self, request, uuid=None):  # noqa C901
+    def homologacao_produtos_vinculos_ativos_editais(self, request, uuid=None):
         homologacao_produto = self.get_object()
         produto = homologacao_produto.produto
         serializer = VinculosProdutosEditalAtivosSerializer(
             produto).data
         return Response(serializer)
+
+    @action(detail=True,
+            permission_classes=[UsuarioTerceirizada],
+            methods=['patch'],
+            url_path='alteracao-produto-homologado')
+    def alteracao_produto_homologado(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        copia = homologacao_produto.cria_copia()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
