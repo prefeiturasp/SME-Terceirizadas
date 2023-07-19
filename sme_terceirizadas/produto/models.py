@@ -395,7 +395,7 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
             justificativa=justificativa
         )
 
-    def cria_copia(self):
+    def cria_copia_produto(self):
         produto = self.produto
 
         produto_copia = deepcopy(produto)
@@ -406,8 +406,11 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
 
         campos_fk = ['especificacoes', 'imagemdoproduto_set', 'informacoes_nutricionais', 'protocolos', 'vinculos']
         for campo_fk in campos_fk:
-            cria_copias_fk(produto_copia, campo_fk, 'produto')
+            cria_copias_fk(produto, campo_fk, 'produto', produto_copia)
 
+        return produto_copia
+
+    def cria_copia_homologacao_produto(self, produto_copia):
         hom_copia = deepcopy(self)
         hom_copia.id = None
         hom_copia.status = None
@@ -426,6 +429,11 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
             log_copia.save()
             LogSolicitacoesUsuario.objects.filter(id=log_copia.id).update(criado_em=log.criado_em)
 
+        return hom_copia
+
+    def cria_copia(self):
+        produto_copia = self.cria_copia_produto()
+        hom_copia = self.cria_copia_homologacao_produto(produto_copia)
         return hom_copia
 
     class Meta:

@@ -1275,7 +1275,10 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path='alteracao-produto-homologado')
     def alteracao_produto_homologado(self, request, uuid=None):
         homologacao_produto = self.get_object()
-        copia = homologacao_produto.cria_copia()
+        copia_hom_produto = homologacao_produto.cria_copia()
+        serializer = ProdutoSerializerCreate(context={'request': request})
+        request.data['uuid'] = copia_hom_produto.produto.uuid
+        serializer.update(copia_hom_produto.produto, request.data)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

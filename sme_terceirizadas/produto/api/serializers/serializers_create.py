@@ -149,12 +149,28 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         return produto
 
     def update(self, instance, validated_data):  # noqa C901
+        if type(validated_data.get('marca') == str):
+            validated_data['marca'] = Marca.objects.get(uuid=validated_data.get('marca'))
+        if type(validated_data.get('fabricante') == str):
+            validated_data['fabricante'] = Fabricante.objects.get(uuid=validated_data.get('fabricante'))
+        for informacao in validated_data.get('informacoes_nutricionais', []):
+            if type(informacao.get('informacao_nutricional') == str):
+                informacao['informacao_nutricional'] = InformacaoNutricional.objects.get(
+                    uuid=informacao.get('informacao_nutricional'))
+        for especificacao in validated_data.get('especificacoes', []):
+            if type(especificacao.get('unidade_de_medida') == str):
+                especificacao['unidade_de_medida'] = UnidadeMedida.objects.get(
+                    uuid=especificacao.get('unidade_de_medida'))
+            if type(especificacao.get('embalagem_produto') == str):
+                especificacao['embalagem_produto'] = EmbalagemProduto.objects.get(
+                    uuid=especificacao.get('embalagem_produto'))
         usuario = self.context['request'].user
         mudancas = changes_between(instance, validated_data, usuario)
         justificativa = mudancas_para_justificativa_html(mudancas, instance._meta.get_fields())
-        imagens = validated_data.pop('imagens', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
         especificacoes_produto = validated_data.pop('especificacoes', [])
+        imagens = validated_data.pop('imagens', [])
+
         update_instance_from_dict(instance, validated_data, save=True)
 
         instance.informacoes_nutricionais.all().delete()
@@ -197,6 +213,8 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         if validated_data.get('cadastro_finalizado', False) or instance.homologacao.status in status_validos:
             homologacao = instance.homologacao
             homologacao.inicia_fluxo(user=usuario, justificativa=justificativa)
+
+        instance.save()
         return instance
 
     class Meta:

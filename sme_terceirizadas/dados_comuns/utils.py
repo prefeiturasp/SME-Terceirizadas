@@ -351,10 +351,10 @@ def converte_numero_em_mes(mes):
     return meses.get(mes, 'Mês inválido')
 
 
-def cria_copias_fk(obj, attr, attr_fk):
+def cria_copias_fk(obj, attr, attr_fk, obj_copia):
     for original in getattr(obj, attr).all():
         copia = deepcopy(original)
         copia.id = None
         copia.uuid = uuid.uuid4()
-        setattr(obj, attr_fk, copia)
+        setattr(copia, attr_fk, obj_copia)
         copia.save()
