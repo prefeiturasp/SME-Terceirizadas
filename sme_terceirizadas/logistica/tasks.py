@@ -96,7 +96,7 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
             html = render_to_string(
                 template_name='logistica_avisa_ue_que_prazo_para_conferencia_foi_ultrapassado.html',
                 context={
-                'titulo': 'Registro da Conferência da Guia de Remessa',
+                    'titulo': 'Registro da Conferência da Guia de Remessa',
                     'numero_guia': guia.numero_guia,
                     'data_entrega': guia.data_entrega,
                 }
