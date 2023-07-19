@@ -1278,9 +1278,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         copia_hom_produto = homologacao_produto.cria_copia()
         serializer = ProdutoSerializerCreate(context={'request': request})
         request.data['uuid'] = copia_hom_produto.produto.uuid
-        serializer.update(copia_hom_produto.produto, request.data)
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        copia_atualizada = serializer.update(copia_hom_produto.produto, request.data)
+        return Response(ProdutoSerializerCreate(copia_atualizada).data, status=status.HTTP_200_OK)
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):

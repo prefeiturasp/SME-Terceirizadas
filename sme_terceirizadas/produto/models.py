@@ -404,9 +404,13 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         produto_copia.eh_copia = True
         produto_copia.save()
 
-        campos_fk = ['especificacoes', 'imagemdoproduto_set', 'informacoes_nutricionais', 'protocolos', 'vinculos']
+        campos_fk = ['especificacoes', 'imagemdoproduto_set', 'informacoes_nutricionais', 'vinculos']
         for campo_fk in campos_fk:
             cria_copias_fk(produto, campo_fk, 'produto', produto_copia)
+
+        for protocolo in produto.protocolos.all():
+            produto_copia.protocolos.add(protocolo)
+            produto_copia.save()
 
         return produto_copia
 

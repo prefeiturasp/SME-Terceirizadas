@@ -149,19 +149,19 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         return produto
 
     def update(self, instance, validated_data):  # noqa C901
-        if type(validated_data.get('marca') == str):
+        if type(validated_data.get('marca')) == str:
             validated_data['marca'] = Marca.objects.get(uuid=validated_data.get('marca'))
-        if type(validated_data.get('fabricante') == str):
+        if type(validated_data.get('fabricante')) == str:
             validated_data['fabricante'] = Fabricante.objects.get(uuid=validated_data.get('fabricante'))
         for informacao in validated_data.get('informacoes_nutricionais', []):
-            if type(informacao.get('informacao_nutricional') == str):
+            if type(informacao.get('informacao_nutricional')) == str:
                 informacao['informacao_nutricional'] = InformacaoNutricional.objects.get(
                     uuid=informacao.get('informacao_nutricional'))
         for especificacao in validated_data.get('especificacoes', []):
-            if type(especificacao.get('unidade_de_medida') == str):
+            if type(especificacao.get('unidade_de_medida')) == str:
                 especificacao['unidade_de_medida'] = UnidadeMedida.objects.get(
                     uuid=especificacao.get('unidade_de_medida'))
-            if type(especificacao.get('embalagem_produto') == str):
+            if type(especificacao.get('embalagem_produto')) == str:
                 especificacao['embalagem_produto'] = EmbalagemProduto.objects.get(
                     uuid=especificacao.get('embalagem_produto'))
         usuario = self.context['request'].user
