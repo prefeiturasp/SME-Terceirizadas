@@ -1,7 +1,9 @@
 import datetime
 import json
 
-from django.db.models import QuerySet
+from dateutil.relativedelta import relativedelta
+from django.db.models import IntegerField, Q, QuerySet
+from django.db.models.functions import Cast
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -422,6 +424,26 @@ class SolicitacaoMedicaoInicialViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='solicitacoes-lancadas',
+            permission_classes=[UsuarioEscolaTercTotal])
+    def solicitacoes_lancadas(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        escola_uuid = request.query_params.get('escola')
+        data_ano_anterior = datetime.date.today() - relativedelta(years=1)
+        medicao_em_preenchimento = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+
+        queryset = queryset.filter(escola__uuid=escola_uuid).annotate(
+            mes_int=Cast('mes', output_field=IntegerField()),
+            ano_int=Cast('ano', output_field=IntegerField())
+        ).filter(
+            Q(ano=datetime.date.today().year) |
+            Q(ano_int=data_ano_anterior.year, mes_int__gte=data_ano_anterior.month)
+        ).exclude(status=medicao_em_preenchimento)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):

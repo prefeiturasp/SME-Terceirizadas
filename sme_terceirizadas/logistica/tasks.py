@@ -36,45 +36,15 @@ def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
 
     for guia in guias.all():
         if guia.escola:
-            email_query_set_escola = guia.escola.vinculos.filter(
-                ativo=True,
-                data_inicial__isnull=False,
-                data_final__isnull=True
-            ).values_list('usuario__email', flat=True)
-
             vinculos = guia.escola.vinculos.filter(
                 ativo=True,
                 data_inicial__isnull=False,
                 data_final__isnull=True
             )
 
-            qs_codae = Usuario.objects.filter(
-                vinculos__perfil__nome__in=(
-                    'COORDENADOR_CODAE_DILOG_LOGISTICA',
-                ),
-                vinculos__ativo=True,
-                vinculos__data_inicial__isnull=False,
-                vinculos__data_final__isnull=True,
-            )
-
-            partes_interessadas = [email for email in email_query_set_escola] + [usuario.email for usuario in qs_codae]
             users = [vinculo.usuario for vinculo in vinculos]
         else:
-            partes_interessadas = []
             users = []
-
-        html = render_to_string(
-            template_name='logistica_avisa_ue_para_conferir_no_prazo.html',
-            context={
-                'titulo': 'Hoje tem entrega de alimentos!',
-            }
-        )
-        envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Hoje tem entrega de alimentos!',
-            emails=partes_interessadas,
-            corpo='',
-            html=html
-        )
 
         if users:
             texto_notificacao = render_to_string(
@@ -126,7 +96,7 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
             html = render_to_string(
                 template_name='logistica_avisa_ue_que_prazo_para_conferencia_foi_ultrapassado.html',
                 context={
-                    'titulo': 'Registre a conferência da Guia de Remessa de alimentos!',
+                'titulo': 'Registro da Conferência da Guia de Remessa',
                     'numero_guia': guia.numero_guia,
                     'data_entrega': guia.data_entrega,
                 }

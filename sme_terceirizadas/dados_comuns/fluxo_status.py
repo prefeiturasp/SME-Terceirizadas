@@ -1047,7 +1047,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     def _dispara_email_e_notificacao_de_confirmacao_ao_distribuidor_hook(self, *args, **kwargs):
         # Monta e-mail
         url = f'{base_url}/logistica/conferir-entrega?numero_guia={self.numero_guia}'
-        titulo = f'Nova Guia de Remessa N° {self.numero_guia}'
+        titulo = f'Hoje tem Entrega de alimentos'
         assunto = f'[SIGPAE] Nova Guia de Remessa N° {self.numero_guia}'
         template = 'logistica_distribuidor_confirma_requisicao.html'
         partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
@@ -1099,7 +1099,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
 
         # Monta e-mail
         url = f'{base_url}/logistica/conferir-entrega'
-        titulo = f'Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        titulo = f'Reposição de alimentos Não Recebidos'
         assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
         template = 'logistica_escola_aviso_reposicao.html'
         partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
@@ -1125,7 +1125,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
 
         # Monta e-mail
         url = f'{base_url}/logistica/conferir-entrega'
-        titulo = f'Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        titulo = f'Reposição de alimentos Não Recebidos'
         assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
         template = 'logistica_escola_aviso_reposicao.html'
         partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
