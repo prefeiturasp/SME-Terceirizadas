@@ -1,7 +1,6 @@
 from .alimento import Alimento  # noqa
 from .alimento import Embalagem  # noqa
 from .alimento import TipoEmbalagem  # noqa
-from .alimento import UnidadeMedida  # noqa
 from .guia import ConferenciaGuia  # noqa
 from .guia import Guia  # noqa
 from .guia import NotificacaoOcorrenciasGuia  # noqa

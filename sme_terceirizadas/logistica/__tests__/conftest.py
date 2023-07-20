@@ -5,7 +5,6 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...escola import models
-from ..models import UnidadeMedida
 from ..models.guia import ConferenciaIndividualPorAlimento
 
 fake = Faker('pt_BR')
@@ -232,28 +231,3 @@ def solicitacao_cancelamento_log(solicitacao):
         sequencia_envio='123456',
         foi_confirmada=False
     )
-
-
-@pytest.fixture
-def unidade_medida_logistica():
-    return mommy.make(UnidadeMedida, nome='UNIDADE TESTE', abreviacao='ut')
-
-
-@pytest.fixture
-def unidades_medida_logistica():
-    data = [
-        {'nome': f'UNIDADE TESTE {i}', 'abreviacao': f'ut{i}'}
-        for i in range(1, 21)
-    ]
-    objects = [mommy.make(UnidadeMedida, **attrs) for attrs in data]
-    return objects
-
-
-@pytest.fixture
-def unidades_medida_reais_logistica():
-    data = [
-        {'nome': 'KILOGRAMA', 'abreviacao': 'kg'},
-        {'nome': 'LITRO', 'abreviacao': 'l'}
-    ]
-    objects = [mommy.make(UnidadeMedida, **attrs) for attrs in data]
-    return objects
