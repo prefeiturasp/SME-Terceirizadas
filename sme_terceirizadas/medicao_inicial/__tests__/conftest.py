@@ -122,7 +122,8 @@ def solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok__2(solicitacao_medic
     for medicao in solicitacao_medicao_inicial.medicoes.all():
         medicao.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
         medicao.save()
-    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+    status = solicitacao_medicao_inicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+    solicitacao_medicao_inicial.status = status
     solicitacao_medicao_inicial.save()
     return solicitacao_medicao_inicial
 

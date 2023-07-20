@@ -489,13 +489,14 @@ def test_url_dre_aprova_solicitacao_medicao_erro_pendencias(client_autenticado_d
         f'dre-aprova-solicitacao-medicao/'
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': "Erro: existe(m) pendência(s) de análise"}
+    assert response.json() == {'detail': 'Erro: existe(m) pendência(s) de análise'}
 
 
 def test_url_dre_aprova_solicitacao_medicao_erro_transicao(client_autenticado_diretoria_regional,
                                                            solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok__2):
     response = client_autenticado_diretoria_regional.patch(
-        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok__2.uuid}/'
+        f'/medicao-inicial/solicitacao-medicao-inicial/'
+        f'{solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok__2.uuid}/'
         f'dre-aprova-solicitacao-medicao/'
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
