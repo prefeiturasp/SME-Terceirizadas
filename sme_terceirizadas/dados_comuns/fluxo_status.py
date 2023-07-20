@@ -3111,15 +3111,16 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                 self.escola and
                 self.escola.contato and
                     self.escola.contato.email):
-                url = f'{env("REACT_APP_URL")}/lancamento-inicial'
-                url += f'/lancamento-medicao-inicial?mes={self.mes}&ano={self.ano}'
+                url = f'{env("REACT_APP_URL")}/medicao-inicial'
+                url += f'/detalhamento-do-lancamento?mes={self.mes}&ano={self.ano}'
                 html = render_to_string(
-                    template_name='medicao_dre_aprova_solicitacao.html',
+                    template_name='medicao_dre_codae_aprova_solicitacao.html',
                     context={
                         'titulo': 'Medição Inicial aprovada pela DRE',
                         'url': url,
                         'mes': converte_numero_em_mes(int(self.mes)).lower,
-                        'ano': self.ano
+                        'ano': self.ano,
+                        'usuario': 'DRE'
                     }
                 )
                 envia_email_unico_task.delay(
@@ -3148,8 +3149,8 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                 self.escola and
                 self.escola.contato and
                     self.escola.contato.email):
-                url = f'{env("REACT_APP_URL")}/lancamento-inicial'
-                url += f'/lancamento-medicao-inicial?mes={self.mes}&ano={self.ano}'
+                url = f'{env("REACT_APP_URL")}/medicao-inicial'
+                url += f'/detalhamento-do-lancamento?mes={self.mes}&ano={self.ano}'
                 html = render_to_string(
                     template_name='medicao_dre_solicita_correcao.html',
                     context={
@@ -3168,12 +3169,32 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('codae_aprova_medicao')
     def _codae_aprova_medicao_hook(self, *args, **kwargs):
+        from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
         user = kwargs['user']
         if user:
             if user.vinculo_atual.perfil.nome not in [ADMINISTRADOR_MEDICAO]:
                 raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE,
                                       usuario=user)
+            if self.escola and self.escola.contato and self.escola.contato.email:
+                url = f'{env("REACT_APP_URL")}/medicao-inicial'
+                url += f'/detalhamento-do-lancamento?mes={self.mes}&ano={self.ano}'
+                html = render_to_string(
+                    template_name='medicao_dre_codae_aprova_solicitacao.html',
+                    context={
+                        'titulo': 'Medição Inicial aprovada pela CODAE',
+                        'url': url,
+                        'mes': converte_numero_em_mes(int(self.mes)).lower,
+                        'ano': self.ano,
+                        'usuario': 'CODAE'
+                    }
+                )
+                envia_email_unico_task.delay(
+                    assunto='[SIGPAE] Medição Inicial aprovada pela CODAE',
+                    email=self.escola.contato.email,
+                    corpo='',
+                    html=html
+                )
 
     @xworkflows.after_transition('ue_corrige')
     def _ue_corrige_hook(self, *args, **kwargs):
