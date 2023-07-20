@@ -15,7 +15,7 @@ from rest_framework.exceptions import PermissionDenied
 from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
-from .constants import COGESTOR_DRE, DIRETOR_UE
+from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory
@@ -3039,7 +3039,8 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
         ('ue_corrige_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
         ('dre_aprova', [MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA,
                         MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_APROVADA_PELA_DRE),
-        ('codae_aprova', [MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE)
+        ('codae_aprova', [MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE),
+        ('codae_aprova_medicao', [MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE)
     )
 
     initial_state = MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
@@ -3106,7 +3107,10 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                                                          LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE])
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
                                       usuario=user)
-            if isinstance(self, SolicitacaoMedicaoInicial):
+            if (isinstance(self, SolicitacaoMedicaoInicial) and
+                self.escola and
+                self.escola.contato and
+                    self.escola.contato.email):
                 url = f'{env("REACT_APP_URL")}/lancamento-inicial'
                 url += f'/lancamento-medicao-inicial?mes={self.mes}&ano={self.ano}'
                 html = render_to_string(
@@ -3161,6 +3165,15 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                     corpo='',
                     html=html
                 )
+
+    @xworkflows.after_transition('codae_aprova_medicao')
+    def _codae_aprova_medicao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            if user.vinculo_atual.perfil.nome not in [ADMINISTRADOR_MEDICAO]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE,
+                                      usuario=user)
 
     @xworkflows.after_transition('ue_corrige')
     def _ue_corrige_hook(self, *args, **kwargs):
