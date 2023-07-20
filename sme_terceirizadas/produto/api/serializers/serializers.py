@@ -411,7 +411,7 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomologacaoProduto
         fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
-                  'protocolo_analise_sensorial', 'ultima_analise')
+                  'protocolo_analise_sensorial', 'ultima_analise', 'esta_homologado')
 
 
 class ProdutoBaseSerializer(serializers.ModelSerializer):

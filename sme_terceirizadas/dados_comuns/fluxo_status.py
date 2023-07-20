@@ -431,7 +431,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_CANCELOU_ANALISE_SENSORIAL),
         ('terceirizada_responde_analise_sensorial',
          CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
-        ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
+        ('codae_suspende', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_HOMOLOGADO], CODAE_SUSPENDEU),
         ('codae_ativa', [CODAE_SUSPENDEU, CODAE_HOMOLOGADO], CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou',
          [CODAE_HOMOLOGADO,

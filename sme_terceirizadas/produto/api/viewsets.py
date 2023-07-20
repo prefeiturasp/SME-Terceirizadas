@@ -1077,6 +1077,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.SUSPENDER_PRODUTO)
     def suspender(self, request, uuid=None):
         homologacao_produto = self.get_object()
+        if homologacao_produto.eh_copia:
+            homologacao_produto = homologacao_produto.equaliza_homologacoes_e_se_destroi()
         usuario = request.user
         justificativa = request.data.get('justificativa', '')
         editais_para_suspensao_ativacao = request.data.get('editais_para_suspensao_ativacao', '')
@@ -1102,9 +1104,12 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                     request,
                     justificativa
                 )
+                if homologacao_produto.status == HomologacaoProduto.workflow_class.CODAE_PENDENTE_HOMOLOGACAO:
+                    homologacao_produto.status = HomologacaoProduto.workflow_class.CODAE_HOMOLOGADO
+                    homologacao_produto.save()
             else:
                 homologacao_produto.codae_suspende(request=request)
-            return Response('Homologação suspensa')
+            return Response(self.get_serializer(homologacao_produto).data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)

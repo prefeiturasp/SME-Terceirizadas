@@ -4,7 +4,7 @@ from datetime import datetime
 
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
+from django.db import models, transaction
 from sequences import get_last_value, get_next_value
 
 from ..dados_comuns.behaviors import (
@@ -384,6 +384,62 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         serial = serial + str(id_sequecial)
         return f'AS{serial}'
 
+    @property
+    def esta_homologado(self):
+        esta_homologado = False
+        for log in self.logs.order_by('-criado_em'):
+            if log.status_evento == LogSolicitacoesUsuario.CODAE_HOMOLOGADO:
+                esta_homologado = True
+                continue
+            elif log.status_evento in [LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                       LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO]:
+                continue
+        return esta_homologado
+
+    def get_original(self):
+        if not self.eh_copia:
+            return 'Não é cópia.'
+        return HomologacaoProduto.objects.get(
+            produto__nome=self.produto.nome,
+            produto__marca=self.produto.marca,
+            produto__fabricante=self.produto.fabricante,
+            eh_copia=False
+        )
+
+    def transfere_logs_para_original(self):
+        original = self.get_original()
+        for log in self.logs.all():
+            if not original.logs.filter(criado_em=log.criado_em).exists():
+                log.uuid_original = original.uuid
+                log.save()
+
+    def transfere_analises_sensoriais_para_original(self):
+        AnaliseSensorial.objects.filter(homologacao_produto=self).update(homologacao_produto=self.get_original())
+
+    def transfere_respostas_analises_sensoriais(self):
+        RespostaAnaliseSensorial.objects.filter(homologacao_produto=self).update(
+            homologacao_produto=self.get_original())
+
+    @transaction.atomic
+    def equaliza_homologacoes_e_se_destroi(self):
+        if not self.eh_copia:
+            return 'Não é cópia.'
+        original = self.get_original()
+        self.transfere_logs_para_original()
+        self.transfere_analises_sensoriais_para_original()
+        self.transfere_respostas_analises_sensoriais()
+        original.produto.vinculos.all().delete()
+        original.produto.delete()
+        original.produto = self.produto
+        produto_temp = Produto()
+        produto_temp.save()
+        self.produto = produto_temp
+        self.save()
+        original.save()
+        self.produto.delete()
+        self.delete()
+        return original
+
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
         return LogSolicitacoesUsuario.objects.create(
@@ -403,6 +459,7 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         produto_copia.uuid = uuid_generator.uuid4()
         produto_copia.eh_copia = True
         produto_copia.save()
+        Produto.objects.filter(id=produto_copia.uuid).update(criado_em=produto.criado_em)
 
         campos_fk = ['especificacoes', 'imagemdoproduto_set', 'informacoes_nutricionais', 'vinculos']
         for campo_fk in campos_fk:
