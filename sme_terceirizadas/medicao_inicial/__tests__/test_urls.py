@@ -468,3 +468,78 @@ def test_url_endpoint_solicitacoes_lancadas(client_autenticado_da_escola,
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data) == 2
+
+
+def test_url_dre_aprova_solicitacao_medicao(client_autenticado_diretoria_regional,
+                                            solicitacao_medicao_inicial_medicao_enviada_pela_ue):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue.uuid}/'
+        f'dre-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_enviada_pela_ue.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_enviada_pela_ue.status ==
+            solicitacao_medicao_inicial_medicao_enviada_pela_ue.workflow_class.MEDICAO_APROVADA_PELA_DRE)
+
+
+def test_url_dre_aprova_solicitacao_medicao_erro_pendencias(client_autenticado_diretoria_regional,
+                                                            solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok.uuid}/'
+        f'dre-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': "Erro: existe(m) pendência(s) de análise"}
+
+
+def test_url_dre_aprova_solicitacao_medicao_erro_transicao(client_autenticado_diretoria_regional,
+                                                           solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok__2):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok__2.uuid}/'
+        f'dre-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'dre_aprova' isn't available from state "
+                  "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'."
+    }
+
+
+def test_url_codae_aprova_solicitacao_medicao(client_autenticado_codae_medicao,
+                                              solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok):
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.uuid}/'
+        f'codae-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.status ==
+            solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.workflow_class.MEDICAO_APROVADA_PELA_CODAE)
+
+
+def test_url_codae_aprova_solicitacao_medicao_erro_pendencias(
+    client_autenticado_codae_medicao,
+    solicitacao_medicao_inicial_medicao_aprovada_pela_dre_nok
+):
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/'
+        f'{solicitacao_medicao_inicial_medicao_aprovada_pela_dre_nok.uuid}/'
+        f'codae-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Erro: existe(m) pendência(s) de análise'}
+
+
+def test_url_codae_aprova_solicitacao_medicao_erro_transicao(
+    client_autenticado_codae_medicao,
+    solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok
+):
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok.uuid}/'
+        f'codae-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'codae_aprova_medicao' isn't available from state "
+                  "'MEDICAO_ENVIADA_PELA_UE'."
+    }
