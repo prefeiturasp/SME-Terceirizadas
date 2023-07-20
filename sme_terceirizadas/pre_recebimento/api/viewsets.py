@@ -42,7 +42,8 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     CronogramaCreateSerializer,
     EmbalagemQldCreateSerializer,
     LaboratorioCreateSerializer,
-    SolicitacaoDeAlteracaoCronogramaCreateSerializer
+    SolicitacaoDeAlteracaoCronogramaCreateSerializer,
+    UnidadeMedidaCreateSerializer
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
@@ -475,7 +476,6 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
 class UnidadeMedidaViewset(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = UnidadeMedida.objects.all()
-    serializer_class = UnidadeMedidaSerialzer
     permission_classes = (PermissaoParaCadastrarVisualizarUnidadesMedida,)
     pagination_class = UnidadeMedidaPagination
     filter_backends = (filters.DjangoFilterBackend,)
@@ -488,3 +488,8 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
         abreviacoes = [atributo[1] for atributo in atributos]
         response = {'results': {'nomes': nomes, 'abreviacoes': abreviacoes}}
         return Response(response)
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return UnidadeMedidaSerialzer
+        return UnidadeMedidaCreateSerializer

@@ -16,6 +16,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma
 )
+from sme_terceirizadas.pre_recebimento.models import UnidadeMedida as UnidadeMedidaLogistica
 from sme_terceirizadas.produto.models import NomeDeProdutoEdital, UnidadeMedida
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
@@ -289,3 +290,16 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
     class Meta:
         model = SolicitacaoAlteracaoCronograma
         exclude = ('id', 'usuario_solicitante')
+
+
+class UnidadeMedidaCreateSerializer(serializers.Serializer):
+    nome = serializers.CharField(required=True, max_length=100)
+    abreviacao = serializers.CharField(required=True, max_length=25)
+
+    def create(self, validated_data):
+        obj = UnidadeMedidaLogistica.objects.create(**validated_data)
+        return obj
+
+    def update(self, instance, validated_data):
+        update_instance_from_dict(instance, validated_data, save=True)
+        return instance
