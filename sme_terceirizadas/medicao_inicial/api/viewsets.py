@@ -381,6 +381,24 @@ class SolicitacaoMedicaoInicialViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-solicitacao-medicao',
+            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    def codae_aprova_solicitacao_medicao(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            medicoes = solicitacao_medicao_inicial.medicoes.all()
+            status_medicao_aprovada = 'MEDICAO_APROVADA_PELA_CODAE'
+            if medicoes.exclude(status=status_medicao_aprovada).exists() or (
+                solicitacao_medicao_inicial.tem_ocorrencia and
+                    solicitacao_medicao_inicial.ocorrencia.status != status_medicao_aprovada):
+                mensagem = 'Erro: existe(m) pendência(s) de análise'
+                return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
+            solicitacao_medicao_inicial.codae_aprova_medicao(user=request.user)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao-para-dre',
             permission_classes=[UsuarioDiretorEscolaTercTotal])
     def escola_corrige_medicao_para_dre(self, request, uuid=None):
