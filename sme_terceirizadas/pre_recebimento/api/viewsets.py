@@ -21,6 +21,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaAssinarCronogramaUsuarioFornecedor,
     PermissaoParaCadastrarLaboratorio,
     PermissaoParaCadastrarVisualizarEmbalagem,
+    PermissaoParaCadastrarVisualizarUnidadesMedida,
     PermissaoParaCriarCronograma,
     PermissaoParaCriarSolicitacoesAlteracaoCronograma,
     PermissaoParaDarCienciaAlteracaoCronograma,
@@ -33,7 +34,8 @@ from sme_terceirizadas.dados_comuns.permissions import (
 from sme_terceirizadas.pre_recebimento.api.filters import (
     CronogramaFilter,
     EmbalagensQldFilter,
-    SolicitacaoAlteracaoCronogramaFilter
+    SolicitacaoAlteracaoCronogramaFilter,
+    UnidadeMedidaFilter
 )
 from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPagination, EmbalagemQldPagination
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
@@ -51,16 +53,21 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     PainelCronogramaSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
-    SolicitacaoAlteracaoCronogramaSerializer
+    SolicitacaoAlteracaoCronogramaSerializer,
+    UnidadeMedidaSerialzer
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
-    SolicitacaoAlteracaoCronograma
+    SolicitacaoAlteracaoCronograma,
+    UnidadeMedida
 )
-from sme_terceirizadas.pre_recebimento.utils import ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
+from sme_terceirizadas.pre_recebimento.utils import (
+    ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
+    UnidadeMedidaPagination
+)
 
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...relatorios.relatorios import get_pdf_cronograma
@@ -463,3 +470,21 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
                             status=HTTP_406_NOT_ACCEPTABLE)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+
+class UnidadeMedidaViewset(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = UnidadeMedida.objects.all()
+    serializer_class = UnidadeMedidaSerialzer
+    permission_classes = (PermissaoParaCadastrarVisualizarUnidadesMedida,)
+    pagination_class = UnidadeMedidaPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = UnidadeMedidaFilter
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-abreviacoes')
+    def listar_nomes_abreviacoes(self, request):
+        atributos = self.get_queryset().values_list('nome', 'abreviacao')
+        nomes = [atributo[0] for atributo in atributos]
+        abreviacoes = [atributo[1] for atributo in atributos]
+        response = {'results': {'nomes': nomes, 'abreviacoes': abreviacoes}}
+        return Response(response)
