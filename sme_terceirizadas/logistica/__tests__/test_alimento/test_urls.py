@@ -11,7 +11,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_url_unidades_medida_listar(client_autenticado, unidades_medida_logistica):
-    """Deve acessar com sucesso a lista paginada de unidades de medida."""
+    """Deve obter lista paginada de unidades de medida."""
     client = client_autenticado
 
     response = client.get('/unidades-medida-logistica/')
@@ -22,8 +22,8 @@ def test_url_unidades_medida_listar(client_autenticado, unidades_medida_logistic
     assert response.data['next'] is not None
 
 
-def test_url_unidades_medida_listar_com_filtros(client_autenticado):
-    """Deve acessar com sucesso a lista paginada e filtrada de unidades de medida."""
+def test_url_unidades_medida_listar_com_filtros(client_autenticado, unidades_medida_reais_logistica):
+    """Deve obter lista paginada e filtrada de unidades de medida."""
     client = client_autenticado
 
     url_com_filtro_nome = '/unidades-medida-logistica/?nome=lit'
@@ -38,6 +38,13 @@ def test_url_unidades_medida_listar_com_filtros(client_autenticado):
     assert response.data['count'] == 1
     assert response.data['results'][0]['nome'] == 'KILOGRAMA'
 
+    data_cadastro = unidades_medida_reais_logistica[0].criado_em.date().strftime('%d/%m/%Y')
+    url_com_filtro_data_cadastro = f'/unidades-medida-logistica/?data_cadastro={data_cadastro}'
+    response = client.get(url_com_filtro_data_cadastro)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['count'] == 2
+    assert response.data['results'][0]['nome'] == 'KILOGRAMA'
+
     url_com_filtro_sem_resultado = '/unidades-medida-logistica/?nome=lit&abreviacao=kg'
     response = client.get(url_com_filtro_sem_resultado)
     assert response.status_code == status.HTTP_200_OK
@@ -45,7 +52,7 @@ def test_url_unidades_medida_listar_com_filtros(client_autenticado):
 
 
 def test_url_unidades_medida_detalhar(client_autenticado, unidade_medida_logistica):
-    """Deve acessar com sucesso os detalhes de uma unidade de medida."""
+    """Deve obter detalhes de uma unidade de medida."""
     client = client_autenticado
 
     response = client.get(f'/unidades-medida-logistica/{unidade_medida_logistica.uuid}/')
@@ -132,3 +139,13 @@ def test_url_unidades_medida_atualizar(client_autenticado, unidade_medida_logist
     assert response.status_code == status.HTTP_200_OK
     assert response.data['nome'] == unidade_medida_logistica.nome == payload['nome']
     assert response.data['abreviacao'] == unidade_medida_logistica.abreviacao == payload['abreviacao']
+
+
+def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado, unidades_medida_logistica):
+    """Deve obter lista com nomes e abreviações de todas as unidades de medida cadastradas."""
+    client = client_autenticado
+    response = client.get('/unidades-medida-logistica/lista-nomes-abreviacoes/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data['results']['nomes']) == len(unidades_medida_logistica)
+    assert len(response.data['results']['abreviacoes']) == len(unidades_medida_logistica)

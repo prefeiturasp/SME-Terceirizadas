@@ -1033,3 +1033,11 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
     pagination_class = UnidadeMedidaPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UnidadeMedidaFilter
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-abreviacoes')
+    def listar_nomes_abreviacoes(self, request):
+        atributos = self.get_queryset().values_list('nome', 'abreviacao')
+        nomes = [atributo[0] for atributo in atributos]
+        abreviacoes = [atributo[1] for atributo in atributos]
+        response = {'results': {'nomes': nomes, 'abreviacoes': abreviacoes}}
+        return Response(response)
