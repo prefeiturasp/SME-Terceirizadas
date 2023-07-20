@@ -71,7 +71,6 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
     SolicitacaoRemessaSimplesSerializer,
-    UnidadeMedidaSerialzer,
     XmlParserSolicitacaoSerializer
 )
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
@@ -79,8 +78,7 @@ from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import (
     NotificacaoOcorrenciasGuia,
     SolicitacaoDeAlteracaoRequisicao,
-    SolicitacaoRemessa,
-    UnidadeMedida
+    SolicitacaoRemessa
 )
 from sme_terceirizadas.logistica.services import (
     arquiva_guias,
@@ -95,8 +93,8 @@ from ...escola.models import DiretoriaRegional, Escola
 from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
 from ..tasks import gera_pdf_async, gera_xlsx_async, gera_xlsx_entregas_async
-from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination, UnidadeMedidaPagination
-from .filters import GuiaFilter, NotificacaoFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter, UnidadeMedidaFilter
+from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
+from .filters import GuiaFilter, NotificacaoFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import valida_guia_conferencia, valida_guia_insucesso
 from .validators import eh_true_ou_false
 
@@ -1023,21 +1021,3 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
                                           Status da Notificação não é RASCUNHO ou NOTIFICACAO_CRIADA"""),
                             status=HTTP_400_BAD_REQUEST)
         return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
-
-
-class UnidadeMedidaViewset(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
-    queryset = UnidadeMedida.objects.all()
-    serializer_class = UnidadeMedidaSerialzer
-    permission_classes = [IsAuthenticated]
-    pagination_class = UnidadeMedidaPagination
-    filter_backends = (filters.DjangoFilterBackend,)
-    filterset_class = UnidadeMedidaFilter
-
-    @action(detail=False, methods=['GET'], url_path='lista-nomes-abreviacoes')
-    def listar_nomes_abreviacoes(self, request):
-        atributos = self.get_queryset().values_list('nome', 'abreviacao')
-        nomes = [atributo[0] for atributo in atributos]
-        abreviacoes = [atributo[1] for atributo in atributos]
-        response = {'results': {'nomes': nomes, 'abreviacoes': abreviacoes}}
-        return Response(response)
