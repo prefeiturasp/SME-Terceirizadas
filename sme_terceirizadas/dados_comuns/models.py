@@ -107,8 +107,9 @@ class LogSolicitacoesUsuario(
         TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO,
         SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE,
         NOTIFICACAO_CRIADA,
-        NOTIFICACAO_ENVIADA_FISCAL
-    ) = range(81)
+        NOTIFICACAO_ENVIADA_FISCAL,
+        MEDICAO_CORRECAO_SOLICITADA_CODAE
+    ) = range(82)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -208,7 +209,7 @@ class LogSolicitacoesUsuario(
         (MEDICAO_CORRECAO_SOLICITADA, 'Correção solicitada'),
         (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido para DRE'),
         (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
-        (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE'),
+        (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado pela CODAE'),
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
         (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Assinado e Enviado ao Fornecedor'),
         (CRONOGRAMA_ASSINADO_PELO_FORNECEDOR, 'Assinado Fornecedor'),
@@ -229,7 +230,8 @@ class LogSolicitacoesUsuario(
         (TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO, 'Terceirizada cancelou solicitação de correção'),
         (SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE, 'Em Análise'),
         (NOTIFICACAO_CRIADA, 'Notificação criada'),
-        (NOTIFICACAO_ENVIADA_FISCAL, 'Notificação enviada para o fiscal')
+        (NOTIFICACAO_ENVIADA_FISCAL, 'Notificação enviada para o fiscal'),
+        (MEDICAO_CORRECAO_SOLICITADA_CODAE, 'Correção solicitada pela CODAE')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
