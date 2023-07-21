@@ -51,6 +51,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSerializer,
     EmbalagemQldSerializer,
     LaboratorioSerializer,
+    NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
@@ -483,10 +484,9 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes-abreviacoes')
     def listar_nomes_abreviacoes(self, request):
-        atributos = self.get_queryset().values_list('nome', 'abreviacao')
-        nomes = [atributo[0] for atributo in atributos]
-        abreviacoes = [atributo[1] for atributo in atributos]
-        response = {'results': {'nomes': nomes, 'abreviacoes': abreviacoes}}
+        unidades_medida = self.get_queryset()
+        serializer = NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True)
+        response = {'results': serializer.data}
         return Response(response)
 
     def get_serializer_class(self):

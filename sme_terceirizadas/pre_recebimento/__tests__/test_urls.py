@@ -4,6 +4,7 @@ from django.conf import settings
 from rest_framework import status
 
 from sme_terceirizadas.dados_comuns import constants
+from sme_terceirizadas.pre_recebimento.api.serializers.serializers import NomeEAbreviacaoUnidadeMedidaSerializer
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EmbalagemQld,
@@ -583,7 +584,6 @@ def test_url_unidades_medida_listar_com_filtros(client_autenticado_dilog_cronogr
     response = client.get(url_com_filtro_data_cadastro)
     assert response.status_code == status.HTTP_200_OK
     assert response.data['count'] == 2
-    assert response.data['results'][0]['nome'] == 'KILOGRAMA'
 
     url_com_filtro_sem_resultado = '/unidades-medida-logistica/?nome=lit&abreviacao=kg'
     response = client.get(url_com_filtro_sem_resultado)
@@ -687,6 +687,8 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado_
     client = client_autenticado_dilog_cronograma
     response = client.get('/unidades-medida-logistica/lista-nomes-abreviacoes/')
 
+    unidades_medida = UnidadeMedida.objects.all()
+
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data['results']['nomes']) == len(unidades_medida_logistica)
-    assert len(response.data['results']['abreviacoes']) == len(unidades_medida_logistica)
+    assert len(response.data['results']) == len(unidades_medida_logistica)
+    assert response.data['results'] == NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True).data

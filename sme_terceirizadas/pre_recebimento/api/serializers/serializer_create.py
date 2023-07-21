@@ -292,14 +292,18 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
         exclude = ('id', 'usuario_solicitante')
 
 
-class UnidadeMedidaCreateSerializer(serializers.Serializer):
-    nome = serializers.CharField(required=True, max_length=100)
-    abreviacao = serializers.CharField(required=True, max_length=25)
+class UnidadeMedidaCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedidaLogistica
+        fields = ('uuid', 'nome', 'abreviacao', 'criado_em')
+        read_only_fields = ('uuid', 'criado_em')
 
-    def create(self, validated_data):
-        obj = UnidadeMedidaLogistica.objects.create(**validated_data)
-        return obj
+    def validate_nome(self, value):
+        if not value.isupper():
+            raise serializers.ValidationError('O campo deve conter apenas letras maiúsculas.')
+        return value
 
-    def update(self, instance, validated_data):
-        update_instance_from_dict(instance, validated_data, save=True)
-        return instance
+    def validate_abreviacao(self, value):
+        if not value.islower():
+            raise serializers.ValidationError('O campo deve conter apenas letras minúsculas.')
+        return value
