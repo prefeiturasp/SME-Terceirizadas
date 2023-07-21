@@ -174,13 +174,6 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
         return self.nutricionistas
 
     @property
-    def super_admin(self):
-        vinculo = self.vinculos.filter(usuario__super_admin_terceirizadas=True).last()
-        if vinculo:
-            return vinculo.usuario
-        return None
-
-    @property
     def eh_distribuidor(self):
         return self.tipo_servico in [self.DISTRIBUIDOR_ARMAZEM, self.FORNECEDOR_E_DISTRIBUIDOR]
 
