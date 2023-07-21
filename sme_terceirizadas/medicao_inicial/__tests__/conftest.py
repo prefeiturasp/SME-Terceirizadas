@@ -75,6 +75,9 @@ def solicitacao_medicao_inicial(escola, categoria_medicao):
 
 @pytest.fixture
 def solicitacao_medicao_inicial_medicao_enviada_pela_ue(solicitacao_medicao_inicial):
+    for medicao in solicitacao_medicao_inicial.medicoes.all():
+        medicao.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
+        medicao.save()
     solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_ENVIADA_PELA_UE
     solicitacao_medicao_inicial.save()
     return solicitacao_medicao_inicial
@@ -83,6 +86,44 @@ def solicitacao_medicao_inicial_medicao_enviada_pela_ue(solicitacao_medicao_inic
 @pytest.fixture
 def solicitacao_medicao_inicial_medicao_correcao_solicitada(solicitacao_medicao_inicial):
     solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok(solicitacao_medicao_inicial):
+    for medicao in solicitacao_medicao_inicial.medicoes.all():
+        medicao.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+        medicao.save()
+    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_medicao_aprovada_pela_dre_nok(solicitacao_medicao_inicial):
+    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok(solicitacao_medicao_inicial):
+    for medicao in solicitacao_medicao_inicial.medicoes.all():
+        medicao.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+        medicao.save()
+    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_ENVIADA_PELA_UE
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok__2(solicitacao_medicao_inicial):
+    for medicao in solicitacao_medicao_inicial.medicoes.all():
+        medicao.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
+        medicao.save()
+    status = solicitacao_medicao_inicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+    solicitacao_medicao_inicial.status = status
     solicitacao_medicao_inicial.save()
     return solicitacao_medicao_inicial
 
@@ -324,8 +365,7 @@ def client_autenticado_da_escola(client, django_user_model, escola):
     password = 'admin@123'
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                    registro_funcional='123456',
-                                                    )
+                                                    registro_funcional='123456')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
@@ -339,10 +379,28 @@ def client_autenticado_adm_da_escola(client, django_user_model, escola):
     password = 'admin@1234'
     perfil_diretor = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
     usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                    registro_funcional='1234567',
-                                                    )
+                                                    registro_funcional='1234567')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_codae_medicao(client, django_user_model):
+    email = 'codae@medicao.com'
+    password = 'admin@1234'
+    perfil_medicao = mommy.make('Perfil', nome='ADMINISTRADOR_MEDICAO', ativo=True)
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                    registro_funcional='1234588')
+    codae = mommy.make('Codae')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=usuario,
+               instituicao=codae,
+               perfil=perfil_medicao,
+               data_inicial=hoje,
+               ativo=True)
     client.login(username=email, password=password)
     return client
