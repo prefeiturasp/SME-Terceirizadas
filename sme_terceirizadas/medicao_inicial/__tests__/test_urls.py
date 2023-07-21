@@ -544,3 +544,37 @@ def test_url_codae_aprova_solicitacao_medicao_erro_transicao(
         'detail': "Erro de transição de estado: Transition 'codae_aprova_medicao' isn't available from state "
                   "'MEDICAO_ENVIADA_PELA_UE'."
     }
+
+
+def test_url_codae_solicita_correcao_medicao(client_autenticado_codae_medicao,
+                                             solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok):
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.uuid}/'
+        f'codae-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.status ==
+            solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE)
+
+
+def test_url_codae_solicita_correcao_medicao_erro_transicao(client_autenticado_codae_medicao,
+                                                            solicitacao_medicao_inicial):
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial.uuid}/'
+        f'codae-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'codae_pede_correcao_medicao' isn't available from state "
+                  "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'."
+    }
+
+
+def test_url_codae_solicita_correcao_medicao_erro_403(client_autenticado_da_escola,
+                                                      solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok):
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.uuid}/'
+        f'codae-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
