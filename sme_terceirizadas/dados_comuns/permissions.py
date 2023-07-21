@@ -184,8 +184,6 @@ class UsuarioTerceirizada(BasePermission):
     """Permite acesso ao objeto se o objeto pertence a essa Diretoria Regional"""
 
     def has_object_permission(self, request, view, obj):
-        if view.action == 'alteracao_produto_homologado':
-            return True
         usuario = request.user
         # TODO: ver uma melhor forma de organizar esse try-except
         try:  # solicitacoes normais
@@ -193,6 +191,18 @@ class UsuarioTerceirizada(BasePermission):
         except AttributeError:  # solicitacao unificada
             retorno = usuario.vinculo_atual.instituicao == obj.rastro_terceirizada
         return retorno
+
+
+class UsuarioTerceirizadaProduto(BasePermission):
+    """Permite acesso a usuários com vinculo a uma Terceirizada."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
+        )
 
 
 class PermissaoParaRecuperarObjeto(BasePermission):

@@ -25,7 +25,7 @@ from ..dados_comuns.fluxo_status import (
     HomologacaoProdutoWorkflow
 )
 from ..dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, TemplateMensagem
-from ..dados_comuns.utils import convert_base64_to_contentfile, cria_copias_fk
+from ..dados_comuns.utils import convert_base64_to_contentfile, cria_copias_fk, cria_copias_m2m
 from ..escola.models import Escola
 from ..terceirizada.models import Edital
 
@@ -396,6 +396,17 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
                 continue
         return esta_homologado
 
+    @property
+    def tem_copia(self):
+        if self.eh_copia:
+            return False
+        return HomologacaoProduto.objects.filter(
+            produto__nome=self.produto.nome,
+            produto__marca=self.produto.marca,
+            produto__fabricante=self.produto.fabricante,
+            eh_copia=True
+        ).exists()
+
     def get_original(self):
         if not self.eh_copia:
             return 'Não é cópia.'
@@ -428,6 +439,7 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         self.transfere_logs_para_original()
         self.transfere_analises_sensoriais_para_original()
         self.transfere_respostas_analises_sensoriais()
+        original.status = self.status
         original.produto.vinculos.all().delete()
         original.produto.delete()
         original.produto = self.produto
@@ -465,9 +477,9 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         for campo_fk in campos_fk:
             cria_copias_fk(produto, campo_fk, 'produto', produto_copia)
 
-        for protocolo in produto.protocolos.all():
-            produto_copia.protocolos.add(protocolo)
-            produto_copia.save()
+        campos_m2m = ['protocolos', 'substitutos', 'substitutos_protocolo_padrao']
+        for campo_m2m in campos_m2m:
+            cria_copias_m2m(produto, campo_m2m, produto_copia)
 
         return produto_copia
 

@@ -1019,5 +1019,10 @@ def test_alteracao_dados_produto_homologado(client_autenticado_vinculo_terceiriz
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['uuid'] != produto.uuid
 
+    uuid_ = response.json()['uuid']
+    produto.refresh_from_db()
+
+    response = client_autenticado_vinculo_terceirizada.get(f'/produtos/{uuid_}/')
+
     assert response.json()['porcao'] == '1 kg'
     assert produto.porcao == '5 cuias'

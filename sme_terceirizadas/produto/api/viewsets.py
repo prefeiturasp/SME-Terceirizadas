@@ -33,7 +33,7 @@ from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoProduto,
     UsuarioDiretoriaRegional,
     UsuarioNutricionista,
-    UsuarioTerceirizada
+    UsuarioTerceirizadaProduto
 )
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
@@ -781,6 +781,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail='É necessario informar algum edital.'),
                             status=HTTP_406_NOT_ACCEPTABLE)
         try:
+            if homologacao_produto.eh_copia:
+                homologacao_produto = homologacao_produto.equaliza_homologacoes_e_se_destroi()
             homologacao_produto.codae_homologa(
                 user=request.user,
                 link_pdf=url_configs('API', {'uri': uri}))
@@ -799,8 +801,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                         edital=Edital.objects.get(uuid=edital_uuid),
                         tipo_produto=ProdutoEdital.DIETA_ESPECIAL if eh_para_alunos_com_dieta else ProdutoEdital.COMUM
                     )
-            serializer = self.get_serializer(homologacao_produto)
-            return Response(serializer.data)
+            return Response({'uuid': homologacao_produto.uuid, 'status': str(homologacao_produto.status)},
+                            status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
@@ -1154,7 +1156,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
-            permission_classes=[UsuarioTerceirizada],
+            permission_classes=[UsuarioTerceirizadaProduto],
             methods=['patch'],
             url_path=constants.TERCEIRIZADA_RESPONDE_RECLAMACAO)
     def terceirizada_responde_reclamacao(self, request, uuid=None):
@@ -1186,7 +1188,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         return data
 
     @action(detail=True,
-            permission_classes=[UsuarioTerceirizada],
+            permission_classes=[UsuarioTerceirizadaProduto],
             methods=['post'],
             url_path=constants.GERAR_PDF)
     def gerar_pdf_homologacao(self, request, uuid=None):
@@ -1228,7 +1230,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         return html_to_pdf_response(html_string, f'ficha_identificacao_produto_{homologacao_produto.id_externo}.pdf')
 
     @action(detail=False,
-            permission_classes=[UsuarioTerceirizada],
+            permission_classes=[UsuarioTerceirizadaProduto],
             methods=['get'],
             url_path=constants.AGUARDANDO_ANALISE_SENSORIAL)
     def homolocoes_aguardando_analise_sensorial(self, request):
@@ -1239,7 +1241,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True,
-            permission_classes=[UsuarioTerceirizada],
+            permission_classes=[UsuarioTerceirizadaProduto],
             methods=['patch'],
             url_path=constants.TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO)
     def terceirizada_cancelou_solicitacao_homologacao(self, request, uuid=None):
@@ -1275,7 +1277,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         return Response(serializer)
 
     @action(detail=True,
-            permission_classes=[UsuarioTerceirizada],
+            permission_classes=[UsuarioTerceirizadaProduto],
             methods=['patch'],
             url_path='alteracao-produto-homologado')
     def alteracao_produto_homologado(self, request, uuid=None):
@@ -1284,7 +1286,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         serializer = ProdutoSerializerCreate(context={'request': request})
         request.data['uuid'] = copia_hom_produto.produto.uuid
         copia_atualizada = serializer.update(copia_hom_produto.produto, request.data)
-        return Response(ProdutoSerializerCreate(copia_atualizada).data, status=status.HTTP_200_OK)
+        return Response({'uuid': copia_atualizada.uuid}, status=status.HTTP_200_OK)
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
@@ -1603,7 +1605,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path='filtro-reclamacoes-terceirizada',
-            permission_classes=[UsuarioTerceirizada | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao |
+            permission_classes=[UsuarioTerceirizadaProduto | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao |
                                 UsuarioNutricionista])
     def filtro_reclamacoes_terceirizada(self, request):
         if self.request.user.tipo_usuario in [TIPO_USUARIO_DIRETORIA_REGIONAL,
@@ -1811,7 +1813,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path='filtro-relatorio-em-analise-sensorial',
-            permission_classes=[UsuarioTerceirizada | UsuarioCODAEGestaoProduto])
+            permission_classes=[UsuarioTerceirizadaProduto | UsuarioCODAEGestaoProduto])
     def filtro_relatorio_em_analise_sensorial(self, request):
         queryset = self.filter_queryset(
             self.get_queryset()).filter(homologacao__respostas_analise__isnull=False).prefetch_related(
@@ -1824,7 +1826,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path='relatorio-em-analise-sensorial',
-            permission_classes=[UsuarioTerceirizada | UsuarioCODAEGestaoProduto])
+            permission_classes=[UsuarioTerceirizadaProduto | UsuarioCODAEGestaoProduto])
     def relatorio_em_analise_sensorial(self, request):
         queryset = self.filter_queryset(
             self.get_queryset()).filter(homologacao__respostas_analise__isnull=False).prefetch_related(
@@ -2292,7 +2294,7 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
     queryset = RespostaAnaliseSensorial.objects.all()
 
     @action(detail=False,
-            permission_classes=[UsuarioTerceirizada],
+            permission_classes=[UsuarioTerceirizadaProduto],
             methods=['post'],
             url_path=constants.TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL)
     def terceirizada_responde(self, request):  # noqa C901
