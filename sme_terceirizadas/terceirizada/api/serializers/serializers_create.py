@@ -1,16 +1,9 @@
-import re
-
-from django.db.utils import IntegrityError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from ....dados_comuns.api.serializers import ContatoSerializer
-from ....dados_comuns.constants import ADMINISTRADOR_EMPRESA
-from ....dados_comuns.models import Contato
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.models import DiretoriaRegional, Lote
-from ....perfil.api.serializers import SuperAdminTerceirizadaSerializer
-from ....perfil.models import Perfil, Usuario
 from ...models import (
     Contrato,
     Edital,
@@ -143,13 +136,10 @@ class ContratoAbastecimentoCreateSerializer(serializers.ModelSerializer):
 class TerceirizadaCreateSerializer(serializers.ModelSerializer):
     lotes = serializers.SlugRelatedField(slug_field='uuid', many=True, queryset=Lote.objects.all())
     contatos = ContatoSerializer(many=True)
-    super_admin = SuperAdminTerceirizadaSerializer()
 
     def create(self, validated_data):
-        super_admin = validated_data.pop('super_admin')
         lotes = validated_data.pop('lotes', [])
         contatos = validated_data.pop('contatos', [])
-
         terceirizada = Terceirizada.objects.create(**validated_data)
 
         checar_terceirizadas_inativacao = self.checar_terceirizadas_para_inativacao(terceirizada, lotes)
@@ -163,15 +153,13 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         contatos_list = cria_contatos(contatos)
         terceirizada.contatos.set(contatos_list)
 
-        self.criar_super_admin_terceirizada(super_admin, terceirizada)
-
         return terceirizada
 
     def update(self, instance, validated_data):
         # TODO: Analisar complexidade
         # TODO: voltar aqui quando uma terceirizada tiver seu painel admin para criar suas nutris
         # aqui está tratando nutris como um dado escravo da Terceirizada
-        super_admin_data = validated_data.pop('super_admin')
+
         lotes_array = validated_data.pop('lotes', [])
         contatos = validated_data.pop('contatos', [])
 
@@ -192,75 +180,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         Terceirizada.objects.filter(
             uuid__in=checar_terceirizadas_inativacao, lotes__isnull=True).update(ativo=False)
 
-        if instance.super_admin:
-            self.atualizar_super_admin_terceirizada(super_admin_data, instance)
-        else:
-            self.criar_super_admin_terceirizada(super_admin_data, instance)
-
         return instance
-
-    def criar_super_admin_terceirizada(self, dados_usuario, terceirizada): # noqa C901
-        contatos = dados_usuario.pop('contatos')
-        dados_usuario['username'] = dados_usuario['cpf']
-        try:
-            usuario = Usuario.objects.create(**dados_usuario)
-        except IntegrityError as e:
-            if re.search('perfil_usuario_cpf_key.+already\\sexists', e.args[0], flags=re.I | re.S):
-                raise serializers.ValidationError(f'CPF - {dados_usuario["cpf"]} - já cadastrado')
-            if re.search('perfil_usuario_email_key.+already\\sexists', e.args[0], flags=re.I | re.S):
-                raise serializers.ValidationError(f'Email - {dados_usuario["email"]} - já cadastrado')
-            raise e
-        usuario.super_admin_terceirizadas = True
-        usuario.is_active = False
-        usuario.save()
-        for contato in contatos:
-            contato = ContatoSerializer().create(contato)
-            usuario.contatos.add(contato)
-        usuario.criar_vinculo_administrador(
-            terceirizada,
-            nome_perfil=ADMINISTRADOR_EMPRESA
-        )
-        usuario.enviar_email_administrador()
-
-    def atualizar_super_admin_terceirizada(self, dados_usuario, terceirizada): # noqa C901
-        dados_usuario_original = dados_usuario.copy()
-        contatos = dados_usuario.pop('contatos')
-        email = dados_usuario.get('email')
-        cpf = dados_usuario.get('cpf')
-        nome = dados_usuario.get('nome')
-        cargo = dados_usuario.get('cargo')
-
-        super_admin = terceirizada.super_admin
-        super_admin.contatos.clear()
-
-        novo_email = False
-
-        if cpf != super_admin.cpf:
-            if Usuario.objects.filter(cpf=cpf).exists():
-                raise ValidationError('Usuario com este CPF já existe.')
-        if email != super_admin.email:
-            if Usuario.objects.filter(email=email).exists():
-                raise ValidationError('Usuario com este Email já existe.')
-            novo_email = True
-
-        if novo_email:
-            self.criar_super_admin_terceirizada(dados_usuario_original, terceirizada)
-        else:
-            super_admin.nome = nome
-            super_admin.email = email
-            super_admin.cpf = cpf
-            super_admin.cargo = cargo
-            super_admin.crn_numero = None
-            vinculo_atual = super_admin.vinculo_atual
-            vinculo_atual.perfil = Perfil.objects.get(nome='ADMINISTRADOR_EMPRESA')
-            vinculo_atual.perfil.save()
-            vinculo_atual.save()
-            super_admin.save()
-            for contato in contatos:
-                email = contato.get('email', '')
-                telefone = contato.get('telefone', '')
-                contato = Contato.objects.create(email=email, telefone=telefone)
-                super_admin.contatos.add(contato)
 
     def checar_terceirizadas_para_inativacao(self, terceirizada, lotes):
         checar_terceirizadas_inativacao = []
