@@ -687,7 +687,7 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado_
     client = client_autenticado_dilog_cronograma
     response = client.get('/unidades-medida-logistica/lista-nomes-abreviacoes/')
 
-    unidades_medida = UnidadeMedida.objects.all()
+    unidades_medida = UnidadeMedida.objects.all().order_by('-criado_em')
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data['results']) == len(unidades_medida_logistica)

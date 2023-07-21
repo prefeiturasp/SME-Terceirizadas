@@ -476,11 +476,16 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
 
 class UnidadeMedidaViewset(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = UnidadeMedida.objects.all()
+    queryset = UnidadeMedida.objects.all().order_by('-criado_em')
     permission_classes = (PermissaoParaCadastrarVisualizarUnidadesMedida,)
     pagination_class = UnidadeMedidaPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UnidadeMedidaFilter
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return UnidadeMedidaSerialzer
+        return UnidadeMedidaCreateSerializer
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes-abreviacoes')
     def listar_nomes_abreviacoes(self, request):
@@ -488,8 +493,3 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
         serializer = NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True)
         response = {'results': serializer.data}
         return Response(response)
-
-    def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
-            return UnidadeMedidaSerialzer
-        return UnidadeMedidaCreateSerializer

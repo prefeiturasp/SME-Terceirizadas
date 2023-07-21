@@ -224,7 +224,6 @@ class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
         return self.nome
 
     class Meta:
-        ordering = ('-criado_em',)
         verbose_name = 'Unidade de Medida'
         verbose_name_plural = 'Unidades de Medida'
         unique_together = ('nome',)
