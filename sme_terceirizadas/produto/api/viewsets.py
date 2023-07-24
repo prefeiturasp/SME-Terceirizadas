@@ -2013,9 +2013,9 @@ class CadastroProdutoEditalViewSet(viewsets.ModelViewSet):
             return NomeDeProdutoEdital.objects.filter(tipo_produto=NomeDeProdutoEdital.TERCEIRIZADA)
         return NomeDeProdutoEdital.objects.all()
 
-    @action(detail=False, methods=['GET'], url_path='lista-completa')
-    def lista_completa(self, _):
-        queryset = self.queryset.all()
+    @action(detail=False, methods=['GET'], url_path='lista-completa-logistica')
+    def lista_completa_logistica(self, _):
+        queryset = self.queryset.filter(tipo_produto=NomeDeProdutoEdital.LOGISTICA)
         return Response({'results': CadastroProdutosEditalSerializer(queryset, many=True).data})
 
     @action(detail=False, methods=['GET'], url_path='produtos-logistica')
