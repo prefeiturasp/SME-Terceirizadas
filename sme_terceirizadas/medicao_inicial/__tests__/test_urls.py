@@ -578,3 +578,28 @@ def test_url_codae_solicita_correcao_medicao_erro_403(client_autenticado_da_esco
         f'codae-solicita-correcao-medicao/'
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_codae_solicita_correcao_ocorrencia(client_autenticado_codae_medicao,
+                                                anexo_ocorrencia_medicao_inicial_status_aprovado_dre,
+                                                anexo_ocorrencia_medicao_inicial_status_inicial):
+    data = {'justificativa': 'TESTE JUSTIFICATIVA'}
+    viewset_url = '/medicao-inicial/ocorrencia/'
+    uuid = anexo_ocorrencia_medicao_inicial_status_aprovado_dre.uuid
+    response = client_autenticado_codae_medicao.patch(
+        f'{viewset_url}{uuid}/codae-pede-correcao-ocorrencia/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['logs'][-1]['status_evento_explicacao'] == 'Correção solicitada pela CODAE'
+    assert response.data['logs'][-1]['justificativa'] == data['justificativa']
+
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/ocorrencia/{anexo_ocorrencia_medicao_inicial_status_inicial.uuid}'
+        f'/dre-pede-correcao-ocorrencia/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
