@@ -1109,29 +1109,43 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True,
-            permission_classes=[UsuarioCODAEGestaoProduto],
-            methods=['patch'],
-            url_path=constants.ATIVAR_PRODUTO)
-    def ativar(self, request, uuid=None):
-        homologacao_produto = self.get_object()
-        justificativa = request.data.get('justificativa', '')
-        editais_para_suspensao_ativacao = request.data.get('editais_para_suspensao_ativacao', '')
-        vinculos_produto_edital = homologacao_produto.produto.vinculos.all()
+    def update_vinculos(self, vinculos_produto_edital, editais_para_suspensao_ativacao, homologacao_produto):
+        vinculos_produto_edital.filter(edital__uuid__in=editais_para_suspensao_ativacao).update(
+            suspenso=False,
+            suspenso_justificativa='',
+            suspenso_em=None,
+            suspenso_por=None
+        )
+        for edital_uuid in editais_para_suspensao_ativacao:
+            if not vinculos_produto_edital.filter(edital__uuid=edital_uuid).exists():
+                ProdutoEdital.objects.create(
+                    produto=homologacao_produto.produto,
+                    edital=Edital.objects.get(uuid=edital_uuid),
+                    suspenso=False
+                )
+
+    def generate_justificativa(self, vinculos_produto_edital, editais_para_suspensao_ativacao):
         numeros_editais_para_justificativa = ', '.join(
             vinculos_produto_edital.filter(
                 edital__uuid__in=editais_para_suspensao_ativacao
             ).values_list('edital__numero', flat=True)
         )
-        justificativa += '<br><p>Editais ativos:</p>'
-        justificativa += f'<p>{numeros_editais_para_justificativa}</p>'
+        return f'<br><p>Editais ativos:</p><p>{numeros_editais_para_justificativa}</p>'
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.ATIVAR_PRODUTO)
+    def ativar(self, request, uuid=None):
         try:
-            vinculos_produto_edital.filter(edital__uuid__in=editais_para_suspensao_ativacao).update(
-                suspenso=False,
-                suspenso_justificativa='',
-                suspenso_em=None,
-                suspenso_por=None
-            )
+            homologacao_produto = self.get_object()
+            editais_para_suspensao_ativacao = request.data.get('editais_para_suspensao_ativacao', '')
+            vinculos_produto_edital = homologacao_produto.produto.vinculos.all()
+
+            self.update_vinculos(vinculos_produto_edital, editais_para_suspensao_ativacao, homologacao_produto)
+            justificativa = request.data.get('justificativa', '') + self.generate_justificativa(
+                vinculos_produto_edital, editais_para_suspensao_ativacao)
+
             if vinculos_produto_edital.filter(suspenso=True):
                 homologacao_produto.salva_log_com_justificativa_e_anexos(
                     LogSolicitacoesUsuario.ATIVO_EM_ALGUNS_EDITAIS,

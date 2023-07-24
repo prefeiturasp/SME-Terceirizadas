@@ -607,3 +607,10 @@ def item_cadastrado_4(embalagem_produto):
 @pytest.fixture
 def usuario():
     return mommy.make('perfil.Usuario')
+
+
+@pytest.fixture
+def homologacao_produto_suspenso(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_SUSPENDEU
+    homologacao_produto.save()
+    return homologacao_produto
