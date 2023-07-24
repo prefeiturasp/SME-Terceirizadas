@@ -915,12 +915,6 @@ def test_url_endpoint_produto_actions(client_autenticado_vinculo_codae_produto, 
     response = client.get(f'/produtos/{produto.uuid}/relatorio-analise-sensorial-recebimento/')
     assert response.status_code == status.HTTP_200_OK
 
-    response = client.get(f'/produtos/filtro-relatorio-situacao-produto/')
-    assert response.status_code == status.HTTP_200_OK
-
-    response = client.get(f'/produtos/relatorio-situacao-produto/')
-    assert response.status_code == status.HTTP_200_OK
-
 
 def test_create_produtos_vinculos(client_autenticado_vinculo_codae_produto, produtos_edital_41):
     data = {

@@ -44,7 +44,6 @@ from ...relatorios.relatorios import (
     relatorio_produto_analise_sensorial_recebimento,
     relatorio_produto_homologacao,
     relatorio_produtos_em_analise_sensorial,
-    relatorio_produtos_situacao,
     relatorio_produtos_suspensos,
     relatorio_reclamacao
 )
@@ -1554,22 +1553,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
-
-    @action(detail=False,
-            methods=['GET'],
-            url_path='filtro-relatorio-situacao-produto')
-    def filtro_relatorio_situacao_produto(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).distinct()
-        return self.paginated_response(queryset.order_by('criado_em'))
-
-    @action(detail=False,
-            methods=['GET'],
-            url_path='relatorio-situacao-produto')
-    def relatorio_situacao_produto(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).distinct()
-        filtros = self.request.query_params.dict()
-        return relatorio_produtos_situacao(
-            request, queryset.order_by('criado_em'), filtros)
 
     # TODO: Remover esse endpoint legado refatorando o frontend
     @action(detail=False,
