@@ -297,6 +297,34 @@ def test_url_endpoint_homologacao_produto_aceita_reclamacao(client_autenticado_v
     assert len(response.json().get('results')) == 1
 
 
+def test_url_endpoint_homologacao_produto_ativar(client_autenticado_vinculo_codae_produto,
+                                                 homologacao_produto_suspenso,
+                                                 edital):
+    assert homologacao_produto_suspenso.status == HomologacaoProdutoWorkflow.CODAE_SUSPENDEU
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{homologacao_produto_suspenso.uuid}/'
+        f'{constants.ATIVAR_PRODUTO}/',
+        content_type='application/json',
+        data=json.dumps({'editais_para_suspensao_ativacao': [edital.uuid], 'justificativa': 'test unitário',
+                         'uuidTerceirizada': str(homologacao_produto_suspenso.rastro_terceirizada.uuid)}))
+    assert response.status_code == status.HTTP_200_OK
+    assert homologacao_produto_suspenso.produto.vinculos.filter(edital__uuid=edital.uuid).exists()
+    assert not homologacao_produto_suspenso.produto.vinculos.filter(edital__uuid=edital.uuid, suspenso=True).exists()
+
+    homologacao_produto_suspenso.status = HomologacaoProdutoWorkflow.CODAE_NAO_HOMOLOGADO
+    homologacao_produto_suspenso.save()
+
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{homologacao_produto_suspenso.uuid}/'
+        f'{constants.ATIVAR_PRODUTO}/',
+        content_type='application/json',
+        data=json.dumps({'editais_para_suspensao_ativacao': [edital.uuid], 'justificativa': 'test unitário'}))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'codae_ativa' isn't available from state "
+                  "'CODAE_NAO_HOMOLOGADO'."}
+
+
 def test_url_endpoint_resposta_analise_sensorial(client_autenticado_vinculo_terceirizada_homologacao):
     body_content = {
         'data': '2020-05-23',
