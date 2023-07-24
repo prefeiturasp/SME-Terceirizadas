@@ -443,6 +443,8 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         original.produto.vinculos.all().delete()
         original.produto.delete()
         original.produto = self.produto
+        original.produto.eh_copia = False
+        original.produto.save()
         produto_temp = Produto()
         produto_temp.save()
         self.produto = produto_temp

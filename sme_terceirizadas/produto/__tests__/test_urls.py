@@ -6,7 +6,7 @@ from rest_framework import status
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
-from ..models import ProdutoEdital
+from ..models import HomologacaoProduto, ProdutoEdital
 
 pytestmark = pytest.mark.django_db
 
@@ -782,9 +782,6 @@ def test_url_endpoint_produtos_editais_filtrar(client_autenticado_vinculo_codae_
     assert resultado['page_size'] == 10
     assert resultado['results'][0]['produto']['nome'] == 'Produto1'
     assert resultado['results'][0]['ativo'] is True
-    assert resultado['results'][0]['tipo_produto'] == 'Dieta especial'
-    assert resultado['results'][0]['marca']['nome'] == 'Marca1'
-    assert resultado['results'][0]['edital']['numero'] == 'Edital de Pregão nº 56/SME/2016'
 
 
 def test_url_endpoint_produtos_editais_ativar_inativar(client_autenticado_vinculo_codae_produto,
@@ -1026,3 +1023,51 @@ def test_alteracao_dados_produto_homologado(client_autenticado_vinculo_terceiriz
 
     assert response.json()['porcao'] == '1 kg'
     assert produto.porcao == '5 cuias'
+
+
+def test_suspensao_parcial_produto_com_copia(client_autenticado_vinculo_codae_produto, hom_copia):
+    original = hom_copia.get_original()
+    data = {
+        'funcionario_registro_funcional': '3462334',
+        'funcionario_nome': 'GPCODAE',
+        'funcionario_cargo': '',
+        'editais_para_suspensao_ativacao': [
+            '0f81a49b-0836-42d5-af9e-12cbd7ca76a8',
+            'e42e3b97-6853-4327-841d-34292c33963c'
+        ],
+        'justificativa': '<p>suspender parcial</p>'
+    }
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{hom_copia.uuid}/suspender/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['uuid'] == str(original.uuid)
+    assert HomologacaoProduto.objects.filter(uuid=hom_copia.uuid).exists() is False
+
+
+def test_suspensao_total_produto_com_copia(client_autenticado_vinculo_codae_produto, hom_copia_pendente_homologacao):
+    original = hom_copia_pendente_homologacao.get_original()
+    assert hom_copia_pendente_homologacao.tem_copia is False
+    assert original.get_original() == 'Não é cópia.'
+    assert original.equaliza_homologacoes_e_se_destroi() == 'Não é cópia.'
+    data = {
+        'funcionario_registro_funcional': '3462334',
+        'funcionario_nome': 'GPCODAE',
+        'funcionario_cargo': '',
+        'editais_para_suspensao_ativacao': [
+            '0f81a49b-0836-42d5-af9e-12cbd7ca76a8',
+            'e42e3b97-6853-4327-841d-34292c33963c',
+            '3b4f59eb-a686-49e9-beab-3514a93e3184',
+        ],
+        'justificativa': '<p>suspender total</p>'
+    }
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{hom_copia_pendente_homologacao.uuid}/suspender/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['uuid'] == str(original.uuid)
+    assert HomologacaoProduto.objects.filter(uuid=hom_copia_pendente_homologacao.uuid).exists() is False

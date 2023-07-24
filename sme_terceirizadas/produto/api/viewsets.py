@@ -683,6 +683,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if filtro_aplicado == 'codae_suspendeu':
             filtros['produto__vinculos__suspenso'] = True
         raw_sql = self.trata_edital(raw_sql, edital)
+        raw_sql += f'AND %(homologacao_produto)s.eh_copia = false '
         raw_sql += 'ORDER BY log_criado_em DESC'
         return raw_sql, data
 
@@ -711,7 +712,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             filtros_params = cria_filtro_homologacao_produto_por_parametros(request_data)
             query_set_nao_homologados = query_set.filter(status='CODAE_NAO_HOMOLOGADO').filter(
                 **filtros_params).distinct()
-            query_set = query_set.filter(**filtros).filter(**filtros_params).distinct()
+            query_set = query_set.filter(**filtros).filter(**filtros_params).filter(eh_copia=False).distinct()
             if request_data.get('data_homologacao'):
                 query_set_nao_homologados = [
                     hom_produto for hom_produto in query_set_nao_homologados
@@ -1311,7 +1312,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset()).select_related(
+        queryset = self.filter_queryset(self.get_queryset().filter(homologacao__eh_copia=False)).select_related(
             'marca', 'fabricante').order_by('criado_em')
         if isinstance(request.user.vinculo_atual.instituicao, Escola):
             contratos = request.user.vinculo_atual.instituicao.lote.contratos_do_lote.all()
