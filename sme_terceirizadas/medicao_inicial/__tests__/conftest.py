@@ -277,6 +277,16 @@ def anexo_ocorrencia_medicao_inicial(solicitacao_medicao_inicial):
 
 
 @pytest.fixture
+def anexo_ocorrencia_medicao_inicial_status_aprovado_dre(solicitacao_medicao_inicial):
+    nome = 'arquivo_teste.pdf'
+    arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
+    return mommy.make('OcorrenciaMedicaoInicial', uuid='04fb4c1c-0e31-4936-93a7-f2760b968c3b',
+                      nome_ultimo_arquivo=nome, ultimo_arquivo=arquivo,
+                      solicitacao_medicao_inicial=solicitacao_medicao_inicial,
+                      status='MEDICAO_APROVADA_PELA_DRE')
+
+
+@pytest.fixture
 def anexo_ocorrencia_medicao_inicial_status_inicial():
     nome = 'arquivo_teste.pdf'
     arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
