@@ -415,3 +415,10 @@ class Posicao(models.Model):
 
     class Meta:
         abstract = True
+
+
+class EhCopia(models.Model):
+    eh_copia = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
