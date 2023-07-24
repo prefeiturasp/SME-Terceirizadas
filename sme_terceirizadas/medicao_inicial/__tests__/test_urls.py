@@ -584,8 +584,10 @@ def test_url_codae_solicita_correcao_ocorrencia(client_autenticado_codae_medicao
                                                 anexo_ocorrencia_medicao_inicial_status_aprovado_dre,
                                                 anexo_ocorrencia_medicao_inicial_status_inicial):
     data = {'justificativa': 'TESTE JUSTIFICATIVA'}
+    viewset_url = '/medicao-inicial/ocorrencia/'
+    uuid = anexo_ocorrencia_medicao_inicial_status_aprovado_dre.uuid
     response = client_autenticado_codae_medicao.patch(
-        f'/medicao-inicial/ocorrencia/{anexo_ocorrencia_medicao_inicial_status_aprovado_dre.uuid}/codae-pede-correcao-ocorrencia/',
+        f'{viewset_url}{uuid}/codae-pede-correcao-ocorrencia/',
         content_type='application/json',
         data=data
     )
