@@ -1,8 +1,9 @@
 import json
 
+from freezegun import freeze_time
 from rest_framework import status
 
-from sme_terceirizadas.medicao_inicial.models import DiaSobremesaDoce
+from sme_terceirizadas.medicao_inicial.models import DiaSobremesaDoce, Medicao
 
 
 def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_codae):
@@ -453,5 +454,184 @@ def test_url_ue_atualiza_ocorrencia(client_autenticado_da_escola,
         content_type='application/json',
         data=data
     )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
+
+
+@freeze_time('2023-07-18')
+def test_url_endpoint_solicitacoes_lancadas(client_autenticado_da_escola,
+                                            escola, solicitacoes_medicao_inicial):
+    assert escola.modulo_gestao == 'TERCEIRIZADA'
+    response = client_autenticado_da_escola.get(
+        f'/medicao-inicial/solicitacao-medicao-inicial/solicitacoes-lancadas/?escola={escola.uuid}',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 2
+
+
+def test_url_dre_aprova_solicitacao_medicao(client_autenticado_diretoria_regional,
+                                            solicitacao_medicao_inicial_medicao_enviada_pela_ue):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue.uuid}/'
+        f'dre-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_enviada_pela_ue.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_enviada_pela_ue.status ==
+            solicitacao_medicao_inicial_medicao_enviada_pela_ue.workflow_class.MEDICAO_APROVADA_PELA_DRE)
+
+
+def test_url_dre_aprova_solicitacao_medicao_erro_pendencias(client_autenticado_diretoria_regional,
+                                                            solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok.uuid}/'
+        f'dre-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Erro: existe(m) pendência(s) de análise'}
+
+
+def test_url_dre_aprova_solicitacao_medicao_erro_transicao(client_autenticado_diretoria_regional,
+                                                           solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok__2):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/'
+        f'{solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok__2.uuid}/'
+        f'dre-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'dre_aprova' isn't available from state "
+                  "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'."
+    }
+
+
+def test_url_codae_aprova_solicitacao_medicao(client_autenticado_codae_medicao,
+                                              solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok):
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.uuid}/'
+        f'codae-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.status ==
+            solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.workflow_class.MEDICAO_APROVADA_PELA_CODAE)
+
+
+def test_url_codae_aprova_solicitacao_medicao_erro_pendencias(
+    client_autenticado_codae_medicao,
+    solicitacao_medicao_inicial_medicao_aprovada_pela_dre_nok
+):
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/'
+        f'{solicitacao_medicao_inicial_medicao_aprovada_pela_dre_nok.uuid}/'
+        f'codae-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Erro: existe(m) pendência(s) de análise'}
+
+
+def test_url_codae_aprova_solicitacao_medicao_erro_transicao(
+    client_autenticado_codae_medicao,
+    solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok
+):
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok.uuid}/'
+        f'codae-aprova-solicitacao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'codae_aprova_medicao' isn't available from state "
+                  "'MEDICAO_ENVIADA_PELA_UE'."
+    }
+
+
+def test_url_codae_solicita_correcao_medicao(client_autenticado_codae_medicao,
+                                             solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok):
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.uuid}/'
+        f'codae-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.status ==
+            solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE)
+
+
+def test_url_codae_solicita_correcao_medicao_erro_transicao(client_autenticado_codae_medicao,
+                                                            solicitacao_medicao_inicial):
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial.uuid}/'
+        f'codae-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'codae_pede_correcao_medicao' isn't available from state "
+                  "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'."
+    }
+
+
+def test_url_codae_solicita_correcao_medicao_erro_403(client_autenticado_da_escola,
+                                                      solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok):
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok.uuid}/'
+        f'codae-solicita-correcao-medicao/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_codae_solicita_correcao_ocorrencia(client_autenticado_codae_medicao,
+                                                anexo_ocorrencia_medicao_inicial_status_aprovado_dre,
+                                                anexo_ocorrencia_medicao_inicial_status_inicial):
+    data = {'justificativa': 'TESTE JUSTIFICATIVA'}
+    viewset_url = '/medicao-inicial/ocorrencia/'
+    uuid = anexo_ocorrencia_medicao_inicial_status_aprovado_dre.uuid
+    response = client_autenticado_codae_medicao.patch(
+        f'{viewset_url}{uuid}/codae-pede-correcao-ocorrencia/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['logs'][-1]['status_evento_explicacao'] == 'Correção solicitada pela CODAE'
+    assert response.data['logs'][-1]['justificativa'] == data['justificativa']
+
+    response = client_autenticado_codae_medicao.patch(
+        f'/medicao-inicial/ocorrencia/{anexo_ocorrencia_medicao_inicial_status_inicial.uuid}'
+        f'/dre-pede-correcao-ocorrencia/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
+
+
+def test_url_codae_solicita_correcao_periodo(client_autenticado_codae_medicao,
+                                             medicao_aprovada_pela_dre,
+                                             medicao_status_inicial):
+    data = {'uuids_valores_medicao_para_correcao': ['0b599490-477f-487b-a49e-c8e7cfdcd00b'],
+            'justificativa': '<p>TESTE JUSTIFICATIVA</p>'}
+    viewset_url = '/medicao-inicial/medicao/'
+    uuid = medicao_aprovada_pela_dre.uuid
+    response = client_autenticado_codae_medicao.patch(
+        f'{viewset_url}{uuid}/codae-pede-correcao-medicao/',
+        content_type='application/json',
+        data=data
+    )
+
+    medicao_uuid = str(response.data['valores_medicao'][0]['medicao_uuid'])
+    medicao = Medicao.objects.filter(uuid=medicao_uuid).first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['status'] == 'MEDICAO_CORRECAO_SOLICITADA_CODAE'
+    assert medicao.logs.last().justificativa == data['justificativa']
+
+    data['uuids_valores_medicao_para_correcao'] = ['128f36e2-ea93-4e05-9641-50b0c79ddb5e']
+    uuid = medicao_status_inicial.uuid
+    response = client_autenticado_codae_medicao.patch(
+        f'{viewset_url}{uuid}/codae-pede-correcao-medicao/',
+        content_type='application/json',
+        data=data
+    )
+
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Erro de transição de estado:' in response.data['detail']

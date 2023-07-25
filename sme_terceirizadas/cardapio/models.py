@@ -1131,7 +1131,8 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEI(TemChaveExterna, Matricul
                                                     blank=True)
 
     def __str__(self):
-        return f'Substituições de alimentação CEMEI EMEI: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'  # noqa E501
+        return (f'Substituições de alimentação CEMEI EMEI: {self.uuid} '
+                f'da Alteração de Cardápio: {self.alteracao_cardapio.uuid}')
 
     class Meta:
         verbose_name = 'Substituições de alimentação CEMEI EMEI no período'

@@ -21,10 +21,13 @@ from ..api.serializers.serializers import (
 from ..models import (
     AlteracaoCardapio,
     AlteracaoCardapioCEI,
+    AlteracaoCardapioCEMEI,
+    FaixaEtariaSubstituicaoAlimentacaoCEMEICEI,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
+    SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI,
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoDaCEI
 )
@@ -123,6 +126,52 @@ def escola():
         contato=contato,
         diretoria_regional=diretoria_regional,
         tipo_gestao=tipo_gestao
+    )
+    return escola
+
+
+@pytest.fixture
+def escola_cei():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade = mommy.make('TipoUnidadeEscolar', iniciais='CEI DIRET')
+    contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='012f7722-9ab4-4e21-b0f6-85e17b58b0d1')
+    escola = mommy.make(
+        'Escola',
+        lote=lote,
+        nome='CEI DIRET JOAO MENDES',
+        codigo_eol='000546',
+        uuid='a627fc63-16fd-482c-a877-16ebc1a82e57',
+        contato=contato,
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade
+    )
+    return escola
+
+
+@pytest.fixture
+def escola_cemei():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade = mommy.make('TipoUnidadeEscolar', iniciais='CEMEI')
+    contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='012f7722-9ab4-4e21-b0f6-85e17b58b0d1')
+    escola = mommy.make(
+        'Escola',
+        lote=lote,
+        nome='CEMEI JOAO MENDES',
+        codigo_eol='000546',
+        uuid='a627fc63-16fd-482c-a877-16ebc1a82e57',
+        contato=contato,
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade
     )
     return escola
 
@@ -284,6 +333,16 @@ def suspensao_alimentacao_serializer(suspensao_alimentacao):
 @pytest.fixture
 def motivo_alteracao_cardapio():
     return mommy.make(MotivoAlteracaoCardapio, nome='Aniversariantes do mês')
+
+
+@pytest.fixture
+def motivo_alteracao_cardapio_lanche_emergencial():
+    return mommy.make(MotivoAlteracaoCardapio, nome='Lanche Emergencial')
+
+
+@pytest.fixture
+def motivo_alteracao_cardapio_inativo():
+    return mommy.make(MotivoAlteracaoCardapio, nome='Motivo Inativo', ativo=False)
 
 
 @pytest.fixture
@@ -775,6 +834,27 @@ def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola
 
 
 @pytest.fixture
+def client_autenticado_vinculo_escola_cei_cardapio(client, django_user_model, escola_cei,
+                                                   template_mensagem_alteracao_cardapio):
+    email = 'test@test.com'
+    rf = '8888888'
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(username=rf, password=password, email=email,
+                                                 registro_funcional='8888888')
+    assert escola_cei.tipo_gestao.nome == 'TERC TOTAL'
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola_cei, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    mommy.make(GrupoSuspensaoAlimentacao,
+               criado_por=user,
+               escola=escola_cei,
+               rastro_escola=escola_cei)
+    client.login(username=rf, password=password)
+    return client
+
+
+@pytest.fixture
 def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio):
     email = 'test@test1.com'
     password = constants.DJANGO_ADMIN_PASSWORD
@@ -790,7 +870,7 @@ def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola, t
 
 
 @pytest.fixture
-def client_autenticado_vinculo_codae_cardapio(client, django_user_model, escola, codae):
+def client_autenticado_vinculo_codae_cardapio(client, django_user_model, codae):
     email = 'test@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
@@ -843,5 +923,80 @@ def client_autenticado_vinculo_terceirizada_cardapio(client, django_user_model, 
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def alteracao_cemei(escola_cemei, tipo_alimentacao, faixas_etarias_ativas):
+    periodo_escolar = mommy.make('escola.PeriodoEscolar', nome='MANHA')
+    alteracao_cemei = mommy.make(
+        AlteracaoCardapioCEMEI,
+        escola=escola_cemei,
+        alunos_cei_e_ou_emei=AlteracaoCardapioCEMEI.CEI,
+        rastro_escola=escola_cemei,
+        rastro_lote=escola_cemei.lote,
+        rastro_dre=escola_cemei.diretoria_regional,
+        alterar_dia='2023-08-01')
+    subs1 = mommy.make(
+        SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI,
+        alteracao_cardapio=alteracao_cemei,
+        periodo_escolar=periodo_escolar
+    )
+    subs1.tipos_alimentacao_de.set([tipo_alimentacao])
+    subs1.tipos_alimentacao_para.set([tipo_alimentacao])
+    subs1.save()
+    mommy.make(
+        FaixaEtariaSubstituicaoAlimentacaoCEMEICEI,
+        substituicao_alimentacao=subs1,
+        matriculados_quando_criado=10,
+        faixa_etaria=faixas_etarias_ativas[0],
+        quantidade=10
+    )
+    return alteracao_cemei
+
+
+@pytest.fixture
+def alteracao_cemei_dre_a_validar(alteracao_cemei):
+    alteracao_cemei.status = alteracao_cemei.workflow_class.DRE_A_VALIDAR
+    alteracao_cemei.save()
+    return alteracao_cemei
+
+
+@pytest.fixture
+def alteracao_cemei_dre_validado(alteracao_cemei):
+    alteracao_cemei.status = alteracao_cemei.workflow_class.DRE_VALIDADO
+    alteracao_cemei.save()
+    return alteracao_cemei
+
+
+@pytest.fixture
+def client_autenticado_vinculo_escola_cemei(client, django_user_model, escola_cemei,
+                                            template_mensagem_alteracao_cardapio):
+    email = 'test@test1.com'
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888889')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola_cemei, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_dre_escola_cemei(client, django_user_model, escola_cemei,
+                                                template_mensagem_alteracao_cardapio):
+    email = 'test@test1.com'
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                 registro_funcional='8888889')
+    perfil_cogestor = mommy.make('Perfil', nome='COGESTOR_DRE', ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola_cemei.diretoria_regional, perfil=perfil_cogestor,
+               data_inicial=hoje, ativo=True)
+
     client.login(username=email, password=password)
     return client
