@@ -335,6 +335,33 @@ def medicao(solicitacao_medicao_inicial, periodo_escolar):
 
 
 @pytest.fixture
+def medicao_aprovada_pela_dre(solicitacao_medicao_inicial, periodo_escolar, categoria_medicao):
+    medicao = mommy.make('Medicao', periodo_escolar=periodo_escolar, uuid='65f112a5-8b4b-495b-a29e-1d75fb0b5eeb',
+                         solicitacao_medicao_inicial=solicitacao_medicao_inicial, status='MEDICAO_APROVADA_PELA_DRE')
+    valor = 20
+    nome_campo = 'observacoes'
+    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', uuid='a5ea11b6-a043-47cd-ba69-d6b207312cbd')
+    mommy.make('ValorMedicao', valor=valor, nome_campo=nome_campo, medicao=medicao,
+               uuid='0b599490-477f-487b-a49e-c8e7cfdcd00b', dia=25,
+               categoria_medicao=categoria_medicao, tipo_alimentacao=tipo_alimentacao)
+    return medicao
+
+
+@pytest.fixture
+def medicao_status_inicial(solicitacao_medicao_inicial, periodo_escolar, categoria_medicao):
+    medicao = mommy.make('Medicao', periodo_escolar=periodo_escolar, uuid='7041e451-43a7-4d2f-abc6-d0960121d2fb',
+                         solicitacao_medicao_inicial=solicitacao_medicao_inicial,
+                         status='MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE')
+    valor = 10
+    nome_campo = 'observacoes'
+    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', uuid='0367af8d-26bd-40b5-83d2-9e337622ba50')
+    mommy.make('ValorMedicao', valor=valor, nome_campo=nome_campo, medicao=medicao,
+               uuid='128f36e2-ea93-4e05-9641-50b0c79ddb5e', dia=22,
+               categoria_medicao=categoria_medicao, tipo_alimentacao=tipo_alimentacao)
+    return medicao
+
+
+@pytest.fixture
 def categoria_medicao():
     return mommy.make('CategoriaMedicao', nome='ALIMENTAÇÃO')
 
