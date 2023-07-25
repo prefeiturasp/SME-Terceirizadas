@@ -33,9 +33,14 @@ from sme_terceirizadas.dados_comuns.permissions import (
 from sme_terceirizadas.pre_recebimento.api.filters import (
     CronogramaFilter,
     EmbalagensQldFilter,
+    LaboratorioFilter,
     SolicitacaoAlteracaoCronogramaFilter
 )
-from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPagination, EmbalagemQldPagination
+from sme_terceirizadas.pre_recebimento.api.paginations import (
+    CronogramaPagination,
+    EmbalagemQldPagination,
+    LaboratorioPagination
+)
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
     EmbalagemQldCreateSerializer,
@@ -48,6 +53,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSerializer,
     EmbalagemQldSerializer,
     LaboratorioSerializer,
+    LaboratorioSimplesFiltroSerializer,
     PainelCronogramaSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
@@ -283,6 +289,9 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
     lookup_field = 'uuid'
     queryset = Laboratorio.objects.all()
     serializer_class = LaboratorioSerializer
+    pagination_class = LaboratorioPagination
+    filterset_class = LaboratorioFilter
+    filter_backends = (filters.DjangoFilterBackend,)
     permission_classes = (PermissaoParaCadastrarLaboratorio,)
     permission_action_classes = {
         'create': [PermissaoParaCadastrarLaboratorio],
@@ -295,10 +304,17 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
         else:
             return LaboratorioCreateSerializer
 
-    @action(detail=False, methods=['GET'], url_path='lista-laboratorios')
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-laboratorios')
     def lista_nomes_laboratorios(self, request):
         queryset = Laboratorio.objects.all()
         response = {'results': [q.nome for q in queryset]}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-laboratorios')
+    def lista_laboratorios_para_filtros(self, request):
+        laboratorios = self.get_queryset()
+        serializer = LaboratorioSimplesFiltroSerializer(laboratorios, many=True).data
+        response = {'results': serializer}
         return Response(response)
 
 
