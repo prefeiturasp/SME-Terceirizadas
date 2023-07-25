@@ -1093,3 +1093,26 @@ def test_suspensao_total_produto_com_copia(client_autenticado_vinculo_codae_prod
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['uuid'] == str(original.uuid)
     assert HomologacaoProduto.objects.filter(uuid=hom_copia_pendente_homologacao.uuid).exists() is False
+
+
+def test_homologacao_produto_com_copia_com_analises(client_autenticado_vinculo_codae_produto,
+                                                    hom_copia_pendente_homologacao):
+    original = hom_copia_pendente_homologacao.get_original()
+    data = {
+        'editais': [
+            '12288b47-9d27-4089-8c2e-48a6061d83ea',
+            'b30a2102-2ae0-404d-8a56-8e5ecd73f868',
+            '131f4000-3e31-44f1-9ba5-e7df001a8426'
+        ]
+    }
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{hom_copia_pendente_homologacao.uuid}/codae-homologa/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['uuid'] == str(original.uuid)
+    assert HomologacaoProduto.objects.filter(uuid=hom_copia_pendente_homologacao.uuid).exists() is False
+    assert original.analises_sensoriais.exists() is True
+    assert original.respostas_analise.exists() is True
+    assert original.reclamacoes.exists() is True

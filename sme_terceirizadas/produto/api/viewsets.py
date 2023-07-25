@@ -793,7 +793,10 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                                 in [*vinculos_produto_edital.values_list('edital__uuid', flat=True)]]
             for vinc_prod_edital in vinculos_produto_edital:
                 if str(vinc_prod_edital.edital.uuid) not in editais:
-                    vinc_prod_edital.delete()
+                    vinc_prod_edital.suspenso = True
+                    vinc_prod_edital.suspenso_por = request.user
+                    vinc_prod_edital.suspenso_em = datetime.now()
+                    vinc_prod_edital.save()
             for edital_uuid in editais:
                 if edital_uuid not in array_uuids_vinc:
                     ProdutoEdital.objects.create(

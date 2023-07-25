@@ -260,6 +260,9 @@ def hom_produto_com_editais(escola, template_homologacao_produto, user, produto_
                uuid_original=homologacao_produto.uuid,
                status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
                solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO)
+    mommy.make('ReclamacaoDeProduto',
+               homologacao_produto=homologacao_produto,
+               escola=escola)
     return homologacao_produto
 
 
@@ -271,6 +274,10 @@ def hom_copia(hom_produto_com_editais):
                uuid_original=homologacao_copia.uuid,
                status_evento=LogSolicitacoesUsuario.CODAE_PENDENTE_HOMOLOGACAO,
                solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO)
+    mommy.make('AnaliseSensorial',
+               homologacao_produto=homologacao_copia)
+    mommy.make('RespostaAnaliseSensorial',
+               homologacao_produto=homologacao_copia)
     return homologacao_copia
 
 
