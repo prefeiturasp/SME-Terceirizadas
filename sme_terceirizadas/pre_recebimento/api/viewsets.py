@@ -287,7 +287,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
 class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = Laboratorio.objects.all()
+    queryset = Laboratorio.objects.all().order_by('-criado_em')
     serializer_class = LaboratorioSerializer
     pagination_class = LaboratorioPagination
     filterset_class = LaboratorioFilter
