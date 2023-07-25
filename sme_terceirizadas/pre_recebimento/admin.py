@@ -8,7 +8,8 @@ from .models import (
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
-    SolicitacaoAlteracaoCronograma
+    SolicitacaoAlteracaoCronograma,
+    UnidadeMedida
 )
 
 
@@ -49,6 +50,12 @@ class AlteracaoCronogramaEtapaAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request) -> bool:
         return False
+
+
+@admin.register(UnidadeMedida)
+class UnidadeMedidaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'abreviacao', 'criado_em')
+    search_fields = ('nome', 'abreviacao')
 
 
 admin.site.register(Cronograma)

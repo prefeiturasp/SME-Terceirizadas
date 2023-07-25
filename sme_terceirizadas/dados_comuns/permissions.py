@@ -641,6 +641,23 @@ class PermissaoParaCadastrarVisualizarEmbalagem(BasePermission):
         )
 
 
+class PermissaoParaCadastrarVisualizarUnidadesMedida(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [
+                        DILOG_QUALIDADE, DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA
+                    ]
+                )
+            )
+        )
+
+
 class PermissaoParaVisualizarSolicitacoesAlteracaoCronograma(BasePermission):
     def has_permission(self, request, view):
         usuario = request.user

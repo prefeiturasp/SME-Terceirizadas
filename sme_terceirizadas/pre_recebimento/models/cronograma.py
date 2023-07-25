@@ -4,7 +4,14 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from multiselectfield import MultiSelectField
 
-from ...dados_comuns.behaviors import Logs, ModeloBase, TemIdentificadorExternoAmigavel
+from ...dados_comuns.behaviors import (
+    CriadoEm,
+    Logs,
+    ModeloBase,
+    Nomeavel,
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel
+)
 from ...dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow, FluxoAlteracaoCronograma, FluxoCronograma
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...produto.models import NomeDeProdutoEdital, UnidadeMedida
@@ -208,3 +215,20 @@ def gerar_numero_solicitacao(sender, instance, created, **kwargs):
     if created:
         instance.gerar_numero_solicitacao()
         instance.save()
+
+
+class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
+    abreviacao = models.CharField('Abreviação', max_length=25)
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = 'Unidade de Medida'
+        verbose_name_plural = 'Unidades de Medida'
+        unique_together = ('nome',)
+
+    def save(self, *args, **kwargs):
+        self.nome = self.nome.upper()
+        self.abreviacao = self.abreviacao.lower()
+        super().save(*args, **kwargs)
