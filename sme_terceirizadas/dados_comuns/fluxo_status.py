@@ -3044,7 +3044,7 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
                                             MEDICAO_APROVADA_PELA_DRE,
                                             MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_CORRECAO_SOLICITADA_CODAE),
         ('ue_corrige', [MEDICAO_CORRECAO_SOLICITADA, MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_CORRIGIDA_PELA_UE),
-        ('ue_corrige_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
+        ('ue_corrige_medicao_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
         ('dre_aprova', [MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA,
                         MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_APROVADA_PELA_DRE),
         ('codae_aprova', [MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE),
@@ -3294,6 +3294,15 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                 self.salvar_log_transicao(status_evento=status,
                                           usuario=user,
                                           justificativa=justificativa)
+
+    @xworkflows.after_transition('ue_corrige_medicao_para_codae')
+    def _ue_corrige_medicao_para_codae_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            if user.vinculo_atual.perfil.nome not in [DIRETOR_UE]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PARA_CODAE,
+                                      usuario=user)
 
     class Meta:
         abstract = True
