@@ -3,7 +3,7 @@ import json
 from freezegun import freeze_time
 from rest_framework import status
 
-from sme_terceirizadas.medicao_inicial.models import DiaSobremesaDoce
+from sme_terceirizadas.medicao_inicial.models import DiaSobremesaDoce, Medicao
 
 
 def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_codae):
@@ -601,5 +601,37 @@ def test_url_codae_solicita_correcao_ocorrencia(client_autenticado_codae_medicao
         content_type='application/json',
         data=data
     )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
+
+
+def test_url_codae_solicita_correcao_periodo(client_autenticado_codae_medicao,
+                                             medicao_aprovada_pela_dre,
+                                             medicao_status_inicial):
+    data = {'uuids_valores_medicao_para_correcao': ['0b599490-477f-487b-a49e-c8e7cfdcd00b'],
+            'justificativa': '<p>TESTE JUSTIFICATIVA</p>'}
+    viewset_url = '/medicao-inicial/medicao/'
+    uuid = medicao_aprovada_pela_dre.uuid
+    response = client_autenticado_codae_medicao.patch(
+        f'{viewset_url}{uuid}/codae-pede-correcao-medicao/',
+        content_type='application/json',
+        data=data
+    )
+
+    medicao_uuid = str(response.data['valores_medicao'][0]['medicao_uuid'])
+    medicao = Medicao.objects.filter(uuid=medicao_uuid).first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['status'] == 'MEDICAO_CORRECAO_SOLICITADA_CODAE'
+    assert medicao.logs.last().justificativa == data['justificativa']
+
+    data['uuids_valores_medicao_para_correcao'] = ['128f36e2-ea93-4e05-9641-50b0c79ddb5e']
+    uuid = medicao_status_inicial.uuid
+    response = client_autenticado_codae_medicao.patch(
+        f'{viewset_url}{uuid}/codae-pede-correcao-medicao/',
+        content_type='application/json',
+        data=data
+    )
+
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Erro de transição de estado:' in response.data['detail']
