@@ -69,10 +69,16 @@ class PerfisVinculadosSerializer(serializers.ModelSerializer):
 
 class UsuarioSerializer(serializers.ModelSerializer):
     cpf = serializers.SerializerMethodField()
+    nome_fantasia = serializers.SerializerMethodField()
 
     def get_cpf(self, obj):
         if obj.vinculo_atual and isinstance(obj.vinculo_atual.instituicao, Terceirizada):
             return obj.cpf
+        return None
+
+    def get_nome_fantasia(self, obj):
+        if obj.vinculo_atual and isinstance(obj.vinculo_atual.instituicao, Terceirizada):
+            return obj.vinculo_atual.instituicao.nome_fantasia
         return None
 
     class Meta:
@@ -86,7 +92,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
             'registro_funcional',
             'tipo_usuario',
             'cargo',
-            'crn_numero'
+            'crn_numero',
+            'nome_fantasia'
         )
 
 
