@@ -276,8 +276,12 @@ def hom_copia(hom_produto_com_editais):
                solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO)
     mommy.make('AnaliseSensorial',
                homologacao_produto=homologacao_copia)
-    mommy.make('RespostaAnaliseSensorial',
-               homologacao_produto=homologacao_copia)
+    resposta_analise = mommy.make(
+        'RespostaAnaliseSensorial',
+        homologacao_produto=homologacao_copia
+    )
+    mommy.make('AnexoRespostaAnaliseSensorial',
+               resposta_analise_sensorial=resposta_analise)
     return homologacao_copia
 
 

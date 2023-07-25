@@ -1115,4 +1115,23 @@ def test_homologacao_produto_com_copia_com_analises(client_autenticado_vinculo_c
     assert HomologacaoProduto.objects.filter(uuid=hom_copia_pendente_homologacao.uuid).exists() is False
     assert original.analises_sensoriais.exists() is True
     assert original.respostas_analise.exists() is True
+    assert original.respostas_analise.get().anexos.exists() is True
     assert original.reclamacoes.exists() is True
+
+
+def test_homologacao_produto_erro_sem_editais(client_autenticado_vinculo_codae_produto,
+                                              hom_copia_pendente_homologacao):
+    data = {
+        'editais_variavel_errada': [
+            '12288b47-9d27-4089-8c2e-48a6061d83ea',
+            'b30a2102-2ae0-404d-8a56-8e5ecd73f868',
+            '131f4000-3e31-44f1-9ba5-e7df001a8426'
+        ]
+    }
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{hom_copia_pendente_homologacao.uuid}/codae-homologa/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+    assert response.json() == {'detail': 'É necessario informar algum edital.'}
