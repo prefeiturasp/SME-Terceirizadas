@@ -91,6 +91,13 @@ def solicitacao_medicao_inicial_medicao_correcao_solicitada(solicitacao_medicao_
 
 
 @pytest.fixture
+def solicitacao_medicao_inicial_medicao_correcao_solicitada_codae(solicitacao_medicao_inicial):
+    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok(solicitacao_medicao_inicial):
     for medicao in solicitacao_medicao_inicial.medicoes.all():
         medicao.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE

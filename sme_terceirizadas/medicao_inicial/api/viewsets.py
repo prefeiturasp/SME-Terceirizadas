@@ -426,6 +426,23 @@ class SolicitacaoMedicaoInicialViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao-para-codae',
+            permission_classes=[UsuarioDiretorEscolaTercTotal])
+    def escola_corrige_medicao_para_codae(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            status_medicao_corrigida_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+            if solicitacao_medicao_inicial.status == status_medicao_corrigida_codae:
+                raise InvalidTransitionError('solicitação já está no status Corrigido para CODAE')
+            solicitacao_medicao_inicial.ue_corrige_medicao_para_codae(user=request.user)
+            ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
+            ).update(habilitado_correcao=False)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=['PATCH'], url_path='ue-atualiza-ocorrencia',)
     def ue_atualiza_ocorrencia(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()

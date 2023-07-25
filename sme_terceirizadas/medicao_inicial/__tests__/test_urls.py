@@ -195,6 +195,71 @@ def test_url_endpoint_medicao(client_autenticado_da_escola,
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
+@freeze_time('2022-07-25')
+def test_url_endpoint_feriados_no_mes(client_autenticado_da_escola):
+    response = client_autenticado_da_escola.get(
+        f'/medicao-inicial/medicao/feriados-no-mes/?mes=09&ano=2022',
+        content_type='application/json'
+    )
+    assert response.data['results'] == ['07']
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_meses_anos(client_autenticado_diretoria_regional,
+                                 solicitacoes_medicao_inicial):
+    response = client_autenticado_diretoria_regional.get(
+        '/medicao-inicial/solicitacao-medicao-inicial/meses-anos/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['results'] == [
+        {'mes': '2', 'ano': '2023'},
+        {'mes': '1', 'ano': '2023'},
+        {'mes': '6', 'ano': '2022'}
+    ]
+
+
+def test_url_endpoint_periodos_grupos_medicao(client_autenticado_diretoria_regional,
+                                              solicitacao_medicao_inicial_com_valores_repeticao):
+    uuid_solicitacao = solicitacao_medicao_inicial_com_valores_repeticao.uuid
+    response = client_autenticado_diretoria_regional.get(
+        f'/medicao-inicial/solicitacao-medicao-inicial/periodos-grupos-medicao/?uuid_solicitacao={uuid_solicitacao}',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    results = response.data['results']
+    assert [r['periodo_escolar'] for r in results] == ['MANHA', 'TARDE', 'INTEGRAL', 'NOITE', None, None, None]
+    assert [r['grupo'] for r in results] == [
+        None, None, None, None, 'Programas e Projetos', 'Solicitações de Alimentação', 'ETEC']
+    assert [r['nome_periodo_grupo'] for r in results] == [
+        'MANHA', 'TARDE', 'INTEGRAL', 'NOITE', 'Programas e Projetos', 'Solicitações de Alimentação', 'ETEC']
+
+
+def test_url_endpoint_quantidades_alimentacoes_lancadas_periodo_grupo(
+    client_autenticado_da_escola,
+    solicitacao_medicao_inicial_com_valores_repeticao
+):
+    uuid_solicitacao = solicitacao_medicao_inicial_com_valores_repeticao.uuid
+    response = client_autenticado_da_escola.get(
+        '/medicao-inicial/solicitacao-medicao-inicial/quantidades-alimentacoes-lancadas-periodo-grupo/'
+        f'?uuid_solicitacao={uuid_solicitacao}',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['results'][0] == {
+        'nome_periodo_grupo': 'MANHA',
+        'status': 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE',
+        'justificativa': None,
+        'valores': [
+            {'nome_campo': 'kit_lanche', 'valor': 50},
+            {'nome_campo': 'lanche_emergencial', 'valor': 50},
+            {'nome_campo': 'lanche', 'valor': 50},
+            {'nome_campo': 'refeicao', 'valor': 100},
+            {'nome_campo': 'sobremesa', 'valor': 100}
+        ], 'valor_total': 350
+    }
+
+
 def test_url_endpoint_medicao_dashboard_dre(client_autenticado_diretoria_regional, solicitacoes_medicao_inicial):
     response = client_autenticado_diretoria_regional.get(
         '/medicao-inicial/solicitacao-medicao-inicial/dashboard/',
@@ -635,3 +700,48 @@ def test_url_codae_solicita_correcao_periodo(client_autenticado_codae_medicao,
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Erro de transição de estado:' in response.data['detail']
+
+
+def test_url_escola_corrige_medicao_para_codae_sucesso(client_autenticado_da_escola,
+                                                       solicitacao_medicao_inicial_medicao_correcao_solicitada_codae):
+    response = client_autenticado_da_escola.patch(
+        '/medicao-inicial/solicitacao-medicao-inicial/'
+        f'{solicitacao_medicao_inicial_medicao_correcao_solicitada_codae.uuid}/'
+        f'escola-corrige-medicao-para-codae/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    solicitacao_medicao_inicial_medicao_correcao_solicitada_codae.refresh_from_db()
+    assert (solicitacao_medicao_inicial_medicao_correcao_solicitada_codae.status ==
+            solicitacao_medicao_inicial_medicao_correcao_solicitada_codae.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE)
+
+    response = client_autenticado_da_escola.patch(
+        '/medicao-inicial/solicitacao-medicao-inicial/'
+        f'{solicitacao_medicao_inicial_medicao_correcao_solicitada_codae.uuid}/'
+        f'escola-corrige-medicao-para-codae/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': 'Erro de transição de estado: solicitação já está no status Corrigido para CODAE'
+    }
+
+
+def test_url_escola_corrige_medicao_para_codae_erro_transicao(client_autenticado_da_escola,
+                                                              solicitacao_medicao_inicial):
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial.uuid}/'
+        f'escola-corrige-medicao-para-codae/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'ue_corrige_medicao_para_codae' isn't available from state "
+                  "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'."
+    }
+
+
+def test_url_escola_corrige_medicao_para_codae_erro_403(client_autenticado_diretoria_regional,
+                                                        solicitacao_medicao_inicial):
+    response = client_autenticado_diretoria_regional.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial.uuid}/'
+        f'escola-corrige-medicao-para-codae/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
