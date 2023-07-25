@@ -206,6 +206,13 @@ class LaboratorioSerializer(serializers.ModelSerializer):
         exclude = ('id', )
 
 
+class LaboratorioSimplesFiltroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Laboratorio
+        fields = ('nome', 'cnpj')
+        read_only_fields = ('nome', 'cnpj')
+
+
 class EmbalagemQldSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmbalagemQld
