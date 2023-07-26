@@ -108,8 +108,9 @@ class LogSolicitacoesUsuario(
         SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE,
         NOTIFICACAO_CRIADA,
         NOTIFICACAO_ENVIADA_FISCAL,
-        MEDICAO_CORRECAO_SOLICITADA_CODAE
-    ) = range(82)
+        MEDICAO_CORRECAO_SOLICITADA_CODAE,
+        MEDICAO_CORRIGIDA_PARA_CODAE
+    ) = range(83)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -231,7 +232,8 @@ class LogSolicitacoesUsuario(
         (SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE, 'Em Análise'),
         (NOTIFICACAO_CRIADA, 'Notificação criada'),
         (NOTIFICACAO_ENVIADA_FISCAL, 'Notificação enviada para o fiscal'),
-        (MEDICAO_CORRECAO_SOLICITADA_CODAE, 'Correção solicitada pela CODAE')
+        (MEDICAO_CORRECAO_SOLICITADA_CODAE, 'Correção solicitada pela CODAE'),
+        (MEDICAO_CORRIGIDA_PARA_CODAE, 'Corrigido para CODAE')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,

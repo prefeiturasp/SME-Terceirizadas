@@ -184,7 +184,7 @@ def fabricante():
 
 @pytest.fixture
 def unidade_medida():
-    return mommy.make('UnidadeMedida', nome='Litros')
+    return mommy.make('produto.UnidadeMedida', nome='Litros')
 
 
 @pytest.fixture
@@ -667,7 +667,7 @@ def item_cadastrado_2(fabricante):
 def item_cadastrado_3(unidade_medida):
     return mommy.make('ItemCadastro',
                       tipo='UNIDADE_MEDIDA',
-                      content_type=ContentType.objects.get(model='unidademedida'),
+                      content_type=ContentType.objects.get(model='unidademedida', app_label='produto'),
                       content_object=unidade_medida)
 
 

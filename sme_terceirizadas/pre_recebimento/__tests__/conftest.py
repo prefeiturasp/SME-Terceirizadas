@@ -1,8 +1,9 @@
-
 import pytest
 from model_mommy import mommy
 
 from sme_terceirizadas.terceirizada.models import Terceirizada
+
+from ..models import UnidadeMedida
 
 
 @pytest.fixture
@@ -268,3 +269,28 @@ def cronogramas_multiplos_status_com_log_cronograma_ciente(armazem, contrato, em
                uuid_original=c2.uuid,
                status_evento=71,  # CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO
                solicitacao_tipo=19)  # CRONOGRAMA
+
+
+@pytest.fixture
+def unidade_medida_logistica():
+    return mommy.make(UnidadeMedida, nome='UNIDADE TESTE', abreviacao='ut')
+
+
+@pytest.fixture
+def unidades_medida_logistica():
+    data = [
+        {'nome': f'UNIDADE TESTE {i}', 'abreviacao': f'ut{i}'}
+        for i in range(1, 21)
+    ]
+    objects = [mommy.make(UnidadeMedida, **attrs) for attrs in data]
+    return objects
+
+
+@pytest.fixture
+def unidades_medida_reais_logistica():
+    data = [
+        {'nome': 'KILOGRAMA', 'abreviacao': 'kg'},
+        {'nome': 'LITRO', 'abreviacao': 'l'}
+    ]
+    objects = [mommy.make(UnidadeMedida, **attrs) for attrs in data]
+    return objects

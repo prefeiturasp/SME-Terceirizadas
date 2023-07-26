@@ -11,7 +11,8 @@ from sme_terceirizadas.pre_recebimento.models import (
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
-    SolicitacaoAlteracaoCronograma
+    SolicitacaoAlteracaoCronograma,
+    UnidadeMedida
 )
 from sme_terceirizadas.produto.api.serializers.serializers import NomeDeProdutoEditalSerializer, UnidadeMedidaSerialzer
 from sme_terceirizadas.terceirizada.api.serializers.serializers import (
@@ -206,7 +207,28 @@ class LaboratorioSerializer(serializers.ModelSerializer):
         exclude = ('id', )
 
 
+class LaboratorioSimplesFiltroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Laboratorio
+        fields = ('nome', 'cnpj')
+        read_only_fields = ('nome', 'cnpj')
+
+
 class EmbalagemQldSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmbalagemQld
         exclude = ('id', )
+
+
+class UnidadeMedidaSerialzer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedida
+        fields = ('uuid', 'nome', 'abreviacao', 'criado_em')
+        read_only_fields = ('uuid', 'nome', 'abreviacao', 'criado_em')
+
+
+class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedida
+        fields = ('nome', 'abreviacao')
+        read_only_fields = ('nome', 'abreviacao')

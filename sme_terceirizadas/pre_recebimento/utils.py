@@ -1,3 +1,4 @@
+from rest_framework.pagination import PageNumberPagination
 
 from sme_terceirizadas.dados_comuns.constants import DILOG_DIRETORIA, DINUTRE_DIRETORIA
 
@@ -29,3 +30,9 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles:
             raise ValueError('Perfil não existe')
 
         return status[perfil]
+
+
+class UnidadeMedidaPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100

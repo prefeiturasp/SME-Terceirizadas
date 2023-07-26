@@ -3035,13 +3035,17 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
         ('ue_envia', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENVIADA_PELA_UE),
         ('dre_pede_correcao', [MEDICAO_CORRECAO_SOLICITADA, MEDICAO_ENVIADA_PELA_UE,
                                MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_CORRECAO_SOLICITADA),
+        ('codae_pede_correcao_periodo', [MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                         MEDICAO_APROVADA_PELA_CODAE,
+                                         MEDICAO_APROVADA_PELA_DRE,
+                                         MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_CORRECAO_SOLICITADA_CODAE),
         ('codae_pede_correcao', MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA_CODAE),
         ('codae_pede_correcao_ocorrencia', [MEDICAO_CORRECAO_SOLICITADA_CODAE,
                                             MEDICAO_APROVADA_PELA_CODAE,
                                             MEDICAO_APROVADA_PELA_DRE,
-                                            MEDICAO_ENVIADA_PELA_UE], MEDICAO_CORRECAO_SOLICITADA_CODAE),
+                                            MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_CORRECAO_SOLICITADA_CODAE),
         ('ue_corrige', [MEDICAO_CORRECAO_SOLICITADA, MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_CORRIGIDA_PELA_UE),
-        ('ue_corrige_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
+        ('ue_corrige_medicao_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
         ('dre_aprova', [MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA,
                         MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_APROVADA_PELA_DRE),
         ('codae_aprova', [MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE),
@@ -3188,6 +3192,18 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
                                       usuario=user, justificativa=justificativa)
 
+    @xworkflows.after_transition('codae_pede_correcao_periodo')
+    def _codae_pede_correcao_periodo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        if user:
+            if user.vinculo_atual.perfil.nome not in [ADMINISTRADOR_MEDICAO]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                                     LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE])
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                      usuario=user, justificativa=justificativa)
+
     @xworkflows.after_transition('codae_aprova_medicao')
     def _codae_aprova_medicao_hook(self, *args, **kwargs):
         from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
@@ -3279,6 +3295,15 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                 self.salvar_log_transicao(status_evento=status,
                                           usuario=user,
                                           justificativa=justificativa)
+
+    @xworkflows.after_transition('ue_corrige_medicao_para_codae')
+    def _ue_corrige_medicao_para_codae_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            if user.vinculo_atual.perfil.nome not in [DIRETOR_UE]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PARA_CODAE,
+                                      usuario=user)
 
     class Meta:
         abstract = True

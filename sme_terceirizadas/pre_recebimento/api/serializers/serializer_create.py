@@ -16,6 +16,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma
 )
+from sme_terceirizadas.pre_recebimento.models import UnidadeMedida as UnidadeMedidaLogistica
 from sme_terceirizadas.produto.models import NomeDeProdutoEdital, UnidadeMedida
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
@@ -289,3 +290,20 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
     class Meta:
         model = SolicitacaoAlteracaoCronograma
         exclude = ('id', 'usuario_solicitante')
+
+
+class UnidadeMedidaCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedidaLogistica
+        fields = ('uuid', 'nome', 'abreviacao', 'criado_em')
+        read_only_fields = ('uuid', 'criado_em')
+
+    def validate_nome(self, value):
+        if not value.isupper():
+            raise serializers.ValidationError('O campo deve conter apenas letras maiúsculas.')
+        return value
+
+    def validate_abreviacao(self, value):
+        if not value.islower():
+            raise serializers.ValidationError('O campo deve conter apenas letras minúsculas.')
+        return value
