@@ -2,5 +2,15 @@
 {% load email_templatetags %}
 
 {% block conteudo %}
-  {% include "logistica_notificacao_dilog_aceita_ou_nega_alteracao.html" %}
+  <p>
+    A Solicitação de Alteração <strong>N° {{ solicitacao }}</strong> foi <strong>{{ situacao }}</strong><br/>
+    pela <strong>CODAE</strong> com a seguinte justificativa:
+  </p>
+  <br/>
+  <div style="border: 2px solid #0C6B45; border-radius: 5px; padding: 10px; text-align: left;">
+    {{ log_transicao.justificativa | safe }}
+  </div>
+  <br/><br/><br/>
+  {% include "logistica_rodape_contamos_com_voce.html" %}
+
 {% endblock %}
