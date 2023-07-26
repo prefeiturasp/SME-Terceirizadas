@@ -4,9 +4,9 @@ import pytest
 from model_mommy import mommy
 from rest_framework import status
 
-from ...dados_comuns import constants
-from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
-from ..models import HomologacaoProduto, ProdutoEdital
+from sme_terceirizadas.dados_comuns import constants
+from sme_terceirizadas.dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
+from sme_terceirizadas.produto.models import HomologacaoProduto, ProdutoEdital
 
 pytestmark = pytest.mark.django_db
 
@@ -354,19 +354,19 @@ def test_url_endpoint_resposta_analise_sensorial(client_autenticado_vinculo_terc
 
 
 def test_url_endpoint_produtos_listagem(client_autenticado_vinculo_terceirizada):
-    client = client_autenticado_vinculo_terceirizada
+    client = client_autenticado_vinculo_terceirizada[0]
     response = client.get(f'/produtos/')
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_url_endpoint_produtos_filtro_relatorio_reclamacoes(client_autenticado_vinculo_terceirizada):
-    client = client_autenticado_vinculo_terceirizada
+    client = client_autenticado_vinculo_terceirizada[0]
     response = client.get(f'/produtos/filtro-reclamacoes/')
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_url_endpoint_nome_de_produto_edital(client_autenticado_vinculo_terceirizada):
-    client = client_autenticado_vinculo_terceirizada
+    client = client_autenticado_vinculo_terceirizada[0]
     response = client.get(f'/nome-de-produtos-edital/')
     assert response.status_code == status.HTTP_200_OK
 
@@ -468,21 +468,21 @@ def test_url_endpoint_cadastro_produto_os_steps_sem_rascunho(client_autenticado_
         'cadastro_finalizado': True
     }
 
-    client = client_autenticado_vinculo_terceirizada
+    client = client_autenticado_vinculo_terceirizada[0]
     response = client.post(f'/produtos/', data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
 
 
 def test_url_produto_ja_existe(client_autenticado_vinculo_terceirizada, produto, marca1, fabricante):
-    response = client_autenticado_vinculo_terceirizada.get('/produtos/ja-existe/', {
+    response = client_autenticado_vinculo_terceirizada[0].get('/produtos/ja-existe/', {
         'nome': 'Produto1',
         'marca': marca1.uuid,
         'fabricante': fabricante.uuid
     })
     assert response.json()['produto_existe']
 
-    response = client_autenticado_vinculo_terceirizada.get('/produtos/ja-existe/', {
+    response = client_autenticado_vinculo_terceirizada[0].get('/produtos/ja-existe/', {
         'nome': 'Produto2',
         'marca': marca1.uuid,
         'fabricante': fabricante.uuid
@@ -1030,7 +1030,7 @@ def test_alteracao_dados_produto_homologado(client_autenticado_vinculo_terceiriz
         ],
         'outras_informacoes': 'daadsads'
     }
-    response = client_autenticado_vinculo_terceirizada.patch(
+    response = client_autenticado_vinculo_terceirizada[0].patch(
         f'/homologacoes-produtos/{homologacao_produto.uuid}/alteracao-produto-homologado/',
         content_type='application/json',
         data=json.dumps(data)
@@ -1041,7 +1041,7 @@ def test_alteracao_dados_produto_homologado(client_autenticado_vinculo_terceiriz
     uuid_ = response.json()['uuid']
     produto.refresh_from_db()
 
-    response = client_autenticado_vinculo_terceirizada.get(f'/produtos/{uuid_}/')
+    response = client_autenticado_vinculo_terceirizada[0].get(f'/produtos/{uuid_}/')
 
     assert response.json()['porcao'] == '1 kg'
     assert produto.porcao == '5 cuias'
@@ -1093,3 +1093,133 @@ def test_suspensao_total_produto_com_copia(client_autenticado_vinculo_codae_prod
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['uuid'] == str(original.uuid)
     assert HomologacaoProduto.objects.filter(uuid=hom_copia_pendente_homologacao.uuid).exists() is False
+
+
+def test_homologacao_produto_com_copia_com_analises(client_autenticado_vinculo_codae_produto,
+                                                    hom_copia_pendente_homologacao):
+    original = hom_copia_pendente_homologacao.get_original()
+    data = {
+        'editais': [
+            '12288b47-9d27-4089-8c2e-48a6061d83ea',
+            'b30a2102-2ae0-404d-8a56-8e5ecd73f868',
+            '131f4000-3e31-44f1-9ba5-e7df001a8426'
+        ]
+    }
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{hom_copia_pendente_homologacao.uuid}/codae-homologa/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['uuid'] == str(original.uuid)
+    assert HomologacaoProduto.objects.filter(uuid=hom_copia_pendente_homologacao.uuid).exists() is False
+    assert original.analises_sensoriais.exists() is True
+    assert original.respostas_analise.exists() is True
+    assert original.respostas_analise.get().anexos.exists() is True
+    assert original.reclamacoes.exists() is True
+
+
+def test_homologacao_produto_erro_sem_editais(client_autenticado_vinculo_codae_produto,
+                                              hom_copia_pendente_homologacao):
+    data = {
+        'editais_variavel_errada': [
+            '12288b47-9d27-4089-8c2e-48a6061d83ea',
+            'b30a2102-2ae0-404d-8a56-8e5ecd73f868',
+            '131f4000-3e31-44f1-9ba5-e7df001a8426'
+        ]
+    }
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{hom_copia_pendente_homologacao.uuid}/codae-homologa/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+    assert response.json() == {'detail': 'É necessario informar algum edital.'}
+
+
+def test_fluxo_correcao_dados_produto_homologado(
+    client_autenticado_vinculo_terceirizada, homologacao_produto, marca1, fabricante, produto, codae, escola,
+        unidade_medida, embalagem_produto, info_nutricional1, info_nutricional2, user, perfil_gpcodae):
+    client, user_client = client_autenticado_vinculo_terceirizada
+
+    # Terceirizada pede alteração dos dados do produto
+    data = {
+        'eh_para_alunos_com_dieta': True,
+        'tem_aditivos_alergenicos': True,
+        'tem_gluten': '0',
+        'aditivos': 'dasdasdasd',
+        'nome': produto.nome,
+        'marca': str(marca1.uuid),
+        'fabricante': str(fabricante.uuid),
+        'componentes': 'componente teste',
+        'porcao': '1 kg',
+        'unidade_caseira': '1 PRATO CHEIO',
+        'especificacoes': [
+            {
+                'volume': 500,
+                'unidade_de_medida': str(unidade_medida.uuid),
+                'embalagem_produto': str(embalagem_produto.uuid)
+            }
+        ],
+        'prazo_validade': '24 MESES',
+        'info_armazenamento': 'O PRODUTO DEVE SER CONSERVADO EM AMABIENTE SECO E FRESCO',
+        'anexos': [],
+        'uuid': str(produto.uuid),
+        'cadastro_atualizado': True,
+        'cadastro_finalizado': False,
+        'imagens': [],
+        'informacoes_nutricionais': [
+            {
+                'informacao_nutricional': str(info_nutricional1.uuid),
+                'quantidade_porcao': '324',
+                'valor_diario': '16'
+            },
+            {
+                'informacao_nutricional': str(info_nutricional2.uuid),
+                'quantidade_porcao': '69',
+                'valor_diario': '23'
+            },
+        ],
+        'outras_informacoes': 'daadsads'
+    }
+    response = client.patch(
+        f'/homologacoes-produtos/{homologacao_produto.uuid}/alteracao-produto-homologado/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['uuid'] != produto.uuid
+    uuid_ = response.json()['uuid']
+    hom_copia = HomologacaoProduto.objects.get(produto__uuid=uuid_)
+
+    # CODAE pede correção
+    hom_copia.status = HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+    hom_copia.save()
+    hom_copia.codae_questiona(
+        user=user,
+        justificativa='<p>Corrija o produto.</p>',
+        link_pdf=''
+    )
+    assert hom_copia.status == HomologacaoProduto.workflow_class.CODAE_QUESTIONADO
+
+    # Terceirizada corrige
+    data['aditivos'] = 'altera alguma coisa'
+    response_terc_corrige = client.patch(
+        f'/produtos/{hom_copia.produto.uuid}/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response_terc_corrige.status_code == status.HTTP_200_OK
+    hom_copia.refresh_from_db()
+    assert hom_copia.status == HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+
+    # CODAE aceita alterações
+    homologacao_produto_original = hom_copia.equaliza_homologacoes_e_se_destroi()
+    homologacao_produto_original.codae_homologa(
+        user=user,
+        link_pdf=''
+    )
+    assert homologacao_produto_original.produto.aditivos == 'altera alguma coisa'
+    assert homologacao_produto_original.tem_copia is False
+    assert homologacao_produto_original.eh_copia is False
+    assert homologacao_produto_original.logs.count() == 3

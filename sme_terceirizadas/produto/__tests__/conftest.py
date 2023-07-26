@@ -43,14 +43,23 @@ def template_homologacao_produto():
 
 
 @pytest.fixture
+def perfil_gpcodae():
+    return mommy.make(
+        'Perfil',
+        nome=constants.ADMINISTRADOR_GESTAO_PRODUTO,
+        ativo=True
+    )
+
+
+@pytest.fixture
 def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, codae, template_homologacao_produto):
-    email = 'test@test.com'
+    email = 'test2@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_produto = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_PRODUTO,
                                              ativo=True,
-                                             uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+                                             uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf2')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_gestao_produto,
                data_inicial=hoje, ativo=True)
@@ -98,7 +107,7 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
     password = constants.DJANGO_ADMIN_PASSWORD
     tecerizada = escola.lote.terceirizada
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
+                                                 registro_funcional='8888887')
     perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                            ativo=True,
                                            uuid='41c20c8b-7e57-41ed-9433-ccb95e8afaf0')
@@ -106,7 +115,7 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
     mommy.make('Vinculo', usuario=user, instituicao=tecerizada, perfil=perfil_admin_terceirizada,
                data_inicial=hoje, ativo=True)
     client.login(username=email, password=password)
-    return client
+    return client, user
 
 
 @pytest.fixture
@@ -260,6 +269,9 @@ def hom_produto_com_editais(escola, template_homologacao_produto, user, produto_
                uuid_original=homologacao_produto.uuid,
                status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
                solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO)
+    mommy.make('ReclamacaoDeProduto',
+               homologacao_produto=homologacao_produto,
+               escola=escola)
     return homologacao_produto
 
 
@@ -271,6 +283,14 @@ def hom_copia(hom_produto_com_editais):
                uuid_original=homologacao_copia.uuid,
                status_evento=LogSolicitacoesUsuario.CODAE_PENDENTE_HOMOLOGACAO,
                solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO)
+    mommy.make('AnaliseSensorial',
+               homologacao_produto=homologacao_copia)
+    resposta_analise = mommy.make(
+        'RespostaAnaliseSensorial',
+        homologacao_produto=homologacao_copia
+    )
+    mommy.make('AnexoRespostaAnaliseSensorial',
+               resposta_analise_sensorial=resposta_analise)
     return homologacao_copia
 
 
