@@ -425,11 +425,10 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
                 log.save()
 
     def transfere_analises_sensoriais_para_original(self):
-        AnaliseSensorial.objects.filter(homologacao_produto=self).update(homologacao_produto=self.get_original())
+        self.analises_sensoriais.update(homologacao_produto=self.get_original())
 
     def transfere_respostas_analises_sensoriais(self):
-        RespostaAnaliseSensorial.objects.filter(homologacao_produto=self).update(
-            homologacao_produto=self.get_original())
+        self.respostas_analise.update(homologacao_produto=self.get_original())
 
     @transaction.atomic
     def equaliza_homologacoes_e_se_destroi(self):
@@ -441,7 +440,7 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         self.transfere_respostas_analises_sensoriais()
         original.status = self.status
         original.produto.vinculos.all().delete()
-        original.produto.delete()
+        produto_copia = original.produto
         original.produto = self.produto
         original.produto.eh_copia = False
         original.produto.save()
@@ -449,9 +448,10 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         produto_temp.save()
         self.produto = produto_temp
         self.save()
-        original.save()
         self.produto.delete()
         self.delete()
+        original.save()
+        produto_copia.delete()
         return original
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
