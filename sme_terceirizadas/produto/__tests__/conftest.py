@@ -115,7 +115,7 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
     mommy.make('Vinculo', usuario=user, instituicao=tecerizada, perfil=perfil_admin_terceirizada,
                data_inicial=hoje, ativo=True)
     client.login(username=email, password=password)
-    return client
+    return client, user
 
 
 @pytest.fixture
