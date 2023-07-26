@@ -516,7 +516,7 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name='logistica_dilog_envia_solicitacao.html',
             context={
-                'titulo': f'Nova Requisição de Entrega N° {self.numero_solicitacao}',
+                'titulo': 'Nova Requisição de Entrega',
                 'solicitacao': self.numero_solicitacao,
                 'log_transicao': log_transicao,
                 'url': url
@@ -534,14 +534,14 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name='logistica_aguardando_cancelamento_distribuidor.html',
             context={
-                'titulo': f'Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}',
+                'titulo': 'Cancelamento de Guia(s) de Remessa',
                 'solicitacao': self.numero_solicitacao,
                 'log_transicao': log_transicao,
                 'url': url
             }
         )
         envia_email_em_massa_task.delay(
-            assunto=f'[SIGPAE] Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}',
+            assunto=f'[SIGPAE] Cancelamento de Guia(s) de Remessa da Requisição N° {self.numero_solicitacao}',
             emails=[self.distribuidor.responsavel_email] + self._partes_interessadas_codae_dilog_logistica(),
             corpo='',
             html=html
@@ -898,9 +898,9 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         log_transicao = self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ACEITA_ALTERACAO,
                                                   usuario=user, justificativa=kwargs.get('justificativa', ''))
         # Monta e-mail de aceite
-        titulo = 'Solicitação de alteração aceita.'
+        titulo = 'Solicitação de Alteração Aceita'
         assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
-        situacao = 'aceita'
+        situacao = 'ACEITA'
         template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
         partes_interessadas = self._partes_interessadas_distribuidor() + self._partes_interessadas_codae_dilog()
 
@@ -919,9 +919,9 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
                                                   usuario=user, justificativa=kwargs.get('justificativa', ''))
 
         # Monta e-mail de negação
-        titulo = 'Solicitação de alteração negada.'
+        titulo = 'Solicitação de Alteração Negada'
         assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
-        situacao = 'negada'
+        situacao = 'NEGADA'
         template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
         partes_interessadas = self._partes_interessadas_distribuidor() + self._partes_interessadas_codae_dilog()
 
