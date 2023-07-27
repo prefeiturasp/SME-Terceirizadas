@@ -14,8 +14,25 @@ from ...dados_comuns.behaviors import (
 )
 from ...dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow, FluxoAlteracaoCronograma, FluxoCronograma
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...produto.models import NomeDeProdutoEdital, UnidadeMedida
+from ...produto.models import NomeDeProdutoEdital
 from ...terceirizada.models import Contrato, Terceirizada
+
+
+class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
+    abreviacao = models.CharField('Abreviação', max_length=25)
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = 'Unidade de Medida'
+        verbose_name_plural = 'Unidades de Medida'
+        unique_together = ('nome',)
+
+    def save(self, *args, **kwargs):
+        self.nome = self.nome.upper()
+        self.abreviacao = self.abreviacao.lower()
+        super().save(*args, **kwargs)
 
 
 class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronograma):
@@ -215,20 +232,3 @@ def gerar_numero_solicitacao(sender, instance, created, **kwargs):
     if created:
         instance.gerar_numero_solicitacao()
         instance.save()
-
-
-class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
-    abreviacao = models.CharField('Abreviação', max_length=25)
-
-    def __str__(self):
-        return self.nome
-
-    class Meta:
-        verbose_name = 'Unidade de Medida'
-        verbose_name_plural = 'Unidades de Medida'
-        unique_together = ('nome',)
-
-    def save(self, *args, **kwargs):
-        self.nome = self.nome.upper()
-        self.abreviacao = self.abreviacao.lower()
-        super().save(*args, **kwargs)
