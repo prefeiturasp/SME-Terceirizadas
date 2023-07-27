@@ -14,10 +14,10 @@ from sme_terceirizadas.pre_recebimento.models import (
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
-    SolicitacaoAlteracaoCronograma
+    SolicitacaoAlteracaoCronograma,
+    UnidadeMedida
 )
-from sme_terceirizadas.pre_recebimento.models import UnidadeMedida as UnidadeMedidaLogistica
-from sme_terceirizadas.produto.models import NomeDeProdutoEdital, UnidadeMedida
+from sme_terceirizadas.produto.models import NomeDeProdutoEdital
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
 from ..validators import contrato_pertence_a_empresa
@@ -294,7 +294,7 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
 
 class UnidadeMedidaCreateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UnidadeMedidaLogistica
+        model = UnidadeMedida
         fields = ('uuid', 'nome', 'abreviacao', 'criado_em')
         read_only_fields = ('uuid', 'criado_em')
 

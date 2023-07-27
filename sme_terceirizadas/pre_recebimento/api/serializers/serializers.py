@@ -230,5 +230,5 @@ class UnidadeMedidaSerialzer(serializers.ModelSerializer):
 class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnidadeMedida
-        fields = ('nome', 'abreviacao')
-        read_only_fields = ('nome', 'abreviacao')
+        fields = ('uuid', 'nome', 'abreviacao')
+        read_only_fields = ('uuid', 'nome', 'abreviacao')
