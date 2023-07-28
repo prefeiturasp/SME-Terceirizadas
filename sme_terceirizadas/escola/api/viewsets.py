@@ -13,24 +13,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
-from ...dados_comuns.constants import (
-    ADMINISTRADOR_DIETA_ESPECIAL,
-    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    ADMINISTRADOR_GESTAO_PRODUTO,
-    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-    ADMINISTRADOR_UE,
-    COGESTOR_DRE
-)
+from ...dados_comuns.constants import ADMINISTRADOR_SUPERVISAO_NUTRICAO, COGESTOR_DRE
 from ...dados_comuns.permissions import UsuarioCODAEGestaoAlimentacao, UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.permissions import (
-    PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
-    PodeCriarAdministradoresDaCODAEGestaoDietaEspecial,
-    PodeCriarAdministradoresDaCODAEGestaoProdutos,
     PodeCriarAdministradoresDaCODAESupervisaoNutricao,
-    PodeCriarAdministradoresDaDiretoriaRegional,
-    PodeCriarAdministradoresDaEscola
+    PodeCriarAdministradoresDaDiretoriaRegional
 )
 from ...escola.api.serializers import (
     AlunoSerializer,
@@ -132,22 +121,10 @@ class VinculoViewSet(ReadOnlyModelViewSet):
         return Response(self.get_serializer(vinculo).data)
 
 
-class VinculoEscolaViewSet(VinculoViewSet):
-    queryset = Escola.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaEscola]
-    nome_perfil = ADMINISTRADOR_UE
-
-
 class VinculoDiretoriaRegionalViewSet(VinculoViewSet):
     queryset = DiretoriaRegional.objects.all()
     permission_classes = [PodeCriarAdministradoresDaDiretoriaRegional]
     nome_perfil = COGESTOR_DRE
-
-
-class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]  # noqa
-    nome_perfil = ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 
 
 class VinculoCODAESupervisaoNutricaoViewSet(VinculoViewSet):
