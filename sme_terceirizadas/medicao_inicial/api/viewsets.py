@@ -21,7 +21,6 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin
 )
-from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
@@ -34,7 +33,7 @@ from ..models import (
     ValorMedicao
 )
 from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
-from ..utils import tratar_valores
+from ..utils import atualizar_anexos_ocorrencia, atualizar_status_ocorrencia, tratar_valores
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     CategoriaMedicaoSerializer,
@@ -446,6 +445,8 @@ class SolicitacaoMedicaoInicialViewSet(
     @action(detail=True, methods=['PATCH'], url_path='ue-atualiza-ocorrencia',)
     def ue_atualiza_ocorrencia(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()
+        status_ocorrencia = solicitacao_medicao_inicial.status
+        status_correcao_solicitada_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
         try:
             anexos_string = request.data.get('anexos', None)
             com_ocorrencias = request.data.get('com_ocorrencias', None)
@@ -453,18 +454,24 @@ class SolicitacaoMedicaoInicialViewSet(
             if com_ocorrencias == 'true' and anexos_string:
                 solicitacao_medicao_inicial.com_ocorrencias = True
                 anexos = json.loads(anexos_string)
-                for anexo in anexos:
-                    if '.pdf' in anexo['nome']:
-                        arquivo = convert_base64_to_contentfile(anexo['base64'])
-                        solicitacao_medicao_inicial.ocorrencia.ultimo_arquivo = arquivo
-                        solicitacao_medicao_inicial.ocorrencia.nome_ultimo_arquivo = anexo.get('nome')
-                        solicitacao_medicao_inicial.ocorrencia.save()
-                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user,
-                                                                  anexos=anexos,
-                                                                  justificativa=justificativa)
+                atualizar_anexos_ocorrencia(anexos, solicitacao_medicao_inicial)
+                if status_ocorrencia == status_correcao_solicitada_codae:
+                    solicitacao_medicao_inicial.ocorrencia.ue_corrige_ocorrencia_para_codae(user=request.user,
+                                                                                            anexos=anexos,
+                                                                                            justificativa=justificativa)
+                else:
+                    solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user,
+                                                                      anexos=anexos,
+                                                                      justificativa=justificativa)
             else:
                 solicitacao_medicao_inicial.com_ocorrencias = False
-                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user, justificativa=justificativa)
+                atualizar_status_ocorrencia(
+                    status_ocorrencia,
+                    status_correcao_solicitada_codae,
+                    solicitacao_medicao_inicial,
+                    request,
+                    justificativa
+                )
             solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -597,6 +604,8 @@ class MedicaoViewSet(
             permission_classes=[UsuarioDiretorEscolaTercTotal])
     def escola_corrige_medicao(self, request, uuid=None):
         medicao = self.get_object()
+        status_correcao_solicitada_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
+        status_medicao_corrigida_para_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
         try:
             for valor_medicao in request.data:
                 ValorMedicao.objects.filter(
@@ -605,7 +614,10 @@ class MedicaoViewSet(
                     nome_campo=valor_medicao.get('nome_campo', ''),
                     categoria_medicao=valor_medicao.get('categoria_medicao', '')
                 ).update(valor=valor_medicao.get('valor', ''))
-            medicao.ue_corrige(user=request.user)
+            if medicao.status in [status_correcao_solicitada_codae, status_medicao_corrigida_para_codae]:
+                medicao.ue_corrige_periodo_grupo_para_codae(user=request.user)
+            else:
+                medicao.ue_corrige(user=request.user)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -668,6 +680,17 @@ class OcorrenciaViewSet(
         ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
         try:
             ocorrencia.dre_aprova(user=request.user)
+            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-ocorrencia',)
+    def codae_aprova_ocorrencia(self, request, uuid=None):
+        object = self.get_object()
+        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
+        try:
+            ocorrencia.codae_aprova_ocorrencia(user=request.user)
             serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
