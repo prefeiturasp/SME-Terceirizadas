@@ -150,12 +150,6 @@ class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(VinculoViewSet):
     nome_perfil = ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 
 
-class VinculoCODAEGestaoProdutosViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoProdutos]
-    nome_perfil = ADMINISTRADOR_GESTAO_PRODUTO
-
-
 class VinculoCODAESupervisaoNutricaoViewSet(VinculoViewSet):
     queryset = Codae.objects.all()
     permission_classes = [PodeCriarAdministradoresDaCODAESupervisaoNutricao]

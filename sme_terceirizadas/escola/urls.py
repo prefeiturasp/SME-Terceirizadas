@@ -11,9 +11,6 @@ router.register('vinculos-diretorias-regionais', viewsets.VinculoDiretoriaRegion
 router.register('vinculos-codae-gestao-alimentacao-terceirizada',
                 viewsets.VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet,
                 basename='vinculos-codae-gestao-alimentacao-terceirizada')
-router.register('vinculos-codae-gestao-produtos',
-                viewsets.VinculoCODAEGestaoProdutosViewSet,
-                basename='vinculos-codae-gestao-produtos')
 router.register('vinculos-codae-supervisao-nutricao',
                 viewsets.VinculoCODAESupervisaoNutricaoViewSet,
                 basename='vinculos-codae-supervisao-nutricao')
