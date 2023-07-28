@@ -13,11 +13,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
-from ...dados_comuns.constants import ADMINISTRADOR_SUPERVISAO_NUTRICAO
 from ...dados_comuns.permissions import UsuarioCODAEGestaoAlimentacao, UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
-from ...escola.api.permissions import PodeCriarAdministradoresDaCODAESupervisaoNutricao
 from ...escola.api.serializers import (
     AlunoSerializer,
     AlunoSimplesSerializer,
@@ -116,12 +114,6 @@ class VinculoViewSet(ReadOnlyModelViewSet):
         vinculo = instituicao.vinculos.get(uuid=vinculo_uuid)
         vinculo.finalizar_vinculo()
         return Response(self.get_serializer(vinculo).data)
-
-
-class VinculoCODAESupervisaoNutricaoViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAESupervisaoNutricao]
-    nome_perfil = ADMINISTRADOR_SUPERVISAO_NUTRICAO
 
 
 class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):

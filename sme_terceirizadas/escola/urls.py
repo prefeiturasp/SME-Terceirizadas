@@ -5,9 +5,6 @@ from .api import viewsets
 
 router = routers.DefaultRouter()
 
-router.register('vinculos-codae-supervisao-nutricao',
-                viewsets.VinculoCODAESupervisaoNutricaoViewSet,
-                basename='vinculos-codae-supervisao-nutricao')
 router.register('faixas-etarias', viewsets.FaixaEtariaViewSet, basename='Faixas Etárias')
 router.register('escola-quantidade-alunos-por-periodo-e-faixa-etaria',
                 viewsets.EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet,
