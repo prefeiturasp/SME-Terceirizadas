@@ -1,4 +1,3 @@
-import datetime
 import json
 import uuid
 from unittest.mock import patch
@@ -7,10 +6,8 @@ import pytest
 from rest_framework import status
 
 from ..api.helpers import ofuscar_email
-from ..api.serializers import UsuarioUpdateSerializer
 from ..api.viewsets import UsuarioUpdateViewSet
 from ..models import ImportacaoPlanilhaUsuarioExternoCoreSSO, ImportacaoPlanilhaUsuarioServidorCoreSSO, Perfil, Usuario
-from .conftest import mocked_request_api_eol_usuario_diretoria_regional
 
 pytestmark = pytest.mark.django_db
 
@@ -120,132 +117,6 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert json['vinculo_atual']['ativo'] is True
     assert json['vinculo_atual']['perfil']['nome'] == 'DIRETOR_UE'
     assert json['vinculo_atual']['perfil']['uuid'] == '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'
-
-
-def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, monkeypatch):
-    client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
-    diretoria_regional_ = user.vinculo_atual.instituicao
-    mimetype = 'application/json'
-    headers = {
-        'Content-Type': mimetype,
-        'Accept': mimetype
-    }
-    data = {
-        'registro_funcional': '6812805'
-    }
-
-    monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
-                        lambda p1, p2: mocked_request_api_eol_usuario_diretoria_regional())
-    response = client.post(
-        f'/vinculos-diretorias-regionais/{str(diretoria_regional_.uuid)}/criar_equipe_administradora/', headers=headers,
-        data=data)
-    assert response.status_code == status.HTTP_200_OK
-    response.json().pop('date_joined')
-    response.json().get('vinculo_atual').pop('uuid')
-    response.json().pop('uuid')
-    assert response.json() == {
-        'cpf': '47088910080',
-        'nome': 'LUIZA MARIA BASTOS',
-        'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
-        'tipo_email': None,
-        'registro_funcional': '6812805',
-        'tipo_usuario': 'diretoriaregional',
-        'vinculo_atual': {
-            'instituicao': {
-                'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
-                'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                'codigo_eol': '0002',
-                'quantidade_alunos': 0,
-                'lotes': [],
-                'periodos_escolares': [],
-                'diretoria_regional': None,
-                'tipo_unidade_escolar': None,
-                'tipo_unidade_escolar_iniciais': None,
-                'tipo_gestao': None,
-                'tipos_contagem': None,
-                'endereco': None,
-                'contato': None
-            },
-            'perfil': {
-                'nome': 'COGESTOR_DRE',
-                'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
-                'visao': None
-            },
-            'ativo': False
-        },
-        'crn_numero': None,
-        'cargo': ''
-    }
-    usuario_novo = Usuario.objects.get(registro_funcional='6812805')
-    assert usuario_novo.is_active is False
-    assert usuario_novo.vinculo_atual is not None
-    assert usuario_novo.vinculo_atual.perfil.nome == 'COGESTOR_DRE'
-
-
-def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regional):
-    client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
-    diretoria_regional_ = user.vinculo_atual.instituicao
-    response = client.get(f'/vinculos-diretorias-regionais/{str(diretoria_regional_.uuid)}/get_equipe_administradora/')
-    assert response.status_code == status.HTTP_200_OK
-    response.json()[1].get('usuario').pop('date_joined')
-    response.json()[1].pop('data_final')
-    response.json()[1].pop('uuid')
-    assert response.json()[1] == {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-                                  'perfil': {'nome': 'COGESTOR_DRE', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
-                                             'visao': None},
-                                  'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                                              'email': 'fulano@teste.com', 'registro_funcional': '1234567',
-                                              'cpf': '11111111111', 'tipo_usuario': 'diretoriaregional', 'cargo': ''}}
-
-
-def test_finalizar_vinculo_dre(users_cogestor_diretoria_regional):
-    client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
-    escola_ = user.vinculo_atual.instituicao
-    data = {
-        'vinculo_uuid': user.vinculo_atual.uuid
-    }
-    response = client.patch(f'/vinculos-diretorias-regionais/{str(escola_.uuid)}/finalizar_vinculo/',
-                            content_type='application/json', data=data)
-    assert response.status_code == status.HTTP_200_OK
-    user = Usuario.objects.get(registro_funcional=rf)
-    assert user.vinculo_atual is None
-
-
-def test_erro_403_usuario_nao_pertence_a_dre_cadastro_vinculos(diretoria_regional,
-                                                               users_cogestor_diretoria_regional,
-                                                               monkeypatch):
-    client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
-    mimetype = 'application/json'
-    headers = {
-        'Content-Type': mimetype,
-        'Accept': mimetype
-    }
-    data = {
-        'registro_funcional': '5696569'
-    }
-
-    monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
-                        lambda p1, p2: mocked_request_api_eol_usuario_diretoria_regional())
-    response = client.post(
-        f'/vinculos-diretorias-regionais/{str(diretoria_regional.uuid)}/criar_equipe_administradora/',
-        headers=headers, data=data)
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-
-
-def test_erro_401_usuario_nao_e_cogestor_nem_suplente_ou_nao_esta_logado_cadastro_vinculos(client,
-                                                                                           diretoria_regional):
-    mimetype = 'application/json'
-    headers = {
-        'Content-Type': mimetype,
-        'Accept': mimetype
-    }
-    data = {
-        'registro_funcional': '5696569'
-    }
-    response = client.post(
-        f'/vinculos-diretorias-regionais/{str(diretoria_regional.uuid)}/criar_equipe_administradora/',
-        headers=headers, data=data)
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_cadastro_erro(client):

@@ -5,8 +5,6 @@ from .api import viewsets
 
 router = routers.DefaultRouter()
 
-router.register('vinculos-diretorias-regionais', viewsets.VinculoDiretoriaRegionalViewSet,
-                basename='vinculos-diretorias-regionais')
 router.register('vinculos-codae-supervisao-nutricao',
                 viewsets.VinculoCODAESupervisaoNutricaoViewSet,
                 basename='vinculos-codae-supervisao-nutricao')
