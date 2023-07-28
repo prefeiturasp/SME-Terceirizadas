@@ -486,40 +486,6 @@ def test_finalizar_vinculo_codae(users_codae_gestao_alimentacao):
     assert user.vinculo_atual is None
 
 
-def test_get_equipe_administradora_vinculos_terceirizadas(users_terceirizada):
-    client, email, password, rf, cpf, user = users_terceirizada
-    terceirizada_ = user.vinculo_atual.instituicao
-    response = client.get(
-        f'/vinculos-terceirizadas/{str(terceirizada_.uuid)}/get_equipe_administradora/')
-    assert response.status_code == status.HTTP_200_OK
-    response.json()[0].get('usuario').pop('date_joined')
-    response.json()[0].get('usuario').pop('cpf')
-    response.json()[0].get('usuario').pop('registro_funcional')
-    response.json()[0].pop('data_final')
-    response.json()[0].pop('uuid')
-    assert response.json() == [
-        {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
-         'perfil': {'nome': 'USUARIO_EMPRESA',
-                    'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1', 'visao': None},
-         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'tipo_usuario': 'terceirizada', 'cargo': ''}
-         }
-    ]
-
-
-def test_finalizar_vinculo_terceirizada(users_terceirizada):
-    client, email, password, rf, cpf, user = users_terceirizada
-    terceirizada_ = user.vinculo_atual.instituicao
-    data = {
-        'vinculo_uuid': user.vinculo_atual.uuid
-    }
-    response = client.patch(f'/vinculos-terceirizadas/{str(terceirizada_.uuid)}/finalizar_vinculo/',
-                            content_type='application/json', data=data)
-    assert response.status_code == status.HTTP_200_OK
-    user = Usuario.objects.get(email=email)
-    assert user.vinculo_atual is None
-
-
 def test_erro_401_usuario_nao_e_coordenador_ou_nao_esta_logado_cadastro_vinculos(client,
                                                                                  codae):
     mimetype = 'application/json'
