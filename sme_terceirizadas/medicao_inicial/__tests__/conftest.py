@@ -305,7 +305,18 @@ def anexo_ocorrencia_medicao_inicial_status_inicial():
 
 
 @pytest.fixture
-def sol_med_inicial_devolvida_para_ue():
+def anexo_ocorrencia_medicao_inicial_status_aprovado_pela_dre():
+    nome = 'arquivo_teste.pdf'
+    arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
+    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial')
+    return mommy.make('OcorrenciaMedicaoInicial', uuid='2bed204b-2c1c-4686-b5e3-60a922ad0e1a',
+                      nome_ultimo_arquivo=nome, ultimo_arquivo=arquivo,
+                      solicitacao_medicao_inicial=solicitacao_medicao,
+                      status='MEDICAO_APROVADO_PELA_DRE')
+
+
+@pytest.fixture
+def sol_med_inicial_devolvida_pela_dre_para_ue():
     nome = 'arquivo_teste.pdf'
     arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
     solicitacao = mommy.make('SolicitacaoMedicaoInicial', status='MEDICAO_CORRECAO_SOLICITADA',
@@ -314,6 +325,19 @@ def sol_med_inicial_devolvida_para_ue():
                nome_ultimo_arquivo=nome, ultimo_arquivo=arquivo,
                solicitacao_medicao_inicial=solicitacao,
                status='MEDICAO_CORRECAO_SOLICITADA')
+    return solicitacao
+
+
+@pytest.fixture
+def sol_med_inicial_devolvida_pela_codae_para_ue():
+    nome = 'arquivo_teste.pdf'
+    arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
+    solicitacao = mommy.make('SolicitacaoMedicaoInicial', status='MEDICAO_CORRECAO_SOLICITADA_CODAE',
+                             uuid='d9de8653-4910-423e-9381-e391c2ae8ecb', com_ocorrencias=True)
+    mommy.make('OcorrenciaMedicaoInicial', uuid='ea7299a3-3eb6-4858-a7b4-387446c607a1',
+               nome_ultimo_arquivo=nome, ultimo_arquivo=arquivo,
+               solicitacao_medicao_inicial=solicitacao,
+               status='MEDICAO_CORRECAO_SOLICITADA_CODAE')
     return solicitacao
 
 
