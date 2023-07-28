@@ -33,7 +33,6 @@ from ...escola.api.serializers import (
 )
 from ...escola.api.serializers_create import (
     EscolaPeriodoEscolarCreateSerializer,
-    EscolaSimplesUpdateSerializer,
     FaixaEtariaSerializer,
     LoteCreateSerializer,
     MudancaFaixasEtariasCreateSerializer
@@ -84,12 +83,8 @@ from .serializers import (
 
 class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     lookup_field = 'uuid'
+    serializer_class = EscolaSimplesSerializer
     queryset = Escola.objects.all()
-
-    def get_serializer_class(self):
-        if self.action in ['update', 'partial_update']:
-            return EscolaSimplesUpdateSerializer
-        return EscolaSimplesSerializer
 
 
 class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
