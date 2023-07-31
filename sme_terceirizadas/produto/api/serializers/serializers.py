@@ -477,7 +477,8 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
     def get_data_edital_suspenso_mais_recente(self, obj):
         workflow = self.context.get('workflow', '')
         data = obj.data_edital_suspenso_mais_recente
-        if obj.status == 'CODAE_HOMOLOGADO' and workflow == 'CODAE_SUSPENDEU' and data:
+        if (obj.status in ['CODAE_HOMOLOGADO', 'CODAE_AUTORIZOU_RECLAMACAO'] and
+            workflow in ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO'] and data):
             if data.date() == datetime.date.today():
                 return datetime.datetime.strftime(data, '%d/%m/%Y %H:%M')
             return datetime.datetime.strftime(data, '%d/%m/%Y')
