@@ -720,7 +720,7 @@ def test_url_codae_solicita_correcao_periodo(client_autenticado_codae_medicao,
     viewset_url = '/medicao-inicial/medicao/'
     uuid = medicao_aprovada_pela_dre.uuid
     response = client_autenticado_codae_medicao.patch(
-        f'{viewset_url}{uuid}/codae-pede-correcao-medicao/',
+        f'{viewset_url}{uuid}/codae-pede-correcao-periodo/',
         content_type='application/json',
         data=data
     )
@@ -735,7 +735,7 @@ def test_url_codae_solicita_correcao_periodo(client_autenticado_codae_medicao,
     data['uuids_valores_medicao_para_correcao'] = ['128f36e2-ea93-4e05-9641-50b0c79ddb5e']
     uuid = medicao_status_inicial.uuid
     response = client_autenticado_codae_medicao.patch(
-        f'{viewset_url}{uuid}/codae-pede-correcao-medicao/',
+        f'{viewset_url}{uuid}/codae-pede-correcao-periodo/',
         content_type='application/json',
         data=data
     )
@@ -807,5 +807,28 @@ def test_url_codae_aprova_ocorrencia(client_autenticado_codae_medicao,
         f'/codae-pede-correcao-ocorrencia/',
         content_type='application/json',
     )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
+
+
+def test_url_codae_aprova_periodo(client_autenticado_codae_medicao,
+                                  medicao_aprovada_pela_dre,
+                                  medicao_status_inicial):
+    viewset_url = '/medicao-inicial/medicao/'
+    uuid = medicao_aprovada_pela_dre.uuid
+    response = client_autenticado_codae_medicao.patch(
+        f'{viewset_url}{uuid}/codae-aprova-periodo/',
+        content_type='application/json',
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['status'] == 'MEDICAO_APROVADA_PELA_CODAE'
+
+    uuid = medicao_status_inicial.uuid
+    response = client_autenticado_codae_medicao.patch(
+        f'{viewset_url}{uuid}/codae-aprova-periodo/',
+        content_type='application/json',
+    )
+
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Erro de transição de estado:' in response.data['detail']
