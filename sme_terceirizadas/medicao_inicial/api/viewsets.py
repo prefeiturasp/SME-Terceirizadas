@@ -586,6 +586,17 @@ class MedicaoViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-medicao',
+            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    def codae_aprova_medicao(self, request, uuid=None):
+        medicao = self.get_object()
+        try:
+            medicao.codae_aprova_periodo(user=request.user)
+            serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=['PATCH'], url_path='codae-pede-correcao-medicao',
             permission_classes=[UsuarioCODAEGestaoAlimentacao])
     def codae_pede_correcao_medicao(self, request, uuid=None):

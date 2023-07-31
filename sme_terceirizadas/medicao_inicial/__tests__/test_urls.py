@@ -809,3 +809,26 @@ def test_url_codae_aprova_ocorrencia(client_autenticado_codae_medicao,
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Erro de transição de estado:' in response.data['detail']
+
+
+def test_url_codae_aprova_periodo(client_autenticado_codae_medicao,
+                                  medicao_aprovada_pela_dre,
+                                  medicao_status_inicial):
+    viewset_url = '/medicao-inicial/medicao/'
+    uuid = medicao_aprovada_pela_dre.uuid
+    response = client_autenticado_codae_medicao.patch(
+        f'{viewset_url}{uuid}/codae-aprova-medicao/',
+        content_type='application/json',
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['status'] == 'MEDICAO_APROVADA_PELA_CODAE'
+
+    uuid = medicao_status_inicial.uuid
+    response = client_autenticado_codae_medicao.patch(
+        f'{viewset_url}{uuid}/codae-aprova-medicao/',
+        content_type='application/json',
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
