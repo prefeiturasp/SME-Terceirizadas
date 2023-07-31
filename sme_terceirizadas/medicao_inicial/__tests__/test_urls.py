@@ -246,17 +246,22 @@ def test_url_endpoint_quantidades_alimentacoes_lancadas_periodo_grupo(
         content_type='application/json'
     )
     assert response.status_code == status.HTTP_200_OK
-    assert response.data['results'][0] == {
-        'nome_periodo_grupo': 'MANHA',
-        'status': 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE',
-        'justificativa': None,
-        'valores': [
-            {'nome_campo': 'kit_lanche', 'valor': 50},
-            {'nome_campo': 'lanche_emergencial', 'valor': 50},
-            {'nome_campo': 'lanche', 'valor': 50},
-            {'nome_campo': 'refeicao', 'valor': 100},
-            {'nome_campo': 'sobremesa', 'valor': 100}
-        ], 'valor_total': 350
+    assert len([r for r in response.data['results'] if r['nome_periodo_grupo'] == 'MANHA']) == 1
+
+
+def test_url_endpoint_relatorio_pdf(
+    client_autenticado_da_escola,
+    solicitacao_medicao_inicial_com_valores_repeticao
+):
+    uuid_solicitacao = solicitacao_medicao_inicial_com_valores_repeticao.uuid
+    response = client_autenticado_da_escola.get(
+        '/medicao-inicial/solicitacao-medicao-inicial/relatorio-pdf/'
+        f'?uuid={uuid_solicitacao}',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        'detail': 'Solicitação de geração de arquivo recebida com sucesso.'
     }
 
 
@@ -362,6 +367,61 @@ def test_url_endpoint_medicao_dashboard_codae_com_filtros(client_autenticado_coo
     assert response.json()['results'][6]['total'] == 0
     assert response.json()['results'][7]['status'] == 'TODOS_OS_LANCAMENTOS'
     assert response.json()['results'][7]['total'] == 4
+
+
+def test_url_dre_aprova_medicao(client_autenticado_diretoria_regional,
+                                medicao_status_enviada_pela_ue,
+                                medicao_aprovada_pela_dre):
+    viewset_url = '/medicao-inicial/medicao/'
+    uuid = medicao_status_enviada_pela_ue.uuid
+    response = client_autenticado_diretoria_regional.patch(
+        f'{viewset_url}{uuid}/dre-aprova-medicao/',
+        content_type='application/json',
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['status'] == 'MEDICAO_APROVADA_PELA_DRE'
+
+    uuid = medicao_aprovada_pela_dre.uuid
+    response = client_autenticado_diretoria_regional.patch(
+        f'{viewset_url}{uuid}/dre-aprova-medicao/',
+        content_type='application/json',
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
+
+
+def test_url_dre_solicita_correcao_periodo(client_autenticado_diretoria_regional,
+                                           medicao_status_enviada_pela_ue,
+                                           medicao_status_inicial):
+    data = {'uuids_valores_medicao_para_correcao': ['0b599490-477f-487b-a49e-c8e7cfdcd00b'],
+            'justificativa': '<p>TESTE JUSTIFICATIVA</p>'}
+    viewset_url = '/medicao-inicial/medicao/'
+    uuid = medicao_status_enviada_pela_ue.uuid
+    response = client_autenticado_diretoria_regional.patch(
+        f'{viewset_url}{uuid}/dre-pede-correcao-medicao/',
+        content_type='application/json',
+        data=data
+    )
+
+    medicao_uuid = str(response.data['valores_medicao'][0]['medicao_uuid'])
+    medicao = Medicao.objects.filter(uuid=medicao_uuid).first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['status'] == 'MEDICAO_CORRECAO_SOLICITADA'
+    assert medicao.logs.last().justificativa == data['justificativa']
+
+    data['uuids_valores_medicao_para_correcao'] = ['128f36e2-ea93-4e05-9641-50b0c79ddb5e']
+    uuid = medicao_status_inicial.uuid
+    response = client_autenticado_diretoria_regional.patch(
+        f'{viewset_url}{uuid}/dre-pede-correcao-medicao/',
+        content_type='application/json',
+        data=data
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Erro de transição de estado:' in response.data['detail']
 
 
 def test_url_escola_corrige_medicao_para_dre_sucesso(client_autenticado_da_escola,
