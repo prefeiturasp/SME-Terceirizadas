@@ -586,9 +586,9 @@ class MedicaoViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-medicao',
+    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-periodo',
             permission_classes=[UsuarioCODAEGestaoAlimentacao])
-    def codae_aprova_medicao(self, request, uuid=None):
+    def codae_aprova_periodo(self, request, uuid=None):
         medicao = self.get_object()
         try:
             medicao.codae_aprova_periodo(user=request.user)
@@ -597,9 +597,9 @@ class MedicaoViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['PATCH'], url_path='codae-pede-correcao-medicao',
+    @action(detail=True, methods=['PATCH'], url_path='codae-pede-correcao-periodo',
             permission_classes=[UsuarioCODAEGestaoAlimentacao])
-    def codae_pede_correcao_medicao(self, request, uuid=None):
+    def codae_pede_correcao_periodo(self, request, uuid=None):
         medicao = self.get_object()
         justificativa = request.data.get('justificativa', None)
         uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', None)

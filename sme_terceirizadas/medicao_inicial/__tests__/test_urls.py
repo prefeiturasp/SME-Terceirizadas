@@ -720,7 +720,7 @@ def test_url_codae_solicita_correcao_periodo(client_autenticado_codae_medicao,
     viewset_url = '/medicao-inicial/medicao/'
     uuid = medicao_aprovada_pela_dre.uuid
     response = client_autenticado_codae_medicao.patch(
-        f'{viewset_url}{uuid}/codae-pede-correcao-medicao/',
+        f'{viewset_url}{uuid}/codae-pede-correcao-periodo/',
         content_type='application/json',
         data=data
     )
@@ -735,7 +735,7 @@ def test_url_codae_solicita_correcao_periodo(client_autenticado_codae_medicao,
     data['uuids_valores_medicao_para_correcao'] = ['128f36e2-ea93-4e05-9641-50b0c79ddb5e']
     uuid = medicao_status_inicial.uuid
     response = client_autenticado_codae_medicao.patch(
-        f'{viewset_url}{uuid}/codae-pede-correcao-medicao/',
+        f'{viewset_url}{uuid}/codae-pede-correcao-periodo/',
         content_type='application/json',
         data=data
     )
@@ -817,7 +817,7 @@ def test_url_codae_aprova_periodo(client_autenticado_codae_medicao,
     viewset_url = '/medicao-inicial/medicao/'
     uuid = medicao_aprovada_pela_dre.uuid
     response = client_autenticado_codae_medicao.patch(
-        f'{viewset_url}{uuid}/codae-aprova-medicao/',
+        f'{viewset_url}{uuid}/codae-aprova-periodo/',
         content_type='application/json',
     )
 
@@ -826,7 +826,7 @@ def test_url_codae_aprova_periodo(client_autenticado_codae_medicao,
 
     uuid = medicao_status_inicial.uuid
     response = client_autenticado_codae_medicao.patch(
-        f'{viewset_url}{uuid}/codae-aprova-medicao/',
+        f'{viewset_url}{uuid}/codae-aprova-periodo/',
         content_type='application/json',
     )
 
