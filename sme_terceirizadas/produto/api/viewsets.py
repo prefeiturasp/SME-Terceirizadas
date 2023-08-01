@@ -1162,7 +1162,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                     request,
                     justificativa
                 )
-                if homologacao_produto.status == 'CODAE_SUSPENDEU':
+                if homologacao_produto.status in ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO']:
                     homologacao_produto.status = HomologacaoProduto.workflow_class.states.CODAE_HOMOLOGADO
                     homologacao_produto.save()
             else:
