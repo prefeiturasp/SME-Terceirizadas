@@ -75,6 +75,9 @@ def solicitacao_medicao_inicial(escola, categoria_medicao):
 
 @pytest.fixture
 def solicitacao_medicao_inicial_medicao_enviada_pela_ue(solicitacao_medicao_inicial):
+    for medicao in solicitacao_medicao_inicial.medicoes.all():
+        medicao.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
+        medicao.save()
     solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_ENVIADA_PELA_UE
     solicitacao_medicao_inicial.save()
     return solicitacao_medicao_inicial
@@ -83,6 +86,51 @@ def solicitacao_medicao_inicial_medicao_enviada_pela_ue(solicitacao_medicao_inic
 @pytest.fixture
 def solicitacao_medicao_inicial_medicao_correcao_solicitada(solicitacao_medicao_inicial):
     solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_medicao_correcao_solicitada_codae(solicitacao_medicao_inicial):
+    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_medicao_aprovada_pela_dre_ok(solicitacao_medicao_inicial):
+    for medicao in solicitacao_medicao_inicial.medicoes.all():
+        medicao.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+        medicao.save()
+    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_medicao_aprovada_pela_dre_nok(solicitacao_medicao_inicial):
+    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok(solicitacao_medicao_inicial):
+    for medicao in solicitacao_medicao_inicial.medicoes.all():
+        medicao.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+        medicao.save()
+    solicitacao_medicao_inicial.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_ENVIADA_PELA_UE
+    solicitacao_medicao_inicial.save()
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_medicao_enviada_pela_ue_nok__2(solicitacao_medicao_inicial):
+    for medicao in solicitacao_medicao_inicial.medicoes.all():
+        medicao.status = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
+        medicao.save()
+    status = solicitacao_medicao_inicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+    solicitacao_medicao_inicial.status = status
     solicitacao_medicao_inicial.save()
     return solicitacao_medicao_inicial
 
@@ -186,7 +234,7 @@ def solicitacao_medicao_inicial_com_grupo(escola):
 def solicitacoes_medicao_inicial(escola):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     escola_2 = mommy.make('Escola')
-    s1 = mommy.make('SolicitacaoMedicaoInicial', mes=12, ano=2022, escola=escola,
+    s1 = mommy.make('SolicitacaoMedicaoInicial', mes=6, ano=2022, escola=escola,
                     tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_ENVIADA_PELA_UE')
     s2 = mommy.make('SolicitacaoMedicaoInicial', mes=1, ano=2023, escola=escola,
                     tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_ENVIADA_PELA_UE')
@@ -236,6 +284,16 @@ def anexo_ocorrencia_medicao_inicial(solicitacao_medicao_inicial):
 
 
 @pytest.fixture
+def anexo_ocorrencia_medicao_inicial_status_aprovado_dre(solicitacao_medicao_inicial):
+    nome = 'arquivo_teste.pdf'
+    arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
+    return mommy.make('OcorrenciaMedicaoInicial', uuid='04fb4c1c-0e31-4936-93a7-f2760b968c3b',
+                      nome_ultimo_arquivo=nome, ultimo_arquivo=arquivo,
+                      solicitacao_medicao_inicial=solicitacao_medicao_inicial,
+                      status='MEDICAO_APROVADA_PELA_DRE')
+
+
+@pytest.fixture
 def anexo_ocorrencia_medicao_inicial_status_inicial():
     nome = 'arquivo_teste.pdf'
     arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
@@ -247,7 +305,18 @@ def anexo_ocorrencia_medicao_inicial_status_inicial():
 
 
 @pytest.fixture
-def sol_med_inicial_devolvida_para_ue():
+def anexo_ocorrencia_medicao_inicial_status_aprovado_pela_dre():
+    nome = 'arquivo_teste.pdf'
+    arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
+    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial')
+    return mommy.make('OcorrenciaMedicaoInicial', uuid='2bed204b-2c1c-4686-b5e3-60a922ad0e1a',
+                      nome_ultimo_arquivo=nome, ultimo_arquivo=arquivo,
+                      solicitacao_medicao_inicial=solicitacao_medicao,
+                      status='MEDICAO_APROVADO_PELA_DRE')
+
+
+@pytest.fixture
+def sol_med_inicial_devolvida_pela_dre_para_ue():
     nome = 'arquivo_teste.pdf'
     arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
     solicitacao = mommy.make('SolicitacaoMedicaoInicial', status='MEDICAO_CORRECAO_SOLICITADA',
@@ -256,6 +325,19 @@ def sol_med_inicial_devolvida_para_ue():
                nome_ultimo_arquivo=nome, ultimo_arquivo=arquivo,
                solicitacao_medicao_inicial=solicitacao,
                status='MEDICAO_CORRECAO_SOLICITADA')
+    return solicitacao
+
+
+@pytest.fixture
+def sol_med_inicial_devolvida_pela_codae_para_ue():
+    nome = 'arquivo_teste.pdf'
+    arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
+    solicitacao = mommy.make('SolicitacaoMedicaoInicial', status='MEDICAO_CORRECAO_SOLICITADA_CODAE',
+                             uuid='d9de8653-4910-423e-9381-e391c2ae8ecb', com_ocorrencias=True)
+    mommy.make('OcorrenciaMedicaoInicial', uuid='ea7299a3-3eb6-4858-a7b4-387446c607a1',
+               nome_ultimo_arquivo=nome, ultimo_arquivo=arquivo,
+               solicitacao_medicao_inicial=solicitacao,
+               status='MEDICAO_CORRECAO_SOLICITADA_CODAE')
     return solicitacao
 
 
@@ -281,6 +363,47 @@ def periodo_escolar():
 def medicao(solicitacao_medicao_inicial, periodo_escolar):
     return mommy.make('Medicao', periodo_escolar=periodo_escolar, uuid='5a3a3941-1b91-4b9f-b410-c3547e224eb5',
                       solicitacao_medicao_inicial=solicitacao_medicao_inicial)
+
+
+@pytest.fixture
+def medicao_status_inicial(solicitacao_medicao_inicial, periodo_escolar, categoria_medicao):
+    medicao = mommy.make('Medicao', periodo_escolar=periodo_escolar, uuid='7041e451-43a7-4d2f-abc6-d0960121d2fb',
+                         solicitacao_medicao_inicial=solicitacao_medicao_inicial,
+                         status='MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE')
+    valor = 10
+    nome_campo = 'observacoes'
+    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', uuid='0367af8d-26bd-40b5-83d2-9e337622ba50')
+    mommy.make('ValorMedicao', valor=valor, nome_campo=nome_campo, medicao=medicao,
+               uuid='128f36e2-ea93-4e05-9641-50b0c79ddb5e', dia=22,
+               categoria_medicao=categoria_medicao, tipo_alimentacao=tipo_alimentacao)
+    return medicao
+
+
+@pytest.fixture
+def medicao_status_enviada_pela_ue(solicitacao_medicao_inicial, periodo_escolar, categoria_medicao):
+    medicao = mommy.make('Medicao', periodo_escolar=periodo_escolar, uuid='cbe62cc7-55e9-435d-8c3f-845b6fa20c2e',
+                         solicitacao_medicao_inicial=solicitacao_medicao_inicial,
+                         status='MEDICAO_ENVIADA_PELA_UE')
+    valor = 10
+    nome_campo = 'observacoes'
+    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', uuid='837ed21a-d535-4df2-aa37-f186e4e51392')
+    mommy.make('ValorMedicao', valor=valor, nome_campo=nome_campo, medicao=medicao,
+               uuid='932d0e67-e434-4071-99dc-b1c4bcdd9310', dia=22,
+               categoria_medicao=categoria_medicao, tipo_alimentacao=tipo_alimentacao)
+    return medicao
+
+
+@pytest.fixture
+def medicao_aprovada_pela_dre(solicitacao_medicao_inicial, periodo_escolar, categoria_medicao):
+    medicao = mommy.make('Medicao', periodo_escolar=periodo_escolar, uuid='65f112a5-8b4b-495b-a29e-1d75fb0b5eeb',
+                         solicitacao_medicao_inicial=solicitacao_medicao_inicial, status='MEDICAO_APROVADA_PELA_DRE')
+    valor = 20
+    nome_campo = 'observacoes'
+    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', uuid='a5ea11b6-a043-47cd-ba69-d6b207312cbd')
+    mommy.make('ValorMedicao', valor=valor, nome_campo=nome_campo, medicao=medicao,
+               uuid='0b599490-477f-487b-a49e-c8e7cfdcd00b', dia=25,
+               categoria_medicao=categoria_medicao, tipo_alimentacao=tipo_alimentacao)
+    return medicao
 
 
 @pytest.fixture
@@ -324,8 +447,7 @@ def client_autenticado_da_escola(client, django_user_model, escola):
     password = 'admin@123'
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
     usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                    registro_funcional='123456',
-                                                    )
+                                                    registro_funcional='123456')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
@@ -339,10 +461,28 @@ def client_autenticado_adm_da_escola(client, django_user_model, escola):
     password = 'admin@1234'
     perfil_diretor = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
     usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                    registro_funcional='1234567',
-                                                    )
+                                                    registro_funcional='1234567')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_codae_medicao(client, django_user_model):
+    email = 'codae@medicao.com'
+    password = 'admin@1234'
+    perfil_medicao = mommy.make('Perfil', nome='ADMINISTRADOR_MEDICAO', ativo=True)
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                    registro_funcional='1234588')
+    codae = mommy.make('Codae')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=usuario,
+               instituicao=codae,
+               perfil=perfil_medicao,
+               data_inicial=hoje,
+               ativo=True)
     client.login(username=email, password=password)
     return client

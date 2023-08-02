@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from ...dados_comuns.utils import update_instance_from_dict
-from ...dieta_especial.models import TipoContagem
 from ..models import (
     DiretoriaRegional,
     Escola,
@@ -121,15 +120,3 @@ class MudancaFaixasEtariasCreateSerializer(serializers.Serializer):
         mudanca.faixas_etarias_ativadas.set(fe_objs)
         mudanca.save()
         return mudanca
-
-
-class EscolaSimplesUpdateSerializer(serializers.ModelSerializer):
-    tipos_contagem = serializers.SlugRelatedField(
-        slug_field='uuid',
-        many=True,
-        queryset=TipoContagem.objects.all()
-    )
-
-    class Meta:
-        model = Escola
-        fields = ('tipos_contagem',)

@@ -15,7 +15,7 @@ from rest_framework.exceptions import PermissionDenied
 from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
-from .constants import COGESTOR_DRE, DIRETOR_UE
+from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory
@@ -431,8 +431,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_CANCELOU_ANALISE_SENSORIAL),
         ('terceirizada_responde_analise_sensorial',
          CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
-        ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
-        ('codae_ativa', [CODAE_SUSPENDEU, CODAE_HOMOLOGADO], CODAE_HOMOLOGADO),
+        ('codae_suspende', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_HOMOLOGADO], CODAE_SUSPENDEU),
+        ('codae_ativa', [CODAE_SUSPENDEU, CODAE_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO], CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou',
          [CODAE_HOMOLOGADO,
           CODAE_CANCELOU_ANALISE_SENSORIAL], ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
@@ -516,7 +516,7 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name='logistica_dilog_envia_solicitacao.html',
             context={
-                'titulo': f'Nova Requisição de Entrega N° {self.numero_solicitacao}',
+                'titulo': 'Nova Requisição de Entrega',
                 'solicitacao': self.numero_solicitacao,
                 'log_transicao': log_transicao,
                 'url': url
@@ -534,14 +534,14 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name='logistica_aguardando_cancelamento_distribuidor.html',
             context={
-                'titulo': f'Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}',
+                'titulo': 'Cancelamento de Guia(s) de Remessa',
                 'solicitacao': self.numero_solicitacao,
                 'log_transicao': log_transicao,
                 'url': url
             }
         )
         envia_email_em_massa_task.delay(
-            assunto=f'[SIGPAE] Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}',
+            assunto=f'[SIGPAE] Cancelamento de Guia(s) de Remessa da Requisição N° {self.numero_solicitacao}',
             emails=[self.distribuidor.responsavel_email] + self._partes_interessadas_codae_dilog_logistica(),
             corpo='',
             html=html
@@ -552,7 +552,7 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name='logistica_distribuidor_confirma_cancelamento.html',
             context={
-                'titulo': f'Cancelamento Confirmado - Guias de Remessa da Requisição N° {self.numero_solicitacao}',
+                'titulo': f'Cancelamento de Guia(s) Confirmado',
                 'objeto': self,
                 'log_transicao': log_transicao,
                 'url': url,
@@ -859,7 +859,7 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name='logistica_distribuidor_solicita_alteracao.html',
             context={
-                'titulo': f'Solicitação de alteração N° {self.numero_solicitacao}',
+                'titulo': f'Solicitação de Alteração',
                 'solicitacao': self,
                 'log_transicao': log_transicao,
                 'url': url
@@ -898,9 +898,9 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         log_transicao = self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ACEITA_ALTERACAO,
                                                   usuario=user, justificativa=kwargs.get('justificativa', ''))
         # Monta e-mail de aceite
-        titulo = 'Solicitação de alteração aceita.'
+        titulo = 'Solicitação de Alteração Aceita'
         assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
-        situacao = 'aceita'
+        situacao = 'ACEITA'
         template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
         partes_interessadas = self._partes_interessadas_distribuidor() + self._partes_interessadas_codae_dilog()
 
@@ -919,9 +919,9 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
                                                   usuario=user, justificativa=kwargs.get('justificativa', ''))
 
         # Monta e-mail de negação
-        titulo = 'Solicitação de alteração negada.'
+        titulo = 'Solicitação de Alteração Negada'
         assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
-        situacao = 'negada'
+        situacao = 'NEGADA'
         template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
         partes_interessadas = self._partes_interessadas_distribuidor() + self._partes_interessadas_codae_dilog()
 
@@ -1019,12 +1019,8 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
 
     def _partes_interessadas_escola(self):
         # Envia email somente para usuários ativos vinculados a escola da guia
-        if self.escola:
-            email_query_set_escola = self.escola.vinculos.filter(
-                ativo=True
-            ).values_list('usuario__email', flat=True)
-
-            return [email for email in email_query_set_escola]
+        if self.escola and self.escola.contato:
+            return [self.escola.contato.email]
         else:
             return []
 
@@ -1051,7 +1047,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     def _dispara_email_e_notificacao_de_confirmacao_ao_distribuidor_hook(self, *args, **kwargs):
         # Monta e-mail
         url = f'{base_url}/logistica/conferir-entrega?numero_guia={self.numero_guia}'
-        titulo = f'Nova Guia de Remessa N° {self.numero_guia}'
+        titulo = f'Hoje tem Entrega de alimentos'
         assunto = f'[SIGPAE] Nova Guia de Remessa N° {self.numero_guia}'
         template = 'logistica_distribuidor_confirma_requisicao.html'
         partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
@@ -1103,7 +1099,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
 
         # Monta e-mail
         url = f'{base_url}/logistica/conferir-entrega'
-        titulo = f'Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        titulo = f'Reposição de alimentos Não Recebidos'
         assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
         template = 'logistica_escola_aviso_reposicao.html'
         partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
@@ -1129,7 +1125,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
 
         # Monta e-mail
         url = f'{base_url}/logistica/conferir-entrega'
-        titulo = f'Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        titulo = f'Reposição de alimentos Não Recebidos'
         assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
         template = 'logistica_escola_aviso_reposicao.html'
         partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
@@ -1385,7 +1381,8 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
-        self._salva_rastro_solicitacao()
+        if not self.rastro_terceirizada:
+            self._salva_rastro_solicitacao()
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user,
@@ -3038,12 +3035,32 @@ class SolicitacaoMedicaoInicialWorkflow(xwf_models.Workflow):
         ('ue_envia', MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, MEDICAO_ENVIADA_PELA_UE),
         ('dre_pede_correcao', [MEDICAO_CORRECAO_SOLICITADA, MEDICAO_ENVIADA_PELA_UE,
                                MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_CORRECAO_SOLICITADA),
-        ('codae_pede_correcao', MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA_CODAE),
+        ('codae_pede_correcao_periodo', [MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                         MEDICAO_APROVADA_PELA_CODAE,
+                                         MEDICAO_APROVADA_PELA_DRE,
+                                         MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_CORRECAO_SOLICITADA_CODAE),
+        ('codae_aprova_periodo', [MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                  MEDICAO_APROVADA_PELA_DRE,
+                                  MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE),
+        ('codae_pede_correcao_ocorrencia', [MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                            MEDICAO_APROVADA_PELA_CODAE,
+                                            MEDICAO_APROVADA_PELA_DRE,
+                                            MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_CORRECAO_SOLICITADA_CODAE),
+        ('codae_aprova_ocorrencia', [MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                     MEDICAO_APROVADA_PELA_DRE,
+                                     MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE),
         ('ue_corrige', [MEDICAO_CORRECAO_SOLICITADA, MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_CORRIGIDA_PELA_UE),
-        ('ue_corrige_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
+        ('ue_corrige_ocorrencia_para_codae', [MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                              MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_CORRIGIDA_PARA_CODAE),
+        ('ue_corrige_periodo_grupo_para_codae', [MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                                 MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_CORRIGIDA_PARA_CODAE),
+        ('ue_corrige_medicao_para_codae', MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_CORRIGIDA_PARA_CODAE),
         ('dre_aprova', [MEDICAO_ENVIADA_PELA_UE, MEDICAO_CORRECAO_SOLICITADA,
                         MEDICAO_CORRIGIDA_PELA_UE], MEDICAO_APROVADA_PELA_DRE),
-        ('codae_aprova', [MEDICAO_APROVADA_PELA_DRE, MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE)
+        ('codae_aprova_medicao', [MEDICAO_APROVADA_PELA_DRE,
+                                  MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_APROVADA_PELA_CODAE),
+        ('codae_pede_correcao_medicao', [MEDICAO_CORRECAO_SOLICITADA_CODAE, MEDICAO_APROVADA_PELA_DRE,
+                                         MEDICAO_CORRIGIDA_PARA_CODAE], MEDICAO_CORRECAO_SOLICITADA_CODAE)
     )
 
     initial_state = MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
@@ -3110,16 +3127,20 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                                                          LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE])
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
                                       usuario=user)
-            if isinstance(self, SolicitacaoMedicaoInicial):
-                url = f'{env("REACT_APP_URL")}/lancamento-inicial'
-                url += f'/lancamento-medicao-inicial?mes={self.mes}&ano={self.ano}'
+            if (isinstance(self, SolicitacaoMedicaoInicial) and
+                self.escola and
+                self.escola.contato and
+                    self.escola.contato.email):
+                url = f'{env("REACT_APP_URL")}/medicao-inicial'
+                url += f'/detalhamento-do-lancamento?mes={self.mes}&ano={self.ano}'
                 html = render_to_string(
-                    template_name='medicao_dre_aprova_solicitacao.html',
+                    template_name='medicao_dre_codae_aprova_solicitacao.html',
                     context={
                         'titulo': 'Medição Inicial aprovada pela DRE',
                         'url': url,
                         'mes': converte_numero_em_mes(int(self.mes)).lower,
-                        'ano': self.ano
+                        'ano': self.ano,
+                        'usuario': 'DRE'
                     }
                 )
                 envia_email_unico_task.delay(
@@ -3148,19 +3169,124 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                 self.escola and
                 self.escola.contato and
                     self.escola.contato.email):
-                url = f'{env("REACT_APP_URL")}/lancamento-inicial'
-                url += f'/lancamento-medicao-inicial?mes={self.mes}&ano={self.ano}'
+                url = f'{env("REACT_APP_URL")}/medicao-inicial'
+                url += f'/detalhamento-do-lancamento?mes={self.mes}&ano={self.ano}'
                 html = render_to_string(
-                    template_name='medicao_dre_solicita_correcao.html',
+                    template_name='medicao_dre_codae_solicita_correcao.html',
                     context={
                         'titulo': 'Solicitação de correção da Medição Inicial pela DRE',
                         'url': url,
                         'mes': converte_numero_em_mes(int(self.mes)).lower,
-                        'ano': self.ano
+                        'ano': self.ano,
+                        'usuario': 'DRE'
                     }
                 )
                 envia_email_unico_task.delay(
                     assunto='Solicitação de correção da Medição Inicial pela DRE',
+                    email=self.escola.contato.email,
+                    corpo='',
+                    html=html
+                )
+
+    @xworkflows.after_transition('codae_pede_correcao_ocorrencia')
+    def _codae_pede_correcao_ocorrencia_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        if user:
+            if user.vinculo_atual.perfil.nome not in [ADMINISTRADOR_MEDICAO]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                                     LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE])
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                      usuario=user, justificativa=justificativa)
+
+    @xworkflows.after_transition('codae_aprova_ocorrencia')
+    def _codae_aprova_ocorrencia_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            if user.vinculo_atual.perfil.nome not in [ADMINISTRADOR_MEDICAO]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                                     LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE])
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_pede_correcao_periodo')
+    def _codae_pede_correcao_periodo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        if user:
+            if user.vinculo_atual.perfil.nome not in [ADMINISTRADOR_MEDICAO]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                                     LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE])
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                      usuario=user, justificativa=justificativa)
+
+    @xworkflows.after_transition('codae_aprova_periodo')
+    def _codae_aprova_periodo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            if user.vinculo_atual.perfil.nome not in [ADMINISTRADOR_MEDICAO]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.deletar_log_correcao(status_evento=[LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                      LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE])
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_aprova_medicao')
+    def _codae_aprova_medicao_hook(self, *args, **kwargs):
+        from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
+        user = kwargs['user']
+        if user:
+            if user.vinculo_atual.perfil.nome not in [ADMINISTRADOR_MEDICAO]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE,
+                                      usuario=user)
+            if self.escola and self.escola.contato and self.escola.contato.email:
+                url = f'{env("REACT_APP_URL")}/medicao-inicial'
+                url += f'/detalhamento-do-lancamento?mes={self.mes}&ano={self.ano}'
+                html = render_to_string(
+                    template_name='medicao_dre_codae_aprova_solicitacao.html',
+                    context={
+                        'titulo': 'Medição Inicial aprovada pela CODAE',
+                        'url': url,
+                        'mes': converte_numero_em_mes(int(self.mes)).lower,
+                        'ano': self.ano,
+                        'usuario': 'CODAE'
+                    }
+                )
+                envia_email_unico_task.delay(
+                    assunto='[SIGPAE] Medição Inicial aprovada pela CODAE',
+                    email=self.escola.contato.email,
+                    corpo='',
+                    html=html
+                )
+
+    @xworkflows.after_transition('codae_pede_correcao_medicao')
+    def _codae_pede_correcao_medicao_hook(self, *args, **kwargs):
+        from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
+        user = kwargs['user']
+        if user:
+            if user.vinculo_atual.perfil.nome not in [ADMINISTRADOR_MEDICAO]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+                                      usuario=user)
+            if self.escola and self.escola.contato and self.escola.contato.email:
+                url = f'{env("REACT_APP_URL")}/medicao-inicial'
+                url += f'/detalhamento-do-lancamento?mes={self.mes}&ano={self.ano}'
+                html = render_to_string(
+                    template_name='medicao_dre_codae_solicita_correcao.html',
+                    context={
+                        'titulo': 'Solicitação de correção da Medição Inicial pela CODAE',
+                        'url': url,
+                        'mes': converte_numero_em_mes(int(self.mes)).lower,
+                        'ano': self.ano,
+                        'usuario': 'CODAE'
+                    }
+                )
+                envia_email_unico_task.delay(
+                    assunto='[SIGPAE] Solicitação de correção da Medição Inicial pela CODAE',
                     email=self.escola.contato.email,
                     corpo='',
                     html=html
@@ -3199,6 +3325,53 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
                 self.salvar_log_transicao(status_evento=status,
                                           usuario=user,
                                           justificativa=justificativa)
+
+    @xworkflows.after_transition('ue_corrige_ocorrencia_para_codae')
+    def _ue_corrige_ocorrencia_para_codae_hook(self, *args, **kwargs):
+        from ..medicao_inicial.models import OcorrenciaMedicaoInicial
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        if user and isinstance(self, OcorrenciaMedicaoInicial):
+            if not user.vinculo_atual.perfil.nome == DIRETOR_UE:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+
+            status = LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PARA_CODAE
+
+            log_antigo = self.logs.filter(status_evento=status)
+
+            if log_antigo:
+                log_antigo = log_antigo.first()
+                log_antigo.anexos.all().delete()
+                log_antigo.delete()
+
+            log_transicao = self.salvar_log_transicao(status_evento=status,
+                                                      usuario=user,
+                                                      justificativa=justificativa)
+            for anexo in kwargs.get('anexos', []):
+                arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+                AnexoLogSolicitacoesUsuario.objects.create(
+                    log=log_transicao,
+                    arquivo=arquivo,
+                    nome=anexo['nome']
+                )
+
+    @xworkflows.after_transition('ue_corrige_periodo_grupo_para_codae')
+    def _ue_corrige_periodo_grupo_para_codae_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            if not user.vinculo_atual.perfil.nome == DIRETOR_UE:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PARA_CODAE,
+                                      usuario=user)
+
+    @xworkflows.after_transition('ue_corrige_medicao_para_codae')
+    def _ue_corrige_medicao_para_codae_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            if user.vinculo_atual.perfil.nome not in [DIRETOR_UE]:
+                raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PARA_CODAE,
+                                      usuario=user)
 
     class Meta:
         abstract = True

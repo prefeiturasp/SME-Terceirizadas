@@ -2,7 +2,12 @@
 {% load email_templatetags %}
 
 {% block conteudo %}
-  {% include "logistica_notificacao_aguardando_cancelamento_distribuidor.html" %}
-  <a href="{{ url }}">Clique para acessar detalhes da solicitação</a>
+  <p>
+    Foi disponibilizado para sua análise o <strong>Cancelamento</strong> de Guia(s) de <br/>
+    Remessa pertencentes a Requisição <strong>Nº {{ solicitacao }}.</strong>
+  </p>
   <br/>
+  <a href="{{ url }}">Clique aqui para acessar Detalhes da Requisição de Entrega</a>
+  <br/><br/><br/><br/><br/><br/>
+  {% include "logistica_rodape_contamos_com_voce.html" %}
 {% endblock %}

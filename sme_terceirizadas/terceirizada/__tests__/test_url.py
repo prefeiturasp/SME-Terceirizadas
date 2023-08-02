@@ -2,7 +2,7 @@ import json
 
 from rest_framework import status
 
-from sme_terceirizadas.terceirizada.models import Terceirizada
+from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
 
 def test_url_terceirizadas_autenticado(client_autenticado_terceiro):
@@ -167,13 +167,6 @@ def test_cadastro_empresa_remove_lote_erro(users_codae_gestao_alimentacao):
                 ]
             }
         ],
-        'super_admin': {
-            'username': '97596447027', 'email': 'empresa@empresa2.teste.com', 'nome': 'Empresa LTDA2',
-            'cpf': '97596447027', 'cargo': 'vagal',
-            'contatos': [{
-                'email': 'empresa@empresa2.teste.com', 'telefone': '12 32131 2315'
-            }]
-        },
         'nome_fantasia': 'Empresa Empresada', 'razao_social': 'Empresa LTDA', 'cnpj': '58833199000119',
         'representante_legal': 'Seu Carlos', 'representante_telefone': '12 12212 1121',
         'representante_email': 'carlos@empresa.teste.com', 'endereco': 'Rua dos Coqueiros 123', 'cep': '09123456',
@@ -197,3 +190,19 @@ def test_url_authorized_emails_terceirizadas_por_modulo(client_autenticado_terce
     client = client_autenticado_terceiro
     response = client.get('/emails-terceirizadas-modulos/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_encerrar_contrato(client_autenticado_terceiro):
+    response = client_autenticado_terceiro.patch('/contratos/44d51e10-8999-48bb-889a-1540c9e8c895/encerrar-contrato/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['encerrado'] is True
+    assert 'data_hora_encerramento' in response.json()
+
+
+def test_encerrar_contrato_integrity_error(client_autenticado_terceiro):
+    Contrato.objects.filter(uuid='44d51e10-8999-48bb-889a-1540c9e8c895').update(encerrado=True)
+    response = client_autenticado_terceiro.patch('/contratos/44d51e10-8999-48bb-889a-1540c9e8c895/encerrar-contrato/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': 'Contrato já encerrado. Não é possivel encerrar novamente!'
+    }

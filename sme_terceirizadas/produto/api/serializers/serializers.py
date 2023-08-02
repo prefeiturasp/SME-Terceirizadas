@@ -411,7 +411,7 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomologacaoProduto
         fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
-                  'protocolo_analise_sensorial', 'ultima_analise')
+                  'protocolo_analise_sensorial', 'ultima_analise', 'esta_homologado', 'tem_copia')
 
 
 class ProdutoBaseSerializer(serializers.ModelSerializer):
@@ -477,7 +477,8 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
     def get_data_edital_suspenso_mais_recente(self, obj):
         workflow = self.context.get('workflow', '')
         data = obj.data_edital_suspenso_mais_recente
-        if obj.status == 'CODAE_HOMOLOGADO' and workflow == 'CODAE_SUSPENDEU' and data:
+        if (obj.status in ['CODAE_HOMOLOGADO', 'CODAE_AUTORIZOU_RECLAMACAO'] and
+                workflow in ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO'] and data):
             if data.date() == datetime.date.today():
                 return datetime.datetime.strftime(data, '%d/%m/%Y %H:%M')
             return datetime.datetime.strftime(data, '%d/%m/%Y')
@@ -503,7 +504,7 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
         fields = ('uuid', 'nome_produto', 'marca_produto', 'fabricante_produto', 'status', 'id_externo',
                   'log_mais_recente', 'nome_usuario_log_de_reclamacao', 'qtde_reclamacoes', 'qtde_questionamentos',
                   'tem_vinculo_produto_edital_suspenso', 'data_edital_suspenso_mais_recente', 'editais',
-                  'produto_editais')
+                  'produto_editais', 'tem_copia')
 
 
 class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
