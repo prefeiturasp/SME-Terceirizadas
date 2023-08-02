@@ -4,7 +4,7 @@ import logging
 from celery import shared_task
 from django.template.loader import render_to_string
 
-from config import celery
+from config import celery  # noqa: I001
 from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow
 from sme_terceirizadas.dados_comuns.models import Notificacao
 from sme_terceirizadas.dados_comuns.tasks import envia_email_em_massa_task
@@ -19,7 +19,6 @@ from sme_terceirizadas.logistica.api.helpers import (
     retorna_dados_normalizados_excel_visao_distribuidor
 )
 from sme_terceirizadas.logistica.models.guia import Guia
-from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.relatorios.relatorios import relatorio_guia_de_remessa
 
 from .api.services.exporta_para_excel import RequisicoesExcelService
