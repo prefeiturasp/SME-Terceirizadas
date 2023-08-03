@@ -797,13 +797,15 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                     vinc_prod_edital.suspenso_por = request.user
                     vinc_prod_edital.suspenso_em = datetime.now()
                     vinc_prod_edital.save()
+                    vinc_prod_edital.criar_data_hora_vinculo()
             for edital_uuid in editais:
                 if edital_uuid not in array_uuids_vinc:
-                    ProdutoEdital.objects.create(
+                    produto_edital = ProdutoEdital.objects.create(
                         produto=homologacao_produto.produto,
                         edital=Edital.objects.get(uuid=edital_uuid),
                         tipo_produto=ProdutoEdital.DIETA_ESPECIAL if eh_para_alunos_com_dieta else ProdutoEdital.COMUM
                     )
+                    produto_edital.criar_data_hora_vinculo(suspenso=False)
             return Response({'uuid': homologacao_produto.uuid, 'status': str(homologacao_produto.status)},
                             status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
