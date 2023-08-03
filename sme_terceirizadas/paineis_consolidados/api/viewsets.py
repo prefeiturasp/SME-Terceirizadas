@@ -921,7 +921,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         return_dict = []
 
         def append(dia, inclusao):
-            return_dict.append(formata_resultado_inclusoes_etec_autorizadas(dia, mes, ano, inclusao))
+            resultado = formata_resultado_inclusoes_etec_autorizadas(dia, mes, ano, inclusao)
+            return_dict.append(resultado) if resultado else None
 
         for sol_escola in query_set:
             inclusao = sol_escola.get_raw_model.objects.get(uuid=sol_escola.uuid)

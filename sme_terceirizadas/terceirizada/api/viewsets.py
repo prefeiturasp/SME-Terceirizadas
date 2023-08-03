@@ -1,19 +1,18 @@
 from django.db.models import Q
 from django.db.models.functions import Lower
+from django.db.utils import IntegrityError
 from django_filters import rest_framework as filters
-from rest_framework import serializers, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSerializer
-from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
+from ...escola.api.serializers import TerceirizadaSerializer
 from ...relatorios.relatorios import relatorio_quantitativo_por_terceirizada
 from ..forms import RelatorioQuantitativoForm
 from ..models import Contrato, Edital, EmailTerceirizadaPorModulo, Terceirizada
 from ..utils import TerceirizadasEmailsPagination, obtem_dados_relatorio_quantitativo
 from .filters import EmailTerceirizadaPorModuloFilter, TerceirizadaFilter
-from .permissions import PodeCriarAdministradoresDaTerceirizada
 from .serializers.serializers import (
     ContratoSerializer,
     DistribuidorSimplesSerializer,
@@ -78,9 +77,10 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
         response = {'results': DistribuidorSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='lista-fornecedores-simples')
-    def lista_fornecedores_simples(self, request):
-        queryset = Terceirizada.objects.filter(tipo_servico=Terceirizada.FORNECEDOR)
+    @action(detail=False, methods=['GET'], url_path='lista-empresas-cronograma')
+    def lista_empresas_cronograma(self, request):
+        queryset = Terceirizada.objects.filter(
+            tipo_servico__in=[Terceirizada.FORNECEDOR, Terceirizada.FORNECEDOR_E_DISTRIBUIDOR])
         response = {'results': TerceirizadaSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
@@ -145,41 +145,6 @@ class EditalContratosViewSet(viewsets.ModelViewSet):
         return EditalContratosSerializer
 
 
-class VinculoTerceirizadaViewSet(ReadOnlyModelViewSet):
-    lookup_field = 'uuid'
-    queryset = Terceirizada.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaTerceirizada]
-    serializer_class = VinculoSerializer
-
-    @action(detail=True, methods=['post'])
-    def criar_equipe_administradora(self, request, uuid=None):
-        try:
-            terceirizada = self.get_object()
-            usuario = UsuarioUpdateSerializer().create_nutricionista(terceirizada=terceirizada,
-                                                                     validated_data=request.data)
-            return Response(UsuarioDetalheSerializer(usuario).data)
-        except serializers.ValidationError as e:
-            return Response(data=dict(detail=e.args[0]), status=e.status_code)
-
-    @action(detail=True)
-    def get_equipe_administradora(self, request, uuid=None):
-        terceirizada = self.get_object()
-        vinculos = terceirizada.vinculos_que_podem_ser_finalizados
-        return Response(self.get_serializer(vinculos, many=True).data)
-
-    @action(detail=True, methods=['patch'])
-    def finalizar_vinculo(self, request, uuid=None):
-        try:
-            terceirizada = self.get_object()
-            vinculo_uuid = request.data.get('vinculo_uuid')
-            vinculo = terceirizada.vinculos.get(uuid=vinculo_uuid)
-            assert vinculo.usuario.super_admin_terceirizadas is False, 'Não pode excluir usuário Administrador'
-            vinculo.finalizar_vinculo()
-            return Response(self.get_serializer(vinculo).data)
-        except AssertionError as e:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
 class EmailTerceirizadaPorModuloViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = EmailsTerceirizadaPorModuloSerializer
@@ -204,7 +169,7 @@ class ContratoViewSet(ReadOnlyModelViewSet):
 
         try:
             dados_encerramento = Contrato.encerra_contrato(uuid=contrato.uuid)
-        except Exception as err:
-            return Response(dict(detail=f'Erro ao encerrar contrato: {err}'), status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError as err:
+            return Response(dict(detail=f'{str(err)}'), status=status.HTTP_400_BAD_REQUEST)
 
         return Response(dados_encerramento, status=status.HTTP_200_OK)

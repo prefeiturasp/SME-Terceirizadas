@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
 from ...paineis_consolidados import models
-from ...perfil.api.serializers import PerfilSimplesSerializer, SuperAdminTerceirizadaSerializer
+from ...perfil.api.serializers import PerfilSimplesSerializer
 from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import ContratoSimplesSerializer, TerceirizadaSimplesSerializer
 from ...terceirizada.models import Terceirizada
@@ -172,10 +172,12 @@ class LoteReclamacaoSerializer(serializers.ModelSerializer):
 class EscolaSimplissimaSerializer(serializers.ModelSerializer):
     lote = LoteReclamacaoSerializer()
     tipo_gestao = serializers.CharField()
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol', 'codigo_codae', 'lote', 'quantidade_alunos', 'tipo_gestao')
+        fields = ('uuid', 'nome', 'codigo_eol', 'codigo_codae', 'diretoria_regional', 'lote',
+                  'quantidade_alunos', 'tipo_gestao')
 
 
 class EscolaEolSimplesSerializer(serializers.ModelSerializer):
@@ -314,7 +316,6 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
     lotes = LoteNomeSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
     id_externo = serializers.CharField()
-    super_admin = SuperAdminTerceirizadaSerializer()
 
     def get_nutricionistas(self, obj):
         if any(contato.eh_nutricionista for contato in obj.contatos.all()):

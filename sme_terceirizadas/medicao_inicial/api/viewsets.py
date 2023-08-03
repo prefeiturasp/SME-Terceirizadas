@@ -1,7 +1,9 @@
 import datetime
 import json
 
-from django.db.models import QuerySet
+from dateutil.relativedelta import relativedelta
+from django.db.models import IntegerField, Q, QuerySet
+from django.db.models.functions import Cast
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -19,7 +21,6 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin
 )
-from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
@@ -32,7 +33,7 @@ from ..models import (
     ValorMedicao
 )
 from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
-from ..utils import tratar_valores
+from ..utils import atualizar_anexos_ocorrencia, atualizar_status_ocorrencia, tratar_valores
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     CategoriaMedicaoSerializer,
@@ -379,6 +380,35 @@ class SolicitacaoMedicaoInicialViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-solicitacao-medicao',
+            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    def codae_aprova_solicitacao_medicao(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            medicoes = solicitacao_medicao_inicial.medicoes.all()
+            status_medicao_aprovada = 'MEDICAO_APROVADA_PELA_CODAE'
+            if medicoes.exclude(status=status_medicao_aprovada).exists() or (
+                solicitacao_medicao_inicial.tem_ocorrencia and
+                    solicitacao_medicao_inicial.ocorrencia.status != status_medicao_aprovada):
+                mensagem = 'Erro: existe(m) pendência(s) de análise'
+                return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
+            solicitacao_medicao_inicial.codae_aprova_medicao(user=request.user)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='codae-solicita-correcao-medicao',
+            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    def codae_solicita_correcao_medicao(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            solicitacao_medicao_inicial.codae_pede_correcao_medicao(user=request.user)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao-para-dre',
             permission_classes=[UsuarioDiretorEscolaTercTotal])
     def escola_corrige_medicao_para_dre(self, request, uuid=None):
@@ -395,9 +425,28 @@ class SolicitacaoMedicaoInicialViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao-para-codae',
+            permission_classes=[UsuarioDiretorEscolaTercTotal])
+    def escola_corrige_medicao_para_codae(self, request, uuid=None):
+        solicitacao_medicao_inicial = self.get_object()
+        try:
+            status_medicao_corrigida_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+            if solicitacao_medicao_inicial.status == status_medicao_corrigida_codae:
+                raise InvalidTransitionError('solicitação já está no status Corrigido para CODAE')
+            solicitacao_medicao_inicial.ue_corrige_medicao_para_codae(user=request.user)
+            ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
+            ).update(habilitado_correcao=False)
+            serializer = self.get_serializer(solicitacao_medicao_inicial)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=['PATCH'], url_path='ue-atualiza-ocorrencia',)
     def ue_atualiza_ocorrencia(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()
+        status_ocorrencia = solicitacao_medicao_inicial.status
+        status_correcao_solicitada_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
         try:
             anexos_string = request.data.get('anexos', None)
             com_ocorrencias = request.data.get('com_ocorrencias', None)
@@ -405,23 +454,49 @@ class SolicitacaoMedicaoInicialViewSet(
             if com_ocorrencias == 'true' and anexos_string:
                 solicitacao_medicao_inicial.com_ocorrencias = True
                 anexos = json.loads(anexos_string)
-                for anexo in anexos:
-                    if '.pdf' in anexo['nome']:
-                        arquivo = convert_base64_to_contentfile(anexo['base64'])
-                        solicitacao_medicao_inicial.ocorrencia.ultimo_arquivo = arquivo
-                        solicitacao_medicao_inicial.ocorrencia.nome_ultimo_arquivo = anexo.get('nome')
-                        solicitacao_medicao_inicial.ocorrencia.save()
-                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user,
-                                                                  anexos=anexos,
-                                                                  justificativa=justificativa)
+                atualizar_anexos_ocorrencia(anexos, solicitacao_medicao_inicial)
+                if status_ocorrencia == status_correcao_solicitada_codae:
+                    solicitacao_medicao_inicial.ocorrencia.ue_corrige_ocorrencia_para_codae(user=request.user,
+                                                                                            anexos=anexos,
+                                                                                            justificativa=justificativa)
+                else:
+                    solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user,
+                                                                      anexos=anexos,
+                                                                      justificativa=justificativa)
             else:
                 solicitacao_medicao_inicial.com_ocorrencias = False
-                solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user, justificativa=justificativa)
+                atualizar_status_ocorrencia(
+                    status_ocorrencia,
+                    status_correcao_solicitada_codae,
+                    solicitacao_medicao_inicial,
+                    request,
+                    justificativa
+                )
             solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='solicitacoes-lancadas',
+            permission_classes=[UsuarioEscolaTercTotal])
+    def solicitacoes_lancadas(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        escola_uuid = request.query_params.get('escola')
+        data_ano_anterior = datetime.date.today() - relativedelta(years=1)
+        medicao_em_preenchimento = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+
+        queryset = queryset.filter(escola__uuid=escola_uuid).annotate(
+            mes_int=Cast('mes', output_field=IntegerField()),
+            ano_int=Cast('ano', output_field=IntegerField())
+        ).filter(
+            Q(ano=datetime.date.today().year) |
+            Q(ano_int=data_ano_anterior.year, mes_int__gte=data_ano_anterior.month)
+        ).exclude(status=medicao_em_preenchimento)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -511,10 +586,37 @@ class MedicaoViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-periodo',
+            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    def codae_aprova_periodo(self, request, uuid=None):
+        medicao = self.get_object()
+        try:
+            medicao.codae_aprova_periodo(user=request.user)
+            serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='codae-pede-correcao-periodo',
+            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    def codae_pede_correcao_periodo(self, request, uuid=None):
+        medicao = self.get_object()
+        justificativa = request.data.get('justificativa', None)
+        uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', None)
+        try:
+            ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
+            medicao.codae_pede_correcao_periodo(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(medicao)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao',
-            permission_classes=[UsuarioEscolaTercTotal])
+            permission_classes=[UsuarioDiretorEscolaTercTotal])
     def escola_corrige_medicao(self, request, uuid=None):
         medicao = self.get_object()
+        status_correcao_solicitada_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
+        status_medicao_corrigida_para_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
         try:
             for valor_medicao in request.data:
                 ValorMedicao.objects.filter(
@@ -523,7 +625,10 @@ class MedicaoViewSet(
                     nome_campo=valor_medicao.get('nome_campo', ''),
                     categoria_medicao=valor_medicao.get('categoria_medicao', '')
                 ).update(valor=valor_medicao.get('valor', ''))
-            medicao.ue_corrige(user=request.user)
+            if medicao.status in [status_correcao_solicitada_codae, status_medicao_corrigida_para_codae]:
+                medicao.ue_corrige_periodo_grupo_para_codae(user=request.user)
+            else:
+                medicao.ue_corrige(user=request.user)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -568,12 +673,35 @@ class OcorrenciaViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['PATCH'], url_path='codae-pede-correcao-ocorrencia',)
+    def codae_pede_correcao_ocorrencia(self, request, uuid=None):
+        object = self.get_object()
+        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
+        justificativa = request.data.get('justificativa', None)
+        try:
+            ocorrencia.codae_pede_correcao_ocorrencia(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=['PATCH'], url_path='dre-aprova-ocorrencia',)
     def dre_aprova_ocorrencia(self, request, uuid=None):
         object = self.get_object()
         ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
         try:
             ocorrencia.dre_aprova(user=request.user)
+            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-ocorrencia',)
+    def codae_aprova_ocorrencia(self, request, uuid=None):
+        object = self.get_object()
+        ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
+        try:
+            ocorrencia.codae_aprova_ocorrencia(user=request.user)
             serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:

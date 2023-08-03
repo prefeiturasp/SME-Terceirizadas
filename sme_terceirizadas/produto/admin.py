@@ -66,7 +66,7 @@ class ProdutoModelAdmin(admin.ModelAdmin):
 
 @admin.register(NomeDeProdutoEdital)
 class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'get_usuario', 'criado_em', 'ativo')
+    list_display = ('nome', 'tipo_produto', 'get_usuario', 'criado_em', 'ativo')
     search_fields = ('nome',)
     list_filter = ('ativo',)
     readonly_fields = ('get_usuario',)

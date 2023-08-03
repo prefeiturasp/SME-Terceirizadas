@@ -7,6 +7,7 @@ from sme_terceirizadas.dados_comuns.api.serializers import (
     LogSolicitacoesUsuarioComAnexosSerializer,
     LogSolicitacoesUsuarioSerializer
 )
+from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
 from sme_terceirizadas.escola.api.serializers import TipoUnidadeEscolarSerializer
 from sme_terceirizadas.medicao_inicial.models import (
@@ -34,12 +35,26 @@ class DiaSobremesaDoceSerializer(serializers.ModelSerializer):
 class OcorrenciaMedicaoInicialSerializer(serializers.ModelSerializer):
     logs = LogSolicitacoesUsuarioComAnexosSerializer(many=True)
     ultimo_arquivo = serializers.SerializerMethodField()
+    ultimo_arquivo_excel = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
 
     def get_ultimo_arquivo(self, obj):
         env = environ.Env()
         api_url = env.str('URL_ANEXO', default='http://localhost:8000')
         return f'{api_url}{obj.ultimo_arquivo.url}'
+
+    def get_ultimo_arquivo_excel(self, obj):
+        env = environ.Env()
+        api_url = env.str('URL_ANEXO', default='http://localhost:8000')
+        status = [LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
+                  LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PELA_UE,
+                  LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PARA_CODAE]
+        logs = obj.logs.filter(status_evento__in=status)
+        if logs:
+            anexo_excel = logs.last().anexos.filter(nome__icontains='.xls').first()
+            if anexo_excel:
+                return f'{api_url}{anexo_excel.arquivo.url}'
+        return ''
 
     def get_status(self, obj):
         return obj.status.name

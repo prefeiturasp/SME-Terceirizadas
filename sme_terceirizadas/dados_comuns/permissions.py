@@ -193,6 +193,18 @@ class UsuarioTerceirizada(BasePermission):
         return retorno
 
 
+class UsuarioTerceirizadaProduto(BasePermission):
+    """Permite acesso a usuários com vinculo a uma Terceirizada."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
+        )
+
+
 class PermissaoParaRecuperarObjeto(BasePermission):
     """Permite acesso ao objeto se o objeto pertence ao usuário."""
 
@@ -606,7 +618,7 @@ class PermissaoParaCadastrarLaboratorio(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE]
+                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 )
             )
         )
@@ -621,7 +633,26 @@ class PermissaoParaCadastrarVisualizarEmbalagem(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE, DILOG_CRONOGRAMA]
+                    usuario.vinculo_atual.perfil.nome in [
+                        DILOG_QUALIDADE, DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA
+                    ]
+                )
+            )
+        )
+
+
+class PermissaoParaCadastrarVisualizarUnidadesMedida(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [
+                        DILOG_QUALIDADE, DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA
+                    ]
                 )
             )
         )

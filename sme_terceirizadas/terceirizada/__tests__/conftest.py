@@ -28,7 +28,7 @@ def client():
 
 
 @pytest.fixture
-def client_autenticado_terceiro(client_autenticado, ):
+def client_autenticado_terceiro(client_autenticado):
     terceirizada = mommy.make(Terceirizada,
                               contatos=[mommy.make('dados_comuns.Contato')],
                               make_m2m=True
@@ -38,7 +38,11 @@ def client_autenticado_terceiro(client_autenticado, ):
                terceirizada=terceirizada,
                contatos=[mommy.make('dados_comuns.Contato')],
                )
-    mommy.make(Contrato, terceirizada=terceirizada, edital=mommy.make(Edital), make_m2m=True)
+    mommy.make(Contrato,
+               terceirizada=terceirizada,
+               edital=mommy.make(Edital),
+               make_m2m=True,
+               uuid='44d51e10-8999-48bb-889a-1540c9e8c895')
     return client_autenticado
 
 

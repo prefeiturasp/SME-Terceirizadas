@@ -6,32 +6,16 @@ from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
-from rest_framework import permissions, serializers, status
+from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
-from ...dados_comuns.constants import (
-    ADMINISTRADOR_DIETA_ESPECIAL,
-    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    ADMINISTRADOR_GESTAO_PRODUTO,
-    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-    ADMINISTRADOR_UE,
-    COGESTOR_DRE
-)
 from ...dados_comuns.permissions import UsuarioCODAEGestaoAlimentacao, UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
-from ...escola.api.permissions import (
-    PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
-    PodeCriarAdministradoresDaCODAEGestaoDietaEspecial,
-    PodeCriarAdministradoresDaCODAEGestaoProdutos,
-    PodeCriarAdministradoresDaCODAESupervisaoNutricao,
-    PodeCriarAdministradoresDaDiretoriaRegional,
-    PodeCriarAdministradoresDaEscola
-)
 from ...escola.api.serializers import (
     AlunoSerializer,
     AlunoSimplesSerializer,
@@ -45,19 +29,16 @@ from ...escola.api.serializers import (
     LoteParaFiltroSerializer,
     LoteSerializer,
     LoteSimplesSerializer,
-    TipoUnidadeParaFiltroSerializer,
-    UsuarioDetalheSerializer
+    TipoUnidadeParaFiltroSerializer
 )
 from ...escola.api.serializers_create import (
     EscolaPeriodoEscolarCreateSerializer,
-    EscolaSimplesUpdateSerializer,
     FaixaEtariaSerializer,
     LoteCreateSerializer,
     MudancaFaixasEtariasCreateSerializer
 )
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
-from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..forms import AlunosPorFaixaEtariaForm
 from ..models import (
     Aluno,
@@ -100,82 +81,10 @@ from .serializers import (
 )
 
 
-# https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
-class VinculoViewSet(ReadOnlyModelViewSet):
-    lookup_field = 'uuid'
-    serializer_class = VinculoSerializer
-
-    @action(detail=True, methods=['post'])
-    def criar_equipe_administradora(self, request, uuid=None):
-        try:
-            instituicao = self.get_object()
-            data = request.data.copy()
-            data['instituicao'] = instituicao.nome
-            usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
-            usuario.criar_vinculo_administrador(instituicao, nome_perfil=self.nome_perfil)  # noqa
-            return Response(UsuarioDetalheSerializer(usuario).data)
-        except serializers.ValidationError as e:
-            return Response(data=dict(detail=e.args[0]), status=e.status_code)
-
-    @action(detail=True)
-    def get_equipe_administradora(self, request, uuid=None):
-        instituicao = self.get_object()
-        vinculos = instituicao.vinculos_que_podem_ser_finalizados
-        return Response(self.get_serializer(vinculos, many=True).data)
-
-    @action(detail=True, methods=['patch'])
-    def finalizar_vinculo(self, request, uuid=None):
-        instituicao = self.get_object()
-        vinculo_uuid = request.data.get('vinculo_uuid')
-        vinculo = instituicao.vinculos.get(uuid=vinculo_uuid)
-        vinculo.finalizar_vinculo()
-        return Response(self.get_serializer(vinculo).data)
-
-
-class VinculoEscolaViewSet(VinculoViewSet):
-    queryset = Escola.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaEscola]
-    nome_perfil = ADMINISTRADOR_UE
-
-
-class VinculoDiretoriaRegionalViewSet(VinculoViewSet):
-    queryset = DiretoriaRegional.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaDiretoriaRegional]
-    nome_perfil = COGESTOR_DRE
-
-
-class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]  # noqa
-    nome_perfil = ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
-
-
-class VinculoCODAEGestaoDietaEspecialViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoDietaEspecial]
-    nome_perfil = ADMINISTRADOR_DIETA_ESPECIAL
-
-
-class VinculoCODAEGestaoProdutosViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoProdutos]
-    nome_perfil = ADMINISTRADOR_GESTAO_PRODUTO
-
-
-class VinculoCODAESupervisaoNutricaoViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAESupervisaoNutricao]
-    nome_perfil = ADMINISTRADOR_SUPERVISAO_NUTRICAO
-
-
 class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     lookup_field = 'uuid'
+    serializer_class = EscolaSimplesSerializer
     queryset = Escola.objects.all()
-
-    def get_serializer_class(self):
-        if self.action in ['update', 'partial_update']:
-            return EscolaSimplesUpdateSerializer
-        return EscolaSimplesSerializer
 
 
 class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):

@@ -314,3 +314,17 @@ def test_url_relatorios_alunos_matriculados_actions(client_autenticado_da_dre):
 
     response = client.get(f'/relatorio-alunos-matriculados/filtrar/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_escolas_simplissimas_com_paginacao(client_autenticado_da_escola):
+    response = client_autenticado_da_escola.get('/escolas-simplissima/?page=1')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 4
+    assert 'count' in response.json()
+
+
+def test_escolas_simplissimas_sem_paginacao(client_autenticado_da_escola):
+    response = client_autenticado_da_escola.get('/escolas-simplissima/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 4
+    assert 'count' not in response.json()

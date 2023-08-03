@@ -918,24 +918,6 @@ def relatorio_produtos_agrupado_terceirizada(tipo_usuario, dados_agrupados, dado
     return html_to_pdf_file(html_string, 'produtos_homologados_por_terceirizada.pdf', True)
 
 
-def relatorio_produtos_situacao(request, queryset, filtros):
-
-    for produto in queryset:
-        if produto.ultima_homologacao:
-            homologacao = produto.ultima_homologacao
-            log_solicitacao = LogSolicitacoesUsuario.objects.filter(uuid_original=homologacao.uuid).first()
-            produto.justificativa = log_solicitacao.justificativa
-    html_string = render_to_string(
-        'relatorio_produtos_situacao.html',
-        {
-            'queryset': queryset,
-            'filtros': filtros,
-            'qtde_filtros': conta_filtros(filtros)
-        }
-    )
-    return html_to_pdf_response(html_string, 'produtos_situacao.pdf')
-
-
 def relatorio_produto_analise_sensorial_recebimento(request, produto):
     homologacao = produto.homologacao
     terceirizada = homologacao.rastro_terceirizada

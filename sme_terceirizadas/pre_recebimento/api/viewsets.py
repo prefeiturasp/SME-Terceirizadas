@@ -21,6 +21,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaAssinarCronogramaUsuarioFornecedor,
     PermissaoParaCadastrarLaboratorio,
     PermissaoParaCadastrarVisualizarEmbalagem,
+    PermissaoParaCadastrarVisualizarUnidadesMedida,
     PermissaoParaCriarCronograma,
     PermissaoParaCriarSolicitacoesAlteracaoCronograma,
     PermissaoParaDarCienciaAlteracaoCronograma,
@@ -30,13 +31,24 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     ViewSetActionPermissionMixin
 )
-from sme_terceirizadas.pre_recebimento.api.filters import CronogramaFilter, SolicitacaoAlteracaoCronogramaFilter
-from sme_terceirizadas.pre_recebimento.api.paginations import CronogramaPagination
+from sme_terceirizadas.pre_recebimento.api.filters import (
+    CronogramaFilter,
+    EmbalagensQldFilter,
+    LaboratorioFilter,
+    SolicitacaoAlteracaoCronogramaFilter,
+    UnidadeMedidaFilter
+)
+from sme_terceirizadas.pre_recebimento.api.paginations import (
+    CronogramaPagination,
+    EmbalagemQldPagination,
+    LaboratorioPagination
+)
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
     EmbalagemQldCreateSerializer,
     LaboratorioCreateSerializer,
-    SolicitacaoDeAlteracaoCronogramaCreateSerializer
+    SolicitacaoDeAlteracaoCronogramaCreateSerializer,
+    UnidadeMedidaCreateSerializer
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
@@ -44,19 +56,26 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSerializer,
     EmbalagemQldSerializer,
     LaboratorioSerializer,
+    LaboratorioSimplesFiltroSerializer,
+    NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
-    SolicitacaoAlteracaoCronogramaSerializer
+    SolicitacaoAlteracaoCronogramaSerializer,
+    UnidadeMedidaSerialzer
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
-    SolicitacaoAlteracaoCronograma
+    SolicitacaoAlteracaoCronograma,
+    UnidadeMedida
 )
-from sme_terceirizadas.pre_recebimento.utils import ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
+from sme_terceirizadas.pre_recebimento.utils import (
+    ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
+    UnidadeMedidaPagination
+)
 
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...relatorios.relatorios import get_pdf_cronograma
@@ -277,8 +296,11 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
 class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = Laboratorio.objects.all()
+    queryset = Laboratorio.objects.all().order_by('-criado_em')
     serializer_class = LaboratorioSerializer
+    pagination_class = LaboratorioPagination
+    filterset_class = LaboratorioFilter
+    filter_backends = (filters.DjangoFilterBackend,)
     permission_classes = (PermissaoParaCadastrarLaboratorio,)
     permission_action_classes = {
         'create': [PermissaoParaCadastrarLaboratorio],
@@ -291,18 +313,28 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
         else:
             return LaboratorioCreateSerializer
 
-    @action(detail=False, methods=['GET'], url_path='lista-laboratorios')
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-laboratorios')
     def lista_nomes_laboratorios(self, request):
         queryset = Laboratorio.objects.all()
         response = {'results': [q.nome for q in queryset]}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='lista-laboratorios')
+    def lista_laboratorios_para_filtros(self, request):
+        laboratorios = self.get_queryset()
+        serializer = LaboratorioSimplesFiltroSerializer(laboratorios, many=True).data
+        response = {'results': serializer}
+        return Response(response)
+
 
 class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = EmbalagemQld.objects.all()
+    queryset = EmbalagemQld.objects.all().order_by('-criado_em')
     serializer_class = EmbalagemQldSerializer
     permission_classes = (PermissaoParaCadastrarVisualizarEmbalagem,)
+    pagination_class = EmbalagemQldPagination
+    filterset_class = EmbalagensQldFilter
+    filter_backends = (filters.DjangoFilterBackend,)
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
@@ -313,6 +345,12 @@ class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes-embalagens')
     def lista_nomes_embalagens(self, request):
         queryset = EmbalagemQld.objects.all().values_list('nome', flat=True)
+        response = {'results': queryset}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-abreviacao-embalagens')
+    def lista_abreviacoes_embalagens(self, request):
+        queryset = EmbalagemQld.objects.all().values_list('abreviacao', flat=True)
         response = {'results': queryset}
         return Response(response)
 
@@ -450,3 +488,24 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
                             status=HTTP_406_NOT_ACCEPTABLE)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+
+class UnidadeMedidaViewset(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = UnidadeMedida.objects.all().order_by('-criado_em')
+    permission_classes = (PermissaoParaCadastrarVisualizarUnidadesMedida,)
+    pagination_class = UnidadeMedidaPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = UnidadeMedidaFilter
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return UnidadeMedidaSerialzer
+        return UnidadeMedidaCreateSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-abreviacoes')
+    def listar_nomes_abreviacoes(self, request):
+        unidades_medida = self.get_queryset()
+        serializer = NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True)
+        response = {'results': serializer.data}
+        return Response(response)

@@ -4,6 +4,7 @@ from calendar import monthrange
 from django.db.models import Sum
 
 from sme_terceirizadas.dados_comuns.constants import ORDEM_PERIODOS_GRUPOS
+from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.dieta_especial.models import LogQuantidadeDietasAutorizadas
 from sme_terceirizadas.escola.models import DiaCalendario, LogAlunosMatriculadosPeriodoEscola
 from sme_terceirizadas.medicao_inicial.models import ValorMedicao
@@ -701,3 +702,29 @@ def build_tabela_somatorio_body(solicitacao):
             ]
         )
     return body_tabela_somatorio
+
+
+def atualizar_anexos_ocorrencia(
+    anexos,
+    solicitacao_medicao_inicial
+):
+    for anexo in anexos:
+        if '.pdf' in anexo['nome']:
+            arquivo = convert_base64_to_contentfile(anexo['base64'])
+            solicitacao_medicao_inicial.ocorrencia.ultimo_arquivo = arquivo
+            solicitacao_medicao_inicial.ocorrencia.nome_ultimo_arquivo = anexo.get('nome')
+            solicitacao_medicao_inicial.ocorrencia.save()
+
+
+def atualizar_status_ocorrencia(
+    status_ocorrencia,
+    status_correcao_solicitada_codae,
+    solicitacao_medicao_inicial,
+    request,
+    justificativa
+):
+    if status_ocorrencia == status_correcao_solicitada_codae:
+        solicitacao_medicao_inicial.ocorrencia.ue_corrige_ocorrencia_para_codae(
+            user=request.user, justificativa=justificativa)
+    else:
+        solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user, justificativa=justificativa)
