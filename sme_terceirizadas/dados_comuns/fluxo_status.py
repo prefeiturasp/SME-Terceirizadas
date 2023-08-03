@@ -522,10 +522,10 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                 'url': url
             }
         )
-        envia_email_em_massa_task.delay(
+        envia_email_unico_task.delay(
             assunto=f'[SIGPAE] Nova Requisição de Entrega N° {self.numero_solicitacao}',
-            emails=[self.distribuidor.responsavel_email] + self._partes_interessadas_codae_dilog_logistica(),
             corpo='',
+            email=self.distribuidor.responsavel_email,
             html=html
         )
 
@@ -540,10 +540,10 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                 'url': url
             }
         )
-        envia_email_em_massa_task.delay(
+        envia_email_unico_task.delay(
             assunto=f'[SIGPAE] Cancelamento de Guia(s) de Remessa da Requisição N° {self.numero_solicitacao}',
-            emails=[self.distribuidor.responsavel_email] + self._partes_interessadas_codae_dilog_logistica(),
             corpo='',
+            email=self.distribuidor.responsavel_email,
             html=html
         )
 
@@ -902,7 +902,7 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
         situacao = 'ACEITA'
         template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
-        partes_interessadas = self._partes_interessadas_distribuidor() + self._partes_interessadas_codae_dilog()
+        partes_interessadas = self._partes_interessadas_distribuidor()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, situacao)
 
@@ -923,7 +923,7 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
         situacao = 'NEGADA'
         template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
-        partes_interessadas = self._partes_interessadas_distribuidor() + self._partes_interessadas_codae_dilog()
+        partes_interessadas = self._partes_interessadas_distribuidor()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, situacao)
 
@@ -1050,7 +1050,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         titulo = f'Hoje tem Entrega de alimentos'
         assunto = f'[SIGPAE] Nova Guia de Remessa N° {self.numero_guia}'
         template = 'logistica_distribuidor_confirma_requisicao.html'
-        partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
+        partes_interessadas = self._partes_interessadas_escola()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, None, url)
 
@@ -1128,7 +1128,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         titulo = f'Reposição de alimentos Não Recebidos'
         assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
         template = 'logistica_escola_aviso_reposicao.html'
-        partes_interessadas = self._partes_interessadas_escola() + self._partes_interessadas_codae_dilog()
+        partes_interessadas = self._partes_interessadas_escola()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
 
@@ -3117,7 +3117,8 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('dre_aprova')
     def _dre_aprova_hook(self, *args, **kwargs):
         from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
-        from ..medicao_inicial.models import OcorrenciaMedicaoInicial, Medicao, SolicitacaoMedicaoInicial
+
+        from ..medicao_inicial.models import Medicao, OcorrenciaMedicaoInicial, SolicitacaoMedicaoInicial
         user = kwargs['user']
         if user:
             if user.vinculo_atual.perfil.nome not in [COGESTOR_DRE]:
@@ -3153,7 +3154,8 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('dre_pede_correcao')
     def _dre_pede_correcao_hook(self, *args, **kwargs):
         from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
-        from ..medicao_inicial.models import OcorrenciaMedicaoInicial, Medicao, SolicitacaoMedicaoInicial
+
+        from ..medicao_inicial.models import Medicao, OcorrenciaMedicaoInicial, SolicitacaoMedicaoInicial
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:
