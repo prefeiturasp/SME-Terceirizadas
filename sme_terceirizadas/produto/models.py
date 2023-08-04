@@ -220,6 +220,14 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
             suspenso=suspenso
         )
 
+    def data_hora_mais_proxima(self, data):
+        if data < self.datas_horas_vinculo.first().criado_em.date():
+            return self.datas_horas_vinculo.first()
+        for index, data_hora in enumerate(self.datas_horas_vinculo.all()):
+            if data_hora.criado_em.date() > data:
+                return self.datas_horas_vinculo.all()[index - 1]
+        return self.datas_horas_vinculo.last()
+
     def __str__(self):
         return f'{self.produto} -- {self.edital.numero}'
 
@@ -236,11 +244,12 @@ class DataHoraVinculoProdutoEdital(TemChaveExterna, CriadoEm):
 
     def __str__(self):
         return (f'{self.produto_edital.produto.nome} - {self.produto_edital.edital.numero} - '
-                f'{"Suspenso" if self.suspenso else "Ativo"}')
+                f'{"Suspenso" if self.suspenso else "Ativo"} - {self.criado_em.strftime("%d/%m/%Y")}')
 
     class Meta:
         verbose_name = 'Data e hora do vínculo'
         verbose_name_plural = 'Datas e horas do vínculo'
+        ordering = ('criado_em',)
 
 
 class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):

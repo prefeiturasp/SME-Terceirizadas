@@ -686,6 +686,16 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         raw_sql += 'ORDER BY log_criado_em DESC'
         return raw_sql, data
 
+    def exclui_produtos_suspensos(self, query_set, produtos_editais_mais_de_uma_data_hora, edital, data_homologacao):
+        homs_mais_de_uma_data_hora = query_set.filter(
+            produto__vinculos__in=produtos_editais_mais_de_uma_data_hora).distinct()
+        for hom_produto in homs_mais_de_uma_data_hora:
+            produto_edital = hom_produto.produto.vinculos.get(edital=edital)
+            data_hora = produto_edital.data_hora_mais_proxima(data_homologacao)
+            if data_hora.suspenso:
+                query_set = query_set.exclude(uuid=hom_produto.uuid)
+        return query_set
+
     def get_queryset_solicitacoes_homologacao_por_status(self, request_data, perfil_nome, tipo_usuario,
                                                          escola_ou_dre_id, filtro_aplicado):
         filtros = {}
@@ -709,28 +719,23 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)
                 ).filter(Q(id_amigavel__icontains=titulo) | Q(produto__nome__icontains=titulo))
             filtros_params = cria_filtro_homologacao_produto_por_parametros(request_data)
-            query_set_nao_homologados = query_set.filter(status='CODAE_NAO_HOMOLOGADO').filter(
-                **filtros_params).distinct()
+            query_set_nao_homologados = query_set.filter(
+                status__in=['CODAE_NAO_HOMOLOGADO', 'CODAE_AUTORIZOU_RECLAMACAO', 'CODAE_SUSPENDEU'],
+                eh_copia=False).filter(**filtros_params).distinct()
             query_set = query_set.filter(**filtros).filter(**filtros_params).filter(eh_copia=False).distinct()
             if request_data.get('data_homologacao'):
-                query_set_nao_homologados = [
-                    hom_produto for hom_produto in query_set_nao_homologados
-                    if hom_produto.logs.filter(
-                        status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO
-                    ).exists() and hom_produto.logs.filter(
-                        status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO
-                    ).first().criado_em.date() <= datetime.strptime(
-                        request_data.get('data_homologacao'), '%d/%m/%Y').date() < hom_produto.logs.filter(
-                        status_evento=LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO).first().criado_em.date()
-                ]
-                query_set = [
-                    hom_produto for hom_produto in query_set
-                    if hom_produto.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO
-                                               ).first().criado_em.date() <= datetime.strptime(
-                        request_data.get('data_homologacao'), '%d/%m/%Y').date()]
-                query_set = query_set + query_set_nao_homologados
+                data_homologacao = datetime.strptime(request_data.get('data_homologacao'), '%d/%m/%Y').date()
+                query_set = query_set | query_set_nao_homologados
+                query_set = query_set.filter(
+                    produto__vinculos__edital=edital,
+                    produto__vinculos__datas_horas_vinculo__suspenso=False,
+                    produto__vinculos__datas_horas_vinculo__criado_em__lt=data_homologacao
+                )
+                produtos_editais_mais_de_uma_data_hora = ProdutoEdital.objects.annotate(
+                    Count('datas_horas_vinculo')).filter(datas_horas_vinculo__count__gt=1)
+                query_set = (self.exclui_produtos_suspensos
+                             (query_set, produtos_editais_mais_de_uma_data_hora, edital, data_homologacao))
             query_set = sorted(query_set, key=lambda x: x.produto.data_homologacao or x.produto.criado_em, reverse=True)
-
         return query_set
 
     @action(detail=False,
