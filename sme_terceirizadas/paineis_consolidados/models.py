@@ -396,6 +396,23 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         return queryset
 
     @classmethod
+    def busca_filtro_dietas_especiais(cls, queryset, query_params, **kwargs):
+        if query_params.get('titulo'):
+            queryset = queryset.filter(
+                Q(uuid__icontains=query_params.get('titulo')) |
+                Q(escola_nome__icontains=query_params.get('titulo')) |
+                Q(lote_nome__icontains=query_params.get('titulo')) |
+                Q(nome_aluno__icontains=query_params.get('titulo')) |
+                Q(codigo_eol_aluno__icontains=query_params.get('titulo'))
+            )
+        if query_params.get('lote'):
+            queryset = queryset.filter(lote_uuid__icontains=query_params.get('lote'))
+        if query_params.get('status'):
+            queryset = queryset.filter(
+                conferido=query_params.get('status') == '1')
+        return queryset
+
+    @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
         raise NotImplementedError('Precisa implementar')
 
@@ -927,7 +944,7 @@ class SolicitacoesEscola(MoldeConsolidado):
                 status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL_TEMP,
                 status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP,
             ) | Q(
-                tipo_solicitacao_dieta='COMUM',
+                tipo_solicitacao_dieta__in=['COMUM', 'ALUNO_NAO_MATRICULADO'],
                 status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
                 status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
                 escola_uuid=escola_uuid
@@ -1004,6 +1021,16 @@ class SolicitacoesEscola(MoldeConsolidado):
         ).filter(
             status_atual__in=cls.PENDENTES_STATUS,
             status_evento__in=cls.PENDENTES_EVENTO
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_recebidas(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            escola_uuid=escola_uuid,
+            data_evento__lte=datetime.date.today()
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
     @classmethod
@@ -1103,6 +1130,19 @@ class SolicitacoesEscola(MoldeConsolidado):
         )
 
         return cls._conta_totais(query_set, query_set_mes_passado)
+
+    @classmethod
+    def map_queryset_por_status(cls, status, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        if not status:
+            return cls.objects.all()
+        mapeador = {
+            'AUTORIZADOS': f'cls.get_autorizados(escola_uuid="{escola_uuid}")',
+            'CANCELADOS': f'cls.get_cancelados(escola_uuid="{escola_uuid}")',
+            'NEGADOS': f'cls.get_negados(escola_uuid="{escola_uuid}")',
+            'RECEBIDAS': f'cls.get_recebidas(escola_uuid="{escola_uuid}")'
+        }
+        return eval(mapeador[status])
 
 
 class SolicitacoesDRE(MoldeConsolidado):

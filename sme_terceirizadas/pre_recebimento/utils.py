@@ -1,5 +1,6 @@
+from rest_framework.pagination import PageNumberPagination
 
-from sme_terceirizadas.dados_comuns.constants import DINUTRE_DIRETORIA
+from sme_terceirizadas.dados_comuns.constants import DILOG_DIRETORIA, DINUTRE_DIRETORIA
 
 
 class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles:
@@ -16,9 +17,22 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles:
         status = {
             DINUTRE_DIRETORIA: [
                 'CRONOGRAMA_CIENTE',
+                'APROVADO_DINUTRE',
+                'REPROVADO_DINUTRE'
+            ],
+            DILOG_DIRETORIA: [
+                ['APROVADO_DINUTRE', 'REPROVADO_DINUTRE'],
+                'APROVADO_DILOG',
+                'REPROVADO_DILOG'
             ]
         }
         if perfil not in status:
             raise ValueError('Perfil não existe')
 
         return status[perfil]
+
+
+class UnidadeMedidaPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100

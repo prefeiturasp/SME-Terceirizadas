@@ -1,25 +1,41 @@
 import datetime
+import io
 import logging
 
 from celery import shared_task
 from django.core import management
+from django.template.loader import render_to_string
 from requests import ConnectionError
 
+from sme_terceirizadas.dados_comuns.utils import (
+    atualiza_central_download,
+    atualiza_central_download_com_erro,
+    gera_objeto_na_central_download
+)
 from sme_terceirizadas.escola.utils_escola import atualiza_codigo_codae_das_escolas, atualiza_tipo_gestao_das_escolas
 from sme_terceirizadas.perfil.models.perfil import Vinculo
 
-from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, InversaoCardapio
+from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, AlteracaoCardapioCEMEI, InversaoCardapio
 from ..dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
-from ..escola.models import TipoTurma
+from ..escola.models import AlunosMatriculadosPeriodoEscola, FaixaEtaria, TipoTurma
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
-    InclusaoAlimentacaoDaCEI
+    InclusaoAlimentacaoDaCEI,
+    InclusaoDeAlimentacaoCEMEI
 )
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..kit_lanche.models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheCEMEI,
+    SolicitacaoKitLancheUnificada
+)
 from ..paineis_consolidados.models import SolicitacoesDRE
+from ..perfil.models import Usuario
+from ..relatorios.utils import html_to_pdf_file
 from .utils import calendario_sgp, registro_quantidade_alunos_matriculados_por_escola_periodo
+from .utils_montar_planilha_matriculados import build_xlsx_alunos_matriculados
 
 # https://docs.celeryproject.org/en/latest/userguide/tasks.html
 logger = logging.getLogger('sigpae.taskEscola')
@@ -102,15 +118,20 @@ def nega_solicitacoes_vencidas():
         SolicitacaoKitLancheAvulsa,
         SolicitacaoKitLancheCEIAvulsa,
         SolicitacaoKitLancheUnificada,
+        SolicitacaoKitLancheCEMEI,
         GrupoInclusaoAlimentacaoNormal,
         InclusaoAlimentacaoContinua,
         InclusaoAlimentacaoDaCEI,
+        InclusaoDeAlimentacaoCEMEI,
         AlteracaoCardapio,
         AlteracaoCardapioCEI,
+        AlteracaoCardapioCEMEI,
         InversaoCardapio]
 
     for classe_solicitacao in classes_solicitacoes:
         solicitacoes = classe_solicitacao.objects.filter(uuid__in=uuids_solicitacoes_dre_a_validar)
+        if classe_solicitacao == AlteracaoCardapio:
+            solicitacoes = solicitacoes.exclude(motivo__nome='Lanche Emergencial')
         for solicitacao in solicitacoes.all():
             vinculo_dre = Vinculo.objects.filter(
                 object_id=solicitacao.escola.diretoria_regional.id,
@@ -212,3 +233,73 @@ def calendario_escolas():  # noqa C901
     """
 
     calendario_sgp()
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=5,
+    retry_kwargs={'max_retries': 2},
+)
+def atualiza_cache_matriculados_por_faixa():
+    logger.debug(f'Iniciando task atualiza_cache_matriculados_por_faixa às {datetime.datetime.now()}')
+    management.call_command('atualiza_cache_matriculados_por_faixa', verbosity=0)
+
+
+def build_pdf_alunos_matriculados(dados, nome_arquivo):
+    html_string = render_to_string('relatorio_alunos_matriculados.html', dados)
+    return html_to_pdf_file(html_string, nome_arquivo, True)
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=15000,
+    soft_time_limit=15000
+)
+def gera_pdf_relatorio_alunos_matriculados_async(user, nome_arquivo, uuids):
+    logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
+    obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
+    try:
+        queryset = []
+        alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(uuid__in=uuids).order_by('escola__nome')
+        fxs = [{'nome': faixa.__str__(), 'uuid': str(faixa.uuid)} for faixa in FaixaEtaria.objects.filter(ativo=True)]
+        for matriculados in alunos_matriculados:
+            queryset.append(matriculados.formata_para_relatorio())
+        dados = {
+            'faixas_etarias': fxs,
+            'queryset': queryset,
+            'usuario': Usuario.objects.get(username=user).nome,
+        }
+        arquivo = build_pdf_alunos_matriculados(dados, nome_arquivo)
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+    logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=15000,
+    soft_time_limit=15000
+)
+def gera_xlsx_relatorio_alunos_matriculados_async(user, nome_arquivo, uuids):
+    logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
+    obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
+    try:
+        queryset = []
+        alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(uuid__in=uuids).order_by('escola__nome')
+        fxs = [{'nome': faixa.__str__(), 'uuid': str(faixa.uuid)} for faixa in FaixaEtaria.objects.filter(ativo=True)]
+        for matriculados in alunos_matriculados:
+            queryset.append(matriculados.formata_para_relatorio())
+        dados = {
+            'faixas_etarias': fxs,
+            'queryset': queryset,
+            'usuario': Usuario.objects.get(username=user).nome,
+        }
+        output = io.BytesIO()
+        build_xlsx_alunos_matriculados(dados, nome_arquivo, output)
+        atualiza_central_download(obj_central_download, nome_arquivo, output.read())
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+    logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')

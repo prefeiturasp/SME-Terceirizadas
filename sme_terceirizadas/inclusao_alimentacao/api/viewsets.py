@@ -132,7 +132,7 @@ class CodaeAutoriza():
         justificativa = request.data.get('justificativa', '')
         try:
             if obj.status == obj.workflow_class.DRE_VALIDADO:
-                obj.codae_autoriza(user=request.user)
+                obj.codae_autoriza(user=request.user, justificativa=justificativa)
             else:
                 obj.codae_autoriza_questionamento(
                     user=request.user, justificativa=justificativa)
@@ -491,15 +491,12 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, DREValida, CodaeAutoriza,
         justificativa = request.data.get('justificativa', '')
         try:
             uuids_a_cancelar = [qtd_periodo['uuid'] for qtd_periodo in quantidades_periodo if qtd_periodo['cancelado']]
-            if not uuids_a_cancelar or len(uuids_a_cancelar) == obj.quantidades_periodo.count():
+            if len(uuids_a_cancelar) == obj.quantidades_periodo.count():
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
-            else:
+                obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar).exclude(cancelado=True).update(
+                    cancelado=True, cancelado_justificativa=justificativa)
+            elif uuids_a_cancelar:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
-            obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar).exclude(cancelado=True).update(
-                cancelado_justificativa=justificativa)
-            if (obj.quantidades_periodo.count() != len(uuids_a_cancelar) or
-                (obj.quantidades_periodo.count() == len(uuids_a_cancelar)) and
-                    obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar, cancelado=True).exists()):
                 obj.quantidades_periodo.filter(uuid__in=uuids_a_cancelar).exclude(cancelado=True).update(
                     cancelado=True, cancelado_justificativa=justificativa)
             serializer = self.get_serializer(obj)

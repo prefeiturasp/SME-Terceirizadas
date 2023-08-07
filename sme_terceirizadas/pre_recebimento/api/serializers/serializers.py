@@ -11,7 +11,8 @@ from sme_terceirizadas.pre_recebimento.models import (
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
-    SolicitacaoAlteracaoCronograma
+    SolicitacaoAlteracaoCronograma,
+    UnidadeMedida
 )
 from sme_terceirizadas.produto.api.serializers.serializers import NomeDeProdutoEditalSerializer, UnidadeMedidaSerialzer
 from sme_terceirizadas.terceirizada.api.serializers.serializers import (
@@ -19,6 +20,8 @@ from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     DistribuidorSimplesSerializer,
     TerceirizadaSimplesSerializer
 )
+
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 
 
 class ProgramacaoDoRecebimentoDoCronogramaSerializer(serializers.ModelSerializer):
@@ -29,14 +32,34 @@ class ProgramacaoDoRecebimentoDoCronogramaSerializer(serializers.ModelSerializer
 
 class EtapasDoCronogramaSerializer(serializers.ModelSerializer):
     data_programada = serializers.SerializerMethodField()
+    quantidade_atual = serializers.SerializerMethodField()
+    data_programada_atual = serializers.SerializerMethodField()
 
     def get_data_programada(self, obj):
         return obj.data_programada.strftime('%d/%m/%Y') if obj.data_programada else None
 
+    def get_quantidade_atual(self, obj):
+        quantidade = obj.quantidade
+        solicitacao_alteracao = obj.alteracaocronogramaetapa_set.filter(
+            solicitacaoalteracaocronograma__status__in=['APROVADO_DILOG']).last()
+        if solicitacao_alteracao:
+            if solicitacao_alteracao.nova_quantidade:
+                quantidade = solicitacao_alteracao.nova_quantidade
+        return quantidade
+
+    def get_data_programada_atual(self, obj):
+        data = obj.data_programada
+        solicitacao_alteracao = obj.alteracaocronogramaetapa_set.filter(
+            solicitacaoalteracaocronograma__status__in=['APROVADO_DILOG']).last()
+        if solicitacao_alteracao:
+            if solicitacao_alteracao.nova_data_programada:
+                data = solicitacao_alteracao.nova_data_programada
+        return data.strftime('%d/%m/%Y') if data else None
+
     class Meta:
         model = EtapasDoCronograma
         fields = ('uuid', 'numero_empenho', 'etapa', 'parte', 'data_programada', 'quantidade',
-                  'total_embalagens')
+                  'total_embalagens', 'quantidade_atual', 'data_programada_atual')
 
 
 class SolicitacaoAlteracaoCronogramaSerializer(serializers.ModelSerializer):
@@ -67,6 +90,24 @@ class CronogramaSerializer(serializers.ModelSerializer):
                           'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento')
 
 
+class CronogramaComLogSerializer(serializers.ModelSerializer):
+    etapas = EtapasDoCronogramaSerializer(many=True)
+    programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(many=True)
+    armazem = DistribuidorSimplesSerializer()
+    status = serializers.CharField(source='get_status_display')
+    empresa = TerceirizadaSimplesSerializer()
+    contrato = ContratoSimplesSerializer()
+    produto = NomeDeProdutoEditalSerializer()
+    unidade_medida = UnidadeMedidaSerialzer()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+
+    class Meta:
+        model = Cronograma
+        fields = ('uuid', 'numero', 'status', 'criado_em', 'alterado_em', 'contrato', 'empresa',
+                          'produto', 'qtd_total_programada', 'unidade_medida',
+                          'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento', 'logs')
+
+
 class SolicitacaoAlteracaoCronogramaEtapaSerializer(serializers.ModelSerializer):
     etapa = serializers.CharField(source='etapa.uuid')
 
@@ -81,11 +122,12 @@ class SolicitacaoAlteracaoCronogramaCompletoSerializer(serializers.ModelSerializ
     cronograma = CronogramaSerializer()
     status = serializers.CharField(source='get_status_display')
     etapas = SolicitacaoAlteracaoCronogramaEtapaSerializer(many=True)
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
         fields = ('uuid', 'numero_solicitacao', 'fornecedor', 'status', 'criado_em', 'cronograma',
-                  'motivo', 'etapas', 'justificativa')
+                  'motivo', 'etapas', 'justificativa', 'logs')
 
 
 class CronogramaRascunhosSerializer(serializers.ModelSerializer):
@@ -165,7 +207,28 @@ class LaboratorioSerializer(serializers.ModelSerializer):
         exclude = ('id', )
 
 
+class LaboratorioSimplesFiltroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Laboratorio
+        fields = ('nome', 'cnpj')
+        read_only_fields = ('nome', 'cnpj')
+
+
 class EmbalagemQldSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmbalagemQld
         exclude = ('id', )
+
+
+class UnidadeMedidaSerialzer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedida
+        fields = ('uuid', 'nome', 'abreviacao', 'criado_em')
+        read_only_fields = ('uuid', 'nome', 'abreviacao', 'criado_em')
+
+
+class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedida
+        fields = ('uuid', 'nome', 'abreviacao')
+        read_only_fields = ('uuid', 'nome', 'abreviacao')

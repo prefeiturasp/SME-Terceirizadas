@@ -65,7 +65,8 @@ def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
                 logger.debug(f'Periodo {turno_resp["turno"]} não encontrado na tabela de Períodos')
                 continue
             periodos.append(periodo)
-            create_update_objeto_escola_periodo_escolar(escola, periodo, turno_resp['quantidade'])
+            if tipo_turma == 'REGULAR':
+                create_update_objeto_escola_periodo_escolar(escola, periodo, turno_resp['quantidade'])
             matricula_sigpae = AlunosMatriculadosPeriodoEscola.objects.filter(tipo_turma=tipo_turma,
                                                                               escola=escola,
                                                                               periodo_escolar=periodo).first()

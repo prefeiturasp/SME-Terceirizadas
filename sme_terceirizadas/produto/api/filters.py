@@ -27,8 +27,7 @@ class ProdutoFilter(filters.FilterSet):
                   'nome_terceirizada',
                   'data_inicial',
                   'data_final',
-                  'tem_aditivos_alergenicos',
-                  'eh_para_alunos_com_dieta']
+                  'tem_aditivos_alergenicos']
 
     def filtra_aditivos(self, qs, name, value):
         filtro = cria_filtro_aditivos(value)
@@ -68,6 +67,10 @@ class ItemCadastroFilter(filters.FilterSet):
 class CadastroProdutosEditalFilter(filters.FilterSet):
     nome = filters.CharFilter(field_name='nome', lookup_expr='icontains')
     status = filters.CharFilter(field_name='ativo', method='filtra_status')
+    data_cadastro = filters.DateFilter(
+        field_name='criado_em__date',
+        lookup_expr='exact',
+    )
 
     def filtra_status(self, qs, name, value):
         filtro = False if value == 'Inativo' else True

@@ -4,11 +4,35 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from multiselectfield import MultiSelectField
 
-from ...dados_comuns.behaviors import Logs, ModeloBase, TemIdentificadorExternoAmigavel
+from ...dados_comuns.behaviors import (
+    CriadoEm,
+    Logs,
+    ModeloBase,
+    Nomeavel,
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel
+)
 from ...dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow, FluxoAlteracaoCronograma, FluxoCronograma
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...produto.models import NomeDeProdutoEdital, UnidadeMedida
+from ...produto.models import NomeDeProdutoEdital
 from ...terceirizada.models import Contrato, Terceirizada
+
+
+class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
+    abreviacao = models.CharField('Abreviação', max_length=25)
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = 'Unidade de Medida'
+        verbose_name_plural = 'Unidades de Medida'
+        unique_together = ('nome',)
+
+    def save(self, *args, **kwargs):
+        self.nome = self.nome.upper()
+        self.abreviacao = self.abreviacao.lower()
+        super().save(*args, **kwargs)
 
 
 class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronograma):
@@ -127,19 +151,21 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
     def em_analise(self):
         return self.filter(status=CronogramaAlteracaoWorkflow.EM_ANALISE)
 
-    def get_dashboard(self, status, filtros=None, init=None, end=None):
+    def filtrar_por_status(self, status, filtros=None, init=None, end=None):
         log = LogSolicitacoesUsuario.objects.filter(uuid_original=OuterRef('uuid')).order_by(
             '-criado_em').values('criado_em')[:1]
-        qs = self.filter(status__iexact=status).annotate(
+        if not isinstance(status, list):
+            status = [status]
+        qs = self.filter(status__in=status).annotate(
             log_criado_em=log).order_by('-log_criado_em')
         if filtros:
-            qs = self._filtrar_dashboard(qs, filtros)
+            qs = self._filtrar_por_atributos_adicionais(qs, filtros)
 
         if init is not None and end is not None:
             return qs[init:end]
         return qs
 
-    def _filtrar_dashboard(self, qs, filtros):
+    def _filtrar_por_atributos_adicionais(self, qs, filtros):
         if filtros:
             if 'nome_fornecedor' in filtros:
                 qs = qs.filter(cronograma__empresa__nome_fantasia__icontains=filtros['nome_fornecedor'])
@@ -150,7 +176,7 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
         return qs
 
 
-class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma):
+class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma, Logs):
     MOTIVO_ALTERAR_DATA_ENTREGA = 'ALTERAR_DATA_ENTREGA'
     MOTIVO_ALTERAR_QTD_ALIMENTO = 'ALTERAR_QTD_ALIMENTO'
     MOTIVO_OUTROS = 'OUTROS'

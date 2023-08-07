@@ -359,9 +359,9 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
 ])
 def users_terceirizada(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(username=email, password=password, email=email,
+    user = django_user_model.objects.create_user(username=rf, password=password, email=email,
                                                  registro_funcional=rf, cpf=cpf)
-    client.login(username=email, password=password)
+    client.login(username=rf, password=password)
     mommy.make('Codae')
     terceirizada = mommy.make('Terceirizada', nome_fantasia='Alimentos LTDA',
                               uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
@@ -531,6 +531,22 @@ def escola_cei():
 @pytest.fixture
 def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
     email = 'user@escola.com'
+    rf = '1234567'
+    password = DJANGO_ADMIN_PASSWORD
+    mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(nome='RONALDO DIRETOR', username=rf, password=password,
+                                                    email=email, registro_funcional=rf, cpf='93697506064')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(username=rf, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_escola_email_invalido(client, django_user_model, escola, escola_cei):
+    email = 'invalido'
     rf = '1234567'
     password = DJANGO_ADMIN_PASSWORD
     mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)

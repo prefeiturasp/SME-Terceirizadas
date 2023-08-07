@@ -16,4 +16,4 @@ class Command(BaseCommand):
 
     def unificar_perfis_dre(self):
         perfil = Perfil.objects.get(nome__iexact=COGESTOR_DRE)
-        Vinculo.objects.filter(perfil__nome__in=['ADMINISTRADOR_DRE', 'SUPLENTE']).update(perfil=perfil)
+        Vinculo.objects.filter(perfil__nome__in=['ADMINISTRADOR_DRE', 'SUPLENTE', 'COGESTOR']).update(perfil=perfil)

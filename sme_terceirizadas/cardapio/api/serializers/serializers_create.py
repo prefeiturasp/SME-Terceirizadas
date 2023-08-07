@@ -31,6 +31,7 @@ from ...models import (
     AlteracaoCardapioCEMEI,
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    DataIntervaloAlteracaoCardapio,
     FaixaEtariaSubstituicaoAlimentacaoCEI,
     FaixaEtariaSubstituicaoAlimentacaoCEMEICEI,
     GrupoSuspensaoAlimentacao,
@@ -350,6 +351,11 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
         required=False,
         queryset=AlteracaoCardapio.objects.all()
     )
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all()
+    )
 
     tipos_alimentacao_para = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -452,8 +458,24 @@ class AlteracaoCardapioSerializerCreateBase(serializers.ModelSerializer):
         return instance
 
 
+class DatasIntervaloAlteracaoCardapioSerializerCreateSerializer(serializers.ModelSerializer):
+    alteracao_cardapio = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=AlteracaoCardapio.objects.all())
+
+    def create(self, validated_data):
+        data_intervalo = DataIntervaloAlteracaoCardapio.objects.create(**validated_data)
+        return data_intervalo
+
+    class Meta:
+        model = DataIntervaloAlteracaoCardapio
+        exclude = ('id',)
+
+
 class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(many=True)
+    datas_intervalo = DatasIntervaloAlteracaoCardapioSerializerCreateSerializer(required=False, many=True)
 
     def validate(self, attrs):
         escola = attrs.get('escola')
@@ -474,6 +496,48 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
         deve_ser_no_mesmo_ano_corrente(attrs['data_inicial'])
 
         return attrs
+
+    def criar_datas_intervalo(self, datas_intervalo, instance):
+        datas_intervalo = [dict(item, **{'alteracao_cardapio': instance})
+                           for item in datas_intervalo]
+        for data_intervalo in datas_intervalo:
+            DataIntervaloAlteracaoCardapio.objects.create(**data_intervalo)
+
+    def criar_substituicoes(self, substituicoes, instance):
+        substituicoes = [dict(item, **{'alteracao_cardapio': instance})
+                         for item in substituicoes]
+        for substituicao in substituicoes:
+            tipos_alimentacao_de = substituicao.pop('tipos_alimentacao_de')
+            tipos_alimentacao_para = substituicao.pop('tipos_alimentacao_para')
+            substituicao_alimentacao = SubstituicaoAlimentacaoNoPeriodoEscolar.objects.create(**substituicao)
+            substituicao_alimentacao.tipos_alimentacao_de.set(tipos_alimentacao_de)
+            substituicao_alimentacao.tipos_alimentacao_para.set(tipos_alimentacao_para)
+
+    def create(self, validated_data):
+        validated_data['criado_por'] = self.context['request'].user
+        substituicoes = validated_data.pop('substituicoes')
+        datas_intervalo = validated_data.pop('datas_intervalo', [])
+        alteracao_cardapio = AlteracaoCardapio.objects.create(**validated_data)
+
+        self.criar_substituicoes(substituicoes, alteracao_cardapio)
+        self.criar_datas_intervalo(datas_intervalo, alteracao_cardapio)
+
+        return alteracao_cardapio
+
+    def update(self, instance, validated_data):
+        instance.substituicoes.all().delete()
+        instance.datas_intervalo.all().delete()
+
+        validated_data['criado_por'] = self.context['request'].user
+        substituicoes = validated_data.pop('substituicoes')
+        datas_intervalo = validated_data.pop('datas_intervalo', [])
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+
+        self.criar_substituicoes(substituicoes, instance)
+        self.criar_datas_intervalo(datas_intervalo, instance)
+
+        return instance
 
     class Meta:
         model = AlteracaoCardapio

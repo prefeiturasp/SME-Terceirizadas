@@ -5,7 +5,7 @@ from rest_framework.viewsets import ViewSet
 
 from sme_terceirizadas.escola.models import Aluno
 
-from ..utils import EOLException, EOLService, EOLServicoSGP
+from ..utils import EOLException, EOLServicoSGP
 
 
 class DadosUsuarioEOLCompletoViewSet(ViewSet):
@@ -27,20 +27,6 @@ class DadosUsuarioEOLCompletoViewSet(ViewSet):
                 'codigo_eol_unidade': dados_usuario['cargos'][0]['codigoUnidade']
             }
             return Response(dados_usuario)
-        except EOLException as e:
-            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class DadosUsuarioEOLViewSet(ViewSet):
-    lookup_field = 'registro_funcional'
-    permission_classes = (IsAuthenticated,)
-
-    def retrieve(self, request, registro_funcional=None):
-        try:
-            dados = EOLService.get_informacoes_usuario(registro_funcional)
-            for dado in dados:
-                dado.pop('cd_cpf_pessoa')  # retira cpf por ser dado sensivel
-            return Response({'detail': dados})
         except EOLException as e:
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 

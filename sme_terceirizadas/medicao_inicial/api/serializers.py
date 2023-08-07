@@ -3,13 +3,18 @@ import datetime
 import environ
 from rest_framework import serializers
 
-from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from sme_terceirizadas.dados_comuns.api.serializers import (
+    LogSolicitacoesUsuarioComAnexosSerializer,
+    LogSolicitacoesUsuarioSerializer
+)
+from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
 from sme_terceirizadas.escola.api.serializers import TipoUnidadeEscolarSerializer
 from sme_terceirizadas.medicao_inicial.models import (
     CategoriaMedicao,
     DiaSobremesaDoce,
     Medicao,
+    OcorrenciaMedicaoInicial,
     Responsavel,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
@@ -27,16 +32,35 @@ class DiaSobremesaDoceSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class AnexoOcorrenciaMedicaoInicialSerializer(serializers.ModelSerializer):
-    arquivo = serializers.SerializerMethodField()
+class OcorrenciaMedicaoInicialSerializer(serializers.ModelSerializer):
+    logs = LogSolicitacoesUsuarioComAnexosSerializer(many=True)
+    ultimo_arquivo = serializers.SerializerMethodField()
+    ultimo_arquivo_excel = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
-    def get_arquivo(self, obj):
+    def get_ultimo_arquivo(self, obj):
         env = environ.Env()
         api_url = env.str('URL_ANEXO', default='http://localhost:8000')
-        return f'{api_url}{obj.arquivo.url}'
+        return f'{api_url}{obj.ultimo_arquivo.url}'
+
+    def get_ultimo_arquivo_excel(self, obj):
+        env = environ.Env()
+        api_url = env.str('URL_ANEXO', default='http://localhost:8000')
+        status = [LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
+                  LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PELA_UE,
+                  LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PARA_CODAE]
+        logs = obj.logs.filter(status_evento__in=status)
+        if logs:
+            anexo_excel = logs.last().anexos.filter(nome__icontains='.xls').first()
+            if anexo_excel:
+                return f'{api_url}{anexo_excel.arquivo.url}'
+        return ''
+
+    def get_status(self, obj):
+        return obj.status.name
 
     class Meta:
-        model = TipoContagemAlimentacao
+        model = OcorrenciaMedicaoInicial
         exclude = ('id',)
 
 
@@ -59,7 +83,7 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     escola_uuid = serializers.CharField(source='escola.uuid')
     tipo_contagem_alimentacoes = TipoContagemAlimentacaoSerializer()
     responsaveis = ResponsavelSerializer(many=True)
-    anexos = AnexoOcorrenciaMedicaoInicialSerializer(required=False, many=True)
+    ocorrencia = OcorrenciaMedicaoInicialSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
@@ -84,7 +108,8 @@ class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoMedicaoInicial
-        fields = ('uuid', 'escola', 'escola_uuid', 'mes_ano', 'tipo_unidade', 'status', 'log_mais_recente')
+        fields = ('uuid', 'escola', 'escola_uuid', 'mes', 'ano', 'mes_ano',
+                  'tipo_unidade', 'status', 'log_mais_recente')
 
 
 class ValorMedicaoSerializer(serializers.ModelSerializer):
@@ -100,7 +125,8 @@ class ValorMedicaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ValorMedicao
-        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid', 'uuid', 'medicao_alterado_em')
+        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid',
+                  'uuid', 'medicao_alterado_em', 'habilitado_correcao')
 
 
 class CategoriaMedicaoSerializer(serializers.ModelSerializer):

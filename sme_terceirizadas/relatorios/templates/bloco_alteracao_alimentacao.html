@@ -2,26 +2,57 @@
 {% block alteracao_alimentacao_normal %}
   <tr>
     <td colspan="6">
-      <div class="row mt-2 mb-2 mx-2">
-        <div class="col-3">ID da Solicitação:</div>
-        <div class="col-3">Tipo de Alteração:</div>
-        <div class="col-3">Data(s) do Evento:</div>
-        <div class="col-3">Data {{solicitacao.label_data}}:</div>
+      <div class="row mt-2 mx-2" style="margin-bottom: -2.5em;">
+        <div class="col-3">
+          <p>ID da Solicitação:</p>
+          <p><b># {{solicitacao.id_externo}}</b></p>
+        </div>
+        <div class="col-3">
+          <p>Tipo de Alteração:</p>
+        </div>
+        <div class="col-3">
+          <p>Dia(s) da Alteração:</p>
+        </div>
+        <div class="col-3">
+          <p>Data {{solicitacao.label_data}}:</p>
+          <p>{{solicitacao.data_log}}</p>
+        </div>
       </div>
-      <div class="row my-2 mx-2">
-        <div class="col-3"><b># {{solicitacao.id_externo}}</b></div>
-        <div class="col-3"><b>{{solicitacao.motivo}}</b></div>
-        {% if solicitacao.data_inicial == solicitacao.data_final %}
-          <div class="col-3"><b>{{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}}</b></div>
-        {% else %}
-          <div class="col-3">
-            <b>
-              {{solicitacao.data_inicial|formatar_data_solicitacoes_alimentacao}} - {{solicitacao.data_final|formatar_data_solicitacoes_alimentacao}}
-            </b>
+      {% for data_intervalo in solicitacao.datas_intervalo.all %}
+        <div class="row">
+          <div class="col-3"></div>
+          <div class="col-3" style="margin-left: 2em;">
+            <p>
+              <b class="{% if data_intervalo.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %} dia-cancelado{% endif %}">
+                {{solicitacao.motivo}}
+              </b>
+            </p>
           </div>
-        {% endif %}
-        <div class="col-3">{{solicitacao.data_log}}</div>
-      </div>
+          <div class="col-3 pl-2" style="margin-left: 2em;">
+            <p>
+              <b class="{% if data_intervalo.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %} dia-cancelado{% endif %}">
+                {{data_intervalo.data|date:'d/m/Y'}}
+              </b>
+            </p>
+          </div>
+        </div>
+      {% endfor %}
+      {% if solicitacao|existe_inclusao_cancelada %}
+        <div class="row mt-4 mb-2 mx-4">
+          <b class="mb-2">Histórico de cancelamento:</b>
+          {% for data_intervalo in solicitacao.datas_intervalo.all %}
+            {% if data_intervalo.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}
+              {% if data_intervalo.cancelado_justificativa %}
+                <div class="mb-1">
+                  <p class="cancelado_justificativa my-0">
+                    {{ data_intervalo.data|formatar_data_solicitacoes_alimentacao }} - justificativa: {{ data_intervalo.cancelado_justificativa }}
+                  </p>
+                </div>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
       <div class="row mt-4 mb-2 mx-2">
         <div class="col-3">Período:</div>
         <div class="col-3">Alteração de Alimentação De:</div>

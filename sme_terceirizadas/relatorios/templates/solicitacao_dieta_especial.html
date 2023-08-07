@@ -13,7 +13,7 @@
   </style>
 
   <div class="conteudo tabela-sem-borda">
-  {% include "bloco_fluxo_status_homologacao.html" with eh_importado=solicitacao.eh_importado %}
+    {% include "bloco_fluxo_status_homologacao.html" with eh_importado=solicitacao.eh_importado %}
     {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <div class="bloco-pescritor-dieta-especial">
       <div class="row">
@@ -166,15 +166,13 @@
           </label>
         {% endif %}
     </div>
-    <div class="bloco-pescritor-dieta-especial">
-        {% if solicitacao.alergias_intolerancias.all %}
-          <h5>Protocolo da Dieta Especial</h5>
-            {% for alergia in solicitacao.alergias_intolerancias.all %}
-              <p style="text-transform: uppercase">{{ alergia.descricao }}</p>
-            {% endfor %}
-        {% endif %}
-    </div>
-    {% if solicitacao.escola.tipo_gestao.nome == 'MISTA' or solicitacao.escola.tipo_gestao.nome == 'PARCEIRA' or solicitacao.escola.tipo_gestao.nome == 'DIRETA' %}
+    {% if solicitacao.protocolo_padrao %}
+      <div class="bloco-pescritor-dieta-especial">
+        <h5>Protocolo da Dieta Especial</h5>
+        <p style="text-transform: uppercase">{{ solicitacao.protocolo_padrao.nome_protocolo }}</p>
+      </div>
+    {% endif %}
+    {% if solicitacao.escola.tipo_gestao.nome == 'MISTA' or solicitacao.escola.tipo_gestao.nome == 'PARCEIRA' or solicitacao.escola.tipo_gestao.nome == 'DIRETA' or solicitacao.escola.tipo_gestao.nome == 'TERC TOTAL' %}
       {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
         <div class="bloco-identificacao-nutri tabela-sem-borda">
           <h5>Substituições</h5>
@@ -210,24 +208,14 @@
           </table>
         </div>
       {% endif %}
-
-      {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
-        <div class="bloco-identificacao-nutri">
-          <h5>Descrever características do alimento</h5>
-          <div style="border-color: #686868; width: 100%">
-            <p>{{ solicitacao.caracteristicas_do_alimento|safe }}</p>
-          </div>
-          <p style="color: red">Os Produtos (Alimentos) devem ser adquiridos utilizando a verba PTRF ou outro recurso disponível.</p>
-        </div>
-      {% endif %}
     {% endif %}
     <div class="bloco-identificacao-nutri">
-        {% if solicitacao.registro_funcional_nutricionista %}
-          <h5>Identificação do Nutricionista</h5>
-          <div style="border-color: #686868; width: 100%">
-            <p style="text-transform: uppercase">{{ solicitacao.display_nutricionista_with_registro_funcional }}</p>
-          </div>
-        {% endif %}
+      {% if solicitacao.registro_funcional_nutricionista %}
+        <h5>Identificação do Nutricionista</h5>
+        <div style="border-color: #686868; width: 100%">
+          <p style="text-transform: uppercase">{{ solicitacao.display_nutricionista_with_registro_funcional }}</p>
+        </div>
+      {% endif %}
     </div>
     {% include "bloco_historico_questionamento.html" %}
   </div>

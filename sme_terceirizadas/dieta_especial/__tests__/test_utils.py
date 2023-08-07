@@ -1,6 +1,7 @@
 import pytest
 
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
+from ...terceirizada.models import Edital
 from ..models import SolicitacaoDietaEspecial
 from ..utils import dietas_especiais_a_terminar, termina_dietas_especiais
 
@@ -27,12 +28,16 @@ def test_registrar_historico_criacao(protocolo_padrao_dieta_especial_2, substitu
 
 
 @pytest.mark.django_db
-def test_diff_protocolo_padrao(protocolo_padrao_dieta_especial_2, substituicao_padrao_dieta_especial_2):
+def test_diff_protocolo_padrao(protocolo_padrao_dieta_especial_2, substituicao_padrao_dieta_especial_2, edital):
     from ..utils import diff_protocolo_padrao
     validated_data = {
         'nome_protocolo': 'Alergia a manga',
         'orientacoes_gerais': 'Uma orientação',
-        'status': 'I'
+        'status': 'I',
+        'editais': [edital.uuid]
     }
-    changes = diff_protocolo_padrao(protocolo_padrao_dieta_especial_2, validated_data)
+    old_editais = protocolo_padrao_dieta_especial_2.editais
+    new_editais = validated_data.get('editais')
+    new_editais = Edital.objects.filter(uuid__in=new_editais)
+    changes = diff_protocolo_padrao(protocolo_padrao_dieta_especial_2, validated_data, old_editais, old_editais)
     assert changes

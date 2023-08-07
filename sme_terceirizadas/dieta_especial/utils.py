@@ -300,8 +300,13 @@ def log_create(protocolo_padrao, user=None):
     historico = {}
 
     historico['created_at'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-    historico['user'] = {'uuid': str(user.uuid), 'email': user.email} if user else user
+    historico['user'] = {'uuid': str(user.uuid), 'email': user.email,
+                         'username': user.username, 'nome': user.nome} if user else user
     historico['action'] = 'CREATE'
+
+    editais = []
+    for edital in protocolo_padrao.editais.all():
+        editais.append(edital.numero)
 
     substituicoes = []
     for substituicao in protocolo_padrao.substituicoes.all():
@@ -327,17 +332,18 @@ def log_create(protocolo_padrao, user=None):
         {'field': 'status', 'from': None, 'to': protocolo_padrao.status},
         {'field': 'uuid', 'from': None, 'to': str(protocolo_padrao.uuid)},
         {'field': 'substituicoes', 'changes': substituicoes},
+        {'field': 'editais', 'from': None, 'to': editais}
     ]
 
     protocolo_padrao.historico = json.dumps([historico])
     protocolo_padrao.save()
 
 
-def log_update(instance, validated_data, substituicoes_old, substituicoes_new, user=None):
+def log_update(instance, validated_data, substituicoes_old, substituicoes_new, new_editais, old_editais, user=None):
     import json
     from datetime import datetime
     historico = {}
-    changes = diff_protocolo_padrao(instance, validated_data)
+    changes = diff_protocolo_padrao(instance, validated_data, new_editais, old_editais)
     changes_subs = diff_substituicoes(substituicoes_old, substituicoes_new)
 
     if changes_subs:
@@ -345,7 +351,8 @@ def log_update(instance, validated_data, substituicoes_old, substituicoes_new, u
 
     if changes:
         historico['updated_at'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-        historico['user'] = {'uuid': str(user.uuid), 'email': user.email} if user else user
+        historico['user'] = {'uuid': str(user.uuid), 'email': user.email,
+                             'username': user.username, 'nome': user.nome} if user else user
         historico['action'] = 'UPDATE'
         historico['changes'] = changes
 
@@ -355,7 +362,7 @@ def log_update(instance, validated_data, substituicoes_old, substituicoes_new, u
         instance.historico = json.dumps(hist)
 
 
-def diff_protocolo_padrao(instance, validated_data):
+def diff_protocolo_padrao(instance, validated_data, new_editais, old_editais):
     changes = []
 
     if instance.nome_protocolo != validated_data['nome_protocolo']:
@@ -374,6 +381,15 @@ def diff_protocolo_padrao(instance, validated_data):
     if instance.status != validated_data['status']:
         changes.append(
             {'field': 'status', 'from': instance.status, 'to': validated_data['status']})
+
+    new_editais_list_ordered = set(new_editais.order_by('uuid').values_list('uuid', flat=True))
+    old_editais_list_ordered = set(old_editais.all().order_by('uuid').values_list('uuid', flat=True))
+    if new_editais_list_ordered != old_editais_list_ordered:
+        changes.append({
+            'field': 'editais',
+            'from': [edital.numero for edital in old_editais.all()],
+            'to': [edital.numero for edital in new_editais]
+        })
 
     return changes
 
@@ -501,3 +517,16 @@ def diff_substituicoes(substituicoes_old, substituicoes_new): # noqa C901
 
 def is_alpha_numeric_and_has_single_space(descricao):
     return bool(re.match(r'[A-Za-z0-9\s]+$', descricao))
+
+
+def verifica_se_existe_dieta_valida(aluno, queryset, status_dieta, escola):
+    return [s for s in aluno.dietas_especiais.all() if s.rastro_escola == escola and s.status in status_dieta]
+
+
+def filtrar_alunos_com_dietas_nos_status_e_rastro_escola(queryset, status_dieta, escola):
+    uuids_alunos_para_excluir = []
+    for aluno in queryset:
+        if not verifica_se_existe_dieta_valida(aluno, queryset, status_dieta, escola):
+            uuids_alunos_para_excluir.append(aluno.uuid)
+    queryset = queryset.exclude(uuid__in=uuids_alunos_para_excluir)
+    return queryset

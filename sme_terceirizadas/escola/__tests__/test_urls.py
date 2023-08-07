@@ -72,7 +72,7 @@ def test_url_endpoint_alunos_por_faixa_etaria(client_autenticado,
     result0 = json['results'][0]
     assert result0['faixa_etaria']['inicio'] == 24
     assert result0['faixa_etaria']['fim'] == 48
-    assert result0['count'] == 95
+    assert result0['count'] == 93
     result1 = json['results'][1]
     assert result1['faixa_etaria']['inicio'] == 12
     assert result1['faixa_etaria']['fim'] == 24
@@ -80,7 +80,7 @@ def test_url_endpoint_alunos_por_faixa_etaria(client_autenticado,
     result2 = json['results'][2]
     assert result2['faixa_etaria']['inicio'] == 48
     assert result2['faixa_etaria']['fim'] == 72
-    assert result2['count'] == 25
+    assert result2['count'] == 27
 
 
 def test_url_endpoint_cria_mudanca_faixa_etaria(client_autenticado_coordenador_codae):
@@ -314,3 +314,17 @@ def test_url_relatorios_alunos_matriculados_actions(client_autenticado_da_dre):
 
     response = client.get(f'/relatorio-alunos-matriculados/filtrar/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_escolas_simplissimas_com_paginacao(client_autenticado_da_escola):
+    response = client_autenticado_da_escola.get('/escolas-simplissima/?page=1')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 4
+    assert 'count' in response.json()
+
+
+def test_escolas_simplissimas_sem_paginacao(client_autenticado_da_escola):
+    response = client_autenticado_da_escola.get('/escolas-simplissima/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 4
+    assert 'count' not in response.json()

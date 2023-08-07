@@ -58,7 +58,7 @@ pytz= '==2022.7'  # https://github.com/stub42/pytz
 python-slugify= '==2.0.1'  # https://github.com/un33k/python-slugify
 Pillow= '==9.4.0'  # https://github.com/python-pillow/Pillow
 argon2-cffi= '==19.1.0'  # https://github.com/hynek/argon2_cffi
-redis= '==4.4.2'  # https://github.com/antirez/redis
+redis= '==4.4.4'  # https://github.com/antirez/redis
 django-xworkflows='==1.0.0' # https://github.com/rbarrois/django_xworkflows
 drf_base64='==2.0' # https://pypi.org/project/drf_base64/
 pandas='==1.5.2' # https://github.com/pandas-dev/pandas/
@@ -66,7 +66,7 @@ numpy='==1.23.0' # https://github.com/numpy/numpy/
 XlsxWriter='==3.0.3' # https://github.com/jmcnamara/XlsxWriter
 # Django
 # ------------------------------------------------------------------------------
-django='==3.2.16'          # https://www.djangoproject.com/
+django='==3.2.18 '          # https://www.djangoproject.com/
 django-environ='==0.4.5'  # https://github.com/joke2k/django-environ
 django-model-utils='==3.1.2'  # https://github.com/jazzband/django-model-utils
 django-redis='==5.2.0'  # https://github.com/niwinz/django-redis
@@ -83,7 +83,6 @@ djangorestframework='==3.12.4'  # https://github.com/encode/django-rest-framewor
 coreapi='==2.3.3'  # https://github.com/core-api/python-client
 djangorestframework-jwt='==1.11.0' # https://getblimp.github.io/django-rest-framework-jwt/
 workalendar='==4.3.1' # https://github.com/peopledoc/workalendar
-django-rest-swagger='==2.2.0' # https://github.com/marcgibbons/django-rest-swagger
 djangorestframework-xml = "==2.0.0"
 django-simple-email-confirmation='==0.7' # https://github.com/mfogel/django-simple-email-confirmation/
 # Produção
@@ -116,6 +115,7 @@ brazilnum='==0.8.8'
 munch='==2.5.0'
 channels = "==3.0.4"
 channels-redis = "==3.3.1"
+drf-spectacular = "==0.26.3"
 
 [requires]
-python_version = "3.8.10"
+python_version = "3.8.16"

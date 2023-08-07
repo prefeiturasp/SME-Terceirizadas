@@ -69,10 +69,16 @@ class PerfisVinculadosSerializer(serializers.ModelSerializer):
 
 class UsuarioSerializer(serializers.ModelSerializer):
     cpf = serializers.SerializerMethodField()
+    nome_fantasia = serializers.SerializerMethodField()
 
     def get_cpf(self, obj):
         if obj.vinculo_atual and isinstance(obj.vinculo_atual.instituicao, Terceirizada):
             return obj.cpf
+        return None
+
+    def get_nome_fantasia(self, obj):
+        if obj.vinculo_atual and isinstance(obj.vinculo_atual.instituicao, Terceirizada):
+            return obj.vinculo_atual.instituicao.nome_fantasia
         return None
 
     class Meta:
@@ -86,7 +92,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
             'registro_funcional',
             'tipo_usuario',
             'cargo',
-            'crn_numero'
+            'crn_numero',
+            'nome_fantasia'
         )
 
 
@@ -210,54 +217,6 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             terceirizada,
             nome_perfil=ADMINISTRADOR_EMPRESA
         )
-
-    def create_distribuidor(self, terceirizada, validated_data):
-        email = validated_data.get('email')
-        if Usuario.objects.filter(email=email).exists():
-            raise ValidationError('E-mail já cadastrado')
-        usuario = Usuario()
-        usuario = self.criar_distribuidor(usuario, validated_data)
-        usuario.is_active = False
-        usuario.save()
-        if usuario.super_admin_terceirizadas:
-            usuario.criar_vinculo_administrador(
-                terceirizada,
-                nome_perfil=ADMINISTRADOR_EMPRESA
-            )
-        else:
-            usuario.criar_vinculo_administrador(
-                terceirizada,
-                nome_perfil=ADMINISTRADOR_EMPRESA
-            )
-        usuario.enviar_email_administrador()
-
-    def update_distribuidor(self, terceirizada, validated_data):
-        nome_perfil = ADMINISTRADOR_EMPRESA
-        novo_usuario = False
-        email = validated_data.get('email')
-        cpf = validated_data.get('cpf', None)
-        if Usuario.objects.filter(email=email).exists():
-            usuario = Usuario.objects.get(email=email)
-            usuario.contatos.all().delete()
-        elif Usuario.objects.filter(cpf=cpf).exists():
-            usuario = Usuario.objects.get(cpf=cpf)
-            usuario.contatos.all().delete()
-            vinculo = Vinculo.objects.filter(object_id=terceirizada.id).last()
-            vinculo.finalizar_vinculo()
-            novo_usuario = True
-        else:
-            usuario = Usuario()
-            usuario.is_active = False
-            vinculo = Vinculo.objects.filter(object_id=terceirizada.id).last()
-            vinculo.finalizar_vinculo()
-            novo_usuario = True
-        usuario = self.atualizar_distribuidor(usuario, validated_data)
-        if novo_usuario:
-            usuario.criar_vinculo_administrador(
-                terceirizada,
-                nome_perfil=nome_perfil
-            )
-            usuario.enviar_email_administrador()
 
     def update_nutricionista(self, terceirizada, validated_data):
         novo_usuario = False
@@ -466,8 +425,8 @@ class UsuarioComCoreSSOCreateSerializer(serializers.ModelSerializer):
         except IntegrityError as e:
             if 'unique constraint' in str(e):
                 error = str(e)
-                msg = error.split('Key')
-                raise IntegrityError('Erro, informação duplicada:' + msg[1])
+                msg = 'Erro, informação duplicada:' + error.split('Key')[1]
+                raise serializers.ValidationError(msg)
             raise IntegrityError('Erro ao tentar criar/atualizar usuário: ' + str(e))
 
         except Exception as e:
@@ -493,9 +452,58 @@ class AlteraEmailSerializer(serializers.ModelSerializer):
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
         return instance
 
+    def update_eol(self, username, validated_data):
+        try:
+            EOLServicoSGP.redefine_email(username, validated_data.get('email'))
+        except EOLException as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except ReadTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        except ConnectTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'E-mail atualizado com sucesso!'}, status=status.HTTP_200_OK)
+
     class Meta:
         model = Usuario
         fields = ['uuid', 'username', 'email']
+
+
+class AlterarVinculoSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
+
+    def atualizar_email(self, usuario, dados_usuario_dict):
+        try:
+            usuario.atualiza_email(dados_usuario_dict['email'])
+        except IntegrityError:
+            return Response({'detail': 'Já existe um usuário com este e-mail'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def atribuir_perfil_coresso(self, usuario, dados_usuario_dict):
+        if usuario.vinculo_atual.perfil.nome != dados_usuario_dict['perfil']:
+            try:
+                Vinculo.cria_vinculo(usuario=usuario, dados_usuario=dados_usuario_dict)
+                EOLServicoSGP.atribuir_perfil_coresso(login=usuario.username, perfil=dados_usuario_dict['perfil'])
+            except EOLException as e:
+                return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            except ReadTimeout:
+                return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+            except ConnectTimeout:
+                return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, usuario, validated_data):
+        dados_usuario_dict = {
+            'email': validated_data['email'],
+            'perfil': validated_data['perfil'],
+            'visao': usuario.vinculo_atual.perfil.visao,
+            'instituicao': usuario.vinculo_atual.instituicao.cnpj,
+        }
+
+        self.atualizar_email(usuario, dados_usuario_dict)
+        self.atribuir_perfil_coresso(usuario, dados_usuario_dict)
+        return usuario
+
+    class Meta:
+        model = Usuario
+        fields = ['uuid', 'username', 'email', 'perfil']
 
 
 class RedefinirSenhaSerializer(serializers.ModelSerializer):
@@ -510,8 +518,14 @@ class RedefinirSenhaSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data): # noqa
         try:
-            checa_senha(instance, validated_data['senha_atual'])
-            instance.atualiza_senha_sem_token(validated_data['senha'])
+            if 'token' in validated_data:
+                retorno = instance.atualiza_senha(senha=validated_data['senha'], token=validated_data['token'])
+                if retorno is False:
+                    return Response({'detail': 'O Link para o reset de senha já foi utilizado/é inválido. '
+                                               'É necessário gerar um novo link.'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                checa_senha(instance, validated_data['senha_atual'])
+                instance.atualiza_senha_sem_token(validated_data['senha'])
 
         except EOLException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -71,11 +71,14 @@ CODAE_SUSPENDEU = 'codae_suspendeu'
 ESCOLA_OU_NUTRICIONISTA_RECLAMOU = 'escola_ou_nutricionista_reclamou'
 CODAE_PEDIU_ANALISE_RECLAMACAO = 'codae_pediu_analise_reclamacao'
 CODAE_AUTORIZOU_RECLAMACAO = 'codae_autorizou_reclamacao'
+RESPONDER_QUESTIONAMENTO_DA_CODAE = 'responder_questionamentos_da_codae'
+
 
 FILTRO_STATUS_HOMOLOGACAO = (f'(?P<filtro_aplicado>({RASCUNHO}|{CODAE_PENDENTE_HOMOLOGACAO}|{CODAE_HOMOLOGADO}|'
                              f'{CODAE_NAO_HOMOLOGADO}|{CODAE_QUESTIONADO}|{CODAE_PEDIU_ANALISE_SENSORIAL}|'
                              f'{TERCEIRIZADA_CANCELOU}|{CODAE_SUSPENDEU}|{ESCOLA_OU_NUTRICIONISTA_RECLAMOU}|'
-                             f'{CODAE_PEDIU_ANALISE_RECLAMACAO}|{CODAE_AUTORIZOU_RECLAMACAO})+)')
+                             f'{CODAE_PEDIU_ANALISE_RECLAMACAO}|{CODAE_AUTORIZOU_RECLAMACAO}|'
+                             f'{RESPONDER_QUESTIONAMENTO_DA_CODAE})+)')
 
 RELATORIO = 'relatorio'
 RELATORIO_ANALISE = 'relatorio-analise-sensorial'
@@ -137,6 +140,9 @@ CODAE_QUESTIONA_TERCEIRIZADA = 'codae-questiona-terceirizada'
 CODAE_QUESTIONA_UE = 'codae-questiona-ue'
 CODAE_QUESTIONA_NUTRISUPERVISOR = 'codae-questiona-nutrisupervisor'
 CODAE_RESPONDE = 'codae-responde'
+CODAE_CANCELA_SOLICITACAO_CORRECAO = 'codae-cancela-solicitacao-correcao'
+TERCEIRIZADA_CANCELA_SOLICITACAO_CORRECAO = 'terceirizada-cancela-solicitacao-correcao'
+VINCULOS_ATIVOS_PRODUTO_EDITAL = 'vinculos-ativos-produto-edital'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
@@ -184,7 +190,10 @@ ADMINISTRADOR_REPRESENTANTE_CODAE = 'ADMINISTRADOR_REPRESENTANTE_CODAE'
 TIPO_USUARIO_TERCEIRIZADA = 'terceirizada'
 TIPO_USUARIO_GESTAO_PRODUTO = 'gestao_produto'
 TIPO_USUARIO_ESCOLA = 'escola'
+TIPO_USUARIO_DIRETORIA_REGIONAL = 'diretoriaregional'
 TIPO_USUARIO_NUTRISUPERVISOR = 'supervisao_nutricao'
+TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA = 'gestao_alimentacao_terceirizada'
+TIPO_USUARIO_NUTRIMANIFESTACAO = 'nutricao_manifestacao'
 
 #
 # DOMINIOS USADOS APENAS EM DESENVOLVIMENTO
@@ -215,6 +224,18 @@ TIPO_SOLICITACAO_DIETA = {'COMUM': 'COMUM',
                           'ALUNO_NAO_MATRICULADO': 'ALUNO_NAO_MATRICULADO'}
 
 
+ORDEM_PERIODOS_GRUPOS = {
+    'MANHA': 1,
+    'TARDE': 2,
+    'INTEGRAL': 3,
+    'NOITE': 4,
+    'VESPERTINO': 5,
+    'Programas e Projetos': 6,
+    'Solicitações de Alimentação': 7,
+    'ETEC': 8
+}
+
+
 class StatusProcessamentoArquivo(Enum):
     PENDENTE = 'PENDENTE'
     SUCESSO = 'SUCESSO'
@@ -226,3 +247,6 @@ class StatusProcessamentoArquivo(Enum):
     @classmethod
     def choices(cls):
         return [(key.value, key.name) for key in cls]
+
+
+PERIODOS_INCLUSAO_MOTIVO_ESPECIFICO = ['MANHA', 'TARDE', 'NOITE', 'INTEGRAL']

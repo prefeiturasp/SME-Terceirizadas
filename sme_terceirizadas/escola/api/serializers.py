@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
 from ...paineis_consolidados import models
-from ...perfil.api.serializers import PerfilSimplesSerializer, SuperAdminTerceirizadaSerializer
+from ...perfil.api.serializers import PerfilSimplesSerializer
 from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import ContratoSimplesSerializer, TerceirizadaSimplesSerializer
 from ...terceirizada.models import Terceirizada
@@ -171,10 +171,24 @@ class LoteReclamacaoSerializer(serializers.ModelSerializer):
 
 class EscolaSimplissimaSerializer(serializers.ModelSerializer):
     lote = LoteReclamacaoSerializer()
+    tipo_gestao = serializers.CharField()
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol', 'codigo_codae', 'lote', 'quantidade_alunos')
+        fields = ('uuid', 'nome', 'codigo_eol', 'codigo_codae', 'diretoria_regional', 'lote',
+                  'quantidade_alunos', 'tipo_gestao')
+
+
+class EscolaEolSimplesSerializer(serializers.ModelSerializer):
+    codigo_eol_escola = serializers.SerializerMethodField()
+
+    def get_codigo_eol_escola(self, obj):
+        return f'{obj.codigo_eol} - {obj.nome}' if obj.codigo_eol else None
+
+    class Meta:
+        model = Escola
+        fields = ('codigo_eol', 'codigo_eol_escola')
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
@@ -223,6 +237,7 @@ class LoteSimplesSerializer(serializers.ModelSerializer):
 
 
 class EscolaSimplesSerializer(serializers.ModelSerializer):
+    tipo_unidade = TipoUnidadeEscolarSerializer()
     lote = LoteNomeSerializer()
     tipo_gestao = TipoGestaoSerializer()
     periodos_escolares = PeriodoEscolarSerializer(many=True)
@@ -234,6 +249,7 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
             'uuid',
             'nome',
             'codigo_eol',
+            'tipo_unidade',
             'quantidade_alunos',
             'quantidade_alunos_cei_da_cemei',
             'quantidade_alunos_emei_da_cemei',
@@ -268,49 +284,6 @@ class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'diretoria_regional', 'codigo_eol', 'quantidade_alunos', 'lote', 'tipo_unidade')
 
 
-class PeriodoEFaixaEtariaCounterSerializer(serializers.BaseSerializer):
-
-    def to_representation(self, dados_entrada):
-        """
-        Retorna a quantidade de alunos por período e faixa etária.
-
-        Transforma um objeto no seguinte formato:
-        {
-            'INTEGRAL': {
-                '1234-qwer': 42
-                '5678-asdf': 51
-            },
-            'PARCIAL': ...
-        }
-        em um dicionário no seguinte formato:
-        {
-            'INTEGRAL': [
-                {
-                    'faixa_etaria': {'uuid': '1234-qwer', 'inicio': 12, 'fim': 24},
-                    'quantidade': 42
-                },
-                {
-                    'faixa_etaria': {'uuid': '5678-asdf', 'inicio': 24, 'fim': 48},
-                    'quantidade': 51
-                },
-            ]
-            'PARCIAL': ...
-        }
-        """
-        retorno = {}
-        for (periodo, counter) in dados_entrada.items():
-            if periodo not in retorno:
-                retorno[periodo] = []
-            for (uuid_faixa, quantidade) in counter.items():
-                faixa_etaria = FaixaEtaria.objects.get(uuid=uuid_faixa)
-                retorno[periodo].append({
-                    'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
-                    'quantidade': quantidade
-                })
-
-        return retorno
-
-
 class EscolaCompletaSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplesSerializer()
     idades = FaixaIdadeEscolarSerializer(many=True)
@@ -343,7 +316,6 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
     lotes = LoteNomeSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
     id_externo = serializers.CharField()
-    super_admin = SuperAdminTerceirizadaSerializer()
 
     def get_nutricionistas(self, obj):
         if any(contato.eh_nutricionista for contato in obj.contatos.all()):
@@ -662,7 +634,7 @@ class AlunosMatriculadosPeriodoEscolaCompletoSerializer(serializers.ModelSeriali
 
     def get_alunos_por_faixa_etaria(self, obj):
         try:
-            periodos_faixas = obj.escola.alunos_por_periodo_e_faixa_etaria()
+            periodos_faixas = obj.escola.matriculados_por_periodo_e_faixa_etaria()
             if obj.periodo_escolar.nome == 'MANHA':
                 return periodos_faixas['MANHÃ']
             if obj.periodo_escolar.nome == 'INTERMEDIARIO':

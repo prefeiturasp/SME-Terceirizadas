@@ -553,8 +553,8 @@ def test_url_endpoint_alt_card_inicio_403(client_autenticado_vinculo_dre_cardapi
     assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
 
 
-def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
-                                     tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar):
+def test_url_endpoint_alt_card_criar_update(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio,
+                                            escola, tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar):
     hoje = datetime.date.today()
     if hoje.month == 12 and hoje.day in [29, 30, 31]:
         return
@@ -573,12 +573,22 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
     assert resp_json['escola'] == str(alteracao_substituicoes_params['escola'])
     assert resp_json['motivo'] == str(alteracao_substituicoes_params['motivo'])
 
+    assert len(resp_json['datas_intervalo']) == 3
+
     substituicao = resp_json['substituicoes'][0]
     payload_substituicao = alteracao_substituicoes_params['substituicoes'][0]
     assert substituicao['periodo_escolar'] == str(payload_substituicao['periodo_escolar'])
     assert substituicao['tipos_alimentacao_de'][0] == str(payload_substituicao['tipos_alimentacao_de'][0])
     assert substituicao['tipos_alimentacao_para'][0] == str(payload_substituicao['tipos_alimentacao_para'][0])
     assert substituicao['qtd_alunos'] == 10
+
+    response_update = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{resp_json["uuid"]}/',
+        content_type='application/json',
+        data=json.dumps(alteracao_substituicoes_params)
+    )
+    assert response_update.status_code == status.HTTP_200_OK
+    assert len(resp_json['datas_intervalo']) == 3
 
 
 def test_url_endpoint_alterar_tipos_alimentacao(client_autenticado_vinculo_escola_cardapio,
@@ -712,6 +722,32 @@ def test_url_endpoint_alt_card_escola_cancela(client_autenticado_vinculo_escola_
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Erro de transição de estado: Já está cancelada'}
+
+
+@freeze_time('2019-10-1')
+def test_url_endpoint_alt_card_escola_cancela_datas_intervalo(
+        client_autenticado_vinculo_escola_cardapio, alteracao_cardapio_com_datas_intervalo):
+    data = {'datas': [i.data.strftime('%Y-%m-%d') for i in
+                      alteracao_cardapio_com_datas_intervalo.datas_intervalo.all()[:1]]}
+    response = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_com_datas_intervalo.uuid}/{constants.ESCOLA_CANCELA}/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    alteracao_cardapio_com_datas_intervalo.refresh_from_db()
+    assert alteracao_cardapio_com_datas_intervalo.status == 'DRE_A_VALIDAR'
+
+    data = {'datas': [i.data.strftime('%Y-%m-%d') for i in
+                      alteracao_cardapio_com_datas_intervalo.datas_intervalo.all()[1:]]}
+    response = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_com_datas_intervalo.uuid}/{constants.ESCOLA_CANCELA}/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    alteracao_cardapio_com_datas_intervalo.refresh_from_db()
+    assert alteracao_cardapio_com_datas_intervalo.status == 'ESCOLA_CANCELOU'
 
 
 def test_url_endpoint_alt_card_dre_valida_error(client_autenticado_vinculo_dre_cardapio, alteracao_cardapio):
@@ -941,3 +977,115 @@ def test_terceirizada_marca_conferencia_alteracao_cardapio_viewset(client_autent
         client_autenticado,
         AlteracaoCardapio,
         'alteracoes-cardapio')
+
+
+def test_motivos_alteracao_cardapio_escola_cei_queryset(client_autenticado_vinculo_escola_cei_cardapio,
+                                                        motivo_alteracao_cardapio,
+                                                        motivo_alteracao_cardapio_lanche_emergencial,
+                                                        motivo_alteracao_cardapio_inativo):
+    response = client_autenticado_vinculo_escola_cei_cardapio.get(
+        f'/motivos-alteracao-cardapio/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
+def test_motivos_alteracao_cardapio_queryset(client_autenticado_vinculo_escola_cardapio,
+                                             motivo_alteracao_cardapio,
+                                             motivo_alteracao_cardapio_lanche_emergencial,
+                                             motivo_alteracao_cardapio_inativo):
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/motivos-alteracao-cardapio/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 2
+
+
+@freeze_time('2023-07-14')
+def test_alteracao_cemei_solicitacoes_dre(client_autenticado_vinculo_dre_escola_cemei, alteracao_cemei_dre_a_validar):
+    response = client_autenticado_vinculo_dre_escola_cemei.get(
+        f'/alteracoes-cardapio-cemei/{constants.PEDIDOS_DRE}/{constants.DAQUI_A_TRINTA_DIAS}/'
+        f'?lote={alteracao_cemei_dre_a_validar.rastro_lote.uuid}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
+@freeze_time('2023-07-14')
+def test_alteracao_cemei_solicitacoes_codae(client_autenticado_vinculo_codae_cardapio, alteracao_cemei_dre_validado):
+    response = client_autenticado_vinculo_codae_cardapio.get(
+        f'/alteracoes-cardapio-cemei/{constants.PEDIDOS_CODAE}/{constants.DAQUI_A_TRINTA_DIAS}/'
+        f'?lote={alteracao_cemei_dre_validado.rastro_lote.uuid}'
+        f'&diretoria_regional={alteracao_cemei_dre_validado.rastro_dre.uuid}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
+@freeze_time('2023-07-14')
+def test_create_alteracao_cemei_cei(client_autenticado_vinculo_escola_cemei, escola_cemei, motivo_alteracao_cardapio,
+                                    periodo_escolar, tipo_alimentacao, faixas_etarias_ativas):
+    data = {
+        'escola': str(escola_cemei.uuid),
+        'motivo': str(motivo_alteracao_cardapio.uuid),
+        'alunos_cei_e_ou_emei': 'CEI',
+        'alterar_dia': '30/07/2023',
+        'substituicoes_cemei_cei_periodo_escolar': [
+            {
+                'periodo_escolar': str(periodo_escolar.uuid),
+                'tipos_alimentacao_de': [str(tipo_alimentacao.uuid)],
+                'tipos_alimentacao_para': [str(tipo_alimentacao.uuid)],
+                'faixas_etarias': [
+                    {
+                        'faixa_etaria': str(faixas_etarias_ativas[0].uuid),
+                        'quantidade': '12',
+                        'matriculados_quando_criado': 33
+                    }
+                ]
+            }
+        ],
+        'substituicoes_cemei_emei_periodo_escolar': [],
+        'observacao': '<p>adsasdasd</p>'
+    }
+    response = client_autenticado_vinculo_escola_cemei.post(
+        '/alteracoes-cardapio-cemei/', content_type='application/json', data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()['escola'] == str(escola_cemei.uuid)
+    assert response.json()['alunos_cei_e_ou_emei'] == 'CEI'
+    assert len(response.json()['substituicoes_cemei_cei_periodo_escolar']) == 1
+    assert len(response.json()['substituicoes_cemei_emei_periodo_escolar']) == 0
+    assert response.json()['alterar_dia'] == '30/07/2023'
+    assert response.json()['status'] == 'RASCUNHO'
+
+
+@freeze_time('2023-07-14')
+def test_create_alteracao_cemei_emei(client_autenticado_vinculo_escola_cemei, escola_cemei, motivo_alteracao_cardapio,
+                                     periodo_escolar, tipo_alimentacao):
+    data = {
+        'escola': str(escola_cemei.uuid),
+        'motivo': str(motivo_alteracao_cardapio.uuid),
+        'alunos_cei_e_ou_emei': 'EMEI',
+        'alterar_dia': '30/07/2023',
+        'substituicoes_cemei_cei_periodo_escolar': [],
+        'substituicoes_cemei_emei_periodo_escolar': [
+            {
+                'qtd_alunos': '30',
+                'matriculados_quando_criado': 75,
+                'periodo_escolar': str(periodo_escolar.uuid),
+                'tipos_alimentacao_de': [str(tipo_alimentacao.uuid)],
+                'tipos_alimentacao_para': [str(tipo_alimentacao.uuid)]
+            }
+        ],
+        'observacao': '<p>adsasdasd</p>'
+    }
+    response = client_autenticado_vinculo_escola_cemei.post(
+        '/alteracoes-cardapio-cemei/', content_type='application/json', data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()['escola'] == str(escola_cemei.uuid)
+    assert response.json()['alunos_cei_e_ou_emei'] == 'EMEI'
+    assert len(response.json()['substituicoes_cemei_cei_periodo_escolar']) == 0
+    assert len(response.json()['substituicoes_cemei_emei_periodo_escolar']) == 1
+    assert response.json()['alterar_dia'] == '30/07/2023'
+    assert response.json()['status'] == 'RASCUNHO'

@@ -3,11 +3,12 @@ import os
 from django.db import models
 from multiselectfield import MultiSelectField
 
-from ...dados_comuns.behaviors import CriadoPor, ModeloBase
-from ...dados_comuns.fluxo_status import FluxoGuiaRemessa
+from ...dados_comuns.behaviors import CriadoPor, Logs, ModeloBase, TemIdentificadorExternoAmigavel
+from ...dados_comuns.fluxo_status import FluxoGuiaRemessa, FluxoNotificacaoOcorrencia
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.utils import convert_image_to_base64
 from ...escola.models import Escola
+from ...terceirizada.models import Terceirizada
 from .solicitacao import SolicitacaoRemessa
 
 
@@ -33,6 +34,31 @@ class GuiaManager(models.Manager):
             solicitacao=solicitacao,
             escola=escola
         )
+
+
+class NotificacaoOcorrenciasGuia(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoNotificacaoOcorrencia):
+    numero = models.CharField('Número da Notificação', blank=True, max_length=50, unique=True)
+    processo_sei = models.CharField('Nº do Processo SEI', max_length=20, blank=True, default='')
+    empresa = models.ForeignKey(
+        Terceirizada, on_delete=models.PROTECT, blank=True, null=True, related_name='notificacoes')
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.NOTIFICACAO_OCORRENCIA_GUIA,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa
+        )
+
+    def __str__(self):
+        return f'Notificacao: {self.numero} - {self.status}'
+
+    class Meta:
+        verbose_name = 'Notificação de Guias com Ocorrencias'
+        verbose_name_plural = 'Notificações de Guias com Ocorrencias'
 
 
 class Guia(ModeloBase, FluxoGuiaRemessa):
@@ -61,6 +87,9 @@ class Guia(ModeloBase, FluxoGuiaRemessa):
     contato_unidade = models.CharField('Contato na unidade', blank=True, max_length=150)
     telefone_unidade = models.CharField('Telefone da unidade', blank=True, default='', max_length=50)
     situacao = models.CharField(choices=SITUACAO_CHOICES, max_length=10, default=ATIVA)
+    notificacao = models.ForeignKey(
+        NotificacaoOcorrenciasGuia,
+        on_delete=models.PROTECT, blank=True, null=True, default=None, related_name='guias_notificadas')
 
     objects = GuiaManager()
 
@@ -142,6 +171,8 @@ class ConferenciaIndividualPorAlimento(ModeloBase):
     OCORRENCIA_VALIDADE_EXPIRADA = 'VALIDADE_EXPIRADA'
     OCORRENCIA_ATRASO_ENTREGA = 'ATRASO_ENTREGA'
     OCORRENCIA_AUSENCIA_PRODUTO = 'AUSENCIA_PRODUTO'
+    OCORRENCIA_FALTA_URBANIDADE = 'FALTA_URBANIDADE'
+    OCORRENCIA_FALTA_ESPACO_ARMAZENAMENTO = 'FALTA_ESPACO_ARMAZENAMENTO'
 
     OCORRENCIA_NOMES = {
         OCORRENCIA_QTD_MENOR: 'Quantidade menor que a prevista',
@@ -152,6 +183,8 @@ class ConferenciaIndividualPorAlimento(ModeloBase):
         OCORRENCIA_VALIDADE_EXPIRADA: 'Prazo de validade expirado',
         OCORRENCIA_ATRASO_ENTREGA: 'Atraso na entrega',
         OCORRENCIA_AUSENCIA_PRODUTO: 'Ausência do produto',
+        OCORRENCIA_FALTA_URBANIDADE: 'Falta de urbanidade na entrega',
+        OCORRENCIA_FALTA_ESPACO_ARMAZENAMENTO: 'Falta de espaço no freezer para armazenamento',
     }
 
     OCORRENCIA_CHOICES = (
@@ -163,6 +196,8 @@ class ConferenciaIndividualPorAlimento(ModeloBase):
         (OCORRENCIA_VALIDADE_EXPIRADA, OCORRENCIA_NOMES[OCORRENCIA_VALIDADE_EXPIRADA]),
         (OCORRENCIA_ATRASO_ENTREGA, OCORRENCIA_NOMES[OCORRENCIA_ATRASO_ENTREGA]),
         (OCORRENCIA_AUSENCIA_PRODUTO, OCORRENCIA_NOMES[OCORRENCIA_AUSENCIA_PRODUTO]),
+        (OCORRENCIA_FALTA_URBANIDADE, OCORRENCIA_NOMES[OCORRENCIA_FALTA_URBANIDADE]),
+        (OCORRENCIA_FALTA_ESPACO_ARMAZENAMENTO, OCORRENCIA_NOMES[OCORRENCIA_FALTA_ESPACO_ARMAZENAMENTO]),
     )
 
     conferencia = models.ForeignKey(
@@ -190,6 +225,22 @@ class ConferenciaIndividualPorAlimento(ModeloBase):
     class Meta:
         verbose_name = 'Conferência Individual por Alimento'
         verbose_name_plural = 'Conferências Individuais por Alimentos'
+
+
+class PrevisaoContratualNotificacao(ModeloBase):
+    notificacao = models.ForeignKey(
+        NotificacaoOcorrenciasGuia,
+        on_delete=models.PROTECT, blank=True, null=True, default=None, related_name='previsoes_contratuais')
+    motivo_ocorrencia = models.CharField(
+        choices=ConferenciaIndividualPorAlimento.OCORRENCIA_CHOICES, max_length=40, blank=True)
+    previsao_contratual = models.TextField('Previsão Contratual', max_length=500, blank=True)
+
+    def __str__(self):
+        return f'Previsao: {self.motivo_ocorrencia}'
+
+    class Meta:
+        verbose_name = 'Previsão Contratual'
+        verbose_name_plural = 'Previsões Contratuais'
 
 
 class InsucessoEntregaGuia(ModeloBase, CriadoPor):

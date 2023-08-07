@@ -6,57 +6,39 @@ from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 from openpyxl import Workbook, styles
 from openpyxl.worksheet.datavalidation import DataValidation
-from rest_framework import permissions, serializers, status
+from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
-from ...dados_comuns.constants import (
-    ADMINISTRADOR_DIETA_ESPECIAL,
-    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    ADMINISTRADOR_GESTAO_PRODUTO,
-    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-    ADMINISTRADOR_UE,
-    COGESTOR_DRE
-)
-from ...dados_comuns.permissions import UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
+from ...dados_comuns.permissions import UsuarioCODAEGestaoAlimentacao, UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
-from ...escola.api.permissions import (
-    PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
-    PodeCriarAdministradoresDaCODAEGestaoDietaEspecial,
-    PodeCriarAdministradoresDaCODAEGestaoProdutos,
-    PodeCriarAdministradoresDaCODAESupervisaoNutricao,
-    PodeCriarAdministradoresDaDiretoriaRegional,
-    PodeCriarAdministradoresDaEscola
-)
 from ...escola.api.serializers import (
     AlunoSerializer,
     AlunoSimplesSerializer,
     AlunosMatriculadosPeriodoEscolaCompletoSerializer,
     CODAESerializer,
     DiretoriaRegionalParaFiltroSerializer,
+    EscolaEolSimplesSerializer,
     EscolaParaFiltroSerializer,
     EscolaPeriodoEscolarSerializer,
     LoteNomeSerializer,
     LoteParaFiltroSerializer,
     LoteSerializer,
     LoteSimplesSerializer,
-    TipoUnidadeParaFiltroSerializer,
-    UsuarioDetalheSerializer
+    TipoUnidadeParaFiltroSerializer
 )
 from ...escola.api.serializers_create import (
     EscolaPeriodoEscolarCreateSerializer,
-    EscolaSimplesUpdateSerializer,
     FaixaEtariaSerializer,
     LoteCreateSerializer,
     MudancaFaixasEtariasCreateSerializer
 )
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
-from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..forms import AlunosPorFaixaEtariaForm
 from ..models import (
     Aluno,
@@ -77,6 +59,7 @@ from ..models import (
     TipoUnidadeEscolar
 )
 from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
+from ..tasks import gera_pdf_relatorio_alunos_matriculados_async, gera_xlsx_relatorio_alunos_matriculados_async
 from ..utils import EscolaSimplissimaPagination, lotes_endpoint_filtrar_relatorio_alunos_matriculados
 from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .permissions import PodeVerEditarFotoAlunoNoSGP
@@ -90,7 +73,6 @@ from .serializers import (
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
     LogAlunosMatriculadosPeriodoEscolaSerializer,
-    PeriodoEFaixaEtariaCounterSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
     SubprefeituraSerializerSimples,
@@ -99,82 +81,10 @@ from .serializers import (
 )
 
 
-# https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
-class VinculoViewSet(ReadOnlyModelViewSet):
-    lookup_field = 'uuid'
-    serializer_class = VinculoSerializer
-
-    @action(detail=True, methods=['post'])
-    def criar_equipe_administradora(self, request, uuid=None):
-        try:
-            instituicao = self.get_object()
-            data = request.data.copy()
-            data['instituicao'] = instituicao.nome
-            usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
-            usuario.criar_vinculo_administrador(instituicao, nome_perfil=self.nome_perfil)  # noqa
-            return Response(UsuarioDetalheSerializer(usuario).data)
-        except serializers.ValidationError as e:
-            return Response(data=dict(detail=e.args[0]), status=e.status_code)
-
-    @action(detail=True)
-    def get_equipe_administradora(self, request, uuid=None):
-        instituicao = self.get_object()
-        vinculos = instituicao.vinculos_que_podem_ser_finalizados
-        return Response(self.get_serializer(vinculos, many=True).data)
-
-    @action(detail=True, methods=['patch'])
-    def finalizar_vinculo(self, request, uuid=None):
-        instituicao = self.get_object()
-        vinculo_uuid = request.data.get('vinculo_uuid')
-        vinculo = instituicao.vinculos.get(uuid=vinculo_uuid)
-        vinculo.finalizar_vinculo()
-        return Response(self.get_serializer(vinculo).data)
-
-
-class VinculoEscolaViewSet(VinculoViewSet):
-    queryset = Escola.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaEscola]
-    nome_perfil = ADMINISTRADOR_UE
-
-
-class VinculoDiretoriaRegionalViewSet(VinculoViewSet):
-    queryset = DiretoriaRegional.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaDiretoriaRegional]
-    nome_perfil = COGESTOR_DRE
-
-
-class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]  # noqa
-    nome_perfil = ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
-
-
-class VinculoCODAEGestaoDietaEspecialViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoDietaEspecial]
-    nome_perfil = ADMINISTRADOR_DIETA_ESPECIAL
-
-
-class VinculoCODAEGestaoProdutosViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoProdutos]
-    nome_perfil = ADMINISTRADOR_GESTAO_PRODUTO
-
-
-class VinculoCODAESupervisaoNutricaoViewSet(VinculoViewSet):
-    queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAESupervisaoNutricao]
-    nome_perfil = ADMINISTRADOR_SUPERVISAO_NUTRICAO
-
-
 class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     lookup_field = 'uuid'
+    serializer_class = EscolaSimplesSerializer
     queryset = Escola.objects.all()
-
-    def get_serializer_class(self):
-        if self.action in ['update', 'partial_update']:
-            return EscolaSimplesUpdateSerializer
-        return EscolaSimplesSerializer
 
 
 class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
@@ -203,6 +113,21 @@ class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSe
         return Response(self.get_serializer(escolas, many=True).data)
 
 
+class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Escola.objects.all()
+    serializer_class = EscolaEolSimplesSerializer
+
+    @action(detail=False, methods=['POST'], url_path='terc-total')
+    def terc_total(self, request):
+        escolas = self.get_queryset().filter(tipo_gestao__nome='TERC TOTAL')
+        lotes = request.data.get('lotes', None)
+        if lotes:
+            escolas = escolas.filter(lote__uuid__in=lotes)
+        serializer = self.serializer_class(escolas, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class EscolaSimplissimaComDREViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all().prefetch_related('diretoria_regional')
@@ -228,10 +153,17 @@ class EscolaSimplissimaComDREUnpaginatedViewSet(EscolaSimplissimaComDREViewSet):
 class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
-    serializer_class = PeriodoEFaixaEtariaCounterSerializer
 
-    @action(detail=True, url_path='(?P<data_referencia_str>[^/.]+)')  # noqa C901
-    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
+    def formata_resultado_faixa_etaria(self, counter_faixas_etarias, resultado):
+        for periodo in counter_faixas_etarias:
+            for faixa in counter_faixas_etarias[periodo]:
+                for faixa_resultado in resultado:
+                    if (faixa == faixa_resultado['faixa_etaria']['uuid']):
+                        faixa_resultado['count'] += counter_faixas_etarias[periodo][faixa]
+        return resultado
+
+    @action(detail=True, url_path='somatorio-faixas-etarias/(?P<data_referencia_str>[^/.]+)')
+    def somatorio_faixas_etarias(self, request, uuid, data_referencia_str):
         form = AlunosPorFaixaEtariaForm({
             'data_referencia': data_referencia_str
         })
@@ -241,10 +173,21 @@ class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
 
         escola = self.get_object()
         data_referencia = form.cleaned_data['data_referencia']
+        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)
+        faixas_uuids = []
 
-        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)  # noqa
-        serializer = PeriodoEFaixaEtariaCounterSerializer(counter_faixas_etarias)  # noqa
-        return Response(serializer.data)
+        for k in counter_faixas_etarias:
+            faixas_uuids += counter_faixas_etarias[k].keys()
+        faixas_uuids = list(set(faixas_uuids))
+
+        resultado = []
+        for faixa_etaria in FaixaEtaria.objects.filter(uuid__in=faixas_uuids):
+            resultado.append({
+                'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
+                'count': 0
+            })
+        resultado = self.formata_resultado_faixa_etaria(counter_faixas_etarias, resultado)
+        return Response({'count': len(resultado), 'results': resultado})
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
@@ -301,7 +244,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
         })
 
     @action(detail=False, methods=['GET'], url_path='inclusao-continua-por-mes',
-            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional])
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def inclusao_continua_por_mes(self, request):
         try:
             for param in ['mes', 'ano']:
@@ -313,13 +256,15 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             primeiro_dia_mes = datetime.date(int(ano), int(mes), 1)
             ultimo_dia_mes = get_ultimo_dia_mes(primeiro_dia_mes)
             instituicao = request.user.vinculo_atual.instituicao
-            if(isinstance(instituicao, DiretoriaRegional) and escola):
+            if((isinstance(instituicao, DiretoriaRegional) or isinstance(instituicao, Codae)) and escola):
                 instituicao = Escola.objects.get(uuid=escola)
             periodos = dict(InclusaoAlimentacaoContinua.objects.filter(
                 status='CODAE_AUTORIZADO',
                 rastro_escola=instituicao).filter(
                     data_inicial__lte=ultimo_dia_mes,
                     data_final__gte=primeiro_dia_mes,
+            ).exclude(
+                motivo__nome='ETEC'
             ).values_list(
                 'quantidades_por_periodo__periodo_escolar__nome',
                 'quantidades_por_periodo__periodo_escolar__uuid'))
@@ -720,6 +665,28 @@ def exportar_planilha_importacao_tipo_gestao_escola(request, **kwargs):
 
 
 class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
+    queryset = AlunosMatriculadosPeriodoEscola.objects.all()
+
+    def filtrar_matriculados(self, request, lotes):
+        if request.query_params.getlist('lotes[]'):
+            lotes = lotes.filter(uuid__in=request.query_params.getlist('lotes[]'))
+        if request.query_params.getlist('diretorias_regionais[]'):
+            lotes = lotes.filter(diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]'))
+        escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
+        alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(escola__uuid__in=escolas_uuids,
+                                                                             escola__tipo_gestao__nome='TERC TOTAL')
+        if request.query_params.getlist('diretorias_regionais[]'):
+            alunos_matriculados = alunos_matriculados.filter(
+                escola__diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]')
+            )
+        if request.query_params.getlist('tipos_unidades[]'):
+            tipos = request.query_params.getlist('tipos_unidades[]')
+            alunos_matriculados = alunos_matriculados.filter(escola__tipo_unidade__uuid__in=tipos)
+        if request.query_params.getlist('unidades_educacionais[]'):
+            unidades_eudacionais = request.query_params.getlist('unidades_educacionais[]')
+            alunos_matriculados = alunos_matriculados.filter(escola__uuid__in=unidades_eudacionais)
+        alunos_matriculados = alunos_matriculados.order_by('escola__nome')
+        return alunos_matriculados
 
     @action(detail=False, methods=['GET'], url_path='filtros')
     def filtros(self, request):
@@ -747,24 +714,37 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
     def filtrar(self, request):
         instituicao = request.user.vinculo_atual.instituicao
         lotes = lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lote)
-        if request.query_params.getlist('lotes[]'):
-            lotes = lotes.filter(uuid__in=request.query_params.getlist('lotes[]'))
-        if request.query_params.getlist('diretorias_regionais[]'):
-            lotes = lotes.filter(diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]'))
-        escolas_uuids = lotes.values_list('escolas__uuid', flat=True).distinct()
-        alunos_matriculados = AlunosMatriculadosPeriodoEscola.objects.filter(escola__uuid__in=escolas_uuids,
-                                                                             escola__tipo_gestao__nome='TERC TOTAL')
-        if request.query_params.getlist('diretorias_regionais[]'):
-            alunos_matriculados = alunos_matriculados.filter(
-                escola__diretoria_regional__uuid__in=request.query_params.getlist('diretorias_regionais[]')
-            )
-        if request.query_params.getlist('tipos_unidades[]'):
-            tipos = request.query_params.getlist('tipos_unidades[]')
-            alunos_matriculados = alunos_matriculados.filter(escola__tipo_unidade__uuid__in=tipos)
-        if request.query_params.getlist('unidades_educacionais[]'):
-            unidades_eudacionais = request.query_params.getlist('unidades_educacionais[]')
-            alunos_matriculados = alunos_matriculados.filter(escola__uuid__in=unidades_eudacionais)
-        alunos_matriculados = alunos_matriculados.order_by('escola__nome')
+        alunos_matriculados = self.filtrar_matriculados(request, lotes)
         page = self.paginate_queryset(alunos_matriculados)
         serializer = AlunosMatriculadosPeriodoEscolaCompletoSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path='gerar-pdf')
+    def gerar_pdf(self, request):
+        user = request.user.get_username()
+        instituicao = request.user.vinculo_atual.instituicao
+        lotes = lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lote)
+        alunos_matriculados = self.filtrar_matriculados(request, lotes)
+        uuids = [str(matriculados.uuid) for matriculados in alunos_matriculados]
+        gera_pdf_relatorio_alunos_matriculados_async.delay(
+            user=user,
+            nome_arquivo='relatorio_alunos_matriculados.pdf',
+            uuids=uuids
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='gerar-xlsx')
+    def gerar_xlsx(self, request):
+        user = request.user.get_username()
+        instituicao = request.user.vinculo_atual.instituicao
+        lotes = lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lote)
+        alunos_matriculados = self.filtrar_matriculados(request, lotes)
+        uuids = [str(matriculados.uuid) for matriculados in alunos_matriculados]
+        gera_xlsx_relatorio_alunos_matriculados_async.delay(
+            user=user,
+            nome_arquivo='relatorio_alunos_matriculados.xlsx',
+            uuids=uuids
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)

@@ -98,8 +98,19 @@ class LogSolicitacoesUsuario(
         CRONOGRAMA_ASSINADO_PELA_DINUTRE,
         CRONOGRAMA_ASSINADO_PELA_CODAE,
         VINCULO_DO_EDITAL_AO_PRODUTO,
-        CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO
-    ) = range(72)
+        CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO,
+        APROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
+        REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO,
+        APROVADO_DILOG_SOLICITACAO_ALTERACAO,
+        REPROVADO_DILOG_SOLICITACAO_ALTERACAO,
+        CODAE_CANCELOU_SOLICITACAO_CORRECAO,
+        TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO,
+        SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE,
+        NOTIFICACAO_CRIADA,
+        NOTIFICACAO_ENVIADA_FISCAL,
+        MEDICAO_CORRECAO_SOLICITADA_CODAE,
+        MEDICAO_CORRIGIDA_PARA_CODAE
+    ) = range(83)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -197,21 +208,32 @@ class LogSolicitacoesUsuario(
         (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
         (MEDICAO_ENVIADA_PELA_UE, 'Enviado pela UE'),
         (MEDICAO_CORRECAO_SOLICITADA, 'Correção solicitada'),
-        (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido pela UE'),
+        (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido para DRE'),
         (MEDICAO_APROVADA_PELA_DRE, 'Aprovado pela DRE'),
-        (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado por CODAE'),
+        (MEDICAO_APROVADA_PELA_CODAE, 'Aprovado pela CODAE'),
         (CRONOGRAMA_CRIADO, 'Cronograma Criado'),
         (CRONOGRAMA_ENVIADO_AO_FORNECEDOR, 'Assinado e Enviado ao Fornecedor'),
         (CRONOGRAMA_ASSINADO_PELO_FORNECEDOR, 'Assinado Fornecedor'),
-        (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Alteração Fornecedor'),
+        (FORNECEDOR_SOLICITA_ALTERACAO_CRONOGRAMA, 'Solicitada Alteração'),
         (SUSPENSO_EM_ALGUNS_EDITAIS, 'Suspenso em alguns editais'),
         (ATIVO_EM_ALGUNS_EDITAIS, 'Ativo em alguns editais'),
         (CRONOGRAMA_ASSINADO_PELO_USUARIO_CRONOGRAMA, 'Assinado Cronograma'),
         (CODAE_ATUALIZOU_PROTOCOLO, 'CODAE Atualizou o protocolo'),
-        (CRONOGRAMA_ASSINADO_PELA_DINUTRE, 'Assinado Dinutre'),
+        (CRONOGRAMA_ASSINADO_PELA_DINUTRE, 'Assinado DINUTRE'),
         (CRONOGRAMA_ASSINADO_PELA_CODAE, 'Assinado CODAE'),
         (VINCULO_DO_EDITAL_AO_PRODUTO, 'Vínculo do Edital ao Produto'),
-        (CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO, 'Cronograma ciente alteração cronograma')
+        (CRONOGRAMA_CIENTE_SOLICITACAO_ALTERACAO, 'Cronograma Ciente'),
+        (APROVADO_DINUTRE_SOLICITACAO_ALTERACAO, 'Aprovado DINUTRE'),
+        (REPROVADO_DINUTRE_SOLICITACAO_ALTERACAO, 'Reprovado DINUTRE'),
+        (APROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Aprovado DILOG'),
+        (REPROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Reprovado DILOG'),
+        (CODAE_CANCELOU_SOLICITACAO_CORRECAO, 'CODAE cancelou solicitação de correção'),
+        (TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO, 'Terceirizada cancelou solicitação de correção'),
+        (SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE, 'Em Análise'),
+        (NOTIFICACAO_CRIADA, 'Notificação criada'),
+        (NOTIFICACAO_ENVIADA_FISCAL, 'Notificação enviada para o fiscal'),
+        (MEDICAO_CORRECAO_SOLICITADA_CODAE, 'Correção solicitada pela CODAE'),
+        (MEDICAO_CORRIGIDA_PARA_CODAE, 'Corrigido para CODAE')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -237,8 +259,9 @@ class LogSolicitacoesUsuario(
         INCLUSAO_ALIMENTACAO_CEMEI,
         SOLICITACAO_KIT_LANCHE_CEMEI,
         CRONOGRAMA,
-        SOLICITACAO_DE_ALTERACAO_CRONOGRAMA
-    ) = range(20)
+        SOLICITACAO_DE_ALTERACAO_CRONOGRAMA,
+        NOTIFICACAO_OCORRENCIA_GUIA
+    ) = range(21)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -261,7 +284,8 @@ class LogSolicitacoesUsuario(
         (INCLUSAO_ALIMENTACAO_CEMEI, 'Inclusão de Alimentação CEMEI'),
         (SOLICITACAO_KIT_LANCHE_CEMEI, 'Solicitação de kit lanche CEMEI'),
         (CRONOGRAMA, 'Cronograma'),
-        (SOLICITACAO_DE_ALTERACAO_CRONOGRAMA, 'Solicitação de alteração do cronograma')
+        (SOLICITACAO_DE_ALTERACAO_CRONOGRAMA, 'Solicitação de alteração do cronograma'),
+        (NOTIFICACAO_OCORRENCIA_GUIA, 'Notificação de guia com ocorrência')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -431,11 +455,15 @@ class Notificacao(models.Model):
     CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA = 'REQUISICAO_DE_ENTREGA'
     CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA = 'ALTERACAO_REQUISICAO_ENTREGA'
     CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA = 'GUIA_DE_REMESSA'
+    CATEGORIA_NOTIFICACAO_CRONOGRAMA = 'CRONOGRAMA'
+    CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA = 'ALTERACAO_CRONOGRAMA'
 
     CATEGORIA_NOTIFICACAO_NOMES = {
         CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA: 'Requisição de entrega',
         CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA: 'Alteração de requisição de entrega',
         CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA: 'Guia de Remessa',
+        CATEGORIA_NOTIFICACAO_CRONOGRAMA: 'Assinatura do Cronograma',
+        CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA: 'Solicitação de Alteração do Cronograma'
     }
 
     CATEGORIA_NOTIFICACAO_CHOICES = (
@@ -444,6 +472,9 @@ class Notificacao(models.Model):
         (CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA,
          CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA]),
         (CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA]),
+        (CATEGORIA_NOTIFICACAO_CRONOGRAMA, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_CRONOGRAMA]),
+        (CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA,
+         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA]),
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -489,6 +520,9 @@ class Notificacao(models.Model):
     guia = models.ForeignKey('logistica.Guia', on_delete=models.CASCADE, related_name='notificacoes_da_guia',
                              blank=True, null=True)
 
+    cronograma = models.ForeignKey('pre_recebimento.Cronograma', on_delete=models.CASCADE,
+                                   related_name='notificacoes_do_cronograma', blank=True, null=True)
+
     class Meta:
         verbose_name = 'Notificação'
         verbose_name_plural = 'Notificações'
@@ -498,7 +532,7 @@ class Notificacao(models.Model):
 
     @classmethod
     def notificar(cls, tipo, categoria, titulo, descricao, usuario, link,  # noqa C901
-                  requisicao=None, solicitacao_alteracao=None, guia=None, renotificar=True):
+                  requisicao=None, solicitacao_alteracao=None, guia=None, renotificar=True, cronograma=None):
 
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
             raise NotificacaoException(f'Tipo {tipo} não é um tipo válido.')

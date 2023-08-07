@@ -229,13 +229,21 @@
     {% include "bloco_observacoes.html" %}
   </div>
   <div class="row mx-5">
-    {% if solicitacao.status != 'ESCOLA_CANCELOU' %}
+    {% if solicitacao.status == 'ESCOLA_CANCELOU' %}
       {% include "bloco_historico_cancelamento.html" %}
     {% endif %}
   </div>
   <div class="row mx-5" style="font-size: 14px;">
-    <hr style="color: #EEEEEE; opacity: 0.3">
-    {% include "bloco_historico_questionamento_com_data.html" %}
+    <div class="conteudo">
+      {% include "bloco_historico_questionamento_com_data.html" %}
+    </div>
   </div>
 {% endif %}
+
+<div class="row mx-3">
+  <div class="conteudo">
+    {% include "bloco_observacao_codae_autoriza.html" %}
+  </div>
+</div>
+
 {% endblock %}

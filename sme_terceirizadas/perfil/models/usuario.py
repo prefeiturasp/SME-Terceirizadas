@@ -343,31 +343,30 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     def cria_ou_atualiza_usuario_sigpae(cls, dados_usuario, eh_servidor, existe_core_sso=False):
         if eh_servidor:
             usuario, criado = Usuario.objects.update_or_create(
-                username=dados_usuario['login'],
-                registro_funcional=dados_usuario['login'],
-                last_login=datetime.datetime.now() if existe_core_sso else None,
+                username=dados_usuario.get('login'),
+                cpf=dados_usuario.get('cpf'),
                 defaults={
-                    'email': dados_usuario.get('email', ''),
-                    'nome': dados_usuario['nome'],
+                    'email': dados_usuario.get('email'),
+                    'registro_funcional': dados_usuario.get('login'),
                     'cargo': dados_usuario.get('cargo', ''),
-                    'cpf': dados_usuario.get('cpf', ''),
+                    'nome': dados_usuario.get('nome'),
+                    'last_login': datetime.datetime.now() if existe_core_sso else None
                 }
             )
             return usuario
         else:
             usuario, criado = Usuario.objects.update_or_create(
                 username=dados_usuario['cpf'],
+                cpf=dados_usuario.get('cpf'),
                 defaults={
-                    'email': dados_usuario.get('email', ''),
+                    'email': dados_usuario.get('email'),
                     'nome': dados_usuario['nome'],
-                    'cpf': dados_usuario['cpf']
                 }
             )
             return usuario
 
     def verificar_autenticidade(self, password):
-        # TODO Após implantação do coresso substituir este método.
-        usuario = authenticate(username=self.email, password=password)
+        usuario = authenticate(username=self.username, password=password)
         return usuario is not None
 
     def envia_email_primeiro_acesso_usuario_empresa(self):

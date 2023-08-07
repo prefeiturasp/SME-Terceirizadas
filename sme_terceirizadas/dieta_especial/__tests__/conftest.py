@@ -142,6 +142,11 @@ def substituicoes(alimentos, produtos):
 
 
 @pytest.fixture
+def edital():
+    return mommy.make('Edital', uuid='b7b6a0a7-b230-4783-94b6-8d3d22041ab3', numero='edital-teste-1')
+
+
+@pytest.fixture
 def payload_autorizar(alergias_intolerancias, classificacoes_dieta, substituicoes, protocolo_padrao_dieta_especial):
     return {
         'classificacao': classificacoes_dieta[0].id,
@@ -247,7 +252,7 @@ def template_mensagem_dieta_especial():
 @pytest.fixture
 def escola():
     terceirizada = mommy.make('Terceirizada', uuid='a8fefdd3-b5ff-47e0-8338-ce5d7c6d8a52')
-    lote = mommy.make('Lote', terceirizada=terceirizada)
+    lote = mommy.make('Lote', terceirizada=terceirizada, nome='LOTE 07', uuid='429446c2-5b17-4ada-96ae-cce369dd4ae1')
     diretoria_regional = mommy.make(
         'DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
     tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
@@ -331,6 +336,12 @@ def client_autenticado_vinculo_terceirizada_dieta(client, django_user_model, esc
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_nutri_admin,
                data_inicial=hoje, ativo=True)
+    classificacao = mommy.make('ClassificacaoDieta', id=1, nome='Tipo A')
+    protocolo_padrao = mommy.make('ProtocoloPadraoDietaEspecial', nome_protocolo='ALERGIA - OVO',
+                                  uuid='5d7f80b8-7b62-441b-89da-4d5dd5c1e7e8')
+    mommy.make('SolicitacaoDietaEspecial', status='CODAE_AUTORIZADO', escola_destino=escola,
+               rastro_terceirizada=escola.lote.terceirizada, rastro_escola=escola, classificacao=classificacao,
+               protocolo_padrao=protocolo_padrao)
     client.login(username=email, password=password)
     return client
 
@@ -527,11 +538,13 @@ def protocolo_padrao_dieta_especial():
 
 @pytest.fixture
 def protocolo_padrao_dieta_especial_2():
+    edital = mommy.make('Edital', uuid='60f5a64e-8652-422d-a6e9-0a36717829c9', numero='edital-teste-2')
     return mommy.make(
         'ProtocoloPadraoDietaEspecial',
         nome_protocolo='ALERGIA A ABACAXI',
         status='LIBERADO',
-        orientacoes_gerais='Orientação Geral'
+        orientacoes_gerais='Orientação Geral',
+        editais=[edital]
     )
 
 

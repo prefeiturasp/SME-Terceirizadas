@@ -329,6 +329,10 @@ class NomeDeProdutoEditalSerializer(serializers.ModelSerializer):
 class CadastroProdutosEditalSerializer(serializers.ModelSerializer):
     nome = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
+    criado_em = serializers.SerializerMethodField()
+
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime('%d/%m/%Y')
 
     def get_nome(self, obj):
         return obj.nome
@@ -338,7 +342,7 @@ class CadastroProdutosEditalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NomeDeProdutoEdital
-        fields = ('uuid', 'nome', 'status')
+        fields = ('uuid', 'nome', 'status', 'criado_em')
 
 
 class ProdutosSubstitutosSerializer(serializers.ModelSerializer):
@@ -400,14 +404,14 @@ class ProtocoloSimplesSerializer(serializers.ModelSerializer):
 
 class HomologacaoProdutoSerializer(serializers.ModelSerializer):
     produto = ProdutoSerializer()
-    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    logs = LogSolicitacoesUsuarioComAnexosSerializer(many=True)
     rastro_terceirizada = TerceirizadaSimplesSerializer()
     ultima_analise = AnaliseSensorialSerializer()
 
     class Meta:
         model = HomologacaoProduto
         fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
-                  'protocolo_analise_sensorial', 'ultima_analise')
+                  'protocolo_analise_sensorial', 'ultima_analise', 'esta_homologado', 'tem_copia')
 
 
 class ProdutoBaseSerializer(serializers.ModelSerializer):
@@ -438,6 +442,7 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
     tem_vinculo_produto_edital_suspenso = serializers.SerializerMethodField()
     data_edital_suspenso_mais_recente = serializers.SerializerMethodField()
     editais = serializers.SerializerMethodField()
+    produto_editais = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -472,7 +477,8 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
     def get_data_edital_suspenso_mais_recente(self, obj):
         workflow = self.context.get('workflow', '')
         data = obj.data_edital_suspenso_mais_recente
-        if obj.status == 'CODAE_HOMOLOGADO' and workflow == 'CODAE_SUSPENDEU' and data:
+        if (obj.status in ['CODAE_HOMOLOGADO', 'CODAE_AUTORIZOU_RECLAMACAO'] and
+                workflow in ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO'] and data):
             if data.date() == datetime.date.today():
                 return datetime.datetime.strftime(data, '%d/%m/%Y %H:%M')
             return datetime.datetime.strftime(data, '%d/%m/%Y')
@@ -484,17 +490,21 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
             editais = ', '.join(
                 obj.produto.vinculos.filter(suspenso=False).values_list('edital__numero', flat=True)
             )
-        if workflow == 'CODAE_SUSPENDEU':
+        if workflow in ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO']:
             editais = ', '.join(
                 obj.produto.vinculos.filter(suspenso=True).values_list('edital__numero', flat=True)
             )
         return editais
 
+    def get_produto_editais(self, obj):
+        return obj.produto.vinculos.all().values_list('edital__numero', flat=True)
+
     class Meta:
         model = HomologacaoProduto
         fields = ('uuid', 'nome_produto', 'marca_produto', 'fabricante_produto', 'status', 'id_externo',
                   'log_mais_recente', 'nome_usuario_log_de_reclamacao', 'qtde_reclamacoes', 'qtde_questionamentos',
-                  'tem_vinculo_produto_edital_suspenso', 'data_edital_suspenso_mais_recente', 'editais')
+                  'tem_vinculo_produto_edital_suspenso', 'data_edital_suspenso_mais_recente', 'editais',
+                  'produto_editais', 'tem_copia')
 
 
 class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
@@ -574,6 +584,7 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
     ultima_homologacao = HomologacaoListagemSerializer()
     vinculos_produto_edital_ativos = serializers.SerializerMethodField()
     vinculos_produto_edital_suspensos = serializers.SerializerMethodField()
+    produto_edital_tipo_produto = serializers.SerializerMethodField()
 
     def get_vinculos_produto_edital_ativos(self, obj):
         editais = obj.vinculos.filter(suspenso=False)
@@ -582,6 +593,16 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
     def get_vinculos_produto_edital_suspensos(self, obj):
         editais = obj.vinculos.filter(suspenso=True)
         return ', '.join(editais.values_list('edital__numero', flat=True))
+
+    def get_produto_edital_tipo_produto(self, obj):
+        nome_edital = self.context.get('nome_edital')
+        try:
+            if nome_edital:
+                produto_edital = ProdutoEdital.objects.get(produto=obj, edital__numero=nome_edital)
+                return produto_edital.tipo_produto
+            return None
+        except ProdutoEdital.DoesNotExist:
+            return None
 
     class Meta:
         model = Produto
@@ -804,7 +825,8 @@ class ProdutoSuspensoSerializer(ProdutoBaseSerializer):
     def get_vinculos_produto_edital(self, obj):
         return ProdutoEditalSerializer(
             ProdutoEdital.objects.filter(
-                produto=obj
+                produto=obj,
+                suspenso=True
             ), many=True
         ).data
 
@@ -812,6 +834,22 @@ class ProdutoSuspensoSerializer(ProdutoBaseSerializer):
         model = Produto
         fields = ('id_externo', 'nome', 'marca', 'fabricante', 'eh_para_alunos_com_dieta',
                   'ultima_homologacao', 'criado_em', 'vinculos_produto_edital')
+
+
+class VinculosProdutosEditalAtivosSerializer(ProdutoBaseSerializer):
+    vinculos_produto_edital = serializers.SerializerMethodField()
+
+    def get_vinculos_produto_edital(self, obj):
+        return ProdutoEditalSerializer(
+            ProdutoEdital.objects.filter(
+                produto=obj,
+                suspenso=False
+            ), many=True
+        ).data
+
+    class Meta:
+        model = Produto
+        fields = ('vinculos_produto_edital',)
 
 
 class ItensCadastroSerializer(serializers.ModelSerializer):

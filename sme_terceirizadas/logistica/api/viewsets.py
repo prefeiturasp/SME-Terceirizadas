@@ -17,23 +17,33 @@ from rest_framework.status import (
 )
 from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    GuiaRemessaWorkFlow,
+    NotificacaoOcorrenciaWorkflow,
+    SolicitacaoRemessaWorkFlow
+)
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaCriarNotificacaoDeGuiasComOcorrencias,
     PermissaoParaListarEntregas,
+    PermissaoParaVisualizarGuiasComOcorrencias,
     UsuarioCodaeDilog,
     UsuarioDilog,
     UsuarioDilogOuDistribuidor,
     UsuarioDilogOuDistribuidorOuEscolaAbastecimento,
     UsuarioDistribuidor,
-    UsuarioEscolaAbastecimento
+    UsuarioEscolaAbastecimento,
+    ViewSetActionPermissionMixin
 )
 from sme_terceirizadas.eol_servico.utils import EOLPapaService
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaComOcorrenciaCreateSerializer,
     ConferenciaDaGuiaCreateSerializer,
     InsucessoDeEntregaGuiaCreateSerializer,
+    NotificacaoOcorrenciasCreateSerializer,
+    NotificacaoOcorrenciasUpdateRascunhoSerializer,
+    NotificacaoOcorrenciasUpdateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
@@ -44,6 +54,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     ConferenciaDaGuiaSerializer,
     ConferenciaIndividualPorAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
+    GuiaDaRemessaComOcorrenciasSerializer,
     GuiaDaRemessaCompletaSerializer,
     GuiaDaRemessaComStatusRequisicaoSerializer,
     GuiaDaRemessaLookUpSerializer,
@@ -51,6 +62,9 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
     InsucessoDeEntregaGuiaSerializer,
+    NotificacaoOcorrenciasGuiaDetalheSerializer,
+    NotificacaoOcorrenciasGuiaSerializer,
+    NotificacaoOcorrenciasGuiaSimplesSerializer,
     SolicitacaoDeAlteracaoSerializer,
     SolicitacaoDeAlteracaoSimplesSerializer,
     SolicitacaoRemessaContagemGuiasSerializer,
@@ -61,7 +75,11 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (  # noqa
 )
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
-from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
+from sme_terceirizadas.logistica.models import (
+    NotificacaoOcorrenciasGuia,
+    SolicitacaoDeAlteracaoRequisicao,
+    SolicitacaoRemessa
+)
 from sme_terceirizadas.logistica.services import (
     arquiva_guias,
     confirma_cancelamento,
@@ -76,7 +94,7 @@ from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
 from ..tasks import gera_pdf_async, gera_xlsx_async, gera_xlsx_entregas_async
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
-from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
+from .filters import GuiaFilter, NotificacaoFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import valida_guia_conferencia, valida_guia_insucesso
 from .validators import eh_true_ou_false
 
@@ -547,7 +565,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         tem_conferencia = eh_true_ou_false(tem_conferencia, 'tem_conferencia')
         tem_insucesso = eh_true_ou_false(tem_insucesso, 'tem_insucesso')
         eh_dre = True if user.vinculo_atual.perfil.nome == COGESTOR_DRE else False
-
+        status_guia = request.query_params.getlist('status_guia', None)
         gera_xlsx_entregas_async.delay(
             uuid=uuid,
             username=username,
@@ -555,6 +573,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             tem_insucesso=tem_insucesso,
             eh_distribuidor=user.eh_distribuidor,
             eh_dre=eh_dre,
+            status_guia=status_guia
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=HTTP_200_OK)
@@ -629,6 +648,37 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             return Response(dict(detail=f'Erro: {e}', status=False),
                             status=HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['GET'],
+            url_path='guias-com-ocorrencias-sem-notificacao',
+            permission_classes=(PermissaoParaVisualizarGuiasComOcorrencias,))
+    def lista_guias_com_ocorrencias_sem_notificacao(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.annotate(
+            nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
+        ).filter(
+            conferencias__conferencia_dos_alimentos__tem_ocorrencia=True,
+            notificacao__isnull=True
+        ).exclude(status__in=(
+            GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO,
+            GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA,
+            GuiaRemessaWorkFlow.CANCELADA)
+        ).order_by('-data_entrega').distinct()
+        if request.query_params.get('notificacao_uuid'):
+            queryset_guias_do_numero = GuiasDasRequisicoes.objects.filter(
+                notificacao__uuid=request.query_params.get('notificacao_uuid')).distinct()
+            queryset = queryset | queryset_guias_do_numero
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = GuiaDaRemessaComOcorrenciasSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = GuiaDaRemessaComOcorrenciasSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias', permission_classes=(UsuarioCodaeDilog,))
     def vincula_guias_com_escolas(self, request):
@@ -889,3 +939,85 @@ class ConferenciaindividualModelViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
             return ConferenciaIndividualPorAlimentoSerializer
+
+
+class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = NotificacaoOcorrenciasGuia.objects.all()
+    serializer_class = NotificacaoOcorrenciasGuiaSerializer
+    permission_classes = (PermissaoParaVisualizarGuiasComOcorrencias,)
+    permission_action_classes = {
+        'create': [PermissaoParaCriarNotificacaoDeGuiasComOcorrencias]
+    }
+    pagination_class = GuiaPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = NotificacaoFilter
+
+    def get_serializer_class(self):
+        if self.action in ['list']:
+            return NotificacaoOcorrenciasGuiaSerializer
+        elif self.action in ['retrieve']:
+            return NotificacaoOcorrenciasGuiaDetalheSerializer
+        else:
+            return NotificacaoOcorrenciasCreateSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.annotate(
+            nome_empresa=F('empresa__nome_fantasia')
+        ).distinct()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = NotificacaoOcorrenciasGuiaSimplesSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = NotificacaoOcorrenciasGuiaSimplesSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['PUT'], url_path='edicao-rascunho')
+    def edicao_rascunho(self, request, uuid):
+        instance = self.get_object()
+        if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
+            serializer = NotificacaoOcorrenciasUpdateRascunhoSerializer()
+            validated_data = serializer.validate(request.data, instance)
+            res = serializer.update(instance, validated_data)
+            return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
+        else:
+            return Response(dict(detail=f'Erro de transição de estado: Status da Notificação não é RASCUNHO'),
+                            status=HTTP_400_BAD_REQUEST)
+
+    def atualiza_notificacao(self, instance, request):
+        serializer = NotificacaoOcorrenciasUpdateSerializer()
+        validated_data = serializer.validate(request.data, instance)
+        res = serializer.update(instance, validated_data)
+        return res
+
+    @action(detail=True, methods=['PATCH'], url_path='criar-notificacao')
+    def criar_notificacao(self, request, uuid):
+        usuario = request.user
+        instance = self.get_object()
+        serializer = NotificacaoOcorrenciasUpdateSerializer()
+        res = serializer.update(instance, request.data)
+        if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
+            instance.cria_notificacao(user=usuario)
+        return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
+
+    @action(detail=True, methods=['PATCH'], url_path='enviar-notificacao')
+    def enviar_notificacao(self, request, uuid):
+        usuario = request.user
+        instance = self.get_object()
+        if instance.status == NotificacaoOcorrenciaWorkflow.RASCUNHO:
+            res = self.atualiza_notificacao(instance, request)
+            instance.cria_notificacao(user=usuario)
+            instance.envia_fiscal(user=usuario)
+        elif instance.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_CRIADA:
+            res = self.atualiza_notificacao(instance, request)
+            instance.envia_fiscal(user=usuario)
+        else:
+            return Response(dict(detail=f"""Erro de transição de estado:
+                                          Status da Notificação não é RASCUNHO ou NOTIFICACAO_CRIADA"""),
+                            status=HTTP_400_BAD_REQUEST)
+        return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)

@@ -2,24 +2,25 @@ import datetime
 import logging
 
 from celery import shared_task
-from config import celery
 from django.template.loader import render_to_string
 
-from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow
-from ..dados_comuns.models import Notificacao
-from ..dados_comuns.tasks import envia_email_em_massa_task
-from ..dados_comuns.utils import (
+from config import celery  # noqa: I001
+from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow
+from sme_terceirizadas.dados_comuns.models import Notificacao
+from sme_terceirizadas.dados_comuns.tasks import envia_email_em_massa_task
+from sme_terceirizadas.dados_comuns.utils import (
     atualiza_central_download,
     atualiza_central_download_com_erro,
     gera_objeto_na_central_download
 )
-from ..logistica.models.guia import Guia
-from ..relatorios.relatorios import relatorio_guia_de_remessa
-from .api.helpers import (
+from sme_terceirizadas.logistica.api.helpers import (
     retorna_dados_normalizados_excel_entregas_distribuidor,
     retorna_dados_normalizados_excel_visao_dilog,
     retorna_dados_normalizados_excel_visao_distribuidor
 )
+from sme_terceirizadas.logistica.models.guia import Guia
+from sme_terceirizadas.relatorios.relatorios import relatorio_guia_de_remessa
+
 from .api.services.exporta_para_excel import RequisicoesExcelService
 from .models import SolicitacaoRemessa
 
@@ -34,32 +35,15 @@ def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
 
     for guia in guias.all():
         if guia.escola:
-            email_query_set_escola = guia.escola.vinculos.filter(
-                ativo=True
-            ).values_list('usuario__email', flat=True)
-
             vinculos = guia.escola.vinculos.filter(
-                ativo=True
+                ativo=True,
+                data_inicial__isnull=False,
+                data_final__isnull=True
             )
 
-            partes_interessadas = [email for email in email_query_set_escola]
             users = [vinculo.usuario for vinculo in vinculos]
         else:
-            partes_interessadas = []
             users = []
-
-        html = render_to_string(
-            template_name='logistica_avisa_ue_para_conferir_no_prazo.html',
-            context={
-                'titulo': 'Hoje tem entrega de alimentos!',
-            }
-        )
-        envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Hoje tem entrega de alimentos!',
-            emails=partes_interessadas,
-            corpo='',
-            html=html
-        )
 
         if users:
             texto_notificacao = render_to_string(
@@ -86,30 +70,32 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
     for guia in guias.all():
         if guia.escola:
             vinculos = guia.escola.vinculos.filter(
-                ativo=True
+                ativo=True,
+                data_inicial__isnull=False,
+                data_final__isnull=True
             )
-            email_query_set_escola = vinculos.values_list('usuario__email', flat=True)
-
-            partes_interessadas = [email for email in email_query_set_escola]
+            partes_interessadas = [guia.escola.contato.email] if guia.escola.contato else []
             users = [vinculo.usuario for vinculo in vinculos]
+
         else:
             partes_interessadas = []
             users = []
 
-        html = render_to_string(
-            template_name='logistica_avisa_ue_que_prazo_para_conferencia_foi_ultrapassado.html',
-            context={
-                'titulo': 'Registre a conferência da Guia de Remessa de alimentos!',
-                'numero_guia': guia.numero_guia,
-                'data_entrega': guia.data_entrega,
-            }
-        )
-        envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Registre a conferência da Guia de Remessa de alimentos!',
-            emails=partes_interessadas,
-            corpo='',
-            html=html
-        )
+        if partes_interessadas:
+            html = render_to_string(
+                template_name='logistica_avisa_ue_que_prazo_para_conferencia_foi_ultrapassado.html',
+                context={
+                    'titulo': 'Registro da Conferência da Guia de Remessa',
+                    'numero_guia': guia.numero_guia,
+                    'data_entrega': guia.data_entrega,
+                }
+            )
+            envia_email_em_massa_task.delay(
+                assunto='[SIGPAE] Registre a conferência da Guia de Remessa de alimentos!',
+                emails=partes_interessadas,
+                corpo='',
+                html=html
+            )
 
         if users:
             texto_notificacao = render_to_string(
@@ -183,10 +169,15 @@ def gera_xlsx_async(username, nome_arquivo, ids_requisicoes, eh_distribuidor=Fal
     time_limet=600,
     soft_time_limit=300
 )
-def gera_xlsx_entregas_async(uuid, username, tem_conferencia, tem_insucesso, eh_distribuidor=False, eh_dre=False):
+def gera_xlsx_entregas_async(uuid, username, tem_conferencia, tem_insucesso, eh_distribuidor=False,
+                             eh_dre=False, status_guia=None):
 
     queryset = SolicitacaoRemessa.objects.filter(uuid=uuid)
-    nome_arquivo = f'entregas_requisicao_{queryset.first().numero_solicitacao}.xlsx'
+
+    if status_guia:
+        queryset = queryset.filter(guias__status__in=status_guia)
+    numero_solicitacao = queryset.first().numero_solicitacao if queryset.first() else 'vazio'
+    nome_arquivo = f'entregas_requisicao_{numero_solicitacao}.xlsx'
 
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=username, identificador=nome_arquivo)

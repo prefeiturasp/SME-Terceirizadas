@@ -9,7 +9,7 @@ from model_mommy import mommy
 from ...dados_comuns import constants
 from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
-from ...dados_comuns.models import TemplateMensagem
+from ...dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ...escola.models import DiretoriaRegional, TipoGestao
 from ...terceirizada.models import Contrato
 from ..models import ProdutoEdital
@@ -24,9 +24,10 @@ def escola():
     lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
+    contato = mommy.make('Contato', email='test@test2.com')
 
     return mommy.make('Escola', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', lote=lote,
-                      diretoria_regional=diretoria_regional)
+                      diretoria_regional=diretoria_regional, contato=contato)
 
 
 @pytest.fixture
@@ -42,14 +43,23 @@ def template_homologacao_produto():
 
 
 @pytest.fixture
+def perfil_gpcodae():
+    return mommy.make(
+        'Perfil',
+        nome=constants.ADMINISTRADOR_GESTAO_PRODUTO,
+        ativo=True
+    )
+
+
+@pytest.fixture
 def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, codae, template_homologacao_produto):
-    email = 'test@test.com'
+    email = 'test2@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_produto = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_PRODUTO,
                                              ativo=True,
-                                             uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+                                             uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf2')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_gestao_produto,
                data_inicial=hoje, ativo=True)
@@ -59,7 +69,10 @@ def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, 
 
 @pytest.fixture
 def produtos_edital_41(escola):
-    edital = mommy.make('Edital', numero='Edital de Pregão nº 41/sme/2017')
+    edital = mommy.make('Edital', numero='Edital de Pregão nº 41/sme/2017', uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
+    mommy.make('Edital', numero='Edital de Pregão nº 78/sme/2016', uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868')
+    edital_3 = mommy.make('Edital', numero='Edital de Pregão nº 78/sme/2022',
+                          uuid='131f4000-3e31-44f1-9ba5-e7df001a8426')
     marca_1 = mommy.make('Marca', nome='NAMORADOS')
     marca_2 = mommy.make('Marca', nome='TIO JOÃO')
     produto_1 = mommy.make('Produto', nome='ARROZ', marca=marca_1)
@@ -80,8 +93,12 @@ def produtos_edital_41(escola):
                uuid_original=homologacao_p2.uuid,
                status_evento=22,  # CODAE_HOMOLOGADO
                solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
-    mommy.make('ProdutoEdital', produto=produto_1, edital=edital)
-    mommy.make('ProdutoEdital', produto=produto_2, edital=edital)
+    mommy.make('ProdutoEdital', produto=produto_1, edital=edital, tipo_produto='Comum',
+               uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
+    mommy.make('ProdutoEdital', produto=produto_1, edital=edital_3, tipo_produto='Comum',
+               uuid='e42e3b97-6853-4327-841d-34292c33963c')
+    mommy.make('ProdutoEdital', produto=produto_2, edital=edital, tipo_produto='Comum',
+               uuid='38cdf4a8-6621-4248-8f5c-378d1bdbfb71')
 
 
 @pytest.fixture
@@ -90,7 +107,7 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
     password = constants.DJANGO_ADMIN_PASSWORD
     tecerizada = escola.lote.terceirizada
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
+                                                 registro_funcional='8888887')
     perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
                                            ativo=True,
                                            uuid='41c20c8b-7e57-41ed-9433-ccb95e8afaf0')
@@ -98,7 +115,7 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
     mommy.make('Vinculo', usuario=user, instituicao=tecerizada, perfil=perfil_admin_terceirizada,
                data_inicial=hoje, ativo=True)
     client.login(username=email, password=password)
-    return client
+    return client, user
 
 
 @pytest.fixture
@@ -167,7 +184,7 @@ def fabricante():
 
 @pytest.fixture
 def unidade_medida():
-    return mommy.make('UnidadeMedida', nome='Litros')
+    return mommy.make('produto.UnidadeMedida', nome='Litros')
 
 
 @pytest.fixture
@@ -196,27 +213,92 @@ def edital():
 
 @pytest.fixture
 def produto(user, protocolo1, protocolo2, marca1, fabricante):
-    return mommy.make('Produto',
-                      uuid='a37bcf3f-a288-44ae-87ae-dbec181a34d4',
-                      criado_por=user,
-                      eh_para_alunos_com_dieta=True,
-                      componentes='Componente1, Componente2',
-                      tem_aditivos_alergenicos=False,
-                      tipo='Tipo1',
-                      embalagem='Embalagem X',
-                      prazo_validade='Alguns dias',
-                      info_armazenamento='Guardem bem',
-                      outras_informacoes='Produto do bom',
-                      numero_registro='123123123',
-                      porcao='5 cuias',
-                      unidade_caseira='Unidade3',
-                      nome='Produto1',
-                      fabricante=fabricante,
-                      marca=marca1,
-                      protocolos=[
-                          protocolo1,
-                          protocolo2,
-                      ])
+    produto = mommy.make('Produto',
+                         uuid='a37bcf3f-a288-44ae-87ae-dbec181a34d4',
+                         criado_por=user,
+                         eh_para_alunos_com_dieta=True,
+                         componentes='Componente1, Componente2',
+                         tem_aditivos_alergenicos=False,
+                         tipo='Tipo1',
+                         embalagem='Embalagem X',
+                         prazo_validade='Alguns dias',
+                         info_armazenamento='Guardem bem',
+                         outras_informacoes='Produto do bom',
+                         numero_registro='123123123',
+                         porcao='5 cuias',
+                         unidade_caseira='Unidade3',
+                         nome='Produto1',
+                         fabricante=fabricante,
+                         marca=marca1,
+                         protocolos=[
+                             protocolo1,
+                             protocolo2,
+                         ])
+    return produto
+
+
+@pytest.fixture
+def produto_com_editais(produto):
+    edital = mommy.make('Edital', numero='Edital de Pregão nº 41/sme/2017', uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
+    edital_2 = mommy.make('Edital', numero='Edital de Pregão nº 78/sme/2016',
+                          uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868')
+    edital_3 = mommy.make('Edital', numero='Edital de Pregão nº 78/sme/2022',
+                          uuid='131f4000-3e31-44f1-9ba5-e7df001a8426')
+    mommy.make('ProdutoEdital', produto=produto, edital=edital, tipo_produto='Comum',
+               uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
+    mommy.make('ProdutoEdital', produto=produto, edital=edital_2, tipo_produto='Comum',
+               uuid='e42e3b97-6853-4327-841d-34292c33963c')
+    mommy.make('ProdutoEdital', produto=produto, edital=edital_3, tipo_produto='Comum',
+               uuid='3b4f59eb-a686-49e9-beab-3514a93e3184')
+    return produto
+
+
+@pytest.fixture
+def hom_produto_com_editais(escola, template_homologacao_produto, user, produto_com_editais):
+    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
+                                           ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_admin_terceirizada,
+               data_inicial=hoje, ativo=True)
+    homologacao_produto = mommy.make('HomologacaoProduto',
+                                     produto=produto_com_editais,
+                                     rastro_terceirizada=escola.lote.terceirizada,
+                                     criado_por=user,
+                                     criado_em=datetime.datetime.utcnow())
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=homologacao_produto.uuid,
+               status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+               solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO)
+    mommy.make('ReclamacaoDeProduto',
+               homologacao_produto=homologacao_produto,
+               escola=escola)
+    return homologacao_produto
+
+
+@pytest.fixture
+def hom_copia(hom_produto_com_editais):
+    produto_copia = hom_produto_com_editais.cria_copia_produto()
+    homologacao_copia = hom_produto_com_editais.cria_copia_homologacao_produto(produto_copia)
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=homologacao_copia.uuid,
+               status_evento=LogSolicitacoesUsuario.CODAE_PENDENTE_HOMOLOGACAO,
+               solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO)
+    mommy.make('AnaliseSensorial',
+               homologacao_produto=homologacao_copia)
+    resposta_analise = mommy.make(
+        'RespostaAnaliseSensorial',
+        homologacao_produto=homologacao_copia
+    )
+    mommy.make('AnexoRespostaAnaliseSensorial',
+               resposta_analise_sensorial=resposta_analise)
+    return homologacao_copia
+
+
+@pytest.fixture
+def hom_copia_pendente_homologacao(hom_copia):
+    hom_copia.status = HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+    hom_copia.save()
+    return hom_copia
 
 
 @pytest.fixture
@@ -232,6 +314,7 @@ def homologacoes_produto(produto, terceirizada):
 @pytest.fixture
 def vinculo_produto_edital(produto, edital):
     produto_edital = mommy.make('ProdutoEdital',
+                                uuid='fae48de3-0d2f-4eb1-8b3e-0ddf7d45ee64',
                                 produto=produto,
                                 edital=edital,
                                 outras_informacoes='Teste 1',
@@ -364,6 +447,15 @@ def especificacao_produto1(produto, unidade_medida, embalagem_produto):
 def produto_edital(user):
     return mommy.make('NomeDeProdutoEdital',
                       nome='PRODUTO TESTE',
+                      ativo=True,
+                      criado_por=user)
+
+
+@pytest.fixture
+def produto_logistica(user):
+    return mommy.make('NomeDeProdutoEdital',
+                      nome='PRODUTO TESTE',
+                      tipo_produto='LOGISTICA',
                       ativo=True,
                       criado_por=user)
 
@@ -575,7 +667,7 @@ def item_cadastrado_2(fabricante):
 def item_cadastrado_3(unidade_medida):
     return mommy.make('ItemCadastro',
                       tipo='UNIDADE_MEDIDA',
-                      content_type=ContentType.objects.get(model='unidademedida'),
+                      content_type=ContentType.objects.get(model='unidademedida', app_label='produto'),
                       content_object=unidade_medida)
 
 
@@ -590,3 +682,10 @@ def item_cadastrado_4(embalagem_produto):
 @pytest.fixture
 def usuario():
     return mommy.make('perfil.Usuario')
+
+
+@pytest.fixture
+def homologacao_produto_suspenso(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_SUSPENDEU
+    homologacao_produto.save()
+    return homologacao_produto

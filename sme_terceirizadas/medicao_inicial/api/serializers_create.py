@@ -10,11 +10,11 @@ from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, 
 from sme_terceirizadas.dados_comuns.validators import deve_ter_extensao_xls_xlsx_pdf
 from sme_terceirizadas.escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
 from sme_terceirizadas.medicao_inicial.models import (
-    AnexoOcorrenciaMedicaoInicial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     GrupoMedicao,
     Medicao,
+    OcorrenciaMedicaoInicial,
     Responsavel,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
@@ -70,21 +70,21 @@ class DiaSobremesaDoceCreateManySerializer(serializers.ModelSerializer):
         fields = ('tipo_unidades', 'data', 'uuid')
 
 
-class AnexoOcorrenciaMedicaoInicialCreateSerializer(serializers.ModelSerializer):
-    arquivo = serializers.SerializerMethodField()
-    nome = serializers.CharField()
+class OcorrenciaMedicaoInicialCreateSerializer(serializers.ModelSerializer):
+    ultimo_arquivo = serializers.SerializerMethodField()
+    nome_ultimo_arquivo = serializers.CharField()
 
-    def get_arquivo(self, obj):
+    def get_ultimo_arquivo(self, obj):
         env = environ.Env()
         api_url = env.str('URL_ANEXO', default='http://localhost:8000')
-        return f'{api_url}{obj.arquivo.url}'
+        return f'{api_url}{obj.ultimo_arquivo.url}'
 
-    def validate_nome(self, nome):
-        deve_ter_extensao_xls_xlsx_pdf(nome)
-        return nome
+    def validate_nome_ultimo_arquivo(self, nome_ultimo_arquivo):
+        deve_ter_extensao_xls_xlsx_pdf(nome_ultimo_arquivo)
+        return nome_ultimo_arquivo
 
     class Meta:
-        model = AnexoOcorrenciaMedicaoInicial
+        model = OcorrenciaMedicaoInicial
         exclude = ('id', 'solicitacao_medicao_inicial',)
 
 
@@ -110,7 +110,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
     )
     responsaveis = ResponsavelCreateSerializer(many=True)
     com_ocorrencias = serializers.BooleanField(required=False)
-    anexos = AnexoOcorrenciaMedicaoInicialCreateSerializer(required=False, many=True)
+    ocorrencia = OcorrenciaMedicaoInicialCreateSerializer(required=False)
     logs = LogSolicitacoesUsuarioSerializer(many=True, required=False)
 
     def create(self, validated_data):
@@ -151,14 +151,17 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if anexos_string:
             anexos = json.loads(anexos_string)
             for anexo in anexos:
-                arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
-                AnexoOcorrenciaMedicaoInicial.objects.create(
-                    solicitacao_medicao_inicial=instance,
-                    arquivo=arquivo,
-                    nome=anexo.get('nome')
-                )
+                if '.pdf' in anexo['nome']:
+                    arquivo = convert_base64_to_contentfile(anexo['base64'])
+                    OcorrenciaMedicaoInicial.objects.create(
+                        solicitacao_medicao_inicial=instance,
+                        ultimo_arquivo=arquivo,
+                        nome_ultimo_arquivo=anexo.get('nome')
+                    )
         if key_com_ocorrencias is not None:
             instance.ue_envia(user=self.context['request'].user)
+            if hasattr(instance, 'ocorrencia'):
+                instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
             for medicao in instance.medicoes.all():
                 medicao.ue_envia(user=self.context['request'].user)
 
@@ -220,17 +223,41 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         validated_data['criado_por'] = self.context['request'].user
         valores_medicao_dict = validated_data.pop('valores_medicao', None)
 
-        medicao = Medicao.objects.create(**validated_data)
+        if validated_data.get('periodo_escolar', '') and validated_data.get('grupo', ''):
+            medicao, created = Medicao.objects.get_or_create(
+                solicitacao_medicao_inicial=validated_data.get('solicitacao_medicao_inicial', ''),
+                periodo_escolar=validated_data.get('periodo_escolar', ''),
+                grupo=validated_data.get('grupo', '')
+            )
+        elif validated_data.get('periodo_escolar', '') and not validated_data.get('grupo', ''):
+            medicao, created = Medicao.objects.get_or_create(
+                solicitacao_medicao_inicial=validated_data.get('solicitacao_medicao_inicial', ''),
+                periodo_escolar=validated_data.get('periodo_escolar', ''),
+                grupo=None
+            )
+        else:
+            medicao, created = Medicao.objects.get_or_create(
+                solicitacao_medicao_inicial=validated_data.get('solicitacao_medicao_inicial', ''),
+                grupo=validated_data.get('grupo', ''),
+                periodo_escolar=None
+            )
         medicao.save()
 
         for valor_medicao in valores_medicao_dict:
-            ValorMedicao.objects.create(
+            ValorMedicao.objects.update_or_create(
                 medicao=medicao,
                 dia=valor_medicao.get('dia', ''),
-                valor=valor_medicao.get('valor', ''),
                 nome_campo=valor_medicao.get('nome_campo', ''),
                 categoria_medicao=valor_medicao.get('categoria_medicao', ''),
                 tipo_alimentacao=valor_medicao.get('tipo_alimentacao', ''),
+                defaults={
+                    'medicao': medicao,
+                    'dia': valor_medicao.get('dia', ''),
+                    'valor': valor_medicao.get('valor', ''),
+                    'nome_campo': valor_medicao.get('nome_campo', ''),
+                    'categoria_medicao': valor_medicao.get('categoria_medicao', ''),
+                    'tipo_alimentacao': valor_medicao.get('tipo_alimentacao', ''),
+                }
             )
 
         return medicao

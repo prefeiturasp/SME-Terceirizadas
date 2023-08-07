@@ -1,8 +1,17 @@
+import math
+import re
+
 from django import template
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
+from ...inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
+    InclusaoDeAlimentacaoCEMEI
+)
 
 register = template.Library()
 
@@ -266,9 +275,52 @@ def embalagens_filter(embalagens, tipo):
         return False
 
 
+@register.simple_tag
+def get_assinatura_cronograma(logs):
+    return logs.filter(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ENVIADO_AO_FORNECEDOR).last()
+
+
+@register.simple_tag
+def get_assinatura_fornecedor(logs):
+    return logs.filter(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELO_FORNECEDOR).last()
+
+
+@register.simple_tag
+def get_assinatura_dinutre(logs):
+    return logs.filter(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_DINUTRE).last()
+
+
+@register.simple_tag
+def get_assinatura_codae(logs):
+    return logs.filter(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_ASSINADO_PELA_CODAE).last()
+
+
 @register.filter
 def existe_inclusao_cancelada(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False).exists()
+    status_ = solicitacao['status'] if isinstance(solicitacao, dict) else solicitacao.status
+    inclusoes_ = solicitacao['datas_intervalo'] if isinstance(solicitacao, dict) else solicitacao.inclusoes
+    return (status_ == 'ESCOLA_CANCELOU' or
+            inclusoes_.filter(cancelado_justificativa__isnull=False).exclude(cancelado_justificativa='').exists())
+
+
+@register.filter
+def eh_inclusao(solicitacao):
+    return (
+        isinstance(solicitacao, GrupoInclusaoAlimentacaoNormal) or
+        isinstance(solicitacao, InclusaoAlimentacaoContinua) or
+        isinstance(solicitacao, InclusaoAlimentacaoDaCEI) or
+        isinstance(solicitacao, InclusaoDeAlimentacaoCEMEI)
+    )
+
+
+@register.filter
+def formatar_cpf(cpf):
+    try:
+        inicio = cpf[:2]
+        fim = cpf[-2:]
+        return inicio + '*.***.***-' + fim
+    except Exception:
+        return cpf
 
 
 @register.filter
@@ -281,7 +333,9 @@ def inclusao_multiplos_cancelamentos(solicitacao):
 
 @register.filter
 def inclusoes_canceladas(solicitacao):
-    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False)
+    if solicitacao.status == 'ESCOLA_CANCELOU':
+        return solicitacao.inclusoes.all()
+    return solicitacao.inclusoes.filter(cancelado_justificativa__isnull=False).exclude(cancelado_justificativa='')
 
 
 @register.filter
@@ -290,3 +344,106 @@ def formatar_data_solicitacoes_alimentacao(data):
         return data.strftime('%d/%m/%Y')
     except Exception:
         return data
+
+
+@register.simple_tag
+def get_valor_somatorio_campo_periodo(tabela_somatorio, campo, periodo):
+    for item in tabela_somatorio:
+        if item['campo'] == campo and item['periodo'] == periodo:
+            return item['valor']
+    return '-'
+
+
+@register.simple_tag
+def total_periodo_ou_campo_medicao(tabela_somatorio, periodo_ou_campo):
+    total = 0
+    for item in tabela_somatorio:
+        if item['periodo'] == periodo_ou_campo or item['campo'] == periodo_ou_campo:
+            total += item['valor']
+    return total
+
+
+@register.filter
+def get_total_medicao(tabela_somatorio):
+    total = 0
+    for item in tabela_somatorio:
+        total += item['valor']
+    return total
+
+
+@register.filter
+def get_matriculados(uuid, alunos_matriculados):
+    periodo = alunos_matriculados['periodo_escolar']
+    alunos_no_periodo = alunos_matriculados['alunos_por_faixa_etaria'][periodo]
+    if alunos_no_periodo and alunos_no_periodo[uuid]:
+        return alunos_matriculados['alunos_por_faixa_etaria'][periodo][uuid]
+    else:
+        return 0
+
+
+@register.filter
+def get_nao_eh_dia_letivo(dias_letivos, i):
+    return not dias_letivos[i]
+
+
+@register.filter
+def get_nome_campo(campo):
+    campos = {
+        'numero_de_alunos': 'Número de Alunos',
+        'matriculados': 'Matriculados',
+        'aprovadas': 'Aprovadas',
+        'frequencia': 'Frequência',
+        'solicitado': 'Solicitado',
+        'consumido': 'Consumido',
+        'desjejum': 'Desjejum',
+        'lanche': 'Lanche',
+        'lanche_4h': 'Lanche 4h',
+        'refeicao': 'Refeição 1 Oferta',
+        'repeticao_refeicao': 'Repetição de Refeição',
+        'lanche_emergencial': 'Lanche Emergencial',
+        'kit_lanche': 'Kit Lanche',
+        'total_refeicoes_pagamento': 'Total de Refeições para Pagamento',
+        'sobremesa': 'Sobremesa 1 Oferta',
+        'repeticao_sobremesa': 'Repetição de Sobremesa',
+        'total_sobremesas_pagamento': 'Total de Sobremesas para Pagamento'
+    }
+    return campos.get(campo, campo)
+
+
+def get_dias(observacoes_tuple):
+    dias = []
+    for obs in observacoes_tuple:
+        if obs[0] not in dias:
+            dias.append(obs[0])
+    return dias
+
+
+@register.filter
+def formatar_observacoes(observacoes):
+    MAX_LINHAS_POR_PAGINA = 22
+    observacoes_tuple = []
+    for observacao in observacoes:
+        obs_list = list(observacao)
+        if obs_list[4] and obs_list[1]:
+            obs_list[4] = f'{obs_list[4]} - ' + f'{obs_list[1]}'
+        elif obs_list[4] and not obs_list[1]:
+            obs_list[4] = obs_list[4]
+        else:
+            obs_list[4] = obs_list[1]
+        obs_list[3] = re.sub(r'<.*?>', '', obs_list[3])
+        observacoes_tuple.append(tuple(obs_list))
+    observacoes_ordenadas_corretamente = []
+    dias = get_dias(observacoes_tuple)
+    for dia in dias:
+        obs_filtradas_por_dia = tuple(filter(lambda obs: obs[0] == dia, observacoes_tuple))
+        obs_ordenadas_periodo_grupo = sorted(obs_filtradas_por_dia, key=lambda k: constants.ORDEM_PERIODOS_GRUPOS[k[4]])
+        [observacoes_ordenadas_corretamente.append(i) for i in obs_ordenadas_periodo_grupo]
+    tabelas_observacoes = []
+    i = 1
+    while i <= math.ceil(len(observacoes_ordenadas_corretamente) / MAX_LINHAS_POR_PAGINA):
+        tabelas_observacoes.append(
+            observacoes_ordenadas_corretamente[(MAX_LINHAS_POR_PAGINA * (i - 1)):(MAX_LINHAS_POR_PAGINA * i)]
+        )
+        i += 1
+
+    return tabelas_observacoes

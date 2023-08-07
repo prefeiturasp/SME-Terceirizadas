@@ -14,9 +14,10 @@ from sme_terceirizadas.pre_recebimento.models import (
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
-    SolicitacaoAlteracaoCronograma
+    SolicitacaoAlteracaoCronograma,
+    UnidadeMedida
 )
-from sme_terceirizadas.produto.models import NomeDeProdutoEdital, UnidadeMedida
+from sme_terceirizadas.produto.models import NomeDeProdutoEdital
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
 from ..validators import contrato_pertence_a_empresa
@@ -270,13 +271,13 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
             cronograma=cronograma, **validated_data,
         )
         alteracao_cronograma.etapas.set(etapas_created)
-        self._alterna_estado_cronograma(cronograma, user, validated_data)
+        self._alterna_estado_cronograma(cronograma, user, alteracao_cronograma)
         self._alterna_estado_solicitacao_alteracao_cronograma(alteracao_cronograma, user, validated_data)
         return alteracao_cronograma
 
-    def _alterna_estado_cronograma(self, cronograma, user, validated_data):
+    def _alterna_estado_cronograma(self, cronograma, user, alteracao_cronograma):
         try:
-            cronograma.solicita_alteracao(user=user, justificativa=validated_data.get('justificativa', ''))
+            cronograma.solicita_alteracao(user=user, justificativa=alteracao_cronograma.uuid)
         except InvalidTransitionError as e:
             raise serializers.ValidationError(f'Erro de transição de estado do cronograma: {e}')
 
@@ -289,3 +290,20 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
     class Meta:
         model = SolicitacaoAlteracaoCronograma
         exclude = ('id', 'usuario_solicitante')
+
+
+class UnidadeMedidaCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedida
+        fields = ('uuid', 'nome', 'abreviacao', 'criado_em')
+        read_only_fields = ('uuid', 'criado_em')
+
+    def validate_nome(self, value):
+        if not value.isupper():
+            raise serializers.ValidationError('O campo deve conter apenas letras maiúsculas.')
+        return value
+
+    def validate_abreviacao(self, value):
+        if not value.islower():
+            raise serializers.ValidationError('O campo deve conter apenas letras minúsculas.')
+        return value

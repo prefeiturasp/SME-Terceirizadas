@@ -1,6 +1,13 @@
 import pytest
 
-from ..models import Cronograma, EmbalagemQld, EtapasDoCronograma, Laboratorio, ProgramacaoDoRecebimentoDoCronograma
+from ..models import (
+    Cronograma,
+    EmbalagemQld,
+    EtapasDoCronograma,
+    Laboratorio,
+    ProgramacaoDoRecebimentoDoCronograma,
+    UnidadeMedida
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -68,3 +75,26 @@ def test_embalagem_srt_model(emabalagem_qld):
 def test_embalagem_meta_modelo(emabalagem_qld):
     assert emabalagem_qld._meta.verbose_name == 'Embalagem QLD'
     assert emabalagem_qld._meta.verbose_name_plural == 'Embalagens QLD'
+
+
+def test_unidade_medida_model(unidade_medida_logistica):
+    """Deve possuir os campos nome e abreviacao."""
+    assert unidade_medida_logistica.nome == 'UNIDADE TESTE'
+    assert unidade_medida_logistica.abreviacao == 'ut'
+
+
+def test_unidade_medida_model_str(unidade_medida_logistica):
+    """Deve ser igual ao atributo nome."""
+    assert str(unidade_medida_logistica) == unidade_medida_logistica.nome
+
+
+def test_unidade_medida_model_save():
+    """Deve converter atributo nome para caixa alta e atributo abreviacao para caixa baixa."""
+    data = {
+        'nome': 'uma unidade qualquer',
+        'abreviacao': 'UMQ'
+    }
+    obj = UnidadeMedida.objects.create(**data)
+
+    assert obj.nome.isupper()
+    assert obj.abreviacao.islower()

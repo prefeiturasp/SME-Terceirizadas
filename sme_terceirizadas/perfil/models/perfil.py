@@ -3,6 +3,8 @@ import datetime
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models.functions import Length
+from django.db.models.query import QuerySet
 from django.db.utils import IntegrityError
 from django_prometheus.models import ExportModelOperationsMixin
 
@@ -65,6 +67,27 @@ class Perfil(ExportModelOperationsMixin('perfil'), Nomeavel, Descritivel, Ativav
         return self.nome
 
 
+class VinculoQueryset(QuerySet):
+    def filtrar_por_usernames_validos(self):
+        """Definido que um usuário válido.
+
+        - Não é e-mail
+        - Tamanho >= 7 e Tamanho <= 11
+        """
+        queryset = self.annotate(
+            username_len=Length('usuario__username')
+        )
+        queryset = queryset.exclude(usuario__username__icontains='@')
+        queryset = queryset.exclude(
+            username_len__gt=11
+        )
+        queryset = queryset.exclude(
+            username_len__lt=7
+        )
+
+        return queryset
+
+
 class Vinculo(ExportModelOperationsMixin('vinculo_perfil'), Ativavel, TemChaveExterna):
     """Para informar que tipo de funcao uma pessoa teve em um dado intervalo de tempo em uma instituição.
 
@@ -93,6 +116,7 @@ class Vinculo(ExportModelOperationsMixin('vinculo_perfil'), Ativavel, TemChaveEx
                                      limit_choices_to=limit)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     instituicao = GenericForeignKey('content_type', 'object_id')
+    objects = VinculoQueryset.as_manager()
 
     @property
     def status(self):

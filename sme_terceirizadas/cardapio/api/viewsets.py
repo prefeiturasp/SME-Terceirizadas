@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -7,7 +8,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
-from ...dados_comuns import constants
+from ...dados_comuns import constants, services
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarObjeto,
     UsuarioCODAEGestaoAlimentacao,
@@ -177,6 +178,21 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
             return self.get_paginated_response(serializer.data)
         except AssertionError as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'], url_path='motivo_inclusao_especifico')
+    def motivo_inclusao_especifico(self, request):
+        try:
+            tipo_unidade_escolar_iniciais = request.query_params.get('tipo_unidade_escolar_iniciais', '')
+            if tipo_unidade_escolar_iniciais:
+                vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+                    tipo_unidade_escolar__iniciais=tipo_unidade_escolar_iniciais,
+                    periodo_escolar__nome__in=constants.PERIODOS_INCLUSAO_MOTIVO_ESPECIFICO)
+                serializer = self.get_serializer(vinculos, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                raise ValidationError('tipo_unidade_escolar_iniciais é obrigatório via query_params')
+        except ValidationError as e:
+            return Response({'detail': e}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -879,7 +895,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         justificativa = request.data.get('justificativa', '')
         try:
             if alteracao_cardapio.status == alteracao_cardapio.workflow_class.DRE_VALIDADO:
-                alteracao_cardapio.codae_autoriza(user=request.user)
+                alteracao_cardapio.codae_autoriza(user=request.user, justificativa=justificativa)
             else:
                 alteracao_cardapio.codae_autoriza_questionamento(
                     user=request.user, justificativa=justificativa)
@@ -932,16 +948,25 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, permission_classes=[UsuarioEscolaTercTotal],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
-    def escola_cancela_solicitacao(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
+    def escola_cancela_pedido(self, request, uuid=None):
+        obj = self.get_object()
+        datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            inclusao_alimentacao_continua.cancelar_pedido(
-                user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
+            assert obj.status != obj.workflow_class.ESCOLA_CANCELOU, 'Já está cancelada'
+            if (obj.data_inicial == obj.data_final or
+                    len(datas) + obj.datas_intervalo.filter(cancelado=True).count() == obj.datas_intervalo.count()):
+                obj.cancelar_pedido(user=request.user, justificativa=justificativa)
+            else:
+                services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
+            if obj.datas_intervalo.exists():
+                obj.datas_intervalo.filter(data__in=datas).update(cancelado_justificativa=justificativa)
+                if 1 < obj.datas_intervalo.count() != len(datas):
+                    obj.datas_intervalo.filter(data__in=datas).update(cancelado=True)
+            serializer = self.get_serializer(obj)
             return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+        except (InvalidTransitionError, AssertionError) as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
     # TODO rever os demais endpoints. Essa action consolida em uma única
     # pesquisa as pesquisas por prioridade.

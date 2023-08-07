@@ -38,10 +38,6 @@ class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
 
     objects = EditalManager()
 
-    @property
-    def contratos(self):
-        return self.contratos
-
     def __str__(self):
         return f'{self.numero} - {self.objeto}'
 
@@ -168,17 +164,6 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     @property
     def nome(self):
         return self.nome_fantasia
-
-    @property
-    def nutricionistas(self):
-        return self.nutricionistas
-
-    @property
-    def super_admin(self):
-        vinculo = self.vinculos.filter(usuario__super_admin_terceirizadas=True).last()
-        if vinculo:
-            return vinculo.usuario
-        return None
 
     @property
     def eh_distribuidor(self):
