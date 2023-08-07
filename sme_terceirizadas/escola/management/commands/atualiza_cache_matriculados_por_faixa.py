@@ -1,8 +1,10 @@
+from datetime import date, timedelta
+
 import environ
 import redis
 from django.core.management.base import BaseCommand
 
-from ...models import Escola
+from ...models import Escola, FaixaEtaria, LogAlunosMatriculadosFaixaEtariaDia, PeriodoEscolar
 
 env = environ.Env()
 
@@ -16,13 +18,16 @@ redis_connection = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_
 
 
 class Command(BaseCommand):
-    help = 'Atualiza cache do Redis com alunos matriculados por escola, faixa etária e período escolar'
+    help_text = 'Atualiza cache do Redis e tabela LogAlunosMatriculadosFaixaEtariaDia '
+    help_text += 'com alunos matriculados por escola, faixa etária e período escolar'
+    help = help_text
 
     def handle(self, *args, **options):
         iniciais = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU', 'CEU CEMEI', 'CEMEI']
         escolas = Escola.objects.filter(tipo_unidade__iniciais__in=iniciais)
         for escola in escolas:
             self._criar_cache_matriculados_por_faixa(escola)
+            self._salvar_matriculados_por_faixa_dia(escola)
 
     def _criar_cache_matriculados_por_faixa(self, escola):
         try:
@@ -41,3 +46,51 @@ class Command(BaseCommand):
         if periodo == 'INTERMEDIÁRIO':
             return 'INTERMEDIARIO'
         return periodo
+
+    def _duplica_dia_anterior(self, escola):
+        ontem = date.today() - timedelta(days=1)
+        logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
+            escola=escola,
+            data=ontem - timedelta(days=1)
+        )
+        for log in logs:
+            LogAlunosMatriculadosFaixaEtariaDia.objects.update_or_create(
+                escola=escola,
+                periodo_escolar=log.periodo_escolar,
+                faixa_etaria=log.faixa_etaria,
+                data=ontem,
+                defaults={
+                    'escola': escola,
+                    'periodo_escolar': log.periodo_escolar,
+                    'faixa_etaria': log.faixa_etaria,
+                    'quantidade': log.quantidade,
+                    'data': ontem
+                }
+            )
+
+    def _salvar_matriculados_por_faixa_dia(self, escola):
+        try:
+            msg = f'Salvando matriculados por faixa da escola {escola.codigo_eol} - {escola.nome}'
+            self.stdout.write(self.style.SUCCESS(msg))
+            ontem = date.today() - timedelta(days=1)
+            periodos_faixas = escola.alunos_por_periodo_e_faixa_etaria()
+            for periodo, qtd_faixas in periodos_faixas.items():
+                periodo_escolar = PeriodoEscolar.objects.get(nome=self._formatar_periodo_eol(periodo))
+                for faixa_etaria, quantidade in qtd_faixas.items():
+                    LogAlunosMatriculadosFaixaEtariaDia.objects.update_or_create(
+                        escola=escola,
+                        periodo_escolar=periodo_escolar,
+                        faixa_etaria=FaixaEtaria.objects.get(uuid=faixa_etaria),
+                        data=ontem,
+                        defaults={
+                            'escola': escola,
+                            'periodo_escolar': periodo_escolar,
+                            'faixa_etaria': FaixaEtaria.objects.get(uuid=faixa_etaria),
+                            'quantidade': quantidade,
+                            'data': ontem
+                        }
+                    )
+
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(str(e)))
+            self._duplica_dia_anterior(escola)
