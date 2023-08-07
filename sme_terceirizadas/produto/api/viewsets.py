@@ -656,11 +656,11 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if filtro_aplicado == 'codae_homologado':
             raw_sql += f'AND most_recent_log.status_evento = {LogSolicitacoesUsuario.CODAE_HOMOLOGADO} '
         if edital:
-            raw_sql += ('LEFT JOIN (SELECT DISTINCT id AS produto_edital_id, '
+            raw_sql += ('LEFT JOIN (SELECT DISTINCT id AS produto_edital_id, suspenso,'
                         'produto_id as produto_id_prod_edit, edital_id as edital_id_prod_edit FROM %(produto_edital)s) '
                         'AS produto_edital '
                         'ON produto_edital.produto_id_prod_edit = %(homologacao_produto)s.produto_id AND '
-                        f'produto_edital.edital_id_prod_edit = {edital.id} ')
+                        f'produto_edital.edital_id_prod_edit = {edital.id} AND produto_edital.suspenso = false ')
         raw_sql += ('LEFT JOIN (SELECT DISTINCT ON (homologacao_produto_id) homologacao_produto_id, escola_id '
                     'AS escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
                     'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id '
@@ -735,6 +735,11 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     Count('datas_horas_vinculo')).filter(datas_horas_vinculo__count__gt=1)
                 query_set = (self.exclui_produtos_suspensos
                              (query_set, produtos_editais_mais_de_uma_data_hora, edital, data_homologacao))
+            elif edital:
+                query_set = query_set.filter(
+                    produto__vinculos__edital=edital,
+                    produto__vinculos__suspenso=False,
+                )
             query_set = sorted(query_set, key=lambda x: x.produto.data_homologacao or x.produto.criado_em, reverse=True)
         return query_set
 
