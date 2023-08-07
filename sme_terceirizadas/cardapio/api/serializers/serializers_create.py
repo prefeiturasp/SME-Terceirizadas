@@ -142,13 +142,14 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         data_de = attrs['data_de']
         data_para = attrs['data_para']
         escola = attrs['escola']
+        tipos_alimentacao = attrs['tipos_alimentacao']
 
         if data_de.month != 12 and date.today().year + 1 not in [data_de.year, data_para.year]:
             deve_ser_no_mesmo_ano_corrente(data_de)
             deve_ser_no_mesmo_ano_corrente(data_para)
 
         data_troca_nao_pode_ser_superior_a_data_inversao(data_de, data_para)
-        nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de, data_para, escola)
+        nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de, data_para, escola, tipos_alimentacao)
         nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para)
         deve_ser_dia_letivo(escola, data_de)
         deve_ser_dia_letivo(escola, data_para)
@@ -156,7 +157,7 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
             data_de_2 = attrs['data_de_2']
             data_para_2 = attrs['data_para_2']
             data_troca_nao_pode_ser_superior_a_data_inversao(data_de_2, data_para_2)
-            nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de_2, data_para_2, escola)
+            nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de_2, data_para_2, escola, tipos_alimentacao)
             nao_pode_ter_mais_que_60_dias_diferenca(data_de_2, data_para_2)
             deve_ser_dia_letivo(escola, data_de_2)
             deve_ser_dia_letivo(escola, data_para_2)

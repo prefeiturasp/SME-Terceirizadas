@@ -14,7 +14,7 @@ pytestmark = pytest.mark.django_db
 
 
 @freeze_time('2019-10-14')
-def test_inversao_serializer_validators(inversao_card_params):
+def test_inversao_serializer_validators(inversao_card_params, tipo_alimentacao):
     data_de, data_para, _, _ = inversao_card_params
     serializer_obj = InversaoCardapioSerializerCreate()
     cardapio_de = mommy.make('cardapio.Cardapio', data=data_de)
@@ -24,7 +24,7 @@ def test_inversao_serializer_validators(inversao_card_params):
     escola = mommy.make('escola.Escola', tipo_unidade=tipo_ue, lote=lote)
     mommy.make('escola.DiaCalendario', escola=escola, data=data_de, dia_letivo=True)
     mommy.make('escola.DiaCalendario', escola=escola, data=data_para, dia_letivo=True)
-    attrs = dict(data_de=data_de, data_para=data_para, escola=escola)
+    attrs = dict(data_de=data_de, data_para=data_para, escola=escola, tipos_alimentacao=[tipo_alimentacao])
 
     response_de = serializer_obj.validate_data_de(data_de=data_de)
     response_para = serializer_obj.validate_data_para(data_para=data_para)
