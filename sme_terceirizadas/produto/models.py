@@ -203,7 +203,8 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
 
     produto = models.ForeignKey(Produto, null=False, on_delete=models.DO_NOTHING, related_name='vinculos')
     edital = models.ForeignKey(Edital, null=False, on_delete=models.DO_NOTHING, related_name='vinculos')
-    tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES, null=False, blank=False)  # noqa DJ01
+    tipo_produto = models.CharField('tipo de produto', max_length=25, choices=TIPO_PRODUTO_CHOICES,
+                                    null=False, blank=False)
     outras_informacoes = models.TextField('Outras Informações', blank=True)
     ativo = models.BooleanField(default=True)
     suspenso = models.BooleanField('Esta suspenso?', default=False)
@@ -213,6 +214,20 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
         'perfil.Usuario', on_delete=models.DO_NOTHING, null=True, blank=True
     )
 
+    def criar_data_hora_vinculo(self, suspenso=False):
+        return DataHoraVinculoProdutoEdital.objects.create(
+            produto_edital=self,
+            suspenso=suspenso
+        )
+
+    def data_hora_mais_proxima(self, data):
+        if data < self.datas_horas_vinculo.first().criado_em.date():
+            return self.datas_horas_vinculo.first()
+        for index, data_hora in enumerate(self.datas_horas_vinculo.all()):
+            if data_hora.criado_em.date() > data:
+                return self.datas_horas_vinculo.all()[index - 1]
+        return self.datas_horas_vinculo.last()
+
     def __str__(self):
         return f'{self.produto} -- {self.edital.numero}'
 
@@ -220,6 +235,21 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
         verbose_name = 'Vinculo entre produto e edital'
         verbose_name_plural = 'Vinculos entre produtos e editais'
         unique_together = ('produto', 'edital')
+
+
+class DataHoraVinculoProdutoEdital(TemChaveExterna, CriadoEm):
+    produto_edital = models.ForeignKey(ProdutoEdital, null=False, on_delete=models.DO_NOTHING,
+                                       related_name='datas_horas_vinculo')
+    suspenso = models.BooleanField('Esta suspenso?', default=False)
+
+    def __str__(self):
+        return (f'{self.produto_edital.produto.nome} - {self.produto_edital.edital.numero} - '
+                f'{"Suspenso" if self.suspenso else "Ativo"} - {self.criado_em.strftime("%d/%m/%Y")}')
+
+    class Meta:
+        verbose_name = 'Data e hora do vínculo'
+        verbose_name_plural = 'Datas e horas do vínculo'
+        ordering = ('criado_em',)
 
 
 class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
