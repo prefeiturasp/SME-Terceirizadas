@@ -40,17 +40,21 @@ def test_valida_intervalo_menor_que_60_dias(datas_de_inversoes_intervalo_entre_6
     assert nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para) is esperado
 
 
-def test_nao_pode_existir_solicitacao_igual_para_mesma_escola_exceptio(datas_inversao_deste_mes, escola):
+def test_nao_pode_existir_solicitacao_igual_para_mesma_escola_exceptio(
+        datas_inversao_deste_mes, escola, tipo_alimentacao):
     data_de, data_para, _ = datas_inversao_deste_mes
     cardapio_de = mommy.make('Cardapio', data=data_de)
     cardapio_para = mommy.make('Cardapio', data=data_para)
-    mommy.make(InversaoCardapio,
-               cardapio_de=cardapio_de,
-               cardapio_para=cardapio_para,
-               status=InversaoCardapio.workflow_class.DRE_A_VALIDAR,
-               escola=escola)
+    inversao = mommy.make(InversaoCardapio,
+                          cardapio_de=cardapio_de,
+                          cardapio_para=cardapio_para,
+                          status=InversaoCardapio.workflow_class.DRE_A_VALIDAR,
+                          escola=escola)
+    inversao.tipos_alimentacao.add(tipo_alimentacao)
+    inversao.save()
     with pytest.raises(ValidationError, match='Já existe uma solicitação de inversão com estes dados'):
-        nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de=data_de, data_para=data_para, escola=escola)
+        nao_pode_existir_solicitacao_igual_para_mesma_escola(
+            data_de=data_de, data_para=data_para, escola=escola, tipos_alimentacao=[tipo_alimentacao])
 
 
 def test_hora_inicio_nao_pode_ser_maior_que_hora_final(horarios_combos_tipo_alimentacao_validos):
