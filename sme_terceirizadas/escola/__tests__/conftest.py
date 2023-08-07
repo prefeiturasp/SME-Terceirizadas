@@ -308,3 +308,36 @@ def mocked_foto_aluno_novosgp():
             'item3': 'IMG_0106.jpg'
         }
     }
+
+
+@pytest.fixture
+def log_alunos_matriculados_faixa_etaria_dia(escola, periodo_escolar, faixas_etarias_ativas):
+    return mommy.make(models.LogAlunosMatriculadosFaixaEtariaDia,
+                      escola=escola,
+                      periodo_escolar=periodo_escolar,
+                      faixa_etaria=faixas_etarias_ativas[0],
+                      quantidade=100,
+                      data=datetime.date.today())
+
+
+@pytest.fixture
+def log_atualiza_dados_aluno(escola):
+    return mommy.make(models.LogAtualizaDadosAluno,
+                      codigo_eol=escola.codigo_eol,
+                      status=200)
+
+
+@pytest.fixture
+def log_alteracao_quantidade_alunos_por_escola_periodo(escola, periodo_escolar):
+    return mommy.make(models.LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+                      escola=escola,
+                      periodo_escolar=periodo_escolar,
+                      quantidade_alunos_de=15,
+                      quantidade_alunos_para=30)
+
+
+@pytest.fixture
+def log_rotina_diaria_alunos():
+    return mommy.make(models.LogRotinaDiariaAlunos,
+                      quantidade_alunos_antes=10,
+                      quantidade_alunos_atual=20)
