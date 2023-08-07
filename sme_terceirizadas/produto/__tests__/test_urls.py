@@ -1223,3 +1223,30 @@ def test_fluxo_correcao_dados_produto_homologado(
     assert homologacao_produto_original.tem_copia is False
     assert homologacao_produto_original.eh_copia is False
     assert homologacao_produto_original.logs.count() == 3
+
+
+def test_relatorio_produtos_homologados_filtro_data_homologacao(
+        client_autenticado_vinculo_codae_produto, produtos_edital_41):
+    response = client_autenticado_vinculo_codae_produto.get(
+        f'/painel-gerencial-homologacoes-produtos/filtro-por-parametros-agrupado-terceirizada/'
+        f'?agrupado_por_nome_e_marca=false&nome_edital=Edital de Pregão nº 41/sme/2017'
+        f'&data_homologacao=02/01/2023&titulo_produto=ARROZ',
+        content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 0
+
+    response = client_autenticado_vinculo_codae_produto.get(
+        f'/painel-gerencial-homologacoes-produtos/filtro-por-parametros-agrupado-terceirizada/'
+        f'?agrupado_por_nome_e_marca=false&nome_edital=Edital de Pregão nº 41/sme/2017'
+        f'&data_homologacao=02/02/2023',
+        content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 1
+
+    response = client_autenticado_vinculo_codae_produto.get(
+        f'/painel-gerencial-homologacoes-produtos/filtro-por-parametros-agrupado-terceirizada/'
+        f'?agrupado_por_nome_e_marca=false&nome_edital=Edital de Pregão nº 41/sme/2017'
+        f'&data_homologacao=02/03/2023',
+        content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 2

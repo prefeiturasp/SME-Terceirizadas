@@ -85,20 +85,35 @@ def produtos_edital_41(escola):
                                 produto=produto_2,
                                 rastro_terceirizada=escola.lote.terceirizada,
                                 status=HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO)
-    mommy.make('LogSolicitacoesUsuario',
-               uuid_original=homologacao_p1.uuid,
-               status_evento=22,  # CODAE_HOMOLOGADO
-               solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
-    mommy.make('LogSolicitacoesUsuario',
-               uuid_original=homologacao_p2.uuid,
-               status_evento=22,  # CODAE_HOMOLOGADO
-               solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
-    mommy.make('ProdutoEdital', produto=produto_1, edital=edital, tipo_produto='Comum',
-               uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
+    log = mommy.make('LogSolicitacoesUsuario',
+                     uuid_original=homologacao_p1.uuid,
+                     criado_em=datetime.date(2023, 1, 1),
+                     status_evento=22,  # CODAE_HOMOLOGADO
+                     solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
+    log.criado_em = datetime.date(2023, 1, 1)
+    log.save()
+    log_2 = mommy.make('LogSolicitacoesUsuario',
+                       uuid_original=homologacao_p2.uuid,
+                       criado_em=datetime.date(2023, 2, 1),
+                       status_evento=22,  # CODAE_HOMOLOGADO
+                       solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
+    log_2.criado_em = datetime.date(2023, 2, 1)
+    log_2.save()
+    pe_1 = mommy.make('ProdutoEdital', produto=produto_1, edital=edital, tipo_produto='Comum',
+                      uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
     mommy.make('ProdutoEdital', produto=produto_1, edital=edital_3, tipo_produto='Comum',
                uuid='e42e3b97-6853-4327-841d-34292c33963c')
-    mommy.make('ProdutoEdital', produto=produto_2, edital=edital, tipo_produto='Comum',
-               uuid='38cdf4a8-6621-4248-8f5c-378d1bdbfb71')
+    pe_2 = mommy.make('ProdutoEdital', produto=produto_2, edital=edital, tipo_produto='Comum',
+                      uuid='38cdf4a8-6621-4248-8f5c-378d1bdbfb71')
+    dh_1 = mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe_1, suspenso=True)
+    dh_1.criado_em = datetime.date(2023, 1, 1)
+    dh_1.save()
+    dh_2 = mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe_2)
+    dh_2.criado_em = datetime.date(2023, 2, 1)
+    dh_2.save()
+    dh_3 = mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe_1)
+    dh_3.criado_em = datetime.date(2023, 3, 1)
+    dh_3.save()
 
 
 @pytest.fixture
