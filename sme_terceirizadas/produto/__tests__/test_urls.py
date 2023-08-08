@@ -1054,8 +1054,8 @@ def test_suspensao_parcial_produto_com_copia(client_autenticado_vinculo_codae_pr
         'funcionario_nome': 'GPCODAE',
         'funcionario_cargo': '',
         'editais_para_suspensao_ativacao': [
-            '0f81a49b-0836-42d5-af9e-12cbd7ca76a8',
-            'e42e3b97-6853-4327-841d-34292c33963c'
+            'b30a2102-2ae0-404d-8a56-8e5ecd73f868',
+            '131f4000-3e31-44f1-9ba5-e7df001a8426'
         ],
         'justificativa': '<p>suspender parcial</p>'
     }
@@ -1079,9 +1079,9 @@ def test_suspensao_total_produto_com_copia(client_autenticado_vinculo_codae_prod
         'funcionario_nome': 'GPCODAE',
         'funcionario_cargo': '',
         'editais_para_suspensao_ativacao': [
-            '0f81a49b-0836-42d5-af9e-12cbd7ca76a8',
-            'e42e3b97-6853-4327-841d-34292c33963c',
-            '3b4f59eb-a686-49e9-beab-3514a93e3184',
+            '12288b47-9d27-4089-8c2e-48a6061d83ea',
+            'b30a2102-2ae0-404d-8a56-8e5ecd73f868',
+            '131f4000-3e31-44f1-9ba5-e7df001a8426',
         ],
         'justificativa': '<p>suspender total</p>'
     }
