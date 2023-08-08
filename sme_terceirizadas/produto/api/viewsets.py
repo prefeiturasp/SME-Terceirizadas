@@ -1088,6 +1088,12 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    def cria_datas_horas_vinculos(self, editais_para_suspensao_ativacao, homologacao_produto):
+        for edital_uuid in editais_para_suspensao_ativacao:
+            produto_edital = ProdutoEdital.objects.get(
+                edital__uuid=edital_uuid, produto=homologacao_produto.produto)
+            produto_edital.criar_data_hora_vinculo(suspenso=True)
+
     @action(detail=True,
             permission_classes=[UsuarioCODAEGestaoProduto],
             methods=['patch'],
@@ -1115,6 +1121,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                 suspenso_em=datetime.now(),
                 suspenso_por=usuario
             )
+            self.cria_datas_horas_vinculos(editais_para_suspensao_ativacao, homologacao_produto)
             if vinculos_produto_edital.filter(suspenso=False):
                 homologacao_produto.salva_log_com_justificativa_e_anexos(
                     LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS,
@@ -1145,6 +1152,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                     edital=Edital.objects.get(uuid=edital_uuid),
                     suspenso=False
                 )
+            produto_edital = ProdutoEdital.objects.get(edital__uuid=edital_uuid, produto=homologacao_produto.produto)
+            produto_edital.criar_data_hora_vinculo()
 
     def generate_justificativa(self, vinculos_produto_edital, editais_para_suspensao_ativacao):
         numeros_editais_para_justificativa = ', '.join(

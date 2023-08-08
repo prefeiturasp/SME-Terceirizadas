@@ -291,6 +291,20 @@ def hom_produto_com_editais(escola, template_homologacao_produto, user, produto_
 
 
 @pytest.fixture
+def hom_produto_com_editais_suspenso(hom_produto_com_editais):
+    hom_produto_com_editais.status = HomologacaoProdutoWorkflow.CODAE_SUSPENDEU
+    hom_produto_com_editais.save()
+    return hom_produto_com_editais
+
+
+@pytest.fixture
+def hom_produto_com_editais_pendente_homologacao(hom_produto_com_editais):
+    hom_produto_com_editais.status = HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+    hom_produto_com_editais.save()
+    return hom_produto_com_editais
+
+
+@pytest.fixture
 def hom_copia(hom_produto_com_editais):
     produto_copia = hom_produto_com_editais.cria_copia_produto()
     homologacao_copia = hom_produto_com_editais.cria_copia_homologacao_produto(produto_copia)
