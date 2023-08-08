@@ -25,6 +25,7 @@ from ...escola.api.serializers import (
     EscolaEolSimplesSerializer,
     EscolaParaFiltroSerializer,
     EscolaPeriodoEscolarSerializer,
+    LogAlunosMatriculadosFaixaEtariaDiaSerializer,
     LoteNomeSerializer,
     LoteParaFiltroSerializer,
     LoteSerializer,
@@ -50,6 +51,7 @@ from ..models import (
     EscolaPeriodoEscolar,
     FaixaEtaria,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+    LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
     Lote,
     PeriodoEscolar,
@@ -61,7 +63,7 @@ from ..models import (
 from ..services import NovoSGPServicoLogado, NovoSGPServicoLogadoException
 from ..tasks import gera_pdf_relatorio_alunos_matriculados_async, gera_xlsx_relatorio_alunos_matriculados_async
 from ..utils import EscolaSimplissimaPagination, lotes_endpoint_filtrar_relatorio_alunos_matriculados
-from .filters import AlunoFilter, DiretoriaRegionalFilter
+from .filters import AlunoFilter, DiretoriaRegionalFilter, LogAlunosMatriculadosFaixaEtariaDiaFilter
 from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
     AlunosMatriculadosPeriodoEscolaSerializer,
@@ -748,3 +750,11 @@ class RelatorioAlunosMatriculadosViewSet(ModelViewSet):
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)
+
+
+class LogAlunosMatriculadosFaixaEtariaDiaViewSet(ListModelMixin, GenericViewSet):
+    serializer_class = LogAlunosMatriculadosFaixaEtariaDiaSerializer
+    queryset = LogAlunosMatriculadosFaixaEtariaDia.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = LogAlunosMatriculadosFaixaEtariaDiaFilter
+    pagination_class = None

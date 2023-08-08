@@ -20,6 +20,7 @@ from ..models import (
     EscolaPeriodoEscolar,
     FaixaEtaria,
     FaixaIdadeEscolar,
+    LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
     Lote,
     PeriodoEscolar,
@@ -646,3 +647,28 @@ class AlunosMatriculadosPeriodoEscolaCompletoSerializer(serializers.ModelSeriali
     class Meta:
         model = AlunosMatriculadosPeriodoEscola
         fields = ('periodo_escolar', 'escola', 'alunos_por_faixa_etaria', 'quantidade_alunos', 'tipo_turma')
+
+
+class LogAlunosMatriculadosFaixaEtariaDiaSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='nome',
+        required=False,
+        queryset=Escola.objects.all()
+    )
+    periodo_escolar = serializers.CharField(
+        source='periodo_escolar.nome',
+        required=False
+    )
+    dia = serializers.SerializerMethodField()
+    faixa_etaria = serializers.SerializerMethodField()
+
+    def get_dia(self, obj):
+        day = str(obj.data.day)
+        return day if len(day) == 2 else '0' + day
+
+    def get_faixa_etaria(self, obj):
+        return obj.faixa_etaria.__str__()
+
+    class Meta:
+        model = LogAlunosMatriculadosFaixaEtariaDia
+        exclude = ('id', 'uuid', 'criado_em')
