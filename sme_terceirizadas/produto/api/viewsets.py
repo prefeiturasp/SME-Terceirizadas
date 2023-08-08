@@ -2425,6 +2425,10 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
                 suspenso_em=datetime.now(),
                 suspenso_por=usuario
             )
+            for edital_uuid in editais_para_suspensao:
+                produto_edital = ProdutoEdital.objects.get(
+                    edital__uuid=edital_uuid, produto=reclamacao_produto.homologacao_produto.produto)
+                produto_edital.criar_data_hora_vinculo(suspenso=True)
             analises_sensoriais = reclamacao_produto.homologacao_produto.analises_sensoriais.filter(
                 status=AnaliseSensorial.STATUS_AGUARDANDO_RESPOSTA).all()
 
