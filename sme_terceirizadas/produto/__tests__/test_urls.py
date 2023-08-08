@@ -308,6 +308,7 @@ def test_url_endpoint_homologacao_produto_ativar(client_autenticado_vinculo_coda
         data=json.dumps({'editais_para_suspensao_ativacao': [edital.uuid], 'justificativa': 'test unitário',
                          'uuidTerceirizada': str(homologacao_produto_suspenso.rastro_terceirizada.uuid)}))
     assert response.status_code == status.HTTP_200_OK
+    homologacao_produto_suspenso.refresh_from_db()
     assert homologacao_produto_suspenso.produto.vinculos.filter(edital__uuid=edital.uuid).exists()
     assert not homologacao_produto_suspenso.produto.vinculos.filter(edital__uuid=edital.uuid, suspenso=True).exists()
 
@@ -1250,3 +1251,70 @@ def test_relatorio_produtos_homologados_filtro_data_homologacao(
         content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['count'] == 2
+
+
+def test_url_endpoint_homologacao_produto_ativar_datas_horas(
+        client_autenticado_vinculo_codae_produto, hom_produto_com_editais_suspenso):
+    ProdutoEdital.objects.update(suspenso=True)
+    data = {
+        'editais_para_suspensao_ativacao': [
+            '12288b47-9d27-4089-8c2e-48a6061d83ea'
+        ],
+        'justificativa': 'test unitário',
+        'uuidTerceirizada': str(hom_produto_com_editais_suspenso.rastro_terceirizada.uuid)
+    }
+    assert hom_produto_com_editais_suspenso.status == HomologacaoProdutoWorkflow.CODAE_SUSPENDEU
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{hom_produto_com_editais_suspenso.uuid}/'
+        f'{constants.ATIVAR_PRODUTO}/',
+        content_type='application/json',
+        data=json.dumps(data))
+    assert response.status_code == status.HTTP_200_OK
+
+    hom_produto_com_editais_suspenso.refresh_from_db()
+    assert hom_produto_com_editais_suspenso.produto.vinculos.filter(suspenso=True).exists()
+    produto_edital = hom_produto_com_editais_suspenso.produto.vinculos.get(
+        edital__uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
+    assert produto_edital.datas_horas_vinculo.exists() is True
+    data_hora_vinculo = produto_edital.datas_horas_vinculo.get()
+    assert data_hora_vinculo.suspenso is False
+
+
+def test_url_endpoint_homologacao_produto_suspender_datas_horas(
+        client_autenticado_vinculo_codae_produto, hom_produto_com_editais_pendente_homologacao):
+    ProdutoEdital.objects.update(suspenso=False)
+    data = {
+        'editais_para_suspensao_ativacao': [
+            '12288b47-9d27-4089-8c2e-48a6061d83ea'
+        ],
+        'justificativa': 'test unitário',
+        'uuidTerceirizada': str(hom_produto_com_editais_pendente_homologacao.rastro_terceirizada.uuid)
+    }
+    assert hom_produto_com_editais_pendente_homologacao.status == HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{hom_produto_com_editais_pendente_homologacao.uuid}/'
+        f'{constants.SUSPENDER_PRODUTO}/',
+        content_type='application/json',
+        data=json.dumps(data))
+    assert response.status_code == status.HTTP_200_OK
+
+    hom_produto_com_editais_pendente_homologacao.refresh_from_db()
+    assert hom_produto_com_editais_pendente_homologacao.produto.vinculos.filter(suspenso=False).exists()
+    produto_edital = hom_produto_com_editais_pendente_homologacao.produto.vinculos.get(
+        edital__uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
+    assert produto_edital.datas_horas_vinculo.exists() is True
+    data_hora_vinculo = produto_edital.datas_horas_vinculo.get()
+    assert data_hora_vinculo.suspenso is True
+
+    ProdutoEdital.objects.update(suspenso=True)
+    hom_produto_com_editais_pendente_homologacao.status = HomologacaoProdutoWorkflow.CODAE_SUSPENDEU
+    hom_produto_com_editais_pendente_homologacao.save()
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/homologacoes-produtos/{hom_produto_com_editais_pendente_homologacao.uuid}/'
+        f'{constants.SUSPENDER_PRODUTO}/',
+        content_type='application/json',
+        data=json.dumps(data))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'codae_suspende' isn't available from state "
+                  "'CODAE_SUSPENDEU'."}
