@@ -328,3 +328,12 @@ def test_escolas_simplissimas_sem_paginacao(client_autenticado_da_escola):
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']) == 4
     assert 'count' not in response.json()
+
+
+def test_url_log_alunos_matriculados_faixa_etaria_dia(client_autenticado_da_escola, escola,
+                                                      log_alunos_matriculados_faixa_etaria_dia):
+    response = client_autenticado_da_escola.get(f'/log-alunos-matriculados-faixa-etaria-dia/?escola_uuid={escola.uuid}')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
+    assert response.json()[0]['escola'] == escola.nome
+    assert response.json()[0]['quantidade'] == 100
