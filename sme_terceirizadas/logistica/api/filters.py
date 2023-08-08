@@ -143,7 +143,7 @@ class SolicitacaoAlteracaoFilter(filters.FilterSet):
 class NotificacaoFilter(filters.FilterSet):
     numero = filters.CharFilter(
         field_name='numero',
-        lookup_expr='exact',
+        lookup_expr='icontains',
     )
     empresa = filters.ModelMultipleChoiceFilter(
         field_name='empresa__uuid',
@@ -153,4 +153,8 @@ class NotificacaoFilter(filters.FilterSet):
     status = filters.MultipleChoiceFilter(
         field_name='status',
         choices=[(str(state), state) for state in NotificacaoOcorrenciaWorkflow.states],
+    )
+    processo_sei = filters.CharFilter(
+        field_name='processo_sei',
+        lookup_expr='icontains',
     )

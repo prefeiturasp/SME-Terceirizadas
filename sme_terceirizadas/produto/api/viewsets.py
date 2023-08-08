@@ -656,11 +656,11 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if filtro_aplicado == 'codae_homologado':
             raw_sql += f'AND most_recent_log.status_evento = {LogSolicitacoesUsuario.CODAE_HOMOLOGADO} '
         if edital:
-            raw_sql += ('LEFT JOIN (SELECT DISTINCT id AS produto_edital_id, '
+            raw_sql += ('LEFT JOIN (SELECT DISTINCT id AS produto_edital_id, suspenso,'
                         'produto_id as produto_id_prod_edit, edital_id as edital_id_prod_edit FROM %(produto_edital)s) '
                         'AS produto_edital '
                         'ON produto_edital.produto_id_prod_edit = %(homologacao_produto)s.produto_id AND '
-                        f'produto_edital.edital_id_prod_edit = {edital.id} ')
+                        f'produto_edital.edital_id_prod_edit = {edital.id} AND produto_edital.suspenso = false ')
         raw_sql += ('LEFT JOIN (SELECT DISTINCT ON (homologacao_produto_id) homologacao_produto_id, escola_id '
                     'AS escola_reclamacao_id FROM %(reclamacoes_produto)s) AS homolog_com_reclamacao '
                     'ON homolog_com_reclamacao.homologacao_produto_id = %(homologacao_produto)s.id '
@@ -686,6 +686,16 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         raw_sql += 'ORDER BY log_criado_em DESC'
         return raw_sql, data
 
+    def exclui_produtos_suspensos(self, query_set, produtos_editais_mais_de_uma_data_hora, edital, data_homologacao):
+        homs_mais_de_uma_data_hora = query_set.filter(
+            produto__vinculos__in=produtos_editais_mais_de_uma_data_hora).distinct()
+        for hom_produto in homs_mais_de_uma_data_hora:
+            produto_edital = hom_produto.produto.vinculos.get(edital=edital)
+            data_hora = produto_edital.data_hora_mais_proxima(data_homologacao)
+            if data_hora.suspenso:
+                query_set = query_set.exclude(uuid=hom_produto.uuid)
+        return query_set
+
     def get_queryset_solicitacoes_homologacao_por_status(self, request_data, perfil_nome, tipo_usuario,
                                                          escola_ou_dre_id, filtro_aplicado):
         filtros = {}
@@ -709,28 +719,28 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     id_amigavel=Substr(Cast(F('uuid'), output_field=CharField()), 1, 5)
                 ).filter(Q(id_amigavel__icontains=titulo) | Q(produto__nome__icontains=titulo))
             filtros_params = cria_filtro_homologacao_produto_por_parametros(request_data)
-            query_set_nao_homologados = query_set.filter(status='CODAE_NAO_HOMOLOGADO').filter(
-                **filtros_params).distinct()
+            query_set_nao_homologados = query_set.filter(
+                status__in=['CODAE_NAO_HOMOLOGADO', 'CODAE_AUTORIZOU_RECLAMACAO', 'CODAE_SUSPENDEU'],
+                eh_copia=False).filter(**filtros_params).distinct()
             query_set = query_set.filter(**filtros).filter(**filtros_params).filter(eh_copia=False).distinct()
             if request_data.get('data_homologacao'):
-                query_set_nao_homologados = [
-                    hom_produto for hom_produto in query_set_nao_homologados
-                    if hom_produto.logs.filter(
-                        status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO
-                    ).exists() and hom_produto.logs.filter(
-                        status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO
-                    ).first().criado_em.date() <= datetime.strptime(
-                        request_data.get('data_homologacao'), '%d/%m/%Y').date() < hom_produto.logs.filter(
-                        status_evento=LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO).first().criado_em.date()
-                ]
-                query_set = [
-                    hom_produto for hom_produto in query_set
-                    if hom_produto.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO
-                                               ).first().criado_em.date() <= datetime.strptime(
-                        request_data.get('data_homologacao'), '%d/%m/%Y').date()]
-                query_set = query_set + query_set_nao_homologados
+                data_homologacao = datetime.strptime(request_data.get('data_homologacao'), '%d/%m/%Y').date()
+                query_set = query_set | query_set_nao_homologados
+                query_set = query_set.filter(
+                    produto__vinculos__edital=edital,
+                    produto__vinculos__datas_horas_vinculo__suspenso=False,
+                    produto__vinculos__datas_horas_vinculo__criado_em__lt=data_homologacao
+                )
+                produtos_editais_mais_de_uma_data_hora = ProdutoEdital.objects.annotate(
+                    Count('datas_horas_vinculo')).filter(datas_horas_vinculo__count__gt=1)
+                query_set = (self.exclui_produtos_suspensos
+                             (query_set, produtos_editais_mais_de_uma_data_hora, edital, data_homologacao))
+            elif edital:
+                query_set = query_set.filter(
+                    produto__vinculos__edital=edital,
+                    produto__vinculos__suspenso=False,
+                )
             query_set = sorted(query_set, key=lambda x: x.produto.data_homologacao or x.produto.criado_em, reverse=True)
-
         return query_set
 
     @action(detail=False,
@@ -797,13 +807,15 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                     vinc_prod_edital.suspenso_por = request.user
                     vinc_prod_edital.suspenso_em = datetime.now()
                     vinc_prod_edital.save()
+                    vinc_prod_edital.criar_data_hora_vinculo()
             for edital_uuid in editais:
                 if edital_uuid not in array_uuids_vinc:
-                    ProdutoEdital.objects.create(
+                    produto_edital = ProdutoEdital.objects.create(
                         produto=homologacao_produto.produto,
                         edital=Edital.objects.get(uuid=edital_uuid),
                         tipo_produto=ProdutoEdital.DIETA_ESPECIAL if eh_para_alunos_com_dieta else ProdutoEdital.COMUM
                     )
+                    produto_edital.criar_data_hora_vinculo(suspenso=False)
             return Response({'uuid': homologacao_produto.uuid, 'status': str(homologacao_produto.status)},
                             status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -1076,6 +1088,12 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    def cria_datas_horas_vinculos(self, editais_para_suspensao_ativacao, homologacao_produto):
+        for edital_uuid in editais_para_suspensao_ativacao:
+            produto_edital = ProdutoEdital.objects.get(
+                edital__uuid=edital_uuid, produto=homologacao_produto.produto)
+            produto_edital.criar_data_hora_vinculo(suspenso=True)
+
     @action(detail=True,
             permission_classes=[UsuarioCODAEGestaoProduto],
             methods=['patch'],
@@ -1103,6 +1121,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                 suspenso_em=datetime.now(),
                 suspenso_por=usuario
             )
+            self.cria_datas_horas_vinculos(editais_para_suspensao_ativacao, homologacao_produto)
             if vinculos_produto_edital.filter(suspenso=False):
                 homologacao_produto.salva_log_com_justificativa_e_anexos(
                     LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS,
@@ -1133,6 +1152,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                     edital=Edital.objects.get(uuid=edital_uuid),
                     suspenso=False
                 )
+            produto_edital = ProdutoEdital.objects.get(edital__uuid=edital_uuid, produto=homologacao_produto.produto)
+            produto_edital.criar_data_hora_vinculo()
 
     def generate_justificativa(self, vinculos_produto_edital, editais_para_suspensao_ativacao):
         numeros_editais_para_justificativa = ', '.join(
