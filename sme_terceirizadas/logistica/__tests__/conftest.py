@@ -231,3 +231,49 @@ def solicitacao_cancelamento_log(solicitacao):
         sequencia_envio='123456',
         foi_confirmada=False
     )
+
+
+@pytest.fixture
+def notificacao_ocorrencia(terceirizada):
+    return mommy.make(
+        'NotificacaoOcorrenciasGuia',
+        numero='1234567890',
+        processo_sei='9876543210',
+        empresa=terceirizada
+    )
+
+@pytest.fixture
+def notificacoes_ocorrencia(terceirizada):
+    data = [
+        {'numero': f'{i}', 'processo_sei': f'{2*i}', 'empresa': terceirizada}
+        for i in range(1, 21)
+    ]
+    objects = [
+        mommy.make('NotificacaoOcorrenciasGuia', **attrs) for attrs in data
+    ]
+    return objects
+
+
+@pytest.fixture
+def previsao_contratual(notificacao_ocorrencia):
+    return mommy.make(
+        'PrevisaoContratualNotificacao',
+        notificacao=notificacao_ocorrencia,
+        motivo_ocorrencia=ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA,
+        previsao_contratual='Era pra ter sido entregue ontem.',
+    )
+
+@pytest.fixture
+def previsoes_contratuais(notificacao_ocorrencia):
+    data = [
+        {
+            'notificacao': notificacao_ocorrencia,
+            'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_CHOICES[i][0],
+            'previsao_contratual': f'PREVISÃO CONTRATUAL {i}',
+        }
+        for i in range(len(ConferenciaIndividualPorAlimento.OCORRENCIA_CHOICES))
+    ]
+    objects = [
+        mommy.make('NotificacaoOcorrenciasGuia', **attrs) for attrs in data
+    ]
+    return objects
