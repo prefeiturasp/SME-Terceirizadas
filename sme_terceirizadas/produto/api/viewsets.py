@@ -1765,6 +1765,16 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(produto__vinculos__edital__in=editais)
         return queryset
 
+    def exclui_produtos_ativos(self, query_set, produtos_editais_mais_de_uma_data_hora, nome_edital, data_suspensao):
+        homs_mais_de_uma_data_hora = query_set.filter(
+            produto__vinculos__in=produtos_editais_mais_de_uma_data_hora).distinct()
+        for hom_produto in homs_mais_de_uma_data_hora:
+            produto_edital = hom_produto.produto.vinculos.get(edital__numero=nome_edital)
+            data_hora = produto_edital.data_hora_mais_proxima(data_suspensao)
+            if not data_hora.suspenso:
+                query_set = query_set.exclude(uuid=hom_produto.uuid)
+        return query_set
+
     @action(detail=False,
             methods=['GET'],
             url_path='filtro-relatorio-produto-suspenso')
@@ -1797,28 +1807,25 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=False)
         if tipo == 'Dieta especial':
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=True)
-        """
         if data_final:
             data_final = datetime.strptime(data_final, '%d/%m/%Y').date()
             homologacoes = homologacoes.filter(
-                produto__vinculos__edital=edital,
-                produto__vinculos__datas_horas_vinculo__suspenso=False,
-                produto__vinculos__datas_horas_vinculo__criado_em__lt=data_homologacao
+                produto__vinculos__edital__numero=nome_edital,
+                produto__vinculos__datas_horas_vinculo__suspenso=True,
+                produto__vinculos__datas_horas_vinculo__criado_em__lt=data_final
             )
             produtos_editais_mais_de_uma_data_hora = ProdutoEdital.objects.annotate(
                 Count('datas_horas_vinculo')).filter(datas_horas_vinculo__count__gt=1)
-            query_set = (self.exclui_produtos_suspensos
-                         (query_set, produtos_editais_mais_de_uma_data_hora, edital, data_homologacao))
-        elif edital:
-            query_set = query_set.filter(
-                produto__vinculos__edital=edital,
-                produto__vinculos__suspenso=False,
+            homologacoes = (
+                self.exclui_produtos_ativos
+                (homologacoes, produtos_editais_mais_de_uma_data_hora, nome_edital, data_final))
+        else:
+            homologacoes = homologacoes.filter(
+                produto__vinculos__edital__numero=nome_edital,
+                produto__vinculos__suspenso=True,
             )
-        """
-
         queryset = Produto.objects.filter(pk__in=homologacoes.values_list('produto', flat=True))
-        queryset = queryset.order_by('nome')[:1]
-        print('bau')
+        queryset = queryset.order_by('nome')
         return self.paginated_response(queryset)
 
     @action(detail=False, url_path='relatorio-produto-suspenso',
