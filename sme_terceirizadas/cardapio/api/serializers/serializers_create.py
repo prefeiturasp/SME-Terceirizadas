@@ -11,6 +11,7 @@ from ....dados_comuns.validators import (
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
     objeto_nao_deve_ter_duplicidade,
+    valida_datas_alteracao_cardapio,
     valida_duplicidade_solicitacoes,
     valida_duplicidade_solicitacoes_cei,
     valida_duplicidade_solicitacoes_cemei
@@ -489,6 +490,7 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
                                                        tipo_alimentacao_para,
                                                        escola.tipo_unidade,
                                                        periodo_escolar)
+        valida_datas_alteracao_cardapio(attrs)
         nao_pode_ser_no_passado(attrs['data_inicial'])
         if attrs['motivo'].nome != 'Lanche Emergencial':
             deve_pedir_com_antecedencia(attrs['data_inicial'])

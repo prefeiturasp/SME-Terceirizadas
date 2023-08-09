@@ -9,12 +9,13 @@ from ..cardapio.models import (
     AlteracaoCardapio,
     AlteracaoCardapioCEI,
     AlteracaoCardapioCEMEI,
+    DataIntervaloAlteracaoCardapio,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
     SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
     SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI
 )
 from .constants import obter_dias_uteis_apos_hoje
-from .utils import eh_dia_util
+from .utils import datetime_range, eh_dia_util
 
 calendario = BrazilSaoPauloCity()
 
@@ -180,3 +181,15 @@ def deve_ter_extensao_xls_xlsx_pdf(nome: str):
     if nome.split('.')[len(nome.split('.')) - 1].lower() not in ['xls', 'xlsx', 'pdf']:
         raise serializers.ValidationError('Extensão inválida')
     return nome
+
+
+def valida_datas_alteracao_cardapio(attrs):
+    for data in datetime_range(attrs['data_inicial'], attrs['data_final']):
+        if DataIntervaloAlteracaoCardapio.objects.filter(
+            data=data,
+            cancelado=False,
+            alteracao_cardapio__status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            alteracao_cardapio__escola=attrs['escola']
+        ).exists():
+            raise serializers.ValidationError(f'Já existe uma solicitação autorizada para o '
+                                              f'dia {data.strftime("%d/%m/%Y")}')
