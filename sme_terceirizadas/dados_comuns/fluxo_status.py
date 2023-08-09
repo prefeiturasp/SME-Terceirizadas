@@ -3777,17 +3777,23 @@ class NotificacaoOcorrenciaWorkflow(xwf_models.Workflow):
     RASCUNHO = 'RASCUNHO'
     NOTIFICACAO_CRIADA = 'NOTIFICACAO_CRIADA'
     NOTIFICACAO_ENVIADA_FISCAL = 'NOTIFICACAO_ENVIADA_FISCAL'
+    NOTIFICACAO_SOLICITADA_ALTERACAO = 'NOTIFICACAO_SOLICITADA_ALTERACAO'
+    NOTIFICACAO_ASSINADA_FISCAL = 'NOTIFICACAO_ASSINADA_FISCAL'
 
     states = (
         (RASCUNHO, 'Rascunho'),
         (NOTIFICACAO_CRIADA, 'Notificação Criada'),
         (NOTIFICACAO_ENVIADA_FISCAL, 'Notificação Enviada Fiscal'),
+        (NOTIFICACAO_SOLICITADA_ALTERACAO, 'Solicitado Alteração'),
+        (NOTIFICACAO_ASSINADA_FISCAL, 'Assinada Fiscal'),
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, RASCUNHO),
         ('cria_notificacao', RASCUNHO, NOTIFICACAO_CRIADA),
         ('envia_fiscal', NOTIFICACAO_CRIADA, NOTIFICACAO_ENVIADA_FISCAL),
+        ('solicita_alteracao', NOTIFICACAO_ENVIADA_FISCAL, NOTIFICACAO_SOLICITADA_ALTERACAO),
+        ('assina_fiscal', NOTIFICACAO_ENVIADA_FISCAL, NOTIFICACAO_ASSINADA_FISCAL),
     )
 
     initial_state = RASCUNHO
@@ -3810,6 +3816,22 @@ class FluxoNotificacaoOcorrencia(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.NOTIFICACAO_ENVIADA_FISCAL,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('solicita_alteracao')
+    def _solicita_alteracao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.NOTIFICACAO_SOLICITADA_ALTERACAO,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('assina_fiscal')
+    def _assina_fiscal_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.NOTIFICACAO_ASSINADA_FISCAL,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
 
