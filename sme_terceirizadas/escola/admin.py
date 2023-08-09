@@ -220,7 +220,7 @@ class LogAlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
 
 @admin.register(LogAlunosMatriculadosFaixaEtariaDia)
 class LogAlunosMatriculadosFaixaEtariaDiaAdmin(admin.ModelAdmin):
-    list_display = ('escola', 'periodo_escolar', 'quantidade', 'data', 'criado_em')
+    list_display = ('escola', 'periodo_escolar', 'faixa_etaria', 'quantidade', 'data', 'criado_em')
     search_fields = ('escola__nome', 'periodo_escolar__nome')
     list_filter = (('data', DateRangeFilter),)
 
