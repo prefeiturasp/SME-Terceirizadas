@@ -943,7 +943,7 @@ class ConferenciaindividualModelViewSet(viewsets.ModelViewSet):
 
 class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = NotificacaoOcorrenciasGuia.objects.all()
+    queryset = NotificacaoOcorrenciasGuia.objects.all().order_by('-criado_em')
     serializer_class = NotificacaoOcorrenciasGuiaSerializer
     permission_classes = (PermissaoParaVisualizarGuiasComOcorrencias,)
     permission_action_classes = {
@@ -991,7 +991,7 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
 
     def atualiza_notificacao(self, instance, request):
         serializer = NotificacaoOcorrenciasUpdateSerializer()
-        validated_data = serializer.validate(request.data, instance)
+        validated_data = serializer.validate(request.data)
         res = serializer.update(instance, validated_data)
         return res
 
@@ -1021,3 +1021,37 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
                                           Status da Notificação não é RASCUNHO ou NOTIFICACAO_CRIADA"""),
                             status=HTTP_400_BAD_REQUEST)
         return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
+
+    @action(detail=True, methods=['PATCH'], url_path='solicitar-alteracao')
+    def solicitar_alteracao(self, request, uuid):
+        usuario = request.user
+        instance = self.get_object()
+
+        if instance.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_ENVIADA_FISCAL:
+            serializer = NotificacaoOcorrenciasUpdateSerializer(instance, data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                updated_instance = serializer.save()
+                updated_instance.solicita_alteracao(user=usuario)
+                return Response(NotificacaoOcorrenciasGuiaSerializer(updated_instance).data)
+
+        return Response(
+            {'detail': 'Erro de transição de estado: Status da Notificação não é NOTIFICACAO_ENVIADA_FISCAL'},
+            status=HTTP_400_BAD_REQUEST
+        )
+
+    @action(detail=True, methods=['PATCH'], url_path='assinar')
+    def assinar(self, request, uuid):
+        usuario = request.user
+        instance = self.get_object()
+
+        if instance.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_ENVIADA_FISCAL:
+            serializer = NotificacaoOcorrenciasUpdateSerializer(instance, data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                updated_instance = serializer.save()
+                updated_instance.assina_fiscal(user=usuario)
+                return Response(NotificacaoOcorrenciasGuiaSerializer(updated_instance).data)
+
+        return Response(
+            {'detail': 'Erro de transição de estado: Status da Notificação não é NOTIFICACAO_ENVIADA_FISCAL'},
+            status=HTTP_400_BAD_REQUEST
+        )
