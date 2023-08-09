@@ -47,6 +47,7 @@ class SolicitacaoMedicaoInicial(
     tipo_contagem_alimentacoes = models.ForeignKey('TipoContagemAlimentacao', on_delete=models.SET_NULL,
                                                    null=True, related_name='solicitacoes_medicao_inicial')
     com_ocorrencias = models.BooleanField('Com ocorrências?', default=False)
+    ue_possui_alunos_periodo_parcial = models.BooleanField('Possui alunos periodo parcial?', default=False)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         LogSolicitacoesUsuario.objects.create(
