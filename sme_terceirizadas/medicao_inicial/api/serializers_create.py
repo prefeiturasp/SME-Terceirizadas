@@ -105,7 +105,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
     )
     tipo_contagem_alimentacoes = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
+        required=False,
         queryset=TipoContagemAlimentacao.objects.all(),
     )
     responsaveis = ResponsavelCreateSerializer(many=True)
