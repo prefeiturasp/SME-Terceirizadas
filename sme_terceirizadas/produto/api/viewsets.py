@@ -1765,6 +1765,16 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(produto__vinculos__edital__in=editais)
         return queryset
 
+    def exclui_produtos_ativos(self, query_set, produtos_editais_mais_de_uma_data_hora, nome_edital, data_suspensao):
+        homs_mais_de_uma_data_hora = query_set.filter(
+            produto__vinculos__in=produtos_editais_mais_de_uma_data_hora).distinct()
+        for hom_produto in homs_mais_de_uma_data_hora:
+            produto_edital = hom_produto.produto.vinculos.get(edital__numero=nome_edital)
+            data_hora = produto_edital.data_hora_mais_proxima(data_suspensao)
+            if not data_hora.suspenso:
+                query_set = query_set.exclude(uuid=hom_produto.uuid)
+        return query_set
+
     @action(detail=False,
             methods=['GET'],
             url_path='filtro-relatorio-produto-suspenso')
@@ -1780,29 +1790,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         tipo = request.query_params.get('tipo', None)
         status = ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO', 'CODAE_HOMOLOGADO']
 
-        homologacoes = HomologacaoProduto.objects.all()
-        uuids_homologacao = []
-
-        if data_final:
-            data_final = data_final.split('/')
-            data_final = [int(element) for element in data_final]
-            data_final = datetime(data_final[2], data_final[1], data_final[0], 23, 59)
-
-        for hom in homologacoes:
-            log_homologado = hom.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).last()
-            logs = hom.logs.filter(status_evento__in=[LogSolicitacoesUsuario.CODAE_SUSPENDEU,
-                                                      LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO,
-                                                      LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS])
-            if data_final:
-                logs = logs.filter(criado_em__lte=data_final)
-                if log_homologado:
-                    logs = logs.filter(criado_em__gt=log_homologado.criado_em)
-            if logs.last():
-                uuid = logs.last().uuid_original
-                uuids_homologacao.append(uuid)
-        homologacoes = homologacoes.filter(uuid__in=uuids_homologacao, status__in=status,
-                                           produto__vinculos__suspenso=True)
-
+        homologacoes = HomologacaoProduto.objects.filter(status__in=status, produto__vinculos__suspenso=True)
         if nome_produto:
             homologacoes = homologacoes.filter(produto__nome=nome_produto)
         if nome_marca:
@@ -1819,6 +1807,23 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=False)
         if tipo == 'Dieta especial':
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=True)
+        if data_final:
+            data_final = datetime.strptime(data_final, '%d/%m/%Y').date()
+            homologacoes = homologacoes.filter(
+                produto__vinculos__edital__numero=nome_edital,
+                produto__vinculos__datas_horas_vinculo__suspenso=True,
+                produto__vinculos__datas_horas_vinculo__criado_em__lt=data_final
+            )
+            produtos_editais_mais_de_uma_data_hora = ProdutoEdital.objects.annotate(
+                Count('datas_horas_vinculo')).filter(datas_horas_vinculo__count__gt=1)
+            homologacoes = (
+                self.exclui_produtos_ativos
+                (homologacoes, produtos_editais_mais_de_uma_data_hora, nome_edital, data_final))
+        else:
+            homologacoes = homologacoes.filter(
+                produto__vinculos__edital__numero=nome_edital,
+                produto__vinculos__suspenso=True,
+            )
         queryset = Produto.objects.filter(pk__in=homologacoes.values_list('produto', flat=True))
         queryset = queryset.order_by('nome')
         return self.paginated_response(queryset)
@@ -2425,6 +2430,10 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
                 suspenso_em=datetime.now(),
                 suspenso_por=usuario
             )
+            for edital_uuid in editais_para_suspensao:
+                produto_edital = ProdutoEdital.objects.get(
+                    edital__uuid=edital_uuid, produto=reclamacao_produto.homologacao_produto.produto)
+                produto_edital.criar_data_hora_vinculo(suspenso=True)
             analises_sensoriais = reclamacao_produto.homologacao_produto.analises_sensoriais.filter(
                 status=AnaliseSensorial.STATUS_AGUARDANDO_RESPOSTA).all()
 

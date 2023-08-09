@@ -285,6 +285,8 @@ def hom_produto_com_editais(escola, template_homologacao_produto, user, produto_
                status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
                solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO)
     mommy.make('ReclamacaoDeProduto',
+               uuid='dd06d200-e2f9-4be7-a304-82831ce93ee1',
+               criado_por=user,
                homologacao_produto=homologacao_produto,
                escola=escola)
     return homologacao_produto
@@ -300,6 +302,13 @@ def hom_produto_com_editais_suspenso(hom_produto_com_editais):
 @pytest.fixture
 def hom_produto_com_editais_pendente_homologacao(hom_produto_com_editais):
     hom_produto_com_editais.status = HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+    hom_produto_com_editais.save()
+    return hom_produto_com_editais
+
+
+@pytest.fixture
+def hom_produto_com_editais_escola_ou_nutri_reclamou(hom_produto_com_editais):
+    hom_produto_com_editais.status = HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
     hom_produto_com_editais.save()
     return hom_produto_com_editais
 
