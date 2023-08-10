@@ -909,3 +909,25 @@ class ItensCadastroCreateSerializer(serializers.Serializer):
         except Exception as e:
             raise serializers.ValidationError(f'Erro ao criar ItemCadastro. {str(e)}')
         return instance
+
+
+class RelatorioProdutosSuspensosSerializer(serializers.ModelSerializer):
+    marca = serializers.CharField(source='marca.nome')
+    fabricante = serializers.CharField(source='fabricante.nome')
+    edital = serializers.SerializerMethodField()
+    data_cadastro = serializers.SerializerMethodField()
+
+    def get_edital(self, obj):
+        produto_edital = obj.vinculos.get(edital__numero=self.context['edital_numero'])
+        return {
+            'nome': produto_edital.edital.numero,
+            'tipo': produto_edital.tipo_produto,
+            'data_suspensao': produto_edital.datas_horas_vinculo.last().criado_em.strftime('%d/%m/%Y')
+        }
+
+    def get_data_cadastro(self, obj):
+        return obj.homologacao.logs.first().criado_em.strftime('%d/%m/%Y')
+
+    class Meta:
+        model = Produto
+        fields = ('uuid', 'nome', 'marca', 'fabricante', 'edital', 'data_cadastro')
