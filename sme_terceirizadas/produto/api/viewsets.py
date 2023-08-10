@@ -411,15 +411,17 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     def produtos_sem_agrupamento(self, nome_edital, qs_produtos, offset, limit):
         produtos_agrupados = []
         for hom_produto in qs_produtos[offset: offset + limit]:
+            produto_edital = hom_produto.produto.vinculos.get(edital__numero=nome_edital)
             produtos_agrupados.append({
                 'terceirizada': hom_produto.rastro_terceirizada.nome_fantasia,
                 'nome': hom_produto.produto.nome,
                 'marca': hom_produto.produto.marca.nome,
                 'edital': nome_edital,
-                'tipo': hom_produto.produto.vinculos.get(edital__numero=nome_edital).tipo_produto,
+                'tipo': produto_edital.tipo_produto,
                 'tem_aditivos_alergenicos': hom_produto.produto.tem_aditivos_alergenicos,
                 'cadastro': hom_produto.produto.criado_em.strftime('%d/%m/%Y'),
-                'homologacao': hom_produto.produto.data_homologacao.strftime('%d/%m/%Y')
+                'homologacao': produto_edital.datas_horas_vinculo.filter(
+                    suspenso=False).first().criado_em.strftime('%d/%m/%Y')
             })
         return produtos_agrupados
 
