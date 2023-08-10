@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import pytest
@@ -6,7 +7,7 @@ from rest_framework import status
 
 from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
-from sme_terceirizadas.produto.models import HomologacaoProduto, ProdutoEdital
+from sme_terceirizadas.produto.models import DataHoraVinculoProdutoEdital, HomologacaoProduto, ProdutoEdital
 
 pytestmark = pytest.mark.django_db
 
@@ -1414,3 +1415,36 @@ def test_endpoint_codae_suspende_via_reclamacao_total(
     assert response.json() == {
         'detail': "Erro de transição de estado: Transition 'codae_autorizou_reclamacao' isn't available from state "
                   "'CODAE_AUTORIZOU_RECLAMACAO'."}
+
+
+def test_relatorio_produtos_suspensos(client_autenticado_vinculo_codae_produto, hom_produto_com_editais_suspenso):
+    DataHoraVinculoProdutoEdital.objects.filter(
+        produto_edital__edital__numero='Edital de Pregão nº 41/sme/2017').update(suspenso=True)
+    ProdutoEdital.objects.filter(edital__numero='Edital de Pregão nº 41/sme/2017').update(suspenso=True)
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    response = client_autenticado_vinculo_codae_produto.get(
+        '/produtos/filtro-relatorio-produto-suspenso/'
+        '?nome_edital=Edital de Pregão nº 41/sme/2017'
+        '&status=CODAE_SUSPENDEU&status=CODAE_AUTORIZOU_RECLAMACAO&page=1&page_size=10'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 1
+
+    response = client_autenticado_vinculo_codae_produto.get(
+        '/produtos/filtro-relatorio-produto-suspenso/'
+        '?nome_edital=Edital de Pregão nº 41/sme/2017'
+        '&status=CODAE_SUSPENDEU&status=CODAE_AUTORIZOU_RECLAMACAO&page=1&page_size=10'
+        f'&data_suspensao_final={hoje.strftime("%d/%m/%Y")}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 1
+
+    response = client_autenticado_vinculo_codae_produto.get(
+        '/produtos/filtro-relatorio-produto-suspenso/'
+        '?nome_edital=Edital de Pregão nº 41/sme/2017'
+        '&status=CODAE_SUSPENDEU&status=CODAE_AUTORIZOU_RECLAMACAO&page=1&page_size=10'
+        f'&data_suspensao_final={ontem.strftime("%d/%m/%Y")}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 0
