@@ -12,6 +12,7 @@ from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
     HTTP_406_NOT_ACCEPTABLE
 )
@@ -44,6 +45,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     NotificacaoOcorrenciasCreateSerializer,
     NotificacaoOcorrenciasUpdateRascunhoSerializer,
     NotificacaoOcorrenciasUpdateSerializer,
+    PrevisoesContratuaisDaNotificacaoUpdateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
@@ -1028,11 +1030,14 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
         instance = self.get_object()
 
         if instance.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_ENVIADA_FISCAL:
-            serializer = NotificacaoOcorrenciasUpdateSerializer(instance, data=request.data)
+            previsoes = instance.previsoes_contratuais.all()
+            serializer = PrevisoesContratuaisDaNotificacaoUpdateSerializer(
+                previsoes, data=request.data['previsoes'], many=True)
+
             if serializer.is_valid(raise_exception=True):
-                updated_instance = serializer.save()
-                updated_instance.solicita_alteracao(user=usuario)
-                return Response(NotificacaoOcorrenciasGuiaSerializer(updated_instance).data)
+                serializer.save()
+                instance.solicita_alteracao(user=usuario)
+                return Response(NotificacaoOcorrenciasGuiaSerializer(instance).data)
 
         return Response(
             {'detail': 'Erro de transição de estado: Status da Notificação não é NOTIFICACAO_ENVIADA_FISCAL'},
@@ -1044,12 +1049,22 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
         usuario = request.user
         instance = self.get_object()
 
+        password = request.data.pop('password', None)
+        if not usuario.verificar_autenticidade(password):
+            return Response(
+                dict(detail=f'Assinatura da notificação não foi validada. Verifique sua senha.'),
+                status=HTTP_401_UNAUTHORIZED
+            )
+
         if instance.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_ENVIADA_FISCAL:
-            serializer = NotificacaoOcorrenciasUpdateSerializer(instance, data=request.data)
+            previsoes = instance.previsoes_contratuais.all()
+            serializer = PrevisoesContratuaisDaNotificacaoUpdateSerializer(
+                previsoes, data=request.data['previsoes'], many=True)
+
             if serializer.is_valid(raise_exception=True):
-                updated_instance = serializer.save()
-                updated_instance.assina_fiscal(user=usuario)
-                return Response(NotificacaoOcorrenciasGuiaSerializer(updated_instance).data)
+                serializer.save()
+                instance.assina_fiscal(user=usuario)
+                return Response(NotificacaoOcorrenciasGuiaSerializer(instance).data)
 
         return Response(
             {'detail': 'Erro de transição de estado: Status da Notificação não é NOTIFICACAO_ENVIADA_FISCAL'},

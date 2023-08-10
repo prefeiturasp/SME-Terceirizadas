@@ -4,6 +4,7 @@ import json
 import pytest
 from rest_framework import status
 
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from sme_terceirizadas.dados_comuns.fluxo_status import NotificacaoOcorrenciaWorkflow
 from sme_terceirizadas.logistica.models import ConferenciaGuia, Guia
 from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
@@ -227,10 +228,9 @@ def test_url_notificacao_ocorrencia_listar(client_autenticado_codae_dilog, notif
 
     response = client.get('/notificacao-guias-com-ocorrencias/')
 
-    print(response.data)
-
     assert response.status_code == status.HTTP_200_OK
     assert response.data['count'] == 20
+
 
 def test_url_notificacao_ocorrencia_action_solicitar_alteracao(client_autenticado_codae_dilog, notificacao_ocorrencia):
     client = client_autenticado_codae_dilog
@@ -240,16 +240,13 @@ def test_url_notificacao_ocorrencia_action_solicitar_alteracao(client_autenticad
 
     uuid = notificacao_ocorrencia.uuid
     payload = {
-        'processo_sei': notificacao_ocorrencia.processo_sei,
         'previsoes': [
             {
-                'previsao_contratual': 'Previsão teste 1',
                 'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA,
                 'justificativa_alteracao': 'Justificativa previsao teste 1',
                 'aprovado': False
             },
             {
-                'previsao_contratual': 'Previsão teste 2',
                 'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_EMBALAGEM_DANIFICADA,
                 'justificativa_alteracao': '',
                 'aprovado': True
@@ -269,6 +266,7 @@ def test_url_notificacao_ocorrencia_action_solicitar_alteracao(client_autenticad
     assert notificacao_ocorrencia.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_SOLICITADA_ALTERACAO
     assert notificacao_ocorrencia.previsoes_contratuais.count() == 2
 
+
 def test_url_notificacao_ocorrencia_action_assinar(client_autenticado_codae_dilog, notificacao_ocorrencia):
     client = client_autenticado_codae_dilog
 
@@ -277,18 +275,16 @@ def test_url_notificacao_ocorrencia_action_assinar(client_autenticado_codae_dilo
 
     uuid = notificacao_ocorrencia.uuid
     payload = {
-        'processo_sei': notificacao_ocorrencia.processo_sei,
+        'password': DJANGO_ADMIN_PASSWORD,
         'previsoes': [
             {
-                'previsao_contratual': 'Previsão teste 1',
                 'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA,
-                'justificativa_alteracao': 'Aprovado em XX/XX/XXXX',
+                'justificativa_alteracao': 'Aprovado em 01/01/2023 - 10:30',
                 'aprovado': True
             },
             {
-                'previsao_contratual': 'Previsão teste 2',
                 'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_EMBALAGEM_DANIFICADA,
-                'justificativa_alteracao': 'Aprovado em XX/XX/XXXX',
+                'justificativa_alteracao': 'Aprovado em 02/01/2023 - 11:00',
                 'aprovado': True
             },
         ]
