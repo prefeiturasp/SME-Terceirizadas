@@ -1050,6 +1050,10 @@ def test_alteracao_dados_produto_homologado(client_autenticado_vinculo_terceiriz
 
 def test_suspensao_parcial_produto_com_copia(client_autenticado_vinculo_codae_produto, hom_copia):
     original = hom_copia.get_original()
+    assert original.produto.vinculos.get(
+        edital__uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868').datas_horas_vinculo.count() == 1
+    assert original.produto.vinculos.get(
+        edital__uuid='131f4000-3e31-44f1-9ba5-e7df001a8426').datas_horas_vinculo.count() == 1
     data = {
         'funcionario_registro_funcional': '3462334',
         'funcionario_nome': 'GPCODAE',
@@ -1068,6 +1072,11 @@ def test_suspensao_parcial_produto_com_copia(client_autenticado_vinculo_codae_pr
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['uuid'] == str(original.uuid)
     assert HomologacaoProduto.objects.filter(uuid=hom_copia.uuid).exists() is False
+    original.refresh_from_db()
+    assert original.produto.vinculos.get(
+        edital__uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868').datas_horas_vinculo.count() == 2
+    assert original.produto.vinculos.get(
+        edital__uuid='131f4000-3e31-44f1-9ba5-e7df001a8426').datas_horas_vinculo.count() == 2
 
 
 def test_suspensao_total_produto_com_copia(client_autenticado_vinculo_codae_produto, hom_copia_pendente_homologacao):
@@ -1276,7 +1285,7 @@ def test_url_endpoint_homologacao_produto_ativar_datas_horas(
     produto_edital = hom_produto_com_editais_suspenso.produto.vinculos.get(
         edital__uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
     assert produto_edital.datas_horas_vinculo.exists() is True
-    data_hora_vinculo = produto_edital.datas_horas_vinculo.get()
+    data_hora_vinculo = produto_edital.datas_horas_vinculo.last()
     assert data_hora_vinculo.suspenso is False
 
 
@@ -1303,7 +1312,7 @@ def test_url_endpoint_homologacao_produto_suspender_datas_horas(
     produto_edital = hom_produto_com_editais_pendente_homologacao.produto.vinculos.get(
         edital__uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
     assert produto_edital.datas_horas_vinculo.exists() is True
-    data_hora_vinculo = produto_edital.datas_horas_vinculo.get()
+    data_hora_vinculo = produto_edital.datas_horas_vinculo.last()
     assert data_hora_vinculo.suspenso is True
 
     ProdutoEdital.objects.update(suspenso=True)
@@ -1345,8 +1354,8 @@ def test_endpoint_codae_suspende_via_reclamacao_parcialmente(
     produto_edital = hom_produto_com_editais_escola_ou_nutri_reclamou.produto.vinculos.get(
         edital__uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
     assert produto_edital.suspenso is True
-    assert produto_edital.datas_horas_vinculo.count() == 1
-    assert produto_edital.datas_horas_vinculo.get().suspenso is True
+    assert produto_edital.datas_horas_vinculo.count() == 2
+    assert produto_edital.datas_horas_vinculo.last().suspenso is True
 
 
 def test_endpoint_codae_suspende_via_reclamacao_total(
@@ -1380,20 +1389,20 @@ def test_endpoint_codae_suspende_via_reclamacao_total(
     produto_edital = hom_produto_com_editais_escola_ou_nutri_reclamou.produto.vinculos.get(
         edital__uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
     assert produto_edital.suspenso is True
-    assert produto_edital.datas_horas_vinculo.count() == 1
-    assert produto_edital.datas_horas_vinculo.get().suspenso is True
+    assert produto_edital.datas_horas_vinculo.count() == 2
+    assert produto_edital.datas_horas_vinculo.last().suspenso is True
 
     produto_edital = hom_produto_com_editais_escola_ou_nutri_reclamou.produto.vinculos.get(
         edital__uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868')
     assert produto_edital.suspenso is True
-    assert produto_edital.datas_horas_vinculo.count() == 1
-    assert produto_edital.datas_horas_vinculo.get().suspenso is True
+    assert produto_edital.datas_horas_vinculo.count() == 2
+    assert produto_edital.datas_horas_vinculo.last().suspenso is True
 
     produto_edital = hom_produto_com_editais_escola_ou_nutri_reclamou.produto.vinculos.get(
         edital__uuid='131f4000-3e31-44f1-9ba5-e7df001a8426')
     assert produto_edital.suspenso is True
-    assert produto_edital.datas_horas_vinculo.count() == 1
-    assert produto_edital.datas_horas_vinculo.get().suspenso is True
+    assert produto_edital.datas_horas_vinculo.count() == 2
+    assert produto_edital.datas_horas_vinculo.last().suspenso is True
 
     response = client_autenticado_vinculo_codae_produto.patch(
         f'/reclamacoes-produtos/{reclamacao.uuid}/{constants.CODAE_ACEITA}/',
