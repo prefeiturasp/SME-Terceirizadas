@@ -238,7 +238,7 @@ class ProdutoEdital(TemChaveExterna, CriadoEm):
 
 
 class DataHoraVinculoProdutoEdital(TemChaveExterna, CriadoEm):
-    produto_edital = models.ForeignKey(ProdutoEdital, null=False, on_delete=models.DO_NOTHING,
+    produto_edital = models.ForeignKey(ProdutoEdital, null=False, on_delete=models.CASCADE,
                                        related_name='datas_horas_vinculo')
     suspenso = models.BooleanField('Esta suspenso?', default=False)
 
@@ -508,6 +508,15 @@ class HomologacaoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoP
         campos_fk = ['especificacoes', 'imagemdoproduto_set', 'informacoes_nutricionais', 'vinculos']
         for campo_fk in campos_fk:
             cria_copias_fk(produto, campo_fk, 'produto', produto_copia)
+
+        for produto_edital in produto.vinculos.all():
+            for data_hora in produto_edital.datas_horas_vinculo.all():
+                data_hora_copia = deepcopy(data_hora)
+                data_hora_copia.id = None
+                data_hora_copia.uuid = uuid_generator.uuid4()
+                data_hora_copia.produto_edital = produto_copia.vinculos.get(edital=produto_edital.edital)
+                data_hora_copia.save()
+                DataHoraVinculoProdutoEdital.objects.filter(id=data_hora_copia.id).update(criado_em=data_hora.criado_em)
 
         campos_m2m = ['protocolos', 'substitutos', 'substitutos_protocolo_padrao']
         for campo_m2m in campos_m2m:

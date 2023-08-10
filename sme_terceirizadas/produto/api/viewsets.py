@@ -729,7 +729,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 query_set = query_set.filter(
                     produto__vinculos__edital=edital,
                     produto__vinculos__datas_horas_vinculo__suspenso=False,
-                    produto__vinculos__datas_horas_vinculo__criado_em__lt=data_homologacao
+                    produto__vinculos__datas_horas_vinculo__criado_em__date__lte=data_homologacao
                 )
                 produtos_editais_mais_de_uma_data_hora = ProdutoEdital.objects.annotate(
                     Count('datas_horas_vinculo')).filter(datas_horas_vinculo__count__gt=1)
@@ -1812,7 +1812,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             homologacoes = homologacoes.filter(
                 produto__vinculos__edital__numero=nome_edital,
                 produto__vinculos__datas_horas_vinculo__suspenso=True,
-                produto__vinculos__datas_horas_vinculo__criado_em__lt=data_final
+                produto__vinculos__datas_horas_vinculo__criado_em__date__lte=data_final
             )
             produtos_editais_mais_de_uma_data_hora = ProdutoEdital.objects.annotate(
                 Count('datas_horas_vinculo')).filter(datas_horas_vinculo__count__gt=1)
