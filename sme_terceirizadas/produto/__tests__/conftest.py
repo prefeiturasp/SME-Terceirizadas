@@ -259,12 +259,16 @@ def produto_com_editais(produto):
                           uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868')
     edital_3 = mommy.make('Edital', numero='Edital de Pregão nº 78/sme/2022',
                           uuid='131f4000-3e31-44f1-9ba5-e7df001a8426')
-    mommy.make('ProdutoEdital', produto=produto, edital=edital, tipo_produto='Comum',
-               uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
-    mommy.make('ProdutoEdital', produto=produto, edital=edital_2, tipo_produto='Comum',
-               uuid='e42e3b97-6853-4327-841d-34292c33963c')
-    mommy.make('ProdutoEdital', produto=produto, edital=edital_3, tipo_produto='Comum',
-               uuid='3b4f59eb-a686-49e9-beab-3514a93e3184')
+    pe1 = mommy.make('ProdutoEdital', produto=produto, edital=edital, tipo_produto='Comum',
+                     uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
+    pe2 = mommy.make('ProdutoEdital', produto=produto, edital=edital_2, tipo_produto='Comum',
+                     uuid='e42e3b97-6853-4327-841d-34292c33963c')
+    pe3 = mommy.make('ProdutoEdital', produto=produto, edital=edital_3, tipo_produto='Comum',
+                     uuid='3b4f59eb-a686-49e9-beab-3514a93e3184')
+    mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe1)
+    mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe2)
+    mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe3)
+
     return produto
 
 
