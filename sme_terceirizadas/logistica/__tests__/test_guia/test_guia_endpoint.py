@@ -4,6 +4,8 @@ import json
 import pytest
 from rest_framework import status
 
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD
+from sme_terceirizadas.dados_comuns.fluxo_status import NotificacaoOcorrenciaWorkflow
 from sme_terceirizadas.logistica.models import ConferenciaGuia, Guia
 from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 
@@ -219,3 +221,83 @@ def test_url_relatorio_guia_remessa_authorized_escola(client_autenticado_escola_
         f'/guias-da-requisicao/{str(guia_com_escola_client_autenticado.uuid)}/relatorio-guia-remessa/'
     )
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_notificacao_ocorrencia_listar(client_autenticado_codae_dilog, notificacoes_ocorrencia):
+    client = client_autenticado_codae_dilog
+
+    response = client.get('/notificacao-guias-com-ocorrencias/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['count'] == 20
+
+
+def test_url_notificacao_ocorrencia_action_solicitar_alteracao(client_autenticado_codae_dilog, notificacao_ocorrencia):
+    client = client_autenticado_codae_dilog
+
+    notificacao_ocorrencia.status = NotificacaoOcorrenciaWorkflow.NOTIFICACAO_ENVIADA_FISCAL
+    notificacao_ocorrencia.save()
+
+    uuid = notificacao_ocorrencia.uuid
+    payload = {
+        'previsoes': [
+            {
+                'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA,
+                'justificativa_alteracao': 'Justificativa previsao teste 1',
+                'aprovado': False
+            },
+            {
+                'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_EMBALAGEM_DANIFICADA,
+                'justificativa_alteracao': '',
+                'aprovado': True
+            },
+        ]
+    }
+
+    response = client.patch(
+        f'/notificacao-guias-com-ocorrencias/{uuid}/solicitar-alteracao/',
+        data=json.dumps(payload),
+        content_type='application/json',
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    notificacao_ocorrencia.refresh_from_db()
+    assert notificacao_ocorrencia.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_SOLICITADA_ALTERACAO
+    assert notificacao_ocorrencia.previsoes_contratuais.count() == 2
+
+
+def test_url_notificacao_ocorrencia_action_assinar(client_autenticado_codae_dilog, notificacao_ocorrencia):
+    client = client_autenticado_codae_dilog
+
+    notificacao_ocorrencia.status = NotificacaoOcorrenciaWorkflow.NOTIFICACAO_ENVIADA_FISCAL
+    notificacao_ocorrencia.save()
+
+    uuid = notificacao_ocorrencia.uuid
+    payload = {
+        'password': DJANGO_ADMIN_PASSWORD,
+        'previsoes': [
+            {
+                'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA,
+                'justificativa_alteracao': 'Aprovado em 01/01/2023 - 10:30',
+                'aprovado': True
+            },
+            {
+                'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_EMBALAGEM_DANIFICADA,
+                'justificativa_alteracao': 'Aprovado em 02/01/2023 - 11:00',
+                'aprovado': True
+            },
+        ]
+    }
+
+    response = client.patch(
+        f'/notificacao-guias-com-ocorrencias/{uuid}/assinar/',
+        data=json.dumps(payload),
+        content_type='application/json',
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    notificacao_ocorrencia.refresh_from_db()
+    assert notificacao_ocorrencia.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_ASSINADA_FISCAL
+    assert notificacao_ocorrencia.previsoes_contratuais.count() == 2
