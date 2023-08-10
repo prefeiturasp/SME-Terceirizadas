@@ -933,6 +933,8 @@ def test_create_produtos_vinculos(client_autenticado_vinculo_codae_produto, prod
     produto = ProdutoEdital.objects.get(uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8').produto
     assert produto.vinculos.count() == 3
     assert produto.vinculos.filter(edital__numero='Edital de Pregão nº 78/sme/2016').exists()
+    data_hora = produto.vinculos.get(edital__numero='Edital de Pregão nº 78/sme/2016').datas_horas_vinculo.get()
+    assert data_hora.suspenso is False
     log = produto.homologacao.logs.last()
     assert log.justificativa == (
         '<p>Nome do Produto:</p>'
