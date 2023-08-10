@@ -235,12 +235,29 @@ def solicitacao_cancelamento_log(solicitacao):
 
 @pytest.fixture
 def notificacao_ocorrencia(terceirizada):
-    return mommy.make(
+    notificacao = mommy.make(
         'NotificacaoOcorrenciasGuia',
         numero='1234567890',
         processo_sei='9876543210',
         empresa=terceirizada
     )
+
+    mommy.make(
+        'PrevisaoContratualNotificacao',
+        notificacao=notificacao,
+        motivo_ocorrencia=ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA,
+        previsao_contratual='Previsao contratual teste 1',
+    )
+
+    mommy.make(
+        'PrevisaoContratualNotificacao',
+        notificacao=notificacao,
+        motivo_ocorrencia=ConferenciaIndividualPorAlimento.OCORRENCIA_EMBALAGEM_DANIFICADA,
+        previsao_contratual='Previsao contratual teste 2',
+    )
+
+    return notificacao
+
 
 @pytest.fixture
 def notificacoes_ocorrencia(terceirizada):
@@ -262,6 +279,7 @@ def previsao_contratual(notificacao_ocorrencia):
         motivo_ocorrencia=ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA,
         previsao_contratual='Era pra ter sido entregue ontem.',
     )
+
 
 @pytest.fixture
 def previsoes_contratuais(notificacao_ocorrencia):

@@ -2,7 +2,8 @@ import pytest
 
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     NotificacaoOcorrenciasUpdateSerializer,
-    PrevisoesContratuaisDaNotificacaoCreateSerializer
+    PrevisoesContratuaisDaNotificacaoCreateSerializer,
+    PrevisoesContratuaisDaNotificacaoUpdateSerializer
 )
 from sme_terceirizadas.logistica.api.serializers.serializers import PrevisaoContratualSimplesSerializer
 from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento
@@ -26,7 +27,7 @@ def test_previsao_contratual_create_serializer():
     }
 
     serializer = PrevisoesContratuaisDaNotificacaoCreateSerializer(data=data)
-    assert serializer.is_valid() == True
+    assert serializer.is_valid()
 
     serializer.save()
     assert serializer.instance.previsao_contratual == data['previsao_contratual']
@@ -40,7 +41,7 @@ def test_previsao_contratual_create_serializer():
     }
 
     serializer = PrevisoesContratuaisDaNotificacaoCreateSerializer(data=data)
-    assert serializer.is_valid() == True
+    assert serializer.is_valid()
 
     serializer.save()
     assert serializer.instance.previsao_contratual == data['previsao_contratual']
@@ -64,7 +65,7 @@ def test_previsao_contratual_create_serializer():
     ]
 
     serializer = PrevisoesContratuaisDaNotificacaoCreateSerializer(data=data, many=True)
-    assert serializer.is_valid() == True
+    assert serializer.is_valid()
 
     serializer.save()
     assert serializer.instance[0].previsao_contratual == data[0]['previsao_contratual']
@@ -76,6 +77,36 @@ def test_previsao_contratual_create_serializer():
     assert serializer.instance[1].motivo_ocorrencia == data[1]['motivo_ocorrencia']
     assert serializer.instance[1].justificativa_alteracao == data[1]['justificativa_alteracao']
     assert serializer.instance[1].aprovado == data[1]['aprovado']
+
+
+def test_previsoes_contratuais_update_serializer(notificacao_ocorrencia):
+    data = [
+        {
+            'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA,
+            'justificativa_alteracao': 'Justificativa previsao teste 1',
+            'aprovado': False
+        },
+        {
+            'motivo_ocorrencia': ConferenciaIndividualPorAlimento.OCORRENCIA_EMBALAGEM_DANIFICADA,
+            'justificativa_alteracao': 'Justificativa previsao teste 2',
+            'aprovado': True
+        },
+    ]
+
+    previsoes = notificacao_ocorrencia.previsoes_contratuais.all()
+    serializer = PrevisoesContratuaisDaNotificacaoUpdateSerializer(previsoes, data=data, many=True)
+
+    assert serializer.is_valid()
+
+    serializer.save()
+
+    previsoes = notificacao_ocorrencia.previsoes_contratuais.all()
+
+    assert previsoes.first().justificativa_alteracao == data[0]['justificativa_alteracao']
+    assert previsoes.first().aprovado == data[0]['aprovado']
+
+    assert previsoes.last().justificativa_alteracao == data[1]['justificativa_alteracao']
+    assert previsoes.last().aprovado == data[1]['aprovado']
 
 
 def test_notificacao_ocorrencia_update_serializer(notificacao_ocorrencia):

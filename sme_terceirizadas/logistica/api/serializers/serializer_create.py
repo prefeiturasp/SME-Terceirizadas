@@ -299,7 +299,32 @@ class PrevisoesContratuaisDaNotificacaoCreateSerializer(serializers.ModelSeriali
 
     class Meta:
         model = PrevisaoContratualNotificacao
-        exclude = ('id', 'uuid', 'notificacao', 'criado_em', 'alterado_em')
+        exclude = ('id', 'uuid', 'criado_em', 'alterado_em', 'notificacao')
+
+
+class _PrevisoesContratuaisDaNotificacaoUpdateListSerializer(serializers.ListSerializer):
+    def update(self, instance, validated_data):
+        instance_data_mapping = []
+        for previsao in instance:
+            for data in validated_data:
+                if previsao.motivo_ocorrencia == data['motivo_ocorrencia']:
+                    instance_data_mapping.append((previsao, data))
+
+        for previsao, data in instance_data_mapping:
+            previsao.justificativa_alteracao = data['justificativa_alteracao']
+            previsao.aprovado = data['aprovado']
+            previsao.save()
+
+        return instance
+
+
+class PrevisoesContratuaisDaNotificacaoUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PrevisaoContratualNotificacao
+        fields = ('motivo_ocorrencia', 'justificativa_alteracao', 'aprovado')
+        lookup_field = 'motivo_ocorrencia'
+        list_serializer_class = _PrevisoesContratuaisDaNotificacaoUpdateListSerializer
 
 
 class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
