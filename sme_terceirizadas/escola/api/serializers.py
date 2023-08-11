@@ -12,6 +12,7 @@ from ...terceirizada.api.serializers.serializers import ContratoSimplesSerialize
 from ...terceirizada.models import Terceirizada
 from ..models import (
     Aluno,
+    AlunoPeriodoParcial,
     AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
@@ -64,6 +65,17 @@ class PeriodoEscolarSerializer(serializers.ModelSerializer):
     class Meta:
         model = PeriodoEscolar
         exclude = ('id',)
+
+
+class AlunoPeriodoParcialSimplesSerializer(serializers.ModelSerializer):
+    codigo_eol = serializers.CharField(source='aluno.codigo_eol')
+    nome = serializers.CharField(source='aluno.nome')
+    uuid = serializers.UUIDField(source='aluno.uuid')
+    escola = serializers.UUIDField(source='escola.uuid')
+
+    class Meta:
+        model = AlunoPeriodoParcial
+        fields = ('uuid', 'nome', 'codigo_eol', 'escola')
 
 
 class PeriodoEscolarSimplesSerializer(serializers.ModelSerializer):

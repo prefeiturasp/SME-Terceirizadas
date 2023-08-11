@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from ...dados_comuns.utils import update_instance_from_dict
 from ..models import (
+    AlunoPeriodoParcial,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
@@ -120,3 +121,11 @@ class MudancaFaixasEtariasCreateSerializer(serializers.Serializer):
         mudanca.faixas_etarias_ativadas.set(fe_objs)
         mudanca.save()
         return mudanca
+
+
+class AlunoPeriodoParcialCreateSerializer(serializers.ModelSerializer):
+    aluno = serializers.CharField()
+
+    class Meta:
+        model = AlunoPeriodoParcial
+        fields = ('aluno',)

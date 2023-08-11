@@ -8,7 +8,8 @@ from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from sme_terceirizadas.dados_comuns.validators import deve_ter_extensao_xls_xlsx_pdf
-from sme_terceirizadas.escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
+from sme_terceirizadas.escola.api.serializers_create import AlunoPeriodoParcialCreateSerializer
+from sme_terceirizadas.escola.models import Aluno, AlunoPeriodoParcial, Escola, PeriodoEscolar, TipoUnidadeEscolar
 from sme_terceirizadas.medicao_inicial.models import (
     CategoriaMedicao,
     DiaSobremesaDoce,
@@ -108,6 +109,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         required=False,
         queryset=TipoContagemAlimentacao.objects.all(),
     )
+    alunos_periodo_parcial = AlunoPeriodoParcialCreateSerializer(many=True, required=False)
     responsaveis = ResponsavelCreateSerializer(many=True)
     com_ocorrencias = serializers.BooleanField(required=False)
     ocorrencia = OcorrenciaMedicaoInicialCreateSerializer(required=False)
@@ -115,10 +117,10 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
-        responsaveis_dict = validated_data.pop('responsaveis', None)
+        responsaveis_dict = validated_data.pop('responsaveis', [])
+        alunos_uuids = validated_data.pop('alunos_periodo_parcial', [])
 
         solicitacao = SolicitacaoMedicaoInicial.objects.create(**validated_data)
-        solicitacao.save()
 
         for responsavel in responsaveis_dict:
             Responsavel.objects.create(
@@ -126,6 +128,14 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 nome=responsavel.get('nome', ''),
                 rf=responsavel.get('rf', '')
             )
+        if alunos_uuids:
+            escola_associada = validated_data.get('escola')
+            for aluno in alunos_uuids:
+                AlunoPeriodoParcial.objects.create(
+                    solicitacao_medicao_inicial=solicitacao,
+                    aluno=Aluno.objects.get(uuid=aluno.get('aluno', '')),
+                    escola=escola_associada
+                )
 
         solicitacao.inicia_fluxo(user=self.context['request'].user)
         return solicitacao
@@ -134,6 +144,9 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)
         key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
 
+        alunos_uuids_dict = self.context['request'].data.get('alunos_periodo_parcial', None)
+
+        validated_data.pop('alunos_periodo_parcial', None)
         validated_data.pop('responsaveis', None)
         update_instance_from_dict(instance, validated_data, save=True)
 
@@ -145,6 +158,17 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                     solicitacao_medicao_inicial=instance,
                     nome=responsavel.get('nome', ''),
                     rf=responsavel.get('rf', '')
+                )
+
+        if alunos_uuids_dict:
+            alunos_uuids = json.loads(alunos_uuids_dict)
+            escola_associada = validated_data.get('escola')
+            instance.alunos_periodo_parcial.all().delete()
+            for aluno_uuid in alunos_uuids:
+                AlunoPeriodoParcial.objects.create(
+                    solicitacao_medicao_inicial=instance,
+                    aluno=Aluno.objects.get(uuid=aluno_uuid),
+                    escola=escola_associada
                 )
 
         anexos_string = self.context['request'].data.get('anexos', None)

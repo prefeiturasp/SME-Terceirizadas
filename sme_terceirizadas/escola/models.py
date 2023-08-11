@@ -1325,3 +1325,26 @@ class LogAlunosMatriculadosFaixaEtariaDia(TemChaveExterna, CriadoEm, TemData, Te
         verbose_name = 'Log quantidade de alunos por faixa etária, dia e período'
         verbose_name_plural = 'Logs quantidades de alunos por faixas etárias, dias e períodos'
         ordering = ('criado_em',)
+
+
+class AlunoPeriodoParcial(TemChaveExterna, CriadoEm):
+    """Relaciona alunos em período parcil com a unidade educacional e a solicitação de medição inicial."""
+
+    escola = models.ForeignKey(
+        Escola, related_name='alunos_periodo_parcial', on_delete=models.PROTECT
+    )
+    aluno = models.ForeignKey(
+        Aluno, related_name='alunos_periodo_parcial', on_delete=models.PROTECT
+    )
+    solicitacao_medicao_inicial = models.ForeignKey(
+        'medicao_inicial.SolicitacaoMedicaoInicial', related_name='alunos_periodo_parcial', on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return (f'{self.aluno.nome} para SMI {self.solicitacao_medicao_inicial.mes}/'
+                f'{self.solicitacao_medicao_inicial.ano} da UE {self.escola.nome}')
+
+    class Meta:
+        verbose_name = 'Aluno no período parcial'
+        verbose_name_plural = 'Alunos no período parcial'
+        ordering = ('criado_em',)
