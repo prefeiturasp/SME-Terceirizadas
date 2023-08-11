@@ -267,12 +267,13 @@ class SolicitacaoMedicaoInicialViewSet(
     def meses_anos(self, request):
         query_set = self.condicao_por_usuario(self.get_queryset()).exclude(
             status=SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE)
-        meses_anos = query_set.values_list('mes', 'ano')
+        meses_anos = query_set.values_list('mes', 'ano').distinct()
         meses_anos_unicos = []
         for mes_ano in meses_anos:
-            mes_ano_obj = {'mes': mes_ano[0], 'ano': mes_ano[1]}
-            if mes_ano_obj not in meses_anos_unicos:
-                meses_anos_unicos.append(mes_ano_obj)
+            status_ = SolicitacaoMedicaoInicial.objects.filter(
+                mes=mes_ano[0], ano=mes_ano[1]).values_list('status', flat=True).distinct()
+            mes_ano_obj = {'mes': mes_ano[0], 'ano': mes_ano[1], 'status': status_}
+            meses_anos_unicos.append(mes_ano_obj)
         return Response({'results': sorted(meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True)},
                         status=status.HTTP_200_OK)
 
