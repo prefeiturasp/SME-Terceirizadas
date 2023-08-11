@@ -8,7 +8,7 @@ from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from sme_terceirizadas.dados_comuns.validators import deve_ter_extensao_xls_xlsx_pdf
-from sme_terceirizadas.escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
+from sme_terceirizadas.escola.models import Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEscolar
 from sme_terceirizadas.medicao_inicial.models import (
     CategoriaMedicao,
     DiaSobremesaDoce,
@@ -186,6 +186,12 @@ class ValorMedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         allow_null=True,
         queryset=TipoAlimentacao.objects.all()
     )
+    faixa_etaria = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        allow_null=True,
+        queryset=FaixaEtaria.objects.all()
+    )
     medicao_uuid = serializers.SerializerMethodField()
     medicao_alterado_em = serializers.SerializerMethodField()
 
@@ -249,14 +255,16 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                 dia=valor_medicao.get('dia', ''),
                 nome_campo=valor_medicao.get('nome_campo', ''),
                 categoria_medicao=valor_medicao.get('categoria_medicao', ''),
-                tipo_alimentacao=valor_medicao.get('tipo_alimentacao', ''),
+                tipo_alimentacao=valor_medicao.get('tipo_alimentacao', None),
+                faixa_etaria=valor_medicao.get('faixa_etaria', None),
                 defaults={
                     'medicao': medicao,
                     'dia': valor_medicao.get('dia', ''),
                     'valor': valor_medicao.get('valor', ''),
                     'nome_campo': valor_medicao.get('nome_campo', ''),
                     'categoria_medicao': valor_medicao.get('categoria_medicao', ''),
-                    'tipo_alimentacao': valor_medicao.get('tipo_alimentacao', ''),
+                    'tipo_alimentacao': valor_medicao.get('tipo_alimentacao', None),
+                    'faixa_etaria': valor_medicao.get('faixa_etaria', None),
                 }
             )
 
@@ -272,14 +280,16 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                     dia=valor_medicao.get('dia', ''),
                     nome_campo=valor_medicao.get('nome_campo', ''),
                     categoria_medicao=valor_medicao.get('categoria_medicao', ''),
-                    tipo_alimentacao=valor_medicao.get('tipo_alimentacao', ''),
+                    tipo_alimentacao=valor_medicao.get('tipo_alimentacao', None),
+                    faixa_etaria=valor_medicao.get('faixa_etaria', None),
                     defaults={
                         'medicao': instance,
                         'dia': valor_medicao.get('dia', ''),
                         'valor': valor_medicao.get('valor', ''),
                         'nome_campo': valor_medicao.get('nome_campo', ''),
                         'categoria_medicao': valor_medicao.get('categoria_medicao', ''),
-                        'tipo_alimentacao': valor_medicao.get('tipo_alimentacao', ''),
+                        'tipo_alimentacao': valor_medicao.get('tipo_alimentacao', None),
+                        'faixa_etaria': valor_medicao.get('faixa_etaria', None),
                     }
                 )
         eh_observacao = self.context['request'].data.get('eh_observacao', )
