@@ -115,9 +115,13 @@ class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
 class ValorMedicaoSerializer(serializers.ModelSerializer):
     medicao_uuid = serializers.SerializerMethodField()
     medicao_alterado_em = serializers.SerializerMethodField()
+    faixa_etaria = serializers.SerializerMethodField()
 
     def get_medicao_uuid(self, obj):
         return obj.medicao.uuid
+
+    def get_faixa_etaria(self, obj):
+        return obj.faixa_etaria.uuid if obj.faixa_etaria else None
 
     def get_medicao_alterado_em(self, obj):
         if obj.medicao.alterado_em:
@@ -126,7 +130,7 @@ class ValorMedicaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ValorMedicao
         fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid',
-                  'uuid', 'medicao_alterado_em', 'habilitado_correcao')
+                  'faixa_etaria', 'uuid', 'medicao_alterado_em', 'habilitado_correcao')
 
 
 class CategoriaMedicaoSerializer(serializers.ModelSerializer):

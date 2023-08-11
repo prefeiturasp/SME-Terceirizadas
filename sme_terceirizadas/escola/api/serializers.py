@@ -660,14 +660,11 @@ class LogAlunosMatriculadosFaixaEtariaDiaSerializer(serializers.ModelSerializer)
         required=False
     )
     dia = serializers.SerializerMethodField()
-    faixa_etaria = serializers.SerializerMethodField()
+    faixa_etaria = FaixaEtariaSerializer()
 
     def get_dia(self, obj):
         day = str(obj.data.day)
         return day if len(day) == 2 else '0' + day
-
-    def get_faixa_etaria(self, obj):
-        return obj.faixa_etaria.__str__()
 
     class Meta:
         model = LogAlunosMatriculadosFaixaEtariaDia
