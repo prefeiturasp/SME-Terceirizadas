@@ -9,7 +9,7 @@ from sme_terceirizadas.dados_comuns.api.serializers import (
 )
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
-from sme_terceirizadas.escola.api.serializers import TipoUnidadeEscolarSerializer
+from sme_terceirizadas.escola.api.serializers import AlunoPeriodoParcialSimplesSerializer, TipoUnidadeEscolarSerializer
 from sme_terceirizadas.medicao_inicial.models import (
     CategoriaMedicao,
     DiaSobremesaDoce,
@@ -85,6 +85,7 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     responsaveis = ResponsavelSerializer(many=True)
     ocorrencia = OcorrenciaMedicaoInicialSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    alunos_periodo_parcial = AlunoPeriodoParcialSimplesSerializer(many=True)
 
     class Meta:
         model = SolicitacaoMedicaoInicial
