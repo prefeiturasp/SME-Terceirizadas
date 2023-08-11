@@ -259,12 +259,16 @@ def produto_com_editais(produto):
                           uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868')
     edital_3 = mommy.make('Edital', numero='Edital de Pregão nº 78/sme/2022',
                           uuid='131f4000-3e31-44f1-9ba5-e7df001a8426')
-    mommy.make('ProdutoEdital', produto=produto, edital=edital, tipo_produto='Comum',
-               uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
-    mommy.make('ProdutoEdital', produto=produto, edital=edital_2, tipo_produto='Comum',
-               uuid='e42e3b97-6853-4327-841d-34292c33963c')
-    mommy.make('ProdutoEdital', produto=produto, edital=edital_3, tipo_produto='Comum',
-               uuid='3b4f59eb-a686-49e9-beab-3514a93e3184')
+    pe1 = mommy.make('ProdutoEdital', produto=produto, edital=edital, tipo_produto='Comum',
+                     uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
+    pe2 = mommy.make('ProdutoEdital', produto=produto, edital=edital_2, tipo_produto='Comum',
+                     uuid='e42e3b97-6853-4327-841d-34292c33963c')
+    pe3 = mommy.make('ProdutoEdital', produto=produto, edital=edital_3, tipo_produto='Comum',
+                     uuid='3b4f59eb-a686-49e9-beab-3514a93e3184')
+    mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe1)
+    mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe2)
+    mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe3)
+
     return produto
 
 
@@ -285,6 +289,8 @@ def hom_produto_com_editais(escola, template_homologacao_produto, user, produto_
                status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
                solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO)
     mommy.make('ReclamacaoDeProduto',
+               uuid='dd06d200-e2f9-4be7-a304-82831ce93ee1',
+               criado_por=user,
                homologacao_produto=homologacao_produto,
                escola=escola)
     return homologacao_produto
@@ -300,6 +306,13 @@ def hom_produto_com_editais_suspenso(hom_produto_com_editais):
 @pytest.fixture
 def hom_produto_com_editais_pendente_homologacao(hom_produto_com_editais):
     hom_produto_com_editais.status = HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+    hom_produto_com_editais.save()
+    return hom_produto_com_editais
+
+
+@pytest.fixture
+def hom_produto_com_editais_escola_ou_nutri_reclamou(hom_produto_com_editais):
+    hom_produto_com_editais.status = HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
     hom_produto_com_editais.save()
     return hom_produto_com_editais
 

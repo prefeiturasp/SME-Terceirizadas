@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import pytest
@@ -6,7 +7,7 @@ from rest_framework import status
 
 from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
-from sme_terceirizadas.produto.models import HomologacaoProduto, ProdutoEdital
+from sme_terceirizadas.produto.models import DataHoraVinculoProdutoEdital, HomologacaoProduto, ProdutoEdital
 
 pytestmark = pytest.mark.django_db
 
@@ -933,6 +934,8 @@ def test_create_produtos_vinculos(client_autenticado_vinculo_codae_produto, prod
     produto = ProdutoEdital.objects.get(uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8').produto
     assert produto.vinculos.count() == 3
     assert produto.vinculos.filter(edital__numero='Edital de Pregão nº 78/sme/2016').exists()
+    data_hora = produto.vinculos.get(edital__numero='Edital de Pregão nº 78/sme/2016').datas_horas_vinculo.get()
+    assert data_hora.suspenso is False
     log = produto.homologacao.logs.last()
     assert log.justificativa == (
         '<p>Nome do Produto:</p>'
@@ -1050,6 +1053,10 @@ def test_alteracao_dados_produto_homologado(client_autenticado_vinculo_terceiriz
 
 def test_suspensao_parcial_produto_com_copia(client_autenticado_vinculo_codae_produto, hom_copia):
     original = hom_copia.get_original()
+    assert original.produto.vinculos.get(
+        edital__uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868').datas_horas_vinculo.count() == 1
+    assert original.produto.vinculos.get(
+        edital__uuid='131f4000-3e31-44f1-9ba5-e7df001a8426').datas_horas_vinculo.count() == 1
     data = {
         'funcionario_registro_funcional': '3462334',
         'funcionario_nome': 'GPCODAE',
@@ -1068,6 +1075,11 @@ def test_suspensao_parcial_produto_com_copia(client_autenticado_vinculo_codae_pr
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['uuid'] == str(original.uuid)
     assert HomologacaoProduto.objects.filter(uuid=hom_copia.uuid).exists() is False
+    original.refresh_from_db()
+    assert original.produto.vinculos.get(
+        edital__uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868').datas_horas_vinculo.count() == 2
+    assert original.produto.vinculos.get(
+        edital__uuid='131f4000-3e31-44f1-9ba5-e7df001a8426').datas_horas_vinculo.count() == 2
 
 
 def test_suspensao_total_produto_com_copia(client_autenticado_vinculo_codae_produto, hom_copia_pendente_homologacao):
@@ -1276,7 +1288,7 @@ def test_url_endpoint_homologacao_produto_ativar_datas_horas(
     produto_edital = hom_produto_com_editais_suspenso.produto.vinculos.get(
         edital__uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
     assert produto_edital.datas_horas_vinculo.exists() is True
-    data_hora_vinculo = produto_edital.datas_horas_vinculo.get()
+    data_hora_vinculo = produto_edital.datas_horas_vinculo.last()
     assert data_hora_vinculo.suspenso is False
 
 
@@ -1303,7 +1315,7 @@ def test_url_endpoint_homologacao_produto_suspender_datas_horas(
     produto_edital = hom_produto_com_editais_pendente_homologacao.produto.vinculos.get(
         edital__uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
     assert produto_edital.datas_horas_vinculo.exists() is True
-    data_hora_vinculo = produto_edital.datas_horas_vinculo.get()
+    data_hora_vinculo = produto_edital.datas_horas_vinculo.last()
     assert data_hora_vinculo.suspenso is True
 
     ProdutoEdital.objects.update(suspenso=True)
@@ -1318,3 +1330,121 @@ def test_url_endpoint_homologacao_produto_suspender_datas_horas(
     assert response.json() == {
         'detail': "Erro de transição de estado: Transition 'codae_suspende' isn't available from state "
                   "'CODAE_SUSPENDEU'."}
+
+
+def test_endpoint_codae_suspende_via_reclamacao_parcialmente(
+        client_autenticado_vinculo_codae_produto, hom_produto_com_editais_escola_ou_nutri_reclamou):
+    reclamacao = hom_produto_com_editais_escola_ou_nutri_reclamou.reclamacoes.get()
+    data = {
+        'funcionario_registro_funcional': None,
+        'funcionario_nome': 'GPCODAE',
+        'funcionario_cargo': '',
+        'nome_produto': hom_produto_com_editais_escola_ou_nutri_reclamou.produto.nome,
+        'marca_produto': hom_produto_com_editais_escola_ou_nutri_reclamou.produto.marca.nome,
+        'produto_tipo': 'Comum',
+        'editais_para_suspensao': [
+            '12288b47-9d27-4089-8c2e-48a6061d83ea'
+        ],
+        'justificativa': '<p>suspende parcialmente</p>'
+    }
+    assert (hom_produto_com_editais_escola_ou_nutri_reclamou.status ==
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU)
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/reclamacoes-produtos/{reclamacao.uuid}/{constants.CODAE_ACEITA}/',
+        content_type='application/json',
+        data=json.dumps(data))
+    assert response.status_code == status.HTTP_200_OK
+    produto_edital = hom_produto_com_editais_escola_ou_nutri_reclamou.produto.vinculos.get(
+        edital__uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
+    assert produto_edital.suspenso is True
+    assert produto_edital.datas_horas_vinculo.count() == 2
+    assert produto_edital.datas_horas_vinculo.last().suspenso is True
+
+
+def test_endpoint_codae_suspende_via_reclamacao_total(
+        client_autenticado_vinculo_codae_produto, hom_produto_com_editais_escola_ou_nutri_reclamou):
+    reclamacao = hom_produto_com_editais_escola_ou_nutri_reclamou.reclamacoes.get()
+    data = {
+        'funcionario_registro_funcional': None,
+        'funcionario_nome': 'GPCODAE',
+        'funcionario_cargo': '',
+        'nome_produto': hom_produto_com_editais_escola_ou_nutri_reclamou.produto.nome,
+        'marca_produto': hom_produto_com_editais_escola_ou_nutri_reclamou.produto.marca.nome,
+        'produto_tipo': 'Comum',
+        'editais_para_suspensao': [
+            '12288b47-9d27-4089-8c2e-48a6061d83ea',
+            'b30a2102-2ae0-404d-8a56-8e5ecd73f868',
+            '131f4000-3e31-44f1-9ba5-e7df001a8426'
+        ],
+        'justificativa': '<p>suspende total</p>'
+    }
+    assert (hom_produto_com_editais_escola_ou_nutri_reclamou.status ==
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU)
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/reclamacoes-produtos/{reclamacao.uuid}/{constants.CODAE_ACEITA}/',
+        content_type='application/json',
+        data=json.dumps(data))
+    assert response.status_code == status.HTTP_200_OK
+    hom_produto_com_editais_escola_ou_nutri_reclamou.refresh_from_db()
+    assert (hom_produto_com_editais_escola_ou_nutri_reclamou.status ==
+            HomologacaoProdutoWorkflow.CODAE_AUTORIZOU_RECLAMACAO)
+
+    produto_edital = hom_produto_com_editais_escola_ou_nutri_reclamou.produto.vinculos.get(
+        edital__uuid='12288b47-9d27-4089-8c2e-48a6061d83ea')
+    assert produto_edital.suspenso is True
+    assert produto_edital.datas_horas_vinculo.count() == 2
+    assert produto_edital.datas_horas_vinculo.last().suspenso is True
+
+    produto_edital = hom_produto_com_editais_escola_ou_nutri_reclamou.produto.vinculos.get(
+        edital__uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868')
+    assert produto_edital.suspenso is True
+    assert produto_edital.datas_horas_vinculo.count() == 2
+    assert produto_edital.datas_horas_vinculo.last().suspenso is True
+
+    produto_edital = hom_produto_com_editais_escola_ou_nutri_reclamou.produto.vinculos.get(
+        edital__uuid='131f4000-3e31-44f1-9ba5-e7df001a8426')
+    assert produto_edital.suspenso is True
+    assert produto_edital.datas_horas_vinculo.count() == 2
+    assert produto_edital.datas_horas_vinculo.last().suspenso is True
+
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/reclamacoes-produtos/{reclamacao.uuid}/{constants.CODAE_ACEITA}/',
+        content_type='application/json',
+        data=json.dumps(data))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'codae_autorizou_reclamacao' isn't available from state "
+                  "'CODAE_AUTORIZOU_RECLAMACAO'."}
+
+
+def test_relatorio_produtos_suspensos(client_autenticado_vinculo_codae_produto, hom_produto_com_editais_suspenso):
+    DataHoraVinculoProdutoEdital.objects.filter(
+        produto_edital__edital__numero='Edital de Pregão nº 41/sme/2017').update(suspenso=True)
+    ProdutoEdital.objects.filter(edital__numero='Edital de Pregão nº 41/sme/2017').update(suspenso=True)
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    response = client_autenticado_vinculo_codae_produto.get(
+        '/produtos/filtro-relatorio-produto-suspenso/'
+        '?nome_edital=Edital de Pregão nº 41/sme/2017'
+        '&status=CODAE_SUSPENDEU&status=CODAE_AUTORIZOU_RECLAMACAO&page=1&page_size=10'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 1
+
+    response = client_autenticado_vinculo_codae_produto.get(
+        '/produtos/filtro-relatorio-produto-suspenso/'
+        '?nome_edital=Edital de Pregão nº 41/sme/2017'
+        '&status=CODAE_SUSPENDEU&status=CODAE_AUTORIZOU_RECLAMACAO&page=1&page_size=10'
+        f'&data_suspensao_final={hoje.strftime("%d/%m/%Y")}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 1
+
+    response = client_autenticado_vinculo_codae_produto.get(
+        '/produtos/filtro-relatorio-produto-suspenso/'
+        '?nome_edital=Edital de Pregão nº 41/sme/2017'
+        '&status=CODAE_SUSPENDEU&status=CODAE_AUTORIZOU_RECLAMACAO&page=1&page_size=10'
+        f'&data_suspensao_final={ontem.strftime("%d/%m/%Y")}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['count'] == 0
