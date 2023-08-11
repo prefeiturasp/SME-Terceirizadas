@@ -215,6 +215,8 @@ class ValorMedicao(
                                           related_name='valores_medicao')
     tipo_alimentacao = models.ForeignKey('cardapio.TipoAlimentacao', blank=True,
                                          null=True, on_delete=models.DO_NOTHING)
+    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', blank=True,
+                                     null=True, on_delete=models.DO_NOTHING)
     habilitado_correcao = models.BooleanField(default=False)
 
     class Meta:
