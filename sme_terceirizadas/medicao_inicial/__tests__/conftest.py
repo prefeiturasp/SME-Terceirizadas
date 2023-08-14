@@ -60,6 +60,23 @@ def escola_emei():
 
 
 @pytest.fixture
+def escola_cei():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL TESTE')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='CEI DIRET')
+    return mommy.make('Escola', nome='CEI DIRET TESTE', lote=lote, diretoria_regional=diretoria_regional,
+                      tipo_gestao=tipo_gestao, tipo_unidade=tipo_unidade_escolar)
+
+
+@pytest.fixture
+def aluno():
+    return mommy.make('Aluno', nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01',
+                      uuid='2d20157a-4e52-4d25-a4c7-9c0e6b67ee18')
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial(escola, categoria_medicao):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
