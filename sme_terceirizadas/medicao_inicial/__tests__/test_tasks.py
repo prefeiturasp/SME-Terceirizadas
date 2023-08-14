@@ -1,13 +1,20 @@
 import datetime
 from unittest.mock import Mock, patch
 
+import pytest
 from dateutil.relativedelta import relativedelta
 from django.test import TestCase
 
-from sme_terceirizadas.medicao_inicial.models import SolicitacaoMedicaoInicial
+from sme_terceirizadas.escola.models import AlunoPeriodoParcial
+from sme_terceirizadas.medicao_inicial.models import Responsavel, SolicitacaoMedicaoInicial
 from sme_terceirizadas.medicao_inicial.tasks import (
+    buscar_solicitacao_mes_anterior,
+    copiar_alunos_periodo_parcial,
+    copiar_responsaveis,
     cria_solicitacao_medicao_inicial_mes_atual,
-    gera_pdf_relatorio_solicitacao_medicao_por_escola_async
+    criar_nova_solicitacao,
+    gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
+    solicitacao_medicao_atual_existe
 )
 
 
@@ -53,3 +60,59 @@ class GeraPDFRelatorioSolicitacaoMedicaoPorEscolaAsyncTest(TestCase):
 
         mock_relatorio.assert_called_with(mock_get.return_value)
         mock_atualiza.assert_called_with(mock_gera_objeto.return_value, 'nome_arquivo', 'arquivo_mock')
+
+
+@pytest.fixture
+def solicitacao_mes_atual(escola_cei):
+    data = datetime.date.today()
+    return SolicitacaoMedicaoInicial.objects.create(escola=escola_cei, ano=data.year, mes=f'{data.month:02d}')
+
+
+@pytest.mark.django_db
+def test_solicitacao_medicao_atual_existe(escola_cei, solicitacao_mes_atual):
+    data = datetime.date.today()
+
+    assert solicitacao_medicao_atual_existe(escola_cei, data) is True
+    assert solicitacao_medicao_atual_existe(escola_cei, data + relativedelta(months=-1)) is False
+
+
+@pytest.mark.django_db
+def test_buscar_solicitacao_mes_anterior(escola_cei):
+    data = datetime.date.today() + relativedelta(months=-1)
+    SolicitacaoMedicaoInicial.objects.create(escola=escola_cei, ano=data.year, mes=f'{data.month:02d}')
+
+    assert buscar_solicitacao_mes_anterior(escola_cei, data) is not None
+
+
+@pytest.mark.django_db
+def test_criar_nova_solicitacao(escola_cei, solicitacao_mes_atual):
+    data_hoje = datetime.date.today()
+
+    solicitacao = criar_nova_solicitacao(solicitacao_mes_atual, escola_cei, data_hoje + relativedelta(months=1))
+    assert solicitacao.escola == escola_cei
+
+
+@pytest.mark.django_db
+def test_copiar_responsaveis(escola_cei):
+    solicitacao_origem = SolicitacaoMedicaoInicial.objects.create(escola=escola_cei, ano=2020, mes='01')
+    Responsavel.objects.create(solicitacao_medicao_inicial=solicitacao_origem, nome='Responsavel Teste', rf='12345')
+
+    solicitacao_destino = SolicitacaoMedicaoInicial.objects.create(escola=escola_cei, ano=2020, mes='02')
+    copiar_responsaveis(solicitacao_origem, solicitacao_destino)
+
+    assert solicitacao_destino.responsaveis.count() == 1
+    assert solicitacao_destino.responsaveis.first().nome == 'Responsavel Teste'
+
+
+@pytest.mark.django_db
+def test_copiar_alunos_periodo_parcial(escola_cei, aluno):
+
+    solicitacao_origem = SolicitacaoMedicaoInicial.objects.create(escola=escola_cei, ano=2020, mes='01')
+
+    AlunoPeriodoParcial.objects.create(solicitacao_medicao_inicial=solicitacao_origem, aluno=aluno, escola=escola_cei)
+
+    solicitacao_destino = SolicitacaoMedicaoInicial.objects.create(escola=escola_cei, ano=2020, mes='02')
+    copiar_alunos_periodo_parcial(solicitacao_origem, solicitacao_destino)
+
+    assert solicitacao_destino.alunos_periodo_parcial.count() == 1
+    assert solicitacao_destino.alunos_periodo_parcial.first().aluno == aluno
