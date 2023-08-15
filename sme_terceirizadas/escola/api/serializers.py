@@ -164,7 +164,7 @@ class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DiretoriaRegional
-        fields = ('uuid', 'nome', 'codigo_eol', 'iniciais')
+        fields = ('uuid', 'nome', 'codigo_eol', 'iniciais', 'acesso_modulo_medicao_inicial')
 
 
 class DiretoriaRegionalLookUpSerializer(serializers.ModelSerializer):
@@ -445,6 +445,8 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                             'tipos_contagem': self.get_tipos_contagem(obj),
                             'endereco': self.get_endereco(obj),
                             'contato': self.get_contato(obj)}
+        if hasattr(obj.instituicao, 'acesso_modulo_medicao_inicial'):
+            instituicao_dict['acesso_modulo_medicao_inicial'] = obj.instituicao.acesso_modulo_medicao_inicial
         if isinstance(obj.instituicao, Escola):
             instituicao_dict['eh_cei'] = self.get_eh_cei(obj)
             instituicao_dict['eh_cemei'] = self.get_eh_cemei(obj)
