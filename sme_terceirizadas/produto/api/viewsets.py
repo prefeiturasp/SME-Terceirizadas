@@ -579,7 +579,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         return raw_sql, filtros
 
     def checa_se_remove_eh_copia(self, filtro_aplicado, raw_sql):
-        if filtro_aplicado not in ['codae_pendente_homologacao', 'codae_questionado']:
+        if filtro_aplicado not in ['codae_pendente_homologacao', 'codae_questionado', 'codae_pediu_analise_sensorial']:
             raw_sql += f'AND %(homologacao_produto)s.eh_copia = false '
         return raw_sql
 
@@ -692,7 +692,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         return raw_sql, data
 
     def checa_se_remove_eh_copia_queryset(self, filtro_aplicado, query_set):
-        if filtro_aplicado not in ['codae_pendente_homologacao', 'codae_questionado']:
+        if filtro_aplicado not in ['codae_pendente_homologacao', 'codae_questionado', 'codae_pediu_analise_sensorial']:
             query_set = query_set.filter(eh_copia=False)
         return query_set
 
