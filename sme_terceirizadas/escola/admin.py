@@ -55,10 +55,11 @@ class EscolaAdmin(admin.ModelAdmin):
         'codigo_codae',
         'nome',
         'diretoria_regional__nome',
-        'tipo_unidade__iniciais',
+        'tipo_unidade__iniciais'
     )
     list_filter = (
         'enviar_email_por_produto',
+        'acesso_modulo_medicao_inicial',
         'diretoria_regional',
         'tipo_gestao',
         'tipo_unidade',
@@ -104,6 +105,7 @@ class DiretoriaRegionalAdmin(admin.ModelAdmin):
     list_display = ('iniciais', '__str__')
     list_display_links = ('__str__',)
     search_fields = ('codigo_eol', 'nome')
+    list_filter = ('acesso_modulo_medicao_inicial',)
 
 
 @admin.register(Aluno)
