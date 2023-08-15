@@ -422,3 +422,10 @@ class EhCopia(models.Model):
 
     class Meta:
         abstract = True
+
+
+class AcessoModuloMedicaoInicial(models.Model):
+    acesso_modulo_medicao_inicial = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
