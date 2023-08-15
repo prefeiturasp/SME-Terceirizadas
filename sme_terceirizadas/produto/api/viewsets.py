@@ -578,6 +578,11 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return raw_sql, filtros
 
+    def checa_se_remove_eh_copia(self, filtro_aplicado, raw_sql):
+        if filtro_aplicado not in ['codae_pendente_homologacao', 'codae_questionado']:
+            raw_sql += f'AND %(homologacao_produto)s.eh_copia = false '
+        return raw_sql
+
     def build_raw_sql_produtos_por_status(self, filtro_aplicado, edital, perfil_nome, filtros, tipo_usuario,
                                           escola_ou_dre_id):
         data = {'logs': LogSolicitacoesUsuario._meta.db_table,
@@ -682,9 +687,14 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if filtro_aplicado == 'codae_suspendeu':
             filtros['produto__vinculos__suspenso'] = True
         raw_sql = self.trata_edital(raw_sql, edital)
-        raw_sql += f'AND %(homologacao_produto)s.eh_copia = false '
+        raw_sql = self.checa_se_remove_eh_copia(filtro_aplicado, raw_sql)
         raw_sql += 'ORDER BY log_criado_em DESC'
         return raw_sql, data
+
+    def checa_se_remove_eh_copia_queryset(self, filtro_aplicado, query_set):
+        if filtro_aplicado not in ['codae_pendente_homologacao', 'codae_questionado']:
+            query_set = query_set.filter(eh_copia=False)
+        return query_set
 
     def get_queryset_solicitacoes_homologacao_por_status(self, request_data, perfil_nome, tipo_usuario,
                                                          escola_ou_dre_id, filtro_aplicado):
@@ -711,7 +721,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             filtros_params = cria_filtro_homologacao_produto_por_parametros(request_data)
             query_set_nao_homologados = query_set.filter(status='CODAE_NAO_HOMOLOGADO').filter(
                 **filtros_params).distinct()
-            query_set = query_set.filter(**filtros).filter(**filtros_params).filter(eh_copia=False).distinct()
+            self.checa_se_remove_eh_copia_queryset(filtro_aplicado, query_set)
+            query_set = query_set.filter(**filtros).filter(**filtros_params).distinct()
             if request_data.get('data_homologacao'):
                 query_set_nao_homologados = [
                     hom_produto for hom_produto in query_set_nao_homologados
