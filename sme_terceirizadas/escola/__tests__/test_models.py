@@ -12,7 +12,11 @@ from ..models import (
     DiaCalendario,
     DiretoriaRegional,
     FaixaEtaria,
+    LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+    LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
+    LogAtualizaDadosAluno,
+    LogRotinaDiariaAlunos,
     PlanilhaAtualizacaoTipoGestaoEscola,
     PlanilhaEscolaDeParaCodigoEolCodigoCoade,
     TipoGestao,
@@ -253,6 +257,10 @@ def test_criar_alunos_matriculados_periodo_escola_regular(escola, periodo_escola
         escola=escola, periodo_escolar=periodo_escolar, quantidade_alunos=32, tipo_turma='REGULAR')
     assert AlunosMatriculadosPeriodoEscola.objects.count() == 1
     assert AlunosMatriculadosPeriodoEscola.objects.first().tipo_turma == 'REGULAR'
+    AlunosMatriculadosPeriodoEscola.criar(
+        escola=escola, periodo_escolar=periodo_escolar, quantidade_alunos=40, tipo_turma='REGULAR')
+    obj = AlunosMatriculadosPeriodoEscola.objects.all()[0]
+    assert f'tem {obj.quantidade_alunos} alunos' in obj.__str__()
 
 
 def test_criar_log_alunos_matriculados_periodo_escola_regular(escola, periodo_escolar):
@@ -262,6 +270,8 @@ def test_criar_log_alunos_matriculados_periodo_escola_regular(escola, periodo_es
         escola=escola, periodo_escolar=periodo_escolar, quantidade_alunos=32, data=hoje, tipo_turma='REGULAR')
     assert LogAlunosMatriculadosPeriodoEscola.objects.count() == 1
     assert LogAlunosMatriculadosPeriodoEscola.objects.first().tipo_turma == 'REGULAR'
+    log = LogAlunosMatriculadosPeriodoEscola.objects.all()[0]
+    assert f'tem {log.quantidade_alunos} alunos' in log.__str__()
 
 
 def test_dia_calendario_e_dia_letivo(dia_calendario_letivo):
@@ -271,6 +281,7 @@ def test_dia_calendario_e_dia_letivo(dia_calendario_letivo):
     assert model.data is not None
     assert model.escola is not None
     assert model.dia_letivo
+    assert 'é dia letivo' in dia_calendario_letivo.__str__()
 
 
 def test_dia_calendario_nao_e_dia_letivo(dia_calendario_nao_letivo):
@@ -280,3 +291,48 @@ def test_dia_calendario_nao_e_dia_letivo(dia_calendario_nao_letivo):
     assert model.data is not None
     assert model.escola is not None
     assert not model.dia_letivo
+    assert 'não é dia letivo' in dia_calendario_nao_letivo.__str__()
+
+
+def test_log_alunos_matriculados_faixa_etaria_dia(log_alunos_matriculados_faixa_etaria_dia):
+    model = log_alunos_matriculados_faixa_etaria_dia
+    quantidade = model.quantidade
+    faixa_etaria = model.faixa_etaria
+    assert isinstance(model, LogAlunosMatriculadosFaixaEtariaDia)
+    assert model.criado_em is not None
+    assert model.data is not None
+    assert f'{quantidade} aluno(s)' in model.__str__()
+    assert f'faixa etária {faixa_etaria}' in model.__str__()
+
+
+def test_log_atualiza_dados_aluno(log_atualiza_dados_aluno):
+    model = log_atualiza_dados_aluno
+    codigo_eol = model.codigo_eol
+    criado_em = model.criado_em
+    assert isinstance(model, LogAtualizaDadosAluno)
+    assert model.criado_em is not None
+    assert model.status == 200
+    assert model.__str__() == f'Requisicao para Escola: "#{codigo_eol}" na data de: "{criado_em}"'
+
+
+def test_log_rotina_diaria_alunos(log_rotina_diaria_alunos):
+    model = log_rotina_diaria_alunos
+    criado_em = model.criado_em.strftime('%Y-%m-%d %H:%M:%S')
+    quant_antes = model.quantidade_alunos_antes
+    quant_atual = model.quantidade_alunos_atual
+    string_model = (f'Criado em {criado_em} - Quant. de alunos antes: {quant_antes}. '
+                    f'Quant. de alunos atual: {quant_atual}')
+    assert isinstance(model, LogRotinaDiariaAlunos)
+    assert model.criado_em is not None
+    assert model.__str__() == string_model
+
+
+def test_log_alteracao_quantidade_alunos_por_escola_periodo(log_alteracao_quantidade_alunos_por_escola_periodo):
+    model = log_alteracao_quantidade_alunos_por_escola_periodo
+    quantidade_anterior = model.quantidade_alunos_de
+    quantidade_atual = model.quantidade_alunos_para
+    escola = model.escola.nome
+    string_model = f'Alteração de: {quantidade_anterior} alunos, para: {quantidade_atual} alunos na escola: {escola}'
+    assert isinstance(model, LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar)
+    assert model.criado_em is not None
+    assert model.__str__() == string_model

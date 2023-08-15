@@ -12,6 +12,7 @@ from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
     HTTP_406_NOT_ACCEPTABLE
 )
@@ -44,6 +45,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     NotificacaoOcorrenciasCreateSerializer,
     NotificacaoOcorrenciasUpdateRascunhoSerializer,
     NotificacaoOcorrenciasUpdateSerializer,
+    PrevisoesContratuaisDaNotificacaoUpdateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
@@ -943,7 +945,7 @@ class ConferenciaindividualModelViewSet(viewsets.ModelViewSet):
 
 class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = NotificacaoOcorrenciasGuia.objects.all()
+    queryset = NotificacaoOcorrenciasGuia.objects.all().order_by('-criado_em')
     serializer_class = NotificacaoOcorrenciasGuiaSerializer
     permission_classes = (PermissaoParaVisualizarGuiasComOcorrencias,)
     permission_action_classes = {
@@ -991,7 +993,7 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
 
     def atualiza_notificacao(self, instance, request):
         serializer = NotificacaoOcorrenciasUpdateSerializer()
-        validated_data = serializer.validate(request.data, instance)
+        validated_data = serializer.validate(request.data)
         res = serializer.update(instance, validated_data)
         return res
 
@@ -1021,3 +1023,50 @@ class NotificacaoOcorrenciaGuiaModelViewSet(ViewSetActionPermissionMixin, viewse
                                           Status da Notificação não é RASCUNHO ou NOTIFICACAO_CRIADA"""),
                             status=HTTP_400_BAD_REQUEST)
         return Response(NotificacaoOcorrenciasGuiaSerializer(res).data)
+
+    @action(detail=True, methods=['PATCH'], url_path='solicitar-alteracao')
+    def solicitar_alteracao(self, request, uuid):
+        usuario = request.user
+        instance = self.get_object()
+
+        if instance.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_ENVIADA_FISCAL:
+            previsoes = instance.previsoes_contratuais.all()
+            serializer = PrevisoesContratuaisDaNotificacaoUpdateSerializer(
+                previsoes, data=request.data['previsoes'], many=True)
+
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                instance.solicita_alteracao(user=usuario)
+                return Response(NotificacaoOcorrenciasGuiaSerializer(instance).data)
+
+        return Response(
+            {'detail': 'Erro de transição de estado: Status da Notificação não é NOTIFICACAO_ENVIADA_FISCAL'},
+            status=HTTP_400_BAD_REQUEST
+        )
+
+    @action(detail=True, methods=['PATCH'], url_path='assinar')
+    def assinar(self, request, uuid):
+        usuario = request.user
+        instance = self.get_object()
+
+        password = request.data.pop('password', None)
+        if not usuario.verificar_autenticidade(password):
+            return Response(
+                dict(detail=f'Assinatura da notificação não foi validada. Verifique sua senha.'),
+                status=HTTP_401_UNAUTHORIZED
+            )
+
+        if instance.status == NotificacaoOcorrenciaWorkflow.NOTIFICACAO_ENVIADA_FISCAL:
+            previsoes = instance.previsoes_contratuais.all()
+            serializer = PrevisoesContratuaisDaNotificacaoUpdateSerializer(
+                previsoes, data=request.data['previsoes'], many=True)
+
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                instance.assina_fiscal(user=usuario)
+                return Response(NotificacaoOcorrenciasGuiaSerializer(instance).data)
+
+        return Response(
+            {'detail': 'Erro de transição de estado: Status da Notificação não é NOTIFICACAO_ENVIADA_FISCAL'},
+            status=HTTP_400_BAD_REQUEST
+        )

@@ -7,6 +7,7 @@ from sme_terceirizadas.logistica.models import (
     Embalagem,
     Guia,
     NotificacaoOcorrenciasGuia,
+    PrevisaoContratualNotificacao,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
     TipoEmbalagem
@@ -385,6 +386,13 @@ class GuiaDaRemessaCompletaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class PrevisaoContratualSimplesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PrevisaoContratualNotificacao
+        exclude = ('uuid', 'id', 'alterado_em', 'criado_em', 'notificacao')
+
+
 class NotificacaoOcorrenciasGuiaSerializer(serializers.ModelSerializer):
     guias_notificadas = GuiaLookUpSerializer(many=True)
     empresa = TerceirizadaSimplesSerializer()
@@ -409,6 +417,7 @@ class NotificacaoOcorrenciasGuiaSimplesSerializer(serializers.ModelSerializer):
 class NotificacaoOcorrenciasGuiaDetalheSerializer(serializers.ModelSerializer):
     guias_notificadas = GuiaDaRemessaComAlimentoSerializer(many=True)
     empresa = TerceirizadaSimplesSerializer()
+    previsoes_contratuais = PrevisaoContratualSimplesSerializer(many=True)
 
     class Meta:
         model = NotificacaoOcorrenciasGuia

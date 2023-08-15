@@ -35,6 +35,7 @@ from ..dados_comuns.behaviors import (
     TemChaveExterna,
     TemCodigoEOL,
     TemData,
+    TemFaixaEtariaEQuantidade,
     TemObservacao,
     TemVinculos
 )
@@ -1302,3 +1303,48 @@ class LogAtualizaDadosAluno(models.Model):
         retorno = f'Requisicao para Escola: "#{str(self.codigo_eol)}"'
         retorno += f' na data de: "{self.criado_em}"'
         return retorno
+
+
+class LogAlunosMatriculadosFaixaEtariaDia(TemChaveExterna, CriadoEm, TemData, TemFaixaEtariaEQuantidade):
+    """Histórico da quantidade de Alunos por faixa etária, dia, período, escola."""
+
+    escola = models.ForeignKey(
+        Escola, related_name='logs_alunos_matriculados_por_faixa_etaria', on_delete=models.DO_NOTHING
+    )
+    periodo_escolar = models.ForeignKey(
+        PeriodoEscolar, related_name='logs_alunos_matriculados_por_faixa_etaria', on_delete=models.DO_NOTHING
+    )
+
+    def __str__(self):
+        periodo_nome = self.periodo_escolar.nome
+
+        return f"""Escola {self.escola.nome} no periodo da {periodo_nome}
+        tem {self.quantidade} aluno(s) no dia {self.data} faixa etária {self.faixa_etaria}"""
+
+    class Meta:
+        verbose_name = 'Log quantidade de alunos por faixa etária, dia e período'
+        verbose_name_plural = 'Logs quantidades de alunos por faixas etárias, dias e períodos'
+        ordering = ('criado_em',)
+
+
+class AlunoPeriodoParcial(TemChaveExterna, CriadoEm):
+    """Relaciona alunos em período parcil com a unidade educacional e a solicitação de medição inicial."""
+
+    escola = models.ForeignKey(
+        Escola, related_name='alunos_periodo_parcial', on_delete=models.PROTECT
+    )
+    aluno = models.ForeignKey(
+        Aluno, related_name='alunos_periodo_parcial', on_delete=models.PROTECT
+    )
+    solicitacao_medicao_inicial = models.ForeignKey(
+        'medicao_inicial.SolicitacaoMedicaoInicial', related_name='alunos_periodo_parcial', on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return (f'{self.aluno.nome} para SMI {self.solicitacao_medicao_inicial.mes}/'
+                f'{self.solicitacao_medicao_inicial.ano} da UE {self.escola.nome}')
+
+    class Meta:
+        verbose_name = 'Aluno no período parcial'
+        verbose_name_plural = 'Alunos no período parcial'
+        ordering = ('criado_em',)
