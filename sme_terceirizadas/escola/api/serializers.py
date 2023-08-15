@@ -12,6 +12,7 @@ from ...terceirizada.api.serializers.serializers import ContratoSimplesSerialize
 from ...terceirizada.models import Terceirizada
 from ..models import (
     Aluno,
+    AlunoPeriodoParcial,
     AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
@@ -20,6 +21,7 @@ from ..models import (
     EscolaPeriodoEscolar,
     FaixaEtaria,
     FaixaIdadeEscolar,
+    LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
     Lote,
     PeriodoEscolar,
@@ -63,6 +65,17 @@ class PeriodoEscolarSerializer(serializers.ModelSerializer):
     class Meta:
         model = PeriodoEscolar
         exclude = ('id',)
+
+
+class AlunoPeriodoParcialSimplesSerializer(serializers.ModelSerializer):
+    codigo_eol = serializers.CharField(source='aluno.codigo_eol')
+    nome = serializers.CharField(source='aluno.nome')
+    uuid = serializers.UUIDField(source='aluno.uuid')
+    escola = serializers.UUIDField(source='escola.uuid')
+
+    class Meta:
+        model = AlunoPeriodoParcial
+        fields = ('uuid', 'nome', 'codigo_eol', 'escola')
 
 
 class PeriodoEscolarSimplesSerializer(serializers.ModelSerializer):
@@ -646,3 +659,25 @@ class AlunosMatriculadosPeriodoEscolaCompletoSerializer(serializers.ModelSeriali
     class Meta:
         model = AlunosMatriculadosPeriodoEscola
         fields = ('periodo_escolar', 'escola', 'alunos_por_faixa_etaria', 'quantidade_alunos', 'tipo_turma')
+
+
+class LogAlunosMatriculadosFaixaEtariaDiaSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='nome',
+        required=False,
+        queryset=Escola.objects.all()
+    )
+    periodo_escolar = serializers.CharField(
+        source='periodo_escolar.nome',
+        required=False
+    )
+    dia = serializers.SerializerMethodField()
+    faixa_etaria = FaixaEtariaSerializer()
+
+    def get_dia(self, obj):
+        day = str(obj.data.day)
+        return day if len(day) == 2 else '0' + day
+
+    class Meta:
+        model = LogAlunosMatriculadosFaixaEtariaDia
+        exclude = ('id', 'uuid', 'criado_em')

@@ -464,8 +464,10 @@ class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
-                                                          ADMINISTRADOR_CODAE_DILOG_JURIDICO]
+                    usuario.vinculo_atual.perfil.nome in [
+                        COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA,
+                        ADMINISTRADOR_CODAE_DILOG_JURIDICO, DILOG_QUALIDADE
+                    ]
                 ) or
                 usuario.eh_distribuidor or
                 (
@@ -810,7 +812,9 @@ class PermissaoParaVisualizarGuiasComOcorrencias(BasePermission):
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
                     usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_CODAE_DILOG_JURIDICO,
-                                                          COORDENADOR_CODAE_DILOG_LOGISTICA]
+                                                          COORDENADOR_CODAE_DILOG_LOGISTICA,
+                                                          COORDENADOR_LOGISTICA,
+                                                          DILOG_QUALIDADE]
                 )
             )
         )

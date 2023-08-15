@@ -405,6 +405,8 @@ class ProdutoEditalCreateSerializer(serializers.Serializer):
                                                   outras_informacoes, homologacao_produto, outro_tipo_produto)
 
             resultado = ProdutoEdital.objects.bulk_create(lista_produtos_editais)
+            for produto_edital in lista_produtos_editais:
+                produto_edital.criar_data_hora_vinculo()
             return resultado
         except Exception as e:
             raise serializers.ValidationError(f'Erro ao criar Produto Proviniente do Edital.: {str(e)}')

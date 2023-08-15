@@ -234,6 +234,8 @@ class PrevisaoContratualNotificacao(ModeloBase):
     motivo_ocorrencia = models.CharField(
         choices=ConferenciaIndividualPorAlimento.OCORRENCIA_CHOICES, max_length=40, blank=True)
     previsao_contratual = models.TextField('Previsão Contratual', max_length=500, blank=True)
+    justificativa_alteracao = models.TextField('Justificativa da Alteração', max_length=500, blank=True)
+    aprovado = models.BooleanField('Aprovado', default=False)
 
     def __str__(self):
         return f'Previsao: {self.motivo_ocorrencia}'

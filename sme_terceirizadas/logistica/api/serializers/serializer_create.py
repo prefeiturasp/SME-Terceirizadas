@@ -291,13 +291,40 @@ class InsucessoDeEntregaGuiaCreateSerializer(serializers.ModelSerializer):
 
 
 class PrevisoesContratuaisDaNotificacaoCreateSerializer(serializers.ModelSerializer):
-    previsao_contratual = serializers.CharField(required=False, allow_blank=True)
-    tipo_ocorrencia = serializers.ChoiceField(
+    motivo_ocorrencia = serializers.ChoiceField(
         choices=ConferenciaIndividualPorAlimento.OCORRENCIA_CHOICES, required=False, allow_blank=True)
+    previsao_contratual = serializers.CharField(required=False, allow_blank=True)
+    justificativa_alteracao = serializers.CharField(required=False, allow_blank=True)
+    aprovado = serializers.BooleanField(required=False)
 
     class Meta:
         model = PrevisaoContratualNotificacao
-        exclude = ('id', 'notificacao')
+        exclude = ('id', 'uuid', 'criado_em', 'alterado_em', 'notificacao')
+
+
+class _PrevisoesContratuaisDaNotificacaoUpdateListSerializer(serializers.ListSerializer):
+    def update(self, instance, validated_data):
+        instance_data_mapping = []
+        for previsao in instance:
+            for data in validated_data:
+                if previsao.motivo_ocorrencia == data['motivo_ocorrencia']:
+                    instance_data_mapping.append((previsao, data))
+
+        for previsao, data in instance_data_mapping:
+            previsao.justificativa_alteracao = data['justificativa_alteracao']
+            previsao.aprovado = data['aprovado']
+            previsao.save()
+
+        return instance
+
+
+class PrevisoesContratuaisDaNotificacaoUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PrevisaoContratualNotificacao
+        fields = ('motivo_ocorrencia', 'justificativa_alteracao', 'aprovado')
+        lookup_field = 'motivo_ocorrencia'
+        list_serializer_class = _PrevisoesContratuaisDaNotificacaoUpdateListSerializer
 
 
 class NotificacaoOcorrenciasCreateSerializer(serializers.ModelSerializer):
@@ -398,20 +425,15 @@ class NotificacaoOcorrenciasUpdateSerializer(serializers.ModelSerializer):
     processo_sei = serializers.CharField(required=False)
     previsoes = PrevisoesContratuaisDaNotificacaoCreateSerializer(many=True, required=False)
 
-    def cria_previsoes(self, previsoes, notificacao):
-        for previsao in previsoes:
-            PrevisaoContratualNotificacao.objects.create(
-                notificacao=notificacao,
-                **previsao
-            )
-
-    def validate(self, attrs, instance):
+    def validate(self, attrs):
         previsoes = attrs.get('previsoes', None)
         processo_sei = attrs.get('processo_sei', None)
+
         if not previsoes:
             raise serializers.ValidationError(
                 {'previsoes': ['Este campo é obrigatório.']}
             )
+
         if not processo_sei:
             raise serializers.ValidationError(
                 {'processo_sei': ['Este campo é obrigatório.']}
@@ -420,11 +442,16 @@ class NotificacaoOcorrenciasUpdateSerializer(serializers.ModelSerializer):
         return attrs
 
     def update(self, instance, validated_data):
-        previsoes = validated_data.pop('previsoes', [])
+        dados_previsoes = validated_data.pop('previsoes', [])
 
         instance.previsoes_contratuais.all().delete()
 
-        self.cria_previsoes(previsoes, instance)
+        serializer = PrevisoesContratuaisDaNotificacaoCreateSerializer(data=dados_previsoes, many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        instance.previsoes_contratuais.add(*serializer.instance)
+
         instance.processo_sei = validated_data.pop('processo_sei', None)
         instance.save()
 

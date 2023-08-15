@@ -85,20 +85,35 @@ def produtos_edital_41(escola):
                                 produto=produto_2,
                                 rastro_terceirizada=escola.lote.terceirizada,
                                 status=HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO)
-    mommy.make('LogSolicitacoesUsuario',
-               uuid_original=homologacao_p1.uuid,
-               status_evento=22,  # CODAE_HOMOLOGADO
-               solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
-    mommy.make('LogSolicitacoesUsuario',
-               uuid_original=homologacao_p2.uuid,
-               status_evento=22,  # CODAE_HOMOLOGADO
-               solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
-    mommy.make('ProdutoEdital', produto=produto_1, edital=edital, tipo_produto='Comum',
-               uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
+    log = mommy.make('LogSolicitacoesUsuario',
+                     uuid_original=homologacao_p1.uuid,
+                     criado_em=datetime.date(2023, 1, 1),
+                     status_evento=22,  # CODAE_HOMOLOGADO
+                     solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
+    log.criado_em = datetime.date(2023, 1, 1)
+    log.save()
+    log_2 = mommy.make('LogSolicitacoesUsuario',
+                       uuid_original=homologacao_p2.uuid,
+                       criado_em=datetime.date(2023, 2, 1),
+                       status_evento=22,  # CODAE_HOMOLOGADO
+                       solicitacao_tipo=10)  # HOMOLOGACAO_PRODUTO
+    log_2.criado_em = datetime.date(2023, 2, 1)
+    log_2.save()
+    pe_1 = mommy.make('ProdutoEdital', produto=produto_1, edital=edital, tipo_produto='Comum',
+                      uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
     mommy.make('ProdutoEdital', produto=produto_1, edital=edital_3, tipo_produto='Comum',
                uuid='e42e3b97-6853-4327-841d-34292c33963c')
-    mommy.make('ProdutoEdital', produto=produto_2, edital=edital, tipo_produto='Comum',
-               uuid='38cdf4a8-6621-4248-8f5c-378d1bdbfb71')
+    pe_2 = mommy.make('ProdutoEdital', produto=produto_2, edital=edital, tipo_produto='Comum',
+                      uuid='38cdf4a8-6621-4248-8f5c-378d1bdbfb71')
+    dh_1 = mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe_1, suspenso=True)
+    dh_1.criado_em = datetime.date(2023, 1, 1)
+    dh_1.save()
+    dh_2 = mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe_2)
+    dh_2.criado_em = datetime.date(2023, 2, 1)
+    dh_2.save()
+    dh_3 = mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe_1)
+    dh_3.criado_em = datetime.date(2023, 3, 1)
+    dh_3.save()
 
 
 @pytest.fixture
@@ -244,12 +259,16 @@ def produto_com_editais(produto):
                           uuid='b30a2102-2ae0-404d-8a56-8e5ecd73f868')
     edital_3 = mommy.make('Edital', numero='Edital de Pregão nº 78/sme/2022',
                           uuid='131f4000-3e31-44f1-9ba5-e7df001a8426')
-    mommy.make('ProdutoEdital', produto=produto, edital=edital, tipo_produto='Comum',
-               uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
-    mommy.make('ProdutoEdital', produto=produto, edital=edital_2, tipo_produto='Comum',
-               uuid='e42e3b97-6853-4327-841d-34292c33963c')
-    mommy.make('ProdutoEdital', produto=produto, edital=edital_3, tipo_produto='Comum',
-               uuid='3b4f59eb-a686-49e9-beab-3514a93e3184')
+    pe1 = mommy.make('ProdutoEdital', produto=produto, edital=edital, tipo_produto='Comum',
+                     uuid='0f81a49b-0836-42d5-af9e-12cbd7ca76a8')
+    pe2 = mommy.make('ProdutoEdital', produto=produto, edital=edital_2, tipo_produto='Comum',
+                     uuid='e42e3b97-6853-4327-841d-34292c33963c')
+    pe3 = mommy.make('ProdutoEdital', produto=produto, edital=edital_3, tipo_produto='Comum',
+                     uuid='3b4f59eb-a686-49e9-beab-3514a93e3184')
+    mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe1)
+    mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe2)
+    mommy.make('DataHoraVinculoProdutoEdital', produto_edital=pe3)
+
     return produto
 
 
@@ -270,9 +289,32 @@ def hom_produto_com_editais(escola, template_homologacao_produto, user, produto_
                status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
                solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO)
     mommy.make('ReclamacaoDeProduto',
+               uuid='dd06d200-e2f9-4be7-a304-82831ce93ee1',
+               criado_por=user,
                homologacao_produto=homologacao_produto,
                escola=escola)
     return homologacao_produto
+
+
+@pytest.fixture
+def hom_produto_com_editais_suspenso(hom_produto_com_editais):
+    hom_produto_com_editais.status = HomologacaoProdutoWorkflow.CODAE_SUSPENDEU
+    hom_produto_com_editais.save()
+    return hom_produto_com_editais
+
+
+@pytest.fixture
+def hom_produto_com_editais_pendente_homologacao(hom_produto_com_editais):
+    hom_produto_com_editais.status = HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+    hom_produto_com_editais.save()
+    return hom_produto_com_editais
+
+
+@pytest.fixture
+def hom_produto_com_editais_escola_ou_nutri_reclamou(hom_produto_com_editais):
+    hom_produto_com_editais.status = HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+    hom_produto_com_editais.save()
+    return hom_produto_com_editais
 
 
 @pytest.fixture

@@ -17,6 +17,7 @@ from .models import (
     EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+    LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
     LogAtualizaDadosAluno,
     LogRotinaDiariaAlunos,
@@ -215,6 +216,13 @@ class LogAlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'criado_em', 'tipo_turma')
     search_fields = ('escola__nome', 'periodo_escolar__nome')
     list_filter = (('criado_em', DateRangeFilter), 'tipo_turma')
+
+
+@admin.register(LogAlunosMatriculadosFaixaEtariaDia)
+class LogAlunosMatriculadosFaixaEtariaDiaAdmin(admin.ModelAdmin):
+    list_display = ('escola', 'periodo_escolar', 'faixa_etaria', 'quantidade', 'data', 'criado_em')
+    search_fields = ('escola__nome', 'periodo_escolar__nome')
+    list_filter = (('data', DateRangeFilter),)
 
 
 @admin.register(DiaCalendario)

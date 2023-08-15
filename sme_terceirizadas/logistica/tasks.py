@@ -2,9 +2,9 @@ import datetime
 import logging
 
 from celery import shared_task
-from config import celery
 from django.template.loader import render_to_string
 
+from config import celery  # noqa: I001
 from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow
 from sme_terceirizadas.dados_comuns.models import Notificacao
 from sme_terceirizadas.dados_comuns.tasks import envia_email_em_massa_task
@@ -19,7 +19,6 @@ from sme_terceirizadas.logistica.api.helpers import (
     retorna_dados_normalizados_excel_visao_distribuidor
 )
 from sme_terceirizadas.logistica.models.guia import Guia
-from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.relatorios.relatorios import relatorio_guia_de_remessa
 
 from .api.services.exporta_para_excel import RequisicoesExcelService
@@ -75,19 +74,9 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
                 data_inicial__isnull=False,
                 data_final__isnull=True
             )
-            email_escola = [guia.escola.contato.email] if guia.escola.contato else []
-
-            qs_codae = Usuario.objects.filter(
-                vinculos__perfil__nome__in=(
-                    'COORDENADOR_CODAE_DILOG_LOGISTICA',
-                ),
-                vinculos__ativo=True,
-                vinculos__data_inicial__isnull=False,
-                vinculos__data_final__isnull=True,
-            )
-
-            partes_interessadas = email_escola + [usuario.email for usuario in qs_codae]
+            partes_interessadas = [guia.escola.contato.email] if guia.escola.contato else []
             users = [vinculo.usuario for vinculo in vinculos]
+
         else:
             partes_interessadas = []
             users = []
