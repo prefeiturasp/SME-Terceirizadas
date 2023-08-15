@@ -23,6 +23,7 @@ from ..cardapio.models import (
     InversaoCardapio
 )
 from ..dados_comuns.behaviors import (
+    AcessoModuloMedicaoInicial,
     ArquivoCargaBase,
     Ativavel,
     CriadoEm,
@@ -75,7 +76,8 @@ redis_conn = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, ch
 
 
 class DiretoriaRegional(
-    ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos
+    ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos,
+    AcessoModuloMedicaoInicial
 ):
 
     @property
@@ -344,7 +346,8 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
         return self.nome
 
 
-class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
+class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos,
+             AcessoModuloMedicaoInicial):
     nome = models.CharField('Nome', max_length=160, blank=True)
     codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
     codigo_codae = models.CharField('Código CODAE', max_length=10, blank=True, null=True, default=None)  # noqa DJ01
