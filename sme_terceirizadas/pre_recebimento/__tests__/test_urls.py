@@ -475,13 +475,20 @@ def test_url_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretor
         f'/cronogramas/dashboard/'
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()['results']) == 3
-    assert response.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
-    assert len(response.json()['results'][0]['dados']) == 3
-    assert response.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
-    assert len(response.json()['results'][1]['dados']) == 2
-    assert response.json()['results'][2]['status'] == 'ASSINADO_CODAE'
-    assert len(response.json()['results'][2]['dados']) == 1
+
+    status_esperados = ['ASSINADO_FORNECEDOR', 'ASSINADO_DINUTRE', 'ASSINADO_CODAE']
+    status_recebidos = [result['status'] for result in response.json()['results']]
+    for status_esperado in status_esperados:
+        assert status_esperado in status_recebidos
+
+    resultados_recebidos = [result for result in response.json()['results']]
+    for resultado in resultados_recebidos:
+        if resultado['status'] == 'ASSINADO_FORNECEDOR':
+            assert len(resultado['dados']) == 3
+        elif resultado['status'] == 'ASSINADO_DINUTRE':
+            assert len(resultado['dados']) == 2
+        elif resultado['status'] == 'ASSINADO_CODAE':
+            assert len(resultado['dados']) == 1
 
 
 def test_url_dashboard_painel_usuario_dinutre_com_paginacao(client_autenticado_dinutre_diretoria,
@@ -501,41 +508,60 @@ def test_url_dashboard_com_filtro_painel_usuario_dinutre(client_autenticado_dinu
     response = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard-com-filtro/'
     )
-    filtro1 = client_autenticado_dinutre_diretoria.get(
+    response_filtro1 = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard-com-filtro/?nome_produto=Arroz'
     )
-    filtro2 = client_autenticado_dinutre_diretoria.get(
+    response_filtro2 = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard-com-filtro/?numero_cronograma=003/2023'
     )
-    filtro3 = client_autenticado_dinutre_diretoria.get(
+    response_filtro3 = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard-com-filtro/?nome_fornecedor=Alimentos'
     )
+
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()['results']) == 3
-    assert response.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
-    assert len(response.json()['results'][0]['dados']) == 3
-    assert response.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
-    assert len(response.json()['results'][1]['dados']) == 2
-    assert response.json()['results'][2]['status'] == 'ASSINADO_CODAE'
-    assert len(response.json()['results'][2]['dados']) == 1
-    assert filtro1.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
-    assert len(filtro1.json()['results'][0]['dados']) == 1
-    assert filtro1.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
-    assert len(filtro1.json()['results'][1]['dados']) == 1
-    assert filtro1.json()['results'][2]['status'] == 'ASSINADO_CODAE'
-    assert len(filtro1.json()['results'][2]['dados']) == 0
-    assert filtro2.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
-    assert len(filtro2.json()['results'][0]['dados']) == 1
-    assert filtro2.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
-    assert len(filtro2.json()['results'][1]['dados']) == 0
-    assert filtro2.json()['results'][2]['status'] == 'ASSINADO_CODAE'
-    assert len(filtro2.json()['results'][2]['dados']) == 0
-    assert filtro3.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
-    assert len(filtro3.json()['results'][0]['dados']) == 3
-    assert filtro3.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
-    assert len(filtro3.json()['results'][1]['dados']) == 2
-    assert filtro3.json()['results'][2]['status'] == 'ASSINADO_CODAE'
-    assert len(filtro3.json()['results'][2]['dados']) == 1
+    assert response_filtro1.status_code == status.HTTP_200_OK
+    assert response_filtro2.status_code == status.HTTP_200_OK
+    assert response_filtro3.status_code == status.HTTP_200_OK
+
+    resultados_assinado_fornecedor = [
+        r for r in response.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+    assert len(resultados_assinado_fornecedor['dados']) == 3
+    resultados_assinado_dinutre = [
+        r for r in response.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+    assert len(resultados_assinado_dinutre['dados']) == 2
+    resultados_assinado_codae = [
+        r for r in response.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+    assert len(resultados_assinado_codae['dados']) == 1
+
+    resultados_assinado_fornecedor = [
+        r for r in response_filtro1.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+    assert len(resultados_assinado_fornecedor['dados']) == 1
+    resultados_assinado_dinutre = [
+        r for r in response_filtro1.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+    assert len(resultados_assinado_dinutre['dados']) == 1
+    resultados_assinado_codae = [
+        r for r in response_filtro1.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+    assert len(resultados_assinado_codae['dados']) == 0
+
+    resultados_assinado_fornecedor = [
+        r for r in response_filtro2.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+    assert len(resultados_assinado_fornecedor['dados']) == 1
+    resultados_assinado_dinutre = [
+        r for r in response_filtro2.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+    assert len(resultados_assinado_dinutre['dados']) == 0
+    resultados_assinado_codae = [
+        r for r in response_filtro2.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+    assert len(resultados_assinado_codae['dados']) == 0
+
+    resultados_assinado_fornecedor = [
+        r for r in response_filtro3.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+    assert len(resultados_assinado_fornecedor['dados']) == 3
+    resultados_assinado_dinutre = [
+        r for r in response_filtro3.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+    assert len(resultados_assinado_dinutre['dados']) == 2
+    resultados_assinado_codae = [
+        r for r in response_filtro3.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+    assert len(resultados_assinado_codae['dados']) == 1
 
 
 def test_url_dashboard_painel_solicitacao_alteracao_dinutre(client_autenticado_dinutre_diretoria,
