@@ -596,6 +596,13 @@ class PermissaoParaAssinarCronogramaUsuarioDilog(BasePermission):
 
 
 class PermissaoParaDashboardCronograma(BasePermission):
+    PERFIS_PERMITIDOS = [
+        DINUTRE_DIRETORIA,
+        DILOG_DIRETORIA,
+        COORDENADOR_CODAE_DILOG_LOGISTICA,
+        DILOG_CRONOGRAMA
+    ]
+
     def has_permission(self, request, view):
         usuario = request.user
         return (
@@ -604,7 +611,7 @@ class PermissaoParaDashboardCronograma(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [DINUTRE_DIRETORIA, DILOG_DIRETORIA]
+                    usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
                 )
             )
         )
@@ -661,6 +668,13 @@ class PermissaoParaCadastrarVisualizarUnidadesMedida(BasePermission):
 
 
 class PermissaoParaVisualizarSolicitacoesAlteracaoCronograma(BasePermission):
+    PERFIS_PERMITIDOS = [
+        DINUTRE_DIRETORIA,
+        DILOG_DIRETORIA,
+        COORDENADOR_CODAE_DILOG_LOGISTICA,
+        DILOG_CRONOGRAMA
+    ]
+
     def has_permission(self, request, view):
         usuario = request.user
         return (
@@ -669,7 +683,7 @@ class PermissaoParaVisualizarSolicitacoesAlteracaoCronograma(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DINUTRE_DIRETORIA, DILOG_DIRETORIA]
+                    usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
                 )
                 or
                 usuario.eh_fornecedor
@@ -699,12 +713,19 @@ class PermissaoParaCriarSolicitacoesAlteracaoCronograma(BasePermission):
 
 
 class PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma(BasePermission):
+    PERFIS_PERMITIDOS = [
+        DINUTRE_DIRETORIA,
+        DILOG_DIRETORIA,
+        COORDENADOR_CODAE_DILOG_LOGISTICA,
+        DILOG_CRONOGRAMA
+    ]
+
     def has_permission(self, request, view):
         usuario = request.user
         return (
             not usuario.is_anonymous and
             usuario.vinculo_atual and
-            usuario.vinculo_atual.perfil.nome in [DINUTRE_DIRETORIA, DILOG_DIRETORIA]
+            usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
         )
 
 
