@@ -852,7 +852,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         for alteracao_alimentacao in query_set:
             alteracao = alteracao_alimentacao.get_raw_model.objects.get(uuid=alteracao_alimentacao.uuid)
             if eh_lanche_emergencial == 'true':
-                for data_evento in alteracao.datas_intervalo.filter(data__month=mes, data__year=ano):
+                for data_evento in alteracao.datas_intervalo.filter(data__month=mes, data__year=ano, cancelado=False):
                     return_dict.append({
                         'dia': f'{data_evento.data.day:02d}',
                         'numero_alunos': sum([sub.qtd_alunos for sub in alteracao.substituicoes_periodo_escolar.all()]),
@@ -862,7 +862,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             else:
                 alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
                 if alt:
-                    for data_evento in alteracao.datas_intervalo.filter(data__month=mes, data__year=ano):
+                    for data_evento in alteracao.datas_intervalo.filter(data__month=mes, data__year=ano,
+                                                                        cancelado=False):
                         return_dict.append({
                             'dia': f'{data_evento.data.day:02d}',
                             'periodo': nome_periodo_escolar,
