@@ -581,6 +581,11 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return raw_sql, filtros
 
+    def checa_se_remove_eh_copia(self, filtro_aplicado, raw_sql):
+        if filtro_aplicado not in ['codae_pendente_homologacao', 'codae_questionado', 'codae_pediu_analise_sensorial']:
+            raw_sql += f'AND %(homologacao_produto)s.eh_copia = false '
+        return raw_sql
+
     def build_raw_sql_produtos_por_status(self, filtro_aplicado, edital, perfil_nome, filtros, tipo_usuario,
                                           escola_ou_dre_id):
         data = {'logs': LogSolicitacoesUsuario._meta.db_table,
@@ -685,9 +690,14 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if filtro_aplicado == 'codae_suspendeu':
             filtros['produto__vinculos__suspenso'] = True
         raw_sql = self.trata_edital(raw_sql, edital)
-        raw_sql += f'AND %(homologacao_produto)s.eh_copia = false '
+        raw_sql = self.checa_se_remove_eh_copia(filtro_aplicado, raw_sql)
         raw_sql += 'ORDER BY log_criado_em DESC'
         return raw_sql, data
+
+    def checa_se_remove_eh_copia_queryset(self, filtro_aplicado, query_set):
+        if filtro_aplicado not in ['codae_pendente_homologacao', 'codae_questionado', 'codae_pediu_analise_sensorial']:
+            query_set = query_set.filter(eh_copia=False)
+        return query_set
 
     def exclui_produtos_suspensos(self, query_set, produtos_editais_mais_de_uma_data_hora, edital, data_homologacao):
         homs_mais_de_uma_data_hora = query_set.filter(
@@ -723,9 +733,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 ).filter(Q(id_amigavel__icontains=titulo) | Q(produto__nome__icontains=titulo))
             filtros_params = cria_filtro_homologacao_produto_por_parametros(request_data)
             query_set_nao_homologados = query_set.filter(
-                status__in=['CODAE_NAO_HOMOLOGADO', 'CODAE_AUTORIZOU_RECLAMACAO', 'CODAE_SUSPENDEU'],
-                eh_copia=False).filter(**filtros_params).distinct()
-            query_set = query_set.filter(**filtros).filter(**filtros_params).filter(eh_copia=False).distinct()
+                status__in=['CODAE_NAO_HOMOLOGADO', 'CODAE_AUTORIZOU_RECLAMACAO', 'CODAE_SUSPENDEU']).filter(
+                **filtros_params).distinct()
+            self.checa_se_remove_eh_copia_queryset(filtro_aplicado, query_set)
+            query_set = query_set.filter(**filtros).filter(**filtros_params).distinct()
             if request_data.get('data_homologacao'):
                 data_homologacao = datetime.strptime(request_data.get('data_homologacao'), '%d/%m/%Y').date()
                 query_set = query_set | query_set_nao_homologados
