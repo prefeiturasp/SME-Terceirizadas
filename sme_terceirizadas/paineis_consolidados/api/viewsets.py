@@ -784,7 +784,10 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                                 append(i, periodo, inclusao)
                             i += 1
                     else:
-                        append(inclusao.data_evento.day, periodo, inclusao)
+                        for inclusao_normal in inc.inclusoes_normais.filter(
+                            data__month=mes, data__year=ano, cancelado=False
+                        ):
+                            append(inclusao_normal.data.day, periodo, inclusao)
         data = {
             'results': return_dict
         }
@@ -826,6 +829,13 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         return Response(data)
 
+    def trata_lanche_emergencial_queryset(self, eh_lanche_emergencial, query_set):
+        if eh_lanche_emergencial == 'true':
+            query_set = query_set.filter(motivo__icontains='Emergencial')
+        else:
+            query_set = query_set.exclude(motivo__icontains='Emergencial')
+        return query_set
+
     @action(detail=False, methods=['GET'], url_path=f'{ALTERACOES_ALIMENTACAO_AUTORIZADAS}')
     def alteracoes_alimentacoes_autorizadas(self, request):
         escola_uuid = request.query_params.get('escola_uuid')
@@ -838,32 +848,32 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         query_set = query_set.filter(data_evento__month=mes, data_evento__year=ano)
         query_set = query_set.filter(data_evento__lt=datetime.date.today())
-        if eh_lanche_emergencial == 'true':
-            query_set = query_set.filter(motivo__icontains='Emergencial')
-        else:
-            query_set = query_set.exclude(motivo__icontains='Emergencial')
+        query_set = self.trata_lanche_emergencial_queryset(eh_lanche_emergencial, query_set)
         query_set = self.remove_duplicados_do_query_set(query_set)
         return_dict = []
 
         for alteracao_alimentacao in query_set:
             alteracao = alteracao_alimentacao.get_raw_model.objects.get(uuid=alteracao_alimentacao.uuid)
             if eh_lanche_emergencial == 'true':
-                return_dict.append({
-                    'dia': f'{alteracao.data.day:02d}',
-                    'numero_alunos': sum([sub.qtd_alunos for sub in alteracao.substituicoes_periodo_escolar.all()]),
-                    'inclusao_id_externo': alteracao.id_externo,
-                    'motivo': alteracao_alimentacao.motivo
-                })
-            else:
-                alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
-                if alt:
+                for data_evento in alteracao.datas_intervalo.filter(data__month=mes, data__year=ano, cancelado=False):
                     return_dict.append({
-                        'dia': f'{alteracao.data.day:02d}',
-                        'periodo': nome_periodo_escolar,
-                        'numero_alunos': alt.qtd_alunos,
+                        'dia': f'{data_evento.data.day:02d}',
+                        'numero_alunos': sum([sub.qtd_alunos for sub in alteracao.substituicoes_periodo_escolar.all()]),
                         'inclusao_id_externo': alteracao.id_externo,
                         'motivo': alteracao_alimentacao.motivo
                     })
+            else:
+                alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
+                if alt:
+                    for data_evento in alteracao.datas_intervalo.filter(data__month=mes, data__year=ano,
+                                                                        cancelado=False):
+                        return_dict.append({
+                            'dia': f'{data_evento.data.day:02d}',
+                            'periodo': nome_periodo_escolar,
+                            'numero_alunos': alt.qtd_alunos,
+                            'inclusao_id_externo': alteracao.id_externo,
+                            'motivo': alteracao_alimentacao.motivo
+                        })
 
         data = {
             'results': return_dict

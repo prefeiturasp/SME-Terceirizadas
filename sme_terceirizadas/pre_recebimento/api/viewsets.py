@@ -105,6 +105,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
     def get_lista_status(self):
         lista_status = [
+            Cronograma.workflow_class.ASSINADO_E_ENVIADO_AO_FORNECEDOR,
             Cronograma.workflow_class.ASSINADO_FORNECEDOR,
             Cronograma.workflow_class.ASSINADO_DINUTRE,
             Cronograma.workflow_class.ASSINADO_CODAE,
@@ -392,16 +393,27 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
         offset = int(request.query_params.get('offset', 0)) if 'offset' in request.query_params else 0
         status = request.query_params.get('status', None)
         dados_dashboard = []
-        lista_status = [
-            status] if status else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
-            self.request.user)
-        dados_dashboard = [{'status': status, 'dados':
-                            SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(status,
-                                                                                      filtros, offset, limit + offset)}
-                           for status in lista_status]
+        lista_status = (
+            [status] if status else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
+                self.request.user)
+        )
+        dados_dashboard = [
+            {
+                'status': status,
+                'dados': SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+                    status,
+                    filtros,
+                    offset,
+                    limit + offset
+                )
+            }
+            for status in lista_status
+        ]
+
         if status:
             dados_dashboard[0]['total'] = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
                 status, filtros).count()
+
         return dados_dashboard
 
     @action(detail=False, methods=['GET'],
