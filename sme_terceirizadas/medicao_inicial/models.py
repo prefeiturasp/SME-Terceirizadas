@@ -1,3 +1,6 @@
+from calendar import monthcalendar, setfirstweekday
+
+import numpy
 from django.db import models
 
 from ..dados_comuns.behaviors import (
@@ -11,7 +14,8 @@ from ..dados_comuns.behaviors import (
     TemData,
     TemDia,
     TemIdentificadorExternoAmigavel,
-    TemMes
+    TemMes,
+    TemSemana
 )
 from ..dados_comuns.fluxo_status import FluxoSolicitacaoMedicaoInicial, LogSolicitacoesUsuario
 from ..escola.models import TipoUnidadeEscolar
@@ -47,6 +51,7 @@ class SolicitacaoMedicaoInicial(
     tipo_contagem_alimentacoes = models.ForeignKey('TipoContagemAlimentacao', on_delete=models.SET_NULL,
                                                    null=True, related_name='solicitacoes_medicao_inicial')
     com_ocorrencias = models.BooleanField('Com ocorrências?', default=False)
+    historico = models.JSONField(blank=True, null=True)
     ue_possui_alunos_periodo_parcial = models.BooleanField('Possui alunos periodo parcial?', default=False)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
@@ -206,7 +211,7 @@ class CategoriaMedicao(Nomeavel, Ativavel, TemChaveExterna):
 class ValorMedicao(
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
-    CriadoEm, TemDia
+    CriadoEm, TemDia, TemSemana
 ):
     valor = models.TextField('Valor do Campo')
     nome_campo = models.CharField(max_length=100)
@@ -218,6 +223,13 @@ class ValorMedicao(
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', blank=True,
                                      null=True, on_delete=models.DO_NOTHING)
     habilitado_correcao = models.BooleanField(default=False)
+
+    @classmethod
+    def get_week_of_month(cls, year, month, day):
+        setfirstweekday(0)
+        x = numpy.array(monthcalendar(year, month))
+        week_of_month = numpy.where(x == day)[0][0] + 1
+        return(week_of_month)
 
     class Meta:
         verbose_name = 'Valor da Medição'

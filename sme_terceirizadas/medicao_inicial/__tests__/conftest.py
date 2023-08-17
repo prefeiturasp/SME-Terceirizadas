@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -80,13 +81,32 @@ def aluno():
 def solicitacao_medicao_inicial(escola, categoria_medicao):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
+    historico = {
+        'usuario': {'uuid': 'a7f20675-50e1-46d2-a207-28543b93e19d', 'nome': 'usuario teste',
+                    'username': '12312312344', 'email': 'email@teste.com'},
+        'criado_em': datetime.date.today().strftime('%Y-%m-%d %H:%M:%S'),
+        'acao': 'MEDICAO_CORRECAO_SOLICITADA',
+        'alteracoes': [
+            {
+                'periodo_escolar': periodo_manha.nome,
+                'tabelas_lancamentos': [
+                    {
+                        'categoria_medicao': 'ALIMENTAÇÃO',
+                        'semanas': [
+                            {'semana': '1', 'dias': ['01']}
+                        ]
+                    }
+                ]
+            },
+        ]
+    }
     solicitacao_medicao = mommy.make(
         'SolicitacaoMedicaoInicial', uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
-        mes=12, ano=2022, escola=escola, tipo_contagem_alimentacoes=tipo_contagem)
+        mes=12, ano=2022, escola=escola, tipo_contagem_alimentacoes=tipo_contagem, historico=json.dumps([historico]))
     medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
                          periodo_escolar=periodo_manha)
-    mommy.make('ValorMedicao', dia='01', nome_campo='lanche', medicao=medicao, categoria_medicao=categoria_medicao,
-               valor='10')
+    mommy.make('ValorMedicao', dia='01', semana='1', nome_campo='lanche', medicao=medicao,
+               categoria_medicao=categoria_medicao, valor='10')
     return solicitacao_medicao
 
 
