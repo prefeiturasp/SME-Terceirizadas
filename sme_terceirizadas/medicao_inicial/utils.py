@@ -757,7 +757,10 @@ def criar_log_solicitar_correcao_periodos(user, solicitacao, acao):
         }
 
         valores_medicao = medicao.valores_medicao.filter(habilitado_correcao=True).order_by('semana')
-        tabelas_lancamentos = valores_medicao.order_by('categoria_medicao__nome').values_list('categoria_medicao__nome', flat=True).distinct()
+        tabelas_lancamentos = valores_medicao.order_by(
+            'categoria_medicao__nome'
+        ).values_list('categoria_medicao__nome',
+                      flat=True).distinct()
 
         for tabela in tabelas_lancamentos:
             valores_da_tabela = valores_medicao.filter(categoria_medicao__nome=tabela)
@@ -768,7 +771,10 @@ def criar_log_solicitar_correcao_periodos(user, solicitacao, acao):
             }
 
             for semana in semanas:
-                dias = list(valores_da_tabela.filter(semana=semana).order_by('dia').values_list('dia', flat=True).distinct())
+                dias = valores_da_tabela.filter(semana=semana)
+                dias = list(
+                    dias.order_by('dia').values_list('dia', flat=True).distinct()
+                )
                 semana_dict = {'semana': semana, 'dias': dias}
                 tabela_dict['semanas'].append(semana_dict)
             alteracoes_dict['tabelas_lancamentos'].append(tabela_dict)
@@ -878,7 +884,8 @@ def get_alteracoes_log(lista_alteracoes, log_inicial, periodo_nome):
 
 def atualiza_ou_cria_tabela_lancamentos_log(valor_medicao, cp_alteracao_dict, log_inicial, alteracao_idx):
     categoria_medicao = valor_medicao.categoria_medicao.nome
-    lista_categorias = list(filter(lambda tabela: tabela['categoria_medicao'] == categoria_medicao, cp_alteracao_dict['tabelas_lancamentos']))
+    lista = cp_alteracao_dict['tabelas_lancamentos']
+    lista_categorias = list(filter(lambda tabela: tabela['categoria_medicao'] == categoria_medicao, lista))
     if not lista_categorias:
         log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'].append(
             {'categoria_medicao': categoria_medicao, 'semanas': []}
@@ -947,7 +954,7 @@ def atualizar_log_escola_corrigiu(historico, log_inicial, medicao, dicionario_al
     else:
         periodo_nome = medicao.grupo.nome
 
-    lista_alteracoes = list(filter(lambda alteracao: alteracao['periodo_escolar'] == periodo_nome, log_inicial['alteracoes']))
+    lista_alteracoes = list(filter(lambda a: a['periodo_escolar'] == periodo_nome, log_inicial['alteracoes']))
 
     log_inicial, cp_alteracao_dict, alteracao_idx = get_alteracoes_log(lista_alteracoes,
                                                                        log_inicial,
@@ -959,7 +966,7 @@ def atualizar_log_escola_corrigiu(historico, log_inicial, medicao, dicionario_al
                                                                                                  log_inicial,
                                                                                                  alteracao_idx)
 
-        lista_semanas = list(filter(lambda semana: semana['semana'] == valor_medicao.semana, cp_categorias_dict['semanas']))
+        lista_semanas = list(filter(lambda s: s['semana'] == valor_medicao.semana, cp_categorias_dict['semanas']))
 
         log_inicial, semana_idx, cp_semana_dict = atualiza_ou_cria_semanas_log(lista_semanas,
                                                                                log_inicial,
@@ -978,7 +985,7 @@ def atualizar_log_escola_corrigiu(historico, log_inicial, medicao, dicionario_al
                                                                        valor_medicao,
                                                                        cp_semana_dict)
 
-        lista_campos = list(filter(lambda campo: campo['campo_nome'] == valor_medicao.nome_campo, cp_dias_dict['campos']))
+        lista_campos = list(filter(lambda c: c['campo_nome'] == valor_medicao.nome_campo, cp_dias_dict['campos']))
 
         log_inicial, campo_idx, cp_campos_dict = atualiza_ou_cria_nome_campo_log(lista_campos,
                                                                                  log_inicial,
