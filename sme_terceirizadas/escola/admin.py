@@ -225,6 +225,7 @@ class LogAlunosMatriculadosFaixaEtariaDiaAdmin(admin.ModelAdmin):
     list_display = ('escola', 'periodo_escolar', 'faixa_etaria', 'quantidade', 'data', 'criado_em')
     search_fields = ('escola__nome', 'periodo_escolar__nome')
     list_filter = (('data', DateRangeFilter),)
+    ordering = ('-criado_em', 'escola__nome')
 
 
 @admin.register(DiaCalendario)
