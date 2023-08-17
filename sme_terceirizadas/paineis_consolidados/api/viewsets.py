@@ -784,7 +784,10 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                                 append(i, periodo, inclusao)
                             i += 1
                     else:
-                        append(inclusao.data_evento.day, periodo, inclusao)
+                        for inclusao_normal in inc.inclusoes_normais.filter(
+                            data__month=mes, data__year=ano, cancelado=False
+                        ):
+                            append(inclusao_normal.data.day, periodo, inclusao)
         data = {
             'results': return_dict
         }
