@@ -315,7 +315,7 @@ class ArquivoCargaUsuariosEscolaAdmin(admin.ModelAdmin):
 @admin.register(LogQuantidadeDietasAutorizadas)
 class LogQuantidadeDietasAutorizadasAdmin(admin.ModelAdmin):
     list_display = ('escola', 'data', 'classificacao', 'quantidade')
-    list_filter = ('classificacao__nome',)
+    list_filter = ('classificacao__nome', 'periodo_escolar__nome')
 
 
 admin.site.register(Anexo)

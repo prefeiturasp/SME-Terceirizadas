@@ -646,10 +646,13 @@ class LogQuantidadeDietasAutorizadas(TemChaveExterna, TemData, CriadoEm):
     quantidade = models.PositiveIntegerField()
     classificacao = models.ForeignKey(
         'ClassificacaoDieta', on_delete=models.CASCADE, related_name='logs_dietas_autorizadas')
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', blank=True, null=True, on_delete=models.SET_NULL,
+                                        related_name='logs_dietas_autorizadas')
 
     def __str__(self) -> str:
-        return (f'{self.escola.nome} - {self.data.strftime("%d/%m/%Y")} - {self.classificacao.nome} - '
-                f'{self.quantidade} dieta(s)')
+        return (f'{self.escola.nome} - {self.data.strftime("%d/%m/%Y")} - {self.classificacao.nome}'
+                f'{(" - " + self.periodo_escolar.nome) if self.periodo_escolar else ""}'
+                f' - {self.quantidade} dieta(s)')
 
     class Meta:
         verbose_name = 'Log da quantidade de dietas autorizadas por unidade escolar'
