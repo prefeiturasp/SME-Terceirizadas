@@ -1,6 +1,11 @@
 from rest_framework.pagination import PageNumberPagination
 
-from sme_terceirizadas.dados_comuns.constants import DILOG_DIRETORIA, DINUTRE_DIRETORIA
+from sme_terceirizadas.dados_comuns.constants import (
+    COORDENADOR_CODAE_DILOG_LOGISTICA,
+    DILOG_CRONOGRAMA,
+    DILOG_DIRETORIA,
+    DINUTRE_DIRETORIA
+)
 
 
 class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles:
@@ -21,11 +26,23 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles:
                 'REPROVADO_DINUTRE'
             ],
             DILOG_DIRETORIA: [
-                ['APROVADO_DINUTRE', 'REPROVADO_DINUTRE'],
+                'APROVADO_DINUTRE',
+                'REPROVADO_DINUTRE',
                 'APROVADO_DILOG',
                 'REPROVADO_DILOG'
-            ]
+            ],
+            DILOG_CRONOGRAMA: [
+                'EM_ANALISE',
+                'APROVADO_DILOG',
+                'REPROVADO_DILOG'
+            ],
+            COORDENADOR_CODAE_DILOG_LOGISTICA: [
+                'EM_ANALISE',
+                'APROVADO_DILOG',
+                'REPROVADO_DILOG'
+            ],
         }
+
         if perfil not in status:
             raise ValueError('Perfil não existe')
 
