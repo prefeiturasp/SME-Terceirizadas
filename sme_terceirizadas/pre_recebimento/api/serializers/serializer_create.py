@@ -239,18 +239,19 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
             raise serializers.ValidationError(f'Cronograma já possui solicitação de alteração em análise')
         return value
 
-    def validate(self, attrs): # noqa c901
+    def valida_campo_etapa(self, etapa, campo):
+        if not etapa[campo]:
+            raise serializers.ValidationError(
+                {campo: ['Este campo é obrigatório.']}
+            )
+
+    def validate(self, attrs):
         for etapa in attrs['etapas']:
-            if not etapa['etapa']:
-                raise serializers.ValidationError(f'Etapa deve ter uma Etapa')
-            if not etapa['parte']:
-                raise serializers.ValidationError(f'Etapa deve ter uma Parte')
-            if not etapa['data_programada']:
-                raise serializers.ValidationError(f'Etapa deve ter uma Data Programada')
-            if not etapa['quantidade']:
-                raise serializers.ValidationError(f'Etapa deve ter uma Quantidade')
-            if not etapa['total_embalagens']:
-                raise serializers.ValidationError(f'Etapa deve ter um Total de Embalagens')
+            self.valida_campo_etapa(etapa, 'etapa')
+            self.valida_campo_etapa(etapa, 'parte')
+            self.valida_campo_etapa(etapa, 'data_programada')
+            self.valida_campo_etapa(etapa, 'quantidade')
+            self.valida_campo_etapa(etapa, 'total_embalagens')
         return super().validate(attrs)
 
     def _criar_etapas(self, etapas):
