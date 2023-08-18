@@ -542,6 +542,18 @@ def filtrar_alunos_com_dietas_nos_status_e_rastro_escola(queryset, status_dieta,
 def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
     logs_a_criar = []
     for classificacao in ClassificacaoDieta.objects.all():
+        for periodo_escolar_nome in escola.periodos_escolares_com_alunos:
+            quantidade_dietas = dietas_autorizadas.filter(
+                classificacao=classificacao, escola_destino=escola, aluno__periodo_escolar__nome=periodo_escolar_nome
+            ).count()
+            log = LogQuantidadeDietasAutorizadas(
+                quantidade=quantidade_dietas,
+                escola=escola,
+                data=ontem,
+                periodo_escolar=PeriodoEscolar.objects.get(nome=periodo_escolar_nome),
+                classificacao=classificacao
+            )
+            logs_a_criar.append(log)
         quantidade_dietas = dietas_autorizadas.filter(classificacao=classificacao, escola_destino=escola).count()
         log = LogQuantidadeDietasAutorizadas(
             quantidade=quantidade_dietas,
