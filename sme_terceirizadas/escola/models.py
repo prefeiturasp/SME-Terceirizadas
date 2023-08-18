@@ -261,6 +261,10 @@ class DiretoriaRegional(
             escola__in=self.escolas.all(), status__in=[InversaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA]
         )
 
+    @property
+    def possui_escolas_com_acesso_ao_medicao_inicial(self):
+        return self.acesso_modulo_medicao_inicial or self.escolas.filter(acesso_modulo_medicao_inicial=True).exists()
+
     def __str__(self):
         return self.nome
 
