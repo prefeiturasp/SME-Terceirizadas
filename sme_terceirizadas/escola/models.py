@@ -548,36 +548,75 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
                 matriculados_por_faixa[periodo] = faixas
         return matriculados_por_faixa
 
-    def alunos_por_periodo_e_faixa_etaria(self, data_referencia=None, faixas_etarias=None):  # noqa C901
-        if data_referencia is None:
-            data_referencia = date.today()
+    def obter_data_referencia(self, data_referencia=None):
+        return data_referencia if data_referencia else date.today()
+
+    def obter_faixas_etarias(self, faixas_etarias=None):
         if not faixas_etarias:
             faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
         if faixas_etarias.count() == 0:
             raise ObjectDoesNotExist()
+        return faixas_etarias
+
+    def contar_alunos_por_faixa(self, aluno_data_nascimento, data_referencia, faixas_etarias, seis_anos_atras):
+        count = Counter()
+        for faixa_etaria in faixas_etarias:
+            if faixa_etaria.data_pertence_a_faixa(aluno_data_nascimento, data_referencia):
+                count[str(faixa_etaria.uuid)] += 1
+            elif aluno_data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:
+                count[str(faixa_etaria.uuid)] += 1
+        return count
+
+    def alunos_por_periodo_e_faixa_etaria(self, data_referencia=None, faixas_etarias=None):  # noqa C901
+        data_referencia = self.obter_data_referencia(data_referencia)
+        faixas_etarias = self.obter_faixas_etarias(faixas_etarias)
+
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.codigo_eol)
         seis_anos_atras = datetime.date.today() - relativedelta(years=6)
 
         resultados = {}
         for aluno in lista_alunos:
             periodo = aluno['dc_tipo_turno'].strip().upper()
+            data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
             if periodo not in resultados:
                 resultados[periodo] = Counter()
+            resultados[periodo] += self.contar_alunos_por_faixa(data_nascimento, data_referencia, faixas_etarias,
+                                                                seis_anos_atras)
+        return resultados
+
+    def alunos_periodo_parcial_e_faixa_etaria(self, data_referencia=None, faixas_etarias=None):
+        if not self.eh_cei:
+            return {}
+
+        data_referencia = self.obter_data_referencia(data_referencia)
+        faixas_etarias = self.obter_faixas_etarias(faixas_etarias)
+
+        alunos_periodo_parcial = AlunoPeriodoParcial.objects.filter(
+            aluno__escola__codigo_eol=self.codigo_eol,
+            solicitacao_medicao_inicial__mes=str(data_referencia.month).zfill(2),
+            solicitacao_medicao_inicial__ano=str(data_referencia.year)
+        ).values_list('aluno__codigo_eol', flat=True)
+
+        lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.codigo_eol)
+        alunos_periodo_parcial_set = set(alunos_periodo_parcial)
+        seis_anos_atras = datetime.date.today() - relativedelta(years=6)
+
+        resultados = {}
+        for aluno in lista_alunos:
+            if str(aluno['cd_aluno']) not in alunos_periodo_parcial_set:
+                continue
+            periodo = 'PARCIAL'
             data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
-            for faixa_etaria in faixas_etarias:
-                if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
-                    resultados[periodo][str(faixa_etaria.uuid)] += 1
-                elif data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:  # ultima faixa
-                    resultados[periodo][str(faixa_etaria.uuid)] += 1
+            if periodo not in resultados:
+                resultados[periodo] = Counter()
+            resultados[periodo] += self.contar_alunos_por_faixa(data_nascimento, data_referencia, faixas_etarias,
+                                                                seis_anos_atras)
         return resultados
 
     def alunos_por_periodo_e_faixa_etaria_objetos_alunos(self, data_referencia=None, faixas_etarias=None):  # noqa C901
-        if data_referencia is None:
-            data_referencia = date.today()
-        if not faixas_etarias:
-            faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
-        if faixas_etarias.count() == 0:
-            raise ObjectDoesNotExist()
+        data_referencia = self.obter_data_referencia(data_referencia)
+        faixas_etarias = self.obter_faixas_etarias(faixas_etarias)
+
         lista_alunos = Aluno.objects.filter(escola__codigo_eol=self.codigo_eol).filter(
             Q(serie__icontains='1') | Q(serie__icontains='2')
             | Q(serie__icontains='3') | Q(serie__icontains='4'))
@@ -585,36 +624,24 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         resultados = {}
         for aluno in lista_alunos:
             periodo = aluno.periodo_escolar.nome
+            data_nascimento = aluno.data_nascimento
             if periodo not in resultados:
                 resultados[periodo] = Counter()
-            data_nascimento = aluno.data_nascimento
-            for faixa_etaria in faixas_etarias:
-                if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
-                    resultados[periodo][str(faixa_etaria.uuid)] += 1
-                elif data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:  # ultima faixa
-                    resultados[periodo][str(faixa_etaria.uuid)] += 1
-
+            resultados[periodo] += self.contar_alunos_por_faixa(data_nascimento, data_referencia, faixas_etarias,
+                                                                seis_anos_atras)
         return resultados
 
     def alunos_por_faixa_etaria(self, data_referencia=None, faixas_etarias=None):  # noqa C901
-        if data_referencia is None:
-            data_referencia = date.today()
-        if not faixas_etarias:
-            faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
-        if faixas_etarias.count() == 0:
-            raise ObjectDoesNotExist()
+        data_referencia = self.obter_data_referencia(data_referencia)
+        faixas_etarias = self.obter_faixas_etarias(faixas_etarias)
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.codigo_eol)
         seis_anos_atras = datetime.date.today() - relativedelta(years=6)
 
         resultados = Counter()
         for aluno in lista_alunos:
             data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
-            for faixa_etaria in faixas_etarias:
-                if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
-                    resultados[str(faixa_etaria.uuid)] += 1
-                elif data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:  # ultima faixa
-                    resultados[str(faixa_etaria.uuid)] += 1
-
+            resultados += self.contar_alunos_por_faixa(data_nascimento, data_referencia, faixas_etarias,
+                                                       seis_anos_atras)
         return resultados
 
     class Meta:
