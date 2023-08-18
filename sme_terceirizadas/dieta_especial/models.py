@@ -16,6 +16,7 @@ from ..dados_comuns.behaviors import (
     Nomeavel,
     TemChaveExterna,
     TemData,
+    TemFaixaEtariaEQuantidade,
     TemIdentificadorExternoAmigavel,
     TemPrioridade
 )
@@ -657,4 +658,23 @@ class LogQuantidadeDietasAutorizadas(TemChaveExterna, TemData, CriadoEm):
     class Meta:
         verbose_name = 'Log da quantidade de dietas autorizadas por unidade escolar'
         verbose_name_plural = 'Logs da quantidade de dietas autorizadas por unidade escolar'
+        ordering = ('-data', 'escola__nome')
+
+
+class LogQuantidadeDietasAutorizadasCEI(TemChaveExterna, TemData, CriadoEm, TemFaixaEtariaEQuantidade):
+    escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE, related_name='logs_dietas_autorizadas_cei')
+    quantidade = models.PositiveIntegerField()
+    classificacao = models.ForeignKey(
+        'ClassificacaoDieta', on_delete=models.CASCADE, related_name='logs_dietas_autorizadas_cei')
+    periodo_escolar = models.ForeignKey(
+        'escola.PeriodoEscolar', related_name='logs_dietas_autorizadas_cei', on_delete=models.CASCADE
+    )
+
+    def __str__(self) -> str:
+        return (f'{self.escola.nome} - {self.data.strftime("%d/%m/%Y")} - {self.periodo_escolar.nome} - '
+                f'{self.classificacao.nome} - {self.quantidade} dieta(s) -- {self.faixa_etaria}')
+
+    class Meta:
+        verbose_name = 'Log da quantidade de dietas autorizadas por unidade escolar CEI'
+        verbose_name_plural = 'Logs da quantidade de dietas autorizadas por unidade escolar CEI'
         ordering = ('-data', 'escola__nome')

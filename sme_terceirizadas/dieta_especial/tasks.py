@@ -9,6 +9,7 @@ from rest_framework.exceptions import ValidationError
 from sme_terceirizadas.dieta_especial.models import (
     ClassificacaoDieta,
     LogQuantidadeDietasAutorizadas,
+    LogQuantidadeDietasAutorizadasCEI,
     PlanilhaDietasAtivas,
     ProtocoloPadraoDietaEspecial,
     SolicitacaoDietaEspecial
@@ -20,14 +21,20 @@ from ..dados_comuns.utils import (
     atualiza_central_download_com_erro,
     gera_objeto_na_central_download
 )
-from ..escola.models import Escola, Lote, TipoGestao
+from ..escola.models import Escola, Lote
 from ..perfil.models import Usuario
 from ..relatorios.relatorios import relatorio_dietas_especiais_terceirizada
 from .api.serializers import (
     SolicitacaoDietaEspecialExportXLSXSerializer,
     SolicitacaoDietaEspecialNutriSupervisaoExportXLSXSerializer
 )
-from .utils import cancela_dietas_ativas_automaticamente, inicia_dietas_temporarias, termina_dietas_especiais
+from .utils import (
+    cancela_dietas_ativas_automaticamente,
+    gera_logs_dietas_escolas_cei,
+    gera_logs_dietas_escolas_comuns,
+    inicia_dietas_temporarias,
+    termina_dietas_especiais
+)
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +96,7 @@ def gera_pdf_relatorio_dieta_especial_async(user, nome_arquivo, ids_dietas, data
     retry_kwargs={'max_retries': 8},
 )
 def gera_logs_dietas_especiais_diariamente():
+    iniciais_cei = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
     logger.info(f'x-x-x-x Iniciando a geração de logs de dietas especiais autorizadas diaria x-x-x-x')
     ontem = datetime.date.today() - datetime.timedelta(days=1)
     dietas_autorizadas = SolicitacaoDietaEspecial.objects.filter(
@@ -98,20 +106,16 @@ def gera_logs_dietas_especiais_diariamente():
             SolicitacaoDietaEspecial.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
             SolicitacaoDietaEspecial.workflow_class.ESCOLA_SOLICITOU_INATIVACAO]
     )
-    terc_total = TipoGestao.objects.get(nome='TERC TOTAL')
-    logs_a_criar = []
-    for escola in Escola.objects.filter(tipo_gestao=terc_total):
+    logs_a_criar_escolas_comuns = []
+    logs_a_criar_escolas_cei = []
+    for escola in Escola.objects.filter(tipo_gestao__nome='TERC TOTAL'):
         logger.info(f'x-x-x-x Logs para a escola {escola.nome} x-x-x-x')
-        for classificacao in ClassificacaoDieta.objects.all():
-            quantidade_dietas = dietas_autorizadas.filter(classificacao=classificacao, escola_destino=escola).count()
-            log = LogQuantidadeDietasAutorizadas(
-                quantidade=quantidade_dietas,
-                escola=escola,
-                data=ontem,
-                classificacao=classificacao
-            )
-            logs_a_criar.append(log)
-    LogQuantidadeDietasAutorizadas.objects.bulk_create(logs_a_criar)
+        if escola.tipo_unidade.iniciais in iniciais_cei:
+            logs_a_criar_escolas_cei += gera_logs_dietas_escolas_cei(escola, dietas_autorizadas, ontem)
+        else:
+            logs_a_criar_escolas_comuns += gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem)
+    LogQuantidadeDietasAutorizadas.objects.bulk_create(logs_a_criar_escolas_comuns)
+    LogQuantidadeDietasAutorizadasCEI.objects.bulk_create(logs_a_criar_escolas_cei)
 
 
 @shared_task(
