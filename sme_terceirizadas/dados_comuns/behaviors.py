@@ -390,6 +390,13 @@ class TemDia(models.Model):
         abstract = True
 
 
+class TemSemana(models.Model):
+    semana = models.CharField('Semana', max_length=1, blank=True)
+
+    class Meta:
+        abstract = True
+
+
 class MatriculadosQuandoCriado(models.Model):
     matriculados_quando_criado = models.PositiveSmallIntegerField(null=True, blank=True,
                                                                   validators=[MinValueValidator(1)])
