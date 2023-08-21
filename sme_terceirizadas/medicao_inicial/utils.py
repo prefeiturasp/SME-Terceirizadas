@@ -799,7 +799,7 @@ def criar_log_aprovar_periodos_corrigidos(user, solicitacao, acao):
 
 
 def encontrar_ou_criar_log_inicial(user, acao, historico):
-    lista_logs = list(filter(lambda log: log['acao'] == acao, historico))
+    lista_logs = list(filter(lambda log: log['acao'] == acao and log == historico[-1], historico))
     if not lista_logs:
         return dict_informacoes_iniciais(user, acao)
     else:
@@ -817,7 +817,7 @@ def gerar_dicionario_e_buscar_valores_medicao(data, medicao):
             nome_campo=valor_atualizado.get('nome_campo', ''),
             categoria_medicao=valor_atualizado.get('categoria_medicao', '')
         )
-        if not valor_medicao:
+        if not valor_medicao or str(valor_medicao.first().valor) == str(valor_atualizado.get('valor', '')):
             continue
         else:
             dicionario_alteracoes[f'{str(valor_medicao.first().uuid)}'] = valor_atualizado.get('valor', '')
@@ -1011,7 +1011,8 @@ def log_alteracoes_escola_corrige_periodo(user, medicao, acao, data):
     log_inicial = encontrar_ou_criar_log_inicial(user, acao, historico)
 
     dicionario_alteracoes, valores_medicao = gerar_dicionario_e_buscar_valores_medicao(data, medicao)
-
+    if not valores_medicao:
+        return
     if not log_inicial['alteracoes']:
         criar_log_escola_corrigiu(medicao, valores_medicao, dicionario_alteracoes, log_inicial, historico, solicitacao)
     else:
