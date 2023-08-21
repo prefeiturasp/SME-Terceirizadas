@@ -477,8 +477,8 @@ class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
                                                   blank=True)
     encerrado = models.BooleanField('Encerrado?', default=False)
     data_hora_encerramento = models.DateTimeField('Data e hora do encerramento', null=True, default=None)
-    ata_chamada_publica = models.CharField('No da Ata/Chamada Pública', max_length=100, blank=True, null=True)
-    pregao = models.CharField('No do Pregão Eletrônico', max_length=100, blank=True, null=True)
+    ata_chamada_publica = models.CharField('No da Ata/Chamada Pública', max_length=100, blank=True)
+    pregao = models.CharField('No do Pregão Eletrônico', max_length=100, blank=True)
 
     def __str__(self):
         return f'Contrato:{self.numero} Processo: {self.processo}'
