@@ -25,7 +25,7 @@ from ...dados_comuns.permissions import (
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
-from ...escola.api.serializers import PeriodoEscolarSimplesSerializer
+from ...escola.api.serializers import PeriodoEscolarSerializer
 from ...escola.models import PeriodoEscolar
 from ...inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
@@ -749,6 +749,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         uuids_inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects.filter(
             status='CODAE_AUTORIZADO',
             escola__uuid=escola_uuid,
+            inclusoes_normais__cancelado=False,
             inclusoes_normais__data__month=mes,
             inclusoes_normais__data__year=ano,
             inclusoes_normais__data__lt=datetime.date.today()
@@ -759,7 +760,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             Q(quantidadeporperiodo__grupo_inclusao_normal__uuid__in=uuids_inclusoes_normais)
         ).distinct()
 
-        return Response(PeriodoEscolarSimplesSerializer(periodos_escolares, many=True).data, status=status.HTTP_200_OK)
+        return Response(PeriodoEscolarSerializer(periodos_escolares, many=True).data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path=f'{INCLUSOES_AUTORIZADAS}')
     def inclusoes_autorizadas(self, request):  # noqa C901
@@ -909,7 +910,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                             'inclusao_id_externo': alteracao.id_externo,
                             'motivo': alteracao_alimentacao.motivo
                         })
-
         data = {
             'results': return_dict
         }
