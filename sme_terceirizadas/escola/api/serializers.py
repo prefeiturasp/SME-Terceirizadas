@@ -447,6 +447,9 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                             'contato': self.get_contato(obj)}
         if hasattr(obj.instituicao, 'acesso_modulo_medicao_inicial'):
             instituicao_dict['acesso_modulo_medicao_inicial'] = obj.instituicao.acesso_modulo_medicao_inicial
+        if isinstance(obj.instituicao, DiretoriaRegional):
+            instituicao_dict['possui_escolas_com_acesso_ao_medicao_inicial'] = (
+                obj.instituicao.possui_escolas_com_acesso_ao_medicao_inicial)
         if isinstance(obj.instituicao, Escola):
             instituicao_dict['eh_cei'] = self.get_eh_cei(obj)
             instituicao_dict['eh_cemei'] = self.get_eh_cemei(obj)
