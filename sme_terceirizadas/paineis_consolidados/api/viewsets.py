@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
+from ...cardapio.models import AlteracaoCardapio
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.permissions import (
@@ -24,6 +25,9 @@ from ...dados_comuns.permissions import (
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
+from ...escola.api.serializers import PeriodoEscolarSimplesSerializer
+from ...escola.models import PeriodoEscolar
+from ...inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
@@ -53,6 +57,7 @@ from .constants import (
     AUTORIZADOS_DIETA_ESPECIAL,
     CANCELADOS,
     CANCELADOS_DIETA_ESPECIAL,
+    CEU_GESTAO_PERIODOS_COM_SOLICITACOES_AUTORIZADAS,
     FILTRO_DRE_UUID,
     FILTRO_ESCOLA_UUID,
     FILTRO_TERCEIRIZADA_UUID,
@@ -725,6 +730,36 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
         query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
+
+    @action(detail=False, methods=('get',), url_path=f'{CEU_GESTAO_PERIODOS_COM_SOLICITACOES_AUTORIZADAS}')
+    def ceu_gestao_periodos_com_solicitacoes_autorizadas(self, request):
+        escola_uuid = request.query_params.get('escola_uuid')
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+
+        uuids_ateracao_cardapio = AlteracaoCardapio.objects.filter(
+            status='CODAE_AUTORIZADO',
+            escola__uuid=escola_uuid,
+            data_inicial__month=mes,
+            data_inicial__year=ano,
+            data_inicial__lt=datetime.date.today()
+        ).exclude(
+            motivo__nome='Lanche Emergencial').values_list('uuid', flat=True)
+
+        uuids_inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects.filter(
+            status='CODAE_AUTORIZADO',
+            escola__uuid=escola_uuid,
+            inclusoes_normais__data__month=mes,
+            inclusoes_normais__data__year=ano,
+            inclusoes_normais__data__lt=datetime.date.today()
+        ).values_list('uuid', flat=True)
+
+        periodos_escolares = PeriodoEscolar.objects.filter(
+            Q(substituicoes_periodo_escolar__alteracao_cardapio__uuid__in=uuids_ateracao_cardapio) |
+            Q(quantidadeporperiodo__grupo_inclusao_normal__uuid__in=uuids_inclusoes_normais)
+        ).distinct()
+
+        return Response(PeriodoEscolarSimplesSerializer(periodos_escolares, many=True).data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path=f'{INCLUSOES_AUTORIZADAS}')
     def inclusoes_autorizadas(self, request):  # noqa C901
