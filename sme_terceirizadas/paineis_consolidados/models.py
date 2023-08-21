@@ -373,8 +373,8 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
 
     @classmethod
     def busca_filtro(cls, queryset, query_params, **kwargs):
-        if len(query_params) < 3 and kwargs.get('limit60days'):
-            data_limite = datetime.date.today() - datetime.timedelta(days=90)
+        if query_params.get('periodo'):
+            data_limite = datetime.date.today() - datetime.timedelta(days=int(query_params.get('periodo')))
             queryset = queryset.filter(data_evento__gte=data_limite)
         else:
             if query_params.get('busca'):
