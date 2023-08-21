@@ -30,6 +30,8 @@ from sme_terceirizadas.medicao_inicial.models import (
 )
 from sme_terceirizadas.perfil.models import Usuario
 
+from ..utils import log_alteracoes_escola_corrige_periodo
+
 
 class DiaSobremesaDoceCreateSerializer(serializers.ModelSerializer):
     tipo_unidade = serializers.SlugRelatedField(
@@ -308,6 +310,12 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         return medicao
 
     def update(self, instance, validated_data):  # noqa C901
+        user = self.context['request'].user
+        acao = instance.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
+        valores = validated_data.get('valores_medicao', None)
+        if instance.status in [acao, instance.workflow_class.MEDICAO_CORRECAO_SOLICITADA]:
+            log_alteracoes_escola_corrige_periodo(user, instance, acao, valores)
+
         valores_medicao_dict = validated_data.pop('valores_medicao', None)
 
         if valores_medicao_dict:
