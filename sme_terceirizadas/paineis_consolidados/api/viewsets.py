@@ -429,7 +429,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def autorizados(self, request):
         query_set = SolicitacoesCODAE.get_autorizados()
-        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params, limit60days=True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -438,7 +438,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def negados(self, request):
         query_set = SolicitacoesCODAE.get_negados()
-        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params, limit60days=True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -447,7 +447,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def cancelados(self, request):
         query_set = SolicitacoesCODAE.get_cancelados()
-        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params)
+        query_set = SolicitacoesCODAE.busca_filtro(query_set, request.query_params, limit60days=True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
