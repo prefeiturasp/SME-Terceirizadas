@@ -16,21 +16,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS(f'*** Gerando logs ***'))
         logs_para_criar = []
-        periodos = {
-            'MANHA': PeriodoEscolar.objects.get(nome='MANHA'),
-            'TARDE': PeriodoEscolar.objects.get(nome='TARDE'),
-            'INTEGRAL': PeriodoEscolar.objects.get(nome='INTEGRAL'),
-            'NOITE': PeriodoEscolar.objects.get(nome='NOITE'),
-            'INTERMEDIARIO': PeriodoEscolar.objects.get(nome='INTERMEDIARIO'),
-            'VESPERTINO': PeriodoEscolar.objects.get(nome='VESPERTINO')
-        }
+        dict_periodos = PeriodoEscolar.dict_periodos()
         for log in LogQuantidadeDietasAutorizadas.objects.all():
             for periodo_escolar_nome in log.escola.periodos_escolares_com_alunos:
                 novo_log = LogQuantidadeDietasAutorizadas(
                     quantidade=log.quantidade,
                     escola=log.escola,
                     data=log.data,
-                    periodo_escolar=periodos[periodo_escolar_nome],
+                    periodo_escolar=dict_periodos[periodo_escolar_nome],
                     classificacao=log.classificacao
                 )
                 logs_para_criar.append(novo_log)

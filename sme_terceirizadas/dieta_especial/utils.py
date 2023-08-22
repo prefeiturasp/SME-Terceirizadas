@@ -543,6 +543,7 @@ def filtrar_alunos_com_dietas_nos_status_e_rastro_escola(queryset, status_dieta,
 
 def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
     logs_a_criar = []
+    dict_periodos = PeriodoEscolar.dict_periodos()
     for classificacao in ClassificacaoDieta.objects.all():
         for periodo_escolar_nome in escola.periodos_escolares_com_alunos:
             quantidade_dietas = dietas_autorizadas.filter(
@@ -554,7 +555,7 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
                 quantidade=quantidade_dietas,
                 escola=escola,
                 data=ontem,
-                periodo_escolar=PeriodoEscolar.objects.get(nome=periodo_escolar_nome),
+                periodo_escolar=dict_periodos[periodo_escolar_nome],
                 classificacao=classificacao
             )
             logs_a_criar.append(log)
@@ -582,6 +583,7 @@ def logs_a_criar_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem):
         mes=f'{date.today().month:02d}',
         ano=date.today().year
     )
+    dict_periodos = PeriodoEscolar.dict_periodos()
     logs_a_criar = []
     periodos = escola.periodos_escolares_com_alunos
     periodos = append_periodo_parcial(periodos, solicitacao_medicao)
@@ -612,7 +614,7 @@ def logs_a_criar_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem):
                         escola=escola,
                         data=ontem,
                         classificacao=classificacao,
-                        periodo_escolar=PeriodoEscolar.objects.get(nome=periodo),
+                        periodo_escolar=dict_periodos[periodo],
                         faixa_etaria=faixa
                     )
                     logs_a_criar.append(log)
