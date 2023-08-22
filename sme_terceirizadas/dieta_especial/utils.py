@@ -625,6 +625,7 @@ def logs_a_criar_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem):
 def logs_a_criar_nao_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem):
     logs_a_criar = []
     periodos = escola.periodos_escolares_com_alunos
+    dict_periodos = PeriodoEscolar.dict_periodos()
     for periodo in periodos:
         for classificacao in ClassificacaoDieta.objects.all():
             dietas = dietas_autorizadas.filter(
@@ -642,7 +643,7 @@ def logs_a_criar_nao_existe_solicitacao_medicao(escola, dietas_autorizadas, onte
                     escola=escola,
                     data=ontem,
                     classificacao=classificacao,
-                    periodo_escolar=PeriodoEscolar.objects.get(nome=periodo),
+                    periodo_escolar=dict_periodos[periodo],
                     faixa_etaria=faixa
                 )
                 logs_a_criar.append(log)
@@ -651,6 +652,7 @@ def logs_a_criar_nao_existe_solicitacao_medicao(escola, dietas_autorizadas, onte
 
 
 def append_logs_a_criar_de_quantidade_zero(logs_a_criar, periodos, escola, ontem):
+    dict_periodos = PeriodoEscolar.dict_periodos()
     for periodo in periodos:
         faixas = faixas_por_periodo_e_faixa_etaria(escola, periodo)
         for faixa, _ in faixas.items():
@@ -662,7 +664,7 @@ def append_logs_a_criar_de_quantidade_zero(logs_a_criar, periodos, escola, ontem
                             escola=escola,
                             data=ontem,
                             classificacao=classificacao,
-                            periodo_escolar=PeriodoEscolar.objects.get(nome=periodo),
+                            periodo_escolar=dict_periodos[periodo],
                             faixa_etaria=FaixaEtaria.objects.get(uuid=faixa)
                         )
                         logs_a_criar.append(log)
@@ -720,6 +722,7 @@ def criar_logs_integral_parcial(
     faixas
 ):
     logs = []
+    dict_periodos = PeriodoEscolar.dict_periodos()
     faixas_alunos_parciais = []
     for dieta in dietas:
         if dieta.aluno.nome in solicitacao_medicao.alunos_periodo_parcial.values_list('aluno__nome', flat=True):
@@ -736,7 +739,7 @@ def criar_logs_integral_parcial(
             escola=escola,
             data=ontem,
             classificacao=classificacao,
-            periodo_escolar=PeriodoEscolar.objects.get(nome=periodo),
+            periodo_escolar=dict_periodos[periodo],
             faixa_etaria=faixa
         )
         logs.append(log)
