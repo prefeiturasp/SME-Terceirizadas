@@ -344,13 +344,13 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
     @staticmethod
     def dict_periodos():
         return {
-            'MANHA': PeriodoEscolar.objects.get(nome='MANHA'),
-            'TARDE': PeriodoEscolar.objects.get(nome='TARDE'),
-            'INTEGRAL': PeriodoEscolar.objects.get(nome='INTEGRAL'),
-            'NOITE': PeriodoEscolar.objects.get(nome='NOITE'),
-            'INTERMEDIARIO': PeriodoEscolar.objects.get(nome='INTERMEDIARIO'),
-            'VESPERTINO': PeriodoEscolar.objects.get(nome='VESPERTINO'),
-            'PARCIAL': PeriodoEscolar.objects.get(nome='PARCIAL')
+            'MANHA': PeriodoEscolar.objects.get_or_create(nome='MANHA')[0],
+            'TARDE': PeriodoEscolar.objects.get_or_create(nome='TARDE')[0],
+            'INTEGRAL': PeriodoEscolar.objects.get_or_create(nome='INTEGRAL')[0],
+            'NOITE': PeriodoEscolar.objects.get_or_create(nome='NOITE')[0],
+            'INTERMEDIARIO': PeriodoEscolar.objects.get_or_create(nome='INTERMEDIARIO')[0],
+            'VESPERTINO': PeriodoEscolar.objects.get_or_create(nome='VESPERTINO')[0],
+            'PARCIAL': PeriodoEscolar.objects.get_or_create(nome='PARCIAL')[0]
         }
 
     class Meta:
