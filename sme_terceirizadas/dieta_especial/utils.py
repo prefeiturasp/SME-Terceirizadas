@@ -3,6 +3,7 @@ from collections import Counter
 from datetime import date
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
 
@@ -545,7 +546,9 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
     for classificacao in ClassificacaoDieta.objects.all():
         for periodo_escolar_nome in escola.periodos_escolares_com_alunos:
             quantidade_dietas = dietas_autorizadas.filter(
-                classificacao=classificacao, escola_destino=escola, aluno__periodo_escolar__nome=periodo_escolar_nome
+                classificacao=classificacao, escola_destino=escola
+            ).filter(
+                Q(aluno__periodo_escolar__nome=periodo_escolar_nome) | Q(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
             ).count()
             log = LogQuantidadeDietasAutorizadas(
                 quantidade=quantidade_dietas,

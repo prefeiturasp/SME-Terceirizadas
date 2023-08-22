@@ -466,7 +466,9 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def periodos_escolares_com_alunos(self):
-        return list(self.aluno_set.filter(periodo_escolar__isnull=False).values_list('periodo_escolar__nome', flat=True).distinct())
+        return list(self.aluno_set.filter(
+            periodo_escolar__isnull=False
+        ).values_list('periodo_escolar__nome', flat=True).distinct())
 
     def quantidade_alunos_por_cei_emei(self, manha_e_tarde_sempre=False):  # noqa C901
         if not self.eh_cemei:
