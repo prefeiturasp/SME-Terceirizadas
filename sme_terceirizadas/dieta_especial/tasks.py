@@ -104,7 +104,8 @@ def gera_logs_dietas_especiais_diariamente():
         status__in=[
             SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO,
             SolicitacaoDietaEspecial.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
-            SolicitacaoDietaEspecial.workflow_class.ESCOLA_SOLICITOU_INATIVACAO]
+            SolicitacaoDietaEspecial.workflow_class.ESCOLA_SOLICITOU_INATIVACAO],
+        ativo=True
     )
     logs_a_criar_escolas_comuns = []
     logs_a_criar_escolas_cei = []

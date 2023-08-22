@@ -30,6 +30,8 @@ from sme_terceirizadas.medicao_inicial.models import (
 )
 from sme_terceirizadas.perfil.models import Usuario
 
+from ..utils import log_alteracoes_escola_corrige_periodo
+
 
 class DiaSobremesaDoceCreateSerializer(serializers.ModelSerializer):
     tipo_unidade = serializers.SlugRelatedField(
@@ -281,9 +283,14 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         medicao.save()
 
         for valor_medicao in valores_medicao_dict:
+            dia = int(valor_medicao.get('dia', ''))
+            mes = int(medicao.solicitacao_medicao_inicial.mes)
+            ano = int(medicao.solicitacao_medicao_inicial.ano)
+            semana = ValorMedicao.get_week_of_month(ano, mes, dia)
             ValorMedicao.objects.update_or_create(
                 medicao=medicao,
                 dia=valor_medicao.get('dia', ''),
+                semana=semana,
                 nome_campo=valor_medicao.get('nome_campo', ''),
                 categoria_medicao=valor_medicao.get('categoria_medicao', ''),
                 tipo_alimentacao=valor_medicao.get('tipo_alimentacao', None),
@@ -291,6 +298,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                 defaults={
                     'medicao': medicao,
                     'dia': valor_medicao.get('dia', ''),
+                    'semana': semana,
                     'valor': valor_medicao.get('valor', ''),
                     'nome_campo': valor_medicao.get('nome_campo', ''),
                     'categoria_medicao': valor_medicao.get('categoria_medicao', ''),
@@ -302,13 +310,24 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         return medicao
 
     def update(self, instance, validated_data):  # noqa C901
+        user = self.context['request'].user
+        acao = instance.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
+        valores = validated_data.get('valores_medicao', None)
+        if instance.status in [acao, instance.workflow_class.MEDICAO_CORRECAO_SOLICITADA]:
+            log_alteracoes_escola_corrige_periodo(user, instance, acao, valores)
+
         valores_medicao_dict = validated_data.pop('valores_medicao', None)
 
         if valores_medicao_dict:
             for valor_medicao in valores_medicao_dict:
+                dia = int(valor_medicao.get('dia', ''))
+                mes = int(instance.solicitacao_medicao_inicial.mes)
+                ano = int(instance.solicitacao_medicao_inicial.ano)
+                semana = ValorMedicao.get_week_of_month(ano, mes, dia)
                 ValorMedicao.objects.update_or_create(
                     medicao=instance,
                     dia=valor_medicao.get('dia', ''),
+                    semana=semana,
                     nome_campo=valor_medicao.get('nome_campo', ''),
                     categoria_medicao=valor_medicao.get('categoria_medicao', ''),
                     tipo_alimentacao=valor_medicao.get('tipo_alimentacao', None),
@@ -316,6 +335,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                     defaults={
                         'medicao': instance,
                         'dia': valor_medicao.get('dia', ''),
+                        'semana': semana,
                         'valor': valor_medicao.get('valor', ''),
                         'nome_campo': valor_medicao.get('nome_campo', ''),
                         'categoria_medicao': valor_medicao.get('categoria_medicao', ''),

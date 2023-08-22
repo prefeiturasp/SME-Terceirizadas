@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import environ
 from rest_framework import serializers
@@ -86,6 +87,12 @@ class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     ocorrencia = OcorrenciaMedicaoInicialSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     alunos_periodo_parcial = AlunoPeriodoParcialSimplesSerializer(many=True)
+    historico = serializers.SerializerMethodField()
+
+    def get_historico(self, obj):
+        if not obj.historico:
+            return None
+        return json.loads(obj.historico)
 
     class Meta:
         model = SolicitacaoMedicaoInicial

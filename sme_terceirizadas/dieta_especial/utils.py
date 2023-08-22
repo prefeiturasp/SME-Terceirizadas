@@ -2,6 +2,7 @@ import re
 from collections import Counter
 from datetime import date
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
 
@@ -566,6 +567,13 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
 
 
 def gera_logs_dietas_escolas_cei(escola, dietas_autorizadas, ontem):
+    try:
+        return logs_a_criar_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem)
+    except ObjectDoesNotExist:
+        return logs_a_criar_nao_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem)
+
+
+def logs_a_criar_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem):
     solicitacao_medicao = SolicitacaoMedicaoInicial.objects.get(
         escola__codigo_eol=escola.codigo_eol,
         mes=f'{date.today().month:02d}',
@@ -605,7 +613,75 @@ def gera_logs_dietas_escolas_cei(escola, dietas_autorizadas, ontem):
                         faixa_etaria=faixa
                     )
                     logs_a_criar.append(log)
+    logs_a_criar = append_logs_a_criar_de_quantidade_zero(logs_a_criar, periodos, escola, ontem)
     return logs_a_criar
+
+
+def logs_a_criar_nao_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem):
+    logs_a_criar = []
+    periodos = escola.periodos_escolares_com_alunos
+    for periodo in periodos:
+        for classificacao in ClassificacaoDieta.objects.all():
+            dietas = dietas_autorizadas.filter(
+                classificacao=classificacao,
+                escola_destino=escola
+            )
+            dietas_filtradas_periodo = dietas.filter(aluno__periodo_escolar__nome=periodo)
+            dietas_nao_matriculados = dietas.filter(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
+            faixas = []
+            faixas += append_faixas_dietas(dietas_filtradas_periodo)
+            faixas += append_faixas_dietas(dietas_nao_matriculados)
+            for faixa, quantidade in Counter(faixas).items():
+                log = LogQuantidadeDietasAutorizadasCEI(
+                    quantidade=quantidade,
+                    escola=escola,
+                    data=ontem,
+                    classificacao=classificacao,
+                    periodo_escolar=PeriodoEscolar.objects.get(nome=periodo),
+                    faixa_etaria=faixa
+                )
+                logs_a_criar.append(log)
+    logs_a_criar = append_logs_a_criar_de_quantidade_zero(logs_a_criar, periodos, escola, ontem)
+    return logs_a_criar
+
+
+def append_logs_a_criar_de_quantidade_zero(logs_a_criar, periodos, escola, ontem):
+    for periodo in periodos:
+        faixas = faixas_por_periodo_e_faixa_etaria(escola, periodo)
+        for faixa, _ in faixas.items():
+            if faixa in [str(f) for f in FaixaEtaria.objects.filter(ativo=True).values_list('uuid', flat=True)]:
+                for classificacao in ClassificacaoDieta.objects.all():
+                    if not existe_log(logs_a_criar, escola, ontem, classificacao, periodo, faixa):
+                        log = LogQuantidadeDietasAutorizadasCEI(
+                            quantidade=0,
+                            escola=escola,
+                            data=ontem,
+                            classificacao=classificacao,
+                            periodo_escolar=PeriodoEscolar.objects.get(nome=periodo),
+                            faixa_etaria=FaixaEtaria.objects.get(uuid=faixa)
+                        )
+                        logs_a_criar.append(log)
+    return logs_a_criar
+
+
+def faixas_por_periodo_e_faixa_etaria(escola, periodo):
+    try:
+        return escola.matriculados_por_periodo_e_faixa_etaria()[periodo]
+    except KeyError:
+        return escola.matriculados_por_periodo_e_faixa_etaria()['INTEGRAL']
+
+
+def existe_log(logs_a_criar, escola, ontem, classificacao, periodo, faixa):
+    resultado = list(
+        filter(lambda log: condicoes(log, escola, ontem, classificacao, periodo, faixa), logs_a_criar))
+    return resultado
+
+
+def condicoes(log, escola, ontem, classificacao, periodo, faixa):
+    resultado = (log.escola == escola and log.data == ontem and
+                 log.classificacao == classificacao and
+                 log.periodo_escolar.nome == periodo and str(log.faixa_etaria.uuid) == faixa)
+    return resultado
 
 
 def append_periodo_parcial(periodos, solicitacao_medicao):

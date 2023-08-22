@@ -1,6 +1,6 @@
 from datetime import date
 
-from rest_framework import fields, serializers
+from rest_framework import serializers
 from rest_framework.exceptions import NotAuthenticated
 from xworkflows.base import InvalidTransitionError
 
@@ -8,7 +8,6 @@ from sme_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
-    AlteracaoCronogramaEtapa,
     Cronograma,
     EmbalagemQld,
     EtapasDoCronograma,
@@ -229,7 +228,6 @@ def novo_numero_solicitacao(objeto):
 
 
 class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializer):
-    motivo = fields.MultipleChoiceField(choices=SolicitacaoAlteracaoCronograma.MOTIVO_CHOICES)
     cronograma = serializers.UUIDField()
     etapas = serializers.JSONField(write_only=True)
 
@@ -241,22 +239,26 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
             raise serializers.ValidationError(f'Cronograma já possui solicitação de alteração em análise')
         return value
 
+    def valida_campo_etapa(self, etapa, campo):
+        if not etapa[campo]:
+            raise serializers.ValidationError(
+                {campo: ['Este campo é obrigatório.']}
+            )
+
     def validate(self, attrs):
-        cronograma = Cronograma.objects.filter(uuid=attrs['cronograma'])
-        etapas_uuids = [etapa['uuid'] for etapa in attrs['etapas']]
-        if cronograma.filter(etapas__uuid__in=etapas_uuids).count() != len(etapas_uuids):
-            raise serializers.ValidationError(f'Existem etapas que não pertencem ao cronograma.')
+        for etapa in attrs['etapas']:
+            self.valida_campo_etapa(etapa, 'etapa')
+            self.valida_campo_etapa(etapa, 'parte')
+            self.valida_campo_etapa(etapa, 'data_programada')
+            self.valida_campo_etapa(etapa, 'quantidade')
+            self.valida_campo_etapa(etapa, 'total_embalagens')
         return super().validate(attrs)
 
     def _criar_etapas(self, etapas):
         etapas_created = []
         for etapa in etapas:
-            nova_data_programada = etapa.pop('nova_data_programada', None)
-            nova_quantidade = etapa.pop('nova_quantidade', None)
-            etapas_created.append(AlteracaoCronogramaEtapa.objects.create(
-                etapa=EtapasDoCronograma.objects.get(uuid=etapa['uuid']),
-                nova_data_programada=nova_data_programada,
-                nova_quantidade=nova_quantidade,
+            etapas_created.append(EtapasDoCronograma.objects.create(
+                **etapa
             ))
         return etapas_created
 
@@ -270,7 +272,8 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
             usuario_solicitante=user,
             cronograma=cronograma, **validated_data,
         )
-        alteracao_cronograma.etapas.set(etapas_created)
+        alteracao_cronograma.etapas_antigas.set(cronograma.etapas.all())
+        alteracao_cronograma.etapas_novas.set(etapas_created)
         self._alterna_estado_cronograma(cronograma, user, alteracao_cronograma)
         self._alterna_estado_solicitacao_alteracao_cronograma(alteracao_cronograma, user, validated_data)
         return alteracao_cronograma
@@ -289,7 +292,7 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
-        exclude = ('id', 'usuario_solicitante')
+        exclude = ('id', 'usuario_solicitante', 'etapas_antigas', 'etapas_novas')
 
 
 class UnidadeMedidaCreateSerializer(serializers.ModelSerializer):
