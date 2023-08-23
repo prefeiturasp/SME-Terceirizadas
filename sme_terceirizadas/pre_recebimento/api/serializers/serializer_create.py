@@ -283,7 +283,7 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
 
     def _alterna_estado_solicitacao_alteracao_cronograma(self, alteracao_cronograma, user, validated_data):
         try:
-            alteracao_cronograma.inicia_fluxo(user=user, justificativa=validated_data.get('justificativa', ''))
+            alteracao_cronograma.inicia_fluxo_codae(user=user, justificativa=validated_data.get('justificativa', ''))
         except InvalidTransitionError as e:
             raise serializers.ValidationError(f'Erro de transição de estado da alteração: {e}')
 

@@ -3510,32 +3510,40 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
 class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
+    SOLICITACAO_CRIADA = 'SOLICITACAO_CRIADA'
     EM_ANALISE = 'EM_ANALISE'
+    ALTERACAO_CODAE = 'ALTERACAO_CODAE'
     CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
     APROVADO_DINUTRE = 'APROVADO_DINUTRE'
     REPROVADO_DINUTRE = 'REPROVADO_DINUTRE'
     APROVADO_DILOG = 'APROVADO_DILOG'
     REPROVADO_DILOG = 'REPROVADO_DILOG'
+    FORNECEDOR_CIENTE = 'FORNECEDOR_CIENTE'
 
     states = (
+        (SOLICITACAO_CRIADA, 'Solicitação criada'),
         (EM_ANALISE, 'Em análise'),
+        (ALTERACAO_CODAE, 'Alteração Codae'),
         (CRONOGRAMA_CIENTE, 'Cronograma ciente'),
         (APROVADO_DINUTRE, 'Aprovado DINUTRE'),
         (REPROVADO_DINUTRE, 'Reprovado DINUTRE'),
         (APROVADO_DILOG, 'Aprovado DILOG'),
         (REPROVADO_DILOG, 'Reprovado DILOG'),
+        (FORNECEDOR_CIENTE, 'Fornecedor ciente'),
     )
 
     transitions = (
-        ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
+        ('inicia_fluxo', SOLICITACAO_CRIADA, EM_ANALISE),
+        ('inicia_fluxo_codae', SOLICITACAO_CRIADA, ALTERACAO_CODAE),
         ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE),
         ('dinutre_aprova', CRONOGRAMA_CIENTE, APROVADO_DINUTRE),
         ('dinutre_reprova', CRONOGRAMA_CIENTE, REPROVADO_DINUTRE),
         ('dilog_aprova', [APROVADO_DINUTRE, REPROVADO_DINUTRE], APROVADO_DILOG),
-        ('dilog_reprova', [APROVADO_DINUTRE, REPROVADO_DINUTRE], REPROVADO_DILOG)
+        ('dilog_reprova', [APROVADO_DINUTRE, REPROVADO_DINUTRE], REPROVADO_DILOG),
+        ('fornecedor_ciente', ALTERACAO_CODAE, FORNECEDOR_CIENTE)
     )
 
-    initial_state = EM_ANALISE
+    initial_state = SOLICITACAO_CRIADA
 
 
 class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
@@ -3549,6 +3557,15 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('inicia_fluxo_codae')
+    def _inicia_fluxo_codae_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.SOLICITACAO_ALTERACAO_CRONOGRAMA_ALTERACAO_CODAE,
+                usuario=user,
+                justificativa=kwargs.get('justificativa', ''))
 
     def _preenche_template(self, template_notif, log_transicao, perfil=None):
         texto_notificacao = render_to_string(
@@ -3696,6 +3713,14 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
             self._montar_dilog_notificacao()
+
+    @xworkflows.after_transition('fornecedor_ciente')
+    def _fornecedor_ciente_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_CIENTE_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
 
     class Meta:
         abstract = True
