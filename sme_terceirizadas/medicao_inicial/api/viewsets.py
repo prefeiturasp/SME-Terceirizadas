@@ -367,7 +367,7 @@ class SolicitacaoMedicaoInicialViewSet(
             medicoes = solicitacao_medicao_inicial.medicoes.all()
             status_medicao_aprovada = 'MEDICAO_APROVADA_PELA_DRE'
             if medicoes.exclude(status=status_medicao_aprovada).exists() or (
-                False and
+                solicitacao_medicao_inicial.tem_ocorrencia and
                     solicitacao_medicao_inicial.ocorrencia.status != status_medicao_aprovada):
                 mensagem = 'Erro: existe(m) pendência(s) de análise'
                 return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
