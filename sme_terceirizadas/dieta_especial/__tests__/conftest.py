@@ -11,7 +11,7 @@ from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...eol_servico.utils import EOLService
-from ...escola.models import Aluno
+from ...escola.models import Aluno, FaixaEtaria, PeriodoEscolar
 from ...perfil.models import Usuario
 from ...produto.models import Produto
 from ...terceirizada.models import Edital
@@ -578,3 +578,174 @@ def client_autenticado_protocolo_dieta(client, django_user_model, escola, codae)
     mommy.make('dieta_especial.Alimento', id=2, uuid='e67b6e67-7501-4d6e-8fac-ce219df3ed2b',
                tipo_listagem_protocolo='AMBOS')
     return client
+
+
+@pytest.fixture
+def escola_cei():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade = mommy.make('TipoUnidadeEscolar', iniciais='CEI DIRET')
+    contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='012f7722-9ab4-4e21-b0f6-85e17b58b0d1')
+    escola = mommy.make(
+        'Escola',
+        lote=lote,
+        nome='CEI DIRET JOAO MENDES',
+        codigo_eol='000546',
+        uuid='a627fc63-16fd-482c-a877-16ebc1a82e57',
+        contato=contato,
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade
+    )
+    return escola
+
+
+@pytest.fixture
+def classificacoes_dietas():
+    return [
+        mommy.make(ClassificacaoDieta, nome='Tipo A'),
+        mommy.make(ClassificacaoDieta, nome='Tipo A Enteral'),
+        mommy.make(ClassificacaoDieta, nome='Tipo B')
+    ]
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_ativas(escola, classificacoes_dietas):
+    periodo_tarde = mommy.make(PeriodoEscolar, nome='MANHA')
+    mommy.make(FaixaEtaria, inicio=1, fim=31)
+    aluno = mommy.make(Aluno,
+                       nome='Roberto Alves da Silva',
+                       codigo_eol='123456',
+                       data_nascimento='2022-01-01',
+                       escola=escola,
+                       periodo_escolar=periodo_tarde)
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+               aluno=aluno,
+               rastro_escola=escola,
+               escola_destino=escola,
+               classificacao=classificacoes_dietas[0]),
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+               aluno=aluno,
+               rastro_escola=escola,
+               escola_destino=escola,
+               classificacao=classificacoes_dietas[1]),
+    return SolicitacaoDietaEspecial.objects.all()
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_ativas_cei(escola_cei, classificacoes_dietas):
+    periodo_tarde = mommy.make(PeriodoEscolar, nome='TARDE')
+    mommy.make(FaixaEtaria, inicio=1, fim=31)
+    aluno = mommy.make(Aluno,
+                       nome='Roberto Alves da Silva',
+                       codigo_eol='123456',
+                       data_nascimento='2022-01-01',
+                       escola=escola_cei,
+                       periodo_escolar=periodo_tarde)
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+               aluno=aluno,
+               rastro_escola=escola_cei,
+               escola_destino=escola_cei,
+               classificacao=classificacoes_dietas[0]),
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+               aluno=aluno,
+               rastro_escola=escola_cei,
+               escola_destino=escola_cei,
+               classificacao=classificacoes_dietas[1]),
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+               aluno=aluno,
+               rastro_escola=escola_cei,
+               escola_destino=escola_cei,
+               classificacao=classificacoes_dietas[0])
+    return SolicitacaoDietaEspecial.objects.all()
+
+
+@pytest.fixture
+def categoria_medicao():
+    return mommy.make('CategoriaMedicao', nome='ALIMENTAÇÃO')
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial(escola_cei, categoria_medicao):
+    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
+    periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
+    historico = {
+        'usuario': {'uuid': 'a7f20675-50e1-46d2-a207-28543b93e19d', 'nome': 'usuario teste',
+                    'username': '12312312344', 'email': 'email@teste.com'},
+        'criado_em': datetime.date.today().strftime('%Y-%m-%d %H:%M:%S'),
+        'acao': 'MEDICAO_CORRECAO_SOLICITADA',
+        'alteracoes': [
+            {
+                'periodo_escolar': periodo_manha.nome,
+                'tabelas_lancamentos': [
+                    {
+                        'categoria_medicao': 'ALIMENTAÇÃO',
+                        'semanas': [
+                            {'semana': '1', 'dias': ['01']}
+                        ]
+                    }
+                ]
+            },
+        ]
+    }
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    solicitacao_medicao = mommy.make(
+        'SolicitacaoMedicaoInicial', uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
+        mes=f'{ontem.month:02d}', ano=ontem.year, escola=escola_cei, ue_possui_alunos_periodo_parcial=True,
+        tipo_contagem_alimentacoes=tipo_contagem, historico=json.dumps([historico]))
+    medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                         periodo_escolar=periodo_manha)
+    mommy.make('ValorMedicao', dia='01', semana='1', nome_campo='lanche', medicao=medicao,
+               categoria_medicao=categoria_medicao, valor='10')
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_ativas_cei_com_solicitacao_medicao(
+    escola_cei,
+    classificacoes_dietas,
+    solicitacao_medicao_inicial
+):
+    periodo_integral = mommy.make(PeriodoEscolar, nome='INTEGRAL')
+    mommy.make(FaixaEtaria, inicio=1, fim=50)
+    mommy.make(ClassificacaoDieta, nome='Tipo C')
+    aluno = mommy.make(Aluno,
+                       nome='Roberto Alves da Silva',
+                       codigo_eol='123456',
+                       data_nascimento='2022-01-01',
+                       escola=escola_cei,
+                       periodo_escolar=periodo_integral)
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+               aluno=aluno,
+               rastro_escola=escola_cei,
+               escola_destino=escola_cei,
+               classificacao=classificacoes_dietas[0]),
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+               aluno=aluno,
+               rastro_escola=escola_cei,
+               escola_destino=escola_cei,
+               classificacao=classificacoes_dietas[1]),
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+               aluno=aluno,
+               rastro_escola=escola_cei,
+               escola_destino=escola_cei,
+               classificacao=classificacoes_dietas[2])
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+               aluno=aluno,
+               rastro_escola=escola_cei,
+               escola_destino=escola_cei,
+               classificacao=classificacoes_dietas[2])
+    return SolicitacaoDietaEspecial.objects.all()

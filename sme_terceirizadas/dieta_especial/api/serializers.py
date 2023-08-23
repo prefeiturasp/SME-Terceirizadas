@@ -8,7 +8,7 @@ from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUs
 from ...dados_comuns.utils import update_instance_from_dict
 from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, LoteSerializer, TipoGestaoSerializer
-from ...escola.models import DiretoriaRegional, Escola
+from ...escola.models import DiretoriaRegional, Escola, PeriodoEscolar
 from ...escola.services import NovoSGPServicoLogadoException
 from ...produto.api.serializers.serializers import MarcaSimplesSerializer, ProdutoSimplesSerializer
 from ...produto.models import Produto, SolicitacaoCadastroProdutoDieta
@@ -694,6 +694,11 @@ class LogQuantidadeDietasAutorizadasSerializer(serializers.ModelSerializer):
         required=False
     )
     dia = serializers.SerializerMethodField()
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=PeriodoEscolar.objects.all()
+    )
 
     def get_dia(self, obj):
         day = str(obj.data.day)

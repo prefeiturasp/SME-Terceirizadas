@@ -1,9 +1,16 @@
+import datetime
+
 import pytest
 
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...terceirizada.models import Edital
 from ..models import SolicitacaoDietaEspecial
-from ..utils import dietas_especiais_a_terminar, termina_dietas_especiais
+from ..utils import (
+    dietas_especiais_a_terminar,
+    gera_logs_dietas_escolas_cei,
+    gera_logs_dietas_escolas_comuns,
+    termina_dietas_especiais
+)
 
 
 @pytest.mark.django_db
@@ -41,3 +48,37 @@ def test_diff_protocolo_padrao(protocolo_padrao_dieta_especial_2, substituicao_p
     new_editais = Edital.objects.filter(uuid__in=new_editais)
     changes = diff_protocolo_padrao(protocolo_padrao_dieta_especial_2, validated_data, old_editais, old_editais)
     assert changes
+
+
+@pytest.mark.django_db
+def test_gera_logs_dietas_escolas_comuns(escola, solicitacoes_dieta_especial_ativas):
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    logs = gera_logs_dietas_escolas_comuns(escola, solicitacoes_dieta_especial_ativas, ontem)
+    assert len(logs) == 6
+    assert len([log for log in logs if log.classificacao.nome == 'Tipo A']) == 2
+
+
+@pytest.mark.django_db
+def test_gera_logs_dietas_escolas_cei(escola_cei, solicitacoes_dieta_especial_ativas_cei):
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    logs = gera_logs_dietas_escolas_cei(escola_cei, solicitacoes_dieta_especial_ativas_cei, ontem)
+    assert len(logs) == 2
+    assert len([log for log in logs if log.classificacao.nome == 'Tipo A']) == 1
+    assert [log for log in logs if log.classificacao.nome == 'Tipo A'][0].quantidade == 2
+
+
+@pytest.mark.django_db
+def test_gera_logs_dietas_escolas_cei_com_solicitacao_medicao(
+    escola_cei,
+    solicitacoes_dieta_especial_ativas_cei_com_solicitacao_medicao
+):
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    logs = gera_logs_dietas_escolas_cei(
+        escola_cei, solicitacoes_dieta_especial_ativas_cei_com_solicitacao_medicao, ontem)
+    assert len(logs) == 3
+    assert len([log for log in logs if log.classificacao.nome == 'Tipo B']) == 1
+    assert [log for log in logs if log.classificacao.nome == 'Tipo A Enteral'][0].quantidade == 1
+    assert [log for log in logs if log.classificacao.nome == 'Tipo B'][0].quantidade == 2

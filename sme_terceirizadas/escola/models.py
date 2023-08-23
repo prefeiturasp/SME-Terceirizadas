@@ -341,6 +341,18 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
     tipo_turno = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
 
+    @staticmethod
+    def dict_periodos():
+        return {
+            'MANHA': PeriodoEscolar.objects.get_or_create(nome='MANHA')[0],
+            'TARDE': PeriodoEscolar.objects.get_or_create(nome='TARDE')[0],
+            'INTEGRAL': PeriodoEscolar.objects.get_or_create(nome='INTEGRAL')[0],
+            'NOITE': PeriodoEscolar.objects.get_or_create(nome='NOITE')[0],
+            'INTERMEDIARIO': PeriodoEscolar.objects.get_or_create(nome='INTERMEDIARIO')[0],
+            'VESPERTINO': PeriodoEscolar.objects.get_or_create(nome='VESPERTINO')[0],
+            'PARCIAL': PeriodoEscolar.objects.get_or_create(nome='PARCIAL')[0]
+        }
+
     class Meta:
         ordering = ('posicao',)
         verbose_name = 'Período escolar'
@@ -466,7 +478,9 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def periodos_escolares_com_alunos(self):
-        return list(self.aluno_set.values_list('periodo_escolar__nome', flat=True).distinct())
+        return list(self.aluno_set.filter(
+            periodo_escolar__isnull=False
+        ).values_list('periodo_escolar__nome', flat=True).distinct())
 
     def quantidade_alunos_por_cei_emei(self, manha_e_tarde_sempre=False):  # noqa C901
         if not self.eh_cemei:
