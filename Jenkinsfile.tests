@@ -24,7 +24,7 @@ pipeline {
         stage('AmbienteTestes') {
             agent { label 'setup' }
             when { 
-              expression { return anyOf(env.BRANCH_NAME.startsWith("bug"), env.BRANCH_NAME.startsWith("bugfix"), env.BRANCH_NAME.startsWith("feature"), env.BRANCH_NAME.startsWith("fix"), env.BRANCH_NAME.startsWith("releases"), env.BRANCH_NAME.startsWith("hotfix")) }
+              expression { return env.BRANCH_NAME.startsWith("bug"), env.BRANCH_NAME.startsWith("bugfix"), env.BRANCH_NAME.startsWith("feature"), env.BRANCH_NAME.startsWith("fix"), env.BRANCH_NAME.startsWith("releases"), env.BRANCH_NAME.startsWith("hotfix") }
             }
             steps {
                 script {
@@ -36,7 +36,7 @@ pipeline {
 
         stage('Testes') {
             when { 
-              expression { return anyOf(env.BRANCH_NAME.startsWith("bug"), env.BRANCH_NAME.startsWith("bugfix"), env.BRANCH_NAME.startsWith("feature"), env.BRANCH_NAME.startsWith("fix"), env.BRANCH_NAME.startsWith("releases"), env.BRANCH_NAME.startsWith("hotfix")) }
+              expression { return env.BRANCH_NAME.startsWith("bug"), env.BRANCH_NAME.startsWith("bugfix"), env.BRANCH_NAME.startsWith("feature"), env.BRANCH_NAME.startsWith("fix"), env.BRANCH_NAME.startsWith("releases"), env.BRANCH_NAME.startsWith("hotfix") }
             }
           steps {
              sh 'pip install --user pipenv==2022.4.8'
