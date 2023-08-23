@@ -367,20 +367,21 @@ class SolicitacaoMedicaoInicialViewSet(
             medicoes = solicitacao_medicao_inicial.medicoes.all()
             status_medicao_aprovada = 'MEDICAO_APROVADA_PELA_DRE'
             if medicoes.exclude(status=status_medicao_aprovada).exists() or (
-                solicitacao_medicao_inicial.tem_ocorrencia and
+                False and
                     solicitacao_medicao_inicial.ocorrencia.status != status_medicao_aprovada):
                 mensagem = 'Erro: existe(m) pendência(s) de análise'
                 return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
             solicitacao_medicao_inicial.dre_aprova(user=request.user)
             acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
             log = criar_log_aprovar_periodos_corrigidos(request.user, solicitacao_medicao_inicial, acao)
-            if not solicitacao_medicao_inicial.historico:
-                historico = [log]
-            else:
-                historico = json.loads(solicitacao_medicao_inicial.historico)
-                historico.append(log)
-            solicitacao_medicao_inicial.historico = json.dumps(historico)
-            solicitacao_medicao_inicial.save()
+            if log:
+                if not solicitacao_medicao_inicial.historico:
+                    historico = [log]
+                else:
+                    historico = json.loads(solicitacao_medicao_inicial.historico)
+                    historico.append(log)
+                solicitacao_medicao_inicial.historico = json.dumps(historico)
+                solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -394,13 +395,14 @@ class SolicitacaoMedicaoInicialViewSet(
             solicitacao_medicao_inicial.dre_pede_correcao(user=request.user)
             acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA
             log = criar_log_solicitar_correcao_periodos(request.user, solicitacao_medicao_inicial, acao)
-            if not solicitacao_medicao_inicial.historico:
-                historico = [log]
-            else:
-                historico = json.loads(solicitacao_medicao_inicial.historico)
-                historico.append(log)
-            solicitacao_medicao_inicial.historico = json.dumps(historico)
-            solicitacao_medicao_inicial.save()
+            if log:
+                if not solicitacao_medicao_inicial.historico:
+                    historico = [log]
+                else:
+                    historico = json.loads(solicitacao_medicao_inicial.historico)
+                    historico.append(log)
+                solicitacao_medicao_inicial.historico = json.dumps(historico)
+                solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
