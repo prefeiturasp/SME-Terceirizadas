@@ -16,4 +16,5 @@ RUN pipenv install --system --deploy --ignore-pipfile && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
+
 EXPOSE 8000
