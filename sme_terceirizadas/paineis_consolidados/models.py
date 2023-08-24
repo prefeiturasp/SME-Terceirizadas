@@ -376,27 +376,26 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         if query_params.get('periodo'):
             data_limite = datetime.date.today() - datetime.timedelta(days=int(query_params.get('periodo')))
             queryset = queryset.filter(data_evento__gte=data_limite)
-        else:
-            if query_params.get('busca'):
-                queryset = queryset.filter(
-                    Q(uuid__icontains=query_params.get('busca')) |
-                    Q(desc_doc__icontains=query_params.get('busca')) |
-                    Q(escola_nome__icontains=query_params.get('busca')) |
-                    Q(escola_uuid__icontains=query_params.get('busca')) |
-                    Q(lote_nome__icontains=query_params.get('busca')) |
-                    Q(motivo__icontains=query_params.get('busca'))
-                )
-            if query_params.get('lote'):
-                queryset = queryset.filter(lote_uuid__icontains=query_params.get('lote'))
-            if query_params.get('status'):
-                queryset = queryset.filter(
-                    terceirizada_conferiu_gestao=query_params.get('status') == '1')
-            if query_params.get('diretoria_regional'):
-                queryset = queryset.filter(dre_uuid=query_params.get('diretoria_regional'))
-            queryset = cls.excluir_inclusoes_continuas(queryset, query_params)
-            queryset = cls.filtrar_tipo_doc(queryset, query_params)
-            queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
-            queryset = cls.busca_data_evento(queryset, query_params)
+        if query_params.get('busca'):
+            queryset = queryset.filter(
+                Q(uuid__icontains=query_params.get('busca')) |
+                Q(desc_doc__icontains=query_params.get('busca')) |
+                Q(escola_nome__icontains=query_params.get('busca')) |
+                Q(escola_uuid__icontains=query_params.get('busca')) |
+                Q(lote_nome__icontains=query_params.get('busca')) |
+                Q(motivo__icontains=query_params.get('busca'))
+            )
+        if query_params.get('lote'):
+            queryset = queryset.filter(lote_uuid__icontains=query_params.get('lote'))
+        if query_params.get('status'):
+            queryset = queryset.filter(
+                terceirizada_conferiu_gestao=query_params.get('status') == '1')
+        if query_params.get('diretoria_regional'):
+            queryset = queryset.filter(dre_uuid=query_params.get('diretoria_regional'))
+        queryset = cls.excluir_inclusoes_continuas(queryset, query_params)
+        queryset = cls.filtrar_tipo_doc(queryset, query_params)
+        queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
+        queryset = cls.busca_data_evento(queryset, query_params)
         return queryset
 
     @classmethod
