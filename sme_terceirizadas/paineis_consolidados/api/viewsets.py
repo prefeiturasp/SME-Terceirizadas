@@ -11,7 +11,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
-from ...cardapio.models import AlteracaoCardapio
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.permissions import (
@@ -737,15 +736,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         mes = request.query_params.get('mes')
         ano = request.query_params.get('ano')
 
-        uuids_ateracao_cardapio = AlteracaoCardapio.objects.filter(
-            status='CODAE_AUTORIZADO',
-            escola__uuid=escola_uuid,
-            data_inicial__month=mes,
-            data_inicial__year=ano,
-            data_inicial__lt=datetime.date.today()
-        ).exclude(
-            motivo__nome='Lanche Emergencial').values_list('uuid', flat=True)
-
         uuids_inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects.filter(
             status='CODAE_AUTORIZADO',
             escola__uuid=escola_uuid,
@@ -756,8 +746,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         ).values_list('uuid', flat=True)
 
         periodos_escolares = PeriodoEscolar.objects.filter(
-            Q(substituicoes_periodo_escolar__alteracao_cardapio__uuid__in=uuids_ateracao_cardapio) |
-            Q(quantidadeporperiodo__grupo_inclusao_normal__uuid__in=uuids_inclusoes_normais)
+            quantidadeporperiodo__grupo_inclusao_normal__uuid__in=uuids_inclusoes_normais
         ).distinct()
 
         return Response(PeriodoEscolarSerializer(periodos_escolares, many=True).data, status=status.HTTP_200_OK)
