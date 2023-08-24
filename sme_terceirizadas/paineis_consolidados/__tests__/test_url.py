@@ -281,3 +281,13 @@ def test_filtro_dre_error(solicitacoes_ano_dre):
             "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'RECEBIDAS', 'TODOS']"],
         'data_final': ['Informe uma data válida.']
     }
+
+
+def test_ceu_gestao_periodos_com_solicitacoes_autorizadas(client_autenticado_escola_paineis_consolidados, escola):
+    response = client_autenticado_escola_paineis_consolidados.get(
+        '/escola-solicitacoes/ceu-gestao-periodos-com-solicitacoes-autorizadas/'
+        f'?escola_uuid={escola.uuid}&mes=08&ano=2023'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
+    assert response.json()[0]['nome'] == 'MANHA'

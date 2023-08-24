@@ -24,6 +24,9 @@ from ...dados_comuns.permissions import (
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
+from ...escola.api.serializers import PeriodoEscolarSerializer
+from ...escola.models import PeriodoEscolar
+from ...inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
@@ -53,6 +56,7 @@ from .constants import (
     AUTORIZADOS_DIETA_ESPECIAL,
     CANCELADOS,
     CANCELADOS_DIETA_ESPECIAL,
+    CEU_GESTAO_PERIODOS_COM_SOLICITACOES_AUTORIZADAS,
     FILTRO_DRE_UUID,
     FILTRO_ESCOLA_UUID,
     FILTRO_TERCEIRIZADA_UUID,
@@ -726,6 +730,27 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
 
+    @action(detail=False, methods=('get',), url_path=f'{CEU_GESTAO_PERIODOS_COM_SOLICITACOES_AUTORIZADAS}')
+    def ceu_gestao_periodos_com_solicitacoes_autorizadas(self, request):
+        escola_uuid = request.query_params.get('escola_uuid')
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+
+        uuids_inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects.filter(
+            status='CODAE_AUTORIZADO',
+            escola__uuid=escola_uuid,
+            inclusoes_normais__cancelado=False,
+            inclusoes_normais__data__month=mes,
+            inclusoes_normais__data__year=ano,
+            inclusoes_normais__data__lt=datetime.date.today()
+        ).values_list('uuid', flat=True)
+
+        periodos_escolares = PeriodoEscolar.objects.filter(
+            quantidadeporperiodo__grupo_inclusao_normal__uuid__in=uuids_inclusoes_normais
+        ).distinct()
+
+        return Response(PeriodoEscolarSerializer(periodos_escolares, many=True).data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['GET'], url_path=f'{INCLUSOES_AUTORIZADAS}')
     def inclusoes_autorizadas(self, request):  # noqa C901
         escola_uuid = request.query_params.get('escola_uuid')
@@ -874,7 +899,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                             'inclusao_id_externo': alteracao.id_externo,
                             'motivo': alteracao_alimentacao.motivo
                         })
-
         data = {
             'results': return_dict
         }

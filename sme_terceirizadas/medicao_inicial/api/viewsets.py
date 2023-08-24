@@ -524,6 +524,17 @@ class SolicitacaoMedicaoInicialViewSet(
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['GET'], url_path='ceu-gestao-frequencias-dietas',
+            permission_classes=[UsuarioEscolaTercTotal])
+    def ceu_gestao_frequencias_dietas(self, request, uuid=None):
+        solicitacao_medicao = self.get_object()
+        valores_medicao = ValorMedicao.objects.filter(
+            medicao__solicitacao_medicao_inicial=solicitacao_medicao,
+            categoria_medicao__nome__icontains='DIETA ESPECIAL',
+            nome_campo='frequencia'
+        )
+        return Response(ValorMedicaoSerializer(valores_medicao, many=True).data, status=status.HTTP_200_OK)
+
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = TipoContagemAlimentacao.objects.filter(ativo=True)
