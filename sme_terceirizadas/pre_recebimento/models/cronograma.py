@@ -195,6 +195,17 @@ class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel
         )
         return log_transicao
 
+    def cronograma_confirma_ciencia(self, justificativa, usuario, etapas, programacoes):
+        from ..api.helpers import cria_etapas_de_cronograma, cria_programacao_de_cronograma
+
+        self.etapas_novas.all().delete()
+        etapas_criadas = cria_etapas_de_cronograma(etapas)
+        self.etapas_novas.set(etapas_criadas)
+        programacoes_criadas = cria_programacao_de_cronograma(programacoes)
+        self.programacoes_novas.set(programacoes_criadas)
+        self.cronograma_ciente(user=usuario, justificativa=justificativa)
+        self.save()
+
     def __str__(self):
         return f'Solicitação de alteração do cronograma: {self.numero_solicitacao}'
 
