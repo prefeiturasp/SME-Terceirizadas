@@ -172,6 +172,8 @@ class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel
 
     etapas_antigas = models.ManyToManyField(EtapasDoCronograma, related_name='etapas_antigas')
     etapas_novas = models.ManyToManyField(EtapasDoCronograma, related_name='etapas_novas')
+    programacoes_novas = models.ManyToManyField(
+        ProgramacaoDoRecebimentoDoCronograma, related_name='programacoes_novas', blank=True)
     justificativa = models.TextField('Justificativa de solicitação pelo fornecedor', blank=True)
     usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
     numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=50, unique=True)
