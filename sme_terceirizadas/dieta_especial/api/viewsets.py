@@ -53,6 +53,7 @@ from ..models import (
     Anexo,
     ClassificacaoDieta,
     LogQuantidadeDietasAutorizadas,
+    LogQuantidadeDietasAutorizadasCEI,
     MotivoAlteracaoUE,
     MotivoNegacao,
     ProtocoloPadraoDietaEspecial,
@@ -70,6 +71,7 @@ from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
     ClassificacaoDietaSerializer,
+    LogQuantidadeDietasAutorizadasCEISerializer,
     LogQuantidadeDietasAutorizadasSerializer,
     MotivoAlteracaoUESerializer,
     MotivoNegacaoSerializer,
@@ -1191,6 +1193,14 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
 class LogQuantidadeDietasAutorizadasViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = LogQuantidadeDietasAutorizadasSerializer
     queryset = LogQuantidadeDietasAutorizadas.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = LogQuantidadeDietasEspeciaisFilter
+    pagination_class = None
+
+
+class LogQuantidadeDietasAutorizadasCEIViewSet(mixins.ListModelMixin, GenericViewSet):
+    serializer_class = LogQuantidadeDietasAutorizadasCEISerializer
+    queryset = LogQuantidadeDietasAutorizadasCEI.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = LogQuantidadeDietasEspeciaisFilter
     pagination_class = None
