@@ -743,8 +743,10 @@ def dict_informacoes_iniciais(user, acao):
 
 def criar_log_solicitar_correcao_periodos(user, solicitacao, acao):
     log = dict_informacoes_iniciais(user, acao)
-
-    for medicao in solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA'):
+    medicoes = solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA')
+    if not medicoes:
+        return
+    for medicao in medicoes:
         if medicao.periodo_escolar:
             periodo_nome = medicao.periodo_escolar.nome
         else:
@@ -789,6 +791,8 @@ def log_anterior_para_busca(acao):
 
 
 def criar_log_aprovar_periodos_corrigidos(user, solicitacao, acao):
+    if not solicitacao.historico:
+        return
     log = dict_informacoes_iniciais(user, acao)
     historico = json.loads(solicitacao.historico)
     lista_logs = list(filter(lambda log: log['acao'] == log_anterior_para_busca(acao), historico))
