@@ -31,7 +31,7 @@ from ..dados_comuns.fluxo_status import (
 )
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..dieta_especial.models import SolicitacaoDietaEspecial
-from ..escola.models import Escola
+from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..inclusao_alimentacao.api.serializers.serializers import (
     GrupoInclusaoAlimentacaoNormalSerializer,
     InclusaoAlimentacaoContinuaSerializer,
@@ -56,6 +56,7 @@ from ..kit_lanche.models import (
     SolicitacaoKitLancheCEMEI,
     SolicitacaoKitLancheUnificada
 )
+from ..terceirizada.models import Terceirizada
 
 
 class SolicitacoesDestaSemanaManager(models.Manager):
@@ -279,9 +280,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         return queryset
 
     @classmethod
-    def busca_periodo_de_datas(cls, queryset, query_params, **kwargs):
-        data_evento = query_params.get('data_evento')
-        data_evento_fim = query_params.get('data_evento_fim')
+    def busca_periodo_de_datas(cls, queryset, data_evento, data_evento_fim, **kwargs):
         filtros_inicio = Q()
         filtros_fim = Q()
         if data_evento:
@@ -376,27 +375,26 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         if query_params.get('periodo'):
             data_limite = datetime.date.today() - datetime.timedelta(days=int(query_params.get('periodo')))
             queryset = queryset.filter(data_evento__gte=data_limite)
-        else:
-            if query_params.get('busca'):
-                queryset = queryset.filter(
-                    Q(uuid__icontains=query_params.get('busca')) |
-                    Q(desc_doc__icontains=query_params.get('busca')) |
-                    Q(escola_nome__icontains=query_params.get('busca')) |
-                    Q(escola_uuid__icontains=query_params.get('busca')) |
-                    Q(lote_nome__icontains=query_params.get('busca')) |
-                    Q(motivo__icontains=query_params.get('busca'))
-                )
-            if query_params.get('lote'):
-                queryset = queryset.filter(lote_uuid__icontains=query_params.get('lote'))
-            if query_params.get('status'):
-                queryset = queryset.filter(
-                    terceirizada_conferiu_gestao=query_params.get('status') == '1')
-            if query_params.get('diretoria_regional'):
-                queryset = queryset.filter(dre_uuid=query_params.get('diretoria_regional'))
-            queryset = cls.excluir_inclusoes_continuas(queryset, query_params)
-            queryset = cls.filtrar_tipo_doc(queryset, query_params)
-            queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
-            queryset = cls.busca_data_evento(queryset, query_params)
+        if query_params.get('busca'):
+            queryset = queryset.filter(
+                Q(uuid__icontains=query_params.get('busca')) |
+                Q(desc_doc__icontains=query_params.get('busca')) |
+                Q(escola_nome__icontains=query_params.get('busca')) |
+                Q(escola_uuid__icontains=query_params.get('busca')) |
+                Q(lote_nome__icontains=query_params.get('busca')) |
+                Q(motivo__icontains=query_params.get('busca'))
+            )
+        if query_params.get('lote'):
+            queryset = queryset.filter(lote_uuid__icontains=query_params.get('lote'))
+        if query_params.get('status'):
+            queryset = queryset.filter(
+                terceirizada_conferiu_gestao=query_params.get('status') == '1')
+        if query_params.get('diretoria_regional'):
+            queryset = queryset.filter(dre_uuid=query_params.get('diretoria_regional'))
+        queryset = cls.excluir_inclusoes_continuas(queryset, query_params)
+        queryset = cls.filtrar_tipo_doc(queryset, query_params)
+        queryset = cls.busca_por_tipo_solicitacao(queryset, query_params)
+        queryset = cls.busca_data_evento(queryset, query_params)
         return queryset
 
     @classmethod
@@ -534,6 +532,16 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
             total_pendentes_mes_passado=tot_pendentes_mp,
             total_mes_passado=total_mp,
         )
+
+    @staticmethod
+    def classe_por_tipo_usuario(tipo_obj_instituicao):
+        map_ = {
+            Escola: SolicitacoesEscola,
+            DiretoriaRegional: SolicitacoesDRE,
+            Codae: SolicitacoesCODAE,
+            Terceirizada: SolicitacoesTerceirizada,
+        }
+        return map_[tipo_obj_instituicao]
 
     class Meta:
         managed = False
@@ -1042,7 +1050,6 @@ class SolicitacoesEscola(MoldeConsolidado):
         from django.db.models import Q
 
         from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
-
         escola_uuid = kwargs.get('escola_uuid')
         uuids_solicitacao_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
             escolas_quantidades__escola__uuid=escola_uuid,
@@ -1137,7 +1144,7 @@ class SolicitacoesEscola(MoldeConsolidado):
 
     @classmethod
     def map_queryset_por_status(cls, status, **kwargs):
-        escola_uuid = kwargs.get('escola_uuid')
+        escola_uuid = kwargs.get('instituicao_uuid')
         if not status:
             return cls.objects.all()
         mapeador = {
@@ -1404,7 +1411,7 @@ class SolicitacoesDRE(MoldeConsolidado):
 
     @classmethod
     def map_queryset_por_status(cls, status, **kwargs):
-        dre_uuid = kwargs.get('dre_uuid')
+        dre_uuid = kwargs.get('instituicao_uuid')
         if not status:
             return cls.objects.all()
         mapeador = {
@@ -1611,7 +1618,7 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
 
     @classmethod
     def map_queryset_por_status(cls, status, **kwargs):
-        terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        terceirizada_uuid = kwargs.get('instituicao_uuid')
         if not status:
             return cls.objects.all()
         mapeador = {

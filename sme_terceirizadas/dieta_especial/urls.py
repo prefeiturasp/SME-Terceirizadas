@@ -32,6 +32,8 @@ router.register('protocolo-padrao-dieta-especial', viewsets.ProtocoloPadraoDieta
                 basename='Protocolo padrao de dieta especial')
 router.register('log-quantidade-dietas-autorizadas', viewsets.LogQuantidadeDietasAutorizadasViewSet,
                 basename='Log quantidade dietas autorizadas')
+router.register('log-quantidade-dietas-autorizadas-cei', viewsets.LogQuantidadeDietasAutorizadasCEIViewSet,
+                basename='Log quantidade dietas autorizadas CEI')
 
 
 urlpatterns = [

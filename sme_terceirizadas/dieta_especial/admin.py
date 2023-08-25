@@ -28,6 +28,7 @@ from .models import (
     ClassificacaoDieta,
     LogDietasAtivasCanceladasAutomaticamente,
     LogQuantidadeDietasAutorizadas,
+    LogQuantidadeDietasAutorizadasCEI,
     MotivoAlteracaoUE,
     MotivoNegacao,
     PlanilhaDietasAtivas,
@@ -314,8 +315,16 @@ class ArquivoCargaUsuariosEscolaAdmin(admin.ModelAdmin):
 
 @admin.register(LogQuantidadeDietasAutorizadas)
 class LogQuantidadeDietasAutorizadasAdmin(admin.ModelAdmin):
-    list_display = ('escola', 'data', 'classificacao', 'quantidade')
-    list_filter = ('classificacao__nome',)
+    list_display = ('escola', 'periodo_escolar', 'classificacao', 'quantidade', 'data', 'criado_em')
+    search_fields = ('escola__nome', 'escola__codigo_eol')
+    list_filter = ('classificacao__nome', 'periodo_escolar__nome')
+
+
+@admin.register(LogQuantidadeDietasAutorizadasCEI)
+class LogQuantidadeDietasAutorizadasCEIAdmin(admin.ModelAdmin):
+    list_display = ('escola', 'periodo_escolar', 'faixa_etaria', 'classificacao', 'quantidade', 'data', 'criado_em')
+    search_fields = ('escola__nome', 'escola__codigo_eol')
+    list_filter = ('classificacao__nome', 'periodo_escolar__nome')
 
 
 admin.site.register(Anexo)

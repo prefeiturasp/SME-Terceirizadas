@@ -102,12 +102,9 @@ class OcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedicaoIni
         return log_transicao
 
     def deletar_log_correcao(self, status_evento, **kwargs):
-        LogSolicitacoesUsuario.objects.filter(
-            descricao=str(self),
-            status_evento__in=status_evento,
-            solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
-            uuid_original=self.uuid,
-        ).delete()
+        log = self.logs.last()
+        if log and log.status_evento in status_evento:
+            log.delete()
 
     def __str__(self):
         return f'Ocorrência {self.uuid} da Solicitação de Medição Inicial {self.solicitacao_medicao_inicial.uuid}'
@@ -159,12 +156,9 @@ class Medicao(
     alterado_em = models.DateTimeField('Alterado em', null=True, blank=True)
 
     def deletar_log_correcao(self, status_evento, **kwargs):
-        LogSolicitacoesUsuario.objects.filter(
-            descricao=str(self),
-            status_evento__in=status_evento,
-            solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
-            uuid_original=self.uuid,
-        ).delete()
+        log = self.logs.last()
+        if log and log.status_evento in status_evento:
+            log.delete()
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')

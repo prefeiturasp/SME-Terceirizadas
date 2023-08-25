@@ -199,8 +199,8 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     for _ in range(3):
         df = df_auxiliar.append(df, ignore_index=True)
 
-    df['N'] = df['N'].apply(lambda x: str(int(x)) if pd.notnull(x) else '')
-    df['numero_alunos'] = df['numero_alunos'].apply(lambda x: str(int(x)) if pd.notnull(x) else '')
+    df['N'] = df['N'].apply(lambda x: str(int(x or '0')) if pd.notnull(x) else '')
+    df['numero_alunos'] = df['numero_alunos'].apply(lambda x: str(int(x or '0')) if pd.notnull(x) else '')
 
     status_map = {'Em_andamento': 'Recebidas'}
     status_ = data.get('status').capitalize()
@@ -273,7 +273,6 @@ def gera_xls_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
             sem_uuid_repetido, context={'status': status_.upper()}, many=True)
 
         output = io.BytesIO()
-
         build_xlsx(output, serializer, sem_uuid_repetido, data, lotes, tipos_solicitacao, tipos_unidade,
                    unidades_educacionais)
         atualiza_central_download(obj_central_download, nome_arquivo, output.read())
@@ -318,7 +317,6 @@ def gera_pdf_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
                 label_data[status],
                 getattr(_solicitacao, property_data[status])
             ))
-
         arquivo = build_pdf(lista_solicitacoes_dict, status)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
