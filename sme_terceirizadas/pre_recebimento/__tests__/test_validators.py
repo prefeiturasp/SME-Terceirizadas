@@ -8,7 +8,6 @@ pytestmark = pytest.mark.django_db
 
 def test_contrato_pertence_a_empresa_validator(contrato, empresa):
     """Deve retornar True caso o contrato pertença à empresa ou lançar um ValidationError caso contrário."""
-
     assert contrato_pertence_a_empresa(contrato, empresa)
 
     empresa.contratos.clear()
