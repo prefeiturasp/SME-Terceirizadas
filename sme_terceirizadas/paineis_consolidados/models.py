@@ -31,7 +31,7 @@ from ..dados_comuns.fluxo_status import (
 )
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..dieta_especial.models import SolicitacaoDietaEspecial
-from ..escola.models import Escola
+from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..inclusao_alimentacao.api.serializers.serializers import (
     GrupoInclusaoAlimentacaoNormalSerializer,
     InclusaoAlimentacaoContinuaSerializer,
@@ -56,6 +56,7 @@ from ..kit_lanche.models import (
     SolicitacaoKitLancheCEMEI,
     SolicitacaoKitLancheUnificada
 )
+from ..terceirizada.models import Terceirizada
 
 
 class SolicitacoesDestaSemanaManager(models.Manager):
@@ -279,9 +280,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         return queryset
 
     @classmethod
-    def busca_periodo_de_datas(cls, queryset, query_params, **kwargs):
-        data_evento = query_params.get('data_evento')
-        data_evento_fim = query_params.get('data_evento_fim')
+    def busca_periodo_de_datas(cls, queryset, data_evento, data_evento_fim, **kwargs):
         filtros_inicio = Q()
         filtros_fim = Q()
         if data_evento:
@@ -533,6 +532,16 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
             total_pendentes_mes_passado=tot_pendentes_mp,
             total_mes_passado=total_mp,
         )
+
+    @staticmethod
+    def classe_por_tipo_usuario(tipo_obj_instituicao):
+        map_ = {
+            Escola: SolicitacoesEscola,
+            DiretoriaRegional: SolicitacoesDRE,
+            Codae: SolicitacoesCODAE,
+            Terceirizada: SolicitacoesTerceirizada,
+        }
+        return map_[tipo_obj_instituicao]
 
     class Meta:
         managed = False
@@ -1041,7 +1050,6 @@ class SolicitacoesEscola(MoldeConsolidado):
         from django.db.models import Q
 
         from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
-
         escola_uuid = kwargs.get('escola_uuid')
         uuids_solicitacao_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
             escolas_quantidades__escola__uuid=escola_uuid,
@@ -1136,7 +1144,7 @@ class SolicitacoesEscola(MoldeConsolidado):
 
     @classmethod
     def map_queryset_por_status(cls, status, **kwargs):
-        escola_uuid = kwargs.get('escola_uuid')
+        escola_uuid = kwargs.get('instituicao_uuid')
         if not status:
             return cls.objects.all()
         mapeador = {
@@ -1403,7 +1411,7 @@ class SolicitacoesDRE(MoldeConsolidado):
 
     @classmethod
     def map_queryset_por_status(cls, status, **kwargs):
-        dre_uuid = kwargs.get('dre_uuid')
+        dre_uuid = kwargs.get('instituicao_uuid')
         if not status:
             return cls.objects.all()
         mapeador = {
@@ -1610,7 +1618,7 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
 
     @classmethod
     def map_queryset_por_status(cls, status, **kwargs):
-        terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        terceirizada_uuid = kwargs.get('instituicao_uuid')
         if not status:
             return cls.objects.all()
         mapeador = {
