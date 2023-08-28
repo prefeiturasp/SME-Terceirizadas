@@ -82,7 +82,22 @@ def test_url_list_solicitacoes_alteracao_cronograma_fornecedor(client_autenticad
 def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_dilog_cronograma,
                                                            solicitacao_cronograma_em_analise):
     data = json.dumps({
-        'justificativa_cronograma': 'teste justificativa'
+        'justificativa_cronograma': 'teste justificativa',
+        'etapas': [
+            {
+                'numero_empenho': '123456789'
+            },
+            {
+                'numero_empenho': '1891425',
+                'etapa': 'Etapa 1'
+            }
+        ],
+        'programacoes_de_recebimento': [
+            {
+                'data_programada': '22/08/2022 - Etapa 1 - Parte 1',
+                'tipo_carga': 'PALETIZADA'
+            }
+        ]
     })
     response = client_autenticado_dilog_cronograma.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_em_analise.uuid}/cronograma-ciente/',
