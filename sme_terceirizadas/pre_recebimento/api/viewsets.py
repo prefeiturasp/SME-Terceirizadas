@@ -437,11 +437,12 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     def cronograma_ciente(self, request, uuid):
         usuario = request.user
         justificativa = request.data.get('justificativa_cronograma')
+        etapas = request.data.get('etapas', [])
+        programacoes = request.data.get('programacoes_de_recebimento', [])
         try:
-            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
-            solicitacao_cronograma.cronograma_ciente(user=usuario, justificativa=justificativa)
-            solicitacao_cronograma.save()
-            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            solicitacao_alteracao = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            solicitacao_alteracao.cronograma_confirma_ciencia(justificativa, usuario, etapas, programacoes)
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_alteracao)
             return Response(serializer.data)
 
         except ObjectDoesNotExist as e:

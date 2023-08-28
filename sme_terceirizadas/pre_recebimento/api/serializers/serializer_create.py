@@ -19,6 +19,7 @@ from sme_terceirizadas.pre_recebimento.models import (
 from sme_terceirizadas.produto.models import NomeDeProdutoEdital
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
+from ..helpers import cria_etapas_de_cronograma, cria_programacao_de_cronograma
 from ..validators import contrato_pertence_a_empresa
 
 
@@ -91,20 +92,6 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         else:
             return f'001/{ano}'
 
-    def cria_etapas(self, etapas, cronograma):
-        for etapa in etapas:
-            EtapasDoCronograma.objects.create(
-                cronograma=cronograma,
-                **etapa
-            )
-
-    def cria_programacao(self, programacoes, cronograma):
-        for programacao in programacoes:
-            ProgramacaoDoRecebimentoDoCronograma.objects.create(
-                cronograma=cronograma,
-                **programacao
-            )
-
     def validate(self, attrs):
         user = self.context['request'].user
         cadastro_finalizado = attrs.get('cadastro_finalizado', None)
@@ -125,8 +112,8 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         cronograma = Cronograma.objects.create(numero=numero_cronograma, **validated_data)
         cronograma.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CRIADO, usuario=user)
 
-        self.cria_etapas(etapas, cronograma)
-        self.cria_programacao(programacoes_de_recebimento, cronograma)
+        cria_etapas_de_cronograma(etapas, cronograma)
+        cria_programacao_de_cronograma(programacoes_de_recebimento, cronograma)
 
         if cadastro_finalizado:
             cronograma.inicia_fluxo(user=user)
@@ -144,8 +131,8 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
 
         update_instance_from_dict(instance, validated_data, save=True)
 
-        self.cria_etapas(etapas, instance)
-        self.cria_programacao(programacoes_de_recebimento, instance)
+        cria_etapas_de_cronograma(etapas, instance)
+        cria_programacao_de_cronograma(programacoes_de_recebimento, instance)
 
         if cadastro_finalizado:
             instance.inicia_fluxo(user=user)
@@ -267,7 +254,7 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
         uuid_cronograma = validated_data.pop('cronograma', None)
         etapas = validated_data.pop('etapas', [])
         cronograma = Cronograma.objects.get(uuid=uuid_cronograma)
-        etapas_created = self._criar_etapas(etapas)
+        etapas_created = cria_etapas_de_cronograma(etapas)
         alteracao_cronograma = SolicitacaoAlteracaoCronograma.objects.create(
             usuario_solicitante=user,
             cronograma=cronograma, **validated_data,
