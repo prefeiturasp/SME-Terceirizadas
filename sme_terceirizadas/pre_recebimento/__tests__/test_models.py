@@ -1,11 +1,14 @@
 import pytest
 
+from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow
+
 from ..models import (
     Cronograma,
     EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
+    SolicitacaoAlteracaoCronograma,
     UnidadeMedida
 )
 
@@ -98,3 +101,69 @@ def test_unidade_medida_model_save():
 
     assert obj.nome.isupper()
     assert obj.abreviacao.islower()
+
+
+def test_laboratorio_model_str(laboratorio):
+    assert str(laboratorio) == laboratorio.nome
+
+
+def test_etapas_cronograma_model_str(etapa):
+    etapa.etapa = ''
+    etapa.save()
+    assert str(etapa) == f'Etapa do cronogrma {etapa.cronograma.numero}'
+
+    etapa.cronograma = None
+    etapa.save()
+    assert str(etapa) == 'Etapa sem cronograma'
+
+
+def test_programacao_recebimento_cronograma_model_str(programacao):
+    assert str(programacao) == programacao.data_programada
+
+    programacao.data_programada = ''
+    programacao.save()
+    assert str(programacao) == str(programacao.id)
+
+
+def test_solicitacao_alteracao_cronograma_queryset_em_analise(solicitacao_cronograma_em_analise):
+    qs = SolicitacaoAlteracaoCronograma.objects.em_analise()
+    assert qs.count() == 1
+    assert qs.first() == solicitacao_cronograma_em_analise
+
+
+def test_solicitacao_alteracao_cronograma_queryset_filtrar_por_status(
+    solicitacao_cronograma_em_analise,
+    solicitacao_cronograma_ciente,
+    solicitacao_cronograma_aprovado_dinutre,
+    produto_arroz,
+    empresa
+):
+    qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+        status=[CronogramaAlteracaoWorkflow.EM_ANALISE, CronogramaAlteracaoWorkflow.APROVADO_DINUTRE]
+    )
+    assert qs.count() == 2
+    assert solicitacao_cronograma_em_analise in qs
+    assert solicitacao_cronograma_aprovado_dinutre in qs
+    assert solicitacao_cronograma_ciente not in qs
+
+    solicitacao_cronograma_em_analise.cronograma.empresa = empresa
+    solicitacao_cronograma_em_analise.cronograma.produto = produto_arroz
+    solicitacao_cronograma_em_analise.cronograma.save()
+
+    qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+        status=[CronogramaAlteracaoWorkflow.EM_ANALISE],
+        filtros={'nome_fornecedor': empresa.nome_fantasia}
+    )
+    assert qs.count() == 1
+
+    qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+        status=[CronogramaAlteracaoWorkflow.EM_ANALISE],
+        filtros={'numero_cronograma': solicitacao_cronograma_em_analise.cronograma.numero}
+    )
+    assert qs.count() == 1
+
+    qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+        status=[CronogramaAlteracaoWorkflow.EM_ANALISE],
+        filtros={'nome_produto': produto_arroz.nome}
+    )
+    assert qs.count() == 1
