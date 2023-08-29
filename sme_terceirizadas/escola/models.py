@@ -63,7 +63,7 @@ from ..kit_lanche.models import (
 )
 from .constants import PERIODOS_ESPECIAIS_CEMEI
 from .services import NovoSGPServicoLogado
-from .utils import meses_para_mes_e_ano_string, remove_acentos
+from .utils import faixa_to_string, remove_acentos
 
 env = environ.Env()
 REDIS_HOST = env('REDIS_HOST')
@@ -1181,10 +1181,7 @@ class FaixaEtaria(Ativavel, TemChaveExterna):
         return data_inicio <= data_pesquisada < data_fim
 
     def __str__(self):
-        saida = meses_para_mes_e_ano_string(self.inicio)
-        if self.fim - self.inicio != 1:
-            saida += ' - ' + meses_para_mes_e_ano_string(self.fim)
-        return saida
+        return faixa_to_string(self.inicio, self.fim)
 
 
 class MudancaFaixasEtarias(Justificativa, TemChaveExterna):

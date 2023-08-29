@@ -172,7 +172,7 @@ def test_escola_periodo_escolar_alunos_por_faixa_etaria(faixas_etarias,
 
 def test_faixa_str():
     faixa = FaixaEtaria.objects.create(inicio=24, fim=48)
-    assert str(faixa) == '2 anos - 4 anos'
+    assert str(faixa) == '02 anos a 03 anos e 11 meses'
 
 
 def test_ordem(periodo_escolar):

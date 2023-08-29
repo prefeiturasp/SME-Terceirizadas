@@ -96,6 +96,11 @@
 
     }
 
+    .tabela-centralizada th.centralizado,
+    .tabela-centralizada td.centralizado {
+      text-align: center;
+    }
+
     tr {
       border-bottom: 1px solid $preto;
 

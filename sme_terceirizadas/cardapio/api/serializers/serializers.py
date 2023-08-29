@@ -334,6 +334,7 @@ class AlteracaoCardapioSerializer(AlteracaoCardapioSerializerBase):
 
 class AlteracaoCardapioCEISerializer(AlteracaoCardapioSerializerBase):
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializer(many=True)
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = AlteracaoCardapioCEI

@@ -9,22 +9,33 @@ from sme_terceirizadas.eol_servico.utils import EOLServicoSGP
 logger = logging.getLogger('sigpae.taskEscola')
 
 
-def meses_para_mes_e_ano_string(meses):
-    anos = meses // 12
-    meses = meses % 12
+def meses_to_mes_e_ano_string(total_meses):
+    anos = total_meses // 12
+    meses = total_meses % 12
 
     saida = ''
 
     if anos > 0:
-        saida = f'{anos} ' + ('ano' if anos == 1 else 'anos')
-        if anos == 6:
-            return saida
+        saida = f"{anos:02d} {'ano' if anos == 1 else 'anos'}"
         if meses > 0:
             saida += ' e '
+
     if anos == 0 or meses > 0:
-        saida += f'{meses} ' + ('mês' if meses == 1 else 'meses')
+        saida += f"{meses:02d} {'mês' if meses == 1 else 'meses'}"
 
     return saida
+
+
+def faixa_to_string(inicio, fim):
+    if fim - inicio == 1:
+        return meses_to_mes_e_ano_string(inicio)
+    if inicio == 0:
+        str_inicio = '0 meses'
+    else:
+        str_inicio = meses_to_mes_e_ano_string(inicio) if inicio >= 12 else f'{inicio:02d}'
+    str_fim = '06 anos' if fim == 72 else meses_to_mes_e_ano_string(fim - 1)
+
+    return f'{str_inicio} a {str_fim}'
 
 
 def remove_acentos(texto):
