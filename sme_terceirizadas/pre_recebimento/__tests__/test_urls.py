@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from django.conf import settings
 from rest_framework import status
@@ -52,8 +53,17 @@ def test_url_lista_etapas_authorized_numeros(client_autenticado_codae_dilog):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_list_cronogramas(client_autenticado_codae_dilog):
+def test_url_list_cronogramas(client_autenticado_codae_dilog, cronogramas_multiplos_status_com_log):
     response = client_autenticado_codae_dilog.get('/cronogramas/')
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert 'count' in json
+    assert 'next' in json
+    assert 'previous' in json
+
+
+def test_url_list_cronogramas_fornecedor(client_autenticado_fornecedor):
+    response = client_autenticado_fornecedor.get('/cronogramas/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert 'count' in json
@@ -92,6 +102,29 @@ def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_di
     assert obj.status == 'CRONOGRAMA_CIENTE'
 
 
+def test_url_cronograma_ciente_erro_solicitacao_cronograma_invalida(client_autenticado_dilog_cronograma):
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{uuid.uuid4()}/cronograma-ciente/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
+def test_url_cronograma_ciente_erro_transicao_estado(
+    client_autenticado_dilog_cronograma,
+    solicitacao_cronograma_ciente
+):
+    data = json.dumps({
+        'justificativa_cronograma': 'teste justificativa',
+    })
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/cronograma-ciente/',
+        data,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
 def test_url_perfil_dinutre_aprova_alteracao_cronograma(client_autenticado_dinutre_diretoria,
                                                         solicitacao_cronograma_ciente):
     data = json.dumps({
@@ -118,6 +151,46 @@ def test_url_perfil_dinutre_reprova_alteracao_cronograma(client_autenticado_dinu
     assert response.status_code == status.HTTP_200_OK
     obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_ciente.uuid)
     assert obj.status == 'REPROVADO_DINUTRE'
+
+
+def test_url_analise_dinutre_erro_parametro_aprovado_invalida(
+    client_autenticado_dinutre_diretoria,
+    solicitacao_cronograma_ciente
+):
+    data = json.dumps({
+        'justificativa_dilog': 'teste justificativa',
+        'aprovado': ''
+    })
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dinutre/',
+        data,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_analise_dinutre_erro_solicitacao_cronograma_invalido(client_autenticado_dinutre_diretoria):
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{uuid.uuid4()}/analise-dinutre/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
+def test_url_analise_dinutre_erro_transicao_estado(
+    client_autenticado_dinutre_diretoria,
+    solicitacao_cronograma_aprovado_dinutre
+):
+    data = json.dumps({
+        'justificativa_dilog': 'teste justificativa',
+        'aprovado': True
+    })
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_aprovado_dinutre.uuid}/analise-dinutre/',
+        data,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_url_perfil_dilog_aprova_alteracao_cronograma(client_autenticado_dilog_diretoria,
@@ -148,6 +221,46 @@ def test_url_perfil_dilog_reprova_alteracao_cronograma(client_autenticado_dilog_
     assert obj.status == 'REPROVADO_DILOG'
 
 
+def test_url_analise_dilog_erro_solicitacao_cronograma_invalido(client_autenticado_dilog_diretoria):
+    response = client_autenticado_dilog_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{uuid.uuid4()}/analise-dilog/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
+def test_url_analise_dilog_erro_parametro_aprovado_invalida(
+    client_autenticado_dilog_diretoria,
+    solicitacao_cronograma_aprovado_dinutre
+):
+    data = json.dumps({
+        'justificativa_dilog': 'teste justificativa',
+        'aprovado': ''
+    })
+    response = client_autenticado_dilog_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_aprovado_dinutre.uuid}/analise-dilog/',
+        data,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_analise_dilog_erro_transicao_estado(
+    client_autenticado_dilog_diretoria,
+    solicitacao_cronograma_ciente
+):
+    data = json.dumps({
+        'justificativa_dilog': 'teste justificativa',
+        'aprovado': True
+    })
+    response = client_autenticado_dilog_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dilog/',
+        data,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
 def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
@@ -165,10 +278,18 @@ def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(client_autenti
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_fornecedor_confirma_not_authorized(client_autenticado_codae_dilog, cronograma_recebido):
-    response = client_autenticado_codae_dilog.patch(
-        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/')
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+def test_url_fornecedor_confirma_not_authorized(client_autenticado_fornecedor, cronograma_recebido):
+    data = json.dumps({'password': 'senha-errada'})
+    response = client_autenticado_fornecedor.patch(
+        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/', data, content_type='application/json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_url_fornecedor_assina_cronograma_erro_cronograma_invalido(client_autenticado_fornecedor):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_fornecedor.patch(
+        f'/cronogramas/{uuid.uuid4()}/fornecedor-assina-cronograma/', data, content_type='application/json')
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
 
 
 def test_url_list_rascunhos_cronogramas(client_autenticado_codae_dilog):
@@ -418,6 +539,14 @@ def test_url_dinutre_assina_cronograma_erro_senha(client_autenticado_dinutre_dir
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+def test_url_dinutre_assina_cronograma_erro_cronograma_invalido(client_autenticado_dinutre_diretoria):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/cronogramas/{uuid.uuid4()}/dinutre-assina/',
+        data, content_type='application/json')
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
 def test_url_dinutre_assina_cronograma_erro_transicao_estado(client_autenticado_dinutre_diretoria,
                                                              cronograma):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
@@ -453,6 +582,14 @@ def test_url_dilog_assina_cronograma_erro_senha(client_autenticado_dilog_diretor
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+def test_url_dilog_assina_cronograma_erro_cronograma_invalido(client_autenticado_dilog_diretoria):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_dilog_diretoria.patch(
+        f'/cronogramas/{uuid.uuid4()}/codae-assina/',
+        data, content_type='application/json')
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
 def test_url_dilog_assina_cronograma_erro_transicao_estado(client_autenticado_dilog_diretoria,
                                                            cronograma):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
@@ -467,6 +604,13 @@ def test_url_dilog_assina_cronograma_not_authorized(client_autenticado_dilog,
     response = client_autenticado_dilog.patch(
         f'/cronogramas/{cronograma_recebido.uuid}/codae-assina/')
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_detalhar_com_log(client_autenticado_dinutre_diretoria, cronogramas_multiplos_status_com_log):
+    cronograma_com_log = Cronograma.objects.first()
+    response = client_autenticado_dinutre_diretoria.get(
+        f'/cronogramas/{cronograma_com_log.uuid}/detalhar-com-log/')
+    assert response.status_code == status.HTTP_200_OK
 
 
 def test_url_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
