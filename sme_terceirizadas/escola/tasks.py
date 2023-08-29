@@ -13,7 +13,6 @@ from sme_terceirizadas.dados_comuns.utils import (
     gera_objeto_na_central_download
 )
 from sme_terceirizadas.escola.utils_escola import atualiza_codigo_codae_das_escolas, atualiza_tipo_gestao_das_escolas
-from sme_terceirizadas.perfil.models.perfil import Vinculo
 
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, AlteracaoCardapioCEMEI, InversaoCardapio
 from ..dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
@@ -101,15 +100,15 @@ def nega_solicitacoes_vencidas():
 
     Nega solicitações não validadas pela DRE, ou seja, que possuam
     status igual a DRE_A_VALIDAR e que tenham o dia do evento
-    menor ou igual ao dia de execução dessa task.
+    menor que o dia de execução dessa task.
     """
     justificativa = 'A solicitação não foi validada em tempo hábil'
 
-    # Buscando solictações da DRE não validadas mais que expiraram
+    # Buscando solicitações da DRE não validadas que expiraram
     uuids_solicitacoes_dre_a_validar = SolicitacoesDRE.objects.filter(
         status_atual=PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
         status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
-        data_evento__lte=datetime.date.today()
+        data_evento__lt=datetime.date.today()
     ).exclude(
         tipo_doc=SolicitacoesDRE.TP_SOL_DIETA_ESPECIAL
     ).values_list('uuid', flat=True).distinct().order_by('-data_log')
@@ -133,11 +132,8 @@ def nega_solicitacoes_vencidas():
         if classe_solicitacao == AlteracaoCardapio:
             solicitacoes = solicitacoes.exclude(motivo__nome='Lanche Emergencial')
         for solicitacao in solicitacoes.all():
-            vinculo_dre = Vinculo.objects.filter(
-                object_id=solicitacao.escola.diretoria_regional.id,
-                content_type__model='diretoriaregional', ativo=True
-            ).first()
-            solicitacao.dre_nao_valida(user=vinculo_dre.usuario if vinculo_dre else None, justificativa=justificativa)
+            usuario = Usuario.objects.filter(email='system@admin.com').first()
+            solicitacao.dre_nao_valida(user=usuario if usuario else None, justificativa=justificativa)
 
 
 @shared_task(
@@ -148,19 +144,19 @@ def nega_solicitacoes_vencidas():
 def nega_solicitacoes_pendentes_autorizacao_vencidas():
     """Gestão de Alimentação.
 
-    Nega solicitações não validadas pela DRE, ou seja, que possuam
-    status igual a DRE__VALIDADO e que tenham o dia do evento
-    menor ou igual ao dia de execução dessa task.
+    Nega solicitações validadas pela DRE (DRE_VALIDADO)
+    e não validadas pela CODAE (CODAE_A_AUTORIZAR)
+    que tenham o dia do evento menor que o dia de execução dessa task.
     """
     justificativa = 'A solicitação não foi validada em tempo hábil'
 
-    # Buscando solictações da DRE não validadas mais que expiraram
+    # Buscando solicitações da DRE validadas e não validadas pela CODAE que expiraram
     uuids_solicitacoes_dre_a_validar = SolicitacoesDRE.objects.filter(
         status_atual__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR,
                           PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
                           PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
                           PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
-        data_evento__lte=datetime.date.today()
+        data_evento__lt=datetime.date.today()
     ).exclude(
         tipo_doc=SolicitacoesDRE.TP_SOL_DIETA_ESPECIAL
     ).values_list('uuid', flat=True).distinct().order_by('-data_log')
@@ -178,17 +174,17 @@ def nega_solicitacoes_pendentes_autorizacao_vencidas():
 
     for classe_solicitacao in classes_solicitacoes:
         solicitacoes = classe_solicitacao.objects.filter(uuid__in=uuids_solicitacoes_dre_a_validar)
+        if classe_solicitacao == AlteracaoCardapio:
+            solicitacoes = solicitacoes.exclude(motivo__nome='Lanche Emergencial')
         for solicitacao in solicitacoes.all():
-            usuario = Vinculo.objects.filter(
-                perfil__nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', content_type__model='codae', ativo=True
-            ).first().usuario
+            usuario = Usuario.objects.filter(email='system@admin.com').first()
             if solicitacao.status in [
                     PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
                     PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
                     PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR]:
-                solicitacao.codae_nega(user=usuario, justificativa=justificativa)
+                solicitacao.codae_nega(user=usuario if usuario else None, justificativa=justificativa)
             else:
-                solicitacao.codae_nega_questionamento(user=usuario, justificativa=justificativa)
+                solicitacao.codae_nega_questionamento(user=usuario if usuario else None, justificativa=justificativa)
 
 
 @shared_task(
