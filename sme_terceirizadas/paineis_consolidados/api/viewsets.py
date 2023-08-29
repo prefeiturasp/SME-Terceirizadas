@@ -901,8 +901,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                         'motivo': alteracao_alimentacao.motivo
                     })
             else:
-                alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
-                if alt:
+                if alteracao.substituicoes_periodo_escolar.filter(periodo_escolar__nome=nome_periodo_escolar).exists():
+                    alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
                     for data_evento in alteracao.datas_intervalo.filter(data__month=mes, data__year=ano,
                                                                         cancelado=False):
                         return_dict.append({
