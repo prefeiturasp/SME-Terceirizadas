@@ -341,6 +341,7 @@ def test_log_alteracao_quantidade_alunos_por_escola_periodo(log_alteracao_quanti
     assert model.__str__() == string_model
 
 
+@freeze_time('2023-08-28')
 def test_alunos_por_periodo_e_faixa_etaria(escola, faixas_etarias, monkeypatch):
     monkeypatch.setattr(EOLService, 'get_informacoes_escola_turma_aluno',
                         lambda p1: mocked_informacoes_escola_turma_aluno())
@@ -361,6 +362,7 @@ def test_alunos_por_periodo_e_faixa_etaria(escola, faixas_etarias, monkeypatch):
     )
 
 
+@freeze_time('2023-08-28')
 def test_alunos_periodo_parcial_e_faixa_etaria(escola_cei, faixas_etarias, alunos_periodo_parcial, monkeypatch):
     monkeypatch.setattr(EOLService, 'get_informacoes_escola_turma_aluno',
                         lambda p1: mocked_informacoes_escola_turma_aluno())
@@ -375,6 +377,7 @@ def test_alunos_periodo_parcial_e_faixa_etaria(escola_cei, faixas_etarias, aluno
     )
 
 
+@freeze_time('2023-08-28')
 def test_alunos_por_periodo_e_faixa_etaria_objetos_alunos(escola_cei, faixas_etarias, alunos):
     response = escola_cei.alunos_por_periodo_e_faixa_etaria_objetos_alunos()
     assert len(response) == 1
@@ -386,6 +389,7 @@ def test_alunos_por_periodo_e_faixa_etaria_objetos_alunos(escola_cei, faixas_eta
     )
 
 
+@freeze_time('2023-08-28')
 def test_alunos_por_faixa_etaria(escola_cei, faixas_etarias, monkeypatch):
     monkeypatch.setattr(EOLService, 'get_informacoes_escola_turma_aluno',
                         lambda p1: mocked_informacoes_escola_turma_aluno())

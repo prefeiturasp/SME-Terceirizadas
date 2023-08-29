@@ -44,6 +44,7 @@ class SubstituicaoComboInline(admin.TabularInline):
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(admin.ModelAdmin):
     inlines = [SubstituicaoComboInline]
     search_fields = ('vinculo__tipo_unidade_escolar__iniciais',)
+    filter_horizontal = ('tipos_alimentacao',)
     readonly_fields = ('vinculo',)
 
 
