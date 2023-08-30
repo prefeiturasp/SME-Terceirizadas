@@ -1011,6 +1011,8 @@ def atualizar_log_escola_corrigiu(historico, log_inicial, medicao, dicionario_al
 
 def log_alteracoes_escola_corrige_periodo(user, medicao, acao, data):
     solicitacao = medicao.solicitacao_medicao_inicial
+    if not solicitacao.historico:
+        return
     historico = json.loads(solicitacao.historico)
     log_inicial = encontrar_ou_criar_log_inicial(user, acao, historico)
 
