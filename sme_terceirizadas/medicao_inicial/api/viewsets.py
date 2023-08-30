@@ -11,6 +11,7 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
 
+from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.models import LogSolicitacoesUsuario
@@ -662,12 +663,32 @@ class MedicaoViewSet(
             for valor_medicao in request.data:
                 if not valor_medicao:
                     continue
-                ValorMedicao.objects.filter(
+                dia = int(valor_medicao.get('dia', ''))
+                mes = int(medicao.solicitacao_medicao_inicial.mes)
+                ano = int(medicao.solicitacao_medicao_inicial.ano)
+                semana = ValorMedicao.get_week_of_month(ano, mes, dia)
+                categoria_medicao_qs = CategoriaMedicao.objects.filter(id=valor_medicao.get('categoria_medicao', None))
+                tipo_alimentacao_qs = TipoAlimentacao.objects.filter(uuid=valor_medicao.get('tipo_alimentacao', None))
+                ValorMedicao.objects.update_or_create(
                     medicao=medicao,
                     dia=valor_medicao.get('dia', ''),
+                    semana=semana,
                     nome_campo=valor_medicao.get('nome_campo', ''),
-                    categoria_medicao=valor_medicao.get('categoria_medicao', '')
-                ).update(valor=valor_medicao.get('valor', ''))
+                    categoria_medicao=categoria_medicao_qs.first(),
+                    tipo_alimentacao=tipo_alimentacao_qs.first(),
+                    faixa_etaria=valor_medicao.get('faixa_etaria', None),
+                    defaults={
+                        'medicao': medicao,
+                        'dia': valor_medicao.get('dia', ''),
+                        'semana': semana,
+                        'valor': valor_medicao.get('valor', ''),
+                        'nome_campo': valor_medicao.get('nome_campo', ''),
+                        'categoria_medicao': categoria_medicao_qs.first(),
+                        'tipo_alimentacao': tipo_alimentacao_qs.first(),
+                        'faixa_etaria': valor_medicao.get('faixa_etaria', None),
+                        'habilitado_correcao': True,
+                    },
+                )
             if medicao.status in [status_correcao_solicitada_codae, status_medicao_corrigida_para_codae]:
                 medicao.ue_corrige_periodo_grupo_para_codae(user=request.user)
             else:
