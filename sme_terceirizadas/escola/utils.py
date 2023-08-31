@@ -229,3 +229,11 @@ def lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lot
     else:
         lotes = instituicao.lotes.filter(escolas__isnull=False)
     return lotes
+
+
+def deletar_alunos_periodo_parcial_outras_escolas(escola, data_referencia):
+    from .models import AlunoPeriodoParcial
+    AlunoPeriodoParcial.objects.filter(
+        solicitacao_medicao_inicial__mes=str(data_referencia.month).zfill(2),
+        solicitacao_medicao_inicial__ano=str(data_referencia.year)
+    ).exclude(aluno__escola__codigo_eol=escola.codigo_eol).delete()
