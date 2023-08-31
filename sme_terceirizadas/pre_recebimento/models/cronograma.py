@@ -2,7 +2,6 @@ from django.db import models
 from django.db.models import OuterRef
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from multiselectfield import MultiSelectField
 
 from ...dados_comuns.behaviors import (
     CriadoEm,
@@ -138,15 +137,6 @@ class ProgramacaoDoRecebimentoDoCronograma(ModeloBase):
         verbose_name_plural = 'Programações dos Recebimentos dos Cromogramas'
 
 
-class AlteracaoCronogramaEtapa(models.Model):
-    etapa = models.ForeignKey(EtapasDoCronograma, on_delete=models.PROTECT)
-    nova_data_programada = models.DateField('Nova Data Programada', blank=True, null=True)
-    nova_quantidade = models.FloatField(blank=True, null=True)
-
-    def __str__(self) -> str:
-        return f'{self.etapa.etapa} - {self.etapa.parte} (NovaQuantidade:{self.nova_quantidade})'
-
-
 class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
     def em_analise(self):
         return self.filter(status=CronogramaAlteracaoWorkflow.EM_ANALISE)
@@ -177,27 +167,13 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
 
 
 class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma, Logs):
-    MOTIVO_ALTERAR_DATA_ENTREGA = 'ALTERAR_DATA_ENTREGA'
-    MOTIVO_ALTERAR_QTD_ALIMENTO = 'ALTERAR_QTD_ALIMENTO'
-    MOTIVO_OUTROS = 'OUTROS'
-    MOTIVO_NOMES = {
-        MOTIVO_ALTERAR_DATA_ENTREGA: 'Alterar data de entrega',
-        MOTIVO_ALTERAR_QTD_ALIMENTO: 'Alterar quantidade de alimento',
-        MOTIVO_OUTROS: 'Outros',
-    }
-
-    MOTIVO_CHOICES = (
-        (MOTIVO_ALTERAR_DATA_ENTREGA, MOTIVO_NOMES[MOTIVO_ALTERAR_DATA_ENTREGA]),
-        (MOTIVO_ALTERAR_QTD_ALIMENTO, MOTIVO_NOMES[MOTIVO_ALTERAR_QTD_ALIMENTO]),
-        (MOTIVO_OUTROS, MOTIVO_NOMES[MOTIVO_OUTROS]),
-    )
-
     cronograma = models.ForeignKey(Cronograma, on_delete=models.PROTECT,
                                    related_name='solicitacoes_de_alteracao')
 
-    etapas = models.ManyToManyField(AlteracaoCronogramaEtapa)
-
-    motivo = MultiSelectField(choices=MOTIVO_CHOICES)
+    etapas_antigas = models.ManyToManyField(EtapasDoCronograma, related_name='etapas_antigas')
+    etapas_novas = models.ManyToManyField(EtapasDoCronograma, related_name='etapas_novas')
+    programacoes_novas = models.ManyToManyField(
+        ProgramacaoDoRecebimentoDoCronograma, related_name='programacoes_novas', blank=True)
     justificativa = models.TextField('Justificativa de solicitação pelo fornecedor', blank=True)
     usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
     numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=50, unique=True)
@@ -218,6 +194,17 @@ class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel
             justificativa=justificativa,
         )
         return log_transicao
+
+    def cronograma_confirma_ciencia(self, justificativa, usuario, etapas, programacoes):
+        from ..api.helpers import cria_etapas_de_cronograma, cria_programacao_de_cronograma
+
+        self.etapas_novas.all().delete()
+        etapas_criadas = cria_etapas_de_cronograma(etapas)
+        self.etapas_novas.set(etapas_criadas)
+        programacoes_criadas = cria_programacao_de_cronograma(programacoes)
+        self.programacoes_novas.set(programacoes_criadas)
+        self.cronograma_ciente(user=usuario, justificativa=justificativa)
+        self.save()
 
     def __str__(self):
         return f'Solicitação de alteração do cronograma: {self.numero_solicitacao}'

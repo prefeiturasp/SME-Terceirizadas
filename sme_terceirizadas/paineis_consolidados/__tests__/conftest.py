@@ -447,3 +447,84 @@ def client_autenticado_dre_paineis_consolidados(client, django_user_model, diret
     alt2.inicia_fluxo(user=user_escola)
     alt3.inicia_fluxo(user=user_escola)
     return client
+
+
+@pytest.fixture
+def motivo_inclusao_normal():
+    return mommy.make('MotivoInclusaoNormal', nome=fake.name())
+
+
+@pytest.fixture
+def periodo_escolar_manha():
+    return mommy.make('PeriodoEscolar', nome='MANHA')
+
+
+@pytest.fixture
+def tipo_alimentacao_refeicao():
+    return mommy.make('TipoAlimentacao', nome='Refeição')
+
+
+@pytest.fixture
+def tipo_alimentacao_lanche():
+    return mommy.make('TipoAlimentacao', nome='Lanche')
+
+
+@pytest.fixture
+def inclusoes_normais(escola, motivo_inclusao_normal, periodo_escolar_manha, tipo_alimentacao_refeicao,
+                      tipo_alimentacao_lanche):
+    grupo_inclusao_normal = mommy.make(
+        'GrupoInclusaoAlimentacaoNormal',
+        escola=escola,
+        status='CODAE_AUTORIZADO',
+        rastro_escola=escola,
+        rastro_dre=escola.diretoria_regional)
+    mommy.make('InclusaoAlimentacaoNormal',
+               data=datetime.date(2023, 8, 1),
+               grupo_inclusao=grupo_inclusao_normal)
+    mommy.make('InclusaoAlimentacaoNormal',
+               data=datetime.date(2023, 8, 2),
+               motivo=motivo_inclusao_normal,
+               grupo_inclusao=grupo_inclusao_normal)
+    qp = mommy.make('QuantidadePorPeriodo',
+                    numero_alunos=100,
+                    periodo_escolar=periodo_escolar_manha,
+                    grupo_inclusao_normal=grupo_inclusao_normal)
+    qp.tipos_alimentacao.add(tipo_alimentacao_lanche)
+    qp.tipos_alimentacao.add(tipo_alimentacao_refeicao)
+    qp.save()
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial(escola, periodo_escolar_manha):
+    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
+    solicitacao_medicao = mommy.make(
+        'SolicitacaoMedicaoInicial',
+        uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
+        mes='08',
+        ano='2023',
+        escola=escola,
+        tipo_contagem_alimentacoes=tipo_contagem
+    )
+    medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+                         periodo_escolar=periodo_escolar_manha)
+    mommy.make('ValorMedicao', medicao=medicao)
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def client_autenticado_escola_paineis_consolidados(client, django_user_model, escola, templates, inclusoes_normais,
+                                                   solicitacao_medicao_inicial):
+    email = 'test@test.com'
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(username=email, password=password,
+                                                 email=email, registro_funcional='8888888')
+    perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR_UE, ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=escola,
+               perfil=perfil_diretor,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(username=email, password=password)
+    return client

@@ -1,27 +1,27 @@
 import pytest
 
 from ...eol_servico.utils import EOLException, EOLServicoSGP
-from ..utils import meses_para_mes_e_ano_string
+from ..utils import meses_to_mes_e_ano_string
 from .conftest import mocked_response
 
 
 def test_meses_para_mes_e_ano_string():
-    assert meses_para_mes_e_ano_string(0) == '0 meses'
-    assert meses_para_mes_e_ano_string(1) == '1 mês'
-    assert meses_para_mes_e_ano_string(2) == '2 meses'
-    assert meses_para_mes_e_ano_string(3) == '3 meses'
-    assert meses_para_mes_e_ano_string(11) == '11 meses'
-    assert meses_para_mes_e_ano_string(12) == '1 ano'
-    assert meses_para_mes_e_ano_string(13) == '1 ano e 1 mês'
-    assert meses_para_mes_e_ano_string(14) == '1 ano e 2 meses'
-    assert meses_para_mes_e_ano_string(15) == '1 ano e 3 meses'
-    assert meses_para_mes_e_ano_string(23) == '1 ano e 11 meses'
-    assert meses_para_mes_e_ano_string(24) == '2 anos'
-    assert meses_para_mes_e_ano_string(25) == '2 anos e 1 mês'
-    assert meses_para_mes_e_ano_string(26) == '2 anos e 2 meses'
-    assert meses_para_mes_e_ano_string(27) == '2 anos e 3 meses'
-    assert meses_para_mes_e_ano_string(35) == '2 anos e 11 meses'
-    assert meses_para_mes_e_ano_string(36) == '3 anos'
+    assert meses_to_mes_e_ano_string(0) == '00 meses'
+    assert meses_to_mes_e_ano_string(1) == '01 mês'
+    assert meses_to_mes_e_ano_string(2) == '02 meses'
+    assert meses_to_mes_e_ano_string(3) == '03 meses'
+    assert meses_to_mes_e_ano_string(11) == '11 meses'
+    assert meses_to_mes_e_ano_string(12) == '01 ano'
+    assert meses_to_mes_e_ano_string(13) == '01 ano e 01 mês'
+    assert meses_to_mes_e_ano_string(14) == '01 ano e 02 meses'
+    assert meses_to_mes_e_ano_string(15) == '01 ano e 03 meses'
+    assert meses_to_mes_e_ano_string(23) == '01 ano e 11 meses'
+    assert meses_to_mes_e_ano_string(24) == '02 anos'
+    assert meses_to_mes_e_ano_string(25) == '02 anos e 01 mês'
+    assert meses_to_mes_e_ano_string(26) == '02 anos e 02 meses'
+    assert meses_to_mes_e_ano_string(27) == '02 anos e 03 meses'
+    assert meses_to_mes_e_ano_string(35) == '02 anos e 11 meses'
+    assert meses_to_mes_e_ano_string(36) == '03 anos'
 
 
 def test_redefine_senha_coresso(client_autenticado_da_escola, monkeypatch):

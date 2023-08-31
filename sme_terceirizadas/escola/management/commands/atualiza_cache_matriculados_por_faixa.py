@@ -68,12 +68,24 @@ class Command(BaseCommand):
                 }
             )
 
+    def periodos_integral_sem_alunos_pariciais(self, periodos, periodo_parcial):
+        if periodos['INTEGRAL'] and periodo_parcial['PARCIAL']:
+            chaves_comuns = set(periodo_parcial['PARCIAL'].keys()).intersection(periodos['INTEGRAL'].keys())
+            for chave in chaves_comuns:
+                periodos['INTEGRAL'][chave] -= periodo_parcial['PARCIAL'][chave]
+        return {**periodo_parcial, **periodos}
+
     def _salvar_matriculados_por_faixa_dia(self, escola):
         try:
             msg = f'Salvando matriculados por faixa da escola {escola.codigo_eol} - {escola.nome}'
             self.stdout.write(self.style.SUCCESS(msg))
             ontem = date.today() - timedelta(days=1)
-            periodos_faixas = escola.alunos_por_periodo_e_faixa_etaria()
+            periodos_faixas_gerais = escola.alunos_por_periodo_e_faixa_etaria()
+            periodos_faixas_parciais = escola.alunos_periodo_parcial_e_faixa_etaria()
+            periodos_faixas = self.periodos_integral_sem_alunos_pariciais(
+                periodos_faixas_gerais,
+                periodos_faixas_parciais
+            )
             for periodo, qtd_faixas in periodos_faixas.items():
                 periodo_escolar = PeriodoEscolar.objects.get(nome=self._formatar_periodo_eol(periodo))
                 for faixa_etaria, quantidade in qtd_faixas.items():

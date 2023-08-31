@@ -1,4 +1,5 @@
 import datetime
+from collections import Counter
 
 import pytest
 from django.contrib import admin
@@ -6,6 +7,7 @@ from freezegun import freeze_time
 
 from ...cardapio.models import Cardapio
 from ...dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO
+from ...eol_servico.utils import EOLService
 from ..admin import PlanilhaAtualizacaoTipoGestaoEscolaAdmin
 from ..models import (
     AlunosMatriculadosPeriodoEscola,
@@ -22,6 +24,7 @@ from ..models import (
     TipoGestao,
     TipoUnidadeEscolar
 )
+from .conftest import mocked_informacoes_escola_turma_aluno
 
 pytestmark = pytest.mark.django_db
 
@@ -169,7 +172,7 @@ def test_escola_periodo_escolar_alunos_por_faixa_etaria(faixas_etarias,
 
 def test_faixa_str():
     faixa = FaixaEtaria.objects.create(inicio=24, fim=48)
-    assert str(faixa) == '2 anos - 4 anos'
+    assert str(faixa) == '02 anos a 03 anos e 11 meses'
 
 
 def test_ordem(periodo_escolar):
@@ -336,3 +339,66 @@ def test_log_alteracao_quantidade_alunos_por_escola_periodo(log_alteracao_quanti
     assert isinstance(model, LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar)
     assert model.criado_em is not None
     assert model.__str__() == string_model
+
+
+@freeze_time('2023-08-28')
+def test_alunos_por_periodo_e_faixa_etaria(escola, faixas_etarias, monkeypatch):
+    monkeypatch.setattr(EOLService, 'get_informacoes_escola_turma_aluno',
+                        lambda p1: mocked_informacoes_escola_turma_aluno())
+    response = escola.alunos_por_periodo_e_faixa_etaria()
+    assert len(response) == 2
+    assert response['INTEGRAL'] == Counter(
+        {
+            f'{str([f for f in faixas_etarias if f.inicio == 12][0].uuid)}': 3,
+            f'{str([f for f in faixas_etarias if f.inicio == 24][0].uuid)}': 2,
+            f'{str([f for f in faixas_etarias if f.inicio == 48][0].uuid)}': 1
+        }
+    )
+    assert response['MANHÃ'] == Counter(
+        {
+            f'{str([f for f in faixas_etarias if f.inicio == 12][0].uuid)}': 1,
+            f'{str([f for f in faixas_etarias if f.inicio == 48][0].uuid)}': 1
+        }
+    )
+
+
+@freeze_time('2023-08-28')
+def test_alunos_periodo_parcial_e_faixa_etaria(escola_cei, faixas_etarias, alunos_periodo_parcial, monkeypatch):
+    monkeypatch.setattr(EOLService, 'get_informacoes_escola_turma_aluno',
+                        lambda p1: mocked_informacoes_escola_turma_aluno())
+    response = escola_cei.alunos_periodo_parcial_e_faixa_etaria()
+    assert len(response) == 1
+    assert response['PARCIAL'] == Counter(
+        {
+            f'{str([f for f in faixas_etarias if f.inicio == 12][0].uuid)}': 2,
+            f'{str([f for f in faixas_etarias if f.inicio == 24][0].uuid)}': 1,
+            f'{str([f for f in faixas_etarias if f.inicio == 48][0].uuid)}': 1
+        }
+    )
+
+
+@freeze_time('2023-08-28')
+def test_alunos_por_periodo_e_faixa_etaria_objetos_alunos(escola_cei, faixas_etarias, alunos):
+    response = escola_cei.alunos_por_periodo_e_faixa_etaria_objetos_alunos()
+    assert len(response) == 1
+    assert response['INTEGRAL'] == Counter(
+        {
+            f'{str([f for f in faixas_etarias if f.inicio == 12][0].uuid)}': 3,
+            f'{str([f for f in faixas_etarias if f.inicio == 24][0].uuid)}': 1,
+        }
+    )
+
+
+@freeze_time('2023-08-28')
+def test_alunos_por_faixa_etaria(escola_cei, faixas_etarias, monkeypatch):
+    monkeypatch.setattr(EOLService, 'get_informacoes_escola_turma_aluno',
+                        lambda p1: mocked_informacoes_escola_turma_aluno())
+    response = escola_cei.alunos_por_faixa_etaria()
+    assert len(response.items()) == 3
+    assert response == Counter(
+        {
+            f'{str([f for f in faixas_etarias if f.inicio == 12][0].uuid)}': 4,
+            f'{str([f for f in faixas_etarias if f.inicio == 24][0].uuid)}': 2,
+            f'{str([f for f in faixas_etarias if f.inicio == 48][0].uuid)}': 2
+        }
+    )

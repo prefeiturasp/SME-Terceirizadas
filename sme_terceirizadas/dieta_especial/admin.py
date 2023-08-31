@@ -5,6 +5,7 @@ from django.contrib import admin, messages
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import path
+from rangefilter.filters import DateRangeFilter
 
 from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 from sme_terceirizadas.escola.models import Codae
@@ -28,6 +29,7 @@ from .models import (
     ClassificacaoDieta,
     LogDietasAtivasCanceladasAutomaticamente,
     LogQuantidadeDietasAutorizadas,
+    LogQuantidadeDietasAutorizadasCEI,
     MotivoAlteracaoUE,
     MotivoNegacao,
     PlanilhaDietasAtivas,
@@ -314,8 +316,16 @@ class ArquivoCargaUsuariosEscolaAdmin(admin.ModelAdmin):
 
 @admin.register(LogQuantidadeDietasAutorizadas)
 class LogQuantidadeDietasAutorizadasAdmin(admin.ModelAdmin):
-    list_display = ('escola', 'data', 'classificacao', 'quantidade')
-    list_filter = ('classificacao__nome',)
+    list_display = ('escola', 'periodo_escolar', 'classificacao', 'quantidade', 'data', 'criado_em')
+    search_fields = ('escola__nome', 'escola__codigo_eol')
+    list_filter = (('data', DateRangeFilter), 'classificacao__nome', 'periodo_escolar__nome')
+
+
+@admin.register(LogQuantidadeDietasAutorizadasCEI)
+class LogQuantidadeDietasAutorizadasCEIAdmin(admin.ModelAdmin):
+    list_display = ('escola', 'periodo_escolar', 'faixa_etaria', 'classificacao', 'quantidade', 'data', 'criado_em')
+    search_fields = ('escola__nome', 'escola__codigo_eol')
+    list_filter = (('data', DateRangeFilter), 'classificacao__nome', 'periodo_escolar__nome')
 
 
 admin.site.register(Anexo)

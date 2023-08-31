@@ -105,6 +105,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
     def get_lista_status(self):
         lista_status = [
+            Cronograma.workflow_class.ASSINADO_E_ENVIADO_AO_FORNECEDOR,
             Cronograma.workflow_class.ASSINADO_FORNECEDOR,
             Cronograma.workflow_class.ASSINADO_DINUTRE,
             Cronograma.workflow_class.ASSINADO_CODAE,
@@ -392,16 +393,27 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
         offset = int(request.query_params.get('offset', 0)) if 'offset' in request.query_params else 0
         status = request.query_params.get('status', None)
         dados_dashboard = []
-        lista_status = [
-            status] if status else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
-            self.request.user)
-        dados_dashboard = [{'status': status, 'dados':
-                            SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(status,
-                                                                                      filtros, offset, limit + offset)}
-                           for status in lista_status]
+        lista_status = (
+            [status] if status else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
+                self.request.user)
+        )
+        dados_dashboard = [
+            {
+                'status': status,
+                'dados': SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+                    status,
+                    filtros,
+                    offset,
+                    limit + offset
+                )
+            }
+            for status in lista_status
+        ]
+
         if status:
             dados_dashboard[0]['total'] = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
                 status, filtros).count()
+
         return dados_dashboard
 
     @action(detail=False, methods=['GET'],
@@ -425,11 +437,12 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     def cronograma_ciente(self, request, uuid):
         usuario = request.user
         justificativa = request.data.get('justificativa_cronograma')
+        etapas = request.data.get('etapas', [])
+        programacoes = request.data.get('programacoes_de_recebimento', [])
         try:
-            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
-            solicitacao_cronograma.cronograma_ciente(user=usuario, justificativa=justificativa)
-            solicitacao_cronograma.save()
-            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            solicitacao_alteracao = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            solicitacao_alteracao.cronograma_confirma_ciencia(justificativa, usuario, etapas, programacoes)
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_alteracao)
             return Response(serializer.data)
 
         except ObjectDoesNotExist as e:

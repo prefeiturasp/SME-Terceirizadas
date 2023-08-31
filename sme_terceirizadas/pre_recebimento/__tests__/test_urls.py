@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from django.conf import settings
 from rest_framework import status
@@ -52,8 +53,17 @@ def test_url_lista_etapas_authorized_numeros(client_autenticado_codae_dilog):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_list_cronogramas(client_autenticado_codae_dilog):
+def test_url_list_cronogramas(client_autenticado_codae_dilog, cronogramas_multiplos_status_com_log):
     response = client_autenticado_codae_dilog.get('/cronogramas/')
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert 'count' in json
+    assert 'next' in json
+    assert 'previous' in json
+
+
+def test_url_list_cronogramas_fornecedor(client_autenticado_fornecedor):
+    response = client_autenticado_fornecedor.get('/cronogramas/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert 'count' in json
@@ -82,7 +92,22 @@ def test_url_list_solicitacoes_alteracao_cronograma_fornecedor(client_autenticad
 def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_dilog_cronograma,
                                                            solicitacao_cronograma_em_analise):
     data = json.dumps({
-        'justificativa_cronograma': 'teste justificativa'
+        'justificativa_cronograma': 'teste justificativa',
+        'etapas': [
+            {
+                'numero_empenho': '123456789'
+            },
+            {
+                'numero_empenho': '1891425',
+                'etapa': 'Etapa 1'
+            }
+        ],
+        'programacoes_de_recebimento': [
+            {
+                'data_programada': '22/08/2022 - Etapa 1 - Parte 1',
+                'tipo_carga': 'PALETIZADA'
+            }
+        ]
     })
     response = client_autenticado_dilog_cronograma.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_em_analise.uuid}/cronograma-ciente/',
@@ -90,6 +115,29 @@ def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_di
     assert response.status_code == status.HTTP_200_OK
     obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_em_analise.uuid)
     assert obj.status == 'CRONOGRAMA_CIENTE'
+
+
+def test_url_cronograma_ciente_erro_solicitacao_cronograma_invalida(client_autenticado_dilog_cronograma):
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{uuid.uuid4()}/cronograma-ciente/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
+def test_url_cronograma_ciente_erro_transicao_estado(
+    client_autenticado_dilog_cronograma,
+    solicitacao_cronograma_ciente
+):
+    data = json.dumps({
+        'justificativa_cronograma': 'teste justificativa',
+    })
+    response = client_autenticado_dilog_cronograma.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/cronograma-ciente/',
+        data,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_url_perfil_dinutre_aprova_alteracao_cronograma(client_autenticado_dinutre_diretoria,
@@ -120,6 +168,46 @@ def test_url_perfil_dinutre_reprova_alteracao_cronograma(client_autenticado_dinu
     assert obj.status == 'REPROVADO_DINUTRE'
 
 
+def test_url_analise_dinutre_erro_parametro_aprovado_invalida(
+    client_autenticado_dinutre_diretoria,
+    solicitacao_cronograma_ciente
+):
+    data = json.dumps({
+        'justificativa_dilog': 'teste justificativa',
+        'aprovado': ''
+    })
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dinutre/',
+        data,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_analise_dinutre_erro_solicitacao_cronograma_invalido(client_autenticado_dinutre_diretoria):
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{uuid.uuid4()}/analise-dinutre/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
+def test_url_analise_dinutre_erro_transicao_estado(
+    client_autenticado_dinutre_diretoria,
+    solicitacao_cronograma_aprovado_dinutre
+):
+    data = json.dumps({
+        'justificativa_dilog': 'teste justificativa',
+        'aprovado': True
+    })
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_aprovado_dinutre.uuid}/analise-dinutre/',
+        data,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
 def test_url_perfil_dilog_aprova_alteracao_cronograma(client_autenticado_dilog_diretoria,
                                                       solicitacao_cronograma_aprovado_dinutre):
     data = json.dumps({
@@ -148,6 +236,46 @@ def test_url_perfil_dilog_reprova_alteracao_cronograma(client_autenticado_dilog_
     assert obj.status == 'REPROVADO_DILOG'
 
 
+def test_url_analise_dilog_erro_solicitacao_cronograma_invalido(client_autenticado_dilog_diretoria):
+    response = client_autenticado_dilog_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{uuid.uuid4()}/analise-dilog/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
+def test_url_analise_dilog_erro_parametro_aprovado_invalida(
+    client_autenticado_dilog_diretoria,
+    solicitacao_cronograma_aprovado_dinutre
+):
+    data = json.dumps({
+        'justificativa_dilog': 'teste justificativa',
+        'aprovado': ''
+    })
+    response = client_autenticado_dilog_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_aprovado_dinutre.uuid}/analise-dilog/',
+        data,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_analise_dilog_erro_transicao_estado(
+    client_autenticado_dilog_diretoria,
+    solicitacao_cronograma_ciente
+):
+    data = json.dumps({
+        'justificativa_dilog': 'teste justificativa',
+        'aprovado': True
+    })
+    response = client_autenticado_dilog_diretoria.patch(
+        f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dilog/',
+        data,
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
 def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
@@ -165,10 +293,18 @@ def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(client_autenti
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_fornecedor_confirma_not_authorized(client_autenticado_codae_dilog, cronograma_recebido):
-    response = client_autenticado_codae_dilog.patch(
-        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/')
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+def test_url_fornecedor_confirma_not_authorized(client_autenticado_fornecedor, cronograma_recebido):
+    data = json.dumps({'password': 'senha-errada'})
+    response = client_autenticado_fornecedor.patch(
+        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/', data, content_type='application/json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_url_fornecedor_assina_cronograma_erro_cronograma_invalido(client_autenticado_fornecedor):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_fornecedor.patch(
+        f'/cronogramas/{uuid.uuid4()}/fornecedor-assina-cronograma/', data, content_type='application/json')
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
 
 
 def test_url_list_rascunhos_cronogramas(client_autenticado_codae_dilog):
@@ -418,6 +554,14 @@ def test_url_dinutre_assina_cronograma_erro_senha(client_autenticado_dinutre_dir
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+def test_url_dinutre_assina_cronograma_erro_cronograma_invalido(client_autenticado_dinutre_diretoria):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_dinutre_diretoria.patch(
+        f'/cronogramas/{uuid.uuid4()}/dinutre-assina/',
+        data, content_type='application/json')
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
 def test_url_dinutre_assina_cronograma_erro_transicao_estado(client_autenticado_dinutre_diretoria,
                                                              cronograma):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
@@ -453,6 +597,14 @@ def test_url_dilog_assina_cronograma_erro_senha(client_autenticado_dilog_diretor
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+def test_url_dilog_assina_cronograma_erro_cronograma_invalido(client_autenticado_dilog_diretoria):
+    data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
+    response = client_autenticado_dilog_diretoria.patch(
+        f'/cronogramas/{uuid.uuid4()}/codae-assina/',
+        data, content_type='application/json')
+    assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
+
+
 def test_url_dilog_assina_cronograma_erro_transicao_estado(client_autenticado_dilog_diretoria,
                                                            cronograma):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
@@ -469,19 +621,33 @@ def test_url_dilog_assina_cronograma_not_authorized(client_autenticado_dilog,
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+def test_url_detalhar_com_log(client_autenticado_dinutre_diretoria, cronogramas_multiplos_status_com_log):
+    cronograma_com_log = Cronograma.objects.first()
+    response = client_autenticado_dinutre_diretoria.get(
+        f'/cronogramas/{cronograma_com_log.uuid}/detalhar-com-log/')
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_url_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
                                               cronogramas_multiplos_status_com_log):
     response = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard/'
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()['results']) == 3
-    assert response.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
-    assert len(response.json()['results'][0]['dados']) == 3
-    assert response.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
-    assert len(response.json()['results'][1]['dados']) == 2
-    assert response.json()['results'][2]['status'] == 'ASSINADO_CODAE'
-    assert len(response.json()['results'][2]['dados']) == 1
+
+    status_esperados = ['ASSINADO_FORNECEDOR', 'ASSINADO_DINUTRE', 'ASSINADO_CODAE']
+    status_recebidos = [result['status'] for result in response.json()['results']]
+    for status_esperado in status_esperados:
+        assert status_esperado in status_recebidos
+
+    resultados_recebidos = [result for result in response.json()['results']]
+    for resultado in resultados_recebidos:
+        if resultado['status'] == 'ASSINADO_FORNECEDOR':
+            assert len(resultado['dados']) == 3
+        elif resultado['status'] == 'ASSINADO_DINUTRE':
+            assert len(resultado['dados']) == 2
+        elif resultado['status'] == 'ASSINADO_CODAE':
+            assert len(resultado['dados']) == 1
 
 
 def test_url_dashboard_painel_usuario_dinutre_com_paginacao(client_autenticado_dinutre_diretoria,
@@ -501,41 +667,60 @@ def test_url_dashboard_com_filtro_painel_usuario_dinutre(client_autenticado_dinu
     response = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard-com-filtro/'
     )
-    filtro1 = client_autenticado_dinutre_diretoria.get(
+    response_filtro1 = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard-com-filtro/?nome_produto=Arroz'
     )
-    filtro2 = client_autenticado_dinutre_diretoria.get(
+    response_filtro2 = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard-com-filtro/?numero_cronograma=003/2023'
     )
-    filtro3 = client_autenticado_dinutre_diretoria.get(
+    response_filtro3 = client_autenticado_dinutre_diretoria.get(
         f'/cronogramas/dashboard-com-filtro/?nome_fornecedor=Alimentos'
     )
+
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()['results']) == 3
-    assert response.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
-    assert len(response.json()['results'][0]['dados']) == 3
-    assert response.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
-    assert len(response.json()['results'][1]['dados']) == 2
-    assert response.json()['results'][2]['status'] == 'ASSINADO_CODAE'
-    assert len(response.json()['results'][2]['dados']) == 1
-    assert filtro1.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
-    assert len(filtro1.json()['results'][0]['dados']) == 1
-    assert filtro1.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
-    assert len(filtro1.json()['results'][1]['dados']) == 1
-    assert filtro1.json()['results'][2]['status'] == 'ASSINADO_CODAE'
-    assert len(filtro1.json()['results'][2]['dados']) == 0
-    assert filtro2.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
-    assert len(filtro2.json()['results'][0]['dados']) == 1
-    assert filtro2.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
-    assert len(filtro2.json()['results'][1]['dados']) == 0
-    assert filtro2.json()['results'][2]['status'] == 'ASSINADO_CODAE'
-    assert len(filtro2.json()['results'][2]['dados']) == 0
-    assert filtro3.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
-    assert len(filtro3.json()['results'][0]['dados']) == 3
-    assert filtro3.json()['results'][1]['status'] == 'ASSINADO_DINUTRE'
-    assert len(filtro3.json()['results'][1]['dados']) == 2
-    assert filtro3.json()['results'][2]['status'] == 'ASSINADO_CODAE'
-    assert len(filtro3.json()['results'][2]['dados']) == 1
+    assert response_filtro1.status_code == status.HTTP_200_OK
+    assert response_filtro2.status_code == status.HTTP_200_OK
+    assert response_filtro3.status_code == status.HTTP_200_OK
+
+    resultados_assinado_fornecedor = [
+        r for r in response.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+    assert len(resultados_assinado_fornecedor['dados']) == 3
+    resultados_assinado_dinutre = [
+        r for r in response.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+    assert len(resultados_assinado_dinutre['dados']) == 2
+    resultados_assinado_codae = [
+        r for r in response.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+    assert len(resultados_assinado_codae['dados']) == 1
+
+    resultados_assinado_fornecedor = [
+        r for r in response_filtro1.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+    assert len(resultados_assinado_fornecedor['dados']) == 1
+    resultados_assinado_dinutre = [
+        r for r in response_filtro1.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+    assert len(resultados_assinado_dinutre['dados']) == 1
+    resultados_assinado_codae = [
+        r for r in response_filtro1.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+    assert len(resultados_assinado_codae['dados']) == 0
+
+    resultados_assinado_fornecedor = [
+        r for r in response_filtro2.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+    assert len(resultados_assinado_fornecedor['dados']) == 1
+    resultados_assinado_dinutre = [
+        r for r in response_filtro2.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+    assert len(resultados_assinado_dinutre['dados']) == 0
+    resultados_assinado_codae = [
+        r for r in response_filtro2.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+    assert len(resultados_assinado_codae['dados']) == 0
+
+    resultados_assinado_fornecedor = [
+        r for r in response_filtro3.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+    assert len(resultados_assinado_fornecedor['dados']) == 3
+    resultados_assinado_dinutre = [
+        r for r in response_filtro3.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+    assert len(resultados_assinado_dinutre['dados']) == 2
+    resultados_assinado_codae = [
+        r for r in response_filtro3.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+    assert len(resultados_assinado_codae['dados']) == 1
 
 
 def test_url_dashboard_painel_solicitacao_alteracao_dinutre(client_autenticado_dinutre_diretoria,

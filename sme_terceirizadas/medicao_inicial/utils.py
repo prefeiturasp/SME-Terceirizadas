@@ -1,4 +1,5 @@
 import datetime
+import json
 from calendar import monthrange
 
 from django.db.models import Sum
@@ -728,3 +729,297 @@ def atualizar_status_ocorrencia(
             user=request.user, justificativa=justificativa)
     else:
         solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user, justificativa=justificativa)
+
+
+def dict_informacoes_iniciais(user, acao):
+    return {
+        'usuario': {'uuid': str(user.uuid), 'nome': user.nome,
+                    'username': user.username, 'email': user.email},
+        'criado_em': datetime.datetime.today().strftime('%d/%m/%Y %H:%M:%S'),
+        'acao': acao,
+        'alteracoes': []
+    }
+
+
+def criar_log_solicitar_correcao_periodos(user, solicitacao, acao):
+    log = dict_informacoes_iniciais(user, acao)
+    medicoes = solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA')
+    if not medicoes:
+        return
+    for medicao in medicoes:
+        if medicao.periodo_escolar:
+            periodo_nome = medicao.periodo_escolar.nome
+        else:
+            periodo_nome = medicao.grupo.nome
+
+        alteracoes_dict = {
+            'periodo_escolar': periodo_nome,
+            'justificativa': medicao.logs.last().justificativa,
+            'tabelas_lancamentos': []
+        }
+
+        valores_medicao = medicao.valores_medicao.filter(habilitado_correcao=True).order_by('semana')
+        tabelas_lancamentos = valores_medicao.order_by(
+            'categoria_medicao__nome'
+        ).values_list('categoria_medicao__nome',
+                      flat=True).distinct()
+
+        for tabela in tabelas_lancamentos:
+            valores_da_tabela = valores_medicao.filter(categoria_medicao__nome=tabela)
+            semanas = valores_da_tabela.values_list('semana', flat=True).distinct()
+            tabela_dict = {
+                'categoria_medicao': tabela,
+                'semanas': []
+            }
+
+            for semana in semanas:
+                dias = valores_da_tabela.filter(semana=semana)
+                dias = list(
+                    dias.order_by('dia').values_list('dia', flat=True).distinct()
+                )
+                semana_dict = {'semana': semana, 'dias': dias}
+                tabela_dict['semanas'].append(semana_dict)
+            alteracoes_dict['tabelas_lancamentos'].append(tabela_dict)
+        log['alteracoes'].append(alteracoes_dict)
+    return log
+
+
+def log_anterior_para_busca(acao):
+    if acao == 'MEDICAO_APROVADA_PELA_DRE':
+        return 'MEDICAO_CORRECAO_SOLICITADA'
+    return 'MEDICAO_CORRECAO_SOLICITADA_CODAE'
+
+
+def criar_log_aprovar_periodos_corrigidos(user, solicitacao, acao):
+    if not solicitacao.historico:
+        return
+    log = dict_informacoes_iniciais(user, acao)
+    historico = json.loads(solicitacao.historico)
+    lista_logs = list(filter(lambda log: log['acao'] == log_anterior_para_busca(acao), historico))
+    for log_do_historico in lista_logs:
+        for alteracao in log_do_historico['alteracoes']:
+            log['alteracoes'].append({'periodo_escolar': alteracao['periodo_escolar']})
+    return log
+
+
+def encontrar_ou_criar_log_inicial(user, acao, historico):
+    lista_logs = list(filter(lambda log: log['acao'] == acao and log == historico[-1], historico))
+    if not lista_logs:
+        return dict_informacoes_iniciais(user, acao)
+    else:
+        return lista_logs[0]
+
+
+def gerar_dicionario_e_buscar_valores_medicao(data, medicao):
+    dicionario_alteracoes = {}
+    for valor_atualizado in data:
+        if not valor_atualizado:
+            continue
+        valor_medicao = ValorMedicao.objects.filter(
+            medicao=medicao,
+            dia=valor_atualizado.get('dia', ''),
+            nome_campo=valor_atualizado.get('nome_campo', ''),
+            categoria_medicao=valor_atualizado.get('categoria_medicao', '')
+        )
+        if not valor_medicao or str(valor_medicao.first().valor) == str(valor_atualizado.get('valor', '')):
+            continue
+        else:
+            dicionario_alteracoes[f'{str(valor_medicao.first().uuid)}'] = valor_atualizado.get('valor', '')
+    valores_medicao = ValorMedicao.objects.filter(uuid__in=list(dicionario_alteracoes.keys()))
+    return dicionario_alteracoes, valores_medicao
+
+
+def criar_log_escola_corrigiu(medicao, valores_medicao, dicionario_alteracoes, log_inicial, historico, solicitacao):
+    if medicao.periodo_escolar:
+        periodo_nome = medicao.periodo_escolar.nome
+    else:
+        periodo_nome = medicao.grupo.nome
+    alteracoes_dict = {
+        'periodo_escolar': periodo_nome,
+        'tabelas_lancamentos': []
+    }
+    tabelas_lancamentos = valores_medicao.values_list('categoria_medicao__nome', flat=True).distinct()
+
+    for tabela in tabelas_lancamentos:
+        valores_da_tabela = valores_medicao.filter(categoria_medicao__nome=tabela)
+        semanas = valores_da_tabela.values_list('semana', flat=True).distinct()
+        tabela_dict = {
+            'categoria_medicao': tabela,
+            'semanas': []
+        }
+
+        for semana in semanas:
+            dias = list(valores_da_tabela.filter(semana=semana).values_list('dia', flat=True).distinct())
+            semana_dict = {'semana': semana, 'dias': []}
+
+            for dia in dias:
+                dia_dict = {'dia': dia, 'campos': []}
+                nomes_dos_campos = valores_da_tabela.filter(dia=dia).values_list('nome_campo', flat=True).distinct()
+
+                for campo in nomes_dos_campos:
+                    vm = valores_da_tabela.get(semana=semana,
+                                               dia=dia, nome_campo=campo,
+                                               categoria_medicao__nome=tabela,
+                                               medicao=medicao)
+
+                    dia_dict['campos'].append({'campo_nome': campo,
+                                               'de': vm.valor,
+                                               'para': dicionario_alteracoes[str(vm.uuid)]})
+
+                semana_dict['dias'].append(dia_dict)
+            tabela_dict['semanas'].append(semana_dict)
+        alteracoes_dict['tabelas_lancamentos'].append(tabela_dict)
+    log_inicial['alteracoes'].append(alteracoes_dict)
+    historico.append(log_inicial)
+    solicitacao.historico = json.dumps(historico)
+    solicitacao.save()
+
+
+def get_alteracoes_log(lista_alteracoes, log_inicial, periodo_nome):
+    if not lista_alteracoes:
+        log_inicial['alteracoes'].append({'periodo_escolar': periodo_nome,
+                                          'tabelas_lancamentos': []})
+        cp_alteracao_dict = log_inicial['alteracoes'][-1]
+    else:
+        cp_alteracao_dict = lista_alteracoes[0]
+    alteracao_idx = log_inicial['alteracoes'].index(cp_alteracao_dict)
+    return log_inicial, cp_alteracao_dict, alteracao_idx
+
+
+def atualiza_ou_cria_tabela_lancamentos_log(valor_medicao, cp_alteracao_dict, log_inicial, alteracao_idx):
+    categoria_medicao = valor_medicao.categoria_medicao.nome
+    lista = cp_alteracao_dict['tabelas_lancamentos']
+    lista_categorias = list(filter(lambda tabela: tabela['categoria_medicao'] == categoria_medicao, lista))
+    if not lista_categorias:
+        log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'].append(
+            {'categoria_medicao': categoria_medicao, 'semanas': []}
+        )
+        cp_categorias_dict = log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'][-1]
+    else:
+        cp_categorias_dict = lista_categorias[0]
+    categoria_idx = cp_alteracao_dict['tabelas_lancamentos'].index(cp_categorias_dict)
+    return log_inicial, cp_categorias_dict, categoria_idx
+
+
+def atualiza_ou_cria_semanas_log(lista_semanas, log_inicial, alteracao_idx, categoria_idx,
+                                 valor_medicao, cp_categorias_dict):
+    if not lista_semanas:
+        log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'][categoria_idx]['semanas'].append(
+            {'semana': valor_medicao.semana, 'dias': []}
+        )
+        cp_semana_dict = log_inicial['alteracoes'][alteracao_idx]
+        cp_semana_dict = cp_semana_dict['tabelas_lancamentos'][categoria_idx]['semanas'][-1]
+    else:
+        cp_semana_dict = lista_semanas[0]
+    semana_idx = cp_categorias_dict['semanas'].index(cp_semana_dict)
+    return log_inicial, semana_idx, cp_semana_dict
+
+
+def atualiza_ou_cria_dias_log(lista_dias, log_inicial, alteracao_idx, categoria_idx,
+                              semana_idx, valor_medicao, cp_semana_dict):
+    if not lista_dias:
+        (log_inicial['alteracoes'][alteracao_idx]
+                    ['tabelas_lancamentos'][categoria_idx]
+                    ['semanas'][semana_idx]['dias']).append({
+                        'dia': valor_medicao.dia,
+                        'campos': []
+                    })
+        cp_dias_dict = log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'][categoria_idx]
+        cp_dias_dict = cp_dias_dict['semanas'][semana_idx]['dias'][-1]
+    else:
+        cp_dias_dict = lista_dias[0]
+    dia_idx = cp_semana_dict['dias'].index(cp_dias_dict)
+    return log_inicial, dia_idx, cp_dias_dict
+
+
+def atualiza_ou_cria_nome_campo_log(lista_campos, log_inicial, alteracao_idx, categoria_idx,
+                                    semana_idx, dia_idx, cp_dias_dict, valor_medicao, value):
+    if not lista_campos:
+        (log_inicial['alteracoes'][alteracao_idx]
+                    ['tabelas_lancamentos'][categoria_idx]
+                    ['semanas'][semana_idx]['dias'][dia_idx]
+                    ['campos']).append({
+                        'campo_nome': valor_medicao.nome_campo,
+                        'de': valor_medicao.valor,
+                        'para': value
+                    })
+        cp_campos_dict = log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'][categoria_idx]
+        cp_campos_dict = cp_campos_dict['semanas'][semana_idx]['dias'][dia_idx]['campos'][-1]
+    else:
+        cp_campos_dict = lista_campos[0]
+    campo_idx = cp_dias_dict['campos'].index(cp_campos_dict)
+    return log_inicial, campo_idx, cp_campos_dict
+
+
+def atualizar_log_escola_corrigiu(historico, log_inicial, medicao, dicionario_alteracoes, solicitacao):
+    log_idx = historico.index(log_inicial)
+    if medicao.periodo_escolar:
+        periodo_nome = medicao.periodo_escolar.nome
+    else:
+        periodo_nome = medicao.grupo.nome
+
+    lista_alteracoes = list(filter(lambda a: a['periodo_escolar'] == periodo_nome, log_inicial['alteracoes']))
+
+    log_inicial, cp_alteracao_dict, alteracao_idx = get_alteracoes_log(lista_alteracoes,
+                                                                       log_inicial,
+                                                                       periodo_nome)
+    for key, value in dicionario_alteracoes.items():
+        valor_medicao = ValorMedicao.objects.get(uuid=key)
+        log_inicial, cp_categorias_dict, categoria_idx = atualiza_ou_cria_tabela_lancamentos_log(valor_medicao,
+                                                                                                 cp_alteracao_dict,
+                                                                                                 log_inicial,
+                                                                                                 alteracao_idx)
+
+        lista_semanas = list(filter(lambda s: s['semana'] == valor_medicao.semana, cp_categorias_dict['semanas']))
+
+        log_inicial, semana_idx, cp_semana_dict = atualiza_ou_cria_semanas_log(lista_semanas,
+                                                                               log_inicial,
+                                                                               alteracao_idx,
+                                                                               categoria_idx,
+                                                                               valor_medicao,
+                                                                               cp_categorias_dict)
+
+        lista_dias = list(filter(lambda dia: dia['dia'] == valor_medicao.dia, cp_semana_dict['dias']))
+
+        log_inicial, dia_idx, cp_dias_dict = atualiza_ou_cria_dias_log(lista_dias,
+                                                                       log_inicial,
+                                                                       alteracao_idx,
+                                                                       categoria_idx,
+                                                                       semana_idx,
+                                                                       valor_medicao,
+                                                                       cp_semana_dict)
+
+        lista_campos = list(filter(lambda c: c['campo_nome'] == valor_medicao.nome_campo, cp_dias_dict['campos']))
+
+        log_inicial, campo_idx, cp_campos_dict = atualiza_ou_cria_nome_campo_log(lista_campos,
+                                                                                 log_inicial,
+                                                                                 alteracao_idx,
+                                                                                 categoria_idx,
+                                                                                 semana_idx,
+                                                                                 dia_idx,
+                                                                                 cp_dias_dict,
+                                                                                 valor_medicao,
+                                                                                 value)
+
+        (historico[log_idx]['alteracoes'][alteracao_idx]
+                  ['tabelas_lancamentos'][categoria_idx]
+                  ['semanas'][semana_idx]['dias'][dia_idx]
+                  ['campos'][campo_idx]['para']) = value
+    solicitacao.historico = json.dumps(historico)
+    solicitacao.save()
+
+
+def log_alteracoes_escola_corrige_periodo(user, medicao, acao, data):
+    solicitacao = medicao.solicitacao_medicao_inicial
+    if not solicitacao.historico:
+        return
+    historico = json.loads(solicitacao.historico)
+    log_inicial = encontrar_ou_criar_log_inicial(user, acao, historico)
+
+    dicionario_alteracoes, valores_medicao = gerar_dicionario_e_buscar_valores_medicao(data, medicao)
+    if not valores_medicao:
+        return
+    if not log_inicial['alteracoes']:
+        criar_log_escola_corrigiu(medicao, valores_medicao, dicionario_alteracoes, log_inicial, historico, solicitacao)
+    else:
+        atualizar_log_escola_corrigiu(historico, log_inicial, medicao, dicionario_alteracoes, solicitacao)

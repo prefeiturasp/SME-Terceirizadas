@@ -11,6 +11,7 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
 
+from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.models import LogSolicitacoesUsuario
@@ -33,7 +34,14 @@ from ..models import (
     ValorMedicao
 )
 from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
-from ..utils import atualizar_anexos_ocorrencia, atualizar_status_ocorrencia, tratar_valores
+from ..utils import (
+    atualizar_anexos_ocorrencia,
+    atualizar_status_ocorrencia,
+    criar_log_aprovar_periodos_corrigidos,
+    criar_log_solicitar_correcao_periodos,
+    log_alteracoes_escola_corrige_periodo,
+    tratar_valores
+)
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     CategoriaMedicaoSerializer,
@@ -365,6 +373,16 @@ class SolicitacaoMedicaoInicialViewSet(
                 mensagem = 'Erro: existe(m) pendência(s) de análise'
                 return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
             solicitacao_medicao_inicial.dre_aprova(user=request.user)
+            acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
+            log = criar_log_aprovar_periodos_corrigidos(request.user, solicitacao_medicao_inicial, acao)
+            if log:
+                if not solicitacao_medicao_inicial.historico:
+                    historico = [log]
+                else:
+                    historico = json.loads(solicitacao_medicao_inicial.historico)
+                    historico.append(log)
+                solicitacao_medicao_inicial.historico = json.dumps(historico)
+                solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -376,6 +394,16 @@ class SolicitacaoMedicaoInicialViewSet(
         solicitacao_medicao_inicial = self.get_object()
         try:
             solicitacao_medicao_inicial.dre_pede_correcao(user=request.user)
+            acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA
+            log = criar_log_solicitar_correcao_periodos(request.user, solicitacao_medicao_inicial, acao)
+            if log:
+                if not solicitacao_medicao_inicial.historico:
+                    historico = [log]
+                else:
+                    historico = json.loads(solicitacao_medicao_inicial.historico)
+                    historico.append(log)
+                solicitacao_medicao_inicial.historico = json.dumps(historico)
+                solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -499,6 +527,17 @@ class SolicitacaoMedicaoInicialViewSet(
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['GET'], url_path='ceu-gestao-frequencias-dietas',
+            permission_classes=[UsuarioEscolaTercTotal])
+    def ceu_gestao_frequencias_dietas(self, request, uuid=None):
+        solicitacao_medicao = self.get_object()
+        valores_medicao = ValorMedicao.objects.filter(
+            medicao__solicitacao_medicao_inicial=solicitacao_medicao,
+            categoria_medicao__nome__icontains='DIETA ESPECIAL',
+            nome_campo='frequencia'
+        )
+        return Response(ValorMedicaoSerializer(valores_medicao, many=True).data, status=status.HTTP_200_OK)
+
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = TipoContagemAlimentacao.objects.filter(ativo=True)
@@ -619,13 +658,37 @@ class MedicaoViewSet(
         status_correcao_solicitada_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
         status_medicao_corrigida_para_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
         try:
+            acao = medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
+            log_alteracoes_escola_corrige_periodo(request.user, medicao, acao, request.data)
             for valor_medicao in request.data:
-                ValorMedicao.objects.filter(
+                if not valor_medicao:
+                    continue
+                dia = int(valor_medicao.get('dia', ''))
+                mes = int(medicao.solicitacao_medicao_inicial.mes)
+                ano = int(medicao.solicitacao_medicao_inicial.ano)
+                semana = ValorMedicao.get_week_of_month(ano, mes, dia)
+                categoria_medicao_qs = CategoriaMedicao.objects.filter(id=valor_medicao.get('categoria_medicao', None))
+                tipo_alimentacao_qs = TipoAlimentacao.objects.filter(uuid=valor_medicao.get('tipo_alimentacao', None))
+                ValorMedicao.objects.update_or_create(
                     medicao=medicao,
                     dia=valor_medicao.get('dia', ''),
+                    semana=semana,
                     nome_campo=valor_medicao.get('nome_campo', ''),
-                    categoria_medicao=valor_medicao.get('categoria_medicao', '')
-                ).update(valor=valor_medicao.get('valor', ''))
+                    categoria_medicao=categoria_medicao_qs.first(),
+                    tipo_alimentacao=tipo_alimentacao_qs.first(),
+                    faixa_etaria=valor_medicao.get('faixa_etaria', None),
+                    defaults={
+                        'medicao': medicao,
+                        'dia': valor_medicao.get('dia', ''),
+                        'semana': semana,
+                        'valor': valor_medicao.get('valor', ''),
+                        'nome_campo': valor_medicao.get('nome_campo', ''),
+                        'categoria_medicao': categoria_medicao_qs.first(),
+                        'tipo_alimentacao': tipo_alimentacao_qs.first(),
+                        'faixa_etaria': valor_medicao.get('faixa_etaria', None),
+                        'habilitado_correcao': True,
+                    },
+                )
             if medicao.status in [status_correcao_solicitada_codae, status_medicao_corrigida_para_codae]:
                 medicao.ue_corrige_periodo_grupo_para_codae(user=request.user)
             else:

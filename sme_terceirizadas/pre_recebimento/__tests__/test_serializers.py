@@ -1,11 +1,32 @@
 import pytest
 from django.conf import settings
+from django.utils import timezone
+from freezegun import freeze_time
 
-from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import UnidadeMedidaCreateSerializer
-from sme_terceirizadas.pre_recebimento.api.serializers.serializers import UnidadeMedidaSerialzer
+from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
+    CronogramaCreateSerializer,
+    UnidadeMedidaCreateSerializer,
+    novo_numero_solicitacao
+)
+from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
+    EtapasDoCronogramaSerializer,
+    PainelCronogramaSerializer,
+    UnidadeMedidaSerialzer
+)
 from sme_terceirizadas.pre_recebimento.models import UnidadeMedida
+from sme_terceirizadas.pre_recebimento.models.cronograma import Cronograma
 
 pytestmark = pytest.mark.django_db
+
+
+def test_etapas_cronograma_serializer(etapa):
+    serializer = EtapasDoCronogramaSerializer(etapa)
+    assert serializer.data['data_programada'] is None
+
+    etapa.data_programada = timezone.now().date()
+    etapa.save()
+    serializer = EtapasDoCronogramaSerializer(etapa)
+    assert serializer.data['data_programada'] == etapa.data_programada.strftime('%d/%m/%Y')
 
 
 def test_unidade_medida_serializer(unidade_medida_logistica):
@@ -53,3 +74,52 @@ def test_unidade_medida_create_serializer_updating(unidade_medida_logistica):
     assert serializer.is_valid() is True
     assert serializer.validated_data['nome'] == data['nome']
     assert serializer.validated_data['abreviacao'] == data['abreviacao']
+
+
+def test_painel_cronograma_serializer(cronograma, cronogramas_multiplos_status_com_log):
+    cronograma_completo = Cronograma.objects.filter(numero='002/2023').first()
+    serializer = PainelCronogramaSerializer(cronograma_completo)
+
+    assert cronograma_completo.empresa is not None
+    assert serializer.data['empresa'] == str(cronograma_completo.empresa.razao_social)
+    assert cronograma_completo.produto is not None
+    assert serializer.data['produto'] == str(cronograma_completo.produto.nome)
+    assert cronograma_completo.log_mais_recente is not None
+    assert serializer.data['log_mais_recente'] == cronograma_completo.criado_em.strftime('%d/%m/%Y %H:%M')
+
+    cronograma_incompleto = cronograma
+    serializer = PainelCronogramaSerializer(cronograma_incompleto)
+
+    assert cronograma_incompleto.empresa is None
+    assert cronograma_incompleto.produto is None
+    assert cronograma_incompleto.log_mais_recente is None
+    assert serializer.data['log_mais_recente'] == cronograma_incompleto.criado_em.strftime('%d/%m/%Y')
+
+
+@freeze_time((timezone.now() + timezone.timedelta(2)))
+def test_painel_cronograma_serializer_log_recente(cronogramas_multiplos_status_com_log):
+    cronograma_completo = Cronograma.objects.filter(numero='002/2023').first()
+    serializer = PainelCronogramaSerializer(cronograma_completo)
+
+    expected_date = (timezone.now() - timezone.timedelta(2)).strftime('%d/%m/%Y')
+    assert serializer.data['log_mais_recente'] == expected_date
+
+
+def test_gera_proximo_numero_cronograma_sem_ultimo_cronograma():
+    numero = CronogramaCreateSerializer().gera_proximo_numero_cronograma()
+    assert numero == f'001/{timezone.now().year}'
+
+
+def test_gera_proximo_numero_cronograma_com_ultimo_cronograma(cronograma):
+    numero = CronogramaCreateSerializer().gera_proximo_numero_cronograma()
+    assert numero == f'{str(int(cronograma.numero[:3]) + 1).zfill(3)}/{timezone.now().year}'
+
+
+def test_novo_numero_solicitacao(solicitacao_cronograma_em_analise):
+    solicitacao = solicitacao_cronograma_em_analise
+
+    solicitacao.numero_solicitacao = ''
+    solicitacao.save()
+
+    novo_numero_solicitacao(solicitacao)
+    assert solicitacao.numero_solicitacao == f'{str(solicitacao.pk).zfill(8)}-ALT'

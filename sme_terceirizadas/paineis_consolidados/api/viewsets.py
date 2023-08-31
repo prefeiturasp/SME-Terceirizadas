@@ -17,13 +17,15 @@ from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
-    UsuarioEscolaTercTotal,
     UsuarioNutricionista,
     UsuarioTerceirizada
 )
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
+from ...escola.api.serializers import PeriodoEscolarSerializer
+from ...escola.models import PeriodoEscolar
+from ...inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
@@ -53,6 +55,7 @@ from .constants import (
     AUTORIZADOS_DIETA_ESPECIAL,
     CANCELADOS,
     CANCELADOS_DIETA_ESPECIAL,
+    CEU_GESTAO_PERIODOS_COM_SOLICITACOES_AUTORIZADAS,
     FILTRO_DRE_UUID,
     FILTRO_ESCOLA_UUID,
     FILTRO_TERCEIRIZADA_UUID,
@@ -184,6 +187,92 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         solicitacoes = request.query_params.getlist('solicitacoes[]', None)
         solicitacoes = MoldeConsolidado.solicitacoes_detalhadas(solicitacoes, request)
         return Response(dict(data=solicitacoes, status=HTTP_200_OK))
+
+    def filtrar_solicitacoes_para_relatorio(self, request, model):
+        status = request.data.get('status', None)
+        instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
+        queryset = model.map_queryset_por_status(status, instituicao_uuid=instituicao_uuid)
+
+        # filtra por datas
+        periodo_datas = {
+            'data_evento': request.data.get('de', None),
+            'data_evento_fim': request.data.get('ate', None)
+        }
+        queryset = model.busca_periodo_de_datas(
+            queryset, data_evento=periodo_datas['data_evento'], data_evento_fim=periodo_datas['data_evento_fim'])
+
+        tipo_doc = request.data.get('tipos_solicitacao', None)
+        tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
+        # outros filtros
+        map_filtros = {
+            'lote_uuid__in': request.data.get('lotes', []),
+            'escola_uuid__in': request.data.get('unidades_educacionais', []),
+            'terceirizada_uuid': request.data.get('terceirizada', []),
+            'tipo_doc__in': tipo_doc,
+            'escola_tipo_unidade_uuid__in': request.data.get('tipos_unidade', []),
+        }
+        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
+        queryset = queryset.filter(**filtros)
+        return queryset
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtrar-solicitacoes-ga',
+            permission_classes=(IsAuthenticated,))
+    def filtrar_solicitacoes_ga(self, request):
+        # queryset por status
+        offset = request.data.get('offset', 0)
+        limit = request.data.get('limit', 10)
+        instituicao = request.user.vinculo_atual.instituicao
+        queryset = self.filtrar_solicitacoes_para_relatorio(
+            request, MoldeConsolidado.classe_por_tipo_usuario(instituicao.__class__))
+        return Response(
+            data={
+                'results': self.get_serializer(queryset[offset: offset + limit], many=True).data,
+                'count': queryset.count()
+            }, status=HTTP_200_OK)
+
+    @action(detail=False, methods=['POST'], url_path='exportar-xlsx')
+    def exportar_xlsx(self, request):
+        instituicao = request.user.vinculo_atual.instituicao
+        queryset = self.filtrar_solicitacoes_para_relatorio(
+            request, MoldeConsolidado.classe_por_tipo_usuario(instituicao.__class__))
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        lotes = request.data.get('lotes', [])
+        tipos_solicitacao = request.data.get('tipos_solicitacao', [])
+        tipos_unidade = request.data.get('tipos_unidade', [])
+        unidades_educacionais = request.data.get('unidades_educacionais', [])
+
+        user = request.user.get_username()
+        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
+            data=request.data,
+            uuids=uuids,
+            lotes=lotes,
+            tipos_solicitacao=tipos_solicitacao,
+            tipos_unidade=tipos_unidade,
+            unidades_educacionais=unidades_educacionais
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['POST'], url_path='exportar-pdf')
+    def exportar_pdf(self, request):
+        user = request.user.get_username()
+        instituicao = request.user.vinculo_atual.instituicao
+        queryset = self.filtrar_solicitacoes_para_relatorio(
+            request, MoldeConsolidado.classe_por_tipo_usuario(instituicao.__class__))
+        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
+        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
+            user=user,
+            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
+            data=request.data,
+            uuids=uuids,
+            status=request.data.get('status', None)
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
 
 
 class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
@@ -544,78 +633,6 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             query_set=query_set)}
         return Response(response)
 
-    def filtrar_solicitacoes_para_relatorio(self, request):
-        status = request.query_params.get('status', None)
-        queryset = SolicitacoesCODAE.map_queryset_por_status(status)
-
-        # filtra por datas
-        periodo_datas = {
-            'data_evento': request.query_params.get('de', None),
-            'data_evento_fim': request.query_params.get('ate', None)
-        }
-        queryset = SolicitacoesCODAE.busca_periodo_de_datas(queryset, periodo_datas)
-
-        tipo_doc = request.query_params.getlist('tipos_solicitacao[]', None)
-        tipo_doc = SolicitacoesCODAE.map_queryset_por_tipo_doc(tipo_doc)
-        # outros filtros
-        map_filtros = {
-            'lote_uuid__in': request.query_params.getlist('lotes[]', None),
-            'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
-            'terceirizada_uuid': request.query_params.get('terceirizada', None),
-            'tipo_doc__in': tipo_doc,
-            'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
-        }
-        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
-        queryset = queryset.filter(**filtros)
-        return queryset
-
-    @action(detail=False,
-            methods=['GET'],
-            url_path='filtrar-solicitacoes-ga',
-            permission_classes=([UsuarioCODAEGestaoAlimentacao | UsuarioNutricionista]))
-    def filtrar_solicitacoes_ga(self, request):
-        # queryset por status
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        return self._retorno_base(queryset, False)
-
-    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')
-    def exportar_xlsx(self, request):
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
-        lotes = request.query_params.getlist('lotes[]')
-        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
-        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
-        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
-
-        user = request.user.get_username()
-        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
-            user=user,
-            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
-            data=self.request.query_params,
-            uuids=uuids,
-            lotes=lotes,
-            tipos_solicitacao=tipos_solicitacao,
-            tipos_unidade=tipos_unidade,
-            unidades_educacionais=unidades_educacionais
-        )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['GET'], url_path='exportar-pdf')
-    def exportar_pdf(self, request):
-        user = request.user.get_username()
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
-        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
-            user=user,
-            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
-            data=self.request.query_params,
-            uuids=uuids,
-            status=request.query_params.get('status', None)
-        )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
-
 
 class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -725,6 +742,27 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
         query_set = SolicitacoesEscola.busca_filtro(query_set, request.query_params)
         return self._retorno_base(query_set)
+
+    @action(detail=False, methods=('get',), url_path=f'{CEU_GESTAO_PERIODOS_COM_SOLICITACOES_AUTORIZADAS}')
+    def ceu_gestao_periodos_com_solicitacoes_autorizadas(self, request):
+        escola_uuid = request.query_params.get('escola_uuid')
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+
+        uuids_inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects.filter(
+            status='CODAE_AUTORIZADO',
+            escola__uuid=escola_uuid,
+            inclusoes_normais__cancelado=False,
+            inclusoes_normais__data__month=mes,
+            inclusoes_normais__data__year=ano,
+            inclusoes_normais__data__lt=datetime.date.today()
+        ).values_list('uuid', flat=True)
+
+        periodos_escolares = PeriodoEscolar.objects.filter(
+            quantidadeporperiodo__grupo_inclusao_normal__uuid__in=uuids_inclusoes_normais
+        ).distinct()
+
+        return Response(PeriodoEscolarSerializer(periodos_escolares, many=True).data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path=f'{INCLUSOES_AUTORIZADAS}')
     def inclusoes_autorizadas(self, request):  # noqa C901
@@ -863,8 +901,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                         'motivo': alteracao_alimentacao.motivo
                     })
             else:
-                alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
-                if alt:
+                if alteracao.substituicoes_periodo_escolar.filter(periodo_escolar__nome=nome_periodo_escolar).exists():
+                    alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
                     for data_evento in alteracao.datas_intervalo.filter(data__month=mes, data__year=ano,
                                                                         cancelado=False):
                         return_dict.append({
@@ -874,7 +912,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                             'inclusao_id_externo': alteracao.id_externo,
                             'motivo': alteracao_alimentacao.motivo
                         })
-
         data = {
             'results': return_dict
         }
@@ -1067,78 +1104,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             return self._retorno_base(query_set)
         else:
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def filtrar_solicitacoes_para_relatorio(self, request):
-        escola_uuid = request.user.vinculo_atual.instituicao.uuid
-        status = request.query_params.get('status', None)
-        queryset = SolicitacoesEscola.map_queryset_por_status(status, escola_uuid=escola_uuid)
-        # filtra por datas
-        periodo_datas = {
-            'data_evento': request.query_params.get('de', None),
-            'data_evento_fim': request.query_params.get('ate', None)
-        }
-        queryset = SolicitacoesEscola.busca_periodo_de_datas(queryset, periodo_datas)
-
-        tipo_doc = request.query_params.getlist('tipos_solicitacao[]', None)
-        tipo_doc = SolicitacoesEscola.map_queryset_por_tipo_doc(tipo_doc)
-        # outros filtros
-        map_filtros = {
-            'lote_uuid__in': request.query_params.getlist('lotes[]', None),
-            'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
-            'terceirizada_uuid': request.query_params.get('terceirizada', None),
-            'tipo_doc__in': tipo_doc,
-            'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
-        }
-        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
-        queryset = queryset.filter(**filtros).order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
-        return queryset
-
-    @action(detail=False,
-            methods=['GET'],
-            url_path='filtrar-solicitacoes-ga',
-            permission_classes=(UsuarioEscolaTercTotal,))
-    def filtrar_solicitacoes_ga(self, request):
-        # queryset por status
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        return self._retorno_base(queryset, False)
-
-    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')
-    def exportar_xlsx(self, request):
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
-        lotes = request.query_params.getlist('lotes[]')
-        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
-        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
-        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
-
-        user = request.user.get_username()
-        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
-            user=user,
-            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
-            data=self.request.query_params,
-            uuids=uuids,
-            lotes=lotes,
-            tipos_solicitacao=tipos_solicitacao,
-            tipos_unidade=tipos_unidade,
-            unidades_educacionais=unidades_educacionais
-        )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['GET'], url_path='exportar-pdf')
-    def exportar_pdf(self, request):
-        user = request.user.get_username()
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
-        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
-            user=user,
-            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
-            data=self.request.query_params,
-            uuids=uuids,
-            status=request.query_params.get('status', None)
-        )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
 
 
 class DRESolicitacoesViewSet(SolicitacoesViewSet):
@@ -1373,78 +1338,6 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         else:
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def filtrar_solicitacoes_para_relatorio(self, request):
-        dre_uuid = request.user.vinculo_atual.instituicao.uuid
-        status = request.query_params.get('status', None)
-        queryset = SolicitacoesDRE.map_queryset_por_status(status, dre_uuid=dre_uuid)
-        # filtra por datas
-        periodo_datas = {
-            'data_evento': request.query_params.get('de', None),
-            'data_evento_fim': request.query_params.get('ate', None)
-        }
-        queryset = SolicitacoesDRE.busca_periodo_de_datas(queryset, periodo_datas)
-
-        tipo_doc = request.query_params.getlist('tipos_solicitacao[]', None)
-        tipo_doc = SolicitacoesDRE.map_queryset_por_tipo_doc(tipo_doc)
-        # outros filtros
-        map_filtros = {
-            'lote_uuid__in': request.query_params.getlist('lotes[]', None),
-            'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
-            'terceirizada_uuid': request.query_params.get('terceirizada', None),
-            'tipo_doc__in': tipo_doc,
-            'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
-        }
-        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
-        queryset = queryset.filter(**filtros).order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
-        return queryset
-
-    @action(detail=False,
-            methods=['GET'],
-            url_path='filtrar-solicitacoes-ga',
-            permission_classes=(UsuarioDiretoriaRegional,))
-    def filtrar_solicitacoes_ga(self, request):
-        # queryset por status
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        return self._retorno_base(queryset, False)
-
-    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')
-    def exportar_xlsx(self, request):
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
-        lotes = request.query_params.getlist('lotes[]')
-        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
-        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
-        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
-
-        user = request.user.get_username()
-        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
-            user=user,
-            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
-            data=self.request.query_params,
-            uuids=uuids,
-            lotes=lotes,
-            tipos_solicitacao=tipos_solicitacao,
-            tipos_unidade=tipos_unidade,
-            unidades_educacionais=unidades_educacionais
-        )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['GET'], url_path='exportar-pdf')
-    def exportar_pdf(self, request):
-        user = request.user.get_username()
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
-        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
-            user=user,
-            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
-            data=self.request.query_params,
-            uuids=uuids,
-            status=request.query_params.get('status', None)
-        )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
-
 
 class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -1592,78 +1485,6 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
         response = {'results': self._agrupa_por_tipo_visao(
             tipo_visao=tipo_visao, query_set=query_set)}
         return Response(response)
-
-    def filtrar_solicitacoes_para_relatorio(self, request):
-        terceirizada_uuid = request.user.vinculo_atual.instituicao.uuid
-        status = request.query_params.get('status', None)
-        queryset = SolicitacoesTerceirizada.map_queryset_por_status(status, terceirizada_uuid=terceirizada_uuid)
-        # filtra por datas
-        periodo_datas = {
-            'data_evento': request.query_params.get('de', None),
-            'data_evento_fim': request.query_params.get('ate', None)
-        }
-        queryset = SolicitacoesTerceirizada.busca_periodo_de_datas(queryset, periodo_datas)
-
-        tipo_doc = request.query_params.getlist('tipos_solicitacao[]', None)
-        tipo_doc = SolicitacoesTerceirizada.map_queryset_por_tipo_doc(tipo_doc)
-        # outros filtros
-        map_filtros = {
-            'lote_uuid__in': request.query_params.getlist('lotes[]', None),
-            'escola_uuid__in': request.query_params.getlist('unidades_educacionais[]', None),
-            'terceirizada_uuid': request.query_params.get('terceirizada', None),
-            'tipo_doc__in': tipo_doc,
-            'escola_tipo_unidade_uuid__in': request.query_params.getlist('tipos_unidade[]', None),
-        }
-        filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
-        queryset = queryset.filter(**filtros).order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
-        return queryset
-
-    @action(detail=False,
-            methods=['GET'],
-            url_path='filtrar-solicitacoes-ga',
-            permission_classes=(UsuarioTerceirizada,))
-    def filtrar_solicitacoes_ga(self, request):
-        # queryset por status
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        return self._retorno_base(queryset, False)
-
-    @action(detail=False, methods=['GET'], url_path='exportar-xlsx')
-    def exportar_xlsx(self, request):
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
-        lotes = request.query_params.getlist('lotes[]')
-        tipos_solicitacao = request.query_params.getlist('tipos_solicitacao[]')
-        tipos_unidade = request.query_params.getlist('tipos_unidade[]')
-        unidades_educacionais = request.query_params.getlist('unidades_educacionais[]')
-
-        user = request.user.get_username()
-        gera_xls_relatorio_solicitacoes_alimentacao_async.delay(
-            user=user,
-            nome_arquivo='relatorio_solicitacoes_alimentacao.xlsx',
-            data=self.request.query_params,
-            uuids=uuids,
-            lotes=lotes,
-            tipos_solicitacao=tipos_solicitacao,
-            tipos_unidade=tipos_unidade,
-            unidades_educacionais=unidades_educacionais
-        )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['GET'], url_path='exportar-pdf')
-    def exportar_pdf(self, request):
-        user = request.user.get_username()
-        queryset = self.filtrar_solicitacoes_para_relatorio(request)
-        uuids = [str(solicitacao.uuid) for solicitacao in queryset]
-        gera_pdf_relatorio_solicitacoes_alimentacao_async.delay(
-            user=user,
-            nome_arquivo='relatorio_solicitacoes_alimentacao.pdf',
-            data=self.request.query_params,
-            uuids=uuids,
-            status=request.query_params.get('status', None)
-        )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
 
 
 class DietaEspecialSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):

@@ -888,3 +888,12 @@ def test_url_codae_aprova_periodo(client_autenticado_codae_medicao,
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Erro de transição de estado:' in response.data['detail']
+
+
+def test_url_ceu_gestao_frequencias_dietas(client_autenticado_da_escola, solicitacao_medicao_inicial_com_grupo):
+    response = client_autenticado_da_escola.get(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_com_grupo.uuid}'
+        f'/ceu-gestao-frequencias-dietas/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
