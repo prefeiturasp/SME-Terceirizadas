@@ -706,7 +706,11 @@ def append_faixas_dietas(dietas):
     for dieta_periodo in dietas:
         data_nascimento = dieta_periodo.aluno.data_nascimento
         meses = quantidade_meses(date.today(), data_nascimento)
-        faixa = FaixaEtaria.objects.get(ativo=True, inicio__lte=meses, fim__gt=meses)
+        ultima_faixa = FaixaEtaria.objects.filter(ativo=True).order_by('fim').last()
+        if meses >= ultima_faixa.fim:
+            faixa = ultima_faixa
+        else:
+            faixa = FaixaEtaria.objects.get(ativo=True, inicio__lte=meses, fim__gt=meses)
         faixas.append(faixa)
     return faixas
 
