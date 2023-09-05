@@ -75,8 +75,8 @@ def laboratorio():
 
 
 @pytest.fixture
-def emabalagem_qld():
-    return mommy.make('EmbalagemQld', nome='CAIXA', abreviacao='CX')
+def tipo_emabalagem_qld():
+    return mommy.make('TipoEmbalagemQld', nome='CAIXA', abreviacao='CX')
 
 
 @pytest.fixture

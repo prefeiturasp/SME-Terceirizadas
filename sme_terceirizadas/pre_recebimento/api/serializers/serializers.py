@@ -6,11 +6,11 @@ from rest_framework import serializers
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
-    EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoEmbalagemQld,
     UnidadeMedida
 )
 from sme_terceirizadas.produto.api.serializers.serializers import NomeDeProdutoEditalSerializer, UnidadeMedidaSerialzer
@@ -186,9 +186,9 @@ class LaboratorioSimplesFiltroSerializer(serializers.ModelSerializer):
         read_only_fields = ('nome', 'cnpj')
 
 
-class EmbalagemQldSerializer(serializers.ModelSerializer):
+class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EmbalagemQld
+        model = TipoEmbalagemQld
         exclude = ('id', )
 
 
