@@ -192,7 +192,6 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         status = request.data.get('status', None)
         instituicao_uuid = request.user.vinculo_atual.instituicao.uuid
         queryset = model.map_queryset_por_status(status, instituicao_uuid=instituicao_uuid)
-
         # filtra por datas
         periodo_datas = {
             'data_evento': request.data.get('de', None),
@@ -200,7 +199,6 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         }
         queryset = model.busca_periodo_de_datas(
             queryset, data_evento=periodo_datas['data_evento'], data_evento_fim=periodo_datas['data_evento_fim'])
-
         tipo_doc = request.data.get('tipos_solicitacao', None)
         tipo_doc = model.map_queryset_por_tipo_doc(tipo_doc)
         # outros filtros
@@ -213,6 +211,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         }
         filtros = {key: value for key, value in map_filtros.items() if value not in [None, []]}
         queryset = queryset.filter(**filtros)
+        queryset = self.remove_duplicados_do_query_set(queryset)
         return queryset
 
     @action(detail=False,
@@ -229,7 +228,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(
             data={
                 'results': self.get_serializer(queryset[offset: offset + limit], many=True).data,
-                'count': queryset.count()
+                'count': len(queryset)
             }, status=HTTP_200_OK)
 
     @action(detail=False, methods=['POST'], url_path='exportar-xlsx')

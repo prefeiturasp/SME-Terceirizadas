@@ -7,7 +7,7 @@ router = routers.DefaultRouter()
 
 router.register('cronogramas', viewsets.CronogramaModelViewSet)
 router.register('laboratorios', viewsets.LaboratorioModelViewSet)
-router.register('embalagens', viewsets.EmbalagemQldModelViewSet)
+router.register('tipos-embalagens', viewsets.TipoEmbalagemQldModelViewSet)
 router.register('unidades-medida-logistica', viewsets.UnidadeMedidaViewset)
 
 router.register('solicitacao-de-alteracao-de-cronograma', viewsets.SolicitacaoDeAlteracaoCronogramaViewSet,

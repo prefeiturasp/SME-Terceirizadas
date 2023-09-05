@@ -1,5 +1,6 @@
 import datetime
 import io
+import locale
 import logging
 
 import numpy as np
@@ -151,13 +152,16 @@ def gera_pdf_relatorio_dietas_especiais_terceirizadas_async(user, nome_arquivo, 
                 dados_solicitacoes['data_cancelamento'] = solicitacao.data_ultimo_log
             solicitacoes.append(dados_solicitacoes)
         exibir_diagnostico = usuario.tipo_usuario != 'terceirizada'
+        locale.setlocale(locale.LC_TIME, 'pt_BR.utf8')
+        now = datetime.datetime.now()
         dados = {
             'usuario_nome': usuario.nome,
             'status': data.get('status_selecionado').lower(),
             'filtros': filtros,
             'solicitacoes': solicitacoes,
             'quantidade_solicitacoes': query_set.count(),
-            'diagnostico': exibir_diagnostico
+            'diagnostico': exibir_diagnostico,
+            'data_extracao': now.strftime('%d de %B de %Y')
         }
         arquivo = relatorio_dietas_especiais_terceirizada(dados=dados)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)

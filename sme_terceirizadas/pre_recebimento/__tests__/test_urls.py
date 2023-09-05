@@ -8,9 +8,9 @@ from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import NomeEAbreviacaoUnidadeMedidaSerializer
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
-    EmbalagemQld,
     Laboratorio,
     SolicitacaoAlteracaoCronograma,
+    TipoEmbalagemQld,
     UnidadeMedida
 )
 from sme_terceirizadas.pre_recebimento.utils import UnidadeMedidaPagination
@@ -430,42 +430,42 @@ def test_url_endpoint_embalagem_create(client_autenticado_qualidade):
         'abreviacao': 'FD'
     }
     response = client_autenticado_qualidade.post(
-        '/embalagens/',
+        '/tipos-embalagens/',
         content_type='application/json',
         data=json.dumps(data)
     )
     assert response.status_code == status.HTTP_201_CREATED
-    obj = EmbalagemQld.objects.last()
+    obj = TipoEmbalagemQld.objects.last()
     assert obj.nome == 'FARDO'
 
 
 def test_url_embalagen_authorized(client_autenticado_qualidade):
-    response = client_autenticado_qualidade.get('/embalagens/')
+    response = client_autenticado_qualidade.get('/tipos-embalagens/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_lista_nomes_embalagens_authorized(client_autenticado_qualidade):
-    response = client_autenticado_qualidade.get('/embalagens/lista-nomes-embalagens/')
+def test_url_lista_nomes_tipos_embalagens_authorized(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get('/tipos-embalagens/lista-nomes-tipos-embalagens/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_abreviacao_nomes_embalagens_authorized(client_autenticado_qualidade):
-    response = client_autenticado_qualidade.get('/embalagens/lista-abreviacao-embalagens/')
+def test_url_lista_abreviacoes_tipos_embalagens_authorized(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get('/tipos-embalagens/lista-abreviacoes-tipos-embalagens/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_endpoint_embalagem_update(client_autenticado_qualidade, emabalagem_qld):
+def test_url_endpoint_embalagem_update(client_autenticado_qualidade, tipo_emabalagem_qld):
     data = {
         'nome': 'saco',
         'abreviacao': 'SC'
     }
     response = client_autenticado_qualidade.put(
-        f'/embalagens/{emabalagem_qld.uuid}/',
+        f'/tipos-embalagens/{tipo_emabalagem_qld.uuid}/',
         content_type='application/json',
         data=json.dumps(data)
     )
     assert response.status_code == status.HTTP_200_OK
-    obj = EmbalagemQld.objects.last()
+    obj = TipoEmbalagemQld.objects.last()
     assert obj.nome == 'SACO'
 
 

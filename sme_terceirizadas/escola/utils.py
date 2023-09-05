@@ -69,38 +69,37 @@ def registra_quantidade_matriculados(matriculas, ontem, tipo_turma):  # noqa C90
     objs = []
     matriculas = pd.DataFrame(matriculas).astype(str).drop_duplicates().to_dict('records')
     for matricula in matriculas:
-        if matricula['codigoEolEscola'] == '017981':
-            escola = Escola.objects.filter(codigo_eol=matricula['codigoEolEscola']).first()
-            turnos = ast.literal_eval(matricula['turnos'])
-            periodos = []
-            for turno_resp in turnos:
-                turno = remove_acentos(turno_resp['turno'])
-                periodo = PeriodoEscolar.objects.filter(nome=turno.upper()).first()
-                if not periodo:
-                    logger.debug(f'Periodo {turno_resp["turno"]} não encontrado na tabela de Períodos')
-                    continue
-                periodos.append(periodo)
-                if tipo_turma == 'REGULAR':
-                    create_update_objeto_escola_periodo_escolar(escola, periodo, turno_resp['quantidade'])
-                matricula_sigpae = AlunosMatriculadosPeriodoEscola.objects.filter(tipo_turma=tipo_turma,
-                                                                                  escola=escola,
-                                                                                  periodo_escolar=periodo).first()
-                if matricula_sigpae:
-                    matricula_sigpae.quantidade_alunos = turno_resp['quantidade']
-                    objs.append(matricula_sigpae)
-                else:
-                    AlunosMatriculadosPeriodoEscola.criar(
-                        escola=escola, periodo_escolar=periodo,
-                        quantidade_alunos=turno_resp['quantidade'],
-                        tipo_turma=tipo_turma)
-                LogAlunosMatriculadosPeriodoEscola.criar(
+        escola = Escola.objects.filter(codigo_eol=matricula['codigoEolEscola']).first()
+        turnos = ast.literal_eval(matricula['turnos'])
+        periodos = []
+        for turno_resp in turnos:
+            turno = remove_acentos(turno_resp['turno'])
+            periodo = PeriodoEscolar.objects.filter(nome=turno.upper()).first()
+            if not periodo:
+                logger.debug(f'Periodo {turno_resp["turno"]} não encontrado na tabela de Períodos')
+                continue
+            periodos.append(periodo)
+            if tipo_turma == 'REGULAR':
+                create_update_objeto_escola_periodo_escolar(escola, periodo, turno_resp['quantidade'])
+            matricula_sigpae = AlunosMatriculadosPeriodoEscola.objects.filter(tipo_turma=tipo_turma,
+                                                                                escola=escola,
+                                                                                periodo_escolar=periodo).first()
+            if matricula_sigpae:
+                matricula_sigpae.quantidade_alunos = turno_resp['quantidade']
+                objs.append(matricula_sigpae)
+            else:
+                AlunosMatriculadosPeriodoEscola.criar(
                     escola=escola, periodo_escolar=periodo,
                     quantidade_alunos=turno_resp['quantidade'],
-                    data=ontem, tipo_turma=tipo_turma)
+                    tipo_turma=tipo_turma)
+            LogAlunosMatriculadosPeriodoEscola.criar(
+                escola=escola, periodo_escolar=periodo,
+                quantidade_alunos=turno_resp['quantidade'],
+                data=ontem, tipo_turma=tipo_turma)
 
-            AlunosMatriculadosPeriodoEscola.objects.filter(
-                tipo_turma=tipo_turma,
-                escola=escola).exclude(periodo_escolar__in=periodos).delete()
+        AlunosMatriculadosPeriodoEscola.objects.filter(
+            tipo_turma=tipo_turma,
+            escola=escola).exclude(periodo_escolar__in=periodos).delete()
     AlunosMatriculadosPeriodoEscola.objects.bulk_update(objs, ['quantidade_alunos'])
     update_datetime_LogAlunosMatriculadosPeriodoEscola()
 
