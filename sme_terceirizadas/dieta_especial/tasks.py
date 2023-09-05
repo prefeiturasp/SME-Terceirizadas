@@ -109,8 +109,11 @@ def gera_logs_dietas_especiais_diariamente():
     )
     logs_a_criar_escolas_comuns = []
     logs_a_criar_escolas_cei = []
-    for escola in Escola.objects.filter(tipo_gestao__nome='TERC TOTAL'):
-        logger.info(f'x-x-x-x Logs para a escola {escola.nome} x-x-x-x')
+    escolas = Escola.objects.filter(tipo_gestao__nome='TERC TOTAL')
+    for index, escola in enumerate(escolas):
+        msg = f'x-x-x-x Logs de quantidade de dietas autorizadas para a escola'
+        msg += f' {escola.nome} ({index + 1}/{(escolas).count()}) x-x-x-x'
+        logger.info(msg)
         if escola.tipo_unidade.iniciais in iniciais_cei:
             logs_a_criar_escolas_cei += gera_logs_dietas_escolas_cei(escola, dietas_autorizadas, ontem)
         else:
