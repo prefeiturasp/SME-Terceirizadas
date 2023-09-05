@@ -8,7 +8,7 @@ class CronogramaPagination(PageNumberPagination):
     max_page_size = 100
 
 
-class EmbalagemQldPagination(PageNumberPagination):
+class TipoEmbalagemQldPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
