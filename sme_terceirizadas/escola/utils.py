@@ -82,8 +82,8 @@ def registra_quantidade_matriculados(matriculas, ontem, tipo_turma):  # noqa C90
             if tipo_turma == 'REGULAR':
                 create_update_objeto_escola_periodo_escolar(escola, periodo, turno_resp['quantidade'])
             matricula_sigpae = AlunosMatriculadosPeriodoEscola.objects.filter(tipo_turma=tipo_turma,
-                                                                                escola=escola,
-                                                                                periodo_escolar=periodo).first()
+                                                                              escola=escola,
+                                                                              periodo_escolar=periodo).first()
             if matricula_sigpae:
                 matricula_sigpae.quantidade_alunos = turno_resp['quantidade']
                 objs.append(matricula_sigpae)
