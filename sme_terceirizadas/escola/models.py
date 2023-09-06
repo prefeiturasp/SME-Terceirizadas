@@ -1319,7 +1319,7 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
     class Meta:
         verbose_name = 'Log Alteração quantidade de alunos regular e programa'
         verbose_name_plural = 'Logs de Alteração quantidade de alunos regulares e de programas'
-        ordering = ('criado_em',)
+        ordering = ('-criado_em',)
 
 
 class DiaCalendario(CriadoEm, TemAlteradoEm, TemData, TemChaveExterna):
