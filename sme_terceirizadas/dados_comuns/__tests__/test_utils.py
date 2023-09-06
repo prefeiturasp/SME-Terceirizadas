@@ -3,8 +3,13 @@ from datetime import date
 import environ
 from freezegun import freeze_time
 
+from sme_terceirizadas.dieta_especial.models import LogQuantidadeDietasAutorizadas
+from sme_terceirizadas.escola.models import LogAlunosMatriculadosPeriodoEscola
+
 from ..constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO, obter_dias_uteis_apos_hoje
 from ..utils import (
+    analisa_logs_alunos_matriculados_periodo_escola,
+    analisa_logs_quantidade_dietas_autorizadas,
     eh_email_dev,
     ordena_dias_semana_comeca_domingo,
     queryset_por_data,
@@ -115,3 +120,15 @@ def test_remove_emails_dev():
     nova_lista = remove_emails_dev(emails, False)
     assert len(nova_lista) == 1
     assert nova_lista[0] == 'test@example.com'
+
+
+def test_analisa_logs_alunos_matriculados_periodo_escola(logs_alunos_matriculados_periodo_escola):
+    analisa_logs_alunos_matriculados_periodo_escola()
+    logs = LogAlunosMatriculadosPeriodoEscola.objects.all()
+    assert logs.count() == 4
+
+
+def test_analisa_logs_quantidade_dietas_autorizadas(logs_quantidade_dietas_autorizadas_escola_comum):
+    analisa_logs_quantidade_dietas_autorizadas()
+    logs = LogQuantidadeDietasAutorizadas.objects.all()
+    assert logs.count() == 3

@@ -559,14 +559,6 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
                 classificacao=classificacao
             )
             logs_a_criar.append(log)
-        quantidade_dietas = dietas_autorizadas.filter(classificacao=classificacao, escola_destino=escola).count()
-        log = LogQuantidadeDietasAutorizadas(
-            quantidade=quantidade_dietas,
-            escola=escola,
-            data=ontem,
-            classificacao=classificacao
-        )
-        logs_a_criar.append(log)
     return logs_a_criar
 
 
