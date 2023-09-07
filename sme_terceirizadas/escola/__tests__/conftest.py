@@ -459,9 +459,9 @@ def mocked_informacoes_escola_turma_aluno():
 
 @pytest.fixture
 def alunos_periodo_parcial(escola_cei, periodo_escolar):
-    hoje = datetime.date.today()
+    data = datetime.date(2023, 8, 28)
     solicitacao_medicao = SolicitacaoMedicaoInicial.objects.create(
-        escola=escola_cei, ano=hoje.year, mes=f'{hoje.month:02d}')
+        escola=escola_cei, ano=data.year, mes=f'{data.month:02d}')
     for i in range(0, len(mocked_informacoes_escola_turma_aluno()), 2):
         informacao_aluno = mocked_informacoes_escola_turma_aluno()[i]
         aluno = mommy.make('Aluno',

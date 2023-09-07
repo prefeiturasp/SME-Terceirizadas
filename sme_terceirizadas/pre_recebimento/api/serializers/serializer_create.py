@@ -9,11 +9,11 @@ from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
-    EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoEmbalagemQld,
     UnidadeMedida
 )
 from sme_terceirizadas.produto.models import NomeDeProdutoEdital
@@ -185,14 +185,14 @@ class LaboratorioCreateSerializer(serializers.ModelSerializer):
         exclude = ('id', )
 
 
-class EmbalagemQldCreateSerializer(serializers.ModelSerializer):
+class TipoEmbalagemQldCreateSerializer(serializers.ModelSerializer):
     nome = serializers.CharField(required=True)
     abreviacao = serializers.CharField(required=True)
 
     def create(self, validated_data):
         validated_data['nome'] = validated_data['nome'].upper()
         validated_data['abreviacao'] = validated_data['abreviacao'].upper()
-        embalagem = EmbalagemQld.objects.create(**validated_data)
+        embalagem = TipoEmbalagemQld.objects.create(**validated_data)
 
         return embalagem
 
@@ -204,7 +204,7 @@ class EmbalagemQldCreateSerializer(serializers.ModelSerializer):
         return instance
 
     class Meta:
-        model = EmbalagemQld
+        model = TipoEmbalagemQld
         exclude = ('id', )
 
 

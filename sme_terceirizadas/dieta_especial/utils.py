@@ -559,14 +559,6 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
                 classificacao=classificacao
             )
             logs_a_criar.append(log)
-        quantidade_dietas = dietas_autorizadas.filter(classificacao=classificacao, escola_destino=escola).count()
-        log = LogQuantidadeDietasAutorizadas(
-            quantidade=quantidade_dietas,
-            escola=escola,
-            data=ontem,
-            classificacao=classificacao
-        )
-        logs_a_criar.append(log)
     return logs_a_criar
 
 
@@ -706,7 +698,11 @@ def append_faixas_dietas(dietas):
     for dieta_periodo in dietas:
         data_nascimento = dieta_periodo.aluno.data_nascimento
         meses = quantidade_meses(date.today(), data_nascimento)
-        faixa = FaixaEtaria.objects.get(ativo=True, inicio__lte=meses, fim__gt=meses)
+        ultima_faixa = FaixaEtaria.objects.filter(ativo=True).order_by('fim').last()
+        if meses >= ultima_faixa.fim:
+            faixa = ultima_faixa
+        else:
+            faixa = FaixaEtaria.objects.get(ativo=True, inicio__lte=meses, fim__gt=meses)
         faixas.append(faixa)
     return faixas
 

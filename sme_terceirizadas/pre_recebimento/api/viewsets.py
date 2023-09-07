@@ -33,28 +33,27 @@ from sme_terceirizadas.dados_comuns.permissions import (
 )
 from sme_terceirizadas.pre_recebimento.api.filters import (
     CronogramaFilter,
-    EmbalagensQldFilter,
     LaboratorioFilter,
     SolicitacaoAlteracaoCronogramaFilter,
+    TipoEmbalagemQldFilter,
     UnidadeMedidaFilter
 )
 from sme_terceirizadas.pre_recebimento.api.paginations import (
     CronogramaPagination,
-    EmbalagemQldPagination,
-    LaboratorioPagination
+    LaboratorioPagination,
+    TipoEmbalagemQldPagination
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
-    EmbalagemQldCreateSerializer,
     LaboratorioCreateSerializer,
     SolicitacaoDeAlteracaoCronogramaCreateSerializer,
+    TipoEmbalagemQldCreateSerializer,
     UnidadeMedidaCreateSerializer
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
-    EmbalagemQldSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer,
@@ -62,14 +61,15 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
     SolicitacaoAlteracaoCronogramaSerializer,
+    TipoEmbalagemQldSerializer,
     UnidadeMedidaSerialzer
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
-    EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
     SolicitacaoAlteracaoCronograma,
+    TipoEmbalagemQld,
     UnidadeMedida
 )
 from sme_terceirizadas.pre_recebimento.utils import (
@@ -328,30 +328,30 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
         return Response(response)
 
 
-class EmbalagemQldModelViewSet(viewsets.ModelViewSet):
+class TipoEmbalagemQldModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = EmbalagemQld.objects.all().order_by('-criado_em')
-    serializer_class = EmbalagemQldSerializer
+    queryset = TipoEmbalagemQld.objects.all().order_by('-criado_em')
+    serializer_class = TipoEmbalagemQldSerializer
     permission_classes = (PermissaoParaCadastrarVisualizarEmbalagem,)
-    pagination_class = EmbalagemQldPagination
-    filterset_class = EmbalagensQldFilter
+    pagination_class = TipoEmbalagemQldPagination
+    filterset_class = TipoEmbalagemQldFilter
     filter_backends = (filters.DjangoFilterBackend,)
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
-            return EmbalagemQldSerializer
+            return TipoEmbalagemQldSerializer
         else:
-            return EmbalagemQldCreateSerializer
+            return TipoEmbalagemQldCreateSerializer
 
-    @action(detail=False, methods=['GET'], url_path='lista-nomes-embalagens')
-    def lista_nomes_embalagens(self, request):
-        queryset = EmbalagemQld.objects.all().values_list('nome', flat=True)
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-tipos-embalagens')
+    def lista_nomes_tipos_embalagens(self, request):
+        queryset = TipoEmbalagemQld.objects.all().values_list('nome', flat=True)
         response = {'results': queryset}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='lista-abreviacao-embalagens')
-    def lista_abreviacoes_embalagens(self, request):
-        queryset = EmbalagemQld.objects.all().values_list('abreviacao', flat=True)
+    @action(detail=False, methods=['GET'], url_path='lista-abreviacoes-tipos-embalagens')
+    def lista_abreviacoes_tipos_embalagens(self, request):
+        queryset = TipoEmbalagemQld.objects.all().values_list('abreviacao', flat=True)
         response = {'results': queryset}
         return Response(response)
 
@@ -486,6 +486,11 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
             if aprovado is True:
                 solicitacao_cronograma.dilog_aprova(user=usuario)
+                cronograma = solicitacao_cronograma.cronograma
+                cronograma.etapas.set(solicitacao_cronograma.etapas_novas.all())
+                cronograma.programacoes_de_recebimento.all().delete()
+                cronograma.programacoes_de_recebimento.set(solicitacao_cronograma.programacoes_novas.all())
+                cronograma.save()
             elif aprovado is False:
                 justificativa = request.data.get('justificativa_dilog')
                 solicitacao_cronograma.dilog_reprova(user=usuario, justificativa=justificativa)

@@ -4,11 +4,11 @@ from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaAlteracaoWorkf
 
 from ..models import (
     Cronograma,
-    EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoEmbalagemQld,
     UnidadeMedida
 )
 
@@ -67,17 +67,17 @@ def test_laboratorio_meta_modelo(laboratorio):
     assert laboratorio._meta.verbose_name_plural == 'Laboratórios'
 
 
-def test_embalagem_instance_model(emabalagem_qld):
-    assert isinstance(emabalagem_qld, EmbalagemQld)
+def test_embalagem_instance_model(tipo_emabalagem_qld):
+    assert isinstance(tipo_emabalagem_qld, TipoEmbalagemQld)
 
 
-def test_embalagem_srt_model(emabalagem_qld):
-    assert emabalagem_qld.__str__() == 'CAIXA'
+def test_embalagem_srt_model(tipo_emabalagem_qld):
+    assert tipo_emabalagem_qld.__str__() == 'CAIXA'
 
 
-def test_embalagem_meta_modelo(emabalagem_qld):
-    assert emabalagem_qld._meta.verbose_name == 'Embalagem QLD'
-    assert emabalagem_qld._meta.verbose_name_plural == 'Embalagens QLD'
+def test_embalagem_meta_modelo(tipo_emabalagem_qld):
+    assert tipo_emabalagem_qld._meta.verbose_name == 'Tipo de Embalagem (Qualidade)'
+    assert tipo_emabalagem_qld._meta.verbose_name_plural == 'Tipos de Embalagens (Qualidade)'
 
 
 def test_unidade_medida_model(unidade_medida_logistica):
