@@ -7,6 +7,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
+from sme_terceirizadas.dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow as Solicitacaotatus
 from sme_terceirizadas.eol_servico.utils import EOLPapaService
 from sme_terceirizadas.logistica.models import Guia, SolicitacaoRemessa
 
@@ -132,3 +133,14 @@ def desarquiva_guias(numero_requisicao, guias):  # noqa C901
     existe_guia_ativa = requisicao.guias.filter(situacao=Guia.ATIVA).exists()
     if existe_guia_ativa:
         requisicao.desarquivar_requisicao(uuid=requisicao.uuid)
+
+
+def cancelar_guias(queryset):
+    queryset.update(status=GuiaStatus.CANCELADA)
+
+    for guia in queryset.all():
+        solicitacao = guia.solicitacao
+
+        if not solicitacao.cancelada and solicitacao.todas_as_guias_canceladas:
+            solicitacao.status = Solicitacaotatus.PAPA_CANCELA
+            solicitacao.save()
