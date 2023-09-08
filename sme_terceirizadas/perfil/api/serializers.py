@@ -130,16 +130,22 @@ class VinculoSimplesSerializer(serializers.ModelSerializer):
     cnpj_empresa = serializers.SerializerMethodField()
     nome_perfil = serializers.CharField(source='perfil.nome')
     visao_perfil = serializers.CharField(source='perfil.visao')
+    nome_escola = serializers.SerializerMethodField()
 
     def get_cnpj_empresa(self, obj):
         if obj.content_type.name == 'Terceirizada':
             return obj.instituicao.cnpj
         return None
 
+    def get_nome_escola(self, obj):
+        if obj.content_type.name == 'Escola':
+            return obj.instituicao.nome
+        return None
+
     class Meta:
         model = Vinculo
         fields = ('uuid', 'username', 'nome_usuario', 'email_usuario', 'cpf_usuario', 'uuid_usuario', 'cnpj_empresa',
-                  'nome_perfil', 'visao_perfil', )
+                  'nome_perfil', 'visao_perfil', 'nome_escola', )
 
 
 class UsuarioUpdateSerializer(serializers.ModelSerializer):
