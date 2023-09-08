@@ -1,6 +1,8 @@
 import pytest
 from django.contrib.auth import get_user_model
 
+from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
+
 from ...models.solicitacao import (
     LogSolicitacaoDeCancelamentoPeloPapa,
     SolicitacaoDeAlteracaoRequisicao,
@@ -71,3 +73,19 @@ def test_srt_log_solicitcacao_cancelamento_model(solicitacao_cancelamento_log):
 def test_meta_log_solicitcacao_cancelamento_model(solicitacao_cancelamento_log):
     assert solicitacao_cancelamento_log._meta.verbose_name == 'Log de Solicitação de Cancelamento do PAPA'
     assert solicitacao_cancelamento_log._meta.verbose_name_plural == 'Logs de Solicitações de Cancelamento do PAPA'
+
+
+def test_property_solicitacao_cancelada(solicitacao):
+    solicitacao.status = SolicitacaoRemessaWorkFlow.PAPA_CANCELA
+    solicitacao.save()
+
+    assert solicitacao.cancelada
+
+
+def test_property_solicitacao_todas_as_guias_canceladas(guia):
+    solicitacao = guia.solicitacao
+
+    guia.status = GuiaRemessaWorkFlow.CANCELADA
+    guia.save()
+
+    assert solicitacao.todas_as_guias_canceladas
