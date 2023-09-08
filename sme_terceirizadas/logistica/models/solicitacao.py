@@ -4,7 +4,12 @@ from django.db import models
 from multiselectfield import MultiSelectField
 
 from sme_terceirizadas.dados_comuns.behaviors import Logs, TemIdentificadorExternoAmigavel
-from sme_terceirizadas.dados_comuns.fluxo_status import FluxoSolicitacaoDeAlteracao, FluxoSolicitacaoRemessa
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    FluxoSolicitacaoDeAlteracao,
+    FluxoSolicitacaoRemessa,
+    GuiaRemessaWorkFlow,
+    SolicitacaoRemessaWorkFlow
+)
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
@@ -68,6 +73,16 @@ class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Flux
         requisicao = SolicitacaoRemessa.objects.get(uuid=uuid)
         requisicao.situacao = SolicitacaoRemessa.ATIVA
         requisicao.save()
+
+    @property
+    def todas_as_guias_canceladas(self):
+        total_guias = self.guias.count()
+        total_guias_canceladas = self.guias.filter(status=GuiaRemessaWorkFlow.CANCELADA).count()
+        return total_guias == total_guias_canceladas
+
+    @property
+    def cancelada(self):
+        return self.status == SolicitacaoRemessaWorkFlow.PAPA_CANCELA
 
     def __str__(self):
         return f'Solicitação: {self.numero_solicitacao} - Status: {self.get_status_display()}'

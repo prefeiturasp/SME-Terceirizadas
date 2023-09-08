@@ -14,7 +14,7 @@ from .models import (
     TipoEmbalagem
 )
 from .models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
-from .services import inativa_tipos_de_embabalagem
+from .services import cancelar_guias, inativa_tipos_de_embabalagem
 
 
 class GuiaInline(admin.StackedInline):
@@ -77,6 +77,7 @@ class GuiaAdmin(admin.ModelAdmin):
     ordering = ('-alterado_em',)
     readonly_fields = ('uuid',)
     inlines = [AlimentoInline]
+    actions = ['cancelar_guias']
 
     def get_situacao(self, obj):
         color = 'green'
@@ -99,6 +100,10 @@ class GuiaAdmin(admin.ModelAdmin):
     def get_status_solicitacao(self, obj):
         return obj.solicitacao.get_status_display()
     get_status_solicitacao.short_description = 'Status da Solicitação'
+
+    def cancelar_guias(self, request, queryset):
+        cancelar_guias(queryset)
+    cancelar_guias.short_description = 'Realizar Cancelamento'
 
 
 @admin.register(TipoEmbalagem)
