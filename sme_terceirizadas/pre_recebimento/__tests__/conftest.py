@@ -158,6 +158,18 @@ def cronograma_assinado_perfil_dinutre(armazem, contrato, empresa):
 
 
 @pytest.fixture
+def cronograma_assinado_perfil_dilog(armazem, contrato, empresa):
+    return mommy.make(
+        'Cronograma',
+        numero='004/2022',
+        contrato=contrato,
+        empresa=empresa,
+        armazem=armazem,
+        status='ASSINADO_CODAE'
+    )
+
+
+@pytest.fixture
 def produto_arroz():
     return mommy.make('NomeDeProdutoEdital', nome='Arroz')
 
