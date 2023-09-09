@@ -169,7 +169,7 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
 class SolicitacaoAlteracaoCronograma(ModeloBase, TemIdentificadorExternoAmigavel, FluxoAlteracaoCronograma, Logs):
     cronograma = models.ForeignKey(Cronograma, on_delete=models.PROTECT,
                                    related_name='solicitacoes_de_alteracao')
-
+    qtd_total_programada = models.FloatField('Qtd Total Programada', blank=True, null=True)
     etapas_antigas = models.ManyToManyField(EtapasDoCronograma, related_name='etapas_antigas')
     etapas_novas = models.ManyToManyField(EtapasDoCronograma, related_name='etapas_novas')
     programacoes_novas = models.ManyToManyField(

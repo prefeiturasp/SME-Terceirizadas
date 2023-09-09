@@ -89,6 +89,79 @@ def test_url_list_solicitacoes_alteracao_cronograma_fornecedor(client_autenticad
     assert 'previous' in json
 
 
+def test_url_solicitacao_alteracao_fornecedor(client_autenticado_fornecedor, cronograma_assinado_perfil_dilog):
+    data = {
+        'cronograma': str(cronograma_assinado_perfil_dilog.uuid),
+        'etapas': [
+            {
+                'numero_empenho': '43532542',
+                'etapa': 'Etapa 4',
+                'parte': 'Parte 2',
+                'data_programada': '2023-06-03',
+                'quantidade': 123,
+                'total_embalagens': 333
+            },
+            {
+                'etapa': 'Etapa 1',
+                'parte': 'Parte 1',
+                'data_programada': '2023-09-14',
+                'quantidade': '0',
+                'total_embalagens': 1
+            }
+        ],
+        'justificativa': 'Teste'
+    }
+    response = client_autenticado_fornecedor.post(
+        '/solicitacao-de-alteracao-de-cronograma/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    obj = SolicitacaoAlteracaoCronograma.objects.last()
+    assert obj.status == 'EM_ANALISE'
+
+
+def test_url_solicitacao_alteracao_dilog(client_autenticado_dilog_cronograma, cronograma_assinado_perfil_dilog):
+    data = {
+        'cronograma': str(cronograma_assinado_perfil_dilog.uuid),
+        'qtd_total_programada': 124,
+        'etapas': [
+            {
+                'numero_empenho': '43532542',
+                'etapa': 'Etapa 4',
+                'parte': 'Parte 2',
+                'data_programada': '2023-06-03',
+                'quantidade': 123,
+                'total_embalagens': 333
+            },
+            {
+                'etapa': 'Etapa 1',
+                'parte': 'Parte 1',
+                'data_programada': '2023-09-14',
+                'quantidade': 1,
+                'total_embalagens': 1
+            }
+        ],
+        'justificativa': 'Teste',
+        'programacoes_de_recebimento': [
+            {
+                'data_programada': '14/09/2023 - Etapa 1 - Parte 1',
+                'tipo_carga': 'PALETIZADA'
+            }
+        ]
+    }
+
+    response = client_autenticado_dilog_cronograma.post(
+        '/solicitacao-de-alteracao-de-cronograma/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    obj = SolicitacaoAlteracaoCronograma.objects.last()
+    assert obj.status == 'ALTERACAO_ENVIADA_FORNECEDOR'
+
+
 def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_dilog_cronograma,
                                                            solicitacao_cronograma_em_analise):
     data = json.dumps({
