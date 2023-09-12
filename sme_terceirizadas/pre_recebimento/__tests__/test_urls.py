@@ -160,6 +160,8 @@ def test_url_solicitacao_alteracao_dilog(client_autenticado_dilog_cronograma, cr
     assert response.status_code == status.HTTP_201_CREATED
     obj = SolicitacaoAlteracaoCronograma.objects.last()
     assert obj.status == 'ALTERACAO_ENVIADA_FORNECEDOR'
+    assert obj.qtd_total_programada == 124
+    assert obj.programacoes_novas.count() > 0
 
 
 def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_dilog_cronograma,

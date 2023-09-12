@@ -217,6 +217,7 @@ def novo_numero_solicitacao(objeto):
 class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializer):
     cronograma = serializers.UUIDField()
     etapas = serializers.JSONField(write_only=True)
+    programacoes_de_recebimento = serializers.JSONField(write_only=True, required=False)
 
     def validate_cronograma(self, value):
         cronograma = Cronograma.objects.filter(uuid=value)
