@@ -3407,7 +3407,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
         ('codae_assina', ASSINADO_DINUTRE, ASSINADO_CODAE),
         ('fornecedor_solicita_alteracao', ASSINADO_CODAE, SOLICITADO_ALTERACAO),
         ('codae_realiza_alteracao', ASSINADO_CODAE, ALTERACAO_CODAE),
-        ('finaliza_solicitacao_alteracao', SOLICITADO_ALTERACAO, ASSINADO_CODAE),
+        ('finaliza_solicitacao_alteracao', [SOLICITADO_ALTERACAO, ALTERACAO_CODAE], ASSINADO_CODAE),
     )
 
     initial_state = RASCUNHO

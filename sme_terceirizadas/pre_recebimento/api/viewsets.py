@@ -524,8 +524,8 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             cronograma.save()
 
             solicitacao_cronograma.save()
-            ## PEGAR USUÁRIO DA CODAE E MANDAR PRA ESSE HOOK
-            solicitacao_cronograma.cronograma.finaliza_solicitacao_alteracao(user=usuario)
+            usuario_codae = cronograma.logs[len(cronograma.logs) - 2].usuario
+            solicitacao_cronograma.cronograma.finaliza_solicitacao_alteracao(user=usuario_codae)
             serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
             return Response(serializer.data)
 
