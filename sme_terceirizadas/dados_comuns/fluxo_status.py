@@ -3685,6 +3685,44 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         return [usuario for usuario in queryset]
 
+
+    def _envia_email_notificacao_ciencia_fornecedor(self, user):
+        numero_cronograma = self.cronograma.numero
+        url_solicitacao_alteracao = f'{base_url}/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
+        log_transicao = self.log_mais_recente
+
+        html = render_to_string(
+            template_name='pre_recebimento_notificacao_alteracao_cronograma_codae_ciencia_fornecedor.html',
+            context={
+                'titulo': f'Solicitação de Alteração do Cronograma {numero_cronograma}',
+                'numero_cronograma': numero_cronograma,
+                'url_solicitacao_alteracao': url_solicitacao_alteracao,
+                'fornecedor': user.nome,
+                'log_transicao': log_transicao,
+            }
+        )
+
+        partes_interessadas = self._emails_partes_interessadas_cronograma_dinutre_dilog()
+
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Ciência da Alteração do Cronograma {numero_cronograma}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
+    def _emails_partes_interessadas_cronograma_dinutre_dilog(self):
+        perfis_interessados = ['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA', 'DILOG_DIRETORIA']
+
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=perfis_interessados,
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
+        )
+
+        return [usuario.email for usuario in queryset]
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
