@@ -3688,6 +3688,36 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         return [usuario for usuario in queryset]
 
+    def _envia_email_notificacao_alteracao_cronograma_codae(self):
+        numero_cronograma = self.cronograma.numero
+        log_transicao = self.log_mais_recente
+        url_solicitacao_alteracao = f'{base_url}/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
+
+        html = render_to_string(
+            template_name='pre_recebimento_notificacao_alteracao_cronograma_codae.html',
+            context={
+                'titulo': f'Alteração do Cronograma {numero_cronograma}',
+                'numero_cronograma': numero_cronograma,
+                'log_transicao': log_transicao,
+                'url_solicitacao_alteracao': url_solicitacao_alteracao,
+            }
+        )
+
+        partes_interessadas = self._emails_partes_interessadas_fornecedor_e_distribuidor()
+
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Alteração do Cronograma {numero_cronograma}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
+    def _emails_partes_interessadas_fornecedor_e_distribuidor(self):
+        queryset = self.cronograma.empresa.vinculos.filter(
+            ativo=True
+        ).values_list('usuario__email', flat=True)
+
+        return [email for email in queryset]
 
     def _envia_email_notificacao_ciencia_fornecedor(self, user):
         numero_cronograma = self.cronograma.numero
@@ -3742,6 +3772,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 status_evento=LogSolicitacoesUsuario.ALTERACAO_CRONOGRAMA_ENVIADA_AO_FORNECEDOR,
                 usuario=user,
                 justificativa=kwargs.get('justificativa', ''))
+        self._envia_email_notificacao_alteracao_cronograma_codae()
 
     @xworkflows.after_transition('cronograma_ciente')
     def _cronograma_ciente_hook(self, *args, **kwargs):
