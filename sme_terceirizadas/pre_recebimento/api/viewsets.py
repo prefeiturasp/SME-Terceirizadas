@@ -524,6 +524,7 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             cronograma.save()
 
             solicitacao_cronograma.save()
+            # Pega o usuario CODAE do penúltimo log, pois ele sempre será a assinatura da CODAE
             usuario_codae = cronograma.logs[len(cronograma.logs) - 2].usuario
             solicitacao_cronograma.cronograma.finaliza_solicitacao_alteracao(user=usuario_codae)
             serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
