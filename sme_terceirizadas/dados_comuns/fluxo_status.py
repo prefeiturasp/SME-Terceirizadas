@@ -3800,7 +3800,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_CIENTE_SOLICITACAO_ALTERACAO,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
-        self._envia_email_notificacao_ciencia_fornecedor(user)
+            self._envia_email_notificacao_ciencia_fornecedor(user)
 
     def _montar_dinutre_notificacao(self):
         log_transicao = self.log_mais_recente
