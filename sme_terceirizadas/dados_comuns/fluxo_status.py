@@ -3407,7 +3407,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
         ('codae_assina', ASSINADO_DINUTRE, ASSINADO_CODAE),
         ('fornecedor_solicita_alteracao', ASSINADO_CODAE, SOLICITADO_ALTERACAO),
         ('codae_realiza_alteracao', ASSINADO_CODAE, ALTERACAO_CODAE),
-        ('finaliza_solicitacao_alteracao', SOLICITADO_ALTERACAO, ASSINADO_CODAE),
+        ('finaliza_solicitacao_alteracao', [SOLICITADO_ALTERACAO, ALTERACAO_CODAE], ASSINADO_CODAE),
     )
 
     initial_state = RASCUNHO
@@ -3591,6 +3591,7 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     SOLICITACAO_CRIADA = 'SOLICITACAO_CRIADA'
     EM_ANALISE = 'EM_ANALISE'
     ALTERACAO_ENVIADA_FORNECEDOR = 'ALTERACAO_ENVIADA_FORNECEDOR'
+    FORNECEDOR_CIENTE = 'FORNECEDOR_CIENTE'
     CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
     APROVADO_DINUTRE = 'APROVADO_DINUTRE'
     REPROVADO_DINUTRE = 'REPROVADO_DINUTRE'
@@ -3601,6 +3602,7 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
         (SOLICITACAO_CRIADA, 'Solicitação criada'),
         (EM_ANALISE, 'Em análise'),
         (ALTERACAO_ENVIADA_FORNECEDOR, 'Alteração Enviada ao Fornecedor'),
+        (FORNECEDOR_CIENTE, 'Fornecedor Ciente'),
         (CRONOGRAMA_CIENTE, 'Cronograma ciente'),
         (APROVADO_DINUTRE, 'Aprovado DINUTRE'),
         (REPROVADO_DINUTRE, 'Reprovado DINUTRE'),
@@ -3611,6 +3613,7 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo', SOLICITACAO_CRIADA, EM_ANALISE),
         ('inicia_fluxo_codae', SOLICITACAO_CRIADA, ALTERACAO_ENVIADA_FORNECEDOR),
+        ('fornecedor_ciente', ALTERACAO_ENVIADA_FORNECEDOR, FORNECEDOR_CIENTE),
         ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE),
         ('dinutre_aprova', CRONOGRAMA_CIENTE, APROVADO_DINUTRE),
         ('dinutre_reprova', CRONOGRAMA_CIENTE, REPROVADO_DINUTRE),
@@ -3758,6 +3761,14 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self._cria_notificacao(
                 template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
             )
+
+    @xworkflows.after_transition('fornecedor_ciente')
+    def _fornecedor_ciente_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_CIENTE_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
 
     def _montar_dinutre_notificacao(self):
         log_transicao = self.log_mais_recente
