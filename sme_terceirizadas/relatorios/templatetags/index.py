@@ -23,6 +23,8 @@ def get_attribute(elemento, atributo):
 
 @register.filter
 def get_element_by_index(indexable, i):
+    print("\033[91m", indexable, i, "\033[0m")
+    print("\033[91m", indexable[i], "\033[0m")
     return indexable[i]
 
 

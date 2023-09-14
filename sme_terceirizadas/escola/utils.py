@@ -38,6 +38,32 @@ def faixa_to_string(inicio, fim):
     return f'{str_inicio} a {str_fim}'
 
 
+def string_to_faixa(faixa_str):
+    if "a" in faixa_str:
+        str_inicio, str_fim = faixa_str.split(' a ')
+    else:
+        str_inicio = str_fim = faixa_str
+
+    inicio = string_to_meses(str_inicio)
+    fim = string_to_meses(str_fim) + 1  # Adicionamos 1 porque a função faixa_to_string subtrai 1 do fim
+
+    return inicio, fim
+
+
+def string_to_meses(str_meses):
+    if 'ano' in str_meses:
+        anos, restante = str_meses.split(' ano')
+        anos = int(anos)
+        meses = 0
+        if ' e ' in restante:
+            _, str_mes = restante.split(' e ')
+            meses = int(str_mes.split(' ')[0])
+        total_meses = anos * 12 + meses
+    else:
+        total_meses = int(str_meses.split(' ')[0])
+    return total_meses
+
+
 def remove_acentos(texto):
     resultado = re.sub(u'[àáâãäå]', 'a', texto)
     resultado = re.sub(u'[èéêë]', 'e', resultado)

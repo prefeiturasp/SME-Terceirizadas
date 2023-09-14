@@ -1,13 +1,15 @@
 import datetime
 import json
 from calendar import monthrange
+from collections import defaultdict
 
 from django.db.models import Sum
 
-from sme_terceirizadas.dados_comuns.constants import ORDEM_PERIODOS_GRUPOS
+from sme_terceirizadas.dados_comuns.constants import ORDEM_PERIODOS_GRUPOS, ORDEM_PERIODOS_GRUPOS_CEI
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
-from sme_terceirizadas.dieta_especial.models import LogQuantidadeDietasAutorizadas
-from sme_terceirizadas.escola.models import DiaCalendario, LogAlunosMatriculadosPeriodoEscola
+from sme_terceirizadas.dieta_especial.models import LogQuantidadeDietasAutorizadasCEI, LogQuantidadeDietasAutorizadas
+from sme_terceirizadas.escola.models import DiaCalendario, FaixaEtaria, LogAlunosMatriculadosPeriodoEscola, LogAlunosMatriculadosFaixaEtariaDia
+from sme_terceirizadas.escola.utils import string_to_faixa
 from sme_terceirizadas.medicao_inicial.models import ValorMedicao
 from sme_terceirizadas.paineis_consolidados.models import SolicitacoesEscola
 
@@ -25,6 +27,27 @@ def get_lista_categorias_campos(medicao):
             lista_ += [('KIT LANCHE', 'solicitado'), ('KIT LANCHE', 'consumido')]
         lista_categorias_campos = lista_
     return lista_categorias_campos
+
+
+def get_lista_categorias_campos_cei(medicao):
+    # Obter os valores únicos
+    valores = medicao.valores_medicao.exclude(
+        nome_campo__in=['observacoes', 'dietas_autorizadas', 'matriculados']
+    ).values('categoria_medicao__nome', 'faixa_etaria__fim', 'faixa_etaria_id').distinct()
+
+    # Obter todas as faixas etárias necessárias e armazená-las em um dicionário
+    faixa_etaria_ids = [v['faixa_etaria_id'] for v in valores]
+    faixas_etarias = FaixaEtaria.objects.filter(id__in=faixa_etaria_ids, ativo=True)
+    faixa_etaria_dict = {fe.id: str(fe) for fe in faixas_etarias}
+
+    # Ordenar os valores
+    valores_ordenados = sorted(valores, key=lambda x: (x['categoria_medicao__nome'], x['faixa_etaria__fim']))
+
+    # Substituir 'faixa_etaria_id' pelo valor relativo __str__ da faixa etária
+    lista_categorias_campos = [(v['categoria_medicao__nome'], faixa_etaria_dict[v['faixa_etaria_id']]) for v in valores_ordenados]
+
+    return lista_categorias_campos
+
 
 
 def build_dict_relacao_categorias_e_campos(medicao):
@@ -51,11 +74,31 @@ def build_dict_relacao_categorias_e_campos(medicao):
     return dict_categorias_campos
 
 
+def build_dict_relacao_categorias_e_campos_cei(medicao):
+    CATEGORIA = 0
+    FAIXA = 1
+
+    lista_categorias_campos = get_lista_categorias_campos_cei(medicao)
+    dict_categorias_campos = {}
+    for categoria_campo in lista_categorias_campos:
+        if categoria_campo[CATEGORIA] not in dict_categorias_campos.keys():
+            dict_categorias_campos[categoria_campo[CATEGORIA]] = [categoria_campo[FAIXA]]
+        else:
+            dict_categorias_campos[categoria_campo[CATEGORIA]] += [categoria_campo[FAIXA]]
+    return dict_categorias_campos
+
+
 def get_tamanho_colunas_periodos(tabelas, ORDEM_PERIODOS_GRUPOS):
     for tabela in tabelas:
         for periodo in tabela['periodos']:
             tabela['len_periodos'] += [sum(x['numero_campos'] for x in tabela['categorias_dos_periodos'][periodo])]
             tabela['ordem_periodos_grupos'] += [ORDEM_PERIODOS_GRUPOS[periodo]]
+
+
+def get_ordem_grupos_cei(tabelas, ORDEM_PERIODOS_GRUPOS_CEI):
+    for tabela in tabelas:
+        for periodo in tabela['periodos']:
+            tabela['ordem_periodos_grupos'] += [ORDEM_PERIODOS_GRUPOS_CEI[periodo]]
 
 
 def get_categorias_dos_periodos(nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos):
@@ -124,7 +167,83 @@ def build_headers_tabelas(solicitacao):
                 tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
                 get_categorias_dos_periodos(nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos)
 
-    get_tamanho_colunas_periodos(tabelas, ORDEM_PERIODOS_GRUPOS)
+    get_tamanho_colunas_periodos_categorias_cei(tabelas, ORDEM_PERIODOS_GRUPOS_CEI)
+
+    return tabelas
+
+
+def create_new_table():
+    return {
+        'periodos': [],
+        'categorias': [],
+        'len_periodos': [],
+        'len_categorias': [],
+        'valores_campos': [],
+        'ordem_periodos_grupos': []
+    }
+
+
+def add_periodo_to_table(table, nome_periodo, categoria, faixa, len_faixas, dict_categorias_campos):
+    if nome_periodo not in table['periodos']:
+        table['periodos'].append(nome_periodo)
+
+    categoria_obj = next((item for item in table['categorias'] if item["categoria"] == categoria), None)
+
+    # Ensure 'periodo_values' and 'categoria_values' are always initialized
+    if 'periodo_values' not in table:
+        table['periodo_values'] = defaultdict(int)
+    if 'categoria_values' not in table:
+        table['categoria_values'] = defaultdict(int)
+
+    if not categoria_obj:
+        table['categorias'].append({
+            'categoria': categoria,
+            'faixas_etarias': [faixa]
+        })
+        table['periodo_values'][nome_periodo] += 2
+        table['categoria_values'][categoria] += 2
+    else:
+        if faixa not in categoria_obj['faixas_etarias']:
+            categoria_obj['faixas_etarias'].append(faixa)
+
+            # Increment the value for the current nome_periodo
+            table['periodo_values'][nome_periodo] += 2
+            table['categoria_values'][categoria] += 2
+
+            if len_faixas == len(dict_categorias_campos[categoria]):
+                categoria_obj['faixas_etarias'].append('total')
+                table['periodo_values'][nome_periodo] += 1
+                table['categoria_values'][categoria] += 1
+
+    # Update the len_periodos list with the accumulated values
+    table['len_periodos'] = [table['periodo_values'][periodo] for periodo in table['periodos']]
+    table['len_categorias'] = [table['categoria_values'][cat_obj['categoria']] for cat_obj in table['categorias']]
+
+
+def build_headers_tabelas_cei(solicitacao):
+    MAX_FAIXAS = 7
+    tabelas = [create_new_table()]
+    indice_atual = 0
+    cont_faixas = 1
+    for medicao in sorted(solicitacao.medicoes.all(), key=lambda k: ORDEM_PERIODOS_GRUPOS_CEI[k.nome_periodo_grupo]):
+        dict_categorias_campos = build_dict_relacao_categorias_e_campos_cei(medicao)
+        for categoria, faixas in dict_categorias_campos.items():
+            nome_periodo = medicao.periodo_escolar.nome
+            len_faixas = 0
+            for faixa in faixas:
+                len_faixas += 1
+                if cont_faixas <= MAX_FAIXAS:
+                    cont_faixas += 1
+                    add_periodo_to_table(tabelas[indice_atual], nome_periodo, categoria, faixa, len_faixas,
+                                         dict_categorias_campos)
+                else:
+                    cont_faixas = 2
+                    indice_atual += 1
+                    tabelas.append(create_new_table())
+                    add_periodo_to_table(tabelas[indice_atual], nome_periodo, categoria, faixa, len_faixas,
+                                         dict_categorias_campos)
+
+    get_ordem_grupos_cei(tabelas, ORDEM_PERIODOS_GRUPOS_CEI)
 
     return tabelas
 
@@ -145,6 +264,24 @@ def popula_campo_matriculados(
                 valores_dia += ['0']
         except LogAlunosMatriculadosPeriodoEscola.DoesNotExist:
             valores_dia += ['0']
+
+
+def popula_campo_matriculados_cei(
+    tabela, dia, faixa_id,
+    indice_periodo, valores_dia,
+    logs_alunos_matriculados):
+
+    try:
+        #corrigir para descontar as dietas
+        periodo = tabela['periodos'][indice_periodo]
+        log = logs_alunos_matriculados.filter(periodo_escolar__nome=periodo, data__day=dia,
+                                              faixa_etaria=faixa_id).first()
+        if log:
+            valores_dia += [log.quantidade]
+        else:
+            valores_dia += ['0']
+    except LogAlunosMatriculadosFaixaEtariaDia.DoesNotExist:
+        valores_dia += ['0']
 
 
 def popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_dia, logs_dietas):
@@ -175,6 +312,36 @@ def popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_
             valores_dia += ['0']
 
 
+def popula_campo_aprovadas_cei(solicitacao, dia, faixa_id, categoria_corrente, valores_dia, logs_dietas):
+    try:
+        if 'TIPO A' in categoria_corrente.upper():
+            quantidade = logs_dietas.filter(
+                data__day=dia,
+                data__month=solicitacao.mes,
+                data__year=solicitacao.ano,
+                faixa_etaria=faixa_id,
+                classificacao__nome__in=[
+                    'Tipo A',
+                    'Tipo A RESTRIÇÃO DE AMINOÁCIDOS',
+                    'Tipo A ENTERAL'
+                ]).aggregate(Sum('quantidade')).get('quantidade__sum')
+            valores_dia += [quantidade or '0']
+        else:
+            log_selec = logs_dietas.filter(
+                data__day=dia,
+                data__month=solicitacao.mes,
+                data__year=solicitacao.ano,
+                faixa_etaria=faixa_id,
+                classificacao__nome='Tipo B'
+            ).first()
+            if not log_selec:
+                valores_dia += ['0']
+            else:
+                valores_dia += [log_selec.quantidade]
+    except LogQuantidadeDietasAutorizadasCEI.DoesNotExist:
+        valores_dia += ['0']
+
+
 def popula_campos_preenchidos_pela_escola(solicitacao, tabela, campo, dia, indice_periodo, categoria_corrente,
                                           valores_dia):
     try:
@@ -188,6 +355,22 @@ def popula_campos_preenchidos_pela_escola(solicitacao, tabela, campo, dia, indic
             dia=f'{dia:02d}',
             categoria_medicao__nome=categoria_corrente,
             nome_campo=campo
+        ).valor]
+    except ValorMedicao.DoesNotExist:
+        valores_dia += ['0']
+
+
+def popula_campos_preenchidos_pela_escola_cei(solicitacao, tabela, faixa_id, dia, indice_periodo, categoria_corrente,
+                                          valores_dia):
+    try:
+        periodo = tabela['periodos'][indice_periodo]
+        medicoes = solicitacao.medicoes.all()
+        medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
+        valores_dia += [medicao.valores_medicao.get(
+            dia=f'{dia:02d}',
+            categoria_medicao__nome=categoria_corrente,
+            faixa_etaria=faixa_id,
+            nome_campo='frequencia'
         ).valor]
     except ValorMedicao.DoesNotExist:
         valores_dia += ['0']
@@ -302,6 +485,26 @@ def popula_campo_total(tabela, campo, valores_dia, indice_categoria, indice_camp
             valores_dia += ['0']
 
 
+def popula_campo_total_cei(tabela, campo, valores_dia, indice_categoria, indice_campo, categoria_corrente):
+    if campo in ['matriculados', 'numero_de_alunos', 'frequencia', 'aprovadas']:
+        valores_dia += ['-']
+    else:
+        try:
+            if indice_categoria == 0:
+                values = [valores[tabela['nomes_campos'].index(campo) + 1] for valores in tabela['valores_campos']]
+            else:
+                i = 1
+                indice_valor_campo = 0
+                while i <= indice_categoria:
+                    indice_valor_campo += tabela['len_categorias'][indice_categoria - i]
+                    i += 1
+                indice_valor_campo += indice_campo
+                values = [valores[indice_valor_campo + 1] for valores in tabela['valores_campos']]
+            valores_dia += [sum(int(x) for x in values)]
+        except Exception:
+            valores_dia += ['0']
+
+
 def get_eh_dia_letivo(dia, solicitacao):
     if not dia == 'Total':
         try:
@@ -375,6 +578,58 @@ def popula_campos(
         indice_campo += 1
     tabela['valores_campos'] += [valores_dia]
     tabela['dias_letivos'] += [eh_dia_letivo if not dia == 'Total' else False]
+
+
+def popula_campos_cei(
+    solicitacao,
+    tabela, dia,
+    indice_periodo,
+    logs_alunos_matriculados,
+    logs_dietas
+):
+    valores_dia = [dia] #[recebe dia]
+    #eh_dia_letivo = get_eh_dia_letivo(dia, solicitacao) #ver possibilidade de fazer por fora
+    indice_campo = 0
+    indice_categoria = 0
+    categoria_corrente = tabela['categorias'][indice_categoria]['categoria'] #pega nome da categoria
+    faixas_etarias = tabela['categorias'][indice_categoria]['faixas_etarias']
+    print('111', indice_categoria, tabela['categorias'][indice_categoria]['categoria'])
+    print('222', indice_campo, tabela['len_categorias'][indice_categoria] - 1)
+    for faixa in faixas_etarias:
+        if faixa == 'total':
+            valores_dia += ['0']
+        else:
+            if indice_campo > tabela['len_categorias'][indice_categoria] - 1:
+                indice_campo = 0
+                indice_categoria += 1
+                categoria_corrente = tabela['categorias'][indice_categoria]['categoria'] #pega proxima categoria
+                if (
+                    indice_categoria > tabela['len_periodos'][indice_periodo] - 1
+                    and indice_periodo + 1 < len(tabela['periodos'])
+                ):
+                    indice_periodo += 1
+            if dia == 'Total':
+                # ver tota com calma
+                valores_dia += ['0']
+                #popula_campo_total_cei(tabela, campo, valores_dia, indice_categoria, indice_campo, categoria_corrente)
+            else:
+                inicio, fim = string_to_faixa(faixa)
+                faixa_id = FaixaEtaria.objects.get(inicio=inicio, fim=fim, ativo=True).id
+
+                popula_campo_matriculados_cei(
+                    tabela, dia, faixa_id,
+                    indice_periodo, valores_dia,
+                    logs_alunos_matriculados)
+
+                popula_campo_aprovadas_cei(solicitacao, dia, faixa_id, categoria_corrente, valores_dia, logs_dietas)
+
+                popula_campos_preenchidos_pela_escola_cei(
+                    solicitacao, tabela, faixa_id, dia,
+                    indice_periodo, categoria_corrente,
+                    valores_dia)
+        indice_campo += 1
+    tabela['valores_campos'] += [valores_dia]
+    #tabela['dias_letivos'] += [eh_dia_letivo if not dia == 'Total' else False]
 
 
 def get_alteracoes_lanche_emergencial(solicitacao):
@@ -455,9 +710,38 @@ def popula_tabelas(solicitacao, tabelas):
     return tabelas
 
 
+def popula_tabelas_cei(solicitacao, tabelas):
+    dias_no_mes = range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1)
+    logs_alunos_matriculados = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
+        escola=solicitacao.escola, data__month=solicitacao.mes,
+        data__year=solicitacao.ano)
+    logs_dietas = LogQuantidadeDietasAutorizadasCEI.objects.filter(
+        escola=solicitacao.escola, data__month=solicitacao.mes, data__year=solicitacao.ano)
+
+    indice_periodo = 0
+    quantidade_tabelas = range(0, len(tabelas))
+
+    for indice_tabela in quantidade_tabelas:
+        tabela = tabelas[indice_tabela]
+        for dia in list(dias_no_mes) + ['Total']:
+            popula_campos_cei(
+                solicitacao, tabela, dia, indice_periodo,
+                logs_alunos_matriculados, logs_dietas
+            )
+
+    return tabelas
+
+
 def build_tabelas_relatorio_medicao(solicitacao):
     tabelas_com_headers = build_headers_tabelas(solicitacao)
     tabelas_populadas = popula_tabelas(solicitacao, tabelas_com_headers)
+
+    return tabelas_populadas
+
+
+def build_tabelas_relatorio_medicao_cei(solicitacao):
+    tabelas_com_headers = build_headers_tabelas_cei(solicitacao)
+    tabelas_populadas = popula_tabelas_cei(solicitacao, tabelas_com_headers)
 
     return tabelas_populadas
 
