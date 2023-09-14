@@ -1,6 +1,5 @@
 import datetime
 import io
-import locale
 import logging
 
 import numpy as np
@@ -20,6 +19,7 @@ from sme_terceirizadas.escola.utils_escola import get_escolas
 from ..dados_comuns.utils import (
     atualiza_central_download,
     atualiza_central_download_com_erro,
+    converte_numero_em_mes,
     gera_objeto_na_central_download
 )
 from ..escola.models import Escola, Lote
@@ -152,8 +152,8 @@ def gera_pdf_relatorio_dietas_especiais_terceirizadas_async(user, nome_arquivo, 
                 dados_solicitacoes['data_cancelamento'] = solicitacao.data_ultimo_log
             solicitacoes.append(dados_solicitacoes)
         exibir_diagnostico = usuario.tipo_usuario != 'terceirizada'
-        locale.setlocale(locale.LC_TIME, 'pt_BR.utf8')
         now = datetime.datetime.now()
+        data_pt = f'{now.day} de {converte_numero_em_mes(now.month)} de {now.year}'
         dados = {
             'usuario_nome': usuario.nome,
             'status': data.get('status_selecionado').lower(),
@@ -161,7 +161,7 @@ def gera_pdf_relatorio_dietas_especiais_terceirizadas_async(user, nome_arquivo, 
             'solicitacoes': solicitacoes,
             'quantidade_solicitacoes': query_set.count(),
             'diagnostico': exibir_diagnostico,
-            'data_extracao': now.strftime('%d de %B de %Y')
+            'data_extracao': data_pt
         }
         arquivo = relatorio_dietas_especiais_terceirizada(dados=dados)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
