@@ -803,11 +803,11 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
             if inclusao.tipo_doc == 'INC_ALIMENTA_CEI':
                 if 'PARCIAL' in periodos_escolares:
-                    periodos_externos = ['INTEGRAL']
+                    periodos_externos = ['MANHA', 'TARDE']
                     periodos_internos = ['MANHA', 'TARDE']
                 if 'INTEGRAL' in periodos_escolares:
                     periodos_externos = ['INTEGRAL']
-                    periodos_internos = ['INTEGRAL']
+                    periodos_internos = ['INTEGRAL', 'MANHA', 'TARDE']
                 dias_motivos = inc.dias_motivos_da_inclusao_cei.filter(data__month=mes, data__year=ano, cancelado=False)
                 quantidade_por_faixa = inc.quantidade_alunos_da_inclusao.filter(
                     periodo__nome__in=periodos_internos,
@@ -815,9 +815,10 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                 )
                 if quantidade_por_faixa:
                     for dia_motivo in dias_motivos:
+                        faixas_etarias_uuids = quantidade_por_faixa.values_list('faixa_etaria__uuid', flat=True)
                         return_dict.append({
                             'dia': dia_motivo.data.day,
-                            'faixas_etarias': quantidade_por_faixa.values_list('faixa_etaria__uuid', flat=True),
+                            'faixas_etarias': faixas_etarias_uuids.distinct(),
                         })
             else:
                 for periodo in inc.quantidades_periodo.all():
