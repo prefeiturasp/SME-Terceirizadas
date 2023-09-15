@@ -102,13 +102,17 @@ def copiar_alunos_periodo_parcial(solicitacao_origem, solicitacao_destino):
 )
 def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(user, nome_arquivo, uuid_sol_medicao):
     from ..medicao_inicial.models import SolicitacaoMedicaoInicial
-    from ..relatorios.relatorios import relatorio_solicitacao_medicao_por_escola
+    from ..relatorios.relatorios import (relatorio_solicitacao_medicao_por_escola,
+                                         relatorio_solicitacao_medicao_por_escola_cei)
 
     solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid_sol_medicao)
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
-        arquivo = relatorio_solicitacao_medicao_por_escola(solicitacao)
+        if solicitacao.escola.eh_cei:
+            arquivo = relatorio_solicitacao_medicao_por_escola_cei(solicitacao)
+        else:
+            arquivo = relatorio_solicitacao_medicao_por_escola(solicitacao)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
