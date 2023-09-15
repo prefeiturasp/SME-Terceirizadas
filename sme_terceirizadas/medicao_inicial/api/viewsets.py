@@ -290,7 +290,6 @@ class SolicitacaoMedicaoInicialViewSet(
         user = request.user.get_username()
         uuid_sol_medicao = request.query_params['uuid']
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid_sol_medicao)
-        # ADICIONAR DELAY NOVAMENTE
         gera_pdf_relatorio_solicitacao_medicao_por_escola_async.delay(
             user=user,
             nome_arquivo=f'Relatório Medição Inicial - {solicitacao.mes}/{solicitacao.ano}.pdf',

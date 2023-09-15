@@ -164,6 +164,8 @@ def build_headers_tabelas(solicitacao):
                 tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
                 get_categorias_dos_periodos(nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos)
 
+    get_tamanho_colunas_periodos(tabelas, ORDEM_PERIODOS_GRUPOS)
+
     return tabelas
 
 
@@ -184,7 +186,6 @@ def add_periodo_to_table(table, nome_periodo, categoria, faixa, len_faixas, dict
 
     categoria_obj = next((item for item in table['categorias'] if item['categoria'] == categoria), None)
 
-    # Ensure 'periodo_values' and 'categoria_values' are always initialized
     if 'periodo_values' not in table:
         table['periodo_values'] = defaultdict(int)
     if 'categoria_values' not in table:
@@ -201,7 +202,6 @@ def add_periodo_to_table(table, nome_periodo, categoria, faixa, len_faixas, dict
         if faixa not in categoria_obj['faixas_etarias']:
             categoria_obj['faixas_etarias'].append(faixa)
 
-            # Increment the value for the current nome_periodo
             table['periodo_values'][nome_periodo] += 2
             table['categoria_values'][categoria] += 2
 
@@ -210,7 +210,6 @@ def add_periodo_to_table(table, nome_periodo, categoria, faixa, len_faixas, dict
                 table['periodo_values'][nome_periodo] += 1
                 table['categoria_values'][categoria] += 1
 
-    # Update the len_periodos list with the accumulated values
     table['len_periodos'] = [table['periodo_values'][periodo] for periodo in table['periodos']]
     table['len_categorias'] = [table['categoria_values'][cat_obj['categoria']] for cat_obj in table['categorias']]
 
@@ -257,7 +256,7 @@ def popula_campo_matriculados(
                 valores_dia += [log.quantidade_alunos]
             else:
                 valores_dia += ['0']
-        except Exception:
+        except LogAlunosMatriculadosPeriodoEscola.DoesNotExist:
             valores_dia += ['0']
 
 
