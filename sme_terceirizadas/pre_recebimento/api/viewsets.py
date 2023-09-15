@@ -507,6 +507,35 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
+    @transaction.atomic
+    @action(detail=True, permission_classes=(PermissaoParaAssinarCronogramaUsuarioFornecedor,),
+            methods=['patch'], url_path='fornecedor-ciente')
+    def fornecedor_ciente(self, request, uuid):
+        usuario = request.user
+        try:
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+
+            solicitacao_cronograma.fornecedor_ciente(user=usuario)
+            cronograma = solicitacao_cronograma.cronograma
+            cronograma.qtd_total_programada = solicitacao_cronograma.qtd_total_programada
+            cronograma.etapas.set(solicitacao_cronograma.etapas_novas.all())
+            cronograma.programacoes_de_recebimento.all().delete()
+            cronograma.programacoes_de_recebimento.set(solicitacao_cronograma.programacoes_novas.all())
+            cronograma.save()
+
+            solicitacao_cronograma.save()
+            # Pega o usuario CODAE do penúltimo log, pois ele sempre será a assinatura da CODAE
+            usuario_codae = cronograma.logs[len(cronograma.logs) - 2].usuario
+            solicitacao_cronograma.cronograma.finaliza_solicitacao_alteracao(user=usuario_codae)
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            return Response(serializer.data)
+
+        except ObjectDoesNotExist as e:
+            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
 
 class UnidadeMedidaViewset(viewsets.ModelViewSet):
     lookup_field = 'uuid'

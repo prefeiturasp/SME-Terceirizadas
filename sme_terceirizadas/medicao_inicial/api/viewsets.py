@@ -652,6 +652,13 @@ class MedicaoViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    def get_tipo_alimentacao(self, valor_medicao):
+        tipo_alimentacao = None
+        tipo_alimentacao_uuid = valor_medicao.get('tipo_alimentacao', None)
+        if tipo_alimentacao_uuid:
+            tipo_alimentacao = TipoAlimentacao.objects.get(uuid=tipo_alimentacao_uuid)
+        return tipo_alimentacao
+
     @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao',
             permission_classes=[UsuarioDiretorEscolaTercTotal])
     def escola_corrige_medicao(self, request, uuid=None):
@@ -669,14 +676,14 @@ class MedicaoViewSet(
                 ano = int(medicao.solicitacao_medicao_inicial.ano)
                 semana = ValorMedicao.get_week_of_month(ano, mes, dia)
                 categoria_medicao_qs = CategoriaMedicao.objects.filter(id=valor_medicao.get('categoria_medicao', None))
-                tipo_alimentacao_qs = TipoAlimentacao.objects.filter(uuid=valor_medicao.get('tipo_alimentacao', None))
+                tipo_alimentacao = self.get_tipo_alimentacao(valor_medicao)
                 ValorMedicao.objects.update_or_create(
                     medicao=medicao,
                     dia=valor_medicao.get('dia', ''),
                     semana=semana,
                     nome_campo=valor_medicao.get('nome_campo', ''),
                     categoria_medicao=categoria_medicao_qs.first(),
-                    tipo_alimentacao=tipo_alimentacao_qs.first(),
+                    tipo_alimentacao=tipo_alimentacao,
                     faixa_etaria=valor_medicao.get('faixa_etaria', None),
                     defaults={
                         'medicao': medicao,
@@ -685,7 +692,7 @@ class MedicaoViewSet(
                         'valor': valor_medicao.get('valor', ''),
                         'nome_campo': valor_medicao.get('nome_campo', ''),
                         'categoria_medicao': categoria_medicao_qs.first(),
-                        'tipo_alimentacao': tipo_alimentacao_qs.first(),
+                        'tipo_alimentacao': tipo_alimentacao,
                         'faixa_etaria': valor_medicao.get('faixa_etaria', None),
                         'habilitado_correcao': True,
                     },

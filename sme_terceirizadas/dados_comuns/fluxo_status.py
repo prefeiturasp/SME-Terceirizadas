@@ -3407,7 +3407,7 @@ class CronogramaWorkflow(xwf_models.Workflow):
         ('codae_assina', ASSINADO_DINUTRE, ASSINADO_CODAE),
         ('fornecedor_solicita_alteracao', ASSINADO_CODAE, SOLICITADO_ALTERACAO),
         ('codae_realiza_alteracao', ASSINADO_CODAE, ALTERACAO_CODAE),
-        ('finaliza_solicitacao_alteracao', SOLICITADO_ALTERACAO, ASSINADO_CODAE),
+        ('finaliza_solicitacao_alteracao', [SOLICITADO_ALTERACAO, ALTERACAO_CODAE], ASSINADO_CODAE),
     )
 
     initial_state = RASCUNHO
@@ -3591,6 +3591,7 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     SOLICITACAO_CRIADA = 'SOLICITACAO_CRIADA'
     EM_ANALISE = 'EM_ANALISE'
     ALTERACAO_ENVIADA_FORNECEDOR = 'ALTERACAO_ENVIADA_FORNECEDOR'
+    FORNECEDOR_CIENTE = 'FORNECEDOR_CIENTE'
     CRONOGRAMA_CIENTE = 'CRONOGRAMA_CIENTE'
     APROVADO_DINUTRE = 'APROVADO_DINUTRE'
     REPROVADO_DINUTRE = 'REPROVADO_DINUTRE'
@@ -3601,6 +3602,7 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
         (SOLICITACAO_CRIADA, 'Solicitação criada'),
         (EM_ANALISE, 'Em análise'),
         (ALTERACAO_ENVIADA_FORNECEDOR, 'Alteração Enviada ao Fornecedor'),
+        (FORNECEDOR_CIENTE, 'Fornecedor Ciente'),
         (CRONOGRAMA_CIENTE, 'Cronograma ciente'),
         (APROVADO_DINUTRE, 'Aprovado DINUTRE'),
         (REPROVADO_DINUTRE, 'Reprovado DINUTRE'),
@@ -3611,6 +3613,7 @@ class CronogramaAlteracaoWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo', SOLICITACAO_CRIADA, EM_ANALISE),
         ('inicia_fluxo_codae', SOLICITACAO_CRIADA, ALTERACAO_ENVIADA_FORNECEDOR),
+        ('fornecedor_ciente', ALTERACAO_ENVIADA_FORNECEDOR, FORNECEDOR_CIENTE),
         ('cronograma_ciente', EM_ANALISE, CRONOGRAMA_CIENTE),
         ('dinutre_aprova', CRONOGRAMA_CIENTE, APROVADO_DINUTRE),
         ('dinutre_reprova', CRONOGRAMA_CIENTE, REPROVADO_DINUTRE),
@@ -3685,6 +3688,74 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         return [usuario for usuario in queryset]
 
+    def _envia_email_notificacao_alteracao_cronograma_codae(self):
+        numero_cronograma = self.cronograma.numero
+        log_transicao = self.log_mais_recente
+        url_solicitacao_alteracao = f'{base_url}/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
+
+        html = render_to_string(
+            template_name='pre_recebimento_notificacao_alteracao_cronograma_codae.html',
+            context={
+                'titulo': f'Alteração do Cronograma {numero_cronograma}',
+                'numero_cronograma': numero_cronograma,
+                'log_transicao': log_transicao,
+                'url_solicitacao_alteracao': url_solicitacao_alteracao,
+            }
+        )
+
+        partes_interessadas = self._emails_partes_interessadas_fornecedor_e_distribuidor()
+
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Alteração do Cronograma {numero_cronograma}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
+    def _emails_partes_interessadas_fornecedor_e_distribuidor(self):
+        queryset = self.cronograma.empresa.vinculos.filter(
+            ativo=True
+        ).values_list('usuario__email', flat=True)
+
+        return [email for email in queryset]
+
+    def _envia_email_notificacao_ciencia_fornecedor(self, user):
+        numero_cronograma = self.cronograma.numero
+        url_solicitacao_alteracao = f'{base_url}/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
+        log_transicao = self.log_mais_recente
+
+        html = render_to_string(
+            template_name='pre_recebimento_notificacao_alteracao_cronograma_codae_ciencia_fornecedor.html',
+            context={
+                'titulo': f'Solicitação de Alteração do Cronograma {numero_cronograma}',
+                'numero_cronograma': numero_cronograma,
+                'url_solicitacao_alteracao': url_solicitacao_alteracao,
+                'fornecedor': user.nome,
+                'log_transicao': log_transicao,
+            }
+        )
+
+        partes_interessadas = self._emails_partes_interessadas_cronograma_dinutre_dilog()
+
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Ciência da Alteração do Cronograma {numero_cronograma}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
+    def _emails_partes_interessadas_cronograma_dinutre_dilog(self):
+        perfis_interessados = ['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA', 'DILOG_DIRETORIA']
+
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=perfis_interessados,
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
+        )
+
+        return [usuario.email for usuario in queryset]
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -3701,6 +3772,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 status_evento=LogSolicitacoesUsuario.ALTERACAO_CRONOGRAMA_ENVIADA_AO_FORNECEDOR,
                 usuario=user,
                 justificativa=kwargs.get('justificativa', ''))
+        self._envia_email_notificacao_alteracao_cronograma_codae()
 
     @xworkflows.after_transition('cronograma_ciente')
     def _cronograma_ciente_hook(self, *args, **kwargs):
@@ -3720,6 +3792,15 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self._cria_notificacao(
                 template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
             )
+
+    @xworkflows.after_transition('fornecedor_ciente')
+    def _fornecedor_ciente_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_CIENTE_SOLICITACAO_ALTERACAO,
+                                      usuario=user,
+                                      justificativa=kwargs.get('justificativa', ''))
+            self._envia_email_notificacao_ciencia_fornecedor(user)
 
     def _montar_dinutre_notificacao(self):
         log_transicao = self.log_mais_recente
