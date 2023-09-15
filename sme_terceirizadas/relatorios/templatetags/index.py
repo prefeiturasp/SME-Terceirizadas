@@ -23,8 +23,6 @@ def get_attribute(elemento, atributo):
 
 @register.filter
 def get_element_by_index(indexable, i):
-    print("\033[91m", indexable, i, "\033[0m")
-    print("\033[91m", indexable[i], "\033[0m")
     return indexable[i]
 
 
@@ -385,7 +383,12 @@ def get_matriculados(uuid, alunos_matriculados):
 
 @register.filter
 def get_nao_eh_dia_letivo(dias_letivos, i):
-    return not dias_letivos[i]
+    try:
+        return not dias_letivos[i]
+    except IndexError:
+        return False
+    except Exception as e:
+        return False
 
 
 @register.filter

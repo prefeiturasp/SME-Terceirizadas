@@ -16,5 +16,4 @@ router.register('ocorrencia', viewsets.OcorrenciaViewSet)
 
 urlpatterns = [
     path('medicao-inicial/', include(router.urls)),
-    path('pdf-view/', viewsets.relatorio_pdf_view, name='pdf-view'),
 ]

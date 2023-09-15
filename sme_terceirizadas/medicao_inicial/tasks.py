@@ -110,10 +110,8 @@ def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(user, nome_arquivo, 
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
         if solicitacao.escola.eh_cei:
-            print("\033[91m", 'Solicitação tipo CEI 111', "\033[0m")
             arquivo = relatorio_solicitacao_medicao_por_escola_cei(solicitacao)
         else:
-            print("\033[91m", 'Solicitação tipo EMEF 222', "\033[0m")
             arquivo = relatorio_solicitacao_medicao_por_escola(solicitacao)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:

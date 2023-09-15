@@ -1049,13 +1049,9 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
 
 
 def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
-    tabelas = build_tabelas_relatorio_medicao_cei(solicitacao)
     try:
-        print("\033[92m", "PASSOU", "\033[0m")
-
-        dias_letivos = [False, False, True, True, True, True, True, False, False,
-                        True, True, True, True, True, False, False, True, True, True, True, True, False,
-                        False, True, True, True, True, True, False, False, True, True]
+        tabelas, dias_letivos = build_tabelas_relatorio_medicao_cei(solicitacao)
+        print(len(dias_letivos), dias_letivos)
 
         html_string = render_to_string(
             f'relatorio_solicitacao_medicao_por_escola_cei.html',
@@ -1081,8 +1077,6 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
         import traceback
         traceback.print_exc()
         print("\033[91m", f"Errooooooooooooo: {e}")
-    print("\033[93m",range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1))
-    print("\033[92m", "Chegou em html 333", "\033[0m")
 
     return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
 
