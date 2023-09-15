@@ -383,10 +383,13 @@ def get_matriculados(uuid, alunos_matriculados):
 
 @register.filter
 def get_nao_eh_dia_letivo(dias_letivos, i):
+    return not dias_letivos[i]
+
+
+@register.filter
+def get_nao_eh_dia_letivo_cei(dias_letivos, i):
     try:
         return not dias_letivos[i]
-    except IndexError:
-        return False
     except Exception:
         return False
 
