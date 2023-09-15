@@ -109,7 +109,7 @@ class SolicitacaoMedicaoInicialViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     lookup_field = 'uuid'
-    #permission_classes = [UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao]
+    permission_classes = [UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao]
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
@@ -778,4 +778,3 @@ class OcorrenciaViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
-

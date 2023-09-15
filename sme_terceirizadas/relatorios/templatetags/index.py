@@ -387,7 +387,7 @@ def get_nao_eh_dia_letivo(dias_letivos, i):
         return not dias_letivos[i]
     except IndexError:
         return False
-    except Exception as e:
+    except Exception:
         return False
 
 

@@ -15,7 +15,11 @@ from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
 from ..medicao_inicial.api.viewsets import SolicitacaoMedicaoInicialViewSet
-from ..medicao_inicial.utils import build_tabela_somatorio_body, build_tabelas_relatorio_medicao, build_tabelas_relatorio_medicao_cei
+from ..medicao_inicial.utils import (
+    build_tabela_somatorio_body,
+    build_tabelas_relatorio_medicao,
+    build_tabelas_relatorio_medicao_cei
+)
 from ..relatorios.utils import html_to_pdf_cancelada, html_to_pdf_file, html_to_pdf_multiple, html_to_pdf_response
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
@@ -1044,39 +1048,32 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
             'tabela_somatorio': tabela_somatorio
         }
     )
-    print("\033[94m", tabelas, "\033[0m")
+
     return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
 
 
 def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
-    try:
-        tabelas, dias_letivos = build_tabelas_relatorio_medicao_cei(solicitacao)
-        print(len(dias_letivos), dias_letivos)
-
-        html_string = render_to_string(
-            f'relatorio_solicitacao_medicao_por_escola_cei.html',
-            {
-                'solicitacao': solicitacao,
-                'responsaveis': solicitacao.responsaveis.all(),
-                'assinatura_escola': SolicitacaoMedicaoInicialViewSet.assinatura_ue(
-                    SolicitacaoMedicaoInicialViewSet,
-                    solicitacao
-                ),
-                'assinatura_dre': SolicitacaoMedicaoInicialViewSet.assinatura_dre(
-                    SolicitacaoMedicaoInicialViewSet,
-                    solicitacao
-                ),
-                'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
-                'tabelas': tabelas,
-                'dias_letivos': dias_letivos,
-                'tabela_observacoes': [],
-                'tabela_somatorio': []
-            }
-        )
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print("\033[91m", f"Errooooooooooooo: {e}")
+    tabelas, dias_letivos = build_tabelas_relatorio_medicao_cei(solicitacao)
+    html_string = render_to_string(
+        f'relatorio_solicitacao_medicao_por_escola_cei.html',
+        {
+            'solicitacao': solicitacao,
+            'responsaveis': solicitacao.responsaveis.all(),
+            'assinatura_escola': SolicitacaoMedicaoInicialViewSet.assinatura_ue(
+                SolicitacaoMedicaoInicialViewSet,
+                solicitacao
+            ),
+            'assinatura_dre': SolicitacaoMedicaoInicialViewSet.assinatura_dre(
+                SolicitacaoMedicaoInicialViewSet,
+                solicitacao
+            ),
+            'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
+            'tabelas': tabelas,
+            'dias_letivos': dias_letivos,
+            'tabela_observacoes': [],
+            'tabela_somatorio': []
+        }
+    )
 
     return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
 
