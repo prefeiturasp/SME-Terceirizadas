@@ -39,7 +39,7 @@ def faixa_to_string(inicio, fim):
 
 
 def string_to_faixa(faixa_str):
-    if "a" in faixa_str:
+    if 'a' in faixa_str:
         str_inicio, str_fim = faixa_str.split(' a ')
     else:
         str_inicio = str_fim = faixa_str
