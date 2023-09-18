@@ -9,11 +9,11 @@ from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
-    EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoEmbalagemQld,
     UnidadeMedida
 )
 from sme_terceirizadas.produto.models import NomeDeProdutoEdital
@@ -185,14 +185,14 @@ class LaboratorioCreateSerializer(serializers.ModelSerializer):
         exclude = ('id', )
 
 
-class EmbalagemQldCreateSerializer(serializers.ModelSerializer):
+class TipoEmbalagemQldCreateSerializer(serializers.ModelSerializer):
     nome = serializers.CharField(required=True)
     abreviacao = serializers.CharField(required=True)
 
     def create(self, validated_data):
         validated_data['nome'] = validated_data['nome'].upper()
         validated_data['abreviacao'] = validated_data['abreviacao'].upper()
-        embalagem = EmbalagemQld.objects.create(**validated_data)
+        embalagem = TipoEmbalagemQld.objects.create(**validated_data)
 
         return embalagem
 
@@ -204,7 +204,7 @@ class EmbalagemQldCreateSerializer(serializers.ModelSerializer):
         return instance
 
     class Meta:
-        model = EmbalagemQld
+        model = TipoEmbalagemQld
         exclude = ('id', )
 
 
@@ -217,13 +217,14 @@ def novo_numero_solicitacao(objeto):
 class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializer):
     cronograma = serializers.UUIDField()
     etapas = serializers.JSONField(write_only=True)
+    programacoes_de_recebimento = serializers.JSONField(write_only=True, required=False)
 
     def validate_cronograma(self, value):
         cronograma = Cronograma.objects.filter(uuid=value)
         if not cronograma:
             raise serializers.ValidationError(f'Cronograma não existe')
-        if cronograma.first().solicitacoes_de_alteracao.em_analise().count() > 0:
-            raise serializers.ValidationError(f'Cronograma já possui solicitação de alteração em análise')
+        if not cronograma.first().status == Cronograma.workflow_class.ASSINADO_CODAE:
+            raise serializers.ValidationError(f'Não é possivel criar Solicitação de alteração neste momento!')
         return value
 
     def valida_campo_etapa(self, etapa, campo):
@@ -253,27 +254,38 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
         user = self.context['request'].user
         uuid_cronograma = validated_data.pop('cronograma', None)
         etapas = validated_data.pop('etapas', [])
+        programacoes = validated_data.pop('programacoes_de_recebimento', [])
         cronograma = Cronograma.objects.get(uuid=uuid_cronograma)
-        etapas_created = cria_etapas_de_cronograma(etapas)
         alteracao_cronograma = SolicitacaoAlteracaoCronograma.objects.create(
             usuario_solicitante=user,
             cronograma=cronograma, **validated_data,
         )
         alteracao_cronograma.etapas_antigas.set(cronograma.etapas.all())
+        etapas_created = cria_etapas_de_cronograma(etapas)
         alteracao_cronograma.etapas_novas.set(etapas_created)
+        programacoes_criadas = cria_programacao_de_cronograma(programacoes)
+        alteracao_cronograma.programacoes_novas.set(programacoes_criadas)
         self._alterna_estado_cronograma(cronograma, user, alteracao_cronograma)
         self._alterna_estado_solicitacao_alteracao_cronograma(alteracao_cronograma, user, validated_data)
         return alteracao_cronograma
 
     def _alterna_estado_cronograma(self, cronograma, user, alteracao_cronograma):
         try:
-            cronograma.solicita_alteracao(user=user, justificativa=alteracao_cronograma.uuid)
+            if user.eh_fornecedor:
+                cronograma.fornecedor_solicita_alteracao(user=user, justificativa=alteracao_cronograma.uuid)
+            else:
+                cronograma.codae_realiza_alteracao(user=user, justificativa=alteracao_cronograma.uuid)
         except InvalidTransitionError as e:
             raise serializers.ValidationError(f'Erro de transição de estado do cronograma: {e}')
 
     def _alterna_estado_solicitacao_alteracao_cronograma(self, alteracao_cronograma, user, validated_data):
         try:
-            alteracao_cronograma.inicia_fluxo(user=user, justificativa=validated_data.get('justificativa', ''))
+            if user.eh_fornecedor:
+                alteracao_cronograma.inicia_fluxo(user=user, justificativa=validated_data.get('justificativa', ''))
+            else:
+                alteracao_cronograma.inicia_fluxo_codae(
+                    user=user, justificativa=validated_data.get('justificativa', '')
+                )
         except InvalidTransitionError as e:
             raise serializers.ValidationError(f'Erro de transição de estado da alteração: {e}')
 

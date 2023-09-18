@@ -1,5 +1,6 @@
 import base64
 import datetime
+import logging
 import os
 import re
 import uuid
@@ -24,6 +25,8 @@ from .models import CentralDeDownload
 calendar = BrazilSaoPauloCity()
 
 env = environ.Env()
+
+logger = logging.getLogger(__name__)
 
 
 def eh_email_dev(email):
@@ -376,3 +379,170 @@ def datetime_range(start=None, end=None):
     for i in range(span.days + 1):
         dates.append(start + datetime.timedelta(days=i))
     return dates
+
+
+def analisa_logs_alunos_matriculados_periodo_escola():
+    from sme_terceirizadas.escola.models import Escola
+    escolas = Escola.objects.all()
+    for index, escola in enumerate(escolas):
+        msg = f'análise de LogAlunosMatriculadosPeriodoEscola para escola {escola.nome}'
+        msg += f' ({index + 1}/{(escolas).count()})'
+        try:
+            logger.info(f'x-x-x-x Iniciando {msg} x-x-x-x')
+            hoje = datetime.date.today()
+            deletar_logs_alunos_matriculados_duplicados(escola, hoje)
+            criar_logs_alunos_matriculados_inexistentes(escola, hoje)
+            logger.info(f'x-x-x-x Finaliza {msg} x-x-x-x')
+        except Exception as e:
+            logger.error(f'x-x-x-x Erro na {msg} x-x-x-x')
+            logger.error(f'`--> {e}')
+
+
+def deletar_logs_alunos_matriculados_duplicados(escola, hoje):
+    from sme_terceirizadas.escola.models import LogAlunosMatriculadosPeriodoEscola
+    for i in range(1, 8):
+        data = hoje - datetime.timedelta(days=i)
+        logs = LogAlunosMatriculadosPeriodoEscola.objects.filter(
+            escola=escola,
+            criado_em__year=data.year,
+            criado_em__month=data.month,
+            criado_em__day=data.day
+        )
+        logs_para_deletar = []
+        for log in logs:
+            logs_filtrados = logs.filter(
+                periodo_escolar=log.periodo_escolar,
+                tipo_turma=log.tipo_turma
+            ).order_by('-criado_em')
+            for l in logs_filtrados[1:logs_filtrados.count()]:
+                if l.uuid not in logs_para_deletar:
+                    logs_para_deletar.append(l.uuid)
+        logs.filter(uuid__in=logs_para_deletar).delete()
+
+
+def criar_logs_alunos_matriculados_inexistentes(escola, hoje):
+    from sme_terceirizadas.escola.models import LogAlunosMatriculadosPeriodoEscola
+    for i in range(1, 8):
+        data = hoje - datetime.timedelta(days=i)
+        logs = LogAlunosMatriculadosPeriodoEscola.objects.filter(
+            escola=escola,
+            criado_em__year=data.year,
+            criado_em__month=data.month,
+            criado_em__day=data.day
+        )
+        if not logs:
+            for i_para_repetir in range(1, 6):
+                quantidade_dias = i + i_para_repetir
+                data_para_repetir = hoje - datetime.timedelta(days=quantidade_dias)
+                logs_para_repetir = LogAlunosMatriculadosPeriodoEscola.objects.filter(
+                    escola=escola,
+                    criado_em__year=data_para_repetir.year,
+                    criado_em__month=data_para_repetir.month,
+                    criado_em__day=data_para_repetir.day,
+                )
+                if logs_para_repetir:
+                    for log_para_criar in logs_para_repetir:
+                        log_criado = LogAlunosMatriculadosPeriodoEscola.objects.create(
+                            escola=log_para_criar.escola, periodo_escolar=log_para_criar.periodo_escolar,
+                            quantidade_alunos=log_para_criar.quantidade_alunos,
+                            tipo_turma=log_para_criar.tipo_turma)
+                        log_criado.criado_em = data
+                        log_criado.save()
+                    break
+
+
+def analisa_logs_quantidade_dietas_autorizadas():
+    from sme_terceirizadas.dieta_especial.models import (
+        LogQuantidadeDietasAutorizadas,
+        LogQuantidadeDietasAutorizadasCEI
+    )
+    from sme_terceirizadas.escola.models import Escola
+    escolas = Escola.objects.filter(tipo_gestao__nome='TERC TOTAL')
+    for index, escola in enumerate(escolas):
+        msg = f'análise de LogQuantidadeDietasAutorizadas / LogQuantidadeDietasAutorizadasCEI'
+        msg += f' para escola {escola.nome} ({index + 1}/{(escolas).count()})'
+        try:
+            logger.info(f'x-x-x-x Iniciando {msg} x-x-x-x')
+            hoje = datetime.date.today()
+            if escola.eh_cei:
+                modelo = LogQuantidadeDietasAutorizadasCEI
+            else:
+                modelo = LogQuantidadeDietasAutorizadas
+            deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo)
+            criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo)
+            logger.info(f'x-x-x-x Finaliza {msg} x-x-x-x')
+        except Exception as e:
+            logger.error(f'x-x-x-x Erro na {msg} x-x-x-x')
+            logger.error(f'`--> {e}')
+
+
+def deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo):
+    for i in range(1, 8):
+        data = hoje - datetime.timedelta(days=i)
+        logs = modelo.objects.filter(
+            escola=escola,
+            data__year=data.year,
+            data__month=data.month,
+            data__day=data.day
+        )
+        logs_para_deletar = []
+        for log in logs:
+            logs_filtrados = logs.filter(
+                periodo_escolar=log.periodo_escolar,
+                classificacao=log.classificacao
+            ).order_by('-criado_em')
+            if escola.eh_cei:
+                logs_filtrados = logs_filtrados.filter(faixa_etaria=log.faixa_etaria).order_by('-criado_em')
+            for l in logs_filtrados[1:logs_filtrados.count()]:
+                if l.uuid not in logs_para_deletar:
+                    logs_para_deletar.append(l.uuid)
+        logs.filter(uuid__in=logs_para_deletar).delete()
+
+
+def criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo):
+    for i in range(1, 8):
+        data = hoje - datetime.timedelta(days=i)
+        logs = modelo.objects.filter(
+            escola=escola,
+            data__year=data.year,
+            data__month=data.month,
+            data__day=data.day
+        )
+        if not logs:
+            for i_para_repetir in range(1, 6):
+                quantidade_dias = i + i_para_repetir
+                data_para_repetir = hoje - datetime.timedelta(days=quantidade_dias)
+                logs_para_repetir = modelo.objects.filter(
+                    escola=escola,
+                    data__year=data_para_repetir.year,
+                    data__month=data_para_repetir.month,
+                    data__day=data_para_repetir.day
+                )
+                if logs_para_repetir:
+                    for log_para_criar in logs_para_repetir:
+                        create_objects_logs(escola, log_para_criar, data)
+                    break
+
+
+def create_objects_logs(escola, log_para_criar, data):
+    from sme_terceirizadas.dieta_especial.models import (
+        LogQuantidadeDietasAutorizadas,
+        LogQuantidadeDietasAutorizadasCEI
+    )
+    if escola.eh_cei:
+        LogQuantidadeDietasAutorizadasCEI.objects.create(
+            quantidade=log_para_criar.quantidade,
+            escola=log_para_criar.escola,
+            data=data,
+            classificacao=log_para_criar.classificacao,
+            periodo_escolar=log_para_criar.periodo_escolar,
+            faixa_etaria=log_para_criar.faixa_etaria
+        )
+    else:
+        LogQuantidadeDietasAutorizadas.objects.create(
+            quantidade=log_para_criar.quantidade,
+            escola=log_para_criar.escola,
+            data=data,
+            classificacao=log_para_criar.classificacao,
+            periodo_escolar=log_para_criar.periodo_escolar
+        )

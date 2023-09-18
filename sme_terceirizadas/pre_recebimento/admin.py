@@ -3,11 +3,11 @@ from django.contrib import admin
 from .forms import CaixaAltaNomeForm
 from .models import (
     Cronograma,
-    EmbalagemQld,
     EtapasDoCronograma,
     Laboratorio,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoEmbalagemQld,
     UnidadeMedida
 )
 
@@ -22,7 +22,7 @@ class Laboratoriodmin(admin.ModelAdmin):
     readonly_fields = ('uuid',)
 
 
-@admin.register(EmbalagemQld)
+@admin.register(TipoEmbalagemQld)
 class EmbalagemQldAdmin(admin.ModelAdmin):
     form = CaixaAltaNomeForm
     list_display = ('nome', 'abreviacao', 'criado_em')

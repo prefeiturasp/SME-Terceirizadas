@@ -61,7 +61,7 @@ class SolicitacaoAlteracaoCronogramaFilter(filters.FilterSet):
     )
 
 
-class EmbalagensQldFilter(filters.FilterSet):
+class TipoEmbalagemQldFilter(filters.FilterSet):
     uuid = filters.CharFilter(
         field_name='uuid',
         lookup_expr='exact',

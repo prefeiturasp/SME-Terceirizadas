@@ -63,7 +63,7 @@ from ..kit_lanche.models import (
 )
 from .constants import PERIODOS_ESPECIAIS_CEMEI
 from .services import NovoSGPServicoLogado
-from .utils import faixa_to_string, remove_acentos
+from .utils import deletar_alunos_periodo_parcial_outras_escolas, faixa_to_string, remove_acentos
 
 env = environ.Env()
 REDIS_HOST = env('REDIS_HOST')
@@ -608,7 +608,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
         data_referencia = self.obter_data_referencia(data_referencia)
         faixas_etarias = self.obter_faixas_etarias(faixas_etarias)
-
+        deletar_alunos_periodo_parcial_outras_escolas(self, data_referencia)
         alunos_periodo_parcial = AlunoPeriodoParcial.objects.filter(
             aluno__escola__codigo_eol=self.codigo_eol,
             solicitacao_medicao_inicial__mes=str(data_referencia.month).zfill(2),
@@ -1319,7 +1319,7 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
     class Meta:
         verbose_name = 'Log Alteração quantidade de alunos regular e programa'
         verbose_name_plural = 'Logs de Alteração quantidade de alunos regulares e de programas'
-        ordering = ('criado_em',)
+        ordering = ('-criado_em',)
 
 
 class DiaCalendario(CriadoEm, TemAlteradoEm, TemData, TemChaveExterna):

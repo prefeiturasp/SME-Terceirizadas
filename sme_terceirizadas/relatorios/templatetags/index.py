@@ -387,6 +387,14 @@ def get_nao_eh_dia_letivo(dias_letivos, i):
 
 
 @register.filter
+def get_nao_eh_dia_letivo_cei(dias_letivos, i):
+    try:
+        return not dias_letivos[i]
+    except Exception:
+        return False
+
+
+@register.filter
 def get_nome_campo(campo):
     campos = {
         'numero_de_alunos': 'Número de Alunos',
