@@ -16,18 +16,24 @@
           {% endif %}
         </tr>
         <tr class="{% if dias_inclusao.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}cancelado{% endif %}">
-            {% if dias_inclusao.outro_motivo %}
-              <td>{{ dias_inclusao.outro_motivo }}</td>
-            {% else %}
-              <td>
-                {{ dias_inclusao.motivo.nome }}
-              </td>
-            {% endif %}
+          <td>
+            {{ dias_inclusao.motivo.nome }}
+          </td>
           <td>{{ dias_inclusao.data }}</td>
           {% if dias_inclusao.cancelado %}
             <td style="text-decoration: none">Justificativa: {{ dias_inclusao.cancelado_justificativa }}</td>
           {% endif %}
         </tr>
+       {% if dias_inclusao.outro_motivo %}
+         <tr class="{% if dias_inclusao.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}cancelado{% endif %}">
+            <td>
+              Qual o motivo?
+            </td>
+           <td>
+              {{ dias_inclusao.outro_motivo }}
+            </td>
+         </tr>
+       {% endif %}
       {% endfor %}
     </table>
     <div class="tabela-sem-borda">

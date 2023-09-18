@@ -215,9 +215,9 @@ class LogErroAtualizaDadosAlunoAdmin(admin.ModelAdmin):
 
 @admin.register(LogAlunosMatriculadosPeriodoEscola)
 class LogAlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'criado_em', 'tipo_turma')
-    search_fields = ('escola__nome', 'periodo_escolar__nome')
-    list_filter = (('criado_em', DateRangeFilter), 'tipo_turma')
+    list_display = ('escola', 'periodo_escolar', 'tipo_turma', 'quantidade_alunos', 'criado_em', '__str__')
+    search_fields = ('escola__nome', 'escola__codigo_eol', 'periodo_escolar__nome')
+    list_filter = (('criado_em', DateRangeFilter), 'periodo_escolar__nome', 'tipo_turma')
 
 
 @admin.register(LogAlunosMatriculadosFaixaEtariaDia)
@@ -230,9 +230,10 @@ class LogAlunosMatriculadosFaixaEtariaDiaAdmin(admin.ModelAdmin):
 
 @admin.register(DiaCalendario)
 class DiaCalendarioAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'data', 'dia_letivo')
-    search_fields = ('escola__nome',)
+    list_display = ('escola', 'data', 'dia_letivo', '__str__')
+    search_fields = ('escola__nome', 'escola__codigo_eol')
     list_filter = (('data', DateRangeFilter),)
+    ordering = ('-data', )
 
 
 @admin.register(PeriodoEscolar)

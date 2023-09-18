@@ -75,8 +75,8 @@ def laboratorio():
 
 
 @pytest.fixture
-def emabalagem_qld():
-    return mommy.make('EmbalagemQld', nome='CAIXA', abreviacao='CX')
+def tipo_emabalagem_qld():
+    return mommy.make('TipoEmbalagemQld', nome='CAIXA', abreviacao='CX')
 
 
 @pytest.fixture
@@ -154,6 +154,18 @@ def cronograma_assinado_perfil_dinutre(armazem, contrato, empresa):
         empresa=empresa,
         armazem=armazem,
         status='ASSINADO_DINUTRE'
+    )
+
+
+@pytest.fixture
+def cronograma_assinado_perfil_dilog(armazem, contrato, empresa):
+    return mommy.make(
+        'Cronograma',
+        numero='004/2022',
+        contrato=contrato,
+        empresa=empresa,
+        armazem=armazem,
+        status='ASSINADO_CODAE'
     )
 
 

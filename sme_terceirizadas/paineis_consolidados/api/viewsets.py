@@ -801,30 +801,50 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         for inclusao in query_set:
             inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
-            for periodo in inc.quantidades_periodo.all():
-                if periodo.periodo_escolar.nome in periodos_escolares:
-                    if inclusao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
-                        i = inclusao.data_evento.day
-                        big_range = False
-                        if inclusao.data_evento.month != int(mes) and inclusao.data_evento_2.month != int(mes):
-                            big_range = True
-                            i = datetime.date(int(ano), int(mes), 1)
-                            data_evento_final_no_mes = (i + relativedelta(day=31)).day
-                            i = datetime.date(int(ano), int(mes), 1).day
+            if inclusao.tipo_doc == 'INC_ALIMENTA_CEI':
+                if 'PARCIAL' in periodos_escolares:
+                    periodos_externos = ['MANHA', 'TARDE']
+                    periodos_internos = ['MANHA', 'TARDE']
+                if 'INTEGRAL' in periodos_escolares:
+                    periodos_externos = ['INTEGRAL']
+                    periodos_internos = ['INTEGRAL', 'MANHA', 'TARDE']
+                dias_motivos = inc.dias_motivos_da_inclusao_cei.filter(data__month=mes, data__year=ano, cancelado=False)
+                quantidade_por_faixa = inc.quantidade_alunos_da_inclusao.filter(
+                    periodo__nome__in=periodos_internos,
+                    periodo_externo__nome__in=periodos_externos
+                )
+                if quantidade_por_faixa:
+                    for dia_motivo in dias_motivos:
+                        faixas_etarias_uuids = quantidade_por_faixa.values_list('faixa_etaria__uuid', flat=True)
+                        return_dict.append({
+                            'dia': dia_motivo.data.day,
+                            'faixas_etarias': faixas_etarias_uuids.distinct(),
+                        })
+            else:
+                for periodo in inc.quantidades_periodo.all():
+                    if periodo.periodo_escolar.nome in periodos_escolares:
+                        if inclusao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
+                            i = inclusao.data_evento.day
+                            big_range = False
+                            if inclusao.data_evento.month != int(mes) and inclusao.data_evento_2.month != int(mes):
+                                big_range = True
+                                i = datetime.date(int(ano), int(mes), 1)
+                                data_evento_final_no_mes = (i + relativedelta(day=31)).day
+                                i = datetime.date(int(ano), int(mes), 1).day
+                            else:
+                                data_evento_final_no_mes = inclusao.data_evento_2.day
+                            if inclusao.data_evento_2.month != inclusao.data_evento.month and not big_range:
+                                data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
+                            while i <= data_evento_final_no_mes:
+                                if (not periodo.dias_semana or
+                                        datetime.date(int(ano), int(mes), i).weekday() in periodo.dias_semana):
+                                    append(i, periodo, inclusao)
+                                i += 1
                         else:
-                            data_evento_final_no_mes = inclusao.data_evento_2.day
-                        if inclusao.data_evento_2.month != inclusao.data_evento.month and not big_range:
-                            data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
-                        while i <= data_evento_final_no_mes:
-                            if (not periodo.dias_semana or
-                                    datetime.date(int(ano), int(mes), i).weekday() in periodo.dias_semana):
-                                append(i, periodo, inclusao)
-                            i += 1
-                    else:
-                        for inclusao_normal in inc.inclusoes_normais.filter(
-                            data__month=mes, data__year=ano, cancelado=False
-                        ):
-                            append(inclusao_normal.data.day, periodo, inclusao)
+                            for inclusao_normal in inc.inclusoes_normais.filter(
+                                data__month=mes, data__year=ano, cancelado=False
+                            ):
+                                append(inclusao_normal.data.day, periodo, inclusao)
         data = {
             'results': return_dict
         }

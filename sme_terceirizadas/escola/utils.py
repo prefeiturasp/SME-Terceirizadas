@@ -38,6 +38,32 @@ def faixa_to_string(inicio, fim):
     return f'{str_inicio} a {str_fim}'
 
 
+def string_to_faixa(faixa_str):
+    if 'a' in faixa_str:
+        str_inicio, str_fim = faixa_str.split(' a ')
+    else:
+        str_inicio = str_fim = faixa_str
+
+    inicio = string_to_meses(str_inicio)
+    fim = string_to_meses(str_fim) + 1  # Adicionamos 1 porque a função faixa_to_string subtrai 1 do fim
+
+    return inicio, fim
+
+
+def string_to_meses(str_meses):
+    if 'ano' in str_meses:
+        anos, restante = str_meses.split(' ano')
+        anos = int(anos)
+        meses = 0
+        if ' e ' in restante:
+            _, str_mes = restante.split(' e ')
+            meses = int(str_mes.split(' ')[0])
+        total_meses = anos * 12 + meses
+    else:
+        total_meses = int(str_meses.split(' ')[0])
+    return total_meses
+
+
 def remove_acentos(texto):
     resultado = re.sub(u'[àáâãäå]', 'a', texto)
     resultado = re.sub(u'[èéêë]', 'e', resultado)
@@ -57,17 +83,20 @@ def update_datetime_LogAlunosMatriculadosPeriodoEscola():
         log.save()
 
 
-def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
+def registra_quantidade_matriculados(matriculas, ontem, tipo_turma):  # noqa C901
     from sme_terceirizadas.escola.models import (
         AlunosMatriculadosPeriodoEscola,
         LogAlunosMatriculadosPeriodoEscola,
         PeriodoEscolar,
         Escola
     )
+    import ast
+    import pandas as pd
     objs = []
+    matriculas = pd.DataFrame(matriculas).astype(str).drop_duplicates().to_dict('records')
     for matricula in matriculas:
         escola = Escola.objects.filter(codigo_eol=matricula['codigoEolEscola']).first()
-        turnos = matricula['turnos']
+        turnos = ast.literal_eval(matricula['turnos'])
         periodos = []
         for turno_resp in turnos:
             turno = remove_acentos(turno_resp['turno'])
@@ -89,11 +118,10 @@ def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
                     escola=escola, periodo_escolar=periodo,
                     quantidade_alunos=turno_resp['quantidade'],
                     tipo_turma=tipo_turma)
-
             LogAlunosMatriculadosPeriodoEscola.criar(
                 escola=escola, periodo_escolar=periodo,
                 quantidade_alunos=turno_resp['quantidade'],
-                data=data, tipo_turma=tipo_turma)
+                data=ontem, tipo_turma=tipo_turma)
 
         AlunosMatriculadosPeriodoEscola.objects.filter(
             tipo_turma=tipo_turma,
@@ -112,23 +140,18 @@ def create_update_objeto_escola_periodo_escolar(escola, periodo, quantidade_alun
         escola_periodo.save()
 
 
-def duplica_dia_anterior(dre, ontem, tipo_turma_name):
+def duplica_dia_anterior(dre, dois_dias_atras, ontem, tipo_turma_name):
     from sme_terceirizadas.escola.models import (
         LogAlunosMatriculadosPeriodoEscola,
     )
     logs = LogAlunosMatriculadosPeriodoEscola.objects.filter(escola__diretoria_regional=dre,
-                                                             criado_em__date=ontem,
+                                                             criado_em__date=dois_dias_atras,
                                                              tipo_turma=tipo_turma_name)
-    logs_para_criar = []
     for log in logs:
-        log = LogAlunosMatriculadosPeriodoEscola(
-            escola=log.escola,
-            periodo_escolar=log.periodo_escolar,
+        LogAlunosMatriculadosPeriodoEscola.criar(
+            escola=log.escola, periodo_escolar=log.periodo_escolar,
             quantidade_alunos=log.quantidade_alunos,
-            tipo_turma=tipo_turma_name
-        )
-        logs_para_criar.append(log)
-    LogAlunosMatriculadosPeriodoEscola.objects.bulk_create(logs_para_criar)
+            data=ontem, tipo_turma=tipo_turma_name)
     update_datetime_LogAlunosMatriculadosPeriodoEscola()
 
 
@@ -137,7 +160,7 @@ def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
         DiretoriaRegional
     )
     hoje = date.today()
-    ontem = date.today() - timedelta(days=1)
+    ontem = hoje - timedelta(days=1)
     dres = DiretoriaRegional.objects.all()
     total = len(dres)
     cont = 1
@@ -152,9 +175,10 @@ def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
                 tipo_turma=tipo_turma.value)
             logger.debug(resposta)
 
-            registra_quantidade_matriculados(resposta, hoje, tipo_turma.name)
+            registra_quantidade_matriculados(resposta, ontem, tipo_turma.name)
         except Exception as e:
-            duplica_dia_anterior(dre, ontem, tipo_turma.name)
+            dois_dias_atras = ontem - timedelta(days=1)
+            duplica_dia_anterior(dre, dois_dias_atras, ontem, tipo_turma.name)
             logger.error(f'Houve um erro inesperado ao consultar a Diretoria Regional {dre} : {str(e)}; '
                          f'as quantidades de alunos foram duplicadas do dia anterior')
         cont += 1
@@ -229,3 +253,12 @@ def lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lot
     else:
         lotes = instituicao.lotes.filter(escolas__isnull=False)
     return lotes
+
+
+def deletar_alunos_periodo_parcial_outras_escolas(escola, data_referencia):
+    from .models import AlunoPeriodoParcial
+    AlunoPeriodoParcial.objects.filter(
+        solicitacao_medicao_inicial__escola=escola,
+        solicitacao_medicao_inicial__mes=str(data_referencia.month).zfill(2),
+        solicitacao_medicao_inicial__ano=str(data_referencia.year)
+    ).exclude(aluno__escola__codigo_eol=escola.codigo_eol).delete()

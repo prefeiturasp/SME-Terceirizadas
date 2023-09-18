@@ -235,6 +235,13 @@ ORDEM_PERIODOS_GRUPOS = {
     'ETEC': 8
 }
 
+ORDEM_PERIODOS_GRUPOS_CEI = {
+    'INTEGRAL': 1,
+    'PARCIAL': 2,
+    'MANHA': 3,
+    'TARDE': 4,
+}
+
 
 class StatusProcessamentoArquivo(Enum):
     PENDENTE = 'PENDENTE'

@@ -8,9 +8,9 @@ from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import NomeEAbreviacaoUnidadeMedidaSerializer
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
-    EmbalagemQld,
     Laboratorio,
     SolicitacaoAlteracaoCronograma,
+    TipoEmbalagemQld,
     UnidadeMedida
 )
 from sme_terceirizadas.pre_recebimento.utils import UnidadeMedidaPagination
@@ -87,6 +87,81 @@ def test_url_list_solicitacoes_alteracao_cronograma_fornecedor(client_autenticad
     assert 'count' in json
     assert 'next' in json
     assert 'previous' in json
+
+
+def test_url_solicitacao_alteracao_fornecedor(client_autenticado_fornecedor, cronograma_assinado_perfil_dilog):
+    data = {
+        'cronograma': str(cronograma_assinado_perfil_dilog.uuid),
+        'etapas': [
+            {
+                'numero_empenho': '43532542',
+                'etapa': 'Etapa 4',
+                'parte': 'Parte 2',
+                'data_programada': '2023-06-03',
+                'quantidade': 123,
+                'total_embalagens': 333
+            },
+            {
+                'etapa': 'Etapa 1',
+                'parte': 'Parte 1',
+                'data_programada': '2023-09-14',
+                'quantidade': '0',
+                'total_embalagens': 1
+            }
+        ],
+        'justificativa': 'Teste'
+    }
+    response = client_autenticado_fornecedor.post(
+        '/solicitacao-de-alteracao-de-cronograma/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    obj = SolicitacaoAlteracaoCronograma.objects.last()
+    assert obj.status == 'EM_ANALISE'
+
+
+def test_url_solicitacao_alteracao_dilog(client_autenticado_dilog_cronograma, cronograma_assinado_perfil_dilog):
+    data = {
+        'cronograma': str(cronograma_assinado_perfil_dilog.uuid),
+        'qtd_total_programada': 124,
+        'etapas': [
+            {
+                'numero_empenho': '43532542',
+                'etapa': 'Etapa 4',
+                'parte': 'Parte 2',
+                'data_programada': '2023-06-03',
+                'quantidade': 123,
+                'total_embalagens': 333
+            },
+            {
+                'etapa': 'Etapa 1',
+                'parte': 'Parte 1',
+                'data_programada': '2023-09-14',
+                'quantidade': 1,
+                'total_embalagens': 1
+            }
+        ],
+        'justificativa': 'Teste',
+        'programacoes_de_recebimento': [
+            {
+                'data_programada': '14/09/2023 - Etapa 1 - Parte 1',
+                'tipo_carga': 'PALETIZADA'
+            }
+        ]
+    }
+
+    response = client_autenticado_dilog_cronograma.post(
+        '/solicitacao-de-alteracao-de-cronograma/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    obj = SolicitacaoAlteracaoCronograma.objects.last()
+    assert obj.status == 'ALTERACAO_ENVIADA_FORNECEDOR'
+    assert obj.qtd_total_programada == 124
+    assert obj.programacoes_novas.count() > 0
 
 
 def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_dilog_cronograma,
@@ -430,42 +505,42 @@ def test_url_endpoint_embalagem_create(client_autenticado_qualidade):
         'abreviacao': 'FD'
     }
     response = client_autenticado_qualidade.post(
-        '/embalagens/',
+        '/tipos-embalagens/',
         content_type='application/json',
         data=json.dumps(data)
     )
     assert response.status_code == status.HTTP_201_CREATED
-    obj = EmbalagemQld.objects.last()
+    obj = TipoEmbalagemQld.objects.last()
     assert obj.nome == 'FARDO'
 
 
 def test_url_embalagen_authorized(client_autenticado_qualidade):
-    response = client_autenticado_qualidade.get('/embalagens/')
+    response = client_autenticado_qualidade.get('/tipos-embalagens/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_lista_nomes_embalagens_authorized(client_autenticado_qualidade):
-    response = client_autenticado_qualidade.get('/embalagens/lista-nomes-embalagens/')
+def test_url_lista_nomes_tipos_embalagens_authorized(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get('/tipos-embalagens/lista-nomes-tipos-embalagens/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_abreviacao_nomes_embalagens_authorized(client_autenticado_qualidade):
-    response = client_autenticado_qualidade.get('/embalagens/lista-abreviacao-embalagens/')
+def test_url_lista_abreviacoes_tipos_embalagens_authorized(client_autenticado_qualidade):
+    response = client_autenticado_qualidade.get('/tipos-embalagens/lista-abreviacoes-tipos-embalagens/')
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_endpoint_embalagem_update(client_autenticado_qualidade, emabalagem_qld):
+def test_url_endpoint_embalagem_update(client_autenticado_qualidade, tipo_emabalagem_qld):
     data = {
         'nome': 'saco',
         'abreviacao': 'SC'
     }
     response = client_autenticado_qualidade.put(
-        f'/embalagens/{emabalagem_qld.uuid}/',
+        f'/tipos-embalagens/{tipo_emabalagem_qld.uuid}/',
         content_type='application/json',
         data=json.dumps(data)
     )
     assert response.status_code == status.HTTP_200_OK
-    obj = EmbalagemQld.objects.last()
+    obj = TipoEmbalagemQld.objects.last()
     assert obj.nome == 'SACO'
 
 

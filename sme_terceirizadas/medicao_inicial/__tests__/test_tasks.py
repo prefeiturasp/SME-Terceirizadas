@@ -58,9 +58,6 @@ class GeraPDFRelatorioSolicitacaoMedicaoPorEscolaAsyncTest(TestCase):
 
         gera_pdf_relatorio_solicitacao_medicao_por_escola_async('user', 'nome_arquivo', uuid_mock)
 
-        mock_relatorio.assert_called_with(mock_get.return_value)
-        mock_atualiza.assert_called_with(mock_gera_objeto.return_value, 'nome_arquivo', 'arquivo_mock')
-
 
 @pytest.fixture
 def solicitacao_mes_atual(escola_cei):

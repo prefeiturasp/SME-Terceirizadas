@@ -5,6 +5,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 from model_mommy import mommy
 
+from sme_terceirizadas.dieta_especial.models import ClassificacaoDieta, LogQuantidadeDietasAutorizadas
+
 from ...escola import models
 from ..constants import COORDENADOR_LOGISTICA, DJANGO_ADMIN_PASSWORD
 from ..models import CentralDeDownload, Notificacao, TemplateMensagem
@@ -147,9 +149,11 @@ def validators_valor_str():
 
 @pytest.fixture
 def escola():
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
     return mommy.make(models.Escola,
                       nome=fake.name(),
-                      codigo_eol=fake.name()[:6])
+                      codigo_eol=fake.name()[:6],
+                      tipo_gestao=tipo_gestao)
 
 
 @pytest.fixture(scope='function', params=[
@@ -321,3 +325,66 @@ def nomes_anexos_invalidos(request):
 @pytest.fixture
 def data_maior_que_hoje():
     return datetime.date.today() + datetime.timedelta(days=10)
+
+
+@pytest.fixture
+def escola_cei():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL TESTE')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='CEI DIRET')
+    return mommy.make('Escola', nome='CEI DIRET TESTE', lote=lote, diretoria_regional=diretoria_regional,
+                      tipo_gestao=tipo_gestao, tipo_unidade=tipo_unidade_escolar)
+
+
+@pytest.fixture
+def periodo_escolar():
+    return mommy.make(models.PeriodoEscolar, nome='INTEGRAL')
+
+
+@pytest.fixture
+def logs_alunos_matriculados_periodo_escola(escola, periodo_escolar):
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    quatro_dias_atras = hoje - datetime.timedelta(days=4)
+    quantidades = [10, 10]
+    for quantidade in quantidades:
+        mommy.make(models.LogAlunosMatriculadosPeriodoEscola,
+                   escola=escola,
+                   periodo_escolar=periodo_escolar,
+                   quantidade_alunos=quantidade,
+                   tipo_turma=models.TipoTurma.REGULAR.name)
+    mommy.make(models.LogAlunosMatriculadosPeriodoEscola,
+               escola=escola,
+               periodo_escolar=periodo_escolar,
+               quantidade_alunos=100,
+               tipo_turma=models.TipoTurma.REGULAR.name)
+    models.LogAlunosMatriculadosPeriodoEscola.objects.all().update(criado_em=ontem)
+    models.LogAlunosMatriculadosPeriodoEscola.objects.filter(
+        quantidade_alunos=100
+    ).update(criado_em=quatro_dias_atras)
+    return models.LogAlunosMatriculadosPeriodoEscola.objects.all()
+
+
+@pytest.fixture
+def logs_quantidade_dietas_autorizadas_escola_comum(escola, periodo_escolar):
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    tres_dias_atras = hoje - datetime.timedelta(days=3)
+    quantidades = [10, 10]
+    classificacao = mommy.make(ClassificacaoDieta, nome='Tipo A')
+    for quantidade in quantidades:
+        mommy.make(LogQuantidadeDietasAutorizadas,
+                   quantidade=quantidade,
+                   escola=escola,
+                   data=ontem,
+                   classificacao=classificacao,
+                   periodo_escolar=periodo_escolar)
+    mommy.make(LogQuantidadeDietasAutorizadas,
+               quantidade=50,
+               escola=escola,
+               data=tres_dias_atras,
+               classificacao=classificacao,
+               periodo_escolar=periodo_escolar)
+    return LogQuantidadeDietasAutorizadas.objects.all()

@@ -24,7 +24,8 @@ class DadosUsuarioEOLCompletoViewSet(ViewSet):
                 'cpf': dados_usuario['cpf'],
                 'rf': dados_usuario['rf'],
                 'cargo': dados_usuario['cargos'][0]['descricaoCargo'].strip(),
-                'codigo_eol_unidade': dados_usuario['cargos'][0]['codigoUnidade']
+                'codigo_eol_unidade': dados_usuario['cargos'][0]['codigoUnidade'],
+                'nome_escola': dados_usuario['cargos'][0]['descricaoUnidade'],
             }
             return Response(dados_usuario)
         except EOLException as e:
