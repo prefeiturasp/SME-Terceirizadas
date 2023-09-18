@@ -11,7 +11,12 @@ from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ...dieta_especial.models import SolicitacaoDietaEspecial
-from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
+from ...inclusao_alimentacao.models import (
+    DiasMotivosInclusaoDeAlimentacaoCEI,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
+    QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI
+)
 from ...kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
 
 fake = Faker('pt_BR')
@@ -478,11 +483,15 @@ def inclusoes_normais(escola, motivo_inclusao_normal, periodo_escolar_manha, tip
         status='CODAE_AUTORIZADO',
         rastro_escola=escola,
         rastro_dre=escola.diretoria_regional)
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=grupo_inclusao_normal.uuid,
+               status_evento=1,
+               solicitacao_tipo=5)
     mommy.make('InclusaoAlimentacaoNormal',
-               data=datetime.date(2023, 8, 1),
+               data=datetime.date(2023, 7, 1),
                grupo_inclusao=grupo_inclusao_normal)
     mommy.make('InclusaoAlimentacaoNormal',
-               data=datetime.date(2023, 8, 2),
+               data=datetime.date(2023, 7, 2),
                motivo=motivo_inclusao_normal,
                grupo_inclusao=grupo_inclusao_normal)
     qp = mommy.make('QuantidadePorPeriodo',
@@ -528,3 +537,49 @@ def client_autenticado_escola_paineis_consolidados(client, django_user_model, es
                ativo=True)
     client.login(username=email, password=password)
     return client
+
+
+@pytest.fixture
+def inclusao_alimentacao_continua(escola, periodo_escolar_manha):
+    data_inicial = datetime.date(2023, 5, 20)
+    data_final = datetime.date(2023, 6, 10)
+    inclusao_continua = mommy.make(InclusaoAlimentacaoContinua,
+                                   data_inicial=data_inicial,
+                                   data_final=data_final,
+                                   escola=escola,
+                                   rastro_escola=escola,
+                                   status='CODAE_AUTORIZADO')
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=inclusao_continua.uuid,
+               status_evento=1,
+               solicitacao_tipo=5)
+    mommy.make('QuantidadePorPeriodo',
+               numero_alunos=50,
+               inclusao_alimentacao_continua=inclusao_continua,
+               periodo_escolar=periodo_escolar_manha)
+
+
+@pytest.fixture()
+def inclusao_alimentacao_cei(motivo_inclusao_normal, escola, periodo_escolar_manha):
+    inclusao_cei = mommy.make(InclusaoAlimentacaoDaCEI,
+                              escola=escola,
+                              rastro_escola=escola,
+                              periodo_escolar=periodo_escolar_manha,
+                              status='CODAE_AUTORIZADO')
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=inclusao_cei.uuid,
+               status_evento=1,
+               solicitacao_tipo=5)
+    mommy.make(DiasMotivosInclusaoDeAlimentacaoCEI,
+               inclusao_cei=inclusao_cei,
+               motivo=motivo_inclusao_normal,
+               data=datetime.date(2023, 8, 10))
+    periodo_integral = mommy.make('PeriodoEscolar', nome='INTEGRAL')
+    faixa_etaria = mommy.make('FaixaEtaria', inicio=48, fim=73, ativo=True)
+    mommy.make(QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
+               inclusao_alimentacao_da_cei=inclusao_cei,
+               faixa_etaria=faixa_etaria,
+               quantidade_alunos=25,
+               periodo=periodo_escolar_manha,
+               periodo_externo=periodo_integral)
+    return inclusao_cei
