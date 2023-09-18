@@ -808,6 +808,12 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                 if 'INTEGRAL' in periodos_escolares:
                     periodos_externos = ['INTEGRAL']
                     periodos_internos = ['INTEGRAL', 'MANHA', 'TARDE']
+                if 'MANHA' in periodos_escolares:
+                    periodos_externos = ['INTEGRAL']
+                    periodos_internos = ['MANHA']
+                if 'TARDE' in periodos_escolares:
+                    periodos_externos = ['INTEGRAL']
+                    periodos_internos = ['TARDE']
                 dias_motivos = inc.dias_motivos_da_inclusao_cei.filter(data__month=mes, data__year=ano, cancelado=False)
                 quantidade_por_faixa = inc.quantidade_alunos_da_inclusao.filter(
                     periodo__nome__in=periodos_internos,
