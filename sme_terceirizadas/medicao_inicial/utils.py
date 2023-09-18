@@ -41,8 +41,8 @@ def get_lista_categorias_campos_cei(medicao):
 
     valores_ordenados = sorted(valores, key=lambda x: (x['categoria_medicao__nome'], x['faixa_etaria__fim']))
 
-    lista_categorias_campos = [(v['categoria_medicao__nome'], faixa_etaria_dict[v['faixa_etaria_id']]) for v in
-                               valores_ordenados]
+    lista_categorias_campos = [(v['categoria_medicao__nome'],
+                                faixa_etaria_dict[v['faixa_etaria_id']]) for v in valores_ordenados]
 
     return lista_categorias_campos
 
