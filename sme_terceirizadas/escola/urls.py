@@ -39,6 +39,7 @@ router.register('relatorio-alunos-matriculados', viewsets.RelatorioAlunosMatricu
                 basename='relatorio-alunos-matriculados')
 router.register('log-alunos-matriculados-faixa-etaria-dia', viewsets.LogAlunosMatriculadosFaixaEtariaDiaViewSet,
                 basename='log-alunos-matriculados-faixa-etaria-dia')
+router.register('dias-suspensao-atividades', viewsets.DiaSuspensaoAtividadesViewSet)
 
 urlpatterns = [
     path('', include(router.urls))

@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
 from ...paineis_consolidados import models
-from ...perfil.api.serializers import PerfilSimplesSerializer
+from ...perfil.api.serializers import PerfilSimplesSerializer, UsuarioSerializer
 from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import ContratoSimplesSerializer, TerceirizadaSimplesSerializer
 from ...terceirizada.models import Terceirizada
@@ -16,6 +16,7 @@ from ..models import (
     AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
+    DiaSuspensaoAtividades,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
@@ -686,3 +687,12 @@ class LogAlunosMatriculadosFaixaEtariaDiaSerializer(serializers.ModelSerializer)
     class Meta:
         model = LogAlunosMatriculadosFaixaEtariaDia
         exclude = ('id', 'uuid', 'criado_em')
+
+
+class DiaSuspensaoAtividadesSerializer(serializers.ModelSerializer):
+    tipo_unidade = TipoUnidadeEscolarSerializer()
+    criado_por = UsuarioSerializer()
+
+    class Meta:
+        model = DiaSuspensaoAtividades
+        exclude = ('id',)
