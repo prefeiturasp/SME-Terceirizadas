@@ -6,10 +6,11 @@ from ..models import (
     Cronograma,
     EtapasDoCronograma,
     Laboratorio,
+    LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
     TipoEmbalagemQld,
-    UnidadeMedida
+    UnidadeMedida, TipoDeEmbalagemDeLayout
 )
 
 pytestmark = pytest.mark.django_db
@@ -167,3 +168,37 @@ def test_solicitacao_alteracao_cronograma_queryset_filtrar_por_status(
         filtros={'nome_produto': produto_arroz.nome}
     )
     assert qs.count() == 1
+
+
+def test_layout_de_embalagem_instance_model(layout_de_embalagem):
+    model = layout_de_embalagem
+    assert isinstance(model, LayoutDeEmbalagem)
+    assert model.cronograma
+    assert model.observacoes
+
+
+def test_layout_de_embalagem_srt_model(layout_de_embalagem):
+    assert layout_de_embalagem.__str__() == '004/2022 - Macarrão'
+
+
+def test_layout_de_embalagem_meta_modelo(layout_de_embalagem):
+    assert layout_de_embalagem._meta.verbose_name == 'Layout de Embalagem'
+    assert layout_de_embalagem._meta.verbose_name_plural == 'Layouts de Embalagem'
+
+
+def test_tipo_de_embalagem_instance_model(tipo_de_embalagem_de_layout):
+    model = tipo_de_embalagem_de_layout
+    assert isinstance(model, TipoDeEmbalagemDeLayout)
+    assert model.layout_de_embalagem
+    assert model.tipo_embalagem
+    assert model.status
+    assert model.complemento_do_status
+
+
+def test_tipo_de_embalagem_srt_model(tipo_de_embalagem_de_layout):
+    assert tipo_de_embalagem_de_layout.__str__() == 'PRIMARIA - APROVADO'
+
+
+def test_tipo_de_embalagem_meta_modelo(tipo_de_embalagem_de_layout):
+    assert tipo_de_embalagem_de_layout._meta.verbose_name == 'Tipo de Embalagem de Layout'
+    assert tipo_de_embalagem_de_layout._meta.verbose_name_plural == 'Tipos de Embalagens de Layout'

@@ -158,13 +158,14 @@ def cronograma_assinado_perfil_dinutre(armazem, contrato, empresa):
 
 
 @pytest.fixture
-def cronograma_assinado_perfil_dilog(armazem, contrato, empresa):
+def cronograma_assinado_perfil_dilog(armazem, contrato, empresa, produto_macarrao):
     return mommy.make(
         'Cronograma',
         numero='004/2022',
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
+        produto=produto_macarrao,
         status='ASSINADO_CODAE'
     )
 
@@ -306,3 +307,19 @@ def unidades_medida_reais_logistica():
     ]
     objects = [mommy.make(UnidadeMedida, **attrs) for attrs in data]
     return objects
+
+
+@pytest.fixture
+def layout_de_embalagem(cronograma_assinado_perfil_dilog):
+    return mommy.make('LayoutDeEmbalagem',
+                      cronograma=cronograma_assinado_perfil_dilog,
+                      observacoes='teste')
+
+
+@pytest.fixture
+def tipo_de_embalagem_de_layout(layout_de_embalagem):
+    return mommy.make('TipoDeEmbalagemDeLayout',
+                      layout_de_embalagem=layout_de_embalagem,
+                      tipo_embalagem='PRIMARIA',
+                      status='APROVADO',
+                      complemento_do_status='Teste de aprovacao')
