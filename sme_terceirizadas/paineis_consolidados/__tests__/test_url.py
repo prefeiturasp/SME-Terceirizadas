@@ -8,6 +8,7 @@ from ..api.constants import (
     AGUARDANDO_CODAE,
     AUTORIZADOS,
     CANCELADOS,
+    INCLUSOES_AUTORIZADAS,
     NEGADOS,
     PENDENTES_AUTORIZACAO,
     PENDENTES_VALIDACAO_DRE,
@@ -286,8 +287,69 @@ def test_filtro_dre_error(solicitacoes_ano_dre):
 def test_ceu_gestao_periodos_com_solicitacoes_autorizadas(client_autenticado_escola_paineis_consolidados, escola):
     response = client_autenticado_escola_paineis_consolidados.get(
         '/escola-solicitacoes/ceu-gestao-periodos-com-solicitacoes-autorizadas/'
-        f'?escola_uuid={escola.uuid}&mes=08&ano=2023'
+        f'?escola_uuid={escola.uuid}&mes=07&ano=2023'
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()) == 1
     assert response.json()[0]['nome'] == 'MANHA'
+
+
+def test_inclusoes_normais_autorizadas(client_autenticado_escola_paineis_consolidados, escola):
+    response = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=07&ano=2023'
+        f'&periodos_escolares[]=MANHA&excluir_inclusoes_continuas=true'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data['results']) == 2
+    assert response.data['results'][0]['numero_alunos'] == 100
+
+
+def test_inclusoes_continuas_autorizadas(client_autenticado_escola_paineis_consolidados,
+                                         escola, inclusao_alimentacao_continua):
+    response = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=05&ano=2023'
+        f'&periodos_escolares[]=MANHA&periodos_escolares[]=TARDE&tipo_doc=INC_ALIMENTA_CONTINUA'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data['results']) == 12
+    assert response.data['results'][0]['dia'] == '20'
+    assert response.data['results'][0]['numero_alunos'] == 50
+    assert response.data['results'][len(response.data['results']) - 1]['dia'] == '31'
+
+
+def test_inclusoes_cei_autorizadas(client_autenticado_escola_paineis_consolidados, escola, inclusao_alimentacao_cei):
+    response_manha = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=08&ano=2023'
+        f'&periodos_escolares[]=MANHA&excluir_inclusoes_continuas=true'
+    )
+    assert response_manha.status_code == status.HTTP_200_OK
+    assert len(response_manha.data['results']) == 1
+    assert response_manha.data['results'][0]['dia'] == 10
+
+    response_parcial = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=08&ano=2023'
+        f'&periodos_escolares[]=PARCIAL&excluir_inclusoes_continuas=true'
+    )
+    assert response_parcial.status_code == status.HTTP_200_OK
+    assert len(response_parcial.data['results']) == 0
+
+    response_integral = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=08&ano=2023'
+        f'&periodos_escolares[]=INTEGRAL&excluir_inclusoes_continuas=true'
+    )
+    assert response_integral.status_code == status.HTTP_200_OK
+    assert len(response_integral.data['results']) == 1
+    assert response_manha.data['results'][0]['dia'] == 10
+
+    response_tarde = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=08&ano=2023'
+        f'&periodos_escolares[]=TARDE&excluir_inclusoes_continuas=true'
+    )
+    assert response_tarde.status_code == status.HTTP_200_OK
+    assert len(response_tarde.data['results']) == 0
