@@ -11,7 +11,12 @@ from ...dados_comuns.behaviors import (
     TemChaveExterna,
     TemIdentificadorExternoAmigavel
 )
-from ...dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow, FluxoAlteracaoCronograma, FluxoCronograma
+from ...dados_comuns.fluxo_status import (
+    CronogramaAlteracaoWorkflow,
+    FluxoAlteracaoCronograma,
+    FluxoCronograma,
+    FluxoLayoutDeEmbalagem
+)
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...produto.models import NomeDeProdutoEdital
 from ...terceirizada.models import Contrato, Terceirizada
@@ -219,3 +224,61 @@ def gerar_numero_solicitacao(sender, instance, created, **kwargs):
     if created:
         instance.gerar_numero_solicitacao()
         instance.save()
+
+
+class ImagemDoTipoDeEmbalagem(TemChaveExterna):
+    tipo_de_embalagem = models.ForeignKey(
+        'TipoDeEmbalagemDeLayout', on_delete=models.CASCADE, related_name='imagens', blank=True)
+    arquivo = models.FileField()
+    nome = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f'{self.tipo_de_embalagem.tipo_embalagem} - {self.nome}' if self.tipo_de_embalagem else str(self.id)
+
+    class Meta:
+        verbose_name = 'Imagem do Tipo de Embalagem'
+        verbose_name_plural = 'Imagens dos Tipos de Embalagens'
+
+
+class TipoDeEmbalagemDeLayout(TemChaveExterna):
+    APROVADO = 'APROVADO'
+    REPROVADO = 'REPROVADO'
+    PRIMARIA = 'PRIMARIA'
+    SECUNDARIA = 'SECUNDARIA'
+    TERCIARIA = 'TERCIARIA'
+
+    STATUS_CHOICES = (
+        (APROVADO, 'Aprovado'),
+        (REPROVADO, 'Reprovado'),
+    )
+
+    TIPO_EMBALAGEM_CHOICES = (
+        (PRIMARIA, 'Primária'),
+        (SECUNDARIA, 'Secundária'),
+        (TERCIARIA, 'Terciária'),
+    )
+
+    layout_de_embalagem = models.ForeignKey(
+        'LayoutDeEmbalagem', on_delete=models.CASCADE, blank=True, related_name='tipos_de_embalagens')
+    tipo_embalagem = models.CharField(choices=TIPO_EMBALAGEM_CHOICES, max_length=10, blank=True)
+    status = models.CharField(choices=STATUS_CHOICES, max_length=9, blank=True)
+    complemento_do_status = models.TextField('Complemento do status', blank=True)
+
+    def __str__(self):
+        return f'{self.tipo_embalagem} - {self.status}' if self.tipo_embalagem else str(self.id)
+
+    class Meta:
+        verbose_name = 'Tipo de Embalagem de Layout'
+        verbose_name_plural = 'Tipos de Embalagens de Layout'
+
+
+class LayoutDeEmbalagem(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoLayoutDeEmbalagem):
+    cronograma = models.ForeignKey(Cronograma, on_delete=models.PROTECT, related_name='layouts')
+    observacoes = models.TextField('Observações', blank=True)
+
+    def __str__(self):
+        return f'{self.cronograma.numero} - {self.cronograma.produto.nome}' if self.cronograma else str(self.id)
+
+    class Meta:
+        verbose_name = 'Layout de Embalagem'
+        verbose_name_plural = 'Layouts de Embalagem'
