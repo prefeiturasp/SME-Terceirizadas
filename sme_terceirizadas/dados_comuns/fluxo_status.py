@@ -3940,3 +3940,39 @@ class FluxoNotificacaoOcorrencia(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+
+class LayoutDeEmbalagemWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    LAYOUT_CRIADO = 'LAYOUT_CRIADO'
+    ENVIADO_PARA_ANALISE = 'ENVIADO_PARA_ANALISE'
+    APROVADO = 'APROVADO'
+
+    states = (
+        (LAYOUT_CRIADO, 'Layout Criado'),
+        (ENVIADO_PARA_ANALISE, 'Enviado para Análise'),
+        (APROVADO, 'Aprovado'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', LAYOUT_CRIADO, ENVIADO_PARA_ANALISE),
+        ('codae_aprova', ENVIADO_PARA_ANALISE, APROVADO),
+    )
+
+    initial_state = LAYOUT_CRIADO
+
+
+class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = LayoutDeEmbalagemWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ENVIADO_PARA_ANALISE,
+                                      usuario=user)
+
+    class Meta:
+        abstract = True

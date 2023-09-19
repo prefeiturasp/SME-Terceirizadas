@@ -276,6 +276,17 @@ class LayoutDeEmbalagem(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Fluxo
     cronograma = models.ForeignKey(Cronograma, on_delete=models.PROTECT, related_name='layouts')
     observacoes = models.TextField('Observações', blank=True)
 
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.LAYOUT_DE_EMBALAGEM,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa
+        )
+
     def __str__(self):
         return f'{self.cronograma.numero} - {self.cronograma.produto.nome}' if self.cronograma else str(self.id)
 
