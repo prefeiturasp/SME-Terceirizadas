@@ -837,7 +837,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                                 data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
                             while i <= data_evento_final_no_mes:
                                 if (not periodo.dias_semana or
-                                        datetime.date(int(ano), int(mes), i).weekday() in periodo.dias_semana):
+                                        (datetime.date(int(ano), int(mes), i).weekday() + 1) in periodo.dias_semana):
                                     append(i, periodo, inclusao)
                                 i += 1
                         else:
