@@ -886,16 +886,17 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             else:
                 s_quant_por_periodo = susp.quantidades_por_periodo.filter(periodo_escolar__nome=nome_periodo_escolar)
                 for s_quant_periodo in s_quant_por_periodo:
-                    tipos_alimentacao = s_quant_periodo.tipos_alimentacao.all()
-                    alimentacoes = [unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
-                        'ascii', 'ignore').decode('utf-8').lower() for alimentacao in tipos_alimentacao]
-                    return_dict.append({
-                        'dia': f'{susp.data.day:02d}',
-                        'periodo': nome_periodo_escolar,
-                        'alimentacoes': alimentacoes,
-                        'numero_alunos': s_quant_periodo.numero_alunos,
-                        'inclusao_id_externo': susp.id_externo
-                    })
+                    for suspensao in susp.suspensoes_alimentacao.all():
+                        tipos_alimentacao = s_quant_periodo.tipos_alimentacao.all()
+                        alimentacoes = [unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
+                            'ascii', 'ignore').decode('utf-8').lower() for alimentacao in tipos_alimentacao]
+                        return_dict.append({
+                            'dia': f'{suspensao.data.day:02d}',
+                            'periodo': nome_periodo_escolar,
+                            'alimentacoes': alimentacoes,
+                            'numero_alunos': s_quant_periodo.numero_alunos,
+                            'inclusao_id_externo': susp.id_externo
+                        })
 
         data = {
             'results': return_dict
