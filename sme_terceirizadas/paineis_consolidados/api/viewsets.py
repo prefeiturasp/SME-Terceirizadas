@@ -43,7 +43,8 @@ from ..tasks import gera_pdf_relatorio_solicitacoes_alimentacao_async, gera_xls_
 from ..utils import (
     formata_resultado_inclusoes_etec_autorizadas,
     tratar_data_evento_final_no_mes,
-    tratar_dias_duplicados
+    tratar_dias_duplicados,
+    tratar_periodo_parcial
 )
 from ..validators import FiltroValidator
 from .constants import (
@@ -873,18 +874,29 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         for suspensao in query_set:
             susp = suspensao.get_raw_model.objects.get(uuid=suspensao.uuid)
-            s_quant_periodo = susp.quantidades_por_periodo.get(periodo_escolar__nome=nome_periodo_escolar)
-            if s_quant_periodo:
-                tipos_alimentacao = s_quant_periodo.tipos_alimentacao.all()
-                alimentacoes = [unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
-                    'ascii', 'ignore').decode('utf-8').lower() for alimentacao in tipos_alimentacao]
-                return_dict.append({
-                    'dia': f'{susp.data.day:02d}',
-                    'periodo': nome_periodo_escolar,
-                    'alimentacoes': alimentacoes,
-                    'numero_alunos': s_quant_periodo.numero_alunos,
-                    'inclusao_id_externo': susp.id_externo
-                })
+            if susp.DESCRICAO == 'Suspensão de Alimentação de CEI':
+                nome_periodo_escolar = tratar_periodo_parcial(nome_periodo_escolar)
+                if nome_periodo_escolar in susp.periodos_escolares.all().values_list('nome', flat=True):
+                    return_dict.append({
+                        'dia': f'{susp.data.day:02d}',
+                        'periodo': nome_periodo_escolar,
+                        'motivo': susp.motivo.nome,
+                        'inclusao_id_externo': susp.id_externo
+                    })
+            else:
+                s_quant_por_periodo = susp.quantidades_por_periodo.filter(periodo_escolar__nome=nome_periodo_escolar)
+                for s_quant_periodo in s_quant_por_periodo:
+                    for suspensao in susp.suspensoes_alimentacao.all():
+                        tipos_alimentacao = s_quant_periodo.tipos_alimentacao.all()
+                        alimentacoes = [unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
+                            'ascii', 'ignore').decode('utf-8').lower() for alimentacao in tipos_alimentacao]
+                        return_dict.append({
+                            'dia': f'{suspensao.data.day:02d}',
+                            'periodo': nome_periodo_escolar,
+                            'alimentacoes': alimentacoes,
+                            'numero_alunos': s_quant_periodo.numero_alunos,
+                            'inclusao_id_externo': susp.id_externo
+                        })
 
         data = {
             'results': return_dict
