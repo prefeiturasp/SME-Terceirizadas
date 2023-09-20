@@ -148,6 +148,7 @@ TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
 TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO = 'terceirizada-toma-ciencia-inativacao'
 MARCAR_CONFERIDA = 'marcar-conferida'
+VINCULOS_INCLUSOES_EVENTO_ESPECIFICO_AUTORIZADAS = 'vinculos-inclusoes-evento-especifico-autorizadas'
 
 #
 # FILTROS
