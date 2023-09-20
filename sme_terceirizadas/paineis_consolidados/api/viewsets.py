@@ -43,7 +43,8 @@ from ..tasks import gera_pdf_relatorio_solicitacoes_alimentacao_async, gera_xls_
 from ..utils import (
     formata_resultado_inclusoes_etec_autorizadas,
     tratar_data_evento_final_no_mes,
-    tratar_dias_duplicados
+    tratar_dias_duplicados,
+    tratar_periodo_parcial
 )
 from ..validators import FiltroValidator
 from .constants import (
@@ -874,8 +875,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         for suspensao in query_set:
             susp = suspensao.get_raw_model.objects.get(uuid=suspensao.uuid)
             if susp.DESCRICAO == 'Suspensão de Alimentação de CEI':
-                if nome_periodo_escolar == 'PARCIAL':
-                    nome_periodo_escolar = 'INTEGRAL'
+                nome_periodo_escolar = tratar_periodo_parcial(nome_periodo_escolar)
                 if nome_periodo_escolar in susp.periodos_escolares.all().values_list('nome', flat=True):
                     return_dict.append({
                         'dia': f'{susp.data.day:02d}',
