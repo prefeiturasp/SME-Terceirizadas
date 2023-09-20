@@ -338,7 +338,7 @@ class TipoDeEmbalagemDeLayoutCreateSerializer(serializers.ModelSerializer):
 class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
     cronograma = serializers.UUIDField(required=True)
     tipos_de_embalagens = TipoDeEmbalagemDeLayoutCreateSerializer(many=True, required=False)
-    observacoes = serializers.CharField(required=True)
+    observacoes = serializers.CharField(required=False)
 
     def validate_cronograma(self, value):
         cronograma = Cronograma.objects.filter(uuid=value)
