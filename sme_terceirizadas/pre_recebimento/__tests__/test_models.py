@@ -9,8 +9,9 @@ from ..models import (
     LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
-    UnidadeMedida, TipoDeEmbalagemDeLayout
+    UnidadeMedida
 )
 
 pytestmark = pytest.mark.django_db
