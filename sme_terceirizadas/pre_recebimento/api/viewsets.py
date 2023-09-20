@@ -57,6 +57,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
+    CronogramaSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
     LayoutDeEmbalagemSerializer,
@@ -297,6 +298,13 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
     def detalhar_com_log(self, request, uuid=None):
         cronograma = self.get_object()
         response = CronogramaComLogSerializer(cronograma, many=False).data
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-cronogramas-cadastro-layout')
+    def lista_cronogramas_para_cadastro_de_layout(self, request):
+        cronogramas = self.get_queryset()
+        serializer = CronogramaSimplesSerializer(cronogramas, many=True).data
+        response = {'results': serializer}
         return Response(response)
 
 
