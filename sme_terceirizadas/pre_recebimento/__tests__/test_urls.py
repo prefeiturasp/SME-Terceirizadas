@@ -5,7 +5,10 @@ from django.conf import settings
 from rest_framework import status
 
 from sme_terceirizadas.dados_comuns import constants
-from sme_terceirizadas.pre_recebimento.api.serializers.serializers import NomeEAbreviacaoUnidadeMedidaSerializer
+from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
+    CronogramaSimplesSerializer,
+    NomeEAbreviacaoUnidadeMedidaSerializer
+)
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     Laboratorio,
@@ -957,3 +960,14 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado_
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data['results']) == len(unidades_medida_logistica)
     assert response.data['results'] == NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True).data
+
+
+def test_url_cronograma_action_listar_para_cadastro_de_layout(client_autenticado_fornecedor):
+    """Deve obter lista com numeros, pregao e nome do produto de todas os produtos cadastradas."""
+    client = client_autenticado_fornecedor
+    response = client.get('/cronogramas/lista-cronogramas-cadastro-layout/')
+
+    cronogramas = Cronograma.objects.all().order_by('-criado_em')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['results'] == CronogramaSimplesSerializer(cronogramas, many=True).data
