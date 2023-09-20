@@ -17,6 +17,7 @@ from ..api.constants import (
     RELATORIO_RESUMO_MES_ANO,
     RESUMO_ANO,
     RESUMO_MES,
+    SUSPENSOES_AUTORIZADAS,
     TIPO_VISAO_SOLICITACOES
 )
 
@@ -353,3 +354,46 @@ def test_inclusoes_cei_autorizadas(client_autenticado_escola_paineis_consolidado
     )
     assert response_tarde.status_code == status.HTTP_200_OK
     assert len(response_tarde.data['results']) == 0
+
+
+def test_suspensoes_autorizadas(client_autenticado_escola_paineis_consolidados,
+                                escola, suspensoes_alimentacao):
+    response_manha_cei = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{SUSPENSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Suspensão&mes=07&ano=2023'
+        f'&nome_periodo_escolar=MANHA'
+    )
+    assert response_manha_cei.status_code == status.HTTP_200_OK
+    assert len(response_manha_cei.data['results']) == 1
+    assert response_manha_cei.data['results'][0]['dia'] == '15'
+    assert response_manha_cei.data['results'][0]['periodo'] == 'MANHA'
+
+    response_parcial_cei = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{SUSPENSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Suspensão&mes=07&ano=2023'
+        f'&nome_periodo_escolar=PARCIAL'
+    )
+    assert response_parcial_cei.status_code == status.HTTP_200_OK
+    assert len(response_parcial_cei.data['results']) == 1
+    assert response_parcial_cei.data['results'][0]['dia'] == '15'
+    assert response_parcial_cei.data['results'][0]['periodo'] == 'INTEGRAL'
+
+    response_suspensao_manha = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{SUSPENSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Suspensão&mes=08&ano=2023'
+        f'&nome_periodo_escolar=MANHA'
+    )
+    assert response_suspensao_manha.status_code == status.HTTP_200_OK
+    assert len(response_suspensao_manha.data['results']) == 2
+    assert response_suspensao_manha.data['results'][0]['numero_alunos'] == 75
+    assert response_suspensao_manha.data['results'][0]['periodo'] == 'MANHA'
+
+    response_suspensao_integral = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{SUSPENSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Suspensão&mes=08&ano=2023'
+        f'&nome_periodo_escolar=INTEGRAL'
+    )
+    assert response_suspensao_integral.status_code == status.HTTP_200_OK
+    assert len(response_suspensao_integral.data['results']) == 2
+    assert response_suspensao_integral.data['results'][0]['numero_alunos'] == 50
+    assert response_suspensao_integral.data['results'][0]['periodo'] == 'INTEGRAL'

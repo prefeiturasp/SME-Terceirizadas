@@ -6,7 +6,7 @@ from faker import Faker
 from freezegun import freeze_time
 from model_mommy import mommy
 
-from ...cardapio.models import AlteracaoCardapio
+from ...cardapio.models import AlteracaoCardapio, SuspensaoAlimentacaoDaCEI
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import TemplateMensagem
@@ -486,7 +486,7 @@ def inclusoes_normais(escola, motivo_inclusao_normal, periodo_escolar_manha, tip
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=grupo_inclusao_normal.uuid,
                status_evento=1,
-               solicitacao_tipo=5)
+               solicitacao_tipo=4)
     mommy.make('InclusaoAlimentacaoNormal',
                data=datetime.date(2023, 7, 1),
                grupo_inclusao=grupo_inclusao_normal)
@@ -552,15 +552,20 @@ def inclusao_alimentacao_continua(escola, periodo_escolar_manha):
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=inclusao_continua.uuid,
                status_evento=1,
-               solicitacao_tipo=5)
+               solicitacao_tipo=7)
     mommy.make('QuantidadePorPeriodo',
                numero_alunos=50,
                inclusao_alimentacao_continua=inclusao_continua,
                periodo_escolar=periodo_escolar_manha)
 
 
+@pytest.fixture
+def periodo_escolar_integral():
+    return mommy.make('PeriodoEscolar', nome='INTEGRAL')
+
+
 @pytest.fixture()
-def inclusao_alimentacao_cei(motivo_inclusao_normal, escola, periodo_escolar_manha):
+def inclusao_alimentacao_cei(motivo_inclusao_normal, escola, periodo_escolar_manha, periodo_escolar_integral):
     inclusao_cei = mommy.make(InclusaoAlimentacaoDaCEI,
                               escola=escola,
                               rastro_escola=escola,
@@ -574,12 +579,69 @@ def inclusao_alimentacao_cei(motivo_inclusao_normal, escola, periodo_escolar_man
                inclusao_cei=inclusao_cei,
                motivo=motivo_inclusao_normal,
                data=datetime.date(2023, 8, 10))
-    periodo_integral = mommy.make('PeriodoEscolar', nome='INTEGRAL')
     faixa_etaria = mommy.make('FaixaEtaria', inicio=48, fim=73, ativo=True)
     mommy.make(QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
                inclusao_alimentacao_da_cei=inclusao_cei,
                faixa_etaria=faixa_etaria,
                quantidade_alunos=25,
                periodo=periodo_escolar_manha,
-               periodo_externo=periodo_integral)
+               periodo_externo=periodo_escolar_integral)
     return inclusao_cei
+
+
+@pytest.fixture
+def motivo_suspensao():
+    return mommy.make('MotivoSuspensao', nome=fake.name())
+
+
+@pytest.fixture()
+def suspensoes_alimentacao(motivo_suspensao, escola, periodo_escolar_manha, periodo_escolar_integral,
+                           tipo_alimentacao_lanche, tipo_alimentacao_refeicao):
+    suspensao_cei = mommy.make(SuspensaoAlimentacaoDaCEI,
+                               escola=escola,
+                               rastro_escola=escola,
+                               motivo=motivo_suspensao,
+                               status='INFORMADO',
+                               data=datetime.date(2023, 7, 15))
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=suspensao_cei.uuid,
+               status_evento=0,
+               solicitacao_tipo=6)
+    suspensao_cei.periodos_escolares.add(periodo_escolar_manha)
+    suspensao_cei.periodos_escolares.add(periodo_escolar_integral)
+    suspensao_cei.save()
+
+    grupo_suspensao_alimentacao = mommy.make(
+        'GrupoSuspensaoAlimentacao',
+        escola=escola,
+        status='INFORMADO',
+        rastro_escola=escola,
+        rastro_dre=escola.diretoria_regional)
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=grupo_suspensao_alimentacao.uuid,
+               status_evento=1,
+               solicitacao_tipo=2)
+    mommy.make('SuspensaoAlimentacao',
+               data=datetime.date(2023, 8, 3),
+               motivo=motivo_suspensao,
+               grupo_suspensao=grupo_suspensao_alimentacao)
+    mommy.make('SuspensaoAlimentacao',
+               data=datetime.date(2023, 8, 13),
+               motivo=motivo_suspensao,
+               grupo_suspensao=grupo_suspensao_alimentacao)
+    qp_suspensao_manha = mommy.make('QuantidadePorPeriodoSuspensaoAlimentacao',
+                                    numero_alunos=75,
+                                    periodo_escolar=periodo_escolar_manha,
+                                    grupo_suspensao=grupo_suspensao_alimentacao)
+    qp_suspensao_manha.tipos_alimentacao.add(tipo_alimentacao_lanche)
+    qp_suspensao_manha.tipos_alimentacao.add(tipo_alimentacao_refeicao)
+    qp_suspensao_manha.save()
+    qp_suspensao_integral = mommy.make('QuantidadePorPeriodoSuspensaoAlimentacao',
+                                       numero_alunos=50,
+                                       periodo_escolar=periodo_escolar_integral,
+                                       grupo_suspensao=grupo_suspensao_alimentacao)
+    qp_suspensao_integral.tipos_alimentacao.add(tipo_alimentacao_lanche)
+    qp_suspensao_integral.tipos_alimentacao.add(tipo_alimentacao_refeicao)
+    qp_suspensao_integral.save()
+
+    return suspensao_cei, grupo_suspensao_alimentacao
