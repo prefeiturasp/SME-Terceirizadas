@@ -102,6 +102,7 @@
         </td>
         <td>
           {{ substituicao.alimentos_substitutos.all|join:", " }}
+          {{ substituicao.substitutos.all|join:", " }}
         </td>
       </tr>
       {% endfor %}
