@@ -13,7 +13,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
-from ...dados_comuns.permissions import UsuarioCODAEGestaoAlimentacao, UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
+from ...dados_comuns.permissions import (
+    UsuarioCODAEGestaoAlimentacao,
+    UsuarioDiretoriaRegional,
+    UsuarioEscolaTercTotal,
+    ViewSetActionPermissionMixin
+)
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.serializers import (
@@ -46,6 +51,7 @@ from ..models import (
     AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
+    DiaSuspensaoAtividades,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
@@ -68,6 +74,7 @@ from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
     AlunosMatriculadosPeriodoEscolaSerializer,
     DiaCalendarioSerializer,
+    DiaSuspensaoAtividadesSerializer,
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
@@ -81,6 +88,7 @@ from .serializers import (
     TipoGestaoSerializer,
     TipoUnidadeEscolarSerializer
 )
+from .serializers_create import DiaSuspensaoAtividadesCreateManySerializer
 
 
 class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -758,3 +766,33 @@ class LogAlunosMatriculadosFaixaEtariaDiaViewSet(ListModelMixin, GenericViewSet)
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = LogAlunosMatriculadosFaixaEtariaDiaFilter
     pagination_class = None
+
+
+class DiaSuspensaoAtividadesViewSet(ViewSetActionPermissionMixin, ModelViewSet):
+    permission_action_classes = {
+        'list': [UsuarioCODAEGestaoAlimentacao],
+        'create': [UsuarioCODAEGestaoAlimentacao],
+        'delete': [UsuarioCODAEGestaoAlimentacao]
+    }
+    queryset = DiaSuspensaoAtividades.objects.all()
+    lookup_field = 'uuid'
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return DiaSuspensaoAtividadesCreateManySerializer
+        return DiaSuspensaoAtividadesSerializer
+
+    def get_queryset(self):
+        queryset = DiaSuspensaoAtividades.objects.all()
+        if 'mes' in self.request.query_params and 'ano' in self.request.query_params:
+            queryset = queryset.filter(data__month=self.request.query_params.get('mes'),
+                                       data__year=self.request.query_params.get('ano'))
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super(DiaSuspensaoAtividadesViewSet, self).create(request, *args, **kwargs)
+        except AssertionError as error:
+            if str(error) == '`create()` did not return an object instance.':
+                return Response(status=status.HTTP_201_CREATED)
+            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
