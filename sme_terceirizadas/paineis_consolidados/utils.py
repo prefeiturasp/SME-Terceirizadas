@@ -62,3 +62,9 @@ def get_dias_inclusao(obj, model_obj):
         'INC_ALIMENTA_CEMEI': 'dias_motivos_da_inclusao_cemei',
     }
     return getattr(model_obj, objects[obj.tipo_doc]).all()
+
+
+def tratar_periodo_parcial(nome_periodo_escolar):
+    if nome_periodo_escolar == 'PARCIAL':
+        nome_periodo_escolar = 'INTEGRAL'
+    return nome_periodo_escolar
