@@ -1,6 +1,7 @@
 import datetime
 
 from des.models import DynamicEmailConfiguration
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -25,7 +26,7 @@ from ..models import (
     TemplateMensagem
 )
 from ..permissions import UsuarioCODAEGestaoAlimentacao
-from ..utils import obter_dias_uteis_apos
+from ..utils import obter_dias_uteis_apos, datetime_range
 from .filters import CentralDeDownloadFilter, NotificacaoFilter
 from .serializers import (
     CategoriaPerguntaFrequenteSerializer,
@@ -96,18 +97,25 @@ class TempoDePasseioViewSet(ViewSet):
 
 
 class DiasUteisViewSet(ViewSet):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def list(self, request):
         data = request.query_params.get('data', '')
+        escola_uuid = request.query_params.get('escola_uuid')
         if data:
-            result = obter_dias_uteis_apos(datetime.datetime.strptime(data, '%d/%m/%Y'), 4)
+            result = obter_dias_uteis_apos(
+                datetime.datetime.strptime(data, '%d/%m/%Y'), 4)
             return Response({'data_apos_quatro_dias_uteis': result})
+        hoje = datetime.date.today()
+        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
+        dias_5 = datetime_range(hoje, prox_5_dias_uteis)
+        print(escola_uuid)
+        print(dias_5)
+
         dias_uteis = {
             'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5),
             'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(3)
         }
-
         return Response(dias_uteis)
 
 
