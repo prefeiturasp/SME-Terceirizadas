@@ -26,7 +26,7 @@ from ..models import (
     TemplateMensagem
 )
 from ..permissions import UsuarioCODAEGestaoAlimentacao
-from ..utils import datetime_range, obter_dias_uteis_apos
+from ..utils import obter_dias_uteis_apos
 from .filters import CentralDeDownloadFilter, NotificacaoFilter
 from .serializers import (
     CategoriaPerguntaFrequenteSerializer,
@@ -99,16 +99,6 @@ class TempoDePasseioViewSet(ViewSet):
 class DiasUteisViewSet(ViewSet):
     permission_classes = (IsAuthenticated,)
 
-    def get_dias_com_suspensao(self, escola, quantidade_dias):
-        hoje = datetime.date.today()
-        proximos_dias_uteis = obter_dias_uteis_apos_hoje(quantidade_dias)
-        dias = datetime_range(hoje, proximos_dias_uteis)
-        dias_com_suspensao = DiaSuspensaoAtividades.objects.filter(
-            data__in=dias,
-            tipo_unidade=escola.tipo_unidade
-        ).count()
-        return dias_com_suspensao
-
     def list(self, request):
         data = request.query_params.get('data', '')
         escola_uuid = request.query_params.get('escola_uuid')
@@ -119,8 +109,8 @@ class DiasUteisViewSet(ViewSet):
         dias_com_suspensao_5 = 0
         if escola_uuid:
             escola = Escola.objects.get(uuid=escola_uuid)
-            dias_com_suspensao_2 = self.get_dias_com_suspensao(escola=escola, quantidade_dias=2)
-            dias_com_suspensao_5 = self.get_dias_com_suspensao(escola=escola, quantidade_dias=5)
+            dias_com_suspensao_2 = DiaSuspensaoAtividades.get_dias_com_suspensao(escola=escola, quantidade_dias=2)
+            dias_com_suspensao_5 = DiaSuspensaoAtividades.get_dias_com_suspensao(escola=escola, quantidade_dias=5)
         dias_uteis = {
             'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5 + dias_com_suspensao_5),
             'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(3 + dias_com_suspensao_2)

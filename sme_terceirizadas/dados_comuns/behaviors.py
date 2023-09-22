@@ -204,8 +204,9 @@ class TemPrioridade(object):
     Quando o objeto implementa o TemPrioridade, ele deve ter um property data
     """
 
-    @property  # noqa
+    @property
     def prioridade(self):
+        from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
         descricao = 'VENCIDO'
         hoje = datetime.date.today()
         try:
@@ -213,9 +214,12 @@ class TemPrioridade(object):
         except AttributeError:
             data_pedido = self.data
         ultimo_dia_util = self._get_ultimo_dia_util(data_pedido)
-        minimo_dias_para_pedido = obter_dias_uteis_apos(hoje, PRIORITARIO)
-        dias_uteis_limite_inferior = obter_dias_uteis_apos(hoje, LIMITE_INFERIOR)
-        dias_uteis_limite_superior = obter_dias_uteis_apos(hoje, LIMITE_SUPERIOR)
+        dias_suspensao_prioritario = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, PRIORITARIO)
+        dias_suspensao_inferior = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, LIMITE_INFERIOR)
+        dias_suspensao_superior = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, LIMITE_SUPERIOR)
+        minimo_dias_para_pedido = obter_dias_uteis_apos(hoje, (PRIORITARIO + dias_suspensao_prioritario))
+        dias_uteis_limite_inferior = obter_dias_uteis_apos(hoje, (LIMITE_INFERIOR + dias_suspensao_inferior))
+        dias_uteis_limite_superior = obter_dias_uteis_apos(hoje, (LIMITE_SUPERIOR + dias_suspensao_superior))
 
         if ultimo_dia_util and minimo_dias_para_pedido >= ultimo_dia_util >= hoje:
             descricao = 'PRIORITARIO'
