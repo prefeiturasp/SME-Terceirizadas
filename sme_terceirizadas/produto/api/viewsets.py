@@ -287,6 +287,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 else:
                     data['escola'] = self.request.user.vinculo_atual.object_id
                     raw_sql += "AND %(reclamacoes_produto)s.escola_id = '%(escola)s' "
+            elif self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA:
+                if query_set is not None:
+                    query_set = query_set.filter(
+                        reclamacoes__escola__lote__terceirizada=self.request.user.vinculo_atual.instituicao)
             elif self.request.user.tipo_usuario == constants.TIPO_USUARIO_DIRETORIA_REGIONAL:
                 if query_set is not None:
                     query_set = query_set.filter(
@@ -345,7 +349,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         instituicao_id = self.request.user.vinculo_atual.object_id
 
         for workflow in self.get_lista_status():
-            if use_raw:
+            if use_raw and workflow != 'CODAE_PEDIU_ANALISE_RECLAMACAO':
                 data = {'logs': LogSolicitacoesUsuario._meta.db_table,
                         'homologacao_produto': HomologacaoProduto._meta.db_table,
                         'reclamacoes_produto': ReclamacaoDeProduto._meta.db_table,
