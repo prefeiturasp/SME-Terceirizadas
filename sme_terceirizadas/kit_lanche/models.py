@@ -105,6 +105,7 @@ class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
     # TODO: passar `local` para solicitacao_kit_lanche
     DESCRICAO = 'Kit Lanche'
     local = models.CharField(max_length=160)
+    evento = models.CharField(max_length=160, blank=True)
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
     objects = models.Manager()  # Manager Padrão
@@ -196,6 +197,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'local_passeio': self.local,
+            'evento': self.evento,
             'observacao': self.observacao,
             'data_autorizacao': self.data_autorizacao,
             'tempo_passeio': self.solicitacao_kit_lanche.get_tempo_passeio_display(),
@@ -264,6 +266,7 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'local_passeio': self.local,
+            'evento': self.evento,
             'observacao': self.observacao,
             'data_autorizacao': self.data_autorizacao,
             'tempo_passeio': self.solicitacao_kit_lanche.get_tempo_passeio_display(),
@@ -496,6 +499,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'local_passeio': self.local,
+            'evento': self.evento,
             'observacao': self.observacao,
             'data_autorizacao': self.data_autorizacao,
             'tempo_passeio': self.solicitacao_kit_lanche.get_tempo_passeio_display(),
@@ -565,6 +569,7 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
 
     DESCRICAO = 'Kit Lanche CEMEI'
     local = models.CharField(max_length=160)
+    evento = models.CharField(max_length=160, blank=True)
     data = models.DateField('Data')
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_cemei')
@@ -667,6 +672,7 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             'label_data': label_data,
             'data_log': data_log,
             'local_passeio': self.local,
+            'evento': self.evento,
             'observacao': self.observacao,
             'data_autorizacao': self.data_autorizacao,
             'solicitacao_cei': self.get_solicitacao_cei_dict,
