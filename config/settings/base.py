@@ -114,6 +114,7 @@ THIRD_PARTY_APPS = [
     'multiselectfield',
     'rangefilter',
     'drf_spectacular',
+    'nested_inline',
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',
