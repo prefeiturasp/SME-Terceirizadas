@@ -307,17 +307,52 @@ def test_inclusoes_normais_autorizadas(client_autenticado_escola_paineis_consoli
 
 
 def test_inclusoes_continuas_autorizadas(client_autenticado_escola_paineis_consolidados,
-                                         escola, inclusao_alimentacao_continua):
-    response = client_autenticado_escola_paineis_consolidados.get(
+                                         escola, inclusao_alimentacao_continua_entre_dois_meses,
+                                         inclusao_alimentacao_continua_unico_mes,
+                                         inclusao_alimentacao_continua_varios_meses):
+    response_mes_03 = client_autenticado_escola_paineis_consolidados.get(
         f'/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/'
-        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=05&ano=2023'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=03&ano=2023'
         f'&periodos_escolares[]=MANHA&periodos_escolares[]=TARDE&tipo_doc=INC_ALIMENTA_CONTINUA'
     )
-    assert response.status_code == status.HTTP_200_OK
-    assert len(response.data['results']) == 12
-    assert response.data['results'][0]['dia'] == '20'
-    assert response.data['results'][0]['numero_alunos'] == 50
-    assert response.data['results'][len(response.data['results']) - 1]['dia'] == '31'
+    assert response_mes_03.status_code == status.HTTP_200_OK
+    assert len(response_mes_03.data['results']) == 12
+    assert response_mes_03.data['results'][0]['dia'] == '20'
+    assert response_mes_03.data['results'][0]['numero_alunos'] == 50
+    assert response_mes_03.data['results'][len(response_mes_03.data['results']) - 1]['dia'] == '31'
+
+    response_mes_04 = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=04&ano=2023'
+        f'&periodos_escolares[]=MANHA&periodos_escolares[]=TARDE&tipo_doc=INC_ALIMENTA_CONTINUA'
+    )
+    assert response_mes_04.status_code == status.HTTP_200_OK
+    assert len(response_mes_04.data['results']) == 10
+    assert response_mes_04.data['results'][0]['dia'] == '01'
+    assert response_mes_04.data['results'][0]['numero_alunos'] == 50
+    assert response_mes_04.data['results'][len(response_mes_04.data['results']) - 1]['dia'] == '10'
+
+    response_mes_02 = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=02&ano=2023'
+        f'&periodos_escolares[]=MANHA&periodos_escolares[]=TARDE&tipo_doc=INC_ALIMENTA_CONTINUA'
+    )
+    assert response_mes_02.status_code == status.HTTP_200_OK
+    assert len(response_mes_02.data['results']) == 21
+    assert response_mes_02.data['results'][0]['dia'] == '05'
+    assert response_mes_02.data['results'][0]['numero_alunos'] == 100
+    assert response_mes_02.data['results'][len(response_mes_02.data['results']) - 1]['dia'] == '25'
+
+    response_mes_07 = client_autenticado_escola_paineis_consolidados.get(
+        f'/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/'
+        f'?escola_uuid={escola.uuid}&tipo_solicitacao=Inclusão de&mes=07&ano=2023'
+        f'&periodos_escolares[]=MANHA&periodos_escolares[]=TARDE&tipo_doc=INC_ALIMENTA_CONTINUA'
+    )
+    assert response_mes_07.status_code == status.HTTP_200_OK
+    assert len(response_mes_07.data['results']) == 31
+    assert response_mes_07.data['results'][0]['dia'] == '01'
+    assert response_mes_07.data['results'][0]['numero_alunos'] == 75
+    assert response_mes_07.data['results'][len(response_mes_07.data['results']) - 1]['dia'] == '31'
 
 
 def test_inclusoes_cei_autorizadas(client_autenticado_escola_paineis_consolidados, escola, inclusao_alimentacao_cei):
