@@ -1074,7 +1074,6 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
             'tabela_somatorio': []
         }
     )
-
     return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
 
 

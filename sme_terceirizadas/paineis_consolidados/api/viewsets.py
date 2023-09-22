@@ -20,7 +20,6 @@ from ...dados_comuns.permissions import (
     UsuarioNutricionista,
     UsuarioTerceirizada
 )
-from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...escola.api.serializers import PeriodoEscolarSerializer
@@ -42,8 +41,11 @@ from ..models import (
 from ..tasks import gera_pdf_relatorio_solicitacoes_alimentacao_async, gera_xls_relatorio_solicitacoes_alimentacao_async
 from ..utils import (
     formata_resultado_inclusoes_etec_autorizadas,
+    tratar_append_return_dict,
     tratar_data_evento_final_no_mes,
-    tratar_dias_duplicados
+    tratar_dias_duplicados,
+    tratar_inclusao_continua,
+    tratar_periodo_parcial
 )
 from ..validators import FiltroValidator
 from .constants import (
@@ -784,21 +786,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         return_dict = []
 
-        def append(dia, periodo, inclusao):
-            if (get_ultimo_dia_mes(datetime.date(int(ano), int(mes), 1)) < datetime.date.today() or
-                    dia < datetime.date.today().day):
-                alimentacoes = ', '.join([
-                    unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
-                        'ascii', 'ignore').decode('utf-8') for alimentacao in periodo.tipos_alimentacao.all()]).lower()
-                return_dict.append({
-                    'dia': f'{dia:02d}',
-                    'periodo': f'{periodo.periodo_escolar.nome}',
-                    'alimentacoes': alimentacoes,
-                    'numero_alunos': periodo.numero_alunos,
-                    'dias_semana': periodo.dias_semana,
-                    'inclusao_id_externo': inclusao.id_externo
-                })
-
         for inclusao in query_set:
             inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
             if inclusao.tipo_doc == 'INC_ALIMENTA_CEI':
@@ -808,6 +795,12 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                 if 'INTEGRAL' in periodos_escolares:
                     periodos_externos = ['INTEGRAL']
                     periodos_internos = ['INTEGRAL', 'MANHA', 'TARDE']
+                if 'MANHA' in periodos_escolares:
+                    periodos_externos = ['INTEGRAL']
+                    periodos_internos = ['MANHA']
+                if 'TARDE' in periodos_escolares:
+                    periodos_externos = ['INTEGRAL']
+                    periodos_internos = ['TARDE']
                 dias_motivos = inc.dias_motivos_da_inclusao_cei.filter(data__month=mes, data__year=ano, cancelado=False)
                 quantidade_por_faixa = inc.quantidade_alunos_da_inclusao.filter(
                     periodo__nome__in=periodos_internos,
@@ -824,27 +817,17 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                 for periodo in inc.quantidades_periodo.all():
                     if periodo.periodo_escolar.nome in periodos_escolares:
                         if inclusao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
-                            i = inclusao.data_evento.day
-                            big_range = False
-                            if inclusao.data_evento.month != int(mes) and inclusao.data_evento_2.month != int(mes):
-                                big_range = True
-                                i = datetime.date(int(ano), int(mes), 1)
-                                data_evento_final_no_mes = (i + relativedelta(day=31)).day
-                                i = datetime.date(int(ano), int(mes), 1).day
-                            else:
-                                data_evento_final_no_mes = inclusao.data_evento_2.day
-                            if inclusao.data_evento_2.month != inclusao.data_evento.month and not big_range:
-                                data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
-                            while i <= data_evento_final_no_mes:
-                                if (not periodo.dias_semana or
-                                        datetime.date(int(ano), int(mes), i).weekday() in periodo.dias_semana):
-                                    append(i, periodo, inclusao)
-                                i += 1
+                            if not periodo.cancelado:
+                                tratar_inclusao_continua(mes, ano, periodo, inclusao, return_dict)
                         else:
                             for inclusao_normal in inc.inclusoes_normais.filter(
                                 data__month=mes, data__year=ano, cancelado=False
                             ):
-                                append(inclusao_normal.data.day, periodo, inclusao)
+                                tratar_append_return_dict(
+                                    inclusao_normal.data.day,
+                                    mes, ano, periodo,
+                                    inclusao, return_dict
+                                )
         data = {
             'results': return_dict
         }
@@ -867,18 +850,29 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         for suspensao in query_set:
             susp = suspensao.get_raw_model.objects.get(uuid=suspensao.uuid)
-            s_quant_periodo = susp.quantidades_por_periodo.get(periodo_escolar__nome=nome_periodo_escolar)
-            if s_quant_periodo:
-                tipos_alimentacao = s_quant_periodo.tipos_alimentacao.all()
-                alimentacoes = [unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
-                    'ascii', 'ignore').decode('utf-8').lower() for alimentacao in tipos_alimentacao]
-                return_dict.append({
-                    'dia': f'{susp.data.day:02d}',
-                    'periodo': nome_periodo_escolar,
-                    'alimentacoes': alimentacoes,
-                    'numero_alunos': s_quant_periodo.numero_alunos,
-                    'inclusao_id_externo': susp.id_externo
-                })
+            if susp.DESCRICAO == 'Suspensão de Alimentação de CEI':
+                nome_periodo_escolar = tratar_periodo_parcial(nome_periodo_escolar)
+                if nome_periodo_escolar in susp.periodos_escolares.all().values_list('nome', flat=True):
+                    return_dict.append({
+                        'dia': f'{susp.data.day:02d}',
+                        'periodo': nome_periodo_escolar,
+                        'motivo': susp.motivo.nome,
+                        'inclusao_id_externo': susp.id_externo
+                    })
+            else:
+                s_quant_por_periodo = susp.quantidades_por_periodo.filter(periodo_escolar__nome=nome_periodo_escolar)
+                for s_quant_periodo in s_quant_por_periodo:
+                    for suspensao in susp.suspensoes_alimentacao.all():
+                        tipos_alimentacao = s_quant_periodo.tipos_alimentacao.all()
+                        alimentacoes = [unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
+                            'ascii', 'ignore').decode('utf-8').lower() for alimentacao in tipos_alimentacao]
+                        return_dict.append({
+                            'dia': f'{suspensao.data.day:02d}',
+                            'periodo': nome_periodo_escolar,
+                            'alimentacoes': alimentacoes,
+                            'numero_alunos': s_quant_periodo.numero_alunos,
+                            'inclusao_id_externo': susp.id_externo
+                        })
 
         data = {
             'results': return_dict

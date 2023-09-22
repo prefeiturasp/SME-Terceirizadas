@@ -1393,3 +1393,20 @@ class AlunoPeriodoParcial(TemChaveExterna, CriadoEm):
         verbose_name = 'Aluno no período parcial'
         verbose_name_plural = 'Alunos no período parcial'
         ordering = ('criado_em',)
+
+
+class DiaSuspensaoAtividades(TemData, TemChaveExterna, CriadoEm, CriadoPor):
+    tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.CASCADE)
+
+    @property
+    def tipo_unidades(self):
+        return None
+
+    def __str__(self):
+        return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais}'
+
+    class Meta:
+        verbose_name = 'Dia de suspensão de atividades'
+        verbose_name_plural = 'Dias de suspensão de atividades'
+        unique_together = ('tipo_unidade', 'data',)
+        ordering = ('data',)
