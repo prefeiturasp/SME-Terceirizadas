@@ -540,9 +540,9 @@ def client_autenticado_escola_paineis_consolidados(client, django_user_model, es
 
 
 @pytest.fixture
-def inclusao_alimentacao_continua(escola, periodo_escolar_manha):
-    data_inicial = datetime.date(2023, 5, 20)
-    data_final = datetime.date(2023, 6, 10)
+def inclusao_alimentacao_continua_entre_dois_meses(escola, periodo_escolar_manha):
+    data_inicial = datetime.date(2023, 3, 20)
+    data_final = datetime.date(2023, 4, 10)
     inclusao_continua = mommy.make(InclusaoAlimentacaoContinua,
                                    data_inicial=data_inicial,
                                    data_final=data_final,
@@ -556,7 +556,53 @@ def inclusao_alimentacao_continua(escola, periodo_escolar_manha):
     mommy.make('QuantidadePorPeriodo',
                numero_alunos=50,
                inclusao_alimentacao_continua=inclusao_continua,
-               periodo_escolar=periodo_escolar_manha)
+               periodo_escolar=periodo_escolar_manha,
+               dias_semana=[0, 1, 2, 3, 4, 5, 6])
+    return inclusao_continua
+
+
+@pytest.fixture
+def inclusao_alimentacao_continua_unico_mes(escola, periodo_escolar_manha):
+    data_inicial = datetime.date(2023, 2, 5)
+    data_final = datetime.date(2023, 2, 25)
+    inclusao_continua = mommy.make(InclusaoAlimentacaoContinua,
+                                   data_inicial=data_inicial,
+                                   data_final=data_final,
+                                   escola=escola,
+                                   rastro_escola=escola,
+                                   status='CODAE_AUTORIZADO')
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=inclusao_continua.uuid,
+               status_evento=1,
+               solicitacao_tipo=7)
+    mommy.make('QuantidadePorPeriodo',
+               numero_alunos=100,
+               inclusao_alimentacao_continua=inclusao_continua,
+               periodo_escolar=periodo_escolar_manha,
+               dias_semana=[])
+    return inclusao_continua
+
+
+@pytest.fixture
+def inclusao_alimentacao_continua_varios_meses(escola, periodo_escolar_manha):
+    data_inicial = datetime.date(2023, 5, 13)
+    data_final = datetime.date(2023, 8, 13)
+    inclusao_continua = mommy.make(InclusaoAlimentacaoContinua,
+                                   data_inicial=data_inicial,
+                                   data_final=data_final,
+                                   escola=escola,
+                                   rastro_escola=escola,
+                                   status='CODAE_AUTORIZADO')
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=inclusao_continua.uuid,
+               status_evento=1,
+               solicitacao_tipo=7)
+    mommy.make('QuantidadePorPeriodo',
+               numero_alunos=75,
+               inclusao_alimentacao_continua=inclusao_continua,
+               periodo_escolar=periodo_escolar_manha,
+               dias_semana=[0, 1, 2, 3, 4, 5, 6])
+    return inclusao_continua
 
 
 @pytest.fixture

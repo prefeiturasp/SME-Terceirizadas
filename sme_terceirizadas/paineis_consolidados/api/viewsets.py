@@ -20,7 +20,6 @@ from ...dados_comuns.permissions import (
     UsuarioNutricionista,
     UsuarioTerceirizada
 )
-from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...escola.api.serializers import PeriodoEscolarSerializer
@@ -42,8 +41,10 @@ from ..models import (
 from ..tasks import gera_pdf_relatorio_solicitacoes_alimentacao_async, gera_xls_relatorio_solicitacoes_alimentacao_async
 from ..utils import (
     formata_resultado_inclusoes_etec_autorizadas,
+    tratar_append_return_dict,
     tratar_data_evento_final_no_mes,
     tratar_dias_duplicados,
+    tratar_inclusao_continua,
     tratar_periodo_parcial
 )
 from ..validators import FiltroValidator
@@ -785,21 +786,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         return_dict = []
 
-        def append(dia, periodo, inclusao):
-            if (get_ultimo_dia_mes(datetime.date(int(ano), int(mes), 1)) < datetime.date.today() or
-                    dia < datetime.date.today().day):
-                alimentacoes = ', '.join([
-                    unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
-                        'ascii', 'ignore').decode('utf-8') for alimentacao in periodo.tipos_alimentacao.all()]).lower()
-                return_dict.append({
-                    'dia': f'{dia:02d}',
-                    'periodo': f'{periodo.periodo_escolar.nome}',
-                    'alimentacoes': alimentacoes,
-                    'numero_alunos': periodo.numero_alunos,
-                    'dias_semana': periodo.dias_semana,
-                    'inclusao_id_externo': inclusao.id_externo
-                })
-
         for inclusao in query_set:
             inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
             if inclusao.tipo_doc == 'INC_ALIMENTA_CEI':
@@ -831,27 +817,17 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                 for periodo in inc.quantidades_periodo.all():
                     if periodo.periodo_escolar.nome in periodos_escolares:
                         if inclusao.tipo_doc == 'INC_ALIMENTA_CONTINUA':
-                            i = inclusao.data_evento.day
-                            big_range = False
-                            if inclusao.data_evento.month != int(mes) and inclusao.data_evento_2.month != int(mes):
-                                big_range = True
-                                i = datetime.date(int(ano), int(mes), 1)
-                                data_evento_final_no_mes = (i + relativedelta(day=31)).day
-                                i = datetime.date(int(ano), int(mes), 1).day
-                            else:
-                                data_evento_final_no_mes = inclusao.data_evento_2.day
-                            if inclusao.data_evento_2.month != inclusao.data_evento.month and not big_range:
-                                data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
-                            while i <= data_evento_final_no_mes:
-                                if (not periodo.dias_semana or
-                                        (datetime.date(int(ano), int(mes), i).weekday() + 1) in periodo.dias_semana):
-                                    append(i, periodo, inclusao)
-                                i += 1
+                            if not periodo.cancelado:
+                                tratar_inclusao_continua(mes, ano, periodo, inclusao, return_dict)
                         else:
                             for inclusao_normal in inc.inclusoes_normais.filter(
                                 data__month=mes, data__year=ano, cancelado=False
                             ):
-                                append(inclusao_normal.data.day, periodo, inclusao)
+                                tratar_append_return_dict(
+                                    inclusao_normal.data.day,
+                                    mes, ano, periodo,
+                                    inclusao, return_dict
+                                )
         data = {
             'results': return_dict
         }
