@@ -8,6 +8,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
     Laboratorio,
+    LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
     TipoEmbalagemQld,
@@ -108,6 +109,21 @@ class CronogramaRascunhosSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'numero', 'alterado_em')
 
 
+class CronogramaSimplesSerializer(serializers.ModelSerializer):
+    pregao_chamada_publica = serializers.SerializerMethodField()
+    nome_produto = serializers.SerializerMethodField()
+
+    def get_pregao_chamada_publica(self, obj):
+        return obj.contrato.pregao if obj.contrato else None
+
+    def get_nome_produto(self, obj):
+        return obj.produto.nome if obj.produto else None
+
+    class Meta:
+        model = Cronograma
+        fields = ('uuid', 'numero', 'pregao_chamada_publica', 'nome_produto')
+
+
 class PainelCronogramaSerializer(serializers.ModelSerializer):
     produto = serializers.SerializerMethodField()
     empresa = serializers.SerializerMethodField()
@@ -204,3 +220,11 @@ class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
         model = UnidadeMedida
         fields = ('uuid', 'nome', 'abreviacao')
         read_only_fields = ('uuid', 'nome', 'abreviacao')
+
+
+class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
+    # TODO: No momento do desenvolvimento das histórias de listagem / visualização, este serializer deve ser aprimorado.
+    class Meta:
+        model = LayoutDeEmbalagem
+        exclude = ('id', )
+        read_only_fields = '__all__'

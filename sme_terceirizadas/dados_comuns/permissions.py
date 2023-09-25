@@ -866,3 +866,28 @@ class PermissaoParaCriarNotificacaoDeGuiasComOcorrencias(BasePermission):
                 )
             )
         )
+
+
+class UsuarioEhFornecedor(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.eh_fornecedor
+        )
+
+
+class PermissaoParaVisualizarLayoutDeEmbalagem(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE]
+                ) or
+                usuario.eh_fornecedor
+            )
+        )
