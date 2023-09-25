@@ -7,6 +7,7 @@ from .usuario import (  # noqa F401
     ImportacaoPlanilhaUsuarioPerfilDre,
     ImportacaoPlanilhaUsuarioPerfilEscola,
     ImportacaoPlanilhaUsuarioServidorCoreSSO,
+    ImportacaoPlanilhaUsuarioUEParceiraCoreSSO,
     PlanilhaDiretorCogestor,
     Usuario
 )

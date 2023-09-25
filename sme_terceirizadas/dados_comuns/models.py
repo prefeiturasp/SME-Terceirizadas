@@ -115,7 +115,8 @@ class LogSolicitacoesUsuario(
         NOTIFICACAO_ASSINADA_FISCAL,
         CODAE_ALTERA_CRONOGRAMA,
         ALTERACAO_CRONOGRAMA_ENVIADA_AO_FORNECEDOR,
-    ) = range(88)
+        LAYOUT_ENVIADO_PARA_ANALISE,
+    ) = range(89)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -242,6 +243,7 @@ class LogSolicitacoesUsuario(
         (MEDICAO_CORRIGIDA_PARA_CODAE, 'Corrigido para CODAE'),
         (CODAE_ALTERA_CRONOGRAMA, 'Alteração CODAE'),
         (ALTERACAO_CRONOGRAMA_ENVIADA_AO_FORNECEDOR, 'Alteração enviada ao fornecedor'),
+        (LAYOUT_ENVIADO_PARA_ANALISE, 'Layout enviado para análise'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -268,8 +270,9 @@ class LogSolicitacoesUsuario(
         SOLICITACAO_KIT_LANCHE_CEMEI,
         CRONOGRAMA,
         SOLICITACAO_DE_ALTERACAO_CRONOGRAMA,
-        NOTIFICACAO_OCORRENCIA_GUIA
-    ) = range(21)
+        NOTIFICACAO_OCORRENCIA_GUIA,
+        LAYOUT_DE_EMBALAGEM
+    ) = range(22)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -293,7 +296,8 @@ class LogSolicitacoesUsuario(
         (SOLICITACAO_KIT_LANCHE_CEMEI, 'Solicitação de kit lanche CEMEI'),
         (CRONOGRAMA, 'Cronograma'),
         (SOLICITACAO_DE_ALTERACAO_CRONOGRAMA, 'Solicitação de alteração do cronograma'),
-        (NOTIFICACAO_OCORRENCIA_GUIA, 'Notificação de guia com ocorrência')
+        (NOTIFICACAO_OCORRENCIA_GUIA, 'Notificação de guia com ocorrência'),
+        (LAYOUT_DE_EMBALAGEM, 'Layout de embalagem')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

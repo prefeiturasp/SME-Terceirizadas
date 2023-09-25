@@ -5,10 +5,14 @@ from django.conf import settings
 from rest_framework import status
 
 from sme_terceirizadas.dados_comuns import constants
-from sme_terceirizadas.pre_recebimento.api.serializers.serializers import NomeEAbreviacaoUnidadeMedidaSerializer
+from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
+    CronogramaSimplesSerializer,
+    NomeEAbreviacaoUnidadeMedidaSerializer
+)
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     Laboratorio,
+    LayoutDeEmbalagem,
     SolicitacaoAlteracaoCronograma,
     TipoEmbalagemQld,
     UnidadeMedida
@@ -957,3 +961,89 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado_
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data['results']) == len(unidades_medida_logistica)
     assert response.data['results'] == NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True).data
+
+
+def test_url_cronograma_action_listar_para_cadastro_de_layout(client_autenticado_fornecedor):
+    """Deve obter lista com numeros, pregao e nome do produto de todas os produtos cadastradas."""
+    client = client_autenticado_fornecedor
+    response = client.get('/cronogramas/lista-cronogramas-cadastro-layout/')
+
+    cronogramas = Cronograma.objects.all().order_by('-criado_em')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['results'] == CronogramaSimplesSerializer(cronogramas, many=True).data
+
+
+def test_url_endpoint_layout_de_embalagem_create(client_autenticado_fornecedor,
+                                                 cronograma_assinado_perfil_dilog, arquivo_base64):
+    data = {
+        'cronograma': str(cronograma_assinado_perfil_dilog.uuid),
+        'observacoes': 'Imagine uma observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo2.jpg'
+                    }
+                ]
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    }
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.post(
+        '/layouts-de-embalagem/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    obj = LayoutDeEmbalagem.objects.last()
+    assert obj.status == LayoutDeEmbalagem.workflow_class.ENVIADO_PARA_ANALISE
+    assert obj.tipos_de_embalagens.count() == 2
+
+
+def test_url_endpoint_layout_de_embalagem_create_cronograma_nao_existe(client_autenticado_fornecedor):
+    """Uuid do cronograma precisa existir na base, imagens_do_tipo_de_embalagem e arquivo são obrigatórios."""
+    data = {
+        'cronograma': str(uuid.uuid4()),
+        'observacoes': 'Imagine uma observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': '',
+                        'nome': 'Anexo1.jpg'
+                    }
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.post(
+        '/layouts-de-embalagem/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Cronograma não existe' in response.data['cronograma']
+    assert 'Este campo é obrigatório.' in response.data['tipos_de_embalagens'][0]['imagens_do_tipo_de_embalagem']

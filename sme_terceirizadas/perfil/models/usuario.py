@@ -517,3 +517,16 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSO(ArquivoCargaBase):
 
     def __str__(self) -> str:
         return str(self.conteudo)
+
+
+class ImportacaoPlanilhaUsuarioUEParceiraCoreSSO(ArquivoCargaBase):
+    """Importa dados de planilha de usuários com perfil UE parceira."""
+
+    resultado = models.FileField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Arquivo para importação/atualização de usuários UEs parceiras no CoreSSO'
+        verbose_name_plural = 'Arquivos para importação/atualização de usuários UEs parceiras no CoreSSO'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)

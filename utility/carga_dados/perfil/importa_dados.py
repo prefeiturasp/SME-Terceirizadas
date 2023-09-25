@@ -1,39 +1,45 @@
 import logging
 from datetime import date, datetime
 from tempfile import NamedTemporaryFile
+from typing import Type, Union
 
+import magic
 from django.core.files import File
 from django.db import transaction
 from django.db.models import F, Func, Q, Value
 from openpyxl import Workbook, load_workbook, styles
+from rest_framework import status
 
-from sme_terceirizadas.perfil.models.usuario import ImportacaoPlanilhaUsuarioServidorCoreSSO, \
-    ImportacaoPlanilhaUsuarioExternoCoreSSO
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_TREINAMENTO_PASSWORD
+from sme_terceirizadas.dados_comuns.models import Contato
+from sme_terceirizadas.eol_servico.utils import EOLException, EOLServicoSGP
+from sme_terceirizadas.escola.models import Codae, DiretoriaRegional, Escola
+from sme_terceirizadas.perfil.data.perfis import data_perfis
+from sme_terceirizadas.perfil.models import (
+    ImportacaoPlanilhaUsuarioPerfilCodae,
+    ImportacaoPlanilhaUsuarioPerfilDre,
+    ImportacaoPlanilhaUsuarioPerfilEscola,
+    Perfil,
+    Usuario,
+    Vinculo
+)
+from sme_terceirizadas.perfil.models.usuario import (
+    ImportacaoPlanilhaUsuarioExternoCoreSSO,
+    ImportacaoPlanilhaUsuarioServidorCoreSSO,
+    ImportacaoPlanilhaUsuarioUEParceiraCoreSSO
+)
 from sme_terceirizadas.perfil.services.usuario_coresso_service import EOLUsuarioCoreSSO
 from sme_terceirizadas.terceirizada.models import Terceirizada
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import ja_existe, progressbar
 
-from sme_terceirizadas.eol_servico.utils import  EOLServicoSGP
-
-from sme_terceirizadas.dados_comuns.models import Contato
-from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_TREINAMENTO_PASSWORD
-from sme_terceirizadas.escola.models import Codae, DiretoriaRegional, Escola
-from sme_terceirizadas.perfil.data.perfis import data_perfis
-from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
-from sme_terceirizadas.perfil.models import (
-    ImportacaoPlanilhaUsuarioPerfilCodae,
-    ImportacaoPlanilhaUsuarioPerfilDre,
-    ImportacaoPlanilhaUsuarioPerfilEscola
-)
-
-import magic
-
 from .schemas import (
+    ImportacaoPlanilhaUsuarioExternoCoreSSOSchema,
     ImportacaoPlanilhaUsuarioPerfilCodaeSchema,
     ImportacaoPlanilhaUsuarioPerfilDreSchema,
     ImportacaoPlanilhaUsuarioPerfilEscolaSchema,
-    ImportacaoPlanilhaUsuarioServidorCoreSSOSchema, ImportacaoPlanilhaUsuarioExternoCoreSSOSchema
+    ImportacaoPlanilhaUsuarioServidorCoreSSOSchema,
+    ImportacaoPlanilhaUsuarioUEParceiraCoreSSOSchema
 )
 
 logger = logging.getLogger('sigpae.carga_dados_perfil_importa_dados')
@@ -920,11 +926,22 @@ class ProcessaPlanilhaUsuarioServidorCoreSSO:
             self.arquivo.resultado.save(name=filename, content=File(tmp))
 
 
+SchemaPlanilhaUsuarioExterno = Union[
+    Type[ImportacaoPlanilhaUsuarioExternoCoreSSOSchema],
+    Type[ImportacaoPlanilhaUsuarioUEParceiraCoreSSOSchema]
+]
+
+
 class ProcessaPlanilhaUsuarioExternoCoreSSO:
-    def __init__(self, usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioServidorCoreSSO) -> None:
+    def __init__(
+        self, usuario: Usuario,
+        arquivo: ImportacaoPlanilhaUsuarioServidorCoreSSO,
+        class_schema: SchemaPlanilhaUsuarioExterno
+    ) -> None:
         """Prepara atributos importantes para o processamento da planilha."""
         self.usuario = usuario
         self.arquivo = arquivo
+        self.class_schema = class_schema
         self.erros = []
         self.worksheet = self.abre_worksheet()
 
@@ -943,7 +960,11 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
         for ind, linha in enumerate(linhas[1:], 2):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
             try:
                 dicionario_dados = self.monta_dicionario_de_dados(linha)
-                usuario_schema = ImportacaoPlanilhaUsuarioExternoCoreSSOSchema(**dicionario_dados)
+                usuario_schema = self.class_schema(**dicionario_dados)
+
+                logger.info(f'Validando se usuário externo {usuario_schema.nome} é uma UE Parceira')
+                self.valida_se_usuario_eh_ue_parceira(usuario_schema)
+
                 logger.info(f'Criando usuário: {usuario_schema.nome} -- {usuario_schema.email}')
                 self.cria_usuario_externo(ind, usuario_schema)
                 self.loga_sucesso_carga_usuario(usuario_schema)
@@ -955,7 +976,19 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
         return load_workbook(self.path).active
 
     def get_instituicao(self, dados_usuario):
+        if dados_usuario.codigo_eol:
+            return Escola.objects.get(codigo_eol=format(int(dados_usuario.codigo_eol), '06d'))
         return Terceirizada.objects.get(cnpj=dados_usuario.cnpj_terceirizada)
+
+    def valida_se_usuario_eh_ue_parceira(self, dados_usuario):
+        if dados_usuario.codigo_eol:
+            response_dados_usuario = EOLServicoSGP.get_dados_usuario(dados_usuario.cpf)
+            if response_dados_usuario.status_code != status.HTTP_200_OK:
+                raise EOLException('Usuário não encontrado na base de funcionários de Unidade Parceira')
+
+            dados_eol = response_dados_usuario.json()
+            if dados_eol['cargos'][0]['codigoUnidade'] != dados_usuario.codigo_eol:
+                raise EOLException('Usuário não pertence a Unidade Parceira informada na planilha')
 
     def get_perfil(self, dados_usuario):
         return Perfil.objects.get(nome__iexact=dados_usuario.perfil)
@@ -969,8 +1002,9 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
             username=dados_usuario.cpf,
             defaults={
                 'email': dados_usuario.email if dados_usuario.email else "",
+                'cargo': dados_usuario.cargo if dados_usuario.cargo else "",
                 'nome': dados_usuario.nome,
-                'cpf': dados_usuario.cpf
+                'cpf': dados_usuario.cpf,
             }
         )
         return usuario
@@ -1001,16 +1035,16 @@ class ProcessaPlanilhaUsuarioExternoCoreSSO:
 
     def monta_dicionario_de_dados(self, linha: tuple) -> dict:
         return {key: linha[index].value
-                for index, key in enumerate(ImportacaoPlanilhaUsuarioExternoCoreSSOSchema.schema()['properties'].keys())}
+                for index, key in enumerate(self.class_schema.schema()['properties'].keys())}
 
-    def cria_usuario_externo(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioExternoCoreSSOSchema):  # noqa C901
+    def cria_usuario_externo(self, ind, usuario_schema: SchemaPlanilhaUsuarioExterno):  # noqa C901
         try:
             self.__criar_usuario_externo(usuario_schema)
         except Exception as exd:
             self.erros.append(f'Linha {ind} - {exd}')
 
     @transaction.atomic
-    def __criar_usuario_externo(self, usuario_schema: ImportacaoPlanilhaUsuarioExternoCoreSSOSchema):
+    def __criar_usuario_externo(self, usuario_schema: SchemaPlanilhaUsuarioExterno):
         existe_core_sso = EOLServicoSGP.usuario_existe_core_sso(login=usuario_schema.cpf)
         usuario = self.cria_ou_atualiza_usuario_admin(usuario_schema)
         self.cria_vinculo(usuario, usuario_schema)
@@ -1063,7 +1097,11 @@ def importa_usuarios_externos_coresso(usuario: Usuario, arquivo: ImportacaoPlani
     logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
 
     try:
-        processador = ProcessaPlanilhaUsuarioExternoCoreSSO(usuario, arquivo)
+        processador = ProcessaPlanilhaUsuarioExternoCoreSSO(
+            usuario,
+            arquivo,
+            ImportacaoPlanilhaUsuarioExternoCoreSSOSchema
+        )
         processador.processamento()
         processador.finaliza_processamento()
     except Exception as exc:
@@ -1072,3 +1110,18 @@ def importa_usuarios_externos_coresso(usuario: Usuario, arquivo: ImportacaoPlani
 
 class ProcessaPlanilhaUsuarioExternoCoreSSOException(Exception):
     pass
+
+
+def importa_usuarios_ues_parceiras_coresso(usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioUEParceiraCoreSSO) -> None:
+    logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
+
+    try:
+        processador = ProcessaPlanilhaUsuarioExternoCoreSSO(
+            usuario,
+            arquivo,
+            ImportacaoPlanilhaUsuarioUEParceiraCoreSSOSchema
+        )
+        processador.processamento()
+        processador.finaliza_processamento()
+    except Exception as exc:
+        logger.error(f'Erro genérico: {exc}')
