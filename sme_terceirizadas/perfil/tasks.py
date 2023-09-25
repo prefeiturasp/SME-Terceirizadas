@@ -6,11 +6,18 @@ from django.core.exceptions import ObjectDoesNotExist
 from utility.carga_dados.perfil.importa_dados import (
     importa_usuarios_externos_coresso,
     importa_usuarios_servidores_coresso,
+    importa_usuarios_ues_parceiras_coresso,
     valida_arquivo_importacao_usuarios
 )
 
 from ..eol_servico.utils import EOLException, EOLService
-from .models import Cargo, ImportacaoPlanilhaUsuarioExternoCoreSSO, ImportacaoPlanilhaUsuarioServidorCoreSSO, Usuario
+from .models import (
+    Cargo,
+    ImportacaoPlanilhaUsuarioExternoCoreSSO,
+    ImportacaoPlanilhaUsuarioServidorCoreSSO,
+    ImportacaoPlanilhaUsuarioUEParceiraCoreSSO,
+    Usuario
+)
 
 logger = logging.getLogger('sigpae.taskPerfil')
 
@@ -72,5 +79,22 @@ def processa_planilha_usuario_servidor_coresso_async(username, arquivo_uuid):
 
         if valida_arquivo_importacao_usuarios(arquivo=arquivo):
             importa_usuarios_servidores_coresso(usuario, arquivo)
+    except ObjectDoesNotExist:
+        logger.info('Arquivo não encontrado %s', arquivo_uuid)
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+)
+def processa_planilha_usuario_ue_parceira_coresso_async(username, arquivo_uuid):
+    logger.info('Processando arquivo %s', arquivo_uuid)
+    try:
+        arquivo = ImportacaoPlanilhaUsuarioUEParceiraCoreSSO.objects.get(uuid=arquivo_uuid)
+        usuario = get_user_model().objects.get(username=username)
+        logger.info('Arquivo encontrado %s', arquivo_uuid)
+
+        if valida_arquivo_importacao_usuarios(arquivo=arquivo):
+            importa_usuarios_ues_parceiras_coresso(usuario, arquivo)
     except ObjectDoesNotExist:
         logger.info('Arquivo não encontrado %s', arquivo_uuid)
