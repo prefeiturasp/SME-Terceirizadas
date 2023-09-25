@@ -28,7 +28,9 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaDashboardCronograma,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCronograma,
+    PermissaoParaVisualizarLayoutDeEmbalagem,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
+    UsuarioEhFornecedor,
     ViewSetActionPermissionMixin
 )
 from sme_terceirizadas.pre_recebimento.api.filters import (
@@ -46,6 +48,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
     LaboratorioCreateSerializer,
+    LayoutDeEmbalagemCreateSerializer,
     SolicitacaoDeAlteracaoCronogramaCreateSerializer,
     TipoEmbalagemQldCreateSerializer,
     UnidadeMedidaCreateSerializer
@@ -54,8 +57,10 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
+    CronogramaSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
+    LayoutDeEmbalagemSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
@@ -68,6 +73,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
     Laboratorio,
+    LayoutDeEmbalagem,
     SolicitacaoAlteracaoCronograma,
     TipoEmbalagemQld,
     UnidadeMedida
@@ -292,6 +298,13 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
     def detalhar_com_log(self, request, uuid=None):
         cronograma = self.get_object()
         response = CronogramaComLogSerializer(cronograma, many=False).data
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-cronogramas-cadastro-layout')
+    def lista_cronogramas_para_cadastro_de_layout(self, request):
+        cronogramas = self.get_queryset()
+        serializer = CronogramaSimplesSerializer(cronogramas, many=True).data
+        response = {'results': serializer}
         return Response(response)
 
 
@@ -556,3 +569,20 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
         serializer = NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True)
         response = {'results': serializer.data}
         return Response(response)
+
+
+class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = LayoutDeEmbalagem.objects.all().order_by('-criado_em')
+    serializer_class = LayoutDeEmbalagemSerializer
+    permission_classes = (PermissaoParaVisualizarLayoutDeEmbalagem,)
+    permission_action_classes = {
+        'create': [UsuarioEhFornecedor],
+        'delete': [UsuarioEhFornecedor]
+    }
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return LayoutDeEmbalagemSerializer
+        else:
+            return LayoutDeEmbalagemCreateSerializer
