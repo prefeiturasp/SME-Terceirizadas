@@ -47,8 +47,8 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
             {
                 'numero': '12345',
                 'processo': '123',
-                'ata_chamada_publica': '1234',
-                'pregao': '12345',
+                'ata': '1234',
+                'pregao_chamada_publica': '12345',
                 'vigencias': [
                     {
                         'data_inicial': '10/01/2023',
