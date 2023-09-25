@@ -36,6 +36,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
 from sme_terceirizadas.pre_recebimento.api.filters import (
     CronogramaFilter,
     LaboratorioFilter,
+    LayoutDeEmbalagemFilter,
     SolicitacaoAlteracaoCronogramaFilter,
     TipoEmbalagemQldFilter,
     UnidadeMedidaFilter
@@ -79,6 +80,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     UnidadeMedida
 )
 from sme_terceirizadas.pre_recebimento.utils import (
+    LayoutDeEmbalagemPagination,
     ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
     UnidadeMedidaPagination
 )
@@ -573,16 +575,28 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
 
 class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = LayoutDeEmbalagem.objects.all().order_by('-criado_em')
     serializer_class = LayoutDeEmbalagemSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = LayoutDeEmbalagemFilter
+    pagination_class = LayoutDeEmbalagemPagination
     permission_classes = (PermissaoParaVisualizarLayoutDeEmbalagem,)
     permission_action_classes = {
         'create': [UsuarioEhFornecedor],
         'delete': [UsuarioEhFornecedor]
     }
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.eh_fornecedor:
+            return LayoutDeEmbalagem.objects.filter(
+                cronograma__empresa=user.vinculo_atual.instituicao
+            ).order_by('-criado_em')
+        return LayoutDeEmbalagem.objects.all().order_by('-criado_em')
+
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
-            return LayoutDeEmbalagemSerializer
-        else:
-            return LayoutDeEmbalagemCreateSerializer
+        serializer_classes_map = {
+            'list': LayoutDeEmbalagemSerializer,
+            # TODO: Quando a história de detalhar for desenvolvida, substituir o serializer abaixo pelo novo
+            'retrieve': LayoutDeEmbalagemSerializer,
+        }
+        return serializer_classes_map.get(self.action, LayoutDeEmbalagemCreateSerializer)
