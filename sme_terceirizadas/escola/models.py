@@ -292,7 +292,7 @@ class FaixaIdadeEscolar(ExportModelOperationsMixin('faixa_idade'), Nomeavel, Ati
 
 
 class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativavel, TemChaveExterna):
-    """EEMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI..."""
+    """EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI..."""
 
     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True, related_name='tipos_unidade_escolar')
     periodos_escolares = models.ManyToManyField(
