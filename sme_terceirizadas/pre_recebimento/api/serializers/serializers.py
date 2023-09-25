@@ -232,7 +232,7 @@ class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
         return obj.cronograma.numero if obj.cronograma else None
 
     def get_pregao_chamada_publica(self, obj):
-        return obj.cronograma.contrato.pregao if obj.cronograma.contrato else None
+        return obj.cronograma.contrato.pregao_chamada_publica if obj.cronograma.contrato else None
 
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
