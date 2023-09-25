@@ -1,5 +1,6 @@
 from typing import Optional
-from pydantic import BaseModel, validator, root_validator
+
+from pydantic import BaseModel, root_validator, validator
 
 from sme_terceirizadas.perfil.models import Perfil
 
@@ -330,3 +331,63 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOSchema(BaseModel):
         cls.checa_vazio(value, 'Perfil do usuário')
         value = value.upper().strip()
         return value
+
+
+class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOSchema(BaseModel):
+    codigo_eol: Optional[str]
+    nome: Optional[str]
+    cargo: Optional[str]
+    email: Optional[str]
+    cpf: Optional[str]
+    perfil: Optional[str]
+
+    @classmethod
+    def formata_documentos(cls, value):
+        return value.replace('.', '').replace('-', '').strip()
+
+    @classmethod
+    def checa_vazio(cls, value, nome_parametro):
+        if not value:
+            raise Exception(f'{nome_parametro} não pode ser vazio.')
+
+    @validator('codigo_eol')
+    def formata_codigo_eol(cls, value):
+        if value:
+            if len(value) == 5:
+                value = f'0{value}'
+            return f'{value:0>6}'.strip()
+
+    @validator('nome')
+    def formata_nome(cls, value):
+        cls.checa_vazio(value, 'Nome do usuário')
+        return value.upper().strip()
+
+    @validator('cargo')
+    def formata_cargo(cls, value):
+        cls.checa_vazio(value, 'Cargo do usuário')
+        return value.upper().strip()
+
+    @validator('email')
+    def formata_email(cls, value):
+        cls.checa_vazio(value, 'Email do usuário')
+        return value.strip()
+
+    @validator('cpf')
+    def validate_cpf(cls, value):
+        cls.checa_vazio(value, 'CPF do usuário')
+        value = cls.formata_documentos(value)
+        if len(value) != TAMANHO_CPF:
+            raise ValueError('CPF deve conter 11 dígitos.')
+        return value
+
+    @validator('perfil')
+    def formata_perfil(cls, value):
+        cls.checa_vazio(value, 'Perfil do usuário')
+        value = value.upper().strip()
+        return value
+
+    @root_validator
+    def validate_codigo_eol(cls, values):
+        if not values['codigo_eol']:
+            raise ValueError('Codigo EOL obrigatório')
+        return values
