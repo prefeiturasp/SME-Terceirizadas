@@ -223,8 +223,20 @@ class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
 
 
 class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
-    # TODO: No momento do desenvolvimento das histórias de listagem / visualização, este serializer deve ser aprimorado.
+    numero_cronograma = serializers.SerializerMethodField()
+    pregao_chamada_publica = serializers.SerializerMethodField()
+    nome_produto = serializers.SerializerMethodField()
+    status = serializers.CharField(source='get_status_display')
+
+    def get_numero_cronograma(self, obj):
+        return obj.cronograma.numero if obj.cronograma else None
+
+    def get_pregao_chamada_publica(self, obj):
+        return obj.cronograma.contrato.pregao if obj.cronograma.contrato else None
+
+    def get_nome_produto(self, obj):
+        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+
     class Meta:
         model = LayoutDeEmbalagem
-        exclude = ('id', )
-        read_only_fields = '__all__'
+        fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'status', 'criado_em')
