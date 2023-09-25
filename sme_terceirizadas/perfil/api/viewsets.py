@@ -17,7 +17,8 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from sme_terceirizadas.perfil.models.perfil import Vinculo
 from sme_terceirizadas.perfil.models.usuario import (
     ImportacaoPlanilhaUsuarioExternoCoreSSO,
-    ImportacaoPlanilhaUsuarioServidorCoreSSO
+    ImportacaoPlanilhaUsuarioServidorCoreSSO,
+    ImportacaoPlanilhaUsuarioUEParceiraCoreSSO
 )
 
 from ...dados_comuns.constants import ADMINISTRADOR_EMPRESA, COGESTOR_DRE, DIRETOR_UE, USUARIO_EMPRESA
@@ -35,7 +36,8 @@ from ..models import Perfil, PerfisVinculados, Usuario
 from ..tasks import (
     busca_cargo_de_usuario,
     processa_planilha_usuario_externo_coresso_async,
-    processa_planilha_usuario_servidor_coresso_async
+    processa_planilha_usuario_servidor_coresso_async,
+    processa_planilha_usuario_ue_parceira_coresso_async
 )
 from ..utils import PerfilPagination
 from .filters import ImportacaoPlanilhaUsuarioCoreSSOFilter, VinculoFilter
@@ -46,6 +48,8 @@ from .serializers import (
     ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer,
     ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer,
     ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer,
+    ImportacaoPlanilhaUsuarioUEParceiraCoreSSOCreateSerializer,
+    ImportacaoPlanilhaUsuarioUEParceiraCoreSSOSerializer,
     PerfilSimplesSerializer,
     PerfisVinculadosSerializer,
     RedefinirSenhaSerializer,
@@ -454,7 +458,8 @@ def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
     ws.add_data_validation(dv)
     dv.add('G2:G1048576')
 
-    perfis = ', '.join([p.nome for p in Perfil.objects.all()])
+    perfis_negados = ['ADMINISTRADOR_EMPRESA', 'USUARIO_EMPRESA']
+    perfis = ', '.join([p.nome for p in Perfil.objects.exclude(nome__in=perfis_negados)])
     dv2 = DataValidation(
         type='list',
         formula1=f'{perfis}',
@@ -506,7 +511,9 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
             top=styles.Side(border_style='thin', color='000000'),
             bottom=styles.Side(border_style='thin', color='000000')
         )
-    perfis = ', '.join([p.nome for p in Perfil.objects.all()])
+
+    perfis_permitidos = ['ADMINISTRADOR_EMPRESA', 'USUARIO_EMPRESA']
+    perfis = ', '.join([p.nome for p in Perfil.objects.filter(nome__in=perfis_permitidos)])
     dv = DataValidation(
         type='list',
         formula1=f'{perfis}',
@@ -516,6 +523,51 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
     dv.errorTitle = 'Perfil não permitido'
     ws.add_data_validation(dv)
     dv.add('D2:D1048576')
+
+    workbook.save(response)
+
+    return response
+
+
+def exportar_planilha_importacao_usuarios_ue_parceira_coresso(request, **kwargs):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=planilha_importacao_usuarios_perfil_ue_parceira_coresso.xlsx'
+    workbook: Workbook = Workbook()
+    ws = workbook.active
+    ws.title = 'UEs Parceiras CoreSSO'
+    headers = [
+        'Cód. EOL da Instituição (Unidade Parceira)',
+        'Nome do Usuário',
+        'Cargo',
+        'Email',
+        'CPF',
+        'Perfil',
+    ]
+
+    _font = styles.Font(name='Calibri', sz=10)
+    {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
+    for i in range(0, len(headers)):
+        cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
+        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
+        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.border = styles.Border(
+            left=styles.Side(border_style='thin', color='000000'),
+            right=styles.Side(border_style='thin', color='000000'),
+            top=styles.Side(border_style='thin', color='000000'),
+            bottom=styles.Side(border_style='thin', color='000000')
+        )
+
+    perfis_permitidos = ['DIRETOR_UE', 'ADMINISTRADOR_UE']
+    perfis = ', '.join([p.nome for p in Perfil.objects.filter(nome__in=perfis_permitidos)])
+    dv = DataValidation(
+        type='list',
+        formula1=f'{perfis}',
+        allow_blank=True
+    )
+    dv.error = 'Perfil Inválido'
+    dv.errorTitle = 'Perfil não permitido'
+    ws.add_data_validation(dv)
+    dv.add('F2:F1048576')
 
     workbook.save(response)
 
@@ -676,6 +728,59 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(mixins.RetrieveModelMixin,
             methods=['patch'], url_path='remover')
     def remover_planilha_usuario_externo(self, request, uuid):
         """(patch) /planilha-coresso-externo/{ImportacaoPlanilhaUsuarioExternoCoreSSO.uuid}/remover/."""
+        arquivo = self.get_object()
+        if not arquivo:
+            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            logger.info(msg)
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
+
+        arquivo.removido()
+
+        return Response(dict(detail='Arquivo removido com sucesso.'), status=HTTP_200_OK)
+
+
+class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(mixins.RetrieveModelMixin,
+                                                        mixins.ListModelMixin,
+                                                        mixins.CreateModelMixin,
+                                                        viewsets.GenericViewSet):
+
+    permission_classes = (UsuarioSuperCodae,)
+    lookup_field = 'uuid'
+    queryset = ImportacaoPlanilhaUsuarioUEParceiraCoreSSO.objects.all().order_by('-criado_em')
+    serializer_class = ImportacaoPlanilhaUsuarioUEParceiraCoreSSOSerializer
+    pagination_class = PerfilPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ImportacaoPlanilhaUsuarioUEParceiraCoreSSOSerializer
+        else:
+            return ImportacaoPlanilhaUsuarioUEParceiraCoreSSOCreateSerializer
+
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioSuperCodae,),
+            url_path='download-planilha-ue-parceira')
+    def exportar_planilha_ue_parceira(self, request):
+        return exportar_planilha_importacao_usuarios_ue_parceira_coresso(request)
+
+    @action(detail=True, permission_classes=(UsuarioSuperCodae,), methods=['post'], url_path='processar-importacao')
+    def processar_importacao_usuario_servidor(self, request, uuid):
+        """(post) /planilha-coresso-ue-parceira/{ImportacaoPlanilhaUsuarioUEParceiraCoreSSO.uuid}/processar-importacao/.""" # noqa E501
+        logger.info('Processando arquivo de carga de usuário UE parceira com uuid %s.', uuid)
+        username = request.user.get_username()
+
+        arquivo = self.get_object()
+        if not arquivo:
+            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            logger.info(msg)
+            return Response(msg, status=status.HTTP_404_NOT_FOUND)
+        processa_planilha_usuario_ue_parceira_coresso_async.delay(username=username, arquivo_uuid=uuid)
+
+        return Response(dict(detail='Processamento de importação iniciado com sucesso.'), status=HTTP_200_OK)
+
+    @action(detail=True, permission_classes=(UsuarioSuperCodae,), methods=['patch'], url_path='remover')
+    def remover_planilha_usuario_servidor(self, request, uuid):
+        """(patch) /planilha-coresso-ue-parceira/{ImportacaoPlanilhaUsuarioUEParceiraCoreSSO.uuid}/remover/."""
         arquivo = self.get_object()
         if not arquivo:
             msg = f'Arquivo com uuid {uuid} não encontrado.'
