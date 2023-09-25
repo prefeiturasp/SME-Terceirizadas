@@ -531,7 +531,8 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
 
 def exportar_planilha_importacao_usuarios_ue_parceira_coresso(request, **kwargs):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=planilha_importacao_usuarios_perfil_ue_parceira_coresso.xlsx'
+    response['Content-Disposition'] = (
+        'attachment; filename=planilha_importacao_usuarios_perfil_ue_parceira_coresso.xlsx')
     workbook: Workbook = Workbook()
     ws = workbook.active
     ws.title = 'UEs Parceiras CoreSSO'

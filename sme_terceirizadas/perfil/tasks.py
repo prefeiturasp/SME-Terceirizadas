@@ -3,7 +3,6 @@ import logging
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-
 from utility.carga_dados.perfil.importa_dados import (
     importa_usuarios_externos_coresso,
     importa_usuarios_servidores_coresso,
