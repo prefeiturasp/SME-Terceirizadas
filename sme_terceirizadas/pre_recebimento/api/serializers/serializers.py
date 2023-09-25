@@ -114,7 +114,7 @@ class CronogramaSimplesSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
 
     def get_pregao_chamada_publica(self, obj):
-        return obj.contrato.pregao if obj.contrato else None
+        return obj.contrato.pregao_chamada_publica if obj.contrato else None
 
     def get_nome_produto(self, obj):
         return obj.produto.nome if obj.produto else None
