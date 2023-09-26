@@ -338,3 +338,10 @@ def test_get_dias_uteis(client_autenticado_da_escola, escola, dia_suspensao_ativ
         'proximos_cinco_dias_uteis': '2023-10-03',
         'proximos_dois_dias_uteis': '2023-09-29'
     }
+
+    response = client_autenticado_da_escola.get(f'/dias-uteis/?eh_solicitacao_unificada=true')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        'proximos_cinco_dias_uteis': '2023-10-03',
+        'proximos_dois_dias_uteis': '2023-09-29'
+    }

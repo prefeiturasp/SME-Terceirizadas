@@ -1408,14 +1408,20 @@ class DiaSuspensaoAtividades(TemData, TemChaveExterna, CriadoEm, CriadoPor):
         return None
 
     @staticmethod
-    def get_dias_com_suspensao(escola, quantidade_dias):
+    def get_dias_com_suspensao(escola: Escola, eh_solicitacao_unificada: bool, quantidade_dias: int):
         hoje = datetime.date.today()
         proximos_dias_uteis = obter_dias_uteis_apos_hoje(quantidade_dias)
         dias = datetime_range(hoje, proximos_dias_uteis)
-        dias_com_suspensao = DiaSuspensaoAtividades.objects.filter(
-            data__in=dias,
-            tipo_unidade=escola.tipo_unidade
-        ).count()
+        dias_com_suspensao = 0
+        if escola:
+            dias_com_suspensao = DiaSuspensaoAtividades.objects.filter(
+                data__in=dias,
+                tipo_unidade=escola.tipo_unidade
+            ).count()
+        elif eh_solicitacao_unificada:
+            for dia in dias:
+                if DiaSuspensaoAtividades.objects.filter(data=dia).count() == TipoUnidadeEscolar.objects.count():
+                    dias_com_suspensao += 1
         return dias_com_suspensao
 
     def __str__(self):

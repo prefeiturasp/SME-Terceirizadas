@@ -206,13 +206,18 @@ class TemPrioridade(object):
 
     def get_dias_suspensao(self):
         from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
+        from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
         dias_suspensao_prioritario = 0
         dias_suspensao_inferior = 0
         dias_suspensao_superior = 0
         if hasattr(self, 'escola'):
-            dias_suspensao_prioritario = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, PRIORITARIO)
-            dias_suspensao_inferior = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, LIMITE_INFERIOR)
-            dias_suspensao_superior = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, LIMITE_SUPERIOR)
+            dias_suspensao_prioritario = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, False, PRIORITARIO)
+            dias_suspensao_inferior = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, False, LIMITE_INFERIOR)
+            dias_suspensao_superior = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, False, LIMITE_SUPERIOR)
+        elif isinstance(self, SolicitacaoKitLancheUnificada):
+            dias_suspensao_prioritario = DiaSuspensaoAtividades.get_dias_com_suspensao(None, True, PRIORITARIO)
+            dias_suspensao_inferior = DiaSuspensaoAtividades.get_dias_com_suspensao(None, True, LIMITE_INFERIOR)
+            dias_suspensao_superior = DiaSuspensaoAtividades.get_dias_com_suspensao(None, True, LIMITE_SUPERIOR)
         return dias_suspensao_prioritario, dias_suspensao_inferior, dias_suspensao_superior
 
     @property

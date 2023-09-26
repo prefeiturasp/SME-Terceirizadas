@@ -102,15 +102,20 @@ class DiasUteisViewSet(ViewSet):
     def list(self, request):
         data = request.query_params.get('data', '')
         escola_uuid = request.query_params.get('escola_uuid')
+        eh_solicitacao_unificada = request.query_params.get('eh_solicitacao_unificada', False)
         if data:
             result = obter_dias_uteis_apos(datetime.datetime.strptime(data, '%d/%m/%Y'), quantidade_dias=4)
             return Response({'data_apos_quatro_dias_uteis': result})
         dias_com_suspensao_2 = 0
         dias_com_suspensao_5 = 0
-        if escola_uuid:
-            escola = Escola.objects.get(uuid=escola_uuid)
-            dias_com_suspensao_2 = DiaSuspensaoAtividades.get_dias_com_suspensao(escola=escola, quantidade_dias=2)
-            dias_com_suspensao_5 = DiaSuspensaoAtividades.get_dias_com_suspensao(escola=escola, quantidade_dias=5)
+        if escola_uuid or eh_solicitacao_unificada == 'true':
+            escola = None
+            if escola_uuid:
+                escola = Escola.objects.get(uuid=escola_uuid)
+            dias_com_suspensao_2 = DiaSuspensaoAtividades.get_dias_com_suspensao(
+                escola=escola, eh_solicitacao_unificada=eh_solicitacao_unificada, quantidade_dias=2)
+            dias_com_suspensao_5 = DiaSuspensaoAtividades.get_dias_com_suspensao(
+                escola=escola, eh_solicitacao_unificada=eh_solicitacao_unificada, quantidade_dias=5)
         dias_uteis = {
             'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5 + dias_com_suspensao_5),
             'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(3 + dias_com_suspensao_2)
