@@ -17,7 +17,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoEmbalagemQld,
     UnidadeMedida
 )
-from sme_terceirizadas.pre_recebimento.utils import UnidadeMedidaPagination
+from sme_terceirizadas.pre_recebimento.utils import LayoutDeEmbalagemPagination, UnidadeMedidaPagination
 
 
 def test_url_endpoint_cronograma(client_autenticado_codae_dilog, armazem, contrato, empresa):
@@ -1047,3 +1047,14 @@ def test_url_endpoint_layout_de_embalagem_create_cronograma_nao_existe(client_au
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Cronograma não existe' in response.data['cronograma']
     assert 'Este campo é obrigatório.' in response.data['tipos_de_embalagens'][0]['imagens_do_tipo_de_embalagem']
+
+
+def test_url_layout_de_embalagem_listagem(client_autenticado_qualidade, lista_layouts_de_embalagem):
+    """Deve obter lista paginada de layouts de embalagens."""
+    client = client_autenticado_qualidade
+    response = client.get('/layouts-de-embalagem/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['count'] == len(lista_layouts_de_embalagem)
+    assert len(response.data['results']) == LayoutDeEmbalagemPagination.page_size
+    assert response.data['next'] is not None

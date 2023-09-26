@@ -3,7 +3,7 @@ from django_filters import rest_framework as filters
 
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
-from ...dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow, CronogramaWorkflow
+from ...dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow, CronogramaWorkflow, LayoutDeEmbalagemWorkflow
 
 
 class CronogramaFilter(filters.FilterSet):
@@ -101,4 +101,23 @@ class LaboratorioFilter(filters.FilterSet):
     )
     credenciado = filters.BooleanFilter(
         field_name='credenciado'
+    )
+
+
+class LayoutDeEmbalagemFilter(filters.FilterSet):
+    numero_cronograma = filters.CharFilter(
+        field_name='cronograma__numero',
+        lookup_expr='icontains',
+    )
+    nome_produto = filters.CharFilter(
+        field_name='cronograma__produto__nome',
+        lookup_expr='icontains',
+    )
+    pregao_chamada_publica = filters.CharFilter(
+        field_name='cronograma__contrato__pregao_chamada_publica',
+        lookup_expr='icontains',
+    )
+    status = filters.MultipleChoiceFilter(
+        field_name='status',
+        choices=[(str(state), state) for state in LayoutDeEmbalagemWorkflow.states],
     )
