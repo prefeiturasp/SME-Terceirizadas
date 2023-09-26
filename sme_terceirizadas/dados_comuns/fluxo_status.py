@@ -3634,7 +3634,9 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             context={
                 'solicitacao': self.numero_solicitacao,
                 'log_transicao': log_transicao,
-                'objeto': self
+                'objeto': self,
+                'numero_cronograma': self.cronograma.numero,
+                'fornecedor': log_transicao.usuario.nome
             }
         )
         return texto_notificacao
@@ -3819,6 +3821,17 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.FORNECEDOR_CIENTE_SOLICITACAO_ALTERACAO,
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
+            log_transicao = self.log_mais_recente
+            usuarios = (self._usuarios_partes_interessadas_dilog() + self._usuarios_partes_interessadas_cronograma()
+                        + self._usuarios_partes_interessadas_dinutre())
+            template_notif = 'pre_recebimento_notificacao_alteracao_cronograma_codae_ciencia_fornecedor.html'
+            tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
+            titulo_notificacao = f'Ciência da Alteração do Cronograma Nº { self.cronograma.numero } pelo Fornecedor'
+            link = f'/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
+            categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA
+            self._cria_notificacao(
+                template_notif, titulo_notificacao, usuarios, link, tipo, categoria_notificacao, log_transicao
+            )
             self._envia_email_notificacao_ciencia_fornecedor(user)
 
     def _montar_dinutre_notificacao(self):
