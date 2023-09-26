@@ -148,12 +148,23 @@ def validators_valor_str():
 
 
 @pytest.fixture
-def escola():
+def tipo_unidade():
+    return mommy.make('TipoUnidadeEscolar', iniciais='EMEF')
+
+
+@pytest.fixture
+def escola(tipo_unidade):
     tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
     return mommy.make(models.Escola,
                       nome=fake.name(),
                       codigo_eol=fake.name()[:6],
+                      tipo_unidade=tipo_unidade,
                       tipo_gestao=tipo_gestao)
+
+
+@pytest.fixture
+def dia_suspensao_atividades(escola):
+    return mommy.make('DiaSuspensaoAtividades', tipo_unidade=escola.tipo_unidade, data=datetime.date(2023, 9, 26))
 
 
 @pytest.fixture(scope='function', params=[
@@ -205,6 +216,20 @@ def client_autenticado_coordenador_codae(client, django_user_model):
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_coordenador,
                data_inicial=hoje, ativo=True)
 
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_escola(client, django_user_model, escola):
+    email = 'user@escola.com'
+    password = 'admin@123'
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                    registro_funcional='123456',)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(username=email, password=password)
     return client
 
 
