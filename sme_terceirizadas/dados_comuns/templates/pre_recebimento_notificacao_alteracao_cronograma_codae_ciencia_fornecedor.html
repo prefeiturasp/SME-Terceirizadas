@@ -1,11 +1,1 @@
-{% extends 'email_base.html' %}
-
-{% block conteudo %}
-  <p>Olá!</p>
-
-  <p>O Fornecedor <strong>{{ fornecedor }}</strong> deu ciência nas Alterações do Cronograma <strong>Nº {{ numero_cronograma }}</strong>, em {{ log_transicao.criado_em|date:"d/m/Y" }}:</p>
-
-  <br/><br/>
-
-  <p><a href="{{ url_solicitacao_alteracao }}">Clique para acessar os detalhes da Alteração</a></p>
-{% endblock %}
+<p>O Fornecedor <strong>{{ fornecedor }}</strong> deu ciência nas Alterações do Cronograma <strong>Nº {{ numero_cronograma }}</strong></p>
