@@ -9,7 +9,8 @@ router.register('cronogramas', viewsets.CronogramaModelViewSet)
 router.register('laboratorios', viewsets.LaboratorioModelViewSet)
 router.register('tipos-embalagens', viewsets.TipoEmbalagemQldModelViewSet)
 router.register('unidades-medida-logistica', viewsets.UnidadeMedidaViewset)
-router.register('layouts-de-embalagem', viewsets.LayoutDeEmbalagemModelViewSet)
+router.register('layouts-de-embalagem', viewsets.LayoutDeEmbalagemModelViewSet,
+                basename='layouts-de-embalagem')
 
 router.register('solicitacao-de-alteracao-de-cronograma', viewsets.SolicitacaoDeAlteracaoCronogramaViewSet,
                 basename='solicitacao-de-alteracao-de-cronograma')
