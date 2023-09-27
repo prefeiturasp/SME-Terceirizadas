@@ -61,6 +61,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
+    LayoutDeEmbalagemDetalheSerializer,
     LayoutDeEmbalagemSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
@@ -596,7 +597,6 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
     def get_serializer_class(self):
         serializer_classes_map = {
             'list': LayoutDeEmbalagemSerializer,
-            # TODO: Quando a história de detalhar for desenvolvida, substituir o serializer abaixo pelo novo
-            'retrieve': LayoutDeEmbalagemSerializer,
+            'retrieve': LayoutDeEmbalagemDetalheSerializer,
         }
         return serializer_classes_map.get(self.action, LayoutDeEmbalagemCreateSerializer)
