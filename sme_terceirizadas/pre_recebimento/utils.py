@@ -6,6 +6,7 @@ from sme_terceirizadas.dados_comuns.constants import (
     DILOG_DIRETORIA,
     DINUTRE_DIRETORIA
 )
+from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow as StatusAlteracao
 
 
 class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles:
@@ -21,25 +22,33 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles:
         perfil = user.vinculo_atual.perfil.nome
         status = {
             DINUTRE_DIRETORIA: [
-                'CRONOGRAMA_CIENTE',
-                'APROVADO_DINUTRE',
-                'REPROVADO_DINUTRE'
+                StatusAlteracao.CRONOGRAMA_CIENTE,
+                StatusAlteracao.APROVADO_DINUTRE,
+                StatusAlteracao.REPROVADO_DINUTRE,
+                StatusAlteracao.ALTERACAO_ENVIADA_FORNECEDOR,
+                StatusAlteracao.FORNECEDOR_CIENTE
             ],
             DILOG_DIRETORIA: [
-                'APROVADO_DINUTRE',
-                'REPROVADO_DINUTRE',
-                'APROVADO_DILOG',
-                'REPROVADO_DILOG'
+                StatusAlteracao.APROVADO_DINUTRE,
+                StatusAlteracao.REPROVADO_DINUTRE,
+                StatusAlteracao.APROVADO_DILOG,
+                StatusAlteracao.REPROVADO_DILOG,
+                StatusAlteracao.ALTERACAO_ENVIADA_FORNECEDOR,
+                StatusAlteracao.FORNECEDOR_CIENTE
             ],
             DILOG_CRONOGRAMA: [
-                'EM_ANALISE',
-                'APROVADO_DILOG',
-                'REPROVADO_DILOG'
+                StatusAlteracao.EM_ANALISE,
+                StatusAlteracao.APROVADO_DILOG,
+                StatusAlteracao.REPROVADO_DILOG,
+                StatusAlteracao.ALTERACAO_ENVIADA_FORNECEDOR,
+                StatusAlteracao.FORNECEDOR_CIENTE
             ],
             COORDENADOR_CODAE_DILOG_LOGISTICA: [
-                'EM_ANALISE',
-                'APROVADO_DILOG',
-                'REPROVADO_DILOG'
+                StatusAlteracao.EM_ANALISE,
+                StatusAlteracao.APROVADO_DILOG,
+                StatusAlteracao.REPROVADO_DILOG,
+                StatusAlteracao.ALTERACAO_ENVIADA_FORNECEDOR,
+                StatusAlteracao.FORNECEDOR_CIENTE
             ],
         }
 
