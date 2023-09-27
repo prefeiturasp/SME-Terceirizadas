@@ -52,7 +52,11 @@ class Perfil(ExportModelOperationsMixin('perfil'), Nomeavel, Descritivel, Ativav
             {'codigo': 3360,
              'cargo': 'DIRETOR DE ESCOLA'},
             {'codigo': 3085,
-             'cargo': 'ASSISTENTE DE DIREÇÃO DE ESCOLA'}
+             'cargo': 'ASSISTENTE DE DIREÇÃO DE ESCOLA'},
+            {'codigo': 43,
+             'cargo': 'COORDENADOR GERAL'},
+            {'codigo': 515,
+             'cargo': 'GESTOR DE EQUIPAMENTO PÚBLICO II'}
         ]
 
     @classmethod
