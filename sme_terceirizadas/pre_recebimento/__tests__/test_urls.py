@@ -736,7 +736,7 @@ def test_url_dashboard_painel_usuario_dinutre_com_paginacao(client_autenticado_d
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']) == 1
-    assert response.json()['results'][0]['status'] == 'ASSINADO_FORNECEDOR'
+    assert response.json()['results'][0]['status'] == ['ASSINADO_FORNECEDOR']
     assert response.json()['results'][0]['total'] == 3
     assert len(response.json()['results'][0]['dados']) == 2
 
@@ -807,7 +807,7 @@ def test_url_dashboard_painel_solicitacao_alteracao_dinutre(client_autenticado_d
     response = client_autenticado_dinutre_diretoria.get(
         f'/solicitacao-de-alteracao-de-cronograma/dashboard/'
     )
-    QTD_STATUS_DASHBOARD_DINUTRE = 3
+    QTD_STATUS_DASHBOARD_DINUTRE = 5
     SOLICITACOES_STATUS_CRONOGRAMA_CIENTE = 2
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']) == QTD_STATUS_DASHBOARD_DINUTRE
