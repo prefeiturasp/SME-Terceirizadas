@@ -25,14 +25,26 @@
           {% endif %}
         </tr>
        {% if dias_inclusao.outro_motivo %}
-         <tr class="{% if dias_inclusao.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}cancelado{% endif %}">
+         <tr class="fd-cinza {% if dias_inclusao.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}cancelado{% endif %}">
             <td>
-              Qual o motivo?
+              <b>Qual o motivo?</b>
             </td>
            <td>
               {{ dias_inclusao.outro_motivo }}
             </td>
          </tr>
+         <tr class="margem-alternativa"><td></td></tr>
+       {% endif %}
+       {% if dias_inclusao.evento %}
+         <tr class="fd-cinza linha-divisoria {% if dias_inclusao.cancelado or solicitacao.status == 'ESCOLA_CANCELOU' %}cancelado{% endif %}">
+            <td>
+              <b>Descrição do Evento</b>
+            </td>
+            <td>
+                {{ dias_inclusao.evento }}
+            </td>
+        </tr>
+        <tr class="margem-alternativa"><td></td></tr>
        {% endif %}
       {% endfor %}
     </table>

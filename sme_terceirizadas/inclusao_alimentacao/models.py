@@ -237,6 +237,7 @@ class InclusaoAlimentacaoNormal(ExportModelOperationsMixin('inclusao_normal'), T
                                 TemTerceirizadaConferiuGestaoAlimentacao, CanceladoIndividualmente):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
+    evento = models.CharField('Descrição do Evento', blank=True, max_length=1500)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                        blank=True, null=True,
                                        on_delete=models.CASCADE,
@@ -356,6 +357,7 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
             inclusoes.append({
                 'motivo': inclusao.motivo.nome,
                 'outro_motivo': inclusao.outro_motivo,
+                'evento': inclusao.evento,
                 'data': inclusao.data,
                 'cancelado': inclusao.cancelado,
                 'cancelado_justificativa': inclusao.cancelado_justificativa
