@@ -123,6 +123,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         return lista_status
 
     def get_default_sql(self, workflow, query_set, use_raw):
+        workflow = workflow if isinstance(workflow, list) else [workflow]
         if use_raw:
             data = {'logs': LogSolicitacoesUsuario._meta.db_table,
                     'cronograma': Cronograma._meta.db_table,
@@ -137,7 +138,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
             return query_set.raw(raw_sql % data)
         else:
-            qs = sorted(query_set.filter(status=workflow).distinct().all(),
+            qs = sorted(query_set.filter(status__in=workflow).distinct().all(),
                         key=lambda x: x.log_mais_recente.criado_em
                         if x.log_mais_recente else '-criado_em', reverse=True)
             return qs
@@ -145,7 +146,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
     def dados_dashboard(self, request, query_set: QuerySet, use_raw) -> list:
         limit = int(request.query_params.get('limit', 10))
         offset = int(request.query_params.get('offset', 0))
-        status = request.query_params.get('status', None)
+        status = request.query_params.getlist('status', None)
         sumario = []
         if status:
             qs = self.get_default_sql(workflow=status, query_set=query_set, use_raw=use_raw)
@@ -407,7 +408,7 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     def _dados_dashboard(self, request, filtros=None):
         limit = int(request.query_params.get('limit', 10)) if 'limit' in request.query_params else 6
         offset = int(request.query_params.get('offset', 0)) if 'offset' in request.query_params else 0
-        status = request.query_params.get('status', None)
+        status = request.query_params.getlist('status', None)
         dados_dashboard = []
         lista_status = (
             [status] if status else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
