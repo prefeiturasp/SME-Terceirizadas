@@ -673,6 +673,40 @@ def mocked_response_get_dados_usuario_coresso():
     }
 
 
+def mocked_response_get_dados_usuario_coresso_coordenador():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'cargos': [
+            {'codigoCargo': 43,
+             'descricaoCargo': 'COORDENADOR GERAL                       ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO DIRETOR'
+    }
+
+
+def mocked_response_get_dados_usuario_coresso_gestor():
+    return {
+        'rf': '1234567',
+        'cpf': '93697506064',
+        'email': 'user@escola.com',
+        'cargos': [
+            {'codigoCargo': 515,
+             'descricaoCargo': 'GESTOR DE EQUIPAMENTO PÚBLICO II                       ',
+             'codigoUnidade': '400158',
+             'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
+             'codigoDre': '108600'
+             }
+        ],
+        'nome': 'RONALDO DIRETOR'
+    }
+
+
 def mocked_response_get_dados_usuario_coresso_sem_email():
     return {
         'rf': '1234567',
