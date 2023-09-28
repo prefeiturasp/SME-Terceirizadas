@@ -14,6 +14,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     UsuarioTerceirizada
 )
+from ...eol_servico.utils import EOLException
 from ...kit_lanche.models import SolicitacaoKitLancheCEMEI
 from ...relatorios.relatorios import (
     relatorio_inclusao_alimentacao_cei,
@@ -258,37 +259,43 @@ class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
             permission_classes=(UsuarioDiretoriaRegional,))
     def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        inclusoes_alimentacao_cei = diretoria_regional.inclusoes_alimentacao_de_cei_das_minhas_escolas(
-            filtro_aplicado
-        )
-        if request.query_params.get('lote'):
-            lote_uuid = request.query_params.get('lote')
-            inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_lote__uuid=lote_uuid)
-        page = self.paginate_queryset(inclusoes_alimentacao_cei)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+        try:
+            usuario = request.user
+            diretoria_regional = usuario.vinculo_atual.instituicao
+            inclusoes_alimentacao_cei = diretoria_regional.inclusoes_alimentacao_de_cei_das_minhas_escolas(
+                filtro_aplicado
+            )
+            if request.query_params.get('lote'):
+                lote_uuid = request.query_params.get('lote')
+                inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_lote__uuid=lote_uuid)
+            page = self.paginate_queryset(inclusoes_alimentacao_cei)
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        except EOLException as error:
+            return Response(data={'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        inclusoes_alimentacao_cei = codae.inclusoes_alimentacao_de_cei_das_minhas_escolas(
-            filtro_aplicado
-        )
-        if request.query_params.get('diretoria_regional'):
-            dre_uuid = request.query_params.get('diretoria_regional')
-            inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_dre__uuid=dre_uuid)
-        if request.query_params.get('lote'):
-            lote_uuid = request.query_params.get('lote')
-            inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_lote__uuid=lote_uuid)
-        page = self.paginate_queryset(inclusoes_alimentacao_cei)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+        try:
+            usuario = request.user
+            codae = usuario.vinculo_atual.instituicao
+            inclusoes_alimentacao_cei = codae.inclusoes_alimentacao_de_cei_das_minhas_escolas(
+                filtro_aplicado
+            )
+            if request.query_params.get('diretoria_regional'):
+                dre_uuid = request.query_params.get('diretoria_regional')
+                inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_dre__uuid=dre_uuid)
+            if request.query_params.get('lote'):
+                lote_uuid = request.query_params.get('lote')
+                inclusoes_alimentacao_cei = inclusoes_alimentacao_cei.filter(rastro_lote__uuid=lote_uuid)
+            page = self.paginate_queryset(inclusoes_alimentacao_cei)
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        except EOLException as error:
+            return Response(data={'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}',
