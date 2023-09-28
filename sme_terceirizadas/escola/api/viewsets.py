@@ -174,30 +174,33 @@ class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
 
     @action(detail=True, url_path='somatorio-faixas-etarias/(?P<data_referencia_str>[^/.]+)')
     def somatorio_faixas_etarias(self, request, uuid, data_referencia_str):
-        form = AlunosPorFaixaEtariaForm({
-            'data_referencia': data_referencia_str
-        })
-
-        if not form.is_valid():
-            return Response(form.errors)
-
-        escola = self.get_object()
-        data_referencia = form.cleaned_data['data_referencia']
-        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)
-        faixas_uuids = []
-
-        for k in counter_faixas_etarias:
-            faixas_uuids += counter_faixas_etarias[k].keys()
-        faixas_uuids = list(set(faixas_uuids))
-
-        resultado = []
-        for faixa_etaria in FaixaEtaria.objects.filter(uuid__in=faixas_uuids):
-            resultado.append({
-                'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
-                'count': 0
+        try:
+            form = AlunosPorFaixaEtariaForm({
+                'data_referencia': data_referencia_str
             })
-        resultado = self.formata_resultado_faixa_etaria(counter_faixas_etarias, resultado)
-        return Response({'count': len(resultado), 'results': resultado})
+
+            if not form.is_valid():
+                return Response(form.errors)
+
+            escola = self.get_object()
+            data_referencia = form.cleaned_data['data_referencia']
+            counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)
+            faixas_uuids = []
+
+            for k in counter_faixas_etarias:
+                faixas_uuids += counter_faixas_etarias[k].keys()
+            faixas_uuids = list(set(faixas_uuids))
+
+            resultado = []
+            for faixa_etaria in FaixaEtaria.objects.filter(uuid__in=faixas_uuids):
+                resultado.append({
+                    'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
+                    'count': 0
+                })
+            resultado = self.formata_resultado_faixa_etaria(counter_faixas_etarias, resultado)
+            return Response({'count': len(resultado), 'results': resultado})
+        except EOLException as error:
+            return Response(data={'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
@@ -236,7 +239,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             )
         except EOLException:
             return Response(
-                {'detail': 'API EOL indisponível para carregar as faixas etárias. Tente novamente mais tarde'},
+                {'detail': 'API EOL indisponível para carregar as faixas etárias. Tente novamente mais tarde.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -466,6 +469,8 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
                 {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        except EOLException as erro:
+            return Response(data={'detail': str(erro)}, status=status.HTTP_400_BAD_REQUEST)
 
         results = []
         for uuid_faixa_etaria in faixa_alunos:
