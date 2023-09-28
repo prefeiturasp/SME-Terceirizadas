@@ -17,6 +17,7 @@ from ..logistica.api.helpers import retorna_status_guia_remessa
 from ..medicao_inicial.api.viewsets import SolicitacaoMedicaoInicialViewSet
 from ..medicao_inicial.utils import (
     build_tabela_somatorio_body,
+    build_tabela_somatorio_body_cei,
     build_tabelas_relatorio_medicao,
     build_tabelas_relatorio_medicao_cei
 )
@@ -1054,6 +1055,8 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
 
 def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
     tabelas, dias_letivos = build_tabelas_relatorio_medicao_cei(solicitacao)
+    tabelas_somatorios = build_tabela_somatorio_body_cei(solicitacao)
+
     html_string = render_to_string(
         f'relatorio_solicitacao_medicao_por_escola_cei.html',
         {
@@ -1071,7 +1074,7 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
             'tabelas': tabelas,
             'dias_letivos': dias_letivos,
             'tabela_observacoes': [],
-            'tabela_somatorio': []
+            'tabelas_somatorios': tabelas_somatorios
         }
     )
     return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)

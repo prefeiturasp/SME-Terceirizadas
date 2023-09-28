@@ -1,0 +1,124 @@
+{% load index static sass_tags %}
+
+    <!-- Página de tabelas somatórios CEI-->
+
+        <header class="header" style="page-break-before: always;">
+            <div class="row p-0 mx-4">
+                <div class="col-2">
+                    <img src="{% static 'images/LOGO_FUNDO_CLARO.png' %}" alt=""/>
+                </div>
+                <div class="col-8">
+                    <h1 class="text-center">SECRETARIA MUNICIPAL DE EDUCAÇÃO - SME | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR - CODAE</h1>
+                    <h1 class="text-center">MEDIÇÃO INICIAL DO SERVIÇO DE NUTRIÇÃO E ALIMENTAÇÃO ESCOLAR</h1>
+                </div>
+                <div class="col-1"></div>
+                <div class="col-1">
+                    <h1 class="text-right">Página</h1>
+                    <h1 class="page-number text-right"></h1>
+                </div>
+            </div>
+            <div class="row p-0 mx-2">
+                <div class="col-12">
+                    <table class="tabela-cabecalho">
+                        <tr class="custom-filtros">
+                            <td><b>Cód. EOL: </b>{{ solicitacao.escola.codigo_eol }}</td>
+                            <td><b>U.E: </b>{{ solicitacao.escola.nome }}</td>
+                            <td><b>Telefone da UE: </b>{{ solicitacao.escola.contato.telefone }}</td>
+                            <td><b>DRE: </b>{{ solicitacao.escola.diretoria_regional.nome }}</td>
+                        </tr>
+                        <tr class="custom-filtros">
+                            <td><b>Lote: </b>{{ solicitacao.rastro_lote.nome }}</td>
+                            <td colspan="2"><b>Empresa Prestadora do Serviço: </b>{{ solicitacao.rastro_terceirizada.razao_social }}</td>
+                            <td><b>REFERÊNCIA: </b>{{ solicitacao.mes }}/{{ solicitacao.ano }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </header>
+
+    <h1 class="titulo-tabela-somatorio text-center mt-4 mb-4">SOMATÓRIO DE ALIMENTAÇÕES OFERTADAS NOS PERÍODOS</h1>
+
+ {% for tabela in tabelas_somatorios %}
+    <table class="tabela-valores-medicao mt-3">
+      <thead class="texto-branco">
+          <tr>
+              <th rowspan="2">FAIXAS ETÁRIAS</th>
+              {% for periodo in tabela.periodos %}
+                  <th class="periodo-grupo cor-periodo-grupo-{{ tabela.ordem_periodos_grupos|get_element_by_index:forloop.counter0 }}" colspan="{{ tabela.len_periodos|get_element_by_index:forloop.counter0 }}">
+                      {{ periodo|upper }}
+                  </th>
+              {% endfor %}
+          </tr>
+          <tr>
+              {% for categoria in tabela.categorias %}
+                  {% if categoria == "total" %}
+                      <th  class="categoria" > Total do Dia</th>
+                  {% else %}
+                      <th>
+                        {{ categoria|upper }}</th>
+                  {% endif %}
+              {% endfor %}
+          </tr>
+      </thead>
+
+      <tbody>
+      {% for valores in tabela.valores_campos %}
+          {% if valores.0 == "total" %}
+              <tr class="hachurado">
+          {% else %}
+              <tr>
+          {% endif %}
+              {% for valor in valores %}
+                  {% if valor == "total" %}
+                      <td>Total Geral</td>
+                  {% else %}
+                      <td>{{ valor }}</td>
+                  {% endif %}
+              {% endfor %}
+              </tr>
+      {% endfor %}
+      <tr><td class="text-left info-abaixo-tabela" colspan="{{ tabela.len_linha }}">* A tabela acima representa a soma das alimentações laçadas em todos os períodos da UE</td></tr>
+      </tbody>
+    </table>
+
+  <div class="bloco-assinatura">
+    <div class="row p-0 mx-4 mt-5">
+      <div class="col-6 mr-3 titulo-assinatura">
+        <b>ASSINATURA UNIDADE EDUCACIONAL</b>
+      </div>
+      <div class="col-5 titulo-assinatura">
+        <b>RESPONSÁVEL PELA CONFERÊNCIA NA DRE</b>
+      </div>
+    </div>
+    <div class="row p-0 mx-4 mt-3">
+      <div class="col-6 mr-3 assinatura">
+        {% if assinatura_escola %}
+        <div class="row p-0 mx-1">
+          <div class="col-2">
+            <img src="{% static 'images/logo-sigpae.png' %}" alt=""/>
+          </div>
+          <div class="col-10 texto">
+            <span>
+              {{assinatura_escola}}
+            </span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-6 assinatura titulo-assinatura">
+        {% if assinatura_dre %}
+        <div class="row p-0 mx-1">
+          <div class="col-2">
+            <img src="{% static 'images/logo-sigpae.png' %}" alt=""/>
+          </div>
+          <div class="col-10 texto titulo-assinatura">
+            <span>
+              {{assinatura_dre}}
+            </span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
