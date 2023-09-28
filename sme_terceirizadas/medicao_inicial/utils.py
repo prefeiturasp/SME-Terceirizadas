@@ -3,6 +3,7 @@ import json
 from calendar import monthrange
 from collections import defaultdict
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import IntegerField, Sum
 from django.db.models.functions import Cast
 
@@ -1048,6 +1049,90 @@ def build_tabela_somatorio_body(solicitacao):
             ]
         )
     return body_tabela_somatorio
+
+
+def build_valores_campos(solicitacao, tabela): # noqa C901
+    medicoes = solicitacao.medicoes.all()
+
+    # Identificar todas as faixas etárias disponíveis
+    faixas_etarias_ids = set()
+    for medicao in medicoes:
+        faixas_etarias_ids.update(medicao.valores_medicao.all().values_list('faixa_etaria', flat=True).distinct())
+
+    faixas_etarias = FaixaEtaria.objects.filter(id__in=faixas_etarias_ids, ativo=True)
+    faixa_etaria_dict = {fe.id: str(fe) for fe in faixas_etarias}
+    categorias = ['ALIMENTAÇÃO', 'DIETA ESPECIAL - TIPO A', 'DIETA ESPECIAL - TIPO B']
+
+    valores_campos = []
+    totais = ['total'] + [0] * (len(tabela['periodos']) * len(categorias) + len(tabela['periodos']))
+
+    for faixa_id, faixa_nome in faixa_etaria_dict.items():
+        linha = [faixa_nome]
+
+        for indice_periodo, periodo in enumerate(tabela['periodos']):
+            for idx_categoria, categoria in enumerate(categorias):
+                try:
+                    medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
+                    valores_frequencia = medicao.valores_medicao.filter(
+                        categoria_medicao__nome=categoria,
+                        faixa_etaria=faixa_id,
+                        nome_campo='frequencia'
+                    ).values_list('valor', flat=True)
+
+                    quantidade = sum(int(valor) for valor in valores_frequencia if valor.isdigit())
+                    linha.append(str(quantidade))
+
+                    indice_total = 1 + indice_periodo * 4 + idx_categoria
+                    totais[indice_total] += quantidade
+
+                except ObjectDoesNotExist:
+                    linha.append('-')
+
+            total = sum(int(val) for val in linha[-3:] if val != '-')
+            linha.append(str(total))
+
+            totais[1 + indice_periodo * 4 + 3] += total
+
+        valores_campos.append(linha)
+
+    totais = [str(total) if isinstance(total, int) else total for total in totais]
+    valores_campos.append(totais)
+
+    return valores_campos
+
+
+def build_tabela_somatorio_body_cei(solicitacao):
+    ORDEM_PERIODOS_GRUPOS_CEI = {
+        'INTEGRAL': 1,
+        'PARCIAL': 2,
+        'MANHA': 3,
+        'TARDE': 4,
+    }
+
+    CATEGORIAS = ['ALIMENTAÇÃO', 'DIETA TIPO A', 'DIETA TIPO B', 'total']
+
+    periodos_ordenados = sorted(
+        [medicao.nome_periodo_grupo for medicao in solicitacao.medicoes.all()],
+        key=lambda k: ORDEM_PERIODOS_GRUPOS_CEI[k]
+    )
+    grupos_periodos = [periodos_ordenados[i:i + 2] for i in range(0, len(periodos_ordenados), 2)]
+
+    tabelas = []
+    for grupo in grupos_periodos:
+        tabela = {
+            'periodos': grupo,
+            'categorias': CATEGORIAS * len(grupo),
+            'len_periodos': [4] * len(grupo),
+            'ordem_periodos_grupos': [ORDEM_PERIODOS_GRUPOS_CEI[periodo] for periodo in grupo],
+            'len_linha': 9,
+            'valores_campos': []
+        }
+        tabelas.append(tabela)
+
+    for tabela in tabelas:
+        tabela['valores_campos'] = build_valores_campos(solicitacao, tabela)
+
+    return tabelas
 
 
 def atualizar_anexos_ocorrencia(
