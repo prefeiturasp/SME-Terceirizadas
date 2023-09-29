@@ -1,4 +1,3 @@
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import QuerySet
@@ -7,6 +6,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_406_NOT_ACCEPTABLE
 from xworkflows.base import InvalidTransitionError
@@ -26,6 +26,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCriarSolicitacoesAlteracaoCronograma,
     PermissaoParaDarCienciaAlteracaoCronograma,
     PermissaoParaDashboardCronograma,
+    PermissaoParaDashboardLayoutEmbalagem,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCronograma,
     PermissaoParaVisualizarLayoutDeEmbalagem,
@@ -65,6 +66,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     LayoutDeEmbalagemSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
+    PainelLayoutEmbalagemSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
     SolicitacaoAlteracaoCronogramaSerializer,
@@ -82,6 +84,7 @@ from sme_terceirizadas.pre_recebimento.models import (
 )
 from sme_terceirizadas.pre_recebimento.utils import (
     LayoutDeEmbalagemPagination,
+    ServiceDashboardLayoutEmbalagemProfiles,
     ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
     UnidadeMedidaPagination
 )
@@ -601,3 +604,45 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
             'retrieve': LayoutDeEmbalagemDetalheSerializer,
         }
         return serializer_classes_map.get(self.action, LayoutDeEmbalagemCreateSerializer)
+
+    @action(detail=False, methods=['GET'],
+            url_path='dashboard', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
+    def dashboard(self, request):
+        filtro = LayoutDeEmbalagemFilter(request.query_params, self.get_queryset())
+
+        return Response({'results': self._dados_dashboard(request, filtro.qs)})
+
+    def _dados_dashboard(self, request: Request, queryset_base: QuerySet) -> list:
+        offset = int(request.query_params.get('offset', 0))
+        limit = int(request.query_params.get('limit', 5))
+        lista_status_ver_mais = request.query_params.getlist('status', None)
+
+        if lista_status_ver_mais:
+            dados = self._dados_ver_mais(queryset_base, lista_status_ver_mais, offset, limit)
+
+        else:
+            dados = self._dados_cards(queryset_base, offset, limit)
+
+        return dados
+
+    def _dados_ver_mais(self, queryset_base, lista_status_ver_mais, offset, limit):
+        qs = queryset_base.filter(status__in=lista_status_ver_mais)
+        dados = [{
+            'status': lista_status_ver_mais,
+            'total': len(qs),
+            'dados': PainelLayoutEmbalagemSerializer(qs[offset:offset + limit], many=True).data
+        }]
+
+        return dados
+
+    def _dados_cards(self, queryset_base, offset, limit):
+        dados = []
+        for status_perfil in ServiceDashboardLayoutEmbalagemProfiles.get_dashboard_status(self.request.user):
+            status_perfil_list = [status_perfil]
+            qs = queryset_base.filter(status__in=status_perfil_list)
+            dados.append({
+                'status': status_perfil,
+                'dados': PainelLayoutEmbalagemSerializer(qs[offset:offset + limit], many=True).data
+            })
+
+        return dados
