@@ -156,7 +156,10 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):  # noqa C901
         lista_erros = []
-        if instance.status == 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE':
+        iniciais = ['EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
+        status_para_validacao = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
+        iniciais_escola = instance.escola.tipo_unidade.iniciais
+        if (instance.status == status_para_validacao and iniciais_escola in iniciais):
             lista_erros = validate_lancamento_alimentacoes_medicao(instance, lista_erros)
             lista_erros = validate_lancamento_inclusoes(instance, lista_erros)
             lista_erros = validate_lancamento_dietas(instance, lista_erros)
