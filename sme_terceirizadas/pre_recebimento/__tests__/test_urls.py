@@ -1091,7 +1091,7 @@ def test_url_dashboard_layout_embalagens_com_filtro(client_autenticado_codae_dil
     response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
     assert len(response.json()['results'][0]['dados']) == 5
 
-    filtros = {'nome_fornecedor': 'Alimentos SA'}
+    filtros = {'nome_fornecedor': 'Alimentos'}
     response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
     assert len(response.json()['results'][0]['dados']) == 5
 
