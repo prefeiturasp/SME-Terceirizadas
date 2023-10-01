@@ -627,11 +627,11 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
 
     def _dados_ver_mais(self, queryset_base, lista_status_ver_mais, offset, limit):
         qs = queryset_base.filter(status__in=lista_status_ver_mais)
-        dados = [{
+        dados = {
             'status': lista_status_ver_mais,
             'total': len(qs),
             'dados': PainelLayoutEmbalagemSerializer(qs[offset:offset + limit], many=True).data
-        }]
+        }
 
         return dados
 
