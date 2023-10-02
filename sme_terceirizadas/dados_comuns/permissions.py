@@ -899,6 +899,12 @@ class UsuarioEhFornecedor(BasePermission):
 
 
 class PermissaoParaVisualizarLayoutDeEmbalagem(BasePermission):
+    PERFIS_PERMITIDOS = [
+        DILOG_QUALIDADE,
+        COORDENADOR_GESTAO_PRODUTO,
+        COORDENADOR_CODAE_DILOG_LOGISTICA,
+    ]
+
     def has_permission(self, request, view):
         usuario = request.user
         return (
@@ -907,7 +913,7 @@ class PermissaoParaVisualizarLayoutDeEmbalagem(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [DILOG_QUALIDADE]
+                    usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
                 ) or
                 usuario.eh_fornecedor
             )
