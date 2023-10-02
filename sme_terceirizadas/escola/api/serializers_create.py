@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
 from ...dados_comuns.utils import update_instance_from_dict
+from ...perfil.models import Usuario
 from ..models import (
     AlunoPeriodoParcial,
+    DiaSuspensaoAtividades,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
@@ -12,7 +14,8 @@ from ..models import (
     MudancaFaixasEtarias,
     PeriodoEscolar,
     Subprefeitura,
-    TipoGestao
+    TipoGestao,
+    TipoUnidadeEscolar
 )
 
 
@@ -129,3 +132,50 @@ class AlunoPeriodoParcialCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlunoPeriodoParcial
         fields = ('aluno',)
+
+
+class DiaSuspensaoAtividadesCreateSerializer(serializers.ModelSerializer):
+    tipo_unidade = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=TipoUnidadeEscolar.objects.all(),
+        required=True,
+    )
+
+    criado_por = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=Usuario.objects.all(),
+        required=True
+    )
+
+    class Meta:
+        model = DiaSuspensaoAtividades
+        exclude = ('id',)
+
+
+class DiaSuspensaoAtividadesCreateManySerializer(serializers.ModelSerializer):
+    tipo_unidades = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=TipoUnidadeEscolar.objects.all(),
+        many=True,
+        required=True,
+    )
+
+    def create(self, validated_data):
+        """Cria ou atualiza dias de sobremesa doce."""
+        dia_sobremesa_doce = None
+        DiaSuspensaoAtividades.objects.filter(data=validated_data['data']).exclude(
+            tipo_unidade__in=validated_data['tipo_unidades']).delete()
+        dias_sobremesa_doce = DiaSuspensaoAtividades.objects.filter(data=validated_data['data'])
+        for tipo_unidade in validated_data['tipo_unidades']:
+            if not dias_sobremesa_doce.filter(tipo_unidade=tipo_unidade).exists():
+                dia_sobremesa_doce = DiaSuspensaoAtividades(
+                    criado_por=self.context['request'].user,
+                    data=validated_data['data'],
+                    tipo_unidade=tipo_unidade
+                )
+                dia_sobremesa_doce.save()
+        return dia_sobremesa_doce
+
+    class Meta:
+        model = DiaSuspensaoAtividades
+        fields = ('tipo_unidades', 'data', 'uuid')

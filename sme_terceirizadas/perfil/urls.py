@@ -16,6 +16,8 @@ router.register('planilha-coresso-servidor', viewsets.ImportacaoPlanilhaUsuarioS
                 'Planilhas de Importação de Usuário Servidor - CoreSSO')
 router.register('planilha-coresso-externo', viewsets.ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet,
                 'Planilhas de Importação de Usuário Externo - CoreSSO')
+router.register('planilha-coresso-ue-parceira', viewsets.ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet,
+                'Planilhas de Importação de Usuário UE Parceira - CoreSSO')
 router.register('confirmar_email/(?P<uuid>[^/]+)/(?P<confirmation_key>[^/]+)',
                 viewsets.UsuarioConfirmaEmailViewSet, 'Confirmar E-mail')
 

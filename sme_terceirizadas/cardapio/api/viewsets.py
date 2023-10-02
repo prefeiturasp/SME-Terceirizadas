@@ -24,6 +24,7 @@ from ...inclusao_alimentacao.api.viewsets import (
     EscolaIniciaCancela,
     TerceirizadaTomaCiencia
 )
+from ...inclusao_alimentacao.models import InclusaoAlimentacaoNormal, QuantidadePorPeriodo
 from ...relatorios.relatorios import (
     relatorio_alteracao_alimentacao_cemei,
     relatorio_alteracao_cardapio,
@@ -138,6 +139,39 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet,
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    def get_vinculos_inclusoes_evento_especifico(self, mes, ano, tipo_solicitacao, escola):
+        gupos_uuids = InclusaoAlimentacaoNormal.objects.filter(
+            data__month=int(mes),
+            data__year=int(ano),
+            motivo__nome='Evento Específico',
+            grupo_inclusao__escola=escola,
+            grupo_inclusao__status='CODAE_AUTORIZADO'
+        ).values_list('grupo_inclusao__uuid', flat=True).distinct()
+
+        periodos_escolares_uuids = escola.periodos_escolares.values_list('uuid', flat=True)
+
+        quantidades_por_periodo = QuantidadePorPeriodo.objects.filter(
+            grupo_inclusao_normal__uuid__in=gupos_uuids
+        ).exclude(periodo_escolar__uuid__in=periodos_escolares_uuids)
+
+        periodos_escolares_uuids = quantidades_por_periodo.values_list('periodo_escolar__uuid').distinct()
+        vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+            tipo_unidade_escolar__iniciais=escola.tipo_unidade.iniciais,
+            periodo_escolar__nome__in=constants.PERIODOS_INCLUSAO_MOTIVO_ESPECIFICO,
+            periodo_escolar__uuid__in=periodos_escolares_uuids)
+        return vinculos
+
+    @action(detail=False, methods=['GET'], url_path=f'{constants.VINCULOS_INCLUSOES_EVENTO_ESPECIFICO_AUTORIZADAS}')
+    def vinculos_inclusoes_evento_especifico_autorizadas(self, request):
+        escola_uuid = request.query_params.get('escola_uuid')
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+        tipo_solicitacao = request.query_params.get('tipo_solicitacao')
+        escola = Escola.objects.get(uuid=escola_uuid)
+        vinculos = self.get_vinculos_inclusoes_evento_especifico(mes, ano, tipo_solicitacao, escola)
+        serializer = self.get_serializer(vinculos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False,
             url_path='escola/(?P<escola_uuid>[^/.]+)')

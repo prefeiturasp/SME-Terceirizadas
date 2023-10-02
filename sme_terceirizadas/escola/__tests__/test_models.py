@@ -402,3 +402,7 @@ def test_alunos_por_faixa_etaria(escola_cei, faixas_etarias, monkeypatch):
             f'{str([f for f in faixas_etarias if f.inicio == 48][0].uuid)}': 2
         }
     )
+
+
+def test_dia_suspensao_atividades_model(dia_suspensao_atividades):
+    assert dia_suspensao_atividades.__str__() == '08/08/2022 - EMEF'

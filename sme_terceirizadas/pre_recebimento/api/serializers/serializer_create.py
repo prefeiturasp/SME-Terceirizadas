@@ -11,15 +11,17 @@ from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
     Laboratorio,
+    LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
     UnidadeMedida
 )
 from sme_terceirizadas.produto.models import NomeDeProdutoEdital
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
-from ..helpers import cria_etapas_de_cronograma, cria_programacao_de_cronograma
+from ..helpers import cria_etapas_de_cronograma, cria_programacao_de_cronograma, cria_tipos_de_embalagens
 from ..validators import contrato_pertence_a_empresa
 
 
@@ -309,3 +311,55 @@ class UnidadeMedidaCreateSerializer(serializers.ModelSerializer):
         if not value.islower():
             raise serializers.ValidationError('O campo deve conter apenas letras minúsculas.')
         return value
+
+
+class TipoDeEmbalagemDeLayoutCreateSerializer(serializers.ModelSerializer):
+    tipo_embalagem = serializers.ChoiceField(
+        choices=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_CHOICES, required=True, allow_blank=True)
+    imagens_do_tipo_de_embalagem = serializers.JSONField(write_only=True)
+
+    def validate(self, attrs):
+        tipo_embalagem = attrs.get('tipo_embalagem', None)
+        imagens = attrs.get('imagens_do_tipo_de_embalagem', None)
+
+        if tipo_embalagem in [TipoDeEmbalagemDeLayout.PRIMARIA, TipoDeEmbalagemDeLayout.SECUNDARIA]:
+            for img in imagens:
+                if not img['arquivo'] or not img['nome']:
+                    raise serializers.ValidationError(
+                        {f'Layout de Embalagem {tipo_embalagem}': ['Este campo é obrigatório.']}
+                    )
+        return attrs
+
+    class Meta:
+        model = TipoDeEmbalagemDeLayout
+        exclude = ('id', 'layout_de_embalagem')
+
+
+class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
+    cronograma = serializers.UUIDField(required=True)
+    tipos_de_embalagens = TipoDeEmbalagemDeLayoutCreateSerializer(many=True, required=False)
+    observacoes = serializers.CharField(required=False)
+
+    def validate_cronograma(self, value):
+        cronograma = Cronograma.objects.filter(uuid=value)
+        if not cronograma:
+            raise serializers.ValidationError(f'Cronograma não existe')
+        return value
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+
+        uuid_cronograma = validated_data.pop('cronograma', None)
+        tipos_de_embalagens = validated_data.pop('tipos_de_embalagens', [])
+        cronograma = Cronograma.objects.get(uuid=uuid_cronograma)
+        layout_de_embalagem = LayoutDeEmbalagem.objects.create(
+            cronograma=cronograma, **validated_data,
+        )
+        cria_tipos_de_embalagens(tipos_de_embalagens, layout_de_embalagem)
+        layout_de_embalagem.inicia_fluxo(user=user)
+
+        return layout_de_embalagem
+
+    class Meta:
+        model = LayoutDeEmbalagem
+        exclude = ('id',)

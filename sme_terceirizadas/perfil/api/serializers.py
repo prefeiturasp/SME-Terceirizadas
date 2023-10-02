@@ -13,7 +13,8 @@ from rest_framework.response import Response
 
 from sme_terceirizadas.perfil.models.usuario import (
     ImportacaoPlanilhaUsuarioExternoCoreSSO,
-    ImportacaoPlanilhaUsuarioServidorCoreSSO
+    ImportacaoPlanilhaUsuarioServidorCoreSSO,
+    ImportacaoPlanilhaUsuarioUEParceiraCoreSSO
 )
 
 from ...dados_comuns.constants import (
@@ -558,6 +559,12 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer(serializers.ModelSeriali
         exclude = ['id']
 
 
+class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImportacaoPlanilhaUsuarioUEParceiraCoreSSO
+        exclude = ['id']
+
+
 class ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer(serializers.ModelSerializer):
     conteudo = serializers.FileField(required=True)
 
@@ -587,4 +594,20 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer(serializers.ModelS
 
     class Meta:
         model = ImportacaoPlanilhaUsuarioExternoCoreSSO
+        exclude = ('id',)
+
+
+class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOCreateSerializer(serializers.ModelSerializer):
+    conteudo = serializers.FileField(required=True)
+
+    def validate(self, attrs):
+        conteudo = attrs.get('conteudo')
+        if conteudo:
+            if not conteudo.name.split('.')[-1] in ['xlsx', 'xls']:
+                raise serializers.ValidationError({'detail': 'Extensão do arquivo não suportada.'})
+
+        return attrs
+
+    class Meta:
+        model = ImportacaoPlanilhaUsuarioUEParceiraCoreSSO
         exclude = ('id',)

@@ -21,7 +21,7 @@ def tipo_unidade_escolar():
     cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
     cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
     return mommy.make(models.TipoUnidadeEscolar,
-                      iniciais=fake.name()[:10],
+                      iniciais='EMEF',
                       cardapios=[cardapio1, cardapio2])
 
 
@@ -135,7 +135,9 @@ def client_autenticado_coordenador_codae(client, django_user_model):
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_coordenador,
                data_inicial=hoje, ativo=True)
-
+    mommy.make('TipoUnidadeEscolar', iniciais='EMEF', uuid='1cc3253b-e297-42b3-8e57-ebfd115a1aba')
+    mommy.make('TipoUnidadeEscolar', iniciais='CEU GESTAO', uuid='40ee89a7-dc70-4abb-ae21-369c67f2b9e3')
+    mommy.make('TipoUnidadeEscolar', iniciais='CIEJA', uuid='ac4858ff-1c11-41f3-b539-7a02696d6d1b')
     return client
 
 
@@ -487,3 +489,10 @@ def alunos(escola_cei, periodo_escolar):
                    periodo_escolar=periodo_escolar,
                    serie=f'{i}A')
     return models.Aluno.objects.all()
+
+
+@pytest.fixture
+def dia_suspensao_atividades(tipo_unidade_escolar):
+    return mommy.make('DiaSuspensaoAtividades',
+                      data=datetime.date(2022, 8, 8),
+                      tipo_unidade=tipo_unidade_escolar)
