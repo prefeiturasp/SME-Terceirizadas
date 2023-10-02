@@ -1061,6 +1061,26 @@ def test_url_layout_de_embalagem_listagem(client_autenticado_qualidade, lista_la
     assert response.data['next'] is not None
 
 
+def test_url_layout_de_embalagem_detalhar(client_autenticado_codae_dilog, lista_layouts_de_embalagem):
+    layout_esperado = LayoutDeEmbalagem.objects.first()
+    cronograma_esperado = layout_esperado.cronograma
+
+    response = client_autenticado_codae_dilog.get(f'/layouts-de-embalagem/{layout_esperado.uuid}/')
+    dedos_layout_recebido = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert dedos_layout_recebido['uuid'] == str(layout_esperado.uuid)
+    assert dedos_layout_recebido['observacoes'] == str(layout_esperado.observacoes)
+    assert dedos_layout_recebido['criado_em'] == layout_esperado.criado_em.strftime(
+        settings.REST_FRAMEWORK['DATETIME_FORMAT'])
+    assert dedos_layout_recebido['status'] == layout_esperado.get_status_display()
+    assert dedos_layout_recebido['numero_cronograma'] == str(cronograma_esperado.numero)
+    assert dedos_layout_recebido['pregao_chamada_publica'] == str(cronograma_esperado.contrato.pregao_chamada_publica)
+    assert dedos_layout_recebido['nome_produto'] == str(cronograma_esperado.produto.nome)
+    assert dedos_layout_recebido['nome_empresa'] == str(cronograma_esperado.empresa.razao_social)
+
+
 def test_url_dashboard_layout_embalagens(client_autenticado_codae_dilog, lista_layouts_de_embalagem):
     response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/')
 
