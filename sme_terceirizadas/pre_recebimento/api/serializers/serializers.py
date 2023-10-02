@@ -283,7 +283,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
         model = LayoutDeEmbalagem
         fields = (
             'uuid', 'observacoes', 'criado_em', 'status', 'tipos_de_embalagens',
-            'numero_cronograma', 'pregao_chamada_publica','nome_produto', 'nome_empresa'
+            'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'nome_empresa'
         )
 
 
