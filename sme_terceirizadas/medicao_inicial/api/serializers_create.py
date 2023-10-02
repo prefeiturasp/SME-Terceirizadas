@@ -154,12 +154,12 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         solicitacao.inicia_fluxo(user=self.context['request'].user)
         return solicitacao
 
-    def update(self, instance, validated_data):  # noqa C901
+    def valida_finalizar_medicao(self, instance):
         lista_erros = []
         iniciais = ['EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
         status_para_validacao = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
         iniciais_escola = instance.escola.tipo_unidade.iniciais
-        if (instance.status == status_para_validacao and iniciais_escola in iniciais):
+        if instance.status == status_para_validacao and iniciais_escola in iniciais:
             lista_erros = validate_lancamento_alimentacoes_medicao(instance, lista_erros)
             lista_erros = validate_lancamento_inclusoes(instance, lista_erros)
             lista_erros = validate_lancamento_dietas(instance, lista_erros)
@@ -167,9 +167,9 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if lista_erros:
             raise serializers.ValidationError(lista_erros)
 
+    def update(self, instance, validated_data):  # noqa C901
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)
         key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
-
         alunos_uuids_dict = self.context['request'].data.get('alunos_periodo_parcial', None)
 
         validated_data.pop('alunos_periodo_parcial', None)
@@ -208,7 +208,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         ultimo_arquivo=arquivo,
                         nome_ultimo_arquivo=anexo.get('nome')
                     )
-        if key_com_ocorrencias is not None:
+        if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao') == 'true':
+            self.valida_finalizar_medicao(instance)
             instance.ue_envia(user=self.context['request'].user)
             if hasattr(instance, 'ocorrencia'):
                 instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
