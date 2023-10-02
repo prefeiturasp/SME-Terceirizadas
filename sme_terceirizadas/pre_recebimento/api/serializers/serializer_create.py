@@ -1,15 +1,17 @@
 from datetime import date
 
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.exceptions import NotAuthenticated
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
-from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
+from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
+    ImagemDoTipoDeEmbalagem,
     Laboratorio,
     LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
@@ -359,6 +361,40 @@ class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
         layout_de_embalagem.inicia_fluxo(user=user)
 
         return layout_de_embalagem
+
+    class Meta:
+        model = LayoutDeEmbalagem
+        exclude = ('id',)
+
+
+class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
+    tipos_de_embalagens = TipoDeEmbalagemDeLayoutCreateSerializer(many=True, required=True)
+    observacoes = serializers.CharField(required=False)
+
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+
+        tipos_de_embalagens_correcao = validated_data.pop('tipos_de_embalagens', [])
+
+        for embalagem in tipos_de_embalagens_correcao:
+            try:
+                tipo_embalagem = instance.tipos_de_embalagens.get(uuid=embalagem['uuid'])
+                tipo_embalagem.status = None
+                tipo_embalagem.imagens.all().delete()
+                tipo_embalagem.save()
+                imagens = embalagem.pop('imagens_do_tipo_de_embalagem', [])
+                for img in imagens:
+                    data = convert_base64_to_contentfile(img.get('arquivo'))
+                    ImagemDoTipoDeEmbalagem.objects.create(
+                        tipo_de_embalagem=tipo_embalagem, arquivo=data, nome=img.get('nome', '')
+                    )
+
+            except ObjectDoesNotExist:
+                raise serializers.ValidationError(f'Tipo de embalagem não existe.')
+
+        instance.fornecedor_realiza_correcao(user=user)
+
+        return instance
 
     class Meta:
         model = LayoutDeEmbalagem
