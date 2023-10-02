@@ -116,7 +116,8 @@ class LogSolicitacoesUsuario(
         CODAE_ALTERA_CRONOGRAMA,
         ALTERACAO_CRONOGRAMA_ENVIADA_AO_FORNECEDOR,
         LAYOUT_ENVIADO_PARA_ANALISE,
-    ) = range(89)
+        LAYOUT_SOLICITADO_CORRECAO,
+    ) = range(90)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -244,6 +245,7 @@ class LogSolicitacoesUsuario(
         (CODAE_ALTERA_CRONOGRAMA, 'Alteração CODAE'),
         (ALTERACAO_CRONOGRAMA_ENVIADA_AO_FORNECEDOR, 'Alteração enviada ao fornecedor'),
         (LAYOUT_ENVIADO_PARA_ANALISE, 'Layout enviado para análise'),
+        (LAYOUT_SOLICITADO_CORRECAO, 'Layout solicitado correção'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
