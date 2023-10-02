@@ -455,8 +455,7 @@ def popula_campo_total_refeicoes_pagamento(solicitacao, tabela, campo, categoria
             else:
                 total_refeicao = int(valor_refeicao) + int(valor_repeticao_refeicao)
                 valor_comparativo = valor_matriculados if valor_matriculados > 0 else valor_numero_de_alunos
-                if total_refeicao > int(valor_comparativo):
-                    total_refeicao = max(int(valor_refeicao), int(valor_repeticao_refeicao))
+                total_refeicao = min(int(total_refeicao), int(valor_comparativo))
                 valores_dia += [total_refeicao]
         except Exception:
             valores_dia += ['0']
@@ -479,8 +478,7 @@ def popula_campo_total_sobremesas_pagamento(solicitacao, tabela, campo, categori
             else:
                 total_sobremesa = int(valor_sobremesa) + int(valor_repeticao_sobremesa)
                 valor_comparativo = valor_matriculados if valor_matriculados > 0 else valor_numero_de_alunos
-                if total_sobremesa > int(valor_comparativo):
-                    total_sobremesa = max(int(valor_sobremesa), int(valor_repeticao_sobremesa))
+                total_sobremesa = min(int(total_sobremesa), int(valor_comparativo))
                 valores_dia += [total_sobremesa]
         except Exception:
             valores_dia += ['0']
@@ -853,27 +851,35 @@ def get_nome_campo(campo):
     return campos.get(campo, campo)
 
 
-def somar_valores_de_repeticao(values, medicao, campo, solicitacao):
+def somar_valores_de_repeticao(values, medicao, campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas):
     if not solicitacao.escola.eh_emei:
+        medicao_nome = medicao.periodo_escolar.nome if medicao.periodo_escolar else medicao.grupo.nome
         if campo == 'refeicao':
-            values_repeticao_refeicao = medicao.valores_medicao.filter(
-                categoria_medicao__nome='ALIMENTAÇÃO', nome_campo='repeticao_refeicao'
-            )
-            values = values | values_repeticao_refeicao
+            if medicao_nome in dict_total_refeicoes.keys():
+                values = dict_total_refeicoes[medicao_nome]
+            else:
+                values_repeticao_refeicao = medicao.valores_medicao.filter(
+                    categoria_medicao__nome='ALIMENTAÇÃO', nome_campo='repeticao_refeicao'
+                )
+                values = values | values_repeticao_refeicao
         if campo == 'sobremesa':
-            values_repeticao_sobremesa = medicao.valores_medicao.filter(
-                categoria_medicao__nome='ALIMENTAÇÃO', nome_campo='repeticao_sobremesa'
-            )
-            values = values | values_repeticao_sobremesa
+            if medicao_nome in dict_total_sobremesas.keys():
+                values = dict_total_sobremesas[medicao_nome]
+            else:
+                values_repeticao_sobremesa = medicao.valores_medicao.filter(
+                    categoria_medicao__nome='ALIMENTAÇÃO', nome_campo='repeticao_sobremesa'
+                )
+                values = values | values_repeticao_sobremesa
     return values
 
 
-def get_somatorio_manha(campo, solicitacao):
+def get_somatorio_manha(campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas):
     try:
         medicao = solicitacao.medicoes.get(periodo_escolar__nome='MANHA', grupo=None)
         values = medicao.valores_medicao.filter(categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo)
-        values = somar_valores_de_repeticao(values, medicao, campo, solicitacao)
-        somatorio_manha = sum([int(v.valor) for v in values])
+        values = somar_valores_de_repeticao(
+            values, medicao, campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+        somatorio_manha = values if type(values) == int else sum([int(v.valor) for v in values])
         if somatorio_manha == 0:
             somatorio_manha = ' - '
     except Exception:
@@ -881,12 +887,13 @@ def get_somatorio_manha(campo, solicitacao):
     return somatorio_manha
 
 
-def get_somatorio_tarde(campo, solicitacao):
+def get_somatorio_tarde(campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas):
     try:
         medicao = solicitacao.medicoes.get(periodo_escolar__nome='TARDE', grupo=None)
         values = medicao.valores_medicao.filter(categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo)
-        values = somar_valores_de_repeticao(values, medicao, campo, solicitacao)
-        somatorio_tarde = sum([int(v.valor) for v in values])
+        values = somar_valores_de_repeticao(
+            values, medicao, campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+        somatorio_tarde = values if type(values) == int else sum([int(v.valor) for v in values])
         if somatorio_tarde == 0:
             somatorio_tarde = ' - '
     except Exception:
@@ -894,12 +901,13 @@ def get_somatorio_tarde(campo, solicitacao):
     return somatorio_tarde
 
 
-def get_somatorio_integral(campo, solicitacao):
+def get_somatorio_integral(campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas):
     try:
         medicao = solicitacao.medicoes.get(periodo_escolar__nome='INTEGRAL', grupo=None)
         values = medicao.valores_medicao.filter(categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo)
-        values = somar_valores_de_repeticao(values, medicao, campo, solicitacao)
-        somatorio_integral = sum([int(v.valor) for v in values])
+        values = somar_valores_de_repeticao(
+            values, medicao, campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+        somatorio_integral = values if type(values) == int else sum([int(v.valor) for v in values])
         if somatorio_integral == 0:
             somatorio_integral = ' - '
     except Exception:
@@ -907,15 +915,20 @@ def get_somatorio_integral(campo, solicitacao):
     return somatorio_integral
 
 
-def get_somatorio_programas_e_projetos(campo, solicitacao):
+def get_somatorio_programas_e_projetos(campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas):
     try:
         medicoes = solicitacao.medicoes.filter(grupo__nome='Programas e Projetos')
         values = []
+        somatorio_programas_e_projetos = 0
         for medicao in medicoes:
             qs_values = medicao.valores_medicao.filter(categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo)
-            qs_values = somar_valores_de_repeticao(qs_values, medicao, campo, solicitacao)
-            [values.append(v.valor) for v in qs_values]
-        somatorio_programas_e_projetos = sum([int(v) for v in values])
+            qs_values = somar_valores_de_repeticao(
+                qs_values, medicao, campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+            if type(qs_values) == int:
+                somatorio_programas_e_projetos = qs_values
+            else:
+                [values.append(v.valor) for v in qs_values]
+                somatorio_programas_e_projetos = sum([int(v.valor) for v in values])
         if somatorio_programas_e_projetos == 0:
             somatorio_programas_e_projetos = ' - '
     except Exception:
@@ -947,13 +960,14 @@ def get_somatorio_total_tabela(valores_somatorios_tabela):
     return somatorio_total_tabela
 
 
-def get_somatorio_noite_eja(campo, solicitacao):
+def get_somatorio_noite_eja(campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas):
     # ajustar para filtrar periodo/grupo EJA
     try:
         medicao = solicitacao.medicoes.get(periodo_escolar__nome='NOITE', grupo=None)
         values = medicao.valores_medicao.filter(categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo)
-        values = somar_valores_de_repeticao(values, medicao, campo, solicitacao)
-        somatorio_noite = sum([int(v.valor) for v in values])
+        values = somar_valores_de_repeticao(
+            values, medicao, campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+        somatorio_noite = values if type(values) == int else sum([int(v.valor) for v in values])
         if somatorio_noite == 0:
             somatorio_noite = ' - '
     except Exception:
@@ -961,12 +975,13 @@ def get_somatorio_noite_eja(campo, solicitacao):
     return somatorio_noite
 
 
-def get_somatorio_etec(campo, solicitacao):
+def get_somatorio_etec(campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas):
     try:
         medicao = solicitacao.medicoes.get(grupo__nome='ETEC')
         values = medicao.valores_medicao.filter(categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo)
-        values = somar_valores_de_repeticao(values, medicao, campo, solicitacao)
-        somatorio_etec = sum([int(v.valor) for v in values])
+        values = somar_valores_de_repeticao(
+            values, medicao, campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+        somatorio_etec = values if type(values) == int else sum([int(v.valor) for v in values])
         if somatorio_etec == 0:
             somatorio_etec = ' - '
     except Exception:
@@ -974,7 +989,7 @@ def get_somatorio_etec(campo, solicitacao):
     return somatorio_etec
 
 
-def build_tabela_somatorio_body(solicitacao):
+def build_tabela_somatorio_body(solicitacao, dict_total_refeicoes, dict_total_sobremesas):
     ORDEM_CAMPOS = {
         'numero_de_alunos': 1,
         'matriculados': 2,
@@ -1017,10 +1032,14 @@ def build_tabela_somatorio_body(solicitacao):
     # ] E800 noqa
     body_tabela_somatorio = []
     for tipo_alimentacao in campos_tipos_alimentacao:
-        somatorio_manha = get_somatorio_manha(tipo_alimentacao, solicitacao)
-        somatorio_tarde = get_somatorio_tarde(tipo_alimentacao, solicitacao)
-        somatorio_integral = get_somatorio_integral(tipo_alimentacao, solicitacao)
-        somatorio_programas_e_projetos = get_somatorio_programas_e_projetos(tipo_alimentacao, solicitacao)
+        somatorio_manha = get_somatorio_manha(
+            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+        somatorio_tarde = get_somatorio_tarde(
+            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+        somatorio_integral = get_somatorio_integral(
+            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+        somatorio_programas_e_projetos = get_somatorio_programas_e_projetos(
+            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
         somatorio_solicitacoes_de_alimentacao = get_somatorio_solicitacoes_de_alimentacao(tipo_alimentacao, solicitacao)
         valores_somatorios_primeira_tabela = [
             somatorio_manha,
@@ -1030,8 +1049,9 @@ def build_tabela_somatorio_body(solicitacao):
             somatorio_solicitacoes_de_alimentacao
         ]
         somatorio_total_primeira_tabela = get_somatorio_total_tabela(valores_somatorios_primeira_tabela)
-        somatorio_noite_eja = get_somatorio_noite_eja(tipo_alimentacao, solicitacao)
-        somatorio_etec = get_somatorio_etec(tipo_alimentacao, solicitacao)
+        somatorio_noite_eja = get_somatorio_noite_eja(
+            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+        somatorio_etec = get_somatorio_etec(tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas)
         valores_somatorios_segunda_tabela = [
             somatorio_noite_eja,
             somatorio_etec
