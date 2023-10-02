@@ -918,7 +918,6 @@ def get_somatorio_integral(campo, solicitacao, dict_total_refeicoes, dict_total_
 def get_somatorio_programas_e_projetos(campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas):
     try:
         medicoes = solicitacao.medicoes.filter(grupo__nome='Programas e Projetos')
-        values = []
         somatorio_programas_e_projetos = 0
         for medicao in medicoes:
             qs_values = medicao.valores_medicao.filter(categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo)
@@ -927,8 +926,7 @@ def get_somatorio_programas_e_projetos(campo, solicitacao, dict_total_refeicoes,
             if type(qs_values) == int:
                 somatorio_programas_e_projetos = qs_values
             else:
-                [values.append(v.valor) for v in qs_values]
-                somatorio_programas_e_projetos = sum([int(v.valor) for v in values])
+                somatorio_programas_e_projetos = sum([int(v.valor) for v in qs_values])
         if somatorio_programas_e_projetos == 0:
             somatorio_programas_e_projetos = ' - '
     except Exception:
