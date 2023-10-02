@@ -1014,8 +1014,30 @@ def relatorio_geral_dieta_especial_pdf(form, queryset, user):
     return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
 
 
+def get_total_refeicoes_por_periodo(tabelas):
+    dict_periodos_total_refeicoes = {}
+    for tabela in tabelas:
+        if 'total_refeicoes_pagamento' in tabela['nomes_campos']:
+            idx_total_refeicoes_pagamento = tabela['nomes_campos'].index('total_refeicoes_pagamento')
+            dict_periodos_total_refeicoes[
+                tabela['periodos'][0]] = tabela['valores_campos'][-1][idx_total_refeicoes_pagamento + 1]
+    return dict_periodos_total_refeicoes
+
+
+def get_total_sobremesas_por_periodo(tabelas):
+    dict_periodos_total_sobremesas = {}
+    for tabela in tabelas:
+        if 'total_sobremesas_pagamento' in tabela['nomes_campos']:
+            idx_total_sobremesas_pagamento = tabela['nomes_campos'].index('total_sobremesas_pagamento')
+            dict_periodos_total_sobremesas[
+                tabela['periodos'][0]] = tabela['valores_campos'][-1][idx_total_sobremesas_pagamento + 1]
+    return dict_periodos_total_sobremesas
+
+
 def relatorio_solicitacao_medicao_por_escola(solicitacao):
     tabelas = build_tabelas_relatorio_medicao(solicitacao)
+    dict_total_refeicoes = get_total_refeicoes_por_periodo(tabelas)
+    dict_total_sobremesas = get_total_sobremesas_por_periodo(tabelas)
     tabela_observacoes = list(
         solicitacao.medicoes.filter(
             valores_medicao__nome_campo='observacoes'
@@ -1029,7 +1051,7 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
             'valores_medicao__dia',
             'periodo_escolar__nome',
             'valores_medicao__categoria_medicao__nome'))
-    tabela_somatorio = build_tabela_somatorio_body(solicitacao)
+    tabela_somatorio = build_tabela_somatorio_body(solicitacao, dict_total_refeicoes, dict_total_sobremesas)
     html_string = render_to_string(
         f'relatorio_solicitacao_medicao_por_escola.html',
         {
