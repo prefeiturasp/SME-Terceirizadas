@@ -4011,6 +4011,13 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ENVIADO_PARA_ANALISE,
                                       usuario=user)
 
+    @xworkflows.after_transition('codae_aprova')
+    def _codae_aprova_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_APROVADO,
+                                      usuario=user)
+
     @xworkflows.after_transition('codae_solicita_correcao')
     def _codae_solicita_correcao_hook(self, *args, **kwargs):
         user = kwargs['user']
