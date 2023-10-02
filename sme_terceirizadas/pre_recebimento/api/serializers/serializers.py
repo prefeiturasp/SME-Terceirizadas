@@ -263,7 +263,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.SerializerMethodField()
     pregao_chamada_publica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
-    observacoes = serializers.CharField()
+    nome_empresa = serializers.SerializerMethodField()
     status = serializers.CharField(source='get_status_display')
     tipos_de_embalagens = TipoEmbalagemLayoutLookupSerializer(many=True)
 
@@ -276,10 +276,15 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
 
+    def get_nome_empresa(self, obj):
+        return obj.cronograma.empresa.razao_social if obj.cronograma.empresa else None
+
     class Meta:
         model = LayoutDeEmbalagem
-        fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'status', 'criado_em',
-                  'observacoes', 'tipos_de_embalagens')
+        fields = (
+            'uuid', 'observacoes', 'criado_em', 'status', 'tipos_de_embalagens',
+            'numero_cronograma', 'pregao_chamada_publica','nome_produto', 'nome_empresa'
+        )
 
 
 class PainelLayoutEmbalagemSerializer(serializers.ModelSerializer):
