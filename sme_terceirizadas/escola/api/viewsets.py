@@ -13,7 +13,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
-from ...dados_comuns.permissions import UsuarioCODAEGestaoAlimentacao, UsuarioDiretoriaRegional, UsuarioEscolaTercTotal
+from ...dados_comuns.permissions import (
+    UsuarioCODAEGestaoAlimentacao,
+    UsuarioDiretoriaRegional,
+    UsuarioEscolaTercTotal,
+    ViewSetActionPermissionMixin
+)
 from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...eol_servico.utils import EOLException
 from ...escola.api.serializers import (
@@ -46,6 +51,7 @@ from ..models import (
     AlunosMatriculadosPeriodoEscola,
     Codae,
     DiaCalendario,
+    DiaSuspensaoAtividades,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
@@ -68,6 +74,7 @@ from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
     AlunosMatriculadosPeriodoEscolaSerializer,
     DiaCalendarioSerializer,
+    DiaSuspensaoAtividadesSerializer,
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
@@ -81,6 +88,7 @@ from .serializers import (
     TipoGestaoSerializer,
     TipoUnidadeEscolarSerializer
 )
+from .serializers_create import DiaSuspensaoAtividadesCreateManySerializer
 
 
 class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -166,30 +174,33 @@ class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
 
     @action(detail=True, url_path='somatorio-faixas-etarias/(?P<data_referencia_str>[^/.]+)')
     def somatorio_faixas_etarias(self, request, uuid, data_referencia_str):
-        form = AlunosPorFaixaEtariaForm({
-            'data_referencia': data_referencia_str
-        })
-
-        if not form.is_valid():
-            return Response(form.errors)
-
-        escola = self.get_object()
-        data_referencia = form.cleaned_data['data_referencia']
-        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)
-        faixas_uuids = []
-
-        for k in counter_faixas_etarias:
-            faixas_uuids += counter_faixas_etarias[k].keys()
-        faixas_uuids = list(set(faixas_uuids))
-
-        resultado = []
-        for faixa_etaria in FaixaEtaria.objects.filter(uuid__in=faixas_uuids):
-            resultado.append({
-                'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
-                'count': 0
+        try:
+            form = AlunosPorFaixaEtariaForm({
+                'data_referencia': data_referencia_str
             })
-        resultado = self.formata_resultado_faixa_etaria(counter_faixas_etarias, resultado)
-        return Response({'count': len(resultado), 'results': resultado})
+
+            if not form.is_valid():
+                return Response(form.errors)
+
+            escola = self.get_object()
+            data_referencia = form.cleaned_data['data_referencia']
+            counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)
+            faixas_uuids = []
+
+            for k in counter_faixas_etarias:
+                faixas_uuids += counter_faixas_etarias[k].keys()
+            faixas_uuids = list(set(faixas_uuids))
+
+            resultado = []
+            for faixa_etaria in FaixaEtaria.objects.filter(uuid__in=faixas_uuids):
+                resultado.append({
+                    'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
+                    'count': 0
+                })
+            resultado = self.formata_resultado_faixa_etaria(counter_faixas_etarias, resultado)
+            return Response({'count': len(resultado), 'results': resultado})
+        except EOLException as error:
+            return Response(data={'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
@@ -228,7 +239,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             )
         except EOLException:
             return Response(
-                {'detail': 'API EOL indisponível para carregar as faixas etárias. Tente novamente mais tarde'},
+                {'detail': 'API EOL indisponível para carregar as faixas etárias. Tente novamente mais tarde.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -458,6 +469,8 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
                 {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        except EOLException as erro:
+            return Response(data={'detail': str(erro)}, status=status.HTTP_400_BAD_REQUEST)
 
         results = []
         for uuid_faixa_etaria in faixa_alunos:
@@ -758,3 +771,33 @@ class LogAlunosMatriculadosFaixaEtariaDiaViewSet(ListModelMixin, GenericViewSet)
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = LogAlunosMatriculadosFaixaEtariaDiaFilter
     pagination_class = None
+
+
+class DiaSuspensaoAtividadesViewSet(ViewSetActionPermissionMixin, ModelViewSet):
+    permission_action_classes = {
+        'list': [UsuarioCODAEGestaoAlimentacao],
+        'create': [UsuarioCODAEGestaoAlimentacao],
+        'delete': [UsuarioCODAEGestaoAlimentacao]
+    }
+    queryset = DiaSuspensaoAtividades.objects.all()
+    lookup_field = 'uuid'
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return DiaSuspensaoAtividadesCreateManySerializer
+        return DiaSuspensaoAtividadesSerializer
+
+    def get_queryset(self):
+        queryset = DiaSuspensaoAtividades.objects.all()
+        if 'mes' in self.request.query_params and 'ano' in self.request.query_params:
+            queryset = queryset.filter(data__month=self.request.query_params.get('mes'),
+                                       data__year=self.request.query_params.get('ano'))
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super(DiaSuspensaoAtividadesViewSet, self).create(request, *args, **kwargs)
+        except AssertionError as error:
+            if str(error) == '`create()` did not return an object instance.':
+                return Response(status=status.HTTP_201_CREATED)
+            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)

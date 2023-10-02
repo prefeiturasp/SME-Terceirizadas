@@ -15,6 +15,8 @@ def test_service_dashboard_solicitacao_alteracao_cronograma_profiles(
         'CRONOGRAMA_CIENTE',
         'APROVADO_DINUTRE',
         'REPROVADO_DINUTRE',
+        'ALTERACAO_ENVIADA_FORNECEDOR',
+        'FORNECEDOR_CIENTE'
     ]
 
     assert service.get_dashboard_status(usuario) == status_esperados

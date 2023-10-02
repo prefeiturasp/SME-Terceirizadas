@@ -62,3 +62,53 @@ def get_dias_inclusao(obj, model_obj):
         'INC_ALIMENTA_CEMEI': 'dias_motivos_da_inclusao_cemei',
     }
     return getattr(model_obj, objects[obj.tipo_doc]).all()
+
+
+def tratar_periodo_parcial(nome_periodo_escolar):
+    if nome_periodo_escolar == 'PARCIAL':
+        nome_periodo_escolar = 'INTEGRAL'
+    return nome_periodo_escolar
+
+
+def tratar_append_return_dict(dia, mes, ano, periodo, inclusao, return_dict):
+    if (get_ultimo_dia_mes(datetime.date(int(ano), int(mes), 1)) < datetime.date.today() or
+            dia < datetime.date.today().day):
+        alimentacoes = ', '.join([
+            unicodedata.normalize('NFD', alimentacao.nome.replace(' ', '_')).encode(
+                'ascii', 'ignore').decode('utf-8') for alimentacao in periodo.tipos_alimentacao.all()]).lower()
+        return return_dict.append({
+            'dia': f'{dia:02d}',
+            'periodo': f'{periodo.periodo_escolar.nome}',
+            'alimentacoes': alimentacoes,
+            'numero_alunos': periodo.numero_alunos,
+            'dias_semana': periodo.dias_semana,
+            'inclusao_id_externo': inclusao.id_externo
+        })
+
+
+def criar_dict_dias_inclusoes_continuas(i, data_evento_final_no_mes, periodo, ano, mes, inclusao, return_dict):
+    while i <= data_evento_final_no_mes:
+        if (not periodo.dias_semana or
+                (datetime.date(int(ano), int(mes), i).weekday()) in periodo.dias_semana):
+            tratar_append_return_dict(i, mes, ano, periodo, inclusao, return_dict)
+        i += 1
+
+
+def tratar_inclusao_continua(mes, ano, periodo, inclusao, return_dict):
+    if inclusao.data_evento.month != int(mes) and inclusao.data_evento_2.month == int(mes):
+        # data_inicial fora e data_final dentro do mês analisado
+        i = datetime.date(int(ano), int(mes), 1).day
+        data_evento_final_no_mes = inclusao.data_evento_2.day
+    elif inclusao.data_evento.month == int(mes) and inclusao.data_evento_2.month != int(mes):
+        # data_inicial dentro e data_final fora do mês analisado
+        i = inclusao.data_evento.day
+        data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
+    elif inclusao.data_evento.month == int(mes) and inclusao.data_evento_2.month == int(mes):
+        # data_inicial e data_final dentro do mês analisado
+        i = inclusao.data_evento.day
+        data_evento_final_no_mes = inclusao.data_evento_2.day
+    elif inclusao.data_evento.month != int(mes) and inclusao.data_evento_2.month != int(mes):
+        # data_inicial e data_final fora do mês analisado
+        i = datetime.date(int(ano), int(mes), 1).day
+        data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
+    criar_dict_dias_inclusoes_continuas(i, data_evento_final_no_mes, periodo, ano, mes, inclusao, return_dict)

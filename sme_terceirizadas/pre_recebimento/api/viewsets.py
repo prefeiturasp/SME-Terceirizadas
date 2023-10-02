@@ -28,12 +28,15 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaDashboardCronograma,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCronograma,
+    PermissaoParaVisualizarLayoutDeEmbalagem,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
+    UsuarioEhFornecedor,
     ViewSetActionPermissionMixin
 )
 from sme_terceirizadas.pre_recebimento.api.filters import (
     CronogramaFilter,
     LaboratorioFilter,
+    LayoutDeEmbalagemFilter,
     SolicitacaoAlteracaoCronogramaFilter,
     TipoEmbalagemQldFilter,
     UnidadeMedidaFilter
@@ -46,6 +49,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
     LaboratorioCreateSerializer,
+    LayoutDeEmbalagemCreateSerializer,
     SolicitacaoDeAlteracaoCronogramaCreateSerializer,
     TipoEmbalagemQldCreateSerializer,
     UnidadeMedidaCreateSerializer
@@ -54,8 +58,11 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
+    CronogramaSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
+    LayoutDeEmbalagemDetalheSerializer,
+    LayoutDeEmbalagemSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
@@ -68,11 +75,13 @@ from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
     Laboratorio,
+    LayoutDeEmbalagem,
     SolicitacaoAlteracaoCronograma,
     TipoEmbalagemQld,
     UnidadeMedida
 )
 from sme_terceirizadas.pre_recebimento.utils import (
+    LayoutDeEmbalagemPagination,
     ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
     UnidadeMedidaPagination
 )
@@ -114,6 +123,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         return lista_status
 
     def get_default_sql(self, workflow, query_set, use_raw):
+        workflow = workflow if isinstance(workflow, list) else [workflow]
         if use_raw:
             data = {'logs': LogSolicitacoesUsuario._meta.db_table,
                     'cronograma': Cronograma._meta.db_table,
@@ -128,7 +138,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
             return query_set.raw(raw_sql % data)
         else:
-            qs = sorted(query_set.filter(status=workflow).distinct().all(),
+            qs = sorted(query_set.filter(status__in=workflow).distinct().all(),
                         key=lambda x: x.log_mais_recente.criado_em
                         if x.log_mais_recente else '-criado_em', reverse=True)
             return qs
@@ -136,7 +146,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
     def dados_dashboard(self, request, query_set: QuerySet, use_raw) -> list:
         limit = int(request.query_params.get('limit', 10))
         offset = int(request.query_params.get('offset', 0))
-        status = request.query_params.get('status', None)
+        status = request.query_params.getlist('status', None)
         sumario = []
         if status:
             qs = self.get_default_sql(workflow=status, query_set=query_set, use_raw=use_raw)
@@ -294,6 +304,13 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         response = CronogramaComLogSerializer(cronograma, many=False).data
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='lista-cronogramas-cadastro-layout')
+    def lista_cronogramas_para_cadastro_de_layout(self, request):
+        cronogramas = self.get_queryset()
+        serializer = CronogramaSimplesSerializer(cronogramas, many=True).data
+        response = {'results': serializer}
+        return Response(response)
+
 
 class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -391,7 +408,7 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     def _dados_dashboard(self, request, filtros=None):
         limit = int(request.query_params.get('limit', 10)) if 'limit' in request.query_params else 6
         offset = int(request.query_params.get('offset', 0)) if 'offset' in request.query_params else 0
-        status = request.query_params.get('status', None)
+        status = request.query_params.getlist('status', None)
         dados_dashboard = []
         lista_status = (
             [status] if status else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
@@ -556,3 +573,31 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
         serializer = NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True)
         response = {'results': serializer.data}
         return Response(response)
+
+
+class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = LayoutDeEmbalagemSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = LayoutDeEmbalagemFilter
+    pagination_class = LayoutDeEmbalagemPagination
+    permission_classes = (PermissaoParaVisualizarLayoutDeEmbalagem,)
+    permission_action_classes = {
+        'create': [UsuarioEhFornecedor],
+        'delete': [UsuarioEhFornecedor]
+    }
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.eh_fornecedor:
+            return LayoutDeEmbalagem.objects.filter(
+                cronograma__empresa=user.vinculo_atual.instituicao
+            ).order_by('-criado_em')
+        return LayoutDeEmbalagem.objects.all().order_by('-criado_em')
+
+    def get_serializer_class(self):
+        serializer_classes_map = {
+            'list': LayoutDeEmbalagemSerializer,
+            'retrieve': LayoutDeEmbalagemDetalheSerializer,
+        }
+        return serializer_classes_map.get(self.action, LayoutDeEmbalagemCreateSerializer)

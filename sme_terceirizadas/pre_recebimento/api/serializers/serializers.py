@@ -7,9 +7,12 @@ from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSeriali
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
+    ImagemDoTipoDeEmbalagem,
     Laboratorio,
+    LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
     UnidadeMedida
 )
@@ -108,6 +111,21 @@ class CronogramaRascunhosSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'numero', 'alterado_em')
 
 
+class CronogramaSimplesSerializer(serializers.ModelSerializer):
+    pregao_chamada_publica = serializers.SerializerMethodField()
+    nome_produto = serializers.SerializerMethodField()
+
+    def get_pregao_chamada_publica(self, obj):
+        return obj.contrato.pregao_chamada_publica if obj.contrato else None
+
+    def get_nome_produto(self, obj):
+        return obj.produto.nome if obj.produto else None
+
+    class Meta:
+        model = Cronograma
+        fields = ('uuid', 'numero', 'pregao_chamada_publica', 'nome_produto')
+
+
 class PainelCronogramaSerializer(serializers.ModelSerializer):
     produto = serializers.SerializerMethodField()
     empresa = serializers.SerializerMethodField()
@@ -204,3 +222,61 @@ class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
         model = UnidadeMedida
         fields = ('uuid', 'nome', 'abreviacao')
         read_only_fields = ('uuid', 'nome', 'abreviacao')
+
+
+class ImagemDoTipoEmbalagemLookupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ImagemDoTipoDeEmbalagem
+        exclude = ('id', 'uuid', 'tipo_de_embalagem')
+
+
+class TipoEmbalagemLayoutLookupSerializer(serializers.ModelSerializer):
+    imagens = ImagemDoTipoEmbalagemLookupSerializer(many=True)
+
+    class Meta:
+        model = TipoDeEmbalagemDeLayout
+        exclude = ('id', 'uuid', 'layout_de_embalagem')
+
+
+class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
+    numero_cronograma = serializers.SerializerMethodField()
+    pregao_chamada_publica = serializers.SerializerMethodField()
+    nome_produto = serializers.SerializerMethodField()
+    status = serializers.CharField(source='get_status_display')
+
+    def get_numero_cronograma(self, obj):
+        return obj.cronograma.numero if obj.cronograma else None
+
+    def get_pregao_chamada_publica(self, obj):
+        return obj.cronograma.contrato.pregao_chamada_publica if obj.cronograma.contrato else None
+
+    def get_nome_produto(self, obj):
+        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+
+    class Meta:
+        model = LayoutDeEmbalagem
+        fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'status', 'criado_em')
+
+
+class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
+    numero_cronograma = serializers.SerializerMethodField()
+    pregao_chamada_publica = serializers.SerializerMethodField()
+    nome_produto = serializers.SerializerMethodField()
+    observacoes = serializers.CharField()
+    status = serializers.CharField(source='get_status_display')
+    tipos_de_embalagens = TipoEmbalagemLayoutLookupSerializer(many=True)
+
+    def get_numero_cronograma(self, obj):
+        return obj.cronograma.numero if obj.cronograma else None
+
+    def get_pregao_chamada_publica(self, obj):
+        return obj.cronograma.contrato.pregao_chamada_publica if obj.cronograma.contrato else None
+
+    def get_nome_produto(self, obj):
+        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+
+    class Meta:
+        model = LayoutDeEmbalagem
+        fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'status', 'criado_em',
+                  'observacoes', 'tipos_de_embalagens')

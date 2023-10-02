@@ -40,9 +40,14 @@ from ..dados_comuns.behaviors import (
     TemObservacao,
     TemVinculos
 )
-from ..dados_comuns.constants import COORDENADOR_DIETA_ESPECIAL, COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DIRETOR_UE
+from ..dados_comuns.constants import (
+    COORDENADOR_DIETA_ESPECIAL,
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    DIRETOR_UE,
+    obter_dias_uteis_apos_hoje
+)
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoDietaEspecialPartindoDaEscola
-from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
+from ..dados_comuns.utils import datetime_range, queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
 from ..escola.constants import (
     PERIODOS_ESPECIAIS_CEI_CEU_CCI,
@@ -287,7 +292,7 @@ class FaixaIdadeEscolar(ExportModelOperationsMixin('faixa_idade'), Nomeavel, Ati
 
 
 class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativavel, TemChaveExterna):
-    """EEMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI..."""
+    """EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI..."""
 
     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True, related_name='tipos_unidade_escolar')
     periodos_escolares = models.ManyToManyField(
@@ -1393,3 +1398,37 @@ class AlunoPeriodoParcial(TemChaveExterna, CriadoEm):
         verbose_name = 'Aluno no período parcial'
         verbose_name_plural = 'Alunos no período parcial'
         ordering = ('criado_em',)
+
+
+class DiaSuspensaoAtividades(TemData, TemChaveExterna, CriadoEm, CriadoPor):
+    tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.CASCADE)
+
+    @property
+    def tipo_unidades(self):
+        return None
+
+    @staticmethod
+    def get_dias_com_suspensao(escola: Escola, eh_solicitacao_unificada: bool, quantidade_dias: int):
+        hoje = datetime.date.today()
+        proximos_dias_uteis = obter_dias_uteis_apos_hoje(quantidade_dias)
+        dias = datetime_range(hoje, proximos_dias_uteis)
+        dias_com_suspensao = 0
+        if escola:
+            dias_com_suspensao = DiaSuspensaoAtividades.objects.filter(
+                data__in=dias,
+                tipo_unidade=escola.tipo_unidade
+            ).count()
+        elif eh_solicitacao_unificada:
+            for dia in dias:
+                if DiaSuspensaoAtividades.objects.filter(data=dia).count() == TipoUnidadeEscolar.objects.count():
+                    dias_com_suspensao += 1
+        return dias_com_suspensao
+
+    def __str__(self):
+        return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais}'
+
+    class Meta:
+        verbose_name = 'Dia de suspensão de atividades'
+        verbose_name_plural = 'Dias de suspensão de atividades'
+        unique_together = ('tipo_unidade', 'data',)
+        ordering = ('data',)

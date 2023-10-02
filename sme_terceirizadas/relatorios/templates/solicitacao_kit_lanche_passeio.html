@@ -20,6 +20,10 @@
         <div>Local do passeio</div>
         <div>{{ solicitacao.local }}</div>
       </div>
+      <div class="info info-motivo-local ml-5">
+        <div>Evento/Passeio</div>
+        <div>{{ solicitacao.evento|default_if_none:"- -" }}</div>
+      </div>
     </div>
   </div>
 

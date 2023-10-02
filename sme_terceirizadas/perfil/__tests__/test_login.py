@@ -14,6 +14,8 @@ from sme_terceirizadas.perfil.__tests__.conftest import (
     mocked_response_get_dados_usuario_coresso,
     mocked_response_get_dados_usuario_coresso_adm_escola,
     mocked_response_get_dados_usuario_coresso_cogestor,
+    mocked_response_get_dados_usuario_coresso_coordenador,
+    mocked_response_get_dados_usuario_coresso_gestor,
     mocked_response_get_dados_usuario_coresso_sem_acesso_automatico,
     mocked_response_get_dados_usuario_coresso_sem_email
 )
@@ -38,6 +40,44 @@ def test_login_coresso_diretor_sucesso(client_autenticado_da_escola, monkeypatch
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso(), 200))
     response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_login_coresso_diretor_sucesso_coordenador(client_autenticado_da_escola, monkeypatch):
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'login': '1234567',
+        'senha': DJANGO_ADMIN_PASSWORD
+    }
+
+    monkeypatch.setattr(AutenticacaoService, 'autentica',
+                        lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor(), 200))
+    monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
+                        lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_gestor(), 200))
+    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    assert response.status_code == status.HTTP_200_OK
+    usuario = Usuario.objects.get(username=data['login'])
+    assert usuario.vinculo_atual.perfil.nome == DIRETOR_UE
+
+
+def test_login_coresso_diretor_sucesso_gestor(client_autenticado_da_escola, monkeypatch):
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'login': '1234567',
+        'senha': DJANGO_ADMIN_PASSWORD
+    }
+
+    monkeypatch.setattr(AutenticacaoService, 'autentica',
+                        lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor(), 200))
+    monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
+                        lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_coordenador(), 200))
+    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    assert response.status_code == status.HTTP_200_OK
+    usuario = Usuario.objects.get(username=data['login'])
+    assert usuario.vinculo_atual.perfil.nome == DIRETOR_UE
 
 
 def test_login_coresso_erro_usuario_nao_existe(client_autenticado_da_escola, monkeypatch):

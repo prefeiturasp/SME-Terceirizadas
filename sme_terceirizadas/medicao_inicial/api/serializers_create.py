@@ -31,6 +31,11 @@ from sme_terceirizadas.medicao_inicial.models import (
 from sme_terceirizadas.perfil.models import Usuario
 
 from ..utils import log_alteracoes_escola_corrige_periodo
+from ..validators import (
+    validate_lancamento_alimentacoes_medicao,
+    validate_lancamento_dietas,
+    validate_lancamento_inclusoes
+)
 
 
 class DiaSobremesaDoceCreateSerializer(serializers.ModelSerializer):
@@ -150,6 +155,18 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         return solicitacao
 
     def update(self, instance, validated_data):  # noqa C901
+        lista_erros = []
+        iniciais = ['EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
+        status_para_validacao = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
+        iniciais_escola = instance.escola.tipo_unidade.iniciais
+        if (instance.status == status_para_validacao and iniciais_escola in iniciais):
+            lista_erros = validate_lancamento_alimentacoes_medicao(instance, lista_erros)
+            lista_erros = validate_lancamento_inclusoes(instance, lista_erros)
+            lista_erros = validate_lancamento_dietas(instance, lista_erros)
+
+        if lista_erros:
+            raise serializers.ValidationError(lista_erros)
+
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)
         key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
 

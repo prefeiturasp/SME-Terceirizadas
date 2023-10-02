@@ -27,6 +27,13 @@
           {% else %}
           <div class="col-3"></div>
           {% endif %}
+          {% if inclusao.evento %}
+            <div class="custom-offset col-md-9 mt-2">Descrição do Evento:</div>
+            <div class="custom-offset col-md-9">{{ inclusao.evento }}</div>
+            <div class="col-12">
+                <div class="linha-divisoria"></div>
+            </div>
+          {% endif %}
         </div>
         {% endfor %}
       {% endif %}
