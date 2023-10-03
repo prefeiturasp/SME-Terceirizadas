@@ -145,15 +145,9 @@ def build_headers_tabelas(solicitacao):
                             if not medicao.grupo
                             else (f'{medicao.grupo.nome} - {medicao.periodo_escolar.nome}'
                                   if medicao.periodo_escolar else medicao.grupo.nome))
-            if len(tabelas[indice_atual]['nomes_campos']) + len(dict_categorias_campos[categoria]) <= MAX_COLUNAS:
-                if nome_periodo not in tabelas[indice_atual]['periodos']:
-                    tabelas[indice_atual]['periodos'] += [nome_periodo]
-                tabelas[indice_atual]['categorias'] += [categoria]
-                tabelas[indice_atual]['nomes_campos'] += sorted(
-                    dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k])
-                tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
-                get_categorias_dos_periodos(nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos)
-            else:
+            if ((len(tabelas[indice_atual]['nomes_campos']) + len(dict_categorias_campos[categoria]) > MAX_COLUNAS) or
+                ('total_refeicoes_pagamento' in tabelas[indice_atual]['nomes_campos'] and 'total_refeicoes_pagamento'
+                    in dict_categorias_campos[categoria])):
                 indice_atual += 1
                 tabelas += [{'periodos': [], 'categorias': [], 'nomes_campos': [], 'len_periodos': [],
                              'len_categorias': [], 'valores_campos': [], 'ordem_periodos_grupos': [],
@@ -164,9 +158,16 @@ def build_headers_tabelas(solicitacao):
                     dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k])
                 tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
                 get_categorias_dos_periodos(nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos)
+            else:
+                if nome_periodo not in tabelas[indice_atual]['periodos']:
+                    tabelas[indice_atual]['periodos'] += [nome_periodo]
+                tabelas[indice_atual]['categorias'] += [categoria]
+                tabelas[indice_atual]['nomes_campos'] += sorted(
+                    dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k])
+                tabelas[indice_atual]['len_categorias'] += [len(dict_categorias_campos[categoria])]
+                get_categorias_dos_periodos(nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos)
 
     get_tamanho_colunas_periodos(tabelas, ORDEM_PERIODOS_GRUPOS)
-
     return tabelas
 
 
