@@ -614,7 +614,7 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
 
     def _dados_dashboard(self, request: Request, queryset_base: QuerySet) -> list:
         offset = int(request.query_params.get('offset', 0))
-        limit = int(request.query_params.get('limit', 5))
+        limit = int(request.query_params.get('limit', 6))
         lista_status_ver_mais = request.query_params.getlist('status', None)
 
         if lista_status_ver_mais:

@@ -1071,7 +1071,7 @@ def test_url_dashboard_layout_embalagens(client_autenticado_codae_dilog, lista_l
     for status_esperado in status_esperados:
         assert status_esperado in status_recebidos
 
-    assert len(response.json()['results'][0]['dados']) == 5
+    assert len(response.json()['results'][0]['dados']) == 6
 
 
 def test_url_dashboard_layout_embalagens_com_filtro(client_autenticado_codae_dilog, lista_layouts_de_embalagem):
@@ -1085,15 +1085,15 @@ def test_url_dashboard_layout_embalagens_com_filtro(client_autenticado_codae_dil
 
     filtros = {'numero_cronograma': '004/2022'}
     response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
-    assert len(response.json()['results'][0]['dados']) == 5
+    assert len(response.json()['results'][0]['dados']) == 6
 
     filtros = {'nome_produto': 'Macarrão'}
     response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
-    assert len(response.json()['results'][0]['dados']) == 5
+    assert len(response.json()['results'][0]['dados']) == 6
 
     filtros = {'nome_fornecedor': 'Alimentos'}
     response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
-    assert len(response.json()['results'][0]['dados']) == 5
+    assert len(response.json()['results'][0]['dados']) == 6
 
 
 def test_url_dashboard_layout_embalagens_ver_mais(
