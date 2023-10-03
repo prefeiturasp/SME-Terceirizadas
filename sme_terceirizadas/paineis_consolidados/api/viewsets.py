@@ -25,6 +25,7 @@ from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...escola.api.serializers import PeriodoEscolarSerializer
 from ...escola.models import PeriodoEscolar
 from ...inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal
+from ...kit_lanche.models import SolicitacaoKitLancheUnificada
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
@@ -949,7 +950,9 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             if kit_lanche:
                 return_dict.append({
                     'dia': f'{kit_lanche.solicitacao_kit_lanche.data.day:02d}',
-                    'numero_alunos': kit_lanche.quantidade_alimentacoes,
+                    'numero_alunos': (kit_lanche.total_kit_lanche_escola(escola_uuid)
+                                      if isinstance(kit_lanche, SolicitacaoKitLancheUnificada)
+                                      else kit_lanche.quantidade_alimentacoes),
                     'kit_lanche_id_externo': kit_lanche.id_externo,
                 })
 
