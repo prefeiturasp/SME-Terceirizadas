@@ -4,7 +4,7 @@ from model_mommy import mommy
 from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
-from ..models import LayoutDeEmbalagem, UnidadeMedida
+from ..models import LayoutDeEmbalagem, TipoDeEmbalagemDeLayout, UnidadeMedida
 
 
 @pytest.fixture
@@ -375,6 +375,49 @@ def lista_layouts_de_embalagem_enviados_para_analise(
     objects = [mommy.make(LayoutDeEmbalagem, **attrs) for attrs in data]
 
     return objects
+
+
+@pytest.fixture
+def lista_layouts_de_embalagem_com_tipo_embalagem(cronograma_assinado_perfil_dilog):
+    dados_layouts = [
+        {
+            'cronograma': cronograma_assinado_perfil_dilog,
+            'observacoes': f'Teste {i}',
+            'status': LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+        }
+        for i in range(1, 3)
+    ]
+
+    layouts = [mommy.make(LayoutDeEmbalagem, **attrs) for attrs in dados_layouts]
+
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layouts[0],
+        tipo_embalagem=TipoDeEmbalagemDeLayout.PRIMARIA
+    )
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layouts[0],
+        tipo_embalagem=TipoDeEmbalagemDeLayout.SECUNDARIA
+    )
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layouts[0],
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TERCIARIA
+    )
+
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layouts[1],
+        tipo_embalagem=TipoDeEmbalagemDeLayout.PRIMARIA
+    )
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layouts[1],
+        tipo_embalagem=TipoDeEmbalagemDeLayout.SECUNDARIA
+    )
+
+    return layouts
 
 
 @pytest.fixture
