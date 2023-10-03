@@ -1,3 +1,6 @@
+import os
+
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models import OuterRef
 from django.db.models.signals import post_save
@@ -18,6 +21,7 @@ from ...dados_comuns.fluxo_status import (
     FluxoLayoutDeEmbalagem
 )
 from ...dados_comuns.models import LogSolicitacoesUsuario
+from ...dados_comuns.validators import validate_file_size_10mb
 from ...produto.models import NomeDeProdutoEdital
 from ...terceirizada.models import Contrato, Terceirizada
 
@@ -229,11 +233,20 @@ def gerar_numero_solicitacao(sender, instance, created, **kwargs):
 class ImagemDoTipoDeEmbalagem(TemChaveExterna):
     tipo_de_embalagem = models.ForeignKey(
         'TipoDeEmbalagemDeLayout', on_delete=models.CASCADE, related_name='imagens', blank=True)
-    arquivo = models.FileField()
+    arquivo = models.FileField(upload_to='layouts_de_embalagens', validators=[
+        FileExtensionValidator(allowed_extensions=['PDF', 'PNG', 'JPG', 'JPEG']),
+        validate_file_size_10mb])
     nome = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return f'{self.tipo_de_embalagem.tipo_embalagem} - {self.nome}' if self.tipo_de_embalagem else str(self.id)
+
+    def delete(self, *args, **kwargs):
+        # Antes de excluir o objeto, exclui o arquivo associado
+        if self.arquivo:
+            if os.path.isfile(self.arquivo.path):
+                os.remove(self.arquivo.path)
+        super().delete(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Imagem do Tipo de Embalagem'
