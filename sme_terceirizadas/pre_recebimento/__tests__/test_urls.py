@@ -1218,7 +1218,7 @@ def test_url_layout_embalagens_analise_aprovacao(
 
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
     response = client_autenticado_codae_dilog.patch(
-        f'/layouts-de-embalagem/{layout_analisado.uuid}/aprovar-ou-solicitar-correcao/',
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
         data=json.dumps(dados_analise)
     )
@@ -1244,7 +1244,7 @@ def test_url_layout_embalagens_analise_aprovacao(
 
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[1]
     response = client_autenticado_codae_dilog.patch(
-        f'/layouts-de-embalagem/{layout_analisado.uuid}/aprovar-ou-solicitar-correcao/',
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
         data=json.dumps(dados_analise)
     )
@@ -1280,7 +1280,7 @@ def test_url_layout_embalagens_analise_solicitacao_correcao(
 
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
     response = client_autenticado_codae_dilog.patch(
-        f'/layouts-de-embalagem/{layout_analisado.uuid}/aprovar-ou-solicitar-correcao/',
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
         data=json.dumps(dados_analise)
     )
@@ -1306,7 +1306,7 @@ def test_url_layout_embalagens_analise_solicitacao_correcao(
 
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[1]
     response = client_autenticado_codae_dilog.patch(
-        f'/layouts-de-embalagem/{layout_analisado.uuid}/aprovar-ou-solicitar-correcao/',
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
         data=json.dumps(dados_analise)
     )
@@ -1337,7 +1337,7 @@ def test_url_layout_embalagens_analise_erro_quantidade_tipos_embalagem(
 
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
     response = client_autenticado_codae_dilog.patch(
-        f'/layouts-de-embalagem/{layout_analisado.uuid}/aprovar-ou-solicitar-correcao/',
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
         data=json.dumps(dados_analise)
     )

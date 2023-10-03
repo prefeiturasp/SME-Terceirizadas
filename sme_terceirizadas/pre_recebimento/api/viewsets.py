@@ -607,8 +607,8 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
         return serializer_classes_map.get(self.action, LayoutDeEmbalagemCreateSerializer)
 
     @action(detail=True, methods=['PATCH'],
-            url_path='aprovar-ou-solicitar-correcao', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
-    def aprovar_ou_solicitar_correcao(self, request, uuid):
+            url_path='codae-aprova-ou-solicita-correcao', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
+    def codae_aprova_ou_solicita_correcao(self, request, uuid):
         serializer = LayoutDeEmbalagemAnaliseSerializer(
             instance=self.get_object(),
             data=request.data,
