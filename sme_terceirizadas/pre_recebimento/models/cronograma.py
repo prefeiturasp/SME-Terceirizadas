@@ -290,7 +290,7 @@ class LayoutDeEmbalagem(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Fluxo
 
     @property
     def aprovado(self):
-        not self.tipos_de_embalagens.filter(status='REPROVADO').exists()
+        return not self.tipos_de_embalagens.filter(status='REPROVADO').exists()
 
     def __str__(self):
         return f'{self.cronograma.numero} - {self.cronograma.produto.nome}' if self.cronograma else str(self.id)

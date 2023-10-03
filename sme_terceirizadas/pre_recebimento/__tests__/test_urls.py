@@ -1190,3 +1190,158 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
     }
     response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
     assert len(response.json()['results']['dados']) == 10
+
+
+def test_url_layout_embalagens_analise_aprovacao(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem_com_tipo_embalagem
+):
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'TERCIARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/aprovar-ou-solicitar-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+    layout_analisado.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert layout_analisado.aprovado
+
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[1]
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/aprovar-ou-solicitar-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+    layout_analisado.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert layout_analisado.aprovado
+
+
+def test_url_layout_embalagens_analise_solicitacao_correcao(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem_com_tipo_embalagem
+):
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'TERCIARIA',
+                'status': 'REPROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/aprovar-ou-solicitar-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+    layout_analisado.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert not layout_analisado.aprovado
+
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'REPROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[1]
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/aprovar-ou-solicitar-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+    layout_analisado.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert not layout_analisado.aprovado
+
+
+def test_url_layout_embalagens_analise_erro_quantidade_tipos_embalagem(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem_com_tipo_embalagem
+):
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/aprovar-ou-solicitar-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+
+    msg_erro = 'Quantidade de Tipos de Embalagem recebida é diferente da quantidade presente no Layout de Embalagem.'
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert msg_erro in response.json()['tipos_de_embalagens']

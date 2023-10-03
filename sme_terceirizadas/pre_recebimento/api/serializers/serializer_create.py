@@ -367,6 +367,47 @@ class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class TipoDeEmbalagemDeLayoutAnaliseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoDeEmbalagemDeLayout
+        fields = ('tipo_embalagem', 'status', 'complemento_do_status')
+        extra_kwargs = {
+            'tipo_embalagem': {'required': True},
+            'status': {'required': True},
+            'complemento_do_status': {'required': True},
+        }
+
+
+class LayoutDeEmbalagemAnaliseSerializer(serializers.ModelSerializer):
+    tipos_de_embalagens = TipoDeEmbalagemDeLayoutAnaliseSerializer(many=True)
+
+    def validate_tipos_de_embalagens(self, value):
+        if not len(value) == self.instance.tipos_de_embalagens.count():
+            raise serializers.ValidationError(
+                'Quantidade de Tipos de Embalagem recebida é diferente da quantidade presente no Layout de Embalagem.'
+            )
+
+        return value
+
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+        dados_tipos_de_embalagens = validated_data.pop('tipos_de_embalagens', [])
+
+        for dados in dados_tipos_de_embalagens:
+            tipo_de_embalagem = instance.tipos_de_embalagens.get(tipo_embalagem=dados['tipo_embalagem'])
+            tipo_de_embalagem.status = dados['status']
+            tipo_de_embalagem.complemento_do_status = dados['complemento_do_status']
+            tipo_de_embalagem.save()
+
+        instance.codae_aprova(user=user) if instance.aprovado else instance.codae_solicita_correcao(user=user)
+
+        return instance
+
+    class Meta:
+        model = LayoutDeEmbalagem
+        fields = ('tipos_de_embalagens',)
+
+
 class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
     tipos_de_embalagens = TipoDeEmbalagemDeLayoutCreateSerializer(many=True, required=True)
     observacoes = serializers.CharField(required=False)
