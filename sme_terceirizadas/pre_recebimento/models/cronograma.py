@@ -270,6 +270,7 @@ class TipoDeEmbalagemDeLayout(TemChaveExterna):
     class Meta:
         verbose_name = 'Tipo de Embalagem de Layout'
         verbose_name_plural = 'Tipos de Embalagens de Layout'
+        unique_together = ['layout_de_embalagem', 'tipo_embalagem']
 
 
 class LayoutDeEmbalagem(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoLayoutDeEmbalagem):
@@ -286,6 +287,10 @@ class LayoutDeEmbalagem(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Fluxo
             uuid_original=self.uuid,
             justificativa=justificativa
         )
+
+    @property
+    def aprovado(self):
+        return not self.tipos_de_embalagens.filter(status='REPROVADO').exists()
 
     def __str__(self):
         return f'{self.cronograma.numero} - {self.cronograma.produto.nome}' if self.cronograma else str(self.id)

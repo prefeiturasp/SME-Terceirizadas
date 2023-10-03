@@ -50,6 +50,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
     LaboratorioCreateSerializer,
+    LayoutDeEmbalagemAnaliseSerializer,
     LayoutDeEmbalagemCreateSerializer,
     SolicitacaoDeAlteracaoCronogramaCreateSerializer,
     TipoEmbalagemQldCreateSerializer,
@@ -604,6 +605,19 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
             'retrieve': LayoutDeEmbalagemDetalheSerializer,
         }
         return serializer_classes_map.get(self.action, LayoutDeEmbalagemCreateSerializer)
+
+    @action(detail=True, methods=['PATCH'],
+            url_path='codae-aprova-ou-solicita-correcao', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
+    def codae_aprova_ou_solicita_correcao(self, request, uuid):
+        serializer = LayoutDeEmbalagemAnaliseSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            layout_atualizado = serializer.save()
+            return Response(LayoutDeEmbalagemDetalheSerializer(layout_atualizado).data)
 
     @action(detail=False, methods=['GET'],
             url_path='dashboard', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
