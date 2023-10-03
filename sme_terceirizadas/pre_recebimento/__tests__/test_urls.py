@@ -5,6 +5,7 @@ from django.conf import settings
 from rest_framework import status
 
 from sme_terceirizadas.dados_comuns import constants
+from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer
@@ -1058,3 +1059,114 @@ def test_url_layout_de_embalagem_listagem(client_autenticado_qualidade, lista_la
     assert response.data['count'] == len(lista_layouts_de_embalagem)
     assert len(response.data['results']) == LayoutDeEmbalagemPagination.page_size
     assert response.data['next'] is not None
+
+
+def test_url_dashboard_layout_embalagens(client_autenticado_codae_dilog, lista_layouts_de_embalagem):
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    status_esperados = [LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE]
+    status_recebidos = [result['status'] for result in response.json()['results']]
+    for status_esperado in status_esperados:
+        assert status_esperado in status_recebidos
+
+    assert len(response.json()['results'][0]['dados']) == 6
+
+
+def test_url_dashboard_layout_embalagens_com_filtro(client_autenticado_codae_dilog, lista_layouts_de_embalagem):
+    filtros = {'numero_cronograma': '003/2022'}
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results'][0]['dados']) == 4
+
+    filtros = {'nome_produto': 'Arroz'}
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results'][0]['dados']) == 4
+
+    filtros = {'numero_cronograma': '004/2022'}
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results'][0]['dados']) == 6
+
+    filtros = {'nome_produto': 'Macarrão'}
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results'][0]['dados']) == 6
+
+    filtros = {'nome_fornecedor': 'Alimentos'}
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results'][0]['dados']) == 6
+
+
+def test_url_dashboard_layout_embalagens_ver_mais(
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem_enviados_para_analise
+):
+    filtros = {
+        'status': LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+        'offset': 0,
+        'limit': 10
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']['dados']) == 10
+    assert response.json()['results']['total'] == len(lista_layouts_de_embalagem_enviados_para_analise)
+
+
+def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem_enviados_para_analise
+):
+    filtros = {
+        'status': LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+        'offset': 0,
+        'limit': 10,
+        'numero_cronograma': '003/2022',
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results']['dados']) == 4
+
+    layouts_esperados = LayoutDeEmbalagem.objects.filter(cronograma__numero='003/2022').order_by('-criado_em')[:10]
+    primeiro_layout_esperado = layouts_esperados[0]
+    ultimo_layout_esperado = layouts_esperados[3]
+    assert str(primeiro_layout_esperado.uuid) == response.json()['results']['dados'][0]['uuid']
+    assert str(ultimo_layout_esperado.uuid) == response.json()['results']['dados'][-1]['uuid']
+
+    filtros = {
+        'status': LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+        'offset': 0,
+        'limit': 10,
+        'nome_produto': 'Arroz',
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results']['dados']) == 4
+
+    filtros = {
+        'status': LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+        'offset': 0,
+        'limit': 10,
+        'numero_cronograma': '004/2022',
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results']['dados']) == 10
+
+    layouts_esperados = LayoutDeEmbalagem.objects.filter(cronograma__numero='004/2022').order_by('-criado_em')[:10]
+    primeiro_layout_esperado = layouts_esperados[0]
+    ultimo_layout_esperado = layouts_esperados[9]
+    assert str(primeiro_layout_esperado.uuid) == response.json()['results']['dados'][0]['uuid']
+    assert str(ultimo_layout_esperado.uuid) == response.json()['results']['dados'][-1]['uuid']
+
+    filtros = {
+        'status': LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+        'offset': 0,
+        'limit': 10,
+        'nome_produto': 'Macarrão',
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results']['dados']) == 10
+
+    filtros = {
+        'status': LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+        'offset': 0,
+        'limit': 10,
+        'nome_fornecedor': 'Alimentos',
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results']['dados']) == 10
