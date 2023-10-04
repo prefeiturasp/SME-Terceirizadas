@@ -51,6 +51,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     CronogramaCreateSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
+    LayoutDeEmbalagemCorrecaoSerializer,
     LayoutDeEmbalagemCreateSerializer,
     SolicitacaoDeAlteracaoCronogramaCreateSerializer,
     TipoEmbalagemQldCreateSerializer,
@@ -660,3 +661,16 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
             })
 
         return dados
+
+    @action(detail=True, methods=['PATCH'],
+            url_path='fornecedor-realiza-correcao', permission_classes=(UsuarioEhFornecedor,))
+    def fornecedor_realiza_correcao(self, request, uuid):
+        serializer = LayoutDeEmbalagemCorrecaoSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            layout_corrigido = serializer.save()
+            return Response(LayoutDeEmbalagemDetalheSerializer(layout_corrigido).data)
