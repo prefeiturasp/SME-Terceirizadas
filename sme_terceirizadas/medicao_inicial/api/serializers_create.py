@@ -172,7 +172,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if lista_erros:
             raise serializers.ValidationError(lista_erros)
 
-    def cria_valores_medicao_logs_alunos_matriculados(self, instance: SolicitacaoMedicaoInicial) -> None:
+    def cria_valores_medicao_logs_alunos_matriculados_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
         escola = instance.escola
         valores_medicao_a_criar = []
         logs_do_mes = escola.logs_alunos_matriculados_por_periodo.filter(
@@ -240,17 +240,18 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if categoria == CategoriaMedicao.objects.get(
             nome='DIETA ESPECIAL - TIPO A - ENTERAL / RESTRIÇÃO DE AMINOÁCIDOS'
         ):
-            log_1 = logs_do_mes.filter(
+            log_enteral = logs_do_mes.filter(
                 classificacao__nome='Tipo A Enteral',
                 periodo_escolar__nome=periodo_escolar,
                 data__day=dia
             ).first()
-            log_2 = logs_do_mes.filter(
+            log_restricao_aminoacidos = logs_do_mes.filter(
                 classificacao__nome='Tipo A - Restrição de aminoácidos',
                 periodo_escolar__nome=periodo_escolar,
                 data__day=dia
             ).first()
-            valor = (log_1.quantidade if log_1 else 0) + (log_2.quantidade if log_2 else 0)
+            valor = ((log_enteral.quantidade if log_enteral else 0) +
+                     (log_restricao_aminoacidos.quantidade if log_restricao_aminoacidos else 0))
         else:
             log = logs_do_mes.filter(
                 classificacao__nome__icontains=categoria.nome.split(' - ')[1],
@@ -264,7 +265,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             valor = log.quantidade if log else 0
         return valor
 
-    def cria_valores_medicao_logs_dietas_autorizadas(self, instance: SolicitacaoMedicaoInicial) -> None:
+    def cria_valores_medicao_logs_dietas_autorizadas_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
         escola = instance.escola
         valores_medicao_a_criar = []
         logs_do_mes = escola.logs_dietas_autorizadas.filter(
@@ -297,9 +298,14 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         valores_medicao_a_criar.append(valor_medicao)
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
-    def cria_valores_medicao_logs(self, instance: SolicitacaoMedicaoInicial) -> None:
-        self.cria_valores_medicao_logs_alunos_matriculados(instance)
-        self.cria_valores_medicao_logs_dietas_autorizadas(instance)
+    def cria_valores_medicao_logs_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+        iniciais_emef_emei = ['EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
+        iniciais_escola = instance.escola.tipo_unidade.iniciais
+        if iniciais_escola not in iniciais_emef_emei:
+            return
+
+        self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
+        self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
 
     def update(self, instance, validated_data):  # noqa C901
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)
@@ -343,7 +349,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         nome_ultimo_arquivo=anexo.get('nome')
                     )
         if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao') == 'true':
-            self.cria_valores_medicao_logs(instance)
+            self.cria_valores_medicao_logs_emef_emei(instance)
             self.valida_finalizar_medicao_emef_emei(instance)
             instance.ue_envia(user=self.context['request'].user)
             if hasattr(instance, 'ocorrencia'):
