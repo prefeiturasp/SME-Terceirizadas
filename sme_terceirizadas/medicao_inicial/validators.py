@@ -148,7 +148,8 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
     inclusoes = InclusaoAlimentacaoNormal.objects.filter(
         uuid__in=inclusoes_uuids,
         data__month=int(solicitacao.mes),
-        data__year=int(solicitacao.ano)
+        data__year=int(solicitacao.ano),
+        cancelado=False
     ).order_by('data')
 
     for inclusao in inclusoes:
@@ -166,7 +167,6 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
                 'dia': dia_da_inclusao,
                 'linhas_da_tabela': tipos_alimentacao
             })
-
     for inclusao in list_inclusoes:
         lista_erros = buscar_valores_lancamento_inclusoes(inclusao, solicitacao,
                                                           categoria_medicao, lista_erros)
