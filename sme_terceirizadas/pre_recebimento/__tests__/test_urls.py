@@ -1345,3 +1345,111 @@ def test_url_layout_embalagens_analise_erro_quantidade_tipos_embalagem(
     msg_erro = 'Quantidade de Tipos de Embalagem recebida é diferente da quantidade presente no Layout de Embalagem.'
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro in response.json()['tipos_de_embalagens']
+
+
+def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(client_autenticado_fornecedor, arquivo_base64,
+                                                             layout_de_embalagem_para_correcao):
+    layout_para_corrigir = layout_de_embalagem_para_correcao
+    dados_correcao = {
+        'observacoes': 'Imagine uma nova observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='REPROVADO').uuid),
+                'tipo_embalagem': 'PRIMARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo2.jpg'
+                    }
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao)
+    )
+
+    layout_para_corrigir.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert layout_para_corrigir.status == LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+    assert layout_para_corrigir.observacoes == 'Imagine uma nova observação aqui.'
+
+
+def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(client_autenticado_fornecedor, arquivo_base64,
+                                                                    layout_de_embalagem_para_correcao):
+    """Checa transição de estado, UUID valido de tipo de embalagem e se pode ser de fato corrigido."""
+    layout_para_corrigir = layout_de_embalagem_para_correcao
+    dados = {
+        'observacoes': 'Imagine uma nova observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(uuid.uuid4()),
+                'tipo_embalagem': 'SECUNDARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                ]
+            },
+            {
+                'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='APROVADO').uuid),
+                'tipo_embalagem': 'TERCIARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados)
+    )
+
+    msg_erro1 = 'UUID do tipo informado não existe.'
+    msg_erro2 = 'O Tipo/UUID informado não pode ser corrigido pois não está reprovado.'
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert msg_erro1 in response.json()['tipos_de_embalagens'][0]['Layout Embalagem SECUNDARIA'][0]
+    assert msg_erro2 in response.json()['tipos_de_embalagens'][1]['Layout Embalagem TERCIARIA'][0]
+
+    dados = {
+        'observacoes': 'Imagine uma nova observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='REPROVADO').uuid),
+                'tipo_embalagem': 'PRIMARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                ]
+            },
+        ],
+    }
+
+    layout_para_corrigir.status = LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+    layout_para_corrigir.save()
+
+    response = client_autenticado_fornecedor.patch(
+        f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados)
+    )
+
+    msg_erro3 = 'Erro de transição de estado. O status deste layout não permite correção'
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert msg_erro3 in response.json()[0]
