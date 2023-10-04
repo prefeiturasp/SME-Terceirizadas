@@ -393,28 +393,28 @@ def lista_layouts_de_embalagem_com_tipo_embalagem(cronograma_assinado_perfil_dil
     mommy.make(
         TipoDeEmbalagemDeLayout,
         layout_de_embalagem=layouts[0],
-        tipo_embalagem=TipoDeEmbalagemDeLayout.PRIMARIA
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_PRIMARIA
     )
     mommy.make(
         TipoDeEmbalagemDeLayout,
         layout_de_embalagem=layouts[0],
-        tipo_embalagem=TipoDeEmbalagemDeLayout.SECUNDARIA
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA
     )
     mommy.make(
         TipoDeEmbalagemDeLayout,
         layout_de_embalagem=layouts[0],
-        tipo_embalagem=TipoDeEmbalagemDeLayout.TERCIARIA
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_TERCIARIA
     )
 
     mommy.make(
         TipoDeEmbalagemDeLayout,
         layout_de_embalagem=layouts[1],
-        tipo_embalagem=TipoDeEmbalagemDeLayout.PRIMARIA
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_PRIMARIA
     )
     mommy.make(
         TipoDeEmbalagemDeLayout,
         layout_de_embalagem=layouts[1],
-        tipo_embalagem=TipoDeEmbalagemDeLayout.SECUNDARIA
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA
     )
 
     return layouts
@@ -423,3 +423,27 @@ def lista_layouts_de_embalagem_com_tipo_embalagem(cronograma_assinado_perfil_dil
 @pytest.fixture
 def lista_layouts_de_embalagem(lista_layouts_de_embalagem_aprovados, lista_layouts_de_embalagem_enviados_para_analise):
     return lista_layouts_de_embalagem_aprovados + lista_layouts_de_embalagem_enviados_para_analise
+
+
+@pytest.fixture
+def layout_de_embalagem_para_correcao(cronograma_assinado_perfil_dilog, arquivo_base64):
+    layout = mommy.make(
+        LayoutDeEmbalagem,
+        cronograma=cronograma_assinado_perfil_dilog,
+        observacoes='Imagine uma observação aqui.',
+        status=LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO
+    )
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layout,
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_PRIMARIA,
+        status=TipoDeEmbalagemDeLayout.STATUS_REPROVADO
+    )
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layout,
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA,
+        status=TipoDeEmbalagemDeLayout.STATUS_APROVADO
+    )
+
+    return layout
