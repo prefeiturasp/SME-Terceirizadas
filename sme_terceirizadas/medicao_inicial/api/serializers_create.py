@@ -1,3 +1,4 @@
+import calendar
 import json
 from datetime import datetime
 
@@ -14,6 +15,7 @@ from sme_terceirizadas.escola.models import (
     AlunoPeriodoParcial,
     Escola,
     FaixaEtaria,
+    LogAlunosMatriculadosPeriodoEscola,
     PeriodoEscolar,
     TipoUnidadeEscolar
 )
@@ -154,18 +156,63 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         solicitacao.inicia_fluxo(user=self.context['request'].user)
         return solicitacao
 
-    def valida_finalizar_medicao(self, instance):
-        lista_erros = []
-        iniciais = ['EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
-        status_para_validacao = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
+    def valida_finalizar_medicao_emef_emei(self, instance):
+        iniciais_emef_emei = ['EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
         iniciais_escola = instance.escola.tipo_unidade.iniciais
-        if instance.status == status_para_validacao and iniciais_escola in iniciais:
+        if iniciais_escola not in iniciais_emef_emei:
+            return
+
+        lista_erros = []
+
+        if instance.status == SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE:
             lista_erros = validate_lancamento_alimentacoes_medicao(instance, lista_erros)
             lista_erros = validate_lancamento_inclusoes(instance, lista_erros)
             lista_erros = validate_lancamento_dietas(instance, lista_erros)
 
         if lista_erros:
             raise serializers.ValidationError(lista_erros)
+
+    def cria_valores_medicao_logs_alunos_matriculados(self, instance: SolicitacaoMedicaoInicial):
+        escola = instance.escola
+        valores_medicao_a_criar = []
+        logs_do_mes = LogAlunosMatriculadosPeriodoEscola.objects.filter(
+            criado_em__month=instance.mes,
+            criado_em__year=instance.ano,
+            escola=escola
+        )
+        categoria = CategoriaMedicao.objects.get(nome='ALIMENTAÇÃO')
+        quantidade_dias_mes = calendar.monthrange(int(instance.ano), int(instance.mes))[1]
+        for dia in range(1, quantidade_dias_mes + 1):
+            for periodo_escolar in escola.periodos_escolares_com_alunos:
+                try:
+                    medicao = instance.medicoes.get(periodo_escolar__nome=periodo_escolar)
+                except Medicao.DoesNotExist:
+                    medicao = Medicao.objects.create(
+                        solicitacao_medicao_inicial=instance,
+                        periodo_escolar=PeriodoEscolar.objects.get(nome=periodo_escolar)
+                    )
+                if not medicao.valores_medicao.filter(
+                    categoria_medicao=categoria,
+                    dia=f'{dia:02d}',
+                    nome_campo='matriculados',
+                ).exists():
+                    log = logs_do_mes.filter(
+                        periodo_escolar__nome=periodo_escolar,
+                        criado_em__day=dia
+                    ).first()
+                    valor_medicao = ValorMedicao(
+                        medicao=medicao,
+                        categoria_medicao=categoria,
+                        dia=f'{dia:02d}',
+                        nome_campo='matriculados',
+                        valor=log.quantidade_alunos if log else 0
+                    )
+                    valores_medicao_a_criar.append(valor_medicao)
+
+        ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
+
+    def cria_valores_medicao_logs(self, instance):
+        self.cria_valores_medicao_logs_alunos_matriculados(instance)
 
     def update(self, instance, validated_data):  # noqa C901
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)
@@ -209,7 +256,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         nome_ultimo_arquivo=anexo.get('nome')
                     )
         if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao') == 'true':
-            self.valida_finalizar_medicao(instance)
+            self.cria_valores_medicao_logs(instance)
+            self.valida_finalizar_medicao_emef_emei(instance)
             instance.ue_envia(user=self.context['request'].user)
             if hasattr(instance, 'ocorrencia'):
                 instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
