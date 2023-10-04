@@ -76,12 +76,15 @@ class ServiceDashboardLayoutEmbalagemProfiles:
         status = {
             COORDENADOR_CODAE_DILOG_LOGISTICA: [
                 StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
+                StatusLayoutEmbalagem.APROVADO,
             ],
             DILOG_QUALIDADE: [
                 StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
+                StatusLayoutEmbalagem.APROVADO,
             ],
             COORDENADOR_GESTAO_PRODUTO: [
                 StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
+                StatusLayoutEmbalagem.APROVADO,
             ],
         }
 
