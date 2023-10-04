@@ -113,6 +113,10 @@ class LayoutDeEmbalagemFilter(filters.FilterSet):
         field_name='cronograma__produto__nome',
         lookup_expr='icontains',
     )
+    nome_fornecedor = filters.CharFilter(
+        field_name='cronograma__empresa__razao_social',
+        lookup_expr='icontains',
+    )
     pregao_chamada_publica = filters.CharFilter(
         field_name='cronograma__contrato__pregao_chamada_publica',
         lookup_expr='icontains',
