@@ -472,6 +472,12 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
                 total_kit_lanche += escola_quantidade.total_kit_lanche
             return total_kit_lanche
 
+    def total_kit_lanche_escola(self, escola_uuid):
+        try:
+            return self.escolas_quantidades.get(escola__uuid=escola_uuid).total_kit_lanche
+        except EscolaQuantidade.DoesNotExist:
+            return 0
+
     @property
     def numero_alunos(self):
         return self.escolas_quantidades.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']

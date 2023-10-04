@@ -343,33 +343,33 @@ def test_utils_get_nome_campo():
 
 
 def test_utils_get_somatorio_manha(solicitacao_medicao_inicial_com_valores_repeticao):
-    assert get_somatorio_manha('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_manha('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_manha('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+    assert get_somatorio_manha('refeicao', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_manha('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_manha('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == ' - '
 
 
 def test_utils_get_somatorio_tarde(solicitacao_medicao_inicial_com_valores_repeticao):
-    assert get_somatorio_tarde('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_tarde('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_tarde('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+    assert get_somatorio_tarde('refeicao', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_tarde('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_tarde('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == ' - '
 
 
 def test_utils_get_somatorio_integral(solicitacao_medicao_inicial_com_valores_repeticao):
-    assert get_somatorio_integral('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_integral('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_integral('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+    assert get_somatorio_integral('refeicao', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_integral('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_integral('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == ' - '
 
 
 def test_utils_get_somatorio_noite_eja(solicitacao_medicao_inicial_com_valores_repeticao):
-    assert get_somatorio_noite_eja('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_noite_eja('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_noite_eja('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+    assert get_somatorio_noite_eja('refeicao', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_noite_eja('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_noite_eja('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == ' - '
 
 
 def test_utils_get_somatorio_etec(solicitacao_medicao_inicial_com_valores_repeticao):
-    assert get_somatorio_etec('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_etec('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_etec('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+    assert get_somatorio_etec('refeicao', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_etec('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_etec('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == ' - '
 
 
 def test_utils_get_somatorio_solicitacoes_de_alimentacao(solicitacao_medicao_inicial_com_valores_repeticao):
@@ -380,17 +380,20 @@ def test_utils_get_somatorio_solicitacoes_de_alimentacao(solicitacao_medicao_ini
 
 
 def test_utils_get_somatorio_programas_e_projetos(solicitacao_medicao_inicial_com_valores_repeticao):
-    assert get_somatorio_programas_e_projetos('refeicao', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_programas_e_projetos('sobremesa', solicitacao_medicao_inicial_com_valores_repeticao) == 100
-    assert get_somatorio_programas_e_projetos('lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao) == ' - '
+    assert get_somatorio_programas_e_projetos(
+        'refeicao', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_programas_e_projetos(
+        'sobremesa', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == 100
+    assert get_somatorio_programas_e_projetos(
+        'lanche_4h', solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == ' - '
 
 
 def test_utils_get_somatorio_total_tabela(solicitacao_medicao_inicial_com_valores_repeticao):
     solicitacao = solicitacao_medicao_inicial_com_valores_repeticao
-    somatorio_manha = get_somatorio_manha('refeicao', solicitacao)
-    somatorio_tarde = get_somatorio_tarde('refeicao', solicitacao)
-    somatorio_integral = get_somatorio_integral('refeicao', solicitacao)
-    somatorio_programas_e_projetos = get_somatorio_programas_e_projetos('refeicao', solicitacao)
+    somatorio_manha = get_somatorio_manha('refeicao', solicitacao, {}, {})
+    somatorio_tarde = get_somatorio_tarde('refeicao', solicitacao, {}, {})
+    somatorio_integral = get_somatorio_integral('refeicao', solicitacao, {}, {})
+    somatorio_programas_e_projetos = get_somatorio_programas_e_projetos('refeicao', solicitacao, {}, {})
     somatorio_solicitacoes_de_alimentacao = get_somatorio_solicitacoes_de_alimentacao('refeicao', solicitacao)
     valores_somatorios_tabela = [
         somatorio_manha,
@@ -403,7 +406,7 @@ def test_utils_get_somatorio_total_tabela(solicitacao_medicao_inicial_com_valore
 
 
 def test_utils_build_tabela_somatorio_body(solicitacao_medicao_inicial_com_valores_repeticao):
-    assert build_tabela_somatorio_body(solicitacao_medicao_inicial_com_valores_repeticao) == [
+    assert build_tabela_somatorio_body(solicitacao_medicao_inicial_com_valores_repeticao, {}, {}) == [
         ['Lanche', 50, 50, 50, 50, 50, 250, 50, 50, 100],
         ['Refeição', 100, 100, 100, 100, 50, 450, 100, 100, 200],
         ['Kit Lanche', 50, 50, 50, 50, 50, 250, 50, 50, 100],
