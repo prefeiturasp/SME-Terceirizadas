@@ -254,27 +254,29 @@ class ImagemDoTipoDeEmbalagem(TemChaveExterna):
 
 
 class TipoDeEmbalagemDeLayout(TemChaveExterna):
-    APROVADO = 'APROVADO'
-    REPROVADO = 'REPROVADO'
-    PRIMARIA = 'PRIMARIA'
-    SECUNDARIA = 'SECUNDARIA'
-    TERCIARIA = 'TERCIARIA'
+    STATUS_APROVADO = 'APROVADO'
+    STATUS_REPROVADO = 'REPROVADO'
+    STATUS_EM_ANALISE = 'EM_ANALISE'
+    TIPO_EMBALAGEM_PRIMARIA = 'PRIMARIA'
+    TIPO_EMBALAGEM_SECUNDARIA = 'SECUNDARIA'
+    TIPO_EMBALAGEM_TERCIARIA = 'TERCIARIA'
 
     STATUS_CHOICES = (
-        (APROVADO, 'Aprovado'),
-        (REPROVADO, 'Reprovado'),
+        (STATUS_APROVADO, 'Aprovado'),
+        (STATUS_REPROVADO, 'Reprovado'),
+        (STATUS_EM_ANALISE, 'Em análise'),
     )
 
     TIPO_EMBALAGEM_CHOICES = (
-        (PRIMARIA, 'Primária'),
-        (SECUNDARIA, 'Secundária'),
-        (TERCIARIA, 'Terciária'),
+        (TIPO_EMBALAGEM_PRIMARIA, 'Primária'),
+        (TIPO_EMBALAGEM_SECUNDARIA, 'Secundária'),
+        (TIPO_EMBALAGEM_TERCIARIA, 'Terciária'),
     )
 
     layout_de_embalagem = models.ForeignKey(
         'LayoutDeEmbalagem', on_delete=models.CASCADE, blank=True, related_name='tipos_de_embalagens')
     tipo_embalagem = models.CharField(choices=TIPO_EMBALAGEM_CHOICES, max_length=10, blank=True)
-    status = models.CharField(choices=STATUS_CHOICES, max_length=9, blank=True)
+    status = models.CharField(choices=STATUS_CHOICES, max_length=10, default=STATUS_EM_ANALISE)
     complemento_do_status = models.TextField('Complemento do status', blank=True)
 
     def __str__(self):
