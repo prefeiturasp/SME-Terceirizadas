@@ -173,33 +173,71 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
     return erros_unicos(lista_erros)
 
 
+def get_alimentos_permitidos_por_dieta(dieta_especial):
+    if dieta_especial.classificacao.nome in ['Tipo A', 'Tipo B']:
+        return ['Lanche', 'Lanche 4h']
+    else:
+        return ['Lanche', 'Lanche 4h', 'Refeição']
+
+
+def get_campos_por_periodo(periodo_da_escola, dieta_especial):
+    nomes_campos = []
+    nomes_alimentos = get_alimentos_permitidos_por_dieta(dieta_especial)
+    tipos_alimentacao = periodo_da_escola.tipos_alimentacao.filter(nome__in=nomes_alimentos)
+    tipos_alimentacao = tipos_alimentacao.values_list('nome', flat=True)
+    nomes_campos = [get_nome_campo(alimentacao) for alimentacao in tipos_alimentacao]
+    return nomes_campos
+
+
+def comparar_dias_com_valores_medicao(valores_da_medicao, dias_letivos):
+    if len(valores_da_medicao) != len(dias_letivos):
+        return True
+    else:
+        return False
+
+
 def validate_lancamento_dietas(solicitacao, lista_erros):
     escola = solicitacao.escola
+    periodos_da_escola = escola.periodos_escolares.all()
     log_dietas_especiais = LogQuantidadeDietasAutorizadas.objects.filter(
         escola=escola,
         data__month=int(solicitacao.mes),
         data__year=int(solicitacao.ano)
-    ).exclude(periodo_escolar=None)
+    ).exclude(periodo_escolar=None).exclude(quantidade=0).exclude(classificacao__nome='Tipo C')
 
-    nomes_campos = ['dietas_autorizadas', 'frequencia']
+    nomes_campos_padrao = ['dietas_autorizadas', 'frequencia']
     dias_letivos = get_lista_dias_letivos(solicitacao, escola)
 
-    for dieta_especial in log_dietas_especiais:
+    nomes_dos_periodos = log_dietas_especiais.order_by('periodo_escolar__nome')
+    nomes_dos_periodos = nomes_dos_periodos.values_list('periodo_escolar__nome', flat=True)
+    nomes_dos_periodos = nomes_dos_periodos.distinct()
+
+    for nome_periodo in nomes_dos_periodos:
         periodo_com_erro = False
-        for nome_campo in nomes_campos:
-            valores_da_medicao = ValorMedicao.objects.filter(
-                medicao__solicitacao_medicao_inicial=solicitacao,
-                nome_campo=nome_campo,
-                medicao__periodo_escolar__nome=dieta_especial.periodo_escolar.nome,
-                dia__in=dias_letivos,
-                categoria_medicao__nome=get_classificacoes_nomes(dieta_especial.classificacao.nome)
-            ).exclude(valor=None).values_list('dia', flat=True)
-            valores_da_medicao = list(set(valores_da_medicao))
-            if len(valores_da_medicao) != len(dias_letivos):
-                periodo_com_erro = True
+        nomes_campos = []
+        periodo_da_escola = periodos_da_escola.get(nome=nome_periodo)
+        logs_por_periodo = log_dietas_especiais.filter(periodo_escolar=periodo_da_escola)
+        classificacoes = log_dietas_especiais.order_by('classificacao__nome')
+        classificacoes = classificacoes.values_list('classificacao__nome', flat=True)
+        classificacoes = classificacoes.distinct()
+        for classificacao in classificacoes:
+            log_por_classificacao = logs_por_periodo.filter(classificacao__nome=classificacao)
+            for log in log_por_classificacao:
+                nomes_campos = get_campos_por_periodo(periodo_da_escola, log)
+                nomes_campos = nomes_campos + nomes_campos_padrao
+                for nome_campo in nomes_campos:
+                    valores_da_medicao = ValorMedicao.objects.filter(
+                        medicao__solicitacao_medicao_inicial=solicitacao,
+                        nome_campo=nome_campo,
+                        medicao__periodo_escolar__nome=nome_periodo,
+                        dia__in=dias_letivos,
+                        categoria_medicao__nome=get_classificacoes_nomes(classificacao)
+                    ).order_by('dia').exclude(valor=None).values_list('dia', flat=True)
+                    valores_da_medicao = list(set(valores_da_medicao))
+                    periodo_com_erro = comparar_dias_com_valores_medicao(valores_da_medicao, dias_letivos)
         if periodo_com_erro:
             lista_erros.append({
-                'periodo_escolar': dieta_especial.periodo_escolar.nome,
+                'periodo_escolar': nome_periodo,
                 'erro': 'Restam dias a serem lançados nas dietas.'
             })
     lista_erros = erros_unicos(lista_erros)

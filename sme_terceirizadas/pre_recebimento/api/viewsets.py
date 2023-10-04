@@ -608,8 +608,8 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
         return serializer_classes_map.get(self.action, LayoutDeEmbalagemCreateSerializer)
 
     @action(detail=True, methods=['PATCH'],
-            url_path='aprovar-ou-solicitar-correcao', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
-    def aprovar_ou_solicitar_correcao(self, request, uuid):
+            url_path='codae-aprova-ou-solicita-correcao', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
+    def codae_aprova_ou_solicita_correcao(self, request, uuid):
         serializer = LayoutDeEmbalagemAnaliseSerializer(
             instance=self.get_object(),
             data=request.data,
@@ -629,7 +629,7 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
 
     def _dados_dashboard(self, request: Request, queryset_base: QuerySet) -> list:
         offset = int(request.query_params.get('offset', 0))
-        limit = int(request.query_params.get('limit', 5))
+        limit = int(request.query_params.get('limit', 6))
         lista_status_ver_mais = request.query_params.getlist('status', None)
 
         if lista_status_ver_mais:

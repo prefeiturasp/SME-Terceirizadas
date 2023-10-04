@@ -320,9 +320,10 @@ class SolicitacaoMedicaoInicialViewSet(
                 'status': medicao.status.name,
                 'logs': LogSolicitacoesUsuarioSerializer(medicao.logs.all(), many=True).data
             })
+        ordem = constants.ORDEM_PERIODOS_GRUPOS_CEI if solicitacao.escola.eh_cei else constants.ORDEM_PERIODOS_GRUPOS
 
         return Response({
-            'results': sorted(retorno, key=lambda k: constants.ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},
+            'results': sorted(retorno, key=lambda k: ordem[k['nome_periodo_grupo']])},
             status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path='quantidades-alimentacoes-lancadas-periodo-grupo',
