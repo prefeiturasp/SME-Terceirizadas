@@ -144,6 +144,7 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
 
     inclusoes_uuids = list(set(GrupoInclusaoAlimentacaoNormal.objects.filter(
         escola=escola,
+        status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO
     ).values_list('inclusoes_normais__uuid', flat=True)))
     inclusoes = InclusaoAlimentacaoNormal.objects.filter(
         uuid__in=inclusoes_uuids,
