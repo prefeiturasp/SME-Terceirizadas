@@ -177,7 +177,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         valores_medicao_a_criar = []
         logs_do_mes = escola.logs_alunos_matriculados_por_periodo.filter(
             criado_em__month=instance.mes,
-            criado_em__year=instance.ano
+            criado_em__year=instance.ano,
+            tipo_turma='REGULAR'
         )
         categoria = CategoriaMedicao.objects.get(nome='ALIMENTAÇÃO')
         quantidade_dias_mes = calendar.monthrange(int(instance.ano), int(instance.mes))[1]
