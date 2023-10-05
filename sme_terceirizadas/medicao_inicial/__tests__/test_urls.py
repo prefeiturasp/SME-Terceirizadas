@@ -110,7 +110,8 @@ def test_url_endpoint_nao_tem_permissao_para_encerrar_medicao(client_autenticado
     data_update = {
         'escola': str(escola.uuid),
         'tipo_contagem_alimentacoes': str(tipo_contagem_alimentacao.uuid),
-        'com_ocorrencias': True
+        'com_ocorrencias': True,
+        'finaliza_medicao': True
     }
     response = client_autenticado_adm_da_escola.patch(
         f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_sem_arquivo.uuid}/',

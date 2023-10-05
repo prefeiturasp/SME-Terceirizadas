@@ -5,6 +5,7 @@ from datetime import date, datetime
 import environ
 from django.db.models import QuerySet
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 
 from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -32,6 +33,7 @@ from sme_terceirizadas.medicao_inicial.models import (
 )
 from sme_terceirizadas.perfil.models import Usuario
 
+from ...dados_comuns.constants import DIRETOR_UE
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ..utils import log_alteracoes_escola_corrige_periodo
 from ..validators import (
@@ -431,6 +433,9 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         validated_data.pop('alunos_periodo_parcial', None)
         validated_data.pop('responsaveis', None)
         update_instance_from_dict(instance, validated_data, save=True)
+
+        if self.context['request'].user.vinculo_atual.perfil.nome != DIRETOR_UE:
+            raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
 
         if responsaveis_dict:
             responsaveis = json.loads(responsaveis_dict)
