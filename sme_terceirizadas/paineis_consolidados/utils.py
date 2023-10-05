@@ -1,3 +1,4 @@
+import calendar
 import datetime
 import unicodedata
 
@@ -110,5 +111,5 @@ def tratar_inclusao_continua(mes, ano, periodo, inclusao, return_dict):
     elif inclusao.data_evento.month != int(mes) and inclusao.data_evento_2.month != int(mes):
         # data_inicial e data_final fora do mês analisado
         i = datetime.date(int(ano), int(mes), 1).day
-        data_evento_final_no_mes = (inclusao.data_evento + relativedelta(day=31)).day
+        data_evento_final_no_mes = calendar.monthrange(int(ano), int(mes))[1]
     criar_dict_dias_inclusoes_continuas(i, data_evento_final_no_mes, periodo, ano, mes, inclusao, return_dict)
