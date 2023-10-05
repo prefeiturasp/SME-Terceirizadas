@@ -297,7 +297,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         valores_medicao_a_criar.append(valor_medicao)
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
-    def retorna_medicao_inclusao_continua(self, instance: SolicitacaoMedicaoInicial, nome_grupo: str) -> Medicao:
+    def retorna_medicao_por_nome_grupo(self, instance: SolicitacaoMedicaoInicial, nome_grupo: str) -> Medicao:
         try:
             medicao = instance.medicoes.get(grupo__nome=nome_grupo)
         except Medicao.DoesNotExist:
@@ -318,14 +318,14 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             numero_alunos += quantidade_periodo.numero_alunos
         return numero_alunos
 
-    def cria_valor_medicao_continua(self, numero_alunos: int, medicao: Medicao, categoria: CategoriaMedicao, dia: int,
-                                    valores_medicao_a_criar: list) -> list:
+    def cria_valor_medicao(self, numero_alunos: int, medicao: Medicao, categoria: CategoriaMedicao, dia: int,
+                           nome_campo: str, valores_medicao_a_criar: list) -> list:
         if numero_alunos > 0:
             valor_medicao = ValorMedicao(
                 medicao=medicao,
                 categoria_medicao=categoria,
                 dia=f'{dia:02d}',
-                nome_campo='numero_de_alunos',
+                nome_campo=nome_campo,
                 valor=numero_alunos
             )
             valores_medicao_a_criar.append(valor_medicao)
@@ -337,7 +337,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if not inclusoes_continuas.filter(motivo__nome__icontains=nome_motivo).exists():
             return
         categoria = CategoriaMedicao.objects.get(nome='ALIMENTAÇÃO')
-        medicao = self.retorna_medicao_inclusao_continua(instance, nome_grupo)
+        medicao = self.retorna_medicao_por_nome_grupo(instance, nome_grupo)
         valores_medicao_a_criar = []
         for dia in range(1, quantidade_dias_mes + 1):
             data = date(year=int(instance.ano), month=int(instance.mes), day=dia)
@@ -352,8 +352,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 ).exists():
                     continue
                 numero_alunos += self.retorna_numero_alunos_dia(inclusao, data)
-            valores_medicao_a_criar = self.cria_valor_medicao_continua(
-                numero_alunos, medicao, categoria, dia, valores_medicao_a_criar)
+            valores_medicao_a_criar = self.cria_valor_medicao(
+                numero_alunos, medicao, categoria, dia, 'numero_de_alunos', valores_medicao_a_criar)
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
     def cria_valores_medicao_logs_numero_alunos_inclusoes_continuas_emef_emei(
@@ -377,6 +377,44 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
     def cria_valores_medicao_logs_numero_alunos_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
         self.cria_valores_medicao_logs_numero_alunos_inclusoes_continuas_emef_emei(instance)
 
+    def cria_valores_medicao_logs_kit_lanche_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+        escola = instance.escola
+        kits_lanche = escola.kit_lanche_solicitacaokitlancheavulsa_rastro_escola.filter(
+            status='CODAE_AUTORIZADO',
+            solicitacao_kit_lanche__data__month=instance.mes,
+            solicitacao_kit_lanche__data__year=instance.ano
+        )
+        kits_lanche_unificado = escola.escolaquantidade_set.filter(
+            solicitacao_unificada__status='CODAE_AUTORIZADO',
+            solicitacao_unificada__solicitacao_kit_lanche__data__month=instance.mes,
+            solicitacao_unificada__solicitacao_kit_lanche__data__year=instance.ano,
+            cancelado=False
+        )
+        if not kits_lanche.exists() and not kits_lanche_unificado.exists():
+            return
+
+        valores_medicao_a_criar = []
+        medicao = self.retorna_medicao_por_nome_grupo(instance, 'Solicitações de Alimentação')
+        categoria = CategoriaMedicao.objects.get(nome='SOLICITAÇÕES DE ALIMENTAÇÃO')
+        quantidade_dias_mes = calendar.monthrange(int(instance.ano), int(instance.mes))[1]
+        for dia in range(1, quantidade_dias_mes + 1):
+            if medicao.valores_medicao.filter(
+                categoria_medicao=categoria,
+                dia=f'{dia:02d}',
+                nome_campo='kit_lanche',
+            ).exists():
+                continue
+            total_dia = 0
+            for kit_lanche in kits_lanche.filter(solicitacao_kit_lanche__data__day=dia):
+                total_dia += kit_lanche.quantidade_alimentacoes
+            for kit_lanche in kits_lanche_unificado.filter(
+                    solicitacao_unificada__solicitacao_kit_lanche__data__day=dia):
+                total_dia += kit_lanche.total_kit_lanche
+            valores_medicao_a_criar += self.cria_valor_medicao(
+                total_dia, medicao, categoria, dia, 'kit_lanche', valores_medicao_a_criar)
+
+        ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
+
     def cria_valores_medicao_logs_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
         if not instance.escola.eh_emef_emei_cieja:
             return
@@ -384,6 +422,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
         self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
         self.cria_valores_medicao_logs_numero_alunos_emef_emei(instance)
+        self.cria_valores_medicao_logs_kit_lanche_emef_emei(instance)
 
     def update(self, instance, validated_data):  # noqa C901
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)
