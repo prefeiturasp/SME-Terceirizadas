@@ -2,6 +2,7 @@ import datetime
 import json
 
 from dateutil.relativedelta import relativedelta
+from django.core.exceptions import ValidationError
 from django.db.models import IntegerField, Q, QuerySet
 from django.db.models.functions import Cast
 from rest_framework import mixins, status
@@ -116,6 +117,19 @@ class SolicitacaoMedicaoInicialViewSet(
         if self.action in ['create', 'update', 'partial_update']:
             return SolicitacaoMedicaoInicialCreateSerializer
         return SolicitacaoMedicaoInicialSerializer
+
+    def update(self, request, *args, **kwargs):
+        try:
+            return super(SolicitacaoMedicaoInicialViewSet, self).update(request, *args, **kwargs)
+        except ValidationError as lista_erros:
+            list_response = []
+            for indice, erro in enumerate(lista_erros):
+                if indice % 2 == 0:
+                    obj = {'erro': erro}
+                else:
+                    obj['periodo_escolar'] = erro
+                    list_response.append(obj)
+            return Response(list_response, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

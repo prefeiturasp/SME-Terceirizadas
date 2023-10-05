@@ -3,6 +3,7 @@ import json
 from datetime import date, datetime
 
 import environ
+from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
@@ -171,7 +172,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             lista_erros = validate_lancamento_dietas(instance, lista_erros)
 
         if lista_erros:
-            raise serializers.ValidationError(lista_erros)
+            raise ValidationError(lista_erros)
 
     def cria_valores_medicao_logs_alunos_matriculados_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
         escola = instance.escola
@@ -417,13 +418,16 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
     def cria_valores_medicao_logs_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
-        if not instance.escola.eh_emef_emei_cieja:
+        if not instance.escola.eh_emef_emei_cieja or instance.logs_salvos:
             return
 
         self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
         self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
         self.cria_valores_medicao_logs_numero_alunos_emef_emei(instance)
         self.cria_valores_medicao_logs_kit_lanche_emef_emei(instance)
+
+        instance.logs_salvos = True
+        instance.save()
 
     def update(self, instance, validated_data):  # noqa C901
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)

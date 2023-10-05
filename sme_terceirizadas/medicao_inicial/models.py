@@ -53,6 +53,7 @@ class SolicitacaoMedicaoInicial(
     com_ocorrencias = models.BooleanField('Com ocorrências?', default=False)
     historico = models.JSONField(blank=True, null=True)
     ue_possui_alunos_periodo_parcial = models.BooleanField('Possui alunos periodo parcial?', default=False)
+    logs_salvos = models.BooleanField('Logs de matriculados, dietas autorizadas, etc foram salvos?', default=False)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         LogSolicitacoesUsuario.objects.create(
