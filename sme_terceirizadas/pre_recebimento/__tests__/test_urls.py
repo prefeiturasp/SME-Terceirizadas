@@ -1108,6 +1108,7 @@ def test_url_dashboard_layout_embalagens_status_retornados(
     [
         LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         LayoutDeEmbalagemWorkflow.APROVADO,
+        LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     ]
 )
 def test_url_dashboard_layout_embalagens_quantidade_itens_por_card(
@@ -1132,6 +1133,7 @@ def test_url_dashboard_layout_embalagens_quantidade_itens_por_card(
     [
         LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         LayoutDeEmbalagemWorkflow.APROVADO,
+        LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     ]
 )
 def test_url_dashboard_layout_embalagens_com_filtro(
@@ -1185,6 +1187,7 @@ def test_url_dashboard_layout_embalagens_com_filtro(
     [
         LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         LayoutDeEmbalagemWorkflow.APROVADO,
+        LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     ]
 )
 def test_url_dashboard_layout_embalagens_ver_mais(
@@ -1211,6 +1214,7 @@ def test_url_dashboard_layout_embalagens_ver_mais(
     [
         LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         LayoutDeEmbalagemWorkflow.APROVADO,
+        LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
     ]
 )
 def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
