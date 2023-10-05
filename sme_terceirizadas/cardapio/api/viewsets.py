@@ -968,12 +968,12 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         justificativa = request.data.get('justificativa', '')
         try:
             assert obj.status != obj.workflow_class.ESCOLA_CANCELOU, 'Já está cancelada'
-            if (isinstance(obj, AlteracaoCardapioCEI) or obj.data_inicial == obj.data_final or
+            if (not hasattr(obj, 'datas_intervalo') or obj.data_inicial == obj.data_final or
                     len(datas) + obj.datas_intervalo.filter(cancelado=True).count() == obj.datas_intervalo.count()):
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
-            if not isinstance(obj, AlteracaoCardapioCEI) and obj.datas_intervalo.exists():
+            if hasattr(obj, 'datas_intervalo') and obj.datas_intervalo.exists():
                 obj.datas_intervalo.filter(data__in=datas).update(cancelado_justificativa=justificativa)
                 if 1 < obj.datas_intervalo.count() != len(datas):
                     obj.datas_intervalo.filter(data__in=datas).update(cancelado=True)
