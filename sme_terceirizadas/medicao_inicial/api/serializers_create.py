@@ -318,6 +318,19 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             numero_alunos += quantidade_periodo.numero_alunos
         return numero_alunos
 
+    def cria_valor_medicao_continua(self, numero_alunos: int, medicao: Medicao, categoria: CategoriaMedicao, dia: int,
+                                    valores_medicao_a_criar: list) -> list:
+        if numero_alunos > 0:
+            valor_medicao = ValorMedicao(
+                medicao=medicao,
+                categoria_medicao=categoria,
+                dia=f'{dia:02d}',
+                nome_campo='numero_de_alunos',
+                valor=numero_alunos
+            )
+            valores_medicao_a_criar.append(valor_medicao)
+        return valores_medicao_a_criar
+
     def cria_valores_medicao_logs_numero_alunos_inclusoes_continuas(
             self, instance: SolicitacaoMedicaoInicial, inclusoes_continuas: QuerySet, quantidade_dias_mes: int,
             nome_motivo: str, nome_grupo: str) -> None:
@@ -339,15 +352,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 ).exists():
                     continue
                 numero_alunos += self.retorna_numero_alunos_dia(inclusao, data)
-            if numero_alunos > 0:
-                valor_medicao = ValorMedicao(
-                    medicao=medicao,
-                    categoria_medicao=categoria,
-                    dia=f'{dia:02d}',
-                    nome_campo='numero_de_alunos',
-                    valor=numero_alunos
-                )
-                valores_medicao_a_criar.append(valor_medicao)
+            valores_medicao_a_criar = self.cria_valor_medicao_continua(
+                numero_alunos, medicao, categoria, dia, valores_medicao_a_criar)
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
     def cria_valores_medicao_logs_numero_alunos_inclusoes_continuas_emef_emei(
@@ -375,8 +381,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if not instance.escola.eh_emef_emei_cieja:
             return
 
-        #self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
-        #self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
+        self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
+        self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
         self.cria_valores_medicao_logs_numero_alunos_emef_emei(instance)
 
     def update(self, instance, validated_data):  # noqa C901
@@ -422,7 +428,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                     )
         if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao') == 'true':
             self.cria_valores_medicao_logs_emef_emei(instance)
-            #self.valida_finalizar_medicao_emef_emei(instance)
+            self.valida_finalizar_medicao_emef_emei(instance)
             instance.ue_envia(user=self.context['request'].user)
             if hasattr(instance, 'ocorrencia'):
                 instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
