@@ -32,6 +32,7 @@ from sme_terceirizadas.medicao_inicial.models import (
 )
 from sme_terceirizadas.perfil.models import Usuario
 
+from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ..utils import log_alteracoes_escola_corrige_periodo
 from ..validators import (
     validate_lancamento_alimentacoes_medicao,
@@ -296,23 +297,38 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         valores_medicao_a_criar.append(valor_medicao)
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
-    def cria_valores_medicao_logs_numero_alunos_inclusoes_continuas(
-            self, instance: SolicitacaoMedicaoInicial, inclusoes_continuas: QuerySet, quantidade_dias_mes: int,
-            nome_motivo: str, nome_categoria: str) -> None:
-        categoria = CategoriaMedicao.objects.get(nome=nome_categoria)
+    def retorna_medicao_inclusao_continua(self, instance: SolicitacaoMedicaoInicial, nome_grupo: str) -> Medicao:
         try:
-            medicao = instance.medicoes.get(nome=nome_categoria)
+            medicao = instance.medicoes.get(grupo__nome=nome_grupo)
         except Medicao.DoesNotExist:
-            grupo = GrupoMedicao.objects.get(nome=nome_categoria)
+            grupo = GrupoMedicao.objects.get(nome=nome_grupo)
             medicao = Medicao.objects.create(
                 solicitacao_medicao_inicial=instance,
                 grupo=grupo
             )
+        return medicao
+
+    def retorna_numero_alunos_dia(self, inclusao: InclusaoAlimentacaoContinua, data: date) -> int:
+        dia_semana = data.weekday()
+        numero_alunos = 0
+        for quantidade_periodo in inclusao.quantidades_periodo.filter(
+            dias_semana__icontains=dia_semana,
+            cancelado=False
+        ):
+            numero_alunos += quantidade_periodo.numero_alunos
+        return numero_alunos
+
+    def cria_valores_medicao_logs_numero_alunos_inclusoes_continuas(
+            self, instance: SolicitacaoMedicaoInicial, inclusoes_continuas: QuerySet, quantidade_dias_mes: int,
+            nome_motivo: str, nome_grupo: str) -> None:
+        if not inclusoes_continuas.filter(motivo__nome__icontains=nome_motivo).exists():
+            return
+        categoria = CategoriaMedicao.objects.get(nome='ALIMENTAÇÃO')
+        medicao = self.retorna_medicao_inclusao_continua(instance, nome_grupo)
         valores_medicao_a_criar = []
         for dia in range(1, quantidade_dias_mes + 1):
             data = date(year=int(instance.ano), month=int(instance.mes), day=dia)
-            dia_semana = data.weekday()
-            valor_medicao = None
+            numero_alunos = 0
             for inclusao in inclusoes_continuas.filter(motivo__nome__icontains=nome_motivo):
                 if not (inclusao.data_inicial <= data <= inclusao.data_final):
                     continue
@@ -322,20 +338,16 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                     nome_campo='numero_de_alunos',
                 ).exists():
                     continue
-                for quantidade_periodo in inclusao.quantidades_periodo.filter(
-                    dias_semana__icontains=dia_semana,
-                    cancelado=False
-                ):
-                    if not valor_medicao:
-                        valor_medicao = ValorMedicao(
-                            medicao=medicao,
-                            categoria_medicao=categoria,
-                            dia=f'{dia:02d}',
-                            nome_campo='numero_de_alunos',
-                            valor=quantidade_periodo.numero_alunos
-                        )
-                    else:
-                        valor_medicao.valor = int(valor_medicao.valor) + quantidade_periodo.alunos
+                numero_alunos += self.retorna_numero_alunos_dia(inclusao, data)
+            if numero_alunos > 0:
+                valor_medicao = ValorMedicao(
+                    medicao=medicao,
+                    categoria_medicao=categoria,
+                    dia=f'{dia:02d}',
+                    nome_campo='numero_de_alunos',
+                    valor=numero_alunos
+                )
+                valores_medicao_a_criar.append(valor_medicao)
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
     def cria_valores_medicao_logs_numero_alunos_inclusoes_continuas_emef_emei(
@@ -363,8 +375,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if not instance.escola.eh_emef_emei_cieja:
             return
 
-        self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
-        self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
+        #self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
+        #self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
         self.cria_valores_medicao_logs_numero_alunos_emef_emei(instance)
 
     def update(self, instance, validated_data):  # noqa C901
@@ -410,7 +422,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                     )
         if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao') == 'true':
             self.cria_valores_medicao_logs_emef_emei(instance)
-            self.valida_finalizar_medicao_emef_emei(instance)
+            #self.valida_finalizar_medicao_emef_emei(instance)
             instance.ue_envia(user=self.context['request'].user)
             if hasattr(instance, 'ocorrencia'):
                 instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
