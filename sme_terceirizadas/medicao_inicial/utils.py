@@ -1190,9 +1190,16 @@ def dict_informacoes_iniciais(user, acao):
     }
 
 
+def get_medicoes_por_acao(solicitacao, acao):
+    if acao == 'MEDICAO_CORRECAO_SOLICITADA_CODAE':
+        return solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA_CODAE')
+    else:
+        return solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA')
+
+
 def criar_log_solicitar_correcao_periodos(user, solicitacao, acao):
     log = dict_informacoes_iniciais(user, acao)
-    medicoes = solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA')
+    medicoes = get_medicoes_por_acao(solicitacao, acao)
     if not medicoes:
         return
     for medicao in medicoes:
