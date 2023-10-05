@@ -6,10 +6,11 @@ from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
-from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
+from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
+    ImagemDoTipoDeEmbalagem,
     Laboratorio,
     LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
@@ -321,12 +322,16 @@ class TipoDeEmbalagemDeLayoutCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         tipo_embalagem = attrs.get('tipo_embalagem', None)
         imagens = attrs.get('imagens_do_tipo_de_embalagem', None)
+        tipos_obrigatorios = [
+            TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_PRIMARIA,
+            TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA
+        ]
 
-        if tipo_embalagem in [TipoDeEmbalagemDeLayout.PRIMARIA, TipoDeEmbalagemDeLayout.SECUNDARIA]:
+        if tipo_embalagem in tipos_obrigatorios:
             for img in imagens:
                 if not img['arquivo'] or not img['nome']:
                     raise serializers.ValidationError(
-                        {f'Layout de Embalagem {tipo_embalagem}': ['Este campo é obrigatório.']}
+                        {f'Layout Embalagem {tipo_embalagem}': ['Este campo é obrigatório.']}
                     )
         return attrs
 
@@ -404,3 +409,71 @@ class LayoutDeEmbalagemAnaliseSerializer(serializers.ModelSerializer):
     class Meta:
         model = LayoutDeEmbalagem
         fields = ('tipos_de_embalagens',)
+
+
+class TipoDeEmbalagemDeLayoutCorrecaoSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField()
+    tipo_embalagem = serializers.ChoiceField(
+        choices=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_CHOICES, required=True, allow_blank=True)
+    imagens_do_tipo_de_embalagem = serializers.JSONField(write_only=True, required=True)
+
+    def validate(self, attrs):
+        uuid = attrs.get('uuid', None)
+        tipo = attrs.get('tipo_embalagem', None)
+        imagens = attrs.get('imagens_do_tipo_de_embalagem', None)
+        embalagem = TipoDeEmbalagemDeLayout.objects.filter(uuid=uuid).last()
+
+        if not embalagem:
+            raise serializers.ValidationError(
+                {f'Layout Embalagem {tipo}': ['UUID do tipo informado não existe.']}
+            )
+        if embalagem.status != TipoDeEmbalagemDeLayout.STATUS_REPROVADO:
+            raise serializers.ValidationError(
+                {f'Layout Embalagem {tipo}': ['O Tipo/UUID informado não pode ser corrigido pois não está reprovado.']}
+            )
+        for img in imagens:
+            if not img['arquivo'] or not img['nome']:
+                raise serializers.ValidationError(
+                    {f'Layout Embalagem {tipo}': ['arquivo/nome é obrigatório.']}
+                )
+        return attrs
+
+    class Meta:
+        model = TipoDeEmbalagemDeLayout
+        exclude = ('id', 'layout_de_embalagem')
+
+
+class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
+    tipos_de_embalagens = TipoDeEmbalagemDeLayoutCorrecaoSerializer(many=True, required=True)
+    observacoes = serializers.CharField(required=False)
+
+    def update(self, instance, validated_data):
+        try:
+            user = self.context['request'].user
+            dados_correcao = validated_data.pop('tipos_de_embalagens', [])
+
+            for embalagem in dados_correcao:
+                tipo_embalagem = instance.tipos_de_embalagens.get(uuid=embalagem['uuid'])
+                tipo_embalagem.status = TipoDeEmbalagemDeLayout.STATUS_EM_ANALISE
+                tipo_embalagem.imagens.all().delete()
+                tipo_embalagem.save()
+                imagens = embalagem.pop('imagens_do_tipo_de_embalagem', [])
+                for img in imagens:
+                    data = convert_base64_to_contentfile(img.get('arquivo'))
+                    ImagemDoTipoDeEmbalagem.objects.create(
+                        tipo_de_embalagem=tipo_embalagem, arquivo=data, nome=img.get('nome', '')
+                    )
+
+            instance.observacoes = validated_data.pop('observacoes', '')
+            instance.fornecedor_realiza_correcao(user=user)
+            instance.save()
+
+        except InvalidTransitionError as e:
+            raise serializers.ValidationError(
+                f'Erro de transição de estado. O status deste layout não permite correção: {e}')
+
+        return instance
+
+    class Meta:
+        model = LayoutDeEmbalagem
+        fields = ('tipos_de_embalagens', 'observacoes')
