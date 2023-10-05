@@ -1,6 +1,6 @@
 import calendar
 import json
-from datetime import datetime
+from datetime import date, datetime
 
 import environ
 from django.db.models import QuerySet
@@ -157,9 +157,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         return solicitacao
 
     def valida_finalizar_medicao_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
-        iniciais_emef_emei = ['EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
-        iniciais_escola = instance.escola.tipo_unidade.iniciais
-        if iniciais_escola not in iniciais_emef_emei:
+        if not instance.escola.eh_emef_emei_cieja:
             return
 
         lista_erros = []
@@ -298,14 +296,76 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         valores_medicao_a_criar.append(valor_medicao)
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
+    def cria_valores_medicao_logs_numero_alunos_inclusoes_continuas(
+            self, instance: SolicitacaoMedicaoInicial, inclusoes_continuas: QuerySet, quantidade_dias_mes: int,
+            nome_motivo: str, nome_categoria: str) -> None:
+        categoria = CategoriaMedicao.objects.get(nome=nome_categoria)
+        try:
+            medicao = instance.medicoes.get(nome=nome_categoria)
+        except Medicao.DoesNotExist:
+            grupo = GrupoMedicao.objects.get(nome=nome_categoria)
+            medicao = Medicao.objects.create(
+                solicitacao_medicao_inicial=instance,
+                grupo=grupo
+            )
+        valores_medicao_a_criar = []
+        for dia in range(1, quantidade_dias_mes + 1):
+            data = date(year=int(instance.ano), month=int(instance.mes), day=dia)
+            dia_semana = data.weekday()
+            valor_medicao = None
+            for inclusao in inclusoes_continuas.filter(motivo__nome__icontains=nome_motivo):
+                if not (inclusao.data_inicial <= data <= inclusao.data_final):
+                    continue
+                if medicao.valores_medicao.filter(
+                    categoria_medicao=categoria,
+                    dia=f'{dia:02d}',
+                    nome_campo='numero_de_alunos',
+                ).exists():
+                    continue
+                for quantidade_periodo in inclusao.quantidades_periodo.filter(
+                    dias_semana__icontains=dia_semana,
+                    cancelado=False
+                ):
+                    if not valor_medicao:
+                        valor_medicao = ValorMedicao(
+                            medicao=medicao,
+                            categoria_medicao=categoria,
+                            dia=f'{dia:02d}',
+                            nome_campo='numero_de_alunos',
+                            valor=quantidade_periodo.numero_alunos
+                        )
+                    else:
+                        valor_medicao.valor = int(valor_medicao.valor) + quantidade_periodo.alunos
+        ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
+
+    def cria_valores_medicao_logs_numero_alunos_inclusoes_continuas_emef_emei(
+            self, instance: SolicitacaoMedicaoInicial) -> None:
+        escola = instance.escola
+        quantidade_dias_mes = calendar.monthrange(int(instance.ano), int(instance.mes))[1]
+        ultimo_dia_mes = date(year=int(instance.ano), month=int(instance.mes), day=quantidade_dias_mes)
+        primeiro_dia_mes = date(year=int(instance.ano), month=int(instance.mes), day=1)
+        inclusoes_continuas = escola.inclusoes_alimentacao_continua.filter(
+            status='CODAE_AUTORIZADO',
+            data_inicial__lte=ultimo_dia_mes,
+            data_final__gte=primeiro_dia_mes
+        )
+        if not inclusoes_continuas.count():
+            return
+        self.cria_valores_medicao_logs_numero_alunos_inclusoes_continuas(
+            instance, inclusoes_continuas, quantidade_dias_mes, 'Programas/Projetos', 'Programas e Projetos')
+        self.cria_valores_medicao_logs_numero_alunos_inclusoes_continuas(
+            instance, inclusoes_continuas, quantidade_dias_mes, 'ETEC', 'ETEC')
+
+    def cria_valores_medicao_logs_numero_alunos_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+        self.cria_valores_medicao_logs_numero_alunos_inclusoes_continuas_emef_emei(instance)
+
     def cria_valores_medicao_logs_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
-        iniciais_emef_emei = ['EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
-        iniciais_escola = instance.escola.tipo_unidade.iniciais
-        if iniciais_escola not in iniciais_emef_emei:
+        if not instance.escola.eh_emef_emei_cieja:
             return
 
         self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
         self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
+        self.cria_valores_medicao_logs_numero_alunos_emef_emei(instance)
 
     def update(self, instance, validated_data):  # noqa C901
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)
