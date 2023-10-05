@@ -410,9 +410,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             for kit_lanche in kits_lanche_unificado.filter(
                     solicitacao_unificada__solicitacao_kit_lanche__data__day=dia):
                 total_dia += kit_lanche.total_kit_lanche
-            valores_medicao_a_criar += self.cria_valor_medicao(
+            valores_medicao_a_criar = self.cria_valor_medicao(
                 total_dia, medicao, categoria, dia, 'kit_lanche', valores_medicao_a_criar)
-
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
     def cria_valores_medicao_logs_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
@@ -473,7 +472,6 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
             for medicao in instance.medicoes.all():
                 medicao.ue_envia(user=self.context['request'].user)
-
         return instance
 
     class Meta:
