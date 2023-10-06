@@ -124,6 +124,8 @@ class ValorMedicaoSerializer(serializers.ModelSerializer):
     medicao_uuid = serializers.SerializerMethodField()
     medicao_alterado_em = serializers.SerializerMethodField()
     faixa_etaria = serializers.SerializerMethodField()
+    faixa_etaria_str = serializers.SerializerMethodField()
+    faixa_etaria_inicio = serializers.SerializerMethodField()
 
     def get_medicao_uuid(self, obj):
         return obj.medicao.uuid
@@ -131,14 +133,20 @@ class ValorMedicaoSerializer(serializers.ModelSerializer):
     def get_faixa_etaria(self, obj):
         return obj.faixa_etaria.uuid if obj.faixa_etaria else None
 
+    def get_faixa_etaria_str(self, obj):
+        return obj.faixa_etaria.__str__() if obj.faixa_etaria else None
+
+    def get_faixa_etaria_inicio(self, obj):
+        return obj.faixa_etaria.inicio if obj.faixa_etaria else None
+
     def get_medicao_alterado_em(self, obj):
         if obj.medicao.alterado_em:
             return datetime.datetime.strftime(obj.medicao.alterado_em, '%d/%m/%Y, às %H:%M:%S')
 
     class Meta:
         model = ValorMedicao
-        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid',
-                  'faixa_etaria', 'uuid', 'medicao_alterado_em', 'habilitado_correcao')
+        fields = ('categoria_medicao', 'nome_campo', 'valor', 'dia', 'medicao_uuid', 'faixa_etaria',
+                  'faixa_etaria_str', 'faixa_etaria_inicio', 'uuid', 'medicao_alterado_em', 'habilitado_correcao')
 
 
 class CategoriaMedicaoSerializer(serializers.ModelSerializer):
