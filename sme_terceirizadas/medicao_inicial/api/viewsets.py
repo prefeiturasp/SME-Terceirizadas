@@ -437,6 +437,16 @@ class SolicitacaoMedicaoInicialViewSet(
                 mensagem = 'Erro: existe(m) pendência(s) de análise'
                 return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
             solicitacao_medicao_inicial.codae_aprova_medicao(user=request.user)
+            acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+            log = criar_log_aprovar_periodos_corrigidos(request.user, solicitacao_medicao_inicial, acao)
+            if log:
+                if not solicitacao_medicao_inicial.historico:
+                    historico = [log]
+                else:
+                    historico = json.loads(solicitacao_medicao_inicial.historico)
+                    historico.append(log)
+                solicitacao_medicao_inicial.historico = json.dumps(historico)
+                solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -448,6 +458,16 @@ class SolicitacaoMedicaoInicialViewSet(
         solicitacao_medicao_inicial = self.get_object()
         try:
             solicitacao_medicao_inicial.codae_pede_correcao_medicao(user=request.user)
+            acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
+            log = criar_log_solicitar_correcao_periodos(request.user, solicitacao_medicao_inicial, acao)
+            if log:
+                if not solicitacao_medicao_inicial.historico:
+                    historico = [log]
+                else:
+                    historico = json.loads(solicitacao_medicao_inicial.historico)
+                    historico.append(log)
+                solicitacao_medicao_inicial.historico = json.dumps(historico)
+                solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -673,14 +693,21 @@ class MedicaoViewSet(
             tipo_alimentacao = TipoAlimentacao.objects.get(uuid=tipo_alimentacao_uuid)
         return tipo_alimentacao
 
+    def get_nome_acao(self, medicao, status_codae):
+        if medicao.status in status_codae:
+            return medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+        else:
+            return medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
+
     @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao',
             permission_classes=[UsuarioDiretorEscolaTercTotal])
     def escola_corrige_medicao(self, request, uuid=None):
         medicao = self.get_object()
         status_correcao_solicitada_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
         status_medicao_corrigida_para_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+        status_codae = [status_correcao_solicitada_codae, status_medicao_corrigida_para_codae]
         try:
-            acao = medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
+            acao = self.get_nome_acao(medicao, status_codae)
             log_alteracoes_escola_corrige_periodo(request.user, medicao, acao, request.data)
             for valor_medicao in request.data:
                 if not valor_medicao:
@@ -711,7 +738,7 @@ class MedicaoViewSet(
                         'habilitado_correcao': True,
                     },
                 )
-            if medicao.status in [status_correcao_solicitada_codae, status_medicao_corrigida_para_codae]:
+            if medicao.status in status_codae:
                 medicao.ue_corrige_periodo_grupo_para_codae(user=request.user)
             else:
                 medicao.ue_corrige(user=request.user)
