@@ -57,6 +57,6 @@ JWT_AUTH = {
 }
 
 # Alterado para rodar a geração de PDF localmente
-STATIC_URL = '/home/diogo/Documentos/SME-Terceirizadas/SME-Terceirizadas/staticfiles/'
+STATIC_URL = '/staticfiles/'
 
 SPECTACULAR_SETTINGS['SCHEMA_PATH_PREFIX_INSERT'] = ''  # noqa F405
