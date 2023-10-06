@@ -334,23 +334,9 @@ def arquivo_base64():
 
 
 @pytest.fixture
-def lista_layouts_de_embalagem_aprovados(cronograma_assinado_perfil_dilog):
-    data = [
-        {
-            'cronograma': cronograma_assinado_perfil_dilog,
-            'observacoes': f'Teste {i}',
-            'status': LayoutDeEmbalagemWorkflow.APROVADO
-        }
-        for i in range(1, 6)
-    ]
-    objects = [mommy.make(LayoutDeEmbalagem, **attrs) for attrs in data]
-
-    return objects
-
-
-@pytest.fixture
 def lista_layouts_de_embalagem_enviados_para_analise(
-    cronograma_assinado_perfil_dilog, cronograma_assinado_perfil_dinutre
+    cronograma_assinado_perfil_dinutre,
+    cronograma_assinado_perfil_dilog
 ):
     layouts_cronograma_assinado_dinutre = [
         {
@@ -358,7 +344,7 @@ def lista_layouts_de_embalagem_enviados_para_analise(
             'observacoes': f'Teste {i}',
             'status': LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
         }
-        for i in range(6, 10)
+        for i in range(1, 6)
     ]
 
     layouts_cronograma_assinado_dilog = [
@@ -367,7 +353,67 @@ def lista_layouts_de_embalagem_enviados_para_analise(
             'observacoes': f'Teste {i}',
             'status': LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
         }
-        for i in range(10, 21)
+        for i in range(6, 16)
+    ]
+
+    data = layouts_cronograma_assinado_dilog + layouts_cronograma_assinado_dinutre
+
+    objects = [mommy.make(LayoutDeEmbalagem, **attrs) for attrs in data]
+
+    return objects
+
+
+@pytest.fixture
+def lista_layouts_de_embalagem_aprovados(
+    cronograma_assinado_perfil_dinutre,
+    cronograma_assinado_perfil_dilog
+):
+    layouts_cronograma_assinado_dinutre = [
+        {
+            'cronograma': cronograma_assinado_perfil_dinutre,
+            'observacoes': f'Teste {i}',
+            'status': LayoutDeEmbalagemWorkflow.APROVADO
+        }
+        for i in range(1, 6)
+    ]
+
+    layouts_cronograma_assinado_dilog = [
+        {
+            'cronograma': cronograma_assinado_perfil_dilog,
+            'observacoes': f'Teste {i}',
+            'status': LayoutDeEmbalagemWorkflow.APROVADO
+        }
+        for i in range(6, 16)
+    ]
+
+    data = layouts_cronograma_assinado_dilog + layouts_cronograma_assinado_dinutre
+
+    objects = [mommy.make(LayoutDeEmbalagem, **attrs) for attrs in data]
+
+    return objects
+
+
+@pytest.fixture
+def lista_layouts_de_embalagem_solicitado_correcao(
+    cronograma_assinado_perfil_dinutre,
+    cronograma_assinado_perfil_dilog
+):
+    layouts_cronograma_assinado_dinutre = [
+        {
+            'cronograma': cronograma_assinado_perfil_dinutre,
+            'observacoes': f'Teste {i}',
+            'status': LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO
+        }
+        for i in range(1, 6)
+    ]
+
+    layouts_cronograma_assinado_dilog = [
+        {
+            'cronograma': cronograma_assinado_perfil_dilog,
+            'observacoes': f'Teste {i}',
+            'status': LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO
+        }
+        for i in range(6, 16)
     ]
 
     data = layouts_cronograma_assinado_dilog + layouts_cronograma_assinado_dinutre
@@ -421,8 +467,16 @@ def lista_layouts_de_embalagem_com_tipo_embalagem(cronograma_assinado_perfil_dil
 
 
 @pytest.fixture
-def lista_layouts_de_embalagem(lista_layouts_de_embalagem_aprovados, lista_layouts_de_embalagem_enviados_para_analise):
-    return lista_layouts_de_embalagem_aprovados + lista_layouts_de_embalagem_enviados_para_analise
+def lista_layouts_de_embalagem(
+    lista_layouts_de_embalagem_enviados_para_analise,
+    lista_layouts_de_embalagem_aprovados,
+    lista_layouts_de_embalagem_solicitado_correcao
+):
+    return (
+        lista_layouts_de_embalagem_enviados_para_analise +
+        lista_layouts_de_embalagem_aprovados +
+        lista_layouts_de_embalagem_solicitado_correcao
+    )
 
 
 @pytest.fixture

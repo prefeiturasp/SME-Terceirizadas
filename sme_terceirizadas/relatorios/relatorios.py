@@ -1078,7 +1078,19 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
 def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
     tabelas, dias_letivos = build_tabelas_relatorio_medicao_cei(solicitacao)
     tabelas_somatorios = build_tabela_somatorio_body_cei(solicitacao)
-
+    tabela_observacoes = list(
+        solicitacao.medicoes.filter(
+            valores_medicao__nome_campo='observacoes'
+        ).values_list(
+            'valores_medicao__dia',
+            'periodo_escolar__nome',
+            'valores_medicao__categoria_medicao__nome',
+            'valores_medicao__valor',
+            'grupo__nome'
+        ).order_by(
+            'valores_medicao__dia',
+            'periodo_escolar__nome',
+            'valores_medicao__categoria_medicao__nome'))
     html_string = render_to_string(
         f'relatorio_solicitacao_medicao_por_escola_cei.html',
         {
@@ -1095,8 +1107,8 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
             'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
             'tabelas': tabelas,
             'dias_letivos': dias_letivos,
-            'tabela_observacoes': [],
-            'tabelas_somatorios': tabelas_somatorios
+            'tabela_observacoes': tabela_observacoes,
+            'tabelas_somatorios': tabelas_somatorios,
         }
     )
     return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
