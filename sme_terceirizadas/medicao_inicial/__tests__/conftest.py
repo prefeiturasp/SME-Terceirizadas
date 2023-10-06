@@ -12,6 +12,11 @@ def grupo_programas_e_projetos():
 
 
 @pytest.fixture
+def grupo_etec():
+    return mommy.make('GrupoMedicao', nome='ETEC')
+
+
+@pytest.fixture
 def motivo_inclusao_continua_programas_projetos():
     return mommy.make('MotivoInclusaoContinua', nome='Programas/Projetos Contínuos')
 
@@ -323,9 +328,28 @@ def escola_com_logs_para_medicao(periodo_escolar_manha, periodo_escolar_tarde, p
         status='CODAE_AUTORIZADO'
     )
 
+    inclusao_continua_etec = mommy.make(
+        'InclusaoAlimentacaoContinua',
+        escola=escola,
+        rastro_escola=escola,
+        data_inicial=datetime.date(2023, 8, 15),
+        data_final=datetime.date(2023, 9, 15),
+        motivo=motivo_inclusao_continua_etec,
+        status='CODAE_AUTORIZADO'
+    )
+
     for periodo in [periodo_escolar_manha, periodo_escolar_tarde, periodo_escolar_noite]:
         qp = mommy.make('QuantidadePorPeriodo',
                         inclusao_alimentacao_continua=inclusao_continua_programas_projetos,
+                        periodo_escolar=periodo,
+                        numero_alunos=10,
+                        dias_semana=[0, 1, 2, 3, 4, 5, 6])
+        qp.tipos_alimentacao.add(tipo_alimentacao_refeicao)
+        qp.tipos_alimentacao.add(tipo_alimentacao_lanche)
+        qp.save()
+
+        qp = mommy.make('QuantidadePorPeriodo',
+                        inclusao_alimentacao_continua=inclusao_continua_etec,
                         periodo_escolar=periodo,
                         numero_alunos=10,
                         dias_semana=[0, 1, 2, 3, 4, 5, 6])
@@ -374,7 +398,7 @@ def escola_com_logs_para_medicao(periodo_escolar_manha, periodo_escolar_tarde, p
 def solicitacao_medicao_inicial_teste_salvar_logs(
         escola_com_logs_para_medicao, tipo_contagem_alimentacao, periodo_escolar_manha, periodo_escolar_tarde,
         periodo_escolar_noite, categoria_medicao, categoria_medicao_dieta_a, grupo_programas_e_projetos,
-        categoria_medicao_dieta_a_enteral_aminoacidos):
+        categoria_medicao_dieta_a_enteral_aminoacidos, grupo_etec):
     solicitacao_medicao = mommy.make(
         'SolicitacaoMedicaoInicial',
         uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
@@ -399,6 +423,10 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         'Medicao',
         solicitacao_medicao_inicial=solicitacao_medicao,
         grupo=grupo_programas_e_projetos)
+    mommy.make(
+        'Medicao',
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        grupo=grupo_etec)
     return solicitacao_medicao
 
 
