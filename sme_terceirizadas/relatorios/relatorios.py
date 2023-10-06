@@ -1035,48 +1035,42 @@ def get_total_sobremesas_por_periodo(tabelas):
 
 
 def relatorio_solicitacao_medicao_por_escola(solicitacao):
-    try:
-        print("\033[92m", "PASSOU", "\033[0m")
-        tabelas = build_tabelas_relatorio_medicao(solicitacao)
-        dict_total_refeicoes = get_total_refeicoes_por_periodo(tabelas)
-        dict_total_sobremesas = get_total_sobremesas_por_periodo(tabelas)
-        tabela_observacoes = list(
-            solicitacao.medicoes.filter(
-                valores_medicao__nome_campo='observacoes'
-            ).values_list(
-                'valores_medicao__dia',
-                'periodo_escolar__nome',
-                'valores_medicao__categoria_medicao__nome',
-                'valores_medicao__valor',
-                'grupo__nome'
-            ).order_by(
-                'valores_medicao__dia',
-                'periodo_escolar__nome',
-                'valores_medicao__categoria_medicao__nome'))
-        tabela_somatorio = build_tabela_somatorio_body(solicitacao, dict_total_refeicoes, dict_total_sobremesas)
-        html_string = render_to_string(
-            f'relatorio_solicitacao_medicao_por_escola.html',
-            {
-                'solicitacao': solicitacao,
-                'responsaveis': solicitacao.responsaveis.all(),
-                'assinatura_escola': SolicitacaoMedicaoInicialViewSet.assinatura_ue(
-                    SolicitacaoMedicaoInicialViewSet,
-                    solicitacao
-                ),
-                'assinatura_dre': SolicitacaoMedicaoInicialViewSet.assinatura_dre(
-                    SolicitacaoMedicaoInicialViewSet,
-                    solicitacao
-                ),
-                'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
-                'tabelas': tabelas,
-                'tabela_observacoes': tabela_observacoes,
-                'tabela_somatorio': tabela_somatorio
-            }
-        )
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print("\033[91m", f"Errooooooooooooo: {e}")
+    tabelas = build_tabelas_relatorio_medicao(solicitacao)
+    dict_total_refeicoes = get_total_refeicoes_por_periodo(tabelas)
+    dict_total_sobremesas = get_total_sobremesas_por_periodo(tabelas)
+    tabela_observacoes = list(
+        solicitacao.medicoes.filter(
+            valores_medicao__nome_campo='observacoes'
+        ).values_list(
+            'valores_medicao__dia',
+            'periodo_escolar__nome',
+            'valores_medicao__categoria_medicao__nome',
+            'valores_medicao__valor',
+            'grupo__nome'
+        ).order_by(
+            'valores_medicao__dia',
+            'periodo_escolar__nome',
+            'valores_medicao__categoria_medicao__nome'))
+    tabela_somatorio = build_tabela_somatorio_body(solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+    html_string = render_to_string(
+        f'relatorio_solicitacao_medicao_por_escola.html',
+        {
+            'solicitacao': solicitacao,
+            'responsaveis': solicitacao.responsaveis.all(),
+            'assinatura_escola': SolicitacaoMedicaoInicialViewSet.assinatura_ue(
+                SolicitacaoMedicaoInicialViewSet,
+                solicitacao
+            ),
+            'assinatura_dre': SolicitacaoMedicaoInicialViewSet.assinatura_dre(
+                SolicitacaoMedicaoInicialViewSet,
+                solicitacao
+            ),
+            'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
+            'tabelas': tabelas,
+            'tabela_observacoes': tabela_observacoes,
+            'tabela_somatorio': tabela_somatorio
+        }
+    )
 
     return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
 
