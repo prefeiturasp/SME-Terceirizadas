@@ -219,7 +219,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             nome='DIETA ESPECIAL - TIPO A - ENTERAL / RESTRIÇÃO DE AMINOÁCIDOS'
         ):
             if not logs_do_mes.filter(
-                classificacao__nome__in=['Tipo A Enteral', 'Tipo A - Restrição de aminoácidos'],
+                classificacao__nome__in=['Tipo A ENTERAL', 'Tipo A RESTRIÇÃO DE AMINOÁCIDOS'],
                 periodo_escolar__nome=periodo_escolar,
                 quantidade__gt=0
             ).exists():
@@ -243,12 +243,12 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             nome='DIETA ESPECIAL - TIPO A - ENTERAL / RESTRIÇÃO DE AMINOÁCIDOS'
         ):
             log_enteral = logs_do_mes.filter(
-                classificacao__nome='Tipo A Enteral',
+                classificacao__nome__icontains='enteral',
                 periodo_escolar__nome=periodo_escolar,
                 data__day=dia
             ).first()
             log_restricao_aminoacidos = logs_do_mes.filter(
-                classificacao__nome='Tipo A - Restrição de aminoácidos',
+                classificacao__nome__icontains='aminoácidos',
                 periodo_escolar__nome=periodo_escolar,
                 data__day=dia
             ).first()
@@ -473,7 +473,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         ultimo_arquivo=arquivo,
                         nome_ultimo_arquivo=anexo.get('nome')
                     )
-        if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao') == 'true':
+        if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao'):
             self.cria_valores_medicao_logs_emef_emei(instance)
             self.valida_finalizar_medicao_emef_emei(instance)
             instance.ue_envia(user=self.context['request'].user)
