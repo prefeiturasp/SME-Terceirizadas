@@ -5,6 +5,18 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from model_mommy import mommy
 
+from sme_terceirizadas.dados_comuns.behaviors import TempoPasseio
+
+
+@pytest.fixture
+def kit_lanche_1():
+    return mommy.make('KitLanche', nome='KIT 1')
+
+
+@pytest.fixture
+def kit_lanche_2():
+    return mommy.make('KitLanche', nome='KIT 2')
+
 
 @pytest.fixture
 def grupo_programas_e_projetos():
@@ -14,6 +26,11 @@ def grupo_programas_e_projetos():
 @pytest.fixture
 def grupo_etec():
     return mommy.make('GrupoMedicao', nome='ETEC')
+
+
+@pytest.fixture
+def grupo_solicitacoes_alimentacao():
+    return mommy.make('GrupoMedicao', nome='Solicitações de Alimentação')
 
 
 @pytest.fixture
@@ -81,9 +98,9 @@ def client_autenticado_coordenador_codae(client, django_user_model):
 @pytest.fixture
 def escola(tipo_unidade_escolar):
     terceirizada = mommy.make('Terceirizada')
-    lote = mommy.make('Lote', terceirizada=terceirizada)
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='9640fef4-a068-474e-8979-2e1b2654357a')
+    lote = mommy.make('Lote', terceirizada=terceirizada, diretoria_regional=diretoria_regional)
     tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
     return mommy.make('Escola', nome='EMEF TESTE', lote=lote, diretoria_regional=diretoria_regional,
                       tipo_gestao=tipo_gestao, tipo_unidade=tipo_unidade_escolar)
@@ -317,7 +334,8 @@ def categoria_alimentacoes():
 def escola_com_logs_para_medicao(periodo_escolar_manha, periodo_escolar_tarde, periodo_escolar_noite, escola,
                                  classificacao_dieta_tipo_a, classificacao_dieta_tipo_a_enteral,
                                  tipo_alimentacao_refeicao, tipo_alimentacao_lanche, grupo_programas_e_projetos,
-                                 motivo_inclusao_continua_programas_projetos, motivo_inclusao_continua_etec):
+                                 motivo_inclusao_continua_programas_projetos, motivo_inclusao_continua_etec,
+                                 kit_lanche_1, kit_lanche_2):
     inclusao_continua_programas_projetos = mommy.make(
         'InclusaoAlimentacaoContinua',
         escola=escola,
@@ -337,6 +355,39 @@ def escola_com_logs_para_medicao(periodo_escolar_manha, periodo_escolar_tarde, p
         motivo=motivo_inclusao_continua_etec,
         status='CODAE_AUTORIZADO'
     )
+
+    solicitacao_kit_lanche = mommy.make(
+        'SolicitacaoKitLanche',
+        data=datetime.date(2023, 9, 12),
+        tempo_passeio=TempoPasseio.OITO_OU_MAIS
+    )
+    solicitacao_kit_lanche.kits.add(kit_lanche_1)
+    solicitacao_kit_lanche.kits.add(kit_lanche_2)
+    solicitacao_kit_lanche.save()
+
+    mommy.make(
+        'SolicitacaoKitLancheAvulsa',
+        solicitacao_kit_lanche=solicitacao_kit_lanche,
+        status='CODAE_AUTORIZADO',
+        escola=escola,
+        quantidade_alunos=100
+    )
+
+    solicitacao_unificada = mommy.make(
+        'SolicitacaoKitLancheUnificada',
+        status='CODAE_AUTORIZADO',
+        solicitacao_kit_lanche=solicitacao_kit_lanche,
+        diretoria_regional=escola.lote.diretoria_regional,
+        lista_kit_lanche_igual=False
+    )
+    eq = mommy.make(
+        'EscolaQuantidade',
+        solicitacao_unificada=solicitacao_unificada,
+        escola=escola,
+        quantidade_alunos=100)
+    eq.kits.add(kit_lanche_1)
+    eq.kits.add(kit_lanche_2)
+    eq.save()
 
     for periodo in [periodo_escolar_manha, periodo_escolar_tarde, periodo_escolar_noite]:
         qp = mommy.make('QuantidadePorPeriodo',
@@ -398,7 +449,8 @@ def escola_com_logs_para_medicao(periodo_escolar_manha, periodo_escolar_tarde, p
 def solicitacao_medicao_inicial_teste_salvar_logs(
         escola_com_logs_para_medicao, tipo_contagem_alimentacao, periodo_escolar_manha, periodo_escolar_tarde,
         periodo_escolar_noite, categoria_medicao, categoria_medicao_dieta_a, grupo_programas_e_projetos,
-        categoria_medicao_dieta_a_enteral_aminoacidos, grupo_etec):
+        categoria_medicao_dieta_a_enteral_aminoacidos, grupo_etec, grupo_solicitacoes_alimentacao,
+        categoria_medicao_solicitacoes_alimentacao):
     solicitacao_medicao = mommy.make(
         'SolicitacaoMedicaoInicial',
         uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
@@ -427,6 +479,10 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         'Medicao',
         solicitacao_medicao_inicial=solicitacao_medicao,
         grupo=grupo_etec)
+    mommy.make(
+        'Medicao',
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        grupo=grupo_solicitacoes_alimentacao)
     return solicitacao_medicao
 
 
@@ -649,6 +705,11 @@ def categoria_medicao_dieta_a_enteral_aminoacidos():
 @pytest.fixture
 def categoria_medicao_dieta_b():
     return mommy.make('CategoriaMedicao', nome='DIETA ESPECIAL - TIPO B')
+
+
+@pytest.fixture
+def categoria_medicao_solicitacoes_alimentacao():
+    return mommy.make('CategoriaMedicao', nome='SOLICITAÇÕES DE ALIMENTAÇÃO')
 
 
 @pytest.fixture

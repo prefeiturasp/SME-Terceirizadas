@@ -948,3 +948,10 @@ def test_finaliza_medicao_inicial_salva_logs(
         grupo__nome='ETEC')
     assert medicao_etec.valores_medicao.filter(
         nome_campo='numero_de_alunos', categoria_medicao__nome='ALIMENTAÇÃO').count() == 15
+
+    medicao_solicitacoes_alimentacao = solicitacao_medicao_inicial_teste_salvar_logs.medicoes.get(
+        grupo__nome='Solicitações de Alimentação')
+    assert medicao_solicitacoes_alimentacao.valores_medicao.filter(
+        nome_campo='kit_lanche', categoria_medicao__nome='SOLICITAÇÕES DE ALIMENTAÇÃO').count() == 1
+    assert medicao_solicitacoes_alimentacao.valores_medicao.get(
+        nome_campo='kit_lanche', categoria_medicao__nome='SOLICITAÇÕES DE ALIMENTAÇÃO').valor == '200'
