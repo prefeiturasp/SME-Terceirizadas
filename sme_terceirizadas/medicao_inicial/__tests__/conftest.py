@@ -7,6 +7,21 @@ from model_mommy import mommy
 
 
 @pytest.fixture
+def grupo_programas_e_projetos():
+    return mommy.make('GrupoMedicao', nome='Programas e Projetos')
+
+
+@pytest.fixture
+def motivo_inclusao_continua_programas_projetos():
+    return mommy.make('MotivoInclusaoContinua', nome='Programas/Projetos Contínuos')
+
+
+@pytest.fixture
+def motivo_inclusao_continua_etec():
+    return mommy.make('MotivoInclusaoContinua', nome='ETEC')
+
+
+@pytest.fixture
 def tipo_alimentacao_refeicao():
     return mommy.make('TipoAlimentacao', nome='Refeição')
 
@@ -296,9 +311,28 @@ def categoria_alimentacoes():
 @pytest.fixture
 def escola_com_logs_para_medicao(periodo_escolar_manha, periodo_escolar_tarde, periodo_escolar_noite, escola,
                                  classificacao_dieta_tipo_a, classificacao_dieta_tipo_a_enteral,
-                                 tipo_alimentacao_refeicao, tipo_alimentacao_lanche):
+                                 tipo_alimentacao_refeicao, tipo_alimentacao_lanche, grupo_programas_e_projetos,
+                                 motivo_inclusao_continua_programas_projetos, motivo_inclusao_continua_etec):
+    inclusao_continua_programas_projetos = mommy.make(
+        'InclusaoAlimentacaoContinua',
+        escola=escola,
+        rastro_escola=escola,
+        data_inicial=datetime.date(2023, 9, 1),
+        data_final=datetime.date(2023, 9, 30),
+        motivo=motivo_inclusao_continua_programas_projetos,
+        status='CODAE_AUTORIZADO'
+    )
 
     for periodo in [periodo_escolar_manha, periodo_escolar_tarde, periodo_escolar_noite]:
+        qp = mommy.make('QuantidadePorPeriodo',
+                        inclusao_alimentacao_continua=inclusao_continua_programas_projetos,
+                        periodo_escolar=periodo,
+                        numero_alunos=10,
+                        dias_semana=[0, 1, 2, 3, 4, 5, 6])
+        qp.tipos_alimentacao.add(tipo_alimentacao_refeicao)
+        qp.tipos_alimentacao.add(tipo_alimentacao_lanche)
+        qp.save()
+
         mommy.make('AlunosMatriculadosPeriodoEscola',
                    escola=escola,
                    periodo_escolar=periodo,
@@ -333,14 +367,13 @@ def escola_com_logs_para_medicao(periodo_escolar_manha, periodo_escolar_tarde, p
                                periodo_escolar=periodo,
                                classificacao=classificacao,
                                quantidade=10)
-
     return escola
 
 
 @pytest.fixture
 def solicitacao_medicao_inicial_teste_salvar_logs(
         escola_com_logs_para_medicao, tipo_contagem_alimentacao, periodo_escolar_manha, periodo_escolar_tarde,
-        periodo_escolar_noite, categoria_medicao, categoria_medicao_dieta_a,
+        periodo_escolar_noite, categoria_medicao, categoria_medicao_dieta_a, grupo_programas_e_projetos,
         categoria_medicao_dieta_a_enteral_aminoacidos):
     solicitacao_medicao = mommy.make(
         'SolicitacaoMedicaoInicial',
@@ -362,6 +395,10 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         'Medicao',
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_escolar_noite)
+    mommy.make(
+        'Medicao',
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        grupo=grupo_programas_e_projetos)
     return solicitacao_medicao
 
 

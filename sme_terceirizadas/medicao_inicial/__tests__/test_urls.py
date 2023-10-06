@@ -938,3 +938,8 @@ def test_finaliza_medicao_inicial_salva_logs(
     medicao_noite = solicitacao_medicao_inicial_teste_salvar_logs.medicoes.get(periodo_escolar=periodo_escolar_noite)
     assert medicao_noite.valores_medicao.filter(
         nome_campo='matriculados', categoria_medicao__nome='ALIMENTAÇÃO').count() == 30
+
+    medicao_programas_projetos = solicitacao_medicao_inicial_teste_salvar_logs.medicoes.get(
+        grupo__nome='Programas e Projetos')
+    assert medicao_programas_projetos.valores_medicao.filter(
+        nome_campo='numero_de_alunos', categoria_medicao__nome='ALIMENTAÇÃO').count() == 30
