@@ -77,14 +77,17 @@ class ServiceDashboardLayoutEmbalagemProfiles:
             COORDENADOR_CODAE_DILOG_LOGISTICA: [
                 StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
                 StatusLayoutEmbalagem.APROVADO,
+                StatusLayoutEmbalagem.SOLICITADO_CORRECAO,
             ],
             DILOG_QUALIDADE: [
                 StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
                 StatusLayoutEmbalagem.APROVADO,
+                StatusLayoutEmbalagem.SOLICITADO_CORRECAO,
             ],
             COORDENADOR_GESTAO_PRODUTO: [
                 StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
                 StatusLayoutEmbalagem.APROVADO,
+                StatusLayoutEmbalagem.SOLICITADO_CORRECAO,
             ],
         }
 
