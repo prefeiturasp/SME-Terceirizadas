@@ -545,6 +545,14 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
     logs_a_criar = []
     dict_periodos = PeriodoEscolar.dict_periodos()
     for classificacao in ClassificacaoDieta.objects.all():
+        quantidade_dietas = dietas_autorizadas.filter(classificacao=classificacao, escola_destino=escola).count()
+        log = LogQuantidadeDietasAutorizadas(
+            quantidade=quantidade_dietas,
+            escola=escola,
+            data=ontem,
+            classificacao=classificacao
+        )
+        logs_a_criar.append(log)
         for periodo_escolar_nome in escola.periodos_escolares_com_alunos:
             quantidade_dietas = dietas_autorizadas.filter(
                 classificacao=classificacao, escola_destino=escola
