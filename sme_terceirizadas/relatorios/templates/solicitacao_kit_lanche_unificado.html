@@ -28,9 +28,13 @@
           <div>Data</div>
           <div>{{ solicitacao.data|date:"d/m/Y" }}</div>
         </div>
-        <div class="info info-motivo-local">
+        <div class="info info-motivo-local" style="margin-right: 3em">
           <div>Local do passeio</div>
           <div>{{ solicitacao.local }}</div>
+        </div>
+        <div class="info info-motivo-local pl-3 ml-5">
+          <div>Evento/Atividade</div>
+          <div>{{ solicitacao.evento|default:"- -" }}</div>
         </div>
       </div>
     </div>
