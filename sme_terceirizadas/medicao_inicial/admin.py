@@ -1,15 +1,18 @@
 from django.contrib import admin
 
 from .models import (
+    AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     GrupoMedicao,
     Medicao,
+    PermissaoLancamentoEspecial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao
 )
 
+admin.site.register(AlimentacaoLancamentoEspecial)
 admin.site.register(CategoriaMedicao)
 admin.site.register(DiaSobremesaDoce)
 admin.site.register(GrupoMedicao)
@@ -50,3 +53,14 @@ class MedicaoAdmin(admin.ModelAdmin):
     @admin.display(description='Ano')
     def get_ano(self, obj):
         return obj.solicitacao_medicao_inicial.ano
+
+
+@admin.register(PermissaoLancamentoEspecial)
+class PermissaoLancamentoEspecialAdmin(admin.ModelAdmin):
+    list_display = ('id_externo', 'escola', 'periodo_escolar', 'data_inicial', 'data_final',
+                    'diretoria_regional', 'get_alimentacoes_lancamento_especial')
+    search_fields = ('escola__nome', 'escola__codigo_eol')
+
+    @admin.display(description='Alimentações Lançamento Especial')
+    def get_alimentacoes_lancamento_especial(self, obj):
+        return [ali.nome for ali in obj.alimentacoes_lancamento_especial.all()]
