@@ -6,8 +6,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views import defaults as default_views
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
-
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from sme_terceirizadas.cardapio.urls import urlpatterns as cardapio_urls
 from sme_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
 from sme_terceirizadas.dieta_especial.urls import urlpatterns as dieta_especial_urls
@@ -33,8 +32,8 @@ admin.site.enable_nav_sidebar = False
 urlpatterns = [path('django-des/', include(des_urls)),
                path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                path(settings.ADMIN_URL, admin.site.urls),
-               path('api-token-auth/', obtain_jwt_token),
-               path('api-token-refresh/', refresh_jwt_token),
+               path('api-token-auth/', TokenObtainPairView.as_view()),
+               path('api-token-refresh/', TokenRefreshView.as_view()),
                path('', include('django_prometheus.urls')),
                path('docs-swagger/', SpectacularAPIView.as_view(), name='schema'),
                path('docs-swagger/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
