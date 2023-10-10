@@ -11,7 +11,7 @@
       <div class="row my-2 mx-2">
         <div class="col-3"><b># {{solicitacao.id_externo}}</b></div>
         <div class="col-3"><b>{{solicitacao.local_passeio}}</b></div>
-        <div class="col-3"><b>{{ solicitacao.evento|default_if_none:"- -" }}</b></div>
+        <div class="col-3"><b>{{ solicitacao.evento|default:"- -" }}</b></div>
         <div class="col-3"><b>{{solicitacao.data_log}}</b></div>
       </div>
       <div class="row mt-4 mb-2 mx-2">
