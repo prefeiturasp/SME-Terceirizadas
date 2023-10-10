@@ -7,6 +7,7 @@ from django.urls import include, path
 from django.views import defaults as default_views
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 from sme_terceirizadas.cardapio.urls import urlpatterns as cardapio_urls
 from sme_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
 from sme_terceirizadas.dieta_especial.urls import urlpatterns as dieta_especial_urls
