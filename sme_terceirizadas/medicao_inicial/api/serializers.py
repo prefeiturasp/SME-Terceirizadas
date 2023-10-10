@@ -19,7 +19,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     Responsavel,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
-    ValorMedicao
+    ValorMedicao, DiaParaCorrigir
 )
 from sme_terceirizadas.perfil.api.serializers import UsuarioSerializer
 
@@ -167,3 +167,11 @@ class MedicaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Medicao
         fields = ('uuid', 'solicitacao_medicao_inicial', 'status', 'logs')
+
+
+class DiaParaCorrigirSerializer(serializers.ModelSerializer):
+    medicao = serializers.CharField(source='medicao.uuid')
+
+    class Meta:
+        model = DiaParaCorrigir
+        exclude = ('id', 'criado_por')

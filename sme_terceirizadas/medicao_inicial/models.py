@@ -224,11 +224,7 @@ class ValorMedicao(
         setfirstweekday(0)
         x = numpy.array(monthcalendar(year, month))
         week_of_month = numpy.where(x == day)[0][0] + 1
-        return(week_of_month)
-
-    class Meta:
-        verbose_name = 'Valor da Medição'
-        verbose_name_plural = 'Valores das Medições'
+        return week_of_month
 
     def __str__(self):
         categoria = f'{self.categoria_medicao.nome}'
@@ -236,3 +232,41 @@ class ValorMedicao(
         dia = f'{self.dia}'
         mes = f'{self.medicao.solicitacao_medicao_inicial.mes}'
         return f'#{self.id_externo} -- Categoria {categoria} -- Campo {nome_campo} -- Dia/Mês {dia}/{mes}'
+
+    class Meta:
+        verbose_name = 'Valor da Medição'
+        verbose_name_plural = 'Valores das Medições'
+
+
+class DiaParaCorrigir(TemChaveExterna, TemIdentificadorExternoAmigavel, TemDia, CriadoEm, CriadoPor):
+    medicao = models.ForeignKey('Medicao', on_delete=models.CASCADE, related_name='dias_para_corrigir')
+    categoria_medicao = models.ForeignKey(
+        'CategoriaMedicao', on_delete=models.CASCADE, related_name='dias_para_corrigir')
+    habilitado_correcao = models.BooleanField(default=True)
+
+    @classmethod
+    def cria_dias_para_corrigir(cls, medicao: Medicao, list_dias_para_corrigir: list) -> None:
+        if not list_dias_para_corrigir:
+            return
+        medicao.dias_para_corrigir.all().delete()
+        list_dias_para_corrigir_a_criar = []
+        for dia_para_corrigir in list_dias_para_corrigir:
+            categoria_medicao = CategoriaMedicao.objects.get(uuid=dia_para_corrigir['categoria_medicao_uuid'])
+            dia_obj = DiaParaCorrigir(
+                medicao=medicao,
+                dia=dia_para_corrigir['dia'],
+                categoria_medicao=categoria_medicao
+            )
+            list_dias_para_corrigir_a_criar.append(dia_obj)
+        DiaParaCorrigir.objects.bulk_create(list_dias_para_corrigir_a_criar)
+
+    def __str__(self):
+        escola = self.medicao.solicitacao_medicao_inicial.escola.nome
+        periodo_ou_grupo = self.medicao.grupo.nome if self.medicao.grupo else self.medicao.periodo_escolar.nome
+        mes = self.medicao.solicitacao_medicao_inicial.mes
+        ano = self.medicao.solicitacao_medicao_inicial.ano
+        return f'{self.id_externo} - {escola} - {periodo_ou_grupo} - {self.dia}/{mes}/{ano}'
+
+    class Meta:
+        verbose_name = 'Dia da Medição para corrigir'
+        verbose_name_plural = 'Dias da Medição para corrigir'

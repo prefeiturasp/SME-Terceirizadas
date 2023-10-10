@@ -7,11 +7,13 @@ from django.db.models import IntegerField, Q, QuerySet
 from django.db.models.functions import Cast
 from rest_framework import mixins, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
 
+from .filters import DiaParaCorrecaoFilter
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -32,7 +34,7 @@ from ..models import (
     OcorrenciaMedicaoInicial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
-    ValorMedicao
+    ValorMedicao, DiaParaCorrigir
 )
 from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
 from ..utils import (
@@ -52,7 +54,7 @@ from .serializers import (
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
-    ValorMedicaoSerializer
+    ValorMedicaoSerializer, DiaParaCorrigirSerializer
 )
 from .serializers_create import (
     DiaSobremesaDoceCreateManySerializer,
@@ -651,10 +653,15 @@ class MedicaoViewSet(
             permission_classes=[UsuarioDiretoriaRegional])
     def dre_pede_correcao_medicao(self, request, uuid=None):
         medicao = self.get_object()
-        justificativa = request.data.get('justificativa', None)
-        uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', None)
+        justificativa = request.data.get('justificativa', '')
+        uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', [])
+        dias_para_corrigir = request.data.get('dias_para_corrigir', [])
         try:
-            ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
+            medicao.valores_medicao.filter(
+                uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
+            medicao.valores_medicao.exclude(
+                uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=False)
+            DiaParaCorrigir.cria_dias_para_corrigir(medicao, dias_para_corrigir)
             medicao.dre_pede_correcao(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -819,3 +826,11 @@ class OcorrenciaViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+
+class DiasParaCorrigirViewSet(mixins.ListModelMixin, GenericViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = DiaParaCorrigir.objects.filter(habilitado_correcao=True)
+    serializer_class = DiaParaCorrigirSerializer
+    filterset_class = DiaParaCorrecaoFilter
+    pagination_class = None

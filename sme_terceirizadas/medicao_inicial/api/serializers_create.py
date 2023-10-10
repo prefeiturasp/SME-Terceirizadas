@@ -380,22 +380,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
     def cria_valores_medicao_logs_numero_alunos_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
         self.cria_valores_medicao_logs_numero_alunos_inclusoes_continuas_emef_emei(instance)
 
-    def cria_valores_medicao_logs_kit_lanche_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
-        escola = instance.escola
-        kits_lanche = escola.kit_lanche_solicitacaokitlancheavulsa_rastro_escola.filter(
-            status='CODAE_AUTORIZADO',
-            solicitacao_kit_lanche__data__month=instance.mes,
-            solicitacao_kit_lanche__data__year=instance.ano
-        )
-        kits_lanche_unificado = escola.escolaquantidade_set.filter(
-            solicitacao_unificada__status='CODAE_AUTORIZADO',
-            solicitacao_unificada__solicitacao_kit_lanche__data__month=instance.mes,
-            solicitacao_unificada__solicitacao_kit_lanche__data__year=instance.ano,
-            cancelado=False
-        )
-        if not kits_lanche.exists() and not kits_lanche_unificado.exists():
-            return
-
+    def cria_valores_medicao_kit_lanches_emef_emei(self, instance, kits_lanche, kits_lanche_unificado):
         valores_medicao_a_criar = []
         medicao = self.retorna_medicao_por_nome_grupo(instance, 'Solicitações de Alimentação')
         categoria = CategoriaMedicao.objects.get(nome='SOLICITAÇÕES DE ALIMENTAÇÃO')
@@ -417,6 +402,32 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 total_dia, medicao, categoria, dia, 'kit_lanche', valores_medicao_a_criar)
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
+    def cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+        escola = instance.escola
+        kits_lanche = escola.kit_lanche_solicitacaokitlancheavulsa_rastro_escola.filter(
+            status='CODAE_AUTORIZADO',
+            solicitacao_kit_lanche__data__month=instance.mes,
+            solicitacao_kit_lanche__data__year=instance.ano
+        )
+        kits_lanche_unificado = escola.escolaquantidade_set.filter(
+            solicitacao_unificada__status='CODAE_AUTORIZADO',
+            solicitacao_unificada__solicitacao_kit_lanche__data__month=instance.mes,
+            solicitacao_unificada__solicitacao_kit_lanche__data__year=instance.ano,
+            cancelado=False
+        )
+        lanches_emergenciais = escola.alteracaocardapio_set.filter(
+            motivo__nome='Lanche Emergencial',
+            status='CODAE_AUTORIZADO',
+            datas_intervalo__data__month=instance.mes,
+            datas_intervalo__data__year=instance.ano,
+            datas_intervalo__cancelado=False
+        )
+
+        if not kits_lanche.exists() and not kits_lanche_unificado.exists() and not lanches_emergenciais.exists():
+            return
+
+        self.cria_valores_medicao_kit_lanches_emef_emei(instance, kits_lanche, kits_lanche_unificado)
+
     def cria_valores_medicao_logs_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
         if not instance.escola.eh_emef_emei_cieja or instance.logs_salvos:
             return
@@ -424,7 +435,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
         self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
         self.cria_valores_medicao_logs_numero_alunos_emef_emei(instance)
-        self.cria_valores_medicao_logs_kit_lanche_emef_emei(instance)
+        self.cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei(instance)
 
         instance.logs_salvos = True
         instance.save()
@@ -475,7 +486,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                     )
         if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao'):
             self.cria_valores_medicao_logs_emef_emei(instance)
-            self.valida_finalizar_medicao_emef_emei(instance)
+            # self.valida_finalizar_medicao_emef_emei(instance)
             instance.ue_envia(user=self.context['request'].user)
             if hasattr(instance, 'ocorrencia'):
                 instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
