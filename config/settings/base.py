@@ -307,7 +307,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
@@ -334,11 +334,10 @@ SPECTACULAR_SETTINGS = {
     'SCHEMA_PATH_PREFIX_INSERT': '/api'
 }
 
-JWT_AUTH = {
-    # TODO: rever a configuração...
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=100),
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=100),
-    'JWT_ALLOW_REFRESH': True,
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(hours=100),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(hours=100),
 }
 
 URL_CONFIGS = {
