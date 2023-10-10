@@ -16,17 +16,20 @@ from sme_terceirizadas.escola.api.serializers_create import AlunoPeriodoParcialC
 from sme_terceirizadas.escola.models import (
     Aluno,
     AlunoPeriodoParcial,
+    DiretoriaRegional,
     Escola,
     FaixaEtaria,
     PeriodoEscolar,
     TipoUnidadeEscolar
 )
 from sme_terceirizadas.medicao_inicial.models import (
+    AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     GrupoMedicao,
     Medicao,
     OcorrenciaMedicaoInicial,
+    PermissaoLancamentoEspecial,
     Responsavel,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
@@ -639,3 +642,44 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Medicao
         exclude = ('id', 'criado_por',)
+
+
+class PermissaoLancamentoEspecialCreateUpdateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all()
+    )
+    alimentacoes_lancamento_especial = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=AlimentacaoLancamentoEspecial.objects.all(),
+        many=True
+    )
+    diretoria_regional = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=DiretoriaRegional.objects.all()
+    )
+    criado_por = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Usuario.objects.all()
+    )
+
+    def validate(self, attrs):
+        data_inicial = attrs.get('data_inicial', None)
+        data_final = attrs.get('data_final', None)
+        if data_inicial and data_final and data_inicial > data_final:
+            raise ValidationError('data inicial não pode ser maior que data final')
+
+        return attrs
+
+    class Meta:
+        model = PermissaoLancamentoEspecial
+        fields = '__all__'
