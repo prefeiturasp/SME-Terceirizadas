@@ -7,13 +7,13 @@ from django.db.models import IntegerField, Q, QuerySet
 from django.db.models.functions import Cast
 from rest_framework import mixins, status
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
 
-from .filters import DiaParaCorrecaoFilter
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -28,13 +28,16 @@ from ...dados_comuns.permissions import (
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
+    AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    DiaParaCorrigir,
     DiaSobremesaDoce,
     Medicao,
     OcorrenciaMedicaoInicial,
+    PermissaoLancamentoEspecial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
-    ValorMedicao, DiaParaCorrigir
+    ValorMedicao
 )
 from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
 from ..utils import (
@@ -45,24 +48,48 @@ from ..utils import (
     log_alteracoes_escola_corrige_periodo,
     tratar_valores
 )
+from .filters import DiaParaCorrecaoFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
+    AlimentacaoLancamentoEspecialSerializer,
     CategoriaMedicaoSerializer,
+    DiaParaCorrigirSerializer,
     DiaSobremesaDoceSerializer,
     MedicaoSerializer,
     OcorrenciaMedicaoInicialSerializer,
+    PermissaoLancamentoEspecialSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
-    ValorMedicaoSerializer, DiaParaCorrigirSerializer
+    ValorMedicaoSerializer
 )
 from .serializers_create import (
     DiaSobremesaDoceCreateManySerializer,
     MedicaoCreateUpdateSerializer,
+    PermissaoLancamentoEspecialCreateUpdateSerializer,
     SolicitacaoMedicaoInicialCreateSerializer
 )
 
 calendario = BrazilSaoPauloCity()
+
+
+DEFAULT_PAGE = 1
+DEFAULT_PAGE_SIZE = 10
+
+
+class CustomPagination(PageNumberPagination):
+    page = DEFAULT_PAGE
+    page_size = DEFAULT_PAGE_SIZE
+    page_size_query_param = 'page_size'
+
+    def get_paginated_response(self, data):
+        return Response({
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'count': self.page.paginator.count,
+            'page_size': int(self.request.GET.get('page_size', self.page_size)),
+            'results': data
+        })
 
 
 class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
@@ -826,6 +853,25 @@ class OcorrenciaViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+
+class AlimentacaoLancamentoEspecialViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = AlimentacaoLancamentoEspecial.objects.filter(ativo=True)
+    serializer_class = AlimentacaoLancamentoEspecialSerializer
+    pagination_class = None
+
+
+class PermissaoLancamentoEspecialViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    permission_classes = [UsuarioCODAEGestaoAlimentacao]
+    queryset = PermissaoLancamentoEspecial.objects.all()
+    serializer_class = PermissaoLancamentoEspecialSerializer
+    pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return PermissaoLancamentoEspecialCreateUpdateSerializer
+        return PermissaoLancamentoEspecialSerializer
 
 
 class DiasParaCorrigirViewSet(mixins.ListModelMixin, GenericViewSet):

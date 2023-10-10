@@ -12,10 +12,12 @@ from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
 from sme_terceirizadas.escola.api.serializers import AlunoPeriodoParcialSimplesSerializer, TipoUnidadeEscolarSerializer
 from sme_terceirizadas.medicao_inicial.models import (
+    AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     Medicao,
     OcorrenciaMedicaoInicial,
+    PermissaoLancamentoEspecial,
     Responsavel,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
@@ -167,6 +169,20 @@ class MedicaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Medicao
         fields = ('uuid', 'solicitacao_medicao_inicial', 'status', 'logs')
+
+
+class AlimentacaoLancamentoEspecialSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AlimentacaoLancamentoEspecial
+        fields = '__all__'
+
+
+class PermissaoLancamentoEspecialSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PermissaoLancamentoEspecial
+        fields = '__all__'
 
 
 class DiaParaCorrigirSerializer(serializers.ModelSerializer):

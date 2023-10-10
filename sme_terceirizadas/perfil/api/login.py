@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import permissions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from rest_framework_jwt.views import ObtainJSONWebToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 from utility.carga_dados.perfil.importa_dados import ProcessaPlanilhaUsuarioServidorCoreSSO
 from utility.carga_dados.perfil.schemas import ImportacaoPlanilhaUsuarioServidorCoreSSOSchema
 
@@ -21,7 +21,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class LoginView(ObtainJSONWebToken):
+class LoginView(TokenObtainPairView):
     # Substitui o login feito por /api-token-auth/
 
     permission_classes = (permissions.AllowAny,)
@@ -47,6 +47,8 @@ class LoginView(ObtainJSONWebToken):
     def build_response_data(self, request, user_dict, senha, last_login, args, kwargs):
         request._full_data = {'username': user_dict['login'], 'password': senha}
         resp = super().post(request, *args, **kwargs)
+        user_dict['token'] = resp.data['access']
+        user_dict['refresh'] = resp.data['refresh']
         data = {'last_login': last_login, **user_dict, **resp.data}
         return data
 
