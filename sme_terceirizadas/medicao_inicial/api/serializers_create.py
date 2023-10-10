@@ -405,7 +405,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 total_dia, medicao, categoria, dia, 'kit_lanche', valores_medicao_a_criar)
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
-    def cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+    def cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei(
+            self, instance: SolicitacaoMedicaoInicial) -> None:
         escola = instance.escola
         kits_lanche = escola.kit_lanche_solicitacaokitlancheavulsa_rastro_escola.filter(
             status='CODAE_AUTORIZADO',
@@ -489,7 +490,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                     )
         if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao'):
             self.cria_valores_medicao_logs_emef_emei(instance)
-            # self.valida_finalizar_medicao_emef_emei(instance)
+            self.valida_finalizar_medicao_emef_emei(instance)
             instance.ue_envia(user=self.context['request'].user)
             if hasattr(instance, 'ocorrencia'):
                 instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)

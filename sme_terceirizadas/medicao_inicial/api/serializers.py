@@ -14,6 +14,7 @@ from sme_terceirizadas.escola.api.serializers import AlunoPeriodoParcialSimplesS
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    DiaParaCorrigir,
     DiaSobremesaDoce,
     Medicao,
     OcorrenciaMedicaoInicial,
@@ -21,7 +22,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     Responsavel,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
-    ValorMedicao, DiaParaCorrigir
+    ValorMedicao
 )
 from sme_terceirizadas.perfil.api.serializers import UsuarioSerializer
 
