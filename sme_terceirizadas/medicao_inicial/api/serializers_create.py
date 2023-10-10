@@ -1,8 +1,12 @@
+import calendar
 import json
-from datetime import datetime
+from datetime import date, datetime
 
 import environ
+from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 
 from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -12,17 +16,20 @@ from sme_terceirizadas.escola.api.serializers_create import AlunoPeriodoParcialC
 from sme_terceirizadas.escola.models import (
     Aluno,
     AlunoPeriodoParcial,
+    DiretoriaRegional,
     Escola,
     FaixaEtaria,
     PeriodoEscolar,
     TipoUnidadeEscolar
 )
 from sme_terceirizadas.medicao_inicial.models import (
+    AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     GrupoMedicao,
     Medicao,
     OcorrenciaMedicaoInicial,
+    PermissaoLancamentoEspecial,
     Responsavel,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
@@ -30,6 +37,8 @@ from sme_terceirizadas.medicao_inicial.models import (
 )
 from sme_terceirizadas.perfil.models import Usuario
 
+from ...dados_comuns.constants import DIRETOR_UE
+from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ..utils import log_alteracoes_escola_corrige_periodo
 from ..validators import (
     validate_lancamento_alimentacoes_medicao,
@@ -154,27 +163,286 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         solicitacao.inicia_fluxo(user=self.context['request'].user)
         return solicitacao
 
-    def update(self, instance, validated_data):  # noqa C901
+    def valida_finalizar_medicao_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+        if not instance.escola.eh_emef_emei_cieja:
+            return
+
         lista_erros = []
-        iniciais = ['EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
-        status_para_validacao = 'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
-        iniciais_escola = instance.escola.tipo_unidade.iniciais
-        if (instance.status == status_para_validacao and iniciais_escola in iniciais):
+
+        if instance.status == SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE:
             lista_erros = validate_lancamento_alimentacoes_medicao(instance, lista_erros)
             lista_erros = validate_lancamento_inclusoes(instance, lista_erros)
             lista_erros = validate_lancamento_dietas(instance, lista_erros)
 
         if lista_erros:
-            raise serializers.ValidationError(lista_erros)
+            raise ValidationError(lista_erros)
 
+    def cria_valores_medicao_logs_alunos_matriculados_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+        escola = instance.escola
+        valores_medicao_a_criar = []
+        logs_do_mes = escola.logs_alunos_matriculados_por_periodo.filter(
+            criado_em__month=instance.mes,
+            criado_em__year=instance.ano,
+            tipo_turma='REGULAR'
+        )
+        categoria = CategoriaMedicao.objects.get(nome='ALIMENTAÇÃO')
+        quantidade_dias_mes = calendar.monthrange(int(instance.ano), int(instance.mes))[1]
+        for dia in range(1, quantidade_dias_mes + 1):
+            for periodo_escolar in escola.periodos_escolares_com_alunos:
+                try:
+                    medicao = instance.medicoes.get(periodo_escolar__nome=periodo_escolar)
+                except Medicao.DoesNotExist:
+                    medicao = Medicao.objects.create(
+                        solicitacao_medicao_inicial=instance,
+                        periodo_escolar=PeriodoEscolar.objects.get(nome=periodo_escolar)
+                    )
+                if not medicao.valores_medicao.filter(
+                    categoria_medicao=categoria,
+                    dia=f'{dia:02d}',
+                    nome_campo='matriculados',
+                ).exists():
+                    log = logs_do_mes.filter(
+                        periodo_escolar__nome=periodo_escolar,
+                        criado_em__day=dia
+                    ).first()
+                    valor_medicao = ValorMedicao(
+                        medicao=medicao,
+                        categoria_medicao=categoria,
+                        dia=f'{dia:02d}',
+                        nome_campo='matriculados',
+                        valor=log.quantidade_alunos if log else 0
+                    )
+                    valores_medicao_a_criar.append(valor_medicao)
+
+        ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
+
+    def checa_se_existe_ao_menos_um_log_quantidade_maior_que_0(
+            self, categoria: CategoriaMedicao, logs_do_mes: QuerySet, periodo_escolar: str) -> bool:
+        if categoria == CategoriaMedicao.objects.get(
+            nome='DIETA ESPECIAL - TIPO A - ENTERAL / RESTRIÇÃO DE AMINOÁCIDOS'
+        ):
+            if not logs_do_mes.filter(
+                classificacao__nome__in=['Tipo A ENTERAL', 'Tipo A RESTRIÇÃO DE AMINOÁCIDOS'],
+                periodo_escolar__nome=periodo_escolar,
+                quantidade__gt=0
+            ).exists():
+                return True
+        else:
+            if not logs_do_mes.filter(
+                classificacao__nome__icontains=categoria.nome.split(' - ')[1],
+                periodo_escolar__nome=periodo_escolar,
+                quantidade__gt=0
+            ).exclude(
+                classificacao__nome__icontains='enteral'
+            ).exclude(
+                classificacao__nome__icontains='aminoácidos'
+            ).exists():
+                return True
+        return False
+
+    def retorna_valor_para_log_dieta_autorizada(
+            self, categoria: CategoriaMedicao, logs_do_mes: QuerySet, periodo_escolar: str, dia: int) -> int:
+        if categoria == CategoriaMedicao.objects.get(
+            nome='DIETA ESPECIAL - TIPO A - ENTERAL / RESTRIÇÃO DE AMINOÁCIDOS'
+        ):
+            log_enteral = logs_do_mes.filter(
+                classificacao__nome__icontains='enteral',
+                periodo_escolar__nome=periodo_escolar,
+                data__day=dia
+            ).first()
+            log_restricao_aminoacidos = logs_do_mes.filter(
+                classificacao__nome__icontains='aminoácidos',
+                periodo_escolar__nome=periodo_escolar,
+                data__day=dia
+            ).first()
+            valor = ((log_enteral.quantidade if log_enteral else 0) +
+                     (log_restricao_aminoacidos.quantidade if log_restricao_aminoacidos else 0))
+        else:
+            log = logs_do_mes.filter(
+                classificacao__nome__icontains=categoria.nome.split(' - ')[1],
+                periodo_escolar__nome=periodo_escolar,
+                data__day=dia
+            ).exclude(
+                classificacao__nome__icontains='enteral'
+            ).exclude(
+                classificacao__nome__icontains='aminoácidos'
+            ).first()
+            valor = log.quantidade if log else 0
+        return valor
+
+    def cria_valores_medicao_logs_dietas_autorizadas_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+        escola = instance.escola
+        valores_medicao_a_criar = []
+        logs_do_mes = escola.logs_dietas_autorizadas.filter(
+            data__month=instance.mes,
+            data__year=instance.ano
+        )
+        categorias = CategoriaMedicao.objects.filter(nome__icontains='dieta')
+        quantidade_dias_mes = calendar.monthrange(int(instance.ano), int(instance.mes))[1]
+        for dia in range(1, quantidade_dias_mes + 1):
+            for categoria in categorias:
+                for periodo_escolar in escola.periodos_escolares_com_alunos:
+                    medicao = instance.medicoes.get(periodo_escolar__nome=periodo_escolar)
+                    if self.checa_se_existe_ao_menos_um_log_quantidade_maior_que_0(
+                            categoria, logs_do_mes, periodo_escolar):
+                        continue
+                    if not medicao.valores_medicao.filter(
+                        categoria_medicao=categoria,
+                        dia=f'{dia:02d}',
+                        nome_campo='dietas_autorizadas',
+                    ).exists():
+                        valor = self.retorna_valor_para_log_dieta_autorizada(
+                            categoria, logs_do_mes, periodo_escolar, dia)
+                        valor_medicao = ValorMedicao(
+                            medicao=medicao,
+                            categoria_medicao=categoria,
+                            dia=f'{dia:02d}',
+                            nome_campo='dietas_autorizadas',
+                            valor=valor
+                        )
+                        valores_medicao_a_criar.append(valor_medicao)
+        ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
+
+    def retorna_medicao_por_nome_grupo(self, instance: SolicitacaoMedicaoInicial, nome_grupo: str) -> Medicao:
+        try:
+            medicao = instance.medicoes.get(grupo__nome=nome_grupo)
+        except Medicao.DoesNotExist:
+            grupo = GrupoMedicao.objects.get(nome=nome_grupo)
+            medicao = Medicao.objects.create(
+                solicitacao_medicao_inicial=instance,
+                grupo=grupo
+            )
+        return medicao
+
+    def retorna_numero_alunos_dia(self, inclusao: InclusaoAlimentacaoContinua, data: date) -> int:
+        dia_semana = data.weekday()
+        numero_alunos = 0
+        for quantidade_periodo in inclusao.quantidades_periodo.filter(
+            dias_semana__icontains=dia_semana,
+            cancelado=False
+        ):
+            numero_alunos += quantidade_periodo.numero_alunos
+        return numero_alunos
+
+    def cria_valor_medicao(self, numero_alunos: int, medicao: Medicao, categoria: CategoriaMedicao, dia: int,
+                           nome_campo: str, valores_medicao_a_criar: list) -> list:
+        if numero_alunos > 0:
+            valor_medicao = ValorMedicao(
+                medicao=medicao,
+                categoria_medicao=categoria,
+                dia=f'{dia:02d}',
+                nome_campo=nome_campo,
+                valor=numero_alunos
+            )
+            valores_medicao_a_criar.append(valor_medicao)
+        return valores_medicao_a_criar
+
+    def cria_valores_medicao_logs_numero_alunos_inclusoes_continuas(
+            self, instance: SolicitacaoMedicaoInicial, inclusoes_continuas: QuerySet, quantidade_dias_mes: int,
+            nome_motivo: str, nome_grupo: str) -> None:
+        if not inclusoes_continuas.filter(motivo__nome__icontains=nome_motivo).exists():
+            return
+        categoria = CategoriaMedicao.objects.get(nome='ALIMENTAÇÃO')
+        medicao = self.retorna_medicao_por_nome_grupo(instance, nome_grupo)
+        valores_medicao_a_criar = []
+        for dia in range(1, quantidade_dias_mes + 1):
+            data = date(year=int(instance.ano), month=int(instance.mes), day=dia)
+            numero_alunos = 0
+            for inclusao in inclusoes_continuas.filter(motivo__nome__icontains=nome_motivo):
+                if not (inclusao.data_inicial <= data <= inclusao.data_final):
+                    continue
+                if medicao.valores_medicao.filter(
+                    categoria_medicao=categoria,
+                    dia=f'{dia:02d}',
+                    nome_campo='numero_de_alunos',
+                ).exists():
+                    continue
+                numero_alunos += self.retorna_numero_alunos_dia(inclusao, data)
+            valores_medicao_a_criar = self.cria_valor_medicao(
+                numero_alunos, medicao, categoria, dia, 'numero_de_alunos', valores_medicao_a_criar)
+        ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
+
+    def cria_valores_medicao_logs_numero_alunos_inclusoes_continuas_emef_emei(
+            self, instance: SolicitacaoMedicaoInicial) -> None:
+        escola = instance.escola
+        quantidade_dias_mes = calendar.monthrange(int(instance.ano), int(instance.mes))[1]
+        ultimo_dia_mes = date(year=int(instance.ano), month=int(instance.mes), day=quantidade_dias_mes)
+        primeiro_dia_mes = date(year=int(instance.ano), month=int(instance.mes), day=1)
+        inclusoes_continuas = escola.inclusoes_alimentacao_continua.filter(
+            status='CODAE_AUTORIZADO',
+            data_inicial__lte=ultimo_dia_mes,
+            data_final__gte=primeiro_dia_mes
+        )
+        if not inclusoes_continuas.count():
+            return
+        self.cria_valores_medicao_logs_numero_alunos_inclusoes_continuas(
+            instance, inclusoes_continuas, quantidade_dias_mes, 'Programas/Projetos', 'Programas e Projetos')
+        self.cria_valores_medicao_logs_numero_alunos_inclusoes_continuas(
+            instance, inclusoes_continuas, quantidade_dias_mes, 'ETEC', 'ETEC')
+
+    def cria_valores_medicao_logs_numero_alunos_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+        self.cria_valores_medicao_logs_numero_alunos_inclusoes_continuas_emef_emei(instance)
+
+    def cria_valores_medicao_logs_kit_lanche_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+        escola = instance.escola
+        kits_lanche = escola.kit_lanche_solicitacaokitlancheavulsa_rastro_escola.filter(
+            status='CODAE_AUTORIZADO',
+            solicitacao_kit_lanche__data__month=instance.mes,
+            solicitacao_kit_lanche__data__year=instance.ano
+        )
+        kits_lanche_unificado = escola.escolaquantidade_set.filter(
+            solicitacao_unificada__status='CODAE_AUTORIZADO',
+            solicitacao_unificada__solicitacao_kit_lanche__data__month=instance.mes,
+            solicitacao_unificada__solicitacao_kit_lanche__data__year=instance.ano,
+            cancelado=False
+        )
+        if not kits_lanche.exists() and not kits_lanche_unificado.exists():
+            return
+
+        valores_medicao_a_criar = []
+        medicao = self.retorna_medicao_por_nome_grupo(instance, 'Solicitações de Alimentação')
+        categoria = CategoriaMedicao.objects.get(nome='SOLICITAÇÕES DE ALIMENTAÇÃO')
+        quantidade_dias_mes = calendar.monthrange(int(instance.ano), int(instance.mes))[1]
+        for dia in range(1, quantidade_dias_mes + 1):
+            if medicao.valores_medicao.filter(
+                categoria_medicao=categoria,
+                dia=f'{dia:02d}',
+                nome_campo='kit_lanche',
+            ).exists():
+                continue
+            total_dia = 0
+            for kit_lanche in kits_lanche.filter(solicitacao_kit_lanche__data__day=dia):
+                total_dia += kit_lanche.quantidade_alimentacoes
+            for kit_lanche in kits_lanche_unificado.filter(
+                    solicitacao_unificada__solicitacao_kit_lanche__data__day=dia):
+                total_dia += kit_lanche.total_kit_lanche
+            valores_medicao_a_criar = self.cria_valor_medicao(
+                total_dia, medicao, categoria, dia, 'kit_lanche', valores_medicao_a_criar)
+        ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
+
+    def cria_valores_medicao_logs_emef_emei(self, instance: SolicitacaoMedicaoInicial) -> None:
+        if not instance.escola.eh_emef_emei_cieja or instance.logs_salvos:
+            return
+
+        self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
+        self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
+        self.cria_valores_medicao_logs_numero_alunos_emef_emei(instance)
+        self.cria_valores_medicao_logs_kit_lanche_emef_emei(instance)
+
+        instance.logs_salvos = True
+        instance.save()
+
+    def update(self, instance, validated_data):  # noqa C901
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)
         key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
-
         alunos_uuids_dict = self.context['request'].data.get('alunos_periodo_parcial', None)
 
         validated_data.pop('alunos_periodo_parcial', None)
         validated_data.pop('responsaveis', None)
         update_instance_from_dict(instance, validated_data, save=True)
+
+        if self.context['request'].user.vinculo_atual.perfil.nome != DIRETOR_UE:
+            raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
 
         if responsaveis_dict:
             responsaveis = json.loads(responsaveis_dict)
@@ -208,13 +476,14 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         ultimo_arquivo=arquivo,
                         nome_ultimo_arquivo=anexo.get('nome')
                     )
-        if key_com_ocorrencias is not None:
+        if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao'):
+            self.cria_valores_medicao_logs_emef_emei(instance)
+            self.valida_finalizar_medicao_emef_emei(instance)
             instance.ue_envia(user=self.context['request'].user)
             if hasattr(instance, 'ocorrencia'):
                 instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
             for medicao in instance.medicoes.all():
                 medicao.ue_envia(user=self.context['request'].user)
-
         return instance
 
     class Meta:
@@ -373,3 +642,44 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Medicao
         exclude = ('id', 'criado_por',)
+
+
+class PermissaoLancamentoEspecialCreateUpdateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all()
+    )
+    alimentacoes_lancamento_especial = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=AlimentacaoLancamentoEspecial.objects.all(),
+        many=True
+    )
+    diretoria_regional = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=DiretoriaRegional.objects.all()
+    )
+    criado_por = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Usuario.objects.all()
+    )
+
+    def validate(self, attrs):
+        data_inicial = attrs.get('data_inicial', None)
+        data_final = attrs.get('data_final', None)
+        if data_inicial and data_final and data_inicial > data_final:
+            raise ValidationError('data inicial não pode ser maior que data final')
+
+        return attrs
+
+    class Meta:
+        model = PermissaoLancamentoEspecial
+        fields = '__all__'

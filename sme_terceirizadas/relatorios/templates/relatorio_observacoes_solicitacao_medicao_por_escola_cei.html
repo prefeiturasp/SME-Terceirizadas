@@ -1,0 +1,28 @@
+{% load index static sass_tags %}
+
+{% for tabela in tabela_observacoes|formatar_observacoes:"True" %}
+
+    {% include "relatorio_cabecalho_solicitacao_medicao_por_escola_cei.html" with solicitacoes=solicitacoes %}
+
+    <h1 class="titulo-tabela-observacoes text-center mt-3 mb-3">OBSERVAÇÕES DIÁRIAS DOS LANÇAMENTOS</h1>
+    <table class="tabela-valores-medicao mt-1">
+      <thead class="head-tabela-observacoes">
+        <tr class="texto-branco">
+          <th class="tabela-observacoes-dia">DIA</th>
+          <th class="tabela-observacoes-periodo">PERÍODO</th>
+          <th class="tabela-observacoes-tipo">TIPO</th>
+          <th class="tabela-observacoes-observacoes">OBSERVAÇÕES</th>
+        </tr>
+      </thead>
+      <tbody class="body-tabela-observacoes">
+        {% for row in tabela %}
+          <tr>
+            <td class="tabela-observacoes-dia">{{ row.0|safe }}</td>
+            <td class="tabela-observacoes-periodo">{{ row.4|safe }}</td>
+            <td class="tabela-observacoes-tipo">{{ row.2|safe }}</td>
+            <td class="tabela-observacoes-observacoes text-left">{{ row.3|safe }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endfor %}

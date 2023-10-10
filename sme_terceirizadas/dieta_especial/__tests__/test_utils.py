@@ -55,8 +55,8 @@ def test_gera_logs_dietas_escolas_comuns(escola, solicitacoes_dieta_especial_ati
     hoje = datetime.date.today()
     ontem = hoje - datetime.timedelta(days=1)
     logs = gera_logs_dietas_escolas_comuns(escola, solicitacoes_dieta_especial_ativas, ontem)
-    assert len(logs) == 3
-    assert len([log for log in logs if log.classificacao.nome == 'Tipo A']) == 1
+    assert len(logs) == 6
+    assert len([log for log in logs if log.classificacao.nome == 'Tipo A']) == 2
 
 
 @pytest.mark.django_db

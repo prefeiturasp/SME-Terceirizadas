@@ -23,7 +23,7 @@
       </div>
       <div class="info info-motivo-local ml-5">
         <div>Evento/Passeio</div>
-        <div>{{ solicitacao.evento|default_if_none:"- -" }}</div>
+        <div>{{ solicitacao.evento|default:"- -" }}</div>
       </div>
     </div>
   </div>

@@ -2,10 +2,12 @@ import datetime
 import json
 
 from dateutil.relativedelta import relativedelta
+from django.core.exceptions import ValidationError
 from django.db.models import IntegerField, Q, QuerySet
 from django.db.models.functions import Cast
 from rest_framework import mixins, status
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from workalendar.america import BrazilSaoPauloCity
@@ -25,10 +27,12 @@ from ...dados_comuns.permissions import (
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
+    AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
     DiaSobremesaDoce,
     Medicao,
     OcorrenciaMedicaoInicial,
+    PermissaoLancamentoEspecial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao
@@ -44,10 +48,12 @@ from ..utils import (
 )
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
+    AlimentacaoLancamentoEspecialSerializer,
     CategoriaMedicaoSerializer,
     DiaSobremesaDoceSerializer,
     MedicaoSerializer,
     OcorrenciaMedicaoInicialSerializer,
+    PermissaoLancamentoEspecialSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
@@ -56,10 +62,30 @@ from .serializers import (
 from .serializers_create import (
     DiaSobremesaDoceCreateManySerializer,
     MedicaoCreateUpdateSerializer,
+    PermissaoLancamentoEspecialCreateUpdateSerializer,
     SolicitacaoMedicaoInicialCreateSerializer
 )
 
 calendario = BrazilSaoPauloCity()
+
+
+DEFAULT_PAGE = 1
+DEFAULT_PAGE_SIZE = 10
+
+
+class CustomPagination(PageNumberPagination):
+    page = DEFAULT_PAGE
+    page_size = DEFAULT_PAGE_SIZE
+    page_size_query_param = 'page_size'
+
+    def get_paginated_response(self, data):
+        return Response({
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'count': self.page.paginator.count,
+            'page_size': int(self.request.GET.get('page_size', self.page_size)),
+            'results': data
+        })
 
 
 class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
@@ -116,6 +142,19 @@ class SolicitacaoMedicaoInicialViewSet(
         if self.action in ['create', 'update', 'partial_update']:
             return SolicitacaoMedicaoInicialCreateSerializer
         return SolicitacaoMedicaoInicialSerializer
+
+    def update(self, request, *args, **kwargs):
+        try:
+            return super(SolicitacaoMedicaoInicialViewSet, self).update(request, *args, **kwargs)
+        except ValidationError as lista_erros:
+            list_response = []
+            for indice, erro in enumerate(lista_erros):
+                if indice % 2 == 0:
+                    obj = {'erro': erro}
+                else:
+                    obj['periodo_escolar'] = erro
+                    list_response.append(obj)
+            return Response(list_response, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -805,3 +844,22 @@ class OcorrenciaViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+
+class AlimentacaoLancamentoEspecialViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = AlimentacaoLancamentoEspecial.objects.filter(ativo=True)
+    serializer_class = AlimentacaoLancamentoEspecialSerializer
+    pagination_class = None
+
+
+class PermissaoLancamentoEspecialViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    permission_classes = [UsuarioCODAEGestaoAlimentacao]
+    queryset = PermissaoLancamentoEspecial.objects.all()
+    serializer_class = PermissaoLancamentoEspecialSerializer
+    pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return PermissaoLancamentoEspecialCreateUpdateSerializer
+        return PermissaoLancamentoEspecialSerializer

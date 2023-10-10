@@ -476,6 +476,11 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         return self.tipo_unidade and self.tipo_unidade.iniciais in ['CEU EMEI', 'EMEI']
 
     @property
+    def eh_emef_emei_cieja(self):
+        return self.tipo_unidade and self.tipo_unidade.iniciais in [
+            'EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
+
+    @property
     def modulo_gestao(self):
         if self.tipo_gestao and self.tipo_gestao.nome == 'TERC TOTAL':
             return 'TERCEIRIZADA'

@@ -9,6 +9,7 @@ from ..dados_comuns.behaviors import (
     CriadoPor,
     Logs,
     Nomeavel,
+    Posicao,
     TemAno,
     TemChaveExterna,
     TemData,
@@ -53,6 +54,7 @@ class SolicitacaoMedicaoInicial(
     com_ocorrencias = models.BooleanField('Com ocorrências?', default=False)
     historico = models.JSONField(blank=True, null=True)
     ue_possui_alunos_periodo_parcial = models.BooleanField('Possui alunos periodo parcial?', default=False)
+    logs_salvos = models.BooleanField('Logs de matriculados, dietas autorizadas, etc foram salvos?', default=False)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         LogSolicitacoesUsuario.objects.create(
@@ -235,3 +237,31 @@ class ValorMedicao(
         dia = f'{self.dia}'
         mes = f'{self.medicao.solicitacao_medicao_inicial.mes}'
         return f'#{self.id_externo} -- Categoria {categoria} -- Campo {nome_campo} -- Dia/Mês {dia}/{mes}'
+
+
+class AlimentacaoLancamentoEspecial(Nomeavel, Ativavel, TemChaveExterna, Posicao):
+
+    class Meta:
+        verbose_name = 'Alimentação de Lançamento Especial'
+        verbose_name_plural = 'Alimentações de Lançamentos Especiais'
+        ordering = ['posicao']
+
+    def __str__(self):
+        return self.nome
+
+
+class PermissaoLancamentoEspecial(CriadoPor, CriadoEm, TemChaveExterna, TemIdentificadorExternoAmigavel):
+    escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE, related_name='permissoes_lancamento_especial')
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', blank=True, null=True, on_delete=models.DO_NOTHING)
+    alimentacoes_lancamento_especial = models.ManyToManyField(AlimentacaoLancamentoEspecial)
+    diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', related_name='permissoes_lancamento_especial',
+                                           on_delete=models.DO_NOTHING)
+    data_inicial = models.DateField('Data inicial', null=True, blank=True)
+    data_final = models.DateField('Data final', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Permissão de Lançamento Especial'
+        verbose_name_plural = 'Permissões de Lançamentos Especiais'
+
+    def __str__(self):
+        return f'Permissão #{self.id_externo} - {self.escola.nome}'

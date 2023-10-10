@@ -333,6 +333,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
 
     outro_motivo = models.TextField(blank=True)
     local = models.CharField(max_length=160)
+    evento = models.CharField(max_length=160, blank=True)
     lista_kit_lanche_igual = models.BooleanField(default=True)
 
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
