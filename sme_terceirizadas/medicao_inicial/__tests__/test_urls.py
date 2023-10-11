@@ -3,7 +3,7 @@ import json
 from freezegun import freeze_time
 from rest_framework import status
 
-from sme_terceirizadas.medicao_inicial.models import DiaSobremesaDoce, Medicao
+from sme_terceirizadas.medicao_inicial.models import DiaParaCorrigir, DiaSobremesaDoce, Medicao
 
 
 def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_codae):
@@ -389,11 +389,25 @@ def test_url_dre_aprova_medicao(client_autenticado_diretoria_regional,
     assert 'Erro de transição de estado:' in response.data['detail']
 
 
-def test_url_dre_solicita_correcao_periodo(client_autenticado_diretoria_regional,
-                                           medicao_status_enviada_pela_ue,
-                                           medicao_status_inicial):
-    data = {'uuids_valores_medicao_para_correcao': ['0b599490-477f-487b-a49e-c8e7cfdcd00b'],
-            'justificativa': '<p>TESTE JUSTIFICATIVA</p>'}
+def test_url_dre_solicita_correcao_periodo(
+        client_autenticado_diretoria_regional, medicao_status_enviada_pela_ue, medicao_status_inicial,
+        categoria_medicao):
+    data = {
+        'uuids_valores_medicao_para_correcao': [
+            '0b599490-477f-487b-a49e-c8e7cfdcd00b'
+        ],
+        'justificativa': '<p>TESTE JUSTIFICATIVA</p>',
+        'dias_para_corrigir': [
+            {
+                'dia': '01',
+                'categoria_medicao_uuid': str(categoria_medicao.uuid)
+            },
+            {
+                'dia': '10',
+                'categoria_medicao_uuid': str(categoria_medicao.uuid)
+            }
+        ]
+    }
     viewset_url = '/medicao-inicial/medicao/'
     uuid = medicao_status_enviada_pela_ue.uuid
     response = client_autenticado_diretoria_regional.patch(
@@ -404,6 +418,7 @@ def test_url_dre_solicita_correcao_periodo(client_autenticado_diretoria_regional
 
     medicao_uuid = str(response.data['valores_medicao'][0]['medicao_uuid'])
     medicao = Medicao.objects.filter(uuid=medicao_uuid).first()
+    assert DiaParaCorrigir.objects.count() == 2
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data['status'] == 'MEDICAO_CORRECAO_SOLICITADA'

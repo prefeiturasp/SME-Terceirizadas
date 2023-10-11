@@ -296,7 +296,7 @@ class DiaParaCorrigir(TemChaveExterna, TemIdentificadorExternoAmigavel, TemDia, 
         periodo_ou_grupo = self.medicao.grupo.nome if self.medicao.grupo else self.medicao.periodo_escolar.nome
         mes = self.medicao.solicitacao_medicao_inicial.mes
         ano = self.medicao.solicitacao_medicao_inicial.ano
-        return f'{self.id_externo} - {escola} - {periodo_ou_grupo} - {self.dia}/{mes}/{ano}'
+        return f'# {self.id_externo} - {escola} - {periodo_ou_grupo} - {self.dia}/{mes}/{ano}'
 
     class Meta:
         verbose_name = 'Dia da Medição para corrigir'

@@ -787,3 +787,12 @@ def client_autenticado_codae_medicao(client, django_user_model):
                ativo=True)
     client.login(username=email, password=password)
     return client
+
+
+@pytest.fixture
+def dia_para_corrigir(categoria_medicao, medicao):
+    return mommy.make('DiaParaCorrigir',
+                      uuid='d5c33bdc-6c3e-4e70-a7f4-60603362f386',
+                      medicao=medicao,
+                      categoria_medicao=categoria_medicao,
+                      dia='01')
