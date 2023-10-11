@@ -20,6 +20,7 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.fluxo_status import FluxoSolicitacaoMedicaoInicial, LogSolicitacoesUsuario
 from ..escola.models import TipoUnidadeEscolar
+from ..perfil.models import Usuario
 
 
 class DiaSobremesaDoce(TemData, TemChaveExterna, CriadoEm, CriadoPor):
@@ -274,7 +275,7 @@ class DiaParaCorrigir(TemChaveExterna, TemIdentificadorExternoAmigavel, TemDia, 
     habilitado_correcao = models.BooleanField(default=True)
 
     @classmethod
-    def cria_dias_para_corrigir(cls, medicao: Medicao, list_dias_para_corrigir: list) -> None:
+    def cria_dias_para_corrigir(cls, medicao: Medicao, usuario: Usuario, list_dias_para_corrigir: list) -> None:
         if not list_dias_para_corrigir:
             return
         medicao.dias_para_corrigir.all().delete()
@@ -284,7 +285,8 @@ class DiaParaCorrigir(TemChaveExterna, TemIdentificadorExternoAmigavel, TemDia, 
             dia_obj = DiaParaCorrigir(
                 medicao=medicao,
                 dia=dia_para_corrigir['dia'],
-                categoria_medicao=categoria_medicao
+                categoria_medicao=categoria_medicao,
+                criado_por=usuario
             )
             list_dias_para_corrigir_a_criar.append(dia_obj)
         DiaParaCorrigir.objects.bulk_create(list_dias_para_corrigir_a_criar)

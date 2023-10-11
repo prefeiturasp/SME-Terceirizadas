@@ -369,6 +369,15 @@ class SolicitacaoMedicaoInicialViewSet(
             'results': sorted(retorno, key=lambda k: ordem[k['nome_periodo_grupo']])},
             status=status.HTTP_200_OK)
 
+    def get_justificativa(self, medicao: Medicao) -> str:
+        if medicao.status == medicao.workflow_class.MEDICAO_CORRIGIDA_PELA_UE:
+            return medicao.logs.filter(
+                status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA).last().justificativa
+        elif medicao.status == medicao.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE:
+            return medicao.logs.filter(
+                status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE).last().justificativa
+        return medicao.logs.last().justificativa if medicao.logs.last() else None
+
     @action(detail=False, methods=['GET'], url_path='quantidades-alimentacoes-lancadas-periodo-grupo',
             permission_classes=[UsuarioEscolaTercTotal])
     def quantidades_alimentacoes_lancadas_periodo_grupo(self, request):
@@ -398,7 +407,7 @@ class SolicitacaoMedicaoInicialViewSet(
             retorno.append({
                 'nome_periodo_grupo': medicao.nome_periodo_grupo,
                 'status': medicao.status.name,
-                'justificativa': medicao.logs.last().justificativa if medicao.logs.last() else None,
+                'justificativa': self.get_justificativa(medicao),
                 'valores': valores,
                 'valor_total': sum(v['valor'] for v in valores)
             })
@@ -513,6 +522,9 @@ class SolicitacaoMedicaoInicialViewSet(
             ValorMedicao.objects.filter(
                 medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
             ).update(habilitado_correcao=False)
+            DiaParaCorrigir.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
+            ).update(habilitado_correcao=False)
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -528,6 +540,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 raise InvalidTransitionError('solicitação já está no status Corrigido para CODAE')
             solicitacao_medicao_inicial.ue_corrige_medicao_para_codae(user=request.user)
             ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
+            ).update(habilitado_correcao=False)
+            DiaParaCorrigir.objects.filter(
                 medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
             ).update(habilitado_correcao=False)
             serializer = self.get_serializer(solicitacao_medicao_inicial)
@@ -688,7 +703,7 @@ class MedicaoViewSet(
                 uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
             medicao.valores_medicao.exclude(
                 uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=False)
-            DiaParaCorrigir.cria_dias_para_corrigir(medicao, dias_para_corrigir)
+            DiaParaCorrigir.cria_dias_para_corrigir(medicao, self.request.user, dias_para_corrigir)
             medicao.dre_pede_correcao(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -712,8 +727,10 @@ class MedicaoViewSet(
         medicao = self.get_object()
         justificativa = request.data.get('justificativa', None)
         uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', None)
+        dias_para_corrigir = request.data.get('dias_para_corrigir', [])
         try:
             ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
+            DiaParaCorrigir.cria_dias_para_corrigir(medicao, self.request.user, dias_para_corrigir)
             medicao.codae_pede_correcao_periodo(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -772,6 +789,7 @@ class MedicaoViewSet(
                         'habilitado_correcao': True,
                     },
                 )
+            medicao.valores_medicao.filter(valor=-1).delete()
             if medicao.status in status_codae:
                 medicao.ue_corrige_periodo_grupo_para_codae(user=request.user)
             else:
