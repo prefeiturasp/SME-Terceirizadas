@@ -123,3 +123,4 @@ LOGGING = {
 # Your stuff...
 # ------------------------------------------------------------------------------
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400  # 25 MB
+CSRF_TRUSTED_ORIGINS = ['https://sigpae.sme.prefeitura.sp.gov.br', 'https://www.sigpae.sme.prefeitura.sp.gov.br']
