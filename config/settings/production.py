@@ -126,6 +126,8 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400  # 25 MB
 CSRF_TRUSTED_ORIGINS = [
     'https://dev-sigpae.sme.prefeitura.sp.gov.br', 'https://www.dev-sigpae.sme.prefeitura.sp.gov.br',
     'https://hom-sigpae.sme.prefeitura.sp.gov.br', 'https://www.hom-sigpae.sme.prefeitura.sp.gov.br',
+    'https://hom2-sigpae.sme.prefeitura.sp.gov.br', 'https://www.hom2-sigpae.sme.prefeitura.sp.gov.br',
     'https://treinamento-sigpae.sme.prefeitura.sp.gov.br', 'https://www.treinamento-sigpae.sme.prefeitura.sp.gov.br',
+    'https://fia-sigpae.sme.prefeitura.sp.gov.br', 'https://www.fia-sigpae.sme.prefeitura.sp.gov.br',
     'https://sigpae.sme.prefeitura.sp.gov.br', 'https://www.sigpae.sme.prefeitura.sp.gov.br'
 ]
