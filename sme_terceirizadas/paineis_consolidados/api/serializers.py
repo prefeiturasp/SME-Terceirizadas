@@ -59,6 +59,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     desc_doc = serializers.CharField()
     data_evento = serializers.SerializerMethodField()
     numero_alunos = serializers.SerializerMethodField()
+    total_kits = serializers.SerializerMethodField()
     observacoes = serializers.SerializerMethodField()
     data_autorizacao_negacao_cancelamento = serializers.SerializerMethodField()
     id_externo = serializers.CharField()
@@ -68,6 +69,9 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
 
     def get_numero_alunos(self, obj):
         return obj.get_raw_model.objects.get(uuid=obj.uuid).numero_alunos
+
+    def get_total_kits(self, obj):
+        return obj.get_raw_model.objects.get(uuid=obj.uuid).quantidade_alimentacoes
 
     def get_data_evento(self, obj):
         if obj.data_evento_fim and obj.data_evento and obj.data_evento != obj.data_evento_fim:
@@ -109,6 +113,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
             'id_externo',
             'data_evento',
             'numero_alunos',
+            'total_kits',
             'observacoes',
             'data_autorizacao_negacao_cancelamento'
         )
