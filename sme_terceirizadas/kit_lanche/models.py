@@ -620,6 +620,10 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             total += self.solicitacao_emei.quantidade_alimentacoes
         return total
 
+    @property
+    def quantidade_alimentacoes(self):
+        return self.total_kits
+
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
         resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
