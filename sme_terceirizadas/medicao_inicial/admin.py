@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib import admin
 
 from .models import (
@@ -57,10 +59,19 @@ class MedicaoAdmin(admin.ModelAdmin):
 
 @admin.register(PermissaoLancamentoEspecial)
 class PermissaoLancamentoEspecialAdmin(admin.ModelAdmin):
-    list_display = ('id_externo', 'escola', 'periodo_escolar', 'data_inicial', 'data_final',
-                    'diretoria_regional', 'get_alimentacoes_lancamento_especial')
+    list_display = ('escola', 'periodo_escolar', 'get_data_inicial', 'get_data_final',
+                    'diretoria_regional', 'get_alimentacoes_lancamento_especial', 'alterado_em')
     search_fields = ('escola__nome', 'escola__codigo_eol')
+    list_filter = ('diretoria_regional', )
 
     @admin.display(description='Alimentações Lançamento Especial')
     def get_alimentacoes_lancamento_especial(self, obj):
         return [ali.nome for ali in obj.alimentacoes_lancamento_especial.all()]
+
+    @admin.display(description='Data Inicial')
+    def get_data_inicial(self, obj):
+        return datetime.date.strftime(obj.data_inicial, '%d/%m/%Y') if obj.data_inicial else '-'
+
+    @admin.display(description='Data Final')
+    def get_data_final(self, obj):
+        return datetime.date.strftime(obj.data_final, '%d/%m/%Y') if obj.data_final else '-'
