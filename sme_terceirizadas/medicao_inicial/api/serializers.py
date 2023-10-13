@@ -179,6 +179,20 @@ class AlimentacaoLancamentoEspecialSerializer(serializers.ModelSerializer):
 
 
 class PermissaoLancamentoEspecialSerializer(serializers.ModelSerializer):
+    escola = serializers.CharField(source='escola.nome')
+    periodo_escolar = serializers.CharField(source='periodo_escolar.nome')
+    alimentacoes_lancamento_especial = serializers.SerializerMethodField()
+    alterado_em = serializers.SerializerMethodField()
+    ativo = serializers.SerializerMethodField()
+
+    def get_alimentacoes_lancamento_especial(self, obj):
+        return ', '.join([ali.nome for ali in obj.alimentacoes_lancamento_especial.all()])
+
+    def get_alterado_em(self, obj):
+        return datetime.datetime.strftime(obj.alterado_em, '%d/%m/%Y')
+
+    def get_ativo(self, obj):
+        return obj.ativo
 
     class Meta:
         model = PermissaoLancamentoEspecial
