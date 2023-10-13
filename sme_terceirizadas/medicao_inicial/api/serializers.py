@@ -14,6 +14,7 @@ from sme_terceirizadas.escola.api.serializers import AlunoPeriodoParcialSimplesS
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    DiaParaCorrigir,
     DiaSobremesaDoce,
     Medicao,
     OcorrenciaMedicaoInicial,
@@ -183,3 +184,11 @@ class PermissaoLancamentoEspecialSerializer(serializers.ModelSerializer):
     class Meta:
         model = PermissaoLancamentoEspecial
         fields = '__all__'
+
+
+class DiaParaCorrigirSerializer(serializers.ModelSerializer):
+    medicao = serializers.CharField(source='medicao.uuid')
+
+    class Meta:
+        model = DiaParaCorrigir
+        exclude = ('id', 'criado_por')
