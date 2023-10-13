@@ -1,3 +1,4 @@
+import datetime
 from calendar import monthcalendar, setfirstweekday
 
 import numpy
@@ -10,6 +11,7 @@ from ..dados_comuns.behaviors import (
     Logs,
     Nomeavel,
     Posicao,
+    TemAlteradoEm,
     TemAno,
     TemChaveExterna,
     TemData,
@@ -250,7 +252,7 @@ class AlimentacaoLancamentoEspecial(Nomeavel, Ativavel, TemChaveExterna, Posicao
         return self.nome
 
 
-class PermissaoLancamentoEspecial(CriadoPor, CriadoEm, TemChaveExterna, TemIdentificadorExternoAmigavel):
+class PermissaoLancamentoEspecial(CriadoPor, CriadoEm, TemAlteradoEm, TemChaveExterna, TemIdentificadorExternoAmigavel):
     escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE, related_name='permissoes_lancamento_especial')
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', blank=True, null=True, on_delete=models.DO_NOTHING)
     alimentacoes_lancamento_especial = models.ManyToManyField(AlimentacaoLancamentoEspecial)
@@ -259,9 +261,22 @@ class PermissaoLancamentoEspecial(CriadoPor, CriadoEm, TemChaveExterna, TemIdent
     data_inicial = models.DateField('Data inicial', null=True, blank=True)
     data_final = models.DateField('Data final', null=True, blank=True)
 
+    @property
+    def ativo(self):
+        hoje = datetime.datetime.today().date()
+        if self.data_inicial and self.data_final:
+            return self.data_inicial <= hoje <= self.data_final
+        if self.data_inicial and not self.data_final:
+            return self.data_inicial <= hoje
+        if not self.data_inicial and self.data_final:
+            return hoje <= self.data_final
+        if not self.data_inicial and not self.data_final:
+            return True
+
     class Meta:
         verbose_name = 'Permissão de Lançamento Especial'
         verbose_name_plural = 'Permissões de Lançamentos Especiais'
+        ordering = ['-alterado_em']
 
     def __str__(self):
         return f'Permissão #{self.id_externo} - {self.escola.nome}'
