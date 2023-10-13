@@ -78,7 +78,7 @@ def cria_nova_linha(df, index, model_obj, qt_periodo, observacoes):
     return nova_linha
 
 
-def novas_linhas_inc_continua(df, queryset):
+def novas_linhas_inc_continua_e_kit_lanche(df, queryset):
     novas_linhas, lista_uuids = [], []
     for index, solicitacao in enumerate(queryset):
         model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
@@ -89,6 +89,11 @@ def novas_linhas_inc_continua(df, queryset):
                 nova_linha = cria_nova_linha(df, index, model_obj, qt_periodo, obs_periodo)
                 novas_linhas.append(nova_linha)
                 lista_uuids.append(solicitacao)
+        elif 'KIT_LANCHE' in solicitacao.tipo_doc:
+            nova_linha = df.iloc[index].copy()
+            nova_linha['quantidade_alimentacoes'] = str(model_obj.quantidade_alimentacoes)
+            novas_linhas.append(nova_linha)
+            lista_uuids.append(solicitacao)
         else:
             linha = df.iloc[index].copy()
             novas_linhas.append(linha)
@@ -152,8 +157,8 @@ def aplica_fundo_amarelo_tipo2(df, worksheet, workbook, solicitacao, model_obj, 
             if qt_periodo.cancelado:
                 worksheet.write(
                     LINHAS[3] + 1 + index,
-                    COLUNAS[10],
-                    df.values[LINHAS[3] + index][COLUNAS[10]],
+                    COLUNAS[11],
+                    df.values[LINHAS[3] + index][COLUNAS[11]],
                     workbook.add_format({'align': 'left', 'bg_color': 'yellow'})
                 )
             idx += 1
@@ -191,7 +196,8 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     for i, nova_coluna in enumerate(novas_colunas):
         df.insert(5 + i, nova_coluna, '-')
 
-    novas_linhas, lista_uuids = novas_linhas_inc_continua(df, queryset)
+    df.insert(9, 'quantidade_alimentacoes', '-')
+    novas_linhas, lista_uuids = novas_linhas_inc_continua_e_kit_lanche(df, queryset)
     df = pd.DataFrame(novas_linhas)
     df.reset_index(drop=True, inplace=True)
 
@@ -202,7 +208,6 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
 
     df['N'] = df['N'].apply(lambda x: str(int(x or '0')) if pd.notnull(x) else '')
     df['numero_alunos'] = df['numero_alunos'].apply(lambda x: str(int(x or '0')) if pd.notnull(x) else '')
-    df['total_kits'] = df['total_kits'].apply(lambda x: str(int(x or '0')) if pd.notnull(x) else '')
 
     status_map = {'Em_andamento': 'Recebidas'}
     status_ = data.get('status').capitalize()
