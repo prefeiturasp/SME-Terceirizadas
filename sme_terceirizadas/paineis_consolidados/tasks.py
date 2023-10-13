@@ -122,14 +122,15 @@ def nomes_colunas(worksheet, status_, LINHAS, COLUNAS, single_cell_format):
     worksheet.write(LINHAS[3], COLUNAS[7], 'Período', single_cell_format)
     worksheet.write(LINHAS[3], COLUNAS[8], 'Tipo de Alimentação', single_cell_format)
     worksheet.write(LINHAS[3], COLUNAS[9], 'Nª de Alunos', single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[10], 'Observações', single_cell_format)
+    worksheet.write(LINHAS[3], COLUNAS[10], 'N° total de Kits', single_cell_format)
+    worksheet.write(LINHAS[3], COLUNAS[11], 'Observações', single_cell_format)
     map_data = {
         'Autorizadas': 'Data de Autorização',
         'Canceladas': 'Data de Cancelamento',
         'Negadas': 'Data de Negação',
         'Recebidas': 'Data de Autorização'
     }
-    worksheet.write(LINHAS[3], COLUNAS[11], map_data[status_], single_cell_format)
+    worksheet.write(LINHAS[3], COLUNAS[12], map_data[status_], single_cell_format)
 
 
 def aplica_fundo_amarelo_tipo1(df, worksheet, workbook, solicitacao, model_obj, LINHAS, COLUNAS, index):
@@ -180,7 +181,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     ALTURA_COLUNA_50 = 50
 
     LINHAS = [0, 1, 2, 3]
-    COLUNAS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    COLUNAS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
     import pandas as pd
     xlwriter = pd.ExcelWriter(output, engine='xlsxwriter')
@@ -201,6 +202,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
 
     df['N'] = df['N'].apply(lambda x: str(int(x or '0')) if pd.notnull(x) else '')
     df['numero_alunos'] = df['numero_alunos'].apply(lambda x: str(int(x or '0')) if pd.notnull(x) else '')
+    df['total_kits'] = df['total_kits'].apply(lambda x: str(int(x or '0')) if pd.notnull(x) else '')
 
     status_map = {'Em_andamento': 'Recebidas'}
     status_ = data.get('status').capitalize()
@@ -214,7 +216,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     worksheet.set_row(LINHAS[1], ALTURA_COLUNA_30)
 
     columns_width = {'A:A': 5, 'B:B': 8, 'C:C': 40, 'D:D': 30, 'E:E': 15, 'F:G': 30, 'H:H': 10, 'I:I': 30,
-                     'J:J': 13, 'K:K': 30, 'L:L': 20}
+                     'J:J': 13, 'K:K': 15, 'L:L': 30, 'M:M': 20}
     for col, width in columns_width.items():
         worksheet.set_column(col, width)
 
