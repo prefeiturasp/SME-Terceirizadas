@@ -14,6 +14,7 @@ router.register('valores-medicao', viewsets.ValorMedicaoViewSet)
 router.register('ocorrencia', viewsets.OcorrenciaViewSet)
 router.register('alimentacoes-lancamentos-especiais', viewsets.AlimentacaoLancamentoEspecialViewSet)
 router.register('permissao-lancamentos-especiais', viewsets.PermissaoLancamentoEspecialViewSet)
+router.register('dias-para-corrigir', viewsets.DiasParaCorrigirViewSet)
 
 
 urlpatterns = [
