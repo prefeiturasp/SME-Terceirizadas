@@ -219,7 +219,8 @@ def formata_motivos_inclusao(motivos_inclusao):
                 datas.append(motivo_inclusao.data.strftime('%d/%m/%Y'))
         motivos_formatados.append({
             'nome': motivo,
-            'datas': '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.join(datas)
+            'datas': '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.join(datas),
+            'descricao_evento': motivo_inclusao.descricao_evento
         })
     return motivos_formatados
 
