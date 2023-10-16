@@ -13,6 +13,6 @@ def test_escola_simplissima_serializer(escola_simplissima_serializer):
 
 def test_escola_simplissima_contem_campos_esperados(escola_simplissima_serializer):  # noqa
     esperado = set(['uuid', 'nome', 'codigo_eol', 'codigo_codae', 'diretoria_regional',
-                    'lote', 'quantidade_alunos', 'tipo_gestao'])
+                    'lote', 'quantidade_alunos', 'tipo_gestao', 'tipo_unidade'])
     resultado = escola_simplissima_serializer.data.keys()
     assert esperado == resultado
