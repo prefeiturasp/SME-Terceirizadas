@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
 from django.db.models import IntegerField, Q, QuerySet
 from django.db.models.functions import Cast
+from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -885,6 +886,22 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
     queryset = PermissaoLancamentoEspecial.objects.all()
     serializer_class = PermissaoLancamentoEspecialSerializer
     pagination_class = CustomPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ['escola__uuid']
+
+    @action(detail=False, methods=['GET'], url_path='escolas-permissoes-lancamentos-especiais')
+    def escolas_permissoes_lancamentos_especiais(self, request):
+        try:
+            escolas = []
+            for permissao in PermissaoLancamentoEspecial.objects.order_by().distinct('escola'):
+                escolas.append({
+                    'nome': permissao.escola.nome,
+                    'uuid': permissao.escola.uuid
+                })
+
+            return Response({'results': sorted(escolas, key=lambda e: e['nome'])}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(dict(detail=f'Erro: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
