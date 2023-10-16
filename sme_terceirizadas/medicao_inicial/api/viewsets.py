@@ -18,6 +18,7 @@ from xworkflows import InvalidTransitionError
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ...dados_comuns.constants import TRADUCOES_FERIADOS
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
@@ -800,19 +801,42 @@ class MedicaoViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    def get_day_from_date(self, data):
+        return datetime.date.strftime(data, '%d')
+
     @action(detail=False, methods=['GET'], url_path='feriados-no-mes',
-            permission_classes=[UsuarioEscolaTercTotal])
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def feriados_no_mes(self, request, uuid=None):
         mes = request.query_params.get('mes', '')
         ano = request.query_params.get('ano', '')
 
-        def formatar_data(data):
-            return datetime.date.strftime(data, '%d')
-
         retorno = [
-            formatar_data(h[0]) for h in calendario.holidays() if h[0].month == int(mes) and h[0].year == int(ano)
+            self.get_day_from_date(h[0]) for h in calendario.holidays()
+            if h[0].month == int(mes) and h[0].year == int(ano)
         ]
         return Response({'results': retorno}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='feriados-no-mes-com-nome',
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    def feriados_no_mes_com_nome(self, request, uuid=None):
+        mes = request.query_params.get('mes', '')
+        ano = request.query_params.get('ano', '')
+
+        lista_feriados = []
+        for h in calendario.holidays():
+            if h[0].month == int(mes) and h[0].year == int(ano):
+                try:
+                    lista_feriados.append({
+                        'dia': self.get_day_from_date(h[0]),
+                        'feriado': TRADUCOES_FERIADOS[h[1]]
+                    })
+                except KeyError:
+                    lista_feriados.append({
+                        'dia': self.get_day_from_date(h[0]),
+                        'feriado': h[1]
+                    })
+
+        return Response({'results': lista_feriados}, status=status.HTTP_200_OK)
 
 
 class OcorrenciaViewSet(

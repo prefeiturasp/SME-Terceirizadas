@@ -258,3 +258,22 @@ class StatusProcessamentoArquivo(Enum):
 
 
 PERIODOS_INCLUSAO_MOTIVO_ESPECIFICO = ['MANHA', 'TARDE', 'NOITE', 'INTEGRAL']
+
+
+TRADUCOES_FERIADOS = {
+    'New year': 'Ano novo',
+    'Anniversary of the city of São Paulo': 'Aniversário da cidade de São Paulo',
+    'Carnaval': 'Carnaval',
+    'Sexta-feira da Paixão': 'Sexta-feira da Paixão',
+    'Easter Sunday': 'Domingo de Páscoa',
+    "Tiradentes' Day": 'Tiradentes',
+    'Labour Day': 'Dia do Trabalhador',
+    'Corpus Christi': 'Corpus Christi',
+    'Constitutional Revolution of 1932': 'Revolução Constitucionalista de 1932',
+    'Independence Day': 'Dia da Independência do Brasil',
+    'Our Lady of Aparecida': 'Dia de Nossa Senhora de Aparecida',
+    "All Souls' Day": 'Dia de Finados',
+    'Republic Day': 'Dia da Proclamação da República',
+    'Dia da Consciência Negra': 'Dia da Consciência Negra',
+    'Christmas Day': 'Natal'
+}
