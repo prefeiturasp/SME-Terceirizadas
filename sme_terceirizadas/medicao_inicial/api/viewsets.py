@@ -48,8 +48,10 @@ from ..utils import (
     criar_log_aprovar_periodos_corrigidos,
     criar_log_solicitar_correcao_periodos,
     log_alteracoes_escola_corrige_periodo,
-    tratar_valores
+    tratar_valores,
+    tratar_workflow_todos_lancamentos
 )
+from .constants import STATUS_RELACAO_DRE_CODAE, STATUS_RELACAO_DRE_UE
 from .filters import DiaParaCorrecaoFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
@@ -175,17 +177,11 @@ class SolicitacaoMedicaoInicialViewSet(
         return Response(serializer.data)
 
     @staticmethod
-    def get_lista_status():
-        return [
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_ENVIADA_PELA_UE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_DRE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE,
-            'TODOS_OS_LANCAMENTOS'
-        ]
+    def get_lista_status(usuario):
+        if usuario.tipo_usuario == 'medicao':
+            return STATUS_RELACAO_DRE_CODAE + ['TODOS_OS_LANCAMENTOS']
+        else:
+            return STATUS_RELACAO_DRE_UE + STATUS_RELACAO_DRE_CODAE + ['TODOS_OS_LANCAMENTOS']
 
     def condicao_raw_query_por_usuario(self):
         usuario = self.request.user
@@ -201,6 +197,8 @@ class SolicitacaoMedicaoInicialViewSet(
             return queryset.filter(escola__diretoria_regional=usuario.vinculo_atual.instituicao)
         elif usuario.tipo_usuario == 'escola':
             return queryset.filter(escola=usuario.vinculo_atual.instituicao)
+        elif usuario.tipo_usuario == 'medicao':
+            return queryset.filter(status__in=STATUS_RELACAO_DRE_CODAE)
         return queryset
 
     def dados_dashboard(self, request, query_set: QuerySet, kwargs: dict, use_raw=True) -> list:
@@ -208,7 +206,8 @@ class SolicitacaoMedicaoInicialViewSet(
         offset = int(request.query_params.get('offset', 0))
 
         sumario = []
-        for workflow in self.get_lista_status():
+        usuario = self.request.user
+        for workflow in self.get_lista_status(usuario):
             todos_lancamentos = workflow == 'TODOS_OS_LANCAMENTOS'
             if use_raw:
                 data = {'escola': Escola._meta.db_table,
@@ -224,8 +223,7 @@ class SolicitacaoMedicaoInicialViewSet(
                            'AS escola_solicitacao_medicao '
                            'ON escola_solicitacao_medicao.escola_id = %(solicitacao_medicao_inicial)s.escola_id ')
                 if todos_lancamentos:
-                    raw_sql += ('WHERE NOT %(solicitacao_medicao_inicial)s.status = '
-                                "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE' ")
+                    raw_sql = tratar_workflow_todos_lancamentos(usuario, raw_sql)
                 else:
                     raw_sql += "WHERE %(solicitacao_medicao_inicial)s.status = '%(status)s' "
                 raw_sql += self.condicao_raw_query_por_usuario()
