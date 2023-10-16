@@ -809,7 +809,7 @@ class MedicaoViewSet(
         ano = request.query_params.get('ano', '')
 
         retorno = [
-            self.get_day_from_date(h[0]) for h in calendario.holidays()
+            self.get_day_from_date(h[0]) for h in calendario.holidays(ano)
             if h[0].month == int(mes) and h[0].year == int(ano)
         ]
         return Response({'results': retorno}, status=status.HTTP_200_OK)
@@ -821,7 +821,7 @@ class MedicaoViewSet(
         ano = request.query_params.get('ano', '')
 
         lista_feriados = []
-        for h in calendario.holidays():
+        for h in calendario.holidays(ano):
             if h[0].month == int(mes) and h[0].year == int(ano):
                 try:
                     lista_feriados.append({
