@@ -811,7 +811,8 @@ class MedicaoViewSet(
         ano = request.query_params.get('ano', '')
 
         retorno = [
-            self.get_day_from_date(h[0]) for h in calendario.holidays() if h[0].month == int(mes) and h[0].year == int(ano)
+            self.get_day_from_date(h[0]) for h in calendario.holidays()
+            if h[0].month == int(mes) and h[0].year == int(ano)
         ]
         return Response({'results': retorno}, status=status.HTTP_200_OK)
 
