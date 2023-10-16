@@ -51,9 +51,9 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
         return obj.data_log.strftime('%d/%m/%Y')
 
     def get_tipo_unidade_escolar(self, obj):
-        tipo_unidade = TipoUnidadeEscolar.objects.get(uuid=obj.escola_tipo_unidade_uuid)
+        tipo_unidade = TipoUnidadeEscolar.objects.filter(uuid=obj.escola_tipo_unidade_uuid)
         if (tipo_unidade):
-            return {'iniciais': tipo_unidade.iniciais, 'uuid': tipo_unidade.uuid}
+            return {'iniciais': tipo_unidade.first().iniciais, 'uuid': tipo_unidade.first().uuid}
         return None
 
     class Meta:
