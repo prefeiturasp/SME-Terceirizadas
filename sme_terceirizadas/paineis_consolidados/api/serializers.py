@@ -3,6 +3,7 @@ import datetime
 from rest_framework import serializers
 
 from ...dados_comuns.utils import remove_tags_html_from_string
+from ...escola.models import TipoUnidadeEscolar
 from ...kit_lanche.api.serializers.serializers import EscolaQuantidadeSerializerSimples
 from ..models import SolicitacoesCODAE
 from ..utils import get_dias_inclusao
@@ -16,6 +17,7 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     id_externo = serializers.CharField()
     escolas_quantidades = serializers.SerializerMethodField()
+    tipo_unidade_escolar = serializers.SerializerMethodField()
 
     def get_descricao_dieta_especial(self, obj):
         return f'{obj.codigo_eol_aluno if obj.codigo_eol_aluno else "(Aluno não matriculado)"} - {obj.nome_aluno}'
@@ -47,6 +49,12 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
         if obj.data_log.date() == datetime.date.today():
             return obj.data_log.strftime('%d/%m/%Y %H:%M')
         return obj.data_log.strftime('%d/%m/%Y')
+
+    def get_tipo_unidade_escolar(self, obj):
+        tipo_unidade = TipoUnidadeEscolar.objects.get(uuid=obj.escola_tipo_unidade_uuid)
+        if (tipo_unidade):
+            return {'iniciais': tipo_unidade.iniciais, 'uuid': tipo_unidade.uuid}
+        return None
 
     class Meta:
         fields = '__all__'
