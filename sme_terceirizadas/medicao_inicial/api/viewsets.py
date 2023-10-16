@@ -822,13 +822,21 @@ class MedicaoViewSet(
         mes = request.query_params.get('mes', '')
         ano = request.query_params.get('ano', '')
 
-        retorno = [
-            {
-                'dia': self.get_day_from_date(h[0]),
-                'feriado': TRADUCOES_FERIADOS[h[1]]
-            } for h in calendario.holidays() if h[0].month == int(mes) and h[0].year == int(ano)
-        ]
-        return Response({'results': retorno}, status=status.HTTP_200_OK)
+        lista_feriados = []
+        for h in calendario.holidays():
+            if h[0].month == int(mes) and h[0].year == int(ano):
+                try:
+                    lista_feriados.append({
+                        'dia': self.get_day_from_date(h[0]),
+                        'feriado': TRADUCOES_FERIADOS[h[1]]
+                    })
+                except KeyError:
+                    lista_feriados.append({
+                        'dia': self.get_day_from_date(h[0]),
+                        'feriado': h[1]
+                    })
+
+        return Response({'results': lista_feriados}, status=status.HTTP_200_OK)
 
 
 class OcorrenciaViewSet(
