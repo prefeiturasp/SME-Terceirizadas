@@ -3,7 +3,7 @@ import json
 from freezegun import freeze_time
 from rest_framework import status
 
-from sme_terceirizadas.medicao_inicial.models import DiaSobremesaDoce, Medicao
+from sme_terceirizadas.medicao_inicial.models import DiaParaCorrigir, DiaSobremesaDoce, Medicao
 
 
 def test_url_endpoint_cria_dias_sobremesa_doce(client_autenticado_coordenador_codae):
@@ -110,7 +110,8 @@ def test_url_endpoint_nao_tem_permissao_para_encerrar_medicao(client_autenticado
     data_update = {
         'escola': str(escola.uuid),
         'tipo_contagem_alimentacoes': str(tipo_contagem_alimentacao.uuid),
-        'com_ocorrencias': True
+        'com_ocorrencias': True,
+        'finaliza_medicao': True
     }
     response = client_autenticado_adm_da_escola.patch(
         f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_sem_arquivo.uuid}/',
@@ -388,11 +389,25 @@ def test_url_dre_aprova_medicao(client_autenticado_diretoria_regional,
     assert 'Erro de transição de estado:' in response.data['detail']
 
 
-def test_url_dre_solicita_correcao_periodo(client_autenticado_diretoria_regional,
-                                           medicao_status_enviada_pela_ue,
-                                           medicao_status_inicial):
-    data = {'uuids_valores_medicao_para_correcao': ['0b599490-477f-487b-a49e-c8e7cfdcd00b'],
-            'justificativa': '<p>TESTE JUSTIFICATIVA</p>'}
+def test_url_dre_solicita_correcao_periodo(
+        client_autenticado_diretoria_regional, medicao_status_enviada_pela_ue, medicao_status_inicial,
+        categoria_medicao):
+    data = {
+        'uuids_valores_medicao_para_correcao': [
+            '0b599490-477f-487b-a49e-c8e7cfdcd00b'
+        ],
+        'justificativa': '<p>TESTE JUSTIFICATIVA</p>',
+        'dias_para_corrigir': [
+            {
+                'dia': '01',
+                'categoria_medicao_uuid': str(categoria_medicao.uuid)
+            },
+            {
+                'dia': '10',
+                'categoria_medicao_uuid': str(categoria_medicao.uuid)
+            }
+        ]
+    }
     viewset_url = '/medicao-inicial/medicao/'
     uuid = medicao_status_enviada_pela_ue.uuid
     response = client_autenticado_diretoria_regional.patch(
@@ -403,6 +418,7 @@ def test_url_dre_solicita_correcao_periodo(client_autenticado_diretoria_regional
 
     medicao_uuid = str(response.data['valores_medicao'][0]['medicao_uuid'])
     medicao = Medicao.objects.filter(uuid=medicao_uuid).first()
+    assert DiaParaCorrigir.objects.count() == 2
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data['status'] == 'MEDICAO_CORRECAO_SOLICITADA'
@@ -897,3 +913,60 @@ def test_url_ceu_gestao_frequencias_dietas(client_autenticado_da_escola, solicit
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()) == 1
+
+
+def test_finaliza_medicao_inicial_salva_logs(
+        client_autenticado_da_escola, solicitacao_medicao_inicial_teste_salvar_logs, periodo_escolar_manha,
+        periodo_escolar_tarde, periodo_escolar_noite
+):
+    data_update = {
+        'escola': str(solicitacao_medicao_inicial_teste_salvar_logs.escola.uuid),
+        'tipo_contagem_alimentacoes': str(
+            solicitacao_medicao_inicial_teste_salvar_logs.tipo_contagem_alimentacoes.uuid),
+        'com_ocorrencias': False,
+        'finaliza_medicao': True
+    }
+    response = client_autenticado_da_escola.patch(
+        f'/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_teste_salvar_logs.uuid}/',
+        content_type='application/json',
+        data=json.dumps(data_update)
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    solicitacao_medicao_inicial_teste_salvar_logs.refresh_from_db()
+    assert solicitacao_medicao_inicial_teste_salvar_logs.status == 'MEDICAO_ENVIADA_PELA_UE'
+    assert solicitacao_medicao_inicial_teste_salvar_logs.logs_salvos is True
+
+    medicao_manha = solicitacao_medicao_inicial_teste_salvar_logs.medicoes.get(periodo_escolar=periodo_escolar_manha)
+    assert medicao_manha.valores_medicao.filter(
+        nome_campo='matriculados', categoria_medicao__nome='ALIMENTAÇÃO').count() == 30
+    assert medicao_manha.valores_medicao.filter(
+        nome_campo='dietas_autorizadas', categoria_medicao__nome='DIETA ESPECIAL - TIPO A').count() == 30
+    assert medicao_manha.valores_medicao.filter(
+        nome_campo='dietas_autorizadas',
+        categoria_medicao__nome='DIETA ESPECIAL - TIPO A - ENTERAL / RESTRIÇÃO DE AMINOÁCIDOS').count() == 30
+
+    medicao_tarde = solicitacao_medicao_inicial_teste_salvar_logs.medicoes.get(periodo_escolar=periodo_escolar_tarde)
+    assert medicao_tarde.valores_medicao.filter(
+        nome_campo='matriculados', categoria_medicao__nome='ALIMENTAÇÃO').count() == 30
+
+    medicao_noite = solicitacao_medicao_inicial_teste_salvar_logs.medicoes.get(periodo_escolar=periodo_escolar_noite)
+    assert medicao_noite.valores_medicao.filter(
+        nome_campo='matriculados', categoria_medicao__nome='ALIMENTAÇÃO').count() == 30
+
+    medicao_programas_projetos = solicitacao_medicao_inicial_teste_salvar_logs.medicoes.get(
+        grupo__nome='Programas e Projetos')
+    assert medicao_programas_projetos.valores_medicao.filter(
+        nome_campo='numero_de_alunos', categoria_medicao__nome='ALIMENTAÇÃO').count() == 30
+
+    medicao_etec = solicitacao_medicao_inicial_teste_salvar_logs.medicoes.get(
+        grupo__nome='ETEC')
+    assert medicao_etec.valores_medicao.filter(
+        nome_campo='numero_de_alunos', categoria_medicao__nome='ALIMENTAÇÃO').count() == 15
+
+    medicao_solicitacoes_alimentacao = solicitacao_medicao_inicial_teste_salvar_logs.medicoes.get(
+        grupo__nome='Solicitações de Alimentação')
+    assert medicao_solicitacoes_alimentacao.valores_medicao.filter(
+        nome_campo='kit_lanche', categoria_medicao__nome='SOLICITAÇÕES DE ALIMENTAÇÃO').count() == 1
+    assert medicao_solicitacoes_alimentacao.valores_medicao.get(
+        nome_campo='kit_lanche', categoria_medicao__nome='SOLICITAÇÕES DE ALIMENTAÇÃO').valor == '200'

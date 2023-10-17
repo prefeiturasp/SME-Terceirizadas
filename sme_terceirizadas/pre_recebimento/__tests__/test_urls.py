@@ -1,10 +1,13 @@
 import json
 import uuid
 
+import pytest
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from rest_framework import status
 
 from sme_terceirizadas.dados_comuns import constants
+from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer
@@ -17,7 +20,11 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoEmbalagemQld,
     UnidadeMedida
 )
-from sme_terceirizadas.pre_recebimento.utils import LayoutDeEmbalagemPagination, UnidadeMedidaPagination
+from sme_terceirizadas.pre_recebimento.utils import (
+    LayoutDeEmbalagemPagination,
+    ServiceDashboardLayoutEmbalagemProfiles,
+    UnidadeMedidaPagination
+)
 
 
 def test_url_endpoint_cronograma(client_autenticado_codae_dilog, armazem, contrato, empresa):
@@ -1058,3 +1065,485 @@ def test_url_layout_de_embalagem_listagem(client_autenticado_qualidade, lista_la
     assert response.data['count'] == len(lista_layouts_de_embalagem)
     assert len(response.data['results']) == LayoutDeEmbalagemPagination.page_size
     assert response.data['next'] is not None
+
+
+def test_url_layout_de_embalagem_detalhar(client_autenticado_codae_dilog, lista_layouts_de_embalagem):
+    layout_esperado = LayoutDeEmbalagem.objects.first()
+    cronograma_esperado = layout_esperado.cronograma
+
+    response = client_autenticado_codae_dilog.get(f'/layouts-de-embalagem/{layout_esperado.uuid}/')
+    dedos_layout_recebido = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert dedos_layout_recebido['uuid'] == str(layout_esperado.uuid)
+    assert dedos_layout_recebido['observacoes'] == str(layout_esperado.observacoes)
+    assert dedos_layout_recebido['criado_em'] == layout_esperado.criado_em.strftime(
+        settings.REST_FRAMEWORK['DATETIME_FORMAT'])
+    assert dedos_layout_recebido['status'] == layout_esperado.get_status_display()
+    assert dedos_layout_recebido['numero_cronograma'] == str(cronograma_esperado.numero)
+    assert dedos_layout_recebido['pregao_chamada_publica'] == str(cronograma_esperado.contrato.pregao_chamada_publica)
+    assert dedos_layout_recebido['nome_produto'] == str(cronograma_esperado.produto.nome)
+    assert dedos_layout_recebido['nome_empresa'] == str(cronograma_esperado.empresa.razao_social)
+
+
+def test_url_dashboard_layout_embalagens_status_retornados(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem
+):
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    user = get_user_model().objects.get()
+    status_esperados = ServiceDashboardLayoutEmbalagemProfiles.get_dashboard_status(user)
+    status_recebidos = [result['status'] for result in response.json()['results']]
+
+    for status_recebido in status_recebidos:
+        assert status_recebido in status_esperados
+
+
+@pytest.mark.parametrize(
+    'status_card',
+    [
+        LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+        LayoutDeEmbalagemWorkflow.APROVADO,
+        LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
+    ]
+)
+def test_url_dashboard_layout_embalagens_quantidade_itens_por_card(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem,
+    status_card
+):
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    dados_card = list(filter(
+        lambda e: e['status'] == status_card,
+        response.json()['results']
+    )).pop()['dados']
+
+    assert len(dados_card) == 6
+
+
+@pytest.mark.parametrize(
+    'status_card',
+    [
+        LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+        LayoutDeEmbalagemWorkflow.APROVADO,
+        LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
+    ]
+)
+def test_url_dashboard_layout_embalagens_com_filtro(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem,
+    status_card
+):
+    filtros = {'numero_cronograma': '003/2022'}
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    dados_card = list(filter(
+        lambda e: e['status'] == status_card,
+        response.json()['results']
+    )).pop()['dados']
+    assert len(dados_card) == 5
+
+    filtros = {'nome_produto': 'Arroz'}
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    dados_card = list(filter(
+        lambda e: e['status'] == status_card,
+        response.json()['results']
+    )).pop()['dados']
+    assert len(dados_card) == 5
+
+    filtros = {'numero_cronograma': '004/2022'}
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    dados_card = list(filter(
+        lambda e: e['status'] == status_card,
+        response.json()['results']
+    )).pop()['dados']
+    assert len(dados_card) == 6
+
+    filtros = {'nome_produto': 'Macarrão'}
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    dados_card = list(filter(
+        lambda e: e['status'] == status_card,
+        response.json()['results']
+    )).pop()['dados']
+    assert len(dados_card) == 6
+
+    filtros = {'nome_fornecedor': 'Alimentos'}
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    dados_card = list(filter(
+        lambda e: e['status'] == status_card,
+        response.json()['results']
+    )).pop()['dados']
+    assert len(dados_card) == 6
+
+
+@pytest.mark.parametrize(
+    'status_card',
+    [
+        LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+        LayoutDeEmbalagemWorkflow.APROVADO,
+        LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
+    ]
+)
+def test_url_dashboard_layout_embalagens_ver_mais(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem,
+    status_card
+):
+    filtros = {
+        'status': status_card,
+        'offset': 0,
+        'limit': 10
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']['dados']) == 10
+
+    total_cards_esperado = LayoutDeEmbalagem.objects.filter(status=status_card).count()
+    assert response.json()['results']['total'] == total_cards_esperado
+
+
+@pytest.mark.parametrize(
+    'status_card',
+    [
+        LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+        LayoutDeEmbalagemWorkflow.APROVADO,
+        LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
+    ]
+)
+def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem,
+    status_card
+):
+    filtros = {
+        'status': status_card,
+        'offset': 0,
+        'limit': 10,
+        'numero_cronograma': '003/2022',
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results']['dados']) == 5
+
+    layouts_esperados = LayoutDeEmbalagem.objects.filter(
+        status=status_card,
+        cronograma__numero='003/2022'
+    ).order_by('-criado_em')[:10]
+    primeiro_layout_esperado = layouts_esperados[0]
+    ultimo_layout_esperado = layouts_esperados[4]
+    assert str(primeiro_layout_esperado.uuid) == response.json()['results']['dados'][0]['uuid']
+    assert str(ultimo_layout_esperado.uuid) == response.json()['results']['dados'][-1]['uuid']
+
+    filtros = {
+        'status': status_card,
+        'offset': 0,
+        'limit': 10,
+        'nome_produto': 'Arroz',
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results']['dados']) == 5
+
+    filtros = {
+        'status': status_card,
+        'offset': 0,
+        'limit': 10,
+        'numero_cronograma': '004/2022',
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results']['dados']) == 10
+
+    layouts_esperados = LayoutDeEmbalagem.objects.filter(
+        status=status_card,
+        cronograma__numero='004/2022'
+    ).order_by('-criado_em')[:10]
+    primeiro_layout_esperado = layouts_esperados[0]
+    ultimo_layout_esperado = layouts_esperados[9]
+    assert str(primeiro_layout_esperado.uuid) == response.json()['results']['dados'][0]['uuid']
+    assert str(ultimo_layout_esperado.uuid) == response.json()['results']['dados'][-1]['uuid']
+
+    filtros = {
+        'status': status_card,
+        'offset': 0,
+        'limit': 10,
+        'nome_produto': 'Macarrão',
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results']['dados']) == 10
+
+    filtros = {
+        'status': status_card,
+        'offset': 0,
+        'limit': 10,
+        'nome_fornecedor': 'Alimentos',
+    }
+    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    assert len(response.json()['results']['dados']) == 10
+
+
+def test_url_layout_embalagens_analise_aprovacao(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem_com_tipo_embalagem
+):
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'TERCIARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+    layout_analisado.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert layout_analisado.aprovado
+
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[1]
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+    layout_analisado.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert layout_analisado.aprovado
+
+
+def test_url_layout_embalagens_analise_solicitacao_correcao(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem_com_tipo_embalagem
+):
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'TERCIARIA',
+                'status': 'REPROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+    layout_analisado.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert not layout_analisado.aprovado
+
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'REPROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[1]
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+    layout_analisado.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert not layout_analisado.aprovado
+
+
+def test_url_layout_embalagens_analise_erro_quantidade_tipos_embalagem(
+    client_autenticado_codae_dilog,
+    lista_layouts_de_embalagem_com_tipo_embalagem
+):
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+
+    msg_erro = 'Quantidade de Tipos de Embalagem recebida é diferente da quantidade presente no Layout de Embalagem.'
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert msg_erro in response.json()['tipos_de_embalagens']
+
+
+def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(client_autenticado_fornecedor, arquivo_base64,
+                                                             layout_de_embalagem_para_correcao):
+    layout_para_corrigir = layout_de_embalagem_para_correcao
+    dados_correcao = {
+        'observacoes': 'Imagine uma nova observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='REPROVADO').uuid),
+                'tipo_embalagem': 'PRIMARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo2.jpg'
+                    }
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao)
+    )
+
+    layout_para_corrigir.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert layout_para_corrigir.status == LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+    assert layout_para_corrigir.observacoes == 'Imagine uma nova observação aqui.'
+
+
+def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(client_autenticado_fornecedor, arquivo_base64,
+                                                                    layout_de_embalagem_para_correcao):
+    """Checa transição de estado, UUID valido de tipo de embalagem e se pode ser de fato corrigido."""
+    layout_para_corrigir = layout_de_embalagem_para_correcao
+    dados = {
+        'observacoes': 'Imagine uma nova observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(uuid.uuid4()),
+                'tipo_embalagem': 'SECUNDARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                ]
+            },
+            {
+                'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='APROVADO').uuid),
+                'tipo_embalagem': 'TERCIARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados)
+    )
+
+    msg_erro1 = 'UUID do tipo informado não existe.'
+    msg_erro2 = 'O Tipo/UUID informado não pode ser corrigido pois não está reprovado.'
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert msg_erro1 in response.json()['tipos_de_embalagens'][0]['Layout Embalagem SECUNDARIA'][0]
+    assert msg_erro2 in response.json()['tipos_de_embalagens'][1]['Layout Embalagem TERCIARIA'][0]
+
+    dados = {
+        'observacoes': 'Imagine uma nova observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='REPROVADO').uuid),
+                'tipo_embalagem': 'PRIMARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                ]
+            },
+        ],
+    }
+
+    layout_para_corrigir.status = LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+    layout_para_corrigir.save()
+
+    response = client_autenticado_fornecedor.patch(
+        f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados)
+    )
+
+    msg_erro3 = 'Erro de transição de estado. O status deste layout não permite correção'
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert msg_erro3 in response.json()[0]

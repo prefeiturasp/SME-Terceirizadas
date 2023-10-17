@@ -1,3 +1,4 @@
+import datetime
 from calendar import monthcalendar, setfirstweekday
 
 import numpy
@@ -9,6 +10,8 @@ from ..dados_comuns.behaviors import (
     CriadoPor,
     Logs,
     Nomeavel,
+    Posicao,
+    TemAlteradoEm,
     TemAno,
     TemChaveExterna,
     TemData,
@@ -19,6 +22,7 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.fluxo_status import FluxoSolicitacaoMedicaoInicial, LogSolicitacoesUsuario
 from ..escola.models import TipoUnidadeEscolar
+from ..perfil.models import Usuario
 
 
 class DiaSobremesaDoce(TemData, TemChaveExterna, CriadoEm, CriadoPor):
@@ -53,6 +57,7 @@ class SolicitacaoMedicaoInicial(
     com_ocorrencias = models.BooleanField('Com ocorrências?', default=False)
     historico = models.JSONField(blank=True, null=True)
     ue_possui_alunos_periodo_parcial = models.BooleanField('Possui alunos periodo parcial?', default=False)
+    logs_salvos = models.BooleanField('Logs de matriculados, dietas autorizadas, etc foram salvos?', default=False)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         LogSolicitacoesUsuario.objects.create(
@@ -223,11 +228,7 @@ class ValorMedicao(
         setfirstweekday(0)
         x = numpy.array(monthcalendar(year, month))
         week_of_month = numpy.where(x == day)[0][0] + 1
-        return(week_of_month)
-
-    class Meta:
-        verbose_name = 'Valor da Medição'
-        verbose_name_plural = 'Valores das Medições'
+        return week_of_month
 
     def __str__(self):
         categoria = f'{self.categoria_medicao.nome}'
@@ -235,3 +236,83 @@ class ValorMedicao(
         dia = f'{self.dia}'
         mes = f'{self.medicao.solicitacao_medicao_inicial.mes}'
         return f'#{self.id_externo} -- Categoria {categoria} -- Campo {nome_campo} -- Dia/Mês {dia}/{mes}'
+
+    class Meta:
+        verbose_name = 'Valor da Medição'
+        verbose_name_plural = 'Valores das Medições'
+
+
+class AlimentacaoLancamentoEspecial(Nomeavel, Ativavel, TemChaveExterna, Posicao):
+
+    class Meta:
+        verbose_name = 'Alimentação de Lançamento Especial'
+        verbose_name_plural = 'Alimentações de Lançamentos Especiais'
+        ordering = ['posicao']
+
+    def __str__(self):
+        return self.nome
+
+
+class PermissaoLancamentoEspecial(CriadoPor, CriadoEm, TemAlteradoEm, TemChaveExterna, TemIdentificadorExternoAmigavel):
+    escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE, related_name='permissoes_lancamento_especial')
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', blank=True, null=True, on_delete=models.DO_NOTHING)
+    alimentacoes_lancamento_especial = models.ManyToManyField(AlimentacaoLancamentoEspecial)
+    diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', related_name='permissoes_lancamento_especial',
+                                           on_delete=models.DO_NOTHING)
+    data_inicial = models.DateField('Data inicial', null=True, blank=True)
+    data_final = models.DateField('Data final', null=True, blank=True)
+
+    @property
+    def ativo(self):
+        hoje = datetime.datetime.today().date()
+        if self.data_inicial and self.data_final:
+            return self.data_inicial <= hoje <= self.data_final
+        if self.data_inicial and not self.data_final:
+            return self.data_inicial <= hoje
+        if not self.data_inicial and self.data_final:
+            return hoje <= self.data_final
+        if not self.data_inicial and not self.data_final:
+            return True
+
+    class Meta:
+        verbose_name = 'Permissão de Lançamento Especial'
+        verbose_name_plural = 'Permissões de Lançamentos Especiais'
+        ordering = ['-alterado_em']
+
+    def __str__(self):
+        return f'Permissão #{self.id_externo} - {self.escola.nome}'
+
+
+class DiaParaCorrigir(TemChaveExterna, TemIdentificadorExternoAmigavel, TemDia, CriadoEm, CriadoPor):
+    medicao = models.ForeignKey('Medicao', on_delete=models.CASCADE, related_name='dias_para_corrigir')
+    categoria_medicao = models.ForeignKey(
+        'CategoriaMedicao', on_delete=models.CASCADE, related_name='dias_para_corrigir')
+    habilitado_correcao = models.BooleanField(default=True)
+
+    @classmethod
+    def cria_dias_para_corrigir(cls, medicao: Medicao, usuario: Usuario, list_dias_para_corrigir: list) -> None:
+        if not list_dias_para_corrigir:
+            return
+        medicao.dias_para_corrigir.all().delete()
+        list_dias_para_corrigir_a_criar = []
+        for dia_para_corrigir in list_dias_para_corrigir:
+            categoria_medicao = CategoriaMedicao.objects.get(uuid=dia_para_corrigir['categoria_medicao_uuid'])
+            dia_obj = DiaParaCorrigir(
+                medicao=medicao,
+                dia=dia_para_corrigir['dia'],
+                categoria_medicao=categoria_medicao,
+                criado_por=usuario
+            )
+            list_dias_para_corrigir_a_criar.append(dia_obj)
+        DiaParaCorrigir.objects.bulk_create(list_dias_para_corrigir_a_criar)
+
+    def __str__(self):
+        escola = self.medicao.solicitacao_medicao_inicial.escola.nome
+        periodo_ou_grupo = self.medicao.grupo.nome if self.medicao.grupo else self.medicao.periodo_escolar.nome
+        mes = self.medicao.solicitacao_medicao_inicial.mes
+        ano = self.medicao.solicitacao_medicao_inicial.ano
+        return f'# {self.id_externo} - {escola} - {periodo_ou_grupo} - {self.dia}/{mes}/{ano}'
+
+    class Meta:
+        verbose_name = 'Dia da Medição para corrigir'
+        verbose_name_plural = 'Dias da Medição para corrigir'

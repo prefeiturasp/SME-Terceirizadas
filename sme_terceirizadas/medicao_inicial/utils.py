@@ -1190,9 +1190,16 @@ def dict_informacoes_iniciais(user, acao):
     }
 
 
+def get_medicoes_por_acao(solicitacao, acao):
+    if acao == 'MEDICAO_CORRECAO_SOLICITADA_CODAE':
+        return solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA_CODAE')
+    else:
+        return solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA')
+
+
 def criar_log_solicitar_correcao_periodos(user, solicitacao, acao):
     log = dict_informacoes_iniciais(user, acao)
-    medicoes = solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA')
+    medicoes = get_medicoes_por_acao(solicitacao, acao)
     if not medicoes:
         return
     for medicao in medicoes:
@@ -1472,3 +1479,18 @@ def log_alteracoes_escola_corrige_periodo(user, medicao, acao, data):
         criar_log_escola_corrigiu(medicao, valores_medicao, dicionario_alteracoes, log_inicial, historico, solicitacao)
     else:
         atualizar_log_escola_corrigiu(historico, log_inicial, medicao, dicionario_alteracoes, solicitacao)
+
+
+def tratar_workflow_todos_lancamentos(usuario, raw_sql):
+    if usuario.tipo_usuario == 'medicao':
+        raw_sql += (
+            'WHERE %(solicitacao_medicao_inicial)s.status IN ('
+            "'MEDICAO_APROVADA_PELA_DRE', "
+            "'MEDICAO_CORRECAO_SOLICITADA_CODAE', "
+            "'MEDICAO_CORRIGIDA_PARA_CODAE', "
+            "'MEDICAO_APROVADA_PELA_CODAE') "
+        )
+    else:
+        raw_sql += ('WHERE NOT %(solicitacao_medicao_inicial)s.status = '
+                    "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE' ")
+    return raw_sql

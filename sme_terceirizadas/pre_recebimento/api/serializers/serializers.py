@@ -236,7 +236,7 @@ class TipoEmbalagemLayoutLookupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoDeEmbalagemDeLayout
-        exclude = ('id', 'uuid', 'layout_de_embalagem')
+        exclude = ('id', 'layout_de_embalagem')
 
 
 class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
@@ -263,9 +263,10 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.SerializerMethodField()
     pregao_chamada_publica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
-    observacoes = serializers.CharField()
+    nome_empresa = serializers.SerializerMethodField()
     status = serializers.CharField(source='get_status_display')
     tipos_de_embalagens = TipoEmbalagemLayoutLookupSerializer(many=True)
+    log_mais_recente = serializers.SerializerMethodField()
 
     def get_numero_cronograma(self, obj):
         return obj.cronograma.numero if obj.cronograma else None
@@ -276,7 +277,38 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
 
+    def get_nome_empresa(self, obj):
+        return obj.cronograma.empresa.razao_social if obj.cronograma.empresa else None
+
+    def get_log_mais_recente(self, obj):
+        if obj.log_mais_recente:
+            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y - %H:%M')
+        else:
+            return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y - %H:%M')
+
     class Meta:
         model = LayoutDeEmbalagem
-        fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'status', 'criado_em',
-                  'observacoes', 'tipos_de_embalagens')
+        fields = (
+            'uuid', 'observacoes', 'criado_em', 'status', 'tipos_de_embalagens',
+            'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'nome_empresa', 'log_mais_recente'
+        )
+
+
+class PainelLayoutEmbalagemSerializer(serializers.ModelSerializer):
+    numero_cronograma = serializers.CharField(source='cronograma.numero')
+    nome_produto = serializers.CharField(source='cronograma.produto')
+    nome_empresa = serializers.CharField(source='cronograma.empresa.razao_social')
+    status = serializers.CharField(source='get_status_display')
+    log_mais_recente = serializers.SerializerMethodField()
+
+    def get_log_mais_recente(self, obj):
+        if obj.log_mais_recente:
+            if obj.log_mais_recente.criado_em.date() == datetime.date.today():
+                return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M')
+            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y')
+        else:
+            return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
+
+    class Meta:
+        model = LayoutDeEmbalagem
+        fields = ('uuid', 'numero_cronograma', 'nome_produto', 'nome_empresa', 'status', 'log_mais_recente')

@@ -2,10 +2,14 @@ import datetime
 import json
 
 from dateutil.relativedelta import relativedelta
+from django.core.exceptions import ValidationError
 from django.db.models import IntegerField, Q, QuerySet
 from django.db.models.functions import Cast
+from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from workalendar.america import BrazilSaoPauloCity
@@ -14,6 +18,7 @@ from xworkflows import InvalidTransitionError
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ...dados_comuns.constants import TRADUCOES_FERIADOS
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
@@ -25,10 +30,13 @@ from ...dados_comuns.permissions import (
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
 from ...escola.models import Escola
 from ..models import (
+    AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
+    DiaParaCorrigir,
     DiaSobremesaDoce,
     Medicao,
     OcorrenciaMedicaoInicial,
+    PermissaoLancamentoEspecial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
     ValorMedicao
@@ -40,14 +48,20 @@ from ..utils import (
     criar_log_aprovar_periodos_corrigidos,
     criar_log_solicitar_correcao_periodos,
     log_alteracoes_escola_corrige_periodo,
-    tratar_valores
+    tratar_valores,
+    tratar_workflow_todos_lancamentos
 )
+from .constants import STATUS_RELACAO_DRE_CODAE, STATUS_RELACAO_DRE_UE
+from .filters import DiaParaCorrecaoFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
+    AlimentacaoLancamentoEspecialSerializer,
     CategoriaMedicaoSerializer,
+    DiaParaCorrigirSerializer,
     DiaSobremesaDoceSerializer,
     MedicaoSerializer,
     OcorrenciaMedicaoInicialSerializer,
+    PermissaoLancamentoEspecialSerializer,
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
@@ -56,10 +70,30 @@ from .serializers import (
 from .serializers_create import (
     DiaSobremesaDoceCreateManySerializer,
     MedicaoCreateUpdateSerializer,
+    PermissaoLancamentoEspecialCreateUpdateSerializer,
     SolicitacaoMedicaoInicialCreateSerializer
 )
 
 calendario = BrazilSaoPauloCity()
+
+
+DEFAULT_PAGE = 1
+DEFAULT_PAGE_SIZE = 10
+
+
+class CustomPagination(PageNumberPagination):
+    page = DEFAULT_PAGE
+    page_size = DEFAULT_PAGE_SIZE
+    page_size_query_param = 'page_size'
+
+    def get_paginated_response(self, data):
+        return Response({
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'count': self.page.paginator.count,
+            'page_size': int(self.request.GET.get('page_size', self.page_size)),
+            'results': data
+        })
 
 
 class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
@@ -117,6 +151,19 @@ class SolicitacaoMedicaoInicialViewSet(
             return SolicitacaoMedicaoInicialCreateSerializer
         return SolicitacaoMedicaoInicialSerializer
 
+    def update(self, request, *args, **kwargs):
+        try:
+            return super(SolicitacaoMedicaoInicialViewSet, self).update(request, *args, **kwargs)
+        except ValidationError as lista_erros:
+            list_response = []
+            for indice, erro in enumerate(lista_erros):
+                if indice % 2 == 0:
+                    obj = {'erro': erro}
+                else:
+                    obj['periodo_escolar'] = erro
+                    list_response.append(obj)
+            return Response(list_response, status=status.HTTP_400_BAD_REQUEST)
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -130,17 +177,11 @@ class SolicitacaoMedicaoInicialViewSet(
         return Response(serializer.data)
 
     @staticmethod
-    def get_lista_status():
-        return [
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_ENVIADA_PELA_UE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_DRE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE,
-            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE,
-            'TODOS_OS_LANCAMENTOS'
-        ]
+    def get_lista_status(usuario):
+        if usuario.tipo_usuario == 'medicao':
+            return STATUS_RELACAO_DRE_CODAE + ['TODOS_OS_LANCAMENTOS']
+        else:
+            return STATUS_RELACAO_DRE_UE + STATUS_RELACAO_DRE_CODAE + ['TODOS_OS_LANCAMENTOS']
 
     def condicao_raw_query_por_usuario(self):
         usuario = self.request.user
@@ -156,6 +197,8 @@ class SolicitacaoMedicaoInicialViewSet(
             return queryset.filter(escola__diretoria_regional=usuario.vinculo_atual.instituicao)
         elif usuario.tipo_usuario == 'escola':
             return queryset.filter(escola=usuario.vinculo_atual.instituicao)
+        elif usuario.tipo_usuario == 'medicao':
+            return queryset.filter(status__in=STATUS_RELACAO_DRE_CODAE)
         return queryset
 
     def dados_dashboard(self, request, query_set: QuerySet, kwargs: dict, use_raw=True) -> list:
@@ -163,7 +206,8 @@ class SolicitacaoMedicaoInicialViewSet(
         offset = int(request.query_params.get('offset', 0))
 
         sumario = []
-        for workflow in self.get_lista_status():
+        usuario = self.request.user
+        for workflow in self.get_lista_status(usuario):
             todos_lancamentos = workflow == 'TODOS_OS_LANCAMENTOS'
             if use_raw:
                 data = {'escola': Escola._meta.db_table,
@@ -179,8 +223,7 @@ class SolicitacaoMedicaoInicialViewSet(
                            'AS escola_solicitacao_medicao '
                            'ON escola_solicitacao_medicao.escola_id = %(solicitacao_medicao_inicial)s.escola_id ')
                 if todos_lancamentos:
-                    raw_sql += ('WHERE NOT %(solicitacao_medicao_inicial)s.status = '
-                                "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE' ")
+                    raw_sql = tratar_workflow_todos_lancamentos(usuario, raw_sql)
                 else:
                     raw_sql += "WHERE %(solicitacao_medicao_inicial)s.status = '%(status)s' "
                 raw_sql += self.condicao_raw_query_por_usuario()
@@ -320,10 +363,20 @@ class SolicitacaoMedicaoInicialViewSet(
                 'status': medicao.status.name,
                 'logs': LogSolicitacoesUsuarioSerializer(medicao.logs.all(), many=True).data
             })
+        ordem = constants.ORDEM_PERIODOS_GRUPOS_CEI if solicitacao.escola.eh_cei else constants.ORDEM_PERIODOS_GRUPOS
 
         return Response({
-            'results': sorted(retorno, key=lambda k: constants.ORDEM_PERIODOS_GRUPOS[k['nome_periodo_grupo']])},
+            'results': sorted(retorno, key=lambda k: ordem[k['nome_periodo_grupo']])},
             status=status.HTTP_200_OK)
+
+    def get_justificativa(self, medicao: Medicao) -> str:
+        if medicao.status == medicao.workflow_class.MEDICAO_CORRIGIDA_PELA_UE:
+            return medicao.logs.filter(
+                status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA).last().justificativa
+        elif medicao.status == medicao.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE:
+            return medicao.logs.filter(
+                status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE).last().justificativa
+        return medicao.logs.last().justificativa if medicao.logs.last() else None
 
     @action(detail=False, methods=['GET'], url_path='quantidades-alimentacoes-lancadas-periodo-grupo',
             permission_classes=[UsuarioEscolaTercTotal])
@@ -354,7 +407,7 @@ class SolicitacaoMedicaoInicialViewSet(
             retorno.append({
                 'nome_periodo_grupo': medicao.nome_periodo_grupo,
                 'status': medicao.status.name,
-                'justificativa': medicao.logs.last().justificativa if medicao.logs.last() else None,
+                'justificativa': self.get_justificativa(medicao),
                 'valores': valores,
                 'valor_total': sum(v['valor'] for v in valores)
             })
@@ -422,6 +475,16 @@ class SolicitacaoMedicaoInicialViewSet(
                 mensagem = 'Erro: existe(m) pendência(s) de análise'
                 return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
             solicitacao_medicao_inicial.codae_aprova_medicao(user=request.user)
+            acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+            log = criar_log_aprovar_periodos_corrigidos(request.user, solicitacao_medicao_inicial, acao)
+            if log:
+                if not solicitacao_medicao_inicial.historico:
+                    historico = [log]
+                else:
+                    historico = json.loads(solicitacao_medicao_inicial.historico)
+                    historico.append(log)
+                solicitacao_medicao_inicial.historico = json.dumps(historico)
+                solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -433,6 +496,16 @@ class SolicitacaoMedicaoInicialViewSet(
         solicitacao_medicao_inicial = self.get_object()
         try:
             solicitacao_medicao_inicial.codae_pede_correcao_medicao(user=request.user)
+            acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
+            log = criar_log_solicitar_correcao_periodos(request.user, solicitacao_medicao_inicial, acao)
+            if log:
+                if not solicitacao_medicao_inicial.historico:
+                    historico = [log]
+                else:
+                    historico = json.loads(solicitacao_medicao_inicial.historico)
+                    historico.append(log)
+                solicitacao_medicao_inicial.historico = json.dumps(historico)
+                solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -447,6 +520,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 raise InvalidTransitionError('solicitação já está no status Corrigido para DRE')
             solicitacao_medicao_inicial.ue_corrige(user=request.user)
             ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
+            ).update(habilitado_correcao=False)
+            DiaParaCorrigir.objects.filter(
                 medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
             ).update(habilitado_correcao=False)
             serializer = self.get_serializer(solicitacao_medicao_inicial)
@@ -464,6 +540,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 raise InvalidTransitionError('solicitação já está no status Corrigido para CODAE')
             solicitacao_medicao_inicial.ue_corrige_medicao_para_codae(user=request.user)
             ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
+            ).update(habilitado_correcao=False)
+            DiaParaCorrigir.objects.filter(
                 medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
             ).update(habilitado_correcao=False)
             serializer = self.get_serializer(solicitacao_medicao_inicial)
@@ -616,10 +695,15 @@ class MedicaoViewSet(
             permission_classes=[UsuarioDiretoriaRegional])
     def dre_pede_correcao_medicao(self, request, uuid=None):
         medicao = self.get_object()
-        justificativa = request.data.get('justificativa', None)
-        uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', None)
+        justificativa = request.data.get('justificativa', '')
+        uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', [])
+        dias_para_corrigir = request.data.get('dias_para_corrigir', [])
         try:
-            ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
+            medicao.valores_medicao.filter(
+                uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
+            medicao.valores_medicao.exclude(
+                uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=False)
+            DiaParaCorrigir.cria_dias_para_corrigir(medicao, self.request.user, dias_para_corrigir)
             medicao.dre_pede_correcao(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -643,8 +727,10 @@ class MedicaoViewSet(
         medicao = self.get_object()
         justificativa = request.data.get('justificativa', None)
         uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', None)
+        dias_para_corrigir = request.data.get('dias_para_corrigir', [])
         try:
             ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
+            DiaParaCorrigir.cria_dias_para_corrigir(medicao, self.request.user, dias_para_corrigir)
             medicao.codae_pede_correcao_periodo(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -658,14 +744,21 @@ class MedicaoViewSet(
             tipo_alimentacao = TipoAlimentacao.objects.get(uuid=tipo_alimentacao_uuid)
         return tipo_alimentacao
 
+    def get_nome_acao(self, medicao, status_codae):
+        if medicao.status in status_codae:
+            return medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+        else:
+            return medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
+
     @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao',
             permission_classes=[UsuarioDiretorEscolaTercTotal])
     def escola_corrige_medicao(self, request, uuid=None):
         medicao = self.get_object()
         status_correcao_solicitada_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
         status_medicao_corrigida_para_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+        status_codae = [status_correcao_solicitada_codae, status_medicao_corrigida_para_codae]
         try:
-            acao = medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
+            acao = self.get_nome_acao(medicao, status_codae)
             log_alteracoes_escola_corrige_periodo(request.user, medicao, acao, request.data)
             for valor_medicao in request.data:
                 if not valor_medicao:
@@ -696,7 +789,8 @@ class MedicaoViewSet(
                         'habilitado_correcao': True,
                     },
                 )
-            if medicao.status in [status_correcao_solicitada_codae, status_medicao_corrigida_para_codae]:
+            medicao.valores_medicao.filter(valor=-1).delete()
+            if medicao.status in status_codae:
                 medicao.ue_corrige_periodo_grupo_para_codae(user=request.user)
             else:
                 medicao.ue_corrige(user=request.user)
@@ -705,19 +799,42 @@ class MedicaoViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    def get_day_from_date(self, data):
+        return datetime.date.strftime(data, '%d')
+
     @action(detail=False, methods=['GET'], url_path='feriados-no-mes',
-            permission_classes=[UsuarioEscolaTercTotal])
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
     def feriados_no_mes(self, request, uuid=None):
         mes = request.query_params.get('mes', '')
         ano = request.query_params.get('ano', '')
 
-        def formatar_data(data):
-            return datetime.date.strftime(data, '%d')
-
         retorno = [
-            formatar_data(h[0]) for h in calendario.holidays() if h[0].month == int(mes) and h[0].year == int(ano)
+            self.get_day_from_date(h[0]) for h in calendario.holidays(int(ano))
+            if h[0].month == int(mes) and h[0].year == int(ano)
         ]
         return Response({'results': retorno}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='feriados-no-mes-com-nome',
+            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    def feriados_no_mes_com_nome(self, request, uuid=None):
+        mes = request.query_params.get('mes', '')
+        ano = request.query_params.get('ano', '')
+
+        lista_feriados = []
+        for h in calendario.holidays(int(ano)):
+            if h[0].month == int(mes) and h[0].year == int(ano):
+                try:
+                    lista_feriados.append({
+                        'dia': self.get_day_from_date(h[0]),
+                        'feriado': TRADUCOES_FERIADOS[h[1]]
+                    })
+                except KeyError:
+                    lista_feriados.append({
+                        'dia': self.get_day_from_date(h[0]),
+                        'feriado': h[1]
+                    })
+
+        return Response({'results': lista_feriados}, status=status.HTTP_200_OK)
 
 
 class OcorrenciaViewSet(
@@ -777,3 +894,46 @@ class OcorrenciaViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+
+class AlimentacaoLancamentoEspecialViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = AlimentacaoLancamentoEspecial.objects.filter(ativo=True)
+    serializer_class = AlimentacaoLancamentoEspecialSerializer
+    pagination_class = None
+
+
+class PermissaoLancamentoEspecialViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    permission_classes = [UsuarioCODAEGestaoAlimentacao]
+    queryset = PermissaoLancamentoEspecial.objects.all()
+    serializer_class = PermissaoLancamentoEspecialSerializer
+    pagination_class = CustomPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ['escola__uuid']
+
+    @action(detail=False, methods=['GET'], url_path='escolas-permissoes-lancamentos-especiais')
+    def escolas_permissoes_lancamentos_especiais(self, request):
+        try:
+            escolas = []
+            for permissao in PermissaoLancamentoEspecial.objects.order_by().distinct('escola'):
+                escolas.append({
+                    'nome': permissao.escola.nome,
+                    'uuid': permissao.escola.uuid
+                })
+
+            return Response({'results': sorted(escolas, key=lambda e: e['nome'])}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(dict(detail=f'Erro: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return PermissaoLancamentoEspecialCreateUpdateSerializer
+        return PermissaoLancamentoEspecialSerializer
+
+
+class DiasParaCorrigirViewSet(mixins.ListModelMixin, GenericViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = DiaParaCorrigir.objects.filter(habilitado_correcao=True)
+    serializer_class = DiaParaCorrigirSerializer
+    filterset_class = DiaParaCorrecaoFilter
+    pagination_class = None

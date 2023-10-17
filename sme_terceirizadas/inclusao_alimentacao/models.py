@@ -23,7 +23,7 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
-from ..escola.constants import PERIODOS_ESPECIAIS_CEMEI
+from ..escola.constants import PERIODOS_CEMEI_EVENTO_ESPECIFICO, PERIODOS_ESPECIAIS_CEMEI
 from .managers import (
     GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager,
     GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
@@ -681,7 +681,8 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
                 'motivo': inclusao_cemei.motivo.nome,
                 'data': inclusao_cemei.data,
                 'cancelado': inclusao_cemei.cancelado,
-                'cancelado_justificativa': inclusao_cemei.cancelado_justificativa
+                'cancelado_justificativa': inclusao_cemei.cancelado_justificativa,
+                'descricao_evento': inclusao_cemei.descricao_evento
             })
         return dias_motivos_da_inclusao_cemei
 
@@ -689,9 +690,15 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
     def existe_dia_cancelado(self):
         return self.dias_motivos_da_inclusao_cemei.all().filter(cancelado=True).exists()
 
+    def eh_evento_especifico(self):
+        if self.dias_motivos_da_inclusao_cemei.filter(motivo__nome='Evento Específico'):
+            return True
+        return False
+
     @property
     def quantidades_alunos_simples_dict(self):
         dias_motivos_da_inclusao = []
+        eh_evento_especifico = self.eh_evento_especifico()
         periodos_cei = self.quantidade_alunos_cei_da_inclusao_cemei.all()
         periodos_cei = periodos_cei.values_list('periodo_escolar__nome', flat=True).distinct()
         periodos_emei = self.quantidade_alunos_emei_da_inclusao_cemei.all()
@@ -706,6 +713,12 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
         vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
             periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
             tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
+
+        if eh_evento_especifico:
+            vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+                periodo_escolar__nome__in=PERIODOS_CEMEI_EVENTO_ESPECIFICO,
+                tipo_unidade_escolar__iniciais__in=['CEI DIRET', 'EMEI'])
+
         for periodo in periodos:
             tipos_alimentacao_cei = vinculos.filter(periodo_escolar__nome=periodo,
                                                     tipo_unidade_escolar__iniciais='CEI DIRET')
@@ -716,6 +729,10 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
 
             tipos_alimentacao_emei = vinculos.filter(periodo_escolar__nome=periodo,
                                                      tipo_unidade_escolar__iniciais='EMEI')
+            if eh_evento_especifico and not self.escola.periodos_escolares.filter(nome=periodo):
+                tipos_alimentacao_emei = vinculos.filter(periodo_escolar__nome='INTEGRAL',
+                                                         tipo_unidade_escolar__iniciais='EMEI')
+
             tipos_alimentacao_emei = tipos_alimentacao_emei.values_list('tipos_alimentacao__nome', flat=True)
             tipos_alimentacao_emei = [ta for ta in tipos_alimentacao_emei if ta]
             tipos_alimentacao_emei = ', '.join(tipos_alimentacao_emei)
@@ -751,6 +768,9 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
         return dias_motivos_da_inclusao
 
     def solicitacao_dict_para_relatorio(self, label_data, data_log):
+        eh_evento_especifico = False
+        if self.dias_motivos_da_inclusao_cemei.filter(motivo__nome='Evento Específico'):
+            eh_evento_especifico = True
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -765,7 +785,8 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
             'datas': self.datas,
             'id_externo': self.id_externo,
             'existe_dia_cancelado': self.existe_dia_cancelado,
-            'status': self.status
+            'status': self.status,
+            'eh_evento_especifico': eh_evento_especifico
         }
 
     def __str__(self):
@@ -813,6 +834,7 @@ class DiasMotivosInclusaoDeAlimentacaoCEMEI(TemData, TemChaveExterna, CanceladoI
                                                    related_name='dias_motivos_da_inclusao_cemei')
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
+    descricao_evento = models.CharField('Descrição do Evento', blank=True, max_length=1500)
 
     def __str__(self):
         if self.outro_motivo:

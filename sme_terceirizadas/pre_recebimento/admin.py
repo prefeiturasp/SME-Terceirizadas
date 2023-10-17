@@ -66,6 +66,7 @@ class TipoEmbalagemLayoutInline(NestedStackedInline):
     model = TipoDeEmbalagemDeLayout
     extra = 0
     show_change_link = True
+    readonly_fields = ('uuid',)
     fk_name = 'layout_de_embalagem'
     inlines = [ImagemDoTipoDeEmbalagemInline, ]
 
@@ -73,6 +74,7 @@ class TipoEmbalagemLayoutInline(NestedStackedInline):
 class LayoutDeEmbalagemAdmin(NestedModelAdmin):
     list_display = ('get_cronograma', 'get_produto', 'criado_em')
     search_fields = ('cronograma__numero', 'produto__nome')
+    readonly_fields = ('uuid',)
     inlines = [TipoEmbalagemLayoutInline, ]
 
     def get_produto(self, obj):
