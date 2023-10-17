@@ -3982,16 +3982,20 @@ class LayoutDeEmbalagemWorkflow(xwf_models.Workflow):
     LAYOUT_CRIADO = 'LAYOUT_CRIADO'
     ENVIADO_PARA_ANALISE = 'ENVIADO_PARA_ANALISE'
     APROVADO = 'APROVADO'
+    SOLICITADO_CORRECAO = 'SOLICITADO_CORRECAO'
 
     states = (
         (LAYOUT_CRIADO, 'Layout Criado'),
         (ENVIADO_PARA_ANALISE, 'Enviado para Análise'),
         (APROVADO, 'Aprovado'),
+        (SOLICITADO_CORRECAO, 'Solicitado Correção'),
     )
 
     transitions = (
         ('inicia_fluxo', LAYOUT_CRIADO, ENVIADO_PARA_ANALISE),
         ('codae_aprova', ENVIADO_PARA_ANALISE, APROVADO),
+        ('codae_solicita_correcao', ENVIADO_PARA_ANALISE, SOLICITADO_CORRECAO),
+        ('fornecedor_realiza_correcao', SOLICITADO_CORRECAO, ENVIADO_PARA_ANALISE),
     )
 
     initial_state = LAYOUT_CRIADO
@@ -4006,6 +4010,27 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ENVIADO_PARA_ANALISE,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_aprova')
+    def _codae_aprova_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_APROVADO,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_solicita_correcao')
+    def _codae_solicita_correcao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_SOLICITADO_CORRECAO,
+                                      usuario=user)
+
+    @xworkflows.after_transition('fornecedor_realiza_correcao')
+    def _fornecedor_realiza_correcao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA,
                                       usuario=user)
 
     class Meta:

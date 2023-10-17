@@ -1,6 +1,7 @@
 import calendar
 import datetime
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from rest_framework import serializers
 from workalendar.america import BrazilSaoPauloCity
@@ -193,3 +194,11 @@ def valida_datas_alteracao_cardapio(attrs):
         ).exists():
             raise serializers.ValidationError(f'Já existe uma solicitação autorizada para o '
                                               f'dia {data.strftime("%d/%m/%Y")}')
+
+
+def validate_file_size_10mb(value):
+    """max_size: valor em megabytes."""
+    filesize = value.size
+    max_size = 10 * 1024 * 1024  # 10 MB
+    if filesize > max_size:
+        raise ValidationError(f'O arquivo deve ter no máximo 10MB.')

@@ -73,7 +73,7 @@
   </div>
   {% endif %}
 </div>
-<div class="row mx-5 my-2">
+<div class="row mx-5 my-2" style="font-family: 'Roboto'; font-style: normal; font-weight: 400; font-size: 14px; color: #42474A;">
   {% for dia_motivo in solicitacao.dias_motivos_da_inclusao_cemei.all %}
     <div class="col-4">
       {% if dia_motivo.cancelado_justificativa %}
@@ -95,6 +95,14 @@
       </div>
     {% else %}
       <div class="col-4">
+      </div>
+    {% endif %}
+    {% if eh_evento_especifico %}
+      <div class="col-12">
+        <p>Descrição do Evento:</p>
+      </div>
+      <div class="col-12">
+        <p style="text-align: justify;"><b>{{dia_motivo.descricao_evento}}</b></p>
       </div>
     {% endif %}
   {% endfor %}
@@ -188,8 +196,12 @@
       <table class="table table-bordered">
         <thead>
           <tr style="background: #F5F6F8; font-family: 'Roboto'; font-style: normal; font-weight: 700; font-size: 14px; color: #42474A;">
-            <th>Alunos Matriculados: {{ periodo_emei.total_matriculados }}</th>
-            <th>Quantidade: {{ periodo_emei.total_solicitacao }}</th>
+            {% if eh_evento_especifico %}
+              <th>Quantidade: {{ periodo_emei.total_solicitacao }}</th>
+            {% else %}
+              <th>Alunos Matriculados: {{ periodo_emei.total_matriculados }}</th>
+              <th>Quantidade: {{ periodo_emei.total_solicitacao }}</th>
+            {% endif %}
           </tr>
         </thead>
       </table>

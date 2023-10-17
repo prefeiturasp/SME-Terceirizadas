@@ -1,4 +1,3 @@
-import math
 import re
 
 from django import template
@@ -427,31 +426,33 @@ def get_dias(observacoes_tuple):
 
 
 @register.filter
-def formatar_observacoes(observacoes):
+def formatar_observacoes(observacoes, cei=False):
     MAX_LINHAS_POR_PAGINA = 22
-    observacoes_tuple = []
-    for observacao in observacoes:
-        obs_list = list(observacao)
-        if obs_list[4] and obs_list[1]:
-            obs_list[4] = f'{obs_list[4]} - ' + f'{obs_list[1]}'
-        elif obs_list[4] and not obs_list[1]:
-            obs_list[4] = obs_list[4]
-        else:
-            obs_list[4] = obs_list[1]
-        obs_list[3] = re.sub(r'<.*?>', '', obs_list[3])
-        observacoes_tuple.append(tuple(obs_list))
-    observacoes_ordenadas_corretamente = []
-    dias = get_dias(observacoes_tuple)
-    for dia in dias:
-        obs_filtradas_por_dia = tuple(filter(lambda obs: obs[0] == dia, observacoes_tuple))
-        obs_ordenadas_periodo_grupo = sorted(obs_filtradas_por_dia, key=lambda k: constants.ORDEM_PERIODOS_GRUPOS[k[4]])
-        [observacoes_ordenadas_corretamente.append(i) for i in obs_ordenadas_periodo_grupo]
-    tabelas_observacoes = []
-    i = 1
-    while i <= math.ceil(len(observacoes_ordenadas_corretamente) / MAX_LINHAS_POR_PAGINA):
-        tabelas_observacoes.append(
-            observacoes_ordenadas_corretamente[(MAX_LINHAS_POR_PAGINA * (i - 1)):(MAX_LINHAS_POR_PAGINA * i)]
-        )
-        i += 1
 
-    return tabelas_observacoes
+    def format_observacao(obs):
+        obs_list = list(obs)
+        obs_list[4] = f'{obs_list[4]} - {obs_list[1]}' if obs_list[4] and obs_list[1] else obs_list[4] or obs_list[1]
+        obs_list[3] = re.sub(r'<.*?>', '', obs_list[3])
+        return tuple(obs_list)
+
+    observacoes_tuple = [format_observacao(observacao) for observacao in observacoes]
+
+    order_key = constants.ORDEM_PERIODOS_GRUPOS_CEI if cei else constants.ORDEM_PERIODOS_GRUPOS
+
+    dias = get_dias(observacoes_tuple)
+
+    def order_by_periodo(obs):
+        return order_key[obs[4]]
+
+    observacoes_ordenadas_corretamente = []
+    for dia in dias:
+        obs_for_dia = [obs for obs in observacoes_tuple if obs[0] == dia]
+        observacoes_ordenadas_corretamente.extend(sorted(obs_for_dia, key=order_by_periodo))
+
+    num_observacoes = len(observacoes_ordenadas_corretamente)
+    paginated_observacoes = [
+        observacoes_ordenadas_corretamente[i:i + MAX_LINHAS_POR_PAGINA]
+        for i in range(0, num_observacoes, MAX_LINHAS_POR_PAGINA)
+    ]
+
+    return paginated_observacoes

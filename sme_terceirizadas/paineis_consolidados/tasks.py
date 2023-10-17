@@ -78,7 +78,7 @@ def cria_nova_linha(df, index, model_obj, qt_periodo, observacoes):
     return nova_linha
 
 
-def novas_linhas_inc_continua(df, queryset):
+def novas_linhas_inc_continua_e_kit_lanche(df, queryset):
     novas_linhas, lista_uuids = [], []
     for index, solicitacao in enumerate(queryset):
         model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
@@ -89,6 +89,11 @@ def novas_linhas_inc_continua(df, queryset):
                 nova_linha = cria_nova_linha(df, index, model_obj, qt_periodo, obs_periodo)
                 novas_linhas.append(nova_linha)
                 lista_uuids.append(solicitacao)
+        elif 'KIT_LANCHE' in solicitacao.tipo_doc:
+            nova_linha = df.iloc[index].copy()
+            nova_linha['quantidade_alimentacoes'] = str(model_obj.quantidade_alimentacoes)
+            novas_linhas.append(nova_linha)
+            lista_uuids.append(solicitacao)
         else:
             linha = df.iloc[index].copy()
             novas_linhas.append(linha)
@@ -122,14 +127,15 @@ def nomes_colunas(worksheet, status_, LINHAS, COLUNAS, single_cell_format):
     worksheet.write(LINHAS[3], COLUNAS[7], 'Período', single_cell_format)
     worksheet.write(LINHAS[3], COLUNAS[8], 'Tipo de Alimentação', single_cell_format)
     worksheet.write(LINHAS[3], COLUNAS[9], 'Nª de Alunos', single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[10], 'Observações', single_cell_format)
+    worksheet.write(LINHAS[3], COLUNAS[10], 'N° total de Kits', single_cell_format)
+    worksheet.write(LINHAS[3], COLUNAS[11], 'Observações', single_cell_format)
     map_data = {
         'Autorizadas': 'Data de Autorização',
         'Canceladas': 'Data de Cancelamento',
         'Negadas': 'Data de Negação',
         'Recebidas': 'Data de Autorização'
     }
-    worksheet.write(LINHAS[3], COLUNAS[11], map_data[status_], single_cell_format)
+    worksheet.write(LINHAS[3], COLUNAS[12], map_data[status_], single_cell_format)
 
 
 def aplica_fundo_amarelo_tipo1(df, worksheet, workbook, solicitacao, model_obj, LINHAS, COLUNAS, index):
@@ -151,8 +157,8 @@ def aplica_fundo_amarelo_tipo2(df, worksheet, workbook, solicitacao, model_obj, 
             if qt_periodo.cancelado:
                 worksheet.write(
                     LINHAS[3] + 1 + index,
-                    COLUNAS[10],
-                    df.values[LINHAS[3] + index][COLUNAS[10]],
+                    COLUNAS[11],
+                    df.values[LINHAS[3] + index][COLUNAS[11]],
                     workbook.add_format({'align': 'left', 'bg_color': 'yellow'})
                 )
             idx += 1
@@ -180,7 +186,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     ALTURA_COLUNA_50 = 50
 
     LINHAS = [0, 1, 2, 3]
-    COLUNAS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    COLUNAS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
     import pandas as pd
     xlwriter = pd.ExcelWriter(output, engine='xlsxwriter')
@@ -190,7 +196,8 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     for i, nova_coluna in enumerate(novas_colunas):
         df.insert(5 + i, nova_coluna, '-')
 
-    novas_linhas, lista_uuids = novas_linhas_inc_continua(df, queryset)
+    df.insert(9, 'quantidade_alimentacoes', '-')
+    novas_linhas, lista_uuids = novas_linhas_inc_continua_e_kit_lanche(df, queryset)
     df = pd.DataFrame(novas_linhas)
     df.reset_index(drop=True, inplace=True)
 
@@ -214,7 +221,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
     worksheet.set_row(LINHAS[1], ALTURA_COLUNA_30)
 
     columns_width = {'A:A': 5, 'B:B': 8, 'C:C': 40, 'D:D': 30, 'E:E': 15, 'F:G': 30, 'H:H': 10, 'I:I': 30,
-                     'J:J': 13, 'K:K': 30, 'L:L': 20}
+                     'J:J': 13, 'K:K': 15, 'L:L': 30, 'M:M': 20}
     for col, width in columns_width.items():
         worksheet.set_column(col, width)
 

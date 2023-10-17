@@ -36,3 +36,8 @@ def test_categoria_medicao_model(categoria_medicao):
 
 def test_valor_medicao_model(valor_medicao):
     assert valor_medicao.__str__() == '#FC2FB -- Categoria ALIMENTAÇÃO -- Campo observacoes -- Dia/Mês 13/12'
+
+
+def test_dia_para_corrigir_model(dia_para_corrigir):
+    assert dia_para_corrigir.__str__() == (
+        '# D5C33 - EMEF TESTE - INTEGRAL - 01/12/2022')

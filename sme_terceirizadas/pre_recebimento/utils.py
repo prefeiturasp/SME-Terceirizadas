@@ -2,11 +2,14 @@ from rest_framework.pagination import PageNumberPagination
 
 from sme_terceirizadas.dados_comuns.constants import (
     COORDENADOR_CODAE_DILOG_LOGISTICA,
+    COORDENADOR_GESTAO_PRODUTO,
     DILOG_CRONOGRAMA,
     DILOG_DIRETORIA,
+    DILOG_QUALIDADE,
     DINUTRE_DIRETORIA
 )
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow as StatusAlteracao
+from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow as StatusLayoutEmbalagem
 
 
 class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles:
@@ -49,6 +52,42 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles:
                 StatusAlteracao.REPROVADO_DILOG,
                 StatusAlteracao.ALTERACAO_ENVIADA_FORNECEDOR,
                 StatusAlteracao.FORNECEDOR_CIENTE
+            ],
+        }
+
+        if perfil not in status:
+            raise ValueError('Perfil não existe')
+
+        return status[perfil]
+
+
+class ServiceDashboardLayoutEmbalagemProfiles:
+    """
+    Service para lidar com perfis de Dashboard para Layout de Embalagem.
+
+    Quando necessário, direcionar o perfil e a lista de status do layout de embalagem que será retornada
+    para o dashboard Exemplo NOVO_PERFIL : [status1, status2]
+    """
+
+    @staticmethod
+    def get_dashboard_status(user) -> list:
+        perfil = user.vinculo_atual.perfil.nome
+
+        status = {
+            COORDENADOR_CODAE_DILOG_LOGISTICA: [
+                StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
+                StatusLayoutEmbalagem.APROVADO,
+                StatusLayoutEmbalagem.SOLICITADO_CORRECAO,
+            ],
+            DILOG_QUALIDADE: [
+                StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
+                StatusLayoutEmbalagem.APROVADO,
+                StatusLayoutEmbalagem.SOLICITADO_CORRECAO,
+            ],
+            COORDENADOR_GESTAO_PRODUTO: [
+                StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
+                StatusLayoutEmbalagem.APROVADO,
+                StatusLayoutEmbalagem.SOLICITADO_CORRECAO,
             ],
         }
 

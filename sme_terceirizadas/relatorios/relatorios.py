@@ -10,7 +10,7 @@ from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidad
 from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
-from ..escola.constants import PERIODOS_ESPECIAIS_CEMEI
+from ..escola.constants import PERIODOS_CEMEI_EVENTO_ESPECIFICO, PERIODOS_ESPECIAIS_CEMEI
 from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
@@ -583,6 +583,7 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
     periodos_cei = []
     periodos_escolares_emei = []
     periodos_emei = []
+    eh_evento_especifico = False
 
     for each in solicitacao.quantidade_alunos_cei_da_inclusao_cemei.all():
         if each.periodo_escolar.nome not in periodos_escolares_cei:
@@ -597,8 +598,12 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
     vinculos_cei = vinculos_cei.order_by('periodo_escolar__posicao')
     vinculos_emei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
                                                   tipo_unidade_escolar__iniciais__in=['EMEI'])
-    vinculos_emei = vinculos_emei.order_by('periodo_escolar__posicao')
 
+    if solicitacao.dias_motivos_da_inclusao_cemei.filter(motivo__nome='Evento Específico'):
+        eh_evento_especifico = True
+        vinculos_emei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_CEMEI_EVENTO_ESPECIFICO,
+                                                      tipo_unidade_escolar__iniciais__in=['EMEI'])
+    vinculos_emei = vinculos_emei.order_by('periodo_escolar__posicao')
     for vinculo in vinculos_cei:
         if vinculo.periodo_escolar.nome in periodos_escolares_cei:
             periodo = {}
@@ -620,8 +625,13 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
         if vinculo.periodo_escolar.nome in periodos_escolares_emei:
             periodo = {}
             periodo['nome'] = vinculo.periodo_escolar.nome
-            periodo['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.exclude(
+            tipos_alimentacao = ', '.join(vinculo.tipos_alimentacao.exclude(
                 nome__icontains='Lanche Emergencial').values_list('nome', flat=True))
+            if eh_evento_especifico and not solicitacao.escola.periodos_escolares.filter(nome=periodo['nome']):
+                vinculo_integral = vinculos_emei.get(periodo_escolar__nome='INTEGRAL')
+                tipos_alimentacao = ', '.join(vinculo_integral.tipos_alimentacao.exclude(
+                    nome__icontains='Lanche Emergencial').values_list('nome', flat=True))
+            periodo['tipos_alimentacao'] = tipos_alimentacao
             qtd_solicitacao = solicitacao.quantidade_alunos_emei_da_inclusao_cemei.filter(
                 periodo_escolar__nome=vinculo.periodo_escolar.nome)
             periodo['total_solicitacao'] = sum(qtd_solicitacao.values_list('quantidade_alunos', flat=True))
@@ -641,7 +651,8 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
             'periodos_cei': periodos_cei,
             'periodos_escolares_cei': periodos_escolares_cei,
             'periodos_emei': periodos_emei,
-            'periodos_escolares_emei': periodos_escolares_emei
+            'periodos_escolares_emei': periodos_escolares_emei,
+            'eh_evento_especifico': eh_evento_especifico
         }
     )
     return html_to_pdf_response(html_string, f'inclusao_alimentacao_cemei_{solicitacao.id_externo}.pdf')
@@ -1078,7 +1089,19 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
 def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
     tabelas, dias_letivos = build_tabelas_relatorio_medicao_cei(solicitacao)
     tabelas_somatorios = build_tabela_somatorio_body_cei(solicitacao)
-
+    tabela_observacoes = list(
+        solicitacao.medicoes.filter(
+            valores_medicao__nome_campo='observacoes'
+        ).values_list(
+            'valores_medicao__dia',
+            'periodo_escolar__nome',
+            'valores_medicao__categoria_medicao__nome',
+            'valores_medicao__valor',
+            'grupo__nome'
+        ).order_by(
+            'valores_medicao__dia',
+            'periodo_escolar__nome',
+            'valores_medicao__categoria_medicao__nome'))
     html_string = render_to_string(
         f'relatorio_solicitacao_medicao_por_escola_cei.html',
         {
@@ -1095,8 +1118,8 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
             'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
             'tabelas': tabelas,
             'dias_letivos': dias_letivos,
-            'tabela_observacoes': [],
-            'tabelas_somatorios': tabelas_somatorios
+            'tabela_observacoes': tabela_observacoes,
+            'tabelas_somatorios': tabelas_somatorios,
         }
     )
     return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
