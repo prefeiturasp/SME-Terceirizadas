@@ -2285,7 +2285,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = InformativoPartindoDaEscolaWorkflow
     status = xwf_models.StateField(workflow_class)
-    DIAS_PARA_CANCELAR = 3
+    DIAS_UTEIS_PARA_CANCELAR = 2
 
     rastro_escola = models.ForeignKey('escola.Escola',
                                       on_delete=models.DO_NOTHING,
@@ -2357,14 +2357,26 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
             html=html
         )
 
+    def get_dias_suspensao(self):
+        from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
+        dias_suspensao = DiaSuspensaoAtividades.get_dias_com_suspensao(
+            self.escola, False, self.DIAS_UTEIS_PARA_CANCELAR)
+        return dias_suspensao
+
+    def checa_se_pode_cancelar(self, data_do_evento=None):
+        dias_suspensao = self.get_dias_suspensao()
+        if not data_do_evento:
+            data_do_evento = self.data
+            if isinstance(data_do_evento, datetime.datetime):
+                data_do_evento = data_do_evento.date()
+        data_minima_cancelamento = obter_dias_uteis_apos(
+            datetime.date.today(), self.DIAS_UTEIS_PARA_CANCELAR + dias_suspensao)
+        if data_minima_cancelamento >= data_do_evento:
+            raise xworkflows.InvalidTransitionError(
+                f'Só pode cancelar com no mínimo {self.DIAS_UTEIS_PARA_CANCELAR} dia(s) úteis de antecedência')
+
     def cancelar_pedido(self, user, justificativa):
-        dia_antecedencia = datetime.date.today(
-        ) + datetime.timedelta(days=self.DIAS_PARA_CANCELAR)
-        data_do_evento = self.data
-        if isinstance(data_do_evento, datetime.datetime):
-            data_do_evento = data_do_evento.date()
-        if data_do_evento < dia_antecedencia:
-            raise AssertionError(f'Só pode cancelar com no mínimo {self.DIAS_PARA_CANCELAR} dia(s) de antecedência!')
+        self.checa_se_pode_cancelar()
         self.escola_cancela(user=user, justificativa=justificativa)
 
     @xworkflows.after_transition('informa')

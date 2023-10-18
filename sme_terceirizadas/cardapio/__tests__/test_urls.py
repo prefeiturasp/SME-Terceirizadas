@@ -459,7 +459,8 @@ def test_url_endpoint_suspensoes_escola_cancela_erro_dias_antecedencia(client_au
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     json_ = response.json()
-    assert json_['detail'] == 'Só pode cancelar com no mínimo 3 dia(s) de antecedência!'
+    assert json_['detail'] == ('Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) '
+                               'úteis de antecedência')
 
 
 def test_url_endpoint_suspensoes_relatorio(client_autenticado,

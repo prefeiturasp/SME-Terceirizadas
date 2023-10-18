@@ -717,8 +717,6 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-        except AssertionError as e:
-            return Response(dict(detail=str(e)), status=HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
         grupo_suspensao_de_alimentacao = self.get_object()
