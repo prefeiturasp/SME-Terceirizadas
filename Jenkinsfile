@@ -6,9 +6,11 @@ pipeline {
       namespace = "${env.branchname == 'development' ? 'sme-sigpae-dev' : env.branchname == 'homolog' ? 'sme-sigpae-hom' : env.branchname == 'homolog-r2' ? 'sme-sigpae-hom2' : 'sme-sigpae' }" 
     }
 
-    agent {
-      node { label 'builder' }
-    }
+    agent { kubernetes { 
+              label 'builder'
+              defaultContainer 'builder'
+            }
+          }
 
     options {
       buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
