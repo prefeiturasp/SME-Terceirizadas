@@ -37,11 +37,22 @@ def diretoria_regional():
 
 
 @pytest.fixture
-def escola(diretoria_regional, lote):
+def tipo_unidade():
+    return mommy.make('TipoUnidadeEscolar', iniciais='EMEF')
+
+
+@pytest.fixture
+def escola(diretoria_regional, lote, tipo_unidade):
     contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
     tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
-    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional, contato=contato,
-                      tipo_gestao=tipo_gestao, uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
+    return mommy.make('Escola', nome='EMEF TESTE', lote=lote, diretoria_regional=diretoria_regional,
+                      contato=contato, tipo_gestao=tipo_gestao, tipo_unidade=tipo_unidade,
+                      uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6')
+
+
+@pytest.fixture
+def dia_suspensao_atividades_2019_11_13(escola):
+    return mommy.make('DiaSuspensaoAtividades', tipo_unidade=escola.tipo_unidade, data=datetime.date(2019, 11, 13))
 
 
 @pytest.fixture

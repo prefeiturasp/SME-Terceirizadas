@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -5,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from ...cardapio.models import AlteracaoCardapioCEMEI
 from ...dados_comuns import constants, services
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarObjeto,
@@ -15,7 +16,6 @@ from ...dados_comuns.permissions import (
     UsuarioTerceirizada
 )
 from ...eol_servico.utils import EOLException
-from ...kit_lanche.models import SolicitacaoKitLancheCEMEI
 from ...relatorios.relatorios import (
     relatorio_inclusao_alimentacao_cei,
     relatorio_inclusao_alimentacao_cemei,
@@ -50,6 +50,12 @@ class EscolaIniciaCancela():
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
+    def valida_datas(self, obj, datas):
+        if datas:
+            for data in datas:
+                data_obj = datetime.datetime.strptime(data, '%Y-%m-%d').date()
+                obj.checa_se_pode_cancelar(data_obj)
+
     @action(detail=True,
             permission_classes=(UsuarioEscolaTercTotal,),
             methods=['patch'],
@@ -59,16 +65,15 @@ class EscolaIniciaCancela():
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            assert obj.status != obj.workflow_class.ESCOLA_CANCELOU, 'Já está cancelada'
-            if (type(obj) in [SolicitacaoKitLancheCEMEI, AlteracaoCardapioCEMEI] or
+            assert obj.status != obj.workflow_class.ESCOLA_CANCELOU, 'Solicitação já está cancelada'
+            self.valida_datas(obj, datas)
+            if (not hasattr(obj, 'inclusoes') or
                     len(datas) + obj.inclusoes.filter(cancelado=True).count() == obj.inclusoes.count()):
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
             if hasattr(obj, 'inclusoes'):
-                obj.inclusoes.filter(data__in=datas).update(cancelado_justificativa=justificativa)
-                if 1 < obj.inclusoes.count() != len(datas):
-                    obj.inclusoes.filter(data__in=datas).update(cancelado=True)
+                obj.inclusoes.filter(data__in=datas).update(cancelado_justificativa=justificativa, cancelado=True)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
         except (InvalidTransitionError, AssertionError) as e:

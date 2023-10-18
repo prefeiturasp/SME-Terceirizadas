@@ -265,7 +265,7 @@ def test_url_endpoint_inclusao_normal_escola_cancela(client_autenticado_vinculo_
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_autorizado.uuid}/'
         f'{ESCOLA_CANCELA}/', content_type='application/json', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': 'Erro de transição de estado: Já está cancelada'}
+    assert response.json() == {'detail': 'Erro de transição de estado: Solicitação já está cancelada'}
 
 
 def test_permissoes_grupo_inclusao_continua_viewset(client_autenticado_vinculo_escola_inclusao,
@@ -493,7 +493,7 @@ def test_url_endpoint_inclusao_continua_escola_cancela(client_autenticado_vincul
         f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_autorizado.uuid}/'
         f'{ESCOLA_CANCELA}/', content_type='application/json', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': 'Erro de transição de estado: Já está cancelada'}
+    assert response.json() == {'detail': 'Erro de transição de estado: Solicitação já está cancelada'}
 
 
 def test_url_endpoint_inclusao_continua_minhas_solicitacoes(client_autenticado_vinculo_escola_inclusao,
