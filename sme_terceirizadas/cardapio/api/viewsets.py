@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.exceptions import ValidationError
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -715,8 +717,6 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-        except AssertionError as e:
-            return Response(dict(detail=str(e)), status=HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
         grupo_suspensao_de_alimentacao = self.get_object()
@@ -960,6 +960,12 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
+    def valida_datas(self, obj, datas):
+        if datas:
+            for data in datas:
+                data_obj = datetime.datetime.strptime(data, '%Y-%m-%d').date()
+                obj.checa_se_pode_cancelar(data_obj)
+
     @action(detail=True, permission_classes=[UsuarioEscolaTercTotal],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido(self, request, uuid=None):
@@ -967,16 +973,15 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            assert obj.status != obj.workflow_class.ESCOLA_CANCELOU, 'Já está cancelada'
+            assert obj.status != obj.workflow_class.ESCOLA_CANCELOU, 'Solicitação já está cancelada'
+            self.valida_datas(obj, datas)
             if (not hasattr(obj, 'datas_intervalo') or obj.data_inicial == obj.data_final or
                     len(datas) + obj.datas_intervalo.filter(cancelado=True).count() == obj.datas_intervalo.count()):
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)
             else:
                 services.enviar_email_ue_cancelar_pedido_parcialmente(obj)
             if hasattr(obj, 'datas_intervalo') and obj.datas_intervalo.exists():
-                obj.datas_intervalo.filter(data__in=datas).update(cancelado_justificativa=justificativa)
-                if 1 < obj.datas_intervalo.count() != len(datas):
-                    obj.datas_intervalo.filter(data__in=datas).update(cancelado=True)
+                obj.datas_intervalo.filter(data__in=datas).update(cancelado_justificativa=justificativa, cancelado=True)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
         except (InvalidTransitionError, AssertionError) as e:

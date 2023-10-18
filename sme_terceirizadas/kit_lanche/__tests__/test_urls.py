@@ -249,7 +249,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_relatorio(
     assert isinstance(response.content, bytes)
 
 
-@freeze_time('2019-11-15')
+@freeze_time('2019-11-12')
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela(client_autenticado_da_escola,
                                                                     solicitacao_avulsa_codae_autorizado):
     # A solicitação é do dia 18/11/2019
@@ -260,6 +260,20 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela(client_auten
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU
+
+
+@freeze_time('2019-11-12')
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela_com_dia_suspensao(
+        client_autenticado_da_escola, dia_suspensao_atividades_2019_11_13, solicitacao_avulsa_codae_autorizado):
+    # A solicitação é do dia 18/11/2019
+
+    assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado_da_escola.patch(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.ESCOLA_CANCELA}/',
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) úteis de antecedência'}
 
 
 @freeze_time('2019-11-17')
@@ -273,7 +287,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela_error(client
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
+        'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) úteis de antecedência'}
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_deletar(client_autenticado_da_escola, solicitacao_avulsa):
@@ -385,7 +399,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_terceirizada_ciencia(
     assert json['status'] == PedidoAPartirDaDiretoriaRegionalWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
 
 
-@freeze_time('2019-10-10')
+@freeze_time('2019-10-09')
 def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela(
     client_autenticado_da_dre,
     solicitacao_unificada_lista_igual_codae_autorizado
@@ -406,7 +420,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela(
     assert json['logs'][0]['justificativa'] == justificativa
 
 
-@freeze_time('2019-10-12')  # também dia 13 ou 14
+@freeze_time('2019-10-10')  # também dia 13 ou 14
 def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela_em_cima_da_hora(
     client_autenticado_da_dre,
     solicitacao_unificada_lista_igual_codae_autorizado
@@ -423,7 +437,8 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela_em_cima_da_h
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     json = response.json()
-    assert json == {'detail': 'Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
+    assert json == {
+        'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) úteis de antecedência'}
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificado_deletar(client_autenticado_da_dre,
