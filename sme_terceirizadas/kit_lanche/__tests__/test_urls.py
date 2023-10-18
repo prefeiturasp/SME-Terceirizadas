@@ -249,7 +249,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_relatorio(
     assert isinstance(response.content, bytes)
 
 
-@freeze_time('2019-11-15')
+@freeze_time('2019-11-12')
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela(client_autenticado_da_escola,
                                                                     solicitacao_avulsa_codae_autorizado):
     # A solicitação é do dia 18/11/2019
@@ -273,7 +273,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela_error(client
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
+        'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) úteis de antecedência'}
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_deletar(client_autenticado_da_escola, solicitacao_avulsa):

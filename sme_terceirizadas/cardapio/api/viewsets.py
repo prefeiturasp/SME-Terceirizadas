@@ -967,7 +967,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         datas = request.data.get('datas', [])
         justificativa = request.data.get('justificativa', '')
         try:
-            assert obj.status != obj.workflow_class.ESCOLA_CANCELOU, 'Já está cancelada'
+            assert obj.status != obj.workflow_class.ESCOLA_CANCELOU, 'Solicitação já está cancelada'
             if (not hasattr(obj, 'datas_intervalo') or obj.data_inicial == obj.data_final or
                     len(datas) + obj.datas_intervalo.filter(cancelado=True).count() == obj.datas_intervalo.count()):
                 obj.cancelar_pedido(user=request.user, justificativa=justificativa)

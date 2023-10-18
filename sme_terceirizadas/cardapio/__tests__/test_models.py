@@ -100,7 +100,7 @@ def test_inversao_dia_cardapio_fluxo_cancelamento_erro(inversao_dia_cardapio2):
     fake_user = mommy.make('perfil.Usuario')
     with pytest.raises(
         InvalidTransitionError,
-        match=r'.*Só pode cancelar com no mínimo 2 dia\(s\) de antecedência.*'
+        match=r'.*Só pode cancelar com no mínimo 2 dia\(s\) úteis de antecedência.*'
     ):
         inversao_dia_cardapio2.inicia_fluxo(user=fake_user)
         inversao_dia_cardapio2.cancelar_pedido(user=fake_user, justificativa=justificativa)

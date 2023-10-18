@@ -204,7 +204,7 @@ class TemPrioridade(object):
     Quando o objeto implementa o TemPrioridade, ele deve ter um property data
     """
 
-    def get_dias_suspensao(self):
+    def get_dias_suspensao_por_prioridade(self):
         from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
         from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
         dias_suspensao_prioritario = 0
@@ -229,7 +229,9 @@ class TemPrioridade(object):
         except AttributeError:
             data_pedido = self.data
         ultimo_dia_util = self._get_ultimo_dia_util(data_pedido)
-        dias_suspensao_prioritario, dias_suspensao_inferior, dias_suspensao_superior = self.get_dias_suspensao()
+        (dias_suspensao_prioritario,
+         dias_suspensao_inferior,
+         dias_suspensao_superior) = self.get_dias_suspensao_por_prioridade()
         minimo_dias_para_pedido = obter_dias_uteis_apos(hoje, (PRIORITARIO + dias_suspensao_prioritario))
         dias_uteis_limite_inferior = obter_dias_uteis_apos(hoje, (LIMITE_INFERIOR + dias_suspensao_inferior))
         dias_uteis_limite_superior = obter_dias_uteis_apos(hoje, (LIMITE_SUPERIOR + dias_suspensao_superior))

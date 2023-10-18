@@ -15,10 +15,10 @@ from rest_framework.exceptions import PermissionDenied
 from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
-from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE, obter_dias_uteis_apos_hoje
+from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
-from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory
+from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory, obter_dias_uteis_apos
 
 env = environ.Env()
 base_url = f'{env("REACT_APP_URL")}'
@@ -1732,11 +1732,9 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         from sme_terceirizadas.cardapio.models import AlteracaoCardapio
         return isinstance(self, AlteracaoCardapio) and self.motivo and self.motivo.nome == 'Lanche Emergencial'
 
-    def checa_se_pode_cancelar(self):
+    def get_dias_suspensao(self):
         from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
         from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
-        if self.eh_alteracao_lanche_emergencial():
-            return
         dias_suspensao = 0
         if hasattr(self, 'escola'):
             dias_suspensao = DiaSuspensaoAtividades.get_dias_com_suspensao(
@@ -1744,10 +1742,18 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         elif isinstance(self, SolicitacaoKitLancheUnificada):
             dias_suspensao = DiaSuspensaoAtividades.get_dias_com_suspensao(
                 None, True, self.DIAS_UTEIS_PARA_CANCELAR)
-        data_do_evento = self.data
-        if isinstance(data_do_evento, datetime.datetime):
-            data_do_evento = data_do_evento.date()
-        data_minima_cancelamento = obter_dias_uteis_apos_hoje(self.DIAS_UTEIS_PARA_CANCELAR + dias_suspensao)
+        return dias_suspensao
+
+    def checa_se_pode_cancelar(self, data_do_evento=None):
+        if self.eh_alteracao_lanche_emergencial():
+            return
+        dias_suspensao = self.get_dias_suspensao()
+        if not data_do_evento:
+            data_do_evento = self.data
+            if isinstance(data_do_evento, datetime.datetime):
+                data_do_evento = data_do_evento.date()
+        data_minima_cancelamento = obter_dias_uteis_apos(
+            datetime.date.today(), self.DIAS_UTEIS_PARA_CANCELAR + dias_suspensao)
         if data_minima_cancelamento >= data_do_evento:
             raise xworkflows.InvalidTransitionError(
                 f'Só pode cancelar com no mínimo {self.DIAS_UTEIS_PARA_CANCELAR} dia(s) úteis de antecedência')
@@ -2106,7 +2112,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                                   self._partes_interessadas_cancelamento)
 
         elif self.status == self.workflow_class.DRE_CANCELOU:
-            raise xworkflows.InvalidTransitionError('Já está cancelada')
+            raise xworkflows.InvalidTransitionError('Solicitação já está cancelada')
         else:
             raise xworkflows.InvalidTransitionError(
                 f'Só pode cancelar com no mínimo {self.DIAS_PARA_CANCELAR} dia(s) de antecedência')
