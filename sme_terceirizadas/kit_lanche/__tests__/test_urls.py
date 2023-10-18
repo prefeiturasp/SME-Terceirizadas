@@ -264,7 +264,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela(client_auten
 
 @freeze_time('2019-11-12')
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela_com_dia_suspensao(
-    client_autenticado_da_escola, dia_suspensao_atividades_2019_11_13, solicitacao_avulsa_codae_autorizado):
+        client_autenticado_da_escola, dia_suspensao_atividades_2019_11_13, solicitacao_avulsa_codae_autorizado):
     # A solicitação é do dia 18/11/2019
 
     assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
