@@ -262,6 +262,20 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela(client_auten
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU
 
 
+@freeze_time('2019-11-12')
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela_com_dia_suspensao(
+    client_autenticado_da_escola, dia_suspensao_atividades_2019_11_13, solicitacao_avulsa_codae_autorizado):
+    # A solicitação é do dia 18/11/2019
+
+    assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado_da_escola.patch(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.ESCOLA_CANCELA}/',
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) úteis de antecedência'}
+
+
 @freeze_time('2019-11-17')
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela_error(client_autenticado_da_escola,
                                                                           solicitacao_avulsa_codae_autorizado):
