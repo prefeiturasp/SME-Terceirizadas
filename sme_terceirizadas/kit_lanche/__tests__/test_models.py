@@ -155,7 +155,7 @@ def test_solicitacao_avulsa_workflow_partindo_da_escola_with_error(solicitacao_a
         solicitacao_avulsa.escola_revisa(user=user)
 
 
-@freeze_time('2019-10-11')
+@freeze_time('2019-10-09')
 def test_solicitacao_unificada_lista_igual_workflow_case_1_partindo_da_diretoria_regional(
     solicitacao_unificada_lista_igual,
     escola
