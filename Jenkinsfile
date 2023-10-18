@@ -6,9 +6,11 @@ pipeline {
       namespace = "${env.branchname == 'development' ? 'sme-sigpae-dev' : env.branchname == 'homolog' ? 'sme-sigpae-hom' : env.branchname == 'homolog-r2' ? 'sme-sigpae-hom2' : 'sme-sigpae' }" 
     }
 
-    agent {
-      node { label 'builder' }
-    }
+    agent { kubernetes { 
+              label 'builder'
+              defaultContainer 'builder'
+            }
+          }
 
     options {
       buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
@@ -68,7 +70,7 @@ pipeline {
 		            						sh 'kubectl rollout restart deployment/sigpae-backend -n sme-sigpae-treino'
                             sh 'kubectl rollout restart deployment/sigpae-beat -n sme-sigpae-treino'
                             sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae-treino'
-			    									sh 'kubectl rollout restart deployment/sigpae-frontend -n sme-sigpae-treino'
+			    sh 'kubectl rollout restart deployment/sigpae-frontend -n sme-sigpae-treino'
                             sh('rm -f '+"$home"+'/.kube/config')
                         }
                     }
