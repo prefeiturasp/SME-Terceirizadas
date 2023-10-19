@@ -1,7 +1,7 @@
 from django.contrib import admin
 from nested_inline.admin import NestedModelAdmin, NestedStackedInline
 
-from .forms import CaixaAltaNomeForm
+from .forms import ArquivoForm, CaixaAltaNomeForm
 from .models import (
     ArquivoDoTipoDeDocumento,
     Cronograma,
@@ -75,6 +75,7 @@ class TipoEmbalagemLayoutInline(NestedStackedInline):
 
 
 class LayoutDeEmbalagemAdmin(NestedModelAdmin):
+    form = ArquivoForm
     list_display = ('get_cronograma', 'get_produto', 'criado_em')
     search_fields = ('cronograma__numero', 'produto__nome')
     readonly_fields = ('uuid',)
@@ -106,6 +107,7 @@ class TipoDocumentoRecebimentoInline(NestedStackedInline):
 
 
 class DocumentoDeRecebimentoAdmin(NestedModelAdmin):
+    form = ArquivoForm
     list_display = ('get_cronograma', 'get_produto', 'numero_laudo', 'criado_em')
     search_fields = ('cronograma__numero', 'produto__nome')
     readonly_fields = ('uuid',)
