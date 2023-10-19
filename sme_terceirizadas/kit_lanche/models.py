@@ -503,7 +503,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
         from sme_terceirizadas.escola.models import Escola
         dict_ = {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
-            'unidade_educacional': 'Várias Escolas' if not isinstance(instituicao, Escola) else instituicao.nome,
+            'unidade_educacional': 'Várias Escolas',
             'terceirizada': 'Várias Terceirizadas',
             'tipo_doc': 'Kit Lanche Passeio Unificado',
             'data_evento': self.data,
@@ -521,6 +521,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
         }
 
         if isinstance(instituicao, Escola):
+            dict_['unidade_educacional'] = instituicao.nome
             dict_['terceirizada'] = instituicao.lote.terceirizada.nome_fantasia
             dict_['numero_alunos'] = self.escolas_quantidades.get(escola=instituicao).quantidade_alunos
             dict_['total_kits'] = self.total_kit_lanche_escola(instituicao.uuid)
