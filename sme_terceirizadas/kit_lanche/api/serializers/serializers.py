@@ -243,20 +243,10 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class SolicitacaoKitLancheUnificadaRelatorioSolicitacoesAlimentacaoSerializer(serializers.ModelSerializer):
-    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
-    solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
+class SolicitacaoKitLancheUnificadaRelatorioSolicitacoesAlimentacaoSerializer(SolicitacaoKitLancheUnificadaSerializer):
     escolas_quantidades = serializers.SerializerMethodField()
-    id_externo = serializers.CharField()
-    # TODO: remover total_kit_lanche ou quantidade_alimentacoes. estao duplicados
     total_kit_lanche = serializers.SerializerMethodField()
-    lote_nome = serializers.CharField()
-    logs = LogSolicitacoesUsuarioSerializer(many=True)
-    prioridade = serializers.CharField()
-    data = serializers.DateField()
-    quantidade_alimentacoes = serializers.IntegerField()
-    rastro_terceirizada = TerceirizadaSimplesSerializer()
-    tipo = serializers.SerializerMethodField()
+    solicitacoes_similares = None
 
     def get_escolas_quantidades(self, obj):
         instituicao = self.context['request'].user.vinculo_atual.instituicao
@@ -270,13 +260,6 @@ class SolicitacaoKitLancheUnificadaRelatorioSolicitacoesAlimentacaoSerializer(se
         if isinstance(instituicao, Escola):
             return obj.total_kit_lanche_escola(instituicao.uuid)
         return obj.total_kit_lanche
-
-    def get_tipo(self, obj):
-        return obj.tipo
-
-    class Meta:
-        model = SolicitacaoKitLancheUnificada
-        exclude = ('id',)
 
 
 class SolicitacaoKitLancheUnificadaSimplesSerializer(serializers.ModelSerializer):

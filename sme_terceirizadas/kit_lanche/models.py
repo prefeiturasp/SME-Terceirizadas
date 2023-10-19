@@ -504,7 +504,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
         dict_ = {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': 'Várias Escolas' if not isinstance(instituicao, Escola) else instituicao.nome,
-            'terceirizada': 'Várias Escolas',
+            'terceirizada': 'Várias Terceirizadas',
             'tipo_doc': 'Kit Lanche Passeio Unificado',
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
