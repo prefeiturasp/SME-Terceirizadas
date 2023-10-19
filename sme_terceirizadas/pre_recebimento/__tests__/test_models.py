@@ -4,11 +4,13 @@ from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaAlteracaoWorkf
 
 from ..models import (
     Cronograma,
+    DocumentoDeRecebimento,
     EtapasDoCronograma,
     Laboratorio,
     LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
     UnidadeMedida
@@ -203,3 +205,36 @@ def test_tipo_de_embalagem_srt_model(tipo_de_embalagem_de_layout):
 def test_tipo_de_embalagem_meta_modelo(tipo_de_embalagem_de_layout):
     assert tipo_de_embalagem_de_layout._meta.verbose_name == 'Tipo de Embalagem de Layout'
     assert tipo_de_embalagem_de_layout._meta.verbose_name_plural == 'Tipos de Embalagens de Layout'
+
+
+def test_documento_de_recebimento_instance_model(documento_de_recebimento):
+    model = documento_de_recebimento
+    assert isinstance(model, DocumentoDeRecebimento)
+    assert model.cronograma
+    assert model.numero_laudo
+
+
+def test_documento_de_recebimento_srt_model(documento_de_recebimento):
+    assert documento_de_recebimento.__str__() == '004/2022 - Laudo: 123456'
+
+
+def test_documento_de_recebimento_meta_modelo(documento_de_recebimento):
+    assert documento_de_recebimento._meta.verbose_name == 'Documento de Recebimento'
+    assert documento_de_recebimento._meta.verbose_name_plural == 'Documentos de Recebimento'
+
+
+def test_tipo_de_documento_de_recebimento_instance_model(tipo_de_documento_de_recebimento):
+    model = tipo_de_documento_de_recebimento
+    assert isinstance(model, TipoDeDocumentoDeRecebimento)
+    assert model.documento_recebimento
+    assert model.tipo_documento
+    assert model.descricao_documento
+
+
+def test_tipo_de_documento_de_recebimento_srt_model(tipo_de_documento_de_recebimento):
+    assert tipo_de_documento_de_recebimento.__str__() == '004/2022 - LAUDO'
+
+
+def test_tipo_de_documento_de_recebimento_meta_modelo(tipo_de_documento_de_recebimento):
+    assert tipo_de_documento_de_recebimento._meta.verbose_name == 'Tipo de Documento de Recebimento'
+    assert tipo_de_documento_de_recebimento._meta.verbose_name_plural == 'Tipos de Documentos de Recebimento'
