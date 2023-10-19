@@ -267,6 +267,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
     tipos_de_embalagens = TipoEmbalagemLayoutLookupSerializer(many=True)
     log_mais_recente = serializers.SerializerMethodField()
+    primeira_analise = serializers.SerializerMethodField()
 
     def get_numero_cronograma(self, obj):
         return obj.cronograma.numero if obj.cronograma else None
@@ -286,11 +287,15 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
         else:
             return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y - %H:%M')
 
+    def get_primeira_analise(self, obj):
+        return obj.eh_primeira_analise
+
     class Meta:
         model = LayoutDeEmbalagem
         fields = (
             'uuid', 'observacoes', 'criado_em', 'status', 'tipos_de_embalagens',
-            'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'nome_empresa', 'log_mais_recente'
+            'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'nome_empresa',
+            'log_mais_recente', 'primeira_analise'
         )
 
 
