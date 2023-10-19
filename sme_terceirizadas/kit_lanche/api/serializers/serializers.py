@@ -172,35 +172,8 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class EscolaQuantidadeSerializerRelatorioSolicitacoesAlimentacaoSimples(serializers.ModelSerializer):
-    kits = KitLancheSimplesSerializer(many=True, required=False)
+class EscolaQuantidadeSerializerRelatorioSolicitacoesAlimentacaoSimples(EscolaQuantidadeSerializerSimples):
     escola = EscolaSimplissimaSerializer()
-    solicitacao_unificada = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=SolicitacaoKitLancheUnificada.objects.all())
-    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
-                                                     required=False,
-                                                     read_only=True)
-    cancelado_por = UsuarioSerializer()
-    cancelado_em = serializers.SerializerMethodField()
-    cancelado_em_com_hora = serializers.SerializerMethodField()
-
-    def get_cancelado_em(self, obj):
-        if obj.cancelado:
-            if obj.cancelado_em and obj.cancelado_em.date() == datetime.date.today():
-                return obj.cancelado_em.strftime('%d/%m/%Y %H:%M:%S')
-            return obj.cancelado_em.strftime('%d/%m/%Y')
-        return None
-
-    def get_cancelado_em_com_hora(self, obj):
-        if obj.cancelado:
-            return obj.cancelado_em.strftime('%d/%m/%Y %H:%M:%S')
-        return None
-
-    class Meta:
-        model = EscolaQuantidade
-        exclude = ('id',)
 
 
 class SolicitacaoKitLancheUnificadaSimilarSerializer(serializers.ModelSerializer):
