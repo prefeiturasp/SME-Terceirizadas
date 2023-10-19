@@ -9,9 +9,10 @@ from ....escola.api.serializers import (
     AlunoSimplesSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer,
+    EscolaSimplissimaSerializer,
     FaixaEtariaSerializer
 )
-from ....escola.models import FaixaEtaria
+from ....escola.models import Escola, FaixaEtaria
 from ....perfil.api.serializers import UsuarioSerializer
 from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
 from ....terceirizada.models import Edital
@@ -171,6 +172,37 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class EscolaQuantidadeSerializerRelatorioSolicitacoesAlimentacaoSimples(serializers.ModelSerializer):
+    kits = KitLancheSimplesSerializer(many=True, required=False)
+    escola = EscolaSimplissimaSerializer()
+    solicitacao_unificada = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=SolicitacaoKitLancheUnificada.objects.all())
+    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
+                                                     required=False,
+                                                     read_only=True)
+    cancelado_por = UsuarioSerializer()
+    cancelado_em = serializers.SerializerMethodField()
+    cancelado_em_com_hora = serializers.SerializerMethodField()
+
+    def get_cancelado_em(self, obj):
+        if obj.cancelado:
+            if obj.cancelado_em and obj.cancelado_em.date() == datetime.date.today():
+                return obj.cancelado_em.strftime('%d/%m/%Y %H:%M:%S')
+            return obj.cancelado_em.strftime('%d/%m/%Y')
+        return None
+
+    def get_cancelado_em_com_hora(self, obj):
+        if obj.cancelado:
+            return obj.cancelado_em.strftime('%d/%m/%Y %H:%M:%S')
+        return None
+
+    class Meta:
+        model = EscolaQuantidade
+        exclude = ('id',)
+
+
 class SolicitacaoKitLancheUnificadaSimilarSerializer(serializers.ModelSerializer):
     solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escolas_quantidades = EscolaQuantidadeSerializerSimples(many=True)
@@ -202,6 +234,42 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     rastro_terceirizada = TerceirizadaSimplesSerializer()
     solicitacoes_similares = SolicitacaoKitLancheUnificadaSimilarSerializer(many=True)
     tipo = serializers.SerializerMethodField()
+
+    def get_tipo(self, obj):
+        return obj.tipo
+
+    class Meta:
+        model = SolicitacaoKitLancheUnificada
+        exclude = ('id',)
+
+
+class SolicitacaoKitLancheUnificadaRelatorioSolicitacoesAlimentacaoSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+    solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
+    escolas_quantidades = serializers.SerializerMethodField()
+    id_externo = serializers.CharField()
+    # TODO: remover total_kit_lanche ou quantidade_alimentacoes. estao duplicados
+    total_kit_lanche = serializers.SerializerMethodField()
+    lote_nome = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    prioridade = serializers.CharField()
+    data = serializers.DateField()
+    quantidade_alimentacoes = serializers.IntegerField()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+    tipo = serializers.SerializerMethodField()
+
+    def get_escolas_quantidades(self, obj):
+        instituicao = self.context['request'].user.vinculo_atual.instituicao
+        escolas_quantidades = obj.escolas_quantidades.all()
+        if isinstance(instituicao, Escola):
+            escolas_quantidades = escolas_quantidades.filter(escola=instituicao)
+        return EscolaQuantidadeSerializerRelatorioSolicitacoesAlimentacaoSimples(escolas_quantidades, many=True).data
+
+    def get_total_kit_lanche(self, obj):
+        instituicao = self.context['request'].user.vinculo_atual.instituicao
+        if isinstance(instituicao, Escola):
+            return obj.total_kit_lanche_escola(instituicao.uuid)
+        return obj.total_kit_lanche
 
     def get_tipo(self, obj):
         return obj.tipo
