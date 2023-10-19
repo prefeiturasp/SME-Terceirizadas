@@ -3,13 +3,16 @@ from nested_inline.admin import NestedModelAdmin, NestedStackedInline
 
 from .forms import CaixaAltaNomeForm
 from .models import (
+    ArquivoDoTipoDeDocumento,
     Cronograma,
+    DocumentoDeRecebimento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
     Laboratorio,
     LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
     UnidadeMedida
@@ -86,6 +89,38 @@ class LayoutDeEmbalagemAdmin(NestedModelAdmin):
     get_cronograma.short_description = 'Cronograma'
 
 
+class ArquivoDoTipoDeDocumentoInline(NestedStackedInline):
+    model = ArquivoDoTipoDeDocumento
+    extra = 0
+    fk_name = 'tipo_de_documento'
+    show_change_link = True
+
+
+class TipoDocumentoRecebimentoInline(NestedStackedInline):
+    model = TipoDeDocumentoDeRecebimento
+    extra = 0
+    show_change_link = True
+    readonly_fields = ('uuid',)
+    fk_name = 'documento_recebimento'
+    inlines = [ArquivoDoTipoDeDocumentoInline, ]
+
+
+class DocumentoDeRecebimentoAdmin(NestedModelAdmin):
+    list_display = ('get_cronograma', 'get_produto', 'numero_laudo', 'criado_em')
+    search_fields = ('cronograma__numero', 'produto__nome')
+    readonly_fields = ('uuid',)
+    inlines = [TipoDocumentoRecebimentoInline, ]
+
+    def get_produto(self, obj):
+        return obj.cronograma.produto.nome
+    get_produto.short_description = 'Produto'
+
+    def get_cronograma(self, obj):
+        return obj.cronograma.numero
+    get_cronograma.short_description = 'Cronograma'
+
+
+admin.site.register(DocumentoDeRecebimento, DocumentoDeRecebimentoAdmin)
 admin.site.register(LayoutDeEmbalagem, LayoutDeEmbalagemAdmin)
 admin.site.register(Cronograma)
 admin.site.register(EtapasDoCronograma)
