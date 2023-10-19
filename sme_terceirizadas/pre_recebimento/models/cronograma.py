@@ -307,6 +307,10 @@ class LayoutDeEmbalagem(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Fluxo
     def aprovado(self):
         return not self.tipos_de_embalagens.filter(status='REPROVADO').exists()
 
+    @property
+    def eh_primeira_analise(self):
+        return not self.logs.filter(status_evento=LogSolicitacoesUsuario.LAYOUT_SOLICITADO_CORRECAO).exists()
+
     def __str__(self):
         return f'{self.cronograma.numero} - {self.cronograma.produto.nome}' if self.cronograma else str(self.id)
 
