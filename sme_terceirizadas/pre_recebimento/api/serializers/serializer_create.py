@@ -371,10 +371,33 @@ class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
 
 
 class TipoDeEmbalagemDeLayoutAnaliseSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField()
+
+    def validate(self, attrs):
+        uuid = attrs.get('uuid', None)
+        tipo_embalagem = attrs.get('tipo_embalagem', None)
+        embalagem = TipoDeEmbalagemDeLayout.objects.filter(uuid=uuid).last()
+
+        if not embalagem:
+            raise serializers.ValidationError({f'Layout Embalagem {tipo_embalagem}': [
+                'UUID do tipo informado não existe.'
+            ]})
+
+        if (
+            not embalagem.layout_de_embalagem.eh_primeira_analise and
+            embalagem.status != TipoDeEmbalagemDeLayout.STATUS_EM_ANALISE
+        ):
+            raise serializers.ValidationError({f'Layout Embalagem {tipo_embalagem}': [
+                'O Tipo/UUID informado não pode ser analisado pois não está em análise.'
+            ]})
+
+        return attrs
+
     class Meta:
         model = TipoDeEmbalagemDeLayout
-        fields = ('tipo_embalagem', 'status', 'complemento_do_status')
+        fields = ('uuid', 'tipo_embalagem', 'status', 'complemento_do_status')
         extra_kwargs = {
+            'uuid': {'required': True},
             'tipo_embalagem': {'required': True},
             'status': {'required': True},
             'complemento_do_status': {'required': True},
@@ -385,24 +408,43 @@ class LayoutDeEmbalagemAnaliseSerializer(serializers.ModelSerializer):
     tipos_de_embalagens = TipoDeEmbalagemDeLayoutAnaliseSerializer(many=True)
 
     def validate_tipos_de_embalagens(self, value):
-        if not len(value) == self.instance.tipos_de_embalagens.count():
-            raise serializers.ValidationError(
-                'Quantidade de Tipos de Embalagem recebida é diferente da quantidade presente no Layout de Embalagem.'
-            )
+        self._validar_primeira_analise(value)
+        self._validar_analise_correcao(value)
 
         return value
 
+    def _validar_primeira_analise(self, value):
+        if self.instance.eh_primeira_analise:
+            if not len(value) == self.instance.tipos_de_embalagens.count():
+                raise serializers.ValidationError(
+                    'Quantidade de Tipos de Embalagem recebida para primeira análise ' +
+                    'é diferente da quantidade presente no Layout de Embalagem.'
+                )
+
+    def _validar_analise_correcao(self, value):
+        if not self.instance.eh_primeira_analise:
+            if not len(value) == self.instance.tipos_de_embalagens.filter(status='EM_ANALISE').count():
+                raise serializers.ValidationError(
+                    'Quantidade de Tipos de Embalagem recebida para análise da correção' +
+                    ' é diferente da quantidade em análise.'
+                )
+
     def update(self, instance, validated_data):
-        user = self.context['request'].user
-        dados_tipos_de_embalagens = validated_data.pop('tipos_de_embalagens', [])
+        try:
+            user = self.context['request'].user
+            dados_tipos_de_embalagens = validated_data.pop('tipos_de_embalagens', [])
 
-        for dados in dados_tipos_de_embalagens:
-            tipo_de_embalagem = instance.tipos_de_embalagens.get(tipo_embalagem=dados['tipo_embalagem'])
-            tipo_de_embalagem.status = dados['status']
-            tipo_de_embalagem.complemento_do_status = dados['complemento_do_status']
-            tipo_de_embalagem.save()
+            for dados in dados_tipos_de_embalagens:
+                tipo_de_embalagem = instance.tipos_de_embalagens.get(uuid=dados['uuid'])
+                tipo_de_embalagem.status = dados['status']
+                tipo_de_embalagem.complemento_do_status = dados['complemento_do_status']
+                tipo_de_embalagem.save()
 
-        instance.codae_aprova(user=user) if instance.aprovado else instance.codae_solicita_correcao(user=user)
+            instance.codae_aprova(user=user) if instance.aprovado else instance.codae_solicita_correcao(user=user)
+
+        except InvalidTransitionError as e:
+            raise serializers.ValidationError(
+                f'Erro de transição de estado. O status deste layout não permite analise: {e}')
 
         return instance
 
