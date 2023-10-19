@@ -18,6 +18,7 @@ from ...dados_comuns.fluxo_status import (
     CronogramaAlteracaoWorkflow,
     FluxoAlteracaoCronograma,
     FluxoCronograma,
+    FluxoDocumentoDeRecebimento,
     FluxoLayoutDeEmbalagem
 )
 from ...dados_comuns.models import LogSolicitacoesUsuario
@@ -372,9 +373,20 @@ class TipoDeDocumentoDeRecebimento(TemChaveExterna):
         unique_together = ['documento_recebimento', 'tipo_documento']
 
 
-class DocumentoDeRecebimento(ModeloBase, TemIdentificadorExternoAmigavel, Logs):
+class DocumentoDeRecebimento(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoDocumentoDeRecebimento):
     cronograma = models.ForeignKey(Cronograma, on_delete=models.PROTECT, related_name='documentos_de_recebimento')
     numero_laudo = models.CharField('Número do Laudo', blank=True, max_length=50)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.DOCUMENTO_DE_RECEBIMENTO,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa
+        )
 
     def __str__(self):
         return f'{self.cronograma.numero} - Laudo: {self.numero_laudo}' if self.cronograma else str(self.numero_laudo)
