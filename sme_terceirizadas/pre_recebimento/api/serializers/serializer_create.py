@@ -9,12 +9,14 @@ from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
+    DocumentoDeRecebimento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
     Laboratorio,
     LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
     SolicitacaoAlteracaoCronograma,
+    TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
     UnidadeMedida
@@ -22,7 +24,12 @@ from sme_terceirizadas.pre_recebimento.models import (
 from sme_terceirizadas.produto.models import NomeDeProdutoEdital
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
-from ..helpers import cria_etapas_de_cronograma, cria_programacao_de_cronograma, cria_tipos_de_embalagens
+from ..helpers import (
+    cria_etapas_de_cronograma,
+    cria_programacao_de_cronograma,
+    cria_tipos_de_documentos,
+    cria_tipos_de_embalagens
+)
 from ..validators import contrato_pertence_a_empresa
 
 
@@ -477,3 +484,59 @@ class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = LayoutDeEmbalagem
         fields = ('tipos_de_embalagens', 'observacoes')
+
+
+class TipoDeDocumentoDeRecebimentoCreateSerializer(serializers.ModelSerializer):
+    tipo_documento = serializers.ChoiceField(
+        choices=TipoDeDocumentoDeRecebimento.TIPO_DOC_CHOICES, required=True, allow_blank=False)
+    arquivos_do_tipo_de_documento = serializers.JSONField(write_only=True)
+    descricao_documento = serializers.CharField(required=False)
+
+    def validate(self, attrs):
+        tipo_documento = attrs.get('tipo_documento', None)
+        arquivos = attrs.get('arquivos_do_tipo_de_documento', None)
+        tipos_obrigatorios = [
+            TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
+        ]
+
+        if tipo_documento in tipos_obrigatorios:
+            for doc in arquivos:
+                if not doc['arquivo'] or not doc['nome']:
+                    raise serializers.ValidationError(
+                        {f'{tipo_documento}': ['Este campo é obrigatório.']}
+                    )
+        return attrs
+
+    class Meta:
+        model = TipoDeDocumentoDeRecebimento
+        exclude = ('id', 'documento_recebimento')
+
+
+class DocumentoDeRecebimentoCreateSerializer(serializers.ModelSerializer):
+    cronograma = serializers.UUIDField(required=True)
+    tipos_de_documentos = TipoDeDocumentoDeRecebimentoCreateSerializer(many=True, required=False)
+    numero_laudo = serializers.CharField(required=True)
+
+    def validate_cronograma(self, value):
+        cronograma = Cronograma.objects.filter(uuid=value)
+        if not cronograma:
+            raise serializers.ValidationError(f'Cronograma não existe')
+        return value
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+
+        uuid_cronograma = validated_data.pop('cronograma', None)
+        tipos_de_documentos = validated_data.pop('tipos_de_documentos', [])
+        cronograma = Cronograma.objects.get(uuid=uuid_cronograma)
+        documento_de_recebimento = DocumentoDeRecebimento.objects.create(
+            cronograma=cronograma, **validated_data,
+        )
+        cria_tipos_de_documentos(tipos_de_documentos, documento_de_recebimento)
+        documento_de_recebimento.inicia_fluxo(user=user)
+
+        return documento_de_recebimento
+
+    class Meta:
+        model = DocumentoDeRecebimento
+        exclude = ('id',)
