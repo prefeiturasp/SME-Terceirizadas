@@ -503,7 +503,9 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
         from sme_terceirizadas.escola.models import Escola
         dict_ = {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
-            'unidade_educacional': 'Várias Escolas',
+            'unidade_educacional': (f'{self.escolas_quantidades.count()} Escolas'
+                                    if self.escolas_quantidades.count() > 1
+                                    else self.escolas_quantidades.get().escola.nome),
             'terceirizada': 'Várias Terceirizadas',
             'tipo_doc': 'Kit Lanche Passeio Unificado',
             'data_evento': self.data,
