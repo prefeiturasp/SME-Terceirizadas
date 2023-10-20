@@ -16,6 +16,7 @@ from sme_terceirizadas.escola.models import Escola, Lote, TipoUnidadeEscolar
 from sme_terceirizadas.paineis_consolidados.api.serializers import SolicitacoesExportXLSXSerializer
 from sme_terceirizadas.paineis_consolidados.models import MoldeConsolidado, SolicitacoesCODAE
 
+from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_file
 
 logger = logging.getLogger(__name__)
@@ -298,6 +299,8 @@ def gera_xls_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
 def gera_pdf_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, uuids, status):
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
+    tipo_doc = 0
+    uuid = 1
 
     label_data = {
         'AUTORIZADOS': ' de Autorização',
@@ -313,16 +316,16 @@ def gera_pdf_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
     }
 
     try:
+        instituicao = Usuario.objects.get(username=user).vinculo_atual.instituicao
         solicitacoes = SolicitacoesCODAE.objects.filter(uuid__in=uuids)
         solicitacoes = solicitacoes.order_by('lote_nome', 'escola_nome', 'terceirizada_nome')
-        solicitacoes = list(solicitacoes.values('tipo_doc', 'uuid').distinct())
+        solicitacoes = set(list(solicitacoes.values_list('tipo_doc', 'uuid').distinct()))
         lista_solicitacoes_dict = []
         for solicitacao in solicitacoes:
-            class_name = MoldeConsolidado.get_class_name(solicitacao['tipo_doc'])
-            _solicitacao = class_name.objects.get(uuid=solicitacao['uuid'])
+            class_name = MoldeConsolidado.get_class_name(solicitacao[tipo_doc])
+            _solicitacao = class_name.objects.get(uuid=solicitacao[uuid])
             lista_solicitacoes_dict.append(_solicitacao.solicitacao_dict_para_relatorio(
-                label_data[status],
-                getattr(_solicitacao, property_data[status])
+                label_data[status], getattr(_solicitacao, property_data[status]), instituicao
             ))
         arquivo = build_pdf(lista_solicitacoes_dict, status)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)

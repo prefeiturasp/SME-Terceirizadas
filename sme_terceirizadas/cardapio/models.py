@@ -303,7 +303,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
             resposta_sim_nao=resposta_sim_nao
         )
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         data_de_inversao = ''
         data_de_inversao_2 = ''
         if self.data_de_inversao:
@@ -465,7 +465,7 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     def numero_alunos(self):
         return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         datas = list(self.suspensoes_alimentacao.order_by('data').values_list('data', flat=True))
         datas = [d.strftime('%d/%m/%Y') for d in datas]
         datas = ' '.join(datas)
@@ -601,7 +601,7 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
     def numero_alunos(self):
         return ''
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -739,7 +739,7 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
     def datas(self):
         return ', '.join([data.strftime('%d/%m/%Y') for data in self.datas_intervalo.values_list('data', flat=True)])
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -892,7 +892,7 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
             })
         return substituicoes
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -1067,7 +1067,7 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             })
         return substituicoes
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,

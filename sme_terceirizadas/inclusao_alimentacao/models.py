@@ -188,7 +188,7 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
     def existe_periodo_cancelado(self):
         return self.quantidades_periodo.all().filter(cancelado=True).exists()
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -380,7 +380,7 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
     def existe_dia_cancelado(self):
         return self.inclusoes_normais.all().filter(cancelado=True).exists()
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -559,7 +559,7 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemChaveExterna, FluxoAprovacaoParti
     def existe_dia_cancelado(self):
         return self.dias_motivos_da_inclusao_cei.all().filter(cancelado=True).exists()
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         periodos_externos = self.quantidade_alunos_por_faixas_etarias.values_list(
             'periodo_externo__nome', flat=True).distinct()
         return {
@@ -767,7 +767,7 @@ class InclusaoDeAlimentacaoCEMEI(Descritivel, TemChaveExterna, FluxoAprovacaoPar
             })
         return dias_motivos_da_inclusao
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         eh_evento_especifico = False
         if self.dias_motivos_da_inclusao_cemei.filter(motivo__nome='Evento Específico'):
             eh_evento_especifico = True
