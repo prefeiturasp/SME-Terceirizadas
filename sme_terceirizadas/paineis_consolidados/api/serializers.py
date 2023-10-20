@@ -72,6 +72,10 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
 
     def get_escola_ou_terceirizada_nome(self, obj):
+        if (not self.context['status'] == 'RECEBIDAS' and
+                'Unificada' in str(obj.get_raw_model) and
+                isinstance(self.context['instituicao'], Escola)):
+            return self.context['instituicao'].nome
         return obj.terceirizada_nome if self.context['status'] == 'RECEBIDAS' else obj.escola_nome
 
     def get_numero_alunos(self, obj):
