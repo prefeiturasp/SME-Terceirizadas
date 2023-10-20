@@ -1663,3 +1663,90 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(client_auten
     msg_erro3 = 'Erro de transição de estado. O status deste layout não permite correção'
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro3 in response.json()[0]
+
+
+def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza(client_autenticado_fornecedor, arquivo_base64,
+                                                              layout_de_embalagem_aprovado):
+    layout_para_atualizar = layout_de_embalagem_aprovado
+    dados_correcao = {
+        'observacoes': 'Imagine uma nova observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(layout_para_atualizar.tipos_de_embalagens.get(tipo_embalagem='PRIMARIA').uuid),
+                'tipo_embalagem': 'PRIMARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo2.jpg'
+                    }
+                ]
+            },
+            {
+                'uuid': str(layout_para_atualizar.tipos_de_embalagens.get(tipo_embalagem='SECUNDARIA').uuid),
+                'tipo_embalagem': 'SECUNDARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo3.jpg'
+                    },
+                ]
+            },
+            {
+                'tipo_embalagem': 'TERCIARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo4.jpg'
+                    },
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/layouts-de-embalagem/{layout_para_atualizar.uuid}/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao)
+    )
+
+    layout_para_atualizar.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert layout_para_atualizar.status == LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+    assert layout_para_atualizar.observacoes == 'Imagine uma nova observação aqui.'
+
+
+def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza_not_ok(client_autenticado_fornecedor, arquivo_base64,
+                                                                     layout_de_embalagem_para_correcao):
+    """Checa transição de estado."""
+    layout_para_atualizar = layout_de_embalagem_para_correcao
+
+    dados = {
+        'observacoes': 'Imagine uma nova observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(layout_para_atualizar.tipos_de_embalagens.get(tipo_embalagem='SECUNDARIA').uuid),
+                'tipo_embalagem': 'SECUNDARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/layouts-de-embalagem/{layout_para_atualizar.uuid}/',
+        content_type='application/json',
+        data=json.dumps(dados)
+    )
+
+    msg_erro3 = 'Erro de transição de estado. O status deste layout não permite correção'
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert msg_erro3 in response.json()[0]

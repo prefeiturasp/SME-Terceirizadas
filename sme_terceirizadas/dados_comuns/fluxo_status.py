@@ -18,7 +18,7 @@ from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
-from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory
+from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory, obter_dias_uteis_apos
 
 env = environ.Env()
 base_url = f'{env("REACT_APP_URL")}'
@@ -1694,7 +1694,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = PedidoAPartirDaEscolaWorkflow
     status = xwf_models.StateField(workflow_class)
-    DIAS_PARA_CANCELAR = 2
+    DIAS_UTEIS_PARA_CANCELAR = 2
 
     rastro_escola = models.ForeignKey('escola.Escola',
                                       on_delete=models.DO_NOTHING,
@@ -1728,48 +1728,53 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         self.rastro_terceirizada = self.escola.lote.terceirizada
         self.save()
 
-    def cancelar_pedido(self, user, justificativa):
+    def eh_alteracao_lanche_emergencial(self):
         from sme_terceirizadas.cardapio.models import AlteracaoCardapio
+        return isinstance(self, AlteracaoCardapio) and self.motivo and self.motivo.nome == 'Lanche Emergencial'
+
+    def get_dias_suspensao(self):
+        from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
+        dias_suspensao = DiaSuspensaoAtividades.get_dias_com_suspensao(
+            self.escola, False, self.DIAS_UTEIS_PARA_CANCELAR)
+        return dias_suspensao
+
+    def checa_se_pode_cancelar(self, data_do_evento=None):
+        if self.eh_alteracao_lanche_emergencial():
+            return
+        dias_suspensao = self.get_dias_suspensao()
+        if not data_do_evento:
+            data_do_evento = self.data
+            if isinstance(data_do_evento, datetime.datetime):
+                data_do_evento = data_do_evento.date()
+        data_minima_cancelamento = obter_dias_uteis_apos(
+            datetime.date.today(), self.DIAS_UTEIS_PARA_CANCELAR + dias_suspensao)
+        if data_minima_cancelamento >= data_do_evento:
+            raise xworkflows.InvalidTransitionError(
+                f'Só pode cancelar com no mínimo {self.DIAS_UTEIS_PARA_CANCELAR} dia(s) úteis de antecedência')
+
+    def cancelar_pedido(self, user, justificativa):
         """O objeto que herdar de FluxoAprovacaoPartindoDaEscola, deve ter um property data.
 
         Dado dias de antecedencia de prazo, verifica se pode e altera o estado
         """
-        dia_antecedencia = datetime.date.today(
-        ) + datetime.timedelta(days=self.DIAS_PARA_CANCELAR)
-        data_do_evento = self.data
-        if isinstance(data_do_evento, datetime.datetime):
-            # TODO: verificar por que os models estao retornando datetime em
-            # vez de date
-            data_do_evento = data_do_evento.date()
-        eh_alteracao_lanche_emergencial = (isinstance(self, AlteracaoCardapio) and
-                                           self.motivo and
-                                           self.motivo.nome == 'Lanche Emergencial')
-        if (eh_alteracao_lanche_emergencial or
-                (data_do_evento > dia_antecedencia and self.status != self.workflow_class.ESCOLA_CANCELOU)):
-            self.status = self.workflow_class.ESCOLA_CANCELOU
+        if self.status == self.workflow_class.ESCOLA_CANCELOU:
+            raise xworkflows.InvalidTransitionError('Solicitação já está cancelada')
 
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
-                                      usuario=user,
-                                      justificativa=justificativa)
-            self.save()
-            # envia email para partes interessadas
-            id_externo = '#' + self.id_externo
-            assunto = '[SIGPAE] Status de solicitação - ' + id_externo
-            titulo = f'Solicitação de {self.tipo} Cancelada'
-            log_criado = self.logs.last().criado_em
-            criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
-            self._preenche_template_e_envia_email_ue_cancela(assunto, titulo, id_externo, criado_em,
-                                                             self._partes_interessadas_ue_cancela)
+        self.checa_se_pode_cancelar()
 
-        elif self.status == self.workflow_class.ESCOLA_CANCELOU:
-            raise xworkflows.InvalidTransitionError('Já está cancelada')
-        else:
-            raise xworkflows.InvalidTransitionError(
-                f'Só pode cancelar com no mínimo {self.DIAS_PARA_CANCELAR} dia(s) de antecedência')
-
-    def cancelamento_automatico_apos_vencimento(self):
-        """Chamado automaticamente quando o pedido já passou do dia de atendimento e não chegou ao fim do fluxo."""
-        self.status = self.workflow_class.CANCELADO_AUTOMATICAMENTE
+        self.status = self.workflow_class.ESCOLA_CANCELOU
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                                  usuario=user,
+                                  justificativa=justificativa)
+        self.save()
+        # envia email para partes interessadas
+        id_externo = '#' + self.id_externo
+        assunto = '[SIGPAE] Status de solicitação - ' + id_externo
+        titulo = f'Solicitação de {self.tipo} Cancelada'
+        log_criado = self.logs.last().criado_em
+        criado_em = log_criado.strftime('%d/%m/%Y - %H:%M')
+        self._preenche_template_e_envia_email_ue_cancela(assunto, titulo, id_externo, criado_em,
+                                                         self._partes_interessadas_ue_cancela)
 
     @property
     def pode_excluir(self):
@@ -2035,7 +2040,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = PedidoAPartirDaDiretoriaRegionalWorkflow
     status = xwf_models.StateField(workflow_class)
-    DIAS_PARA_CANCELAR = 2
+    DIAS_UTEIS_PARA_CANCELAR = 2
 
     rastro_escolas = models.ManyToManyField('escola.Escola',
                                             blank=True,
@@ -2068,39 +2073,47 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         self.rastro_terceirizada = self.lote.terceirizada
         self.save()
 
+    def get_dias_suspensao(self):
+        from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
+        dias_suspensao = DiaSuspensaoAtividades.get_dias_com_suspensao(
+            None, True, self.DIAS_UTEIS_PARA_CANCELAR)
+        return dias_suspensao
+
+    def checa_se_pode_cancelar(self, data_do_evento=None):
+        dias_suspensao = self.get_dias_suspensao()
+        if not data_do_evento:
+            data_do_evento = self.data
+            if isinstance(data_do_evento, datetime.datetime):
+                data_do_evento = data_do_evento.date()
+        data_minima_cancelamento = obter_dias_uteis_apos(
+            datetime.date.today(), self.DIAS_UTEIS_PARA_CANCELAR + dias_suspensao)
+        if data_minima_cancelamento >= data_do_evento:
+            raise xworkflows.InvalidTransitionError(
+                f'Só pode cancelar com no mínimo {self.DIAS_UTEIS_PARA_CANCELAR} dia(s) úteis de antecedência')
+
     def cancelar_pedido(self, user, justificativa=''):
         """O objeto que herdar de FluxoAprovacaoPartindoDaDiretoriaRegional, deve ter um property data.
 
         Atualmente o único pedido da DRE é o Solicitação kit lanche unificada
         Dado dias de antecedencia de prazo, verifica se pode e altera o estado
         """
-        dia_antecedencia = datetime.date.today(
-        ) + datetime.timedelta(days=self.DIAS_PARA_CANCELAR)
-        data_do_evento = self.data
-        if isinstance(data_do_evento, datetime.datetime):
-            # TODO: verificar por que os models estao retornando datetime em
-            # vez de date
-            data_do_evento = data_do_evento.date()
+        if self.status == self.workflow_class.DRE_CANCELOU:
+            raise xworkflows.InvalidTransitionError('Solicitação já está cancelada')
 
-        if (data_do_evento > dia_antecedencia) and (self.status != self.workflow_class.DRE_CANCELOU):
-            self.status = self.workflow_class.DRE_CANCELOU
-            status_ev = LogSolicitacoesUsuario.DRE_CANCELOU
-            if isinstance(user.vinculo_atual.instituicao, m.Escola):
-                status_ev = LogSolicitacoesUsuario.ESCOLA_CANCELOU
-            self.salvar_log_transicao(status_evento=status_ev,
-                                      usuario=user, justificativa=justificativa)
-            self.save()
-            # envia email para partes interessadas
-            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-            titulo = 'Status de solicitação - #' + self.id_externo
-            self._preenche_template_e_envia_email(assunto, titulo, user,
-                                                  self._partes_interessadas_cancelamento)
+        self.checa_se_pode_cancelar()
 
-        elif self.status == self.workflow_class.DRE_CANCELOU:
-            raise xworkflows.InvalidTransitionError('Já está cancelada')
-        else:
-            raise xworkflows.InvalidTransitionError(
-                f'Só pode cancelar com no mínimo {self.DIAS_PARA_CANCELAR} dia(s) de antecedência')
+        self.status = self.workflow_class.DRE_CANCELOU
+        status_ev = LogSolicitacoesUsuario.DRE_CANCELOU
+        if isinstance(user.vinculo_atual.instituicao, m.Escola):
+            status_ev = LogSolicitacoesUsuario.ESCOLA_CANCELOU
+        self.salvar_log_transicao(status_evento=status_ev,
+                                  usuario=user, justificativa=justificativa)
+        self.save()
+        # envia email para partes interessadas
+        assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
+        titulo = 'Status de solicitação - #' + self.id_externo
+        self._preenche_template_e_envia_email(assunto, titulo, user,
+                                              self._partes_interessadas_cancelamento)
 
     @property
     def pode_excluir(self):
@@ -2272,7 +2285,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = InformativoPartindoDaEscolaWorkflow
     status = xwf_models.StateField(workflow_class)
-    DIAS_PARA_CANCELAR = 3
+    DIAS_UTEIS_PARA_CANCELAR = 2
 
     rastro_escola = models.ForeignKey('escola.Escola',
                                       on_delete=models.DO_NOTHING,
@@ -2344,14 +2357,26 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
             html=html
         )
 
+    def get_dias_suspensao(self):
+        from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
+        dias_suspensao = DiaSuspensaoAtividades.get_dias_com_suspensao(
+            self.escola, False, self.DIAS_UTEIS_PARA_CANCELAR)
+        return dias_suspensao
+
+    def checa_se_pode_cancelar(self, data_do_evento=None):
+        dias_suspensao = self.get_dias_suspensao()
+        if not data_do_evento:
+            data_do_evento = self.data
+            if isinstance(data_do_evento, datetime.datetime):
+                data_do_evento = data_do_evento.date()
+        data_minima_cancelamento = obter_dias_uteis_apos(
+            datetime.date.today(), self.DIAS_UTEIS_PARA_CANCELAR + dias_suspensao)
+        if data_minima_cancelamento >= data_do_evento:
+            raise xworkflows.InvalidTransitionError(
+                f'Só pode cancelar com no mínimo {self.DIAS_UTEIS_PARA_CANCELAR} dia(s) úteis de antecedência')
+
     def cancelar_pedido(self, user, justificativa):
-        dia_antecedencia = datetime.date.today(
-        ) + datetime.timedelta(days=self.DIAS_PARA_CANCELAR)
-        data_do_evento = self.data
-        if isinstance(data_do_evento, datetime.datetime):
-            data_do_evento = data_do_evento.date()
-        if data_do_evento < dia_antecedencia:
-            raise AssertionError(f'Só pode cancelar com no mínimo {self.DIAS_PARA_CANCELAR} dia(s) de antecedência!')
+        self.checa_se_pode_cancelar()
         self.escola_cancela(user=user, justificativa=justificativa)
 
     @xworkflows.after_transition('informa')
@@ -3996,6 +4021,7 @@ class LayoutDeEmbalagemWorkflow(xwf_models.Workflow):
         ('codae_aprova', ENVIADO_PARA_ANALISE, APROVADO),
         ('codae_solicita_correcao', ENVIADO_PARA_ANALISE, SOLICITADO_CORRECAO),
         ('fornecedor_realiza_correcao', SOLICITADO_CORRECAO, ENVIADO_PARA_ANALISE),
+        ('fornecedor_atualiza', APROVADO, ENVIADO_PARA_ANALISE),
     )
 
     initial_state = LAYOUT_CRIADO
@@ -4031,6 +4057,13 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA,
+                                      usuario=user)
+
+    @xworkflows.after_transition('fornecedor_atualiza')
+    def _fornecedor_atualiza_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ATUALIZADO,
                                       usuario=user)
 
     class Meta:

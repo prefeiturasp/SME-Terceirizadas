@@ -119,7 +119,8 @@ class LogSolicitacoesUsuario(
         LAYOUT_SOLICITADO_CORRECAO,
         LAYOUT_APROVADO,
         LAYOUT_CORRECAO_REALIZADA,
-    ) = range(92)
+        LAYOUT_ATUALIZADO,
+    ) = range(93)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -250,6 +251,7 @@ class LogSolicitacoesUsuario(
         (LAYOUT_SOLICITADO_CORRECAO, 'Layout solicitado correção'),
         (LAYOUT_APROVADO, 'Layout aprovado'),
         (LAYOUT_CORRECAO_REALIZADA, 'Layout correção realizada'),
+        (LAYOUT_ATUALIZADO, 'Layout atualizado'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
