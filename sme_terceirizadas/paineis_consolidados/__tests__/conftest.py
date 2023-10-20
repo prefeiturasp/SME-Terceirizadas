@@ -30,7 +30,8 @@ def diretoria_regional():
 
 @pytest.fixture
 def escola(diretoria_regional):
-    lote = mommy.make('Lote')
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', diretoria_regional=diretoria_regional, terceirizada=terceirizada)
     return mommy.make('Escola', diretoria_regional=diretoria_regional, lote=lote,
                       uuid='fdf23c84-c9ff-4811-adff-e70df5378466')
 
@@ -42,7 +43,8 @@ def diretoria_regional2():
 
 @pytest.fixture
 def escola2(diretoria_regional2):
-    lote = mommy.make('Lote')
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
     contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
     return mommy.make('Escola', diretoria_regional=diretoria_regional2, lote=lote, contato=contato)
 
@@ -76,40 +78,40 @@ def solicitacoes_kit_lanche(escola):
     kits = mommy.make(KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits,
                                         criado_em=datetime.date(2019, 1, 1),
-                                        data=datetime.date(2019, 1, 1)
-                                        )
+                                        data=datetime.date(2019, 1, 1))
     solicitacao_kit_lanche_avulsa_1 = mommy.make(SolicitacaoKitLancheAvulsa,
                                                  local=fake.text()[:160],
                                                  quantidade_alunos=300,
                                                  solicitacao_kit_lanche=solicitacao_kit_lanche,
-                                                 escola=escola)
+                                                 escola=escola,
+                                                 uuid='ac0b6f5b-36b0-47d2-99a2-3bc9825b31fb')
     solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits,
                                         data=datetime.date(2019, 2, 1),
-                                        criado_em=datetime.date(2019, 2, 1)
-                                        )
+                                        criado_em=datetime.date(2019, 2, 1))
     solicitacao_kit_lanche_avulsa_2 = mommy.make(SolicitacaoKitLancheAvulsa,
                                                  local=fake.text()[:160],
                                                  quantidade_alunos=300,
                                                  solicitacao_kit_lanche=solicitacao_kit_lanche,
-                                                 escola=escola)
+                                                 escola=escola,
+                                                 uuid='d15f17d5-d4c5-47f5-a09a-55677dbc65bf')
     solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits,
                                         data=datetime.date(2018, 2, 1),
-                                        criado_em=datetime.date(2019, 2, 1),
-                                        )
+                                        criado_em=datetime.date(2019, 2, 1))
     solicitacao_kit_lanche_avulsa_3 = mommy.make(SolicitacaoKitLancheAvulsa,
                                                  local=fake.text()[:160],
                                                  quantidade_alunos=300,
                                                  solicitacao_kit_lanche=solicitacao_kit_lanche,
-                                                 escola=escola)
+                                                 escola=escola,
+                                                 uuid='c9715ddb-7e95-4156-91a5-c60c8621806b')
     solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits,
                                         criado_em=datetime.date(2019, 2, 1),
-                                        data=datetime.date(2020, 2, 1)
-                                        )
+                                        data=datetime.date(2020, 2, 1))
     solicitacao_kit_lanche_avulsa_4 = mommy.make(SolicitacaoKitLancheAvulsa,
                                                  local=fake.text()[:160],
                                                  quantidade_alunos=300,
                                                  solicitacao_kit_lanche=solicitacao_kit_lanche,
-                                                 escola=escola)
+                                                 escola=escola,
+                                                 uuid='8827b394-ef39-4757-8136-6e09d5c7c486')
     return (solicitacao_kit_lanche_avulsa_1, solicitacao_kit_lanche_avulsa_2, solicitacao_kit_lanche_avulsa_3,
             solicitacao_kit_lanche_avulsa_4)
 
@@ -482,7 +484,9 @@ def inclusoes_normais(escola, motivo_inclusao_normal, periodo_escolar_manha, tip
         escola=escola,
         status='CODAE_AUTORIZADO',
         rastro_escola=escola,
-        rastro_dre=escola.diretoria_regional)
+        rastro_dre=escola.diretoria_regional,
+        uuid='a4639e26-f4fd-43e9-a8cc-2d0da995c8ef'
+    )
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=grupo_inclusao_normal.uuid,
                status_evento=1,
@@ -570,7 +574,8 @@ def inclusao_alimentacao_continua_unico_mes(escola, periodo_escolar_manha):
                                    data_final=data_final,
                                    escola=escola,
                                    rastro_escola=escola,
-                                   status='CODAE_AUTORIZADO')
+                                   status='CODAE_AUTORIZADO',
+                                   uuid='ec27137e-9b8f-419c-adaa-7ed238d40bae')
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=inclusao_continua.uuid,
                status_evento=1,
@@ -616,7 +621,8 @@ def inclusao_alimentacao_cei(motivo_inclusao_normal, escola, periodo_escolar_man
                               escola=escola,
                               rastro_escola=escola,
                               periodo_escolar=periodo_escolar_manha,
-                              status='CODAE_AUTORIZADO')
+                              status='CODAE_AUTORIZADO',
+                              uuid='50830aed-33ad-442a-8890-5b508e54a0d8')
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=inclusao_cei.uuid,
                status_evento=1,
@@ -691,3 +697,88 @@ def suspensoes_alimentacao(motivo_suspensao, escola, periodo_escolar_manha, peri
     qp_suspensao_integral.save()
 
     return suspensao_cei, grupo_suspensao_alimentacao
+
+
+@pytest.fixture
+def solicitacao_unificada(escola):
+    kits = mommy.make('KitLanche', _quantity=3)
+    solicitacao_kit_lanche = mommy.make('SolicitacaoKitLanche',
+                                        data=datetime.date(2019, 10, 14),
+                                        tempo_passeio=2,
+                                        kits=kits)
+    escolas_quantidades = mommy.make('EscolaQuantidade',
+                                     escola=escola,
+                                     quantidade_alunos=100)
+    solicitacao_unificada = mommy.make('SolicitacaoKitLancheUnificada',
+                                       solicitacao_kit_lanche=solicitacao_kit_lanche,
+                                       outro_motivo=fake.text(),
+                                       diretoria_regional=escola.lote.diretoria_regional,
+                                       rastro_dre=escola.lote.diretoria_regional,
+                                       rastro_terceirizada=escola.lote.terceirizada,
+                                       uuid='d0d3ec92-a2db-4060-a4da-b7ed9d88a7c3')
+    solicitacao_unificada.escolas_quantidades.add(escolas_quantidades)
+    solicitacao_unificada.save()
+    return solicitacao_unificada
+
+
+@pytest.fixture
+def inclusao_alimentacao_cemei(escola):
+    inclusao_cemei = mommy.make('InclusaoDeAlimentacaoCEMEI', escola=escola,
+                                rastro_dre=escola.diretoria_regional, rastro_terceirizada=escola.lote.terceirizada,
+                                uuid='ba5551b3-b770-412b-a923-b0e78301d1fd')
+    return inclusao_cemei
+
+
+@pytest.fixture
+def kit_lanche_cei(escola):
+    mommy.make('escola.EscolaPeriodoEscolar', escola=escola, quantidade_alunos=500)
+    kits = mommy.make('KitLanche', _quantity=3)
+    mommy.make('FaixaEtaria', _quantity=3, ativo=True)
+    solicitacao_kit_lanche = mommy.make('SolicitacaoKitLanche', kits=kits, data=datetime.date(2000, 1, 1))
+    return mommy.make('SolicitacaoKitLancheCEIAvulsa',
+                      local=fake.text()[:160],
+                      solicitacao_kit_lanche=solicitacao_kit_lanche,
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional,
+                      rastro_terceirizada=escola.lote.terceirizada,
+                      uuid='318ca781-943a-4121-b970-70ac4d4ccc8a')
+
+
+@pytest.fixture
+def kit_lanche_cemei():
+    kit_lanche_cemei = mommy.make(
+        'SolicitacaoKitLancheCEMEI',
+        local='Parque do Ibirapuera',
+        data='2022-10-25',
+        uuid='2fdb22fe-370c-4379-94f4-a52478c03e6e'
+    )
+
+    mommy.make('KitLanche', nome='KIT 1')
+    mommy.make('KitLanche', nome='KIT 2')
+    mommy.make('KitLanche', nome='KIT 3')
+    kits = KitLanche.objects.all()
+
+    solicitacao_cei = mommy.make('SolicitacaoKitLancheCEIdaCEMEI',
+                                 solicitacao_kit_lanche_cemei=kit_lanche_cemei,
+                                 kits=kits)
+    mommy.make('FaixasQuantidadesKitLancheCEIdaCEMEI',
+               solicitacao_kit_lanche_cei_da_cemei=solicitacao_cei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20)
+    mommy.make('FaixasQuantidadesKitLancheCEIdaCEMEI',
+               solicitacao_kit_lanche_cei_da_cemei=solicitacao_cei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20)
+    mommy.make('FaixasQuantidadesKitLancheCEIdaCEMEI',
+               solicitacao_kit_lanche_cei_da_cemei=solicitacao_cei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20)
+
+    mommy.make('SolicitacaoKitLancheEMEIdaCEMEI',
+               solicitacao_kit_lanche_cemei=kit_lanche_cemei,
+               quantidade_alunos=10,
+               matriculados_quando_criado=20,
+               kits=kits)
+
+    return kit_lanche_cemei
