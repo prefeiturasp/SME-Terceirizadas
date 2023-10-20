@@ -1475,6 +1475,12 @@ def test_url_layout_embalagens_analise_correcao(
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
+            {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='TERCIARIA').uuid),
+                'tipo_embalagem': 'TERCIARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
         ],
     }
 
