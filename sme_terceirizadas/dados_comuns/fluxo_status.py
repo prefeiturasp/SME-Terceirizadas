@@ -4021,6 +4021,7 @@ class LayoutDeEmbalagemWorkflow(xwf_models.Workflow):
         ('codae_aprova', ENVIADO_PARA_ANALISE, APROVADO),
         ('codae_solicita_correcao', ENVIADO_PARA_ANALISE, SOLICITADO_CORRECAO),
         ('fornecedor_realiza_correcao', SOLICITADO_CORRECAO, ENVIADO_PARA_ANALISE),
+        ('fornecedor_atualiza', APROVADO, ENVIADO_PARA_ANALISE),
     )
 
     initial_state = LAYOUT_CRIADO
@@ -4056,6 +4057,13 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA,
+                                      usuario=user)
+
+    @xworkflows.after_transition('fornecedor_atualiza')
+    def _fornecedor_atualiza_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ATUALIZADO,
                                       usuario=user)
 
     class Meta:

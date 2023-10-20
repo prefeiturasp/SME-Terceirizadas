@@ -341,14 +341,15 @@ class TipoDeEmbalagemDeLayoutCreateSerializer(serializers.ModelSerializer):
 
 
 class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
-    cronograma = serializers.UUIDField(required=True)
+    cronograma = serializers.UUIDField(required=False)
     tipos_de_embalagens = TipoDeEmbalagemDeLayoutCreateSerializer(many=True, required=False)
     observacoes = serializers.CharField(required=False)
 
     def validate_cronograma(self, value):
-        cronograma = Cronograma.objects.filter(uuid=value)
-        if not cronograma:
-            raise serializers.ValidationError(f'Cronograma não existe')
+        if value is not None:
+            cronograma = Cronograma.objects.filter(uuid=value)
+            if not cronograma:
+                raise serializers.ValidationError(f'Cronograma não existe')
         return value
 
     def create(self, validated_data):
@@ -364,6 +365,24 @@ class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
         layout_de_embalagem.inicia_fluxo(user=user)
 
         return layout_de_embalagem
+
+    def update(self, instance, validated_data):
+        try:
+            user = self.context['request'].user
+            dados_correcao = validated_data.pop('tipos_de_embalagens', [])
+
+            instance.tipos_de_embalagens.all().delete()
+            cria_tipos_de_embalagens(dados_correcao, instance)
+
+            instance.observacoes = validated_data.pop('observacoes', '')
+            instance.fornecedor_atualiza(user=user)
+            instance.save()
+
+        except InvalidTransitionError as e:
+            raise serializers.ValidationError(
+                f'Erro de transição de estado. O status deste layout não permite correção: {e}')
+
+        return instance
 
     class Meta:
         model = LayoutDeEmbalagem
