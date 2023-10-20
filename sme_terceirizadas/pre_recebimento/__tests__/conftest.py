@@ -532,7 +532,7 @@ def layout_de_embalagem_em_analise_com_correcao(cronograma_assinado_perfil_dilog
     )
     mommy.make(LogSolicitacoesUsuario,
                uuid_original=layout.uuid,
-               status_evento=LogSolicitacoesUsuario.LAYOUT_SOLICITADO_CORRECAO,
+               status_evento=LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA,
                solicitacao_tipo=LogSolicitacoesUsuario.LAYOUT_DE_EMBALAGEM)
 
     return layout

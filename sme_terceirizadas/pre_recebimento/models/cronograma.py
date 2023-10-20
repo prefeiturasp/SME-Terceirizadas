@@ -309,7 +309,10 @@ class LayoutDeEmbalagem(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Fluxo
 
     @property
     def eh_primeira_analise(self):
-        return not self.logs.filter(status_evento=LogSolicitacoesUsuario.LAYOUT_SOLICITADO_CORRECAO).exists()
+        if self.log_mais_recente is not None:
+            return not self.log_mais_recente.status_evento == LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA
+
+        return True
 
     def __str__(self):
         return f'{self.cronograma.numero} - {self.cronograma.produto.nome}' if self.cronograma else str(self.id)
