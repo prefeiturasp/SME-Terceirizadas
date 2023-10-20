@@ -4063,7 +4063,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
     def _fornecedor_atualiza_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ATUALIZADO,
                                       usuario=user)
 
     class Meta:
