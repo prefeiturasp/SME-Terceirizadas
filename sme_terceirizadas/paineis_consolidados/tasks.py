@@ -31,7 +31,8 @@ def build_subtitulo(data, status_, queryset, lotes, tipos_solicitacao, tipos_uni
     de_para_tipos_solicitacao = {
         'INC_ALIMENTA': 'Inclusão de Alimentação',
         'ALT_CARDAPIO': 'Alteração do tipo de Alimentação',
-        'KIT_LANCHE_AVULSA': 'Kit Lanche',
+        'KIT_LANCHE_UNIFICADO': 'Kit Lanche Unificado',
+        'KIT_LANCHE_AVULSA': 'Kit Lanche Passeio',
         'INV_CARDAPIO': 'Inversão de dia de Cardápio',
         'SUSP_ALIMENTACAO': 'Suspensão de Alimentação'
     }
@@ -79,7 +80,7 @@ def cria_nova_linha(df, index, model_obj, qt_periodo, observacoes):
     return nova_linha
 
 
-def novas_linhas_inc_continua_e_kit_lanche(df, queryset):
+def novas_linhas_inc_continua_e_kit_lanche(df, queryset, instituicao):
     novas_linhas, lista_uuids = [], []
     for index, solicitacao in enumerate(queryset):
         model_obj = solicitacao.get_raw_model.objects.get(uuid=solicitacao.uuid)
@@ -93,6 +94,8 @@ def novas_linhas_inc_continua_e_kit_lanche(df, queryset):
         elif 'KIT_LANCHE' in solicitacao.tipo_doc:
             nova_linha = df.iloc[index].copy()
             nova_linha['quantidade_alimentacoes'] = str(model_obj.quantidade_alimentacoes)
+            if solicitacao.tipo_doc == 'KIT_LANCHE_UNIFICADA' and isinstance(instituicao, Escola):
+                nova_linha['quantidade_alimentacoes'] = str(model_obj.total_kit_lanche_escola(instituicao.uuid))
             novas_linhas.append(nova_linha)
             lista_uuids.append(solicitacao)
         else:
@@ -182,7 +185,8 @@ def aplica_fundo_amarelo_canceladas(df, worksheet, workbook, lista_uuids, LINHAS
                                          index, idx)
 
 
-def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tipos_unidade, unidades_educacionais):
+def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tipos_unidade, unidades_educacionais,
+               instituicao):
     ALTURA_COLUNA_30 = 30
     ALTURA_COLUNA_50 = 50
 
@@ -198,7 +202,7 @@ def build_xlsx(output, serializer, queryset, data, lotes, tipos_solicitacao, tip
         df.insert(5 + i, nova_coluna, '-')
 
     df.insert(9, 'quantidade_alimentacoes', '-')
-    novas_linhas, lista_uuids = novas_linhas_inc_continua_e_kit_lanche(df, queryset)
+    novas_linhas, lista_uuids = novas_linhas_inc_continua_e_kit_lanche(df, queryset, instituicao)
     df = pd.DataFrame(novas_linhas)
     df.reset_index(drop=True, inplace=True)
 
@@ -265,9 +269,9 @@ def gera_xls_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
+        instituicao = Usuario.objects.get(username=user).vinculo_atual.instituicao
         queryset = SolicitacoesCODAE.objects.filter(uuid__in=uuids).order_by(
             'lote_nome', 'escola_nome', 'terceirizada_nome')
-
         # remove duplicados
         aux = []
         sem_uuid_repetido = []
@@ -278,11 +282,10 @@ def gera_xls_relatorio_solicitacoes_alimentacao_async(user, nome_arquivo, data, 
 
         status_ = data.get('status')
         serializer = SolicitacoesExportXLSXSerializer(
-            sem_uuid_repetido, context={'status': status_.upper()}, many=True)
-
+            sem_uuid_repetido, context={'instituicao': instituicao, 'status': status_.upper()}, many=True)
         output = io.BytesIO()
         build_xlsx(output, serializer, sem_uuid_repetido, data, lotes, tipos_solicitacao, tipos_unidade,
-                   unidades_educacionais)
+                   unidades_educacionais, instituicao)
         atualiza_central_download(obj_central_download, nome_arquivo, output.read())
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
