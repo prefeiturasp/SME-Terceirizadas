@@ -606,7 +606,7 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
     def get_serializer_class(self):
         serializer_classes_map = {
             'list': LayoutDeEmbalagemSerializer,
-            'retrieve': LayoutDeEmbalagemDetalheSerializer,
+            'retrieve': LayoutDeEmbalagemDetalheSerializer
         }
         return serializer_classes_map.get(self.action, LayoutDeEmbalagemCreateSerializer)
 

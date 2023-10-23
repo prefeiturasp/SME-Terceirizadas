@@ -3,7 +3,7 @@ import datetime
 from rest_framework import serializers
 
 from ...dados_comuns.utils import remove_tags_html_from_string
-from ...escola.models import TipoUnidadeEscolar
+from ...escola.models import Escola, TipoUnidadeEscolar
 from ...kit_lanche.api.serializers.serializers import EscolaQuantidadeSerializerSimples
 from ..models import SolicitacoesCODAE
 from ..utils import get_dias_inclusao
@@ -72,9 +72,22 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
 
     def get_escola_ou_terceirizada_nome(self, obj):
-        return obj.terceirizada_nome if self.context['status'] == 'RECEBIDAS' else obj.escola_nome
+        if self.context['status'] == 'RECEBIDAS':
+            return obj.terceirizada_nome
+        elif 'Unificada' in str(obj.get_raw_model):
+            if isinstance(self.context['instituicao'], Escola):
+                return self.context['instituicao'].nome
+            else:
+                solicitacao_unificada = obj.get_raw_model.objects.get(uuid=obj.uuid)
+                return (f'{solicitacao_unificada.escolas_quantidades.count()} Escolas'
+                        if solicitacao_unificada.escolas_quantidades.count() > 1
+                        else solicitacao_unificada.escolas_quantidades.first().escola.nome)
+        return obj.escola_nome
 
     def get_numero_alunos(self, obj):
+        if 'Unificada' in str(obj.get_raw_model) and isinstance(self.context['instituicao'], Escola):
+            solicitacao_unificada = obj.get_raw_model.objects.get(uuid=obj.uuid)
+            return solicitacao_unificada.escolas_quantidades.get(escola=self.context['instituicao']).quantidade_alunos
         return obj.get_raw_model.objects.get(uuid=obj.uuid).numero_alunos
 
     def get_data_evento(self, obj):

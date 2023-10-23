@@ -190,11 +190,13 @@ def get_campos_por_periodo(periodo_da_escola, dieta_especial):
     return nomes_campos
 
 
-def comparar_dias_com_valores_medicao(valores_da_medicao, dias_letivos):
-    if len(valores_da_medicao) != len(dias_letivos):
-        return True
-    else:
-        return False
+def comparar_dias_com_valores_medicao(valores_da_medicao, dias_letivos, quantidade_dias_letivos_sem_log):
+    return len(valores_da_medicao) != (len(dias_letivos) - quantidade_dias_letivos_sem_log)
+
+
+def get_quantidade_dias_letivos_sem_log(dias_letivos, logs_por_classificacao):
+    logs = [f'{log.data.day:02d}' for log in logs_por_classificacao.filter(data__day__in=dias_letivos)]
+    return len(set(dias_letivos) - set(logs))
 
 
 def validate_lancamento_dietas(solicitacao, lista_erros):
@@ -222,8 +224,10 @@ def validate_lancamento_dietas(solicitacao, lista_erros):
         classificacoes = classificacoes.values_list('classificacao__nome', flat=True)
         classificacoes = classificacoes.distinct()
         for classificacao in classificacoes:
-            log_por_classificacao = logs_por_periodo.filter(classificacao__nome=classificacao)
-            for log in log_por_classificacao:
+            logs_por_classificacao = logs_por_periodo.filter(classificacao__nome=classificacao)
+            quantidade_dias_letivos_sem_log = get_quantidade_dias_letivos_sem_log(
+                dias_letivos, logs_por_classificacao)
+            for log in logs_por_classificacao:
                 nomes_campos = get_campos_por_periodo(periodo_da_escola, log)
                 nomes_campos = nomes_campos + nomes_campos_padrao
                 for nome_campo in nomes_campos:
@@ -235,7 +239,8 @@ def validate_lancamento_dietas(solicitacao, lista_erros):
                         categoria_medicao__nome=get_classificacoes_nomes(classificacao)
                     ).order_by('dia').exclude(valor=None).values_list('dia', flat=True)
                     valores_da_medicao = list(set(valores_da_medicao))
-                    periodo_com_erro = comparar_dias_com_valores_medicao(valores_da_medicao, dias_letivos)
+                    periodo_com_erro = comparar_dias_com_valores_medicao(
+                        valores_da_medicao, dias_letivos, quantidade_dias_letivos_sem_log)
         if periodo_com_erro:
             lista_erros.append({
                 'periodo_escolar': nome_periodo,
