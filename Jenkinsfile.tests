@@ -7,7 +7,7 @@ pipeline {
 
     agent { kubernetes { 
                   label 'python-3.8.16'
-                  defaultContainer 'python-3.8.16'
+                  defaultContainer 'python386'
                 }
               }
 
@@ -33,6 +33,7 @@ pipeline {
               expression { return env.BRANCH_NAME.startsWith("bug") || env.BRANCH_NAME.startsWith("bugfix") || env.BRANCH_NAME.startsWith("feature") || env.BRANCH_NAME.startsWith("fix") || env.BRANCH_NAME.startsWith("releases") || env.BRANCH_NAME.startsWith("hotfix") }
             }
             steps {
+            checkout scm
                 script {
 		  sh 'if [ ! -z $(docker ps -q --filter "name=terceirizadas-db") ]; then docker rm -f terceirizadas-db; fi'
 		  sh 'docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine'
@@ -45,6 +46,7 @@ pipeline {
               expression { return env.BRANCH_NAME.startsWith("bug") || env.BRANCH_NAME.startsWith("bugfix") || env.BRANCH_NAME.startsWith("feature") || env.BRANCH_NAME.startsWith("fix") || env.BRANCH_NAME.startsWith("releases") || env.BRANCH_NAME.startsWith("hotfix") }
             }
           steps {
+             checkout scm
              sh 'pip install --user pipenv==2022.4.8'
              sh 'pipenv install --dev'
              sh 'pipenv run pytest'
