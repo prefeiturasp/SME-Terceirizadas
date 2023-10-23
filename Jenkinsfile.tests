@@ -5,9 +5,11 @@ pipeline {
       registryCredential = 'jenkins_registry'
     }
 
-    agent {
-      node { label 'python-3.8.16' }
-    }
+    agent { kubernetes { 
+                  label 'python-3.8.16'
+                  defaultContainer 'python-3.8.16'
+                }
+              }
 
     options {
       buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
@@ -22,7 +24,11 @@ pipeline {
         }
 
         stage('AmbienteTestes') {
-            agent { label 'setup' }
+            agent { kubernetes { 
+                  label 'builder'
+                  defaultContainer 'builder'
+                }
+              }
             when { 
               expression { return env.BRANCH_NAME.startsWith("bug") || env.BRANCH_NAME.startsWith("bugfix") || env.BRANCH_NAME.startsWith("feature") || env.BRANCH_NAME.startsWith("fix") || env.BRANCH_NAME.startsWith("releases") || env.BRANCH_NAME.startsWith("hotfix") }
             }
