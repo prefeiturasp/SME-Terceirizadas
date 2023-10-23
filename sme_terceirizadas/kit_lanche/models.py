@@ -764,6 +764,7 @@ class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna, MatriculadosQuandoCr
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.PROTECT)
 
     class Meta:
+        ordering = ('faixa_etaria__inicio',)
         verbose_name = 'Faixa e quantidade de alunos da CEI da solicitação kit lanche CEMEI'
         verbose_name_plural = 'Faixas e quantidade de alunos da CEI das solicitações kit lanche CEMEI'
 
