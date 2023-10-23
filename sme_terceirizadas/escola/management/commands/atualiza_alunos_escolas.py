@@ -94,7 +94,11 @@ class Command(BaseCommand):
             data_nascimento=data_nascimento,
             escola=escola,
             serie=registro['turmaNome'],
-            periodo_escolar=self.dict_periodos_escolares_por_tipo_turno[registro['tipoTurno']]
+            periodo_escolar=self.dict_periodos_escolares_por_tipo_turno[registro['tipoTurno']],
+            etapa=registro.get('etapaEnsino', None),
+            ciclo=registro.get('cicloEnsino', None),
+            desc_etapa=registro.get('descEtapaEnsino', ''),
+            desc_ciclo=registro.get('descCicloEnsino', ''),
         )
         return obj_aluno
 
@@ -106,6 +110,10 @@ class Command(BaseCommand):
         aluno.nao_matriculado = False
         aluno.serie = registro['turmaNome']
         aluno.periodo_escolar = self.dict_periodos_escolares_por_tipo_turno[registro['tipoTurno']]
+        aluno.etapa = registro.get('etapaEnsino', None)
+        aluno.ciclo = registro.get('cicloEnsino', None)
+        aluno.desc_etapa = registro.get('descEtapaEnsino', '')
+        aluno.desc_ciclo = registro.get('descCicloEnsino', '')
         aluno.save()
 
     def _desvincular_matriculas(self, alunos):
@@ -146,7 +154,7 @@ class Command(BaseCommand):
         Aluno.objects.bulk_create(novos_alunos.values())
 
     def _atualiza_todas_as_escolas(self):
-        escolas = Escola.objects.all()
+        escolas = Escola.objects.filter(codigo_eol='000329')
         proximo_ano = datetime.date.today().year + 1
 
         total = escolas.count()
