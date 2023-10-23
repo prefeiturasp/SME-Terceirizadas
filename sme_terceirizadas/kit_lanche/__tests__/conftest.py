@@ -13,7 +13,7 @@ from .. import models
 from ..models import KitLanche
 
 fake = Faker('pt_BR')
-fake.seed(420)
+Faker.seed(420)
 
 
 @pytest.fixture

@@ -1,8 +1,10 @@
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.pre_recebimento.models import (
+    ArquivoDoTipoDeDocumento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
+    TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout
 )
 
@@ -36,4 +38,16 @@ def cria_tipos_de_embalagens(tipos_de_embalagens, layout_de_embalagem=None):
             data = convert_base64_to_contentfile(img.get('arquivo'))
             ImagemDoTipoDeEmbalagem.objects.create(
                 tipo_de_embalagem=tipo_de_embalagem, arquivo=data, nome=img.get('nome', '')
+            )
+
+
+def cria_tipos_de_documentos(tipos_de_documentos, documento_de_recebimento=None):
+    for documento in tipos_de_documentos:
+        arquivos = documento.pop('arquivos_do_tipo_de_documento', [])
+        tipo_de_documento = TipoDeDocumentoDeRecebimento.objects.create(
+            documento_recebimento=documento_de_recebimento, **documento)
+        for arq in arquivos:
+            data = convert_base64_to_contentfile(arq.get('arquivo'))
+            ArquivoDoTipoDeDocumento.objects.create(
+                tipo_de_documento=tipo_de_documento, arquivo=data, nome=arq.get('nome', '')
             )
