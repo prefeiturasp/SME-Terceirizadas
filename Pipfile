@@ -9,15 +9,18 @@ ipdb='==0.13.9'  # https://github.com/gotcha/ipdb
 Sphinx='==1.8.4'  # https://github.com/sphinx-doc/sphinx
 # Testing
 # ------------------------------------------------------------------------------
-mypy='==0.730'  # https://github.com/python/mypy
-pytest='==4.4.0'  # https://github.com/pytest-dev/pytest
+mypy='==1.6.1'  # https://github.com/python/mypy
+pytest='==5.4.3'  # https://github.com/pytest-dev/pytest
 freezegun='==1.2.2'    # https://pypi.org/project/freezegun/
 pytest-watch='==4.2.0'  # https://github.com/joeyespo/pytest-watch
 model_mommy='==1.6.0'   # https://github.com/berinhard/model_mommy/
-Faker='==1.0.7'         # https://github.com/joke2k/faker
+Faker='==19.11.0'         # https://github.com/joke2k/faker
 pytest-cov='==2.7.1'    # https://pypi.org/project/pytest-cov/
 pytest-xdist='==1.29.0'
 pytest-testmon='==0.9.19' # https://testmon.org/
+pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
+factory-boy='==2.12.0'
+pytest-factoryboy='==2.5.1'
 # Code quality
 # ------------------------------------------------------------------------------
 flake8='==3.7.9'  # https://github.com/PyCQA/flake8
@@ -39,7 +42,6 @@ bandit='==1.6.2'               # https://github.com/PyCQA/bandit
 django-debug-toolbar='==3.2.4'  # https://github.com/jazzband/django-debug-toolbar
 django-extensions='==3.2.3'    # https://github.com/django-extensions/django-extensions
 django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_plugin
-pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
 flower = "==1.2.0"
 isort = "==4.3.21"
 flake8-isort = "==2.8.0"

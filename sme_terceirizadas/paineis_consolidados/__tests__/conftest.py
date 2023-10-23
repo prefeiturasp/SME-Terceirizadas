@@ -20,7 +20,7 @@ from ...inclusao_alimentacao.models import (
 from ...kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
 
 fake = Faker('pt_BR')
-fake.seed(420)
+Faker.seed(420)
 
 
 @pytest.fixture

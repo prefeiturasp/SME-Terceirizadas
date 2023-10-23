@@ -10,7 +10,7 @@ from ...dados_comuns.models import TemplateMensagem
 from .. import models
 
 fake = Faker('pt-Br')
-fake.seed(420)
+Faker.seed(420)
 
 
 @pytest.fixture

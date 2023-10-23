@@ -4068,3 +4068,36 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+
+class DocumentoDeRecebimentoWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    DOCUMENTO_CRIADO = 'DOCUMENTO_CRIADO'
+    ENVIADO_PARA_ANALISE = 'ENVIADO_PARA_ANALISE'
+
+    states = (
+        (DOCUMENTO_CRIADO, 'Documento Criado'),
+        (ENVIADO_PARA_ANALISE, 'Enviado para Análise'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', DOCUMENTO_CRIADO, ENVIADO_PARA_ANALISE),
+    )
+
+    initial_state = DOCUMENTO_CRIADO
+
+
+class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = DocumentoDeRecebimentoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DOCUMENTO_ENVIADO_PARA_ANALISE,
+                                      usuario=user)
+
+    class Meta:
+        abstract = True
