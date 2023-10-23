@@ -72,16 +72,22 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
 
     def get_escola_ou_terceirizada_nome(self, obj):
-        if (not self.context['status'] == 'RECEBIDAS' and
-                'Unificada' in str(obj.get_raw_model) and
-                isinstance(self.context['instituicao'], Escola)):
-            return self.context['instituicao'].nome
-        return obj.terceirizada_nome if self.context['status'] == 'RECEBIDAS' else obj.escola_nome
+        if self.context['status'] == 'RECEBIDAS':
+            return
+        elif 'Unificada' in str(obj.get_raw_model):
+            if isinstance(self.context['instituicao'], Escola):
+                return self.context['instituicao'].nome
+            else:
+                solicitacao_unificada = obj.get_raw_model.objects.get(uuid=obj.uuid)
+                return (f'{solicitacao_unificada.escolas_quantidades.count()} Escolas'
+                        if solicitacao_unificada.escolas_quantidades.count() > 1
+                        else solicitacao_unificada.escolas_quantidades.first().escola.nome)
+        return obj.escola_nome
 
     def get_numero_alunos(self, obj):
         if 'Unificada' in str(obj.get_raw_model) and isinstance(self.context['instituicao'], Escola):
-            return obj.get_raw_model.objects.get(
-                uuid=obj.uuid).escolas_quantidades.get(escola=self.context['instituicao']).quantidade_alunos
+            solicitacao_unificada = obj.get_raw_model.objects.get(uuid=obj.uuid)
+            return solicitacao_unificada.escolas_quantidades.get(escola=self.context['instituicao']).quantidade_alunos
         return obj.get_raw_model.objects.get(uuid=obj.uuid).numero_alunos
 
     def get_data_evento(self, obj):
