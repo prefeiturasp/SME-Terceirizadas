@@ -8,7 +8,7 @@ from rest_framework import status
 from ..models import CategoriaPerguntaFrequente, CentralDeDownload, Notificacao, PerguntaFrequente
 
 fake = Faker('pt_BR')
-fake.seed(420)
+Faker.seed(420)
 
 
 def test_url_cria_faq(client_autenticado_coordenador_codae):

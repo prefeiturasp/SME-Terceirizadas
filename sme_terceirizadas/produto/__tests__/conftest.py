@@ -15,7 +15,7 @@ from ...terceirizada.models import Contrato
 from ..models import ProdutoEdital
 
 fake = Faker('pt-Br')
-fake.seed(420)
+Faker.seed(420)
 
 
 @pytest.fixture
