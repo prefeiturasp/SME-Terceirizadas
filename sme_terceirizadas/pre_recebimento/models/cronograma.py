@@ -18,6 +18,7 @@ from ...dados_comuns.fluxo_status import (
     CronogramaAlteracaoWorkflow,
     FluxoAlteracaoCronograma,
     FluxoCronograma,
+    FluxoDocumentoDeRecebimento,
     FluxoLayoutDeEmbalagem
 )
 from ...dados_comuns.models import LogSolicitacoesUsuario
@@ -320,3 +321,83 @@ class LayoutDeEmbalagem(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Fluxo
     class Meta:
         verbose_name = 'Layout de Embalagem'
         verbose_name_plural = 'Layouts de Embalagem'
+
+
+class ArquivoDoTipoDeDocumento(TemChaveExterna):
+    tipo_de_documento = models.ForeignKey(
+        'TipoDeDocumentoDeRecebimento', on_delete=models.CASCADE, related_name='arquivos', blank=True)
+    arquivo = models.FileField(upload_to='documentos_de_recebimento', validators=[
+        FileExtensionValidator(allowed_extensions=['PDF', 'PNG', 'JPG', 'JPEG']),
+        validate_file_size_10mb])
+    nome = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f'{self.tipo_de_documento.tipo_documento} - {self.nome}' if self.tipo_de_documento else str(self.id)
+
+    def delete(self, *args, **kwargs):
+        # Antes de excluir o objeto, exclui o arquivo associado
+        if self.arquivo:
+            if os.path.isfile(self.arquivo.path):
+                os.remove(self.arquivo.path)
+        super().delete(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Arquivo do Tipo de Documento'
+        verbose_name_plural = 'Arquivos dos Tipos de Documentos'
+
+
+class TipoDeDocumentoDeRecebimento(TemChaveExterna):
+    TIPO_DOC_LAUDO = 'LAUDO'
+    TIPO_DOC_DECLARACAO_LEI_1512010 = 'DECLARACAO_LEI_1512010'
+    TIPO_DOC_CERTIFICADO_CONF_ORGANICA = 'CERTIFICADO_CONF_ORGANICA'
+    TIPO_DOC_RASTREABILIDADE = 'RASTREABILIDADE'
+    TIPO_DOC_DECLARACAO_MATERIA_ORGANICA = 'DECLARACAO_MATERIA_ORGANICA'
+    TIPO_DOC_OUTROS = 'OUTROS'
+
+    TIPO_DOC_CHOICES = (
+        (TIPO_DOC_LAUDO, 'Laudo'),
+        (TIPO_DOC_DECLARACAO_LEI_1512010, 'Declaração de atendimento a Lei Municipal: 15.120/10'),
+        (TIPO_DOC_CERTIFICADO_CONF_ORGANICA, 'Certificado de conformidade orgânica'),
+        (TIPO_DOC_RASTREABILIDADE, 'Rastreabilidade'),
+        (TIPO_DOC_DECLARACAO_MATERIA_ORGANICA, 'Declaração de Matéria Láctea'),
+        (TIPO_DOC_OUTROS, 'Outros'),
+    )
+
+    documento_recebimento = models.ForeignKey(
+        'DocumentoDeRecebimento', on_delete=models.CASCADE, blank=True, related_name='tipos_de_documentos')
+    tipo_documento = models.CharField(choices=TIPO_DOC_CHOICES, max_length=35, blank=True)
+    descricao_documento = models.TextField('Descrição do Documento', blank=True)
+
+    def __str__(self):
+        if self.documento_recebimento:
+            return f'{self.documento_recebimento.cronograma.numero} - {self.tipo_documento}'
+        else:
+            return str(self.id)
+
+    class Meta:
+        verbose_name = 'Tipo de Documento de Recebimento'
+        verbose_name_plural = 'Tipos de Documentos de Recebimento'
+        unique_together = ['documento_recebimento', 'tipo_documento']
+
+
+class DocumentoDeRecebimento(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoDocumentoDeRecebimento):
+    cronograma = models.ForeignKey(Cronograma, on_delete=models.PROTECT, related_name='documentos_de_recebimento')
+    numero_laudo = models.CharField('Número do Laudo', blank=True, max_length=50)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.DOCUMENTO_DE_RECEBIMENTO,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa
+        )
+
+    def __str__(self):
+        return f'{self.cronograma.numero} - Laudo: {self.numero_laudo}' if self.cronograma else str(self.numero_laudo)
+
+    class Meta:
+        verbose_name = 'Documento de Recebimento'
+        verbose_name_plural = 'Documentos de Recebimento'

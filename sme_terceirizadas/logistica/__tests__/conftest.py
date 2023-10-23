@@ -8,7 +8,7 @@ from ...escola import models
 from ..models.guia import ConferenciaIndividualPorAlimento
 
 fake = Faker('pt_BR')
-fake.seed(420)
+Faker.seed(420)
 
 
 @pytest.fixture

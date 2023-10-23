@@ -6,6 +6,7 @@ from rest_framework import serializers
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
+    DocumentoDeRecebimento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
     Laboratorio,
@@ -317,3 +318,10 @@ class PainelLayoutEmbalagemSerializer(serializers.ModelSerializer):
     class Meta:
         model = LayoutDeEmbalagem
         fields = ('uuid', 'numero_cronograma', 'nome_produto', 'nome_empresa', 'status', 'log_mais_recente')
+
+
+class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DocumentoDeRecebimento
+        fields = ('uuid', 'numero_laudo', 'criado_em')
