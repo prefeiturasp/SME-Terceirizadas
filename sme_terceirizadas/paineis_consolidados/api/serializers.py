@@ -73,7 +73,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
 
     def get_escola_ou_terceirizada_nome(self, obj):
         if self.context['status'] == 'RECEBIDAS':
-            return
+            return obj.terceirizada_nome
         elif 'Unificada' in str(obj.get_raw_model):
             if isinstance(self.context['instituicao'], Escola):
                 return self.context['instituicao'].nome
