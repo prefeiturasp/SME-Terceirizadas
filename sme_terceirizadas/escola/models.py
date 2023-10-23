@@ -1147,6 +1147,11 @@ class Aluno(TemChaveExterna):
 
     responsaveis = models.ManyToManyField(Responsavel, blank=True, related_name='alunos')
 
+    etapa = models.PositiveSmallIntegerField(blank=True, null=True)
+    ciclo = models.PositiveSmallIntegerField(blank=True, null=True)
+    desc_etapa = models.CharField('Descrição etapa', max_length=50, blank=True)
+    desc_ciclo = models.CharField('Descrição ciclo', max_length=50, blank=True)
+
     def __str__(self):
         if self.nao_matriculado:
             return f'{self.nome} - Não Matriculado'
