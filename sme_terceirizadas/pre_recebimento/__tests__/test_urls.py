@@ -12,11 +12,14 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer
 )
+from sme_terceirizadas.pre_recebimento.fixtures.factories.documentos_de_recebimento_factory import fake
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
+    DocumentoDeRecebimento,
     Laboratorio,
     LayoutDeEmbalagem,
     SolicitacaoAlteracaoCronograma,
+    TipoDeDocumentoDeRecebimento,
     TipoEmbalagemQld,
     UnidadeMedida
 )
@@ -1547,3 +1550,61 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(client_auten
     msg_erro3 = 'Erro de transição de estado. O status deste layout não permite correção'
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro3 in response.json()[0]
+
+
+def test_url_endpoint_documentos_recebimento_create(client_autenticado_fornecedor,
+                                                    cronograma_factory, arquivo_base64):
+    cronograma_obj = cronograma_factory.create()
+    data = {
+        'cronograma': str(cronograma_obj.uuid),
+        'numero_laudo': '123456789',
+        'tipos_de_documentos': [
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo2.jpg'
+                    }
+                ]
+            },
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_RASTREABILIDADE,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    }
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.post(
+        '/documentos-de-recebimento/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    obj = DocumentoDeRecebimento.objects.last()
+    assert obj.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    assert obj.tipos_de_documentos.count() == 2
+
+    # Teste de cadastro quando o cronograma informado não existe ou quando o arquivo não é enviado
+    data['cronograma'] = fake.uuid4()
+    data['tipos_de_documentos'][1].pop('arquivos_do_tipo_de_documento')
+
+    response = client_autenticado_fornecedor.post(
+        '/documentos-de-recebimento/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Cronograma não existe' in response.data['cronograma']
+    assert 'Este campo é obrigatório.' in response.data['tipos_de_documentos'][1]['arquivos_do_tipo_de_documento']
