@@ -2,6 +2,7 @@ import pytest
 
 from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow
 
+from ..fixtures.factories.documentos_de_recebimento_factory import fake
 from ..models import (
     Cronograma,
     DocumentoDeRecebimento,
@@ -207,34 +208,40 @@ def test_tipo_de_embalagem_meta_modelo(tipo_de_embalagem_de_layout):
     assert tipo_de_embalagem_de_layout._meta.verbose_name_plural == 'Tipos de Embalagens de Layout'
 
 
-def test_documento_de_recebimento_instance_model(documento_de_recebimento):
+def test_documento_de_recebimento_instance_model(documento_de_recebimento_factory):
+    documento_de_recebimento = documento_de_recebimento_factory.create()
     model = documento_de_recebimento
     assert isinstance(model, DocumentoDeRecebimento)
     assert model.cronograma
     assert model.numero_laudo
 
 
-def test_documento_de_recebimento_srt_model(documento_de_recebimento):
-    assert documento_de_recebimento.__str__() == '004/2022 - Laudo: 123456'
+def test_documento_de_recebimento_srt_model(documento_de_recebimento_factory):
+    documento = documento_de_recebimento_factory.create()
+    assert documento.__str__() == f'{documento.cronograma.numero} - Laudo: {documento.numero_laudo}'
 
 
-def test_documento_de_recebimento_meta_modelo(documento_de_recebimento):
+def test_documento_de_recebimento_meta_modelo(documento_de_recebimento_factory):
+    documento_de_recebimento = documento_de_recebimento_factory.create()
     assert documento_de_recebimento._meta.verbose_name == 'Documento de Recebimento'
     assert documento_de_recebimento._meta.verbose_name_plural == 'Documentos de Recebimento'
 
 
-def test_tipo_de_documento_de_recebimento_instance_model(tipo_de_documento_de_recebimento):
-    model = tipo_de_documento_de_recebimento
+def test_tipo_de_documento_de_recebimento_instance_model(tipo_de_documento_de_recebimento_factory):
+    tipo_de_documento = tipo_de_documento_de_recebimento_factory.create(descricao_documento=fake.text())
+    model = tipo_de_documento
     assert isinstance(model, TipoDeDocumentoDeRecebimento)
     assert model.documento_recebimento
     assert model.tipo_documento
     assert model.descricao_documento
 
 
-def test_tipo_de_documento_de_recebimento_srt_model(tipo_de_documento_de_recebimento):
-    assert tipo_de_documento_de_recebimento.__str__() == '004/2022 - LAUDO'
+def test_tipo_de_documento_de_recebimento_srt_model(tipo_de_documento_de_recebimento_factory):
+    obj = tipo_de_documento_de_recebimento_factory.create()
+    assert obj.__str__() == f'{obj.documento_recebimento.cronograma.numero} - {obj.tipo_documento}'
 
 
-def test_tipo_de_documento_de_recebimento_meta_modelo(tipo_de_documento_de_recebimento):
-    assert tipo_de_documento_de_recebimento._meta.verbose_name == 'Tipo de Documento de Recebimento'
-    assert tipo_de_documento_de_recebimento._meta.verbose_name_plural == 'Tipos de Documentos de Recebimento'
+def test_tipo_de_documento_de_recebimento_meta_modelo(tipo_de_documento_de_recebimento_factory):
+    obj = tipo_de_documento_de_recebimento_factory.create()
+    assert obj._meta.verbose_name == 'Tipo de Documento de Recebimento'
+    assert obj._meta.verbose_name_plural == 'Tipos de Documentos de Recebimento'

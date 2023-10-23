@@ -501,17 +501,3 @@ def layout_de_embalagem_para_correcao(cronograma_assinado_perfil_dilog, arquivo_
     )
 
     return layout
-
-
-@pytest.fixture
-def documento_de_recebimento(cronograma_assinado_perfil_dilog):
-    return mommy.make('DocumentoDeRecebimento',
-                      cronograma=cronograma_assinado_perfil_dilog,
-                      numero_laudo='123456')
-
-
-@pytest.fixture
-def tipo_de_documento_de_recebimento(documento_de_recebimento):
-    return mommy.make('TipoDeDocumentoDeRecebimento',
-                      documento_recebimento=documento_de_recebimento,
-                      tipo_documento='LAUDO')
