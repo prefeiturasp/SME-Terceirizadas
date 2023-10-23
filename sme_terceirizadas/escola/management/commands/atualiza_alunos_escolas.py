@@ -154,7 +154,7 @@ class Command(BaseCommand):
         Aluno.objects.bulk_create(novos_alunos.values())
 
     def _atualiza_todas_as_escolas(self):
-        escolas = Escola.objects.filter(codigo_eol='000329')
+        escolas = Escola.objects.all()
         proximo_ano = datetime.date.today().year + 1
 
         total = escolas.count()
