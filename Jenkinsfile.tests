@@ -6,8 +6,8 @@ pipeline {
     }
 
     agent { kubernetes { 
-                  label 'python-3.8.16'
-                  defaultContainer 'python386'
+                  label 'python3816'
+                  defaultContainer 'python3816'
                 }
               }
 
@@ -23,7 +23,7 @@ pipeline {
             steps { checkout scm }
         }
 
-        stage('AmbienteTestes') {
+        /*stage('AmbienteTestes') {
             agent { kubernetes { 
                   label 'builder'
                   defaultContainer 'builder'
@@ -39,7 +39,7 @@ pipeline {
 		  sh 'docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine'
                 }
             }
-        }
+        }*/
 
         stage('Testes') {
             when { 
@@ -47,6 +47,13 @@ pipeline {
             }
           steps {
              checkout scm
+	   
+    sh 'pip install psycopg2-binary'
+    sh 'pip install xlsxwriter'
+    sh 'pip install pycparser'
+    sh 'pip install --no-cache-dir -U pip'
+    sh 'pip install --no-cache-dir pipenv==2022.4.8'	
+
              sh 'pip install --user pipenv==2022.4.8'
              sh 'pipenv install --dev'
              sh 'pipenv run pytest'
