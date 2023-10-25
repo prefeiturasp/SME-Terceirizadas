@@ -13,11 +13,13 @@ from .pre_recebimento.fixtures.factories.documentos_de_recebimento_factory impor
     DocumentoDeRecebimentoFactory,
     TipoDeDocumentoDeRecebimentoFactory
 )
+from .terceirizada.fixtures.factories.terceirizada_factory import EmpresaFactory
 
 f = Faker(locale='pt-Br')
 
 register(CronogramaFactory)
 register(DocumentoDeRecebimentoFactory)
+register(EmpresaFactory)
 register(TipoDeDocumentoDeRecebimentoFactory)
 
 

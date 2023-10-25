@@ -125,3 +125,22 @@ class LayoutDeEmbalagemFilter(filters.FilterSet):
         field_name='status',
         choices=[(str(state), state) for state in LayoutDeEmbalagemWorkflow.states],
     )
+
+
+class DocumentoDeRecebimentoFilter(filters.FilterSet):
+    numero_cronograma = filters.CharFilter(
+        field_name='cronograma__numero',
+        lookup_expr='icontains',
+    )
+    nome_produto = filters.CharFilter(
+        field_name='cronograma__produto__nome',
+        lookup_expr='icontains',
+    )
+    status = filters.MultipleChoiceFilter(
+        field_name='status',
+        choices=[(str(state), state) for state in LayoutDeEmbalagemWorkflow.states],
+    )
+    data_cadastro = filters.DateFilter(
+        field_name='criado_em__date',
+        lookup_expr='exact',
+    )
