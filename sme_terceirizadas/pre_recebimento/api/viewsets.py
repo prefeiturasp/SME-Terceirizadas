@@ -316,7 +316,14 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
 
     @action(detail=False, methods=['GET'], url_path='lista-cronogramas-cadastro-layout')
     def lista_cronogramas_para_cadastro_de_layout(self, request):
-        cronogramas = self.get_queryset()
+        user = self.request.user
+        if user.eh_fornecedor:
+            cronogramas = Cronograma.objects.filter(
+                empresa=user.vinculo_atual.instituicao
+            ).order_by('-criado_em')
+        else:
+            cronogramas = self.get_queryset()
+
         serializer = CronogramaSimplesSerializer(cronogramas, many=True).data
         response = {'results': serializer}
         return Response(response)
