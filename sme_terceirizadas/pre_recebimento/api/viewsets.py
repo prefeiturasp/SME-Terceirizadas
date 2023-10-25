@@ -314,9 +314,16 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         response = CronogramaComLogSerializer(cronograma, many=False).data
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='lista-cronogramas-cadastro-layout')
-    def lista_cronogramas_para_cadastro_de_layout(self, request):
-        cronogramas = self.get_queryset()
+    @action(detail=False, methods=['GET'], url_path='lista-cronogramas-cadastro')
+    def lista_cronogramas_para_cadastro(self, request):
+        user = self.request.user
+        if user.eh_fornecedor:
+            cronogramas = Cronograma.objects.filter(
+                empresa=user.vinculo_atual.instituicao
+            ).order_by('-criado_em')
+        else:
+            cronogramas = self.get_queryset()
+
         serializer = CronogramaSimplesSerializer(cronogramas, many=True).data
         response = {'results': serializer}
         return Response(response)
