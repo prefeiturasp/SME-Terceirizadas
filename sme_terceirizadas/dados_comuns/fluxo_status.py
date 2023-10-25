@@ -1729,8 +1729,9 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         self.save()
 
     def eh_alteracao_lanche_emergencial(self):
-        from sme_terceirizadas.cardapio.models import AlteracaoCardapio
-        return isinstance(self, AlteracaoCardapio) and self.motivo and self.motivo.nome == 'Lanche Emergencial'
+        from sme_terceirizadas.cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEMEI
+        return ((isinstance(self, AlteracaoCardapio) or isinstance(self, AlteracaoCardapioCEMEI))
+                and self.motivo and self.motivo.nome == 'Lanche Emergencial')
 
     def get_dias_suspensao(self):
         from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
