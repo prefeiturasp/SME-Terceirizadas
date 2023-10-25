@@ -159,7 +159,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
                 'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 'total': 0
             },
-            'Kit Lanche Passeio Unificado': {
+            'Kit Lanche Unificado': {
                 'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 'total': 0
             },

@@ -89,7 +89,7 @@ def test_escola_relatorio_evolucao_solicitacoes(users_diretor_escola):
              'Inversão de dia de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
              'Suspensão de Alimentação': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
              'Kit Lanche Passeio': {'quantidades': [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0], 'total': 4},
-             'Kit Lanche Passeio Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+             'Kit Lanche Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
              'Dieta Especial': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0}
              }
     }
@@ -172,7 +172,7 @@ def test_resumo_ano_dre(solicitacoes_ano_dre):
                     'Inversão de dia de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
                     'Suspensão de Alimentação': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
                     'Kit Lanche Passeio': {'quantidades': [0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 4},
-                    'Kit Lanche Passeio Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+                    'Kit Lanche Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
                     'Dieta Especial': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0}
                     }
     }
