@@ -1153,6 +1153,22 @@ class FaixaEtariaSubstituicaoAlimentacaoCEMEICEI(TemChaveExterna, TemFaixaEtaria
         verbose_name_plural = 'Faixas Etárias de substituição de alimentação CEMEI CEI'
 
 
+class DataIntervaloAlteracaoCardapioCEMEI(CanceladoIndividualmente, CriadoEm, TemData, TemChaveExterna,
+                                          TemIdentificadorExternoAmigavel):
+    alteracao_cardapio_cemei = models.ForeignKey('AlteracaoCardapioCEMEI',
+                                                 on_delete=models.CASCADE,
+                                                 related_name='datas_intervalo')
+
+    def __str__(self):
+        return (f'Data {self.data} da Alteração de cardápio CEMEI #{self.alteracao_cardapio_cemei.id_externo} de '
+                f'{self.alteracao_cardapio_cemei.data_inicial} - {self.alteracao_cardapio_cemei.data_inicial}')
+
+    class Meta:
+        verbose_name = 'Data do intervalo de Alteração de cardápio CEMEI'
+        verbose_name_plural = 'Datas do intervalo de Alteração de cardápio CEMEI'
+        ordering = ('data',)
+
+
 class MotivoDRENaoValida(ExportModelOperationsMixin('motivo_dre_nao_valida'), Nomeavel, TemChaveExterna):
     """Usado em conjunto com Solicitações que passam por validação da DRE.
 
