@@ -113,6 +113,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
 
 class ContratoAbastecimentoCreateSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(required=False)
     vigencias = VigenciaContratoCreateSerializer(many=True)
 
     def create(self, validated_data):
@@ -127,6 +128,20 @@ class ContratoAbastecimentoCreateSerializer(serializers.ModelSerializer):
         contrato.vigencias.set(vigencias)
 
         return contrato
+
+    def update(self, instance, validated_data):
+        dados_vigencias = validated_data.pop('vigencias')
+
+        for dados_vigencia in dados_vigencias:
+            vigencia = instance.vigencias.last()
+            vigencia.data_inicial = dados_vigencia.get('data_inicial', vigencia.data_inicial)
+            vigencia.data_final = dados_vigencia.get('data_final', vigencia.data_final)
+            vigencia.save()
+
+        validated_data.pop('numero')
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        return instance
 
     class Meta:
         model = Contrato
@@ -219,22 +234,27 @@ class EmpresaNaoTerceirizadaCreateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         contatos = validated_data.pop('contatos', [])
-        contratos_array = validated_data.pop('contratos', [])
+        dados_contratos = validated_data.pop('contratos', [])
 
-        contratos = []
-        for contrato_json in contratos_array:
-            encerrado = contrato_json.pop('encerrado')
+        for dados_contrato in dados_contratos:
+            encerrado = dados_contrato.pop('encerrado')
             if not encerrado:
-                contrato = ContratoAbastecimentoCreateSerializer().create(contrato_json)
-                contratos.append(contrato)
+                uuid_contrato = dados_contrato.get('uuid')
+                if uuid_contrato is not None:
+                    contrato = instance.contratos.filter(uuid=dados_contrato['uuid']).last()
+                    serializer = ContratoAbastecimentoCreateSerializer(instance=contrato, data=dados_contrato)
+
+                else:
+                    serializer = ContratoAbastecimentoCreateSerializer(data=dados_contrato)
+
+                if serializer.is_valid(raise_exception=True):
+                    contrato = serializer.save()
+                    instance.contratos.add(contrato)
 
         instance.contatos.all().delete()
-        instance.contratos.filter(encerrado=False).delete()
         update_instance_from_dict(instance, validated_data, save=True)
         contatos_list = cria_contatos(contatos)
         instance.contatos.set(contatos_list)
-        for contrato in contratos:
-            instance.contratos.add(contrato)
 
         return instance
 
