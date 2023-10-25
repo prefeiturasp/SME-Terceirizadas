@@ -977,7 +977,7 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado_
 
 
 def test_url_cronograma_action_listar_para_cadastro(client_autenticado_fornecedor,
-                                                                            django_user_model, cronograma_factory):
+                                                    django_user_model, cronograma_factory):
     """Deve obter lista com numeros, pregao e nome do produto dos cronogramas cadastrados do fornecedor."""
     user_id = client_autenticado_fornecedor.session['_auth_user_id']
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
