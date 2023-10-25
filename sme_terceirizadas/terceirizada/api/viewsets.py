@@ -173,3 +173,9 @@ class ContratoViewSet(ReadOnlyModelViewSet):
             return Response(dict(detail=f'{str(err)}'), status=status.HTTP_400_BAD_REQUEST)
 
         return Response(dados_encerramento, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='numeros-contratos-cadastrados')
+    def numeros_contratos_cadastrados(self, request):
+        return Response({
+            'numeros_contratos_cadastrados': list(self.get_queryset().values_list('numero', flat=True))
+        })
