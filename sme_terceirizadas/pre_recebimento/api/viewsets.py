@@ -36,6 +36,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
 )
 from sme_terceirizadas.pre_recebimento.api.filters import (
     CronogramaFilter,
+    DocumentoDeRecebimentoFilter,
     LaboratorioFilter,
     LayoutDeEmbalagemFilter,
     SolicitacaoAlteracaoCronogramaFilter,
@@ -94,6 +95,7 @@ from sme_terceirizadas.pre_recebimento.utils import (
     UnidadeMedidaPagination
 )
 
+from ...dados_comuns.api.paginations import DefaultPagination
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...relatorios.relatorios import get_pdf_cronograma
 
@@ -683,6 +685,8 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
     lookup_field = 'uuid'
     serializer_class = DocumentoDeRecebimentoSerializer
     filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = DocumentoDeRecebimentoFilter
+    pagination_class = DefaultPagination
     # TODO: Alterar essa permissão quando os perfis de visualização forem definidos.
     permission_classes = (UsuarioEhFornecedor,)
     permission_action_classes = {

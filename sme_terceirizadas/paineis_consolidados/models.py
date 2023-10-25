@@ -583,7 +583,7 @@ class SolicitacoesNutrisupervisao(MoldeConsolidado):
         return manager.filter(
             (Q(status_evento__in=cls.PENDENTES_EVENTO) &
                 Q(status_atual__in=cls.PENDENTES_STATUS)) |
-            (Q(desc_doc='Kit Lanche Passeio Unificado') &
+            (Q(desc_doc='Kit Lanche Unificado') &
                 Q(status_atual='CODAE_A_AUTORIZAR'))
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('data_log').order_by('-data_log')
 
@@ -766,7 +766,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
         return manager.filter(
             (Q(status_evento__in=cls.PENDENTES_EVENTO) &
                 Q(status_atual__in=cls.PENDENTES_STATUS)) |
-            (Q(desc_doc='Kit Lanche Passeio Unificado') &
+            (Q(desc_doc='Kit Lanche Unificado') &
                 Q(status_atual='CODAE_A_AUTORIZAR'))
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('data_log').order_by('-data_log')
 
