@@ -935,5 +935,6 @@ class DiasParaCorrigirViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = DiaParaCorrigir.objects.filter(habilitado_correcao=True)
     serializer_class = DiaParaCorrigirSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DiaParaCorrecaoFilter
     pagination_class = None
