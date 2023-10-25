@@ -507,7 +507,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
                                     if self.escolas_quantidades.count() > 1
                                     else self.escolas_quantidades.get().escola.nome),
             'terceirizada': 'Várias Terceirizadas',
-            'tipo_doc': 'Kit Lanche Passeio Unificado',
+            'tipo_doc': 'Kit Lanche Unificado',
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'local_passeio': self.local,

@@ -7,7 +7,6 @@ from django.views.decorators.cache import cache_page
 from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
@@ -28,6 +27,7 @@ from ..models import (
 from ..permissions import UsuarioCODAEGestaoAlimentacao
 from ..utils import obter_dias_uteis_apos
 from .filters import CentralDeDownloadFilter, NotificacaoFilter
+from .paginations import CustomPagination, DownloadPagination
 from .serializers import (
     CategoriaPerguntaFrequenteSerializer,
     CentralDeDownloadSerializer,
@@ -41,29 +41,6 @@ from .serializers import (
 )
 
 calendario = BrazilSaoPauloCity()
-
-DEFAULT_PAGE = 1
-DEFAULT_PAGE_SIZE = 5
-
-
-class CustomPagination(PageNumberPagination):
-    page = DEFAULT_PAGE
-    page_size = DEFAULT_PAGE_SIZE
-    page_size_query_param = 'page_size'
-
-    def get_paginated_response(self, data):
-        return Response({
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'count': self.page.paginator.count,
-            'page_size': int(self.request.GET.get('page_size', self.page_size)),
-            'results': data
-        })
-
-
-class DownloadPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
 
 
 class ApiVersion(viewsets.ViewSet):
