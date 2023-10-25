@@ -470,7 +470,7 @@ class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
                                 help_text='Processo administrativo do contrato')
     data_proposta = models.DateField('Data da proposta', blank=True, null=True)
     lotes = models.ManyToManyField(Lote, related_name='contratos_do_lote', blank=True)
-    terceirizada = models.ForeignKey(Terceirizada, on_delete=models.CASCADE,
+    terceirizada = models.ForeignKey(Terceirizada, on_delete=models.PROTECT,
                                      related_name='contratos', blank=True, null=True)
     edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='contratos', blank=True, null=True)
     diretorias_regionais = models.ManyToManyField(DiretoriaRegional, related_name='contratos_da_diretoria_regional',
