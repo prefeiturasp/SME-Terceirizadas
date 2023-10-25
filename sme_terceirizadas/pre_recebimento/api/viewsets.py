@@ -314,8 +314,8 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         response = CronogramaComLogSerializer(cronograma, many=False).data
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='lista-cronogramas-cadastro-layout')
-    def lista_cronogramas_para_cadastro_de_layout(self, request):
+    @action(detail=False, methods=['GET'], url_path='lista-cronogramas-cadastro')
+    def lista_cronogramas_para_cadastro(self, request):
         user = self.request.user
         if user.eh_fornecedor:
             cronogramas = Cronograma.objects.filter(

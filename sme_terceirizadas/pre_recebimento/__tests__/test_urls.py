@@ -976,7 +976,7 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado_
     assert response.data['results'] == NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True).data
 
 
-def test_url_cronograma_action_listar_para_cadastro_de_layout(client_autenticado_fornecedor,
+def test_url_cronograma_action_listar_para_cadastro(client_autenticado_fornecedor,
                                                                             django_user_model, cronograma_factory):
     """Deve obter lista com numeros, pregao e nome do produto dos cronogramas cadastrados do fornecedor."""
     user_id = client_autenticado_fornecedor.session['_auth_user_id']
@@ -984,7 +984,7 @@ def test_url_cronograma_action_listar_para_cadastro_de_layout(client_autenticado
     cronogramas_do_fornecedor = [cronograma_factory.create(empresa=empresa) for _ in range(10)]
     outros_cronogramas = [cronograma_factory.create() for _ in range(5)]
     todos_cronogramas = cronogramas_do_fornecedor + outros_cronogramas
-    response = client_autenticado_fornecedor.get('/cronogramas/lista-cronogramas-cadastro-layout/')
+    response = client_autenticado_fornecedor.get('/cronogramas/lista-cronogramas-cadastro/')
 
     cronogramas = Cronograma.objects.filter(empresa=empresa).order_by('-criado_em')
 
