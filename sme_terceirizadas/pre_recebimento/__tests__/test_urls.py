@@ -1,3 +1,4 @@
+import datetime
 import json
 import uuid
 
@@ -5,8 +6,10 @@ import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from sme_terceirizadas.dados_comuns import constants
+from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
 from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
@@ -1811,3 +1814,46 @@ def test_url_endpoint_documentos_recebimento_create(client_autenticado_fornecedo
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Cronograma não existe' in response.data['cronograma']
     assert 'Este campo é obrigatório.' in response.data['tipos_de_documentos'][1]['arquivos_do_tipo_de_documento']
+
+
+def test_url_documentos_de_recebimento_listagem(client_autenticado_fornecedor, django_user_model,
+                                                documento_de_recebimento_factory):
+    """Deve obter lista paginada e filtrada de documentos de recebimento."""
+    user_id = client_autenticado_fornecedor.session['_auth_user_id']
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    documentos = [documento_de_recebimento_factory.create(cronograma__empresa=empresa) for _ in range(11)]
+    response = client_autenticado_fornecedor.get('/documentos-de-recebimento/')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # Teste de paginação
+    assert response.data['count'] == len(documentos)
+    assert len(response.data['results']) == DefaultPagination.page_size
+    assert response.data['next'] is not None
+
+    # Acessa a próxima página
+    next_page = response.data['next']
+    next_response = client_autenticado_fornecedor.get(next_page)
+    assert next_response.status_code == status.HTTP_200_OK
+
+    # Tenta acessar uma página que não existe
+    response_not_found = client_autenticado_fornecedor.get('/documentos-de-recebimento/?page=1000')
+    assert response_not_found.status_code == status.HTTP_404_NOT_FOUND
+
+    # Testa a resposta em caso de erro (por exemplo, sem autenticação)
+    client_nao_autenticado = APIClient()
+    response_error = client_nao_autenticado.get('/documentos-de-recebimento/')
+    assert response_error.status_code == status.HTTP_401_UNAUTHORIZED
+
+    # Teste de consulta com parâmetros
+    data = datetime.date.today() - datetime.timedelta(days=1)
+    response_filtro = client_autenticado_fornecedor.get(f'/documentos-de-recebimento/?data_cadastro={data}')
+    assert response_filtro.status_code == status.HTTP_200_OK
+    assert response_filtro.data['count'] == 0
+
+
+def test_url_documentos_de_recebimento_listagem_not_authorized(client_autenticado):
+    """Teste de requisição quando usuário não tem permissão."""
+    response = client_autenticado.get('/documentos-de-recebimento/')
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
