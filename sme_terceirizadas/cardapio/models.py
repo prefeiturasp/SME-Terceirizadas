@@ -1154,7 +1154,7 @@ class FaixaEtariaSubstituicaoAlimentacaoCEMEICEI(TemChaveExterna, TemFaixaEtaria
 
 
 class DataIntervaloAlteracaoCardapioCEMEI(CanceladoIndividualmente, CriadoEm, TemData, TemChaveExterna,
-                                     TemIdentificadorExternoAmigavel):
+                                          TemIdentificadorExternoAmigavel):
     alteracao_cardapio_cemei = models.ForeignKey('AlteracaoCardapioCEMEI',
                                                  on_delete=models.CASCADE,
                                                  related_name='datas_intervalo')
@@ -1164,10 +1164,9 @@ class DataIntervaloAlteracaoCardapioCEMEI(CanceladoIndividualmente, CriadoEm, Te
                 f'{self.alteracao_cardapio_cemei.data_inicial} - {self.alteracao_cardapio_cemei.data_inicial}')
 
     class Meta:
-        verbose_name = 'Data do intervalo de Alteração de cardápio'
-        verbose_name_plural = 'Datas do intervalo de Alteração de cardápio'
+        verbose_name = 'Data do intervalo de Alteração de cardápio CEMEI'
+        verbose_name_plural = 'Datas do intervalo de Alteração de cardápio CEMEI'
         ordering = ('data',)
-
 
 
 class MotivoDRENaoValida(ExportModelOperationsMixin('motivo_dre_nao_valida'), Nomeavel, TemChaveExterna):
