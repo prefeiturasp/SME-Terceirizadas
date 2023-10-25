@@ -976,15 +976,25 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado_
     assert response.data['results'] == NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True).data
 
 
-def test_url_cronograma_action_listar_para_cadastro_de_layout(client_autenticado_fornecedor):
-    """Deve obter lista com numeros, pregao e nome do produto de todas os produtos cadastradas."""
-    client = client_autenticado_fornecedor
-    response = client.get('/cronogramas/lista-cronogramas-cadastro-layout/')
+def test_url_cronograma_action_listar_para_cadastro_de_layout(client_autenticado_fornecedor,
+                                                                            django_user_model, cronograma_factory):
+    """Deve obter lista com numeros, pregao e nome do produto dos cronogramas cadastrados do fornecedor."""
+    user_id = client_autenticado_fornecedor.session['_auth_user_id']
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    cronogramas_do_fornecedor = [cronograma_factory.create(empresa=empresa) for _ in range(10)]
+    outros_cronogramas = [cronograma_factory.create() for _ in range(5)]
+    todos_cronogramas = cronogramas_do_fornecedor + outros_cronogramas
+    response = client_autenticado_fornecedor.get('/cronogramas/lista-cronogramas-cadastro-layout/')
 
-    cronogramas = Cronograma.objects.all().order_by('-criado_em')
+    cronogramas = Cronograma.objects.filter(empresa=empresa).order_by('-criado_em')
 
+    # Testa se o usuário fornecedor acessa apenas os seus cronogramas
     assert response.status_code == status.HTTP_200_OK
     assert response.data['results'] == CronogramaSimplesSerializer(cronogramas, many=True).data
+    assert len(response.data['results']) == len(cronogramas_do_fornecedor)
+
+    # Testa se a quantidade de cronogramas do response é diferente da quantidade total de cronogramas
+    assert len(response.data['results']) != len(todos_cronogramas)
 
 
 def test_url_endpoint_layout_de_embalagem_create(client_autenticado_fornecedor,
