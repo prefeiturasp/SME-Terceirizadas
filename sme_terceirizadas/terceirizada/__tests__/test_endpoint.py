@@ -131,7 +131,6 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
             {
                 'uuid': str(contrato_edicao.uuid),
                 'encerrado': False,
-                'numero': str(int(contrato_edicao.numero) + 1),
                 'processo': '9',
                 'ata': '9',
                 'pregao_chamada_publica': '9',
@@ -150,12 +149,10 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
         data=json.dumps(payload),
         content_type='application/json'
     )
-
     contrato_edicao.refresh_from_db()
     assert response.status_code == status.HTTP_200_OK
-
-    # numero não deve ser alterado ao se editar um contrato
-    assert contrato_edicao.numero != payload['contratos'][0]['numero']
+    assert terceirizada.contratos.count() == 2
+    assert terceirizada.contratos.filter(uuid=contrato_edicao.uuid).exists()
 
     assert contrato_edicao.processo == payload['contratos'][0]['processo']
     assert contrato_edicao.ata == payload['contratos'][0]['ata']

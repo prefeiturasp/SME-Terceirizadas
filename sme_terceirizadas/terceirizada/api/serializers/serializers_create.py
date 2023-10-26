@@ -138,10 +138,7 @@ class ContratoAbastecimentoCreateSerializer(serializers.ModelSerializer):
             vigencia.data_final = dados_vigencia.get('data_final', vigencia.data_final)
             vigencia.save()
 
-        validated_data.pop('numero')
-        update_instance_from_dict(instance, validated_data, save=True)
-
-        return instance
+        return update_instance_from_dict(instance, validated_data, save=True)
 
     class Meta:
         model = Contrato
@@ -241,8 +238,8 @@ class EmpresaNaoTerceirizadaCreateSerializer(serializers.ModelSerializer):
             if not encerrado:
                 uuid_contrato = dados_contrato.get('uuid')
                 if uuid_contrato is not None:
-                    contrato = instance.contratos.filter(uuid=dados_contrato['uuid']).last()
-                    serializer = ContratoAbastecimentoCreateSerializer(instance=contrato, data=dados_contrato)
+                    contrato = instance.contratos.filter(uuid=uuid_contrato).last()
+                    serializer = ContratoAbastecimentoCreateSerializer(instance=contrato, data=dados_contrato, partial=True)
 
                 else:
                     serializer = ContratoAbastecimentoCreateSerializer(data=dados_contrato)
