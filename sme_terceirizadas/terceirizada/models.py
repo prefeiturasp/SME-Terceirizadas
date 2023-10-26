@@ -465,7 +465,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
 
 
 class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
-    numero = models.CharField('No do contrato', max_length=100)
+    numero = models.CharField('No do contrato', max_length=100, unique=True)
     processo = models.CharField('Processo Administrativo', max_length=100,
                                 help_text='Processo administrativo do contrato')
     data_proposta = models.DateField('Data da proposta', blank=True, null=True)
