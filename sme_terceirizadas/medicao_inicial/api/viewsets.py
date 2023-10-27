@@ -28,7 +28,7 @@ from ...dados_comuns.permissions import (
     ViewSetActionPermissionMixin
 )
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
-from ...escola.models import Escola
+from ...escola.models import Escola, FaixaEtaria
 from ..models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
@@ -750,6 +750,13 @@ class MedicaoViewSet(
             tipo_alimentacao = TipoAlimentacao.objects.get(uuid=tipo_alimentacao_uuid)
         return tipo_alimentacao
 
+    def get_faixa_etaria(self, valor_medicao):
+        faixa_etaria = None
+        faixa_etaria_uuid = valor_medicao.get('faixa_etaria', None)
+        if faixa_etaria_uuid:
+            faixa_etaria = FaixaEtaria.objects.get(uuid=faixa_etaria_uuid)
+        return faixa_etaria
+
     def get_nome_acao(self, medicao, status_codae):
         if medicao.status in status_codae:
             return medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
@@ -775,6 +782,7 @@ class MedicaoViewSet(
                 semana = ValorMedicao.get_week_of_month(ano, mes, dia)
                 categoria_medicao_qs = CategoriaMedicao.objects.filter(id=valor_medicao.get('categoria_medicao', None))
                 tipo_alimentacao = self.get_tipo_alimentacao(valor_medicao)
+                faixa_etaria = self.get_faixa_etaria(valor_medicao)
                 ValorMedicao.objects.update_or_create(
                     medicao=medicao,
                     dia=valor_medicao.get('dia', ''),
@@ -782,7 +790,7 @@ class MedicaoViewSet(
                     nome_campo=valor_medicao.get('nome_campo', ''),
                     categoria_medicao=categoria_medicao_qs.first(),
                     tipo_alimentacao=tipo_alimentacao,
-                    faixa_etaria=valor_medicao.get('faixa_etaria', None),
+                    faixa_etaria=faixa_etaria,
                     defaults={
                         'medicao': medicao,
                         'dia': valor_medicao.get('dia', ''),
@@ -791,7 +799,7 @@ class MedicaoViewSet(
                         'nome_campo': valor_medicao.get('nome_campo', ''),
                         'categoria_medicao': categoria_medicao_qs.first(),
                         'tipo_alimentacao': tipo_alimentacao,
-                        'faixa_etaria': valor_medicao.get('faixa_etaria', None),
+                        'faixa_etaria': faixa_etaria,
                         'habilitado_correcao': True,
                     },
                 )
