@@ -239,8 +239,8 @@ class EmpresaNaoTerceirizadaCreateSerializer(serializers.ModelSerializer):
                 uuid_contrato = dados_contrato.get('uuid')
                 if uuid_contrato is not None:
                     contrato = instance.contratos.filter(uuid=uuid_contrato).last()
-                    serializer = ContratoAbastecimentoCreateSerializer(instance=contrato, data=dados_contrato, partial=True)
-
+                    serializer = ContratoAbastecimentoCreateSerializer(
+                        instance=contrato, data=dados_contrato, partial=True)
                 else:
                     serializer = ContratoAbastecimentoCreateSerializer(data=dados_contrato)
 
