@@ -36,6 +36,7 @@ from ...dados_comuns.constants import (
     DILOG_DIRETORIA,
     DILOG_QUALIDADE,
     DINUTRE_DIRETORIA,
+    ORGAO_FISCALIZADOR,
     USUARIO_EMPRESA
 )
 from ...dados_comuns.tasks import envia_email_unico_task
@@ -220,6 +221,8 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                 elif self.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA, DILOG_QUALIDADE, DILOG_DIRETORIA,
                                                         DINUTRE_DIRETORIA]:
                     tipo_usuario = 'pre_recebimento'
+                elif self.vinculo_atual.perfil.nome in [ORGAO_FISCALIZADOR]:
+                    tipo_usuario = 'orgao_fiscalizador'
                 else:
                     tipo_usuario = 'dieta_especial'
         return tipo_usuario
