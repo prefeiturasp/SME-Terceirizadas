@@ -27,7 +27,8 @@ from .constants import (
     DILOG_DIRETORIA,
     DILOG_QUALIDADE,
     DINUTRE_DIRETORIA,
-    DIRETOR_UE
+    DIRETOR_UE,
+    ORGAO_FISCALIZADOR
 )
 
 
@@ -153,6 +154,19 @@ class UsuarioNutricionista(BasePermission):
                                                   ADMINISTRADOR_SUPERVISAO_NUTRICAO,
                                                   COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
                                                   ADMINISTRADOR_MEDICAO]
+        )
+
+
+class UsuarioOrgaoFiscalizador(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Orgao Fiscalizador."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [ORGAO_FISCALIZADOR]
         )
 
 
