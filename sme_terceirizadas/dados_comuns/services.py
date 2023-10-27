@@ -3,6 +3,7 @@ import datetime
 import environ
 from django.template.loader import render_to_string
 
+from ..perfil.models import Usuario
 from .tasks import envia_email_em_massa_task
 
 env = environ.Env()
@@ -78,3 +79,34 @@ def enviar_email_codae_atualiza_protocolo(obj):
     criado_em = momento_atualização.strftime('%d/%m/%Y - %H:%M')
     _preenche_template_e_envia_email_codae_atualiza_protocolo(obj, assunto, titulo, criado_em,
                                                               _partes_interessadas_codae_atualiza_protocolo(obj))
+
+
+class PartesInteressadasService:
+    @staticmethod
+    def buscar_por_nomes_de_perfis(nomes_perfis, somente_email=False):
+        if isinstance(nomes_perfis, str):
+            nomes_perfis = [nomes_perfis]
+
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=nomes_perfis,
+            vinculos__ativo=True,
+            vinculos__data_inicial__isnull=False,
+            vinculos__data_final__isnull=True
+        )
+
+        if somente_email:
+            return [usuario.email for usuario in queryset]
+
+        return [usuario for usuario in queryset]
+
+    @staticmethod
+    def buscar_vinculadas_a_empresa_do_cronograma(cronograma, somente_email=False):
+        if cronograma.empresa:
+            vinculos = cronograma.empresa.vinculos.filter(ativo=True)
+
+            if somente_email:
+                return [vinculo.usuario.email for vinculo in vinculos]
+
+            return [vinculo.usuario for vinculo in vinculos]
+
+        return []
