@@ -98,3 +98,7 @@
   fields:
     nome: COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
     visao: CODAE
+- model: perfil.perfil
+  fields:
+    nome: ORGAO_FISCALIZADOR
+    visao: CODAE
