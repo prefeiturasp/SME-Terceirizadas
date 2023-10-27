@@ -986,6 +986,10 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
         return self.alterar_dia or self.data_inicial
 
     @property
+    def inclusoes(self):
+        return self.datas_intervalo
+
+    @property
     def tipo(self):
         return 'Alteração do Tipo de Alimentação'
 
