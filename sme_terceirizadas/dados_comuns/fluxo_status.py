@@ -17,6 +17,7 @@ from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
+from .services import PartesInteressadasService
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory, obter_dias_uteis_apos
 
@@ -3599,6 +3600,36 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self._cria_notificacao(
                 template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
             )
+
+            self._envia_email_notificacao_codae_assina_cronograma()
+
+    def _envia_email_notificacao_codae_assina_cronograma(self):
+        numero_cronograma = self.numero
+        log_transicao = self.log_mais_recente
+        url_cronograma = f'{base_url}/pre-recebimento/detalhe-cronograma?uuid={self.uuid}'
+
+        html = render_to_string(
+            template_name='pre_recebimento_email_assinatura_cronograma_codae.html',
+            context={
+                'titulo': f'Cronograma Assinado: Nº {numero_cronograma}',
+                'numero_cronograma': numero_cronograma,
+                'log_transicao': log_transicao,
+                'url_cronograma': url_cronograma,
+            }
+        )
+
+        partes_interessadas_service = PartesInteressadasService()
+        partes_interessadas = (
+            partes_interessadas_service.buscar_por_nomes_de_perfis(['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA'], True) +
+            partes_interessadas_service.buscar_vinculadas_a_empresa_do_cronograma(self, True)
+        )
+
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Assinatura do cronograma Nº {numero_cronograma}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
 
     @xworkflows.after_transition('finaliza_solicitacao_alteracao')
     def _codae_finaliza_solicitacao_alteracao_hook(self, *args, **kwargs):
