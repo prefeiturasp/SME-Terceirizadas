@@ -23,7 +23,8 @@ from ...dados_comuns import constants
 from ...dados_comuns.constants import (
     TIPO_USUARIO_DIRETORIA_REGIONAL,
     TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    TIPO_USUARIO_NUTRIMANIFESTACAO
+    TIPO_USUARIO_NUTRIMANIFESTACAO,
+    TIPO_USUARIO_ORGAO_FISCALIZADOR
 )
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
@@ -33,6 +34,7 @@ from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoProduto,
     UsuarioDiretoriaRegional,
     UsuarioNutricionista,
+    UsuarioOrgaoFiscalizador,
     UsuarioTerceirizadaProduto
 )
 from ...dados_comuns.utils import url_configs
@@ -1646,11 +1648,12 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['GET'],
             url_path='filtro-reclamacoes-terceirizada',
             permission_classes=[UsuarioTerceirizadaProduto | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao |
-                                UsuarioNutricionista])
+                                UsuarioNutricionista | UsuarioOrgaoFiscalizador])
     def filtro_reclamacoes_terceirizada(self, request):
         if self.request.user.tipo_usuario in [TIPO_USUARIO_DIRETORIA_REGIONAL,
                                               TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                              TIPO_USUARIO_NUTRIMANIFESTACAO]:
+                                              TIPO_USUARIO_NUTRIMANIFESTACAO,
+                                              TIPO_USUARIO_ORGAO_FISCALIZADOR]:
             queryset = Produto.objects.filter(homologacao__uuid=request.query_params.get('uuid'))
         else:
             filtro_homologacao = {'homologacao__reclamacoes__status':
