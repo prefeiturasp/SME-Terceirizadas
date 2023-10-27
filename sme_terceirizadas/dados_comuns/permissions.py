@@ -158,7 +158,7 @@ class UsuarioNutricionista(BasePermission):
 
 
 class UsuarioOrgaoFiscalizador(BasePermission):
-    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+    """Permite acesso a usuários com vinculo a CODAE - Orgao Fiscalizador."""
 
     def has_permission(self, request, view):
         usuario = request.user
