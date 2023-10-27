@@ -3682,7 +3682,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                     cronograma=self
                 )
 
-    def _usuarios_partes_interessadas_dinutre(self):
+    def _usuarios_partes_interessadas_dinutre(self, only_email=False):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=(
                 'DINUTRE_DIRETORIA',
@@ -3691,6 +3691,9 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             vinculos__data_inicial__isnull=False,
             vinculos__data_final__isnull=True
         )
+
+        if only_email:
+            return [usuario.email for usuario in queryset]
 
         return [usuario for usuario in queryset]
 
@@ -3706,7 +3709,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         return [usuario for usuario in queryset]
 
-    def _usuarios_partes_interessadas_cronograma(self):
+    def _usuarios_partes_interessadas_cronograma(self, only_email=False):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=(
                 'DILOG_CRONOGRAMA',
@@ -3715,6 +3718,9 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             vinculos__data_inicial__isnull=False,
             vinculos__data_final__isnull=True
         )
+
+        if only_email:
+            return [usuario.email for usuario in queryset]
 
         return [usuario for usuario in queryset]
 
@@ -3920,6 +3926,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
             self._montar_dilog_notificacao()
+            self._envia_email_notificacao_retorno_codae_alteracao_cronograma('APROVOU')
 
     @xworkflows.after_transition('dilog_reprova')
     def _dilog_reprova_hook(self, *args, **kwargs):
@@ -3929,6 +3936,36 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
             self._montar_dilog_notificacao()
+            self._envia_email_notificacao_retorno_codae_alteracao_cronograma('REPROVOU')
+
+    def _envia_email_notificacao_retorno_codae_alteracao_cronograma(self, status_analise):
+        numero_cronograma = self.cronograma.numero
+        log_transicao = self.log_mais_recente
+        url_solicitacao_alteracao = f'{base_url}/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
+
+        html = render_to_string(
+            template_name='pre_recebimento_email_solicitacao_cronograma_parecer_codae.html',
+            context={
+                'titulo': f'Retorno Solicitação de Alteração do Cronograma {numero_cronograma}',
+                'numero_cronograma': numero_cronograma,
+                'log_transicao': log_transicao,
+                'status_analise': status_analise,
+                'url_solicitacao_alteracao': url_solicitacao_alteracao,
+            }
+        )
+
+        partes_interessadas = (
+            self._emails_partes_interessadas_fornecedor_e_distribuidor() +
+            self._usuarios_partes_interessadas_cronograma(only_email=True) +
+            self._usuarios_partes_interessadas_dinutre(only_email=True)
+        )
+
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Retorno Solicitação de Alteração do Cronograma {numero_cronograma}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
 
     class Meta:
         abstract = True
