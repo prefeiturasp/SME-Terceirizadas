@@ -47,6 +47,8 @@ from ..utils import (
     atualizar_status_ocorrencia,
     criar_log_aprovar_periodos_corrigidos,
     criar_log_solicitar_correcao_periodos,
+    get_campos_a_desconsiderar,
+    get_valor_total,
     log_alteracoes_escola_corrige_periodo,
     tratar_valores,
     tratar_workflow_todos_lancamentos
@@ -386,7 +388,7 @@ class SolicitacaoMedicaoInicialViewSet(
         uuid = request.query_params.get('uuid_solicitacao')
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
         retorno = []
-        campos_a_desconsiderar = ['matriculados', 'numero_de_alunos', 'frequencia', 'observacoes']
+        campos_a_desconsiderar = get_campos_a_desconsiderar(escola)
         for medicao in solicitacao.medicoes.all():
             valores = []
             for valor_medicao in medicao.valores_medicao.exclude(categoria_medicao__nome__icontains='DIETA'):
@@ -404,13 +406,17 @@ class SolicitacaoMedicaoInicialViewSet(
                             'valor': int(valor_medicao.valor),
                         })
             valores = tratar_valores(escola, valores)
-            retorno.append({
+            valor_total = get_valor_total(escola, valores, medicao)
+            dict_retorno = {
                 'nome_periodo_grupo': medicao.nome_periodo_grupo,
                 'status': medicao.status.name,
                 'justificativa': self.get_justificativa(medicao),
                 'valores': valores,
-                'valor_total': sum(v['valor'] for v in valores)
-            })
+                'valor_total': valor_total
+            }
+            if escola.eh_cei:
+                dict_retorno['quantidade_alunos'] = sum(v['valor'] for v in valores)
+            retorno.append(dict_retorno)
         return Response({'results': retorno}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['PATCH'], url_path='dre-aprova-solicitacao-medicao',
