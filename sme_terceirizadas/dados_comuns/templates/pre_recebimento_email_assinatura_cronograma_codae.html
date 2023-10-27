@@ -1,0 +1,17 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo%}
+<p style="text-align: left">
+  Olá!
+
+  <br/><br/>
+
+  A <strong>CODAE</strong> Assinou o Cronograma Nº <strong>{{ numero_cronograma }}</strong>, em {{ log_transicao.criado_em|date:"d/m/Y" }}:
+</p>
+
+<br/><br/>
+
+<a href="{{ url_cronograma }}">Clique aqui para acessar o cronograma</a>
+
+{% endblock %}
