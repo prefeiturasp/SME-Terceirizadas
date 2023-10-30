@@ -335,7 +335,8 @@ class SolicitacaoMedicaoInicialViewSet(
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid_sol_medicao)
         gera_pdf_relatorio_solicitacao_medicao_por_escola_async.delay(
             user=user,
-            nome_arquivo=f'Relatório Medição Inicial - {solicitacao.mes}/{solicitacao.ano}.pdf',
+            nome_arquivo=f'Relatório Medição Inicial - {solicitacao.escola.nome} - '
+                         f'{solicitacao.mes}/{solicitacao.ano}.pdf',
             uuid_sol_medicao=uuid_sol_medicao
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
