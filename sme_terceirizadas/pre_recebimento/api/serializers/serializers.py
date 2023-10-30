@@ -45,6 +45,34 @@ class EtapasDoCronogramaSerializer(serializers.ModelSerializer):
                   'total_embalagens')
 
 
+class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
+    data = serializers.SerializerMethodField()
+    nome_produto = serializers.SerializerMethodField()
+    numero_cronograma = serializers.SerializerMethodField()
+    uuid_cronograma = serializers.SerializerMethodField()
+    nome_fornecedor = serializers.SerializerMethodField()
+
+    def get_data(self, obj):
+        return obj.data_programada.strftime('%d/%m/%Y') if obj.data_programada else None
+
+    def get_nome_produto(self, obj):
+        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+
+    def get_numero_cronograma(self, obj):
+        return str(obj.cronograma.numero) if obj.cronograma else None
+
+    def get_uuid_cronograma(self, obj):
+        return obj.cronograma.uuid if obj.cronograma else None
+
+    def get_nome_fornecedor(self, obj):
+        return obj.cronograma.empresa.nome_fantasia if obj.cronograma.empresa else None
+
+    class Meta:
+        model = EtapasDoCronograma
+        fields = ('uuid', 'data', 'nome_produto', 'uuid_cronograma', 'numero_cronograma', 'nome_fornecedor',
+                  'numero_empenho', 'etapa', 'parte', 'quantidade')
+
+
 class SolicitacaoAlteracaoCronogramaSerializer(serializers.ModelSerializer):
 
     fornecedor = serializers.CharField(source='cronograma.empresa')
