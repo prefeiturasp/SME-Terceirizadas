@@ -65,6 +65,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSerializer,
     CronogramaSimplesSerializer,
     DocumentoDeRecebimentoSerializer,
+    EtapasDoCronogramaCalendarioSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
     LayoutDeEmbalagemDetalheSerializer,
@@ -98,6 +99,7 @@ from sme_terceirizadas.pre_recebimento.utils import (
 from ...dados_comuns.api.paginations import DefaultPagination
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...relatorios.relatorios import get_pdf_cronograma
+from .validators import valida_parametros_calendario
 
 
 class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
@@ -715,3 +717,19 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
             'retrieve': DocumentoDeRecebimentoSerializer,  # TODO: Alterar para o de detalhar quando for criado.
         }
         return serializer_classes_map.get(self.action, DocumentoDeRecebimentoCreateSerializer)
+
+
+class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = EtapasDoCronograma.objects.filter(cronograma__isnull=False).order_by('-criado_em')
+    serializer_class = EtapasDoCronogramaCalendarioSerializer
+    permission_classes = (UsuarioEhFornecedor,)
+
+    def get_queryset(self):
+        mes = self.request.query_params.get('mes', None)
+        ano = self.request.query_params.get('ano', None)
+
+        valida_parametros_calendario(mes, ano)
+        queryset = EtapasDoCronograma.objects.filter(cronograma__isnull=False).order_by('-criado_em')
+        queryset = queryset.filter(data_programada__month=mes, data_programada__year=ano)
+
+        return queryset
