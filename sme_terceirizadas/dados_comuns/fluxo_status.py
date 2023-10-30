@@ -1059,7 +1059,10 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         usuarios = self._usuarios_partes_interessadas_escola()
         template_notif = 'logistica_notificacao_distribuidor_confirma_requisicao.html'
         tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
-        titulo_notif = f'Nova Guia de Remessa Nº {self.numero_guia}'
+        titulo_notif = (
+            f'Nova Guia de Remessa Nº {self.numero_guia}. ' +
+            'Prepare-se para receber os alimentos em sua Unidade Escolar!'
+        )
         link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
 
         self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
