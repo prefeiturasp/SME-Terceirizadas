@@ -278,7 +278,7 @@ def popula_campo_matriculados_cei(solicitacao, tabela, faixa_id, dia, indice_per
         valores_dia += ['0']
 
 
-def popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_dia, logs_dietas):
+def popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_dia, logs_dietas, periodo_corrente):
     if campo == 'aprovadas':
         try:
             if 'ENTERAL' in categoria_corrente:
@@ -286,6 +286,7 @@ def popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_
                     data__day=dia,
                     data__month=solicitacao.mes,
                     data__year=solicitacao.ano,
+                    periodo_escolar__nome=periodo_corrente,
                     classificacao__nome__in=[
                         'Tipo A RESTRIÇÃO DE AMINOÁCIDOS',
                         'Tipo A ENTERAL'
@@ -296,6 +297,7 @@ def popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_
                     data__day=dia,
                     data__month=solicitacao.mes,
                     data__year=solicitacao.ano,
+                    periodo_escolar__nome=periodo_corrente,
                     classificacao__nome=categoria_corrente.split(' - ')[1].title()
                 ).first()
                 if not log_selec:
@@ -570,6 +572,7 @@ def popula_campos(
     indice_campo = 0
     indice_categoria = 0
     categoria_corrente = tabela['categorias'][indice_categoria]
+    periodo_corrente = tabela['periodos'][indice_periodo]
     for campo in tabela['nomes_campos']:
         if indice_campo > tabela['len_categorias'][indice_categoria] - 1:
             indice_campo = 0
@@ -589,7 +592,8 @@ def popula_campos(
                 indice_periodo, valores_dia,
                 logs_alunos_matriculados,
                 categoria_corrente)
-            popula_campo_aprovadas(solicitacao, dia, campo, categoria_corrente, valores_dia, logs_dietas)
+            popula_campo_aprovadas(
+                solicitacao, dia, campo, categoria_corrente, valores_dia, logs_dietas, periodo_corrente)
             popula_campo_consumido_solicitacoes_alimentacao(solicitacao, dia, campo, categoria_corrente, valores_dia)
             popula_campo_total_refeicoes_pagamento(
                 solicitacao, tabela,
