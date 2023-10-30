@@ -16,6 +16,7 @@ router.register('documentos-de-recebimento', viewsets.DocumentoDeRecebimentoMode
 
 router.register('solicitacao-de-alteracao-de-cronograma', viewsets.SolicitacaoDeAlteracaoCronogramaViewSet,
                 basename='solicitacao-de-alteracao-de-cronograma')
+router.register(r'calendario-cronogramas', viewsets.CalendarioCronogramaViewset, basename='calendario-cronogramas')
 
 
 urlpatterns = [
