@@ -248,7 +248,7 @@ class SolicitacaoMedicaoInicialViewSet(
             })
         if request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
             status_medicao_corrigida = ['MEDICAO_CORRIGIDA_PELA_UE', 'MEDICAO_CORRIGIDA_PARA_CODAE']
-            sumario_medicoes_corrigidas = [s for s in sumario if s['status'] == status_medicao_corrigida]
+            sumario_medicoes_corrigidas = [s for s in sumario if s['status'] in status_medicao_corrigida]
             total_medicao_corrigida = 0
             total_dados = []
             for s in sumario_medicoes_corrigidas:
