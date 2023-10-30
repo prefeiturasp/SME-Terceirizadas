@@ -989,6 +989,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
                 template_name=template_notif,
                 context={
                     'solicitacao': self,
+                    'url': link
                 }
             )
             for usuario in usuarios:
@@ -1114,7 +1115,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         usuarios = self._usuarios_partes_interessadas_escola()
         template_notif = 'logistica_notificacao_escola_aviso_reposicao.html'
         tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
-        titulo_notif = f'Prepare-se para uma possível reposição dos alimentos não recebidos! | Guia: {self.numero_guia}'
+        titulo_notif = f'Prepare-se para receber a Reposição de Alimentos da Guia de Remessa Nº {self.numero_guia}'
         link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
 
         self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
@@ -1140,7 +1141,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         usuarios = self._usuarios_partes_interessadas_escola()
         template_notif = 'logistica_notificacao_escola_aviso_reposicao.html'
         tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
-        titulo_notif = f'Prepare-se para uma possível reposição dos alimentos não recebidos! | Guia: {self.numero_guia}'
+        titulo_notif = f'Prepare-se para receber a Reposição de Alimentos da Guia de Remessa Nº {self.numero_guia}'
         link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
 
         self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
