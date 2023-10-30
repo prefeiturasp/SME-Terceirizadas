@@ -28,40 +28,6 @@ logger = logging.getLogger(__name__)
 
 
 @celery.app.task(soft_time_limit=1000, time_limit=1200) # noqa C901
-def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
-    hoje = datetime.date.today()
-
-    guias = Guia.objects.filter(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA, data_entrega=hoje)
-
-    for guia in guias.all():
-        if guia.escola:
-            vinculos = guia.escola.vinculos.filter(
-                ativo=True,
-                data_inicial__isnull=False,
-                data_final__isnull=True
-            )
-
-            users = [vinculo.usuario for vinculo in vinculos]
-        else:
-            users = []
-
-        if users:
-            texto_notificacao = render_to_string(
-                template_name='logistica_notificacao_avisa_ue_para_conferir_no_prazo.html',
-            )
-            for user in users:
-                Notificacao.notificar(
-                    tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
-                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
-                    titulo=f'Hoje tem entrega de alimentos | Guia: {guia.numero_guia}',
-                    descricao=texto_notificacao,
-                    usuario=user,
-                    link=f'/logistica/conferir-entrega?numero_guia={guia.numero_guia}',
-                    guia=guia,
-                )
-
-
-@celery.app.task(soft_time_limit=1000, time_limit=1200) # noqa C901
 def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
     hoje = datetime.date.today()
 
