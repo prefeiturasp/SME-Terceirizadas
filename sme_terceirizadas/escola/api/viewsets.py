@@ -74,7 +74,6 @@ from .permissions import PodeVerEditarFotoAlunoNoSGP
 from .serializers import (
     AlunosMatriculadosPeriodoEscolaSerializer,
     DiaCalendarioSerializer,
-    DiaSuspensaoAtividadesSerializer,
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
@@ -786,15 +785,18 @@ class DiaSuspensaoAtividadesViewSet(ViewSetActionPermissionMixin, ModelViewSet):
     lookup_field = 'uuid'
 
     def get_serializer_class(self):
+        from ...pre_recebimento.api.serializers.serializers import EtapasDoCronogramaCalendarioSerializer
+
         if self.action in ['create', 'update', 'partial_update']:
             return DiaSuspensaoAtividadesCreateManySerializer
-        return DiaSuspensaoAtividadesSerializer
+        return EtapasDoCronogramaCalendarioSerializer
 
     def get_queryset(self):
-        queryset = DiaSuspensaoAtividades.objects.all()
+        from ...pre_recebimento.models import EtapasDoCronograma
+        queryset = EtapasDoCronograma.objects.filter(cronograma__isnull=False)
         if 'mes' in self.request.query_params and 'ano' in self.request.query_params:
-            queryset = queryset.filter(data__month=self.request.query_params.get('mes'),
-                                       data__year=self.request.query_params.get('ano'))
+            queryset = queryset.filter(data_programada__month=self.request.query_params.get('mes'),
+                                       data_programada__year=self.request.query_params.get('ano'))
         return queryset
 
     def create(self, request, *args, **kwargs):
