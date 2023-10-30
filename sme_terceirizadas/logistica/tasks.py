@@ -75,7 +75,11 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
                 Notificacao.notificar(
                     tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
                     categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
-                    titulo=f'Registre a conferência da Guia de Remessa de alimentos! | Guia: {guia.numero_guia}',
+                    titulo=(
+                        f'A Guia de Remessa Nº {guia.numero_guia}, ' +
+                        f'com data de entrega prevista para {guia.data_entrega}, ' +
+                        'está Pendente de Conferência'
+                    ),
                     descricao=texto_notificacao,
                     usuario=user,
                     link=f'/logistica/conferir-entrega?numero_guia={guia.numero_guia}',
