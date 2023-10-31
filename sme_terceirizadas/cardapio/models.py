@@ -986,6 +986,14 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
         return self.alterar_dia or self.data_inicial
 
     @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in self.datas_intervalo.values_list('data', flat=True)])
+
+    @property
+    def existe_dia_cancelado(self):
+        return self.datas_intervalo.filter(cancelado=True).exists()
+
+    @property
     def inclusoes(self):
         return self.datas_intervalo
 
@@ -1077,6 +1085,8 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             'unidade_educacional': self.rastro_escola.nome,
             'terceirizada': self.rastro_terceirizada,
             'tipo_doc': 'Alteração do tipo de Alimentação CEMEI',
+            'data_inicial': self.data_inicial,
+            'data_final': self.data_final,
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'motivo': self.motivo.nome,
@@ -1085,7 +1095,9 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             'data_autorizacao': self.data_autorizacao,
             'label_data': label_data,
             'data_log': data_log,
-            'id_externo': self.id_externo
+            'id_externo': self.id_externo,
+            'datas_intervalo': self.datas_intervalo,
+            'status': self.status
         }
 
     def __str__(self):
