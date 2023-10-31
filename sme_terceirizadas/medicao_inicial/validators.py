@@ -1,7 +1,10 @@
+import datetime
+
 from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 from ..dieta_especial.models import LogQuantidadeDietasAutorizadas
 from ..escola.models import DiaCalendario
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoNormal
+from ..paineis_consolidados.models import SolicitacoesEscola
 from .models import CategoriaMedicao, ValorMedicao
 
 
@@ -247,4 +250,104 @@ def validate_lancamento_dietas(solicitacao, lista_erros):
                 'erro': 'Restam dias a serem lançados nas dietas.'
             })
     lista_erros = erros_unicos(lista_erros)
+    return erros_unicos(lista_erros)
+
+
+def remover_duplicados(query_set):
+    aux = []
+    sem_uuid_repetido = []
+    for resultado in query_set:
+        if resultado.uuid not in aux:
+            aux.append(resultado.uuid)
+            sem_uuid_repetido.append(resultado)
+    return sem_uuid_repetido
+
+
+def formatar_query_set_alteracao(query_set, mes, ano):
+    datas = []
+    for alteracao_alimentacao in query_set:
+        alteracao = alteracao_alimentacao.get_raw_model.objects.get(uuid=alteracao_alimentacao.uuid)
+        datas_intervalos = alteracao.datas_intervalo.filter(data__month=mes, data__year=ano, cancelado=False)
+        for obj in datas_intervalos:
+            if not len(str(obj.data.day)) == 1:
+                datas.append(str(obj.data.day))
+            else:
+                datas.append(('0' + str(obj.data.day)))
+    return list(set(datas))
+
+
+def get_lista_dias_solicitacoes(params, escola):
+    query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola.uuid)
+    query_set = SolicitacoesEscola.busca_filtro(query_set, params)
+    query_set = query_set.filter(data_evento__month=params['mes'], data_evento__year=params['ano'])
+    query_set = query_set.filter(data_evento__lt=datetime.date.today())
+    if params.get('eh_lanche_emergencial', False):
+        query_set = query_set.filter(motivo__icontains='Emergencial')
+        query_set = remover_duplicados(query_set)
+        return formatar_query_set_alteracao(query_set, params['mes'], params['ano'])
+    else:
+        query_set = remover_duplicados(query_set)
+        datas_kits = []
+        for obj in query_set:
+            if not len(str(obj.data_evento.day)) == 1:
+                datas_kits.append(str(obj.data_evento.day))
+            else:
+                datas_kits.append(('0' + str(obj.data_evento.day)))
+        return datas_kits
+
+
+def validate_lancamento_kit_lanche(solicitacao, lista_erros):
+    escola = solicitacao.escola
+    mes = solicitacao.mes
+    ano = solicitacao.ano
+    tipo_solicitacao = 'Kit Lanche'
+    params = {
+        'mes': mes, 'ano': ano,
+        'escola_uuid': escola.uuid,
+        'tipo_solicitacao': tipo_solicitacao
+    }
+    dias_kit_lanche = get_lista_dias_solicitacoes(params, escola)
+
+    valores_da_medicao = ValorMedicao.objects.filter(
+        medicao__solicitacao_medicao_inicial=solicitacao,
+        nome_campo='kit_lanche',
+        medicao__grupo__nome='Solicitações de Alimentação',
+        dia__in=dias_kit_lanche,
+    ).order_by('dia').exclude(valor=None).values_list('dia', flat=True)
+    valores_da_medicao = list(set(valores_da_medicao))
+    if len(valores_da_medicao) != len(dias_kit_lanche):
+        lista_erros.append({
+            'periodo_escolar': 'Solicitações de Alimentação',
+            'erro': 'Restam dias a serem lançados nos Kit Lanches.'
+        })
+    return erros_unicos(lista_erros)
+
+
+def validate_lanche_emergencial(solicitacao, lista_erros):
+    escola = solicitacao.escola
+    mes = solicitacao.mes
+    ano = solicitacao.ano
+    tipo_solicitacao = 'Alteração'
+    eh_lanche_emergencial = True
+
+    params = {
+        'mes': mes, 'ano': ano,
+        'escola_uuid': escola.uuid,
+        'tipo_solicitacao': tipo_solicitacao,
+        'eh_lanche_emergencial': eh_lanche_emergencial
+    }
+    dias_lanche_emergencial = get_lista_dias_solicitacoes(params, escola)
+
+    valores_da_medicao = ValorMedicao.objects.filter(
+        medicao__solicitacao_medicao_inicial=solicitacao,
+        nome_campo='lanche_emergencial',
+        medicao__grupo__nome='Solicitações de Alimentação',
+        dia__in=dias_lanche_emergencial,
+    ).order_by('dia').exclude(valor=None).values_list('dia', flat=True)
+    valores_da_medicao = list(set(valores_da_medicao))
+    if len(valores_da_medicao) != len(dias_lanche_emergencial):
+        lista_erros.append({
+            'periodo_escolar': 'Solicitações de Alimentação',
+            'erro': 'Restam dias a serem lançados nos Lanches Emergenciais.'
+        })
     return erros_unicos(lista_erros)
