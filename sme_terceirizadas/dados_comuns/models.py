@@ -527,7 +527,7 @@ class Notificacao(models.Model):
         choices=CATEGORIA_NOTIFICACAO_CHOICES,
     )
 
-    titulo = models.CharField('Título', max_length=100, default='', blank=True)
+    titulo = models.CharField('Título', max_length=200, default='', blank=True)
 
     descricao = models.TextField('Descrição', max_length=5000, default='', blank=True)
 
