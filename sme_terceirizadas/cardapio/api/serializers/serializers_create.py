@@ -19,7 +19,6 @@ from ....dados_comuns.validators import (
 from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
 from ...api.validators import (
-    data_troca_nao_pode_ser_superior_a_data_inversao,
     escola_nao_pode_cadastrar_dois_combos_iguais,
     hora_inicio_nao_pode_ser_maior_que_hora_final,
     nao_pode_existir_solicitacao_igual_para_mesma_escola,
@@ -150,7 +149,6 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
             deve_ser_no_mesmo_ano_corrente(data_de)
             deve_ser_no_mesmo_ano_corrente(data_para)
 
-        data_troca_nao_pode_ser_superior_a_data_inversao(data_de, data_para)
         nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de, data_para, escola, tipos_alimentacao)
         nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para)
         deve_ser_dia_letivo(escola, data_de)
@@ -158,7 +156,6 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         if 'data_de_2' in attrs and attrs['data_de_2'] is not None:
             data_de_2 = attrs['data_de_2']
             data_para_2 = attrs['data_para_2']
-            data_troca_nao_pode_ser_superior_a_data_inversao(data_de_2, data_para_2)
             nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de_2, data_para_2, escola, tipos_alimentacao)
             nao_pode_ter_mais_que_60_dias_diferenca(data_de_2, data_para_2)
             deve_ser_dia_letivo(escola, data_de_2)

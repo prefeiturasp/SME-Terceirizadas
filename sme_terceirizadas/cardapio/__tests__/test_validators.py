@@ -6,7 +6,6 @@ from rest_framework.exceptions import ValidationError
 
 from ..api.validators import (
     cardapio_antigo,
-    data_troca_nao_pode_ser_superior_a_data_inversao,
     hora_inicio_nao_pode_ser_maior_que_hora_final,
     nao_pode_existir_solicitacao_igual_para_mesma_escola,
     nao_pode_ter_mais_que_60_dias_diferenca
@@ -21,12 +20,6 @@ def test_valida_se_data_de_cardapio_eh_antiga(cardapio_valido, cardapio_invalido
     assert cardapio_antigo(cardapio_valido)
     with pytest.raises(ValidationError, match='Não pode ser cardápio antigo'):
         cardapio_antigo(cardapio_invalido)
-
-
-def test_valida_se_as_datas_se_convergem(cardapio_valido, cardapio_valido2):
-    assert data_troca_nao_pode_ser_superior_a_data_inversao(cardapio_valido.data, cardapio_valido2.data)
-    with pytest.raises(ValidationError, match='Data da referência deve ser anterior a data aplicar em'):
-        data_troca_nao_pode_ser_superior_a_data_inversao(cardapio_valido2.data, cardapio_valido.data)
 
 
 def test_valida_60_dias_exception(datas_de_inversoes_intervalo_maior_60_dias):

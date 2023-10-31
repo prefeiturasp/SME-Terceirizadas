@@ -19,13 +19,6 @@ def cardapio_antigo(cardapio: Cardapio):
     return True
 
 
-def data_troca_nao_pode_ser_superior_a_data_inversao(data_de: datetime.date, data_para: datetime.date):
-    if data_de >= data_para:
-        raise serializers.ValidationError(
-            'Data da referência deve ser anterior a data aplicar em')
-    return True
-
-
 def nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de: datetime.date, data_para: datetime.date,
                                                          escola: Escola, tipos_alimentacao: list):
     inversao_cardapio = InversaoCardapio.objects.filter(
