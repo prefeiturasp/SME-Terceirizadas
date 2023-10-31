@@ -143,7 +143,8 @@ def nomes_colunas(worksheet, status_, LINHAS, COLUNAS, single_cell_format):
 
 
 def aplica_fundo_amarelo_tipo1(df, worksheet, workbook, solicitacao, model_obj, LINHAS, COLUNAS, index):
-    if solicitacao.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI', 'INC_ALIMENTA']:
+    if solicitacao.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI', 'INC_ALIMENTA', 'ALT_CARDAPIO',
+                                'ALT_CARDAPIO_CEMEI']:
         if model_obj.existe_dia_cancelado or model_obj.status == 'ESCOLA_CANCELOU':
             worksheet.write(
                 LINHAS[3] + 1 + index,
