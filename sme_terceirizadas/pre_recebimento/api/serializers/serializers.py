@@ -338,3 +338,23 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentoDeRecebimento
         fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'status', 'criado_em')
+
+
+class PainelDocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
+    numero_cronograma = serializers.CharField(source='cronograma.numero')
+    nome_produto = serializers.CharField(source='cronograma.produto')
+    nome_empresa = serializers.CharField(source='cronograma.empresa.razao_social')
+    status = serializers.CharField(source='get_status_display')
+    log_mais_recente = serializers.SerializerMethodField()
+
+    def get_log_mais_recente(self, obj):
+        if obj.log_mais_recente:
+            if obj.log_mais_recente.criado_em.date() == datetime.date.today():
+                return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M')
+            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y')
+        else:
+            return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
+
+    class Meta:
+        model = DocumentoDeRecebimento
+        fields = ('uuid', 'numero_cronograma', 'nome_produto', 'nome_empresa', 'status', 'log_mais_recente')
