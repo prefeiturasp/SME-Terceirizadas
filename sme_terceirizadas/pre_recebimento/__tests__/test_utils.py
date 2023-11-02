@@ -9,7 +9,7 @@ def test_service_dashboard_solicitacao_alteracao_cronograma_profiles(
     django_user_model,
     client_autenticado_dinutre_diretoria
 ):
-    service = ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles()
+    service = ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
     usuario = django_user_model.objects.first()
     status_esperados = [
         'CRONOGRAMA_CIENTE',
@@ -26,7 +26,7 @@ def test_service_dashboard_solicitacao_alteracao_cronograma_profiles_value_error
     django_user_model,
     client_autenticado_vinculo_escola
 ):
-    service = ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles()
+    service = ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
     usuario = django_user_model.objects.first()
 
     with pytest.raises(ValueError, match='Perfil não existe'):
