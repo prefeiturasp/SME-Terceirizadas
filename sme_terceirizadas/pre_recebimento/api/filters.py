@@ -136,6 +136,10 @@ class DocumentoDeRecebimentoFilter(filters.FilterSet):
         field_name='cronograma__produto__nome',
         lookup_expr='icontains',
     )
+    nome_fornecedor = filters.CharFilter(
+        field_name='cronograma__empresa__razao_social',
+        lookup_expr='icontains',
+    )
     status = filters.MultipleChoiceFilter(
         field_name='status',
         choices=[(str(state), state) for state in LayoutDeEmbalagemWorkflow.states],
