@@ -2023,3 +2023,29 @@ def test_url_dashboard_documentos_de_recebimento_ver_mais_com_filtros(
     response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
 
     assert len(response.json()['results']['dados']) == 1
+
+
+def test_url_documentos_de_recebimento_detalhar(client_autenticado_fornecedor, documento_de_recebimento_factory,
+                                                cronograma_factory, django_user_model,
+                                                tipo_de_documento_de_recebimento_factory):
+    user_id = client_autenticado_fornecedor.session['_auth_user_id']
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    contrato = empresa.contratos.first()
+    cronograma = cronograma_factory.create(empresa=empresa, contrato=contrato)
+    documento_de_recebimento = documento_de_recebimento_factory.create(cronograma=cronograma)
+    tipo_de_documento_de_recebimento_factory.create(documento_recebimento=documento_de_recebimento)
+
+    response = client_autenticado_fornecedor.get(f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/')
+    dedos_documento_de_recebimento = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert dedos_documento_de_recebimento['uuid'] == str(documento_de_recebimento.uuid)
+    assert dedos_documento_de_recebimento['numero_laudo'] == str(documento_de_recebimento.numero_laudo)
+    assert dedos_documento_de_recebimento['criado_em'] == documento_de_recebimento.criado_em.strftime('%d/%m/%Y')
+    assert dedos_documento_de_recebimento['status'] == documento_de_recebimento.get_status_display()
+    assert dedos_documento_de_recebimento['numero_cronograma'] == str(cronograma.numero)
+    assert dedos_documento_de_recebimento['nome_produto'] == str(cronograma.produto.nome)
+    assert dedos_documento_de_recebimento['pregao_chamada_publica'] == str(cronograma.contrato.pregao_chamada_publica)
+    assert dedos_documento_de_recebimento['tipos_de_documentos'] is not None
+    assert dedos_documento_de_recebimento['tipos_de_documentos'][0]['tipo_documento'] == 'LAUDO'

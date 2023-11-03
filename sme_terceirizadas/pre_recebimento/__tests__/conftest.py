@@ -12,7 +12,8 @@ from ..models import LayoutDeEmbalagem, TipoDeEmbalagemDeLayout, UnidadeMedida
 def contrato():
     return mommy.make('Contrato',
                       numero='0003/2022',
-                      processo='123')
+                      processo='123',
+                      pregao_chamada_publica='123456789')
 
 
 @pytest.fixture
