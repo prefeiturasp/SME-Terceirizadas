@@ -323,6 +323,7 @@ class PainelLayoutEmbalagemSerializer(serializers.ModelSerializer):
 
 
 class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
+    criado_em = serializers.SerializerMethodField()
     numero_cronograma = serializers.SerializerMethodField()
     pregao_chamada_publica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
@@ -336,6 +337,9 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
 
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
+
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime('%d/%m/%Y')
 
     class Meta:
         model = DocumentoDeRecebimento
@@ -358,6 +362,7 @@ class TipoDocumentoDeRecebimentoLookupSerializer(serializers.ModelSerializer):
 
 
 class DocumentoDeRecebimentoDetalharSerializer(serializers.ModelSerializer):
+    criado_em = serializers.SerializerMethodField()
     numero_cronograma = serializers.SerializerMethodField()
     pregao_chamada_publica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
@@ -372,6 +377,9 @@ class DocumentoDeRecebimentoDetalharSerializer(serializers.ModelSerializer):
 
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
+
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime('%d/%m/%Y')
 
     class Meta:
         model = DocumentoDeRecebimento
