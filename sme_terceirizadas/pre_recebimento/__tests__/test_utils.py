@@ -1,6 +1,6 @@
 import pytest
 
-from sme_terceirizadas.pre_recebimento.utils import ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
+from sme_terceirizadas.pre_recebimento.api.services import ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
 
 pytestmark = pytest.mark.django_db
 
