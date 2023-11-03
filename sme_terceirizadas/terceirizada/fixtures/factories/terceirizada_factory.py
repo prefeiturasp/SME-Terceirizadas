@@ -12,4 +12,4 @@ class EmpresaFactory(DjangoModelFactory):
 
     nome_fantasia = Sequence(lambda n: f'Empresa {fake.unique.name()}')
     razao_social = Sequence(lambda n: f'Empresa {fake.unique.name()} LTDA')
-    cnpj = Sequence(lambda n: fake.unique.cnpj())
+    cnpj = Sequence(lambda n: fake.unique.cnpj().replace('.', '').replace('/', '').replace('-', ''))
