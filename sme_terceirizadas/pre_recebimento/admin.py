@@ -114,7 +114,7 @@ class DocumentoDeRecebimentoAdmin(NestedModelAdmin):
     inlines = [TipoDocumentoRecebimentoInline, ]
 
     def get_produto(self, obj):
-        return obj.cronograma.produto.nome
+        return obj.cronograma.produto.nome if obj.cronograma.produto else None
     get_produto.short_description = 'Produto'
 
     def get_cronograma(self, obj):
