@@ -26,6 +26,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCriarSolicitacoesAlteracaoCronograma,
     PermissaoParaDarCienciaAlteracaoCronograma,
     PermissaoParaDashboardCronograma,
+    PermissaoParaDashboardDocumentosDeRecebimento,
     PermissaoParaDashboardLayoutEmbalagem,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCronograma,
@@ -71,12 +72,18 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     LayoutDeEmbalagemSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
+    PainelDocumentoDeRecebimentoSerializer,
     PainelLayoutEmbalagemSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
     SolicitacaoAlteracaoCronogramaSerializer,
     TipoEmbalagemQldSerializer,
     UnidadeMedidaSerialzer
+)
+from sme_terceirizadas.pre_recebimento.api.services import (
+    ServiceDashboardDocumentosDeRecebimento,
+    ServiceDashboardLayoutEmbalagem,
+    ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
@@ -87,12 +94,6 @@ from sme_terceirizadas.pre_recebimento.models import (
     SolicitacaoAlteracaoCronograma,
     TipoEmbalagemQld,
     UnidadeMedida
-)
-from sme_terceirizadas.pre_recebimento.utils import (
-    LayoutDeEmbalagemPagination,
-    ServiceDashboardLayoutEmbalagemProfiles,
-    ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
-    UnidadeMedidaPagination
 )
 
 from ...dados_comuns.api.paginations import DefaultPagination
@@ -575,7 +576,7 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = UnidadeMedida.objects.all().order_by('-criado_em')
     permission_classes = (PermissaoParaCadastrarVisualizarUnidadesMedida,)
-    pagination_class = UnidadeMedidaPagination
+    pagination_class = DefaultPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UnidadeMedidaFilter
 
@@ -597,7 +598,7 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
     serializer_class = LayoutDeEmbalagemSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = LayoutDeEmbalagemFilter
-    pagination_class = LayoutDeEmbalagemPagination
+    pagination_class = DefaultPagination
     permission_classes = (PermissaoParaVisualizarLayoutDeEmbalagem,)
     permission_action_classes = {
         'create': [UsuarioEhFornecedor],
@@ -635,44 +636,14 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
     @action(detail=False, methods=['GET'],
             url_path='dashboard', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
     def dashboard(self, request):
-        filtro = LayoutDeEmbalagemFilter(request.query_params, self.get_queryset())
+        dashboard_service = ServiceDashboardLayoutEmbalagem(
+            self.get_queryset(),
+            LayoutDeEmbalagemFilter,
+            PainelLayoutEmbalagemSerializer,
+            request
+        )
 
-        return Response({'results': self._dados_dashboard(request, filtro.qs)})
-
-    def _dados_dashboard(self, request: Request, queryset_base: QuerySet) -> list:
-        offset = int(request.query_params.get('offset', 0))
-        limit = int(request.query_params.get('limit', 6))
-        lista_status_ver_mais = request.query_params.getlist('status', None)
-
-        if lista_status_ver_mais:
-            dados = self._dados_ver_mais(queryset_base, lista_status_ver_mais, offset, limit)
-
-        else:
-            dados = self._dados_cards(queryset_base, offset, limit)
-
-        return dados
-
-    def _dados_ver_mais(self, queryset_base, lista_status_ver_mais, offset, limit):
-        qs = queryset_base.filter(status__in=lista_status_ver_mais)
-        dados = {
-            'status': lista_status_ver_mais,
-            'total': len(qs),
-            'dados': PainelLayoutEmbalagemSerializer(qs[offset:offset + limit], many=True).data
-        }
-
-        return dados
-
-    def _dados_cards(self, queryset_base, offset, limit):
-        dados = []
-        for status_perfil in ServiceDashboardLayoutEmbalagemProfiles.get_dashboard_status(self.request.user):
-            status_perfil_list = [status_perfil]
-            qs = queryset_base.filter(status__in=status_perfil_list)
-            dados.append({
-                'status': status_perfil,
-                'dados': PainelLayoutEmbalagemSerializer(qs[offset:offset + limit], many=True).data
-            })
-
-        return dados
+        return Response({'results': dashboard_service.get_dados_dashboard()})
 
     @action(detail=True, methods=['PATCH'],
             url_path='fornecedor-realiza-correcao', permission_classes=(UsuarioEhFornecedor,))
@@ -715,3 +686,15 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
             'retrieve': DocumentoDeRecebimentoSerializer,  # TODO: Alterar para o de detalhar quando for criado.
         }
         return serializer_classes_map.get(self.action, DocumentoDeRecebimentoCreateSerializer)
+
+    @action(detail=False, methods=['GET'],
+            url_path='dashboard', permission_classes=(PermissaoParaDashboardDocumentosDeRecebimento,))
+    def dashboard(self, request):
+        dashboard_service = ServiceDashboardDocumentosDeRecebimento(
+            self.get_queryset(),
+            DocumentoDeRecebimentoFilter,
+            PainelDocumentoDeRecebimentoSerializer,
+            request
+        )
+
+        return Response({'results': dashboard_service.get_dados_dashboard()})
