@@ -10,10 +10,14 @@ from rest_framework.test import APIClient
 
 from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
-from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow
+from sme_terceirizadas.dados_comuns.fluxo_status import DocumentoDeRecebimentoWorkflow, LayoutDeEmbalagemWorkflow
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer
+)
+from sme_terceirizadas.pre_recebimento.api.services import (
+    ServiceDashboardDocumentosDeRecebimento,
+    ServiceDashboardLayoutEmbalagem
 )
 from sme_terceirizadas.pre_recebimento.fixtures.factories.documentos_de_recebimento_factory import fake
 from sme_terceirizadas.pre_recebimento.models import (
@@ -25,11 +29,6 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoDeDocumentoDeRecebimento,
     TipoEmbalagemQld,
     UnidadeMedida
-)
-from sme_terceirizadas.pre_recebimento.utils import (
-    LayoutDeEmbalagemPagination,
-    ServiceDashboardLayoutEmbalagemProfiles,
-    UnidadeMedidaPagination
 )
 
 
@@ -841,7 +840,7 @@ def test_url_unidades_medida_listar(client_autenticado_dilog_cronograma, unidade
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data['count'] == len(unidades_medida_logistica)
-    assert len(response.data['results']) == UnidadeMedidaPagination.page_size
+    assert len(response.data['results']) == DefaultPagination.page_size
     assert response.data['next'] is not None
 
 
@@ -1079,7 +1078,7 @@ def test_url_layout_de_embalagem_listagem(client_autenticado_qualidade, lista_la
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data['count'] == len(lista_layouts_de_embalagem)
-    assert len(response.data['results']) == LayoutDeEmbalagemPagination.page_size
+    assert len(response.data['results']) == DefaultPagination.page_size
     assert response.data['next'] is not None
 
 
@@ -1112,7 +1111,7 @@ def test_url_dashboard_layout_embalagens_status_retornados(
     assert response.status_code == status.HTTP_200_OK
 
     user = get_user_model().objects.get()
-    status_esperados = ServiceDashboardLayoutEmbalagemProfiles.get_dashboard_status(user)
+    status_esperados = ServiceDashboardLayoutEmbalagem.get_dashboard_status(user)
     status_recebidos = [result['status'] for result in response.json()['results']]
 
     for status_recebido in status_recebidos:
@@ -1867,3 +1866,160 @@ def test_url_documentos_de_recebimento_listagem_not_authorized(client_autenticad
     response = client_autenticado.get('/documentos-de-recebimento/')
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_dashboard_documentos_de_recebimento_status_retornados(
+    client_autenticado_codae_dilog,
+    documento_de_recebimento_factory
+):
+    user = get_user_model().objects.get()
+    status_esperados = ServiceDashboardDocumentosDeRecebimento.get_dashboard_status(user)
+    for status_esperado in status_esperados:
+        documento_de_recebimento_factory(status=status_esperado)
+
+    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    status_recebidos = [result['status'] for result in response.json()['results']]
+
+    for status_recebido in status_recebidos:
+        assert status_recebido in status_esperados
+
+
+@pytest.mark.parametrize(
+    "status_card",
+    [
+        DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+    ],
+)
+def test_url_dashboard_documentos_de_recebimento_quantidade_itens_por_card(
+    client_autenticado_codae_dilog,
+    documento_de_recebimento_factory,
+    status_card
+):
+    documento_de_recebimento_factory.create_batch(size=10, status=status_card)
+
+    response = client_autenticado_codae_dilog.get(
+        "/documentos-de-recebimento/dashboard/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    dados_card = list(
+        filter(lambda e: e["status"] == status_card, response.json()["results"])
+    ).pop()["dados"]
+
+    assert len(dados_card) == 6
+
+
+@pytest.mark.parametrize(
+    'status_card',
+    [
+        DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+    ]
+)
+def test_url_dashboard_documentos_de_recebimento_com_filtro(
+    client_autenticado_codae_dilog,
+    documento_de_recebimento_factory,
+    status_card
+):
+    documentos_de_recebimento = documento_de_recebimento_factory.create_batch(size=10, status=status_card)
+
+    filtros = {'numero_cronograma': documentos_de_recebimento[0].cronograma.numero}
+    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+    dados_card = list(filter(
+        lambda e: e['status'] == status_card,
+        response.json()['results']
+    )).pop()['dados']
+
+    assert len(dados_card) == 1
+
+    filtros = {'nome_produto': documentos_de_recebimento[0].cronograma.produto.nome}
+    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+    dados_card = list(filter(
+        lambda e: e['status'] == status_card,
+        response.json()['results']
+    )).pop()['dados']
+
+    assert len(dados_card) == 1
+
+    filtros = {'nome_fornecedor': documentos_de_recebimento[0].cronograma.empresa.razao_social}
+    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+    dados_card = list(filter(
+        lambda e: e['status'] == status_card,
+        response.json()['results']
+    )).pop()['dados']
+
+    assert len(dados_card) == 1
+
+
+@pytest.mark.parametrize(
+    'status_card',
+    [
+        DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+    ]
+)
+def test_url_dashboard_documentos_de_recebimento_ver_mais(
+    client_autenticado_codae_dilog,
+    documento_de_recebimento_factory,
+    status_card
+):
+    documentos_de_recebimento = documento_de_recebimento_factory.create_batch(size=10, status=status_card)
+
+    filtros = {
+        'status': status_card,
+        'offset': 0,
+        'limit': 10
+    }
+    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']['dados']) == 10
+
+    assert response.json()['results']['total'] == len(documentos_de_recebimento)
+
+
+@pytest.mark.parametrize(
+    'status_card',
+    [
+        DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+    ]
+)
+def test_url_dashboard_documentos_de_recebimento_ver_mais_com_filtros(
+    client_autenticado_codae_dilog,
+    documento_de_recebimento_factory,
+    status_card
+):
+
+    documentos_de_recebimento = documento_de_recebimento_factory.create_batch(size=10, status=status_card)
+
+    filtros = {
+        'status': status_card,
+        'offset': 0,
+        'limit': 10,
+        'numero_cronograma': documentos_de_recebimento[0].cronograma.numero
+    }
+    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+
+    assert len(response.json()['results']['dados']) == 1
+
+    filtros = {
+        'status': status_card,
+        'offset': 0,
+        'limit': 10,
+        'nome_produto': documentos_de_recebimento[0].cronograma.produto.nome
+    }
+    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+
+    assert len(response.json()['results']['dados']) == 1
+
+    filtros = {
+        'status': status_card,
+        'offset': 0,
+        'limit': 10,
+        'nome_fornecedor': documentos_de_recebimento[0].cronograma.empresa.razao_social
+    }
+    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+
+    assert len(response.json()['results']['dados']) == 1
