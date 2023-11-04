@@ -18,6 +18,7 @@ def formata_resultado_inclusoes_etec_autorizadas(dia, mes, ano, inclusao):
                 'dia': f'{dia:02d}',
                 'periodo': f'{qp.periodo_escolar.nome}',
                 'alimentacoes': alimentacoes,
+                'tipos_alimentacao': list(set(qp.tipos_alimentacao.all().values_list('nome', flat=True))),
                 'numero_alunos': qp.numero_alunos,
                 'inclusao_id_externo': inclusao.id_externo
             }
