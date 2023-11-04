@@ -471,7 +471,7 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         'Medicao',
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_escolar_noite)
-    mommy.make(
+    medicao_programas_projetos = mommy.make(
         'Medicao',
         solicitacao_medicao_inicial=solicitacao_medicao,
         grupo=grupo_programas_e_projetos)
@@ -483,6 +483,16 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         'Medicao',
         solicitacao_medicao_inicial=solicitacao_medicao,
         grupo=grupo_solicitacoes_alimentacao)
+
+    for dia in range(1, 31):
+        for nome_campo in ['numero_de_alunos', 'frequencia', 'lanche', 'lanche_4h', 'refeicao', 'repeticao_refeicao',
+                           'sobremesa', 'repeticao_sobremesa']:
+            mommy.make('ValorMedicao',
+                       medicao=medicao_programas_projetos,
+                       nome_campo=nome_campo,
+                       dia=f'{dia:02d}',
+                       categoria_medicao=categoria_medicao,
+                       valor='10')
     return solicitacao_medicao
 
 
