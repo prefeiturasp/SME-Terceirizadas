@@ -1,19 +1,31 @@
 import datetime
+
+from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 
-from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 from sme_terceirizadas.dados_comuns.utils import get_ultimo_dia_mes
-from sme_terceirizadas.paineis_consolidados.utils import tratar_inclusao_continua
+from sme_terceirizadas.paineis_consolidados.utils import (
+    formata_resultado_inclusoes_etec_autorizadas,
+    tratar_data_evento_final_no_mes,
+    tratar_dias_duplicados,
+    tratar_inclusao_continua
+)
+
+from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 from ..dieta_especial.models import LogQuantidadeDietasAutorizadas
 from ..escola.models import DiaCalendario
-from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+from ..inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoNormal
+)
 from ..paineis_consolidados.models import SolicitacoesEscola
-from sme_terceirizadas.paineis_consolidados.utils import formata_resultado_inclusoes_etec_autorizadas, tratar_data_evento_final_no_mes, tratar_dias_duplicados
 from .models import CategoriaMedicao, ValorMedicao
 
 
 def get_nome_campo(campo):
     campos = {
+        'Número de Alunos': 'numero_de_alunos',
         'Matriculados': 'matriculados',
         'Frequência': 'frequencia',
         'Solicitado': 'solicitado',
@@ -30,6 +42,7 @@ def get_nome_campo(campo):
 
 def get_alimentacao_nome_by_campo(campo):
     campos = {
+        'numero_de_alunos': 'Número de Alunos',
         'matriculados': 'Matriculados',
         'frequencia': 'Frequência',
         'solicitado': 'Solicitado',
@@ -373,34 +386,31 @@ def validate_lanche_emergencial(solicitacao, lista_erros):
     return erros_unicos(lista_erros)
 
 
-def validate_solicitacoes_etec(solicitacao, lista_erros):
-    escola = solicitacao.escola
-    mes = solicitacao.mes
-    ano = solicitacao.ano
-    tipo_solicitacao = 'Inclusão de'
-
-    params = {
-        'mes': mes, 'ano': ano,
-        'escola_uuid': escola.uuid,
-        'tipo_solicitacao': tipo_solicitacao,
-    }
-
-    date = datetime.date(int(ano), int(mes), 1)
-    query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola.uuid)
-    query_set = SolicitacoesEscola.busca_filtro(query_set, params)
-    query_set = query_set.filter(
-        Q(data_evento__month=mes, data_evento__year=ano) |
-        Q(data_evento__lt=date, data_evento_2__gte=date)
-    )
-    query_set = query_set.filter(
-        data_evento__lt=datetime.date.today(),
-        motivo='ETEC'
-    )
-
-    query_set = remover_duplicados(query_set)
-
-    return_dict = []
+def validar_valores_etec(return_dict, solicitacao):
     periodo_com_erro = False
+    inclusoes_unicas = tratar_dias_duplicados(return_dict)
+    for inclusao in inclusoes_unicas:
+        tipos_de_alimentacao = ['Número de Alunos', 'Frequência'] + inclusao['tipos_alimentacao']
+        if 'Refeição' in tipos_de_alimentacao:
+            tipos_de_alimentacao.append('Repetição de Refeição')
+        if 'Sobremesa' in tipos_de_alimentacao:
+            tipos_de_alimentacao.append('Repetição de Sobremesa')
+
+        for alimentacao in tipos_de_alimentacao:
+            valores_da_medicao = ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao,
+                nome_campo=get_nome_campo(alimentacao),
+                medicao__grupo__nome='ETEC',
+                dia=inclusao['dia'],
+                categoria_medicao__nome='ALIMENTAÇÃO'
+            )
+            if not valores_da_medicao:
+                periodo_com_erro = True
+    return periodo_com_erro
+
+
+def formatar_return_dict(query_set, mes, ano):
+    return_dict = []
 
     def append(dia, inclusao):
         resultado = formata_resultado_inclusoes_etec_autorizadas(dia, mes, ano, inclusao)
@@ -426,24 +436,36 @@ def validate_solicitacoes_etec(solicitacao, lista_erros):
         while dia <= data_evento_final_no_mes:
             append(dia, inclusao)
             dia += 1
+    return return_dict
 
-    for inclusao in tratar_dias_duplicados(return_dict):
-        tipos_de_alimentacao = inclusao['tipos_alimentacao']
-        if 'Refeição' in tipos_de_alimentacao:
-            tipos_de_alimentacao.append('Repetição de Refeição')
-        if 'Sobremesa' in tipos_de_alimentacao:
-            tipos_de_alimentacao.append('Repetição de Sobremesa')
 
-        for alimentacao in inclusao['tipos_alimentacao']:
-            valores_da_medicao = ValorMedicao.objects.filter(
-                medicao__solicitacao_medicao_inicial=solicitacao,
-                nome_campo=get_nome_campo(alimentacao),
-                medicao__grupo__nome='ETEC',
-                dia=inclusao['dia'],
-                categoria_medicao__nome='ALIMENTAÇÃO'
-            )
-            if not valores_da_medicao:
-                periodo_com_erro = True
+def validate_solicitacoes_etec(solicitacao, lista_erros):
+    escola = solicitacao.escola
+    mes = solicitacao.mes
+    ano = solicitacao.ano
+    tipo_solicitacao = 'Inclusão de'
+
+    params = {
+        'mes': mes, 'ano': ano,
+        'escola_uuid': escola.uuid,
+        'tipo_solicitacao': tipo_solicitacao,
+    }
+
+    date = datetime.date(int(ano), int(mes), 1)
+    query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola.uuid)
+    query_set = SolicitacoesEscola.busca_filtro(query_set, params)
+    query_set = query_set.filter(
+        Q(data_evento__month=mes, data_evento__year=ano) |
+        Q(data_evento__lt=date, data_evento_2__gte=date)
+    )
+    query_set = query_set.filter(
+        data_evento__lt=datetime.date.today(),
+        motivo='ETEC'
+    )
+
+    query_set = remover_duplicados(query_set)
+    return_dict = formatar_return_dict(query_set, mes, ano)
+    periodo_com_erro = validar_valores_etec(return_dict, solicitacao)
     if periodo_com_erro:
         lista_erros.append({
             'periodo_escolar': 'ETEC',
@@ -491,6 +513,20 @@ def validar_dietas_programas_projetos(return_dict, log_dietas_especiais, solicit
     return periodo_com_erro_dieta
 
 
+def validar_valores_programas_categoria_alimentacao(nomes_campos_padrao, solicitacao, periodo_com_erro, inclusao):
+    for nome_campo in nomes_campos_padrao:
+        valores_da_medicao = ValorMedicao.objects.filter(
+            medicao__solicitacao_medicao_inicial=solicitacao,
+            nome_campo=get_nome_campo(nome_campo),
+            medicao__grupo__nome='Programas e Projetos',
+            dia=inclusao['dia'],
+            categoria_medicao__nome='ALIMENTAÇÃO'
+        )
+        if not valores_da_medicao:
+            periodo_com_erro = True
+    return periodo_com_erro
+
+
 def validar_dias_inclusoes_programas_projetos(return_dict, escola, solicitacao, periodo_com_erro):
     nomes_campos_padrao = ['numero_de_alunos', 'frequencia']
     tipo_unidade = escola.tipo_unidade
@@ -513,18 +549,19 @@ def validar_dias_inclusoes_programas_projetos(return_dict, escola, solicitacao, 
                 nomes_campos_padrao.append('repeticao_refeicao')
             if nome_formatado == 'sobremesa':
                 nomes_campos_padrao.append('repeticao_sobremesa')
-
-        for nome_campo in nomes_campos_padrao:
-            valores_da_medicao = ValorMedicao.objects.filter(
-                medicao__solicitacao_medicao_inicial=solicitacao,
-                nome_campo=get_nome_campo(nome_campo),
-                medicao__grupo__nome='Programas e Projetos',
-                dia=inclusao['dia'],
-                categoria_medicao__nome='ALIMENTAÇÃO'
-            )
-            if not valores_da_medicao:
-                periodo_com_erro = True
+        periodo_com_erro = validar_valores_programas_categoria_alimentacao(nomes_campos_padrao,
+                                                                           solicitacao, periodo_com_erro,
+                                                                           inclusao)
     return periodo_com_erro
+
+
+def formatar_dicionario_inclusoes(inclusoes, mes, ano, return_dict):
+    for inclusao in inclusoes:
+        for periodo in inclusao.quantidades_periodo.all():
+            if not periodo.cancelado:
+                inc = SolicitacoesEscola.objects.filter(uuid=inclusao.uuid)
+                inc = remover_duplicados(inc)[0]
+                tratar_inclusao_continua(mes, ano, periodo, inc, return_dict)
 
 
 def validate_solicitacoes_programas_e_projetos(solicitacao, lista_erros):
@@ -539,12 +576,7 @@ def validate_solicitacoes_programas_e_projetos(solicitacao, lista_erros):
     if not inclusoes:
         return lista_erros
 
-    for inclusao in inclusoes:
-        for periodo in inclusao.quantidades_periodo.all():
-            if not periodo.cancelado:
-                inc = SolicitacoesEscola.objects.filter(uuid=inclusao.uuid)
-                inc = remover_duplicados(inc)[0]
-                tratar_inclusao_continua(mes, ano, periodo, inc, return_dict)
+    formatar_dicionario_inclusoes(inclusoes, mes, ano, return_dict)
 
     dias_inclusoes = [int(d['dia']) for d in return_dict]
 
