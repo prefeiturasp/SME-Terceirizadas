@@ -91,7 +91,7 @@ class ResponsavelSerializer(serializers.ModelSerializer):
 class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     escola = serializers.CharField(source='escola.nome')
     escola_uuid = serializers.CharField(source='escola.uuid')
-    tipo_contagem_alimentacoes = TipoContagemAlimentacaoSerializer()
+    tipos_contagem_alimentacao = TipoContagemAlimentacaoSerializer(many=True)
     responsaveis = ResponsavelSerializer(many=True)
     ocorrencia = OcorrenciaMedicaoInicialSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
