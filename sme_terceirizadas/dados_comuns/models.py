@@ -119,7 +119,9 @@ class LogSolicitacoesUsuario(
         LAYOUT_SOLICITADO_CORRECAO,
         LAYOUT_APROVADO,
         LAYOUT_CORRECAO_REALIZADA,
-    ) = range(92)
+        LAYOUT_ATUALIZADO,
+        DOCUMENTO_ENVIADO_PARA_ANALISE,
+    ) = range(94)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -250,6 +252,8 @@ class LogSolicitacoesUsuario(
         (LAYOUT_SOLICITADO_CORRECAO, 'Layout solicitado correção'),
         (LAYOUT_APROVADO, 'Layout aprovado'),
         (LAYOUT_CORRECAO_REALIZADA, 'Layout correção realizada'),
+        (LAYOUT_ATUALIZADO, 'Layout atualizado'),
+        (DOCUMENTO_ENVIADO_PARA_ANALISE, 'Documento enviado para análise'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -277,8 +281,9 @@ class LogSolicitacoesUsuario(
         CRONOGRAMA,
         SOLICITACAO_DE_ALTERACAO_CRONOGRAMA,
         NOTIFICACAO_OCORRENCIA_GUIA,
-        LAYOUT_DE_EMBALAGEM
-    ) = range(22)
+        LAYOUT_DE_EMBALAGEM,
+        DOCUMENTO_DE_RECEBIMENTO
+    ) = range(23)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -303,7 +308,8 @@ class LogSolicitacoesUsuario(
         (CRONOGRAMA, 'Cronograma'),
         (SOLICITACAO_DE_ALTERACAO_CRONOGRAMA, 'Solicitação de alteração do cronograma'),
         (NOTIFICACAO_OCORRENCIA_GUIA, 'Notificação de guia com ocorrência'),
-        (LAYOUT_DE_EMBALAGEM, 'Layout de embalagem')
+        (LAYOUT_DE_EMBALAGEM, 'Layout de embalagem'),
+        (DOCUMENTO_DE_RECEBIMENTO, 'Documento de recebimento')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -521,7 +527,7 @@ class Notificacao(models.Model):
         choices=CATEGORIA_NOTIFICACAO_CHOICES,
     )
 
-    titulo = models.CharField('Título', max_length=100, default='', blank=True)
+    titulo = models.CharField('Título', max_length=200, default='', blank=True)
 
     descricao = models.TextField('Descrição', max_length=5000, default='', blank=True)
 

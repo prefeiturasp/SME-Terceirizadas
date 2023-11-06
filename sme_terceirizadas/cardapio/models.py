@@ -303,7 +303,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
             resposta_sim_nao=resposta_sim_nao
         )
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         data_de_inversao = ''
         data_de_inversao_2 = ''
         if self.data_de_inversao:
@@ -465,7 +465,7 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     def numero_alunos(self):
         return self.quantidades_por_periodo.aggregate(Sum('numero_alunos'))['numero_alunos__sum']
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         datas = list(self.suspensoes_alimentacao.order_by('data').values_list('data', flat=True))
         datas = [d.strftime('%d/%m/%Y') for d in datas]
         datas = ' '.join(datas)
@@ -601,7 +601,7 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
     def numero_alunos(self):
         return ''
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -739,7 +739,7 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
     def datas(self):
         return ', '.join([data.strftime('%d/%m/%Y') for data in self.datas_intervalo.values_list('data', flat=True)])
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -892,7 +892,7 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
             })
         return substituicoes
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -986,6 +986,18 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
         return self.alterar_dia or self.data_inicial
 
     @property
+    def datas(self):
+        return ', '.join([data.strftime('%d/%m/%Y') for data in self.datas_intervalo.values_list('data', flat=True)])
+
+    @property
+    def existe_dia_cancelado(self):
+        return self.datas_intervalo.filter(cancelado=True).exists()
+
+    @property
+    def inclusoes(self):
+        return self.datas_intervalo
+
+    @property
     def tipo(self):
         return 'Alteração do Tipo de Alimentação'
 
@@ -1067,12 +1079,14 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             })
         return substituicoes
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
             'terceirizada': self.rastro_terceirizada,
             'tipo_doc': 'Alteração do tipo de Alimentação CEMEI',
+            'data_inicial': self.data_inicial,
+            'data_final': self.data_final,
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'motivo': self.motivo.nome,
@@ -1081,7 +1095,9 @@ class AlteracaoCardapioCEMEI(CriadoEm, CriadoPor, TemChaveExterna, TemObservacao
             'data_autorizacao': self.data_autorizacao,
             'label_data': label_data,
             'data_log': data_log,
-            'id_externo': self.id_externo
+            'id_externo': self.id_externo,
+            'datas_intervalo': self.datas_intervalo,
+            'status': self.status
         }
 
     def __str__(self):
@@ -1151,6 +1167,22 @@ class FaixaEtariaSubstituicaoAlimentacaoCEMEICEI(TemChaveExterna, TemFaixaEtaria
     class Meta:
         verbose_name = 'Faixa Etária de substituição de alimentação CEMEI CEI'
         verbose_name_plural = 'Faixas Etárias de substituição de alimentação CEMEI CEI'
+
+
+class DataIntervaloAlteracaoCardapioCEMEI(CanceladoIndividualmente, CriadoEm, TemData, TemChaveExterna,
+                                          TemIdentificadorExternoAmigavel):
+    alteracao_cardapio_cemei = models.ForeignKey('AlteracaoCardapioCEMEI',
+                                                 on_delete=models.CASCADE,
+                                                 related_name='datas_intervalo')
+
+    def __str__(self):
+        return (f'Data {self.data} da Alteração de cardápio CEMEI #{self.alteracao_cardapio_cemei.id_externo} de '
+                f'{self.alteracao_cardapio_cemei.data_inicial} - {self.alteracao_cardapio_cemei.data_inicial}')
+
+    class Meta:
+        verbose_name = 'Data do intervalo de Alteração de cardápio CEMEI'
+        verbose_name_plural = 'Datas do intervalo de Alteração de cardápio CEMEI'
+        ordering = ('data',)
 
 
 class MotivoDRENaoValida(ExportModelOperationsMixin('motivo_dre_nao_valida'), Nomeavel, TemChaveExterna):

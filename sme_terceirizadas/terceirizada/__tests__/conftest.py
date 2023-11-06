@@ -18,7 +18,7 @@ from ..api.serializers.serializers import (
 from ..models import Contrato, Edital, EmailTerceirizadaPorModulo, Modulo, Nutricionista, Terceirizada, VigenciaContrato
 
 fake = Faker('pt_BR')
-fake.seed(420)
+Faker.seed(420)
 
 
 @pytest.fixture

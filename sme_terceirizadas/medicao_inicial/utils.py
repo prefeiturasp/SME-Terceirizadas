@@ -1498,3 +1498,22 @@ def tratar_workflow_todos_lancamentos(usuario, raw_sql):
         raw_sql += ('WHERE NOT %(solicitacao_medicao_inicial)s.status = '
                     "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE' ")
     return raw_sql
+
+
+def get_valor_total(escola, valores, medicao):
+    valor_total = sum(v['valor'] for v in valores)
+    if escola.eh_cei:
+        fator_multiplicativo = 2
+        if medicao.nome_periodo_grupo == 'INTEGRAL':
+            fator_multiplicativo = 5
+        elif medicao.nome_periodo_grupo == 'PARCIAL':
+            fator_multiplicativo = 3
+        valor_total *= fator_multiplicativo
+    return valor_total
+
+
+def get_campos_a_desconsiderar(escola):
+    campos_a_desconsiderar = ['matriculados', 'numero_de_alunos', 'observacoes']
+    if not escola.eh_cei:
+        campos_a_desconsiderar.append('frequencia')
+    return campos_a_desconsiderar

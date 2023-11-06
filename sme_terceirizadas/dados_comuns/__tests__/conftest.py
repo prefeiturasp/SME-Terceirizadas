@@ -12,7 +12,7 @@ from ..constants import COORDENADOR_LOGISTICA, DJANGO_ADMIN_PASSWORD
 from ..models import CentralDeDownload, Notificacao, TemplateMensagem
 
 fake = Faker('pt_BR')
-fake.seed(420)
+Faker.seed(420)
 
 
 @pytest.fixture(scope='function', params=[

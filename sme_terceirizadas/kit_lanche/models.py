@@ -188,7 +188,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
     def numero_alunos(self):
         return self.quantidade_alunos
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -257,7 +257,7 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
             })
         return faixas_etarias
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -483,10 +483,12 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     def numero_alunos(self):
         return self.escolas_quantidades.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
 
-    @property
-    def get_escolas_quantidades_dict(self):
+    def get_escolas_quantidades_dict(self, instituicao=None):
         escolas_quantidades = []
-        for escola_quantidade in self.escolas_quantidades.all():
+        qs_escolas_quantidades = self.escolas_quantidades.all()
+        if instituicao:
+            qs_escolas_quantidades = qs_escolas_quantidades.filter(escola=instituicao)
+        for escola_quantidade in qs_escolas_quantidades:
             escolas_quantidades.append({
                 'codigo': escola_quantidade.escola.codigo_eol,
                 'unidade_escolar': escola_quantidade.escola.nome,
@@ -497,12 +499,15 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
             })
         return escolas_quantidades
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
-        return {
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
+        from sme_terceirizadas.escola.models import Escola
+        dict_ = {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
-            'unidade_educacional': 'Várias Escolas',
+            'unidade_educacional': (f'{self.escolas_quantidades.count()} Escolas'
+                                    if self.escolas_quantidades.count() > 1
+                                    else self.escolas_quantidades.get().escola.nome),
             'terceirizada': 'Várias Terceirizadas',
-            'tipo_doc': 'Kit Lanche Passeio Unificado',
+            'tipo_doc': 'Kit Lanche Unificado',
             'data_evento': self.data,
             'numero_alunos': self.numero_alunos,
             'local_passeio': self.local,
@@ -513,9 +518,18 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
             'total_kits': self.quantidade_alimentacoes,
             'label_data': label_data,
             'data_log': data_log,
-            'escolas_quantidades': self.get_escolas_quantidades_dict,
+            'escolas_quantidades': self.get_escolas_quantidades_dict(),
             'id_externo': self.id_externo
         }
+
+        if isinstance(instituicao, Escola):
+            dict_['unidade_educacional'] = instituicao.nome
+            dict_['terceirizada'] = instituicao.lote.terceirizada.nome_fantasia
+            dict_['numero_alunos'] = self.escolas_quantidades.get(escola=instituicao).quantidade_alunos
+            dict_['total_kits'] = self.total_kit_lanche_escola(instituicao.uuid)
+            dict_['escolas_quantidades'] = self.get_escolas_quantidades_dict(instituicao)
+
+        return dict_
 
     @property
     def solicitacoes_similares(self):
@@ -672,7 +686,7 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             'quantidade_alunos': self.solicitacao_emei.quantidade_alunos
         }
 
-    def solicitacao_dict_para_relatorio(self, label_data, data_log):
+    def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
             'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
             'unidade_educacional': self.rastro_escola.nome,
@@ -750,6 +764,7 @@ class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna, MatriculadosQuandoCr
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.PROTECT)
 
     class Meta:
+        ordering = ('faixa_etaria__inicio',)
         verbose_name = 'Faixa e quantidade de alunos da CEI da solicitação kit lanche CEMEI'
         verbose_name_plural = 'Faixas e quantidade de alunos da CEI das solicitações kit lanche CEMEI'
 

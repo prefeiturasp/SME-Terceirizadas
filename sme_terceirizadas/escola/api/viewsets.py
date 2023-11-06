@@ -151,8 +151,11 @@ class EscolaSimplissimaComDREUnpaginatedViewSet(EscolaSimplissimaComDREViewSet):
     @action(detail=False, methods=['GET'], url_path='terc-total')
     def terc_total(self, request):
         escolas = self.get_queryset().filter(tipo_gestao__nome='TERC TOTAL')
+        escola = request.query_params.get('escola', None)
         dre = request.query_params.get('dre', None)
         terceirizada = request.query_params.get('terceirizada', None)
+        if escola:
+            escolas = escolas.filter(uuid=escola)
         if dre:
             escolas = escolas.filter(diretoria_regional__uuid=dre)
         if terceirizada:

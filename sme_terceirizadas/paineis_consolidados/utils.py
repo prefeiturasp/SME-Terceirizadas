@@ -18,6 +18,7 @@ def formata_resultado_inclusoes_etec_autorizadas(dia, mes, ano, inclusao):
                 'dia': f'{dia:02d}',
                 'periodo': f'{qp.periodo_escolar.nome}',
                 'alimentacoes': alimentacoes,
+                'tipos_alimentacao': list(set(qp.tipos_alimentacao.all().values_list('nome', flat=True))),
                 'numero_alunos': qp.numero_alunos,
                 'inclusao_id_externo': inclusao.id_externo
             }
@@ -58,6 +59,7 @@ def tratar_data_evento_final_no_mes(data_evento_final_no_mes, sol_escola, big_ra
 def get_dias_inclusao(obj, model_obj):
     objects = {
         'ALT_CARDAPIO': 'datas_intervalo',
+        'ALT_CARDAPIO_CEMEI': 'datas_intervalo',
         'INC_ALIMENTA': 'inclusoes_normais',
         'INC_ALIMENTA_CEI': 'dias_motivos_da_inclusao_cei',
         'INC_ALIMENTA_CEMEI': 'dias_motivos_da_inclusao_cemei',

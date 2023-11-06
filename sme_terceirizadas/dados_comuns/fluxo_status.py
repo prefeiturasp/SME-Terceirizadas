@@ -17,6 +17,7 @@ from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
+from .services import PartesInteressadasService
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory, obter_dias_uteis_apos
 
@@ -988,6 +989,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
                 template_name=template_notif,
                 context={
                     'solicitacao': self,
+                    'url': link
                 }
             )
             for usuario in usuarios:
@@ -1058,7 +1060,10 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         usuarios = self._usuarios_partes_interessadas_escola()
         template_notif = 'logistica_notificacao_distribuidor_confirma_requisicao.html'
         tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
-        titulo_notif = f'Nova Guia de Remessa Nº {self.numero_guia}'
+        titulo_notif = (
+            f'Nova Guia de Remessa Nº {self.numero_guia}. ' +
+            'Prepare-se para receber os alimentos em sua Unidade Escolar!'
+        )
         link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
 
         self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
@@ -1110,7 +1115,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         usuarios = self._usuarios_partes_interessadas_escola()
         template_notif = 'logistica_notificacao_escola_aviso_reposicao.html'
         tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
-        titulo_notif = f'Prepare-se para uma possível reposição dos alimentos não recebidos! | Guia: {self.numero_guia}'
+        titulo_notif = f'Prepare-se para receber a Reposição de Alimentos da Guia de Remessa Nº {self.numero_guia}'
         link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
 
         self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
@@ -1136,7 +1141,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         usuarios = self._usuarios_partes_interessadas_escola()
         template_notif = 'logistica_notificacao_escola_aviso_reposicao.html'
         tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
-        titulo_notif = f'Prepare-se para uma possível reposição dos alimentos não recebidos! | Guia: {self.numero_guia}'
+        titulo_notif = f'Prepare-se para receber a Reposição de Alimentos da Guia de Remessa Nº {self.numero_guia}'
         link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
 
         self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
@@ -1729,8 +1734,9 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         self.save()
 
     def eh_alteracao_lanche_emergencial(self):
-        from sme_terceirizadas.cardapio.models import AlteracaoCardapio
-        return isinstance(self, AlteracaoCardapio) and self.motivo and self.motivo.nome == 'Lanche Emergencial'
+        from sme_terceirizadas.cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEMEI
+        return ((isinstance(self, AlteracaoCardapio) or isinstance(self, AlteracaoCardapioCEMEI))
+                and self.motivo and self.motivo.nome == 'Lanche Emergencial')
 
     def get_dias_suspensao(self):
         from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
@@ -3599,6 +3605,36 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
             )
 
+            self._envia_email_notificacao_codae_assina_cronograma()
+
+    def _envia_email_notificacao_codae_assina_cronograma(self):
+        numero_cronograma = self.numero
+        log_transicao = self.log_mais_recente
+        url_cronograma = f'{base_url}/pre-recebimento/detalhe-cronograma?uuid={self.uuid}'
+
+        html = render_to_string(
+            template_name='pre_recebimento_email_assinatura_cronograma_codae.html',
+            context={
+                'titulo': f'Cronograma Assinado: Nº {numero_cronograma}',
+                'numero_cronograma': numero_cronograma,
+                'log_transicao': log_transicao,
+                'url_cronograma': url_cronograma,
+            }
+        )
+
+        partes_interessadas_service = PartesInteressadasService()
+        partes_interessadas = (
+            partes_interessadas_service.buscar_por_nomes_de_perfis(['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA'], True) +
+            partes_interessadas_service.buscar_vinculadas_a_empresa_do_cronograma(self, True)
+        )
+
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Assinatura do cronograma Nº {numero_cronograma}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('finaliza_solicitacao_alteracao')
     def _codae_finaliza_solicitacao_alteracao_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -3681,7 +3717,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                     cronograma=self
                 )
 
-    def _usuarios_partes_interessadas_dinutre(self):
+    def _usuarios_partes_interessadas_dinutre(self, only_email=False):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=(
                 'DINUTRE_DIRETORIA',
@@ -3690,6 +3726,9 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             vinculos__data_inicial__isnull=False,
             vinculos__data_final__isnull=True
         )
+
+        if only_email:
+            return [usuario.email for usuario in queryset]
 
         return [usuario for usuario in queryset]
 
@@ -3705,7 +3744,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         return [usuario for usuario in queryset]
 
-    def _usuarios_partes_interessadas_cronograma(self):
+    def _usuarios_partes_interessadas_cronograma(self, only_email=False):
         queryset = Usuario.objects.filter(
             vinculos__perfil__nome__in=(
                 'DILOG_CRONOGRAMA',
@@ -3714,6 +3753,9 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             vinculos__data_inicial__isnull=False,
             vinculos__data_final__isnull=True
         )
+
+        if only_email:
+            return [usuario.email for usuario in queryset]
 
         return [usuario for usuario in queryset]
 
@@ -3919,6 +3961,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
             self._montar_dilog_notificacao()
+            self._envia_email_notificacao_retorno_codae_alteracao_cronograma('APROVOU')
 
     @xworkflows.after_transition('dilog_reprova')
     def _dilog_reprova_hook(self, *args, **kwargs):
@@ -3928,6 +3971,36 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
             self._montar_dilog_notificacao()
+            self._envia_email_notificacao_retorno_codae_alteracao_cronograma('REPROVOU')
+
+    def _envia_email_notificacao_retorno_codae_alteracao_cronograma(self, status_analise):
+        numero_cronograma = self.cronograma.numero
+        log_transicao = self.log_mais_recente
+        url_solicitacao_alteracao = f'{base_url}/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
+
+        html = render_to_string(
+            template_name='pre_recebimento_email_solicitacao_cronograma_parecer_codae.html',
+            context={
+                'titulo': f'Retorno Solicitação de Alteração do Cronograma {numero_cronograma}',
+                'numero_cronograma': numero_cronograma,
+                'log_transicao': log_transicao,
+                'status_analise': status_analise,
+                'url_solicitacao_alteracao': url_solicitacao_alteracao,
+            }
+        )
+
+        partes_interessadas = (
+            self._emails_partes_interessadas_fornecedor_e_distribuidor() +
+            self._usuarios_partes_interessadas_cronograma(only_email=True) +
+            self._usuarios_partes_interessadas_dinutre(only_email=True)
+        )
+
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Retorno Solicitação de Alteração do Cronograma {numero_cronograma}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
 
     class Meta:
         abstract = True
@@ -4021,6 +4094,7 @@ class LayoutDeEmbalagemWorkflow(xwf_models.Workflow):
         ('codae_aprova', ENVIADO_PARA_ANALISE, APROVADO),
         ('codae_solicita_correcao', ENVIADO_PARA_ANALISE, SOLICITADO_CORRECAO),
         ('fornecedor_realiza_correcao', SOLICITADO_CORRECAO, ENVIADO_PARA_ANALISE),
+        ('fornecedor_atualiza', APROVADO, ENVIADO_PARA_ANALISE),
     )
 
     initial_state = LAYOUT_CRIADO
@@ -4056,6 +4130,46 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA,
+                                      usuario=user)
+
+    @xworkflows.after_transition('fornecedor_atualiza')
+    def _fornecedor_atualiza_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ATUALIZADO,
+                                      usuario=user)
+
+    class Meta:
+        abstract = True
+
+
+class DocumentoDeRecebimentoWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    DOCUMENTO_CRIADO = 'DOCUMENTO_CRIADO'
+    ENVIADO_PARA_ANALISE = 'ENVIADO_PARA_ANALISE'
+
+    states = (
+        (DOCUMENTO_CRIADO, 'Documento Criado'),
+        (ENVIADO_PARA_ANALISE, 'Enviado para Análise'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', DOCUMENTO_CRIADO, ENVIADO_PARA_ANALISE),
+    )
+
+    initial_state = DOCUMENTO_CRIADO
+
+
+class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = DocumentoDeRecebimentoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DOCUMENTO_ENVIADO_PARA_ANALISE,
                                       usuario=user)
 
     class Meta:

@@ -1,3 +1,4 @@
+import datetime
 import json
 import uuid
 
@@ -5,18 +6,23 @@ import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from sme_terceirizadas.dados_comuns import constants
+from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
 from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer
 )
+from sme_terceirizadas.pre_recebimento.fixtures.factories.documentos_de_recebimento_factory import fake
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
+    DocumentoDeRecebimento,
     Laboratorio,
     LayoutDeEmbalagem,
     SolicitacaoAlteracaoCronograma,
+    TipoDeDocumentoDeRecebimento,
     TipoEmbalagemQld,
     UnidadeMedida
 )
@@ -970,15 +976,25 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado_
     assert response.data['results'] == NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True).data
 
 
-def test_url_cronograma_action_listar_para_cadastro_de_layout(client_autenticado_fornecedor):
-    """Deve obter lista com numeros, pregao e nome do produto de todas os produtos cadastradas."""
-    client = client_autenticado_fornecedor
-    response = client.get('/cronogramas/lista-cronogramas-cadastro-layout/')
+def test_url_cronograma_action_listar_para_cadastro(client_autenticado_fornecedor,
+                                                    django_user_model, cronograma_factory):
+    """Deve obter lista com numeros, pregao e nome do produto dos cronogramas cadastrados do fornecedor."""
+    user_id = client_autenticado_fornecedor.session['_auth_user_id']
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    cronogramas_do_fornecedor = [cronograma_factory.create(empresa=empresa) for _ in range(10)]
+    outros_cronogramas = [cronograma_factory.create() for _ in range(5)]
+    todos_cronogramas = cronogramas_do_fornecedor + outros_cronogramas
+    response = client_autenticado_fornecedor.get('/cronogramas/lista-cronogramas-cadastro/')
 
-    cronogramas = Cronograma.objects.all().order_by('-criado_em')
+    cronogramas = Cronograma.objects.filter(empresa=empresa).order_by('-criado_em')
 
+    # Testa se o usuário fornecedor acessa apenas os seus cronogramas
     assert response.status_code == status.HTTP_200_OK
     assert response.data['results'] == CronogramaSimplesSerializer(cronogramas, many=True).data
+    assert len(response.data['results']) == len(cronogramas_do_fornecedor)
+
+    # Testa se a quantidade de cronogramas do response é diferente da quantidade total de cronogramas
+    assert len(response.data['results']) != len(todos_cronogramas)
 
 
 def test_url_endpoint_layout_de_embalagem_create(client_autenticado_fornecedor,
@@ -1286,23 +1302,28 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
     assert len(response.json()['results']['dados']) == 10
 
 
-def test_url_layout_embalagens_analise_aprovacao(
+def test_url_layout_embalagens_analise_aprovando(
     client_autenticado_codae_dilog,
     lista_layouts_de_embalagem_com_tipo_embalagem
 ):
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
+    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
     dados_analise = {
         'tipos_de_embalagens': [
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='TERCIARIA').uuid),
                 'tipo_embalagem': 'TERCIARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1310,7 +1331,6 @@ def test_url_layout_embalagens_analise_aprovacao(
         ],
     }
 
-    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
@@ -1321,14 +1341,18 @@ def test_url_layout_embalagens_analise_aprovacao(
     assert response.status_code == status.HTTP_200_OK
     assert layout_analisado.aprovado
 
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[1]
+    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
     dados_analise = {
         'tipos_de_embalagens': [
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1336,7 +1360,6 @@ def test_url_layout_embalagens_analise_aprovacao(
         ],
     }
 
-    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[1]
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
@@ -1348,23 +1371,28 @@ def test_url_layout_embalagens_analise_aprovacao(
     assert layout_analisado.aprovado
 
 
-def test_url_layout_embalagens_analise_solicitacao_correcao(
+def test_url_layout_embalagens_analise_solicitando_correcao(
     client_autenticado_codae_dilog,
     lista_layouts_de_embalagem_com_tipo_embalagem
 ):
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
+    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
     dados_analise = {
         'tipos_de_embalagens': [
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='TERCIARIA').uuid),
                 'tipo_embalagem': 'TERCIARIA',
                 'status': 'REPROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1372,7 +1400,6 @@ def test_url_layout_embalagens_analise_solicitacao_correcao(
         ],
     }
 
-    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
@@ -1383,14 +1410,18 @@ def test_url_layout_embalagens_analise_solicitacao_correcao(
     assert response.status_code == status.HTTP_200_OK
     assert not layout_analisado.aprovado
 
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[1]
+    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
     dados_analise = {
         'tipos_de_embalagens': [
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'REPROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1398,7 +1429,6 @@ def test_url_layout_embalagens_analise_solicitacao_correcao(
         ],
     }
 
-    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[1]
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
@@ -1410,18 +1440,22 @@ def test_url_layout_embalagens_analise_solicitacao_correcao(
     assert not layout_analisado.aprovado
 
 
-def test_url_layout_embalagens_analise_erro_quantidade_tipos_embalagem(
+def test_url_layout_embalagens_validacao_primeira_analise(
     client_autenticado_codae_dilog,
     lista_layouts_de_embalagem_com_tipo_embalagem
 ):
+    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
+    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
     dados_analise = {
         'tipos_de_embalagens': [
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1429,14 +1463,112 @@ def test_url_layout_embalagens_analise_erro_quantidade_tipos_embalagem(
         ],
     }
 
-    layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
         data=json.dumps(dados_analise)
     )
 
-    msg_erro = 'Quantidade de Tipos de Embalagem recebida é diferente da quantidade presente no Layout de Embalagem.'
+    msg_erro = (
+        'Quantidade de Tipos de Embalagem recebida para primeira análise ' +
+        'é diferente da quantidade presente no Layout de Embalagem.'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert msg_erro in response.json()['tipos_de_embalagens']
+
+
+def test_url_layout_embalagens_analise_correcao(
+    client_autenticado_codae_dilog,
+    layout_de_embalagem_em_analise_com_correcao
+):
+    layout_analisado = layout_de_embalagem_em_analise_com_correcao
+    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='TERCIARIA').uuid),
+                'tipo_embalagem': 'TERCIARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    assert not layout_analisado.eh_primeira_analise
+
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+    layout_analisado.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert layout_analisado.aprovado
+
+
+def test_url_layout_embalagens_validacao_analise_correcao(
+    client_autenticado_codae_dilog,
+    layout_de_embalagem_em_analise_com_correcao
+):
+    layout_analisado = layout_de_embalagem_em_analise_com_correcao
+    tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+            {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
+                'tipo_embalagem': 'SECUNDARIA',
+                'status': 'REPROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    assert not layout_analisado.eh_primeira_analise
+
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+
+    msg_erro = 'O Tipo/UUID informado não pode ser analisado pois não está em análise.'
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert msg_erro in response.json()['tipos_de_embalagens'][1]['Layout Embalagem SECUNDARIA']
+
+    dados_analise = {
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'tipo_embalagem': 'PRIMARIA',
+                'status': 'APROVADO',
+                'complemento_do_status': 'Teste complemento',
+            },
+        ],
+    }
+
+    response = client_autenticado_codae_dilog.patch(
+        f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
+        content_type='application/json',
+        data=json.dumps(dados_analise)
+    )
+
+    msg_erro = (
+        'Quantidade de Tipos de Embalagem recebida para análise da correção ' +
+        'é diferente da quantidade em análise.'
+    )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro in response.json()['tipos_de_embalagens']
 
@@ -1547,3 +1679,191 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(client_auten
     msg_erro3 = 'Erro de transição de estado. O status deste layout não permite correção'
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro3 in response.json()[0]
+
+
+def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza(client_autenticado_fornecedor, arquivo_base64,
+                                                              layout_de_embalagem_aprovado):
+    layout_para_atualizar = layout_de_embalagem_aprovado
+    dados_correcao = {
+        'observacoes': 'Imagine uma nova observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(layout_para_atualizar.tipos_de_embalagens.get(tipo_embalagem='PRIMARIA').uuid),
+                'tipo_embalagem': 'PRIMARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo2.jpg'
+                    }
+                ]
+            },
+            {
+                'uuid': str(layout_para_atualizar.tipos_de_embalagens.get(tipo_embalagem='SECUNDARIA').uuid),
+                'tipo_embalagem': 'SECUNDARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo3.jpg'
+                    },
+                ]
+            },
+            {
+                'tipo_embalagem': 'TERCIARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo4.jpg'
+                    },
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/layouts-de-embalagem/{layout_para_atualizar.uuid}/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao)
+    )
+
+    layout_para_atualizar.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert layout_para_atualizar.status == LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+    assert layout_para_atualizar.observacoes == 'Imagine uma nova observação aqui.'
+
+
+def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza_not_ok(client_autenticado_fornecedor, arquivo_base64,
+                                                                     layout_de_embalagem_para_correcao):
+    """Checa transição de estado."""
+    layout_para_atualizar = layout_de_embalagem_para_correcao
+
+    dados = {
+        'observacoes': 'Imagine uma nova observação aqui.',
+        'tipos_de_embalagens': [
+            {
+                'uuid': str(layout_para_atualizar.tipos_de_embalagens.get(tipo_embalagem='SECUNDARIA').uuid),
+                'tipo_embalagem': 'SECUNDARIA',
+                'imagens_do_tipo_de_embalagem': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/layouts-de-embalagem/{layout_para_atualizar.uuid}/',
+        content_type='application/json',
+        data=json.dumps(dados)
+    )
+
+    msg_erro3 = 'Erro de transição de estado. O status deste layout não permite correção'
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert msg_erro3 in response.json()[0]
+
+
+def test_url_endpoint_documentos_recebimento_create(client_autenticado_fornecedor,
+                                                    cronograma_factory, arquivo_base64):
+    cronograma_obj = cronograma_factory.create()
+    data = {
+        'cronograma': str(cronograma_obj.uuid),
+        'numero_laudo': '123456789',
+        'tipos_de_documentos': [
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo2.jpg'
+                    }
+                ]
+            },
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_RASTREABILIDADE,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Anexo1.jpg'
+                    }
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.post(
+        '/documentos-de-recebimento/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    obj = DocumentoDeRecebimento.objects.last()
+    assert obj.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    assert obj.tipos_de_documentos.count() == 2
+
+    # Teste de cadastro quando o cronograma informado não existe ou quando o arquivo não é enviado
+    data['cronograma'] = fake.uuid4()
+    data['tipos_de_documentos'][1].pop('arquivos_do_tipo_de_documento')
+
+    response = client_autenticado_fornecedor.post(
+        '/documentos-de-recebimento/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Cronograma não existe' in response.data['cronograma']
+    assert 'Este campo é obrigatório.' in response.data['tipos_de_documentos'][1]['arquivos_do_tipo_de_documento']
+
+
+def test_url_documentos_de_recebimento_listagem(client_autenticado_fornecedor, django_user_model,
+                                                documento_de_recebimento_factory):
+    """Deve obter lista paginada e filtrada de documentos de recebimento."""
+    user_id = client_autenticado_fornecedor.session['_auth_user_id']
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    documentos = [documento_de_recebimento_factory.create(cronograma__empresa=empresa) for _ in range(11)]
+    response = client_autenticado_fornecedor.get('/documentos-de-recebimento/')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # Teste de paginação
+    assert response.data['count'] == len(documentos)
+    assert len(response.data['results']) == DefaultPagination.page_size
+    assert response.data['next'] is not None
+
+    # Acessa a próxima página
+    next_page = response.data['next']
+    next_response = client_autenticado_fornecedor.get(next_page)
+    assert next_response.status_code == status.HTTP_200_OK
+
+    # Tenta acessar uma página que não existe
+    response_not_found = client_autenticado_fornecedor.get('/documentos-de-recebimento/?page=1000')
+    assert response_not_found.status_code == status.HTTP_404_NOT_FOUND
+
+    # Testa a resposta em caso de erro (por exemplo, sem autenticação)
+    client_nao_autenticado = APIClient()
+    response_error = client_nao_autenticado.get('/documentos-de-recebimento/')
+    assert response_error.status_code == status.HTTP_401_UNAUTHORIZED
+
+    # Teste de consulta com parâmetros
+    data = datetime.date.today() - datetime.timedelta(days=1)
+    response_filtro = client_autenticado_fornecedor.get(f'/documentos-de-recebimento/?data_cadastro={data}')
+    assert response_filtro.status_code == status.HTTP_200_OK
+    assert response_filtro.data['count'] == 0
+
+
+def test_url_documentos_de_recebimento_listagem_not_authorized(client_autenticado):
+    """Teste de requisição quando usuário não tem permissão."""
+    response = client_autenticado.get('/documentos-de-recebimento/')
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN

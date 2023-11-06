@@ -4,6 +4,8 @@ from freezegun import freeze_time
 from rest_framework import status
 
 from ...dados_comuns.constants import SEM_FILTRO
+from ...eol_servico.utils import EOLService
+from ...escola.__tests__.conftest import mocked_informacoes_escola_turma_aluno
 from ..api.constants import (
     AGUARDANDO_CODAE,
     AUTORIZADOS,
@@ -87,7 +89,7 @@ def test_escola_relatorio_evolucao_solicitacoes(users_diretor_escola):
              'Inversão de dia de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
              'Suspensão de Alimentação': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
              'Kit Lanche Passeio': {'quantidades': [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0], 'total': 4},
-             'Kit Lanche Passeio Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+             'Kit Lanche Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
              'Dieta Especial': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0}
              }
     }
@@ -170,7 +172,7 @@ def test_resumo_ano_dre(solicitacoes_ano_dre):
                     'Inversão de dia de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
                     'Suspensão de Alimentação': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
                     'Kit Lanche Passeio': {'quantidades': [0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 4},
-                    'Kit Lanche Passeio Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+                    'Kit Lanche Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
                     'Dieta Especial': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0}
                     }
     }
@@ -432,3 +434,49 @@ def test_suspensoes_autorizadas(client_autenticado_escola_paineis_consolidados,
     assert len(response_suspensao_integral.data['results']) == 2
     assert response_suspensao_integral.data['results'][0]['numero_alunos'] == 50
     assert response_suspensao_integral.data['results'][0]['periodo'] == 'INTEGRAL'
+
+
+def test_solicitacoes_detalhadas_inc_alimentacao(
+        client_autenticado_escola_paineis_consolidados, inclusoes_normais, inclusao_alimentacao_continua_unico_mes,
+        inclusao_alimentacao_cei, inclusao_alimentacao_cemei, monkeypatch):
+    monkeypatch.setattr(EOLService, 'get_informacoes_escola_turma_aluno',
+                        lambda p1: mocked_informacoes_escola_turma_aluno())
+    response = client_autenticado_escola_paineis_consolidados.get(
+        f'/solicitacoes-genericas/solicitacoes-detalhadas/'
+        f'?solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22INC_ALIMENTA%22,%22uuid%22:%22a4639e26-f4fd-43e9-a8cc-2d0da995c8ef%22%7D'
+        f'&solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22INC_ALIMENTA_CONTINUA%22,%22uuid%22:%22ec27137e-9b8f-419c-adaa-7ed238d40bae%22%7D'
+        f'&solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22INC_ALIMENTA_CEI%22,%22uuid%22:%2250830aed-33ad-442a-8890-5b508e54a0d8%22%7D'
+        f'&solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22INC_ALIMENTA_CEMEI%22,%22uuid%22:%22ba5551b3-b770-412b-a923-b0e78301d1fd%22%7D'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['data']) == 4
+
+
+def test_solicitacoes_detalhadas_kit_lanche(
+        client_autenticado_escola_paineis_consolidados, solicitacoes_kit_lanche, solicitacao_unificada, kit_lanche_cei,
+        kit_lanche_cemei, monkeypatch):
+    monkeypatch.setattr(EOLService, 'get_informacoes_escola_turma_aluno',
+                        lambda p1: mocked_informacoes_escola_turma_aluno())
+    response = client_autenticado_escola_paineis_consolidados.get(
+        f'/solicitacoes-genericas/solicitacoes-detalhadas/'
+        f'?solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22KIT_LANCHE_AVULSA%22,%22uuid%22:%22ac0b6f5b-36b0-47d2-99a2-3bc9825b31fb%22%7D'
+        f'&solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22KIT_LANCHE_AVULSA%22,%22uuid%22:%22d15f17d5-d4c5-47f5-a09a-55677dbc65bf%22%7D'
+        f'&solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22KIT_LANCHE_AVULSA%22,%22uuid%22:%22c9715ddb-7e95-4156-91a5-c60c8621806b%22%7D'
+        f'&solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22KIT_LANCHE_AVULSA%22,%22uuid%22:%228827b394-ef39-4757-8136-6e09d5c7c486%22%7D'
+        f'&solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22KIT_LANCHE_UNIFICADA%22,%22uuid%22:%22d0d3ec92-a2db-4060-a4da-b7ed9d88a7c3%22%7D'
+        f'&solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22KIT_LANCHE_AVULSA_CEI%22,%22uuid%22:%22318ca781-943a-4121-b970-70ac4d4ccc8a%22%7D'
+        f'&solicitacoes[]='
+        f'%7B%22tipo_doc%22:%22KIT_LANCHE_CEMEI%22,%22uuid%22:%222fdb22fe-370c-4379-94f4-a52478c03e6e%22%7D'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['data']) == 7

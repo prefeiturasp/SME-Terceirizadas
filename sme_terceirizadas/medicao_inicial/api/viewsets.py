@@ -28,7 +28,7 @@ from ...dados_comuns.permissions import (
     ViewSetActionPermissionMixin
 )
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
-from ...escola.models import Escola
+from ...escola.models import Escola, FaixaEtaria
 from ..models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
@@ -47,6 +47,8 @@ from ..utils import (
     atualizar_status_ocorrencia,
     criar_log_aprovar_periodos_corrigidos,
     criar_log_solicitar_correcao_periodos,
+    get_campos_a_desconsiderar,
+    get_valor_total,
     log_alteracoes_escola_corrige_periodo,
     tratar_valores,
     tratar_workflow_todos_lancamentos
@@ -246,7 +248,7 @@ class SolicitacaoMedicaoInicialViewSet(
             })
         if request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
             status_medicao_corrigida = ['MEDICAO_CORRIGIDA_PELA_UE', 'MEDICAO_CORRIGIDA_PARA_CODAE']
-            sumario_medicoes_corrigidas = [s for s in sumario if s['status'] == status_medicao_corrigida]
+            sumario_medicoes_corrigidas = [s for s in sumario if s['status'] in status_medicao_corrigida]
             total_medicao_corrigida = 0
             total_dados = []
             for s in sumario_medicoes_corrigidas:
@@ -387,7 +389,7 @@ class SolicitacaoMedicaoInicialViewSet(
         uuid = request.query_params.get('uuid_solicitacao')
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
         retorno = []
-        campos_a_desconsiderar = ['matriculados', 'numero_de_alunos', 'frequencia', 'observacoes']
+        campos_a_desconsiderar = get_campos_a_desconsiderar(escola)
         for medicao in solicitacao.medicoes.all():
             valores = []
             for valor_medicao in medicao.valores_medicao.exclude(categoria_medicao__nome__icontains='DIETA'):
@@ -405,13 +407,17 @@ class SolicitacaoMedicaoInicialViewSet(
                             'valor': int(valor_medicao.valor),
                         })
             valores = tratar_valores(escola, valores)
-            retorno.append({
+            valor_total = get_valor_total(escola, valores, medicao)
+            dict_retorno = {
                 'nome_periodo_grupo': medicao.nome_periodo_grupo,
                 'status': medicao.status.name,
                 'justificativa': self.get_justificativa(medicao),
                 'valores': valores,
-                'valor_total': sum(v['valor'] for v in valores)
-            })
+                'valor_total': valor_total
+            }
+            if escola.eh_cei:
+                dict_retorno['quantidade_alunos'] = sum(v['valor'] for v in valores)
+            retorno.append(dict_retorno)
         return Response({'results': retorno}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['PATCH'], url_path='dre-aprova-solicitacao-medicao',
@@ -745,6 +751,13 @@ class MedicaoViewSet(
             tipo_alimentacao = TipoAlimentacao.objects.get(uuid=tipo_alimentacao_uuid)
         return tipo_alimentacao
 
+    def get_faixa_etaria(self, valor_medicao):
+        faixa_etaria = None
+        faixa_etaria_uuid = valor_medicao.get('faixa_etaria', None)
+        if faixa_etaria_uuid:
+            faixa_etaria = FaixaEtaria.objects.get(uuid=faixa_etaria_uuid)
+        return faixa_etaria
+
     def get_nome_acao(self, medicao, status_codae):
         if medicao.status in status_codae:
             return medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
@@ -770,6 +783,7 @@ class MedicaoViewSet(
                 semana = ValorMedicao.get_week_of_month(ano, mes, dia)
                 categoria_medicao_qs = CategoriaMedicao.objects.filter(id=valor_medicao.get('categoria_medicao', None))
                 tipo_alimentacao = self.get_tipo_alimentacao(valor_medicao)
+                faixa_etaria = self.get_faixa_etaria(valor_medicao)
                 ValorMedicao.objects.update_or_create(
                     medicao=medicao,
                     dia=valor_medicao.get('dia', ''),
@@ -777,7 +791,7 @@ class MedicaoViewSet(
                     nome_campo=valor_medicao.get('nome_campo', ''),
                     categoria_medicao=categoria_medicao_qs.first(),
                     tipo_alimentacao=tipo_alimentacao,
-                    faixa_etaria=valor_medicao.get('faixa_etaria', None),
+                    faixa_etaria=faixa_etaria,
                     defaults={
                         'medicao': medicao,
                         'dia': valor_medicao.get('dia', ''),
@@ -786,7 +800,7 @@ class MedicaoViewSet(
                         'nome_campo': valor_medicao.get('nome_campo', ''),
                         'categoria_medicao': categoria_medicao_qs.first(),
                         'tipo_alimentacao': tipo_alimentacao,
-                        'faixa_etaria': valor_medicao.get('faixa_etaria', None),
+                        'faixa_etaria': faixa_etaria,
                         'habilitado_correcao': True,
                     },
                 )
@@ -936,5 +950,6 @@ class DiasParaCorrigirViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = DiaParaCorrigir.objects.filter(habilitado_correcao=True)
     serializer_class = DiaParaCorrigirSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DiaParaCorrecaoFilter
     pagination_class = None

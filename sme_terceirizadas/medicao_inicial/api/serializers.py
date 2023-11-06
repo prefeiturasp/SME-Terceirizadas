@@ -10,7 +10,13 @@ from sme_terceirizadas.dados_comuns.api.serializers import (
 )
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import converte_numero_em_mes
-from sme_terceirizadas.escola.api.serializers import AlunoPeriodoParcialSimplesSerializer, TipoUnidadeEscolarSerializer
+from sme_terceirizadas.escola.api.serializers import (
+    AlunoPeriodoParcialSimplesSerializer,
+    DiretoriaRegionalSimplissimaSerializer,
+    EscolaSimplissimaSerializer,
+    PeriodoEscolarSerializer,
+    TipoUnidadeEscolarSerializer
+)
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
@@ -85,7 +91,7 @@ class ResponsavelSerializer(serializers.ModelSerializer):
 class SolicitacaoMedicaoInicialSerializer(serializers.ModelSerializer):
     escola = serializers.CharField(source='escola.nome')
     escola_uuid = serializers.CharField(source='escola.uuid')
-    tipo_contagem_alimentacoes = TipoContagemAlimentacaoSerializer()
+    tipos_contagem_alimentacao = TipoContagemAlimentacaoSerializer(many=True)
     responsaveis = ResponsavelSerializer(many=True)
     ocorrencia = OcorrenciaMedicaoInicialSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
@@ -180,14 +186,12 @@ class AlimentacaoLancamentoEspecialSerializer(serializers.ModelSerializer):
 
 
 class PermissaoLancamentoEspecialSerializer(serializers.ModelSerializer):
-    escola = serializers.CharField(source='escola.nome')
-    periodo_escolar = serializers.CharField(source='periodo_escolar.nome')
-    alimentacoes_lancamento_especial = serializers.SerializerMethodField()
+    escola = EscolaSimplissimaSerializer()
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+    periodo_escolar = PeriodoEscolarSerializer()
+    alimentacoes_lancamento_especial = AlimentacaoLancamentoEspecialSerializer(many=True)
     alterado_em = serializers.SerializerMethodField()
     ativo = serializers.SerializerMethodField()
-
-    def get_alimentacoes_lancamento_especial(self, obj):
-        return ', '.join([ali.nome for ali in obj.alimentacoes_lancamento_especial.all()])
 
     def get_alterado_em(self, obj):
         return datetime.datetime.strftime(obj.alterado_em, '%d/%m/%Y')

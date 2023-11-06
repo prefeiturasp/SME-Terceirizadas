@@ -48,7 +48,7 @@ from ..kit_lanche.api.serializers.serializers import (
     SolicitacaoKitLancheAvulsaSerializer,
     SolicitacaoKitLancheCEIAvulsaSerializer,
     SolicitacaoKitLancheCEMEIRetrieveSerializer,
-    SolicitacaoKitLancheUnificadaSerializer
+    SolicitacaoKitLancheUnificadaRelatorioSolicitacoesAlimentacaoSerializer
 )
 from ..kit_lanche.models import (
     SolicitacaoKitLancheAvulsa,
@@ -307,8 +307,9 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                              cls.TP_SOL_INC_ALIMENTA_CEI, cls.TP_SOL_INC_ALIMENTA_CEMEI],
             'ALT_CARDAPIO': [cls.TP_SOL_ALT_CARDAPIO, cls.TP_SOL_ALT_CARDAPIO_CEI,
                              cls.TP_SOL_ALT_CARDAPIO_CEMEI],
-            'KIT_LANCHE_AVULSA': [cls.TP_SOL_KIT_LANCHE_AVULSA, cls.TP_SOL_KIT_LANCHE_UNIFICADA,
-                                  cls.TP_SOL_KIT_LANCHE_AVULSA_CEI, cls.TP_SOL_KIT_LANCHE_CEMEI],
+            'KIT_LANCHE_AVULSA': [cls.TP_SOL_KIT_LANCHE_AVULSA, cls.TP_SOL_KIT_LANCHE_AVULSA_CEI,
+                                  cls.TP_SOL_KIT_LANCHE_CEMEI],
+            'KIT_LANCHE_UNIFICADO': [cls.TP_SOL_KIT_LANCHE_UNIFICADA],
             'SUSP_ALIMENTACAO': [cls.TP_SOL_SUSP_ALIMENTACAO, cls.TP_SOL_SUSP_ALIMENTACAO_CEI],
             'INV_CARDAPIO': [cls.TP_SOL_INV_CARDAPIO],
         }
@@ -348,7 +349,8 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
             f'{cls.TP_SOL_ALT_CARDAPIO_CEI}': AlteracaoCardapioCEISerializer,
             f'{cls.TP_SOL_ALT_CARDAPIO_CEMEI}': AlteracaoCardapioCEMEISerializer,
             f'{cls.TP_SOL_KIT_LANCHE_AVULSA}': SolicitacaoKitLancheAvulsaSerializer,
-            f'{cls.TP_SOL_KIT_LANCHE_UNIFICADA}': SolicitacaoKitLancheUnificadaSerializer,
+            f'{cls.TP_SOL_KIT_LANCHE_UNIFICADA}':
+                SolicitacaoKitLancheUnificadaRelatorioSolicitacoesAlimentacaoSerializer,
             f'{cls.TP_SOL_KIT_LANCHE_AVULSA_CEI}': SolicitacaoKitLancheCEIAvulsaSerializer,
             f'{cls.TP_SOL_KIT_LANCHE_CEMEI}': SolicitacaoKitLancheCEMEIRetrieveSerializer,
             f'{cls.TP_SOL_SUSP_ALIMENTACAO}': GrupoSuspensaoAlimentacaoSerializer,
@@ -581,7 +583,7 @@ class SolicitacoesNutrisupervisao(MoldeConsolidado):
         return manager.filter(
             (Q(status_evento__in=cls.PENDENTES_EVENTO) &
                 Q(status_atual__in=cls.PENDENTES_STATUS)) |
-            (Q(desc_doc='Kit Lanche Passeio Unificado') &
+            (Q(desc_doc='Kit Lanche Unificado') &
                 Q(status_atual='CODAE_A_AUTORIZAR'))
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('data_log').order_by('-data_log')
 
@@ -764,7 +766,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
         return manager.filter(
             (Q(status_evento__in=cls.PENDENTES_EVENTO) &
                 Q(status_atual__in=cls.PENDENTES_STATUS)) |
-            (Q(desc_doc='Kit Lanche Passeio Unificado') &
+            (Q(desc_doc='Kit Lanche Unificado') &
                 Q(status_atual='CODAE_A_AUTORIZAR'))
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('data_log').order_by('-data_log')
 

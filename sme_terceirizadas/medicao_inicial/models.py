@@ -52,8 +52,8 @@ class SolicitacaoMedicaoInicial(
 ):
     escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE,
                                related_name='solicitacoes_medicao_inicial')
-    tipo_contagem_alimentacoes = models.ForeignKey('TipoContagemAlimentacao', on_delete=models.SET_NULL,
-                                                   null=True, related_name='solicitacoes_medicao_inicial')
+    tipos_contagem_alimentacao = models.ManyToManyField('TipoContagemAlimentacao',
+                                                        related_name='solicitacoes_medicao_inicial')
     com_ocorrencias = models.BooleanField('Com ocorrências?', default=False)
     historico = models.JSONField(blank=True, null=True)
     ue_possui_alunos_periodo_parcial = models.BooleanField('Possui alunos periodo parcial?', default=False)
