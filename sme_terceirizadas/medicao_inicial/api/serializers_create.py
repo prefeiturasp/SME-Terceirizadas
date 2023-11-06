@@ -131,10 +131,11 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         required=True,
         queryset=Escola.objects.all()
     )
-    tipo_contagem_alimentacoes = serializers.SlugRelatedField(
+    tipos_contagem_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
         queryset=TipoContagemAlimentacao.objects.all(),
+        many=True
     )
     alunos_periodo_parcial = AlunoPeriodoParcialCreateSerializer(many=True, required=False)
     responsaveis = ResponsavelCreateSerializer(many=True)
@@ -146,9 +147,9 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         validated_data['criado_por'] = self.context['request'].user
         responsaveis_dict = validated_data.pop('responsaveis', [])
         alunos_uuids = validated_data.pop('alunos_periodo_parcial', [])
-
+        tipos_contagem_alimentacao = validated_data.pop('tipos_contagem_alimentacao', [])
         solicitacao = SolicitacaoMedicaoInicial.objects.create(**validated_data)
-
+        solicitacao.tipos_contagem_alimentacao.set(tipos_contagem_alimentacao)
         for responsavel in responsaveis_dict:
             Responsavel.objects.create(
                 solicitacao_medicao_inicial=solicitacao,
@@ -456,9 +457,18 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)
         key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
         alunos_uuids_dict = self.context['request'].data.get('alunos_periodo_parcial', None)
-
+        if not isinstance(self.context['request'].data, dict):
+            tipos_contagem_alimentacao = self.context['request'].data.getlist('tipos_contagem_alimentacao[]', None)
+        else:
+            tipos_contagem_alimentacao = self.context['request'].data.get('tipos_contagem_alimentacao[]', None)
         validated_data.pop('alunos_periodo_parcial', None)
         validated_data.pop('responsaveis', None)
+        validated_data.pop('tipos_contagem_alimentacao', None)
+
+        if tipos_contagem_alimentacao:
+            tipos_contagem_alimentacao = TipoContagemAlimentacao.objects.filter(uuid__in=tipos_contagem_alimentacao)
+            instance.tipos_contagem_alimentacao.set(tipos_contagem_alimentacao)
+
         update_instance_from_dict(instance, validated_data, save=True)
 
         if self.context['request'].user.vinculo_atual.perfil.nome != DIRETOR_UE:
