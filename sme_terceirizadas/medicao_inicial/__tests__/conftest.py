@@ -159,7 +159,8 @@ def solicitacao_medicao_inicial(escola, categoria_medicao):
     }
     solicitacao_medicao = mommy.make(
         'SolicitacaoMedicaoInicial', uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
-        mes=12, ano=2022, escola=escola, tipo_contagem_alimentacoes=tipo_contagem, historico=json.dumps([historico]))
+        mes=12, ano=2022, escola=escola, historico=json.dumps([historico]))
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
     medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
                          periodo_escolar=periodo_manha)
     mommy.make('ValorMedicao', dia='01', semana='1', nome_campo='lanche', medicao=medicao,
@@ -234,8 +235,8 @@ def solicitacao_medicao_inicial_varios_valores(escola, categoria_medicao):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
     periodo_tarde = mommy.make('PeriodoEscolar', nome='TARDE')
-    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', mes=12, ano=2022, escola=escola,
-                                     tipo_contagem_alimentacoes=tipo_contagem)
+    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', mes=12, ano=2022, escola=escola)
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
     medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
                          periodo_escolar=periodo_manha)
     medicao_programas_projetos = mommy.make(
@@ -262,8 +263,8 @@ def solicitacao_medicao_inicial_com_valores_repeticao(escola, categoria_medicao)
     grupo_solicitacoes_alimentacao = mommy.make('GrupoMedicao', nome='Solicitações de Alimentação')
     grupo_programas_e_projetos = mommy.make('GrupoMedicao', nome='Programas e Projetos')
     grupo_etec = mommy.make('GrupoMedicao', nome='ETEC')
-    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', mes=4, ano=2023, escola=escola,
-                                     tipo_contagem_alimentacoes=tipo_contagem)
+    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', mes=4, ano=2023, escola=escola)
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
     medicao_manha = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
                                periodo_escolar=periodo_manha)
     medicao_tarde = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
@@ -299,8 +300,8 @@ def medicao_solicitacoes_alimentacao(escola):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     categoria = mommy.make('CategoriaMedicao', nome='SOLICITAÇÕES DE ALIMENTAÇÃO')
     grupo = mommy.make('GrupoMedicao', nome='Solicitações de Alimentação')
-    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', mes=6, ano=2023, escola=escola,
-                                     tipo_contagem_alimentacoes=tipo_contagem)
+    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', mes=6, ano=2023, escola=escola)
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
     medicao_solicitacoes_alimentacao = mommy.make(
         'Medicao', solicitacao_medicao_inicial=solicitacao_medicao, periodo_escolar=None, grupo=grupo)
     for dia in ['01', '02', '03', '04', '05']:
@@ -456,8 +457,9 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
         mes='09',
         ano=2023,
-        escola=escola_com_logs_para_medicao,
-        tipo_contagem_alimentacoes=tipo_contagem_alimentacao)
+        escola=escola_com_logs_para_medicao
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem_alimentacao])
 
     mommy.make(
         'Medicao',
@@ -506,8 +508,9 @@ def solicitacao_medicao_inicial_com_grupo(escola, categoria_medicao_dieta_a):
         uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
         mes=12,
         ano=2022,
-        escola=escola,
-        tipo_contagem_alimentacoes=tipo_contagem)
+        escola=escola
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
     medicao = mommy.make(
         'Medicao',
         solicitacao_medicao_inicial=solicitacao_medicao,
@@ -526,15 +529,25 @@ def solicitacoes_medicao_inicial(escola):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     escola_2 = mommy.make('Escola')
     s1 = mommy.make('SolicitacaoMedicaoInicial', mes=6, ano=2022, escola=escola,
-                    tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_ENVIADA_PELA_UE')
+                    status='MEDICAO_ENVIADA_PELA_UE')
+    s1.tipos_contagem_alimentacao.set([tipo_contagem])
+
     s2 = mommy.make('SolicitacaoMedicaoInicial', mes=1, ano=2023, escola=escola,
-                    tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_ENVIADA_PELA_UE')
+                    status='MEDICAO_ENVIADA_PELA_UE')
+    s2.tipos_contagem_alimentacao.set([tipo_contagem])
+
     s3 = mommy.make('SolicitacaoMedicaoInicial', mes=2, ano=2023, escola=escola,
-                    tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_CORRECAO_SOLICITADA')
+                    status='MEDICAO_CORRECAO_SOLICITADA')
+    s3.tipos_contagem_alimentacao.set([tipo_contagem])
+
     s4 = mommy.make('SolicitacaoMedicaoInicial', mes=2, ano=2023, escola=escola_2,
-                    tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_CORRECAO_SOLICITADA')
+                    status='MEDICAO_CORRECAO_SOLICITADA')
+    s4.tipos_contagem_alimentacao.set([tipo_contagem])
+
     s5 = mommy.make('SolicitacaoMedicaoInicial', mes=3, ano=2023, escola=escola,
-                    tipo_contagem_alimentacoes=tipo_contagem, status='MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE')
+                    status='MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE')
+    s5.tipos_contagem_alimentacao.set([tipo_contagem])
+
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=s1.uuid,
                status_evento=55,  # MEDICAO_ENVIADA_PELA_UE
@@ -560,8 +573,10 @@ def solicitacoes_medicao_inicial(escola):
 @pytest.fixture
 def solicitacao_medicao_inicial_sem_arquivo(escola):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas COloridas')
-    return mommy.make('SolicitacaoMedicaoInicial', uuid='fb6d1870-a397-4e87-8218-13d316a0ffea',
-                      mes=6, ano=2022, escola=escola, tipo_contagem_alimentacoes=tipo_contagem)
+    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', uuid='fb6d1870-a397-4e87-8218-13d316a0ffea',
+                                     mes=6, ano=2022, escola=escola)
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    return solicitacao_medicao
 
 
 @pytest.fixture
