@@ -457,10 +457,10 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         responsaveis_dict = self.context['request'].data.get('responsaveis', None)
         key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
         alunos_uuids_dict = self.context['request'].data.get('alunos_periodo_parcial', None)
-        if not isinstance(self.context['request'].data, dict):
+        if 'tipos_contagem_alimentacao[]' in self.context['request'].data:
             tipos_contagem_alimentacao = self.context['request'].data.getlist('tipos_contagem_alimentacao[]', None)
         else:
-            tipos_contagem_alimentacao = self.context['request'].data.get('tipos_contagem_alimentacao[]', None)
+            tipos_contagem_alimentacao = self.context['request'].data.get('tipos_contagem_alimentacao', None)
         validated_data.pop('alunos_periodo_parcial', None)
         validated_data.pop('responsaveis', None)
         validated_data.pop('tipos_contagem_alimentacao', None)
