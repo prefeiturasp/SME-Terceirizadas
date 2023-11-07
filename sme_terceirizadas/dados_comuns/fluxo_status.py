@@ -19,7 +19,12 @@ from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .services import PartesInteressadasService
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
-from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory, obter_dias_uteis_apos
+from .utils import (
+    convert_base64_to_contentfile,
+    envia_email_unico_com_anexo_inmemory,
+    obter_dias_uteis_apos,
+    preencher_template_e_notificar
+)
 
 env = environ.Env()
 base_url = f'{env("REACT_APP_URL")}'
@@ -3624,8 +3629,8 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         partes_interessadas_service = PartesInteressadasService()
         partes_interessadas = (
-            partes_interessadas_service.buscar_por_nomes_de_perfis(['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA'], True) +
-            partes_interessadas_service.buscar_vinculadas_a_empresa_do_cronograma(self, True)
+            partes_interessadas_service.usuarios_por_perfis(['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA'], True) +
+            partes_interessadas_service.usuarios_vinculados_a_empresa_do_cronograma(self, True)
         )
 
         envia_email_em_massa_task.delay(
@@ -4124,6 +4129,31 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_SOLICITADO_CORRECAO,
                                       usuario=user)
+
+            partes_interessadas_service = PartesInteressadasService()
+
+            numero_cronograma = self.cronograma.numero
+            template='pre_recebimento_notificacao_solicitacao_correcao_layout_embalagem.html',
+            contexto_template={'numero_cronograna': numero_cronograma},
+            titulo_notificacao=(
+                'Solicitação de Alteração do Layout de Embalagens referente ao Cronograma Nº ' +
+                f'{numero_cronograma}'
+            )
+            tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA
+            categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
+            link_acesse_aqui=f'/pre-recebimento/corrigir-layout-embalagem?uuid={self.uuid}'
+            usuarios=partes_interessadas_service.usuarios_vinculados_a_empresa_do_cronograma(self.cronograma)
+
+            preencher_template_e_notificar(
+                template=template,
+                contexto_template=contexto_template,
+                titulo_notificacao=titulo_notificacao,
+                tipo_notificacao=tipo_notificacao,
+                categoria_notificacao=categoria_notificacao,
+                link_acesse_aqui=link_acesse_aqui,
+                usuarios=usuarios,
+            )
+
 
     @xworkflows.after_transition('fornecedor_realiza_correcao')
     def _fornecedor_realiza_correcao_hook(self, *args, **kwargs):
