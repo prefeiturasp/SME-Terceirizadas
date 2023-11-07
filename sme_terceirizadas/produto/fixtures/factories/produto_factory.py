@@ -12,3 +12,11 @@ class ProdutoLogisticaFactory(DjangoModelFactory):
 
     nome = Sequence(lambda n: str(fake.unique.name()).upper())
     tipo_produto = NomeDeProdutoEdital.LOGISTICA
+
+
+class ProdutoTerceirizadaFactory(DjangoModelFactory):
+    class Meta:
+        model = NomeDeProdutoEdital
+
+    nome = Sequence(lambda n: str(fake.unique.name()).upper())
+    tipo_produto = NomeDeProdutoEdital.TERCEIRIZADA
