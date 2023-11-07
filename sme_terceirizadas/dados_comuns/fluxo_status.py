@@ -12,6 +12,8 @@ from django.template.loader import render_to_string
 from django_xworkflows import models as xwf_models
 from rest_framework.exceptions import PermissionDenied
 
+from sme_terceirizadas.dados_comuns import constants
+
 from ..escola import models as m
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
@@ -4116,6 +4118,36 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ENVIADO_PARA_ANALISE,
                                       usuario=user)
 
+            data_envio = self.log_mais_recente.criado_em.strftime('%d/%m/%Y')
+            nome_empresa = self.cronograma.empresa.nome_fantasia
+            perfis_interessados = [
+                constants.DILOG_QUALIDADE,
+                constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
+                constants.COORDENADOR_GESTAO_PRODUTO
+            ]
+
+            template = 'pre_recebimento_notificacao_fornecedor_envia_layout_embalagem.html',
+            contexto_template = {
+                'numero_cronograna': self.cronograma.numero,
+                'nome_usuario_empresa': user.nome,
+                'cpf_usuario_empresa': user.cpf_formatado_e_censurado
+            }
+            titulo_notificacao = f'Layouts de Embalagens enviado em {data_envio} pelo Fornecedor {nome_empresa}'
+            tipo_notificacao = Notificacao.TIPO_NOTIFICACAO_ALERTA
+            categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
+            link_acesse_aqui = f'/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}'
+            usuarios = PartesInteressadasService().usuarios_por_perfis(perfis_interessados)
+
+            preencher_template_e_notificar(
+                template=template,
+                contexto_template=contexto_template,
+                titulo_notificacao=titulo_notificacao,
+                tipo_notificacao=tipo_notificacao,
+                categoria_notificacao=categoria_notificacao,
+                link_acesse_aqui=link_acesse_aqui,
+                usuarios=usuarios,
+            )
+
     @xworkflows.after_transition('codae_aprova')
     def _codae_aprova_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -4133,16 +4165,16 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             partes_interessadas_service = PartesInteressadasService()
 
             numero_cronograma = self.cronograma.numero
-            template='pre_recebimento_notificacao_solicitacao_correcao_layout_embalagem.html',
-            contexto_template={'numero_cronograna': numero_cronograma},
-            titulo_notificacao=(
+            template = 'pre_recebimento_notificacao_codae_solicita_correcao_layout_embalagem.html',
+            contexto_template = {'numero_cronograna': numero_cronograma},
+            titulo_notificacao = (
                 'Solicitação de Alteração do Layout de Embalagens referente ao Cronograma Nº ' +
                 f'{numero_cronograma}'
             )
-            tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA
-            categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
-            link_acesse_aqui=f'/pre-recebimento/corrigir-layout-embalagem?uuid={self.uuid}'
-            usuarios=partes_interessadas_service.usuarios_vinculados_a_empresa_do_cronograma(self.cronograma)
+            tipo_notificacao = Notificacao.TIPO_NOTIFICACAO_ALERTA
+            categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
+            link_acesse_aqui = f'/pre-recebimento/corrigir-layout-embalagem?uuid={self.uuid}'
+            usuarios = partes_interessadas_service.usuarios_vinculados_a_empresa_do_cronograma(self.cronograma)
 
             preencher_template_e_notificar(
                 template=template,
