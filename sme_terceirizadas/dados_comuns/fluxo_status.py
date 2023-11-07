@@ -4132,7 +4132,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
                 'nome_usuario_empresa': user.nome,
                 'cpf_usuario_empresa': user.cpf_formatado_e_censurado
             }
-            titulo_notificacao = f'Layouts de Embalagens enviado em {data_envio} pelo Fornecedor {nome_empresa}'
+            titulo_notificacao = f'Layout de Embalagens enviado em {data_envio} pelo Fornecedor {nome_empresa}'
             tipo_notificacao = Notificacao.TIPO_NOTIFICACAO_ALERTA
             categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
             link_acesse_aqui = f'/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}'
@@ -4218,7 +4218,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             'nome_usuario_empresa': usuario.nome,
             'cpf_usuario_empresa': usuario.cpf_formatado_e_censurado
         }
-        titulo_notificacao = f'Layouts de Embalagens atualizados e enviados em {data_envio} pelo Fornecedor {nome_empresa}'
+        titulo_notificacao = f'Layout de Embalagens atualizado e enviado em {data_envio} pelo Fornecedor {nome_empresa}'
         tipo_notificacao = Notificacao.TIPO_NOTIFICACAO_ALERTA
         categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
         link_acesse_aqui = f'/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}'
