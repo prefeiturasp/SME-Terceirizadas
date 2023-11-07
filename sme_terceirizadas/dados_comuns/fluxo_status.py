@@ -4193,6 +4193,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA,
                                       usuario=user)
+            self._notificar_correcao_ou_atualizacao(user)
 
     @xworkflows.after_transition('fornecedor_atualiza')
     def _fornecedor_atualiza_hook(self, *args, **kwargs):
@@ -4200,6 +4201,38 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ATUALIZADO,
                                       usuario=user)
+            self._notificar_correcao_ou_atualizacao(user)
+
+    def _notificar_correcao_ou_atualizacao(self, usuario):
+        data_envio = self.log_mais_recente.criado_em.strftime('%d/%m/%Y')
+        nome_empresa = self.cronograma.empresa.nome_fantasia
+        perfis_interessados = [
+            constants.DILOG_QUALIDADE,
+            constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
+            constants.COORDENADOR_GESTAO_PRODUTO
+        ]
+
+        template = 'pre_recebimento_notificacao_fornecedor_corrige_ou_atualiza_layout_embalagem.html',
+        contexto_template = {
+            'numero_cronograna': self.cronograma.numero,
+            'nome_usuario_empresa': usuario.nome,
+            'cpf_usuario_empresa': usuario.cpf_formatado_e_censurado
+        }
+        titulo_notificacao = f'Layouts de Embalagens atualizados e enviados em {data_envio} pelo Fornecedor {nome_empresa}'
+        tipo_notificacao = Notificacao.TIPO_NOTIFICACAO_ALERTA
+        categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
+        link_acesse_aqui = f'/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}'
+        usuarios = PartesInteressadasService().usuarios_por_perfis(perfis_interessados)
+
+        preencher_template_e_notificar(
+            template=template,
+            contexto_template=contexto_template,
+            titulo_notificacao=titulo_notificacao,
+            tipo_notificacao=tipo_notificacao,
+            categoria_notificacao=categoria_notificacao,
+            link_acesse_aqui=link_acesse_aqui,
+            usuarios=usuarios,
+        )
 
     class Meta:
         abstract = True
