@@ -64,6 +64,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
     CronogramaSimplesSerializer,
+    DocumentoDeRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
@@ -712,6 +713,6 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
     def get_serializer_class(self):
         serializer_classes_map = {
             'list': DocumentoDeRecebimentoSerializer,
-            'retrieve': DocumentoDeRecebimentoSerializer,  # TODO: Alterar para o de detalhar quando for criado.
+            'retrieve': DocumentoDeRecebimentoDetalharSerializer,
         }
         return serializer_classes_map.get(self.action, DocumentoDeRecebimentoCreateSerializer)
