@@ -1888,7 +1888,7 @@ def test_url_dashboard_documentos_de_recebimento_status_retornados(
 
 
 @pytest.mark.parametrize(
-    "status_card",
+    'status_card',
     [
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
     ],
@@ -1901,14 +1901,14 @@ def test_url_dashboard_documentos_de_recebimento_quantidade_itens_por_card(
     documento_de_recebimento_factory.create_batch(size=10, status=status_card)
 
     response = client_autenticado_codae_dilog.get(
-        "/documentos-de-recebimento/dashboard/"
+        '/documentos-de-recebimento/dashboard/'
     )
 
     assert response.status_code == status.HTTP_200_OK
 
     dados_card = list(
-        filter(lambda e: e["status"] == status_card, response.json()["results"])
-    ).pop()["dados"]
+        filter(lambda e: e['status'] == status_card, response.json()['results'])
+    ).pop()['dados']
 
     assert len(dados_card) == 6
 
