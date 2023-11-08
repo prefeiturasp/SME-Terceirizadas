@@ -383,6 +383,16 @@ class TipoDeDocumentoDeRecebimento(TemChaveExterna):
 class DocumentoDeRecebimento(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoDocumentoDeRecebimento):
     cronograma = models.ForeignKey(Cronograma, on_delete=models.PROTECT, related_name='documentos_de_recebimento')
     numero_laudo = models.CharField('Número do Laudo', blank=True, max_length=50)
+    numero_empenho = models.CharField('Número do Empenho', blank=True, max_length=50)
+    laboratorio = models.ForeignKey('Laboratorio', on_delete=models.PROTECT, blank=True, null=True, default=None,
+                                    related_name='documentos_de_recebimento')
+    quantidade_laudo = models.FloatField(blank=True, null=True)
+    saldo_laudo = models.FloatField(blank=True, null=True)
+    unidade_medida = models.ForeignKey(UnidadeMedida, on_delete=models.PROTECT, blank=True, null=True, default=None)
+    data_fabricacao_lote = models.DateField('Data Fabricação do Lote', blank=True, null=True)
+    validade_produto = models.DateField('Validade do Produto', blank=True, null=True)
+    data_final_lote = models.DateField('Data Final do Lote', blank=True, null=True)
+    correcao_solicitada = models.TextField('Correção Solicitada', blank=True)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
