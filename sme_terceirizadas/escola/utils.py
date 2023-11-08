@@ -262,3 +262,14 @@ def deletar_alunos_periodo_parcial_outras_escolas(escola, data_referencia):
         solicitacao_medicao_inicial__mes=str(data_referencia.month).zfill(2),
         solicitacao_medicao_inicial__ano=str(data_referencia.year)
     ).exclude(aluno__escola__codigo_eol=escola.codigo_eol).delete()
+
+
+def eh_dia_sem_atividade_escolar(escola, data):
+    from sme_terceirizadas.escola.models import DiaCalendario, DiaSuspensaoAtividades
+    try:
+        dia_calendario = DiaCalendario.objects.get(escola=escola, data=data)
+        eh_dia_letivo = dia_calendario.dia_letivo
+    except DiaCalendario.DoesNotExist:
+        eh_dia_letivo = True
+    eh_dia_de_suspensao = DiaSuspensaoAtividades.eh_dia_de_suspensao(escola, data)
+    return not eh_dia_letivo or eh_dia_de_suspensao

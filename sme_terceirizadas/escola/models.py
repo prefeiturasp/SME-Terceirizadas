@@ -1338,10 +1338,12 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
 
 
 class DiaCalendario(CriadoEm, TemAlteradoEm, TemData, TemChaveExterna):
-
     escola = models.ForeignKey(Escola, related_name='calendario', on_delete=models.DO_NOTHING, null=True)
-
     dia_letivo = models.BooleanField('É dia Letivo?', default=True)
+
+    @classmethod
+    def pelo_menos_um_dia_letivo(cls, escola: Escola, datas: list):
+        return DiaCalendario.objects.filter(escola=escola, data__in=datas, dia_letivo=True).exists()
 
     def __str__(self) -> str:
         return f"""Dia {self.data.strftime("%d/%m/%Y")}
@@ -1433,6 +1435,10 @@ class DiaSuspensaoAtividades(TemData, TemChaveExterna, CriadoEm, CriadoPor):
                 if DiaSuspensaoAtividades.objects.filter(data=dia).count() == TipoUnidadeEscolar.objects.count():
                     dias_com_suspensao += 1
         return dias_com_suspensao
+
+    @staticmethod
+    def eh_dia_de_suspensao(escola: Escola, data: date):
+        return DiaSuspensaoAtividades.objects.filter(data=data, tipo_unidade=escola.tipo_unidade).exists()
 
     def __str__(self):
         return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais}'

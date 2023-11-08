@@ -1,6 +1,7 @@
 from datetime import date
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
@@ -16,7 +17,8 @@ from ....dados_comuns.validators import (
     valida_duplicidade_solicitacoes_cei,
     valida_duplicidade_solicitacoes_cemei
 )
-from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEscolar
+from ....escola.models import DiaCalendario, Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEscolar
+from ....escola.utils import eh_dia_sem_atividade_escolar
 from ....terceirizada.models import Edital
 from ...api.validators import (
     escola_nao_pode_cadastrar_dois_combos_iguais,
@@ -501,7 +503,12 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
     def criar_datas_intervalo(self, datas_intervalo, instance):
         datas_intervalo = [dict(item, **{'alteracao_cardapio': instance})
                            for item in datas_intervalo]
+        if not DiaCalendario.pelo_menos_um_dia_letivo(
+                instance.escola, [data_intervalo['data'] for data_intervalo in datas_intervalo]):
+            raise ValidationError('Não é possível solicitar Lanche Emergencial para dia(s) não letivo(s)')
         for data_intervalo in datas_intervalo:
+            if eh_dia_sem_atividade_escolar(instance.escola, data_intervalo['data']):
+                continue
             DataIntervaloAlteracaoCardapio.objects.create(**data_intervalo)
 
     def criar_substituicoes(self, substituicoes, instance):
