@@ -2,6 +2,7 @@ import logging
 import re
 from datetime import date, datetime, timedelta
 
+from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 
 from sme_terceirizadas.eol_servico.utils import EOLServicoSGP
@@ -264,7 +265,7 @@ def deletar_alunos_periodo_parcial_outras_escolas(escola, data_referencia):
     ).exclude(aluno__escola__codigo_eol=escola.codigo_eol).delete()
 
 
-def eh_dia_sem_atividade_escolar(escola, data):
+def eh_dia_sem_atividade_escolar(escola, data, alteracao):
     from sme_terceirizadas.escola.models import DiaCalendario, DiaSuspensaoAtividades
     try:
         dia_calendario = DiaCalendario.objects.get(escola=escola, data=data)
@@ -272,4 +273,18 @@ def eh_dia_sem_atividade_escolar(escola, data):
     except DiaCalendario.DoesNotExist:
         eh_dia_letivo = True
     eh_dia_de_suspensao = DiaSuspensaoAtividades.eh_dia_de_suspensao(escola, data)
-    return not eh_dia_letivo or eh_dia_de_suspensao
+    periodos_escolares_alteracao = alteracao.substituicoes.values_list('periodo_escolar')
+    return ((not eh_dia_letivo or eh_dia_de_suspensao) and
+            not escola.grupos_inclusoes.filter(
+                inclusoes_normais__cancelado=False,
+                inclusoes_normais__data=data,
+                quantidades_por_periodo__periodo_escolar__in=periodos_escolares_alteracao,
+                status='CODAE_AUTORIZADO').exists() and
+            not escola.inclusoes_continuas.filter(
+                status='CODAE_AUTORIZADO',
+                data_inicial__lte=data,
+                data_final__gte=data,
+                quantidades_por_periodo__periodo_escolar__in=periodos_escolares_alteracao,
+                quantidades_por_periodo__cancelado=False).filter(
+                    Q(quantidades_por_periodo__dias_semana__icontains=DiaCalendario.SABADO) |
+                    Q(quantidades_por_periodo__dias_semana__icontains=DiaCalendario.DOMINGO)).exists())

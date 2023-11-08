@@ -503,13 +503,17 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
     def criar_datas_intervalo(self, datas_intervalo, instance):
         datas_intervalo = [dict(item, **{'alteracao_cardapio': instance})
                            for item in datas_intervalo]
-        if not DiaCalendario.pelo_menos_um_dia_letivo(
-                instance.escola, [data_intervalo['data'] for data_intervalo in datas_intervalo]):
-            raise ValidationError('Não é possível solicitar Lanche Emergencial para dia(s) não letivo(s)')
-        for data_intervalo in datas_intervalo:
-            if eh_dia_sem_atividade_escolar(instance.escola, data_intervalo['data']):
-                continue
-            DataIntervaloAlteracaoCardapio.objects.create(**data_intervalo)
+        if not instance.eh_alteracao_lanche_emergencial():
+            for data_intervalo in datas_intervalo:
+                DataIntervaloAlteracaoCardapio.objects.create(**data_intervalo)
+        else:
+            if not DiaCalendario.pelo_menos_um_dia_letivo(
+                    instance.escola, [data_intervalo['data'] for data_intervalo in datas_intervalo], instance):
+                raise ValidationError('Não é possível solicitar Lanche Emergencial para dia(s) não letivo(s)')
+            for data_intervalo in datas_intervalo:
+                if eh_dia_sem_atividade_escolar(instance.escola, data_intervalo['data'], instance):
+                    continue
+                DataIntervaloAlteracaoCardapio.objects.create(**data_intervalo)
 
     def criar_substituicoes(self, substituicoes, instance):
         substituicoes = [dict(item, **{'alteracao_cardapio': instance})
