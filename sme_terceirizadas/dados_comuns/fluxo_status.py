@@ -4186,7 +4186,6 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
                 usuarios=usuarios,
             )
 
-
     @xworkflows.after_transition('fornecedor_realiza_correcao')
     def _fornecedor_realiza_correcao_hook(self, *args, **kwargs):
         user = kwargs['user']
