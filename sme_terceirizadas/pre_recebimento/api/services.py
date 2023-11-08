@@ -2,7 +2,6 @@ from typing import Type
 
 from django.db.models import QuerySet
 from django_filters.rest_framework import FilterSet
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.serializers import ModelSerializer
 
@@ -19,31 +18,6 @@ from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflo
 
 
 class BaseServiceDashboard:
-    """
-    Service Base que deve ser extendido para lidar com perfis e os diferentes status dos cards dos dashboards.
-
-    Na sua implementação concreta do Service, sobreescreva o dicionário STATUS_POR_PERFIL com um mapeamento
-    dos perfils e os respectivos status dos cards desejados.
-
-    Exemplo:
-
-    STATUS_POR_PERFIL = {
-        PERFIL_A: [
-            'EM_ANALISE',
-            'APROVADO',
-            'REPROVADO',
-        ],
-        PERFIL_B: [
-            'EM_ANALISE',
-            'SOLICITADO_CORRECAO',
-        ],
-        PERFIL_C: [
-            'APROVADO',
-            'REPROVADO',
-        ],
-    }
-    """
-
     STATUS_POR_PERFIL = {}
 
     def __init__(
@@ -53,6 +27,30 @@ class BaseServiceDashboard:
         serializer_class: Type[ModelSerializer],
         request: Request,
     ) -> None:
+        """
+        Service Base que deve ser extendido para lidar com perfis e os diferentes status dos cards dos dashboards.
+
+        Na sua implementação concreta do Service, sobreescreva o dicionário STATUS_POR_PERFIL com um mapeamento
+        dos perfils e os respectivos status dos cards desejados.
+
+        Exemplo:
+
+        STATUS_POR_PERFIL = {
+            PERFIL_A: [
+                'EM_ANALISE',
+                'APROVADO',
+                'REPROVADO',
+            ],
+            PERFIL_B: [
+                'EM_ANALISE',
+                'SOLICITADO_CORRECAO',
+            ],
+            PERFIL_C: [
+                'APROVADO',
+                'REPROVADO',
+            ],
+        }
+        """
         self.original_queryset = original_queryset
         self.filter_class = filter_class
         self.serializer_class = serializer_class
