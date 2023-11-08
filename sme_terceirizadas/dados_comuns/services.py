@@ -83,7 +83,7 @@ def enviar_email_codae_atualiza_protocolo(obj):
 
 class PartesInteressadasService:
     @staticmethod
-    def buscar_por_nomes_de_perfis(nomes_perfis, somente_email=False):
+    def usuarios_por_perfis(nomes_perfis, somente_email=False):
         if isinstance(nomes_perfis, str):
             nomes_perfis = [nomes_perfis]
 
@@ -100,7 +100,7 @@ class PartesInteressadasService:
         return [usuario for usuario in queryset]
 
     @staticmethod
-    def buscar_vinculadas_a_empresa_do_cronograma(cronograma, somente_email=False):
+    def usuarios_vinculados_a_empresa_do_cronograma(cronograma, somente_email=False):
         if cronograma.empresa:
             vinculos = cronograma.empresa.vinculos.filter(ativo=True)
 

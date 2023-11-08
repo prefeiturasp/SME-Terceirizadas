@@ -13,7 +13,7 @@ from .pre_recebimento.fixtures.factories.documentos_de_recebimento_factory impor
     DocumentoDeRecebimentoFactory,
     TipoDeDocumentoDeRecebimentoFactory
 )
-from .produto.fixtures.factories.produto_factory import ProdutoLogisticaFactory
+from .produto.fixtures.factories.produto_factory import ProdutoLogisticaFactory, ProdutoTerceirizadaFactory
 from .terceirizada.fixtures.factories.terceirizada_factory import EmpresaFactory
 
 f = Faker(locale='pt-Br')
@@ -22,6 +22,7 @@ register(CronogramaFactory)
 register(DocumentoDeRecebimentoFactory)
 register(EmpresaFactory)
 register(ProdutoLogisticaFactory)
+register(ProdutoTerceirizadaFactory)
 register(TipoDeDocumentoDeRecebimentoFactory)
 
 
