@@ -1,9 +1,11 @@
 import datetime
+from typing import Iterable
 
 import environ
 from django.template.loader import render_to_string
 
 from ..perfil.models import Usuario
+from .models import Notificacao
 from .tasks import envia_email_em_massa_task
 
 env = environ.Env()
@@ -110,3 +112,67 @@ class PartesInteressadasService:
             return [vinculo.usuario for vinculo in vinculos]
 
         return []
+
+
+class EmailENotificacaoService:
+    @staticmethod
+    def enviar_email(
+        titulo: str,
+        assunto: str,
+        template: str,
+        contexto_template: 'dict[str, any]',
+        destinatarios: 'list[str]',
+        esconder_email_tarja_inferior: bool = False,
+    ):
+
+        contexto = {
+            **contexto_template,
+            'titulo': titulo,
+            'hidden_email': esconder_email_tarja_inferior
+        }
+
+        html_email = render_to_string(
+            template_name=template,
+            context=contexto
+        )
+
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            emails=destinatarios,
+            corpo='',
+            html=html_email
+        )
+
+    @staticmethod
+    def enviar_notificacao(
+        template: str,
+        contexto_template: 'dict[str, any]',
+        titulo_notificacao: str,
+        tipo_notificacao: str,
+        categoria_notificacao: str,
+        link_acesse_aqui: str,
+        usuarios: Iterable[Usuario],
+        requisicao=None,
+        solicitacao_alteracao=None,
+        guia=None,
+        cronograma=None,
+    ):
+        descricao_notificacao = render_to_string(
+            template_name=template,
+            context=contexto_template,
+        )
+
+        if usuarios:
+            for usuario in usuarios:
+                Notificacao.notificar(
+                    tipo=tipo_notificacao,
+                    categoria=categoria_notificacao,
+                    titulo=titulo_notificacao,
+                    descricao=descricao_notificacao,
+                    usuario=usuario,
+                    link=link_acesse_aqui,
+                    requisicao=requisicao,
+                    solicitacao_alteracao=solicitacao_alteracao,
+                    guia=guia,
+                    cronograma=cronograma
+                )
