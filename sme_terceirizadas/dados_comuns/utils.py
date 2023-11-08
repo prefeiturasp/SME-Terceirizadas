@@ -10,6 +10,7 @@ from typing import Any
 
 import environ
 import numpy as np
+from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -18,8 +19,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection, send_mail
 from django.template.loader import render_to_string
 from workalendar.america import BrazilSaoPauloCity
-
-from config.settings.base import URL_CONFIGS
 
 from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, DOMINIOS_DEV
 from .models import CentralDeDownload, Notificacao
