@@ -82,7 +82,7 @@ def test_url_endpoint_solicitacao_medicao_inicial(client_autenticado_da_escola,
             'nome': responsavel.nome,
             'rf': responsavel.rf
         }],
-        'tipo_contagem_alimentacoes': tipo_contagem_alimentacao.uuid
+        'tipo_contagem_alimentacoes': [tipo_contagem_alimentacao.uuid]
     }
     response = client_autenticado_da_escola.post(
         f'/medicao-inicial/solicitacao-medicao-inicial/',
@@ -92,7 +92,7 @@ def test_url_endpoint_solicitacao_medicao_inicial(client_autenticado_da_escola,
     assert response.status_code == status.HTTP_201_CREATED
     data_update = {
         'escola': str(escola.uuid),
-        'tipo_contagem_alimentacoes': str(tipo_contagem_alimentacao.uuid),
+        'tipo_contagem_alimentacoes[]': [tipo_contagem_alimentacao.uuid],
         'com_ocorrencias': True
     }
     response = client_autenticado_da_escola.patch(
@@ -919,10 +919,12 @@ def test_finaliza_medicao_inicial_salva_logs(
         client_autenticado_da_escola, solicitacao_medicao_inicial_teste_salvar_logs, periodo_escolar_manha,
         periodo_escolar_tarde, periodo_escolar_noite
 ):
+    tipos_contagem = solicitacao_medicao_inicial_teste_salvar_logs.tipos_contagem_alimentacao.all()
+    tipos_contagem_uuids = tipos_contagem.values_list('uuid', flat=True)
+    tipos_contagem_uuids = [str(uuid) for uuid in tipos_contagem_uuids]
     data_update = {
         'escola': str(solicitacao_medicao_inicial_teste_salvar_logs.escola.uuid),
-        'tipo_contagem_alimentacoes': str(
-            solicitacao_medicao_inicial_teste_salvar_logs.tipo_contagem_alimentacoes.uuid),
+        'tipo_contagem_alimentacoes[]': tipos_contagem_uuids,
         'com_ocorrencias': False,
         'finaliza_medicao': True
     }

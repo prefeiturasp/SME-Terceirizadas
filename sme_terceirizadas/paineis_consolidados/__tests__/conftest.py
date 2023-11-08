@@ -515,9 +515,9 @@ def solicitacao_medicao_inicial(escola, periodo_escolar_manha):
         uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
         mes='08',
         ano='2023',
-        escola=escola,
-        tipo_contagem_alimentacoes=tipo_contagem
+        escola=escola
     )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
     medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
                          periodo_escolar=periodo_escolar_manha)
     mommy.make('ValorMedicao', medicao=medicao)
