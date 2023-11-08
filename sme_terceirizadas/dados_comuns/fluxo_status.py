@@ -4166,7 +4166,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
 
             numero_cronograma = self.cronograma.numero
             template = 'pre_recebimento_notificacao_codae_solicita_correcao_layout_embalagem.html',
-            contexto_template = {'numero_cronograna': numero_cronograma},
+            contexto_template = {'numero_cronograna': numero_cronograma}
             titulo_notificacao = (
                 'Solicitação de Alteração do Layout de Embalagens referente ao Cronograma Nº ' +
                 f'{numero_cronograma}'
