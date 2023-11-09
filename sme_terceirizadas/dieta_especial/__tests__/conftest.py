@@ -18,7 +18,7 @@ from ...terceirizada.models import Edital
 from ..models import AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial
 
 fake = Faker('pt_BR')
-fake.seed(420)
+Faker.seed(420)
 
 
 @pytest.fixture
@@ -701,7 +701,8 @@ def solicitacao_medicao_inicial(escola_cei, categoria_medicao):
     solicitacao_medicao = mommy.make(
         'SolicitacaoMedicaoInicial', uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
         mes=f'{ontem.month:02d}', ano=ontem.year, escola=escola_cei, ue_possui_alunos_periodo_parcial=True,
-        tipo_contagem_alimentacoes=tipo_contagem, historico=json.dumps([historico]))
+        historico=json.dumps([historico]))
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
     medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
                          periodo_escolar=periodo_manha)
     mommy.make('ValorMedicao', dia='01', semana='1', nome_campo='lanche', medicao=medicao,

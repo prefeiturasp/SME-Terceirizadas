@@ -38,7 +38,10 @@ from ...models import (
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
-from .serializers_create import DatasIntervaloAlteracaoCardapioSerializerCreateSerializer
+from .serializers_create import (
+    DatasIntervaloAlteracaoCardapioCEMEICreateSerializer,
+    DatasIntervaloAlteracaoCardapioSerializerCreateSerializer
+)
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -380,6 +383,7 @@ class AlteracaoCardapioCEMEISerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     substituicoes_cemei_cei_periodo_escolar = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEISerializer(many=True)
     substituicoes_cemei_emei_periodo_escolar = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEISerializer(many=True)
+    datas_intervalo = DatasIntervaloAlteracaoCardapioCEMEICreateSerializer(many=True)
 
     class Meta:
         model = AlteracaoCardapioCEMEI

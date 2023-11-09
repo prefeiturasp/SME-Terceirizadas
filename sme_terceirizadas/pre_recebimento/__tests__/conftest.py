@@ -2,6 +2,7 @@ import pytest
 from model_mommy import mommy
 
 from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow
+from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
 from ..models import LayoutDeEmbalagem, TipoDeEmbalagemDeLayout, UnidadeMedida
@@ -499,5 +500,63 @@ def layout_de_embalagem_para_correcao(cronograma_assinado_perfil_dilog, arquivo_
         tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA,
         status=TipoDeEmbalagemDeLayout.STATUS_APROVADO
     )
+
+    return layout
+
+
+@pytest.fixture
+def layout_de_embalagem_aprovado(cronograma_assinado_perfil_dilog, arquivo_base64):
+    layout = mommy.make(
+        LayoutDeEmbalagem,
+        cronograma=cronograma_assinado_perfil_dilog,
+        observacoes='Imagine uma observação aqui.',
+        status=LayoutDeEmbalagemWorkflow.APROVADO
+    )
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layout,
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_PRIMARIA,
+        status=TipoDeEmbalagemDeLayout.STATUS_APROVADO
+    )
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layout,
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA,
+        status=TipoDeEmbalagemDeLayout.STATUS_APROVADO
+    )
+
+    return layout
+
+
+@pytest.fixture
+def layout_de_embalagem_em_analise_com_correcao(cronograma_assinado_perfil_dilog, arquivo_base64):
+    layout = mommy.make(
+        LayoutDeEmbalagem,
+        cronograma=cronograma_assinado_perfil_dilog,
+        observacoes='Imagine uma observação aqui.',
+        status=LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+    )
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layout,
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_PRIMARIA,
+        status=TipoDeEmbalagemDeLayout.STATUS_EM_ANALISE
+    )
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layout,
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA,
+        status=TipoDeEmbalagemDeLayout.STATUS_APROVADO
+    )
+    mommy.make(
+        TipoDeEmbalagemDeLayout,
+        layout_de_embalagem=layout,
+        tipo_embalagem=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_TERCIARIA,
+        status=TipoDeEmbalagemDeLayout.STATUS_EM_ANALISE
+    )
+    mommy.make(LogSolicitacoesUsuario,
+               uuid_original=layout.uuid,
+               status_evento=LogSolicitacoesUsuario.LAYOUT_CORRECAO_REALIZADA,
+               solicitacao_tipo=LogSolicitacoesUsuario.LAYOUT_DE_EMBALAGEM)
 
     return layout

@@ -63,9 +63,9 @@ def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
 
 @celery.app.task(soft_time_limit=1000, time_limit=1200) # noqa C901
 def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
-    hoje = datetime.date.today()
+    ontem = datetime.date.today() - datetime.timedelta(days=1)
 
-    guias = Guia.objects.filter(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA, data_entrega__lt=hoje)
+    guias = Guia.objects.filter(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA, data_entrega=ontem)
 
     for guia in guias.all():
         if guia.escola:
@@ -90,6 +90,7 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
                     'data_entrega': guia.data_entrega,
                 }
             )
+
             envia_email_em_massa_task.delay(
                 assunto='[SIGPAE] Registre a conferência da Guia de Remessa de alimentos!',
                 emails=partes_interessadas,
@@ -109,7 +110,11 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
                 Notificacao.notificar(
                     tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
                     categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
-                    titulo=f'Registre a conferência da Guia de Remessa de alimentos! | Guia: {guia.numero_guia}',
+                    titulo=(
+                        f'A Guia de Remessa Nº {guia.numero_guia}, ' +
+                        f'com data de entrega prevista para {guia.data_entrega.strftime("%d/%m/%Y")}, ' +
+                        'está Pendente de Conferência'
+                    ),
                     descricao=texto_notificacao,
                     usuario=user,
                     link=f'/logistica/conferir-entrega?numero_guia={guia.numero_guia}',

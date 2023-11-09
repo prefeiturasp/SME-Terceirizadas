@@ -1049,6 +1049,8 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
     tabelas = build_tabelas_relatorio_medicao(solicitacao)
     dict_total_refeicoes = get_total_refeicoes_por_periodo(tabelas)
     dict_total_sobremesas = get_total_sobremesas_por_periodo(tabelas)
+    tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list('nome', flat=True)
+    tipos_contagem_alimentacao = ', '.join(list(set(tipos_contagem_alimentacao)))
     tabela_observacoes = list(
         solicitacao.medicoes.filter(
             valores_medicao__nome_campo='observacoes'
@@ -1067,6 +1069,7 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
         f'relatorio_solicitacao_medicao_por_escola.html',
         {
             'solicitacao': solicitacao,
+            'tipos_contagem_alimentacao': tipos_contagem_alimentacao,
             'responsaveis': solicitacao.responsaveis.all(),
             'assinatura_escola': SolicitacaoMedicaoInicialViewSet.assinatura_ue(
                 SolicitacaoMedicaoInicialViewSet,
@@ -1089,6 +1092,8 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
 def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
     tabelas, dias_letivos = build_tabelas_relatorio_medicao_cei(solicitacao)
     tabelas_somatorios = build_tabela_somatorio_body_cei(solicitacao)
+    tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list('nome', flat=True)
+    tipos_contagem_alimentacao = ', '.join(list(set(tipos_contagem_alimentacao)))
     tabela_observacoes = list(
         solicitacao.medicoes.filter(
             valores_medicao__nome_campo='observacoes'
@@ -1106,6 +1111,7 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
         f'relatorio_solicitacao_medicao_por_escola_cei.html',
         {
             'solicitacao': solicitacao,
+            'tipos_contagem_alimentacao': tipos_contagem_alimentacao,
             'responsaveis': solicitacao.responsaveis.all(),
             'assinatura_escola': SolicitacaoMedicaoInicialViewSet.assinatura_ue(
                 SolicitacaoMedicaoInicialViewSet,

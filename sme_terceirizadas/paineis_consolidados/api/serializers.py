@@ -3,7 +3,7 @@ import datetime
 from rest_framework import serializers
 
 from ...dados_comuns.utils import remove_tags_html_from_string
-from ...escola.models import TipoUnidadeEscolar
+from ...escola.models import Escola, TipoUnidadeEscolar
 from ...kit_lanche.api.serializers.serializers import EscolaQuantidadeSerializerSimples
 from ..models import SolicitacoesCODAE
 from ..utils import get_dias_inclusao
@@ -72,16 +72,29 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
 
     def get_escola_ou_terceirizada_nome(self, obj):
-        return obj.terceirizada_nome if self.context['status'] == 'RECEBIDAS' else obj.escola_nome
+        if self.context['status'] == 'RECEBIDAS':
+            return obj.terceirizada_nome
+        elif 'Unificada' in str(obj.get_raw_model):
+            if isinstance(self.context['instituicao'], Escola):
+                return self.context['instituicao'].nome
+            else:
+                solicitacao_unificada = obj.get_raw_model.objects.get(uuid=obj.uuid)
+                return (f'{solicitacao_unificada.escolas_quantidades.count()} Escolas'
+                        if solicitacao_unificada.escolas_quantidades.count() > 1
+                        else solicitacao_unificada.escolas_quantidades.first().escola.nome)
+        return obj.escola_nome
 
     def get_numero_alunos(self, obj):
+        if 'Unificada' in str(obj.get_raw_model) and isinstance(self.context['instituicao'], Escola):
+            solicitacao_unificada = obj.get_raw_model.objects.get(uuid=obj.uuid)
+            return solicitacao_unificada.escolas_quantidades.get(escola=self.context['instituicao']).quantidade_alunos
         return obj.get_raw_model.objects.get(uuid=obj.uuid).numero_alunos
 
     def get_data_evento(self, obj):
         if obj.data_evento_fim and obj.data_evento and obj.data_evento != obj.data_evento_fim:
             return f"{obj.data_evento.strftime('%d/%m/%Y')} - {obj.data_evento_fim.strftime('%d/%m/%Y')}"
-        elif obj.tipo_doc in ['ALT_CARDAPIO', 'INC_ALIMENTA', 'SUSP_ALIMENTACAO', 'INC_ALIMENTA_CEMEI',
-                              'INC_ALIMENTA_CEI']:
+        elif obj.tipo_doc in ['ALT_CARDAPIO', 'ALT_CARDAPIO_CEMEI', 'INC_ALIMENTA', 'SUSP_ALIMENTACAO',
+                              'INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI']:
             return obj.get_raw_model.objects.get(uuid=obj.uuid).datas
         return obj.data_evento.strftime('%d/%m/%Y') if obj.data_evento else None
 
@@ -96,7 +109,8 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
 
     def get_observacoes(self, obj):
         model_obj = obj.get_raw_model.objects.get(uuid=obj.uuid)
-        if obj.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI', 'INC_ALIMENTA', 'ALT_CARDAPIO']:
+        if obj.tipo_doc in ['INC_ALIMENTA_CEMEI', 'INC_ALIMENTA_CEI', 'INC_ALIMENTA', 'ALT_CARDAPIO',
+                            'ALT_CARDAPIO_CEMEI']:
             dias = get_dias_inclusao(obj, model_obj)
             if model_obj.status == 'ESCOLA_CANCELOU':
                 return ('cancelado, ' * len(dias))[:-2]

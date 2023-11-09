@@ -36,6 +36,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
 )
 from sme_terceirizadas.pre_recebimento.api.filters import (
     CronogramaFilter,
+    DocumentoDeRecebimentoFilter,
     LaboratorioFilter,
     LayoutDeEmbalagemFilter,
     SolicitacaoAlteracaoCronogramaFilter,
@@ -49,6 +50,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
+    DocumentoDeRecebimentoCreateSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
     LayoutDeEmbalagemCorrecaoSerializer,
@@ -62,6 +64,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
     CronogramaSimplesSerializer,
+    DocumentoDeRecebimentoSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
     LayoutDeEmbalagemDetalheSerializer,
@@ -77,6 +80,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
+    DocumentoDeRecebimento,
     EtapasDoCronograma,
     Laboratorio,
     LayoutDeEmbalagem,
@@ -91,6 +95,7 @@ from sme_terceirizadas.pre_recebimento.utils import (
     UnidadeMedidaPagination
 )
 
+from ...dados_comuns.api.paginations import DefaultPagination
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...relatorios.relatorios import get_pdf_cronograma
 
@@ -309,9 +314,16 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         response = CronogramaComLogSerializer(cronograma, many=False).data
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='lista-cronogramas-cadastro-layout')
-    def lista_cronogramas_para_cadastro_de_layout(self, request):
-        cronogramas = self.get_queryset()
+    @action(detail=False, methods=['GET'], url_path='lista-cronogramas-cadastro')
+    def lista_cronogramas_para_cadastro(self, request):
+        user = self.request.user
+        if user.eh_fornecedor:
+            cronogramas = Cronograma.objects.filter(
+                empresa=user.vinculo_atual.instituicao
+            ).order_by('-criado_em')
+        else:
+            cronogramas = self.get_queryset()
+
         serializer = CronogramaSimplesSerializer(cronogramas, many=True).data
         response = {'results': serializer}
         return Response(response)
@@ -603,7 +615,7 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
     def get_serializer_class(self):
         serializer_classes_map = {
             'list': LayoutDeEmbalagemSerializer,
-            'retrieve': LayoutDeEmbalagemDetalheSerializer,
+            'retrieve': LayoutDeEmbalagemDetalheSerializer
         }
         return serializer_classes_map.get(self.action, LayoutDeEmbalagemCreateSerializer)
 
@@ -674,3 +686,32 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
         if serializer.is_valid(raise_exception=True):
             layout_corrigido = serializer.save()
             return Response(LayoutDeEmbalagemDetalheSerializer(layout_corrigido).data)
+
+
+class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = DocumentoDeRecebimentoSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = DocumentoDeRecebimentoFilter
+    pagination_class = DefaultPagination
+    # TODO: Alterar essa permissão quando os perfis de visualização forem definidos.
+    permission_classes = (UsuarioEhFornecedor,)
+    permission_action_classes = {
+        'create': [UsuarioEhFornecedor],
+        'delete': [UsuarioEhFornecedor]
+    }
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.eh_fornecedor:
+            return DocumentoDeRecebimento.objects.filter(
+                cronograma__empresa=user.vinculo_atual.instituicao
+            ).order_by('-criado_em')
+        return DocumentoDeRecebimento.objects.all().order_by('-criado_em')
+
+    def get_serializer_class(self):
+        serializer_classes_map = {
+            'list': DocumentoDeRecebimentoSerializer,
+            'retrieve': DocumentoDeRecebimentoSerializer,  # TODO: Alterar para o de detalhar quando for criado.
+        }
+        return serializer_classes_map.get(self.action, DocumentoDeRecebimentoCreateSerializer)

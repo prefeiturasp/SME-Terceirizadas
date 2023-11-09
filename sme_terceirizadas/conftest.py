@@ -3,12 +3,24 @@ import datetime
 import pytest
 from faker import Faker
 from model_mommy import mommy
+from pytest_factoryboy import register
 
 from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
 from .inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+from .pre_recebimento.fixtures.factories.cronograma_factory import CronogramaFactory
+from .pre_recebimento.fixtures.factories.documentos_de_recebimento_factory import (
+    DocumentoDeRecebimentoFactory,
+    TipoDeDocumentoDeRecebimentoFactory
+)
+from .terceirizada.fixtures.factories.terceirizada_factory import EmpresaFactory
 
 f = Faker(locale='pt-Br')
+
+register(CronogramaFactory)
+register(DocumentoDeRecebimentoFactory)
+register(EmpresaFactory)
+register(TipoDeDocumentoDeRecebimentoFactory)
 
 
 @pytest.fixture
@@ -106,10 +118,10 @@ def client_autenticado_codae_gestao_alimentacao(client, django_user_model):
 
 @pytest.fixture
 def client_autenticado_dilog(client, django_user_model):
-    email = 'test@test.com'
+    email = 'dilog@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
+                                                 registro_funcional=str(f.unique.random_int(min=100000, max=999999)))
     perfil_admin_dilog = mommy.make('Perfil',
                                     nome=constants.COORDENADOR_LOGISTICA,
                                     ativo=True)
@@ -127,10 +139,10 @@ def client_autenticado_dilog(client, django_user_model):
 
 @pytest.fixture
 def client_autenticado_codae_dilog(client, django_user_model):
-    email = 'test@test.com'
+    email = 'codaedilog@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
+                                                 registro_funcional=str(f.unique.random_int(min=100000, max=999999)))
     perfil_admin_dilog = mommy.make('Perfil',
                                     nome=constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
                                     ativo=True)
@@ -148,10 +160,10 @@ def client_autenticado_codae_dilog(client, django_user_model):
 
 @pytest.fixture
 def client_autenticado_representante_codae(client, django_user_model):
-    email = 'test@test.com'
+    email = 'representante@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username='8888888', password=password, email=email,
-                                                 registro_funcional='8888888')
+                                                 registro_funcional=str(f.unique.random_int(min=100000, max=999999)))
     perfil_admin_dilog = mommy.make('Perfil',
                                     nome=constants.ADMINISTRADOR_REPRESENTANTE_CODAE,
                                     ativo=True)
@@ -169,10 +181,10 @@ def client_autenticado_representante_codae(client, django_user_model):
 
 @pytest.fixture
 def client_autenticado_qualidade(client, django_user_model):
-    email = 'test@test.com'
+    email = 'qualidade@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
+                                                 registro_funcional=str(f.unique.random_int(min=100000, max=999999)))
     perfil_admin_qualidade = mommy.make('Perfil',
                                         nome=constants.DILOG_QUALIDADE,
                                         ativo=True)
@@ -190,10 +202,9 @@ def client_autenticado_qualidade(client, django_user_model):
 
 @pytest.fixture
 def client_autenticado_distribuidor(client, django_user_model):
-    email = 'test@test.com'
+    email = 'distribuidor@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email, password=password, email=email)
     perfil_admin_distribuidor = mommy.make('Perfil',
                                            nome=constants.ADMINISTRADOR_EMPRESA,
                                            ativo=True)
@@ -211,10 +222,9 @@ def client_autenticado_distribuidor(client, django_user_model):
 
 @pytest.fixture
 def client_autenticado_fornecedor(client, django_user_model, empresa):
-    email = 'test@test.com'
+    email = 'fornecedor@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
+    user = django_user_model.objects.create_user(username=email, password=password, email=email)
     perfil_admin_fornecedor = mommy.make('Perfil',
                                          nome=constants.ADMINISTRADOR_EMPRESA,
                                          ativo=True)
@@ -232,10 +242,10 @@ def client_autenticado_fornecedor(client, django_user_model, empresa):
 
 @pytest.fixture
 def client_autenticado_escola_abastecimento(client, django_user_model, escola):
-    email = 'test@test.com'
+    email = 'escolaab@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
+                                                 registro_funcional=str(f.unique.random_int(min=100000, max=999999)))
     perfil_admin_escola_abastecimento = mommy.make('Perfil',
                                                    nome=constants.ADMINISTRADOR_UE,
                                                    ativo=True)
@@ -251,10 +261,11 @@ def client_autenticado_escola_abastecimento(client, django_user_model, escola):
 
 @pytest.fixture
 def client_autenticado_dilog_cronograma(client, django_user_model):
-    email = 'test@test.com'
+    email = 'cronograma@teste.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email,
-                                                 password=password, email=email, registro_funcional='8888888')
+                                                 password=password, email=email,
+                                                 registro_funcional=str(f.unique.random_int(min=100000, max=999999)))
     perfil_admin_dilog = mommy.make('Perfil',
                                     nome=constants.DILOG_CRONOGRAMA,
                                     ativo=True)
@@ -272,10 +283,10 @@ def client_autenticado_dilog_cronograma(client, django_user_model):
 
 @pytest.fixture
 def client_autenticado_dinutre_diretoria(client, django_user_model):
-    email = 'test@test.com'
+    email = 'dinutrediretoria@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
+                                                 registro_funcional=str(f.unique.random_int(min=100000, max=999999)))
     perfil_admin_dilog = mommy.make('Perfil',
                                     nome=constants.DINUTRE_DIRETORIA,
                                     ativo=True)
@@ -293,10 +304,10 @@ def client_autenticado_dinutre_diretoria(client, django_user_model):
 
 @pytest.fixture
 def client_autenticado_dilog_diretoria(client, django_user_model):
-    email = 'test@test.com'
+    email = 'dilogdiretoria@test.com'
     password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
+                                                 registro_funcional=str(f.unique.random_int(min=100000, max=999999)))
     perfil_dilog_diretoria = mommy.make('Perfil',
                                         nome=constants.DILOG_DIRETORIA,
                                         ativo=True)

@@ -19,7 +19,6 @@ from ....dados_comuns.validators import (
 from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
 from ...api.validators import (
-    data_troca_nao_pode_ser_superior_a_data_inversao,
     escola_nao_pode_cadastrar_dois_combos_iguais,
     hora_inicio_nao_pode_ser_maior_que_hora_final,
     nao_pode_existir_solicitacao_igual_para_mesma_escola,
@@ -33,6 +32,7 @@ from ...models import (
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     DataIntervaloAlteracaoCardapio,
+    DataIntervaloAlteracaoCardapioCEMEI,
     FaixaEtariaSubstituicaoAlimentacaoCEI,
     FaixaEtariaSubstituicaoAlimentacaoCEMEICEI,
     GrupoSuspensaoAlimentacao,
@@ -149,7 +149,6 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
             deve_ser_no_mesmo_ano_corrente(data_de)
             deve_ser_no_mesmo_ano_corrente(data_para)
 
-        data_troca_nao_pode_ser_superior_a_data_inversao(data_de, data_para)
         nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de, data_para, escola, tipos_alimentacao)
         nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para)
         deve_ser_dia_letivo(escola, data_de)
@@ -157,7 +156,6 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         if 'data_de_2' in attrs and attrs['data_de_2'] is not None:
             data_de_2 = attrs['data_de_2']
             data_para_2 = attrs['data_para_2']
-            data_troca_nao_pode_ser_superior_a_data_inversao(data_de_2, data_para_2)
             nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de_2, data_para_2, escola, tipos_alimentacao)
             nao_pode_ter_mais_que_60_dias_diferenca(data_de_2, data_para_2)
             deve_ser_dia_letivo(escola, data_de_2)
@@ -636,6 +634,21 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEICreateSerializer(serialize
         exclude = ('id',)
 
 
+class DatasIntervaloAlteracaoCardapioCEMEICreateSerializer(serializers.ModelSerializer):
+    alteracao_cardapio_cemei = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=AlteracaoCardapioCEMEI.objects.all())
+
+    def create(self, validated_data):
+        data_intervalo = DataIntervaloAlteracaoCardapioCEMEI.objects.create(**validated_data)
+        return data_intervalo
+
+    class Meta:
+        model = DataIntervaloAlteracaoCardapioCEMEI
+        exclude = ('id',)
+
+
 class AlteracaoCardapioCEMEISerializerCreate(serializers.ModelSerializer):
 
     motivo = serializers.SlugRelatedField(
@@ -647,8 +660,11 @@ class AlteracaoCardapioCEMEISerializerCreate(serializers.ModelSerializer):
         required=True,
         queryset=Escola.objects.all())
 
-    substituicoes_cemei_cei_periodo_escolar = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEICreateSerializer(required=False, many=True)  # noqa E501
-    substituicoes_cemei_emei_periodo_escolar = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEICreateSerializer(required=False, many=True)  # noqa E501
+    substituicoes_cemei_cei_periodo_escolar = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEICreateSerializer(
+        required=False, many=True)
+    substituicoes_cemei_emei_periodo_escolar = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEIEMEICreateSerializer(
+        required=False, many=True)
+    datas_intervalo = DatasIntervaloAlteracaoCardapioCEMEICreateSerializer(required=False, many=True)
 
     def criar_faixas_etarias_cemei(self, faixas_etarias, substituicao):
         if not faixas_etarias:
@@ -686,6 +702,12 @@ class AlteracaoCardapioCEMEISerializerCreate(serializers.ModelSerializer):
             subs.tipos_alimentacao_de.set(tipos_alimentacao_de)
             subs.tipos_alimentacao_para.set(tipos_alimentacao_para)
 
+    def criar_datas_intervalo(self, datas_intervalo, instance):
+        datas_intervalo = [dict(item, **{'alteracao_cardapio_cemei': instance})
+                           for item in datas_intervalo]
+        for data_intervalo in datas_intervalo:
+            DataIntervaloAlteracaoCardapioCEMEI.objects.create(**data_intervalo)
+
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
@@ -698,18 +720,23 @@ class AlteracaoCardapioCEMEISerializerCreate(serializers.ModelSerializer):
             valida_duplicidade_solicitacoes_cemei(validated_data)
         substituicoes_cemei_cei_periodo_escolar = validated_data.pop('substituicoes_cemei_cei_periodo_escolar', [])
         substituicoes_cemei_emei_periodo_escolar = validated_data.pop('substituicoes_cemei_emei_periodo_escolar', [])
+        datas_intervalo = validated_data.pop('datas_intervalo', [])
         alteracao_cemei = AlteracaoCardapioCEMEI.objects.create(**validated_data)
         self.criar_substituicoes_cemei_cei(substituicoes_cemei_cei_periodo_escolar, alteracao_cemei)
         self.criar_substituicoes_cemei_emei(substituicoes_cemei_emei_periodo_escolar, alteracao_cemei)
+        self.criar_datas_intervalo(datas_intervalo, alteracao_cemei)
         return alteracao_cemei
 
     def update(self, instance, validated_data):
         instance.substituicoes_cemei_cei_periodo_escolar.all().delete()
         instance.substituicoes_cemei_emei_periodo_escolar.all().delete()
+        instance.datas_intervalo.all().delete()
         substituicoes_cemei_cei_periodo_escolar = validated_data.pop('substituicoes_cemei_cei_periodo_escolar', [])
         substituicoes_cemei_emei_periodo_escolar = validated_data.pop('substituicoes_cemei_emei_periodo_escolar', [])
+        datas_intervalo = validated_data.pop('datas_intervalo', [])
         self.criar_substituicoes_cemei_cei(substituicoes_cemei_cei_periodo_escolar, instance)
         self.criar_substituicoes_cemei_emei(substituicoes_cemei_emei_periodo_escolar, instance)
+        self.criar_datas_intervalo(datas_intervalo, instance)
         update_instance_from_dict(instance, validated_data)
         instance.save()
         return instance

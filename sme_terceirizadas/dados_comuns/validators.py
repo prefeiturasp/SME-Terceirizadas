@@ -12,8 +12,7 @@ from ..cardapio.models import (
     AlteracaoCardapioCEMEI,
     DataIntervaloAlteracaoCardapio,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
-    SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
-    SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI
+    SubstituicaoAlimentacaoNoPeriodoEscolarCEI
 )
 from .constants import obter_dias_uteis_apos_hoje
 from .utils import datetime_range, eh_dia_util
@@ -93,7 +92,6 @@ def valida_duplicidade_solicitacoes_cei(attrs, data):
 def valida_duplicidade_solicitacoes_cemei(attrs):
     status_permitidos = ['ESCOLA_CANCELOU', 'DRE_NAO_VALIDOU_PEDIDO_ESCOLA',
                          'CODAE_NEGOU_PEDIDO', 'RASCUNHO']
-    periodos_uuids = [sub['periodo_escolar'].uuid for sub in attrs['substituicoes_cemei_cei_periodo_escolar']]
     motivo = attrs['motivo'].uuid
     data = attrs['alterar_dia']
     mes = data.month
@@ -101,11 +99,19 @@ def valida_duplicidade_solicitacoes_cemei(attrs):
     ultimo_dia_do_mes = calendar.monthrange(ano, mes)[1]
     menor_data = datetime.datetime(ano, mes, 1)
     maior_data = datetime.datetime(ano, mes, ultimo_dia_do_mes)
-    modelo_substituitos = SubstituicaoAlimentacaoNoPeriodoEscolarCEMEICEI
-    substituicoes = modelo_substituitos.objects.filter(periodo_escolar__uuid__in=periodos_uuids)
-    alteracoes_pks = substituicoes.values_list('alteracao_cardapio', flat=True)
-    solicitacoes = AlteracaoCardapioCEMEI.objects.filter(motivo__uuid=motivo, pk__in=alteracoes_pks,
+    solicitacoes_tipo = []
+
+    if attrs['alunos_cei_e_ou_emei'] == 'CEI':
+        solicitacoes_tipo.append('CEI')
+    elif attrs['alunos_cei_e_ou_emei'] == 'EMEI':
+        solicitacoes_tipo.append('EMEI')
+    else:
+        solicitacoes_tipo = ['TODOS', 'CEI', 'EMEI']
+
+    solicitacoes = AlteracaoCardapioCEMEI.objects.filter(motivo__uuid=motivo,
+                                                         alunos_cei_e_ou_emei__in=solicitacoes_tipo,
                                                          escola__uuid=attrs['escola'].uuid)
+
     solicitacoes = solicitacoes.filter(alterar_dia__gte=menor_data, alterar_dia__lte=maior_data)
     solicitacoes = solicitacoes.exclude(status__in=status_permitidos)
     if solicitacoes:
