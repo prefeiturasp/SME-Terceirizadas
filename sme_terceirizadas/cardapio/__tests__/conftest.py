@@ -47,6 +47,11 @@ def tipo_alimentacao():
 
 
 @pytest.fixture
+def tipo_alimentacao_lanche_emergencial():
+    return mommy.make('cardapio.TipoAlimentacao', nome='Lanche Emergencial')
+
+
+@pytest.fixture
 def client():
     client = APIClient()
     return client
@@ -110,13 +115,25 @@ def email_por_modulo(terceirizada):
 
 
 @pytest.fixture
+def periodo_manha():
+    return mommy.make('escola.PeriodoEscolar', nome='MANHA', uuid='42325516-aebd-4a3d-97c0-2a77c317c6be')
+
+
+@pytest.fixture
+def periodo_tarde():
+    return mommy.make('escola.PeriodoEscolar', nome='TARDE', uuid='88966d6a-f9d5-4986-9ffb-25b6f41b0795')
+
+
+@pytest.fixture
 def escola():
     terceirizada = mommy.make('Terceirizada')
     lote = mommy.make('Lote', terceirizada=terceirizada)
     tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade = mommy.make('TipoUnidadeEscolar', iniciais='EMEF')
     contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='012f7722-9ab4-4e21-b0f6-85e17b58b0d1')
+
     escola = mommy.make(
         'Escola',
         lote=lote,
@@ -125,9 +142,131 @@ def escola():
         uuid='a627fc63-16fd-482c-a877-16ebc1a82e57',
         contato=contato,
         diretoria_regional=diretoria_regional,
-        tipo_gestao=tipo_gestao
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade
     )
     return escola
+
+
+@pytest.fixture
+def escola_com_vinculo_alimentacao(escola, periodo_manha, tipo_alimentacao, tipo_alimentacao_lanche_emergencial):
+    mommy.make('cardapio.VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+               periodo_escolar=periodo_manha, tipo_unidade_escolar=escola.tipo_unidade,
+               tipos_alimentacao=[tipo_alimentacao, tipo_alimentacao_lanche_emergencial])
+    return escola
+
+
+@pytest.fixture
+def escola_com_dias_letivos(escola_com_vinculo_alimentacao):
+    mommy.make('DiaCalendario', escola=escola_com_vinculo_alimentacao, data='2023-11-18', dia_letivo=True)
+    mommy.make('DiaCalendario', escola=escola_com_vinculo_alimentacao, data='2023-11-19', dia_letivo=False)
+    return escola_com_vinculo_alimentacao
+
+
+@pytest.fixture
+def escola_com_dias_nao_letivos(escola_com_vinculo_alimentacao):
+    mommy.make('DiaCalendario', escola=escola_com_vinculo_alimentacao, data='2023-11-18', dia_letivo=False)
+    mommy.make('DiaCalendario', escola=escola_com_vinculo_alimentacao, data='2023-11-19', dia_letivo=False)
+    return escola_com_vinculo_alimentacao
+
+
+@pytest.fixture
+def inclusao_normal_autorizada_periodo_manha(escola_com_dias_nao_letivos, periodo_manha):
+    grupo_inclusao_normal = mommy.make(
+        'GrupoInclusaoAlimentacaoNormal',
+        escola=escola_com_dias_nao_letivos,
+        status='CODAE_AUTORIZADO'
+    )
+    mommy.make(
+        'InclusaoAlimentacaoNormal',
+        grupo_inclusao=grupo_inclusao_normal,
+        data='2023-11-19'
+    )
+    mommy.make(
+        'QuantidadePorPeriodo',
+        grupo_inclusao_normal=grupo_inclusao_normal,
+        numero_alunos=100,
+        periodo_escolar=periodo_manha
+    )
+    return grupo_inclusao_normal
+
+
+@pytest.fixture
+def inclusao_normal_autorizada_periodo_tarde(escola_com_dias_letivos, periodo_tarde):
+    grupo_inclusao_normal = mommy.make(
+        'GrupoInclusaoAlimentacaoNormal',
+        escola=escola_com_dias_letivos,
+        status='CODAE_AUTORIZADO'
+    )
+    mommy.make(
+        'InclusaoAlimentacaoNormal',
+        grupo_inclusao=grupo_inclusao_normal,
+        data='2023-11-19'
+    )
+    mommy.make(
+        'QuantidadePorPeriodo',
+        grupo_inclusao_normal=grupo_inclusao_normal,
+        numero_alunos=100,
+        periodo_escolar=periodo_tarde
+    )
+    return grupo_inclusao_normal
+
+
+@pytest.fixture
+def inclusao_continua_autorizada_periodo_manha(escola_com_dias_nao_letivos, periodo_manha):
+    inclusao_continua = mommy.make(
+        'InclusaoAlimentacaoContinua',
+        escola=escola_com_dias_nao_letivos,
+        status='CODAE_AUTORIZADO',
+        data_inicial='2023-11-01',
+        data_final='2023-11-30',
+    )
+    mommy.make(
+        'QuantidadePorPeriodo',
+        inclusao_alimentacao_continua=inclusao_continua,
+        numero_alunos=100,
+        periodo_escolar=periodo_manha,
+        dias_semana=[5, 6]
+    )
+    return inclusao_continua
+
+
+@pytest.fixture
+def inclusao_continua_autorizada_periodo_manha_dias_semana(escola_com_dias_letivos, periodo_manha):
+    inclusao_continua = mommy.make(
+        'InclusaoAlimentacaoContinua',
+        escola=escola_com_dias_letivos,
+        status='CODAE_AUTORIZADO',
+        data_inicial='2023-11-01',
+        data_final='2023-11-30',
+    )
+    mommy.make(
+        'QuantidadePorPeriodo',
+        inclusao_alimentacao_continua=inclusao_continua,
+        numero_alunos=100,
+        periodo_escolar=periodo_manha,
+        dias_semana=[3, 4]
+    )
+    return inclusao_continua
+
+
+@pytest.fixture
+def inclusao_continua_autorizada_periodo_tarde(escola_com_dias_letivos, periodo_tarde):
+    inclusao_continua = mommy.make(
+        'InclusaoAlimentacaoContinua',
+        escola=escola_com_dias_letivos,
+        status='CODAE_AUTORIZADO',
+        data_inicial='2023-11-01',
+        data_final='2023-11-30',
+    )
+    mommy.make(
+        'QuantidadePorPeriodo',
+        inclusao_alimentacao_continua=inclusao_continua,
+        numero_alunos=100,
+        periodo_escolar=periodo_tarde,
+        dias_semana=[5, 6]
+    )
+    return inclusao_continua
 
 
 @pytest.fixture
@@ -337,7 +476,7 @@ def motivo_alteracao_cardapio():
 
 @pytest.fixture
 def motivo_alteracao_cardapio_lanche_emergencial():
-    return mommy.make(MotivoAlteracaoCardapio, nome='Lanche Emergencial')
+    return mommy.make(MotivoAlteracaoCardapio, nome='Lanche Emergencial', uuid='19d0bca9-3cfe-4542-869e-185d580fef06')
 
 
 @pytest.fixture

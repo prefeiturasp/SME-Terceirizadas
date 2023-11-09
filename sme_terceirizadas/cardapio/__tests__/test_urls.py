@@ -751,6 +751,308 @@ def test_url_endpoint_alt_card_escola_cancela_datas_intervalo(
     assert alteracao_cardapio_com_datas_intervalo.status == 'ESCOLA_CANCELOU'
 
 
+@freeze_time('2023-11-09')
+def test_url_endpoint_alt_card_datas_intervalo_lanche_emergencial_erro_sem_dia_letivo(
+    client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio_lanche_emergencial, periodo_manha,
+    escola_com_vinculo_alimentacao, periodo_tarde, tipo_alimentacao, tipo_alimentacao_lanche_emergencial
+):
+    data = {
+        'motivo': f'{str(motivo_alteracao_cardapio_lanche_emergencial.uuid)}',
+        'data_inicial': '18/11/2023',
+        'data_final': '19/11/2023',
+        'observacao': '<p>cozinha em reforma</p>',
+        'eh_alteracao_com_lanche_repetida': False,
+        'escola': f'{str(escola_com_vinculo_alimentacao.uuid)}',
+        'substituicoes': [
+            {
+                'periodo_escolar': f'{str(periodo_manha.uuid)}',
+                'tipos_alimentacao_de': [
+                    f'{str(tipo_alimentacao.uuid)}'
+                ],
+                'tipos_alimentacao_para': [
+                    f'{str(tipo_alimentacao_lanche_emergencial.uuid)}'
+                ],
+                'qtd_alunos': '100'
+            }
+        ],
+        'datas_intervalo': [
+            {
+                'data': '2023-11-18'
+            },
+            {
+                'data': '2023-11-19'
+            }
+        ]
+    }
+    response = client_autenticado_vinculo_escola_cardapio.post(
+        f'/{ENDPOINT_ALTERACAO_CARD}/', content_type='application/json', data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()[0] == 'Não é possível solicitar Lanche Emergencial para dia(s) não letivo(s)'
+
+
+@freeze_time('2023-11-09')
+def test_url_endpoint_alt_card_datas_intervalo_lanche_emergencial_com_dia_letivo(
+    client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio_lanche_emergencial, escola_com_dias_letivos,
+    periodo_manha, periodo_tarde, tipo_alimentacao, tipo_alimentacao_lanche_emergencial
+):
+
+    data = {
+        'motivo': f'{str(motivo_alteracao_cardapio_lanche_emergencial.uuid)}',
+        'data_inicial': '18/11/2023',
+        'data_final': '19/11/2023',
+        'observacao': '<p>cozinha em reforma</p>',
+        'eh_alteracao_com_lanche_repetida': False,
+        'escola': f'{str(escola_com_dias_letivos.uuid)}',
+        'substituicoes': [
+            {
+                'periodo_escolar': f'{str(periodo_manha.uuid)}',
+                'tipos_alimentacao_de': [
+                    f'{str(tipo_alimentacao.uuid)}'
+                ],
+                'tipos_alimentacao_para': [
+                    f'{str(tipo_alimentacao_lanche_emergencial.uuid)}'
+                ],
+                'qtd_alunos': '100'
+            }
+        ],
+        'datas_intervalo': [
+            {
+                'data': '2023-11-18'
+            },
+            {
+                'data': '2023-11-19'
+            }
+        ]
+    }
+    response = client_autenticado_vinculo_escola_cardapio.post(
+        f'/{ENDPOINT_ALTERACAO_CARD}/', content_type='application/json', data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    alteracao = AlteracaoCardapio.objects.get(uuid=response.json()['uuid'])
+    assert alteracao.datas_intervalo.count() == 1
+    assert alteracao.datas_intervalo.get().data == datetime.date(2023, 11, 18)
+
+
+@freeze_time('2023-11-09')
+def test_url_endpoint_alt_card_datas_intervalo_lanche_emergencial_com_inclusao_normal_autorizada(
+    client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio_lanche_emergencial,
+    escola_com_dias_nao_letivos, periodo_manha, periodo_tarde, tipo_alimentacao, tipo_alimentacao_lanche_emergencial,
+    inclusao_normal_autorizada_periodo_manha
+):
+
+    data = {
+        'motivo': f'{str(motivo_alteracao_cardapio_lanche_emergencial.uuid)}',
+        'data_inicial': '18/11/2023',
+        'data_final': '19/11/2023',
+        'observacao': '<p>cozinha em reforma</p>',
+        'eh_alteracao_com_lanche_repetida': False,
+        'escola': f'{str(escola_com_dias_nao_letivos.uuid)}',
+        'substituicoes': [
+            {
+                'periodo_escolar': f'{str(periodo_manha.uuid)}',
+                'tipos_alimentacao_de': [
+                    f'{str(tipo_alimentacao.uuid)}'
+                ],
+                'tipos_alimentacao_para': [
+                    f'{str(tipo_alimentacao_lanche_emergencial.uuid)}'
+                ],
+                'qtd_alunos': '100'
+            }
+        ],
+        'datas_intervalo': [
+            {
+                'data': '2023-11-18'
+            },
+            {
+                'data': '2023-11-19'
+            }
+        ]
+    }
+    response = client_autenticado_vinculo_escola_cardapio.post(
+        f'/{ENDPOINT_ALTERACAO_CARD}/', content_type='application/json', data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    alteracao = AlteracaoCardapio.objects.get(uuid=response.json()['uuid'])
+    assert alteracao.datas_intervalo.count() == 1
+    assert alteracao.datas_intervalo.get().data == datetime.date(2023, 11, 19)
+
+
+@freeze_time('2023-11-09')
+def test_url_endpoint_alt_card_datas_intervalo_lanche_emergencial_com_inclusao_normal_autorizada_periodo_errado(
+    client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio_lanche_emergencial, escola_com_dias_letivos,
+    periodo_manha, periodo_tarde, tipo_alimentacao, tipo_alimentacao_lanche_emergencial,
+    inclusao_normal_autorizada_periodo_tarde
+):
+
+    data = {
+        'motivo': f'{str(motivo_alteracao_cardapio_lanche_emergencial.uuid)}',
+        'data_inicial': '18/11/2023',
+        'data_final': '19/11/2023',
+        'observacao': '<p>cozinha em reforma</p>',
+        'eh_alteracao_com_lanche_repetida': False,
+        'escola': f'{str(escola_com_dias_letivos.uuid)}',
+        'substituicoes': [
+            {
+                'periodo_escolar': f'{str(periodo_manha.uuid)}',
+                'tipos_alimentacao_de': [
+                    f'{str(tipo_alimentacao.uuid)}'
+                ],
+                'tipos_alimentacao_para': [
+                    f'{str(tipo_alimentacao_lanche_emergencial.uuid)}'
+                ],
+                'qtd_alunos': '100'
+            }
+        ],
+        'datas_intervalo': [
+            {
+                'data': '2023-11-18'
+            },
+            {
+                'data': '2023-11-19'
+            }
+        ]
+    }
+    response = client_autenticado_vinculo_escola_cardapio.post(
+        f'/{ENDPOINT_ALTERACAO_CARD}/', content_type='application/json', data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    alteracao = AlteracaoCardapio.objects.get(uuid=response.json()['uuid'])
+    assert alteracao.datas_intervalo.count() == 1
+    assert alteracao.datas_intervalo.get().data == datetime.date(2023, 11, 18)
+
+
+@freeze_time('2023-11-09')
+def test_url_endpoint_alt_card_datas_intervalo_lanche_emergencial_com_inclusao_continua_autorizada(
+    client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio_lanche_emergencial,
+    escola_com_dias_nao_letivos, periodo_manha, periodo_tarde, tipo_alimentacao, tipo_alimentacao_lanche_emergencial,
+    inclusao_continua_autorizada_periodo_manha
+):
+
+    data = {
+        'motivo': f'{str(motivo_alteracao_cardapio_lanche_emergencial.uuid)}',
+        'data_inicial': '18/11/2023',
+        'data_final': '19/11/2023',
+        'observacao': '<p>cozinha em reforma</p>',
+        'eh_alteracao_com_lanche_repetida': False,
+        'escola': f'{str(escola_com_dias_nao_letivos.uuid)}',
+        'substituicoes': [
+            {
+                'periodo_escolar': f'{str(periodo_manha.uuid)}',
+                'tipos_alimentacao_de': [
+                    f'{str(tipo_alimentacao.uuid)}'
+                ],
+                'tipos_alimentacao_para': [
+                    f'{str(tipo_alimentacao_lanche_emergencial.uuid)}'
+                ],
+                'qtd_alunos': '100'
+            }
+        ],
+        'datas_intervalo': [
+            {
+                'data': '2023-11-18'
+            },
+            {
+                'data': '2023-11-19'
+            }
+        ]
+    }
+    response = client_autenticado_vinculo_escola_cardapio.post(
+        f'/{ENDPOINT_ALTERACAO_CARD}/', content_type='application/json', data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    alteracao = AlteracaoCardapio.objects.get(uuid=response.json()['uuid'])
+    assert alteracao.datas_intervalo.count() == 2
+
+
+@freeze_time('2023-11-09')
+def test_url_endpoint_alt_card_datas_intervalo_lanche_emergencial_com_inclusao_continua_autorizada_dias_semana(
+    client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio_lanche_emergencial, escola_com_dias_letivos,
+    periodo_manha, periodo_tarde, tipo_alimentacao, tipo_alimentacao_lanche_emergencial,
+    inclusao_continua_autorizada_periodo_manha_dias_semana
+):
+
+    data = {
+        'motivo': f'{str(motivo_alteracao_cardapio_lanche_emergencial.uuid)}',
+        'data_inicial': '18/11/2023',
+        'data_final': '19/11/2023',
+        'observacao': '<p>cozinha em reforma</p>',
+        'eh_alteracao_com_lanche_repetida': False,
+        'escola': f'{str(escola_com_dias_letivos.uuid)}',
+        'substituicoes': [
+            {
+                'periodo_escolar': f'{str(periodo_manha.uuid)}',
+                'tipos_alimentacao_de': [
+                    f'{str(tipo_alimentacao.uuid)}'
+                ],
+                'tipos_alimentacao_para': [
+                    f'{str(tipo_alimentacao_lanche_emergencial.uuid)}'
+                ],
+                'qtd_alunos': '100'
+            }
+        ],
+        'datas_intervalo': [
+            {
+                'data': '2023-11-18'
+            },
+            {
+                'data': '2023-11-19'
+            }
+        ]
+    }
+    response = client_autenticado_vinculo_escola_cardapio.post(
+        f'/{ENDPOINT_ALTERACAO_CARD}/', content_type='application/json', data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    alteracao = AlteracaoCardapio.objects.get(uuid=response.json()['uuid'])
+    assert alteracao.datas_intervalo.count() == 1
+    assert alteracao.datas_intervalo.get().data == datetime.date(2023, 11, 18)
+
+
+@freeze_time('2023-11-09')
+def test_url_endpoint_alt_card_datas_intervalo_lanche_emergencial_com_inclusao_continua_autorizada_periodo_errado(
+    client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio_lanche_emergencial, escola_com_dias_letivos,
+    periodo_manha, periodo_tarde, tipo_alimentacao, tipo_alimentacao_lanche_emergencial,
+    inclusao_continua_autorizada_periodo_tarde
+):
+
+    data = {
+        'motivo': f'{str(motivo_alteracao_cardapio_lanche_emergencial.uuid)}',
+        'data_inicial': '18/11/2023',
+        'data_final': '19/11/2023',
+        'observacao': '<p>cozinha em reforma</p>',
+        'eh_alteracao_com_lanche_repetida': False,
+        'escola': f'{str(escola_com_dias_letivos.uuid)}',
+        'substituicoes': [
+            {
+                'periodo_escolar': f'{str(periodo_manha.uuid)}',
+                'tipos_alimentacao_de': [
+                    f'{str(tipo_alimentacao.uuid)}'
+                ],
+                'tipos_alimentacao_para': [
+                    f'{str(tipo_alimentacao_lanche_emergencial.uuid)}'
+                ],
+                'qtd_alunos': '100'
+            }
+        ],
+        'datas_intervalo': [
+            {
+                'data': '2023-11-18'
+            },
+            {
+                'data': '2023-11-19'
+            }
+        ]
+    }
+    response = client_autenticado_vinculo_escola_cardapio.post(
+        f'/{ENDPOINT_ALTERACAO_CARD}/', content_type='application/json', data=json.dumps(data)
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    alteracao = AlteracaoCardapio.objects.get(uuid=response.json()['uuid'])
+    assert alteracao.datas_intervalo.count() == 1
+    assert alteracao.datas_intervalo.get().data == datetime.date(2023, 11, 18)
+
+
 def test_url_endpoint_alt_card_dre_valida_error(client_autenticado_vinculo_dre_cardapio, alteracao_cardapio):
     assert str(alteracao_cardapio.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
     response = client_autenticado_vinculo_dre_cardapio.patch(
