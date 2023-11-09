@@ -4118,34 +4118,41 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ENVIADO_PARA_ANALISE,
                                       usuario=user)
 
-            data_envio = self.log_mais_recente.criado_em.strftime('%d/%m/%Y')
             nome_empresa = self.cronograma.empresa.nome_fantasia
+            data_envio = self.log_mais_recente.criado_em.strftime('%d/%m/%Y')
+            numero_cronograma = self.cronograma.numero
+            url_layout_embalagens = f'/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}'
             perfis_interessados = [
                 constants.DILOG_QUALIDADE,
                 constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
                 constants.COORDENADOR_GESTAO_PRODUTO
             ]
 
-            template = 'pre_recebimento_notificacao_fornecedor_envia_layout_embalagem.html',
-            contexto_template = {
-                'numero_cronograna': self.cronograma.numero,
-                'nome_usuario_empresa': user.nome,
-                'cpf_usuario_empresa': user.cpf_formatado_e_censurado
-            }
-            titulo_notificacao = f'Layout de Embalagens enviado em {data_envio} pelo Fornecedor {nome_empresa}'
-            tipo_notificacao = Notificacao.TIPO_NOTIFICACAO_ALERTA
-            categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
-            link_acesse_aqui = f'/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}'
-            usuarios = PartesInteressadasService().usuarios_por_perfis(perfis_interessados)
+            EmailENotificacaoService.enviar_notificacao(
+                template='pre_recebimento_notificacao_fornecedor_envia_layout_embalagem.html',
+                contexto_template={
+                    'numero_cronograna': numero_cronograma,
+                    'nome_usuario_empresa': user.nome,
+                    'cpf_usuario_empresa': user.cpf_formatado_e_censurado
+                },
+                titulo_notificacao=f'Layout de Embalagens enviado em {data_envio} pelo Fornecedor {nome_empresa}',
+                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
+                categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS,
+                link_acesse_aqui=url_layout_embalagens,
+                usuarios=PartesInteressadasService().usuarios_por_perfis(perfis_interessados)
+            )
 
-            preencher_template_e_notificar(
-                template=template,
-                contexto_template=contexto_template,
-                titulo_notificacao=titulo_notificacao,
-                tipo_notificacao=tipo_notificacao,
-                categoria_notificacao=categoria_notificacao,
-                link_acesse_aqui=link_acesse_aqui,
-                usuarios=usuarios,
+            EmailENotificacaoService.enviar_email(
+                titulo=f'Layouts Pendentes de Aprovação | Cronograma {numero_cronograma}',
+                assunto=f'[SIGPAE] Layouts Pendentes de Aprovação | Cronograma {numero_cronograma}',
+                template='pre_recebimento_email_fornecedor_envia_layout_embalagem.html',
+                contexto_template={
+                    'nome_empresa': nome_empresa,
+                    'numero_cronograma': numero_cronograma,
+                    'data_envio': data_envio,
+                    'url_layout_embalagens': base_url + url_layout_embalagens,
+                },
+                destinatarios=PartesInteressadasService().usuarios_por_perfis(perfis_interessados, somente_email=True)
             )
 
     @xworkflows.after_transition('codae_aprova')
