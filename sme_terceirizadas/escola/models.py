@@ -47,7 +47,7 @@ from ..dados_comuns.constants import (
     obter_dias_uteis_apos_hoje
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoDietaEspecialPartindoDaEscola
-from ..dados_comuns.utils import datetime_range, queryset_por_data, subtrai_meses_de_data
+from ..dados_comuns.utils import datetime_range, eh_fim_de_semana, queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
 from ..escola.constants import (
     PERIODOS_ESPECIAIS_CEI_CEU_CCI,
@@ -1338,10 +1338,43 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
 
 
 class DiaCalendario(CriadoEm, TemAlteradoEm, TemData, TemChaveExterna):
+    SABADO = 5
+    DOMINGO = 6
 
     escola = models.ForeignKey(Escola, related_name='calendario', on_delete=models.DO_NOTHING, null=True)
-
     dia_letivo = models.BooleanField('É dia Letivo?', default=True)
+
+    @classmethod
+    def existe_inclusao_continua(self, escola, datas_nao_letivas, periodos_escolares_alteracao):
+        dias_fim_de_semana = [data for data in datas_nao_letivas if eh_fim_de_semana(data)]
+        for data in dias_fim_de_semana:
+            if escola.inclusoes_continuas.filter(
+                status='CODAE_AUTORIZADO',
+                data_inicial__lte=data,
+                data_final__gte=data,
+                quantidades_por_periodo__periodo_escolar__in=periodos_escolares_alteracao,
+                quantidades_por_periodo__cancelado=False).filter(
+                Q(quantidades_por_periodo__dias_semana__icontains=self.SABADO) |
+                    Q(quantidades_por_periodo__dias_semana__icontains=self.DOMINGO)).exists():
+                return True
+        return False
+
+    @classmethod
+    def pelo_menos_um_dia_letivo(cls, escola: Escola, datas: list, alteracao: AlteracaoCardapio):
+        if escola.calendario.filter(data__in=datas, dia_letivo=True).exists():
+            return True
+        try:
+            datas_nao_letivas = [data for data in datas if not escola.calendario.get(data=data).dia_letivo]
+        except DiaCalendario.DoesNotExist:
+            datas_nao_letivas = datas
+        periodos_escolares_alteracao = alteracao.substituicoes.values_list('periodo_escolar')
+        if escola.grupos_inclusoes.filter(
+            inclusoes_normais__cancelado=False,
+            inclusoes_normais__data__in=datas_nao_letivas,
+            quantidades_por_periodo__periodo_escolar__in=periodos_escolares_alteracao,
+                status='CODAE_AUTORIZADO').exists():
+            return True
+        return cls.existe_inclusao_continua(escola, datas_nao_letivas, periodos_escolares_alteracao)
 
     def __str__(self) -> str:
         return f"""Dia {self.data.strftime("%d/%m/%Y")}
@@ -1433,6 +1466,10 @@ class DiaSuspensaoAtividades(TemData, TemChaveExterna, CriadoEm, CriadoPor):
                 if DiaSuspensaoAtividades.objects.filter(data=dia).count() == TipoUnidadeEscolar.objects.count():
                     dias_com_suspensao += 1
         return dias_com_suspensao
+
+    @staticmethod
+    def eh_dia_de_suspensao(escola: Escola, data: date):
+        return DiaSuspensaoAtividades.objects.filter(data=data, tipo_unidade=escola.tipo_unidade).exists()
 
     def __str__(self):
         return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais}'
