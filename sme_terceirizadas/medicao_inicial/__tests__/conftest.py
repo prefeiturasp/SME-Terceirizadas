@@ -487,6 +487,7 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         grupo=grupo_solicitacoes_alimentacao)
 
     for dia in range(1, 31):
+        mommy.make('DiaCalendario', escola=escola_com_logs_para_medicao, data=f'2023-09-{dia:02d}', dia_letivo=False)
         for nome_campo in ['numero_de_alunos', 'frequencia', 'lanche', 'lanche_4h', 'refeicao', 'repeticao_refeicao',
                            'sobremesa', 'repeticao_sobremesa']:
             mommy.make('ValorMedicao',
