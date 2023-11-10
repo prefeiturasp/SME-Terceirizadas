@@ -32,6 +32,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarDocumentosDeRecebimento,
     PermissaoParaVisualizarLayoutDeEmbalagem,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
+    UsuarioEhDilogQualidade,
     UsuarioEhFornecedor,
     ViewSetActionPermissionMixin
 )
@@ -51,6 +52,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
+    DocumentoDeRecebimentoAnalisarRascunhoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
@@ -701,3 +703,16 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
         )
 
         return Response({'results': dashboard_service.get_dados_dashboard()})
+
+    @action(detail=True, methods=['PATCH'],
+            url_path='analise-documentos-rascunho', permission_classes=(UsuarioEhDilogQualidade,))
+    def codae_analisa_documentos_rascunho(self, request, uuid):
+        serializer = DocumentoDeRecebimentoAnalisarRascunhoSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            documento_recebimento_atualizado = serializer.save()
+            return Response(DocRecebimentoDetalharCodaeSerializer(documento_recebimento_atualizado).data)

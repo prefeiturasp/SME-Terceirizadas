@@ -601,3 +601,33 @@ class DocumentoDeRecebimentoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentoDeRecebimento
         exclude = ('id',)
+
+
+class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializer):
+    numero_empenho = serializers.CharField(required=False)
+    laboratorio = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Laboratorio.objects.all(),
+        allow_null=True
+    )
+    quantidade_laudo = serializers.FloatField(required=False)
+    saldo_laudo = serializers.FloatField(required=False)
+    unidade_medida = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True
+    )
+    data_fabricacao_lote = serializers.DateField(required=False)
+    validade_produto = serializers.DateField(required=False)
+    data_final_lote = serializers.DateField(required=False)
+
+    def update(self, instance, validated_data):
+        update_instance_from_dict(instance, validated_data, save=True)
+        return instance
+
+    class Meta:
+        model = DocumentoDeRecebimento
+        fields = ('numero_empenho', 'laboratorio', 'quantidade_laudo', 'unidade_medida', 'data_fabricacao_lote',
+                  'validade_produto', 'data_final_lote', 'saldo_laudo', 'correcao_solicitada',)
