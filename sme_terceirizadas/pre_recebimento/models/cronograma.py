@@ -449,6 +449,7 @@ class DataDeFabricaoEPrazo(TemChaveExterna):
 
 @receiver(pre_save, sender=DataDeFabricaoEPrazo)
 def data_maxima_recebimento_pre_save(instance, *_args, **_kwargs):
-    if instance.prazo_maximo_recebimento != instance.PRAZO_OUTRO:
-        nova_data = instance.data_fabricacao + datetime.timedelta(days=int(instance.prazo_maximo_recebimento))
-        instance.data_maxima_recebimento = nova_data
+    obj = instance
+    if obj.data_fabricacao and obj.prazo_maximo_recebimento and obj.prazo_maximo_recebimento != obj.PRAZO_OUTRO:
+        nova_data = obj.data_fabricacao + datetime.timedelta(days=int(obj.prazo_maximo_recebimento))
+        obj.data_maxima_recebimento = nova_data
