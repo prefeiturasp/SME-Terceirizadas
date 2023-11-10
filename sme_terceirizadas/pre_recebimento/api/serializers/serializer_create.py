@@ -629,11 +629,11 @@ class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializ
         allow_null=True
     )
     numero_empenho = serializers.CharField(required=False, allow_blank=True)
-    quantidade_laudo = serializers.FloatField(required=False)
-    saldo_laudo = serializers.FloatField(required=False)
-    data_fabricacao_lote = serializers.DateField(required=False)
-    validade_produto = serializers.DateField(required=False)
-    data_final_lote = serializers.DateField(required=False)
+    quantidade_laudo = serializers.FloatField(required=False, allow_null=True)
+    saldo_laudo = serializers.FloatField(required=False, allow_null=True)
+    data_fabricacao_lote = serializers.DateField(required=False, allow_null=True)
+    validade_produto = serializers.DateField(required=False, allow_null=True)
+    data_final_lote = serializers.DateField(required=False, allow_null=True)
     datas_fabricacao_e_prazos = DataDeFabricaoEPrazoAnalisarRascunhoSerializer(many=True, required=False)
 
     def update(self, instance, validated_data):
