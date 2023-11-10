@@ -7,6 +7,7 @@ from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSeriali
 from sme_terceirizadas.pre_recebimento.models import (
     ArquivoDoTipoDeDocumento,
     Cronograma,
+    DataDeFabricaoEPrazo,
     DocumentoDeRecebimento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
@@ -381,7 +382,7 @@ class TipoDocumentoDeRecebimentoLookupSerializer(serializers.ModelSerializer):
         exclude = ('id', 'documento_recebimento')
 
 
-class DocumentoDeRecebimentoDetalharSerializer(serializers.ModelSerializer):
+class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
     criado_em = serializers.SerializerMethodField()
     numero_cronograma = serializers.SerializerMethodField()
     pregao_chamada_publica = serializers.SerializerMethodField()
@@ -405,3 +406,21 @@ class DocumentoDeRecebimentoDetalharSerializer(serializers.ModelSerializer):
         model = DocumentoDeRecebimento
         fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'numero_laudo', 'status',
                   'criado_em', 'tipos_de_documentos')
+
+
+class DataDeFabricacaoEPrazoLookupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DataDeFabricaoEPrazo
+        exclude = ('id', 'documento_recebimento')
+
+
+class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
+    laboratorio = serializers.UUIDField(source='laboratorio.uuid', read_only=True)
+    unidade_medida = serializers.UUIDField(source='unidade_medida.uuid', read_only=True)
+    datas_fabricacao_e_prazos = DataDeFabricacaoEPrazoLookupSerializer(many=True)
+
+    class Meta(DocRecebimentoDetalharSerializer.Meta):
+        fields = DocRecebimentoDetalharSerializer.Meta.fields + ('numero_empenho', 'laboratorio', 'quantidade_laudo',
+                                                                 'unidade_medida', 'data_fabricacao_lote',
+                                                                 'validade_produto', 'data_final_lote', 'saldo_laudo',
+                                                                 'datas_fabricacao_e_prazos', 'correcao_solicitada',)

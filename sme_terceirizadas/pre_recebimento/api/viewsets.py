@@ -29,6 +29,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaDashboardLayoutEmbalagem,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCronograma,
+    PermissaoParaVisualizarDocumentosDeRecebimento,
     PermissaoParaVisualizarLayoutDeEmbalagem,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     UsuarioEhFornecedor,
@@ -64,7 +65,8 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
     CronogramaSimplesSerializer,
-    DocumentoDeRecebimentoDetalharSerializer,
+    DocRecebimentoDetalharCodaeSerializer,
+    DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
@@ -665,8 +667,7 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DocumentoDeRecebimentoFilter
     pagination_class = DefaultPagination
-    # TODO: Alterar essa permissão quando os perfis de visualização forem definidos.
-    permission_classes = (UsuarioEhFornecedor,)
+    permission_classes = (PermissaoParaVisualizarDocumentosDeRecebimento,)
     permission_action_classes = {
         'create': [UsuarioEhFornecedor],
         'delete': [UsuarioEhFornecedor]
@@ -681,9 +682,11 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
         return DocumentoDeRecebimento.objects.all().order_by('-criado_em')
 
     def get_serializer_class(self):
+        user = self.request.user
+        retrieve = DocRecebimentoDetalharSerializer if user.eh_fornecedor else DocRecebimentoDetalharCodaeSerializer
         serializer_classes_map = {
             'list': DocumentoDeRecebimentoSerializer,
-            'retrieve': DocumentoDeRecebimentoDetalharSerializer,
+            'retrieve': retrieve,
         }
         return serializer_classes_map.get(self.action, DocumentoDeRecebimentoCreateSerializer)
 
