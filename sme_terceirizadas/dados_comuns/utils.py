@@ -581,3 +581,7 @@ def preencher_template_e_notificar(
                 guia=guia,
                 cronograma=cronograma
             )
+
+
+def eh_fim_de_semana(data: datetime.date):
+    return data.weekday() >= 5

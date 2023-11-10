@@ -72,6 +72,20 @@ class SolicitacaoMedicaoInicial(
     def tem_ocorrencia(self):
         return hasattr(self, 'ocorrencia')
 
+    @property
+    def get_medicao_programas_e_projetos(self):
+        try:
+            return self.medicoes.get(grupo__nome='Programas e Projetos')
+        except Medicao.DoesNotExist:
+            return None
+
+    @property
+    def get_medicao_etec(self):
+        try:
+            return self.medicoes.get(grupo__nome='ETEC')
+        except Medicao.DoesNotExist:
+            return None
+
     class Meta:
         verbose_name = 'Solicitação de medição inicial'
         verbose_name_plural = 'Solicitações de medição inicial'
