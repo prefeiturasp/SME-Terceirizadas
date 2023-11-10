@@ -4084,7 +4084,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             )
 
             EmailENotificacaoService.enviar_email(
-                titulo=f'Solicitação de Correção Layout de Embalagens\nCronograma Nº {numero_cronograma}',
+                titulo=f'Solicitação de Correção Layout de Embalagens Cronograma Nº {numero_cronograma}',
                 assunto=f'[SIGPAE] Solicitação de Correção Layout de Embalagens | Cronograma Nº {numero_cronograma}',
                 template='pre_recebimento_email_codae_solicita_correcao_layout_embalagem.html',
                 contexto_template={
