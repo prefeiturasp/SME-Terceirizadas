@@ -1891,6 +1891,7 @@ def test_url_dashboard_documentos_de_recebimento_status_retornados(
     'status_card',
     [
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+        DocumentoDeRecebimentoWorkflow.APROVADO,
     ],
 )
 def test_url_dashboard_documentos_de_recebimento_quantidade_itens_por_card(
@@ -1917,6 +1918,7 @@ def test_url_dashboard_documentos_de_recebimento_quantidade_itens_por_card(
     'status_card',
     [
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+        DocumentoDeRecebimentoWorkflow.APROVADO,
     ]
 )
 def test_url_dashboard_documentos_de_recebimento_com_filtro(
@@ -1958,6 +1960,7 @@ def test_url_dashboard_documentos_de_recebimento_com_filtro(
     'status_card',
     [
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+        DocumentoDeRecebimentoWorkflow.APROVADO,
     ]
 )
 def test_url_dashboard_documentos_de_recebimento_ver_mais(
@@ -1984,6 +1987,7 @@ def test_url_dashboard_documentos_de_recebimento_ver_mais(
     'status_card',
     [
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+        DocumentoDeRecebimentoWorkflow.APROVADO,
     ]
 )
 def test_url_dashboard_documentos_de_recebimento_ver_mais_com_filtros(
@@ -1991,7 +1995,6 @@ def test_url_dashboard_documentos_de_recebimento_ver_mais_com_filtros(
     documento_de_recebimento_factory,
     status_card
 ):
-
     documentos_de_recebimento = documento_de_recebimento_factory.create_batch(size=10, status=status_card)
 
     filtros = {
