@@ -9,6 +9,7 @@ from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
+    DataDeFabricaoEPrazo,
     DocumentoDeRecebimento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
@@ -25,6 +26,7 @@ from sme_terceirizadas.produto.models import NomeDeProdutoEdital
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
 from ..helpers import (
+    cria_datas_e_prazos_doc_recebimento,
     cria_etapas_de_cronograma,
     cria_programacao_de_cronograma,
     cria_tipos_de_documentos,
@@ -601,3 +603,49 @@ class DocumentoDeRecebimentoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentoDeRecebimento
         exclude = ('id',)
+
+
+class DataDeFabricaoEPrazoAnalisarRascunhoSerializer(serializers.ModelSerializer):
+    data_fabricacao = serializers.DateField(required=False, allow_null=True)
+    prazo_maximo_recebimento = serializers.ChoiceField(
+        choices=DataDeFabricaoEPrazo.PRAZO_CHOICES, required=False, allow_blank=True)
+
+    class Meta:
+        model = DataDeFabricaoEPrazo
+        fields = ('data_fabricacao', 'prazo_maximo_recebimento')
+
+
+class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializer):
+    laboratorio = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Laboratorio.objects.all(),
+        allow_null=True
+    )
+    unidade_medida = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True
+    )
+    numero_empenho = serializers.CharField(required=False, allow_blank=True)
+    quantidade_laudo = serializers.FloatField(required=False, allow_null=True)
+    saldo_laudo = serializers.FloatField(required=False, allow_null=True)
+    data_fabricacao_lote = serializers.DateField(required=False, allow_null=True)
+    validade_produto = serializers.DateField(required=False, allow_null=True)
+    data_final_lote = serializers.DateField(required=False, allow_null=True)
+    datas_fabricacao_e_prazos = DataDeFabricaoEPrazoAnalisarRascunhoSerializer(many=True, required=False)
+
+    def update(self, instance, validated_data):
+        datas_fabricacao_e_prazos = validated_data.pop('datas_fabricacao_e_prazos', [])
+        update_instance_from_dict(instance, validated_data, save=True)
+        instance.datas_fabricacao_e_prazos.all().delete()
+        cria_datas_e_prazos_doc_recebimento(datas_fabricacao_e_prazos, instance)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = DocumentoDeRecebimento
+        fields = ('numero_empenho', 'laboratorio', 'quantidade_laudo', 'unidade_medida', 'data_fabricacao_lote',
+                  'validade_produto', 'data_final_lote', 'saldo_laudo', 'correcao_solicitada',
+                  'datas_fabricacao_e_prazos')

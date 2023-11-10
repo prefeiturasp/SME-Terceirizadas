@@ -4153,14 +4153,20 @@ class DocumentoDeRecebimentoWorkflow(xwf_models.Workflow):
 
     DOCUMENTO_CRIADO = 'DOCUMENTO_CRIADO'
     ENVIADO_PARA_ANALISE = 'ENVIADO_PARA_ANALISE'
+    ENVIADO_PARA_CORRECAO = 'ENVIADO_PARA_CORRECAO'
+    APROVADO = 'APROVADO'
 
     states = (
         (DOCUMENTO_CRIADO, 'Documento Criado'),
         (ENVIADO_PARA_ANALISE, 'Enviado para Análise'),
+        (ENVIADO_PARA_CORRECAO, 'Enviado para Correção'),
+        (APROVADO, 'Aprovado'),
     )
 
     transitions = (
         ('inicia_fluxo', DOCUMENTO_CRIADO, ENVIADO_PARA_ANALISE),
+        ('solicita_correcao', ENVIADO_PARA_ANALISE, ENVIADO_PARA_CORRECAO),
+        ('aprova_analise', ENVIADO_PARA_ANALISE, APROVADO),
     )
 
     initial_state = DOCUMENTO_CRIADO
