@@ -3847,7 +3847,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
     def _montar_dilog_notificacao(self):
         log_transicao = self.log_mais_recente
         usuarios = [
-            *PartesInteressadasService.usuarios_por_perfis(['DINUTRE_DIRETORIA', 'DILOG_DIRETORIA']),
+            *PartesInteressadasService.usuarios_por_perfis(['DINUTRE_DIRETORIA', 'DILOG_CRONOGRAMA']),
             *PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(self.cronograma),
         ]
         template_notif = 'pre_recebimento_notificacao_solicitacao_parecer_codae.html'
