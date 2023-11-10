@@ -973,6 +973,7 @@ class PermissaoParaVisualizarDocumentosDeRecebimento(BasePermission):
             )
         )
 
+
 class UsuarioEhDilogQualidade(BasePermission):
 
     def has_permission(self, request, view):
