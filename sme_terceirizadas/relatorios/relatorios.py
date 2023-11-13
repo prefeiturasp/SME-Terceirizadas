@@ -827,7 +827,6 @@ def relatorio_marcas_por_produto_homologacao(produtos, dados, filtros):
     return html_to_pdf_file(html_string, f'relatorio_marcas_por_produto_homologacao.pdf', True)
 
 
-
 def produtos_suspensos_por_edital(produtos, data_final, nome_edital):
     html_string = render_to_string(
         'produtos_suspensos_por_edital.html',

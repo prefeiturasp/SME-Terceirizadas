@@ -11,9 +11,9 @@ from sme_terceirizadas.dados_comuns.utils import (
 )
 from sme_terceirizadas.produto.models import HomologacaoProduto, Produto
 from sme_terceirizadas.relatorios.relatorios import (
+    produtos_suspensos_por_edital,
     relatorio_marcas_por_produto_homologacao,
-    relatorio_produtos_agrupado_terceirizada,
-    produtos_suspensos_por_edital
+    relatorio_produtos_agrupado_terceirizada
 )
 
 logger = logging.getLogger(__name__)
