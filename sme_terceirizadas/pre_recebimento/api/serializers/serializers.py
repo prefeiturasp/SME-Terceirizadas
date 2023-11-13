@@ -405,7 +405,7 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentoDeRecebimento
         fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'numero_laudo', 'status',
-                  'criado_em', 'tipos_de_documentos')
+                  'criado_em', 'tipos_de_documentos', 'correcao_solicitada',)
 
 
 class DataDeFabricacaoEPrazoLookupSerializer(serializers.ModelSerializer):
@@ -432,4 +432,4 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
                                                                  'laboratorio', 'quantidade_laudo', 'unidade_medida',
                                                                  'data_fabricacao_lote', 'validade_produto',
                                                                  'data_final_lote', 'saldo_laudo',
-                                                                 'datas_fabricacao_e_prazos', 'correcao_solicitada',)
+                                                                 'datas_fabricacao_e_prazos',)
