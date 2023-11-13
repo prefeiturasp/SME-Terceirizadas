@@ -4254,8 +4254,8 @@ class DocumentoDeRecebimentoWorkflow(xwf_models.Workflow):
 
     transitions = (
         ('inicia_fluxo', DOCUMENTO_CRIADO, ENVIADO_PARA_ANALISE),
-        ('solicita_correcao', ENVIADO_PARA_ANALISE, ENVIADO_PARA_CORRECAO),
-        ('aprova_analise', ENVIADO_PARA_ANALISE, APROVADO),
+        ('qualidade_solicita_correcao', ENVIADO_PARA_ANALISE, ENVIADO_PARA_CORRECAO),
+        ('qualidade_aprova_analise', ENVIADO_PARA_ANALISE, APROVADO),
     )
 
     initial_state = DOCUMENTO_CRIADO
@@ -4270,6 +4270,21 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DOCUMENTO_ENVIADO_PARA_ANALISE,
+                                      usuario=user)
+
+    @xworkflows.after_transition('qualidade_solicita_correcao')
+    def _qualidade_solicita_correcao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs['justificativa']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DOCUMENTO_ENVIADO_PARA_CORRECAO,
+                                      usuario=user, justificativa=justificativa)
+
+    @xworkflows.after_transition('qualidade_aprova_analise')
+    def _qualidade_aprova_analise_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DOCUMENTO_APROVADO,
                                       usuario=user)
 
     class Meta:
