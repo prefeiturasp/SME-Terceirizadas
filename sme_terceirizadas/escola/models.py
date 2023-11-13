@@ -409,6 +409,14 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             Q(serie__icontains='1') | Q(serie__icontains='2')
             | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
 
+    def quantidade_alunos_cei_por_periodo_4_a_6_anos(self, periodo):
+        if not self.eh_cemei:
+            return None
+        quatro_anos_atras = datetime.date.today() - relativedelta(years=4)
+        return self.aluno_set.filter(periodo_escolar__nome=periodo, data_nascimento__lte=quatro_anos_atras).filter(
+            Q(serie__icontains='1') | Q(serie__icontains='2')
+            | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+
     def quantidade_alunos_emei_por_periodo(self, periodo):
         if not self.eh_cemei:
             return None
@@ -613,7 +621,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         return resultados
 
     def alunos_periodo_parcial_e_faixa_etaria(self, data_referencia=None, faixas_etarias=None):
-        if not self.eh_cei:
+        if not self.eh_cei and not self.eh_cemei:
             return {}
 
         data_referencia = self.obter_data_referencia(data_referencia)
@@ -1297,6 +1305,12 @@ class AlunosMatriculadosPeriodoEscola(CriadoEm, TemAlteradoEm, TemChaveExterna):
 class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservacao):
     """Histórico da quantidade de Alunos por período."""
 
+    CEI_OU_EMEI = (
+        ('N/A', 'N/A'),
+        ('CEI', 'CEI'),
+        ('EMEI', 'EMEI')
+    )
+
     escola = models.ForeignKey(Escola, related_name='logs_alunos_matriculados_por_periodo', on_delete=models.DO_NOTHING)
     periodo_escolar = models.ForeignKey(
         PeriodoEscolar, related_name='logs_alunos_matriculados', on_delete=models.DO_NOTHING
@@ -1306,24 +1320,79 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
     tipo_turma = models.CharField(
         max_length=255, choices=TipoTurma.choices(), blank=True, default=TipoTurma.REGULAR.name
     )
+    cei_ou_emei = models.CharField(max_length=4, choices=CEI_OU_EMEI, default='N/A')
+
+    def cria_logs_emei_em_cemei(self):
+        if (not self.escola.eh_cemei or
+            self.tipo_turma != 'REGULAR' or
+            (self.periodo_escolar and self.periodo_escolar.nome != 'INTEGRAL') or
+                self.escola.quantidade_alunos_emei_por_periodo('INTEGRAL') == 0):
+            return
+        if not LogAlunosMatriculadosPeriodoEscola.objects.filter(
+            escola=self.escola,
+            periodo_escolar=self.periodo_escolar,
+            criado_em__year=self.criado_em.year,
+            criado_em__month=self.criado_em.month,
+            criado_em__day=self.criado_em.day,
+            tipo_turma=self.tipo_turma,
+            cei_ou_emei='EMEI'
+        ).exists():
+            log = LogAlunosMatriculadosPeriodoEscola.objects.create(
+                escola=self.escola,
+                periodo_escolar=self.periodo_escolar,
+                quantidade_alunos=self.escola.quantidade_alunos_emei_por_periodo('INTEGRAL'),
+                tipo_turma=self.tipo_turma,
+                cei_ou_emei='EMEI'
+            )
+            log.criado_em = self.criado_em
+            log.save()
+
+    def cria_logs_cei_em_cemei(self):
+        if (not self.escola.eh_cemei or
+            self.tipo_turma != 'REGULAR' or
+                self.periodo_escolar and self.periodo_escolar.nome != 'INTEGRAL'):
+            return
+        if not LogAlunosMatriculadosPeriodoEscola.objects.filter(
+            escola=self.escola,
+            periodo_escolar=self.periodo_escolar,
+            criado_em__year=self.criado_em.year,
+            criado_em__month=self.criado_em.month,
+            criado_em__day=self.criado_em.day,
+            tipo_turma=self.tipo_turma,
+            cei_ou_emei='CEI'
+        ).exists():
+            log = LogAlunosMatriculadosPeriodoEscola.objects.create(
+                escola=self.escola,
+                periodo_escolar=self.periodo_escolar,
+                quantidade_alunos=self.escola.quantidade_alunos_cei_por_periodo('INTEGRAL'),
+                tipo_turma=self.tipo_turma,
+                cei_ou_emei='CEI'
+            )
+            log.criado_em = self.criado_em
+            log.save()
 
     @classmethod
     def criar(cls, escola, periodo_escolar, quantidade_alunos, data, tipo_turma):
-        log_alunos = cls.objects.filter(
-            escola=escola,
-            periodo_escolar=periodo_escolar,
-            criado_em__year=data.year,
-            criado_em__month=data.month,
-            criado_em__day=data.day,
-            tipo_turma=tipo_turma,
-        )
-        if not log_alunos:
-            cls.objects.create(
+        try:
+            log = cls.objects.get(
+                escola=escola,
+                periodo_escolar=periodo_escolar,
+                criado_em__year=data.year,
+                criado_em__month=data.month,
+                criado_em__day=data.day,
+                tipo_turma=tipo_turma,
+            )
+        except cls.DoesNotExist:
+            log = cls.objects.create(
                 escola=escola,
                 periodo_escolar=periodo_escolar,
                 quantidade_alunos=quantidade_alunos,
                 tipo_turma=tipo_turma,
             )
+            log.criado_em = data
+            log.save()
+        log.cria_logs_emei_em_cemei()
+        log.cria_logs_cei_em_cemei()
 
     def __str__(self):
         periodo_nome = self.periodo_escolar.nome
