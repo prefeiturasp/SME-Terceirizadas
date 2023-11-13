@@ -409,6 +409,14 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             Q(serie__icontains='1') | Q(serie__icontains='2')
             | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
 
+    def quantidade_alunos_cei_por_periodo_4_a_6_anos(self, periodo):
+        if not self.eh_cemei:
+            return None
+        quatro_anos_atras = datetime.date.today() - relativedelta(years=4)
+        return self.aluno_set.filter(periodo_escolar__nome=periodo, data_nascimento__lte=quatro_anos_atras).filter(
+            Q(serie__icontains='1') | Q(serie__icontains='2')
+            | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+
     def quantidade_alunos_emei_por_periodo(self, periodo):
         if not self.eh_cemei:
             return None
@@ -613,7 +621,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         return resultados
 
     def alunos_periodo_parcial_e_faixa_etaria(self, data_referencia=None, faixas_etarias=None):
-        if not self.eh_cei:
+        if not self.eh_cei and not self.eh_cemei:
             return {}
 
         data_referencia = self.obter_data_referencia(data_referencia)
