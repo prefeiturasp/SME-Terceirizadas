@@ -417,6 +417,23 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             Q(serie__icontains='1') | Q(serie__icontains='2')
             | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
 
+    def quantidade_alunos_cei_por_periodo_por_faixa(self, periodo, faixa):
+        if not self.eh_cemei:
+            return None
+        data_inicio = datetime.date.today() - relativedelta(months=faixa.inicio)
+        data_fim = datetime.date.today() - relativedelta(months=faixa.fim)
+        return self.aluno_set.filter(
+            periodo_escolar__nome=periodo,
+            data_nascimento__lte=data_inicio,
+            data_nascimento__gte=data_fim
+        ).filter(
+            Q(serie__icontains='1') |
+            Q(serie__icontains='2') |
+            Q(serie__icontains='3') |
+            Q(serie__icontains='4')
+        ).count()
+
+
     def quantidade_alunos_emei_por_periodo(self, periodo):
         if not self.eh_cemei:
             return None
