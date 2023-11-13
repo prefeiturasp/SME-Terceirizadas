@@ -12,7 +12,8 @@ from sme_terceirizadas.dados_comuns.utils import (
 from sme_terceirizadas.produto.models import HomologacaoProduto, Produto
 from sme_terceirizadas.relatorios.relatorios import (
     relatorio_marcas_por_produto_homologacao,
-    relatorio_produtos_agrupado_terceirizada
+    relatorio_produtos_agrupado_terceirizada,
+    produtos_suspensos_por_edital
 )
 
 logger = logging.getLogger(__name__)
@@ -128,6 +129,40 @@ def gera_pdf_relatorio_produtos_homologados_async(user, nome_arquivo, data, perf
 
             arquivo = relatorio_produtos_agrupado_terceirizada(tipo_usuario, produtos_agrupados, dados, filtros)
 
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+
+    logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 8},
+    time_limit=3000,
+    soft_time_limit=3000
+)
+def gera_xls_relatorio_produtos_suspensos_async(produtos_uuids, nome_arquivo, nome_edital, user, data_final):
+    logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
+    obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
+    try:
+        produtos = Produto.objects.filter(uuid__in=produtos_uuids).order_by('nome')
+        lista_produtos = []
+        for produto in produtos:
+            produto_edital = produto.vinculos.get(edital__numero=nome_edital)
+            data_suspensao = produto_edital.datas_horas_vinculo.last().criado_em.strftime('%d/%m/%Y')
+            data_cadastro = produto.homologacao.logs.first().criado_em.strftime('%d/%m/%Y')
+            lista_produtos.append({
+                'nome': produto.nome,
+                'marca': produto.marca.nome,
+                'tipo': 'Dieta especial' if produto.eh_para_alunos_com_dieta else 'Comum',
+                'edital': nome_edital,
+                'cadastro': data_cadastro,
+                'suspensao': data_suspensao,
+                'justificativa': produto_edital.suspenso_justificativa,
+            })
+
+        arquivo = produtos_suspensos_por_edital(lista_produtos, data_final, nome_edital)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
