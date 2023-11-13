@@ -47,18 +47,17 @@ pipeline {
             }
           steps {
              checkout scm
-	   
+    	   
     sh 'pip install psycopg2-binary'
     sh 'pip install xlsxwriter'
     sh 'pip install pycparser'
     sh 'pip install --no-cache-dir -U pip'
-    sh 'pip install --no-cache-dir pipenv==2022.4.8'	
-
-             sh 'pip install --user pipenv==2022.4.8'
-             sh 'pipenv install --dev'
-             sh 'pipenv run pytest'
-             sh 'pipenv run flake8'
-          }
+    sh 'pip install --no-cache-dir pipenv==2022.4.8'
+    sh 'pip install --user pipenv==2022.4.8'
+    sh 'pipenv install --dev'
+    sh 'pipenv run flake8'
+    sh 'pipenv run pytest'
+           }
         }
     }
 

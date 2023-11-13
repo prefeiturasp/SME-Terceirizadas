@@ -258,6 +258,14 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         vinculo_aguardando_ativacao = self.vinculo_atual.status == Vinculo.STATUS_AGUARDANDO_ATIVACAO
         return diretor_de_escola or vinculo_aguardando_ativacao
 
+    @property
+    def cpf_formatado(self):
+        return f'{self.cpf[:3]}.{self.cpf[3:6]}.{self.cpf[6:9]}-{self.cpf[9:]}' if self.cpf is not None else None
+
+    @property
+    def cpf_formatado_e_censurado(self):
+        return f'{self.cpf[:3]}.***.***-{self.cpf[9:]}' if self.cpf is not None else None
+
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)
         content = {'uuid': self.uuid,
