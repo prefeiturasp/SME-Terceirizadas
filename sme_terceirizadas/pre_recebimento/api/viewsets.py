@@ -29,8 +29,10 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaDashboardLayoutEmbalagem,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCronograma,
+    PermissaoParaVisualizarDocumentosDeRecebimento,
     PermissaoParaVisualizarLayoutDeEmbalagem,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
+    UsuarioEhDilogQualidade,
     UsuarioEhFornecedor,
     ViewSetActionPermissionMixin
 )
@@ -50,6 +52,8 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
+    DocumentoDeRecebimentoAnalisarRascunhoSerializer,
+    DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoCreateSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
@@ -64,8 +68,10 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
     CronogramaSimplesSerializer,
-    DocumentoDeRecebimentoDetalharSerializer,
+    DocRecebimentoDetalharCodaeSerializer,
+    DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
+    LaboratorioCredenciadoSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
     LayoutDeEmbalagemDetalheSerializer,
@@ -353,6 +359,13 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
     def lista_nomes_laboratorios(self, request):
         queryset = Laboratorio.objects.all()
         response = {'results': [q.nome for q in queryset]}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-laboratorios-credenciados')
+    def lista_nomes_laboratorios_credenciados(self, request):
+        laboratorios = self.get_queryset().filter(credenciado=True)
+        serializer = LaboratorioCredenciadoSimplesSerializer(laboratorios, many=True).data
+        response = {'results': serializer}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='lista-laboratorios')
@@ -665,8 +678,7 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DocumentoDeRecebimentoFilter
     pagination_class = DefaultPagination
-    # TODO: Alterar essa permissão quando os perfis de visualização forem definidos.
-    permission_classes = (UsuarioEhFornecedor,)
+    permission_classes = (PermissaoParaVisualizarDocumentosDeRecebimento,)
     permission_action_classes = {
         'create': [UsuarioEhFornecedor],
         'delete': [UsuarioEhFornecedor]
@@ -681,9 +693,11 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
         return DocumentoDeRecebimento.objects.all().order_by('-criado_em')
 
     def get_serializer_class(self):
+        user = self.request.user
+        retrieve = DocRecebimentoDetalharSerializer if user.eh_fornecedor else DocRecebimentoDetalharCodaeSerializer
         serializer_classes_map = {
             'list': DocumentoDeRecebimentoSerializer,
-            'retrieve': DocumentoDeRecebimentoDetalharSerializer,
+            'retrieve': retrieve,
         }
         return serializer_classes_map.get(self.action, DocumentoDeRecebimentoCreateSerializer)
 
@@ -698,3 +712,29 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
         )
 
         return Response({'results': dashboard_service.get_dados_dashboard()})
+
+    @action(detail=True, methods=['PATCH'],
+            url_path='analise-documentos-rascunho', permission_classes=(UsuarioEhDilogQualidade,))
+    def codae_analisa_documentos_rascunho(self, request, uuid):
+        serializer = DocumentoDeRecebimentoAnalisarRascunhoSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            documento_recebimento_atualizado = serializer.save()
+            return Response(DocRecebimentoDetalharCodaeSerializer(documento_recebimento_atualizado).data)
+
+    @action(detail=True, methods=['PATCH'],
+            url_path='analise-documentos', permission_classes=(UsuarioEhDilogQualidade,))
+    def codae_analisa_documentos(self, request, uuid):
+        serializer = DocumentoDeRecebimentoAnalisarSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            documento_recebimento_atualizado = serializer.save()
+            return Response(DocRecebimentoDetalharCodaeSerializer(documento_recebimento_atualizado).data)

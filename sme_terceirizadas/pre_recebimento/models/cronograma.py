@@ -1,9 +1,10 @@
+import datetime
 import os
 
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models import OuterRef
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from ...dados_comuns.behaviors import (
@@ -383,6 +384,16 @@ class TipoDeDocumentoDeRecebimento(TemChaveExterna):
 class DocumentoDeRecebimento(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoDocumentoDeRecebimento):
     cronograma = models.ForeignKey(Cronograma, on_delete=models.PROTECT, related_name='documentos_de_recebimento')
     numero_laudo = models.CharField('Número do Laudo', blank=True, max_length=50)
+    numero_empenho = models.CharField('Número do Empenho', blank=True, max_length=50)
+    laboratorio = models.ForeignKey('Laboratorio', on_delete=models.PROTECT, blank=True, null=True, default=None,
+                                    related_name='documentos_de_recebimento')
+    quantidade_laudo = models.FloatField(blank=True, null=True)
+    saldo_laudo = models.FloatField(blank=True, null=True)
+    unidade_medida = models.ForeignKey(UnidadeMedida, on_delete=models.PROTECT, blank=True, null=True, default=None)
+    data_fabricacao_lote = models.DateField('Data Fabricação do Lote', blank=True, null=True)
+    validade_produto = models.DateField('Validade do Produto', blank=True, null=True)
+    data_final_lote = models.DateField('Data Final do Lote', blank=True, null=True)
+    correcao_solicitada = models.TextField('Correção Solicitada', blank=True)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
@@ -401,3 +412,44 @@ class DocumentoDeRecebimento(ModeloBase, TemIdentificadorExternoAmigavel, Logs, 
     class Meta:
         verbose_name = 'Documento de Recebimento'
         verbose_name_plural = 'Documentos de Recebimento'
+
+
+class DataDeFabricaoEPrazo(TemChaveExterna):
+    PRAZO_30 = '30'
+    PRAZO_60 = '60'
+    PRAZO_90 = '90'
+    PRAZO_120 = '120'
+    PRAZO_180 = '180'
+    PRAZO_OUTRO = 'OUTRO'
+
+    PRAZO_CHOICES = (
+        (PRAZO_30, '30 dias'),
+        (PRAZO_60, '60 dias'),
+        (PRAZO_90, '90 dias'),
+        (PRAZO_120, '120 dias'),
+        (PRAZO_180, '180 dias'),
+        (PRAZO_OUTRO, 'Outro'),
+    )
+
+    documento_recebimento = models.ForeignKey(
+        'DocumentoDeRecebimento', on_delete=models.CASCADE, blank=True, related_name='datas_fabricacao_e_prazos')
+    data_fabricacao = models.DateField('Data Fabricação', blank=True, null=True)
+    data_maxima_recebimento = models.DateField('Data Máxima de Recebimento', blank=True, null=True)
+    prazo_maximo_recebimento = models.CharField(
+        'Prazo Máximo para Recebimento', choices=PRAZO_CHOICES, max_length=5, blank=True)
+    justificativa = models.TextField('Justificativa', blank=True)
+
+    def __str__(self):
+        return f'{self.documento_recebimento.cronograma.numero} - {self.data_fabricacao.strftime("%d/%m/%Y")}'
+
+    class Meta:
+        verbose_name = 'Data de Fabricação e Prazo'
+        verbose_name_plural = 'Datas de Fabricação e Prazos'
+
+
+@receiver(pre_save, sender=DataDeFabricaoEPrazo)
+def data_maxima_recebimento_pre_save(instance, *_args, **_kwargs):
+    obj = instance
+    if obj.data_fabricacao and obj.prazo_maximo_recebimento and obj.prazo_maximo_recebimento != obj.PRAZO_OUTRO:
+        nova_data = obj.data_fabricacao + datetime.timedelta(days=int(obj.prazo_maximo_recebimento))
+        obj.data_maxima_recebimento = nova_data
