@@ -672,9 +672,9 @@ class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializ
 class DocumentoDeRecebimentoAnalisarSerializer(CamposObrigatoriosMixin,
                                                DocumentoDeRecebimentoAnalisarRascunhoSerializer):
     def __init__(self, *args, **kwargs):
-        """Exceção ao demais campos, correcao_solicitada permite valor em branco em caso de sol. de correção."""
+        """Exceção ao demais campos, correcao_solicitada não é obrigatório."""
         super().__init__(*args, **kwargs)
-        self.fields['correcao_solicitada'] = serializers.CharField(allow_blank=True)
+        self.fields['correcao_solicitada'] = serializers.CharField(required=False)
 
     def update(self, instance, validated_data):
         user = self.context['request'].user
