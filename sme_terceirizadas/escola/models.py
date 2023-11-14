@@ -409,13 +409,21 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             Q(serie__icontains='1') | Q(serie__icontains='2')
             | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
 
-    def quantidade_alunos_cei_por_periodo_4_a_6_anos(self, periodo):
+    def quantidade_alunos_cei_por_periodo_por_faixa(self, periodo, faixa):
         if not self.eh_cemei:
             return None
-        quatro_anos_atras = datetime.date.today() - relativedelta(years=4)
-        return self.aluno_set.filter(periodo_escolar__nome=periodo, data_nascimento__lte=quatro_anos_atras).filter(
-            Q(serie__icontains='1') | Q(serie__icontains='2')
-            | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+        data_inicio = datetime.date.today() - relativedelta(months=faixa.inicio)
+        data_fim = datetime.date.today() - relativedelta(months=faixa.fim)
+        return self.aluno_set.filter(
+            periodo_escolar__nome=periodo,
+            data_nascimento__lte=data_inicio,
+            data_nascimento__gte=data_fim
+        ).filter(
+            Q(serie__icontains='1') |
+            Q(serie__icontains='2') |
+            Q(serie__icontains='3') |
+            Q(serie__icontains='4')
+        ).count()
 
     def quantidade_alunos_emei_por_periodo(self, periodo):
         if not self.eh_cemei:
@@ -1381,6 +1389,7 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
                 criado_em__month=data.month,
                 criado_em__day=data.day,
                 tipo_turma=tipo_turma,
+                cei_ou_emei='N/A'
             )
         except cls.DoesNotExist:
             log = cls.objects.create(
@@ -1388,6 +1397,7 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
                 periodo_escolar=periodo_escolar,
                 quantidade_alunos=quantidade_alunos,
                 tipo_turma=tipo_turma,
+                cei_ou_emei='N/A'
             )
             log.criado_em = data
             log.save()
