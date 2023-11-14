@@ -1398,6 +1398,7 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
                 criado_em__month=data.month,
                 criado_em__day=data.day,
                 tipo_turma=tipo_turma,
+                cei_ou_emei='N/A'
             )
         except cls.DoesNotExist:
             log = cls.objects.create(
@@ -1405,6 +1406,7 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
                 periodo_escolar=periodo_escolar,
                 quantidade_alunos=quantidade_alunos,
                 tipo_turma=tipo_turma,
+                cei_ou_emei='N/A'
             )
             log.criado_em = data
             log.save()
