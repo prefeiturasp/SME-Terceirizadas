@@ -1,6 +1,7 @@
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.pre_recebimento.models import (
     ArquivoDoTipoDeDocumento,
+    DataDeFabricaoEPrazo,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
@@ -51,3 +52,13 @@ def cria_tipos_de_documentos(tipos_de_documentos, documento_de_recebimento=None)
             ArquivoDoTipoDeDocumento.objects.create(
                 tipo_de_documento=tipo_de_documento, arquivo=data, nome=arq.get('nome', '')
             )
+
+
+def cria_datas_e_prazos_doc_recebimento(datas_e_prazos, doc_recebimento):
+    datas_criadas = []
+    for data in datas_e_prazos:
+        datas_criadas.append(DataDeFabricaoEPrazo.objects.create(
+            documento_recebimento=doc_recebimento,
+            **data
+        ))
+    return datas_criadas

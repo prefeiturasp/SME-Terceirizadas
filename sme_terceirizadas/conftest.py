@@ -8,7 +8,11 @@ from pytest_factoryboy import register
 from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
 from .inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
-from .pre_recebimento.fixtures.factories.cronograma_factory import CronogramaFactory
+from .pre_recebimento.fixtures.factories.cronograma_factory import (
+    CronogramaFactory,
+    LaboratorioFactory,
+    UnidadeMedidaFactory
+)
 from .pre_recebimento.fixtures.factories.documentos_de_recebimento_factory import (
     DocumentoDeRecebimentoFactory,
     TipoDeDocumentoDeRecebimentoFactory
@@ -21,9 +25,11 @@ f = Faker(locale='pt-Br')
 register(CronogramaFactory)
 register(DocumentoDeRecebimentoFactory)
 register(EmpresaFactory)
+register(LaboratorioFactory)
 register(ProdutoLogisticaFactory)
 register(ProdutoTerceirizadaFactory)
 register(TipoDeDocumentoDeRecebimentoFactory)
+register(UnidadeMedidaFactory)
 
 
 @pytest.fixture
