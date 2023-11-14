@@ -453,49 +453,57 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         instance.logs_salvos = True
         instance.save()
 
-    def update(self, instance, validated_data):  # noqa C901
-        responsaveis_dict = self.context['request'].data.get('responsaveis', None)
-        key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
-        alunos_uuids_dict = self.context['request'].data.get('alunos_periodo_parcial', None)
-        if 'tipos_contagem_alimentacao[]' in self.context['request'].data:
-            tipos_contagem_alimentacao = self.context['request'].data.getlist('tipos_contagem_alimentacao[]', None)
-        else:
-            tipos_contagem_alimentacao = self.context['request'].data.get('tipos_contagem_alimentacao', None)
-        validated_data.pop('alunos_periodo_parcial', None)
-        validated_data.pop('responsaveis', None)
-        validated_data.pop('tipos_contagem_alimentacao', None)
+    def update(self, instance, validated_data):
+        self._check_user_permission()
+        self._update_instance_fields(instance, validated_data)
+        self._update_responsaveis(instance)
+        self._update_alunos(instance, validated_data)
+        self._update_tipos_contagem_alimentacao(instance)
+        anexos = self._process_anexos(instance)
+        self._finaliza_medicao_se_necessario(instance, validated_data, anexos)
+        return instance
 
-        if tipos_contagem_alimentacao:
-            tipos_contagem_alimentacao = TipoContagemAlimentacao.objects.filter(uuid__in=tipos_contagem_alimentacao)
-            instance.tipos_contagem_alimentacao.set(tipos_contagem_alimentacao)
+    def _check_user_permission(self):
+        if self.context['request'].user.vinculo_atual.perfil.nome != DIRETOR_UE:
+            raise PermissionDenied('Você não tem permissão para executar essa ação.')
 
+    def _update_instance_fields(self, instance, validated_data):
         update_instance_from_dict(instance, validated_data, save=True)
 
-        if self.context['request'].user.vinculo_atual.perfil.nome != DIRETOR_UE:
-            raise PermissionDenied(f'Você não tem permissão para executar essa ação.')
-
+    def _update_responsaveis(self, instance):
+        responsaveis_dict = self.context['request'].data.get('responsaveis')
         if responsaveis_dict:
-            responsaveis = json.loads(responsaveis_dict)
             instance.responsaveis.all().delete()
-            for responsavel in responsaveis:
+            for responsavel_data in json.loads(responsaveis_dict):
                 Responsavel.objects.create(
-                    solicitacao_medicao_inicial=instance,
-                    nome=responsavel.get('nome', ''),
-                    rf=responsavel.get('rf', '')
+                    solicitacao_medicao_inicial=instance, **responsavel_data
                 )
 
+    def _update_alunos(self, instance, validated_data):
+        alunos_uuids_dict = self.context['request'].data.get('alunos_periodo_parcial')
         if alunos_uuids_dict:
-            alunos_uuids = json.loads(alunos_uuids_dict)
-            escola_associada = validated_data.get('escola')
             instance.alunos_periodo_parcial.all().delete()
-            for aluno_uuid in alunos_uuids:
+            escola_associada = validated_data.get('escola')
+            for aluno_uuid in json.loads(alunos_uuids_dict):
                 AlunoPeriodoParcial.objects.create(
                     solicitacao_medicao_inicial=instance,
                     aluno=Aluno.objects.get(uuid=aluno_uuid),
                     escola=escola_associada
                 )
 
-        anexos_string = self.context['request'].data.get('anexos', None)
+    def _update_tipos_contagem_alimentacao(self, instance):
+        tipos_contagem_alimentacao = self._get_tipos_contagem_alimentacao_from_request()
+        if tipos_contagem_alimentacao:
+            tipos_contagem_alimentacao = TipoContagemAlimentacao.objects.filter(uuid__in=tipos_contagem_alimentacao)
+            instance.tipos_contagem_alimentacao.set(tipos_contagem_alimentacao)
+
+    def _get_tipos_contagem_alimentacao_from_request(self):
+        if 'tipos_contagem_alimentacao[]' in self.context['request'].data:
+            return self.context['request'].data.getlist('tipos_contagem_alimentacao[]')
+        return self.context['request'].data.get('tipos_contagem_alimentacao')
+
+    def _process_anexos(self, instance):
+        anexos_string = self.context['request'].data.get('anexos')
         if anexos_string:
             anexos = json.loads(anexos_string)
             for anexo in anexos:
@@ -506,6 +514,10 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         ultimo_arquivo=arquivo,
                         nome_ultimo_arquivo=anexo.get('nome')
                     )
+            return anexos
+
+    def _finaliza_medicao_se_necessario(self, instance, validated_data, anexos):
+        key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
         if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao'):
             self.cria_valores_medicao_logs_emef_emei(instance)
             self.valida_finalizar_medicao_emef_emei(instance)
@@ -514,7 +526,6 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                 instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
             for medicao in instance.medicoes.all():
                 medicao.ue_envia(user=self.context['request'].user)
-        return instance
 
     class Meta:
         model = SolicitacaoMedicaoInicial

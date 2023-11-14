@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import NotAuthenticated
 from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
+from sme_terceirizadas.dados_comuns.api.serializers import CamposObrigatoriosMixin, ContatoSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
@@ -609,10 +609,29 @@ class DataDeFabricaoEPrazoAnalisarRascunhoSerializer(serializers.ModelSerializer
     data_fabricacao = serializers.DateField(required=False, allow_null=True)
     prazo_maximo_recebimento = serializers.ChoiceField(
         choices=DataDeFabricaoEPrazo.PRAZO_CHOICES, required=False, allow_blank=True)
+    justificativa = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = DataDeFabricaoEPrazo
-        fields = ('data_fabricacao', 'prazo_maximo_recebimento')
+        fields = ('data_fabricacao', 'prazo_maximo_recebimento', 'justificativa')
+
+
+class DataDeFabricaoEPrazoAnalisarSerializer(DataDeFabricaoEPrazoAnalisarRascunhoSerializer):
+
+    def validate(self, attrs):
+        prazo_maximo = attrs.get('prazo_maximo_recebimento', None)
+        justificativa = attrs.get('justificativa', None)
+        if prazo_maximo == DataDeFabricaoEPrazo.PRAZO_OUTRO and not justificativa:
+            raise serializers.ValidationError(
+                {f'justificativa': ['Este campo é obrigatório quando o prazo maximo de recebimento é OUTRO.']}
+            )
+        return attrs
+
+    class Meta(DataDeFabricaoEPrazoAnalisarRascunhoSerializer.Meta):
+        extra_kwargs = {
+            'data_fabricacao': {'required': True, 'allow_null': False},
+            'prazo_maximo_recebimento': {'required': True, 'allow_blank': False},
+        }
 
 
 class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializer):
@@ -647,5 +666,33 @@ class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializ
     class Meta:
         model = DocumentoDeRecebimento
         fields = ('numero_empenho', 'laboratorio', 'quantidade_laudo', 'unidade_medida', 'data_fabricacao_lote',
-                  'validade_produto', 'data_final_lote', 'saldo_laudo', 'correcao_solicitada',
-                  'datas_fabricacao_e_prazos')
+                  'validade_produto', 'data_final_lote', 'saldo_laudo', 'datas_fabricacao_e_prazos')
+
+
+class DocumentoDeRecebimentoAnalisarSerializer(CamposObrigatoriosMixin,
+                                               DocumentoDeRecebimentoAnalisarRascunhoSerializer):
+    def __init__(self, *args, **kwargs):
+        """Exceção ao demais campos, correcao_solicitada não é obrigatório."""
+        super().__init__(*args, **kwargs)
+        self.fields['correcao_solicitada'] = serializers.CharField(required=False)
+
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+        datas_fabricacao_e_prazos = validated_data.pop('datas_fabricacao_e_prazos', [])
+        tem_solicitacao_correcao = validated_data.get('correcao_solicitada', None)
+        update_instance_from_dict(instance, validated_data, save=True)
+        instance.datas_fabricacao_e_prazos.all().delete()
+        cria_datas_e_prazos_doc_recebimento(datas_fabricacao_e_prazos, instance)
+        try:
+            if tem_solicitacao_correcao:
+                instance.qualidade_solicita_correcao(user=user, justificativa=tem_solicitacao_correcao)
+            else:
+                instance.qualidade_aprova_analise(user=user)
+        except InvalidTransitionError as e:
+            raise serializers.ValidationError(
+                f'Erro de transição de estado. O status atual não permite análise: {e}')
+        instance.save()
+        return instance
+
+    class Meta(DocumentoDeRecebimentoAnalisarRascunhoSerializer.Meta):
+        fields = DocumentoDeRecebimentoAnalisarRascunhoSerializer.Meta.fields + ('correcao_solicitada',)
