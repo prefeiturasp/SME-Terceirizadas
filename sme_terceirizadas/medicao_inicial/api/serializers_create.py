@@ -459,8 +459,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         self._update_responsaveis(instance)
         self._update_alunos(instance, validated_data)
         self._update_tipos_contagem_alimentacao(instance)
-        self._process_anexos(instance)
-        self._finaliza_medicao_se_necessario(instance, validated_data)
+        anexos = self._process_anexos(instance)
+        self._finaliza_medicao_se_necessario(instance, validated_data, anexos)
         return instance
 
     def _check_user_permission(self):
@@ -505,7 +505,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
     def _process_anexos(self, instance):
         anexos_string = self.context['request'].data.get('anexos')
         if anexos_string:
-            for anexo in json.loads(anexos_string):
+            anexos = json.loads(anexos_string)
+            for anexo in anexos:
                 if '.pdf' in anexo['nome']:
                     arquivo = convert_base64_to_contentfile(anexo['base64'])
                     OcorrenciaMedicaoInicial.objects.create(
@@ -513,15 +514,16 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
                         ultimo_arquivo=arquivo,
                         nome_ultimo_arquivo=anexo.get('nome')
                     )
+            return anexos
 
-    def _finaliza_medicao_se_necessario(self, instance, validated_data):
+    def _finaliza_medicao_se_necessario(self, instance, validated_data, anexos):
         key_com_ocorrencias = validated_data.get('com_ocorrencias', None)
         if key_com_ocorrencias is not None and self.context['request'].data.get('finaliza_medicao'):
             self.cria_valores_medicao_logs_emef_emei(instance)
             self.valida_finalizar_medicao_emef_emei(instance)
             instance.ue_envia(user=self.context['request'].user)
             if hasattr(instance, 'ocorrencia'):
-                instance.ocorrencia.ue_envia(user=self.context['request'].user)
+                instance.ocorrencia.ue_envia(user=self.context['request'].user, anexos=anexos)
             for medicao in instance.medicoes.all():
                 medicao.ue_envia(user=self.context['request'].user)
 
