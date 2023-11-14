@@ -2049,3 +2049,89 @@ def test_url_documentos_de_recebimento_detalhar(client_autenticado_fornecedor, d
     assert dedos_documento_de_recebimento['pregao_chamada_publica'] == str(cronograma.contrato.pregao_chamada_publica)
     assert dedos_documento_de_recebimento['tipos_de_documentos'] is not None
     assert dedos_documento_de_recebimento['tipos_de_documentos'][0]['tipo_documento'] == 'LAUDO'
+
+
+def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimento_factory, laboratorio_factory,
+                                                          unidade_medida_factory, client_autenticado_qualidade):
+    """Testa o cenário de rascunho, aprovação e sol. de correção."""
+    documento = documento_de_recebimento_factory.create(
+        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE)
+    laboratorio = laboratorio_factory.create(credenciado=True)
+    unidade_medida = unidade_medida_factory()
+
+    # Teste salvar rascunho (todos os campos não são obrigatórios)
+    dados_atualizados = {
+        'numero_empenho': '456',
+        'laboratorio': str(laboratorio.uuid),
+        'quantidade_laudo': 10.5,
+        'unidade_medida': str(unidade_medida.uuid),
+        'data_fabricacao_lote': str(datetime.date.today()),
+        'validade_produto': str(datetime.date.today()),
+        'data_final_lote': str(datetime.date.today()),
+        'saldo_laudo': 5.5
+    }
+
+    response_rascunho = client_autenticado_qualidade.patch(
+        f'/documentos-de-recebimento/{documento.uuid}/analise-documentos-rascunho/',
+        content_type='application/json',
+        data=json.dumps(dados_atualizados)
+    )
+
+    documento.refresh_from_db()
+    assert response_rascunho.status_code == status.HTTP_200_OK
+    assert documento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    assert documento.numero_empenho == '456'
+    assert documento.laboratorio == laboratorio
+    assert documento.quantidade_laudo == 10.5
+    assert documento.unidade_medida == unidade_medida
+    assert documento.data_fabricacao_lote == datetime.date.today()
+    assert documento.validade_produto == datetime.date.today()
+    assert documento.data_final_lote == datetime.date.today()
+    assert documento.saldo_laudo == 5.5
+
+    # Teste analise ação aprovar (Todos os campos são obrigatórios)
+    dados_atualizados['numero_empenho'] = '1223'
+    dados_atualizados['quantidade_laudo'] = 20
+    dados_atualizados['datas_fabricacao_e_prazos'] = [
+        {
+            'data_fabricacao': str(datetime.date.today()),
+            'prazo_maximo_recebimento': '30'
+        },
+        {
+            'data_fabricacao': str(datetime.date.today()),
+            'prazo_maximo_recebimento': '60'
+        },
+        {
+            'data_fabricacao': str(datetime.date.today()),
+            'prazo_maximo_recebimento': '30'
+        }
+    ]
+
+    response_aprovado = client_autenticado_qualidade.patch(
+        f'/documentos-de-recebimento/{documento.uuid}/analise-documentos/',
+        content_type='application/json',
+        data=json.dumps(dados_atualizados)
+    )
+
+    documento.refresh_from_db()
+    assert response_aprovado.status_code == status.HTTP_200_OK
+    assert documento.status == DocumentoDeRecebimento.workflow_class.APROVADO
+    assert documento.numero_empenho == '1223'
+    assert documento.quantidade_laudo == 20
+    assert documento.datas_fabricacao_e_prazos.count() == 3
+
+    # Teste analise ação solicitar correção (Todos os campos são obrigatórios + correcao_solicitada)
+    dados_atualizados['correcao_solicitada'] = 'Documentos corrompidos, sem possibilidade de análise.'
+    documento.status = DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    documento.save()
+
+    response_correcao = client_autenticado_qualidade.patch(
+        f'/documentos-de-recebimento/{documento.uuid}/analise-documentos/',
+        content_type='application/json',
+        data=json.dumps(dados_atualizados)
+    )
+
+    documento.refresh_from_db()
+    assert response_correcao.status_code == status.HTTP_200_OK
+    assert documento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO
+    assert documento.correcao_solicitada == 'Documentos corrompidos, sem possibilidade de análise.'
