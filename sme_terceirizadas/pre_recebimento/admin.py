@@ -5,6 +5,7 @@ from .forms import ArquivoForm, CaixaAltaNomeForm
 from .models import (
     ArquivoDoTipoDeDocumento,
     Cronograma,
+    DataDeFabricaoEPrazo,
     DocumentoDeRecebimento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
@@ -123,6 +124,7 @@ class DocumentoDeRecebimentoAdmin(NestedModelAdmin):
 
 
 admin.site.register(DocumentoDeRecebimento, DocumentoDeRecebimentoAdmin)
+admin.site.register(DataDeFabricaoEPrazo)
 admin.site.register(LayoutDeEmbalagem, LayoutDeEmbalagemAdmin)
 admin.site.register(Cronograma)
 admin.site.register(EtapasDoCronograma)
