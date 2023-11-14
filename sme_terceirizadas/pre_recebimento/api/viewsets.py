@@ -71,6 +71,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharCodaeSerializer,
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
+    LaboratorioCredenciadoSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
     LayoutDeEmbalagemDetalheSerializer,
@@ -358,6 +359,13 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
     def lista_nomes_laboratorios(self, request):
         queryset = Laboratorio.objects.all()
         response = {'results': [q.nome for q in queryset]}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-laboratorios-credenciados')
+    def lista_nomes_laboratorios_credenciados(self, request):
+        laboratorios = self.get_queryset().filter(credenciado=True)
+        serializer = LaboratorioCredenciadoSimplesSerializer(laboratorios, many=True).data
+        response = {'results': serializer}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='lista-laboratorios')

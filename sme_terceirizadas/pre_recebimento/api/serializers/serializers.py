@@ -208,6 +208,13 @@ class LaboratorioSimplesFiltroSerializer(serializers.ModelSerializer):
         read_only_fields = ('nome', 'cnpj')
 
 
+class LaboratorioCredenciadoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Laboratorio
+        fields = ('uuid', 'nome')
+        read_only_fields = ('uuid', 'nome')
+
+
 class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoEmbalagemQld
