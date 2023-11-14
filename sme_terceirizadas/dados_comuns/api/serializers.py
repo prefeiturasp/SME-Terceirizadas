@@ -19,6 +19,16 @@ from ..models import (
 )
 
 
+class CamposObrigatoriosMixin:
+    def __init__(self, *args, **kwargs):
+        """Define campos obrigatórios, para ser usado quando extender um serializer com campos não obrigatórios."""
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.required = True
+            field.allow_null = False
+            field.allow_blank = False
+
+
 class AnexoLogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
     nome = serializers.CharField()
     arquivo_url = serializers.SerializerMethodField()

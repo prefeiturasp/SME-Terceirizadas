@@ -53,6 +53,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
+    DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoCreateSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
@@ -70,6 +71,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharCodaeSerializer,
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
+    LaboratorioCredenciadoSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
     LayoutDeEmbalagemDetalheSerializer,
@@ -357,6 +359,13 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
     def lista_nomes_laboratorios(self, request):
         queryset = Laboratorio.objects.all()
         response = {'results': [q.nome for q in queryset]}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-laboratorios-credenciados')
+    def lista_nomes_laboratorios_credenciados(self, request):
+        laboratorios = self.get_queryset().filter(credenciado=True)
+        serializer = LaboratorioCredenciadoSimplesSerializer(laboratorios, many=True).data
+        response = {'results': serializer}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='lista-laboratorios')
@@ -708,6 +717,19 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
             url_path='analise-documentos-rascunho', permission_classes=(UsuarioEhDilogQualidade,))
     def codae_analisa_documentos_rascunho(self, request, uuid):
         serializer = DocumentoDeRecebimentoAnalisarRascunhoSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            documento_recebimento_atualizado = serializer.save()
+            return Response(DocRecebimentoDetalharCodaeSerializer(documento_recebimento_atualizado).data)
+
+    @action(detail=True, methods=['PATCH'],
+            url_path='analise-documentos', permission_classes=(UsuarioEhDilogQualidade,))
+    def codae_analisa_documentos(self, request, uuid):
+        serializer = DocumentoDeRecebimentoAnalisarSerializer(
             instance=self.get_object(),
             data=request.data,
             context={'request': request}

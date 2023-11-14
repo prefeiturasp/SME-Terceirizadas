@@ -116,17 +116,21 @@ def registra_quantidade_matriculados(matriculas, ontem, tipo_turma):  # noqa C90
                 objs.append(matricula_sigpae)
             else:
                 AlunosMatriculadosPeriodoEscola.criar(
-                    escola=escola, periodo_escolar=periodo,
+                    escola=escola,
+                    periodo_escolar=periodo,
                     quantidade_alunos=turno_resp['quantidade'],
                     tipo_turma=tipo_turma)
             LogAlunosMatriculadosPeriodoEscola.criar(
-                escola=escola, periodo_escolar=periodo,
+                escola=escola,
+                periodo_escolar=periodo,
                 quantidade_alunos=turno_resp['quantidade'],
-                data=ontem, tipo_turma=tipo_turma)
+                data=ontem,
+                tipo_turma=tipo_turma)
 
         AlunosMatriculadosPeriodoEscola.objects.filter(
             tipo_turma=tipo_turma,
-            escola=escola).exclude(periodo_escolar__in=periodos).delete()
+            escola=escola
+        ).exclude(periodo_escolar__in=periodos).delete()
     AlunosMatriculadosPeriodoEscola.objects.bulk_update(objs, ['quantidade_alunos'])
     update_datetime_LogAlunosMatriculadosPeriodoEscola()
 
