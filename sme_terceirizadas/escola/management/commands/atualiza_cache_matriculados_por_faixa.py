@@ -75,7 +75,7 @@ class Command(BaseCommand):
                 periodos['INTEGRAL'][chave] -= periodo_parcial['PARCIAL'][chave]
         return {**periodo_parcial, **periodos}
 
-    def trata_cemei_ao_gerar_logs(self, escola, periodo, faixa_obj):
+    def trata_cemei_ao_gerar_logs(self, escola, periodo, faixa_obj, quantidade):
         pula_gerar_logs = False
         if escola.eh_cemei:
             if periodo != 'INTEGRAL':
@@ -83,7 +83,7 @@ class Command(BaseCommand):
             quantidade = escola.quantidade_alunos_cei_por_periodo_por_faixa('INTEGRAL', faixa_obj)
             if quantidade == 0:
                 pula_gerar_logs = True
-        return pula_gerar_logs
+        return pula_gerar_logs, quantidade
 
     def _salvar_matriculados_por_faixa_dia(self, escola):
         try:
@@ -100,7 +100,8 @@ class Command(BaseCommand):
                 periodo_escolar = PeriodoEscolar.objects.get(nome=self._formatar_periodo_eol(periodo))
                 for faixa_etaria, quantidade in qtd_faixas.items():
                     faixa_obj = FaixaEtaria.objects.get(uuid=faixa_etaria)
-                    if self.trata_cemei_ao_gerar_logs(escola, periodo, faixa_obj):
+                    pula_gerar_logs, quantidade = self.trata_cemei_ao_gerar_logs(escola, periodo, faixa_obj, quantidade)
+                    if pula_gerar_logs:
                         continue
                     LogAlunosMatriculadosFaixaEtariaDia.objects.update_or_create(
                         escola=escola,
