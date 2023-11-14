@@ -69,7 +69,7 @@ class Command(BaseCommand):
             )
 
     def periodos_integral_sem_alunos_pariciais(self, periodos, periodo_parcial):
-        if periodos['INTEGRAL'] and periodo_parcial['PARCIAL']:
+        if 'INTEGRAL' in periodos and 'PARCIAL' in periodo_parcial:
             chaves_comuns = set(periodo_parcial['PARCIAL'].keys()).intersection(periodos['INTEGRAL'].keys())
             for chave in chaves_comuns:
                 periodos['INTEGRAL'][chave] -= periodo_parcial['PARCIAL'][chave]
@@ -89,16 +89,19 @@ class Command(BaseCommand):
             for periodo, qtd_faixas in periodos_faixas.items():
                 periodo_escolar = PeriodoEscolar.objects.get(nome=self._formatar_periodo_eol(periodo))
                 for faixa_etaria, quantidade in qtd_faixas.items():
+                    faixa_obj = FaixaEtaria.objects.get(uuid=faixa_etaria)
                     LogAlunosMatriculadosFaixaEtariaDia.objects.update_or_create(
                         escola=escola,
                         periodo_escolar=periodo_escolar,
-                        faixa_etaria=FaixaEtaria.objects.get(uuid=faixa_etaria),
+                        faixa_etaria=faixa_obj,
                         data=ontem,
                         defaults={
                             'escola': escola,
                             'periodo_escolar': periodo_escolar,
-                            'faixa_etaria': FaixaEtaria.objects.get(uuid=faixa_etaria),
-                            'quantidade': quantidade,
+                            'faixa_etaria': faixa_obj,
+                            'quantidade': (quantidade
+                                           if faixa_obj.fim != 73 or escola.eh_cei
+                                           else escola.quantidade_alunos_cei_por_periodo_4_a_6_anos('INTEGRAL')),
                             'data': ontem
                         }
                     )

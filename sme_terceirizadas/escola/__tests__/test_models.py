@@ -277,6 +277,19 @@ def test_criar_log_alunos_matriculados_periodo_escola_regular(escola, periodo_es
     assert f'tem {log.quantidade_alunos} alunos' in log.__str__()
 
 
+def test_criar_log_alunos_matriculados_periodo_escola_cemei_regular(escola_cemei, periodo_escolar):
+    hoje = datetime.date.today()
+    assert LogAlunosMatriculadosPeriodoEscola.objects.count() == 0
+    LogAlunosMatriculadosPeriodoEscola.criar(
+        escola=escola_cemei, periodo_escolar=periodo_escolar, quantidade_alunos=32, data=hoje, tipo_turma='REGULAR')
+    assert LogAlunosMatriculadosPeriodoEscola.objects.count() == 3
+    assert LogAlunosMatriculadosPeriodoEscola.objects.filter(cei_ou_emei='CEI').exists()
+    assert LogAlunosMatriculadosPeriodoEscola.objects.filter(cei_ou_emei='EMEI').exists()
+    assert LogAlunosMatriculadosPeriodoEscola.objects.first().tipo_turma == 'REGULAR'
+    log = LogAlunosMatriculadosPeriodoEscola.objects.all()[0]
+    assert f'tem {log.quantidade_alunos} alunos' in log.__str__()
+
+
 def test_dia_calendario_e_dia_letivo(dia_calendario_letivo):
     model = dia_calendario_letivo
     assert isinstance(model, DiaCalendario)

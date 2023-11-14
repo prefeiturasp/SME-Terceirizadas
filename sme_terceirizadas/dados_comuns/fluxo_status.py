@@ -19,7 +19,7 @@ from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import ADMINISTRADOR_MEDICAO, COGESTOR_DRE, DIRETOR_UE
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
-from .services import PartesInteressadasService
+from .services import EmailENotificacaoService, PartesInteressadasService
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import (
     convert_base64_to_contentfile,
@@ -3455,19 +3455,6 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = CronogramaWorkflow
     status = xwf_models.StateField(workflow_class)
 
-    def _usuarios_partes_interessadas_cronograma_e_dilog_diretoria(self):
-        queryset = Usuario.objects.filter(
-            vinculos__perfil__nome__in=(
-                'DILOG_CRONOGRAMA',
-                'DILOG_DIRETORIA'
-            ),
-            vinculos__ativo=True,
-            vinculos__data_inicial__isnull=False,
-            vinculos__data_final__isnull=True
-        )
-
-        return [usuario for usuario in queryset]
-
     def _preenche_template(self, template_notif, log_transicao, perfil=None):
         esconder_dados = perfil in [
             'ADMINISTRADOR_EMPRESA'
@@ -3526,12 +3513,12 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
                 'hidden_email': True
             }
         )
-        partes_interessadas = self._usuarios_partes_interessadas_cronograma(only_email=True)
+
         envia_email_em_massa_task.delay(
             assunto=f'[SIGPAE] Solicitação de Alteração do Cronograma {self.numero}',
-            emails=partes_interessadas,
             corpo='',
-            html=html
+            html=html,
+            emails=PartesInteressadasService.usuarios_por_perfis('DILOG_CRONOGRAMA', somente_email=True)
         )
 
     @xworkflows.after_transition('fornecedor_solicita_alteracao')
@@ -3565,7 +3552,7 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
             # Montar Notificação
             log_transicao = self.log_mais_recente
-            usuarios = self._usuarios_partes_interessadas_cronograma_e_dilog_diretoria()
+            usuarios = PartesInteressadasService.usuarios_por_perfis(['DILOG_CRONOGRAMA', 'DILOG_DIRETORIA'])
             template_notif = 'pre_recebimento_notificacao_assinatura_cronograma.html'
             tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
             titulo_notificacao = f'Cronograma { self.numero } assinado pela DINUTRE'
@@ -3573,24 +3560,6 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             self._cria_notificacao(
                 template_notif, titulo_notificacao, usuarios, link, tipo, log_transicao
             )
-
-    def _usuarios_partes_interessadas_cronograma(self, only_email=False):
-        queryset = Usuario.objects.filter(
-            vinculos__perfil__nome__in=['DILOG_CRONOGRAMA'],
-            vinculos__ativo=True,
-            vinculos__data_inicial__isnull=False,
-            vinculos__data_final__isnull=True)
-        if only_email:
-            return [usuario.email for usuario in queryset]
-        return [usuario for usuario in queryset]
-
-    def _usuarios_partes_interessadas_empresas(self):
-        if self.empresa:
-            vinculos = self.empresa.vinculos.filter(
-                ativo=True
-            )
-            return [vinculo.usuario for vinculo in vinculos]
-        return []
 
     @xworkflows.after_transition('codae_assina')
     def _codae_assina_hook(self, *args, **kwargs):
@@ -3602,8 +3571,9 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             # Montar Notificação
             log_transicao = self.log_mais_recente
             usuarios = [
-                *self._usuarios_partes_interessadas_cronograma(),
-                *self._usuarios_partes_interessadas_empresas()]
+                *PartesInteressadasService.usuarios_por_perfis('DILOG_CRONOGRAMA'),
+                *PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(self)
+            ]
             template_notif = 'pre_recebimento_notificacao_assinatura_codae.html'
             tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
             titulo_notificacao = f'Cronograma { self.numero } assinado pela CODAE'
@@ -3629,10 +3599,9 @@ class FluxoCronograma(xwf_models.WorkflowEnabled, models.Model):
             }
         )
 
-        partes_interessadas_service = PartesInteressadasService()
         partes_interessadas = (
-            partes_interessadas_service.usuarios_por_perfis(['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA'], True) +
-            partes_interessadas_service.usuarios_vinculados_a_empresa_do_cronograma(self, True)
+            PartesInteressadasService.usuarios_por_perfis(['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA'], True) +
+            PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(self, True)
         )
 
         envia_email_em_massa_task.delay(
@@ -3724,48 +3693,6 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                     cronograma=self
                 )
 
-    def _usuarios_partes_interessadas_dinutre(self, only_email=False):
-        queryset = Usuario.objects.filter(
-            vinculos__perfil__nome__in=(
-                'DINUTRE_DIRETORIA',
-            ),
-            vinculos__ativo=True,
-            vinculos__data_inicial__isnull=False,
-            vinculos__data_final__isnull=True
-        )
-
-        if only_email:
-            return [usuario.email for usuario in queryset]
-
-        return [usuario for usuario in queryset]
-
-    def _usuarios_partes_interessadas_dilog(self):
-        queryset = Usuario.objects.filter(
-            vinculos__perfil__nome__in=(
-                'DILOG_DIRETORIA',
-            ),
-            vinculos__ativo=True,
-            vinculos__data_inicial__isnull=False,
-            vinculos__data_final__isnull=True
-        )
-
-        return [usuario for usuario in queryset]
-
-    def _usuarios_partes_interessadas_cronograma(self, only_email=False):
-        queryset = Usuario.objects.filter(
-            vinculos__perfil__nome__in=(
-                'DILOG_CRONOGRAMA',
-            ),
-            vinculos__ativo=True,
-            vinculos__data_inicial__isnull=False,
-            vinculos__data_final__isnull=True
-        )
-
-        if only_email:
-            return [usuario.email for usuario in queryset]
-
-        return [usuario for usuario in queryset]
-
     def _envia_email_notificacao_alteracao_cronograma_codae(self):
         numero_cronograma = self.cronograma.numero
         log_transicao = self.log_mais_recente
@@ -3781,26 +3708,15 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             }
         )
 
-        partes_interessadas = self._emails_partes_interessadas_fornecedor_e_distribuidor()
-
         envia_email_em_massa_task.delay(
             assunto=f'[SIGPAE] Alteração do Cronograma {numero_cronograma}',
-            emails=partes_interessadas,
             corpo='',
-            html=html
+            html=html,
+            emails=PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
+                cronograma=self.cronograma,
+                somente_email=True
+            )
         )
-
-    def _emails_partes_interessadas_fornecedor_e_distribuidor(self):
-        queryset = self.cronograma.empresa.vinculos.filter(
-            ativo=True
-        ).values_list('usuario__email', flat=True)
-
-        return [email for email in queryset]
-
-    def _usuarios_partes_interessadas_fornecedor_e_distribuidor(self):
-        vinculos_ativos = self.cronograma.empresa.vinculos.filter(ativo=True)
-        usuarios = [vinculo.usuario for vinculo in vinculos_ativos]
-        return usuarios
 
     def _envia_email_notificacao_ciencia_fornecedor(self, user):
         numero_cronograma = self.cronograma.numero
@@ -3818,26 +3734,15 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
             }
         )
 
-        partes_interessadas = self._emails_partes_interessadas_cronograma_dinutre_dilog()
-
         envia_email_em_massa_task.delay(
             assunto=f'[SIGPAE] Ciência da Alteração do Cronograma {numero_cronograma}',
-            emails=partes_interessadas,
             corpo='',
-            html=html
+            html=html,
+            emails=PartesInteressadasService.usuarios_por_perfis(
+                nomes_perfis=['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA', 'DILOG_DIRETORIA'],
+                somente_email=True
+            )
         )
-
-    def _emails_partes_interessadas_cronograma_dinutre_dilog(self):
-        perfis_interessados = ['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA', 'DILOG_DIRETORIA']
-
-        queryset = Usuario.objects.filter(
-            vinculos__perfil__nome__in=perfis_interessados,
-            vinculos__ativo=True,
-            vinculos__data_inicial__isnull=False,
-            vinculos__data_final__isnull=True
-        )
-
-        return [usuario.email for usuario in queryset]
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
@@ -3858,7 +3763,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
         template = 'pre_recebimento_notificacao_solicitacao_cronograma_codae.html'
         titulo_notificacao = f'Alteração do Cronograma Nº { self.cronograma.numero }'
-        usuarios = self._usuarios_partes_interessadas_fornecedor_e_distribuidor()
+        usuarios = PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(self.cronograma)
         link = f'/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
         tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
         log_transicao = self.log_mais_recente
@@ -3878,7 +3783,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
             # Montar Notificação
             log_transicao = self.log_mais_recente
-            usuarios = self._usuarios_partes_interessadas_dinutre()
+            usuarios = PartesInteressadasService.usuarios_por_perfis('DINUTRE_DIRETORIA')
             template_notif = 'pre_recebimento_notificacao_solicitacao_cronograma_ciente.html'
             tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
             titulo_notificacao = f' Solicitação de Alteração do Cronograma Nº { self.cronograma.numero }'
@@ -3896,8 +3801,9 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                                       usuario=user,
                                       justificativa=kwargs.get('justificativa', ''))
             log_transicao = self.log_mais_recente
-            usuarios = (self._usuarios_partes_interessadas_dilog() + self._usuarios_partes_interessadas_cronograma()
-                        + self._usuarios_partes_interessadas_dinutre())
+            usuarios = PartesInteressadasService.usuarios_por_perfis(
+                ['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA', 'DILOG_DIRETORIA']
+            )
             template_notif = 'pre_recebimento_notificacao_alteracao_cronograma_codae_ciencia_fornecedor.html'
             tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
             titulo_notificacao = f'Ciência da Alteração do Cronograma Nº { self.cronograma.numero } pelo Fornecedor'
@@ -3910,7 +3816,7 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
 
     def _montar_dinutre_notificacao(self):
         log_transicao = self.log_mais_recente
-        usuarios = self._usuarios_partes_interessadas_dilog()
+        usuarios = PartesInteressadasService.usuarios_por_perfis('DILOG_DIRETORIA')
         template_notif = 'pre_recebimento_notificacao_solicitacao_parecer_dinutre.html'
         tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
         titulo_notificacao = f' Solicitação de Alteração do Cronograma Nº { self.cronograma.numero }'
@@ -3938,19 +3844,12 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                                       justificativa=kwargs.get('justificativa', ''))
             self._montar_dinutre_notificacao()
 
-    def _usuarios_partes_interessadas_empresas(self):
-        if self.cronograma.empresa:
-            vinculos = self.cronograma.empresa.vinculos.filter(
-                ativo=True
-            )
-            return [vinculo.usuario for vinculo in vinculos]
-        return []
-
     def _montar_dilog_notificacao(self):
         log_transicao = self.log_mais_recente
-        usuarios = [*self._usuarios_partes_interessadas_dinutre(),
-                    *self._usuarios_partes_interessadas_empresas(),
-                    *self._usuarios_partes_interessadas_cronograma()]
+        usuarios = [
+            *PartesInteressadasService.usuarios_por_perfis(['DINUTRE_DIRETORIA', 'DILOG_CRONOGRAMA']),
+            *PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(self.cronograma),
+        ]
         template_notif = 'pre_recebimento_notificacao_solicitacao_parecer_codae.html'
         tipo = Notificacao.TIPO_NOTIFICACAO_ALERTA
         titulo_notificacao = f' Solicitação de Alteração do Cronograma Nº { self.cronograma.numero }'
@@ -3958,6 +3857,34 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
         categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_SOLICITACAO_ALTERACAO_CRONOGRAMA
         self._cria_notificacao(
             template_notif, titulo_notificacao, usuarios, link, tipo, categoria_notificacao, log_transicao
+        )
+
+    def _envia_email_notificacao_retorno_codae_alteracao_cronograma(self, status_analise):
+        numero_cronograma = self.cronograma.numero
+        log_transicao = self.log_mais_recente
+        url_solicitacao_alteracao = f'{base_url}/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
+
+        html = render_to_string(
+            template_name='pre_recebimento_email_solicitacao_cronograma_parecer_codae.html',
+            context={
+                'titulo': f'Retorno Solicitação de Alteração do Cronograma {numero_cronograma}',
+                'numero_cronograma': numero_cronograma,
+                'log_transicao': log_transicao,
+                'status_analise': status_analise,
+                'url_solicitacao_alteracao': url_solicitacao_alteracao,
+            }
+        )
+
+        partes_interessadas = (
+            PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(self.cronograma, True) +
+            PartesInteressadasService.usuarios_por_perfis(['DILOG_CRONOGRAMA', 'DINUTRE_DIRETORIA'], True)
+        )
+
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Retorno Solicitação de Alteração do Cronograma {numero_cronograma}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
         )
 
     @xworkflows.after_transition('dilog_aprova')
@@ -3979,35 +3906,6 @@ class FluxoAlteracaoCronograma(xwf_models.WorkflowEnabled, models.Model):
                                       justificativa=kwargs.get('justificativa', ''))
             self._montar_dilog_notificacao()
             self._envia_email_notificacao_retorno_codae_alteracao_cronograma('REPROVOU')
-
-    def _envia_email_notificacao_retorno_codae_alteracao_cronograma(self, status_analise):
-        numero_cronograma = self.cronograma.numero
-        log_transicao = self.log_mais_recente
-        url_solicitacao_alteracao = f'{base_url}/pre-recebimento/detalhe-alteracao-cronograma?uuid={self.uuid}'
-
-        html = render_to_string(
-            template_name='pre_recebimento_email_solicitacao_cronograma_parecer_codae.html',
-            context={
-                'titulo': f'Retorno Solicitação de Alteração do Cronograma {numero_cronograma}',
-                'numero_cronograma': numero_cronograma,
-                'log_transicao': log_transicao,
-                'status_analise': status_analise,
-                'url_solicitacao_alteracao': url_solicitacao_alteracao,
-            }
-        )
-
-        partes_interessadas = (
-            self._emails_partes_interessadas_fornecedor_e_distribuidor() +
-            self._usuarios_partes_interessadas_cronograma(only_email=True) +
-            self._usuarios_partes_interessadas_dinutre(only_email=True)
-        )
-
-        envia_email_em_massa_task.delay(
-            assunto=f'[SIGPAE] Retorno Solicitação de Alteração do Cronograma {numero_cronograma}',
-            emails=partes_interessadas,
-            corpo='',
-            html=html
-        )
 
     class Meta:
         abstract = True
@@ -4118,34 +4016,41 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_ENVIADO_PARA_ANALISE,
                                       usuario=user)
 
-            data_envio = self.log_mais_recente.criado_em.strftime('%d/%m/%Y')
             nome_empresa = self.cronograma.empresa.nome_fantasia
+            data_envio = self.log_mais_recente.criado_em.strftime('%d/%m/%Y')
+            numero_cronograma = self.cronograma.numero
+            url_layout_embalagens = f'/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}'
             perfis_interessados = [
                 constants.DILOG_QUALIDADE,
                 constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
                 constants.COORDENADOR_GESTAO_PRODUTO
             ]
 
-            template = 'pre_recebimento_notificacao_fornecedor_envia_layout_embalagem.html',
-            contexto_template = {
-                'numero_cronograna': self.cronograma.numero,
-                'nome_usuario_empresa': user.nome,
-                'cpf_usuario_empresa': user.cpf_formatado_e_censurado
-            }
-            titulo_notificacao = f'Layout de Embalagens enviado em {data_envio} pelo Fornecedor {nome_empresa}'
-            tipo_notificacao = Notificacao.TIPO_NOTIFICACAO_ALERTA
-            categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
-            link_acesse_aqui = f'/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}'
-            usuarios = PartesInteressadasService().usuarios_por_perfis(perfis_interessados)
+            EmailENotificacaoService.enviar_notificacao(
+                template='pre_recebimento_notificacao_fornecedor_envia_layout_embalagem.html',
+                contexto_template={
+                    'numero_cronograna': numero_cronograma,
+                    'nome_usuario_empresa': user.nome,
+                    'cpf_usuario_empresa': user.cpf_formatado_e_censurado
+                },
+                titulo_notificacao=f'Layout de Embalagens enviado em {data_envio} pelo Fornecedor {nome_empresa}',
+                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
+                categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS,
+                link_acesse_aqui=url_layout_embalagens,
+                usuarios=PartesInteressadasService.usuarios_por_perfis(perfis_interessados)
+            )
 
-            preencher_template_e_notificar(
-                template=template,
-                contexto_template=contexto_template,
-                titulo_notificacao=titulo_notificacao,
-                tipo_notificacao=tipo_notificacao,
-                categoria_notificacao=categoria_notificacao,
-                link_acesse_aqui=link_acesse_aqui,
-                usuarios=usuarios,
+            EmailENotificacaoService.enviar_email(
+                titulo=f'Layouts Pendentes de Aprovação\nCronograma {numero_cronograma}',
+                assunto=f'[SIGPAE] Layouts Pendentes de Aprovação | Cronograma {numero_cronograma}',
+                template='pre_recebimento_email_fornecedor_envia_layout_embalagem.html',
+                contexto_template={
+                    'nome_empresa': nome_empresa,
+                    'numero_cronograma': numero_cronograma,
+                    'data_envio': data_envio,
+                    'url_layout_embalagens': base_url + url_layout_embalagens,
+                },
+                destinatarios=PartesInteressadasService.usuarios_por_perfis(perfis_interessados, somente_email=True)
             )
 
     @xworkflows.after_transition('codae_aprova')
@@ -4162,28 +4067,34 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.LAYOUT_SOLICITADO_CORRECAO,
                                       usuario=user)
 
-            partes_interessadas_service = PartesInteressadasService()
-
             numero_cronograma = self.cronograma.numero
-            template = 'pre_recebimento_notificacao_codae_solicita_correcao_layout_embalagem.html',
-            contexto_template = {'numero_cronograna': numero_cronograma}
-            titulo_notificacao = (
-                'Solicitação de Alteração do Layout de Embalagens referente ao Cronograma Nº ' +
-                f'{numero_cronograma}'
-            )
-            tipo_notificacao = Notificacao.TIPO_NOTIFICACAO_ALERTA
-            categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
-            link_acesse_aqui = f'/pre-recebimento/corrigir-layout-embalagem?uuid={self.uuid}'
-            usuarios = partes_interessadas_service.usuarios_vinculados_a_empresa_do_cronograma(self.cronograma)
+            url_corrigir_layout_embalagens = f'/pre-recebimento/corrigir-layout-embalagem?uuid={self.uuid}'
 
-            preencher_template_e_notificar(
-                template=template,
-                contexto_template=contexto_template,
-                titulo_notificacao=titulo_notificacao,
-                tipo_notificacao=tipo_notificacao,
-                categoria_notificacao=categoria_notificacao,
-                link_acesse_aqui=link_acesse_aqui,
-                usuarios=usuarios,
+            EmailENotificacaoService.enviar_notificacao(
+                template='pre_recebimento_notificacao_codae_solicita_correcao_layout_embalagem.html',
+                contexto_template={'numero_cronograna': numero_cronograma},
+                titulo_notificacao=(
+                    'Solicitação de Alteração do Layout de Embalagens referente ao Cronograma Nº ' +
+                    f'{numero_cronograma}'
+                ),
+                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
+                categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS,
+                link_acesse_aqui=url_corrigir_layout_embalagens,
+                usuarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(self.cronograma)
+            )
+
+            EmailENotificacaoService.enviar_email(
+                titulo=f'Solicitação de Correção Layout de Embalagens Cronograma Nº {numero_cronograma}',
+                assunto=f'[SIGPAE] Solicitação de Correção Layout de Embalagens | Cronograma Nº {numero_cronograma}',
+                template='pre_recebimento_email_codae_solicita_correcao_layout_embalagem.html',
+                contexto_template={
+                    'numero_cronograma': numero_cronograma,
+                    'data_solicitacao': self.log_mais_recente.criado_em.strftime('%d/%m/%Y'),
+                    'url_layout_embalagens': base_url + url_corrigir_layout_embalagens,
+                },
+                destinatarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
+                    self.cronograma, somente_email=True
+                )
             )
 
     @xworkflows.after_transition('fornecedor_realiza_correcao')
@@ -4221,7 +4132,7 @@ class FluxoLayoutDeEmbalagem(xwf_models.WorkflowEnabled, models.Model):
         tipo_notificacao = Notificacao.TIPO_NOTIFICACAO_ALERTA
         categoria_notificacao = Notificacao.CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS
         link_acesse_aqui = f'/pre-recebimento/analise-layout-embalagem?uuid={self.uuid}'
-        usuarios = PartesInteressadasService().usuarios_por_perfis(perfis_interessados)
+        usuarios = PartesInteressadasService.usuarios_por_perfis(perfis_interessados)
 
         preencher_template_e_notificar(
             template=template,
