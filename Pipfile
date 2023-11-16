@@ -121,4 +121,4 @@ drf-spectacular = "==0.26.3"
 cerberus = "*"
 
 [requires]
-python_version = "3.8.16"
+python_version = "3.9.18"
