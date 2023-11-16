@@ -675,8 +675,6 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
             instance.valores_medicao.filter(valor=-1).delete()
         instance.alterado_em = datetime.now()
         instance.save()
-        if not instance.valores_medicao.all().exists():
-            instance.delete()
 
         return instance
 

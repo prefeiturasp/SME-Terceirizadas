@@ -129,9 +129,31 @@ def escola_cei():
 
 
 @pytest.fixture
+def escola_cemei():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL TESTE')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='CEMEI')
+    return mommy.make('Escola', nome='CEMEI TESTE', lote=lote, diretoria_regional=diretoria_regional,
+                      tipo_gestao=tipo_gestao, tipo_unidade=tipo_unidade_escolar)
+
+
+@pytest.fixture
 def aluno():
     return mommy.make('Aluno', nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01',
                       uuid='2d20157a-4e52-4d25-a4c7-9c0e6b67ee18')
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_cemei(escola_cemei, categoria_medicao):
+    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
+    periodo_integral = mommy.make('PeriodoEscolar', nome='INTEGRAL')
+    solicitacao_medicao = mommy.make('SolicitacaoMedicaoInicial', mes=4, ano=2023, escola=escola_cemei)
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao, periodo_escolar=periodo_integral)
+    mommy.make('FaixaEtaria', inicio=1, fim=10, uuid='0c914b27-c7cd-4682-a439-a4874745b005')
+    return solicitacao_medicao
 
 
 @pytest.fixture
@@ -715,7 +737,7 @@ def medicao_aprovada_pela_dre(solicitacao_medicao_inicial, periodo_escolar, cate
 
 @pytest.fixture
 def categoria_medicao():
-    return mommy.make('CategoriaMedicao', nome='ALIMENTAÇÃO')
+    return mommy.make('CategoriaMedicao', nome='ALIMENTAÇÃO', id=1)
 
 
 @pytest.fixture
@@ -777,6 +799,20 @@ def client_autenticado_da_escola(client, django_user_model, escola):
                                                     registro_funcional='123456')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_escola_cemei(client, django_user_model, escola_cemei):
+    email = 'user@escola.com'
+    password = 'admin@123'
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    usuario = django_user_model.objects.create_user(username=email, password=password, email=email,
+                                                    registro_funcional='123456')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola_cemei, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
     client.login(username=email, password=password)
     return client

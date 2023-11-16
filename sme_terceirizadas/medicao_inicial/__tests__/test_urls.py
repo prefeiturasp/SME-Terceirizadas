@@ -972,3 +972,38 @@ def test_finaliza_medicao_inicial_salva_logs(
         nome_campo='kit_lanche', categoria_medicao__nome='SOLICITAÇÕES DE ALIMENTAÇÃO').count() == 1
     assert medicao_solicitacoes_alimentacao.valores_medicao.get(
         nome_campo='kit_lanche', categoria_medicao__nome='SOLICITAÇÕES DE ALIMENTAÇÃO').valor == '200'
+
+
+def test_salva_valores_medicao_inicial_cemei(
+        client_autenticado_da_escola_cemei, escola_cemei, solicitacao_medicao_inicial_cemei):
+    data = {
+        'valores_medicao': [
+            {
+                'dia': '08',
+                'valor': '218',
+                'nome_campo': 'matriculados',
+                'categoria_medicao': '1',
+                'faixa_etaria': '0c914b27-c7cd-4682-a439-a4874745b005'
+            },
+            {
+                'dia': '08',
+                'valor': '200',
+                'nome_campo': 'frequencia',
+                'categoria_medicao': '1',
+                'faixa_etaria': '0c914b27-c7cd-4682-a439-a4874745b005'
+            }
+        ]
+    }
+    medicao_integral = solicitacao_medicao_inicial_cemei.medicoes.get(periodo_escolar__nome='INTEGRAL')
+    response = client_autenticado_da_escola_cemei.patch(
+        f'/medicao-inicial/medicao/{medicao_integral.uuid}/',
+        content_type='application/json',
+        data=json.dumps(data)
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    medicao_integral.refresh_from_db()
+    assert medicao_integral.valores_medicao.count() == 2
+    assert medicao_integral.valores_medicao.filter(dia='08', nome_campo='matriculados', valor='218').exists() is True
+    assert medicao_integral.valores_medicao.filter(dia='08', nome_campo='frequencia', valor='200').exists() is True
