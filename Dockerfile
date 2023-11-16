@@ -1,4 +1,4 @@
-FROM python:3.8-buster
+FROM python:3.9-buster
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc g++ git libpq-dev libmagic1 libcairo2 libpango-1.0-0 libpangocairo-1.0-0  && \
