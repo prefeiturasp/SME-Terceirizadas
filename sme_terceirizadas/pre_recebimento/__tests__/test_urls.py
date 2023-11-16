@@ -2064,7 +2064,6 @@ def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimen
 
     # Teste salvar rascunho (todos os campos não são obrigatórios)
     dados_atualizados = {
-        'numero_empenho': '456',
         'laboratorio': str(laboratorio.uuid),
         'quantidade_laudo': 10.5,
         'unidade_medida': str(unidade_medida.uuid),
@@ -2083,7 +2082,6 @@ def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimen
     documento.refresh_from_db()
     assert response_rascunho.status_code == status.HTTP_200_OK
     assert documento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
-    assert documento.numero_empenho == '456'
     assert documento.laboratorio == laboratorio
     assert documento.quantidade_laudo == 10.5
     assert documento.unidade_medida == unidade_medida
@@ -2093,7 +2091,6 @@ def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimen
     assert documento.saldo_laudo == 5.5
 
     # Teste analise ação aprovar (Todos os campos são obrigatórios)
-    dados_atualizados['numero_empenho'] = '1223'
     dados_atualizados['quantidade_laudo'] = 20
     dados_atualizados['datas_fabricacao_e_prazos'] = [
         {
@@ -2119,7 +2116,6 @@ def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimen
     documento.refresh_from_db()
     assert response_aprovado.status_code == status.HTTP_200_OK
     assert documento.status == DocumentoDeRecebimento.workflow_class.APROVADO
-    assert documento.numero_empenho == '1223'
     assert documento.quantidade_laudo == 20
     assert documento.datas_fabricacao_e_prazos.count() == 3
 

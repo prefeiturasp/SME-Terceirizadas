@@ -435,8 +435,7 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
         return obj.cronograma.empresa.nome_fantasia if obj.cronograma.empresa else None
 
     class Meta(DocRecebimentoDetalharSerializer.Meta):
-        fields = DocRecebimentoDetalharSerializer.Meta.fields + ('fornecedor', 'numero_sei', 'numero_empenho',
-                                                                 'laboratorio', 'quantidade_laudo', 'unidade_medida',
+        fields = DocRecebimentoDetalharSerializer.Meta.fields + ('fornecedor', 'numero_sei', 'laboratorio',
+                                                                 'quantidade_laudo', 'unidade_medida', 'saldo_laudo',
                                                                  'data_fabricacao_lote', 'validade_produto',
-                                                                 'data_final_lote', 'saldo_laudo',
-                                                                 'datas_fabricacao_e_prazos',)
+                                                                 'data_final_lote', 'datas_fabricacao_e_prazos',)

@@ -647,7 +647,6 @@ class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializ
         queryset=UnidadeMedida.objects.all(),
         allow_null=True
     )
-    numero_empenho = serializers.CharField(required=False, allow_blank=True)
     quantidade_laudo = serializers.FloatField(required=False, allow_null=True)
     saldo_laudo = serializers.FloatField(required=False, allow_null=True)
     data_fabricacao_lote = serializers.DateField(required=False, allow_null=True)
@@ -665,7 +664,7 @@ class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializ
 
     class Meta:
         model = DocumentoDeRecebimento
-        fields = ('numero_empenho', 'laboratorio', 'quantidade_laudo', 'unidade_medida', 'data_fabricacao_lote',
+        fields = ('laboratorio', 'quantidade_laudo', 'unidade_medida', 'data_fabricacao_lote',
                   'validade_produto', 'data_final_lote', 'saldo_laudo', 'datas_fabricacao_e_prazos')
 
 
