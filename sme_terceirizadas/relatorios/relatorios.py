@@ -827,6 +827,21 @@ def relatorio_marcas_por_produto_homologacao(produtos, dados, filtros):
     return html_to_pdf_file(html_string, f'relatorio_marcas_por_produto_homologacao.pdf', True)
 
 
+def produtos_suspensos_por_edital(produtos, data_final, nome_edital, filtros):
+    html_string = render_to_string(
+        'produtos_suspensos_por_edital.html',
+        {
+            'produtos': produtos,
+            'total': len(produtos),
+            'hoje': datetime.date.today().strftime('%d/%m/%Y'),
+            'data_final': data_final if data_final else datetime.date.today().strftime('%d/%m/%Y'),
+            'nome_edital': nome_edital,
+            'filtros': filtros
+        }
+    )
+    return html_to_pdf_file(html_string, f'relatorio_produto_suspenso_no_edital.pdf', True)
+
+
 def relatorio_produtos_suspensos(produtos, filtros):
     if filtros['cabecario_tipo'] == 'CABECARIO_POR_DATA' and 'data_suspensao_inicial' not in filtros:
         data_suspensao_inicial = datetime.datetime.today()
