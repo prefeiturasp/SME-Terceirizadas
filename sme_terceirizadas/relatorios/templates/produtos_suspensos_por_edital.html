@@ -22,6 +22,11 @@
           <td class="text-center"><b>EDITAL: </b>{{ nome_edital }}</td>
           <td class="text-right"><b>TOTAL DE ITENS: </b>{{ total }}</td>
         </tr>
+        {% if filtros %}
+          <tr class="custom-filtros">
+            <td colspan="3"><b>FILTROS APLICADOS: </b>{{ filtros }}</td>
+          </tr>
+        {% endif %}
     </table>
   </header>
   <body>

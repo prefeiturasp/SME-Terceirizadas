@@ -1786,6 +1786,24 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         )
         return homologacoes
 
+    def lista_filtros(self, query_params):
+        nome_produto = query_params.get('nome_produto', None)
+        nome_marca = query_params.get('nome_marca', None)
+        nome_fabricante = query_params.get('nome_fabricante', None)
+        tipo = query_params.get('tipo', None)
+        filtros = []
+        if nome_produto:
+            filtros.append(nome_produto)
+        if nome_marca:
+            filtros.append(nome_marca)
+        if nome_fabricante:
+            filtros.append(nome_fabricante)
+        if tipo == 'Comum':
+            filtros.append('Comum')
+        if tipo == 'Dieta especial':
+            filtros.append('Dieta especial')
+        return filtros
+
     def filtra_produtos_suspensos(self, homologacoes, query_params):
         nome_produto = query_params.get('nome_produto', None)
         nome_marca = query_params.get('nome_marca', None)
@@ -1835,6 +1853,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio_produto_suspenso_pdf(self, request):  # noqa C901
         nome_edital = request.query_params.get('nome_edital', None)
         data_final = request.query_params.get('data_suspensao_final', None)
+        filtros = self.lista_filtros(request.query_params)
         homologacoes = self.queryset_produtos_suspensos_por_edital_status(request.query_params)
         homologacoes = self.filtra_produtos_suspensos(homologacoes, request.query_params)
         homologacoes = self.filtrar_suspensos_por_data(homologacoes, request.query_params)
@@ -1848,7 +1867,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             nome_arquivo=f'relatorio_produtos_suspensos.pdf',
             nome_edital=nome_edital,
             user=user,
-            data_final=data_final
+            data_final=data_final,
+            filtros=filtros
         )
         return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
                         status=status.HTTP_200_OK)

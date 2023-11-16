@@ -142,8 +142,10 @@ def gera_pdf_relatorio_produtos_homologados_async(user, nome_arquivo, data, perf
     time_limit=3000,
     soft_time_limit=3000
 )
-def gera_xls_relatorio_produtos_suspensos_async(produtos_uuids, nome_arquivo, nome_edital, user, data_final):
+def gera_xls_relatorio_produtos_suspensos_async(produtos_uuids, nome_arquivo, nome_edital, user, data_final, filtros):
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
+    if filtros:
+        filtros = ', '.join(filtros)
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
         produtos = Produto.objects.filter(uuid__in=produtos_uuids).order_by('nome')
@@ -162,7 +164,7 @@ def gera_xls_relatorio_produtos_suspensos_async(produtos_uuids, nome_arquivo, no
                 'justificativa': produto_edital.suspenso_justificativa,
             })
 
-        arquivo = produtos_suspensos_por_edital(lista_produtos, data_final, nome_edital)
+        arquivo = produtos_suspensos_por_edital(lista_produtos, data_final, nome_edital, filtros)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
