@@ -13,8 +13,11 @@ from sme_terceirizadas.dados_comuns.constants import (
     DILOG_QUALIDADE,
     DINUTRE_DIRETORIA
 )
-from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow as StatusAlteracao
-from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow as StatusLayoutEmbalagem
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    CronogramaAlteracaoWorkflow,
+    DocumentoDeRecebimentoWorkflow,
+    LayoutDeEmbalagemWorkflow
+)
 
 
 class BaseServiceDashboard:
@@ -106,33 +109,33 @@ class BaseServiceDashboard:
 class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles(BaseServiceDashboard):
     STATUS_POR_PERFIL = {
         DINUTRE_DIRETORIA: [
-            StatusAlteracao.CRONOGRAMA_CIENTE,
-            StatusAlteracao.APROVADO_DINUTRE,
-            StatusAlteracao.REPROVADO_DINUTRE,
-            StatusAlteracao.ALTERACAO_ENVIADA_FORNECEDOR,
-            StatusAlteracao.FORNECEDOR_CIENTE
+            CronogramaAlteracaoWorkflow.CRONOGRAMA_CIENTE,
+            CronogramaAlteracaoWorkflow.APROVADO_DINUTRE,
+            CronogramaAlteracaoWorkflow.REPROVADO_DINUTRE,
+            CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
+            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE
         ],
         DILOG_DIRETORIA: [
-            StatusAlteracao.APROVADO_DINUTRE,
-            StatusAlteracao.REPROVADO_DINUTRE,
-            StatusAlteracao.APROVADO_DILOG,
-            StatusAlteracao.REPROVADO_DILOG,
-            StatusAlteracao.ALTERACAO_ENVIADA_FORNECEDOR,
-            StatusAlteracao.FORNECEDOR_CIENTE
+            CronogramaAlteracaoWorkflow.APROVADO_DINUTRE,
+            CronogramaAlteracaoWorkflow.REPROVADO_DINUTRE,
+            CronogramaAlteracaoWorkflow.APROVADO_DILOG,
+            CronogramaAlteracaoWorkflow.REPROVADO_DILOG,
+            CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
+            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE
         ],
         DILOG_CRONOGRAMA: [
-            StatusAlteracao.EM_ANALISE,
-            StatusAlteracao.APROVADO_DILOG,
-            StatusAlteracao.REPROVADO_DILOG,
-            StatusAlteracao.ALTERACAO_ENVIADA_FORNECEDOR,
-            StatusAlteracao.FORNECEDOR_CIENTE
+            CronogramaAlteracaoWorkflow.EM_ANALISE,
+            CronogramaAlteracaoWorkflow.APROVADO_DILOG,
+            CronogramaAlteracaoWorkflow.REPROVADO_DILOG,
+            CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
+            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE
         ],
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
-            StatusAlteracao.EM_ANALISE,
-            StatusAlteracao.APROVADO_DILOG,
-            StatusAlteracao.REPROVADO_DILOG,
-            StatusAlteracao.ALTERACAO_ENVIADA_FORNECEDOR,
-            StatusAlteracao.FORNECEDOR_CIENTE
+            CronogramaAlteracaoWorkflow.EM_ANALISE,
+            CronogramaAlteracaoWorkflow.APROVADO_DILOG,
+            CronogramaAlteracaoWorkflow.REPROVADO_DILOG,
+            CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
+            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE
         ],
     }
 
@@ -140,19 +143,19 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles(BaseServiceDashboar
 class ServiceDashboardLayoutEmbalagem(BaseServiceDashboard):
     STATUS_POR_PERFIL = {
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
-            StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
-            StatusLayoutEmbalagem.APROVADO,
-            StatusLayoutEmbalagem.SOLICITADO_CORRECAO,
+            LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+            LayoutDeEmbalagemWorkflow.APROVADO,
+            LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         ],
         DILOG_QUALIDADE: [
-            StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
-            StatusLayoutEmbalagem.APROVADO,
-            StatusLayoutEmbalagem.SOLICITADO_CORRECAO,
+            LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+            LayoutDeEmbalagemWorkflow.APROVADO,
+            LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         ],
         COORDENADOR_GESTAO_PRODUTO: [
-            StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
-            StatusLayoutEmbalagem.APROVADO,
-            StatusLayoutEmbalagem.SOLICITADO_CORRECAO,
+            LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+            LayoutDeEmbalagemWorkflow.APROVADO,
+            LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         ],
     }
 
@@ -160,9 +163,11 @@ class ServiceDashboardLayoutEmbalagem(BaseServiceDashboard):
 class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
     STATUS_POR_PERFIL = {
         DILOG_QUALIDADE: [
-            StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+            DocumentoDeRecebimentoWorkflow.APROVADO,
         ],
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
-            StatusLayoutEmbalagem.ENVIADO_PARA_ANALISE,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+            DocumentoDeRecebimentoWorkflow.APROVADO,
         ],
     }

@@ -2006,9 +2006,11 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
             terceirizada = usuario.vinculo_atual.instituicao
             lotes_uuid = lotes_uuid.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
 
-        editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
-        editais = editais.filter(edital__id__in=editais_id)
-        nomes_unicos = editais.values_list('edital__numero', flat=True).distinct()
+        if usuario.tipo_usuario in ['escola', 'diretoriaregional', 'terceirizada']:
+            editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
+            editais = editais.filter(edital__id__in=editais_id)
+        nomes_unicos = editais.exclude(
+            edital__numero='Edital de Pregão nº 41/sme/2017').values_list('edital__numero', flat=True).distinct()
         return Response({
             'results': nomes_unicos,
             'count': len(nomes_unicos)
