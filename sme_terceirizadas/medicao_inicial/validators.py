@@ -335,6 +335,7 @@ def validate_lancamento_kit_lanche(solicitacao, lista_erros):
         'tipo_solicitacao': tipo_solicitacao
     }
     dias_kit_lanche = get_lista_dias_solicitacoes(params, escola)
+    dias_kit_lanche = list(set(dias_kit_lanche))
 
     valores_da_medicao = ValorMedicao.objects.filter(
         medicao__solicitacao_medicao_inicial=solicitacao,
@@ -365,6 +366,7 @@ def validate_lanche_emergencial(solicitacao, lista_erros):
         'eh_lanche_emergencial': eh_lanche_emergencial
     }
     dias_lanche_emergencial = get_lista_dias_solicitacoes(params, escola)
+    dias_lanche_emergencial = list(set(dias_lanche_emergencial))
 
     valores_da_medicao = ValorMedicao.objects.filter(
         medicao__solicitacao_medicao_inicial=solicitacao,
