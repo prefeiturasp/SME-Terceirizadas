@@ -5,9 +5,9 @@ pipeline {
       registryCredential = 'jenkins_registry'
     }
 
-    agent { kubernetes { 
-                  label 'python3816'
-                  defaultContainer 'python3816'
+    agent { kubernetes {
+                  label 'python3918'
+                  defaultContainer 'python3918'
                 }
               }
 
@@ -24,12 +24,12 @@ pipeline {
         }
 
         /*stage('AmbienteTestes') {
-            agent { kubernetes { 
+            agent { kubernetes {
                   label 'builder'
                   defaultContainer 'builder'
                 }
               }
-            when { 
+            when {
               expression { return env.BRANCH_NAME.startsWith("bug") || env.BRANCH_NAME.startsWith("bugfix") || env.BRANCH_NAME.startsWith("feature") || env.BRANCH_NAME.startsWith("fix") || env.BRANCH_NAME.startsWith("releases") || env.BRANCH_NAME.startsWith("hotfix") }
             }
             steps {
@@ -42,18 +42,18 @@ pipeline {
         }*/
 
         stage('Testes') {
-            when { 
+            when {
               expression { return env.BRANCH_NAME.startsWith("bug") || env.BRANCH_NAME.startsWith("bugfix") || env.BRANCH_NAME.startsWith("feature") || env.BRANCH_NAME.startsWith("fix") || env.BRANCH_NAME.startsWith("releases") || env.BRANCH_NAME.startsWith("hotfix") }
             }
           steps {
              checkout scm
-    	   
+
     sh 'pip install psycopg2-binary'
     sh 'pip install xlsxwriter'
     sh 'pip install pycparser'
     sh 'pip install --no-cache-dir -U pip'
-    sh 'pip install --no-cache-dir pipenv==2022.4.8'
-    sh 'pip install --user pipenv==2022.4.8'
+    sh 'pip install --no-cache-dir pipenv==2023.10.3'
+    sh 'pip install --user pipenv==2023.10.3'
     sh 'pipenv install --dev'
     sh 'pipenv run flake8'
     sh 'pipenv run pytest'
