@@ -413,7 +413,8 @@ def deletar_logs_alunos_matriculados_duplicados(escola, hoje):
         for log in logs:
             logs_filtrados = logs.filter(
                 periodo_escolar=log.periodo_escolar,
-                tipo_turma=log.tipo_turma
+                tipo_turma=log.tipo_turma,
+                cei_ou_emei=log.cei_ou_emei
             ).order_by('-criado_em')
             for l in logs_filtrados[1:logs_filtrados.count()]:
                 if l.uuid not in logs_para_deletar:
