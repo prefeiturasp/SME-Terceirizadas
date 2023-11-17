@@ -165,9 +165,11 @@ class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
         DILOG_QUALIDADE: [
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
         ],
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
         ],
     }
