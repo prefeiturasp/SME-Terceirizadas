@@ -737,7 +737,7 @@ def medicao_aprovada_pela_dre(solicitacao_medicao_inicial, periodo_escolar, cate
 
 @pytest.fixture
 def categoria_medicao():
-    return mommy.make('CategoriaMedicao', nome='ALIMENTAÇÃO', id=1)
+    return mommy.make('CategoriaMedicao', nome='ALIMENTAÇÃO', id=100)
 
 
 @pytest.fixture
