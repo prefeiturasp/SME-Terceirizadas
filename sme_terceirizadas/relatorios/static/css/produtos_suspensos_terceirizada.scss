@@ -1,9 +1,17 @@
 @import "variaveis";
 
 @page {
-  size: A4 landscape;
   margin: 2cm -2mm 1cm -2mm;
   padding: 0;
+  @bottom-center {
+    color: #000000;
+    content: "Página " counter(page) " de " counter(pages);
+    font-size: 11px;
+    width: 100%;
+  }
+  @bottom-right {
+    content: '';
+  }
 }
 
 @media print {
@@ -23,7 +31,7 @@
 .custom-filtros {
   font-family: 'Roboto';
   font-style: normal;
-  font-size: 12px;
+  font-size: 10px;
   line-height: 16px;
   font-weight: normal;
   color: $cinza-meio-escuro;

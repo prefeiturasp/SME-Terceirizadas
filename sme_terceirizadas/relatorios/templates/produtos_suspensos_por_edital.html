@@ -4,7 +4,7 @@
 <html>
   <head>
     <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
-    <link rel="stylesheet" href="{% sass_src 'css/produtos_terceirizada.scss' %}" type="text/css">
+    <link rel="stylesheet" href="{% sass_src 'css/produtos_suspensos_terceirizada.scss' %}" type="text/css">
   </head>
   <header class="header">
     <section class="titulo-e-logo">
@@ -42,8 +42,8 @@
             <th>Suspensão</th>
           </tr>
         </thead>
-        <tbody>
           {% for produto in produtos %}
+          <tbody style="page-break-inside: avoid">
             <tr>
               <td>{{ produto.nome }}</td>
               <td>{{ produto.marca }}</td>
@@ -55,8 +55,8 @@
             <tr>
               <td colspan="6"><b>Justificativa: </b>{{ produto.justificativa|safe }}</td>
             </tr>
+          </tbody>
           {% endfor %}
-        </tbody>
       </table>
     </div>
   </body>
