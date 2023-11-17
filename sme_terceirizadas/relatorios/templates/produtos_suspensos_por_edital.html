@@ -42,8 +42,8 @@
             <th>Suspensão</th>
           </tr>
         </thead>
-        <tbody style="page-break-inside: avoid">
           {% for produto in produtos %}
+          <tbody style="page-break-inside: avoid">
             <tr>
               <td>{{ produto.nome }}</td>
               <td>{{ produto.marca }}</td>
@@ -55,8 +55,8 @@
             <tr>
               <td colspan="6"><b>Justificativa: </b>{{ produto.justificativa|safe }}</td>
             </tr>
+          </tbody>
           {% endfor %}
-        </tbody>
       </table>
     </div>
   </body>
