@@ -3144,13 +3144,15 @@ class FluxoSolicitacaoMedicaoInicial(xwf_models.WorkflowEnabled, models.Model):
             log_transicao = self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
                                                       usuario=user)
             if isinstance(self, OcorrenciaMedicaoInicial):
-                for anexo in kwargs.get('anexos', []):
-                    arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
-                    AnexoLogSolicitacoesUsuario.objects.create(
-                        log=log_transicao,
-                        arquivo=arquivo,
-                        nome=anexo['nome']
-                    )
+                anexos = kwargs.get('anexos')
+                if anexos is not None:
+                    for anexo in anexos:
+                        arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+                        AnexoLogSolicitacoesUsuario.objects.create(
+                            log=log_transicao,
+                            arquivo=arquivo,
+                            nome=anexo['nome']
+                        )
 
     @xworkflows.after_transition('dre_aprova')
     def _dre_aprova_hook(self, *args, **kwargs):
