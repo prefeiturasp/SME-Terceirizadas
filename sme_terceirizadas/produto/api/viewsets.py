@@ -78,7 +78,11 @@ from ..models import (
     SolicitacaoCadastroProdutoDieta,
     UnidadeMedida
 )
-from ..tasks import gera_pdf_relatorio_produtos_homologados_async, gera_xls_relatorio_produtos_homologados_async
+from ..tasks import (
+    gera_pdf_relatorio_produtos_homologados_async,
+    gera_xls_relatorio_produtos_homologados_async,
+    gera_xls_relatorio_produtos_suspensos_async
+)
 from ..utils import (
     CadastroProdutosEditalPagination,
     ItemCadastroPagination,
@@ -1772,26 +1776,39 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 query_set = query_set.exclude(uuid=hom_produto.uuid)
         return query_set
 
-    @action(detail=False,
-            methods=['GET'],
-            url_path='filtro-relatorio-produto-suspenso')
-    def filtro_relatorio_produto_suspenso(self, request):  # noqa C901
-        if request.query_params.get('data_suspensao_final', None) == 'null':
-            data_final = None
-        else:
-            data_final = request.query_params.get('data_suspensao_final', None)
-        nome_produto = request.query_params.get('nome_produto', None)
-        nome_edital = request.query_params.get('nome_edital', None)
-        nome_marca = request.query_params.get('nome_marca', None)
-        nome_fabricante = request.query_params.get('nome_fabricante', None)
-        tipo = request.query_params.get('tipo', None)
+    def queryset_produtos_suspensos_por_edital_status(self, query_params):
+        nome_edital = query_params.get('nome_edital', None)
         status = ['CODAE_SUSPENDEU', 'CODAE_AUTORIZOU_RECLAMACAO', 'CODAE_HOMOLOGADO']
-
         homologacoes = HomologacaoProduto.objects.filter(
             status__in=status,
             produto__vinculos__edital__numero=nome_edital,
             produto__vinculos__suspenso=True
         )
+        return homologacoes
+
+    def lista_filtros(self, query_params):
+        nome_produto = query_params.get('nome_produto', None)
+        nome_marca = query_params.get('nome_marca', None)
+        nome_fabricante = query_params.get('nome_fabricante', None)
+        tipo = query_params.get('tipo', None)
+        filtros = []
+        if nome_produto:
+            filtros.append(nome_produto)
+        if nome_marca:
+            filtros.append(nome_marca)
+        if nome_fabricante:
+            filtros.append(nome_fabricante)
+        if tipo == 'Comum':
+            filtros.append('Comum')
+        if tipo == 'Dieta especial':
+            filtros.append('Dieta especial')
+        return filtros
+
+    def filtra_produtos_suspensos(self, homologacoes, query_params):
+        nome_produto = query_params.get('nome_produto', None)
+        nome_marca = query_params.get('nome_marca', None)
+        nome_fabricante = query_params.get('nome_fabricante', None)
+        tipo = query_params.get('tipo', None)
         if nome_produto:
             homologacoes = homologacoes.filter(produto__nome=nome_produto)
         if nome_marca:
@@ -1802,6 +1819,15 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=False)
         if tipo == 'Dieta especial':
             homologacoes = homologacoes.filter(produto__eh_para_alunos_com_dieta=True)
+        return homologacoes
+
+    def filtrar_suspensos_por_data(self, homologacoes, query_params):
+        nome_edital = query_params.get('nome_edital', None)
+        if query_params.get('data_suspensao_final', None) == 'null':
+            data_final = None
+        else:
+            data_final = query_params.get('data_suspensao_final', None)
+
         if data_final:
             data_final = datetime.strptime(data_final, '%d/%m/%Y').date()
             homologacoes = homologacoes.filter(
@@ -1819,6 +1845,42 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 produto__vinculos__edital__numero=nome_edital,
                 produto__vinculos__suspenso=True,
             )
+        return homologacoes
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='relatorio-produto-suspenso-pdf')
+    def relatorio_produto_suspenso_pdf(self, request):  # noqa C901
+        nome_edital = request.query_params.get('nome_edital', None)
+        data_final = request.query_params.get('data_suspensao_final', None)
+        filtros = self.lista_filtros(request.query_params)
+        homologacoes = self.queryset_produtos_suspensos_por_edital_status(request.query_params)
+        homologacoes = self.filtra_produtos_suspensos(homologacoes, request.query_params)
+        homologacoes = self.filtrar_suspensos_por_data(homologacoes, request.query_params)
+        queryset = Produto.objects.filter(pk__in=homologacoes.values_list('produto', flat=True))
+        queryset = queryset.order_by('nome')
+        uuids_produto = list(set(queryset.values_list('uuid', flat=True)))
+
+        user = request.user.get_username()
+        gera_xls_relatorio_produtos_suspensos_async.delay(
+            produtos_uuids=uuids_produto,
+            nome_arquivo=f'relatorio_produtos_suspensos.pdf',
+            nome_edital=nome_edital,
+            user=user,
+            data_final=data_final,
+            filtros=filtros
+        )
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-relatorio-produto-suspenso')
+    def filtro_relatorio_produto_suspenso(self, request):  # noqa C901
+        nome_edital = request.query_params.get('nome_edital', None)
+        homologacoes = self.queryset_produtos_suspensos_por_edital_status(request.query_params)
+        homologacoes = self.filtra_produtos_suspensos(homologacoes, request.query_params)
+        homologacoes = self.filtrar_suspensos_por_data(homologacoes, request.query_params)
         queryset = Produto.objects.filter(pk__in=homologacoes.values_list('produto', flat=True))
         queryset = queryset.order_by('nome')
         page = self.paginate_queryset(queryset)
@@ -1964,9 +2026,11 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
             terceirizada = usuario.vinculo_atual.instituicao
             lotes_uuid = lotes_uuid.filter(terceirizada=terceirizada).values_list('uuid', flat=True)
 
-        editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
-        editais = editais.filter(edital__id__in=editais_id)
-        nomes_unicos = editais.values_list('edital__numero', flat=True).distinct()
+        if usuario.tipo_usuario in ['escola', 'diretoriaregional', 'terceirizada']:
+            editais_id = Contrato.objects.filter(lotes__uuid__in=lotes_uuid).values_list('edital_id', flat=True)
+            editais = editais.filter(edital__id__in=editais_id)
+        nomes_unicos = editais.exclude(
+            edital__numero='Edital de Pregão nº 41/sme/2017').values_list('edital__numero', flat=True).distinct()
         return Response({
             'results': nomes_unicos,
             'count': len(nomes_unicos)

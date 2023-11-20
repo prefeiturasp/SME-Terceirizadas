@@ -509,10 +509,12 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             for anexo in anexos:
                 if '.pdf' in anexo['nome']:
                     arquivo = convert_base64_to_contentfile(anexo['base64'])
-                    OcorrenciaMedicaoInicial.objects.create(
+                    OcorrenciaMedicaoInicial.objects.update_or_create(
                         solicitacao_medicao_inicial=instance,
-                        ultimo_arquivo=arquivo,
-                        nome_ultimo_arquivo=anexo.get('nome')
+                        defaults={
+                            'ultimo_arquivo': arquivo,
+                            'nome_ultimo_arquivo': anexo.get('nome'),
+                        }
                     )
             return anexos
 
@@ -675,8 +677,6 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
             instance.valores_medicao.filter(valor=-1).delete()
         instance.alterado_em = datetime.now()
         instance.save()
-        if not instance.valores_medicao.all().exists():
-            instance.delete()
 
         return instance
 

@@ -1,4 +1,4 @@
-FROM python:3.8-buster
+FROM python:3.9-buster
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc g++ git libpq-dev libmagic1 libcairo2 libpango-1.0-0 libpangocairo-1.0-0  && \
@@ -6,7 +6,7 @@ RUN apt-get update && \
     pip install xlsxwriter && \
     pip install pycparser && \
     pip install --no-cache-dir -U pip && \
-    pip install --no-cache-dir pipenv==2022.4.8
+    pip install --no-cache-dir pipenv==2023.10.3
 
 WORKDIR /code
 COPY . /code/
