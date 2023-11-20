@@ -573,7 +573,7 @@ def solicitacoes_medicao_inicial(escola):
 
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=s1.uuid,
-               status_evento=55,  # MEDICAO_ENVIADA_PELA_UE
+               status_evento=55,  # MEDICAO_ENVIADA_PELA_UE -- PR teste
                solicitacao_tipo=16)  # MEDICAO_INICIAL
     mommy.make('LogSolicitacoesUsuario',
                uuid_original=s2.uuid,
