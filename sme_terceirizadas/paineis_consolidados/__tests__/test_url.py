@@ -118,7 +118,7 @@ def test_relatorio_filtro_escola(users_diretor_escola):
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers[
         'content-disposition'] == 'filename="relatorio_filtro_de_2019-02-01 00:00:00_ate_2019-02-28 00:00:00.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.7' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -130,7 +130,7 @@ def test_relatorio_mes_ano_escola(users_diretor_escola):
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == 'filename="relatorio_resumo_anual_e_mensal.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.7' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -221,7 +221,7 @@ def test_relatorio_filtro_dre(solicitacoes_ano_dre):
     assert response.headers[
         'content-disposition'
     ] == 'filename="relatorio_filtro_de_2019-02-01 00:00:00_ate_2019-02-28 00:00:00.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.7' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -233,7 +233,7 @@ def test_relatorio_mes_ano_dre(solicitacoes_ano_dre):
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == 'filename="relatorio_resumo_anual_e_mensal.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.7' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
