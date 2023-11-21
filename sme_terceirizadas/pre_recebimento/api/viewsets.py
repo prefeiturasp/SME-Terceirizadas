@@ -6,7 +6,6 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_406_NOT_ACCEPTABLE
 from xworkflows.base import InvalidTransitionError
@@ -26,11 +25,14 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaCriarSolicitacoesAlteracaoCronograma,
     PermissaoParaDarCienciaAlteracaoCronograma,
     PermissaoParaDashboardCronograma,
+    PermissaoParaDashboardDocumentosDeRecebimento,
     PermissaoParaDashboardLayoutEmbalagem,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCronograma,
+    PermissaoParaVisualizarDocumentosDeRecebimento,
     PermissaoParaVisualizarLayoutDeEmbalagem,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
+    UsuarioEhDilogQualidade,
     UsuarioEhFornecedor,
     ViewSetActionPermissionMixin
 )
@@ -50,6 +52,8 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
+    DocumentoDeRecebimentoAnalisarRascunhoSerializer,
+    DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoCreateSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
@@ -64,19 +68,28 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaRascunhosSerializer,
     CronogramaSerializer,
     CronogramaSimplesSerializer,
+    DocRecebimentoDetalharCodaeSerializer,
+    DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
+    LaboratorioCredenciadoSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
     LayoutDeEmbalagemDetalheSerializer,
     LayoutDeEmbalagemSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
+    PainelDocumentoDeRecebimentoSerializer,
     PainelLayoutEmbalagemSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
     SolicitacaoAlteracaoCronogramaSerializer,
     TipoEmbalagemQldSerializer,
     UnidadeMedidaSerialzer
+)
+from sme_terceirizadas.pre_recebimento.api.services import (
+    ServiceDashboardDocumentosDeRecebimento,
+    ServiceDashboardLayoutEmbalagem,
+    ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
@@ -87,12 +100,6 @@ from sme_terceirizadas.pre_recebimento.models import (
     SolicitacaoAlteracaoCronograma,
     TipoEmbalagemQld,
     UnidadeMedida
-)
-from sme_terceirizadas.pre_recebimento.utils import (
-    LayoutDeEmbalagemPagination,
-    ServiceDashboardLayoutEmbalagemProfiles,
-    ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
-    UnidadeMedidaPagination
 )
 
 from ...dados_comuns.api.paginations import DefaultPagination
@@ -354,6 +361,13 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
         response = {'results': [q.nome for q in queryset]}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='lista-laboratorios-credenciados')
+    def lista_nomes_laboratorios_credenciados(self, request):
+        laboratorios = self.get_queryset().filter(credenciado=True)
+        serializer = LaboratorioCredenciadoSimplesSerializer(laboratorios, many=True).data
+        response = {'results': serializer}
+        return Response(response)
+
     @action(detail=False, methods=['GET'], url_path='lista-laboratorios')
     def lista_laboratorios_para_filtros(self, request):
         laboratorios = self.get_queryset()
@@ -575,7 +589,7 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = UnidadeMedida.objects.all().order_by('-criado_em')
     permission_classes = (PermissaoParaCadastrarVisualizarUnidadesMedida,)
-    pagination_class = UnidadeMedidaPagination
+    pagination_class = DefaultPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UnidadeMedidaFilter
 
@@ -597,7 +611,7 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
     serializer_class = LayoutDeEmbalagemSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = LayoutDeEmbalagemFilter
-    pagination_class = LayoutDeEmbalagemPagination
+    pagination_class = DefaultPagination
     permission_classes = (PermissaoParaVisualizarLayoutDeEmbalagem,)
     permission_action_classes = {
         'create': [UsuarioEhFornecedor],
@@ -635,44 +649,14 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
     @action(detail=False, methods=['GET'],
             url_path='dashboard', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
     def dashboard(self, request):
-        filtro = LayoutDeEmbalagemFilter(request.query_params, self.get_queryset())
+        dashboard_service = ServiceDashboardLayoutEmbalagem(
+            self.get_queryset(),
+            LayoutDeEmbalagemFilter,
+            PainelLayoutEmbalagemSerializer,
+            request
+        )
 
-        return Response({'results': self._dados_dashboard(request, filtro.qs)})
-
-    def _dados_dashboard(self, request: Request, queryset_base: QuerySet) -> list:
-        offset = int(request.query_params.get('offset', 0))
-        limit = int(request.query_params.get('limit', 6))
-        lista_status_ver_mais = request.query_params.getlist('status', None)
-
-        if lista_status_ver_mais:
-            dados = self._dados_ver_mais(queryset_base, lista_status_ver_mais, offset, limit)
-
-        else:
-            dados = self._dados_cards(queryset_base, offset, limit)
-
-        return dados
-
-    def _dados_ver_mais(self, queryset_base, lista_status_ver_mais, offset, limit):
-        qs = queryset_base.filter(status__in=lista_status_ver_mais)
-        dados = {
-            'status': lista_status_ver_mais,
-            'total': len(qs),
-            'dados': PainelLayoutEmbalagemSerializer(qs[offset:offset + limit], many=True).data
-        }
-
-        return dados
-
-    def _dados_cards(self, queryset_base, offset, limit):
-        dados = []
-        for status_perfil in ServiceDashboardLayoutEmbalagemProfiles.get_dashboard_status(self.request.user):
-            status_perfil_list = [status_perfil]
-            qs = queryset_base.filter(status__in=status_perfil_list)
-            dados.append({
-                'status': status_perfil,
-                'dados': PainelLayoutEmbalagemSerializer(qs[offset:offset + limit], many=True).data
-            })
-
-        return dados
+        return Response({'results': dashboard_service.get_dados_dashboard()})
 
     @action(detail=True, methods=['PATCH'],
             url_path='fornecedor-realiza-correcao', permission_classes=(UsuarioEhFornecedor,))
@@ -694,8 +678,7 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DocumentoDeRecebimentoFilter
     pagination_class = DefaultPagination
-    # TODO: Alterar essa permissão quando os perfis de visualização forem definidos.
-    permission_classes = (UsuarioEhFornecedor,)
+    permission_classes = (PermissaoParaVisualizarDocumentosDeRecebimento,)
     permission_action_classes = {
         'create': [UsuarioEhFornecedor],
         'delete': [UsuarioEhFornecedor]
@@ -710,8 +693,48 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
         return DocumentoDeRecebimento.objects.all().order_by('-criado_em')
 
     def get_serializer_class(self):
+        user = self.request.user
+        retrieve = DocRecebimentoDetalharSerializer if user.eh_fornecedor else DocRecebimentoDetalharCodaeSerializer
         serializer_classes_map = {
             'list': DocumentoDeRecebimentoSerializer,
-            'retrieve': DocumentoDeRecebimentoSerializer,  # TODO: Alterar para o de detalhar quando for criado.
+            'retrieve': retrieve,
         }
         return serializer_classes_map.get(self.action, DocumentoDeRecebimentoCreateSerializer)
+
+    @action(detail=False, methods=['GET'],
+            url_path='dashboard', permission_classes=(PermissaoParaDashboardDocumentosDeRecebimento,))
+    def dashboard(self, request):
+        dashboard_service = ServiceDashboardDocumentosDeRecebimento(
+            self.get_queryset(),
+            DocumentoDeRecebimentoFilter,
+            PainelDocumentoDeRecebimentoSerializer,
+            request
+        )
+
+        return Response({'results': dashboard_service.get_dados_dashboard()})
+
+    @action(detail=True, methods=['PATCH'],
+            url_path='analise-documentos-rascunho', permission_classes=(UsuarioEhDilogQualidade,))
+    def codae_analisa_documentos_rascunho(self, request, uuid):
+        serializer = DocumentoDeRecebimentoAnalisarRascunhoSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            documento_recebimento_atualizado = serializer.save()
+            return Response(DocRecebimentoDetalharCodaeSerializer(documento_recebimento_atualizado).data)
+
+    @action(detail=True, methods=['PATCH'],
+            url_path='analise-documentos', permission_classes=(UsuarioEhDilogQualidade,))
+    def codae_analisa_documentos(self, request, uuid):
+        serializer = DocumentoDeRecebimentoAnalisarSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            documento_recebimento_atualizado = serializer.save()
+            return Response(DocRecebimentoDetalharCodaeSerializer(documento_recebimento_atualizado).data)

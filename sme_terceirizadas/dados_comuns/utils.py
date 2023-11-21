@@ -17,10 +17,11 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection, send_mail
+from django.template.loader import render_to_string
 from workalendar.america import BrazilSaoPauloCity
 
 from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, DOMINIOS_DEV
-from .models import CentralDeDownload
+from .models import CentralDeDownload, Notificacao
 
 calendar = BrazilSaoPauloCity()
 
@@ -412,7 +413,8 @@ def deletar_logs_alunos_matriculados_duplicados(escola, hoje):
         for log in logs:
             logs_filtrados = logs.filter(
                 periodo_escolar=log.periodo_escolar,
-                tipo_turma=log.tipo_turma
+                tipo_turma=log.tipo_turma,
+                cei_ou_emei=log.cei_ou_emei
             ).order_by('-criado_em')
             for l in logs_filtrados[1:logs_filtrados.count()]:
                 if l.uuid not in logs_para_deletar:
@@ -546,3 +548,41 @@ def create_objects_logs(escola, log_para_criar, data):
             classificacao=log_para_criar.classificacao,
             periodo_escolar=log_para_criar.periodo_escolar
         )
+
+
+def preencher_template_e_notificar(
+    template,
+    contexto_template,
+    titulo_notificacao,
+    tipo_notificacao,
+    categoria_notificacao,
+    link_acesse_aqui,
+    usuarios,
+    requisicao=None,
+    solicitacao_alteracao=None,
+    guia=None,
+    cronograma=None,
+):
+    descricao_notificacao = render_to_string(
+        template_name=template,
+        context=contexto_template,
+    )
+
+    if usuarios:
+        for usuario in usuarios:
+            Notificacao.notificar(
+                tipo=tipo_notificacao,
+                categoria=categoria_notificacao,
+                titulo=titulo_notificacao,
+                descricao=descricao_notificacao,
+                usuario=usuario,
+                link=link_acesse_aqui,
+                requisicao=requisicao,
+                solicitacao_alteracao=solicitacao_alteracao,
+                guia=guia,
+                cronograma=cronograma
+            )
+
+
+def eh_fim_de_semana(data: datetime.date):
+    return data.weekday() >= 5

@@ -28,7 +28,7 @@ from ...dados_comuns.permissions import (
     ViewSetActionPermissionMixin
 )
 from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
-from ...escola.models import Escola, FaixaEtaria
+from ...escola.models import Escola, FaixaEtaria, LogAlunosMatriculadosPeriodoEscola
 from ..models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
@@ -418,6 +418,20 @@ class SolicitacaoMedicaoInicialViewSet(
             if escola.eh_cei:
                 dict_retorno['quantidade_alunos'] = sum(v['valor'] for v in valores)
             retorno.append(dict_retorno)
+        return Response({'results': retorno}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'], url_path='periodos-escola-cemei-com-alunos-emei',
+            permission_classes=[UsuarioEscolaTercTotal])
+    def periodos_escola_cemei_com_alunos_emei(self, request):
+        usuario = self.request.user
+        escola = usuario.vinculo_atual.instituicao
+        mes = request.query_params.get('mes')
+        ano = request.query_params.get('ano')
+        retorno = []
+        if escola.eh_cemei:
+            logs = LogAlunosMatriculadosPeriodoEscola.objects.filter(
+                escola=escola, criado_em__year=ano, criado_em__month=mes)
+            retorno = sorted(list(set([f'Infantil {log.periodo_escolar.nome}' for log in logs])))
         return Response({'results': retorno}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['PATCH'], url_path='dre-aprova-solicitacao-medicao',

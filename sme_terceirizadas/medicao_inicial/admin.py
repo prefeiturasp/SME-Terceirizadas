@@ -19,7 +19,6 @@ admin.site.register(CategoriaMedicao)
 admin.site.register(DiaSobremesaDoce)
 admin.site.register(GrupoMedicao)
 admin.site.register(TipoContagemAlimentacao)
-admin.site.register(ValorMedicao)
 
 
 @admin.register(SolicitacaoMedicaoInicial)
@@ -75,3 +74,16 @@ class PermissaoLancamentoEspecialAdmin(admin.ModelAdmin):
     @admin.display(description='Data Final')
     def get_data_final(self, obj):
         return datetime.date.strftime(obj.data_final, '%d/%m/%Y') if obj.data_final else '-'
+
+
+@admin.register(ValorMedicao)
+class ValorMedicaoAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'valor', 'medicao', 'get_escola')
+    search_fields = ('valor', 'medicao__solicitacao_medicao_inicial__escola__nome',
+                     'medicao__solicitacao_medicao_inicial__escola__codigo_eol')
+    list_filter = ('medicao__solicitacao_medicao_inicial__mes', 'medicao__solicitacao_medicao_inicial__ano')
+
+    @admin.display(description='Escola')
+    def get_escola(self, obj):
+        escola = obj.medicao.solicitacao_medicao_inicial.escola
+        return f'{escola.codigo_eol}: {escola.nome}'
