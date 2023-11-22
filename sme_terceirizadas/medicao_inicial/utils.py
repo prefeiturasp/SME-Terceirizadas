@@ -1217,7 +1217,6 @@ def criar_log_solicitar_correcao_periodos(user, solicitacao, acao):
             'justificativa': medicao.logs.last().justificativa,
             'tabelas_lancamentos': []
         }
-
         valores_medicao = medicao.valores_medicao.filter(habilitado_correcao=True).order_by('semana')
         tabelas_lancamentos = valores_medicao.order_by(
             'categoria_medicao__nome'
@@ -1270,65 +1269,83 @@ def encontrar_ou_criar_log_inicial(user, acao, historico):
         return lista_logs[0]
 
 
+def buscar_valores_medicao(medicao, dia, nome_campo, categoria_medicao, uuid_faixa_etaria):
+    filtro = {
+        'medicao': medicao,
+        'dia': dia,
+        'nome_campo': nome_campo,
+        'categoria_medicao': categoria_medicao
+    }
+    if uuid_faixa_etaria:
+        filtro['faixa_etaria__uuid'] = uuid_faixa_etaria
+    return ValorMedicao.objects.filter(**filtro)
+
+
 def gerar_dicionario_e_buscar_valores_medicao(data, medicao):
     dicionario_alteracoes = {}
+
     for valor_atualizado in data:
         if not valor_atualizado:
             continue
-        valor_medicao = ValorMedicao.objects.filter(
-            medicao=medicao,
-            dia=valor_atualizado.get('dia', ''),
-            nome_campo=valor_atualizado.get('nome_campo', ''),
-            categoria_medicao=valor_atualizado.get('categoria_medicao', '')
+
+        valor_medicao = buscar_valores_medicao(
+            medicao,
+            valor_atualizado.get('dia', ''),
+            valor_atualizado.get('nome_campo', ''),
+            valor_atualizado.get('categoria_medicao', ''),
+            valor_atualizado.get('faixa_etaria', '')
         )
-        if not valor_medicao or str(valor_medicao.first().valor) == str(valor_atualizado.get('valor', '')):
-            continue
-        else:
-            dicionario_alteracoes[f'{str(valor_medicao.first().uuid)}'] = valor_atualizado.get('valor', '')
-    valores_medicao = ValorMedicao.objects.filter(uuid__in=list(dicionario_alteracoes.keys()))
+
+        if valor_medicao.exists() and valor_medicao.first().valor != valor_atualizado.get('valor'):
+            dicionario_alteracoes[str(valor_medicao.first().uuid)] = valor_atualizado.get('valor')
+
+    valores_medicao = ValorMedicao.objects.filter(uuid__in=dicionario_alteracoes.keys())
     return dicionario_alteracoes, valores_medicao
 
 
-def criar_log_escola_corrigiu(medicao, valores_medicao, dicionario_alteracoes, log_inicial, historico, solicitacao):
-    if medicao.periodo_escolar:
-        periodo_nome = medicao.periodo_escolar.nome
-    else:
-        periodo_nome = medicao.grupo.nome
-    alteracoes_dict = {
-        'periodo_escolar': periodo_nome,
-        'tabelas_lancamentos': []
-    }
-    tabelas_lancamentos = valores_medicao.values_list('categoria_medicao__nome', flat=True).distinct()
+def buscar_valores_medicao_por_categoria(valores_medicao, categoria):
+    return valores_medicao.filter(categoria_medicao__nome=categoria)
 
-    for tabela in tabelas_lancamentos:
-        valores_da_tabela = valores_medicao.filter(categoria_medicao__nome=tabela)
-        semanas = valores_da_tabela.values_list('semana', flat=True).distinct()
-        tabela_dict = {
-            'categoria_medicao': tabela,
-            'semanas': []
+
+def criar_dia_dict(valores_da_tabela, dia, medicao, dicionario_alteracoes, tabela, semana):
+    dia_dict = {'dia': dia, 'campos': []}
+    faixas_etarias = [faixa for faixa in
+                      valores_da_tabela.filter(dia=dia).values_list('faixa_etaria', flat=True).distinct() if
+                      faixa is not None]
+
+    chave = 'faixa_etaria' if faixas_etarias else 'nome_campo'
+    valores_chave = valores_da_tabela.filter(dia=dia).values_list(chave, flat=True).distinct()
+
+    for valor in valores_chave:
+        filtro = {chave: valor, 'semana': semana, 'dia': dia, 'categoria_medicao__nome': tabela, 'medicao': medicao}
+        vm = valores_da_tabela.get(**filtro)
+
+        campo = {
+            'campo_nome': str(getattr(vm, chave)),
+            'de': vm.valor,
+            'para': dicionario_alteracoes.get(str(vm.uuid), vm.valor)
         }
+        dia_dict['campos'].append(campo)
 
-        for semana in semanas:
-            dias = list(valores_da_tabela.filter(semana=semana).values_list('dia', flat=True).distinct())
-            semana_dict = {'semana': semana, 'dias': []}
+    return dia_dict
 
-            for dia in dias:
-                dia_dict = {'dia': dia, 'campos': []}
-                nomes_dos_campos = valores_da_tabela.filter(dia=dia).values_list('nome_campo', flat=True).distinct()
 
-                for campo in nomes_dos_campos:
-                    vm = valores_da_tabela.get(semana=semana,
-                                               dia=dia, nome_campo=campo,
-                                               categoria_medicao__nome=tabela,
-                                               medicao=medicao)
+def criar_log_escola_corrigiu(medicao, valores_medicao, dicionario_alteracoes, log_inicial, historico, solicitacao):
+    periodo_nome = medicao.periodo_escolar.nome if medicao.periodo_escolar else medicao.grupo.nome
+    alteracoes_dict = {'periodo_escolar': periodo_nome, 'tabelas_lancamentos': []}
 
-                    dia_dict['campos'].append({'campo_nome': campo,
-                                               'de': vm.valor,
-                                               'para': dicionario_alteracoes[str(vm.uuid)]})
+    for tabela in valores_medicao.values_list('categoria_medicao__nome', flat=True).distinct():
+        valores_da_tabela = buscar_valores_medicao_por_categoria(valores_medicao, tabela)
+        tabelas_dict = {'categoria_medicao': tabela, 'semanas': [
+            {'semana': semana, 'dias': [
+                criar_dia_dict(valores_da_tabela.filter(semana=semana), dia, medicao, dicionario_alteracoes,
+                               tabela, semana)
+                for dia in valores_da_tabela.filter(semana=semana).values_list('dia', flat=True).distinct()
+            ]}
+            for semana in valores_da_tabela.values_list('semana', flat=True).distinct()
+        ]}
+        alteracoes_dict['tabelas_lancamentos'].append(tabelas_dict)
 
-                semana_dict['dias'].append(dia_dict)
-            tabela_dict['semanas'].append(semana_dict)
-        alteracoes_dict['tabelas_lancamentos'].append(tabela_dict)
     log_inicial['alteracoes'].append(alteracoes_dict)
     historico.append(log_inicial)
     solicitacao.historico = json.dumps(historico)
@@ -1399,7 +1416,8 @@ def atualiza_ou_cria_nome_campo_log(lista_campos, log_inicial, alteracao_idx, ca
                     ['tabelas_lancamentos'][categoria_idx]
                     ['semanas'][semana_idx]['dias'][dia_idx]
                     ['campos']).append({
-                        'campo_nome': valor_medicao.nome_campo,
+                        'campo_nome': (str(valor_medicao.faixa_etaria) if valor_medicao.faixa_etaria
+                                       else valor_medicao.nome_campo),
                         'de': valor_medicao.valor,
                         'para': value
                     })
