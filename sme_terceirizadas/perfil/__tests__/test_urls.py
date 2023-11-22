@@ -136,11 +136,6 @@ def test_cadastro_erro(client):
 
 def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     _, email, password, rf, cpf, user = users_diretor_escola
-    mimetype = 'application/json'
-    headers = {
-        'Content-Type': mimetype,
-        'Accept': mimetype
-    }
     data = {
         'email': email,
         'registro_funcional': rf,
@@ -152,19 +147,19 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
 
     monkeypatch.setattr(UsuarioUpdateViewSet, '_get_usuario', lambda p1, p2: user)  # noqa
     monkeypatch.setattr(Usuario, 'pode_efetuar_cadastro', lambda: True)
-    response = client.post('/cadastro/', headers=headers, data=data)  # noqa
+    response = client.post('/cadastro/', content_type='application/json', data=json.dumps(data))  # noqa
     assert response.status_code == status.HTTP_200_OK
-    json = response.json()
+    response_json = response.json()
     keys = ['uuid', 'nome', 'email', 'registro_funcional',
             'date_joined', 'vinculo_atual', 'tipo_usuario']
     for key in keys:
-        assert key in json.keys()
-    assert json['email'] == email
-    assert json['registro_funcional'] == rf
+        assert key in response_json.keys()
+    assert response_json['email'] == email
+    assert response_json['registro_funcional'] == rf
     response.json().get('vinculo_atual').pop('uuid')
     response.json().get('vinculo_atual').get('instituicao').pop('periodos_escolares')
-    assert json['tipo_usuario'] == 'escola'
-    assert json['vinculo_atual'] == {
+    assert response_json['tipo_usuario'] == 'escola'
+    assert response_json['vinculo_atual'] == {
         'instituicao': {
             'nome': 'EMEI NOE AZEVEDO, PROF',
             'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
