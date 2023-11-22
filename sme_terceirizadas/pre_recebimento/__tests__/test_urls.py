@@ -1892,6 +1892,7 @@ def test_url_dashboard_documentos_de_recebimento_status_retornados(
     [
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
         DocumentoDeRecebimentoWorkflow.APROVADO,
+        DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
     ],
 )
 def test_url_dashboard_documentos_de_recebimento_quantidade_itens_por_card(
@@ -1919,6 +1920,7 @@ def test_url_dashboard_documentos_de_recebimento_quantidade_itens_por_card(
     [
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
         DocumentoDeRecebimentoWorkflow.APROVADO,
+        DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
     ]
 )
 def test_url_dashboard_documentos_de_recebimento_com_filtro(
@@ -1961,6 +1963,7 @@ def test_url_dashboard_documentos_de_recebimento_com_filtro(
     [
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
         DocumentoDeRecebimentoWorkflow.APROVADO,
+        DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
     ]
 )
 def test_url_dashboard_documentos_de_recebimento_ver_mais(
@@ -1988,6 +1991,7 @@ def test_url_dashboard_documentos_de_recebimento_ver_mais(
     [
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
         DocumentoDeRecebimentoWorkflow.APROVADO,
+        DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
     ]
 )
 def test_url_dashboard_documentos_de_recebimento_ver_mais_com_filtros(
