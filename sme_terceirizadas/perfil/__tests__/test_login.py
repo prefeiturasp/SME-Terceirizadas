@@ -1,4 +1,5 @@
 import json
+
 import pytest
 from rest_framework import status
 from utility.carga_dados.perfil.importa_dados import ProcessaPlanilhaUsuarioServidorCoreSSO
@@ -73,9 +74,6 @@ def test_login_coresso_diretor_sucesso_gestor(client_autenticado_da_escola, monk
 
 
 def test_login_coresso_erro_usuario_nao_existe(client_autenticado_da_escola, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234568',
         'password': DJANGO_ADMIN_PASSWORD
