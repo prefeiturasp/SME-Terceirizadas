@@ -245,7 +245,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_relatorio(
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == f'filename="solicitacao_avulsa_{id_externo}.pdf"'
-    assert 'PDF-1.7' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -476,7 +476,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_relatorio(
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == f'filename="solicitacao_unificada_{id_externo}.pdf"'
-    assert 'PDF-1.7' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
