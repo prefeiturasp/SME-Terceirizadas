@@ -422,16 +422,11 @@ class DataDeFabricacaoEPrazoLookupSerializer(serializers.ModelSerializer):
 
 
 class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
-    laboratorio = LaboratorioCredenciadoSimplesSerializer()
-    unidade_medida = NomeEAbreviacaoUnidadeMedidaSerializer()
+    laboratorio = serializers.UUIDField(source='laboratorio.uuid', read_only=True)
+    unidade_medida = serializers.UUIDField(source='unidade_medida.uuid', read_only=True)
     datas_fabricacao_e_prazos = DataDeFabricacaoEPrazoLookupSerializer(many=True)
     numero_sei = serializers.SerializerMethodField()
     fornecedor = serializers.SerializerMethodField()
-    log_mais_recente = serializers.SerializerMethodField()
-
-    def get_log_mais_recente(self, obj):
-        if obj.log_mais_recente:
-            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y - %H:%M')
 
     def get_numero_sei(self, obj):
         return obj.cronograma.contrato.processo if obj.cronograma.contrato else None
@@ -443,5 +438,4 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
         fields = DocRecebimentoDetalharSerializer.Meta.fields + ('fornecedor', 'numero_sei', 'laboratorio',
                                                                  'quantidade_laudo', 'unidade_medida', 'saldo_laudo',
                                                                  'data_fabricacao_lote', 'validade_produto',
-                                                                 'data_final_lote', 'datas_fabricacao_e_prazos',
-                                                                 'log_mais_recente')
+                                                                 'data_final_lote', 'datas_fabricacao_e_prazos',)
