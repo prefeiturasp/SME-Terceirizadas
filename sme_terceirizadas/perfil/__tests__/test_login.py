@@ -1,3 +1,4 @@
+import json
 import pytest
 from rest_framework import status
 from utility.carga_dados.perfil.importa_dados import ProcessaPlanilhaUsuarioServidorCoreSSO
@@ -26,9 +27,6 @@ pytestmark = pytest.mark.django_db
 
 
 def test_login_coresso_diretor_sucesso(client_autenticado_da_escola, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -38,14 +36,11 @@ def test_login_coresso_diretor_sucesso(client_autenticado_da_escola, monkeypatch
                         lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor(), 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso(), 200))
-    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_login_coresso_diretor_sucesso_coordenador(client_autenticado_da_escola, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -55,16 +50,13 @@ def test_login_coresso_diretor_sucesso_coordenador(client_autenticado_da_escola,
                         lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor(), 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_gestor(), 200))
-    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
     usuario = Usuario.objects.get(username=data['login'])
     assert usuario.vinculo_atual.perfil.nome == DIRETOR_UE
 
 
 def test_login_coresso_diretor_sucesso_gestor(client_autenticado_da_escola, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -74,7 +66,7 @@ def test_login_coresso_diretor_sucesso_gestor(client_autenticado_da_escola, monk
                         lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor(), 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_coordenador(), 200))
-    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
     usuario = Usuario.objects.get(username=data['login'])
     assert usuario.vinculo_atual.perfil.nome == DIRETOR_UE
@@ -93,15 +85,12 @@ def test_login_coresso_erro_usuario_nao_existe(client_autenticado_da_escola, mon
                         lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor_login_errado(), 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso(), 200))
-    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Usuário não encontrado.'}
 
 
 def test_login_coresso_erro_usuario_sem_email(client_autenticado_da_escola_email_invalido, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -112,15 +101,13 @@ def test_login_coresso_erro_usuario_sem_email(client_autenticado_da_escola_email
                         lambda p1, p2, p3: mocked_response({'token': '#ABC123'}, 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_sem_email(), 200))
-    response = client_autenticado_da_escola_email_invalido.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_email_invalido.post('/login/',
+                                                                content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Usuário sem e-mail cadastrado. E-mail é obrigatório.'}
 
 
 def test_login_coresso_diretor_era_adm_escola(client_autenticado_da_escola_adm, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -130,16 +117,13 @@ def test_login_coresso_diretor_era_adm_escola(client_autenticado_da_escola_adm, 
                         lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor(), 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso(), 200))
-    response = client_autenticado_da_escola_adm.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_adm.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
     usuario = Usuario.objects.get(username=data['login'])
     assert usuario.vinculo_atual.perfil.nome == DIRETOR_UE
 
 
 def test_login_coresso_diretor_sem_acesso_ao_coresso(client_autenticado_da_escola, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -153,16 +137,13 @@ def test_login_coresso_diretor_sem_acesso_ao_coresso(client_autenticado_da_escol
                         lambda p1, p2, p3: mocked_response({'token': '#ABC123'}, 200))
     monkeypatch.setattr(ProcessaPlanilhaUsuarioServidorCoreSSO, 'cria_usuario_servidor',
                         lambda p1, p2, p3: None)
-    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
     usuario = Usuario.objects.get(username=data['login'])
     assert usuario.vinculo_atual.perfil.nome == DIRETOR_UE
 
 
 def test_login_usuario_com_acesso_automatico_adm_escola(client_autenticado_da_escola_adm, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -177,16 +158,13 @@ def test_login_usuario_com_acesso_automatico_adm_escola(client_autenticado_da_es
                         lambda p1, p2, p3: mocked_response({'token': '#ABC123'}, 200))
     monkeypatch.setattr(ProcessaPlanilhaUsuarioServidorCoreSSO, 'cria_usuario_servidor',
                         lambda p1, p2, p3: None)
-    response = client_autenticado_da_escola_adm.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_adm.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
     usuario = Usuario.objects.get(username=data['login'])
     assert usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_UE
 
 
 def test_login_coresso_diretor_sem_vinculo_no_sigpae(client_autenticado_da_escola_sem_vinculo, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -196,16 +174,14 @@ def test_login_coresso_diretor_sem_vinculo_no_sigpae(client_autenticado_da_escol
                         lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor(), 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso(), 200))
-    response = client_autenticado_da_escola_sem_vinculo.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_sem_vinculo.post('/login/',
+                                                             content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
     usuario = Usuario.objects.get(username=data['login'])
     assert usuario.vinculo_atual.perfil.nome == DIRETOR_UE
 
 
 def test_login_coresso_adm_escola_sem_vinculo_no_sigpae(client_autenticado_da_escola_sem_vinculo, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -215,7 +191,8 @@ def test_login_coresso_adm_escola_sem_vinculo_no_sigpae(client_autenticado_da_es
                         lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor(), 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_adm_escola(), 200))
-    response = client_autenticado_da_escola_sem_vinculo.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_sem_vinculo.post('/login/',
+                                                             content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
     usuario = Usuario.objects.get(username=data['login'])
     assert usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_UE
@@ -223,9 +200,6 @@ def test_login_coresso_adm_escola_sem_vinculo_no_sigpae(client_autenticado_da_es
 
 def test_login_coresso_cargo_sem_acesso_automatico_sem_vinculo_no_sigpae(client_autenticado_da_escola_sem_vinculo,
                                                                          monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -236,15 +210,13 @@ def test_login_coresso_cargo_sem_acesso_automatico_sem_vinculo_no_sigpae(client_
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_sem_acesso_automatico(),
                                                    200))
-    response = client_autenticado_da_escola_sem_vinculo.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_sem_vinculo.post('/login/',
+                                                             content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Usuário não possui permissão de acesso ao SIGPAE'}
 
 
 def test_login_coresso_login_cpf_erro(client_autenticado_da_escola_adm, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '123456789012',
         'password': DJANGO_ADMIN_PASSWORD
@@ -254,15 +226,12 @@ def test_login_coresso_login_cpf_erro(client_autenticado_da_escola_adm, monkeypa
                         lambda p1, p2: mocked_response({}, 200))
     monkeypatch.setattr(NovoSGPServicoLogado, 'pegar_token_acesso',
                         lambda p1, p2, p3: mocked_response({'token': '#ABC123'}, 200))
-    response = client_autenticado_da_escola_adm.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_adm.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Usuário não encontrado'}
 
 
 def test_login_coresso_dados_usuario_erro(client_autenticado_da_escola_sem_vinculo, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -272,15 +241,13 @@ def test_login_coresso_dados_usuario_erro(client_autenticado_da_escola_sem_vincu
                         lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor(), 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response({}, 400))
-    response = client_autenticado_da_escola_sem_vinculo.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_sem_vinculo.post('/login/',
+                                                             content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Usuário não encontrado'}
 
 
 def test_login_coresso_cogestor_dre(client_autenticado_da_dre, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -290,14 +257,11 @@ def test_login_coresso_cogestor_dre(client_autenticado_da_dre, monkeypatch):
                         lambda p1, p2: mocked_response(mocked_response_autentica_coresso_cogestor(), 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_cogestor(), 200))
-    response = client_autenticado_da_dre.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_dre.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_login_usuario_adm_escola_trocou_unidade_sucesso(client_autenticado_da_escola_adm, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -308,7 +272,7 @@ def test_login_usuario_adm_escola_trocou_unidade_sucesso(client_autenticado_da_e
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(
                             mocked_response_get_dados_usuario_coresso_adm_escola(), 200))
-    response = client_autenticado_da_escola_adm.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_adm.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
     usuario = Usuario.objects.get(username=data['login'])
     assert usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_UE
@@ -316,9 +280,6 @@ def test_login_usuario_adm_escola_trocou_unidade_sucesso(client_autenticado_da_e
 
 
 def test_login_usuario_adm_escola_trocou_unidade_erro(client_autenticado_da_escola_adm, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -329,16 +290,13 @@ def test_login_usuario_adm_escola_trocou_unidade_erro(client_autenticado_da_esco
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(
                             mocked_response_get_dados_usuario_coresso_sem_acesso_automatico(), 200))
-    response = client_autenticado_da_escola_adm.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola_adm.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Você está sem autorização de acesso à aplicação no momento. '
                                          'Entre em contato com o administrador do SIGPAE.'}
 
 
 def test_login_coresso_cargo_sem_acesso_automatico_no_sigpae(client_autenticado_da_escola, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -351,15 +309,12 @@ def test_login_coresso_cargo_sem_acesso_automatico_no_sigpae(client_autenticado_
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(
                             mocked_response_get_dados_usuario_coresso_sem_acesso_automatico(), 200))
-    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Usuário não possui permissão de acesso ao SIGPAE'}
 
 
 def test_login_coresso_diretor_que_vira_adm_ue(client_autenticado_da_escola, monkeypatch):
-    headers = {
-        'Content-Type': 'application/json'
-    }
     data = {
         'login': '1234567',
         'password': DJANGO_ADMIN_PASSWORD
@@ -369,7 +324,7 @@ def test_login_coresso_diretor_que_vira_adm_ue(client_autenticado_da_escola, mon
                         lambda p1, p2: mocked_response(mocked_response_autentica_coresso_diretor(), 200))
     monkeypatch.setattr(EOLServicoSGP, 'get_dados_usuario',
                         lambda p1: mocked_response(mocked_response_get_dados_usuario_coresso_adm_escola(), 200))
-    response = client_autenticado_da_escola.post('/login/', headers=headers, data=data)
+    response = client_autenticado_da_escola.post('/login/', content_type='application/json', data=json.dumps(data))
     assert response.status_code == status.HTTP_200_OK
     usuario = Usuario.objects.get(username=data['login'])
     assert usuario.vinculo_atual.perfil.nome == ADMINISTRADOR_UE
