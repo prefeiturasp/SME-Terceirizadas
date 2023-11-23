@@ -283,8 +283,25 @@ def test_criar_log_alunos_matriculados_periodo_escola_cemei_regular(escola_cemei
     LogAlunosMatriculadosPeriodoEscola.criar(
         escola=escola_cemei, periodo_escolar=periodo_escolar, quantidade_alunos=32, data=hoje, tipo_turma='REGULAR')
     assert LogAlunosMatriculadosPeriodoEscola.objects.count() == 3
-    assert LogAlunosMatriculadosPeriodoEscola.objects.filter(cei_ou_emei='CEI').exists()
-    assert LogAlunosMatriculadosPeriodoEscola.objects.filter(cei_ou_emei='EMEI').exists()
+    assert LogAlunosMatriculadosPeriodoEscola.objects.filter(cei_ou_emei='CEI').exists() is True
+    assert LogAlunosMatriculadosPeriodoEscola.objects.filter(cei_ou_emei='EMEI').exists() is True
+    assert LogAlunosMatriculadosPeriodoEscola.objects.first().tipo_turma == 'REGULAR'
+    log = LogAlunosMatriculadosPeriodoEscola.objects.all()[0]
+    assert f'tem {log.quantidade_alunos} alunos' in log.__str__()
+
+
+def test_criar_log_alunos_matriculados_periodo_escola_emebs_regular(escola_emebs, periodo_escolar):
+    hoje = datetime.date.today()
+    assert LogAlunosMatriculadosPeriodoEscola.objects.count() == 0
+    LogAlunosMatriculadosPeriodoEscola.criar(
+        escola=escola_emebs, periodo_escolar=periodo_escolar, quantidade_alunos=32, data=hoje, tipo_turma='REGULAR')
+    assert LogAlunosMatriculadosPeriodoEscola.objects.count() == 3
+    assert LogAlunosMatriculadosPeriodoEscola.objects.filter(
+        infantil_ou_fundamental='INFANTIL', quantidade_alunos=1
+    ).exists() is True
+    assert LogAlunosMatriculadosPeriodoEscola.objects.filter(
+        infantil_ou_fundamental='FUNDAMENTAL', quantidade_alunos=1
+    ).exists() is True
     assert LogAlunosMatriculadosPeriodoEscola.objects.first().tipo_turma == 'REGULAR'
     log = LogAlunosMatriculadosPeriodoEscola.objects.all()[0]
     assert f'tem {log.quantidade_alunos} alunos' in log.__str__()
