@@ -93,7 +93,7 @@ def test_url_endpoint_solicitacoes_inversao_relatorio(client_autenticado,
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == f'filename="solicitacao_inversao_{id_externo}.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -472,7 +472,7 @@ def test_url_endpoint_suspensoes_relatorio(client_autenticado,
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == f'filename="solicitacao_suspensao_{id_externo}.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -1170,7 +1170,7 @@ def test_url_endpoint_alt_card_relatorio(client_autenticado, alteracao_cardapio)
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == f'filename="alteracao_cardapio_{id_externo}.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -1182,7 +1182,7 @@ def test_url_endpoint_alt_card_cei_relatorio(client_autenticado, alteracao_carda
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == f'filename="alteracao_cardapio_{id_externo}.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 

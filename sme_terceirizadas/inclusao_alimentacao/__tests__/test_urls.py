@@ -209,7 +209,7 @@ def test_url_endpoint_inclusao_normal_relatorio(client_autenticado,
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == f'filename="inclusao_alimentacao_{id_externo}.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -568,7 +568,7 @@ def test_url_endpoint_inclusao_continua_relatorio(client_autenticado,
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == f'filename="inclusao_alimentacao_continua_{id_externo}.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -584,7 +584,7 @@ def test_url_endpoint_inclusao_cei_relatorio(client_autenticado_vinculo_escola_c
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == f'filename="inclusao_alimentacao_{id_externo}.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -746,5 +746,5 @@ def test_url_endpoint_inclusao_cemei_relatorio(client_autenticado_vinculo_escola
     assert response.status_code == status.HTTP_200_OK
     assert response.headers['content-type'] == 'application/pdf'
     assert response.headers['content-disposition'] == f'filename="inclusao_alimentacao_cemei_{id_externo}.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)

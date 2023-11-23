@@ -414,7 +414,8 @@ def deletar_logs_alunos_matriculados_duplicados(escola, hoje):
             logs_filtrados = logs.filter(
                 periodo_escolar=log.periodo_escolar,
                 tipo_turma=log.tipo_turma,
-                cei_ou_emei=log.cei_ou_emei
+                cei_ou_emei=log.cei_ou_emei,
+                infantil_ou_fundamental=log.infantil_ou_fundamental
             ).order_by('-criado_em')
             for l in logs_filtrados[1:logs_filtrados.count()]:
                 if l.uuid not in logs_para_deletar:
@@ -445,9 +446,13 @@ def criar_logs_alunos_matriculados_inexistentes(escola, hoje):
                 if logs_para_repetir:
                     for log_para_criar in logs_para_repetir:
                         log_criado = LogAlunosMatriculadosPeriodoEscola.objects.create(
-                            escola=log_para_criar.escola, periodo_escolar=log_para_criar.periodo_escolar,
+                            escola=log_para_criar.escola,
+                            periodo_escolar=log_para_criar.periodo_escolar,
                             quantidade_alunos=log_para_criar.quantidade_alunos,
-                            tipo_turma=log_para_criar.tipo_turma)
+                            tipo_turma=log_para_criar.tipo_turma,
+                            cei_ou_emei=log_para_criar.cei_ou_emei,
+                            infantil_ou_fundamental=log_para_criar.infantil_ou_fundamental
+                        )
                         log_criado.criado_em = data
                         log_criado.save()
                     break
