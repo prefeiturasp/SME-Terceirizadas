@@ -7,7 +7,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...eol_servico.utils import EOLService, dt_nascimento_from_api
-from ...escola.api.serializers import EscolaSimplissimaSerializer, VinculoInstituicaoSerializer
+from ...escola.api.serializers import Aluno, EscolaSimplissimaSerializer, VinculoInstituicaoSerializer
 from ...medicao_inicial.models import SolicitacaoMedicaoInicial
 from ...perfil.models import Vinculo
 from .. import models
@@ -80,6 +80,20 @@ def escola_cemei(periodo_escolar):
                         tipo_gestao=tipo_gestao, tipo_unidade=tipo_unidade_escolar)
     mommy.make('Aluno', serie='1', escola=escola, periodo_escolar=periodo_escolar)
     mommy.make('Aluno', serie='5', escola=escola, periodo_escolar=periodo_escolar)
+    return escola
+
+
+@pytest.fixture
+def escola_emebs(periodo_escolar):
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL TESTE')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='EMEBS')
+    escola = mommy.make('Escola', nome='EMEBS TESTE', lote=lote, diretoria_regional=diretoria_regional,
+                        tipo_gestao=tipo_gestao, tipo_unidade=tipo_unidade_escolar)
+    mommy.make('Aluno', etapa=Aluno.ETAPA_INFANTIL, escola=escola, periodo_escolar=periodo_escolar)
+    mommy.make('Aluno', serie=14, escola=escola, periodo_escolar=periodo_escolar)
     return escola
 
 
