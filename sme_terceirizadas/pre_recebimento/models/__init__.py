@@ -8,6 +8,7 @@ from .cronograma import SolicitacaoAlteracaoCronograma  # noqa
 from .cronograma import TipoDeEmbalagemDeLayout  # noqa
 from .cronograma import UnidadeMedida  # noqa
 from .cronograma import DocumentoDeRecebimento  # noqa
+from .cronograma import DataDeFabricaoEPrazo  # noqa
 from .cronograma import TipoDeDocumentoDeRecebimento  # noqa
 from .cronograma import ArquivoDoTipoDeDocumento  # noqa
 from .qualidade import Laboratorio  # noqa

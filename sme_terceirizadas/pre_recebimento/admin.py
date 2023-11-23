@@ -5,6 +5,7 @@ from .forms import ArquivoForm, CaixaAltaNomeForm
 from .models import (
     ArquivoDoTipoDeDocumento,
     Cronograma,
+    DataDeFabricaoEPrazo,
     DocumentoDeRecebimento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
@@ -114,7 +115,7 @@ class DocumentoDeRecebimentoAdmin(NestedModelAdmin):
     inlines = [TipoDocumentoRecebimentoInline, ]
 
     def get_produto(self, obj):
-        return obj.cronograma.produto.nome
+        return obj.cronograma.produto.nome if obj.cronograma.produto else None
     get_produto.short_description = 'Produto'
 
     def get_cronograma(self, obj):
@@ -123,6 +124,7 @@ class DocumentoDeRecebimentoAdmin(NestedModelAdmin):
 
 
 admin.site.register(DocumentoDeRecebimento, DocumentoDeRecebimentoAdmin)
+admin.site.register(DataDeFabricaoEPrazo)
 admin.site.register(LayoutDeEmbalagem, LayoutDeEmbalagemAdmin)
 admin.site.register(Cronograma)
 admin.site.register(EtapasDoCronograma)

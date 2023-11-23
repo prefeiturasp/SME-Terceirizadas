@@ -121,7 +121,9 @@ class LogSolicitacoesUsuario(
         LAYOUT_CORRECAO_REALIZADA,
         LAYOUT_ATUALIZADO,
         DOCUMENTO_ENVIADO_PARA_ANALISE,
-    ) = range(94)
+        DOCUMENTO_ENVIADO_PARA_CORRECAO,
+        DOCUMENTO_APROVADO,
+    ) = range(96)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -254,6 +256,8 @@ class LogSolicitacoesUsuario(
         (LAYOUT_CORRECAO_REALIZADA, 'Layout correção realizada'),
         (LAYOUT_ATUALIZADO, 'Layout atualizado'),
         (DOCUMENTO_ENVIADO_PARA_ANALISE, 'Documento enviado para análise'),
+        (DOCUMENTO_ENVIADO_PARA_CORRECAO, 'Documento enviado para correção'),
+        (DOCUMENTO_APROVADO, 'Documento aprovado'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -482,6 +486,7 @@ class Notificacao(models.Model):
     CATEGORIA_NOTIFICACAO_CRONOGRAMA = 'CRONOGRAMA'
     CATEGORIA_NOTIFICACAO_SOLICITACAO_ALTERACAO_CRONOGRAMA = 'SOLICITACAO_ALTERACAO_CRONOGRAMA'
     CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA = 'ALTERACAO_CRONOGRAMA'
+    CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS = 'LAYOUT_DE_EMBALAGENS'
 
     CATEGORIA_NOTIFICACAO_NOMES = {
         CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA: 'Requisição de entrega',
@@ -489,7 +494,8 @@ class Notificacao(models.Model):
         CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA: 'Guia de Remessa',
         CATEGORIA_NOTIFICACAO_CRONOGRAMA: 'Assinatura do Cronograma',
         CATEGORIA_NOTIFICACAO_SOLICITACAO_ALTERACAO_CRONOGRAMA: 'Solicitação de Alteração do Cronograma',
-        CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA: 'Alteração do Cronograma'
+        CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA: 'Alteração do Cronograma',
+        CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS: 'Layout de Embalagens'
     }
 
     CATEGORIA_NOTIFICACAO_CHOICES = (
@@ -510,6 +516,9 @@ class Notificacao(models.Model):
 
         (CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA,
          CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA]),
+
+        (CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS,
+         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS]),
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

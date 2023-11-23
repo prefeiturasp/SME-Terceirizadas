@@ -109,17 +109,17 @@ Fluxos: https://whimsical.com/fluxos-i7SkAADB94XRhRMd2afif
 
 # Sobre o Time
 
-| Papel | Titular | Suplente  
-|--|--|--|  
-| Product Owner | Andrea Wang e Daniela Chichon| Elisete Pereira |  
-| Agente de Governança | Juliana Demay | Fernando Gonsales |  
-| Gerente de Projeto | Aline Freitas | |  
-| Scrum Master | |  | 
-| Designer de Serviços | Caio Dib | |  
-| Analista de negócios | Jaqueline Sargi |  |  
-| Analista UX/UI | Joilson Day |  |  
-| Analista Programador | Calvin Rossignoli | Rodolpho Lima e João Mesquita |
-| Analista de teste |Paula Pimentel|  |
+| Papel                | Titular                       | Suplente                      |
+| -------------------- | ----------------------------- | ----------------------------- |
+| Product Owner        | Andrea Wang e Daniela Chichon | Elisete Pereira               |
+| Agente de Governança | Juliana Demay                 | Fernando Gonsales             |
+| Gerente de Projeto   | Aline Freitas                 |                               |
+| Scrum Master         |                               |                               |
+| Designer de Serviços | Caio Dib                      |                               |
+| Analista de negócios | Jaqueline Sargi               |                               |
+| Analista UX/UI       | Joilson Day                   |                               |
+| Analista Programador | Calvin Rossignoli             | Rodolpho Lima e João Mesquita |
+| Analista de teste    | Paula Pimentel                |                               |
 
 ## Protótipos
 
@@ -147,8 +147,8 @@ https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-T
 
 # Comunicação:
 
-| Canal de comunicação | Objetivos |
-|----------------------|-----------|
+| Canal de comunicação                                                         | Objetivos                                                                         |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | [Issues do Github](https://github.com/prefeiturasp/SME-Terceirizadas/issues) | - Sugestão de novas funcionalidades<br> - Reportar bugs<br> - Discussões técnicas |
 
 # Como contribuir
@@ -239,20 +239,35 @@ celery -A config worker --beat --scheduler django --loglevel=info
 
 Pré-requisitos:
 
-* pipenv versão 2022.4.8
-```
-pip install pipenv==2022.4.8
-```
+* Python 3.9.18
+* pipenv versão 2023.10.3
 
-```
-pipenv shell
-pyenv local 3.8.10
-pipenv install --dev
+Para instalação dos pré-requisitos utilizando o Pyenv, abra um terminal na pasta do backend do projeto na sua máquina e execute os comandos abaixo:
 
-python manage.py migrate
+```shell
+# Atualize o pyenv
+$ pyenv update
+
+# Instale a versão necessária do Python
+$ pyenv install 3.9.18
+
+# Defina a versão do Python para a pasta
+$ pyenv local 3.9.18
+
+$ pip install pipenv==2023.10.3
+
+# Crie o ambiente virtual e instale as dependências do projeto
+$ pipenv install --dev
+
+# Habilite o ambiente virtual
+$ pipenv shell
 
 # Mude para a branch development
-git checkout -b development origin/development
+$ git checkout -b development origin/development
 
-python manage.py carga_dados
+# Execute as migrações
+$ python manage.py migrate
+
+# Execute o script para carregar os dados do sistema
+$ python manage.py carga_dados
 ```

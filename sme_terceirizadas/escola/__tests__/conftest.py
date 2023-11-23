@@ -70,6 +70,20 @@ def escola_cei():
 
 
 @pytest.fixture
+def escola_cemei(periodo_escolar):
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL TESTE')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='CEMEI')
+    escola = mommy.make('Escola', nome='CEMEI TESTE', lote=lote, diretoria_regional=diretoria_regional,
+                        tipo_gestao=tipo_gestao, tipo_unidade=tipo_unidade_escolar)
+    mommy.make('Aluno', serie='1', escola=escola, periodo_escolar=periodo_escolar)
+    mommy.make('Aluno', serie='5', escola=escola, periodo_escolar=periodo_escolar)
+    return escola
+
+
+@pytest.fixture
 def escola_simplissima_serializer(escola):
     return EscolaSimplissimaSerializer(escola)
 
