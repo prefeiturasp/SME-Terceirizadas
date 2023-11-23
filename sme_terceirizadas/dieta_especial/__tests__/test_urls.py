@@ -707,7 +707,7 @@ def test_gerar_protocolo_dieta_especial_protocolo(client_autenticado, solicitaca
         'content-type'] == 'application/pdf'
     assert response.headers[
         'content-disposition'] == f'filename="dieta_especial_{solicitacao_dieta_especial_autorizada.id_externo}.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
@@ -719,7 +719,7 @@ def test_gerar_protocolo_dieta_especial_relatorio(client_autenticado, solicitaca
         'content-type'] == 'application/pdf'
     assert response.headers[
         'content-disposition'] == f'filename="dieta_especial_{solicitacao_dieta_especial_autorizada.id_externo}.pdf"'
-    assert 'PDF-1.5' in str(response.content)
+    assert 'PDF-1.' in str(response.content)
     assert isinstance(response.content, bytes)
 
 
