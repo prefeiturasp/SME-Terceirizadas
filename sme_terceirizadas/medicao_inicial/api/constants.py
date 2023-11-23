@@ -7,9 +7,9 @@ STATUS_RELACAO_DRE_UE = [
 ]
 
 STATUS_RELACAO_DRE_CODAE = [
+    SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
     SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_DRE,
     SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE,
     SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE,
     SolicitacaoMedicaoInicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE,
-    SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
 ]
