@@ -84,6 +84,21 @@ class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
         fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao')
 
 
+class LogSolicitacoesUsuarioSimplesSerializer(serializers.ModelSerializer):
+    criado_em = serializers.SerializerMethodField()
+    usuario = serializers.SerializerMethodField()
+
+    def get_usuario(self, obj):
+        return obj.usuario.nome
+
+    def get_criado_em(self, obj):
+        return datetime.strftime(obj.criado_em, '%d/%m/%Y - %H:%M')
+
+    class Meta:
+        model = LogSolicitacoesUsuario
+        fields = ('usuario', 'criado_em')
+
+
 class LogSolicitacoesSerializer(serializers.ModelSerializer):
     status_evento_explicacao = serializers.CharField(
         source='get_status_evento_display',

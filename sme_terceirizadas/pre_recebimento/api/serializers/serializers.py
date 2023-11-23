@@ -27,7 +27,7 @@ from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     TerceirizadaSimplesSerializer
 )
 
-from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer, LogSolicitacoesUsuarioSimplesSerializer
 
 
 class ProgramacaoDoRecebimentoDoCronogramaSerializer(serializers.ModelSerializer):
@@ -427,11 +427,7 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
     datas_fabricacao_e_prazos = DataDeFabricacaoEPrazoLookupSerializer(many=True)
     numero_sei = serializers.SerializerMethodField()
     fornecedor = serializers.SerializerMethodField()
-    log_mais_recente = serializers.SerializerMethodField()
-
-    def get_log_mais_recente(self, obj):
-        if obj.log_mais_recente:
-            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y - %H:%M')
+    log_mais_recente = LogSolicitacoesUsuarioSimplesSerializer()
 
     def get_numero_sei(self, obj):
         return obj.cronograma.contrato.processo if obj.cronograma.contrato else None
@@ -444,4 +440,4 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
                                                                  'quantidade_laudo', 'unidade_medida', 'saldo_laudo',
                                                                  'data_fabricacao_lote', 'validade_produto',
                                                                  'data_final_lote', 'datas_fabricacao_e_prazos',
-                                                                 'log_mais_recente')
+                                                                 'correcao_solicitada', 'log_mais_recente')
