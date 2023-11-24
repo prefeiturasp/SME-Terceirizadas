@@ -27,7 +27,7 @@ repos:
             language: system
             args:
                 - --quiet
-                - --exclude=**/*/__tests__
+                - --exclude=__tests__
             types:
                 - python
 default_stages:
