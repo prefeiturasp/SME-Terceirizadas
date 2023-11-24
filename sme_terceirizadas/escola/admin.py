@@ -215,7 +215,7 @@ class LogErroAtualizaDadosAlunoAdmin(admin.ModelAdmin):
 
 @admin.register(LogAlunosMatriculadosPeriodoEscola)
 class LogAlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
-    list_display = ('escola', 'periodo_escolar', 'get_tipo_turma', 'quantidade_alunos', 'criado_em', 'cei_ou_emei',
+    list_display = ('escola', 'periodo_escolar', 'cei_ou_emei', 'get_tipo_turma', 'quantidade_alunos', 'criado_em',
                     'infantil_ou_fundamental')
     search_fields = ('escola__nome', 'escola__codigo_eol', 'periodo_escolar__nome')
     list_filter = (('criado_em', DateRangeFilter), 'periodo_escolar__nome', 'tipo_turma', 'escola__diretoria_regional',

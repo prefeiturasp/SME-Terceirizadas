@@ -316,7 +316,7 @@ class ArquivoCargaUsuariosEscolaAdmin(admin.ModelAdmin):
 
 @admin.register(LogQuantidadeDietasAutorizadas)
 class LogQuantidadeDietasAutorizadasAdmin(admin.ModelAdmin):
-    list_display = ('escola', 'periodo_escolar', 'classificacao', 'quantidade', 'data', 'criado_em')
+    list_display = ('escola', 'periodo_escolar', 'cei_ou_emei', 'classificacao', 'quantidade', 'data', 'criado_em')
     search_fields = ('escola__nome', 'escola__codigo_eol')
     list_filter = (('data', DateRangeFilter), 'classificacao__nome', 'periodo_escolar__nome')
 
