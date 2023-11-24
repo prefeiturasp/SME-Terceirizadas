@@ -7,6 +7,8 @@ repos:
             language: system
             types:
                 - python
+            args:
+                - --skip-string-normalization
           - id: isort
             name: "format imports with isort"
             entry: isort
