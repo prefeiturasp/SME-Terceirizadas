@@ -97,7 +97,6 @@ def gera_pdf_relatorio_dieta_especial_async(user, nome_arquivo, ids_dietas, data
     retry_kwargs={'max_retries': 8},
 )
 def gera_logs_dietas_especiais_diariamente():
-    iniciais_cei = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
     logger.info(f'x-x-x-x Iniciando a geração de logs de dietas especiais autorizadas diaria x-x-x-x')
     ontem = datetime.date.today() - datetime.timedelta(days=1)
     dietas_autorizadas = SolicitacaoDietaEspecial.objects.filter(
@@ -115,7 +114,10 @@ def gera_logs_dietas_especiais_diariamente():
         msg = f'x-x-x-x Logs de quantidade de dietas autorizadas para a escola'
         msg += f' {escola.nome} ({index + 1}/{(escolas).count()}) x-x-x-x'
         logger.info(msg)
-        if escola.tipo_unidade.iniciais in iniciais_cei:
+        if escola.eh_cei:
+            logs_a_criar_escolas_cei += gera_logs_dietas_escolas_cei(escola, dietas_autorizadas, ontem)
+        elif escola.eh_cemei:
+            logs_a_criar_escolas_comuns += gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem)
             logs_a_criar_escolas_cei += gera_logs_dietas_escolas_cei(escola, dietas_autorizadas, ontem)
         else:
             logs_a_criar_escolas_comuns += gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem)
