@@ -66,7 +66,7 @@ from ..kit_lanche.models import (
     SolicitacaoKitLancheCEMEI,
     SolicitacaoKitLancheUnificada
 )
-from .constants import PERIODOS_ESPECIAIS_CEMEI
+from .constants import CEI_OU_EMEI, PERIODOS_ESPECIAIS_CEMEI
 from .services import NovoSGPServicoLogado
 from .utils import deletar_alunos_periodo_parcial_outras_escolas, faixa_to_string, remove_acentos
 
@@ -1335,12 +1335,6 @@ class AlunosMatriculadosPeriodoEscola(CriadoEm, TemAlteradoEm, TemChaveExterna):
 
 class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservacao):
     """Histórico da quantidade de Alunos por período."""
-
-    CEI_OU_EMEI = (
-        ('N/A', 'N/A'),
-        ('CEI', 'CEI'),
-        ('EMEI', 'EMEI')
-    )
 
     INFANTIL_OU_FUNDAMENTAL = (
         ('N/A', 'N/A'),

@@ -268,6 +268,18 @@ def escola():
 
 
 @pytest.fixture
+def escola_cemei():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL CEMEI')
+    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='CEMEI')
+    escola_cemei = mommy.make('Escola', nome='CEMEI', lote=lote, diretoria_regional=diretoria_regional,
+                              tipo_gestao=tipo_gestao, tipo_unidade=tipo_unidade_escolar)
+    return escola_cemei
+
+
+@pytest.fixture
 def massa_dados_protocolo_padrao_test(solicitacao_dieta_especial):
     lote = solicitacao_dieta_especial.escola.lote
     edital_1 = Edital.objects.get(uuid='b7b6a0a7-b230-4783-94b6-8d3d22041ab3')
@@ -665,6 +677,65 @@ def solicitacoes_dieta_especial_ativas_cei(escola_cei, classificacoes_dietas):
                rastro_escola=escola_cei,
                escola_destino=escola_cei,
                classificacao=classificacoes_dietas[0])
+    return SolicitacaoDietaEspecial.objects.all()
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_ativas_cemei(escola_cemei, classificacoes_dietas):
+    periodo_integral = mommy.make(PeriodoEscolar, nome='INTEGRAL')
+    mommy.make(FaixaEtaria, inicio=1, fim=31)
+    mommy.make(FaixaEtaria, inicio=32, fim=88)
+    aluno_a = mommy.make(Aluno,
+                         nome='Roberto Alves da Silva',
+                         codigo_eol='123456',
+                         data_nascimento='2022-01-01',
+                         escola=escola_cemei,
+                         periodo_escolar=periodo_integral,
+                         serie='3B')
+    aluno_b = mommy.make(Aluno,
+                         nome='Aluno Teste',
+                         codigo_eol='456789',
+                         data_nascimento='2017-01-01',
+                         escola=escola_cemei,
+                         periodo_escolar=periodo_integral,
+                         serie='6C')
+    aluno_c = mommy.make(Aluno,
+                         nome='Aluno Teste__2',
+                         codigo_eol='123025',
+                         data_nascimento='2017-01-01',
+                         escola=escola_cemei,
+                         periodo_escolar=periodo_integral,
+                         serie='1A')
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+               aluno=aluno_a,
+               rastro_escola=escola_cemei,
+               escola_destino=escola_cemei,
+               classificacao=classificacoes_dietas[0]),
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+               aluno=aluno_b,
+               rastro_escola=escola_cemei,
+               escola_destino=escola_cemei,
+               classificacao=classificacoes_dietas[0]),
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+               aluno=aluno_c,
+               rastro_escola=escola_cemei,
+               escola_destino=escola_cemei,
+               classificacao=classificacoes_dietas[0]),
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+               aluno=aluno_a,
+               rastro_escola=escola_cemei,
+               escola_destino=escola_cemei,
+               classificacao=classificacoes_dietas[1]),
+    mommy.make(SolicitacaoDietaEspecial,
+               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+               aluno=aluno_b,
+               rastro_escola=escola_cemei,
+               escola_destino=escola_cemei,
+               classificacao=classificacoes_dietas[2]),
     return SolicitacaoDietaEspecial.objects.all()
 
 
