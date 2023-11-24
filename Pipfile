@@ -45,7 +45,7 @@ flower = "==1.2.0"
 notebook = "==6.0.0"
 pre-commit = "==3.5.0"
 black = "==23.11.0"
-flake8 = "==3.9.2"
+flake8 = "==3.7.9"
 isort = "==5.12.0"
 
 [packages]
