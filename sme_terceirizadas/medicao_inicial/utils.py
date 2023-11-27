@@ -487,22 +487,40 @@ def popula_campo_total_sobremesas_pagamento(solicitacao, tabela, campo, categori
             valores_dia += ['0']
 
 
+def popula_solicitado_total_lanche_emergencial(categoria_corrente, alteracoes_lanche_emergencial, valores_dia, dia):
+    if categoria_corrente != 'LANCHE EMERGENCIAL':
+        return valores_dia
+
+    total_lanche_emergencial = sum(
+        alt['numero_alunos'] for alt in alteracoes_lanche_emergencial if alt['dia'] == f'{dia:02d}'
+    )
+    valores_dia += [total_lanche_emergencial]
+    return valores_dia
+
+
+def popula_solicitado_total_kit_lanche(categoria_corrente, kits_lanches, valores_dia, dia):
+    if categoria_corrente != 'KIT LANCHE':
+        return valores_dia
+
+    total_kits = sum([kit['numero_alunos'] for kit in kits_lanches if kit['dia'] == f'{dia:02d}'])
+    valores_dia += [total_kits]
+    return valores_dia
+
+
 def popula_campo_solicitado(
     solicitacao, tabela,
     campo, dia, categoria_corrente,
     valores_dia, alteracoes_lanche_emergencial,
     kits_lanches
 ):
-    if campo == 'solicitado':
-        try:
-            if categoria_corrente == 'LANCHE EMERGENCIAL':
-                alteracao = [alt for alt in alteracoes_lanche_emergencial if alt['dia'] == f'{dia:02d}'][0]
-                valores_dia += [alteracao['numero_alunos']]
-            else:
-                kit = [kit for kit in kits_lanches if kit['dia'] == f'{dia:02d}'][0]
-                valores_dia += [kit['numero_alunos']]
-        except Exception:
-            valores_dia += ['0']
+    if campo != 'solicitado':
+        return
+    try:
+        valores_dia = popula_solicitado_total_lanche_emergencial(
+            categoria_corrente, alteracoes_lanche_emergencial, valores_dia, dia)
+        valores_dia = popula_solicitado_total_kit_lanche(categoria_corrente, kits_lanches, valores_dia, dia)
+    except Exception:
+        valores_dia += ['0']
 
 
 def popula_campo_total(tabela, campo, valores_dia, indice_categoria, indice_campo, categoria_corrente):
