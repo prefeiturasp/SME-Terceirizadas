@@ -422,8 +422,8 @@ class DataDeFabricacaoEPrazoLookupSerializer(serializers.ModelSerializer):
 
 
 class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
-    laboratorio = serializers.UUIDField(source='laboratorio.uuid', read_only=True)
-    unidade_medida = serializers.UUIDField(source='unidade_medida.uuid', read_only=True)
+    laboratorio = LaboratorioCredenciadoSimplesSerializer()
+    unidade_medida = NomeEAbreviacaoUnidadeMedidaSerializer()
     datas_fabricacao_e_prazos = DataDeFabricacaoEPrazoLookupSerializer(many=True)
     numero_sei = serializers.SerializerMethodField()
     fornecedor = serializers.SerializerMethodField()
