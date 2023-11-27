@@ -1,6 +1,5 @@
 from datetime import date
 
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import NotAuthenticated
 from xworkflows.base import InvalidTransitionError
@@ -714,16 +713,16 @@ class TipoDeDocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer
         arquivos_do_tipo_de_documento = attrs.get('arquivos_do_tipo_de_documento')
         descricao_documento = attrs.get('descricao_documento')
 
-        for arquivo in arquivos_do_tipo_de_documento:
-            if not arquivo['arquivo'] or not arquivo['nome']:
-                raise serializers.ValidationError(
-                    {f'{tipo}': ['Os campos arquivo e nome são obrigatórios.']}
-                )
-
         if tipo == TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS:
             if not descricao_documento:
                 raise serializers.ValidationError(
-                    {f'{tipo}': ['O campo é descricao_documento é obrigatório para este tipo de documento.']}
+                    {'tipo_documento': ['O campo descricao_documento é obrigatório para documentos do tipo Outros.']}
+                )
+
+        for arquivo in arquivos_do_tipo_de_documento:
+            if not arquivo.get('arquivo') or not arquivo.get('nome'):
+                raise serializers.ValidationError(
+                    {'arquivos_do_tipo_de_documento': ['Os campos arquivo e nome são obrigatórios.']}
                 )
 
         return attrs
@@ -737,9 +736,22 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
     tipos_de_documentos = TipoDeDocumentoDeRecebimentoCorrecaoSerializer(many=True, required=True)
 
     def validate(self, attrs):
-        if self.instance.status != DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO:
+        tipos_documentos_recebidos = [dados['tipo_documento'] for dados in attrs['tipos_de_documentos']]
+        if TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO not in tipos_documentos_recebidos:
             raise serializers.ValidationError(
-                'O Documento de Recebimento não pode ser corrigido pois não foi enviado para correção.'
+                {'tipos_de_documentos': 'É obrigatório pelo menos um documento do tipo Laudo.'}
+            )
+
+        choices_tipos_documentos = set([choice[0] for choice in TipoDeDocumentoDeRecebimento.TIPO_DOC_CHOICES])
+        if len(choices_tipos_documentos.intersection(tipos_documentos_recebidos)) < 2:
+            raise serializers.ValidationError(
+                {
+                    'tipos_de_documentos': (
+                        'É obrigatório pelo menos um documento do tipo Laudo' +
+                        ' e um documento de algum dos tipos' +
+                        f' {", ".join(choices_tipos_documentos)}.'
+                    )
+                }
             )
 
         return attrs
@@ -747,6 +759,7 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         try:
             user = self.context['request'].user
+            instance.fornecedor_realiza_correcao(user=user)
 
             dados_tipos_documentos_corrigidos = validated_data.pop('tipos_de_documentos', [])
 
@@ -772,15 +785,15 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
                         nome=arquivo.get('nome', '')
                     )
 
-            instance.fornecedor_realiza_correcao(user=user)
             instance.save()
+
+            return instance
 
         except InvalidTransitionError as e:
             raise serializers.ValidationError(
                 f'Erro de transição de estado. O status deste documento de recebimento não permite correção: {e}'
             )
 
-        return instance
 
     class Meta:
         model = DocumentoDeRecebimento
