@@ -559,6 +559,16 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
             ).filter(
                 Q(aluno__periodo_escolar__nome=periodo_escolar_nome) | Q(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
             ).count()
+            if escola.eh_cemei and periodo_escolar_nome == 'INTEGRAL':
+                logs_a_criar = logs_periodo_integral_cei_ou_emei_escola_cemei(
+                    logs_a_criar,
+                    dietas_autorizadas,
+                    classificacao,
+                    escola,
+                    periodo_escolar_nome,
+                    dict_periodos,
+                    ontem
+                )
             log = LogQuantidadeDietasAutorizadas(
                 quantidade=quantidade_dietas,
                 escola=escola,
@@ -568,6 +578,47 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
             )
             logs_a_criar.append(log)
     return logs_a_criar
+
+
+def logs_periodo_integral_cei_ou_emei_escola_cemei(
+    logs_a_criar,
+    dietas_autorizadas,
+    classificacao,
+    escola,
+    periodo_escolar_nome,
+    dict_periodos,
+    ontem
+):
+    dietas = dietas_autorizadas.filter(
+        classificacao=classificacao, escola_destino=escola
+    ).filter(
+        Q(aluno__periodo_escolar__nome=periodo_escolar_nome) | Q(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
+    )
+    series_cei = ['1', '2', '3', '4']
+    quantidade_cei = 0
+    quantidade_emei = 0
+    for dieta in dietas:
+        if any(serie in dieta.aluno.serie for serie in series_cei):
+            quantidade_cei += 1
+        else:
+            quantidade_emei += 1
+    log_cei = LogQuantidadeDietasAutorizadas(
+        quantidade=quantidade_cei,
+        escola=escola,
+        data=ontem,
+        periodo_escolar=dict_periodos[periodo_escolar_nome],
+        classificacao=classificacao,
+        cei_ou_emei='CEI'
+    )
+    log_emei = LogQuantidadeDietasAutorizadas(
+        quantidade=quantidade_emei,
+        escola=escola,
+        data=ontem,
+        periodo_escolar=dict_periodos[periodo_escolar_nome],
+        classificacao=classificacao,
+        cei_ou_emei='EMEI'
+    )
+    return logs_a_criar + [log_cei] + [log_emei]
 
 
 def gera_logs_dietas_escolas_cei(escola, dietas_autorizadas, ontem):
@@ -597,8 +648,8 @@ def logs_a_criar_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem):
             dietas_filtradas_periodo = dietas.filter(aluno__periodo_escolar__nome=periodo)
             dietas_nao_matriculados = dietas.filter(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
             faixas = []
-            faixas += append_faixas_dietas(dietas_filtradas_periodo)
-            faixas += append_faixas_dietas(dietas_nao_matriculados)
+            faixas += append_faixas_dietas(dietas_filtradas_periodo, escola)
+            faixas += append_faixas_dietas(dietas_nao_matriculados, escola)
             if periodo == 'INTEGRAL' and 'PARCIAL' in periodos:
                 logs_a_criar += criar_logs_integral_parcial(
                     True, dietas, solicitacao_medicao, escola, ontem, classificacao, periodo, faixas
@@ -635,8 +686,8 @@ def logs_a_criar_nao_existe_solicitacao_medicao(escola, dietas_autorizadas, onte
             dietas_filtradas_periodo = dietas.filter(aluno__periodo_escolar__nome=periodo)
             dietas_nao_matriculados = dietas.filter(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
             faixas = []
-            faixas += append_faixas_dietas(dietas_filtradas_periodo)
-            faixas += append_faixas_dietas(dietas_nao_matriculados)
+            faixas += append_faixas_dietas(dietas_filtradas_periodo, escola)
+            faixas += append_faixas_dietas(dietas_nao_matriculados, escola)
             for faixa, quantidade in Counter(faixas).items():
                 log = LogQuantidadeDietasAutorizadasCEI(
                     quantidade=quantidade,
@@ -701,8 +752,9 @@ def quantidade_meses(d1, d2):
     return (d1.year - d2.year) * 12 + d1.month - d2.month
 
 
-def append_faixas_dietas(dietas):
+def append_faixas_dietas(dietas, escola):
     faixas = []
+    series_cei = ['1', '2', '3', '4']
     for dieta_periodo in dietas:
         data_nascimento = dieta_periodo.aluno.data_nascimento
         meses = quantidade_meses(date.today(), data_nascimento)
@@ -711,6 +763,8 @@ def append_faixas_dietas(dietas):
             faixa = ultima_faixa
         else:
             faixa = FaixaEtaria.objects.get(ativo=True, inicio__lte=meses, fim__gt=meses)
+        if escola.eh_cemei and not any(serie in dieta_periodo.aluno.serie for serie in series_cei):
+            continue
         faixas.append(faixa)
     return faixas
 

@@ -23,7 +23,6 @@ factory-boy='==2.12.0'
 pytest-factoryboy='==2.5.1'
 # Code quality
 # ------------------------------------------------------------------------------
-flake8='==3.7.9'  # https://github.com/PyCQA/flake8
 flake8-import-order='==0.18.1' # https://github.com/PyCQA/flake8-import-order
 flake8-blind-except='==0.1.1'  # https://github.com/elijahandrews/flake8-blind-except
 flake8-bugbear='==19.8.0'      # https://github.com/PyCQA/flake8-bugbear
@@ -43,9 +42,11 @@ django-debug-toolbar='==3.2.4'  # https://github.com/jazzband/django-debug-toolb
 django-extensions='==3.2.3'    # https://github.com/django-extensions/django-extensions
 django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_plugin
 flower = "==1.2.0"
-isort = "==4.3.21"
-flake8-isort = "==2.8.0"
 notebook = "==6.0.0"
+pre-commit = "==3.5.0"
+black = "==23.11.0"
+flake8 = "==3.7.9"
+isort = "==5.12.0"
 
 [packages]
 # The psycopg2-binary package is meant for beginners to start playing with
@@ -68,7 +69,7 @@ numpy='==1.23.0' # https://github.com/numpy/numpy/
 XlsxWriter='==3.0.3' # https://github.com/jmcnamara/XlsxWriter
 # Django
 # ------------------------------------------------------------------------------
-django="==4.1.12"          # https://www.djangoproject.com/
+django="==4.2.7"          # https://www.djangoproject.com/
 django-environ='==0.4.5'  # https://github.com/joke2k/django-environ
 django-model-utils='==3.1.2'  # https://github.com/jazzband/django-model-utils
 django-redis='==5.2.0'  # https://github.com/niwinz/django-redis
@@ -82,7 +83,7 @@ django-admin-rangefilter='==0.9.0' # https://github.com/silentsokolov/django-adm
 django-nested-inline='==0.4.6'
 # Django REST Framework
 # ------------------------------------------------------------------------------
-djangorestframework='==3.12.4'  # https://github.com/encode/django-rest-framework
+djangorestframework='==3.14.0'  # https://github.com/encode/django-rest-framework
 coreapi='==2.3.3'  # https://github.com/core-api/python-client
 djangorestframework-simplejwt='==5.3.0' # https://github.com/jazzband/djangorestframework-simplejwt
 workalendar='==4.3.1' # https://github.com/peopledoc/workalendar
