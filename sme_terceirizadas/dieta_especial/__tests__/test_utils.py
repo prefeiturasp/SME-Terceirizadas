@@ -70,6 +70,17 @@ def test_gera_logs_dietas_escolas_cei(escola_cei, solicitacoes_dieta_especial_at
 
 
 @pytest.mark.django_db
+def test_gera_logs_dietas_escolas_cemei(escola_cemei, solicitacoes_dieta_especial_ativas_cemei):
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    logs = gera_logs_dietas_escolas_comuns(escola_cemei, solicitacoes_dieta_especial_ativas_cemei, ontem)
+    assert len(logs) == 12
+    assert [log for log in logs if log.cei_ou_emei == 'N/A' and log.classificacao.nome == 'Tipo A'][0].quantidade == 3
+    assert [log for log in logs if log.cei_ou_emei == 'CEI' and log.classificacao.nome == 'Tipo A'][0].quantidade == 2
+    assert [log for log in logs if log.cei_ou_emei == 'EMEI' and log.classificacao.nome == 'Tipo A'][0].quantidade == 1
+
+
+@pytest.mark.django_db
 def test_gera_logs_dietas_escolas_cei_com_solicitacao_medicao(
     escola_cei,
     solicitacoes_dieta_especial_ativas_cei_com_solicitacao_medicao

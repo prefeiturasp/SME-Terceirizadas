@@ -471,16 +471,29 @@ def analisa_logs_quantidade_dietas_autorizadas():
         try:
             logger.info(f'x-x-x-x Iniciando {msg} x-x-x-x')
             hoje = datetime.date.today()
-            if escola.eh_cei:
-                modelo = LogQuantidadeDietasAutorizadasCEI
+            if escola.eh_cemei:
+                analisa_logs_quantidade_dietas_autorizadas_cemei(escola, hoje)
             else:
-                modelo = LogQuantidadeDietasAutorizadas
-            deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo)
-            criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo)
+                if escola.eh_cei:
+                    modelo = LogQuantidadeDietasAutorizadasCEI
+                else:
+                    modelo = LogQuantidadeDietasAutorizadas
+                deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo)
+                criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo)
             logger.info(f'x-x-x-x Finaliza {msg} x-x-x-x')
         except Exception as e:
             logger.error(f'x-x-x-x Erro na {msg} x-x-x-x')
             logger.error(f'`--> {e}')
+
+
+def analisa_logs_quantidade_dietas_autorizadas_cemei(escola, hoje):
+    from sme_terceirizadas.dieta_especial.models import (
+        LogQuantidadeDietasAutorizadas,
+        LogQuantidadeDietasAutorizadasCEI
+    )
+    for modelo in [LogQuantidadeDietasAutorizadas, LogQuantidadeDietasAutorizadasCEI]:
+        deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo)
+        criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo)
 
 
 def deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo):
@@ -498,12 +511,20 @@ def deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo):
                 periodo_escolar=log.periodo_escolar,
                 classificacao=log.classificacao
             ).order_by('-criado_em')
-            if escola.eh_cei:
+            if escola.eh_cei or (escola.eh_cemei and modelo.__name__ == 'LogQuantidadeDietasAutorizadasCEI'):
                 logs_filtrados = logs_filtrados.filter(faixa_etaria=log.faixa_etaria).order_by('-criado_em')
-            for l in logs_filtrados[1:logs_filtrados.count()]:
-                if l.uuid not in logs_para_deletar:
-                    logs_para_deletar.append(l.uuid)
+            if escola.eh_cemei and modelo.__name__ == 'LogQuantidadeDietasAutorizadas':
+                logs_filtrados = logs_filtrados.filter(cei_ou_emei=log.cei_ou_emei).order_by('-criado_em')
+            logs_para_deletar = logs_para_deletar + uuids_logs_para_deletar(logs_filtrados)
         logs.filter(uuid__in=logs_para_deletar).delete()
+
+
+def uuids_logs_para_deletar(logs_filtrados):
+    logs_para_deletar = []
+    for l in logs_filtrados[1:logs_filtrados.count()]:
+        if l.uuid not in logs_para_deletar:
+            logs_para_deletar.append(l.uuid)
+    return logs_para_deletar
 
 
 def criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo):
@@ -551,7 +572,8 @@ def create_objects_logs(escola, log_para_criar, data):
             escola=log_para_criar.escola,
             data=data,
             classificacao=log_para_criar.classificacao,
-            periodo_escolar=log_para_criar.periodo_escolar
+            periodo_escolar=log_para_criar.periodo_escolar,
+            cei_ou_emei=log_para_criar.cei_ou_emei
         )
 
 
