@@ -50,6 +50,8 @@ class SolicitacaoMedicaoInicial(
     FluxoSolicitacaoMedicaoInicial,
     Logs,
 ):
+    """Solicitação de Medição Inicial"""
+
     escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE,
                                related_name='solicitacoes_medicao_inicial')
     tipos_contagem_alimentacao = models.ManyToManyField('TipoContagemAlimentacao',
@@ -58,6 +60,7 @@ class SolicitacaoMedicaoInicial(
     historico = models.JSONField(blank=True, null=True)
     ue_possui_alunos_periodo_parcial = models.BooleanField('Possui alunos periodo parcial?', default=False)
     logs_salvos = models.BooleanField('Logs de matriculados, dietas autorizadas, etc foram salvos?', default=False)
+    dre_ciencia_correcao_data = models.DateTimeField(blank=True, null=True)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         LogSolicitacoesUsuario.objects.create(
