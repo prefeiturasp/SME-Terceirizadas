@@ -496,11 +496,17 @@ def popula_campo_solicitado(
     if campo == 'solicitado':
         try:
             if categoria_corrente == 'LANCHE EMERGENCIAL':
-                alteracao = [alt for alt in alteracoes_lanche_emergencial if alt['dia'] == f'{dia:02d}'][0]
-                valores_dia += [alteracao['numero_alunos']]
+                alteracoes = [alt for alt in alteracoes_lanche_emergencial if alt['dia'] == f'{dia:02d}']
+                total_lanche_emergencial = 0
+                for alteracao in alteracoes:
+                    total_lanche_emergencial += alteracao['numero_alunos']
+                valores_dia += [total_lanche_emergencial]
             else:
-                kit = [kit for kit in kits_lanches if kit['dia'] == f'{dia:02d}'][0]
-                valores_dia += [kit['numero_alunos']]
+                kits = [kit for kit in kits_lanches if kit['dia'] == f'{dia:02d}']
+                total_kits = 0
+                for kit in kits:
+                    total_kits += kit['numero_alunos']
+                valores_dia += [total_kits]
         except Exception:
             valores_dia += ['0']
 
