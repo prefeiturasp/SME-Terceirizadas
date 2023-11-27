@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import NotAuthenticated
 from xworkflows.base import InvalidTransitionError
@@ -7,6 +8,7 @@ from xworkflows.base import InvalidTransitionError
 from sme_terceirizadas.dados_comuns.api.serializers import CamposObrigatoriosMixin, ContatoSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
+from sme_terceirizadas.dados_comuns.fluxo_status import DocumentoDeRecebimentoWorkflow
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     DataDeFabricaoEPrazo,
@@ -20,7 +22,8 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
-    UnidadeMedida
+    UnidadeMedida,
+    ArquivoDoTipoDeDocumento,
 )
 from sme_terceirizadas.produto.models import NomeDeProdutoEdital
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
@@ -695,3 +698,90 @@ class DocumentoDeRecebimentoAnalisarSerializer(CamposObrigatoriosMixin,
 
     class Meta(DocumentoDeRecebimentoAnalisarRascunhoSerializer.Meta):
         fields = DocumentoDeRecebimentoAnalisarRascunhoSerializer.Meta.fields + ('correcao_solicitada',)
+
+
+class TipoDeDocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
+    tipo_documento = serializers.ChoiceField(
+        choices=TipoDeDocumentoDeRecebimento.TIPO_DOC_CHOICES,
+        required=True,
+        allow_blank=True,
+    )
+
+    arquivos_do_tipo_de_documento = serializers.JSONField(write_only=True, required=True)
+
+    def validate(self, attrs):
+        tipo = attrs.get('tipo_documento')
+        arquivos_do_tipo_de_documento = attrs.get('arquivos_do_tipo_de_documento')
+        descricao_documento = attrs.get('descricao_documento')
+
+        for arquivo in arquivos_do_tipo_de_documento:
+            if not arquivo['arquivo'] or not arquivo['nome']:
+                raise serializers.ValidationError(
+                    {f'{tipo}': ['Os campos arquivo e nome são obrigatórios.']}
+                )
+
+        if tipo == TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS:
+            if not descricao_documento:
+                raise serializers.ValidationError(
+                    {f'{tipo}': ['O campo é descricao_documento é obrigatório para este tipo de documento.']}
+                )
+
+        return attrs
+
+    class Meta:
+        model = TipoDeDocumentoDeRecebimento
+        fields = ('tipo_documento', 'descricao_documento', 'arquivos_do_tipo_de_documento')
+
+
+class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
+    tipos_de_documentos = TipoDeDocumentoDeRecebimentoCorrecaoSerializer(many=True, required=True)
+
+    def validate(self, attrs):
+        if self.instance.status != DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO:
+            raise serializers.ValidationError(
+                'O Documento de Recebimento não pode ser corrigido pois não foi enviado para correção.'
+            )
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        try:
+            user = self.context['request'].user
+
+            dados_tipos_documentos_corrigidos = validated_data.pop('tipos_de_documentos', [])
+
+            for tipo_documento_antigo in instance.tipos_de_documentos.all():
+                tipo_documento_antigo.arquivos.all().delete()
+                tipo_documento_antigo.delete()
+
+            for dados_tipo_documento in dados_tipos_documentos_corrigidos:
+                tipo_documento_correcao = dados_tipo_documento['tipo_documento']
+                descricao_documento_correcao = dados_tipo_documento.get('descricao_documento', '')
+                tipo_documento_em_correcao = TipoDeDocumentoDeRecebimento.objects.create(
+                    documento_recebimento=instance,
+                    tipo_documento=tipo_documento_correcao,
+                    descricao_documento=descricao_documento_correcao
+                )
+
+                arquivos = dados_tipo_documento.pop('arquivos_do_tipo_de_documento', [])
+                for arquivo in arquivos:
+                    data = convert_base64_to_contentfile(arquivo.get('arquivo'))
+                    ArquivoDoTipoDeDocumento.objects.create(
+                        tipo_de_documento=tipo_documento_em_correcao,
+                        arquivo=data,
+                        nome=arquivo.get('nome', '')
+                    )
+
+            instance.fornecedor_realiza_correcao(user=user)
+            instance.save()
+
+        except InvalidTransitionError as e:
+            raise serializers.ValidationError(
+                f'Erro de transição de estado. O status deste documento de recebimento não permite correção: {e}'
+            )
+
+        return instance
+
+    class Meta:
+        model = DocumentoDeRecebimento
+        fields = ('tipos_de_documentos',)
