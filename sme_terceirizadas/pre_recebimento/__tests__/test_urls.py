@@ -2138,3 +2138,176 @@ def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimen
     assert response_correcao.status_code == status.HTTP_200_OK
     assert documento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO
     assert documento.correcao_solicitada == 'Documentos corrompidos, sem possibilidade de análise.'
+
+
+def test_url_documentos_de_recebimento_fornecedor_corrige(
+    documento_de_recebimento_factory,
+    client_autenticado_fornecedor,
+    arquivo_base64,
+    django_user_model,
+    cronograma_factory,
+    tipo_de_documento_de_recebimento_factory
+):
+    user_id = django_user_model.objects.first().id
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    cronograma = cronograma_factory.create(
+        empresa=empresa,
+    )
+    documento_de_recebimento = documento_de_recebimento_factory.create(
+        cronograma=cronograma,
+        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO
+    )
+    tipo_de_documento_de_recebimento_factory.create(
+        documento_recebimento=documento_de_recebimento
+    )
+    tipo_de_documento_de_recebimento_factory.create(
+        documento_recebimento=documento_de_recebimento,
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS,
+        descricao_documento='Outro que precisa ser corrigido.'
+    )
+    tipo_de_documento_de_recebimento_factory.create(
+        documento_recebimento=documento_de_recebimento,
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_RASTREABILIDADE,
+    )
+
+    dados_correcao = {
+        'tipos_de_documentos': [
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Laudo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Laudo2.jpg'
+                    }
+                ]
+            },
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Declaracao1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Declaracao2.jpg'
+                    }
+                ]
+            },
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS,
+                'descricao_documento': 'Outro após a correção.',
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Outros1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Outros2.jpg'
+                    }
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao)
+    )
+
+    documento_de_recebimento.refresh_from_db()
+    tipos_de_documentos = documento_de_recebimento.tipos_de_documentos.all()
+    laudo_atualizado = tipos_de_documentos.filter(tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO).first()
+    outros_atualizado = tipos_de_documentos.filter(tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS).first()
+    declaracao_criado = tipos_de_documentos.filter(
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010
+    ).first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert documento_de_recebimento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    assert not tipos_de_documentos.filter(
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_RASTREABILIDADE
+    ).exists()
+    assert tipos_de_documentos.count() == 3
+    assert laudo_atualizado.arquivos.count() == 2
+    assert outros_atualizado.arquivos.count() == 2
+    assert outros_atualizado.descricao_documento == 'Outro após a correção.'
+    assert declaracao_criado.arquivos.count() == 2
+
+
+# def test_url_documentos_de_recebimento_fornecedor_corrige_not_ok(client_autenticado_fornecedor, arquivo_base64,
+#                                                                     layout_de_embalagem_para_correcao):
+#     """Checa transição de estado, UUID valido de tipo de embalagem e se pode ser de fato corrigido."""
+#     layout_para_corrigir = layout_de_embalagem_para_correcao
+#     dados = {
+#         'observacoes': 'Imagine uma nova observação aqui.',
+#         'tipos_de_embalagens': [
+#             {
+#                 'uuid': str(uuid.uuid4()),
+#                 'tipo_embalagem': 'SECUNDARIA',
+#                 'imagens_do_tipo_de_embalagem': [
+#                     {
+#                         'arquivo': arquivo_base64,
+#                         'nome': 'Anexo1.jpg'
+#                     },
+#                 ]
+#             },
+#             {
+#                 'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='APROVADO').uuid),
+#                 'tipo_embalagem': 'TERCIARIA',
+#                 'imagens_do_tipo_de_embalagem': [
+#                     {
+#                         'arquivo': arquivo_base64,
+#                         'nome': 'Anexo1.jpg'
+#                     },
+#                 ]
+#             },
+#         ],
+#     }
+
+#     response = client_autenticado_fornecedor.patch(
+#         f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
+#         content_type='application/json',
+#         data=json.dumps(dados)
+#     )
+
+#     msg_erro1 = 'UUID do tipo informado não existe.'
+#     msg_erro2 = 'O Tipo/UUID informado não pode ser corrigido pois não está reprovado.'
+#     assert response.status_code == status.HTTP_400_BAD_REQUEST
+#     assert msg_erro1 in response.json()['tipos_de_embalagens'][0]['Layout Embalagem SECUNDARIA'][0]
+#     assert msg_erro2 in response.json()['tipos_de_embalagens'][1]['Layout Embalagem TERCIARIA'][0]
+
+#     dados = {
+#         'observacoes': 'Imagine uma nova observação aqui.',
+#         'tipos_de_embalagens': [
+#             {
+#                 'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='REPROVADO').uuid),
+#                 'tipo_embalagem': 'PRIMARIA',
+#                 'imagens_do_tipo_de_embalagem': [
+#                     {
+#                         'arquivo': arquivo_base64,
+#                         'nome': 'Anexo1.jpg'
+#                     },
+#                 ]
+#             },
+#         ],
+#     }
+
+#     layout_para_corrigir.status = LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+#     layout_para_corrigir.save()
+
+#     response = client_autenticado_fornecedor.patch(
+#         f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
+#         content_type='application/json',
+#         data=json.dumps(dados)
+#     )
+
+#     msg_erro3 = 'Erro de transição de estado. O status deste layout não permite correção'
+#     assert response.status_code == status.HTTP_400_BAD_REQUEST
+#     assert msg_erro3 in response.json()[0]
