@@ -56,6 +56,7 @@ from ..utils import (
     tratar_workflow_todos_lancamentos,
 )
 from .constants import (
+    STATUS_RELACAO_DRE,
     STATUS_RELACAO_DRE_CODAE,
     STATUS_RELACAO_DRE_MEDICAO,
     STATUS_RELACAO_DRE_UE,
@@ -202,11 +203,7 @@ class SolicitacaoMedicaoInicialViewSet(
         if usuario.tipo_usuario == 'medicao':
             return STATUS_RELACAO_DRE_MEDICAO + ['TODOS_OS_LANCAMENTOS']
         elif usuario.tipo_usuario == 'diretoriaregional':
-            return (
-                STATUS_RELACAO_DRE_UE
-                + STATUS_RELACAO_DRE_MEDICAO
-                + ['TODOS_OS_LANCAMENTOS']
-            )
+            return STATUS_RELACAO_DRE + ['TODOS_OS_LANCAMENTOS']
         else:
             return (
                 STATUS_RELACAO_DRE_UE

@@ -309,10 +309,10 @@ def test_url_endpoint_medicao_dashboard_dre(
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 9
-    assert response.json()["results"][0]["status"] == "MEDICAO_ENVIADA_PELA_UE"
-    assert response.json()["results"][0]["total"] == 2
-    assert response.json()["results"][1]["status"] == "MEDICAO_CORRECAO_SOLICITADA"
-    assert response.json()["results"][1]["total"] == 1
+    assert response.json()["results"][1]["status"] == "MEDICAO_ENVIADA_PELA_UE"
+    assert response.json()["results"][1]["total"] == 2
+    assert response.json()["results"][2]["status"] == "MEDICAO_CORRECAO_SOLICITADA"
+    assert response.json()["results"][2]["total"] == 1
     assert response.json()["results"][7]["status"] == "MEDICAO_APROVADA_PELA_CODAE"
     assert response.json()["results"][7]["total"] == 0
     assert response.json()["results"][8]["status"] == "TODOS_OS_LANCAMENTOS"
@@ -328,10 +328,10 @@ def test_url_endpoint_medicao_dashboard_dre_com_filtros(
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 9
-    assert response.json()["results"][0]["status"] == "MEDICAO_ENVIADA_PELA_UE"
-    assert response.json()["results"][0]["total"] == 2
-    assert response.json()["results"][1]["status"] == "MEDICAO_CORRECAO_SOLICITADA"
-    assert response.json()["results"][1]["total"] == 1
+    assert response.json()["results"][1]["status"] == "MEDICAO_ENVIADA_PELA_UE"
+    assert response.json()["results"][1]["total"] == 2
+    assert response.json()["results"][2]["status"] == "MEDICAO_CORRECAO_SOLICITADA"
+    assert response.json()["results"][2]["total"] == 1
     assert response.json()["results"][7]["status"] == "MEDICAO_APROVADA_PELA_CODAE"
     assert response.json()["results"][7]["total"] == 0
     assert response.json()["results"][8]["status"] == "TODOS_OS_LANCAMENTOS"
