@@ -464,7 +464,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         return instance
 
     def _check_user_permission(self):
-        if self.context['request'].user.vinculo_atual.perfil.nome != DIRETOR_UE:
+        if (isinstance(self.context['request'].user.vinculo_atual.instituicao, Escola) and
+                self.context['request'].user.vinculo_atual.perfil.nome != DIRETOR_UE):
             raise PermissionDenied('Você não tem permissão para executar essa ação.')
 
     def _update_instance_fields(self, instance, validated_data):
