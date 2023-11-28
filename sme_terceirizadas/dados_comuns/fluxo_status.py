@@ -4202,3 +4202,23 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+
+class FichaTecnicaDoProdutoWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    RASCUNHO = 'RASCUNHO'
+
+    states = (
+        (RASCUNHO, 'Rascunho'),
+    )
+
+    initial_state = RASCUNHO
+
+
+class FluxoFichaTecnicaDoProduto(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = FichaTecnicaDoProdutoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    class Meta:
+        abstract = True
