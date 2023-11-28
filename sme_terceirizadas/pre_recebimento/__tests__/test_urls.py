@@ -2419,7 +2419,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
         status=DocumentoDeRecebimento.workflow_class.APROVADO
     )
 
-    dados_correcao_sem_laudo = {
+    dados_correcao = {
         'tipos_de_documentos': [
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
@@ -2453,7 +2453,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
     response = client_autenticado_fornecedor.patch(
         f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
         content_type='application/json',
-        data=json.dumps(dados_correcao_sem_laudo)
+        data=json.dumps(dados_correcao)
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

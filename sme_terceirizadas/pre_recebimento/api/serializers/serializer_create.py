@@ -765,23 +765,7 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
                 tipo_documento_antigo.arquivos.all().delete()
                 tipo_documento_antigo.delete()
 
-            for dados_tipo_documento in dados_tipos_documentos_corrigidos:
-                tipo_documento_correcao = dados_tipo_documento['tipo_documento']
-                descricao_documento_correcao = dados_tipo_documento.get('descricao_documento', '')
-                tipo_documento_em_correcao = TipoDeDocumentoDeRecebimento.objects.create(
-                    documento_recebimento=instance,
-                    tipo_documento=tipo_documento_correcao,
-                    descricao_documento=descricao_documento_correcao
-                )
-
-                arquivos = dados_tipo_documento.pop('arquivos_do_tipo_de_documento', [])
-                for arquivo in arquivos:
-                    data = convert_base64_to_contentfile(arquivo['arquivo'])
-                    ArquivoDoTipoDeDocumento.objects.create(
-                        tipo_de_documento=tipo_documento_em_correcao,
-                        arquivo=data,
-                        nome=arquivo['nome']
-                    )
+            cria_tipos_de_documentos(dados_tipos_documentos_corrigidos, instance)
 
             instance.fornecedor_realiza_correcao(user=user)
             instance.save()
