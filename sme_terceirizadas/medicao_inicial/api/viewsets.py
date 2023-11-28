@@ -22,12 +22,15 @@ from ...dados_comuns.constants import TRADUCOES_FERIADOS
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
+    UsuarioCODAENutriManifestacao,
     UsuarioDiretorEscolaTercTotal,
     UsuarioDiretoriaRegional,
     UsuarioEscolaTercTotal,
-    ViewSetActionPermissionMixin
+    ViewSetActionPermissionMixin,
 )
-from ...escola.api.permissions import PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada
+from ...escola.api.permissions import (
+    PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
+)
 from ...escola.models import Escola, FaixaEtaria, LogAlunosMatriculadosPeriodoEscola
 from ..models import (
     AlimentacaoLancamentoEspecial,
@@ -39,7 +42,7 @@ from ..models import (
     PermissaoLancamentoEspecial,
     SolicitacaoMedicaoInicial,
     TipoContagemAlimentacao,
-    ValorMedicao
+    ValorMedicao,
 )
 from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
 from ..utils import (
@@ -51,9 +54,14 @@ from ..utils import (
     get_valor_total,
     log_alteracoes_escola_corrige_periodo,
     tratar_valores,
-    tratar_workflow_todos_lancamentos
+    tratar_workflow_todos_lancamentos,
 )
-from .constants import STATUS_RELACAO_DRE_CODAE, STATUS_RELACAO_DRE_UE
+from .constants import (
+    STATUS_RELACAO_DRE,
+    STATUS_RELACAO_DRE_CODAE,
+    STATUS_RELACAO_DRE_MEDICAO,
+    STATUS_RELACAO_DRE_UE,
+)
 from .filters import DiaParaCorrecaoFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
@@ -67,13 +75,13 @@ from .serializers import (
     SolicitacaoMedicaoInicialDashboardSerializer,
     SolicitacaoMedicaoInicialSerializer,
     TipoContagemAlimentacaoSerializer,
-    ValorMedicaoSerializer
+    ValorMedicaoSerializer,
 )
 from .serializers_create import (
     DiaSobremesaDoceCreateManySerializer,
     MedicaoCreateUpdateSerializer,
     PermissaoLancamentoEspecialCreateUpdateSerializer,
-    SolicitacaoMedicaoInicialCreateSerializer
+    SolicitacaoMedicaoInicialCreateSerializer,
 )
 
 calendario = BrazilSaoPauloCity()
@@ -89,20 +97,22 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
 
     def get_paginated_response(self, data):
-        return Response({
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'count': self.page.paginator.count,
-            'page_size': int(self.request.GET.get('page_size', self.page_size)),
-            'results': data
-        })
+        return Response(
+            {
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link(),
+                'count': self.page.paginator.count,
+                'page_size': int(self.request.GET.get('page_size', self.page_size)),
+                'results': data,
+            }
+        )
 
 
 class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
     permission_action_classes = {
         'list': [EhAdministradorMedicaoInicialOuGestaoAlimentacao],
         'create': [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada],
-        'delete': [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]
+        'delete': [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada],
     }
     queryset = DiaSobremesaDoce.objects.all()
     lookup_field = 'uuid'
@@ -115,10 +125,14 @@ class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
     def get_queryset(self):
         queryset = DiaSobremesaDoce.objects.all()
         if 'mes' in self.request.query_params and 'ano' in self.request.query_params:
-            queryset = queryset.filter(data__month=self.request.query_params.get('mes'),
-                                       data__year=self.request.query_params.get('ano'))
+            queryset = queryset.filter(
+                data__month=self.request.query_params.get('mes'),
+                data__year=self.request.query_params.get('ano'),
+            )
         if 'escola_uuid' in self.request.query_params:
-            escola = Escola.objects.get(uuid=self.request.query_params.get('escola_uuid'))
+            escola = Escola.objects.get(
+                uuid=self.request.query_params.get('escola_uuid')
+            )
             queryset = queryset.filter(tipo_unidade=escola.tipo_unidade)
         return queryset
 
@@ -139,13 +153,19 @@ class DiaSobremesaDoceViewSet(ViewSetActionPermissionMixin, ModelViewSet):
 
 
 class SolicitacaoMedicaoInicialViewSet(
-        mixins.RetrieveModelMixin,
-        mixins.ListModelMixin,
-        mixins.CreateModelMixin,
-        mixins.UpdateModelMixin,
-        GenericViewSet):
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet,
+):
     lookup_field = 'uuid'
-    permission_classes = [UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao]
+    permission_classes = [
+        UsuarioEscolaTercTotal
+        | UsuarioDiretoriaRegional
+        | UsuarioCODAEGestaoAlimentacao
+        | UsuarioCODAENutriManifestacao
+    ]
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
@@ -155,7 +175,9 @@ class SolicitacaoMedicaoInicialViewSet(
 
     def update(self, request, *args, **kwargs):
         try:
-            return super(SolicitacaoMedicaoInicialViewSet, self).update(request, *args, **kwargs)
+            return super(SolicitacaoMedicaoInicialViewSet, self).update(
+                request, *args, **kwargs
+            )
         except ValidationError as lista_erros:
             list_response = []
             for indice, erro in enumerate(lista_erros):
@@ -181,9 +203,15 @@ class SolicitacaoMedicaoInicialViewSet(
     @staticmethod
     def get_lista_status(usuario):
         if usuario.tipo_usuario == 'medicao':
-            return STATUS_RELACAO_DRE_CODAE + ['TODOS_OS_LANCAMENTOS']
+            return STATUS_RELACAO_DRE_MEDICAO + ['TODOS_OS_LANCAMENTOS']
+        elif usuario.tipo_usuario == 'diretoriaregional':
+            return STATUS_RELACAO_DRE + ['TODOS_OS_LANCAMENTOS']
         else:
-            return STATUS_RELACAO_DRE_UE + STATUS_RELACAO_DRE_CODAE + ['TODOS_OS_LANCAMENTOS']
+            return (
+                STATUS_RELACAO_DRE_UE
+                + STATUS_RELACAO_DRE_CODAE
+                + ['TODOS_OS_LANCAMENTOS']
+            )
 
     def condicao_raw_query_por_usuario(self):
         usuario = self.request.user
@@ -195,15 +223,26 @@ class SolicitacaoMedicaoInicialViewSet(
 
     def condicao_por_usuario(self, queryset):
         usuario = self.request.user
+        if not (
+            usuario.tipo_usuario == 'diretoriaregional'
+            or usuario.tipo_usuario == 'medicao'
+        ):
+            queryset = queryset.exclude(
+                status='MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'
+            )
         if usuario.tipo_usuario == 'diretoriaregional':
-            return queryset.filter(escola__diretoria_regional=usuario.vinculo_atual.instituicao)
+            return queryset.filter(
+                escola__diretoria_regional=usuario.vinculo_atual.instituicao
+            )
         elif usuario.tipo_usuario == 'escola':
             return queryset.filter(escola=usuario.vinculo_atual.instituicao)
         elif usuario.tipo_usuario == 'medicao':
-            return queryset.filter(status__in=STATUS_RELACAO_DRE_CODAE)
+            return queryset.filter(status__in=STATUS_RELACAO_DRE_MEDICAO)
         return queryset
 
-    def dados_dashboard(self, request, query_set: QuerySet, kwargs: dict, use_raw=True) -> list:
+    def dados_dashboard(
+        self, request, query_set: QuerySet, kwargs: dict, use_raw=True
+    ) -> list:
         limit = int(request.query_params.get('limit', 10))
         offset = int(request.query_params.get('offset', 0))
 
@@ -212,54 +251,81 @@ class SolicitacaoMedicaoInicialViewSet(
         for workflow in self.get_lista_status(usuario):
             todos_lancamentos = workflow == 'TODOS_OS_LANCAMENTOS'
             if use_raw:
-                data = {'escola': Escola._meta.db_table,
-                        'logs': LogSolicitacoesUsuario._meta.db_table,
-                        'solicitacao_medicao_inicial': SolicitacaoMedicaoInicial._meta.db_table,
-                        'status': workflow}
-                raw_sql = ('SELECT %(solicitacao_medicao_inicial)s.* FROM %(solicitacao_medicao_inicial)s '
-                           'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
-                           'GROUP BY uuid_original) '
-                           'AS most_recent_log '
-                           'ON %(solicitacao_medicao_inicial)s.uuid = most_recent_log.uuid_original '
-                           'LEFT JOIN (SELECT id AS escola_id, diretoria_regional_id FROM %(escola)s) '
-                           'AS escola_solicitacao_medicao '
-                           'ON escola_solicitacao_medicao.escola_id = %(solicitacao_medicao_inicial)s.escola_id ')
+                data = {
+                    'escola': Escola._meta.db_table,
+                    'logs': LogSolicitacoesUsuario._meta.db_table,
+                    'solicitacao_medicao_inicial': SolicitacaoMedicaoInicial._meta.db_table,
+                    'status': workflow,
+                }
+                raw_sql = (
+                    'SELECT %(solicitacao_medicao_inicial)s.* FROM %(solicitacao_medicao_inicial)s '
+                    'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
+                    'GROUP BY uuid_original) '
+                    'AS most_recent_log '
+                    'ON %(solicitacao_medicao_inicial)s.uuid = most_recent_log.uuid_original '
+                    'LEFT JOIN (SELECT id AS escola_id, diretoria_regional_id FROM %(escola)s) '
+                    'AS escola_solicitacao_medicao '
+                    'ON escola_solicitacao_medicao.escola_id = %(solicitacao_medicao_inicial)s.escola_id '
+                )
                 if todos_lancamentos:
                     raw_sql = tratar_workflow_todos_lancamentos(usuario, raw_sql)
                 else:
-                    raw_sql += "WHERE %(solicitacao_medicao_inicial)s.status = '%(status)s' "
+                    raw_sql += (
+                        "WHERE %(solicitacao_medicao_inicial)s.status = '%(status)s' "
+                    )
                 raw_sql += self.condicao_raw_query_por_usuario()
                 raw_sql += 'ORDER BY log_criado_em DESC'
                 qs = query_set.raw(raw_sql % data)
             else:
-                qs = (query_set.filter(status=workflow) if not todos_lancamentos
-                      else query_set.exclude(status='MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE'))
+                qs = (
+                    query_set.filter(status=workflow)
+                    if not todos_lancamentos
+                    else query_set
+                )
                 qs = qs.filter(**kwargs)
                 qs = self.condicao_por_usuario(qs)
-                qs = sorted(qs.distinct().all(),
-                            key=lambda x: x.log_mais_recente.criado_em
-                            if x.log_mais_recente else '-criado_em', reverse=True)
-            sumario.append({
-                'status': workflow,
-                'total': len(qs),
-                'dados': SolicitacaoMedicaoInicialDashboardSerializer(
-                    qs[offset:limit + offset],
-                    context={'request': self.request, 'workflow': workflow}, many=True).data
-            })
+                qs = sorted(
+                    qs.distinct().all(),
+                    key=lambda x: x.log_mais_recente.criado_em
+                    if x.log_mais_recente
+                    else '-criado_em',
+                    reverse=True,
+                )
+            sumario.append(
+                {
+                    'status': workflow,
+                    'total': len(qs),
+                    'dados': SolicitacaoMedicaoInicialDashboardSerializer(
+                        qs[offset : limit + offset],
+                        context={'request': self.request, 'workflow': workflow},
+                        many=True,
+                    ).data,
+                }
+            )
         if request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
-            status_medicao_corrigida = ['MEDICAO_CORRIGIDA_PELA_UE', 'MEDICAO_CORRIGIDA_PARA_CODAE']
-            sumario_medicoes_corrigidas = [s for s in sumario if s['status'] in status_medicao_corrigida]
+            status_medicao_corrigida = [
+                'MEDICAO_CORRIGIDA_PELA_UE',
+                'MEDICAO_CORRIGIDA_PARA_CODAE',
+            ]
+            sumario_medicoes_corrigidas = [
+                s for s in sumario if s['status'] in status_medicao_corrigida
+            ]
             total_medicao_corrigida = 0
             total_dados = []
             for s in sumario_medicoes_corrigidas:
                 total_medicao_corrigida += s['total']
                 total_dados += s['dados']
-            sumario.insert(2, {
-                'status': 'MEDICAO_CORRIGIDA',
-                'total': total_medicao_corrigida,
-                'dados': total_dados
-            })
-            sumario = [s for s in sumario if s['status'] not in status_medicao_corrigida]
+            sumario.insert(
+                2,
+                {
+                    'status': 'MEDICAO_CORRIGIDA',
+                    'total': total_medicao_corrigida,
+                    'dados': total_dados,
+                },
+            )
+            sumario = [
+                s for s in sumario if s['status'] not in status_medicao_corrigida
+            ]
         return sumario
 
     def formatar_filtros(self, query_params):
@@ -269,7 +335,9 @@ class SolicitacaoMedicaoInicialViewSet(
             kwargs['mes'] = data_splitted[0]
             kwargs['ano'] = data_splitted[1]
         if query_params.getlist('lotes_selecionados[]'):
-            kwargs['escola__lote__uuid__in'] = query_params.getlist('lotes_selecionados[]')
+            kwargs['escola__lote__uuid__in'] = query_params.getlist(
+                'lotes_selecionados[]'
+            )
         if query_params.get('tipo_unidade'):
             kwargs['escola__tipo_unidade__uuid'] = query_params.get('tipo_unidade')
         if query_params.get('escola'):
@@ -282,9 +350,15 @@ class SolicitacaoMedicaoInicialViewSet(
         log_enviado_ue = solicitacao.logs.filter(status_evento=55)
         assinatura_escola = None
         if log_enviado_ue:
-            razao_social = solicitacao.rastro_terceirizada.razao_social if solicitacao.rastro_terceirizada else ''
+            razao_social = (
+                solicitacao.rastro_terceirizada.razao_social
+                if solicitacao.rastro_terceirizada
+                else ''
+            )
             usuario_escola = log_enviado_ue.first().usuario
-            data_enviado_ue = log_enviado_ue.first().criado_em.strftime('%d/%m/%Y às %H:%M')
+            data_enviado_ue = log_enviado_ue.first().criado_em.strftime(
+                '%d/%m/%Y às %H:%M'
+            )
             assinatura_escola = f"""Documento conferido e registrado eletronicamente por {usuario_escola.nome},
                                     {usuario_escola.cargo}, {usuario_escola.registro_funcional},
                                     {solicitacao.escola.nome} em {data_enviado_ue}. O registro eletrônico da Medição
@@ -297,38 +371,70 @@ class SolicitacaoMedicaoInicialViewSet(
         assinatura_dre = None
         if log_aprovado_dre:
             usuario_dre = log_aprovado_dre.first().usuario
-            data_aprovado_dre = log_aprovado_dre.first().criado_em.strftime('%d/%m/%Y às %H:%M')
+            data_aprovado_dre = log_aprovado_dre.first().criado_em.strftime(
+                '%d/%m/%Y às %H:%M'
+            )
             assinatura_dre = f"""Documento conferido e aprovado eletronicamente por {usuario_dre.nome},
                                  {usuario_dre.cargo}, {usuario_dre.registro_funcional},
                                  {usuario_dre.vinculo_atual.instituicao.nome} em {data_aprovado_dre}."""
         return assinatura_dre
 
-    @action(detail=False, methods=['GET'], url_path='dashboard',
-            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='dashboard',
+        permission_classes=[
+            UsuarioEscolaTercTotal
+            | UsuarioDiretoriaRegional
+            | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAENutriManifestacao
+        ],
+    )
     def dashboard(self, request):
         query_set = self.get_queryset()
         possui_filtros = len(request.query_params)
         kwargs = self.formatar_filtros(request.query_params)
-        response = {'results': self.dados_dashboard(query_set=query_set,
-                                                    request=request,
-                                                    kwargs=kwargs,
-                                                    use_raw=not possui_filtros)}
+        response = {
+            'results': self.dados_dashboard(
+                query_set=query_set,
+                request=request,
+                kwargs=kwargs,
+                use_raw=not possui_filtros,
+            )
+        }
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='meses-anos',
-            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='meses-anos',
+        permission_classes=[
+            UsuarioEscolaTercTotal
+            | UsuarioDiretoriaRegional
+            | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAENutriManifestacao
+        ],
+    )
     def meses_anos(self, request):
-        query_set = self.condicao_por_usuario(self.get_queryset()).exclude(
-            status=SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE)
+        query_set = self.condicao_por_usuario(self.get_queryset())
         meses_anos = query_set.values_list('mes', 'ano').distinct()
         meses_anos_unicos = []
         for mes_ano in meses_anos:
-            status_ = SolicitacaoMedicaoInicial.objects.filter(
-                mes=mes_ano[0], ano=mes_ano[1]).values_list('status', flat=True).distinct()
+            status_ = (
+                SolicitacaoMedicaoInicial.objects.filter(mes=mes_ano[0], ano=mes_ano[1])
+                .values_list('status', flat=True)
+                .distinct()
+            )
             mes_ano_obj = {'mes': mes_ano[0], 'ano': mes_ano[1], 'status': status_}
             meses_anos_unicos.append(mes_ano_obj)
-        return Response({'results': sorted(meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True)},
-                        status=status.HTTP_200_OK)
+        return Response(
+            {
+                'results': sorted(
+                    meses_anos_unicos, key=lambda k: (k['ano'], k['mes']), reverse=True
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=False, methods=['GET'], url_path='relatorio-pdf')
     def relatorio_pdf(self, request):
@@ -338,14 +444,25 @@ class SolicitacaoMedicaoInicialViewSet(
         gera_pdf_relatorio_solicitacao_medicao_por_escola_async.delay(
             user=user,
             nome_arquivo=f'Relatório Medição Inicial - {solicitacao.escola.nome} - '
-                         f'{solicitacao.mes}/{solicitacao.ano}.pdf',
-            uuid_sol_medicao=uuid_sol_medicao
+            f'{solicitacao.mes}/{solicitacao.ano}.pdf',
+            uuid_sol_medicao=uuid_sol_medicao,
         )
-        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
-                        status=status.HTTP_200_OK)
+        return Response(
+            dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+            status=status.HTTP_200_OK,
+        )
 
-    @action(detail=False, methods=['GET'], url_path='periodos-grupos-medicao',
-            permission_classes=[UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao | UsuarioEscolaTercTotal])
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='periodos-grupos-medicao',
+        permission_classes=[
+            UsuarioDiretoriaRegional
+            | UsuarioEscolaTercTotal
+            | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAENutriManifestacao
+        ],
+    )
     def periodos_grupos_medicao(self, request):
         uuid = request.query_params.get('uuid_solicitacao')
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
@@ -358,31 +475,56 @@ class SolicitacaoMedicaoInicialViewSet(
                 nome = f'{medicao.grupo.nome}'
             elif medicao.periodo_escolar:
                 nome = medicao.periodo_escolar.nome
-            retorno.append({
-                'uuid_medicao_periodo_grupo': medicao.uuid,
-                'nome_periodo_grupo': nome,
-                'periodo_escolar': medicao.periodo_escolar.nome if medicao.periodo_escolar else None,
-                'grupo': medicao.grupo.nome if medicao.grupo else None,
-                'status': medicao.status.name,
-                'logs': LogSolicitacoesUsuarioSerializer(medicao.logs.all(), many=True).data
-            })
-        ordem = constants.ORDEM_PERIODOS_GRUPOS_CEI if solicitacao.escola.eh_cei else constants.ORDEM_PERIODOS_GRUPOS
+            retorno.append(
+                {
+                    'uuid_medicao_periodo_grupo': medicao.uuid,
+                    'nome_periodo_grupo': nome,
+                    'periodo_escolar': medicao.periodo_escolar.nome
+                    if medicao.periodo_escolar
+                    else None,
+                    'grupo': medicao.grupo.nome if medicao.grupo else None,
+                    'status': medicao.status.name,
+                    'logs': LogSolicitacoesUsuarioSerializer(
+                        medicao.logs.all(), many=True
+                    ).data,
+                }
+            )
+        ordem = (
+            constants.ORDEM_PERIODOS_GRUPOS_CEI
+            if solicitacao.escola.eh_cei
+            else constants.ORDEM_PERIODOS_GRUPOS
+        )
 
-        return Response({
-            'results': sorted(retorno, key=lambda k: ordem[k['nome_periodo_grupo']])},
-            status=status.HTTP_200_OK)
+        return Response(
+            {'results': sorted(retorno, key=lambda k: ordem[k['nome_periodo_grupo']])},
+            status=status.HTTP_200_OK,
+        )
 
     def get_justificativa(self, medicao: Medicao) -> str:
         if medicao.status == medicao.workflow_class.MEDICAO_CORRIGIDA_PELA_UE:
-            return medicao.logs.filter(
-                status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA).last().justificativa
+            return (
+                medicao.logs.filter(
+                    status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA
+                )
+                .last()
+                .justificativa
+            )
         elif medicao.status == medicao.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE:
-            return medicao.logs.filter(
-                status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE).last().justificativa
+            return (
+                medicao.logs.filter(
+                    status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE
+                )
+                .last()
+                .justificativa
+            )
         return medicao.logs.last().justificativa if medicao.logs.last() else None
 
-    @action(detail=False, methods=['GET'], url_path='quantidades-alimentacoes-lancadas-periodo-grupo',
-            permission_classes=[UsuarioEscolaTercTotal])
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='quantidades-alimentacoes-lancadas-periodo-grupo',
+        permission_classes=[UsuarioEscolaTercTotal],
+    )
     def quantidades_alimentacoes_lancadas_periodo_grupo(self, request):
         usuario = self.request.user
         escola = usuario.vinculo_atual.instituicao
@@ -392,20 +534,35 @@ class SolicitacaoMedicaoInicialViewSet(
         campos_a_desconsiderar = get_campos_a_desconsiderar(escola)
         for medicao in solicitacao.medicoes.all():
             valores = []
-            for valor_medicao in medicao.valores_medicao.exclude(categoria_medicao__nome__icontains='DIETA'):
-                tem_nome_campo = [valor for valor in valores if valor['nome_campo'] == valor_medicao.nome_campo]
+            for valor_medicao in medicao.valores_medicao.exclude(
+                categoria_medicao__nome__icontains='DIETA'
+            ):
+                tem_nome_campo = [
+                    valor
+                    for valor in valores
+                    if valor['nome_campo'] == valor_medicao.nome_campo
+                ]
                 if valor_medicao.nome_campo not in campos_a_desconsiderar:
                     if tem_nome_campo:
-                        valores = [valor for valor in valores if valor['nome_campo'] != valor_medicao.nome_campo]
-                        valores.append({
-                            'nome_campo': valor_medicao.nome_campo,
-                            'valor': tem_nome_campo[0]['valor'] + int(valor_medicao.valor)
-                        })
+                        valores = [
+                            valor
+                            for valor in valores
+                            if valor['nome_campo'] != valor_medicao.nome_campo
+                        ]
+                        valores.append(
+                            {
+                                'nome_campo': valor_medicao.nome_campo,
+                                'valor': tem_nome_campo[0]['valor']
+                                + int(valor_medicao.valor),
+                            }
+                        )
                     else:
-                        valores.append({
-                            'nome_campo': valor_medicao.nome_campo,
-                            'valor': int(valor_medicao.valor),
-                        })
+                        valores.append(
+                            {
+                                'nome_campo': valor_medicao.nome_campo,
+                                'valor': int(valor_medicao.valor),
+                            }
+                        )
             valores = tratar_valores(escola, valores)
             valor_total = get_valor_total(escola, valores, medicao)
             dict_retorno = {
@@ -413,15 +570,19 @@ class SolicitacaoMedicaoInicialViewSet(
                 'status': medicao.status.name,
                 'justificativa': self.get_justificativa(medicao),
                 'valores': valores,
-                'valor_total': valor_total
+                'valor_total': valor_total,
             }
             if escola.eh_cei:
                 dict_retorno['quantidade_alunos'] = sum(v['valor'] for v in valores)
             retorno.append(dict_retorno)
         return Response({'results': retorno}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['GET'], url_path='periodos-escola-cemei-com-alunos-emei',
-            permission_classes=[UsuarioEscolaTercTotal])
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='periodos-escola-cemei-com-alunos-emei',
+        permission_classes=[UsuarioEscolaTercTotal],
+    )
     def periodos_escola_cemei_com_alunos_emei(self, request):
         usuario = self.request.user
         escola = usuario.vinculo_atual.instituicao
@@ -430,25 +591,38 @@ class SolicitacaoMedicaoInicialViewSet(
         retorno = []
         if escola.eh_cemei:
             logs = LogAlunosMatriculadosPeriodoEscola.objects.filter(
-                escola=escola, criado_em__year=ano, criado_em__month=mes)
-            retorno = sorted(list(set([f'Infantil {log.periodo_escolar.nome}' for log in logs])))
+                escola=escola, criado_em__year=ano, criado_em__month=mes
+            )
+            retorno = sorted(
+                list(set([f'Infantil {log.periodo_escolar.nome}' for log in logs]))
+            )
         return Response({'results': retorno}, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['PATCH'], url_path='dre-aprova-solicitacao-medicao',
-            permission_classes=[UsuarioDiretoriaRegional])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='dre-aprova-solicitacao-medicao',
+        permission_classes=[UsuarioDiretoriaRegional],
+    )
     def dre_aprova_solicitacao_medicao(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()
         try:
             medicoes = solicitacao_medicao_inicial.medicoes.all()
             status_medicao_aprovada = 'MEDICAO_APROVADA_PELA_DRE'
             if medicoes.exclude(status=status_medicao_aprovada).exists() or (
-                solicitacao_medicao_inicial.tem_ocorrencia and
-                    solicitacao_medicao_inicial.ocorrencia.status != status_medicao_aprovada):
+                solicitacao_medicao_inicial.tem_ocorrencia
+                and solicitacao_medicao_inicial.ocorrencia.status
+                != status_medicao_aprovada
+            ):
                 mensagem = 'Erro: existe(m) pendência(s) de análise'
-                return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST
+                )
             solicitacao_medicao_inicial.dre_aprova(user=request.user)
             acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_DRE
-            log = criar_log_aprovar_periodos_corrigidos(request.user, solicitacao_medicao_inicial, acao)
+            log = criar_log_aprovar_periodos_corrigidos(
+                request.user, solicitacao_medicao_inicial, acao
+            )
             if log:
                 if not solicitacao_medicao_inicial.historico:
                     historico = [log]
@@ -460,16 +634,27 @@ class SolicitacaoMedicaoInicialViewSet(
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='dre-solicita-correcao-medicao',
-            permission_classes=[UsuarioDiretoriaRegional])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='dre-solicita-correcao-medicao',
+        permission_classes=[UsuarioDiretoriaRegional],
+    )
     def dre_solicita_correcao_medicao(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()
         try:
             solicitacao_medicao_inicial.dre_pede_correcao(user=request.user)
-            acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA
-            log = criar_log_solicitar_correcao_periodos(request.user, solicitacao_medicao_inicial, acao)
+            acao = (
+                solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA
+            )
+            log = criar_log_solicitar_correcao_periodos(
+                request.user, solicitacao_medicao_inicial, acao
+            )
             if log:
                 if not solicitacao_medicao_inicial.historico:
                     historico = [log]
@@ -481,23 +666,38 @@ class SolicitacaoMedicaoInicialViewSet(
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-solicitacao-medicao',
-            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='codae-aprova-solicitacao-medicao',
+        permission_classes=[UsuarioCODAEGestaoAlimentacao],
+    )
     def codae_aprova_solicitacao_medicao(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()
         try:
             medicoes = solicitacao_medicao_inicial.medicoes.all()
             status_medicao_aprovada = 'MEDICAO_APROVADA_PELA_CODAE'
             if medicoes.exclude(status=status_medicao_aprovada).exists() or (
-                solicitacao_medicao_inicial.tem_ocorrencia and
-                    solicitacao_medicao_inicial.ocorrencia.status != status_medicao_aprovada):
+                solicitacao_medicao_inicial.tem_ocorrencia
+                and solicitacao_medicao_inicial.ocorrencia.status
+                != status_medicao_aprovada
+            ):
                 mensagem = 'Erro: existe(m) pendência(s) de análise'
-                return Response(dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    dict(detail=mensagem), status=status.HTTP_400_BAD_REQUEST
+                )
             solicitacao_medicao_inicial.codae_aprova_medicao(user=request.user)
-            acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE
-            log = criar_log_aprovar_periodos_corrigidos(request.user, solicitacao_medicao_inicial, acao)
+            acao = (
+                solicitacao_medicao_inicial.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+            )
+            log = criar_log_aprovar_periodos_corrigidos(
+                request.user, solicitacao_medicao_inicial, acao
+            )
             if log:
                 if not solicitacao_medicao_inicial.historico:
                     historico = [log]
@@ -509,16 +709,27 @@ class SolicitacaoMedicaoInicialViewSet(
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='codae-solicita-correcao-medicao',
-            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='codae-solicita-correcao-medicao',
+        permission_classes=[UsuarioCODAEGestaoAlimentacao],
+    )
     def codae_solicita_correcao_medicao(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()
         try:
             solicitacao_medicao_inicial.codae_pede_correcao_medicao(user=request.user)
-            acao = solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
-            log = criar_log_solicitar_correcao_periodos(request.user, solicitacao_medicao_inicial, acao)
+            acao = (
+                solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
+            )
+            log = criar_log_solicitar_correcao_periodos(
+                request.user, solicitacao_medicao_inicial, acao
+            )
             if log:
                 if not solicitacao_medicao_inicial.historico:
                     historico = [log]
@@ -530,15 +741,27 @@ class SolicitacaoMedicaoInicialViewSet(
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao-para-dre',
-            permission_classes=[UsuarioDiretorEscolaTercTotal])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='escola-corrige-medicao-para-dre',
+        permission_classes=[UsuarioDiretorEscolaTercTotal],
+    )
     def escola_corrige_medicao_para_dre(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()
         try:
-            if solicitacao_medicao_inicial.status == SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE:
-                raise InvalidTransitionError('solicitação já está no status Corrigido para DRE')
+            if (
+                solicitacao_medicao_inicial.status
+                == SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
+            ):
+                raise InvalidTransitionError(
+                    'solicitação já está no status Corrigido para DRE'
+                )
             solicitacao_medicao_inicial.ue_corrige(user=request.user)
             ValorMedicao.objects.filter(
                 medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
@@ -549,16 +772,27 @@ class SolicitacaoMedicaoInicialViewSet(
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao-para-codae',
-            permission_classes=[UsuarioDiretorEscolaTercTotal])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='escola-corrige-medicao-para-codae',
+        permission_classes=[UsuarioDiretorEscolaTercTotal],
+    )
     def escola_corrige_medicao_para_codae(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()
         try:
-            status_medicao_corrigida_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+            status_medicao_corrigida_codae = (
+                SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+            )
             if solicitacao_medicao_inicial.status == status_medicao_corrigida_codae:
-                raise InvalidTransitionError('solicitação já está no status Corrigido para CODAE')
+                raise InvalidTransitionError(
+                    'solicitação já está no status Corrigido para CODAE'
+                )
             solicitacao_medicao_inicial.ue_corrige_medicao_para_codae(user=request.user)
             ValorMedicao.objects.filter(
                 medicao__solicitacao_medicao_inicial=solicitacao_medicao_inicial
@@ -569,13 +803,22 @@ class SolicitacaoMedicaoInicialViewSet(
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='ue-atualiza-ocorrencia',)
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='ue-atualiza-ocorrencia',
+    )
     def ue_atualiza_ocorrencia(self, request, uuid=None):
         solicitacao_medicao_inicial = self.get_object()
         status_ocorrencia = solicitacao_medicao_inicial.status
-        status_correcao_solicitada_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
+        status_correcao_solicitada_codae = (
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
+        )
         try:
             anexos_string = request.data.get('anexos', None)
             com_ocorrencias = request.data.get('com_ocorrencias', None)
@@ -585,13 +828,13 @@ class SolicitacaoMedicaoInicialViewSet(
                 anexos = json.loads(anexos_string)
                 atualizar_anexos_ocorrencia(anexos, solicitacao_medicao_inicial)
                 if status_ocorrencia == status_correcao_solicitada_codae:
-                    solicitacao_medicao_inicial.ocorrencia.ue_corrige_ocorrencia_para_codae(user=request.user,
-                                                                                            anexos=anexos,
-                                                                                            justificativa=justificativa)
+                    solicitacao_medicao_inicial.ocorrencia.ue_corrige_ocorrencia_para_codae(
+                        user=request.user, anexos=anexos, justificativa=justificativa
+                    )
                 else:
-                    solicitacao_medicao_inicial.ocorrencia.ue_corrige(user=request.user,
-                                                                      anexos=anexos,
-                                                                      justificativa=justificativa)
+                    solicitacao_medicao_inicial.ocorrencia.ue_corrige(
+                        user=request.user, anexos=anexos, justificativa=justificativa
+                    )
             else:
                 solicitacao_medicao_inicial.com_ocorrencias = False
                 atualizar_status_ocorrencia(
@@ -599,44 +842,67 @@ class SolicitacaoMedicaoInicialViewSet(
                     status_correcao_solicitada_codae,
                     solicitacao_medicao_inicial,
                     request,
-                    justificativa
+                    justificativa,
                 )
             solicitacao_medicao_inicial.save()
             serializer = self.get_serializer(solicitacao_medicao_inicial)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=False, methods=['GET'], url_path='solicitacoes-lancadas',
-            permission_classes=[UsuarioEscolaTercTotal])
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='solicitacoes-lancadas',
+        permission_classes=[UsuarioEscolaTercTotal],
+    )
     def solicitacoes_lancadas(self, request):
         queryset = self.filter_queryset(self.get_queryset())
 
         escola_uuid = request.query_params.get('escola')
         data_ano_anterior = datetime.date.today() - relativedelta(years=1)
-        medicao_em_preenchimento = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+        medicao_em_preenchimento = (
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+        )
 
-        queryset = queryset.filter(escola__uuid=escola_uuid).annotate(
-            mes_int=Cast('mes', output_field=IntegerField()),
-            ano_int=Cast('ano', output_field=IntegerField())
-        ).filter(
-            Q(ano=datetime.date.today().year) |
-            Q(ano_int=data_ano_anterior.year, mes_int__gte=data_ano_anterior.month)
-        ).exclude(status=medicao_em_preenchimento)
+        queryset = (
+            queryset.filter(escola__uuid=escola_uuid)
+            .annotate(
+                mes_int=Cast('mes', output_field=IntegerField()),
+                ano_int=Cast('ano', output_field=IntegerField()),
+            )
+            .filter(
+                Q(ano=datetime.date.today().year)
+                | Q(
+                    ano_int=data_ano_anterior.year, mes_int__gte=data_ano_anterior.month
+                )
+            )
+            .exclude(status=medicao_em_preenchimento)
+        )
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['GET'], url_path='ceu-gestao-frequencias-dietas',
-            permission_classes=[UsuarioEscolaTercTotal])
+    @action(
+        detail=True,
+        methods=['GET'],
+        url_path='ceu-gestao-frequencias-dietas',
+        permission_classes=[UsuarioEscolaTercTotal],
+    )
     def ceu_gestao_frequencias_dietas(self, request, uuid=None):
         solicitacao_medicao = self.get_object()
         valores_medicao = ValorMedicao.objects.filter(
             medicao__solicitacao_medicao_inicial=solicitacao_medicao,
             categoria_medicao__nome__icontains='DIETA ESPECIAL',
-            nome_campo='frequencia'
+            nome_campo='frequencia',
         )
-        return Response(ValorMedicaoSerializer(valores_medicao, many=True).data, status=status.HTTP_200_OK)
+        return Response(
+            ValorMedicaoSerializer(valores_medicao, many=True).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class TipoContagemAlimentacaoViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -652,9 +918,8 @@ class CategoriaMedicaoViewSet(mixins.ListModelMixin, GenericViewSet):
 
 
 class ValorMedicaoViewSet(
-        mixins.ListModelMixin,
-        mixins.DestroyModelMixin,
-        GenericViewSet):
+    mixins.ListModelMixin, mixins.DestroyModelMixin, GenericViewSet
+):
     lookup_field = 'uuid'
     queryset = ValorMedicao.objects.all()
     serializer_class = ValorMedicaoSerializer
@@ -662,18 +927,28 @@ class ValorMedicaoViewSet(
 
     def get_queryset(self):
         queryset = ValorMedicao.objects.all()
-        nome_periodo_escolar = self.request.query_params.get('nome_periodo_escolar', None)
-        uuid_solicitacao_medicao = self.request.query_params.get('uuid_solicitacao_medicao', None)
+        nome_periodo_escolar = self.request.query_params.get(
+            'nome_periodo_escolar', None
+        )
+        uuid_solicitacao_medicao = self.request.query_params.get(
+            'uuid_solicitacao_medicao', None
+        )
         nome_grupo = self.request.query_params.get('nome_grupo', None)
-        uuid_medicao_periodo_grupo = self.request.query_params.get('uuid_medicao_periodo_grupo', None)
+        uuid_medicao_periodo_grupo = self.request.query_params.get(
+            'uuid_medicao_periodo_grupo', None
+        )
         if nome_periodo_escolar:
-            queryset = queryset.filter(medicao__periodo_escolar__nome=nome_periodo_escolar)
+            queryset = queryset.filter(
+                medicao__periodo_escolar__nome=nome_periodo_escolar
+            )
         if nome_grupo:
             queryset = queryset.filter(medicao__grupo__nome=nome_grupo)
         elif not uuid_medicao_periodo_grupo:
             queryset = queryset.filter(medicao__grupo__isnull=True)
         if uuid_solicitacao_medicao:
-            queryset = queryset.filter(medicao__solicitacao_medicao_inicial__uuid=uuid_solicitacao_medicao)
+            queryset = queryset.filter(
+                medicao__solicitacao_medicao_inicial__uuid=uuid_solicitacao_medicao
+            )
         if uuid_medicao_periodo_grupo:
             queryset = queryset.filter(medicao__uuid=uuid_medicao_periodo_grupo)
         return queryset
@@ -688,11 +963,12 @@ class ValorMedicaoViewSet(
 
 
 class MedicaoViewSet(
-        mixins.RetrieveModelMixin,
-        mixins.ListModelMixin,
-        mixins.CreateModelMixin,
-        mixins.UpdateModelMixin,
-        GenericViewSet):
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet,
+):
     lookup_field = 'uuid'
     queryset = Medicao.objects.all()
 
@@ -701,8 +977,12 @@ class MedicaoViewSet(
             return MedicaoSerializer
         return MedicaoCreateUpdateSerializer
 
-    @action(detail=True, methods=['PATCH'], url_path='dre-aprova-medicao',
-            permission_classes=[UsuarioDiretoriaRegional])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='dre-aprova-medicao',
+        permission_classes=[UsuarioDiretoriaRegional],
+    )
     def dre_aprova_medicao(self, request, uuid=None):
         medicao = self.get_object()
         try:
@@ -710,29 +990,49 @@ class MedicaoViewSet(
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='dre-pede-correcao-medicao',
-            permission_classes=[UsuarioDiretoriaRegional])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='dre-pede-correcao-medicao',
+        permission_classes=[UsuarioDiretoriaRegional],
+    )
     def dre_pede_correcao_medicao(self, request, uuid=None):
         medicao = self.get_object()
         justificativa = request.data.get('justificativa', '')
-        uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', [])
+        uuids_valores_medicao_para_correcao = request.data.get(
+            'uuids_valores_medicao_para_correcao', []
+        )
         dias_para_corrigir = request.data.get('dias_para_corrigir', [])
         try:
             medicao.valores_medicao.filter(
-                uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
+                uuid__in=uuids_valores_medicao_para_correcao
+            ).update(habilitado_correcao=True)
             medicao.valores_medicao.exclude(
-                uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=False)
-            DiaParaCorrigir.cria_dias_para_corrigir(medicao, self.request.user, dias_para_corrigir)
+                uuid__in=uuids_valores_medicao_para_correcao
+            ).update(habilitado_correcao=False)
+            DiaParaCorrigir.cria_dias_para_corrigir(
+                medicao, self.request.user, dias_para_corrigir
+            )
             medicao.dre_pede_correcao(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-periodo',
-            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='codae-aprova-periodo',
+        permission_classes=[UsuarioCODAEGestaoAlimentacao],
+    )
     def codae_aprova_periodo(self, request, uuid=None):
         medicao = self.get_object()
         try:
@@ -740,23 +1040,41 @@ class MedicaoViewSet(
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='codae-pede-correcao-periodo',
-            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='codae-pede-correcao-periodo',
+        permission_classes=[UsuarioCODAEGestaoAlimentacao],
+    )
     def codae_pede_correcao_periodo(self, request, uuid=None):
         medicao = self.get_object()
         justificativa = request.data.get('justificativa', None)
-        uuids_valores_medicao_para_correcao = request.data.get('uuids_valores_medicao_para_correcao', None)
+        uuids_valores_medicao_para_correcao = request.data.get(
+            'uuids_valores_medicao_para_correcao', None
+        )
         dias_para_corrigir = request.data.get('dias_para_corrigir', [])
         try:
-            ValorMedicao.objects.filter(uuid__in=uuids_valores_medicao_para_correcao).update(habilitado_correcao=True)
-            DiaParaCorrigir.cria_dias_para_corrigir(medicao, self.request.user, dias_para_corrigir)
-            medicao.codae_pede_correcao_periodo(user=request.user, justificativa=justificativa)
+            ValorMedicao.objects.filter(
+                uuid__in=uuids_valores_medicao_para_correcao
+            ).update(habilitado_correcao=True)
+            DiaParaCorrigir.cria_dias_para_corrigir(
+                medicao, self.request.user, dias_para_corrigir
+            )
+            medicao.codae_pede_correcao_periodo(
+                user=request.user, justificativa=justificativa
+            )
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def get_tipo_alimentacao(self, valor_medicao):
         tipo_alimentacao = None
@@ -774,20 +1092,37 @@ class MedicaoViewSet(
 
     def get_nome_acao(self, medicao, status_codae):
         if medicao.status in status_codae:
-            return medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+            return (
+                medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+            )
         else:
-            return medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
+            return (
+                medicao.solicitacao_medicao_inicial.workflow_class.MEDICAO_CORRIGIDA_PELA_UE
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='escola-corrige-medicao',
-            permission_classes=[UsuarioDiretorEscolaTercTotal])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='escola-corrige-medicao',
+        permission_classes=[UsuarioDiretorEscolaTercTotal],
+    )
     def escola_corrige_medicao(self, request, uuid=None):
         medicao = self.get_object()
-        status_correcao_solicitada_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
-        status_medicao_corrigida_para_codae = SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
-        status_codae = [status_correcao_solicitada_codae, status_medicao_corrigida_para_codae]
+        status_correcao_solicitada_codae = (
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRECAO_SOLICITADA_CODAE
+        )
+        status_medicao_corrigida_para_codae = (
+            SolicitacaoMedicaoInicial.workflow_class.MEDICAO_CORRIGIDA_PARA_CODAE
+        )
+        status_codae = [
+            status_correcao_solicitada_codae,
+            status_medicao_corrigida_para_codae,
+        ]
         try:
             acao = self.get_nome_acao(medicao, status_codae)
-            log_alteracoes_escola_corrige_periodo(request.user, medicao, acao, request.data)
+            log_alteracoes_escola_corrige_periodo(
+                request.user, medicao, acao, request.data
+            )
             for valor_medicao in request.data:
                 if not valor_medicao:
                     continue
@@ -795,7 +1130,9 @@ class MedicaoViewSet(
                 mes = int(medicao.solicitacao_medicao_inicial.mes)
                 ano = int(medicao.solicitacao_medicao_inicial.ano)
                 semana = ValorMedicao.get_week_of_month(ano, mes, dia)
-                categoria_medicao_qs = CategoriaMedicao.objects.filter(id=valor_medicao.get('categoria_medicao', None))
+                categoria_medicao_qs = CategoriaMedicao.objects.filter(
+                    id=valor_medicao.get('categoria_medicao', None)
+                )
                 tipo_alimentacao = self.get_tipo_alimentacao(valor_medicao)
                 faixa_etaria = self.get_faixa_etaria(valor_medicao)
                 ValorMedicao.objects.update_or_create(
@@ -826,25 +1163,46 @@ class MedicaoViewSet(
             serializer = self.get_serializer(medicao)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def get_day_from_date(self, data):
         return datetime.date.strftime(data, '%d')
 
-    @action(detail=False, methods=['GET'], url_path='feriados-no-mes',
-            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='feriados-no-mes',
+        permission_classes=[
+            UsuarioEscolaTercTotal
+            | UsuarioDiretoriaRegional
+            | UsuarioCODAEGestaoAlimentacao
+        ],
+    )
     def feriados_no_mes(self, request, uuid=None):
         mes = request.query_params.get('mes', '')
         ano = request.query_params.get('ano', '')
 
         retorno = [
-            self.get_day_from_date(h[0]) for h in calendario.holidays(int(ano))
+            self.get_day_from_date(h[0])
+            for h in calendario.holidays(int(ano))
             if h[0].month == int(mes) and h[0].year == int(ano)
         ]
         return Response({'results': retorno}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['GET'], url_path='feriados-no-mes-com-nome',
-            permission_classes=[UsuarioEscolaTercTotal | UsuarioDiretoriaRegional | UsuarioCODAEGestaoAlimentacao])
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='feriados-no-mes-com-nome',
+        permission_classes=[
+            UsuarioEscolaTercTotal
+            | UsuarioDiretoriaRegional
+            | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAENutriManifestacao
+        ],
+    )
     def feriados_no_mes_com_nome(self, request, uuid=None):
         mes = request.query_params.get('mes', '')
         ano = request.query_params.get('ano', '')
@@ -853,76 +1211,116 @@ class MedicaoViewSet(
         for h in calendario.holidays(int(ano)):
             if h[0].month == int(mes) and h[0].year == int(ano):
                 try:
-                    lista_feriados.append({
-                        'dia': self.get_day_from_date(h[0]),
-                        'feriado': TRADUCOES_FERIADOS[h[1]]
-                    })
+                    lista_feriados.append(
+                        {
+                            'dia': self.get_day_from_date(h[0]),
+                            'feriado': TRADUCOES_FERIADOS[h[1]],
+                        }
+                    )
                 except KeyError:
-                    lista_feriados.append({
-                        'dia': self.get_day_from_date(h[0]),
-                        'feriado': h[1]
-                    })
+                    lista_feriados.append(
+                        {'dia': self.get_day_from_date(h[0]), 'feriado': h[1]}
+                    )
 
         return Response({'results': lista_feriados}, status=status.HTTP_200_OK)
 
 
 class OcorrenciaViewSet(
-        mixins.RetrieveModelMixin,
-        mixins.ListModelMixin,
-        mixins.CreateModelMixin,
-        mixins.UpdateModelMixin,
-        GenericViewSet):
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet,
+):
     lookup_field = 'uuid'
     queryset = OcorrenciaMedicaoInicial.objects.all()
 
     def get_serializer_class(self):
         return OcorrenciaMedicaoInicialSerializer
 
-    @action(detail=True, methods=['PATCH'], url_path='dre-pede-correcao-ocorrencia',)
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='dre-pede-correcao-ocorrencia',
+    )
     def dre_pede_correcao_ocorrencia(self, request, uuid=None):
         object = self.get_object()
         ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
         justificativa = request.data.get('justificativa', None)
         try:
             ocorrencia.dre_pede_correcao(user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
+            serializer = self.get_serializer(
+                ocorrencia.solicitacao_medicao_inicial.ocorrencia
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='codae-pede-correcao-ocorrencia',)
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='codae-pede-correcao-ocorrencia',
+    )
     def codae_pede_correcao_ocorrencia(self, request, uuid=None):
         object = self.get_object()
         ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
         justificativa = request.data.get('justificativa', None)
         try:
-            ocorrencia.codae_pede_correcao_ocorrencia(user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
+            ocorrencia.codae_pede_correcao_ocorrencia(
+                user=request.user, justificativa=justificativa
+            )
+            serializer = self.get_serializer(
+                ocorrencia.solicitacao_medicao_inicial.ocorrencia
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='dre-aprova-ocorrencia',)
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='dre-aprova-ocorrencia',
+    )
     def dre_aprova_ocorrencia(self, request, uuid=None):
         object = self.get_object()
         ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
         try:
             ocorrencia.dre_aprova(user=request.user)
-            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
+            serializer = self.get_serializer(
+                ocorrencia.solicitacao_medicao_inicial.ocorrencia
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=['PATCH'], url_path='codae-aprova-ocorrencia',)
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='codae-aprova-ocorrencia',
+    )
     def codae_aprova_ocorrencia(self, request, uuid=None):
         object = self.get_object()
         ocorrencia = object.solicitacao_medicao_inicial.ocorrencia
         try:
             ocorrencia.codae_aprova_ocorrencia(user=request.user)
-            serializer = self.get_serializer(ocorrencia.solicitacao_medicao_inicial.ocorrencia)
+            serializer = self.get_serializer(
+                ocorrencia.solicitacao_medicao_inicial.ocorrencia
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class AlimentacaoLancamentoEspecialViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -940,19 +1338,29 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ['escola__uuid']
 
-    @action(detail=False, methods=['GET'], url_path='escolas-permissoes-lancamentos-especiais')
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='escolas-permissoes-lancamentos-especiais',
+    )
     def escolas_permissoes_lancamentos_especiais(self, request):
         try:
             escolas = []
-            for permissao in PermissaoLancamentoEspecial.objects.order_by().distinct('escola'):
-                escolas.append({
-                    'nome': permissao.escola.nome,
-                    'uuid': permissao.escola.uuid
-                })
+            for permissao in PermissaoLancamentoEspecial.objects.order_by().distinct(
+                'escola'
+            ):
+                escolas.append(
+                    {'nome': permissao.escola.nome, 'uuid': permissao.escola.uuid}
+                )
 
-            return Response({'results': sorted(escolas, key=lambda e: e['nome'])}, status=status.HTTP_200_OK)
+            return Response(
+                {'results': sorted(escolas, key=lambda e: e['nome'])},
+                status=status.HTTP_200_OK,
+            )
         except Exception as e:
-            return Response(dict(detail=f'Erro: {e}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro: {e}'), status=status.HTTP_400_BAD_REQUEST
+            )
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
