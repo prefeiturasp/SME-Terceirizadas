@@ -4169,6 +4169,7 @@ class DocumentoDeRecebimentoWorkflow(xwf_models.Workflow):
         ('inicia_fluxo', DOCUMENTO_CRIADO, ENVIADO_PARA_ANALISE),
         ('qualidade_solicita_correcao', ENVIADO_PARA_ANALISE, ENVIADO_PARA_CORRECAO),
         ('qualidade_aprova_analise', ENVIADO_PARA_ANALISE, APROVADO),
+        ('fornecedor_realiza_correcao', ENVIADO_PARA_CORRECAO, ENVIADO_PARA_ANALISE),
     )
 
     initial_state = DOCUMENTO_CRIADO
@@ -4198,6 +4199,13 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DOCUMENTO_APROVADO,
+                                      usuario=user)
+
+    @xworkflows.after_transition('fornecedor_realiza_correcao')
+    def _fornecedor_realiza_correcao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DOCUMENTO_CORRECAO_REALIZADA,
                                       usuario=user)
 
     class Meta:

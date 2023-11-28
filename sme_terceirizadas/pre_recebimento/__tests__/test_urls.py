@@ -2138,3 +2138,322 @@ def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimen
     assert response_correcao.status_code == status.HTTP_200_OK
     assert documento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO
     assert documento.correcao_solicitada == 'Documentos corrompidos, sem possibilidade de análise.'
+
+
+def test_url_documentos_de_recebimento_fornecedor_corrige(
+    documento_de_recebimento_factory,
+    client_autenticado_fornecedor,
+    arquivo_base64,
+    django_user_model,
+    cronograma_factory,
+    tipo_de_documento_de_recebimento_factory
+):
+    user_id = django_user_model.objects.first().id
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    cronograma = cronograma_factory.create(
+        empresa=empresa,
+    )
+    documento_de_recebimento = documento_de_recebimento_factory.create(
+        cronograma=cronograma,
+        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO
+    )
+    tipo_de_documento_de_recebimento_factory.create(
+        documento_recebimento=documento_de_recebimento
+    )
+    tipo_de_documento_de_recebimento_factory.create(
+        documento_recebimento=documento_de_recebimento,
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS,
+        descricao_documento='Outro que precisa ser corrigido.'
+    )
+    tipo_de_documento_de_recebimento_factory.create(
+        documento_recebimento=documento_de_recebimento,
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_RASTREABILIDADE,
+    )
+
+    dados_correcao = {
+        'tipos_de_documentos': [
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Laudo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Laudo2.jpg'
+                    }
+                ]
+            },
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Declaracao1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Declaracao2.jpg'
+                    }
+                ]
+            },
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS,
+                'descricao_documento': 'Outro após a correção.',
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Outros1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Outros2.jpg'
+                    }
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao)
+    )
+
+    documento_de_recebimento.refresh_from_db()
+    tipos_de_documentos = documento_de_recebimento.tipos_de_documentos.all()
+    laudo_atualizado = tipos_de_documentos.filter(tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO).first()
+    outros_atualizado = tipos_de_documentos.filter(tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS).first()
+    declaracao_criado = tipos_de_documentos.filter(
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010
+    ).first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert documento_de_recebimento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    assert not tipos_de_documentos.filter(
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_RASTREABILIDADE
+    ).exists()
+    assert tipos_de_documentos.count() == 3
+    assert laudo_atualizado.arquivos.count() == 2
+    assert outros_atualizado.arquivos.count() == 2
+    assert outros_atualizado.descricao_documento == 'Outro após a correção.'
+    assert declaracao_criado.arquivos.count() == 2
+
+
+def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
+    documento_de_recebimento_factory,
+    client_autenticado_fornecedor,
+    arquivo_base64,
+    django_user_model,
+    cronograma_factory,
+    tipo_de_documento_de_recebimento_factory
+):
+    user_id = django_user_model.objects.first().id
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    cronograma = cronograma_factory.create(
+        empresa=empresa,
+    )
+    documento_de_recebimento = documento_de_recebimento_factory.create(
+        cronograma=cronograma,
+        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO
+    )
+    tipo_de_documento_de_recebimento_factory.create(
+        documento_recebimento=documento_de_recebimento
+    )
+    tipo_de_documento_de_recebimento_factory.create(
+        documento_recebimento=documento_de_recebimento,
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS,
+        descricao_documento='Outro que precisa ser corrigido.'
+    )
+    tipo_de_documento_de_recebimento_factory.create(
+        documento_recebimento=documento_de_recebimento,
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_RASTREABILIDADE,
+    )
+
+    # testa validação de correção sem arquivo de Laudo
+    dados_correcao_sem_laudo = {
+        'tipos_de_documentos': [
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Declaracao1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Declaracao2.jpg'
+                    }
+                ]
+            }
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao_sem_laudo)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # testa validação sem arquivos de documentos
+    dados_correcao_sem_documentos = {
+        'tipos_de_documentos': [
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Laudo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Laudo2.jpg'
+                    }
+                ]
+            }
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao_sem_documentos)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # testa validação com payload incompleto
+    dados_correcao_sem_arquivos = {
+        'tipos_de_documentos': [
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                    }
+                ]
+            },
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                    }
+                ]
+            }
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao_sem_arquivos)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # testa validação com payload com documento do tipo Outros sem o campo descricao_documento
+    dados_correcao_sem_arquivos = {
+        'tipos_de_documentos': [
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Laudo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Laudo2.jpg'
+                    }
+                ]
+            },
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Outro1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Outro2.jpg'
+                    }
+                ]
+            }
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao_sem_arquivos)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
+    documento_de_recebimento_factory,
+    client_autenticado_fornecedor,
+    arquivo_base64,
+    django_user_model,
+    cronograma_factory,
+):
+    user_id = django_user_model.objects.first().id
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    cronograma = cronograma_factory.create(
+        empresa=empresa,
+    )
+    documento_de_recebimento = documento_de_recebimento_factory.create(
+        cronograma=cronograma,
+        status=DocumentoDeRecebimento.workflow_class.APROVADO
+    )
+
+    dados_correcao = {
+        'tipos_de_documentos': [
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Laudo1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Laudo2.jpg'
+                    }
+                ]
+            },
+            {
+                'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010,
+                'arquivos_do_tipo_de_documento': [
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Declaracao1.jpg'
+                    },
+                    {
+                        'arquivo': arquivo_base64,
+                        'nome': 'Declaracao2.jpg'
+                    }
+                ]
+            },
+        ],
+    }
+
+    response = client_autenticado_fornecedor.patch(
+        f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
+        content_type='application/json',
+        data=json.dumps(dados_correcao)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
