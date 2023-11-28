@@ -469,6 +469,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             raise PermissionDenied('Você não tem permissão para executar essa ação.')
 
     def _update_instance_fields(self, instance, validated_data):
+        if 'dre_ciencia_correcao_data' in validated_data:
+            validated_data['dre_ciencia_correcao_usuario'] = self.context['request'].user
         update_instance_from_dict(instance, validated_data, save=True)
 
     def _update_responsaveis(self, instance):
