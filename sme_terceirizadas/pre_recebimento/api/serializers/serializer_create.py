@@ -759,7 +759,6 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         try:
             user = self.context['request'].user
-            instance.fornecedor_realiza_correcao(user=user)
 
             dados_tipos_documentos_corrigidos = validated_data.pop('tipos_de_documentos', [])
 
@@ -778,13 +777,14 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
 
                 arquivos = dados_tipo_documento.pop('arquivos_do_tipo_de_documento', [])
                 for arquivo in arquivos:
-                    data = convert_base64_to_contentfile(arquivo.get('arquivo'))
+                    data = convert_base64_to_contentfile(arquivo['arquivo'])
                     ArquivoDoTipoDeDocumento.objects.create(
                         tipo_de_documento=tipo_documento_em_correcao,
                         arquivo=data,
-                        nome=arquivo.get('nome', '')
+                        nome=arquivo['nome']
                     )
 
+            instance.fornecedor_realiza_correcao(user=user)
             instance.save()
 
             return instance
