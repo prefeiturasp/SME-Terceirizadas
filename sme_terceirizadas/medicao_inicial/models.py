@@ -50,7 +50,7 @@ class SolicitacaoMedicaoInicial(
     FluxoSolicitacaoMedicaoInicial,
     Logs,
 ):
-    """Solicitação de Medição Inicial"""
+    """Solicitação de Medição Inicial."""
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE,
                                related_name='solicitacoes_medicao_inicial')
@@ -70,6 +70,14 @@ class SolicitacaoMedicaoInicial(
             usuario=usuario,
             uuid_original=self.uuid,
         )
+
+    @property
+    def todas_medicoes_e_ocorrencia_aprovados_por_medicao(self):
+        ocorrencia_aprovada = True
+        if self.tem_ocorrencia:
+            ocorrencia_aprovada = self.ocorrencia.status == self.ocorrencia.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+        todas_medicoes_aprovadas = not self.medicoes.exclude(status='MEDICAO_APROVADA_PELA_CODAE').exists()
+        return ocorrencia_aprovada and todas_medicoes_aprovadas
 
     @property
     def tem_ocorrencia(self):
