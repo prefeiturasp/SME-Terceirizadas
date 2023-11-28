@@ -344,39 +344,6 @@ class SolicitacaoMedicaoInicialViewSet(
             kwargs['escola__diretoria_regional__uuid'] = query_params.get('dre')
         return kwargs
 
-    def assinatura_ue(self, solicitacao):
-        log_enviado_ue = solicitacao.logs.filter(status_evento=55)
-        assinatura_escola = None
-        if log_enviado_ue:
-            razao_social = (
-                solicitacao.rastro_terceirizada.razao_social
-                if solicitacao.rastro_terceirizada
-                else ''
-            )
-            usuario_escola = log_enviado_ue.first().usuario
-            data_enviado_ue = log_enviado_ue.first().criado_em.strftime(
-                '%d/%m/%Y às %H:%M'
-            )
-            assinatura_escola = f"""Documento conferido e registrado eletronicamente por {usuario_escola.nome},
-                                    {usuario_escola.cargo}, {usuario_escola.registro_funcional},
-                                    {solicitacao.escola.nome} em {data_enviado_ue}. O registro eletrônico da Medição
-                                    Inicial é comprovação e ateste do serviço prestado à Unidade Educacional,
-                                    pela empresa {razao_social}."""
-        return assinatura_escola
-
-    def assinatura_dre(self, solicitacao):
-        log_aprovado_dre = solicitacao.logs.filter(status_evento=66)
-        assinatura_dre = None
-        if log_aprovado_dre:
-            usuario_dre = log_aprovado_dre.first().usuario
-            data_aprovado_dre = log_aprovado_dre.first().criado_em.strftime(
-                '%d/%m/%Y às %H:%M'
-            )
-            assinatura_dre = f"""Documento conferido e aprovado eletronicamente por {usuario_dre.nome},
-                                 {usuario_dre.cargo}, {usuario_dre.registro_funcional},
-                                 {usuario_dre.vinculo_atual.instituicao.nome} em {data_aprovado_dre}."""
-        return assinatura_dre
-
     @action(
         detail=False,
         methods=['GET'],
