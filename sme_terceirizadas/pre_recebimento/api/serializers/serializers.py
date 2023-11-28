@@ -396,6 +396,7 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
     status = serializers.CharField(source='get_status_display')
     tipos_de_documentos = TipoDocumentoDeRecebimentoLookupSerializer(many=True)
+    log_mais_recente = LogSolicitacoesUsuarioSimplesSerializer()
 
     def get_numero_cronograma(self, obj):
         return obj.cronograma.numero if obj.cronograma else None
@@ -412,7 +413,7 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentoDeRecebimento
         fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'numero_laudo', 'status',
-                  'criado_em', 'tipos_de_documentos', 'correcao_solicitada',)
+                  'criado_em', 'tipos_de_documentos', 'correcao_solicitada', 'log_mais_recente')
 
 
 class DataDeFabricacaoEPrazoLookupSerializer(serializers.ModelSerializer):
@@ -427,7 +428,6 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
     datas_fabricacao_e_prazos = DataDeFabricacaoEPrazoLookupSerializer(many=True)
     numero_sei = serializers.SerializerMethodField()
     fornecedor = serializers.SerializerMethodField()
-    log_mais_recente = LogSolicitacoesUsuarioSimplesSerializer()
 
     def get_numero_sei(self, obj):
         return obj.cronograma.contrato.processo if obj.cronograma.contrato else None
@@ -440,4 +440,4 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
                                                                  'quantidade_laudo', 'unidade_medida', 'saldo_laudo',
                                                                  'data_fabricacao_lote', 'validade_produto',
                                                                  'data_final_lote', 'datas_fabricacao_e_prazos',
-                                                                 'correcao_solicitada', 'log_mais_recente')
+                                                                 'correcao_solicitada')

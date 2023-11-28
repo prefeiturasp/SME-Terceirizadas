@@ -123,7 +123,8 @@ class LogSolicitacoesUsuario(
         DOCUMENTO_ENVIADO_PARA_ANALISE,
         DOCUMENTO_ENVIADO_PARA_CORRECAO,
         DOCUMENTO_APROVADO,
-    ) = range(96)
+        DOCUMENTO_CORRECAO_REALIZADA,
+    ) = range(97)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -258,6 +259,7 @@ class LogSolicitacoesUsuario(
         (DOCUMENTO_ENVIADO_PARA_ANALISE, 'Documento enviado para análise'),
         (DOCUMENTO_ENVIADO_PARA_CORRECAO, 'Documento enviado para correção'),
         (DOCUMENTO_APROVADO, 'Documento aprovado'),
+        (DOCUMENTO_CORRECAO_REALIZADA, 'Documento correção realizada'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
