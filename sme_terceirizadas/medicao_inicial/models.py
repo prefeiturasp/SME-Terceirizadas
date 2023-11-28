@@ -117,7 +117,7 @@ class SolicitacaoMedicaoInicial(
         )
         assinatura_dre = f"""Documento conferido e aprovado eletronicamente por {usuario_dre.nome},
                              {usuario_dre.cargo}, {usuario_dre.registro_funcional},
-                             {usuario_dre.vinculo_atual.instituicao.nome} em {data_aprovado_dre}."""
+                             {self.rastro_lote.diretoria_regional.nome} em {data_aprovado_dre}."""
         return assinatura_dre
 
     @property

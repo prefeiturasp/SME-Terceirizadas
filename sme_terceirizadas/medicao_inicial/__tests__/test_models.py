@@ -41,3 +41,27 @@ def test_valor_medicao_model(valor_medicao):
 def test_dia_para_corrigir_model(dia_para_corrigir):
     assert dia_para_corrigir.__str__() == (
         '# D5C33 - EMEF TESTE - INTEGRAL - 01/12/2022')
+
+
+def test_solicitacao_medicao_todas_medicoes_e_ocorrencia_aprovados_por_medicao_false(anexo_ocorrencia_medicao_inicial):
+    solicitacao_medicao_inicial = anexo_ocorrencia_medicao_inicial.solicitacao_medicao_inicial
+    assert solicitacao_medicao_inicial.todas_medicoes_e_ocorrencia_aprovados_por_medicao is False
+
+
+def test_solicitacao_medicao_todas_medicoes_e_ocorrencia_aprovados_por_medicao_true(
+        solicitacao_com_anexo_e_medicoes_aprovadas):
+    assert solicitacao_com_anexo_e_medicoes_aprovadas.todas_medicoes_e_ocorrencia_aprovados_por_medicao is True
+
+
+def test_solicitacao_medicao_assinatura_escola_exception(solicitacao_medicao_inicial):
+    assert solicitacao_medicao_inicial.assinatura_ue is None
+
+
+def test_solicitacao_medicao_assinatura_escola_sucesso(solicitacao_com_anexo_e_medicoes_aprovadas):
+    assert ('Documento conferido e registrado eletronicamente por ' in
+            solicitacao_com_anexo_e_medicoes_aprovadas.assinatura_ue)
+
+
+def test_solicitacao_medicao_assinatura_dre_sucesso(solicitacao_com_anexo_e_medicoes_aprovadas):
+    assert ('Documento conferido e aprovado eletronicamente por ' in
+            solicitacao_com_anexo_e_medicoes_aprovadas.assinatura_dre)
