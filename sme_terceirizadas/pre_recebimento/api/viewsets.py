@@ -54,6 +54,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     CronogramaCreateSerializer,
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
     DocumentoDeRecebimentoAnalisarSerializer,
+    DocumentoDeRecebimentoCorrecaoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
@@ -61,8 +62,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     LayoutDeEmbalagemCreateSerializer,
     SolicitacaoDeAlteracaoCronogramaCreateSerializer,
     TipoEmbalagemQldCreateSerializer,
-    UnidadeMedidaCreateSerializer,
-    DocumentoDeRecebimentoCorrecaoSerializer
+    UnidadeMedidaCreateSerializer
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
