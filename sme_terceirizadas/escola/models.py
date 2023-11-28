@@ -20,7 +20,7 @@ from ..cardapio.models import (
     AlteracaoCardapioCEI,
     AlteracaoCardapioCEMEI,
     GrupoSuspensaoAlimentacao,
-    InversaoCardapio
+    InversaoCardapio,
 )
 from ..dados_comuns.behaviors import (
     AcessoModuloMedicaoInicial,
@@ -38,37 +38,49 @@ from ..dados_comuns.behaviors import (
     TemData,
     TemFaixaEtariaEQuantidade,
     TemObservacao,
-    TemVinculos
+    TemVinculos,
 )
 from ..dados_comuns.constants import (
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     DIRETOR_UE,
-    obter_dias_uteis_apos_hoje
+    obter_dias_uteis_apos_hoje,
 )
-from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoDietaEspecialPartindoDaEscola
-from ..dados_comuns.utils import datetime_range, eh_fim_de_semana, queryset_por_data, subtrai_meses_de_data
+from ..dados_comuns.fluxo_status import (
+    FluxoAprovacaoPartindoDaEscola,
+    FluxoDietaEspecialPartindoDaEscola,
+)
+from ..dados_comuns.utils import (
+    datetime_range,
+    eh_fim_de_semana,
+    queryset_por_data,
+    subtrai_meses_de_data,
+)
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
 from ..escola.constants import (
     PERIODOS_ESPECIAIS_CEI_CEU_CCI,
     PERIODOS_ESPECIAIS_CEI_DIRET,
-    PERIODOS_ESPECIAIS_CEU_GESTAO
+    PERIODOS_ESPECIAIS_CEU_GESTAO,
 )
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoDaCEI,
-    InclusaoDeAlimentacaoCEMEI
+    InclusaoDeAlimentacaoCEMEI,
 )
 from ..kit_lanche.models import (
     SolicitacaoKitLancheAvulsa,
     SolicitacaoKitLancheCEIAvulsa,
     SolicitacaoKitLancheCEMEI,
-    SolicitacaoKitLancheUnificada
+    SolicitacaoKitLancheUnificada,
 )
 from .constants import CEI_OU_EMEI, PERIODOS_ESPECIAIS_CEMEI
 from .services import NovoSGPServicoLogado
-from .utils import deletar_alunos_periodo_parcial_outras_escolas, faixa_to_string, remove_acentos
+from .utils import (
+    deletar_alunos_periodo_parcial_outras_escolas,
+    faixa_to_string,
+    remove_acentos,
+)
 
 env = environ.Env()
 REDIS_HOST = env('REDIS_HOST')
@@ -77,19 +89,37 @@ REDIS_DB = env('REDIS_DB')
 REDIS_PREFIX = env('REDIS_PREFIX')
 
 logger = logging.getLogger('sigpae.EscolaModels')
-redis_conn = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, charset='utf-8', decode_responses=True)
+redis_conn = redis.StrictRedis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    db=REDIS_DB,
+    charset='utf-8',
+    decode_responses=True,
+)
 
 
 class DiretoriaRegional(
-    ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos,
-    AcessoModuloMedicaoInicial
+    ExportModelOperationsMixin('diretoria_regional'),
+    Nomeavel,
+    Iniciais,
+    TemChaveExterna,
+    TemCodigoEOL,
+    TemVinculos,
+    AcessoModuloMedicaoInicial,
 ):
-
     @property
     def editais(self):
-        return [str(uuid_) for uuid_ in set(list(self.escolas.filter(
-            lote__isnull=False, lote__contratos_do_lote__edital__isnull=False).values_list(
-            'lote__contratos_do_lote__edital__uuid', flat=True)))]
+        return [
+            str(uuid_)
+            for uuid_ in set(
+                list(
+                    self.escolas.filter(
+                        lote__isnull=False,
+                        lote__contratos_do_lote__edital__isnull=False,
+                    ).values_list('lote__contratos_do_lote__edital__uuid', flat=True)
+                )
+            )
+        ]
 
     @property
     def vinculos_que_podem_ser_finalizados(self):
@@ -103,9 +133,8 @@ class DiretoriaRegional(
     @property
     def quantidade_alunos(self):
         quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(
-            escola__in=self.escolas.all(), tipo_turma='REGULAR').aggregate(
-            Sum('quantidade_alunos')
-        )
+            escola__in=self.escolas.all(), tipo_turma='REGULAR'
+        ).aggregate(Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum') or 0
 
     #
@@ -146,33 +175,46 @@ class DiretoriaRegional(
             status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
         )
 
-    def filtra_solicitacoes_minhas_escolas_a_validar_por_data(self, filtro_aplicado, model):
+    def filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+        self, filtro_aplicado, model
+    ):
         queryset = queryset_por_data(filtro_aplicado, model)
         return queryset.filter(
-            escola__in=self.escolas.all(), status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
+            escola__in=self.escolas.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR,
         )
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(filtro_aplicado, SolicitacaoKitLancheAvulsa)
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado, SolicitacaoKitLancheAvulsa
+        )
 
     def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
             filtro_aplicado, SolicitacaoKitLancheCEIAvulsa
         )
 
-    def solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+    def solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
+        self, filtro_aplicado
+    ):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
             filtro_aplicado, SolicitacaoKitLancheCEMEI
         )
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(filtro_aplicado, AlteracaoCardapio)
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado, AlteracaoCardapio
+        )
 
     def alteracoes_cardapio_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(filtro_aplicado, AlteracaoCardapioCEI)
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado, AlteracaoCardapioCEI
+        )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(filtro_aplicado, InclusaoAlimentacaoContinua)
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado, InclusaoAlimentacaoContinua
+        )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
@@ -180,10 +222,14 @@ class DiretoriaRegional(
         )
 
     def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
-        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(filtro_aplicado, InclusaoAlimentacaoDaCEI)
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado, InclusaoAlimentacaoDaCEI
+        )
 
     def inclusoes_alimentacao_cemei_das_minhas_escolas(self, filtro_aplicado):
-        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(filtro_aplicado, InclusaoDeAlimentacaoCEMEI)
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado, InclusaoDeAlimentacaoCEMEI
+        )
 
     #
     # Alterações de cardápio
@@ -192,7 +238,8 @@ class DiretoriaRegional(
     @property
     def alteracoes_cardapio_pendentes_das_minhas_escolas(self):
         return AlteracaoCardapio.objects.filter(
-            escola__in=self.escolas.all(), status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR,
         )
 
     @property
@@ -218,27 +265,36 @@ class DiretoriaRegional(
     @property
     def solicitacao_kit_lanche_avulsa_reprovados(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
-            escola__in=self.escolas.all(), status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_PEDIU_ESCOLA_REVISAR
+            escola__in=self.escolas.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_PEDIU_ESCOLA_REVISAR,
         )
 
     @property
     def alteracoes_cardapio_reprovadas(self):
         return AlteracaoCardapio.objects.filter(
-            escola__in=self.escolas.all(), status=AlteracaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
         )
 
     def alteracoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
-        return queryset.filter(escola__in=self.escolas.all(), status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR)
+        return queryset.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR,
+        )
 
     def alteracoes_cardapio_cei_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEI)
-        return queryset.filter(escola__in=self.escolas.all(), status=AlteracaoCardapioCEI.workflow_class.DRE_A_VALIDAR)
+        return queryset.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapioCEI.workflow_class.DRE_A_VALIDAR,
+        )
 
     def alteracoes_cardapio_cemei_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEMEI)
         return queryset.filter(
-            escola__in=self.escolas.all(), status=AlteracaoCardapioCEMEI.workflow_class.DRE_A_VALIDAR
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapioCEMEI.workflow_class.DRE_A_VALIDAR,
         )
 
     #
@@ -247,7 +303,10 @@ class DiretoriaRegional(
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, InversaoCardapio)
-        return queryset.filter(escola__in=self.escolas.all(), status=InversaoCardapio.workflow_class.DRE_A_VALIDAR)
+        return queryset.filter(
+            escola__in=self.escolas.all(),
+            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR,
+        )
 
     @property
     def inversoes_cardapio_autorizadas(self):
@@ -263,12 +322,16 @@ class DiretoriaRegional(
     @property
     def inversoes_cardapio_reprovados(self):
         return InversaoCardapio.objects.filter(
-            escola__in=self.escolas.all(), status__in=[InversaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA]
+            escola__in=self.escolas.all(),
+            status__in=[InversaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA],
         )
 
     @property
     def possui_escolas_com_acesso_ao_medicao_inicial(self):
-        return self.acesso_modulo_medicao_inicial or self.escolas.filter(acesso_modulo_medicao_inicial=True).exists()
+        return (
+            self.acesso_modulo_medicao_inicial
+            or self.escolas.filter(acesso_modulo_medicao_inicial=True).exists()
+        )
 
     def __str__(self):
         return self.nome
@@ -279,7 +342,9 @@ class DiretoriaRegional(
         ordering = ('nome',)
 
 
-class FaixaIdadeEscolar(ExportModelOperationsMixin('faixa_idade'), Nomeavel, Ativavel, TemChaveExterna):
+class FaixaIdadeEscolar(
+    ExportModelOperationsMixin('faixa_idade'), Nomeavel, Ativavel, TemChaveExterna
+):
     """de 1 a 2 anos, de 2 a 5 anos, de 7 a 18 anos, etc."""
 
     def __str__(self):
@@ -291,10 +356,14 @@ class FaixaIdadeEscolar(ExportModelOperationsMixin('faixa_idade'), Nomeavel, Ati
         ordering = ('nome',)
 
 
-class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativavel, TemChaveExterna):
+class TipoUnidadeEscolar(
+    ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativavel, TemChaveExterna
+):
     """EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI..."""
 
-    cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True, related_name='tipos_unidade_escolar')
+    cardapios = models.ManyToManyField(
+        'cardapio.Cardapio', blank=True, related_name='tipos_unidade_escolar'
+    )
     periodos_escolares = models.ManyToManyField(
         'escola.PeriodoEscolar', blank=True, related_name='tipos_unidade_escolar'
     )
@@ -304,13 +373,20 @@ class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativav
     )
     pertence_relatorio_solicitacoes_alimentacao = models.BooleanField(
         help_text='Variável de controle para determinar quais tipos de unidade escolar são exibidos no relatório de '
-                  'solicitações de alimentação',
+        'solicitações de alimentação',
         default=True,
     )
 
     @property
     def eh_cei(self):
-        lista_tipos_unidades = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
+        lista_tipos_unidades = [
+            'CEI DIRET',
+            'CEU CEI',
+            'CEI',
+            'CCI',
+            'CCI/CIPS',
+            'CEI CEU',
+        ]
         return self.iniciais in lista_tipos_unidades
 
     def get_cardapio(self, data):
@@ -329,7 +405,9 @@ class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativav
         ordering = ('iniciais',)
 
 
-class TipoGestao(ExportModelOperationsMixin('tipo_gestao'), Nomeavel, Ativavel, TemChaveExterna):
+class TipoGestao(
+    ExportModelOperationsMixin('tipo_gestao'), Nomeavel, Ativavel, TemChaveExterna
+):
     """Terceirizada completa, tec mista."""
 
     def __str__(self):
@@ -340,11 +418,17 @@ class TipoGestao(ExportModelOperationsMixin('tipo_gestao'), Nomeavel, Ativavel, 
         verbose_name_plural = 'Tipos de gestão'
 
 
-class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, TemChaveExterna, Posicao):
+class PeriodoEscolar(
+    ExportModelOperationsMixin('periodo_escolar'), Nomeavel, TemChaveExterna, Posicao
+):
     """manhã, intermediário, tarde, vespertino, noturno, integral."""
 
-    tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
-    tipo_turno = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
+    tipos_alimentacao = models.ManyToManyField(
+        'cardapio.TipoAlimentacao', related_name='periodos_escolares'
+    )
+    tipo_turno = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)], blank=True, null=True
+    )
 
     @staticmethod
     def dict_periodos():
@@ -353,9 +437,11 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
             'TARDE': PeriodoEscolar.objects.get_or_create(nome='TARDE')[0],
             'INTEGRAL': PeriodoEscolar.objects.get_or_create(nome='INTEGRAL')[0],
             'NOITE': PeriodoEscolar.objects.get_or_create(nome='NOITE')[0],
-            'INTERMEDIARIO': PeriodoEscolar.objects.get_or_create(nome='INTERMEDIARIO')[0],
+            'INTERMEDIARIO': PeriodoEscolar.objects.get_or_create(nome='INTERMEDIARIO')[
+                0
+            ],
             'VESPERTINO': PeriodoEscolar.objects.get_or_create(nome='VESPERTINO')[0],
-            'PARCIAL': PeriodoEscolar.objects.get_or_create(nome='PARCIAL')[0]
+            'PARCIAL': PeriodoEscolar.objects.get_or_create(nome='PARCIAL')[0],
         }
 
     class Meta:
@@ -367,23 +453,55 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
         return self.nome
 
 
-class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos,
-             AcessoModuloMedicaoInicial):
+class Escola(
+    ExportModelOperationsMixin('escola'),
+    Ativavel,
+    TemChaveExterna,
+    TemCodigoEOL,
+    TemVinculos,
+    AcessoModuloMedicaoInicial,
+):
     nome = models.CharField('Nome', max_length=160, blank=True)
-    codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
-    codigo_codae = models.CharField('Código CODAE', max_length=10, blank=True, null=True, default=None)  # noqa DJ01
-    diretoria_regional = models.ForeignKey(DiretoriaRegional, related_name='escolas', on_delete=models.DO_NOTHING)
-    tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.DO_NOTHING)
-    tipo_gestao = models.ForeignKey(TipoGestao, blank=True, null=True, on_delete=models.DO_NOTHING)
-    lote = models.ForeignKey('Lote', related_name='escolas', blank=True, null=True, on_delete=models.PROTECT)
-    subprefeitura = models.ForeignKey(
-        'Subprefeitura', related_name='escolas', blank=True, null=True, default=None, on_delete=models.PROTECT
+    codigo_eol = models.CharField(
+        'Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)]
     )
-    contato = models.ForeignKey('dados_comuns.Contato', on_delete=models.SET_DEFAULT,
-                                blank=True, null=True, default=None)
+    codigo_codae = models.CharField(  # noqa: DJ01
+        'Código CODAE',
+        max_length=10,
+        blank=True,
+        null=True,
+        default=None,
+    )
+    diretoria_regional = models.ForeignKey(
+        DiretoriaRegional, related_name='escolas', on_delete=models.DO_NOTHING
+    )
+    tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.DO_NOTHING)
+    tipo_gestao = models.ForeignKey(
+        TipoGestao, blank=True, null=True, on_delete=models.DO_NOTHING
+    )
+    lote = models.ForeignKey(
+        'Lote', related_name='escolas', blank=True, null=True, on_delete=models.PROTECT
+    )
+    subprefeitura = models.ForeignKey(
+        'Subprefeitura',
+        related_name='escolas',
+        blank=True,
+        null=True,
+        default=None,
+        on_delete=models.PROTECT,
+    )
+    contato = models.ForeignKey(
+        'dados_comuns.Contato',
+        on_delete=models.SET_DEFAULT,
+        blank=True,
+        null=True,
+        default=None,
+    )
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     tipos_contagem = models.ManyToManyField('dieta_especial.TipoContagem', blank=True)
-    endereco = models.ForeignKey('dados_comuns.Endereco', blank=True, null=True, on_delete=models.DO_NOTHING)
+    endereco = models.ForeignKey(
+        'dados_comuns.Endereco', blank=True, null=True, on_delete=models.DO_NOTHING
+    )
     enviar_email_por_produto = models.BooleanField(
         default=False,
         help_text='Envia e-mail quando houver um produto com status de homologado, não homologado, ativar ou suspender.',  # noqa
@@ -392,69 +510,97 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     @property
     def quantidade_alunos(self):
         quantidade = AlunosMatriculadosPeriodoEscola.objects.filter(
-            escola=self, tipo_turma='REGULAR').aggregate(Sum('quantidade_alunos'))
+            escola=self, tipo_turma='REGULAR'
+        ).aggregate(Sum('quantidade_alunos'))
         return quantidade.get('quantidade_alunos__sum') or 0
 
     @property
     def quantidade_alunos_cei_da_cemei(self):
         if not self.eh_cemei:
             return None
-        return self.aluno_set.filter(Q(serie__icontains='1') | Q(serie__icontains='2')
-                                     | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+        return self.aluno_set.filter(
+            Q(serie__icontains='1')
+            | Q(serie__icontains='2')
+            | Q(serie__icontains='3')
+            | Q(serie__icontains='4')
+        ).count()
 
     def quantidade_alunos_cei_por_periodo(self, periodo):
         if not self.eh_cemei:
             return None
-        return self.aluno_set.filter(periodo_escolar__nome=periodo).filter(
-            Q(serie__icontains='1') | Q(serie__icontains='2')
-            | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+        return (
+            self.aluno_set.filter(periodo_escolar__nome=periodo)
+            .filter(
+                Q(serie__icontains='1')
+                | Q(serie__icontains='2')
+                | Q(serie__icontains='3')
+                | Q(serie__icontains='4')
+            )
+            .count()
+        )
 
     def quantidade_alunos_cei_por_periodo_por_faixa(self, periodo, faixa):
         if not self.eh_cemei:
             return None
         data_inicio = datetime.date.today() - relativedelta(months=faixa.inicio)
         data_fim = datetime.date.today() - relativedelta(months=faixa.fim)
-        return self.aluno_set.filter(
-            periodo_escolar__nome=periodo,
-            data_nascimento__lte=data_inicio,
-            data_nascimento__gte=data_fim
-        ).filter(
-            Q(serie__icontains='1') |
-            Q(serie__icontains='2') |
-            Q(serie__icontains='3') |
-            Q(serie__icontains='4')
-        ).count()
+        return (
+            self.aluno_set.filter(
+                periodo_escolar__nome=periodo,
+                data_nascimento__lte=data_inicio,
+                data_nascimento__gte=data_fim,
+            )
+            .filter(
+                Q(serie__icontains='1')
+                | Q(serie__icontains='2')
+                | Q(serie__icontains='3')
+                | Q(serie__icontains='4')
+            )
+            .count()
+        )
 
     def quantidade_alunos_emebs_por_periodo_infantil(self, nome_periodo_escolar):
         if not self.eh_emebs:
             return None
         return self.aluno_set.filter(
-            periodo_escolar__nome=nome_periodo_escolar,
-            etapa=Aluno.ETAPA_INFANTIL
+            periodo_escolar__nome=nome_periodo_escolar, etapa=Aluno.ETAPA_INFANTIL
         ).count()
 
     def quantidade_alunos_emebs_por_periodo_fundamental(self, nome_periodo_escolar):
         if not self.eh_emebs:
             return None
-        return self.aluno_set.filter(
-            periodo_escolar__nome=nome_periodo_escolar,
-        ).exclude(
-            etapa=Aluno.ETAPA_INFANTIL
-        ).count()
+        return (
+            self.aluno_set.filter(
+                periodo_escolar__nome=nome_periodo_escolar,
+            )
+            .exclude(etapa=Aluno.ETAPA_INFANTIL)
+            .count()
+        )
 
     def quantidade_alunos_emei_por_periodo(self, periodo):
         if not self.eh_cemei:
             return None
-        return self.aluno_set.filter(periodo_escolar__nome=periodo).exclude(
-            Q(serie__icontains='1') | Q(serie__icontains='2')
-            | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+        return (
+            self.aluno_set.filter(periodo_escolar__nome=periodo)
+            .exclude(
+                Q(serie__icontains='1')
+                | Q(serie__icontains='2')
+                | Q(serie__icontains='3')
+                | Q(serie__icontains='4')
+            )
+            .count()
+        )
 
     @property
     def quantidade_alunos_emei_da_cemei(self):
         if not self.eh_cemei:
             return None
-        return self.aluno_set.exclude(Q(serie__icontains='1') | Q(serie__icontains='2')
-                                      | Q(serie__icontains='3') | Q(serie__icontains='4')).count()
+        return self.aluno_set.exclude(
+            Q(serie__icontains='1')
+            | Q(serie__icontains='2')
+            | Q(serie__icontains='3')
+            | Q(serie__icontains='4')
+        ).count()
 
     @property
     def alunos_por_periodo_escolar(self):
@@ -463,26 +609,34 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     @property
     def editais(self):
         if self.lote:
-            return [str(edital) for edital in self.lote.contratos_do_lote.filter(
-                edital__isnull=False).values_list('edital__uuid', flat=True)]
+            return [
+                str(edital)
+                for edital in self.lote.contratos_do_lote.filter(
+                    edital__isnull=False
+                ).values_list('edital__uuid', flat=True)
+            ]
         return []
 
     @property
     def periodos_escolares(self):
         """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
         if self.tipo_unidade.tem_somente_integral_e_parcial:
-            periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
+            periodos = PeriodoEscolar.objects.filter(
+                nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI
+            )
         elif self.tipo_unidade.iniciais == 'CEU GESTAO':
-            periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO)
+            periodos = PeriodoEscolar.objects.filter(
+                nome__in=PERIODOS_ESPECIAIS_CEU_GESTAO
+            )
         elif self.eh_cei:
-            periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_DIRET)
+            periodos = PeriodoEscolar.objects.filter(
+                nome__in=PERIODOS_ESPECIAIS_CEI_DIRET
+            )
         else:
             # TODO: ver uma forma melhor de fazer essa query
             periodos_ids = self.alunos_matriculados_por_periodo.filter(
-                tipo_turma='REGULAR',
-                quantidade_alunos__gte=1).values_list(
-                'periodo_escolar', flat=True
-            )
+                tipo_turma='REGULAR', quantidade_alunos__gte=1
+            ).values_list('periodo_escolar', flat=True)
             periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids)
         return periodos
 
@@ -497,12 +651,22 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def eh_cei(self):
-        lista_tipos_unidades = ['CEI DIRET', 'CEU CEI', 'CEI', 'CCI', 'CCI/CIPS', 'CEI CEU']
+        lista_tipos_unidades = [
+            'CEI DIRET',
+            'CEU CEI',
+            'CEI',
+            'CCI',
+            'CCI/CIPS',
+            'CEI CEU',
+        ]
         return self.tipo_unidade and self.tipo_unidade.iniciais in lista_tipos_unidades
 
     @property
     def eh_cemei(self):
-        return self.tipo_unidade and self.tipo_unidade.iniciais in ['CEU CEMEI', 'CEMEI']
+        return self.tipo_unidade and self.tipo_unidade.iniciais in [
+            'CEU CEMEI',
+            'CEMEI',
+        ]
 
     @property
     def eh_emei(self):
@@ -515,7 +679,13 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     @property
     def eh_emef_emei_cieja(self):
         return self.tipo_unidade and self.tipo_unidade.iniciais in [
-            'EMEI', 'EMEF', 'EMEFM', 'CEU EMEF', 'CEU EMEI', 'CIEJA']
+            'EMEI',
+            'EMEF',
+            'EMEFM',
+            'CEU EMEF',
+            'CEU EMEI',
+            'CIEJA',
+        ]
 
     @property
     def modulo_gestao(self):
@@ -525,38 +695,55 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def periodos_escolares_com_alunos(self):
-        return list(self.aluno_set.filter(
-            periodo_escolar__isnull=False
-        ).values_list('periodo_escolar__nome', flat=True).distinct())
+        return list(
+            self.aluno_set.filter(periodo_escolar__isnull=False)
+            .values_list('periodo_escolar__nome', flat=True)
+            .distinct()
+        )
 
     def quantidade_alunos_por_cei_emei(self, manha_e_tarde_sempre=False):  # noqa C901
         if not self.eh_cemei:
             return None
         return_dict = {}
-        alunos_por_periodo_e_faixa_etaria = self.alunos_por_periodo_e_faixa_etaria_objetos_alunos()
-        dict_normalizado = {unidecode.unidecode(faixa): dict(quantidade_alunos.items())
-                            for faixa, quantidade_alunos in alunos_por_periodo_e_faixa_etaria.items()}
+        alunos_por_periodo_e_faixa_etaria = (
+            self.alunos_por_periodo_e_faixa_etaria_objetos_alunos()
+        )
+        dict_normalizado = {
+            unidecode.unidecode(faixa): dict(quantidade_alunos.items())
+            for faixa, quantidade_alunos in alunos_por_periodo_e_faixa_etaria.items()
+        }
 
         lista_faixas = {}
         for periodo, dict_faixas in dict_normalizado.items():
             lista_faixas[periodo] = []
             for uuid_, quantidade_alunos in dict_faixas.items():
-                lista_faixas[periodo].append({'uuid': uuid_,
-                                              'faixa': FaixaEtaria.objects.get(uuid=uuid_).__str__(),
-                                              'quantidade_alunos': quantidade_alunos,
-                                              'inicio': FaixaEtaria.objects.get(uuid=uuid_).inicio})
-            lista_faixas[periodo] = sorted(lista_faixas[periodo], key=lambda x: x['inicio'])
+                lista_faixas[periodo].append(
+                    {
+                        'uuid': uuid_,
+                        'faixa': FaixaEtaria.objects.get(uuid=uuid_).__str__(),
+                        'quantidade_alunos': quantidade_alunos,
+                        'inicio': FaixaEtaria.objects.get(uuid=uuid_).inicio,
+                    }
+                )
+            lista_faixas[periodo] = sorted(
+                lista_faixas[periodo], key=lambda x: x['inicio']
+            )
         periodos = self.periodos_escolares_com_alunos
         if manha_e_tarde_sempre:
-            periodos = list(PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEMEI).values_list(
-                'nome', flat=True))
+            periodos = list(
+                PeriodoEscolar.objects.filter(
+                    nome__in=PERIODOS_ESPECIAIS_CEMEI
+                ).values_list('nome', flat=True)
+            )
         for periodo in periodos:
             return_dict[periodo] = {}
             try:
                 return_dict[periodo]['CEI'] = lista_faixas[periodo]
             except KeyError:
                 return_dict[periodo]['CEI'] = lista_faixas['INTEGRAL']
-            return_dict[periodo]['EMEI'] = self.quantidade_alunos_emei_por_periodo(periodo)
+            return_dict[periodo]['EMEI'] = self.quantidade_alunos_emei_por_periodo(
+                periodo
+            )
 
         return_array = []
         indice = 0
@@ -576,8 +763,12 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
         for periodo in self.periodos_escolares_com_alunos:
             return_dict[periodo] = {}
-            return_dict[periodo]['CEI'] = self.quantidade_alunos_cei_por_periodo(periodo)
-            return_dict[periodo]['EMEI'] = self.quantidade_alunos_emei_por_periodo(periodo)
+            return_dict[periodo]['CEI'] = self.quantidade_alunos_cei_por_periodo(
+                periodo
+            )
+            return_dict[periodo]['EMEI'] = self.quantidade_alunos_emei_por_periodo(
+                periodo
+            )
 
         return_array = []
         indice = 0
@@ -623,16 +814,22 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             raise ObjectDoesNotExist()
         return faixas_etarias
 
-    def contar_alunos_por_faixa(self, aluno_data_nascimento, data_referencia, faixas_etarias, seis_anos_atras):
+    def contar_alunos_por_faixa(
+        self, aluno_data_nascimento, data_referencia, faixas_etarias, seis_anos_atras
+    ):
         count = Counter()
         for faixa_etaria in faixas_etarias:
-            if faixa_etaria.data_pertence_a_faixa(aluno_data_nascimento, data_referencia):
+            if faixa_etaria.data_pertence_a_faixa(
+                aluno_data_nascimento, data_referencia
+            ):
                 count[str(faixa_etaria.uuid)] += 1
             elif aluno_data_nascimento < seis_anos_atras and faixa_etaria.fim == 73:
                 count[str(faixa_etaria.uuid)] += 1
         return count
 
-    def alunos_por_periodo_e_faixa_etaria(self, data_referencia=None, faixas_etarias=None):  # noqa C901
+    def alunos_por_periodo_e_faixa_etaria(
+        self, data_referencia=None, faixas_etarias=None
+    ):  # noqa C901
         data_referencia = self.obter_data_referencia(data_referencia)
         faixas_etarias = self.obter_faixas_etarias(faixas_etarias)
 
@@ -645,11 +842,14 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
             if periodo not in resultados:
                 resultados[periodo] = Counter()
-            resultados[periodo] += self.contar_alunos_por_faixa(data_nascimento, data_referencia, faixas_etarias,
-                                                                seis_anos_atras)
+            resultados[periodo] += self.contar_alunos_por_faixa(
+                data_nascimento, data_referencia, faixas_etarias, seis_anos_atras
+            )
         return resultados
 
-    def alunos_periodo_parcial_e_faixa_etaria(self, data_referencia=None, faixas_etarias=None):
+    def alunos_periodo_parcial_e_faixa_etaria(
+        self, data_referencia=None, faixas_etarias=None
+    ):
         if not self.eh_cei and not self.eh_cemei:
             return {}
 
@@ -659,7 +859,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         alunos_periodo_parcial = AlunoPeriodoParcial.objects.filter(
             aluno__escola__codigo_eol=self.codigo_eol,
             solicitacao_medicao_inicial__mes=str(data_referencia.month).zfill(2),
-            solicitacao_medicao_inicial__ano=str(data_referencia.year)
+            solicitacao_medicao_inicial__ano=str(data_referencia.year),
         ).values_list('aluno__codigo_eol', flat=True)
 
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.codigo_eol)
@@ -674,17 +874,23 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
             if periodo not in resultados:
                 resultados[periodo] = Counter()
-            resultados[periodo] += self.contar_alunos_por_faixa(data_nascimento, data_referencia, faixas_etarias,
-                                                                seis_anos_atras)
+            resultados[periodo] += self.contar_alunos_por_faixa(
+                data_nascimento, data_referencia, faixas_etarias, seis_anos_atras
+            )
         return resultados
 
-    def alunos_por_periodo_e_faixa_etaria_objetos_alunos(self, data_referencia=None, faixas_etarias=None):  # noqa C901
+    def alunos_por_periodo_e_faixa_etaria_objetos_alunos(
+        self, data_referencia=None, faixas_etarias=None
+    ):  # noqa C901
         data_referencia = self.obter_data_referencia(data_referencia)
         faixas_etarias = self.obter_faixas_etarias(faixas_etarias)
 
         lista_alunos = Aluno.objects.filter(escola__codigo_eol=self.codigo_eol).filter(
-            Q(serie__icontains='1') | Q(serie__icontains='2')
-            | Q(serie__icontains='3') | Q(serie__icontains='4'))
+            Q(serie__icontains='1')
+            | Q(serie__icontains='2')
+            | Q(serie__icontains='3')
+            | Q(serie__icontains='4')
+        )
         seis_anos_atras = datetime.date.today() - relativedelta(years=6)
         resultados = {}
         for aluno in lista_alunos:
@@ -692,11 +898,14 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             data_nascimento = aluno.data_nascimento
             if periodo not in resultados:
                 resultados[periodo] = Counter()
-            resultados[periodo] += self.contar_alunos_por_faixa(data_nascimento, data_referencia, faixas_etarias,
-                                                                seis_anos_atras)
+            resultados[periodo] += self.contar_alunos_por_faixa(
+                data_nascimento, data_referencia, faixas_etarias, seis_anos_atras
+            )
         return resultados
 
-    def alunos_por_faixa_etaria(self, data_referencia=None, faixas_etarias=None):  # noqa C901
+    def alunos_por_faixa_etaria(
+        self, data_referencia=None, faixas_etarias=None
+    ):  # noqa C901
         data_referencia = self.obter_data_referencia(data_referencia)
         faixas_etarias = self.obter_faixas_etarias(faixas_etarias)
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.codigo_eol)
@@ -705,8 +914,9 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         resultados = Counter()
         for aluno in lista_alunos:
             data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
-            resultados += self.contar_alunos_por_faixa(data_nascimento, data_referencia, faixas_etarias,
-                                                       seis_anos_atras)
+            resultados += self.contar_alunos_por_faixa(
+                data_nascimento, data_referencia, faixas_etarias, seis_anos_atras
+            )
         return resultados
 
     class Meta:
@@ -715,15 +925,23 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         ordering = ('codigo_eol',)
 
 
-class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativavel, TemChaveExterna):
+class EscolaPeriodoEscolar(
+    ExportModelOperationsMixin('escola_periodo'), Ativavel, TemChaveExterna
+):
     """Serve para guardar a quantidade de alunos da escola em um dado periodo escolar.
 
     Ex: EMEI BLABLA pela manhã tem 55 alunos
     """
 
-    escola = models.ForeignKey(Escola, related_name='escolas_periodos', on_delete=models.DO_NOTHING)
-    periodo_escolar = models.ForeignKey(PeriodoEscolar, related_name='escolas_periodos', on_delete=models.DO_NOTHING)
-    quantidade_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
+    escola = models.ForeignKey(
+        Escola, related_name='escolas_periodos', on_delete=models.DO_NOTHING
+    )
+    periodo_escolar = models.ForeignKey(
+        PeriodoEscolar, related_name='escolas_periodos', on_delete=models.DO_NOTHING
+    )
+    quantidade_alunos = models.PositiveSmallIntegerField(
+        'Quantidade de alunos', default=0
+    )
     horas_atendimento = models.IntegerField(null=True)
 
     def __str__(self):
@@ -746,19 +964,27 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
         faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
         if faixas_etarias.count() == 0:
             raise ObjectDoesNotExist()
-        lista_alunos = EOLService.get_informacoes_escola_turma_aluno(self.escola.codigo_eol)
+        lista_alunos = EOLService.get_informacoes_escola_turma_aluno(
+            self.escola.codigo_eol
+        )
         faixa_alunos = Counter()
         for aluno in lista_alunos:
-            if remove_acentos(aluno['dc_tipo_turno'].strip()).upper() == self.periodo_escolar.nome:
+            if (
+                remove_acentos(aluno['dc_tipo_turno'].strip()).upper()
+                == self.periodo_escolar.nome
+            ):
                 data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
                 meses = (data_nascimento.year - data_referencia.year) * 12
                 meses = meses + (data_nascimento.month - data_referencia.month)
                 meses = meses * (-1)
                 if meses >= 73:
-                    faixa_etaria = FaixaEtaria.objects.filter(inicio=48, fim=73, ativo=True).first()
+                    faixa_etaria = FaixaEtaria.objects.filter(
+                        inicio=48, fim=73, ativo=True
+                    ).first()
                 else:
-                    faixa_etaria = FaixaEtaria.objects.filter(inicio__lte=int(meses),
-                                                              fim__gt=int(meses), ativo=True).first()
+                    faixa_etaria = FaixaEtaria.objects.filter(
+                        inicio__lte=int(meses), fim__gt=int(meses), ativo=True
+                    ).first()
                 if faixa_etaria:
                     faixa_alunos[faixa_etaria.uuid] += 1
         return faixa_alunos
@@ -769,13 +995,25 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
         unique_together = [['periodo_escolar', 'escola']]
 
 
-class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(TemChaveExterna, CriadoEm, Justificativa, CriadoPor):
-    escola = models.ForeignKey(Escola, related_name='log_alteracao_quantidade_alunos', on_delete=models.DO_NOTHING)
-    periodo_escolar = models.ForeignKey(
-        PeriodoEscolar, related_name='log_alteracao_quantidade_alunos', on_delete=models.DO_NOTHING
+class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(
+    TemChaveExterna, CriadoEm, Justificativa, CriadoPor
+):
+    escola = models.ForeignKey(
+        Escola,
+        related_name='log_alteracao_quantidade_alunos',
+        on_delete=models.DO_NOTHING,
     )
-    quantidade_alunos_de = models.PositiveSmallIntegerField('Quantidade de alunos anterior', default=0)
-    quantidade_alunos_para = models.PositiveSmallIntegerField('Quantidade de alunos alterada', default=0)
+    periodo_escolar = models.ForeignKey(
+        PeriodoEscolar,
+        related_name='log_alteracao_quantidade_alunos',
+        on_delete=models.DO_NOTHING,
+    )
+    quantidade_alunos_de = models.PositiveSmallIntegerField(
+        'Quantidade de alunos anterior', default=0
+    )
+    quantidade_alunos_para = models.PositiveSmallIntegerField(
+        'Quantidade de alunos alterada', default=0
+    )
 
     def __str__(self):
         quantidade_anterior = self.quantidade_alunos_de
@@ -790,8 +1028,12 @@ class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(TemChaveExterna, Cria
 
 
 class LogRotinaDiariaAlunos(TemChaveExterna, CriadoEm):
-    quantidade_alunos_antes = models.PositiveIntegerField('Quantidade de alunos antes', default=0)
-    quantidade_alunos_atual = models.PositiveIntegerField('Quantidade de alunos atual', default=0)
+    quantidade_alunos_antes = models.PositiveIntegerField(
+        'Quantidade de alunos antes', default=0
+    )
+    quantidade_alunos_atual = models.PositiveIntegerField(
+        'Quantidade de alunos atual', default=0
+    )
 
     def __str__(self):
         criado_em = self.criado_em.strftime('%Y-%m-%d %H:%M:%S')
@@ -809,13 +1051,25 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
     """Lote de escolas."""
 
     tipo_gestao = models.ForeignKey(
-        TipoGestao, on_delete=models.DO_NOTHING, related_name='lotes', null=True, blank=True
+        TipoGestao,
+        on_delete=models.DO_NOTHING,
+        related_name='lotes',
+        null=True,
+        blank=True,
     )
     diretoria_regional = models.ForeignKey(
-        'escola.DiretoriaRegional', on_delete=models.DO_NOTHING, related_name='lotes', null=True, blank=True
+        'escola.DiretoriaRegional',
+        on_delete=models.DO_NOTHING,
+        related_name='lotes',
+        null=True,
+        blank=True,
     )
     terceirizada = models.ForeignKey(
-        'terceirizada.Terceirizada', on_delete=models.DO_NOTHING, related_name='lotes', null=True, blank=True
+        'terceirizada.Terceirizada',
+        on_delete=models.DO_NOTHING,
+        related_name='lotes',
+        null=True,
+        blank=True,
     )
 
     @property
@@ -825,18 +1079,20 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
     @property
     def quantidade_alunos(self):
         quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(
-            escola__in=self.escolas.all(), tipo_turma='REGULAR').aggregate(
-            Sum('quantidade_alunos')
-        )
+            escola__in=self.escolas.all(), tipo_turma='REGULAR'
+        ).aggregate(Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum') or 0
 
     def transferir_solicitacoes_gestao_alimentacao(self, terceirizada):
         hoje = date.today()
-        canceladas_ou_negadas = Q(status__in=[
-            FluxoAprovacaoPartindoDaEscola.workflow_class.CODAE_NEGOU_PEDIDO,
-            FluxoAprovacaoPartindoDaEscola.workflow_class.CANCELADO_AUTOMATICAMENTE,
-            FluxoAprovacaoPartindoDaEscola.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
-            FluxoAprovacaoPartindoDaEscola.workflow_class.ESCOLA_CANCELOU])
+        canceladas_ou_negadas = Q(
+            status__in=[
+                FluxoAprovacaoPartindoDaEscola.workflow_class.CODAE_NEGOU_PEDIDO,
+                FluxoAprovacaoPartindoDaEscola.workflow_class.CANCELADO_AUTOMATICAMENTE,
+                FluxoAprovacaoPartindoDaEscola.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
+                FluxoAprovacaoPartindoDaEscola.workflow_class.ESCOLA_CANCELOU,
+            ]
+        )
         self.inclusao_alimentacao_inclusaoalimentacaocontinua_rastro_lote.exclude(
             canceladas_ou_negadas | Q(data_inicial__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
@@ -868,7 +1124,9 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
             canceladas_ou_negadas | Q(data__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
         self.cardapio_inversaocardapio_rastro_lote.exclude(
-            canceladas_ou_negadas | Q(data_de_inversao__lt=hoje) | Q(data_para_inversao__lt=hoje)
+            canceladas_ou_negadas
+            | Q(data_de_inversao__lt=hoje)
+            | Q(data_para_inversao__lt=hoje)
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
         self.cardapio_gruposuspensaoalimentacao_rastro_lote.exclude(
             suspensoes_alimentacao__data__lt=hoje
@@ -878,21 +1136,27 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
         ).update(rastro_terceirizada=terceirizada, terceirizada_conferiu_gestao=False)
 
     def transferir_dietas_especiais(self, terceirizada):
-        canceladas_ou_negadas = Q(status__in=[
-            FluxoDietaEspecialPartindoDaEscola.workflow_class.CANCELADO_ALUNO_MUDOU_ESCOLA,
-            FluxoDietaEspecialPartindoDaEscola.workflow_class.CODAE_NEGOU_PEDIDO,
-            FluxoDietaEspecialPartindoDaEscola.workflow_class.ESCOLA_CANCELOU,
-            FluxoDietaEspecialPartindoDaEscola.workflow_class.TERMINADA_AUTOMATICAMENTE_SISTEMA,
-            FluxoDietaEspecialPartindoDaEscola.workflow_class.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-            FluxoDietaEspecialPartindoDaEscola.workflow_class.CODAE_AUTORIZOU_INATIVACAO,
-            FluxoDietaEspecialPartindoDaEscola.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO
-        ])
+        canceladas_ou_negadas = Q(
+            status__in=[
+                FluxoDietaEspecialPartindoDaEscola.workflow_class.CANCELADO_ALUNO_MUDOU_ESCOLA,
+                FluxoDietaEspecialPartindoDaEscola.workflow_class.CODAE_NEGOU_PEDIDO,
+                FluxoDietaEspecialPartindoDaEscola.workflow_class.ESCOLA_CANCELOU,
+                FluxoDietaEspecialPartindoDaEscola.workflow_class.TERMINADA_AUTOMATICAMENTE_SISTEMA,
+                FluxoDietaEspecialPartindoDaEscola.workflow_class.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+                FluxoDietaEspecialPartindoDaEscola.workflow_class.CODAE_AUTORIZOU_INATIVACAO,
+                FluxoDietaEspecialPartindoDaEscola.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+            ]
+        )
         self.dieta_especial_solicitacaodietaespecial_rastro_lote.exclude(
             canceladas_ou_negadas
         ).update(rastro_terceirizada=terceirizada, conferido=False)
 
     def __str__(self):
-        nome_dre = self.diretoria_regional.nome if self.diretoria_regional else 'sem DRE definida'
+        nome_dre = (
+            self.diretoria_regional.nome
+            if self.diretoria_regional
+            else 'sem DRE definida'
+        )
         return f'{self.nome} - {nome_dre}'
 
     class Meta:
@@ -901,7 +1165,9 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
         ordering = ('nome',)
 
 
-class Subprefeitura(ExportModelOperationsMixin('subprefeitura'), Nomeavel, TemChaveExterna):
+class Subprefeitura(
+    ExportModelOperationsMixin('subprefeitura'), Nomeavel, TemChaveExterna
+):
     AGRUPAMENTO = (
         (1, 1),
         (2, 2),
@@ -909,10 +1175,19 @@ class Subprefeitura(ExportModelOperationsMixin('subprefeitura'), Nomeavel, TemCh
         (4, 4),
     )
 
-    codigo_eol = models.CharField( # noqa DJ01
-        'Código EOL', max_length=6, unique=True, null=True, blank=True)
-    diretoria_regional = models.ManyToManyField(DiretoriaRegional, related_name='subprefeituras', blank=True)
-    lote = models.ForeignKey('Lote', related_name='subprefeituras', on_delete=models.SET_NULL, null=True, blank=True)
+    codigo_eol = models.CharField(  # noqa DJ01
+        'Código EOL', max_length=6, unique=True, null=True, blank=True
+    )
+    diretoria_regional = models.ManyToManyField(
+        DiretoriaRegional, related_name='subprefeituras', blank=True
+    )
+    lote = models.ForeignKey(
+        'Lote',
+        related_name='subprefeituras',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     agrupamento = models.PositiveSmallIntegerField(choices=AGRUPAMENTO, default=1)
 
     def __str__(self):
@@ -924,7 +1199,13 @@ class Subprefeitura(ExportModelOperationsMixin('subprefeitura'), Nomeavel, TemCh
         ordering = ('nome',)
 
 
-class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemVinculos):
+class Codae(
+    ExportModelOperationsMixin('codae'),
+    Nomeavel,
+    TemChaveExterna,
+    TemVinculos,
+    AcessoModuloMedicaoInicial,
+):
     @property
     def vinculos_que_podem_ser_finalizados(self):
         return self.vinculos.filter(
@@ -932,14 +1213,18 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
             | Q(  # noqa W504 esperando ativacao
                 data_inicial__isnull=False, data_final=None, ativo=True
             )  # noqa W504 ativo
-        ).exclude(perfil__nome__in=[COORDENADOR_DIETA_ESPECIAL, COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA])
+        ).exclude(
+            perfil__nome__in=[
+                COORDENADOR_DIETA_ESPECIAL,
+                COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+            ]
+        )
 
     @property
     def quantidade_alunos(self):
         quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(
-            escola__in=Escola.objects.all(), tipo_turma='REGULAR').aggregate(
-            Sum('quantidade_alunos')
-        )
+            escola__in=Escola.objects.all(), tipo_turma='REGULAR'
+        ).aggregate(Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum') or 0
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
@@ -947,7 +1232,7 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         return queryset.filter(
             status__in=[
                 InversaoCardapio.workflow_class.DRE_VALIDADO,
-                InversaoCardapio.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+                InversaoCardapio.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
             ]
         )
 
@@ -960,10 +1245,13 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
             ]
         )
 
-    def filtra_solicitacoes_minhas_escolas_a_validar_por_data(self, filtro_aplicado, model):
+    def filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+        self, filtro_aplicado, model
+    ):
         queryset = queryset_por_data(filtro_aplicado, model)
         return queryset.filter(
-            escola__in=Escola.objects.all(), status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
+            escola__in=Escola.objects.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR,
         )
 
     def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
@@ -971,7 +1259,7 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         return queryset.filter(
             status__in=[
                 InclusaoAlimentacaoDaCEI.workflow_class.DRE_VALIDADO,
-                InclusaoAlimentacaoDaCEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+                InclusaoAlimentacaoDaCEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
             ]
         )
 
@@ -986,7 +1274,9 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
     @property
     def inversoes_cardapio_reprovados(self):
-        return InversaoCardapio.objects.filter(status__in=[InversaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO])
+        return InversaoCardapio.objects.filter(
+            status__in=[InversaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO]
+        )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, InclusaoAlimentacaoContinua)
@@ -1044,10 +1334,12 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
     def solicitacoes_unificadas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheUnificada)
-        return queryset.filter(status__in=[
-            SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_AUTORIZAR,
-            SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-        ])
+        return queryset.filter(
+            status__in=[
+                SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_AUTORIZAR,
+                SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+            ]
+        )
 
     @property
     def solicitacoes_unificadas_autorizadas(self):
@@ -1097,7 +1389,9 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
             ]
         )
 
-    def solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+    def solicitacoes_kit_lanche_cemei_das_minhas_escolas_a_validar(
+        self, filtro_aplicado
+    ):
         queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheCEMEI)
         return queryset.filter(
             status__in=[
@@ -1141,7 +1435,9 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
     @property
     def alteracoes_cardapio_reprovadas(self):
-        return AlteracaoCardapio.objects.filter(status=AlteracaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO)
+        return AlteracaoCardapio.objects.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO
+        )
 
     def delete(self, *args, **kwargs):
         pass
@@ -1155,9 +1451,12 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
 
 class Responsavel(Nomeavel, TemChaveExterna, CriadoEm):
-
-    cpf = models.CharField( # noqa DJ01
-        max_length=11, blank=True, null=True, unique=True, validators=[MinLengthValidator(11)]
+    cpf = models.CharField(  # noqa DJ01
+        max_length=11,
+        blank=True,
+        null=True,
+        unique=True,
+        validators=[MinLengthValidator(11)],
     )
 
     def __str__(self):
@@ -1173,18 +1472,31 @@ class Aluno(TemChaveExterna):
 
     nome = models.CharField('Nome Completo do Aluno', max_length=100)
     codigo_eol = models.CharField(  # noqa DJ01
-        'Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)], null=True, blank=True
+        'Código EOL',
+        max_length=7,
+        unique=True,
+        validators=[MinLengthValidator(7)],
+        null=True,
+        blank=True,
     )
     data_nascimento = models.DateField()
     escola = models.ForeignKey(Escola, blank=True, null=True, on_delete=models.SET_NULL)
-    periodo_escolar = models.ForeignKey(PeriodoEscolar, blank=True, null=True, on_delete=models.SET_NULL)
-    cpf = models.CharField( # noqa DJ01
-        max_length=11, blank=True, null=True, unique=True, validators=[MinLengthValidator(11)]
+    periodo_escolar = models.ForeignKey(
+        PeriodoEscolar, blank=True, null=True, on_delete=models.SET_NULL
+    )
+    cpf = models.CharField(  # noqa DJ01
+        max_length=11,
+        blank=True,
+        null=True,
+        unique=True,
+        validators=[MinLengthValidator(11)],
     )
     nao_matriculado = models.BooleanField(default=False)
     serie = models.CharField(max_length=10, blank=True, null=True)  # noqa DJ01
 
-    responsaveis = models.ManyToManyField(Responsavel, blank=True, related_name='alunos')
+    responsaveis = models.ManyToManyField(
+        Responsavel, blank=True, related_name='alunos'
+    )
 
     etapa = models.PositiveSmallIntegerField(blank=True, null=True)
     ciclo = models.PositiveSmallIntegerField(blank=True, null=True)
@@ -1229,7 +1541,9 @@ class FaixaEtaria(Ativavel, TemChaveExterna):
     fim = models.PositiveSmallIntegerField()
 
     def data_pertence_a_faixa(self, data_pesquisada, data_referencia_arg=None):
-        data_referencia = date.today() if data_referencia_arg is None else data_referencia_arg
+        data_referencia = (
+            date.today() if data_referencia_arg is None else data_referencia_arg
+        )
         data_inicio = subtrai_meses_de_data(self.fim, data_referencia)
         data_fim = subtrai_meses_de_data(self.inicio, data_referencia)
         return data_inicio <= data_pesquisada < data_fim
@@ -1249,7 +1563,9 @@ class PlanilhaEscolaDeParaCodigoEolCodigoCoade(CriadoEm, TemAlteradoEm):
         'O nome de cada coluna deve ser exatamente como a seguir:<br> '
         '<b>codigo_eol</b> e <b>codigo_unidade</b>'
     )
-    codigos_codae_vinculados = models.BooleanField('Códigos Codae Vinculados?', default=False, editable=False)
+    codigos_codae_vinculados = models.BooleanField(
+        'Códigos Codae Vinculados?', default=False, editable=False
+    )
 
     class Meta:
         verbose_name = 'Planilha De-Para: Código EOL x Código Codae'
@@ -1260,7 +1576,6 @@ class PlanilhaEscolaDeParaCodigoEolCodigoCoade(CriadoEm, TemAlteradoEm):
 
 
 class PlanilhaAtualizacaoTipoGestaoEscola(ArquivoCargaBase):
-
     class Meta:
         verbose_name = 'Planilha Atualização Tipo Gestão Escola'
         verbose_name_plural = 'Planilha Atualização Tipo Gestão Escola'
@@ -1284,12 +1599,23 @@ class AlunosMatriculadosPeriodoEscola(CriadoEm, TemAlteradoEm, TemChaveExterna):
     Ex: EMEI BLABLA pela manhã tem 20 alunos
     """
 
-    escola = models.ForeignKey(Escola, related_name='alunos_matriculados_por_periodo', on_delete=models.DO_NOTHING)
-    periodo_escolar = models.ForeignKey(PeriodoEscolar, related_name='alunos_matriculados', on_delete=models.DO_NOTHING)
-    quantidade_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
+    escola = models.ForeignKey(
+        Escola,
+        related_name='alunos_matriculados_por_periodo',
+        on_delete=models.DO_NOTHING,
+    )
+    periodo_escolar = models.ForeignKey(
+        PeriodoEscolar, related_name='alunos_matriculados', on_delete=models.DO_NOTHING
+    )
+    quantidade_alunos = models.PositiveSmallIntegerField(
+        'Quantidade de alunos', default=0
+    )
 
     tipo_turma = models.CharField(
-        max_length=255, choices=TipoTurma.choices(), blank=True, default=TipoTurma.REGULAR.name
+        max_length=255,
+        choices=TipoTurma.choices(),
+        blank=True,
+        default=TipoTurma.REGULAR.name,
     )
 
     @classmethod
@@ -1339,26 +1665,41 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
     INFANTIL_OU_FUNDAMENTAL = (
         ('N/A', 'N/A'),
         ('INFANTIL', 'INFANTIL'),
-        ('FUNDAMENTAL', 'FUNDAMENTAL')
+        ('FUNDAMENTAL', 'FUNDAMENTAL'),
     )
 
-    escola = models.ForeignKey(Escola, related_name='logs_alunos_matriculados_por_periodo', on_delete=models.DO_NOTHING)
-    periodo_escolar = models.ForeignKey(
-        PeriodoEscolar, related_name='logs_alunos_matriculados', on_delete=models.DO_NOTHING
+    escola = models.ForeignKey(
+        Escola,
+        related_name='logs_alunos_matriculados_por_periodo',
+        on_delete=models.DO_NOTHING,
     )
-    quantidade_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
+    periodo_escolar = models.ForeignKey(
+        PeriodoEscolar,
+        related_name='logs_alunos_matriculados',
+        on_delete=models.DO_NOTHING,
+    )
+    quantidade_alunos = models.PositiveSmallIntegerField(
+        'Quantidade de alunos', default=0
+    )
 
     tipo_turma = models.CharField(
-        max_length=255, choices=TipoTurma.choices(), blank=True, default=TipoTurma.REGULAR.name
+        max_length=255,
+        choices=TipoTurma.choices(),
+        blank=True,
+        default=TipoTurma.REGULAR.name,
     )
     cei_ou_emei = models.CharField(max_length=4, choices=CEI_OU_EMEI, default='N/A')
-    infantil_ou_fundamental = models.CharField(max_length=11, choices=INFANTIL_OU_FUNDAMENTAL, default='N/A')
+    infantil_ou_fundamental = models.CharField(
+        max_length=11, choices=INFANTIL_OU_FUNDAMENTAL, default='N/A'
+    )
 
     def cria_logs_emei_em_cemei(self):
-        if (not self.escola.eh_cemei or
-            self.tipo_turma != 'REGULAR' or
-            (self.periodo_escolar and self.periodo_escolar.nome != 'INTEGRAL') or
-                self.escola.quantidade_alunos_emei_por_periodo('INTEGRAL') == 0):
+        if (
+            not self.escola.eh_cemei
+            or self.tipo_turma != 'REGULAR'
+            or (self.periodo_escolar and self.periodo_escolar.nome != 'INTEGRAL')
+            or self.escola.quantidade_alunos_emei_por_periodo('INTEGRAL') == 0
+        ):
             return
         if not LogAlunosMatriculadosPeriodoEscola.objects.filter(
             escola=self.escola,
@@ -1367,22 +1708,27 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
             criado_em__month=self.criado_em.month,
             criado_em__day=self.criado_em.day,
             tipo_turma=self.tipo_turma,
-            cei_ou_emei='EMEI'
+            cei_ou_emei='EMEI',
         ).exists():
             log = LogAlunosMatriculadosPeriodoEscola.objects.create(
                 escola=self.escola,
                 periodo_escolar=self.periodo_escolar,
-                quantidade_alunos=self.escola.quantidade_alunos_emei_por_periodo('INTEGRAL'),
+                quantidade_alunos=self.escola.quantidade_alunos_emei_por_periodo(
+                    'INTEGRAL'
+                ),
                 tipo_turma=self.tipo_turma,
-                cei_ou_emei='EMEI'
+                cei_ou_emei='EMEI',
             )
             log.criado_em = self.criado_em
             log.save()
 
     def cria_logs_cei_em_cemei(self):
-        if (not self.escola.eh_cemei or
-            self.tipo_turma != 'REGULAR' or
-                self.periodo_escolar and self.periodo_escolar.nome != 'INTEGRAL'):
+        if (
+            not self.escola.eh_cemei
+            or self.tipo_turma != 'REGULAR'
+            or self.periodo_escolar
+            and self.periodo_escolar.nome != 'INTEGRAL'
+        ):
             return
         if not LogAlunosMatriculadosPeriodoEscola.objects.filter(
             escola=self.escola,
@@ -1391,14 +1737,16 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
             criado_em__month=self.criado_em.month,
             criado_em__day=self.criado_em.day,
             tipo_turma=self.tipo_turma,
-            cei_ou_emei='CEI'
+            cei_ou_emei='CEI',
         ).exists():
             log = LogAlunosMatriculadosPeriodoEscola.objects.create(
                 escola=self.escola,
                 periodo_escolar=self.periodo_escolar,
-                quantidade_alunos=self.escola.quantidade_alunos_cei_por_periodo('INTEGRAL'),
+                quantidade_alunos=self.escola.quantidade_alunos_cei_por_periodo(
+                    'INTEGRAL'
+                ),
                 tipo_turma=self.tipo_turma,
-                cei_ou_emei='CEI'
+                cei_ou_emei='CEI',
             )
             log.criado_em = self.criado_em
             log.save()
@@ -1406,7 +1754,9 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
     def cria_logs_emebs(self, infantil_ou_fundamental):
         if not self.escola.eh_emebs or self.tipo_turma != 'REGULAR':
             return
-        metodo_qtd_alunos = f'quantidade_alunos_emebs_por_periodo_{infantil_ou_fundamental.lower()}'
+        metodo_qtd_alunos = (
+            f'quantidade_alunos_emebs_por_periodo_{infantil_ou_fundamental.lower()}'
+        )
         if not LogAlunosMatriculadosPeriodoEscola.objects.filter(
             escola=self.escola,
             periodo_escolar=self.periodo_escolar,
@@ -1414,14 +1764,16 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
             criado_em__month=self.criado_em.month,
             criado_em__day=self.criado_em.day,
             tipo_turma=self.tipo_turma,
-            infantil_ou_fundamental=infantil_ou_fundamental
+            infantil_ou_fundamental=infantil_ou_fundamental,
         ).exists():
             log = LogAlunosMatriculadosPeriodoEscola.objects.create(
                 escola=self.escola,
                 periodo_escolar=self.periodo_escolar,
-                quantidade_alunos=getattr(self.escola, metodo_qtd_alunos)(self.periodo_escolar.nome),
+                quantidade_alunos=getattr(self.escola, metodo_qtd_alunos)(
+                    self.periodo_escolar.nome
+                ),
                 tipo_turma=self.tipo_turma,
-                infantil_ou_fundamental=infantil_ou_fundamental
+                infantil_ou_fundamental=infantil_ou_fundamental,
             )
             log.criado_em = self.criado_em
             log.save()
@@ -1437,7 +1789,7 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
                 criado_em__day=data.day,
                 tipo_turma=tipo_turma,
                 cei_ou_emei='N/A',
-                infantil_ou_fundamental='N/A'
+                infantil_ou_fundamental='N/A',
             )
         except cls.DoesNotExist:
             log = cls.objects.create(
@@ -1446,7 +1798,7 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
                 quantidade_alunos=quantidade_alunos,
                 tipo_turma=tipo_turma,
                 cei_ou_emei='N/A',
-                infantil_ou_fundamental='N/A'
+                infantil_ou_fundamental='N/A',
             )
             log.criado_em = data
             log.save()
@@ -1463,7 +1815,9 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
 
     class Meta:
         verbose_name = 'Log Alteração quantidade de alunos regular e programa'
-        verbose_name_plural = 'Logs de Alteração quantidade de alunos regulares e de programas'
+        verbose_name_plural = (
+            'Logs de Alteração quantidade de alunos regulares e de programas'
+        )
         ordering = ('-criado_em',)
 
 
@@ -1471,40 +1825,63 @@ class DiaCalendario(CriadoEm, TemAlteradoEm, TemData, TemChaveExterna):
     SABADO = 5
     DOMINGO = 6
 
-    escola = models.ForeignKey(Escola, related_name='calendario', on_delete=models.DO_NOTHING, null=True)
+    escola = models.ForeignKey(
+        Escola, related_name='calendario', on_delete=models.DO_NOTHING, null=True
+    )
     dia_letivo = models.BooleanField('É dia Letivo?', default=True)
 
     @classmethod
-    def existe_inclusao_continua(self, escola, datas_nao_letivas, periodos_escolares_alteracao):
-        dias_fim_de_semana = [data for data in datas_nao_letivas if eh_fim_de_semana(data)]
+    def existe_inclusao_continua(
+        self, escola, datas_nao_letivas, periodos_escolares_alteracao
+    ):
+        dias_fim_de_semana = [
+            data for data in datas_nao_letivas if eh_fim_de_semana(data)
+        ]
         for data in dias_fim_de_semana:
-            if escola.inclusoes_continuas.filter(
-                status='CODAE_AUTORIZADO',
-                data_inicial__lte=data,
-                data_final__gte=data,
-                quantidades_por_periodo__periodo_escolar__in=periodos_escolares_alteracao,
-                quantidades_por_periodo__cancelado=False).filter(
-                Q(quantidades_por_periodo__dias_semana__icontains=self.SABADO) |
-                    Q(quantidades_por_periodo__dias_semana__icontains=self.DOMINGO)).exists():
+            if (
+                escola.inclusoes_continuas.filter(
+                    status='CODAE_AUTORIZADO',
+                    data_inicial__lte=data,
+                    data_final__gte=data,
+                    quantidades_por_periodo__periodo_escolar__in=periodos_escolares_alteracao,
+                    quantidades_por_periodo__cancelado=False,
+                )
+                .filter(
+                    Q(quantidades_por_periodo__dias_semana__icontains=self.SABADO)
+                    | Q(quantidades_por_periodo__dias_semana__icontains=self.DOMINGO)
+                )
+                .exists()
+            ):
                 return True
         return False
 
     @classmethod
-    def pelo_menos_um_dia_letivo(cls, escola: Escola, datas: list, alteracao: AlteracaoCardapio):
+    def pelo_menos_um_dia_letivo(
+        cls, escola: Escola, datas: list, alteracao: AlteracaoCardapio
+    ):
         if escola.calendario.filter(data__in=datas, dia_letivo=True).exists():
             return True
         try:
-            datas_nao_letivas = [data for data in datas if not escola.calendario.get(data=data).dia_letivo]
+            datas_nao_letivas = [
+                data
+                for data in datas
+                if not escola.calendario.get(data=data).dia_letivo
+            ]
         except DiaCalendario.DoesNotExist:
             datas_nao_letivas = datas
-        periodos_escolares_alteracao = alteracao.substituicoes.values_list('periodo_escolar')
+        periodos_escolares_alteracao = alteracao.substituicoes.values_list(
+            'periodo_escolar'
+        )
         if escola.grupos_inclusoes.filter(
             inclusoes_normais__cancelado=False,
             inclusoes_normais__data__in=datas_nao_letivas,
             quantidades_por_periodo__periodo_escolar__in=periodos_escolares_alteracao,
-                status='CODAE_AUTORIZADO').exists():
+            status='CODAE_AUTORIZADO',
+        ).exists():
             return True
-        return cls.existe_inclusao_continua(escola, datas_nao_letivas, periodos_escolares_alteracao)
+        return cls.existe_inclusao_continua(
+            escola, datas_nao_letivas, periodos_escolares_alteracao
+        )
 
     def __str__(self) -> str:
         return f"""Dia {self.data.strftime("%d/%m/%Y")}
@@ -1528,14 +1905,20 @@ class LogAtualizaDadosAluno(models.Model):
         return retorno
 
 
-class LogAlunosMatriculadosFaixaEtariaDia(TemChaveExterna, CriadoEm, TemData, TemFaixaEtariaEQuantidade):
+class LogAlunosMatriculadosFaixaEtariaDia(
+    TemChaveExterna, CriadoEm, TemData, TemFaixaEtariaEQuantidade
+):
     """Histórico da quantidade de Alunos por faixa etária, dia, período, escola."""
 
     escola = models.ForeignKey(
-        Escola, related_name='logs_alunos_matriculados_por_faixa_etaria', on_delete=models.DO_NOTHING
+        Escola,
+        related_name='logs_alunos_matriculados_por_faixa_etaria',
+        on_delete=models.DO_NOTHING,
     )
     periodo_escolar = models.ForeignKey(
-        PeriodoEscolar, related_name='logs_alunos_matriculados_por_faixa_etaria', on_delete=models.DO_NOTHING
+        PeriodoEscolar,
+        related_name='logs_alunos_matriculados_por_faixa_etaria',
+        on_delete=models.DO_NOTHING,
     )
 
     def __str__(self):
@@ -1546,7 +1929,9 @@ class LogAlunosMatriculadosFaixaEtariaDia(TemChaveExterna, CriadoEm, TemData, Te
 
     class Meta:
         verbose_name = 'Log quantidade de alunos por faixa etária, dia e período'
-        verbose_name_plural = 'Logs quantidades de alunos por faixas etárias, dias e períodos'
+        verbose_name_plural = (
+            'Logs quantidades de alunos por faixas etárias, dias e períodos'
+        )
         ordering = ('criado_em',)
 
 
@@ -1560,12 +1945,16 @@ class AlunoPeriodoParcial(TemChaveExterna, CriadoEm):
         Aluno, related_name='alunos_periodo_parcial', on_delete=models.PROTECT
     )
     solicitacao_medicao_inicial = models.ForeignKey(
-        'medicao_inicial.SolicitacaoMedicaoInicial', related_name='alunos_periodo_parcial', on_delete=models.CASCADE
+        'medicao_inicial.SolicitacaoMedicaoInicial',
+        related_name='alunos_periodo_parcial',
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
-        return (f'{self.aluno.nome} para SMI {self.solicitacao_medicao_inicial.mes}/'
-                f'{self.solicitacao_medicao_inicial.ano} da UE {self.escola.nome}')
+        return (
+            f'{self.aluno.nome} para SMI {self.solicitacao_medicao_inicial.mes}/'
+            f'{self.solicitacao_medicao_inicial.ano} da UE {self.escola.nome}'
+        )
 
     class Meta:
         verbose_name = 'Aluno no período parcial'
@@ -1581,25 +1970,31 @@ class DiaSuspensaoAtividades(TemData, TemChaveExterna, CriadoEm, CriadoPor):
         return None
 
     @staticmethod
-    def get_dias_com_suspensao(escola: Escola, eh_solicitacao_unificada: bool, quantidade_dias: int):
+    def get_dias_com_suspensao(
+        escola: Escola, eh_solicitacao_unificada: bool, quantidade_dias: int
+    ):
         hoje = datetime.date.today()
         proximos_dias_uteis = obter_dias_uteis_apos_hoje(quantidade_dias)
         dias = datetime_range(hoje, proximos_dias_uteis)
         dias_com_suspensao = 0
         if escola:
             dias_com_suspensao = DiaSuspensaoAtividades.objects.filter(
-                data__in=dias,
-                tipo_unidade=escola.tipo_unidade
+                data__in=dias, tipo_unidade=escola.tipo_unidade
             ).count()
         elif eh_solicitacao_unificada:
             for dia in dias:
-                if DiaSuspensaoAtividades.objects.filter(data=dia).count() == TipoUnidadeEscolar.objects.count():
+                if (
+                    DiaSuspensaoAtividades.objects.filter(data=dia).count()
+                    == TipoUnidadeEscolar.objects.count()
+                ):
                     dias_com_suspensao += 1
         return dias_com_suspensao
 
     @staticmethod
     def eh_dia_de_suspensao(escola: Escola, data: date):
-        return DiaSuspensaoAtividades.objects.filter(data=data, tipo_unidade=escola.tipo_unidade).exists()
+        return DiaSuspensaoAtividades.objects.filter(
+            data=data, tipo_unidade=escola.tipo_unidade
+        ).exists()
 
     def __str__(self):
         return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais}'
@@ -1607,5 +2002,8 @@ class DiaSuspensaoAtividades(TemData, TemChaveExterna, CriadoEm, CriadoPor):
     class Meta:
         verbose_name = 'Dia de suspensão de atividades'
         verbose_name_plural = 'Dias de suspensão de atividades'
-        unique_together = ('tipo_unidade', 'data',)
+        unique_together = (
+            'tipo_unidade',
+            'data',
+        )
         ordering = ('data',)
