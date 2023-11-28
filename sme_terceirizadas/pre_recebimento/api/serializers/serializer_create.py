@@ -7,8 +7,8 @@ from xworkflows.base import InvalidTransitionError
 from sme_terceirizadas.dados_comuns.api.serializers import CamposObrigatoriosMixin, ContatoSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
-from sme_terceirizadas.dados_comuns.fluxo_status import DocumentoDeRecebimentoWorkflow
 from sme_terceirizadas.pre_recebimento.models import (
+    ArquivoDoTipoDeDocumento,
     Cronograma,
     DataDeFabricaoEPrazo,
     DocumentoDeRecebimento,
@@ -21,8 +21,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
-    UnidadeMedida,
-    ArquivoDoTipoDeDocumento,
+    UnidadeMedida
 )
 from sme_terceirizadas.produto.models import NomeDeProdutoEdital
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
@@ -793,7 +792,6 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f'Erro de transição de estado. O status deste documento de recebimento não permite correção: {e}'
             )
-
 
     class Meta:
         model = DocumentoDeRecebimento
