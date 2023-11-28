@@ -8,7 +8,6 @@ from sme_terceirizadas.dados_comuns.api.serializers import CamposObrigatoriosMix
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from sme_terceirizadas.pre_recebimento.models import (
-    ArquivoDoTipoDeDocumento,
     Cronograma,
     DataDeFabricaoEPrazo,
     DocumentoDeRecebimento,
