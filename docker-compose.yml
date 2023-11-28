@@ -1,43 +1,18 @@
-# Use postgres/example user/password credentials
-version: '3.1'
+version: "3.1"
 
 services:
   db:
-    container_name: database_sigpae
-    image: postgres:11.2-alpine
-    restart: always
+    image: postgres:12.17-alpine
+    container_name: db-sigpae
     env_file: .env
+    ports:
+      - 5432:5432
+    restart: always
     volumes:
-      - ./sigpae-postgres-data:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis:5.0.0-alpine
+    container_name: redis-sigpae
     ports:
-      - 5441:5432
-
-  celery_sigpae:
-    build: .
-    container_name: celery-sigpae
+      - 6379:6379
     restart: always
-    command: "celery -A config worker --loglevel=info --concurrency=3 -n worker1@%h -B"
-    env_file: .env
-    depends_on:
-      - redis_sigpae
-
-  redis_sigpae:
-    image: redis:5.0
-    container_name: redis-sigpae0
-    restart: always
-    ports:
-        - "6383:6379"
-
-  backend:
-    image: marcelomaia/terceirizadas_backend:latest
-    # http://docs.gunicorn.org/en/latest/design.html#how-many-workers
-    # http://docs.gunicorn.org/en/latest/settings.html#worker-class
-    command: "gunicorn config.wsgi:application --bind=0.0.0.0:8000 -w 9"
-    ports:
-      - 7777:8000
-    env_file:
-      - .env
-    environment:
-      - DJANGO_SETTINGS_MODULE=config.settings.production
-      - DJANGO_DEBUG=False
-      - DJANGO_READ_DOT_ENV_FILE=false
