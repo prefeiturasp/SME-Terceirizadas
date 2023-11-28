@@ -54,6 +54,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     CronogramaCreateSerializer,
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
     DocumentoDeRecebimentoAnalisarSerializer,
+    DocumentoDeRecebimentoCorrecaoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
@@ -738,3 +739,16 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
         if serializer.is_valid(raise_exception=True):
             documento_recebimento_atualizado = serializer.save()
             return Response(DocRecebimentoDetalharCodaeSerializer(documento_recebimento_atualizado).data)
+
+    @action(detail=True, methods=['PATCH'],
+            url_path='corrigir-documentos', permission_classes=(UsuarioEhFornecedor,))
+    def fornecedor_realiza_correcao(self, request, uuid):
+        serializer = DocumentoDeRecebimentoCorrecaoSerializer(
+            instance=self.get_object(),
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid(raise_exception=True):
+            documentos_corrigidos = serializer.save()
+            return Response(DocRecebimentoDetalharSerializer(documentos_corrigidos).data)

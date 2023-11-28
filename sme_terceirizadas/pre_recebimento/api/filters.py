@@ -3,7 +3,12 @@ from django_filters import rest_framework as filters
 
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
-from ...dados_comuns.fluxo_status import CronogramaAlteracaoWorkflow, CronogramaWorkflow, LayoutDeEmbalagemWorkflow
+from ...dados_comuns.fluxo_status import (
+    CronogramaAlteracaoWorkflow,
+    CronogramaWorkflow,
+    DocumentoDeRecebimentoWorkflow,
+    LayoutDeEmbalagemWorkflow
+)
 
 
 class CronogramaFilter(filters.FilterSet):
@@ -142,7 +147,7 @@ class DocumentoDeRecebimentoFilter(filters.FilterSet):
     )
     status = filters.MultipleChoiceFilter(
         field_name='status',
-        choices=[(str(state), state) for state in LayoutDeEmbalagemWorkflow.states],
+        choices=[(str(state), state) for state in DocumentoDeRecebimentoWorkflow.states],
     )
     data_cadastro = filters.DateFilter(
         field_name='criado_em__date',
