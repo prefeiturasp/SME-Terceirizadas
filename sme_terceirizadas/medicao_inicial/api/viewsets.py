@@ -22,6 +22,7 @@ from ...dados_comuns.constants import TRADUCOES_FERIADOS
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
+    UsuarioCODAENutriManifestacao,
     UsuarioDiretorEscolaTercTotal,
     UsuarioDiretoriaRegional,
     UsuarioEscolaTercTotal,
@@ -163,6 +164,7 @@ class SolicitacaoMedicaoInicialViewSet(
         UsuarioEscolaTercTotal
         | UsuarioDiretoriaRegional
         | UsuarioCODAEGestaoAlimentacao
+        | UsuarioCODAENutriManifestacao
     ]
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
@@ -385,6 +387,7 @@ class SolicitacaoMedicaoInicialViewSet(
             UsuarioEscolaTercTotal
             | UsuarioDiretoriaRegional
             | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAENutriManifestacao
         ],
     )
     def dashboard(self, request):
@@ -409,6 +412,7 @@ class SolicitacaoMedicaoInicialViewSet(
             UsuarioEscolaTercTotal
             | UsuarioDiretoriaRegional
             | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAENutriManifestacao
         ],
     )
     def meses_anos(self, request):
@@ -454,8 +458,9 @@ class SolicitacaoMedicaoInicialViewSet(
         url_path='periodos-grupos-medicao',
         permission_classes=[
             UsuarioDiretoriaRegional
-            | UsuarioCODAEGestaoAlimentacao
             | UsuarioEscolaTercTotal
+            | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAENutriManifestacao
         ],
     )
     def periodos_grupos_medicao(self, request):
@@ -1195,6 +1200,7 @@ class MedicaoViewSet(
             UsuarioEscolaTercTotal
             | UsuarioDiretoriaRegional
             | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAENutriManifestacao
         ],
     )
     def feriados_no_mes_com_nome(self, request, uuid=None):
