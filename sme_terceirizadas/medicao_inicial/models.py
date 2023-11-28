@@ -61,6 +61,9 @@ class SolicitacaoMedicaoInicial(
     ue_possui_alunos_periodo_parcial = models.BooleanField('Possui alunos periodo parcial?', default=False)
     logs_salvos = models.BooleanField('Logs de matriculados, dietas autorizadas, etc foram salvos?', default=False)
     dre_ciencia_correcao_data = models.DateTimeField(blank=True, null=True)
+    dre_ciencia_correcao_usuario = models.ForeignKey(
+        'perfil.Usuario', on_delete=models.SET_NULL, related_name='solicitacoes_medicao_ciencia_correcao',
+        blank=True, null=True)
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         LogSolicitacoesUsuario.objects.create(
@@ -78,6 +81,44 @@ class SolicitacaoMedicaoInicial(
             ocorrencia_aprovada = self.ocorrencia.status == self.ocorrencia.workflow_class.MEDICAO_APROVADA_PELA_CODAE
         todas_medicoes_aprovadas = not self.medicoes.exclude(status='MEDICAO_APROVADA_PELA_CODAE').exists()
         return ocorrencia_aprovada and todas_medicoes_aprovadas
+
+    @property
+    def assinatura_ue(self):
+        try:
+            log_enviado_ue = self.logs.get(status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE)
+            assinatura_escola = None
+            if log_enviado_ue:
+                razao_social = (
+                    self.rastro_terceirizada.razao_social
+                    if self.rastro_terceirizada
+                    else ''
+                )
+                usuario_escola = log_enviado_ue.usuario
+                data_enviado_ue = log_enviado_ue.criado_em.strftime(
+                    '%d/%m/%Y às %H:%M'
+                )
+                assinatura_escola = f"""Documento conferido e registrado eletronicamente por {usuario_escola.nome},
+                                        {usuario_escola.cargo}, {usuario_escola.registro_funcional},
+                                        {self.escola.nome} em {data_enviado_ue}. O registro eletrônico da Medição
+                                        Inicial é comprovação e ateste do serviço prestado à Unidade Educacional,
+                                        pela empresa {razao_social}."""
+            return assinatura_escola
+        except LogSolicitacoesUsuario.DoesNotExist:
+            return None
+
+    @property
+    def assinatura_dre(self):
+        log_aprovado_dre = self.logs.filter(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE).last()
+        if not log_aprovado_dre:
+            return None
+        usuario_dre = self.dre_ciencia_correcao_usuario or log_aprovado_dre.usuario
+        data_aprovado_dre = (self.dre_ciencia_correcao_data or log_aprovado_dre.criado_em).strftime(
+            '%d/%m/%Y às %H:%M'
+        )
+        assinatura_dre = f"""Documento conferido e aprovado eletronicamente por {usuario_dre.nome},
+                             {usuario_dre.cargo}, {usuario_dre.registro_funcional},
+                             {usuario_dre.vinculo_atual.instituicao.nome} em {data_aprovado_dre}."""
+        return assinatura_dre
 
     @property
     def tem_ocorrencia(self):
