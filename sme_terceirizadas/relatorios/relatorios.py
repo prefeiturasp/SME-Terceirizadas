@@ -14,7 +14,6 @@ from ..escola.constants import PERIODOS_CEMEI_EVENTO_ESPECIFICO, PERIODOS_ESPECI
 from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
-from ..medicao_inicial.api.viewsets import SolicitacaoMedicaoInicialViewSet
 from ..medicao_inicial.utils import (
     build_tabela_somatorio_body,
     build_tabela_somatorio_body_cei,
@@ -1086,14 +1085,8 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
             'solicitacao': solicitacao,
             'tipos_contagem_alimentacao': tipos_contagem_alimentacao,
             'responsaveis': solicitacao.responsaveis.all(),
-            'assinatura_escola': SolicitacaoMedicaoInicialViewSet.assinatura_ue(
-                SolicitacaoMedicaoInicialViewSet,
-                solicitacao
-            ),
-            'assinatura_dre': SolicitacaoMedicaoInicialViewSet.assinatura_dre(
-                SolicitacaoMedicaoInicialViewSet,
-                solicitacao
-            ),
+            'assinatura_escola': solicitacao.assinatura_ue,
+            'assinatura_dre': solicitacao.assinatura_dre,
             'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
             'tabelas': tabelas,
             'tabela_observacoes': tabela_observacoes,
@@ -1128,14 +1121,8 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
             'solicitacao': solicitacao,
             'tipos_contagem_alimentacao': tipos_contagem_alimentacao,
             'responsaveis': solicitacao.responsaveis.all(),
-            'assinatura_escola': SolicitacaoMedicaoInicialViewSet.assinatura_ue(
-                SolicitacaoMedicaoInicialViewSet,
-                solicitacao
-            ),
-            'assinatura_dre': SolicitacaoMedicaoInicialViewSet.assinatura_dre(
-                SolicitacaoMedicaoInicialViewSet,
-                solicitacao
-            ),
+            'assinatura_escola': solicitacao.assinatura_ue,
+            'assinatura_dre': solicitacao.assinatura_dre,
             'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
             'tabelas': tabelas,
             'dias_letivos': dias_letivos,
