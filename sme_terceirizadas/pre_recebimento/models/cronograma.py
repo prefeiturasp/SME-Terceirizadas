@@ -1,7 +1,7 @@
 import datetime
 import os
 
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MinLengthValidator
 from django.db import models
 from django.db.models import OuterRef
 from django.db.models.signals import post_save, pre_save
@@ -20,11 +20,12 @@ from ...dados_comuns.fluxo_status import (
     FluxoAlteracaoCronograma,
     FluxoCronograma,
     FluxoDocumentoDeRecebimento,
+    FluxoFichaTecnicaDoProduto,
     FluxoLayoutDeEmbalagem
 )
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.validators import validate_file_size_10mb
-from ...produto.models import NomeDeProdutoEdital
+from ...produto.models import Fabricante, Marca, NomeDeProdutoEdital
 from ...terceirizada.models import Contrato, Terceirizada
 
 
@@ -452,3 +453,62 @@ def data_maxima_recebimento_pre_save(instance, *_args, **_kwargs):
     if obj.data_fabricacao and obj.prazo_maximo_recebimento and obj.prazo_maximo_recebimento != obj.PRAZO_OUTRO:
         nova_data = obj.data_fabricacao + datetime.timedelta(days=int(obj.prazo_maximo_recebimento))
         obj.data_maxima_recebimento = nova_data
+
+
+class FichaTecnicaDoProduto(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoFichaTecnicaDoProduto):
+    CATEGORIA_PERECIVEIS = 'PERECIVEIS'
+    CATEGORIA_NAO_PERECIVEIS = 'NAO_PERECIVEIS'
+
+    CATEGORIA_CHOICES = (
+        (CATEGORIA_PERECIVEIS, 'Perecíveis'),
+        (CATEGORIA_NAO_PERECIVEIS, 'Não Perecíveis')
+    )
+
+    numero = models.CharField('Número da Ficha Técnica', blank=True, max_length=50, unique=True)
+    produto = models.ForeignKey(
+        NomeDeProdutoEdital, on_delete=models.PROTECT)
+    marca = models.ForeignKey(Marca, on_delete=models.PROTECT, blank=True, null=True)
+    categoria = models.CharField(choices=CATEGORIA_CHOICES, max_length=14, blank=True)
+    pregao_chamada_publica = models.CharField('Nº do Pregão Eletrônico', max_length=100, blank=True)
+    empresa = models.ForeignKey(
+        Terceirizada, on_delete=models.CASCADE, blank=True, null=True)
+    fabricante = models.ForeignKey(Fabricante, on_delete=models.PROTECT, blank=True, null=True)
+    cnpj_fabricante = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
+    cep_fabricante = models.CharField('CEP', max_length=8, blank=True)
+    endereco_fabricante = models.CharField('Endereco', max_length=160, blank=True)
+    numero_fabricante = models.CharField('Número', max_length=10, blank=True)
+    complemento_fabricante = models.CharField('Complemento', max_length=50, blank=True)
+    bairro_fabricante = models.CharField('Bairro', max_length=150, blank=True)
+    cidade_fabricante = models.CharField('Cidade', max_length=150, blank=True)
+    estado_fabricante = models.CharField('Estado', max_length=150, blank=True)
+    email_fabricante = models.EmailField(blank=True)
+    telefone_fabricante = models.CharField(max_length=13, validators=[MinLengthValidator(8)], blank=True)
+
+    def __str__(self):
+        return self.produto.nome
+
+    class Meta:
+        verbose_name = 'Ficha Técnica do Produto'
+        verbose_name_plural = 'Fichas Técnicas dos Produtos'
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        log_transicao = LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.FICHA_TECNICA_DO_PRODUTO,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+        )
+        return log_transicao
+
+    def gerar_numero_ficha_tecnica(self):
+        self.numero = f'FT{str(self.pk).zfill(3)}'
+
+
+@receiver(post_save, sender=FichaTecnicaDoProduto)
+def gerar_numero_ficha_tecnica(sender, instance, created, **kwargs):
+    if created:
+        instance.gerar_numero_ficha_tecnica()
+        instance.save()
