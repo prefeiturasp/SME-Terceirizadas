@@ -8,6 +8,7 @@ from .models import (
     DataDeFabricaoEPrazo,
     DocumentoDeRecebimento,
     EtapasDoCronograma,
+    FichaTecnicaDoProduto,
     ImagemDoTipoDeEmbalagem,
     Laboratorio,
     LayoutDeEmbalagem,
@@ -129,3 +130,4 @@ admin.site.register(LayoutDeEmbalagem, LayoutDeEmbalagemAdmin)
 admin.site.register(Cronograma)
 admin.site.register(EtapasDoCronograma)
 admin.site.register(ProgramacaoDoRecebimentoDoCronograma)
+admin.site.register(FichaTecnicaDoProduto)
