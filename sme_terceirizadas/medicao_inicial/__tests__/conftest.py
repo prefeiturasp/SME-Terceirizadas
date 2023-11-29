@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from model_mommy import mommy
 
 from sme_terceirizadas.dados_comuns.behaviors import TempoPasseio
+from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 
 
 @pytest.fixture
@@ -161,8 +162,10 @@ def solicitacao_medicao_inicial(escola, categoria_medicao):
     tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
     periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
     historico = {
-        'usuario': {'uuid': 'a7f20675-50e1-46d2-a207-28543b93e19d', 'nome': 'usuario teste',
-                    'username': '12312312344', 'email': 'email@teste.com'},
+        'usuario': {'uuid': 'a7f20675-50e1-46d2-a207-28543b93e19d',
+                    'nome': 'usuario teste',
+                    'username': '12312312344',
+                    'email': 'email@teste.com'},
         'criado_em': datetime.date.today().strftime('%Y-%m-%d %H:%M:%S'),
         'acao': 'MEDICAO_CORRECAO_SOLICITADA',
         'alteracoes': [
@@ -172,7 +175,10 @@ def solicitacao_medicao_inicial(escola, categoria_medicao):
                     {
                         'categoria_medicao': 'ALIMENTAÇÃO',
                         'semanas': [
-                            {'semana': '1', 'dias': ['01']}
+                            {
+                                'semana': '1',
+                                'dias': ['01']
+                            }
                         ]
                     }
                 ]
@@ -180,13 +186,24 @@ def solicitacao_medicao_inicial(escola, categoria_medicao):
         ]
     }
     solicitacao_medicao = mommy.make(
-        'SolicitacaoMedicaoInicial', uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
-        mes=12, ano=2022, escola=escola, historico=json.dumps([historico]))
+        'SolicitacaoMedicaoInicial',
+        uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
+        mes=12,
+        ano=2022,
+        escola=escola,
+        rastro_lote=escola.lote,
+        historico=json.dumps([historico]))
     solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
-    medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
+    medicao = mommy.make('Medicao',
+                         solicitacao_medicao_inicial=solicitacao_medicao,
                          periodo_escolar=periodo_manha)
-    mommy.make('ValorMedicao', dia='01', semana='1', nome_campo='lanche', medicao=medicao,
-               categoria_medicao=categoria_medicao, valor='10')
+    mommy.make('ValorMedicao',
+               dia='01',
+               semana='1',
+               nome_campo='lanche',
+               medicao=medicao,
+               categoria_medicao=categoria_medicao,
+               valor='10')
     return solicitacao_medicao
 
 
@@ -613,11 +630,64 @@ def anexo_ocorrencia_medicao_inicial(solicitacao_medicao_inicial):
 
 
 @pytest.fixture
+def solicitacao_com_anexo_e_medicoes_aprovadas(solicitacao_medicao_inicial):
+    nome = 'arquivo_teste.pdf'
+    arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
+    mommy.make('OcorrenciaMedicaoInicial',
+               uuid='1ace193a-6c2c-4686-b9ed-60a922ad0e1a',
+               nome_ultimo_arquivo=nome,
+               ultimo_arquivo=arquivo,
+               solicitacao_medicao_inicial=solicitacao_medicao_inicial,
+               status='MEDICAO_APROVADA_PELA_CODAE')
+    medicao = solicitacao_medicao_inicial.medicoes.get()
+    medicao.status = 'MEDICAO_APROVADA_PELA_CODAE'
+    medicao.save()
+    usuario_escola = mommy.make('Usuario',
+                                nome='TESTE DA SILVA',
+                                cargo='DIRETOR DE ESCOLA')
+    perfil_diretor = mommy.make('Perfil',
+                                nome='DIRETOR_UE',
+                                ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=usuario_escola,
+               instituicao=solicitacao_medicao_inicial.escola,
+               perfil=perfil_diretor,
+               data_inicial=hoje,
+               ativo=True)
+    usuario_dre = mommy.make('Usuario',
+                             nome='TESTE DA SILVA',
+                             cargo='DIRETOR DE ESCOLA')
+    perfil_cogestor = mommy.make('Perfil',
+                                 nome='COGESTOR_DRE',
+                                 ativo=True)
+    mommy.make('Vinculo',
+               usuario=usuario_dre,
+               instituicao=solicitacao_medicao_inicial.escola.lote.diretoria_regional,
+               perfil=perfil_cogestor,
+               data_inicial=hoje,
+               ativo=True)
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=solicitacao_medicao_inicial.uuid,
+               status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE,
+               solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+               usuario=usuario_escola)
+    mommy.make('LogSolicitacoesUsuario',
+               uuid_original=solicitacao_medicao_inicial.uuid,
+               status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
+               solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+               usuario=usuario_dre)
+    return solicitacao_medicao_inicial
+
+
+@pytest.fixture
 def anexo_ocorrencia_medicao_inicial_status_aprovado_dre(solicitacao_medicao_inicial):
     nome = 'arquivo_teste.pdf'
     arquivo = SimpleUploadedFile(f'arquivo_teste.pdf', bytes('CONTENT', encoding='utf-8'))
-    return mommy.make('OcorrenciaMedicaoInicial', uuid='04fb4c1c-0e31-4936-93a7-f2760b968c3b',
-                      nome_ultimo_arquivo=nome, ultimo_arquivo=arquivo,
+    return mommy.make('OcorrenciaMedicaoInicial',
+                      uuid='04fb4c1c-0e31-4936-93a7-f2760b968c3b',
+                      nome_ultimo_arquivo=nome,
+                      ultimo_arquivo=arquivo,
                       solicitacao_medicao_inicial=solicitacao_medicao_inicial,
                       status='MEDICAO_APROVADA_PELA_DRE')
 
