@@ -125,8 +125,8 @@ class SolicitacaoMedicaoInicialDashboardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoMedicaoInicial
-        fields = ('uuid', 'escola', 'escola_uuid', 'mes', 'ano', 'mes_ano',
-                  'tipo_unidade', 'status', 'log_mais_recente')
+        fields = ('uuid', 'escola', 'escola_uuid', 'mes', 'ano', 'mes_ano', 'tipo_unidade', 'status',
+                  'log_mais_recente', 'dre_ciencia_correcao_data', 'todas_medicoes_e_ocorrencia_aprovados_por_medicao')
 
 
 class ValorMedicaoSerializer(serializers.ModelSerializer):

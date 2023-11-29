@@ -42,3 +42,4 @@ class LogQuantidadeDietasEspeciaisFilter(filters.FilterSet):
     mes = filters.CharFilter(field_name='data__month', lookup_expr='exact')
     ano = filters.CharFilter(field_name='data__year', lookup_expr='iexact')
     unificado = filters.BooleanFilter(field_name='periodo_escolar', lookup_expr='isnull')
+    cei_ou_emei = filters.CharFilter(field_name='cei_ou_emei')
