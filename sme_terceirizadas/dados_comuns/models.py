@@ -288,8 +288,9 @@ class LogSolicitacoesUsuario(
         SOLICITACAO_DE_ALTERACAO_CRONOGRAMA,
         NOTIFICACAO_OCORRENCIA_GUIA,
         LAYOUT_DE_EMBALAGEM,
-        DOCUMENTO_DE_RECEBIMENTO
-    ) = range(23)
+        DOCUMENTO_DE_RECEBIMENTO,
+        FICHA_TECNICA_DO_PRODUTO
+    ) = range(24)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -315,7 +316,8 @@ class LogSolicitacoesUsuario(
         (SOLICITACAO_DE_ALTERACAO_CRONOGRAMA, 'Solicitação de alteração do cronograma'),
         (NOTIFICACAO_OCORRENCIA_GUIA, 'Notificação de guia com ocorrência'),
         (LAYOUT_DE_EMBALAGEM, 'Layout de embalagem'),
-        (DOCUMENTO_DE_RECEBIMENTO, 'Documento de recebimento')
+        (DOCUMENTO_DE_RECEBIMENTO, 'Documento de recebimento'),
+        (FICHA_TECNICA_DO_PRODUTO, 'Ficha técnica do produro')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
