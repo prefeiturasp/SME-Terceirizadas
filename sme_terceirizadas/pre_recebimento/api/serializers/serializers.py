@@ -20,14 +20,21 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoEmbalagemQld,
     UnidadeMedida
 )
-from sme_terceirizadas.produto.api.serializers.serializers import NomeDeProdutoEditalSerializer, UnidadeMedidaSerialzer
+from sme_terceirizadas.produto.api.serializers.serializers import (
+    FabricanteSimplesSerializer,
+    MarcaSimplesSerializer,
+    NomeDeProdutoEditalSerializer,
+    UnidadeMedidaSerialzer
+)
 from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,
     DistribuidorSimplesSerializer,
+    TerceirizadaLookUpSerializer,
     TerceirizadaSimplesSerializer
 )
 
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer, LogSolicitacoesUsuarioSimplesSerializer
+from ...models.cronograma import FichaTecnicaDoProduto
 
 
 class ProgramacaoDoRecebimentoDoCronogramaSerializer(serializers.ModelSerializer):
@@ -441,3 +448,29 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
                                                                  'data_fabricacao_lote', 'validade_produto',
                                                                  'data_final_lote', 'datas_fabricacao_e_prazos',
                                                                  'correcao_solicitada')
+
+
+class FichaTecnicalistagemSerializer(serializers.ModelSerializer):
+    # TODO: personalizar quando entrar a história de filtros e listagem
+    class Meta:
+        model = FichaTecnicaDoProduto
+        exclude = ('id',)
+
+
+class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
+    criado_em = serializers.SerializerMethodField()
+    produto = NomeDeProdutoEditalSerializer()
+    marca = MarcaSimplesSerializer()
+    empresa = TerceirizadaLookUpSerializer()
+    fabricante = FabricanteSimplesSerializer()
+    status = serializers.CharField(source='get_status_display')
+
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime('%d/%m/%Y')
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = ('uuid', 'numero', 'produto', 'pregao_chamada_publica', 'marca', 'categoria', 'status',
+                  'criado_em', 'empresa', 'fabricante', 'cnpj_fabricante', 'cep_fabricante', 'endereco_fabricante',
+                  'numero_fabricante', 'complemento_fabricante', 'bairro_fabricante', 'cidade_fabricante',
+                  'estado_fabricante', 'email_fabricante', 'telefone_fabricante')

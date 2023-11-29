@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import QuerySet
 from django_filters import rest_framework as filters
-from rest_framework import viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -56,6 +56,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoCorrecaoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
+    FichaTecnicaRascunhoSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
     LayoutDeEmbalagemCorrecaoSerializer,
@@ -72,6 +73,8 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharCodaeSerializer,
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
+    FichaTecnicaDetalharSerializer,
+    FichaTecnicalistagemSerializer,
     LaboratorioCredenciadoSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
@@ -106,6 +109,7 @@ from sme_terceirizadas.pre_recebimento.models import (
 from ...dados_comuns.api.paginations import DefaultPagination
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...relatorios.relatorios import get_pdf_cronograma
+from ..models.cronograma import FichaTecnicaDoProduto
 
 
 class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
@@ -752,3 +756,31 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
         if serializer.is_valid(raise_exception=True):
             documentos_corrigidos = serializer.save()
             return Response(DocRecebimentoDetalharSerializer(documentos_corrigidos).data)
+
+
+class FichaTecnicaRascunhoViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    lookup_field = 'uuid'
+    serializer_class = FichaTecnicaRascunhoSerializer
+    queryset = FichaTecnicaDoProduto.objects.all().order_by('-criado_em')
+    permission_classes = (UsuarioEhFornecedor,)
+
+
+class FichaTecnicaModelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    lookup_field = 'uuid'
+    serializer_class = FichaTecnicaRascunhoSerializer
+    queryset = FichaTecnicaDoProduto.objects.all().order_by('-criado_em')
+    permission_classes = (UsuarioEhFornecedor,)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.eh_fornecedor:
+            return FichaTecnicaDoProduto.objects.filter(
+                empresa=user.vinculo_atual.instituicao
+            ).order_by('-criado_em')
+        return FichaTecnicaDoProduto.objects.all().order_by('-criado_em')
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return FichaTecnicaDetalharSerializer
+        if self.action == 'list':
+            return FichaTecnicalistagemSerializer

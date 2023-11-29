@@ -22,9 +22,10 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoEmbalagemQld,
     UnidadeMedida
 )
-from sme_terceirizadas.produto.models import NomeDeProdutoEdital
+from sme_terceirizadas.produto.models import Fabricante, Marca, NomeDeProdutoEdital
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
+from ...models.cronograma import FichaTecnicaDoProduto
 from ..helpers import (
     cria_datas_e_prazos_doc_recebimento,
     cria_etapas_de_cronograma,
@@ -779,3 +780,43 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentoDeRecebimento
         fields = ('tipos_de_documentos',)
+
+
+class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
+    produto = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=NomeDeProdutoEdital.objects.all()
+    )
+    marca = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Marca.objects.all()
+    )
+    categoria = serializers.ChoiceField(choices=FichaTecnicaDoProduto.CATEGORIA_CHOICES, required=True)
+    pregao_chamada_publica = serializers.CharField(required=True)
+    empresa = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Terceirizada.objects.all()
+    )
+    fabricante = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Fabricante.objects.all(),
+        allow_null=True
+    )
+    cnpj_fabricante = serializers.CharField(required=True, allow_blank=True)
+    cep_fabricante = serializers.CharField(required=True, allow_blank=True)
+    endereco_fabricante = serializers.CharField(required=True, allow_blank=True)
+    numero_fabricante = serializers.CharField(required=True, allow_blank=True)
+    complemento_fabricante = serializers.CharField(required=True, allow_blank=True)
+    bairro_fabricante = serializers.CharField(required=True, allow_blank=True)
+    cidade_fabricante = serializers.CharField(required=True, allow_blank=True)
+    estado_fabricante = serializers.CharField(required=True, allow_blank=True)
+    email_fabricante = serializers.CharField(required=True, allow_blank=True)
+    telefone_fabricante = serializers.CharField(required=True, allow_blank=True)
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        exclude = ('id',)
