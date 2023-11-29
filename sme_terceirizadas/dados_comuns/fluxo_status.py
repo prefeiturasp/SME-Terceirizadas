@@ -4202,7 +4202,9 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
                 tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
                 categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO,
                 link_acesse_aqui=url_documento_recebimento,
-                usuarios=PartesInteressadasService.usuarios_por_perfis(constants.DILOG_QUALIDADE)
+                usuarios=PartesInteressadasService.usuarios_por_perfis(
+                    [constants.DILOG_QUALIDADE, constants.COORDENADOR_CODAE_DILOG_LOGISTICA]
+                )
             )
 
     @xworkflows.after_transition('qualidade_solicita_correcao')
