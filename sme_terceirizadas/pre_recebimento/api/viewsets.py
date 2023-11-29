@@ -73,6 +73,8 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharCodaeSerializer,
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
+    FichaTecnicaDetalharSerializer,
+    FichaTecnicalistagemSerializer,
     LaboratorioCredenciadoSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
@@ -761,3 +763,24 @@ class FichaTecnicaRascunhoViewSet(mixins.CreateModelMixin, mixins.UpdateModelMix
     serializer_class = FichaTecnicaRascunhoSerializer
     queryset = FichaTecnicaDoProduto.objects.all().order_by('-criado_em')
     permission_classes = (UsuarioEhFornecedor,)
+
+
+class FichaTecnicaModelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    lookup_field = 'uuid'
+    serializer_class = FichaTecnicaRascunhoSerializer
+    queryset = FichaTecnicaDoProduto.objects.all().order_by('-criado_em')
+    permission_classes = (UsuarioEhFornecedor,)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.eh_fornecedor:
+            return FichaTecnicaDoProduto.objects.filter(
+                empresa=user.vinculo_atual.instituicao
+            ).order_by('-criado_em')
+        return FichaTecnicaDoProduto.objects.all().order_by('-criado_em')
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return FichaTecnicaDetalharSerializer
+        if self.action == 'list':
+            return FichaTecnicalistagemSerializer
