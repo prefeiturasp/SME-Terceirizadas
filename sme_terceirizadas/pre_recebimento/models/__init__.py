@@ -11,6 +11,6 @@ from .cronograma import SolicitacaoAlteracaoCronograma  # noqa
 from .cronograma import TipoDeDocumentoDeRecebimento  # noqa
 from .cronograma import TipoDeEmbalagemDeLayout  # noqa
 from .cronograma import UnidadeMedida  # noqa
-from .cronograma import FichaTecnicaDoProduto
+from .cronograma import FichaTecnicaDoProduto  # noqa
 from .qualidade import Laboratorio  # noqa
 from .qualidade import TipoEmbalagemQld  # noqa
