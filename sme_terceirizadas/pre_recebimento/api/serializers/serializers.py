@@ -464,7 +464,6 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     empresa = TerceirizadaLookUpSerializer()
     fabricante = FabricanteSimplesSerializer()
     status = serializers.CharField(source='get_status_display')
-    categoria = serializers.CharField(source='get_categoria_display')
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime('%d/%m/%Y')
