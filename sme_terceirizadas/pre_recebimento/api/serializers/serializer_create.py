@@ -806,7 +806,7 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         queryset=Fabricante.objects.all(),
         allow_null=True
     )
-    cnpj_fabricante = serializers.CharField(required=True)
+    cnpj_fabricante = serializers.CharField(required=True, allow_blank=True)
     cep_fabricante = serializers.CharField(required=True, allow_blank=True)
     endereco_fabricante = serializers.CharField(required=True, allow_blank=True)
     numero_fabricante = serializers.CharField(required=True, allow_blank=True)
