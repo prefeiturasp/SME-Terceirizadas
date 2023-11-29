@@ -4186,6 +4186,27 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DOCUMENTO_ENVIADO_PARA_ANALISE,
                                       usuario=user)
 
+            numero_cronograma = self.cronograma.numero
+            nome_produto = self.cronograma.produto.nome
+            url_documento_recebimento = f'/pre-recebimento/analise-documento-recebimento?uuid={self.uuid}'
+
+            EmailENotificacaoService.enviar_notificacao(
+                template='pre_recebimento_notificacao_fornecedor_envia_documento_recebimento.html',
+                contexto_template={
+                    'numero_cronograna': numero_cronograma,
+                    'nome_produto': nome_produto,
+                    'nome_usuario_empresa': user.nome,
+                    'cpf_usuario_empresa': user.cpf_formatado_e_censurado
+                },
+                titulo_notificacao=f'Documentos do Cronograma {numero_cronograma} foram Enviados para Análise',
+                tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
+                categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO,
+                link_acesse_aqui=url_documento_recebimento,
+                usuarios=PartesInteressadasService.usuarios_por_perfis(
+                    [constants.DILOG_QUALIDADE, constants.COORDENADOR_CODAE_DILOG_LOGISTICA]
+                )
+            )
+
     @xworkflows.after_transition('qualidade_solicita_correcao')
     def _qualidade_solicita_correcao_hook(self, *args, **kwargs):
         user = kwargs['user']
