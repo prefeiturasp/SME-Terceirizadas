@@ -702,22 +702,30 @@ def popula_campo_total_sobremesas_pagamento(
             valores_dia += ['0']
 
 
-def popula_solicitado_total_lanche_emergencial(categoria_corrente, alteracoes_lanche_emergencial, valores_dia, dia):
+def popula_solicitado_total_lanche_emergencial(
+    categoria_corrente, alteracoes_lanche_emergencial, valores_dia, dia
+):
     if categoria_corrente != 'LANCHE EMERGENCIAL':
         return valores_dia
 
     total_lanche_emergencial = sum(
-        alt['numero_alunos'] for alt in alteracoes_lanche_emergencial if alt['dia'] == f'{dia:02d}'
+        alt['numero_alunos']
+        for alt in alteracoes_lanche_emergencial
+        if alt['dia'] == f'{dia:02d}'
     )
     valores_dia += [total_lanche_emergencial]
     return valores_dia
 
 
-def popula_solicitado_total_kit_lanche(categoria_corrente, kits_lanches, valores_dia, dia):
+def popula_solicitado_total_kit_lanche(
+    categoria_corrente, kits_lanches, valores_dia, dia
+):
     if categoria_corrente != 'KIT LANCHE':
         return valores_dia
 
-    total_kits = sum([kit['numero_alunos'] for kit in kits_lanches if kit['dia'] == f'{dia:02d}'])
+    total_kits = sum(
+        [kit['numero_alunos'] for kit in kits_lanches if kit['dia'] == f'{dia:02d}']
+    )
     valores_dia += [total_kits]
     return valores_dia
 
@@ -736,8 +744,11 @@ def popula_campo_solicitado(
         return
     try:
         valores_dia = popula_solicitado_total_lanche_emergencial(
-            categoria_corrente, alteracoes_lanche_emergencial, valores_dia, dia)
-        valores_dia = popula_solicitado_total_kit_lanche(categoria_corrente, kits_lanches, valores_dia, dia)
+            categoria_corrente, alteracoes_lanche_emergencial, valores_dia, dia
+        )
+        valores_dia = popula_solicitado_total_kit_lanche(
+            categoria_corrente, kits_lanches, valores_dia, dia
+        )
     except Exception:
         valores_dia += ['0']
 
@@ -1271,7 +1282,7 @@ def get_somatorio_manha(
             dict_total_sobremesas,
         )
         somatorio_manha = (
-            values if type(values) == int else sum([int(v.valor) for v in values])
+            values if type(values) is int else sum([int(v.valor) for v in values])
         )
         if somatorio_manha == 0:
             somatorio_manha = ' - '
@@ -1297,7 +1308,7 @@ def get_somatorio_tarde(
             dict_total_sobremesas,
         )
         somatorio_tarde = (
-            values if type(values) == int else sum([int(v.valor) for v in values])
+            values if type(values) is int else sum([int(v.valor) for v in values])
         )
         if somatorio_tarde == 0:
             somatorio_tarde = ' - '
@@ -1323,7 +1334,7 @@ def get_somatorio_integral(
             dict_total_sobremesas,
         )
         somatorio_integral = (
-            values if type(values) == int else sum([int(v.valor) for v in values])
+            values if type(values) is int else sum([int(v.valor) for v in values])
         )
         if somatorio_integral == 0:
             somatorio_integral = ' - '
@@ -1350,7 +1361,7 @@ def get_somatorio_programas_e_projetos(
                 dict_total_refeicoes,
                 dict_total_sobremesas,
             )
-            if type(qs_values) == int:
+            if type(qs_values) is int:
                 somatorio_programas_e_projetos = qs_values
             else:
                 somatorio_programas_e_projetos = sum([int(v.valor) for v in qs_values])
@@ -1403,7 +1414,7 @@ def get_somatorio_noite_eja(
             dict_total_sobremesas,
         )
         somatorio_noite = (
-            values if type(values) == int else sum([int(v.valor) for v in values])
+            values if type(values) is int else sum([int(v.valor) for v in values])
         )
         if somatorio_noite == 0:
             somatorio_noite = ' - '
@@ -1427,7 +1438,7 @@ def get_somatorio_etec(campo, solicitacao, dict_total_refeicoes, dict_total_sobr
             dict_total_sobremesas,
         )
         somatorio_etec = (
-            values if type(values) == int else sum([int(v.valor) for v in values])
+            values if type(values) is int else sum([int(v.valor) for v in values])
         )
         if somatorio_etec == 0:
             somatorio_etec = ' - '
