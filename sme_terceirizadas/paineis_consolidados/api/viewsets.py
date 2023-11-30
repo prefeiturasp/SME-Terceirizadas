@@ -18,17 +18,28 @@ from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
     UsuarioNutricionista,
-    UsuarioTerceirizada
+    UsuarioTerceirizada,
 )
-from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
+from ...dieta_especial.api.serializers import (
+    SolicitacaoDietaEspecialLogSerializer,
+    SolicitacaoDietaEspecialSerializer,
+)
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...escola.api.serializers import PeriodoEscolarSerializer
 from ...escola.models import PeriodoEscolar
 from ...inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal
 from ...kit_lanche.models import SolicitacaoKitLancheUnificada
-from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
+from ...paineis_consolidados.api.constants import (
+    PESQUISA,
+    TIPO_VISAO,
+    TIPO_VISAO_LOTE,
+    TIPO_VISAO_SOLICITACOES,
+)
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
-from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
+from ...relatorios.relatorios import (
+    relatorio_filtro_periodo,
+    relatorio_resumo_anual_e_mensal,
+)
 from ..api.constants import PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
 from ..models import (
     MoldeConsolidado,
@@ -37,16 +48,20 @@ from ..models import (
     SolicitacoesEscola,
     SolicitacoesNutrimanifestacao,
     SolicitacoesNutrisupervisao,
-    SolicitacoesTerceirizada
+    SolicitacoesTerceirizada,
 )
-from ..tasks import gera_pdf_relatorio_solicitacoes_alimentacao_async, gera_xls_relatorio_solicitacoes_alimentacao_async
+from ..tasks import (
+    gera_pdf_relatorio_solicitacoes_alimentacao_async,
+    gera_xls_relatorio_solicitacoes_alimentacao_async,
+)
 from ..utils import (
     formata_resultado_inclusoes_etec_autorizadas,
     tratar_append_return_dict,
     tratar_data_evento_final_no_mes,
     tratar_dias_duplicados,
     tratar_inclusao_continua,
-    tratar_periodo_parcial
+    tratar_periodo_parcial,
+    tratar_periodo_parcial_cemei,
 )
 from ..validators import FiltroValidator
 from .constants import (
@@ -76,7 +91,7 @@ from .constants import (
     RELATORIO_RESUMO_MES_ANO,
     RESUMO_ANO,
     RESUMO_MES,
-    SUSPENSOES_AUTORIZADAS
+    SUSPENSOES_AUTORIZADAS,
 )
 from .filters import SolicitacoesCODAEFilter
 
@@ -861,6 +876,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                         'inclusao_id_externo': susp.id_externo
                     })
             else:
+                nome_periodo_escolar = tratar_periodo_parcial_cemei(nome_periodo_escolar, susp)
                 s_quant_por_periodo = susp.quantidades_por_periodo.filter(periodo_escolar__nome=nome_periodo_escolar)
                 for s_quant_periodo in s_quant_por_periodo:
                     for suspensao in susp.suspensoes_alimentacao.all():
@@ -887,6 +903,18 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         else:
             query_set = query_set.exclude(motivo__icontains='Emergencial')
         return query_set
+
+    def get_alteracao_obj(self, alteracao, nome_periodo_escolar):
+        alt = None
+        if alteracao.escola.eh_cemei:
+            nome_periodo_escolar = nome_periodo_escolar.split(' ')[1]
+            if alteracao.substituicoes_cemei_emei_periodo_escolar.filter(
+                    periodo_escolar__nome=nome_periodo_escolar).exists():
+                alt = alteracao.substituicoes_cemei_emei_periodo_escolar.get(
+                    periodo_escolar__nome=nome_periodo_escolar)
+        elif alteracao.substituicoes_periodo_escolar.filter(periodo_escolar__nome=nome_periodo_escolar).exists():
+            alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
+        return alt
 
     @action(detail=False, methods=['GET'], url_path=f'{ALTERACOES_ALIMENTACAO_AUTORIZADAS}')
     def alteracoes_alimentacoes_autorizadas(self, request):
@@ -915,8 +943,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                         'motivo': alteracao_alimentacao.motivo
                     })
             else:
-                if alteracao.substituicoes_periodo_escolar.filter(periodo_escolar__nome=nome_periodo_escolar).exists():
-                    alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
+                alt = self.get_alteracao_obj(alteracao, nome_periodo_escolar)
+                if alt:
                     for data_evento in alteracao.datas_intervalo.filter(data__month=mes, data__year=ano,
                                                                         cancelado=False):
                         return_dict.append({
