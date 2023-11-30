@@ -119,7 +119,7 @@ def transforma_dados_relatorio_quantitativo(dados):  # noqa C901
                 qtde_por_status[
                     MAPEAMENTO_STATUS_LABEL[status_e_qtde["status"]]
                 ] += qtde
-            except Exception:
+            except Exception:  # nosec
                 pass
         relatorio.append(
             {

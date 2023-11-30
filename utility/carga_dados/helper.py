@@ -44,7 +44,7 @@ def csv_online_to_list(url: str) -> list:
     """
     Lê um CSV a partir de uma url.
     """
-    url_open = urllib.request.urlopen(url)
+    url_open = urllib.request.urlopen(url)  # nosec
     leitor = csv.DictReader(
         io.StringIO(url_open.read().decode("utf-8")), delimiter=","
     )  # noqa

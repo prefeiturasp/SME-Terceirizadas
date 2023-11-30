@@ -1,4 +1,3 @@
-import subprocess
 from random import choice, randint
 
 import environ

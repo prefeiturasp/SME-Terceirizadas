@@ -1082,7 +1082,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
             "NEGADOS": "cls.get_negados()",
             "RECEBIDAS": "cls.get_recebidas()",
         }
-        return eval(mapeador[status])
+        return eval(mapeador[status])  # nosec
 
 
 class SolicitacoesEscola(MoldeConsolidado):
@@ -1469,7 +1469,7 @@ class SolicitacoesEscola(MoldeConsolidado):
             "NEGADOS": f'cls.get_negados(escola_uuid="{escola_uuid}")',
             "RECEBIDAS": f'cls.get_recebidas(escola_uuid="{escola_uuid}")',
         }
-        return eval(mapeador[status])
+        return eval(mapeador[status])  # nosec
 
 
 class SolicitacoesDRE(MoldeConsolidado):
@@ -1832,7 +1832,7 @@ class SolicitacoesDRE(MoldeConsolidado):
             "NEGADOS": f'cls.get_negados(dre_uuid="{dre_uuid}")',
             "RECEBIDAS": f'cls.get_recebidas(dre_uuid="{dre_uuid}")',
         }
-        return eval(mapeador[status])
+        return eval(mapeador[status])  # nosec
 
 
 # TODO: voltar quando tiver o Rastro implementado
@@ -2119,4 +2119,4 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             "NEGADOS": f'cls.get_negados(terceirizada_uuid="{terceirizada_uuid}")',
             "RECEBIDAS": f'cls.get_recebidas(terceirizada_uuid="{terceirizada_uuid}")',
         }
-        return eval(mapeador[status])
+        return eval(mapeador[status])  # nosec

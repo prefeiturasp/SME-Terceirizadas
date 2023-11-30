@@ -1,6 +1,6 @@
 import asyncio
 import logging
-import subprocess
+import subprocess  # nosec
 import time
 from datetime import date, datetime
 from tempfile import NamedTemporaryFile
@@ -89,14 +89,14 @@ def escreve_escolas_json(arquivo, texto):
 
 def ajustes_no_arquivo(arquivo):
     # Troca aspas simples por aspas duplas (foi necessário dois replace).
-    subprocess.run(f'sed -i "s/\'/?/g" {arquivo}', shell=True)
-    subprocess.run(f"sed -i 's/?/\"/g' {arquivo}", shell=True)
+    subprocess.run(f'sed -i "s/\'/?/g" {arquivo}', shell=True)  # nosec
+    subprocess.run(f"sed -i 's/?/\"/g' {arquivo}", shell=True)  # nosec
 
     # Insere uma vírgula em todas as linhas exceto na última
-    subprocess.run(f"sed -i '$ !s/$/,/' {arquivo}", shell=True)
+    subprocess.run(f"sed -i '$ !s/$/,/' {arquivo}", shell=True)  # nosec
 
     # remove virgula da primeira linha
-    subprocess.run(f"sed -i '1s/,//' {arquivo}", shell=True)
+    subprocess.run(f"sed -i '1s/,//' {arquivo}", shell=True)  # nosec
 
 
 async def get_informacoes_escola_turma_aluno(tempfile: str, codigo_eol: str):

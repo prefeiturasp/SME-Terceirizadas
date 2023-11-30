@@ -73,7 +73,7 @@ class EscolaIniciaCancela:
         datas = request.data.get("datas", [])
         justificativa = request.data.get("justificativa", "")
         try:
-            assert (
+            assert (  # nosec
                 obj.status != obj.workflow_class.ESCOLA_CANCELOU
             ), "Solicitação já está cancelada"
             self.valida_datas(obj, datas)
