@@ -4,9 +4,9 @@ from sme_terceirizadas.eol_servico.utils import EOLException, EOLServicoSGP
 
 
 class EOLUsuarioCoreSSO:
-    def cria_ou_atualiza_usuario_core_sso(
+    def cria_ou_atualiza_usuario_core_sso(  # noqa: C901
         self, dados_usuario, login, eh_servidor, existe_core_sso
-    ):  # noqa C901
+    ):
         """Verifica se usuário já existe no CoreSSO e cria se não existir.
 
         :param dados_usuario: {

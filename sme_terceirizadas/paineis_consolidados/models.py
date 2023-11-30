@@ -504,14 +504,14 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         return manager
 
     @classmethod
-    def _filtro_data_status_tipo(
+    def _filtro_data_status_tipo(  # noqa: C901
         cls,
-        data_final,  # noqa C901
+        data_final,
         data_inicial,
         query_set,
         status_solicitacao,
         tipo_solicitacao,
-    ):  # noqa C901
+    ):
         if data_inicial and data_final:
             query_set = query_set.filter(
                 criado_em__date__range=(data_inicial, data_final)
