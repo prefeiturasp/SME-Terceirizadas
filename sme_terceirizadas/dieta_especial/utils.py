@@ -10,7 +10,7 @@ from rest_framework.pagination import PageNumberPagination
 from sme_terceirizadas.dieta_especial.models import (
     ClassificacaoDieta,
     LogQuantidadeDietasAutorizadas,
-    LogQuantidadeDietasAutorizadasCEI
+    LogQuantidadeDietasAutorizadasCEI,
 )
 from sme_terceirizadas.medicao_inicial.models import SolicitacaoMedicaoInicial
 from sme_terceirizadas.perfil.models import Usuario
@@ -32,8 +32,8 @@ def dietas_especiais_a_terminar():
         status__in=[
             DietaEspecialWorkflow.CODAE_AUTORIZADO,
             DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-            DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO
-        ]
+            DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+        ],
     )
 
 
@@ -52,8 +52,8 @@ def dietas_especiais_a_iniciar():
         status__in=[
             DietaEspecialWorkflow.CODAE_AUTORIZADO,
             DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-            DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO
-        ]
+            DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+        ],
     )
 
 
@@ -66,11 +66,15 @@ def inicia_dietas_temporarias(usuario):
             solicitacao.save()
 
 
-def aluno_pertence_a_escola_ou_esta_na_rede(cod_escola_no_eol, cod_escola_no_sigpae) -> bool:
+def aluno_pertence_a_escola_ou_esta_na_rede(
+    cod_escola_no_eol, cod_escola_no_sigpae
+) -> bool:
     return cod_escola_no_eol == cod_escola_no_sigpae
 
 
-def gerar_log_dietas_ativas_canceladas_automaticamente(dieta, dados, fora_da_rede=False):
+def gerar_log_dietas_ativas_canceladas_automaticamente(
+    dieta, dados, fora_da_rede=False
+):
     data = dict(
         dieta=dieta,
         codigo_eol_aluno=dados['codigo_eol_aluno'],
@@ -102,10 +106,14 @@ def _cancelar_dieta_aluno_fora_da_rede(dieta):
     dieta.save()
 
 
-def enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola):  # noqa C901
-    assunto = f'Cancelamento Automático de Dieta Especial Nº {solicitacao_dieta.id_externo}'
+def enviar_email_para_diretor_da_escola_origem(
+    solicitacao_dieta, aluno, escola
+):  # noqa C901
+    assunto = (
+        f'Cancelamento Automático de Dieta Especial Nº {solicitacao_dieta.id_externo}'
+    )
     hoje = date.today().strftime('%d/%m/%Y')
-    template = 'email/email_dieta_cancelada_automaticamente_escola_origem.html',
+    template = ('email/email_dieta_cancelada_automaticamente_escola_origem.html',)
     dados_template = {
         'nome_aluno': aluno.nome,
         'codigo_eol_aluno': aluno.codigo_eol,
@@ -148,7 +156,7 @@ def enviar_email_para_escola_origem_eol(solicitacao_dieta, aluno, escola):
             'nome_aluno': aluno.nome,
             'codigo_eol_aluno': aluno.codigo_eol,
             'nome_escola': escola.nome,
-        }
+        },
     )
 
     envia_email_unico_com_anexo_inmemory(
@@ -177,7 +185,7 @@ def enviar_email_para_escola_destino_eol(solicitacao_dieta, aluno, escola):
             'nome_aluno': aluno.nome,
             'codigo_eol_aluno': aluno.codigo_eol,
             'nome_escola': escola.nome,
-        }
+        },
     )
 
     envia_email_unico_com_anexo_inmemory(
@@ -204,7 +212,7 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
             'nome_aluno': aluno.nome,
             'codigo_eol_aluno': aluno.codigo_eol,
             'nome_escola': escola.nome,
-        }
+        },
     )
 
     envia_email_unico_com_anexo_inmemory(
@@ -217,10 +225,16 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
     )
 
 
-def enviar_email_para_adm_terceirizada_e_escola(solicitacao_dieta, aluno, escola, fora_da_rede=False):
-    assunto = f'Cancelamento Automático de Dieta Especial Nº {solicitacao_dieta.id_externo}'
+def enviar_email_para_adm_terceirizada_e_escola(
+    solicitacao_dieta, aluno, escola, fora_da_rede=False
+):
+    assunto = (
+        f'Cancelamento Automático de Dieta Especial Nº {solicitacao_dieta.id_externo}'
+    )
     hoje = date.today().strftime('%d/%m/%Y')
-    template = 'email/email_dieta_cancelada_automaticamente_terceirizada_escola_destino.html'
+    template = (
+        'email/email_dieta_cancelada_automaticamente_terceirizada_escola_destino.html'
+    )
     justificativa_cancelamento = 'por não pertencer a unidade educacional'
     if fora_da_rede:
         justificativa_cancelamento = 'por não estar matriculado'
@@ -233,7 +247,9 @@ def enviar_email_para_adm_terceirizada_e_escola(solicitacao_dieta, aluno, escola
         'justificativa_cancelamento': justificativa_cancelamento,
     }
     html = render_to_string(template, dados_template)
-    emails_terceirizada = solicitacao_dieta.rastro_terceirizada.emails_por_modulo('Dieta Especial')
+    emails_terceirizada = solicitacao_dieta.rastro_terceirizada.emails_por_modulo(
+        'Dieta Especial'
+    )
     email_escola = [escola.contato.email]
     email_lista = emails_terceirizada + email_escola
     for email in email_lista:
@@ -248,14 +264,18 @@ def enviar_email_para_adm_terceirizada_e_escola(solicitacao_dieta, aluno, escola
 
 
 def aluno_matriculado_em_outra_ue(aluno, solicitacao_dieta):
-    if(aluno.escola):
+    if aluno.escola:
         return aluno.escola.codigo_eol != solicitacao_dieta.escola.codigo_eol
     return False
 
 
 def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
-    dietas_ativas_comuns = SolicitacoesCODAE.get_autorizados_dieta_especial().filter(
-        tipo_solicitacao_dieta='COMUM').order_by('pk').distinct('pk')
+    dietas_ativas_comuns = (
+        SolicitacoesCODAE.get_autorizados_dieta_especial()
+        .filter(tipo_solicitacao_dieta='COMUM')
+        .order_by('pk')
+        .distinct('pk')
+    )
     for dieta in dietas_ativas_comuns:
         aluno = Aluno.objects.filter(codigo_eol=dieta.codigo_eol_aluno).first()
         solicitacao_dieta = SolicitacaoDietaEspecial.objects.filter(pk=dieta.pk).first()
@@ -266,13 +286,15 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
                 codigo_eol_escola_origem=solicitacao_dieta.escola.codigo_eol,
                 nome_escola_origem=solicitacao_dieta.escola.nome,
             )
-            gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados, fora_da_rede=True)
+            gerar_log_dietas_ativas_canceladas_automaticamente(
+                solicitacao_dieta, dados, fora_da_rede=True
+            )
             _cancelar_dieta_aluno_fora_da_rede(dieta=solicitacao_dieta)
             enviar_email_para_adm_terceirizada_e_escola(
                 solicitacao_dieta,
                 aluno,
                 escola=solicitacao_dieta.escola,
-                fora_da_rede=True
+                fora_da_rede=True,
             )
         elif aluno_matriculado_em_outra_ue(aluno, solicitacao_dieta):
             dados = dict(
@@ -285,7 +307,9 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
             )
             gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
             _cancelar_dieta(solicitacao_dieta)
-            enviar_email_para_adm_terceirizada_e_escola(solicitacao_dieta, aluno, escola=solicitacao_dieta.escola)
+            enviar_email_para_adm_terceirizada_e_escola(
+                solicitacao_dieta, aluno, escola=solicitacao_dieta.escola
+            )
         else:
             continue
 
@@ -309,8 +333,16 @@ def log_create(protocolo_padrao, user=None):
     historico = {}
 
     historico['created_at'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-    historico['user'] = {'uuid': str(user.uuid), 'email': user.email,
-                         'username': user.username, 'nome': user.nome} if user else user
+    historico['user'] = (
+        {
+            'uuid': str(user.uuid),
+            'email': user.email,
+            'username': user.username,
+            'nome': user.nome,
+        }
+        if user
+        else user
+    )
     historico['action'] = 'CREATE'
 
     editais = []
@@ -321,36 +353,67 @@ def log_create(protocolo_padrao, user=None):
     for substituicao in protocolo_padrao.substituicoes.all():
         alimentos_substitutos = [
             {'uuid': str(sub.uuid), 'nome': sub.nome}
-            for sub in substituicao.alimentos_substitutos.all()]
+            for sub in substituicao.alimentos_substitutos.all()
+        ]
         subs = [
             {'uuid': str(sub.uuid), 'nome': sub.nome}
-            for sub in substituicao.substitutos.all()]
+            for sub in substituicao.substitutos.all()
+        ]
 
         substitutos = [*alimentos_substitutos, *subs]
-        substituicoes.append({
-            'tipo': {'from': None, 'to': substituicao.tipo},
-            'alimento': {'from': None, 'to': {'id': substituicao.alimento.id, 'nome': substituicao.alimento.nome}},
-            'substitutos': {'from': None, 'to': substitutos}
-        })
+        substituicoes.append(
+            {
+                'tipo': {'from': None, 'to': substituicao.tipo},
+                'alimento': {
+                    'from': None,
+                    'to': {
+                        'id': substituicao.alimento.id,
+                        'nome': substituicao.alimento.nome,
+                    },
+                },
+                'substitutos': {'from': None, 'to': substitutos},
+            }
+        )
 
     historico['changes'] = [
-        {'field': 'criado_em', 'from': None, 'to': protocolo_padrao.criado_em.strftime('%Y-%m-%d %H:%M:%S')},
+        {
+            'field': 'criado_em',
+            'from': None,
+            'to': protocolo_padrao.criado_em.strftime('%Y-%m-%d %H:%M:%S'),
+        },
         {'field': 'id', 'from': None, 'to': protocolo_padrao.id},
-        {'field': 'nome_protocolo', 'from': None, 'to': protocolo_padrao.nome_protocolo},
-        {'field': 'orientacoes_gerais', 'from': None, 'to': protocolo_padrao.orientacoes_gerais},
+        {
+            'field': 'nome_protocolo',
+            'from': None,
+            'to': protocolo_padrao.nome_protocolo,
+        },
+        {
+            'field': 'orientacoes_gerais',
+            'from': None,
+            'to': protocolo_padrao.orientacoes_gerais,
+        },
         {'field': 'status', 'from': None, 'to': protocolo_padrao.status},
         {'field': 'uuid', 'from': None, 'to': str(protocolo_padrao.uuid)},
         {'field': 'substituicoes', 'changes': substituicoes},
-        {'field': 'editais', 'from': None, 'to': editais}
+        {'field': 'editais', 'from': None, 'to': editais},
     ]
 
     protocolo_padrao.historico = json.dumps([historico])
     protocolo_padrao.save()
 
 
-def log_update(instance, validated_data, substituicoes_old, substituicoes_new, new_editais, old_editais, user=None):
+def log_update(
+    instance,
+    validated_data,
+    substituicoes_old,
+    substituicoes_new,
+    new_editais,
+    old_editais,
+    user=None,
+):
     import json
     from datetime import datetime
+
     historico = {}
     changes = diff_protocolo_padrao(instance, validated_data, new_editais, old_editais)
     changes_subs = diff_substituicoes(substituicoes_old, substituicoes_new)
@@ -360,8 +423,16 @@ def log_update(instance, validated_data, substituicoes_old, substituicoes_new, n
 
     if changes:
         historico['updated_at'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-        historico['user'] = {'uuid': str(user.uuid), 'email': user.email,
-                             'username': user.username, 'nome': user.nome} if user else user
+        historico['user'] = (
+            {
+                'uuid': str(user.uuid),
+                'email': user.email,
+                'username': user.username,
+                'nome': user.nome,
+            }
+            if user
+            else user
+        )
         historico['action'] = 'UPDATE'
         historico['changes'] = changes
 
@@ -376,39 +447,50 @@ def diff_protocolo_padrao(instance, validated_data, new_editais, old_editais):
 
     if instance.nome_protocolo != validated_data['nome_protocolo']:
         changes.append(
-            {'field': 'nome_protocolo', 'from': instance.nome_protocolo, 'to': validated_data['nome_protocolo']})
+            {
+                'field': 'nome_protocolo',
+                'from': instance.nome_protocolo,
+                'to': validated_data['nome_protocolo'],
+            }
+        )
 
     if instance.orientacoes_gerais != validated_data['orientacoes_gerais']:
         changes.append(
             {
                 'field': 'orientacoes_gerais',
                 'from': instance.orientacoes_gerais,
-                'to': validated_data['orientacoes_gerais']
+                'to': validated_data['orientacoes_gerais'],
             }
         )
 
     if instance.status != validated_data['status']:
         changes.append(
-            {'field': 'status', 'from': instance.status, 'to': validated_data['status']})
+            {'field': 'status', 'from': instance.status, 'to': validated_data['status']}
+        )
 
-    new_editais_list_ordered = set(new_editais.order_by('uuid').values_list('uuid', flat=True))
-    old_editais_list_ordered = set(old_editais.all().order_by('uuid').values_list('uuid', flat=True))
+    new_editais_list_ordered = set(
+        new_editais.order_by('uuid').values_list('uuid', flat=True)
+    )
+    old_editais_list_ordered = set(
+        old_editais.all().order_by('uuid').values_list('uuid', flat=True)
+    )
     if new_editais_list_ordered != old_editais_list_ordered:
-        changes.append({
-            'field': 'editais',
-            'from': [edital.numero for edital in old_editais.all()],
-            'to': [edital.numero for edital in new_editais]
-        })
+        changes.append(
+            {
+                'field': 'editais',
+                'from': [edital.numero for edital in old_editais.all()],
+                'to': [edital.numero for edital in new_editais],
+            }
+        )
 
     return changes
 
 
-def diff_substituicoes(substituicoes_old, substituicoes_new): # noqa C901
+def diff_substituicoes(substituicoes_old, substituicoes_new):  # noqa C901
     substituicoes = []
 
     # Tratando adição e edição de substituíções
     if substituicoes_old.all().count() <= len(substituicoes_new):
-
         for index, subs_new in enumerate(substituicoes_new):
             sub = {}
 
@@ -421,43 +503,75 @@ def diff_substituicoes(substituicoes_old, substituicoes_new): # noqa C901
                 sub['alimento'] = {
                     'from': {
                         'id': subs.alimento.id if subs else None,
-                        'nome': subs.alimento.nome if subs else None},
+                        'nome': subs.alimento.nome if subs else None,
+                    },
                     'to': {
                         'id': subs_new['alimento'].id,
-                        'nome': subs_new['alimento'].nome}}
+                        'nome': subs_new['alimento'].nome,
+                    },
+                }
 
             if not subs or subs.tipo != subs_new['tipo']:
-                sub['tipo'] = {'from': subs.tipo if subs else None, 'to': subs_new['tipo'] if subs_new else None}
+                sub['tipo'] = {
+                    'from': subs.tipo if subs else None,
+                    'to': subs_new['tipo'] if subs_new else None,
+                }
 
-            al_subs_ids = subs.alimentos_substitutos.all().order_by('id').values_list('id', flat=True) if subs else []
-            subs_ids_old = subs.substitutos.all().order_by('id').values_list('id', flat=True) if subs else []
+            al_subs_ids = (
+                subs.alimentos_substitutos.all()
+                .order_by('id')
+                .values_list('id', flat=True)
+                if subs
+                else []
+            )
+            subs_ids_old = (
+                subs.substitutos.all().order_by('id').values_list('id', flat=True)
+                if subs
+                else []
+            )
 
             ids_olds = [*al_subs_ids, *subs_ids_old]
             ids_news = sorted([s.id for s in subs_new['substitutos']])
 
             from itertools import zip_longest
-            if any(map(lambda t: t[0] != t[1], zip_longest(ids_olds, ids_news, fillvalue=False))):
+
+            if any(
+                map(
+                    lambda t: t[0] != t[1],
+                    zip_longest(ids_olds, ids_news, fillvalue=False),
+                )
+            ):
                 from_ = None
 
                 if subs:
                     alimentos_substitutos = [
                         {'uuid': str(sub.uuid), 'nome': sub.nome}
-                        for sub in subs.alimentos_substitutos.all()]
+                        for sub in subs.alimentos_substitutos.all()
+                    ]
 
                     substitutos_ = [
                         {'uuid': str(sub.uuid), 'nome': sub.nome}
-                        for sub in subs.substitutos.all()]
+                        for sub in subs.substitutos.all()
+                    ]
 
                     substitutos = [*alimentos_substitutos, *substitutos_]
-                    from_ = [
-                        {'uuid': sub['uuid'], 'nome': sub['nome']}
-                        for sub in substitutos] if substitutos else None
+                    from_ = (
+                        [
+                            {'uuid': sub['uuid'], 'nome': sub['nome']}
+                            for sub in substitutos
+                        ]
+                        if substitutos
+                        else None
+                    )
 
                 sub['substitutos'] = {
                     'from': from_,
                     'to': [
                         {'uuid': str(s.uuid), 'nome': s.nome}
-                        for s in subs_new['substitutos']] if subs_new['substitutos'] else None
+                        for s in subs_new['substitutos']
+                    ]
+                    if subs_new['substitutos']
+                    else None,
                 }
 
             if sub:
@@ -474,48 +588,76 @@ def diff_substituicoes(substituicoes_old, substituicoes_new): # noqa C901
 
             if not subs_new or subs.alimento.id != subs_new['alimento'].id:
                 sub['alimento'] = {
-                    'from': {
-                        'id': subs.alimento.id,
-                        'nome': subs.alimento.nome
-                    },
+                    'from': {'id': subs.alimento.id, 'nome': subs.alimento.nome},
                     'to': {
                         'id': subs_new['alimento'].id if subs_new else None,
-                        'nome': subs_new['alimento'].nome if subs_new else None
-                    }
+                        'nome': subs_new['alimento'].nome if subs_new else None,
+                    },
                 }
 
             if not subs_new or subs.tipo != subs_new['tipo']:
-                sub['tipo'] = {'from': subs.tipo, 'to': subs_new['tipo'] if subs_new else None}
+                sub['tipo'] = {
+                    'from': subs.tipo,
+                    'to': subs_new['tipo'] if subs_new else None,
+                }
 
-            al_sub_ids = subs.alimentos_substitutos.all().order_by('id').values_list('id', flat=True) if subs else []
-            subs_ids_old = subs.substitutos.all().order_by('id').values_list('id', flat=True) if subs else []
+            al_sub_ids = (
+                subs.alimentos_substitutos.all()
+                .order_by('id')
+                .values_list('id', flat=True)
+                if subs
+                else []
+            )
+            subs_ids_old = (
+                subs.substitutos.all().order_by('id').values_list('id', flat=True)
+                if subs
+                else []
+            )
 
             ids_olds = [*al_sub_ids, *subs_ids_old]
-            ids_news = sorted([s.id for s in subs_new['substitutos']]) if subs_new else []
+            ids_news = (
+                sorted([s.id for s in subs_new['substitutos']]) if subs_new else []
+            )
 
             from itertools import zip_longest
-            if any(map(lambda t: t[0] != t[1], zip_longest(ids_olds, ids_news, fillvalue=False))):
+
+            if any(
+                map(
+                    lambda t: t[0] != t[1],
+                    zip_longest(ids_olds, ids_news, fillvalue=False),
+                )
+            ):
                 to_ = None
                 if subs_new:
-                    to_ = [
-                        {'uuid': str(s.uuid), 'nome': s.nome}
-                        for s in subs_new['substitutos']] if subs_new['substitutos'] else None
+                    to_ = (
+                        [
+                            {'uuid': str(s.uuid), 'nome': s.nome}
+                            for s in subs_new['substitutos']
+                        ]
+                        if subs_new['substitutos']
+                        else None
+                    )
 
                 alimentos_substitutos = [
                     {'uuid': str(sub.uuid), 'nome': sub.nome}
-                    for sub in subs.alimentos_substitutos.all()]
+                    for sub in subs.alimentos_substitutos.all()
+                ]
 
                 substitutos_ = [
                     {'uuid': str(sub.uuid), 'nome': sub.nome}
-                    for sub in subs.substitutos.all()]
+                    for sub in subs.substitutos.all()
+                ]
 
                 substitutos = [*alimentos_substitutos, *substitutos_]
 
                 sub['substitutos'] = {
                     'from': [
                         {'uuid': sub['uuid'], 'nome': sub['nome']}
-                        for sub in substitutos] if substitutos else None,
-                    'to': to_
+                        for sub in substitutos
+                    ]
+                    if substitutos
+                    else None,
+                    'to': to_,
                 }
 
             if sub:
@@ -529,10 +671,16 @@ def is_alpha_numeric_and_has_single_space(descricao):
 
 
 def verifica_se_existe_dieta_valida(aluno, queryset, status_dieta, escola):
-    return [s for s in aluno.dietas_especiais.all() if s.rastro_escola == escola and s.status in status_dieta]
+    return [
+        s
+        for s in aluno.dietas_especiais.all()
+        if s.rastro_escola == escola and s.status in status_dieta
+    ]
 
 
-def filtrar_alunos_com_dietas_nos_status_e_rastro_escola(queryset, status_dieta, escola):
+def filtrar_alunos_com_dietas_nos_status_e_rastro_escola(
+    queryset, status_dieta, escola
+):
     uuids_alunos_para_excluir = []
     for aluno in queryset:
         if not verifica_se_existe_dieta_valida(aluno, queryset, status_dieta, escola):
@@ -545,20 +693,27 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
     logs_a_criar = []
     dict_periodos = PeriodoEscolar.dict_periodos()
     for classificacao in ClassificacaoDieta.objects.all():
-        quantidade_dietas = dietas_autorizadas.filter(classificacao=classificacao, escola_destino=escola).count()
+        quantidade_dietas = dietas_autorizadas.filter(
+            classificacao=classificacao, escola_destino=escola
+        ).count()
         log = LogQuantidadeDietasAutorizadas(
             quantidade=quantidade_dietas,
             escola=escola,
             data=ontem,
-            classificacao=classificacao
+            classificacao=classificacao,
         )
         logs_a_criar.append(log)
         for periodo_escolar_nome in escola.periodos_escolares_com_alunos:
-            quantidade_dietas = dietas_autorizadas.filter(
-                classificacao=classificacao, escola_destino=escola
-            ).filter(
-                Q(aluno__periodo_escolar__nome=periodo_escolar_nome) | Q(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
-            ).count()
+            quantidade_dietas = (
+                dietas_autorizadas.filter(
+                    classificacao=classificacao, escola_destino=escola
+                )
+                .filter(
+                    Q(aluno__periodo_escolar__nome=periodo_escolar_nome)
+                    | Q(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
+                )
+                .count()
+            )
             if escola.eh_cemei and periodo_escolar_nome == 'INTEGRAL':
                 logs_a_criar = logs_periodo_integral_cei_ou_emei_escola_cemei(
                     logs_a_criar,
@@ -567,14 +722,14 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
                     escola,
                     periodo_escolar_nome,
                     dict_periodos,
-                    ontem
+                    ontem,
                 )
             log = LogQuantidadeDietasAutorizadas(
                 quantidade=quantidade_dietas,
                 escola=escola,
                 data=ontem,
                 periodo_escolar=dict_periodos[periodo_escolar_nome],
-                classificacao=classificacao
+                classificacao=classificacao,
             )
             logs_a_criar.append(log)
     return logs_a_criar
@@ -587,12 +742,13 @@ def logs_periodo_integral_cei_ou_emei_escola_cemei(
     escola,
     periodo_escolar_nome,
     dict_periodos,
-    ontem
+    ontem,
 ):
     dietas = dietas_autorizadas.filter(
         classificacao=classificacao, escola_destino=escola
     ).filter(
-        Q(aluno__periodo_escolar__nome=periodo_escolar_nome) | Q(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
+        Q(aluno__periodo_escolar__nome=periodo_escolar_nome)
+        | Q(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
     )
     series_cei = ['1', '2', '3', '4']
     quantidade_cei = 0
@@ -608,7 +764,7 @@ def logs_periodo_integral_cei_ou_emei_escola_cemei(
         data=ontem,
         periodo_escolar=dict_periodos[periodo_escolar_nome],
         classificacao=classificacao,
-        cei_ou_emei='CEI'
+        cei_ou_emei='CEI',
     )
     log_emei = LogQuantidadeDietasAutorizadas(
         quantidade=quantidade_emei,
@@ -616,23 +772,27 @@ def logs_periodo_integral_cei_ou_emei_escola_cemei(
         data=ontem,
         periodo_escolar=dict_periodos[periodo_escolar_nome],
         classificacao=classificacao,
-        cei_ou_emei='EMEI'
+        cei_ou_emei='EMEI',
     )
     return logs_a_criar + [log_cei] + [log_emei]
 
 
 def gera_logs_dietas_escolas_cei(escola, dietas_autorizadas, ontem):
     try:
-        return logs_a_criar_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem)
+        return logs_a_criar_existe_solicitacao_medicao(
+            escola, dietas_autorizadas, ontem
+        )
     except ObjectDoesNotExist:
-        return logs_a_criar_nao_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem)
+        return logs_a_criar_nao_existe_solicitacao_medicao(
+            escola, dietas_autorizadas, ontem
+        )
 
 
 def logs_a_criar_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem):
     solicitacao_medicao = SolicitacaoMedicaoInicial.objects.get(
         escola__codigo_eol=escola.codigo_eol,
         mes=f'{date.today().month:02d}',
-        ano=date.today().year
+        ano=date.today().year,
     )
     dict_periodos = PeriodoEscolar.dict_periodos()
     logs_a_criar = []
@@ -642,21 +802,38 @@ def logs_a_criar_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem):
     for periodo in periodos:
         for classificacao in ClassificacaoDieta.objects.all():
             dietas = dietas_autorizadas.filter(
-                classificacao=classificacao,
-                escola_destino=escola
+                classificacao=classificacao, escola_destino=escola
             )
-            dietas_filtradas_periodo = dietas.filter(aluno__periodo_escolar__nome=periodo)
-            dietas_nao_matriculados = dietas.filter(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
+            dietas_filtradas_periodo = dietas.filter(
+                aluno__periodo_escolar__nome=periodo
+            )
+            dietas_nao_matriculados = dietas.filter(
+                tipo_solicitacao='ALUNO_NAO_MATRICULADO'
+            )
             faixas = []
             faixas += append_faixas_dietas(dietas_filtradas_periodo, escola)
             faixas += append_faixas_dietas(dietas_nao_matriculados, escola)
             if periodo == 'INTEGRAL' and 'PARCIAL' in periodos:
                 logs_a_criar += criar_logs_integral_parcial(
-                    True, dietas, solicitacao_medicao, escola, ontem, classificacao, periodo, faixas
+                    True,
+                    dietas,
+                    solicitacao_medicao,
+                    escola,
+                    ontem,
+                    classificacao,
+                    periodo,
+                    faixas,
                 )
             elif periodo == 'PARCIAL':
                 logs_a_criar += criar_logs_integral_parcial(
-                    False, dietas, solicitacao_medicao, escola, ontem, classificacao, periodo, None
+                    False,
+                    dietas,
+                    solicitacao_medicao,
+                    escola,
+                    ontem,
+                    classificacao,
+                    periodo,
+                    None,
                 )
             else:
                 for faixa, quantidade in Counter(faixas).items():
@@ -666,10 +843,12 @@ def logs_a_criar_existe_solicitacao_medicao(escola, dietas_autorizadas, ontem):
                         data=ontem,
                         classificacao=classificacao,
                         periodo_escolar=dict_periodos[periodo],
-                        faixa_etaria=faixa
+                        faixa_etaria=faixa,
                     )
                     logs_a_criar.append(log)
-    logs_a_criar = append_logs_a_criar_de_quantidade_zero(logs_a_criar, periodos, escola, ontem)
+    logs_a_criar = append_logs_a_criar_de_quantidade_zero(
+        logs_a_criar, periodos, escola, ontem
+    )
     return logs_a_criar
 
 
@@ -680,11 +859,14 @@ def logs_a_criar_nao_existe_solicitacao_medicao(escola, dietas_autorizadas, onte
     for periodo in periodos:
         for classificacao in ClassificacaoDieta.objects.all():
             dietas = dietas_autorizadas.filter(
-                classificacao=classificacao,
-                escola_destino=escola
+                classificacao=classificacao, escola_destino=escola
             )
-            dietas_filtradas_periodo = dietas.filter(aluno__periodo_escolar__nome=periodo)
-            dietas_nao_matriculados = dietas.filter(tipo_solicitacao='ALUNO_NAO_MATRICULADO')
+            dietas_filtradas_periodo = dietas.filter(
+                aluno__periodo_escolar__nome=periodo
+            )
+            dietas_nao_matriculados = dietas.filter(
+                tipo_solicitacao='ALUNO_NAO_MATRICULADO'
+            )
             faixas = []
             faixas += append_faixas_dietas(dietas_filtradas_periodo, escola)
             faixas += append_faixas_dietas(dietas_nao_matriculados, escola)
@@ -695,10 +877,12 @@ def logs_a_criar_nao_existe_solicitacao_medicao(escola, dietas_autorizadas, onte
                     data=ontem,
                     classificacao=classificacao,
                     periodo_escolar=dict_periodos[periodo],
-                    faixa_etaria=faixa
+                    faixa_etaria=faixa,
                 )
                 logs_a_criar.append(log)
-    logs_a_criar = append_logs_a_criar_de_quantidade_zero(logs_a_criar, periodos, escola, ontem)
+    logs_a_criar = append_logs_a_criar_de_quantidade_zero(
+        logs_a_criar, periodos, escola, ontem
+    )
     return logs_a_criar
 
 
@@ -707,16 +891,23 @@ def append_logs_a_criar_de_quantidade_zero(logs_a_criar, periodos, escola, ontem
     for periodo in periodos:
         faixas = faixas_por_periodo_e_faixa_etaria(escola, periodo)
         for faixa, _ in faixas.items():
-            if faixa in [str(f) for f in FaixaEtaria.objects.filter(ativo=True).values_list('uuid', flat=True)]:
+            if faixa in [
+                str(f)
+                for f in FaixaEtaria.objects.filter(ativo=True).values_list(
+                    'uuid', flat=True
+                )
+            ]:
                 for classificacao in ClassificacaoDieta.objects.all():
-                    if not existe_log(logs_a_criar, escola, ontem, classificacao, periodo, faixa):
+                    if not existe_log(
+                        logs_a_criar, escola, ontem, classificacao, periodo, faixa
+                    ):
                         log = LogQuantidadeDietasAutorizadasCEI(
                             quantidade=0,
                             escola=escola,
                             data=ontem,
                             classificacao=classificacao,
                             periodo_escolar=dict_periodos[periodo],
-                            faixa_etaria=FaixaEtaria.objects.get(uuid=faixa)
+                            faixa_etaria=FaixaEtaria.objects.get(uuid=faixa),
                         )
                         logs_a_criar.append(log)
     return logs_a_criar
@@ -731,14 +922,22 @@ def faixas_por_periodo_e_faixa_etaria(escola, periodo):
 
 def existe_log(logs_a_criar, escola, ontem, classificacao, periodo, faixa):
     resultado = list(
-        filter(lambda log: condicoes(log, escola, ontem, classificacao, periodo, faixa), logs_a_criar))
+        filter(
+            lambda log: condicoes(log, escola, ontem, classificacao, periodo, faixa),
+            logs_a_criar,
+        )
+    )
     return resultado
 
 
 def condicoes(log, escola, ontem, classificacao, periodo, faixa):
-    resultado = (log.escola == escola and log.data == ontem and
-                 log.classificacao == classificacao and
-                 log.periodo_escolar.nome == periodo and str(log.faixa_etaria.uuid) == faixa)
+    resultado = (
+        log.escola == escola
+        and log.data == ontem
+        and log.classificacao == classificacao
+        and log.periodo_escolar.nome == periodo
+        and str(log.faixa_etaria.uuid) == faixa
+    )
     return resultado
 
 
@@ -762,8 +961,12 @@ def append_faixas_dietas(dietas, escola):
         if meses >= ultima_faixa.fim:
             faixa = ultima_faixa
         else:
-            faixa = FaixaEtaria.objects.get(ativo=True, inicio__lte=meses, fim__gt=meses)
-        if escola.eh_cemei and not any(serie in dieta_periodo.aluno.serie for serie in series_cei):
+            faixa = FaixaEtaria.objects.get(
+                ativo=True, inicio__lte=meses, fim__gt=meses
+            )
+        if escola.eh_cemei and not any(
+            serie in dieta_periodo.aluno.serie for serie in series_cei
+        ):
             continue
         faixas.append(faixa)
     return faixas
@@ -777,16 +980,20 @@ def criar_logs_integral_parcial(
     ontem,
     classificacao,
     periodo,
-    faixas
+    faixas,
 ):
     logs = []
     dict_periodos = PeriodoEscolar.dict_periodos()
     faixas_alunos_parciais = []
     for dieta in dietas:
-        if dieta.aluno.nome in solicitacao_medicao.alunos_periodo_parcial.values_list('aluno__nome', flat=True):
+        if dieta.aluno.nome in solicitacao_medicao.alunos_periodo_parcial.values_list(
+            'aluno__nome', flat=True
+        ):
             data_nascimento = dieta.aluno.data_nascimento
             meses = quantidade_meses(date.today(), data_nascimento)
-            faixa = FaixaEtaria.objects.get(ativo=True, inicio__lte=meses, fim__gt=meses)
+            faixa = FaixaEtaria.objects.get(
+                ativo=True, inicio__lte=meses, fim__gt=meses
+            )
             faixas_alunos_parciais.append(faixa)
     faixas = faixas if eh_integral else faixas_alunos_parciais
     for faixa, quantidade in Counter(faixas).items():
@@ -798,7 +1005,7 @@ def criar_logs_integral_parcial(
             data=ontem,
             classificacao=classificacao,
             periodo_escolar=dict_periodos[periodo],
-            faixa_etaria=faixa
+            faixa_etaria=faixa,
         )
         logs.append(log)
     return logs
