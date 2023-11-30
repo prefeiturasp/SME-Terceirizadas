@@ -329,8 +329,7 @@ def test_url_endpoint_solicitacoes_inversao_terceirizada_responde_questionamento
         data={'justificativa': justificativa, 'resposta_sim_nao': resposta},
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    detail = "Erro de transição de estado: Transition 'terceirizada_responde_questionamento' isn't available from state"
-    " 'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO'."
+    detail = "Erro de transição de estado: Transition 'terceirizada_responde_questionamento' isn't available from state 'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO'."
     assert response.json() == {'detail': detail}
 
 
