@@ -8,30 +8,62 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0003_tipounidadeescolar_periodos_escolares'),
+        ("escola", "0003_tipounidadeescolar_periodos_escolares"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='escola',
-            name='periodos_escolares',
+            model_name="escola",
+            name="periodos_escolares",
         ),
         migrations.CreateModel(
-            name='EscolaPeriodoEscolar',
+            name="EscolaPeriodoEscolar",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ativo', models.BooleanField(default=True, verbose_name='Está ativo?')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('quantidade_alunos', models.PositiveSmallIntegerField(default=0, verbose_name='Quantidade de alunos')),
-                ('escola', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='escolas_periodos', to='escola.Escola')),
-                ('periodo_escolar', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='escolas_periodos', to='escola.PeriodoEscolar')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "ativo",
+                    models.BooleanField(default=True, verbose_name="Está ativo?"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "quantidade_alunos",
+                    models.PositiveSmallIntegerField(
+                        default=0, verbose_name="Quantidade de alunos"
+                    ),
+                ),
+                (
+                    "escola",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="escolas_periodos",
+                        to="escola.Escola",
+                    ),
+                ),
+                (
+                    "periodo_escolar",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="escolas_periodos",
+                        to="escola.PeriodoEscolar",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Escola com período escolar',
-                'verbose_name_plural': 'Escola com períodos escolares',
-                'unique_together': {('periodo_escolar', 'escola')},
+                "verbose_name": "Escola com período escolar",
+                "verbose_name_plural": "Escola com períodos escolares",
+                "unique_together": {("periodo_escolar", "escola")},
             },
         ),
     ]

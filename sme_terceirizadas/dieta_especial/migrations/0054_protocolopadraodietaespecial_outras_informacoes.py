@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0053_merge_20230303_1131'),
+        ("dieta_especial", "0053_merge_20230303_1131"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='protocolopadraodietaespecial',
-            name='outras_informacoes',
-            field=models.TextField(blank=True, verbose_name='Outras Informações'),
+            model_name="protocolopadraodietaespecial",
+            name="outras_informacoes",
+            field=models.TextField(blank=True, verbose_name="Outras Informações"),
         ),
     ]

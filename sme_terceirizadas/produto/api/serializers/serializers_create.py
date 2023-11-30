@@ -44,14 +44,14 @@ class ImagemDoProdutoSerializerCreate(serializers.ModelSerializer):
     class Meta:
         model = ImagemDoProduto
         exclude = (
-            'id',
-            'produto',
+            "id",
+            "produto",
         )
 
 
 class InformacoesNutricionaisDoProdutoSerializerCreate(serializers.ModelSerializer):
     informacao_nutricional = serializers.SlugRelatedField(
-        slug_field='uuid', required=True, queryset=InformacaoNutricional.objects.all()
+        slug_field="uuid", required=True, queryset=InformacaoNutricional.objects.all()
     )
 
     quantidade_porcao = serializers.CharField(required=True)
@@ -60,20 +60,20 @@ class InformacoesNutricionaisDoProdutoSerializerCreate(serializers.ModelSerializ
     class Meta:
         model = InformacoesNutricionaisDoProduto
         exclude = (
-            'id',
-            'produto',
+            "id",
+            "produto",
         )
 
 
 class EspecificacaoProdutoCreateSerializer(serializers.ModelSerializer):
     unidade_de_medida = serializers.SlugRelatedField(
-        slug_field='uuid',
+        slug_field="uuid",
         required=False,
         queryset=UnidadeMedida.objects.all(),
         allow_null=True,
     )
     embalagem_produto = serializers.SlugRelatedField(
-        slug_field='uuid',
+        slug_field="uuid",
         required=False,
         queryset=EmbalagemProduto.objects.all(),
         allow_null=True,
@@ -82,23 +82,23 @@ class EspecificacaoProdutoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = EspecificacaoProduto
         exclude = (
-            'id',
-            'produto',
+            "id",
+            "produto",
         )
 
 
 class ProdutoSerializerCreate(serializers.ModelSerializer):
     protocolos = serializers.SlugRelatedField(
-        slug_field='uuid',
+        slug_field="uuid",
         required=False,
         queryset=ProtocoloDeDietaEspecial.objects.all(),
         many=True,
     )
     marca = serializers.SlugRelatedField(
-        slug_field='uuid', required=False, queryset=Marca.objects.all(), allow_null=True
+        slug_field="uuid", required=False, queryset=Marca.objects.all(), allow_null=True
     )
     fabricante = serializers.SlugRelatedField(
-        slug_field='uuid',
+        slug_field="uuid",
         required=False,
         queryset=Fabricante.objects.all(),
         allow_null=True,
@@ -113,35 +113,35 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
     especificacoes = EspecificacaoProdutoCreateSerializer(many=True)
 
     def create(self, validated_data):  # noqa C901
-        validated_data['criado_por'] = self.context['request'].user
-        imagens = validated_data.pop('imagens', [])
-        informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
-        cadastro_finalizado = validated_data.pop('cadastro_finalizado', False)
-        especificacoes_produto = validated_data.pop('especificacoes', [])
+        validated_data["criado_por"] = self.context["request"].user
+        imagens = validated_data.pop("imagens", [])
+        informacoes_nutricionais = validated_data.pop("informacoes_nutricionais", [])
+        cadastro_finalizado = validated_data.pop("cadastro_finalizado", False)
+        especificacoes_produto = validated_data.pop("especificacoes", [])
 
         # duplicidade de produtos por causa da linha 112
         produto = Produto.objects.create(**validated_data)
 
         for imagem in imagens:
-            data = convert_base64_to_contentfile(imagem.get('arquivo'))
+            data = convert_base64_to_contentfile(imagem.get("arquivo"))
             ImagemDoProduto.objects.create(
-                produto=produto, arquivo=data, nome=imagem.get('nome', '')
+                produto=produto, arquivo=data, nome=imagem.get("nome", "")
             )
 
         for informacao in informacoes_nutricionais:
             InformacoesNutricionaisDoProduto.objects.create(
                 produto=produto,
-                informacao_nutricional=informacao.get('informacao_nutricional', ''),
-                quantidade_porcao=informacao.get('quantidade_porcao', ''),
-                valor_diario=informacao.get('valor_diario', ''),
+                informacao_nutricional=informacao.get("informacao_nutricional", ""),
+                quantidade_porcao=informacao.get("quantidade_porcao", ""),
+                valor_diario=informacao.get("valor_diario", ""),
             )
 
         for especificacao in especificacoes_produto:
             EspecificacaoProduto.objects.create(
                 produto=produto,
-                volume=especificacao.get('volume', ''),
-                unidade_de_medida=especificacao.get('unidade_de_medida', ''),
-                embalagem_produto=especificacao.get('embalagem_produto', ''),
+                volume=especificacao.get("volume", ""),
+                unidade_de_medida=especificacao.get("unidade_de_medida", ""),
+                embalagem_produto=especificacao.get("embalagem_produto", ""),
             )
 
         try:
@@ -149,49 +149,49 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         except HomologacaoProduto.DoesNotExist:
             homologacao = HomologacaoProduto(
                 rastro_terceirizada=self.context[
-                    'request'
+                    "request"
                 ].user.vinculo_atual.instituicao,
                 produto=produto,
-                criado_por=self.context['request'].user,
+                criado_por=self.context["request"].user,
             )
             homologacao.save()
         if cadastro_finalizado:
-            homologacao.inicia_fluxo(user=self.context['request'].user)
+            homologacao.inicia_fluxo(user=self.context["request"].user)
         return produto
 
     def update(self, instance, validated_data):  # noqa C901
-        if type(validated_data.get('marca')) == str:
-            validated_data['marca'] = Marca.objects.get(
-                uuid=validated_data.get('marca')
+        if type(validated_data.get("marca")) == str:
+            validated_data["marca"] = Marca.objects.get(
+                uuid=validated_data.get("marca")
             )
-        if type(validated_data.get('fabricante')) == str:
-            validated_data['fabricante'] = Fabricante.objects.get(
-                uuid=validated_data.get('fabricante')
+        if type(validated_data.get("fabricante")) == str:
+            validated_data["fabricante"] = Fabricante.objects.get(
+                uuid=validated_data.get("fabricante")
             )
-        for informacao in validated_data.get('informacoes_nutricionais', []):
-            if type(informacao.get('informacao_nutricional')) == str:
+        for informacao in validated_data.get("informacoes_nutricionais", []):
+            if type(informacao.get("informacao_nutricional")) == str:
                 informacao[
-                    'informacao_nutricional'
+                    "informacao_nutricional"
                 ] = InformacaoNutricional.objects.get(
-                    uuid=informacao.get('informacao_nutricional')
+                    uuid=informacao.get("informacao_nutricional")
                 )
-        for especificacao in validated_data.get('especificacoes', []):
-            if type(especificacao.get('unidade_de_medida')) == str:
-                especificacao['unidade_de_medida'] = UnidadeMedida.objects.get(
-                    uuid=especificacao.get('unidade_de_medida')
+        for especificacao in validated_data.get("especificacoes", []):
+            if type(especificacao.get("unidade_de_medida")) == str:
+                especificacao["unidade_de_medida"] = UnidadeMedida.objects.get(
+                    uuid=especificacao.get("unidade_de_medida")
                 )
-            if type(especificacao.get('embalagem_produto')) == str:
-                especificacao['embalagem_produto'] = EmbalagemProduto.objects.get(
-                    uuid=especificacao.get('embalagem_produto')
+            if type(especificacao.get("embalagem_produto")) == str:
+                especificacao["embalagem_produto"] = EmbalagemProduto.objects.get(
+                    uuid=especificacao.get("embalagem_produto")
                 )
-        usuario = self.context['request'].user
+        usuario = self.context["request"].user
         mudancas = changes_between(instance, validated_data, usuario)
         justificativa = mudancas_para_justificativa_html(
             mudancas, instance._meta.get_fields()
         )
-        informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
-        especificacoes_produto = validated_data.pop('especificacoes', [])
-        imagens = validated_data.pop('imagens', [])
+        informacoes_nutricionais = validated_data.pop("informacoes_nutricionais", [])
+        especificacoes_produto = validated_data.pop("especificacoes", [])
+        imagens = validated_data.pop("imagens", [])
 
         update_instance_from_dict(instance, validated_data, save=True)
 
@@ -199,43 +199,43 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         instance.especificacoes.all().delete()
 
         for imagem in imagens:
-            if imagem.get('arquivo', '').startswith('http'):
+            if imagem.get("arquivo", "").startswith("http"):
                 continue
             ImagemDoProduto.objects.update_or_create(
                 produto=instance,
-                nome=imagem.get('nome', ''),
+                nome=imagem.get("nome", ""),
                 defaults={
-                    'arquivo': convert_base64_to_contentfile(imagem.get('arquivo'))
+                    "arquivo": convert_base64_to_contentfile(imagem.get("arquivo"))
                 },
             )
 
         for informacao in informacoes_nutricionais:
             InformacoesNutricionaisDoProduto.objects.create(
                 produto=instance,
-                informacao_nutricional=informacao.get('informacao_nutricional', ''),
-                quantidade_porcao=informacao.get('quantidade_porcao', ''),
-                valor_diario=informacao.get('valor_diario', ''),
+                informacao_nutricional=informacao.get("informacao_nutricional", ""),
+                quantidade_porcao=informacao.get("quantidade_porcao", ""),
+                valor_diario=informacao.get("valor_diario", ""),
             )
 
         for especificacao in especificacoes_produto:
             EspecificacaoProduto.objects.create(
                 produto=instance,
-                volume=especificacao.get('volume', ''),
-                unidade_de_medida=especificacao.get('unidade_de_medida', ''),
-                embalagem_produto=especificacao.get('embalagem_produto', ''),
+                volume=especificacao.get("volume", ""),
+                unidade_de_medida=especificacao.get("unidade_de_medida", ""),
+                embalagem_produto=especificacao.get("embalagem_produto", ""),
             )
 
         status_validos = [
-            'CODAE_NAO_HOMOLOGADO',
-            'CODAE_HOMOLOGADO',
-            'CODAE_SUSPENDEU',
-            'TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO',
-            'CODAE_QUESTIONADO',
+            "CODAE_NAO_HOMOLOGADO",
+            "CODAE_HOMOLOGADO",
+            "CODAE_SUSPENDEU",
+            "TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO",
+            "CODAE_QUESTIONADO",
         ]
 
-        usuario = self.context['request'].user
+        usuario = self.context["request"].user
         if (
-            validated_data.get('cadastro_finalizado', False)
+            validated_data.get("cadastro_finalizado", False)
             or instance.homologacao.status in status_validos
         ):
             homologacao = instance.homologacao
@@ -247,9 +247,9 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
     class Meta:
         model = Produto
         exclude = (
-            'id',
-            'criado_por',
-            'ativo',
+            "id",
+            "criado_por",
+            "ativo",
         )
 
 
@@ -261,75 +261,75 @@ class AnexoCreateSerializer(serializers.Serializer):
 class ReclamacaoDeProdutoSerializerCreate(serializers.ModelSerializer):
     anexos = AnexoCreateSerializer(many=True, required=False)
     escola = serializers.SlugRelatedField(
-        slug_field='uuid', required=True, queryset=Escola.objects.all()
+        slug_field="uuid", required=True, queryset=Escola.objects.all()
     )
 
     def create(self, validated_data):  # noqa C901
-        anexos = validated_data.pop('anexos', [])
+        anexos = validated_data.pop("anexos", [])
 
         reclamacao = ReclamacaoDeProduto.objects.create(**validated_data)
 
         for anexo in anexos:
-            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            arquivo = convert_base64_to_contentfile(anexo.pop("base64"))
             AnexoReclamacaoDeProduto.objects.create(
-                reclamacao_de_produto=reclamacao, arquivo=arquivo, nome=anexo['nome']
+                reclamacao_de_produto=reclamacao, arquivo=arquivo, nome=anexo["nome"]
             )
 
         return reclamacao
 
     class Meta:
         model = ReclamacaoDeProduto
-        exclude = ('id', 'uuid', 'criado_em')
+        exclude = ("id", "uuid", "criado_em")
 
 
 class RespostaAnaliseSensorialSearilzerCreate(serializers.ModelSerializer):
     homologacao_produto = serializers.SlugRelatedField(
-        slug_field='uuid', required=True, queryset=HomologacaoProduto.objects.all()
+        slug_field="uuid", required=True, queryset=HomologacaoProduto.objects.all()
     )
     data = serializers.DateField()
     hora = serializers.TimeField()
     anexos = AnexoCreateSerializer(many=True, required=False)
 
     def create(self, validated_data):
-        anexos = validated_data.pop('anexos', [])
+        anexos = validated_data.pop("anexos", [])
         resposta = RespostaAnaliseSensorial.objects.create(**validated_data)
 
         for anexo in anexos:
-            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            arquivo = convert_base64_to_contentfile(anexo.pop("base64"))
             AnexoRespostaAnaliseSensorial.objects.create(
-                resposta_analise_sensorial=resposta, arquivo=arquivo, nome=anexo['nome']
+                resposta_analise_sensorial=resposta, arquivo=arquivo, nome=anexo["nome"]
             )
 
         return resposta
 
     class Meta:
         model = RespostaAnaliseSensorial
-        exclude = ('id', 'uuid', 'criado_por', 'criado_em')
+        exclude = ("id", "uuid", "criado_por", "criado_em")
 
 
 class SolicitacaoCadastroProdutoDietaSerializerCreate(serializers.ModelSerializer):
     aluno = serializers.SlugRelatedField(
-        slug_field='uuid', required=True, queryset=Aluno.objects.all()
+        slug_field="uuid", required=True, queryset=Aluno.objects.all()
     )
     escola = serializers.SlugRelatedField(
-        slug_field='uuid', required=True, queryset=Escola.objects.all()
+        slug_field="uuid", required=True, queryset=Escola.objects.all()
     )
     terceirizada = serializers.SlugRelatedField(
-        slug_field='uuid', required=True, queryset=Terceirizada.objects.all()
+        slug_field="uuid", required=True, queryset=Terceirizada.objects.all()
     )
 
     solicitacao_dieta_especial = serializers.SlugRelatedField(
-        slug_field='uuid',
+        slug_field="uuid",
         required=True,
         queryset=SolicitacaoDietaEspecial.objects.all(),
     )
 
     class Meta:
         model = SolicitacaoCadastroProdutoDieta
-        exclude = ('id', 'uuid', 'criado_por', 'criado_em')
+        exclude = ("id", "uuid", "criado_por", "criado_em")
 
     def create(self, validated_data):
-        usuario = self.context['request'].user
+        usuario = self.context["request"].user
         solicitacao = SolicitacaoCadastroProdutoDieta.objects.create(
             **validated_data, criado_por=usuario
         )
@@ -384,20 +384,20 @@ class ProdutoEditalCreateSerializer(serializers.Serializer):
         homologacao_produto,
     ):
         if editais_vinculados:
-            string_editais_vinculados = ', '.join(editais_vinculados)
-            justificativa = '<p>Nome do Produto:</p>'
-            justificativa += f'<p>{produto_edital.produto.nome}</p>'
-            justificativa += '<br><p>Editais que foram vinculados:</p>'
-            justificativa += f'<p>{string_editais_vinculados}</p>'
+            string_editais_vinculados = ", ".join(editais_vinculados)
+            justificativa = "<p>Nome do Produto:</p>"
+            justificativa += f"<p>{produto_edital.produto.nome}</p>"
+            justificativa += "<br><p>Editais que foram vinculados:</p>"
+            justificativa += f"<p>{string_editais_vinculados}</p>"
             justificativa += (
-                '<br><p>Tipo de Produto em que o produto foi vinculado:</p>'
+                "<br><p>Tipo de Produto em que o produto foi vinculado:</p>"
             )
-            justificativa += f'<p>{tipo_produto}</p>'
-            justificativa += '<br><p>Outras informações:</p>'
-            justificativa += f'<p>{outras_informacoes}</p>'
+            justificativa += f"<p>{tipo_produto}</p>"
+            justificativa += "<br><p>Outras informações:</p>"
+            justificativa += f"<p>{outras_informacoes}</p>"
             homologacao_produto.salvar_log_transicao(
                 status_evento=LogSolicitacoesUsuario.VINCULO_DO_EDITAL_AO_PRODUTO,
-                usuario=self.context['request'].user,
+                usuario=self.context["request"].user,
                 justificativa=justificativa,
             )
 
@@ -416,30 +416,30 @@ class ProdutoEditalCreateSerializer(serializers.Serializer):
                 edital__numero__in=editais_com_tipos_alterados,
                 tipo_produto=outro_tipo_produto,
             ).update(tipo_produto=tipo_produto)
-            string_editais_alterados = ', '.join(editais_com_tipos_alterados)
-            justificativa = '<p>Nome do Produto:</p>'
-            justificativa += f'<p>{produto_edital.produto.nome}</p>'
-            justificativa += '<br><p>Editais que foram vinculados:</p>'
-            justificativa += f'<p>{string_editais_alterados}</p>'
-            justificativa += '<br><p>Tipo de Produto alterado para:</p>'
-            justificativa += f'<p>{tipo_produto}</p>'
-            justificativa += '<br><p>Outras informações:</p>'
-            justificativa += f'<p>{outras_informacoes}</p>'
+            string_editais_alterados = ", ".join(editais_com_tipos_alterados)
+            justificativa = "<p>Nome do Produto:</p>"
+            justificativa += f"<p>{produto_edital.produto.nome}</p>"
+            justificativa += "<br><p>Editais que foram vinculados:</p>"
+            justificativa += f"<p>{string_editais_alterados}</p>"
+            justificativa += "<br><p>Tipo de Produto alterado para:</p>"
+            justificativa += f"<p>{tipo_produto}</p>"
+            justificativa += "<br><p>Outras informações:</p>"
+            justificativa += f"<p>{outras_informacoes}</p>"
             homologacao_produto.salvar_log_transicao(
                 status_evento=LogSolicitacoesUsuario.VINCULO_DO_EDITAL_AO_PRODUTO,
-                usuario=self.context['request'].user,
+                usuario=self.context["request"].user,
                 justificativa=justificativa,
             )
 
     def create(self, validated_data):
         editais_destino_selecionados = validated_data.get(
-            'editais_destino_selecionados', []
+            "editais_destino_selecionados", []
         )
-        produtos_editais = validated_data.get('produtos_editais', [])
-        outras_informacoes = validated_data.get('outras_informacoes', '')
-        tipo_produto = validated_data.get('tipo_produto', '')
+        produtos_editais = validated_data.get("produtos_editais", [])
+        outras_informacoes = validated_data.get("outras_informacoes", "")
+        tipo_produto = validated_data.get("tipo_produto", "")
         outro_tipo_produto = (
-            'Comum' if tipo_produto == 'Dieta especial' else 'Dieta especial'
+            "Comum" if tipo_produto == "Dieta especial" else "Dieta especial"
         )
 
         produtos = ProdutoEdital.objects.filter(uuid__in=produtos_editais)
@@ -482,17 +482,17 @@ class ProdutoEditalCreateSerializer(serializers.Serializer):
             return resultado
         except Exception as e:
             raise serializers.ValidationError(
-                f'Erro ao criar Produto Proviniente do Edital.: {str(e)}'
+                f"Erro ao criar Produto Proviniente do Edital.: {str(e)}"
             )
 
     class Meta:
         model = SolicitacaoCadastroProdutoDieta
         fields = (
-            'editais_origem_selecionados',
-            'editais_destino_selecionados',
-            'produtos_editais',
-            'outras_informacoes',
-            'tipo_produto',
+            "editais_origem_selecionados",
+            "editais_destino_selecionados",
+            "produtos_editais",
+            "outras_informacoes",
+            "tipo_produto",
         )
 
 
@@ -504,35 +504,35 @@ class CadastroProdutosEditalCreateSerializer(serializers.Serializer):
     )
 
     def create(self, validated_data):
-        nome = validated_data['nome']
-        status = validated_data.pop('ativo')
-        tipo_produto = validated_data.pop('tipo_produto', None)
+        nome = validated_data["nome"]
+        status = validated_data.pop("ativo")
+        tipo_produto = validated_data.pop("tipo_produto", None)
         if not tipo_produto:
             tipo_produto = NomeDeProdutoEdital.TERCEIRIZADA
-        ativo = False if status == 'Inativo' else True
-        validated_data['criado_por'] = self.context['request'].user
+        ativo = False if status == "Inativo" else True
+        validated_data["criado_por"] = self.context["request"].user
         lista_produtos = NomeDeProdutoEdital.objects.filter(tipo_produto=tipo_produto)
 
         if nome.upper() in (produto.nome.upper() for produto in lista_produtos):
-            raise serializers.ValidationError('Item já cadastrado.')
+            raise serializers.ValidationError("Item já cadastrado.")
         try:
             produto = NomeDeProdutoEdital(
                 nome=nome,
                 ativo=ativo,
                 tipo_produto=tipo_produto,
-                criado_por=self.context['request'].user,
+                criado_por=self.context["request"].user,
             )
             produto.save()
             return produto
         except Exception:
             raise serializers.ValidationError(
-                'Erro ao criar Produto Proviniente do Edital.'
+                "Erro ao criar Produto Proviniente do Edital."
             )
 
     def update(self, instance, validated_data):  # noqa C901
-        nome = validated_data['nome']
-        status = validated_data.pop('ativo')
-        ativo = False if status == 'Inativo' else True
+        nome = validated_data["nome"]
+        status = validated_data.pop("ativo")
+        ativo = False if status == "Inativo" else True
         lista_produtos = NomeDeProdutoEdital.objects.filter(
             tipo_produto=instance.tipo_produto
         )
@@ -540,7 +540,7 @@ class CadastroProdutosEditalCreateSerializer(serializers.Serializer):
         if (nome.upper(), ativo) in (
             (produto.nome.upper(), produto.ativo) for produto in lista_produtos
         ):
-            raise serializers.ValidationError('Item já cadastrado.')
+            raise serializers.ValidationError("Item já cadastrado.")
 
         try:
             instance.nome = nome.upper()
@@ -548,6 +548,6 @@ class CadastroProdutosEditalCreateSerializer(serializers.Serializer):
             instance.save()
         except Exception as e:
             raise serializers.ValidationError(
-                f'Erro ao editar Produto Proviniente do Edital. {str(e)}'
+                f"Erro ao editar Produto Proviniente do Edital. {str(e)}"
             )
         return instance

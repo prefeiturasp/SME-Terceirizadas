@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 @shared_task(
     autoretry_for=(Exception,),
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
+    retry_kwargs={"max_retries": 8},
 )
 def processa_dietas_especiais_task():
     usuario_admin = Usuario.objects.get(pk=1)
@@ -69,7 +69,7 @@ def get_escolas_task():
 
 @shared_task(
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
+    retry_kwargs={"max_retries": 8},
     time_limit=3000,
     soft_time_limit=3000,
 )
@@ -78,7 +78,7 @@ def gera_pdf_relatorio_dieta_especial_async(user, nome_arquivo, ids_dietas, data
     from ..dieta_especial.models import SolicitacaoDietaEspecial
     from ..relatorios.relatorios import relatorio_geral_dieta_especial_pdf
 
-    logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
     obj_central_download = gera_objeto_na_central_download(
         user=user, identificador=nome_arquivo
     )
@@ -93,20 +93,20 @@ def gera_pdf_relatorio_dieta_especial_async(user, nome_arquivo, ids_dietas, data
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
 
-    logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
 
 
 @shared_task(
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
+    retry_kwargs={"max_retries": 8},
 )
 def gera_logs_dietas_especiais_diariamente():
     logger.info(
-        'x-x-x-x Iniciando a geração de logs de dietas especiais autorizadas diaria x-x-x-x'
+        "x-x-x-x Iniciando a geração de logs de dietas especiais autorizadas diaria x-x-x-x"
     )
     ontem = datetime.date.today() - datetime.timedelta(days=1)
     dietas_autorizadas = SolicitacaoDietaEspecial.objects.filter(
-        tipo_solicitacao__in=['COMUM', 'ALTERACAO_UE', 'ALUNO_NAO_MATRICULADO'],
+        tipo_solicitacao__in=["COMUM", "ALTERACAO_UE", "ALUNO_NAO_MATRICULADO"],
         status__in=[
             SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO,
             SolicitacaoDietaEspecial.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
@@ -116,10 +116,10 @@ def gera_logs_dietas_especiais_diariamente():
     )
     logs_a_criar_escolas_comuns = []
     logs_a_criar_escolas_cei = []
-    escolas = Escola.objects.filter(tipo_gestao__nome='TERC TOTAL')
+    escolas = Escola.objects.filter(tipo_gestao__nome="TERC TOTAL")
     for index, escola in enumerate(escolas):
-        msg = 'x-x-x-x Logs de quantidade de dietas autorizadas para a escola'
-        msg += f' {escola.nome} ({index + 1}/{(escolas).count()}) x-x-x-x'
+        msg = "x-x-x-x Logs de quantidade de dietas autorizadas para a escola"
+        msg += f" {escola.nome} ({index + 1}/{(escolas).count()}) x-x-x-x"
         logger.info(msg)
         if escola.eh_cei:
             logs_a_criar_escolas_cei += gera_logs_dietas_escolas_cei(
@@ -142,7 +142,7 @@ def gera_logs_dietas_especiais_diariamente():
 
 @shared_task(
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
+    retry_kwargs={"max_retries": 8},
     time_limit=3000,
     soft_time_limit=3000,
 )
@@ -151,7 +151,7 @@ def gera_pdf_relatorio_dietas_especiais_terceirizadas_async(
 ):
     from sme_terceirizadas.dieta_especial.models import SolicitacaoDietaEspecial
 
-    logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
     obj_central_download = gera_objeto_na_central_download(
         user=user, identificador=nome_arquivo
     )
@@ -161,37 +161,37 @@ def gera_pdf_relatorio_dietas_especiais_terceirizadas_async(
         solicitacoes = []
         for solicitacao in query_set:
             classificacao = (
-                solicitacao.classificacao.nome if solicitacao.classificacao else '--'
+                solicitacao.classificacao.nome if solicitacao.classificacao else "--"
             )
             dados_solicitacoes = {
-                'codigo_eol_aluno': solicitacao.aluno.codigo_eol,
-                'nome_aluno': solicitacao.aluno.nome,
-                'nome_escola': solicitacao.escola.nome,
-                'classificacao': classificacao,
-                'protocolo_padrao': solicitacao.nome_protocolo,
-                'alergias_intolerancias': solicitacao.alergias_intolerancias,
+                "codigo_eol_aluno": solicitacao.aluno.codigo_eol,
+                "nome_aluno": solicitacao.aluno.nome,
+                "nome_escola": solicitacao.escola.nome,
+                "classificacao": classificacao,
+                "protocolo_padrao": solicitacao.nome_protocolo,
+                "alergias_intolerancias": solicitacao.alergias_intolerancias,
             }
-            if data.get('status_selecionado') == 'CANCELADAS':
-                dados_solicitacoes['data_cancelamento'] = solicitacao.data_ultimo_log
+            if data.get("status_selecionado") == "CANCELADAS":
+                dados_solicitacoes["data_cancelamento"] = solicitacao.data_ultimo_log
             solicitacoes.append(dados_solicitacoes)
-        exibir_diagnostico = usuario.tipo_usuario != 'terceirizada'
+        exibir_diagnostico = usuario.tipo_usuario != "terceirizada"
         now = datetime.datetime.now()
-        data_pt = f'{now.day} de {converte_numero_em_mes(now.month)} de {now.year}'
+        data_pt = f"{now.day} de {converte_numero_em_mes(now.month)} de {now.year}"
         dados = {
-            'usuario_nome': usuario.nome,
-            'status': data.get('status_selecionado').lower(),
-            'filtros': filtros,
-            'solicitacoes': solicitacoes,
-            'quantidade_solicitacoes': query_set.count(),
-            'diagnostico': exibir_diagnostico,
-            'data_extracao': data_pt,
+            "usuario_nome": usuario.nome,
+            "status": data.get("status_selecionado").lower(),
+            "filtros": filtros,
+            "solicitacoes": solicitacoes,
+            "quantidade_solicitacoes": query_set.count(),
+            "diagnostico": exibir_diagnostico,
+            "data_extracao": data_pt,
         }
         arquivo = relatorio_dietas_especiais_terceirizada(dados=dados)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
 
-    logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
 
 
 def build_titulo(lotes, status, classificacoes, protocolos, data_inicial, data_final):
@@ -199,12 +199,12 @@ def build_titulo(lotes, status, classificacoes, protocolos, data_inicial, data_f
         f'Dietas {"Autorizadas" if status.upper() == "AUTORIZADAS" else "Canceladas"}:'
     )
     if lotes:
-        nomes_lotes = ','.join(
+        nomes_lotes = ",".join(
             [lote.nome for lote in Lote.objects.filter(uuid__in=lotes)]
         )
-        titulo += f' | {nomes_lotes}'
+        titulo += f" | {nomes_lotes}"
     if classificacoes:
-        nomes_classificacoes = ','.join(
+        nomes_classificacoes = ",".join(
             [
                 classificacao.nome
                 for classificacao in ClassificacaoDieta.objects.filter(
@@ -212,9 +212,9 @@ def build_titulo(lotes, status, classificacoes, protocolos, data_inicial, data_f
                 )
             ]
         )
-        titulo += f' | Classificação(ões) da dieta: {nomes_classificacoes}'
+        titulo += f" | Classificação(ões) da dieta: {nomes_classificacoes}"
     if protocolos:
-        nomes_protocolos = ', '.join(
+        nomes_protocolos = ", ".join(
             [
                 protocolo.nome_protocolo
                 for protocolo in ProtocoloPadraoDietaEspecial.objects.filter(
@@ -222,11 +222,11 @@ def build_titulo(lotes, status, classificacoes, protocolos, data_inicial, data_f
                 )
             ]
         )
-        titulo += f' | Protocolo(s) padrão(ões): {nomes_protocolos}'
+        titulo += f" | Protocolo(s) padrão(ões): {nomes_protocolos}"
     if data_inicial:
-        titulo += f' | Data inicial: {data_inicial}'
+        titulo += f" | Data inicial: {data_inicial}"
     if data_final:
-        titulo += f' | Data final: {data_final}'
+        titulo += f" | Data final: {data_final}"
     return titulo
 
 
@@ -244,7 +244,7 @@ def build_xlsx(
 ):
     import pandas as pd
 
-    xlwriter = pd.ExcelWriter(output, engine='xlsxwriter')
+    xlwriter = pd.ExcelWriter(output, engine="xlsxwriter")
 
     df = pd.DataFrame(serializer.data)
 
@@ -254,23 +254,23 @@ def build_xlsx(
     df = df_auxiliar.append(df, ignore_index=True)
     df = df_auxiliar.append(df, ignore_index=True)
 
-    df.to_excel(xlwriter, 'Solicitações de dieta especial')
+    df.to_excel(xlwriter, "Solicitações de dieta especial")
     workbook = xlwriter.book
-    worksheet = xlwriter.sheets['Solicitações de dieta especial']
+    worksheet = xlwriter.sheets["Solicitações de dieta especial"]
     worksheet.set_row(0, 30)
     worksheet.set_row(1, 30)
-    worksheet.set_column('B:F', 30)
-    merge_format = workbook.add_format({'align': 'center', 'bg_color': '#a9d18e'})
-    merge_format.set_align('vcenter')
+    worksheet.set_column("B:F", 30)
+    merge_format = workbook.add_format({"align": "center", "bg_color": "#a9d18e"})
+    merge_format.set_align("vcenter")
     cell_format = workbook.add_format()
     cell_format.set_text_wrap()
-    cell_format.set_align('vcenter')
+    cell_format.set_align("vcenter")
     v_center_format = workbook.add_format()
-    v_center_format.set_align('vcenter')
-    single_cell_format = workbook.add_format({'bg_color': '#a9d18e'})
+    v_center_format.set_align("vcenter")
+    single_cell_format = workbook.add_format({"bg_color": "#a9d18e"})
     len_cols = len(df.columns)
     worksheet.merge_range(
-        0, 0, 0, len_cols, 'Relatório de dietas especiais', merge_format
+        0, 0, 0, len_cols, "Relatório de dietas especiais", merge_format
     )
     titulo = build_titulo(
         lotes, status, classificacoes, protocolos, data_inicial, data_final
@@ -281,22 +281,22 @@ def build_xlsx(
         len_cols,
         2,
         len_cols,
-        f'Total de dietas: {queryset.count()}',
+        f"Total de dietas: {queryset.count()}",
         v_center_format,
     )
-    worksheet.write(3, 1, 'COD.EOL do Aluno', single_cell_format)
-    worksheet.write(3, 2, 'Nome do Aluno', single_cell_format)
-    worksheet.write(3, 3, 'Nome da Escola', single_cell_format)
-    worksheet.write(3, 4, 'Classificação da dieta', single_cell_format)
+    worksheet.write(3, 1, "COD.EOL do Aluno", single_cell_format)
+    worksheet.write(3, 2, "Nome do Aluno", single_cell_format)
+    worksheet.write(3, 3, "Nome da Escola", single_cell_format)
+    worksheet.write(3, 4, "Classificação da dieta", single_cell_format)
     worksheet.write(
         3,
         5,
-        'Relação por Diagnóstico' if exibir_diagnostico else 'Protocolo Padrão',
+        "Relação por Diagnóstico" if exibir_diagnostico else "Protocolo Padrão",
         single_cell_format,
     )
-    if status.upper() == 'CANCELADAS':
-        worksheet.set_column('G:G', 30)
-        worksheet.write(3, 6, 'Data de cancelamento', single_cell_format)
+    if status.upper() == "CANCELADAS":
+        worksheet.set_column("G:G", 30)
+        worksheet.write(3, 6, "Data de cancelamento", single_cell_format)
     df.reset_index(drop=True, inplace=True)
     xlwriter.save()
     output.seek(0)
@@ -304,7 +304,7 @@ def build_xlsx(
 
 @shared_task(
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
+    retry_kwargs={"max_retries": 8},
     time_limit=3000,
     soft_time_limit=3000,
 )
@@ -313,7 +313,7 @@ def gera_xlsx_relatorio_dietas_especiais_terceirizadas_async(
 ):
     from sme_terceirizadas.dieta_especial.models import SolicitacaoDietaEspecial
 
-    logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
     obj_central_download = gera_objeto_na_central_download(
         user=user, identificador=nome_arquivo
     )
@@ -323,37 +323,37 @@ def gera_xlsx_relatorio_dietas_especiais_terceirizadas_async(
         solicitacoes = []
         for solicitacao in query_set:
             classificacao = (
-                solicitacao.classificacao.nome if solicitacao.classificacao else '--'
+                solicitacao.classificacao.nome if solicitacao.classificacao else "--"
             )
             dados_solicitacoes = {
-                'codigo_eol_aluno': solicitacao.aluno.codigo_eol,
-                'nome_aluno': solicitacao.aluno.nome,
-                'nome_escola': solicitacao.escola.nome,
-                'classificacao': classificacao,
-                'protocolo_padrao': solicitacao.nome_protocolo,
-                'alergias_intolerancias': solicitacao.alergias_intolerancias,
+                "codigo_eol_aluno": solicitacao.aluno.codigo_eol,
+                "nome_aluno": solicitacao.aluno.nome,
+                "nome_escola": solicitacao.escola.nome,
+                "classificacao": classificacao,
+                "protocolo_padrao": solicitacao.nome_protocolo,
+                "alergias_intolerancias": solicitacao.alergias_intolerancias,
             }
-            if data.get('status_selecionado') == 'CANCELADAS':
-                dados_solicitacoes['data_cancelamento'] = solicitacao.data_ultimo_log
+            if data.get("status_selecionado") == "CANCELADAS":
+                dados_solicitacoes["data_cancelamento"] = solicitacao.data_ultimo_log
             solicitacoes.append(dados_solicitacoes)
-        exibir_diagnostico = usuario.tipo_usuario != 'terceirizada'
+        exibir_diagnostico = usuario.tipo_usuario != "terceirizada"
         if exibir_diagnostico:
             serializer = SolicitacaoDietaEspecialNutriSupervisaoExportXLSXSerializer(
-                query_set, context={'status': data.get('status_selecionado')}, many=True
+                query_set, context={"status": data.get("status_selecionado")}, many=True
             )
         else:
             serializer = SolicitacaoDietaEspecialExportXLSXSerializer(
-                query_set, context={'status': data.get('status_selecionado')}, many=True
+                query_set, context={"status": data.get("status_selecionado")}, many=True
             )
-        data_inicial = data.get('data_inicial', None)
-        data_final = data.get('data_final', None)
+        data_inicial = data.get("data_inicial", None)
+        data_final = data.get("data_final", None)
 
         output = io.BytesIO()
         build_xlsx(
             output,
             serializer,
             query_set,
-            data.get('status_selecionado'),
+            data.get("status_selecionado"),
             lotes,
             classificacoes,
             protocolos_padrao,
@@ -365,4 +365,4 @@ def gera_xlsx_relatorio_dietas_especiais_terceirizadas_async(
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
 
-    logger.info(f'x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x')
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")

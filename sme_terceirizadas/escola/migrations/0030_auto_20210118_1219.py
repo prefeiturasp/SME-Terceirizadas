@@ -4,9 +4,8 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0029_auto_20210118_1218'),
+        ("escola", "0029_auto_20210118_1218"),
     ]
 
     operations = [

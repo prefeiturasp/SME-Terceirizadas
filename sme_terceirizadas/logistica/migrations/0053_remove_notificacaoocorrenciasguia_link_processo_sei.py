@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0052_alter_notificacaoocorrenciasguia_status'),
+        ("logistica", "0052_alter_notificacaoocorrenciasguia_status"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='notificacaoocorrenciasguia',
-            name='link_processo_sei',
+            model_name="notificacaoocorrenciasguia",
+            name="link_processo_sei",
         ),
     ]

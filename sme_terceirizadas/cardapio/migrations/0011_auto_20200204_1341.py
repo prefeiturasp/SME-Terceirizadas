@@ -5,15 +5,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0010_auto_20200204_1326'),
+        ("cardapio", "0010_auto_20200204_1326"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='substituicaoalimentacaonoperiodoescolar',
-            name='tipo_alimentacao_para',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='substituicoes_tipo_alimentacao_para', to='cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE'),
+            model_name="substituicaoalimentacaonoperiodoescolar",
+            name="tipo_alimentacao_para",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="substituicoes_tipo_alimentacao_para",
+                to="cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE",
+            ),
         ),
     ]

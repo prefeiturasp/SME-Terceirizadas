@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0054_centraldedownload'),
+        ("dados_comuns", "0054_centraldedownload"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='centraldedownload',
-            name='arquivo',
-            field=models.FileField(blank=True, upload_to='cental_downloads', verbose_name='Arquivo'),
+            model_name="centraldedownload",
+            name="arquivo",
+            field=models.FileField(
+                blank=True, upload_to="cental_downloads", verbose_name="Arquivo"
+            ),
         ),
     ]

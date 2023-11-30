@@ -10,11 +10,14 @@ from ....escola.api.serializers import (
     DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
-    FaixaEtariaSerializer
+    FaixaEtariaSerializer,
 )
 from ....escola.models import Escola, FaixaEtaria
 from ....perfil.api.serializers import UsuarioSerializer
-from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
+from ....terceirizada.api.serializers.serializers import (
+    EditalSerializer,
+    TerceirizadaSimplesSerializer,
+)
 from ....terceirizada.models import Edital
 from ...models import (
     EscolaQuantidade,
@@ -28,40 +31,49 @@ from ...models import (
     SolicitacaoKitLancheCEIdaCEMEI,
     SolicitacaoKitLancheCEMEI,
     SolicitacaoKitLancheEMEIdaCEMEI,
-    SolicitacaoKitLancheUnificada
+    SolicitacaoKitLancheUnificada,
 )
 
 
 class ItemKitLancheSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemKitLanche
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class KitLancheSerializer(serializers.ModelSerializer):
     edital = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Edital.objects.all()
+        slug_field="uuid", required=True, queryset=Edital.objects.all()
     )
 
     class Meta:
         model = KitLanche
-        exclude = ('id',)
+        exclude = ("id",)
 
     def validate_nome_kit_lanche_create(self, validated_data):
-        if (KitLanche.objects.filter(edital__uuid=validated_data['edital'].uuid,
-                                     nome=validated_data['nome'].upper()).first()):
-            raise serializers.ValidationError('Esse nome de kit lanche já existe para edital selecionado')
-        validated_data['nome'] = validated_data['nome'].upper()
+        if KitLanche.objects.filter(
+            edital__uuid=validated_data["edital"].uuid,
+            nome=validated_data["nome"].upper(),
+        ).first():
+            raise serializers.ValidationError(
+                "Esse nome de kit lanche já existe para edital selecionado"
+            )
+        validated_data["nome"] = validated_data["nome"].upper()
         return validated_data
 
     def validate_nome_kit_lanche_update(self, validated_data, instance):
-        if (KitLanche.objects.filter(
-            edital__uuid=validated_data['edital'].uuid,
-                nome=validated_data['nome'].upper()).exclude(uuid=str(instance.uuid)).first()):
-            serializers.ValidationError('Esse nome de kit lanche já existe para edital selecionado')
-        validated_data['nome'] = validated_data['nome'].upper()
+        if (
+            KitLanche.objects.filter(
+                edital__uuid=validated_data["edital"].uuid,
+                nome=validated_data["nome"].upper(),
+            )
+            .exclude(uuid=str(instance.uuid))
+            .first()
+        ):
+            serializers.ValidationError(
+                "Esse nome de kit lanche já existe para edital selecionado"
+            )
+        validated_data["nome"] = validated_data["nome"].upper()
         return validated_data
 
     def create(self, validated_data):
@@ -79,27 +91,27 @@ class KitLancheSerializer(serializers.ModelSerializer):
 class KitLancheSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = KitLanche
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class KitLancheConsultaSerializer(serializers.ModelSerializer):
     edital = EditalSerializer()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
 
     class Meta:
         model = KitLanche
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheSimplesSerializer(serializers.ModelSerializer):
     kits = KitLancheSimplesSerializer(many=True, required=False)
-    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
-                                                     required=False,
-                                                     read_only=True)
+    tempo_passeio_explicacao = serializers.CharField(
+        source="get_tempo_passeio_display", required=False, read_only=True
+    )
 
     class Meta:
         model = SolicitacaoKitLanche
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheAvulsaSimilarSerializer(serializers.ModelSerializer):
@@ -110,13 +122,12 @@ class SolicitacaoKitLancheAvulsaSimilarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
     solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
-    escola = EscolaSimplesSerializer(read_only=True,
-                                     required=False)
+    escola = EscolaSimplesSerializer(read_only=True, required=False)
     prioridade = serializers.CharField()
     id_externo = serializers.CharField()
     alunos_com_dieta_especial_participantes = AlunoSerializer(many=True)
@@ -129,7 +140,7 @@ class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheAvulsaSimplesSerializer(serializers.ModelSerializer):
@@ -138,19 +149,20 @@ class SolicitacaoKitLancheAvulsaSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
-        exclude = ('id', 'solicitacao_kit_lanche', 'escola', 'criado_por')
+        exclude = ("id", "solicitacao_kit_lanche", "escola", "criado_por")
 
 
 class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
     kits = KitLancheSimplesSerializer(many=True, required=False)
     escola = EscolaSimplesSerializer()
     solicitacao_unificada = serializers.SlugRelatedField(
-        slug_field='uuid',
+        slug_field="uuid",
         required=True,
-        queryset=SolicitacaoKitLancheUnificada.objects.all())
-    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
-                                                     required=False,
-                                                     read_only=True)
+        queryset=SolicitacaoKitLancheUnificada.objects.all(),
+    )
+    tempo_passeio_explicacao = serializers.CharField(
+        source="get_tempo_passeio_display", required=False, read_only=True
+    )
     cancelado_por = UsuarioSerializer()
     cancelado_em = serializers.SerializerMethodField()
     cancelado_em_com_hora = serializers.SerializerMethodField()
@@ -158,21 +170,23 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
     def get_cancelado_em(self, obj):
         if obj.cancelado:
             if obj.cancelado_em and obj.cancelado_em.date() == datetime.date.today():
-                return obj.cancelado_em.strftime('%d/%m/%Y %H:%M:%S')
-            return obj.cancelado_em.strftime('%d/%m/%Y')
+                return obj.cancelado_em.strftime("%d/%m/%Y %H:%M:%S")
+            return obj.cancelado_em.strftime("%d/%m/%Y")
         return None
 
     def get_cancelado_em_com_hora(self, obj):
         if obj.cancelado:
-            return obj.cancelado_em.strftime('%d/%m/%Y %H:%M:%S')
+            return obj.cancelado_em.strftime("%d/%m/%Y %H:%M:%S")
         return None
 
     class Meta:
         model = EscolaQuantidade
-        exclude = ('id',)
+        exclude = ("id",)
 
 
-class EscolaQuantidadeSerializerRelatorioSolicitacoesAlimentacaoSimples(EscolaQuantidadeSerializerSimples):
+class EscolaQuantidadeSerializerRelatorioSolicitacoesAlimentacaoSimples(
+    EscolaQuantidadeSerializerSimples
+):
     escola = EscolaSimplissimaSerializer()
 
 
@@ -189,7 +203,7 @@ class SolicitacaoKitLancheUnificadaSimilarSerializer(serializers.ModelSerializer
 
     class Meta:
         model = SolicitacaoKitLancheUnificada
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
@@ -213,23 +227,27 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoKitLancheUnificada
-        exclude = ('id',)
+        exclude = ("id",)
 
 
-class SolicitacaoKitLancheUnificadaRelatorioSolicitacoesAlimentacaoSerializer(SolicitacaoKitLancheUnificadaSerializer):
+class SolicitacaoKitLancheUnificadaRelatorioSolicitacoesAlimentacaoSerializer(
+    SolicitacaoKitLancheUnificadaSerializer
+):
     escolas_quantidades = serializers.SerializerMethodField()
     total_kit_lanche = serializers.SerializerMethodField()
     solicitacoes_similares = None
 
     def get_escolas_quantidades(self, obj):
-        instituicao = self.context['request'].user.vinculo_atual.instituicao
+        instituicao = self.context["request"].user.vinculo_atual.instituicao
         escolas_quantidades = obj.escolas_quantidades.all()
         if isinstance(instituicao, Escola):
             escolas_quantidades = escolas_quantidades.filter(escola=instituicao)
-        return EscolaQuantidadeSerializerRelatorioSolicitacoesAlimentacaoSimples(escolas_quantidades, many=True).data
+        return EscolaQuantidadeSerializerRelatorioSolicitacoesAlimentacaoSimples(
+            escolas_quantidades, many=True
+        ).data
 
     def get_total_kit_lanche(self, obj):
-        instituicao = self.context['request'].user.vinculo_atual.instituicao
+        instituicao = self.context["request"].user.vinculo_atual.instituicao
         if isinstance(instituicao, Escola):
             return obj.total_kit_lanche_escola(instituicao.uuid)
         return obj.total_kit_lanche
@@ -240,7 +258,7 @@ class SolicitacaoKitLancheUnificadaSimplesSerializer(serializers.ModelSerializer
 
     class Meta:
         model = SolicitacaoKitLancheUnificada
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class EscolaQuantidadeSerializer(serializers.ModelSerializer):
@@ -249,7 +267,7 @@ class EscolaQuantidadeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EscolaQuantidade
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class FaixaEtariaSolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
@@ -257,7 +275,7 @@ class FaixaEtariaSolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerial
 
     class Meta:
         model = FaixaEtariaSolicitacaoKitLancheCEIAvulsa
-        exclude = ('id', 'solicitacao_kit_lanche_avulsa')
+        exclude = ("id", "solicitacao_kit_lanche_avulsa")
 
 
 class SolicitacaoKitLancheCEISimilarSerializer(serializers.ModelSerializer):
@@ -277,16 +295,18 @@ class SolicitacaoKitLancheCEISimilarSerializer(serializers.ModelSerializer):
             uuid__in=[f.faixa_etaria.uuid for f in instance.faixas_etarias.all()]
         )
 
-        qtde_alunos = instance.escola.alunos_por_faixa_etaria(instance.data, faixas_etarias_da_solicitacao)
-        for faixa_etaria in retorno['faixas_etarias']:
-            uuid_faixa_etaria = faixa_etaria['faixa_etaria']['uuid']
-            faixa_etaria['total_alunos_no_periodo'] = qtde_alunos[uuid_faixa_etaria]
+        qtde_alunos = instance.escola.alunos_por_faixa_etaria(
+            instance.data, faixas_etarias_da_solicitacao
+        )
+        for faixa_etaria in retorno["faixas_etarias"]:
+            uuid_faixa_etaria = faixa_etaria["faixa_etaria"]["uuid"]
+            faixa_etaria["total_alunos_no_periodo"] = qtde_alunos[uuid_faixa_etaria]
 
         return retorno
 
     class Meta:
         model = SolicitacaoKitLancheCEIAvulsa
-        exclude = ('id', 'criado_por')
+        exclude = ("id", "criado_por")
 
 
 class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
@@ -308,16 +328,18 @@ class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
             uuid__in=[f.faixa_etaria.uuid for f in instance.faixas_etarias.all()]
         )
 
-        qtde_alunos = instance.escola.alunos_por_faixa_etaria(instance.data, faixas_etarias_da_solicitacao)
-        for faixa_etaria in retorno['faixas_etarias']:
-            uuid_faixa_etaria = faixa_etaria['faixa_etaria']['uuid']
-            faixa_etaria['total_alunos_no_periodo'] = qtde_alunos[uuid_faixa_etaria]
+        qtde_alunos = instance.escola.alunos_por_faixa_etaria(
+            instance.data, faixas_etarias_da_solicitacao
+        )
+        for faixa_etaria in retorno["faixas_etarias"]:
+            uuid_faixa_etaria = faixa_etaria["faixa_etaria"]["uuid"]
+            faixa_etaria["total_alunos_no_periodo"] = qtde_alunos[uuid_faixa_etaria]
 
         return retorno
 
     class Meta:
         model = SolicitacaoKitLancheCEIAvulsa
-        exclude = ('id', 'criado_por')
+        exclude = ("id", "criado_por")
 
 
 class FaixasQuantidadesKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer):
@@ -325,70 +347,62 @@ class FaixasQuantidadesKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer
 
     class Meta:
         model = FaixasQuantidadesKitLancheCEIdaCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheCEIdaCEMEISerializer(serializers.ModelSerializer):
-    kits = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='uuid')
+    kits = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
     alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='uuid')
+        many=True, read_only=True, slug_field="uuid"
+    )
     faixas_quantidades = FaixasQuantidadesKitLancheCEIdaCEMEISerializer(many=True)
     tempo_passeio = serializers.CharField()
 
     class Meta:
         model = SolicitacaoKitLancheCEIdaCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheEMEIdaCEMEISerializer(serializers.ModelSerializer):
-    kits = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='uuid')
+    kits = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
     alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='uuid')
+        many=True, read_only=True, slug_field="uuid"
+    )
     tempo_passeio = serializers.CharField()
 
     class Meta:
         model = SolicitacaoKitLancheEMEIdaCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheCEMEISerializer(serializers.ModelSerializer):
     solicitacao_cei = SolicitacaoKitLancheCEIdaCEMEISerializer()
     solicitacao_emei = SolicitacaoKitLancheEMEIdaCEMEISerializer()
     id_externo = serializers.CharField()
-    escola = serializers.UUIDField(source='escola.uuid')
+    escola = serializers.UUIDField(source="escola.uuid")
 
     class Meta:
         model = SolicitacaoKitLancheCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class KitLancheNomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = KitLanche
-        fields = ('nome',)
+        fields = ("nome",)
 
 
 class SolicitacaoKitLancheEMEIdaCEMEIRetrieveSerializer(serializers.ModelSerializer):
     alunos_com_dieta_especial_participantes = AlunoSimplesSerializer(many=True)
     kits = KitLancheNomeSerializer(many=True)
     tempo_passeio = serializers.CharField()
-    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
-                                                     required=False,
-                                                     read_only=True)
+    tempo_passeio_explicacao = serializers.CharField(
+        source="get_tempo_passeio_display", required=False, read_only=True
+    )
 
     class Meta:
         model = SolicitacaoKitLancheEMEIdaCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheCEIdaCEMEIRetrieveSerializer(serializers.ModelSerializer):
@@ -396,13 +410,13 @@ class SolicitacaoKitLancheCEIdaCEMEIRetrieveSerializer(serializers.ModelSerializ
     kits = KitLancheNomeSerializer(many=True)
     faixas_quantidades = FaixasQuantidadesKitLancheCEIdaCEMEISerializer(many=True)
     tempo_passeio = serializers.CharField()
-    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
-                                                     required=False,
-                                                     read_only=True)
+    tempo_passeio_explicacao = serializers.CharField(
+        source="get_tempo_passeio_display", required=False, read_only=True
+    )
 
     class Meta:
         model = SolicitacaoKitLancheCEIdaCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheCEMEISimilarSerializer(serializers.ModelSerializer):
@@ -414,7 +428,7 @@ class SolicitacaoKitLancheCEMEISimilarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoKitLancheCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoKitLancheCEMEIRetrieveSerializer(serializers.ModelSerializer):
@@ -430,4 +444,4 @@ class SolicitacaoKitLancheCEMEIRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoKitLancheCEMEI
-        exclude = ('id',)
+        exclude = ("id",)

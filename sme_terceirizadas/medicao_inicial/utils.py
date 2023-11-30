@@ -30,24 +30,24 @@ def get_lista_categorias_campos(medicao):
     lista_categorias_campos = sorted(
         list(
             medicao.valores_medicao.exclude(
-                nome_campo__in=['observacoes', 'dietas_autorizadas', 'matriculados']
+                nome_campo__in=["observacoes", "dietas_autorizadas", "matriculados"]
             )
-            .values_list('categoria_medicao__nome', 'nome_campo')
+            .values_list("categoria_medicao__nome", "nome_campo")
             .distinct()
         )
     )
-    if medicao.grupo and medicao.grupo.nome == 'Solicitações de Alimentação':
+    if medicao.grupo and medicao.grupo.nome == "Solicitações de Alimentação":
         lista_ = []
         if (
-            'SOLICITAÇÕES DE ALIMENTAÇÃO',
-            'lanche_emergencial',
+            "SOLICITAÇÕES DE ALIMENTAÇÃO",
+            "lanche_emergencial",
         ) in lista_categorias_campos:
             lista_ += [
-                ('LANCHE EMERGENCIAL', 'solicitado'),
-                ('LANCHE EMERGENCIAL', 'consumido'),
+                ("LANCHE EMERGENCIAL", "solicitado"),
+                ("LANCHE EMERGENCIAL", "consumido"),
             ]
-        if ('SOLICITAÇÕES DE ALIMENTAÇÃO', 'kit_lanche') in lista_categorias_campos:
-            lista_ += [('KIT LANCHE', 'solicitado'), ('KIT LANCHE', 'consumido')]
+        if ("SOLICITAÇÕES DE ALIMENTAÇÃO", "kit_lanche") in lista_categorias_campos:
+            lista_ += [("KIT LANCHE", "solicitado"), ("KIT LANCHE", "consumido")]
         lista_categorias_campos = lista_
     return lista_categorias_campos
 
@@ -55,22 +55,22 @@ def get_lista_categorias_campos(medicao):
 def get_lista_categorias_campos_cei(medicao):
     valores = (
         medicao.valores_medicao.exclude(
-            nome_campo__in=['observacoes', 'dietas_autorizadas', 'matriculados']
+            nome_campo__in=["observacoes", "dietas_autorizadas", "matriculados"]
         )
-        .values('categoria_medicao__nome', 'faixa_etaria__fim', 'faixa_etaria_id')
+        .values("categoria_medicao__nome", "faixa_etaria__fim", "faixa_etaria_id")
         .distinct()
     )
 
-    faixa_etaria_ids = [v['faixa_etaria_id'] for v in valores]
+    faixa_etaria_ids = [v["faixa_etaria_id"] for v in valores]
     faixas_etarias = FaixaEtaria.objects.filter(id__in=faixa_etaria_ids, ativo=True)
     faixa_etaria_dict = {fe.id: str(fe) for fe in faixas_etarias}
 
     valores_ordenados = sorted(
-        valores, key=lambda x: (x['categoria_medicao__nome'], x['faixa_etaria__fim'])
+        valores, key=lambda x: (x["categoria_medicao__nome"], x["faixa_etaria__fim"])
     )
 
     lista_categorias_campos = [
-        (v['categoria_medicao__nome'], faixa_etaria_dict[v['faixa_etaria_id']])
+        (v["categoria_medicao__nome"], faixa_etaria_dict[v["faixa_etaria_id"]])
         for v in valores_ordenados
     ]
 
@@ -85,23 +85,23 @@ def build_dict_relacao_categorias_e_campos(medicao):
     dict_categorias_campos = {}
     for categoria_campo in lista_categorias_campos:
         if categoria_campo[CATEGORIA] not in dict_categorias_campos.keys():
-            if 'DIETA' in categoria_campo[CATEGORIA]:
-                dict_categorias_campos[categoria_campo[CATEGORIA]] = ['aprovadas']
-            elif medicao.grupo and medicao.grupo.nome == 'Solicitações de Alimentação':
+            if "DIETA" in categoria_campo[CATEGORIA]:
+                dict_categorias_campos[categoria_campo[CATEGORIA]] = ["aprovadas"]
+            elif medicao.grupo and medicao.grupo.nome == "Solicitações de Alimentação":
                 dict_categorias_campos[categoria_campo[CATEGORIA]] = []
             elif medicao.grupo and medicao.grupo.nome in [
-                'Programas e Projetos',
-                'ETEC',
+                "Programas e Projetos",
+                "ETEC",
             ]:
                 dict_categorias_campos[categoria_campo[CATEGORIA]] = [
-                    'total_refeicoes_pagamento',
-                    'total_sobremesas_pagamento',
+                    "total_refeicoes_pagamento",
+                    "total_sobremesas_pagamento",
                 ]
             else:
                 dict_categorias_campos[categoria_campo[CATEGORIA]] = [
-                    'matriculados',
-                    'total_refeicoes_pagamento',
-                    'total_sobremesas_pagamento',
+                    "matriculados",
+                    "total_refeicoes_pagamento",
+                    "total_sobremesas_pagamento",
                 ]
             dict_categorias_campos[categoria_campo[CATEGORIA]] += [
                 categoria_campo[CAMPO]
@@ -133,37 +133,37 @@ def build_dict_relacao_categorias_e_campos_cei(medicao):
 
 def get_tamanho_colunas_periodos(tabelas, ORDEM_PERIODOS_GRUPOS):
     for tabela in tabelas:
-        for periodo in tabela['periodos']:
-            tabela['len_periodos'] += [
+        for periodo in tabela["periodos"]:
+            tabela["len_periodos"] += [
                 sum(
-                    x['numero_campos']
-                    for x in tabela['categorias_dos_periodos'][periodo]
+                    x["numero_campos"]
+                    for x in tabela["categorias_dos_periodos"][periodo]
                 )
             ]
-            tabela['ordem_periodos_grupos'] += [ORDEM_PERIODOS_GRUPOS[periodo]]
+            tabela["ordem_periodos_grupos"] += [ORDEM_PERIODOS_GRUPOS[periodo]]
 
 
 def get_ordem_grupos_cei(tabelas, ORDEM_PERIODOS_GRUPOS_CEI):
     for tabela in tabelas:
-        for periodo in tabela['periodos']:
-            tabela['ordem_periodos_grupos'] += [ORDEM_PERIODOS_GRUPOS_CEI[periodo]]
+        for periodo in tabela["periodos"]:
+            tabela["ordem_periodos_grupos"] += [ORDEM_PERIODOS_GRUPOS_CEI[periodo]]
 
 
 def get_categorias_dos_periodos(
     nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos
 ):
-    if nome_periodo in tabelas[indice_atual]['categorias_dos_periodos'].keys():
-        tabelas[indice_atual]['categorias_dos_periodos'][nome_periodo].append(
+    if nome_periodo in tabelas[indice_atual]["categorias_dos_periodos"].keys():
+        tabelas[indice_atual]["categorias_dos_periodos"][nome_periodo].append(
             {
-                'categoria': categoria,
-                'numero_campos': len(dict_categorias_campos[categoria]),
+                "categoria": categoria,
+                "numero_campos": len(dict_categorias_campos[categoria]),
             }
         )
     else:
-        tabelas[indice_atual]['categorias_dos_periodos'][nome_periodo] = [
+        tabelas[indice_atual]["categorias_dos_periodos"][nome_periodo] = [
             {
-                'categoria': categoria,
-                'numero_campos': len(dict_categorias_campos[categoria]),
+                "categoria": categoria,
+                "numero_campos": len(dict_categorias_campos[categoria]),
             }
         ]
 
@@ -171,36 +171,36 @@ def get_categorias_dos_periodos(
 def build_headers_tabelas(solicitacao):
     MAX_COLUNAS = 15
     ORDEM_CAMPOS = {
-        'numero_de_alunos': 1,
-        'matriculados': 2,
-        'aprovadas': 3,
-        'frequencia': 4,
-        'solicitado': 5,
-        'consumido': 6,
-        'desjejum': 7,
-        'lanche': 8,
-        'lanche_4h': 9,
-        'refeicao': 10,
-        'repeticao_refeicao': 11,
-        'kit_lanche': 12,
-        'total_refeicoes_pagamento': 13,
-        'sobremesa': 14,
-        'repeticao_sobremesa': 15,
-        'total_sobremesas_pagamento': 16,
-        'lanche_emergencial': 17,
+        "numero_de_alunos": 1,
+        "matriculados": 2,
+        "aprovadas": 3,
+        "frequencia": 4,
+        "solicitado": 5,
+        "consumido": 6,
+        "desjejum": 7,
+        "lanche": 8,
+        "lanche_4h": 9,
+        "refeicao": 10,
+        "repeticao_refeicao": 11,
+        "kit_lanche": 12,
+        "total_refeicoes_pagamento": 13,
+        "sobremesa": 14,
+        "repeticao_sobremesa": 15,
+        "total_sobremesas_pagamento": 16,
+        "lanche_emergencial": 17,
     }
 
     tabelas = [
         {
-            'periodos': [],
-            'categorias': [],
-            'nomes_campos': [],
-            'len_periodos': [],
-            'len_categorias': [],
-            'valores_campos': [],
-            'ordem_periodos_grupos': [],
-            'dias_letivos': [],
-            'categorias_dos_periodos': {},
+            "periodos": [],
+            "categorias": [],
+            "nomes_campos": [],
+            "len_periodos": [],
+            "len_categorias": [],
+            "valores_campos": [],
+            "ordem_periodos_grupos": [],
+            "dias_letivos": [],
+            "categorias_dos_periodos": {},
         }
     ]
 
@@ -215,39 +215,39 @@ def build_headers_tabelas(solicitacao):
                 medicao.periodo_escolar.nome
                 if not medicao.grupo
                 else (
-                    f'{medicao.grupo.nome} - {medicao.periodo_escolar.nome}'
+                    f"{medicao.grupo.nome} - {medicao.periodo_escolar.nome}"
                     if medicao.periodo_escolar
                     else medicao.grupo.nome
                 )
             )
             if (
-                len(tabelas[indice_atual]['nomes_campos'])
+                len(tabelas[indice_atual]["nomes_campos"])
                 + len(dict_categorias_campos[categoria])
                 > MAX_COLUNAS
             ) or (
-                'total_refeicoes_pagamento' in tabelas[indice_atual]['nomes_campos']
-                and 'total_refeicoes_pagamento' in dict_categorias_campos[categoria]
+                "total_refeicoes_pagamento" in tabelas[indice_atual]["nomes_campos"]
+                and "total_refeicoes_pagamento" in dict_categorias_campos[categoria]
             ):
                 indice_atual += 1
                 tabelas += [
                     {
-                        'periodos': [],
-                        'categorias': [],
-                        'nomes_campos': [],
-                        'len_periodos': [],
-                        'len_categorias': [],
-                        'valores_campos': [],
-                        'ordem_periodos_grupos': [],
-                        'dias_letivos': [],
-                        'categorias_dos_periodos': {},
+                        "periodos": [],
+                        "categorias": [],
+                        "nomes_campos": [],
+                        "len_periodos": [],
+                        "len_categorias": [],
+                        "valores_campos": [],
+                        "ordem_periodos_grupos": [],
+                        "dias_letivos": [],
+                        "categorias_dos_periodos": {},
                     }
                 ]
-                tabelas[indice_atual]['periodos'] += [nome_periodo]
-                tabelas[indice_atual]['categorias'] += [categoria]
-                tabelas[indice_atual]['nomes_campos'] += sorted(
+                tabelas[indice_atual]["periodos"] += [nome_periodo]
+                tabelas[indice_atual]["categorias"] += [categoria]
+                tabelas[indice_atual]["nomes_campos"] += sorted(
                     dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k]
                 )
-                tabelas[indice_atual]['len_categorias'] += [
+                tabelas[indice_atual]["len_categorias"] += [
                     len(dict_categorias_campos[categoria])
                 ]
                 get_categorias_dos_periodos(
@@ -258,13 +258,13 @@ def build_headers_tabelas(solicitacao):
                     dict_categorias_campos,
                 )
             else:
-                if nome_periodo not in tabelas[indice_atual]['periodos']:
-                    tabelas[indice_atual]['periodos'] += [nome_periodo]
-                tabelas[indice_atual]['categorias'] += [categoria]
-                tabelas[indice_atual]['nomes_campos'] += sorted(
+                if nome_periodo not in tabelas[indice_atual]["periodos"]:
+                    tabelas[indice_atual]["periodos"] += [nome_periodo]
+                tabelas[indice_atual]["categorias"] += [categoria]
+                tabelas[indice_atual]["nomes_campos"] += sorted(
                     dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k]
                 )
-                tabelas[indice_atual]['len_categorias'] += [
+                tabelas[indice_atual]["len_categorias"] += [
                     len(dict_categorias_campos[categoria])
                 ]
                 get_categorias_dos_periodos(
@@ -281,52 +281,52 @@ def build_headers_tabelas(solicitacao):
 
 def create_new_table():
     return {
-        'periodos': [],
-        'categorias': [],
-        'len_periodos': [],
-        'len_categorias': [],
-        'valores_campos': [],
-        'ordem_periodos_grupos': [],
+        "periodos": [],
+        "categorias": [],
+        "len_periodos": [],
+        "len_categorias": [],
+        "valores_campos": [],
+        "ordem_periodos_grupos": [],
     }
 
 
 def add_periodo_to_table(  # noqa: C901
     table, nome_periodo, categoria, faixa, len_faixas, dict_categorias_campos
 ):
-    if nome_periodo not in table['periodos']:
-        table['periodos'].append(nome_periodo)
+    if nome_periodo not in table["periodos"]:
+        table["periodos"].append(nome_periodo)
 
     categoria_obj = next(
-        (item for item in table['categorias'] if item['categoria'] == categoria), None
+        (item for item in table["categorias"] if item["categoria"] == categoria), None
     )
 
-    if 'periodo_values' not in table:
-        table['periodo_values'] = defaultdict(int)
-    if 'categoria_values' not in table:
-        table['categoria_values'] = defaultdict(int)
+    if "periodo_values" not in table:
+        table["periodo_values"] = defaultdict(int)
+    if "categoria_values" not in table:
+        table["categoria_values"] = defaultdict(int)
 
     if not categoria_obj:
-        table['categorias'].append({'categoria': categoria, 'faixas_etarias': [faixa]})
-        table['periodo_values'][nome_periodo] += 2
-        table['categoria_values'][categoria] += 2
+        table["categorias"].append({"categoria": categoria, "faixas_etarias": [faixa]})
+        table["periodo_values"][nome_periodo] += 2
+        table["categoria_values"][categoria] += 2
     else:
-        if faixa not in categoria_obj['faixas_etarias']:
-            categoria_obj['faixas_etarias'].append(faixa)
+        if faixa not in categoria_obj["faixas_etarias"]:
+            categoria_obj["faixas_etarias"].append(faixa)
 
-            table['periodo_values'][nome_periodo] += 2
-            table['categoria_values'][categoria] += 2
+            table["periodo_values"][nome_periodo] += 2
+            table["categoria_values"][categoria] += 2
 
             if len_faixas == len(dict_categorias_campos[categoria]):
-                categoria_obj['faixas_etarias'].append('total')
-                table['periodo_values'][nome_periodo] += 1
-                table['categoria_values'][categoria] += 1
+                categoria_obj["faixas_etarias"].append("total")
+                table["periodo_values"][nome_periodo] += 1
+                table["categoria_values"][categoria] += 1
 
-    table['len_periodos'] = [
-        table['periodo_values'][periodo] for periodo in table['periodos']
+    table["len_periodos"] = [
+        table["periodo_values"][periodo] for periodo in table["periodos"]
     ]
-    table['len_categorias'] = [
-        table['categoria_values'][cat_obj['categoria']]
-        for cat_obj in table['categorias']
+    table["len_categorias"] = [
+        table["categoria_values"][cat_obj["categoria"]]
+        for cat_obj in table["categorias"]
     ]
 
 
@@ -383,37 +383,37 @@ def popula_campo_matriculados(
     logs_alunos_matriculados,
     categoria_corrente,
 ):
-    if campo == 'matriculados':
+    if campo == "matriculados":
         try:
-            periodo = tabela['periodos'][indice_periodo]
+            periodo = tabela["periodos"][indice_periodo]
             log = logs_alunos_matriculados.filter(
                 periodo_escolar__nome=periodo, criado_em__day=dia
             ).first()
             if log:
                 valores_dia += [log.quantidade_alunos]
             else:
-                valores_dia += ['0']
+                valores_dia += ["0"]
         except LogAlunosMatriculadosPeriodoEscola.DoesNotExist:
-            valores_dia += ['0']
+            valores_dia += ["0"]
 
 
 def popula_campo_matriculados_cei(
     solicitacao, tabela, faixa_id, dia, indice_periodo, categoria_corrente, valores_dia
 ):
     try:
-        periodo = tabela['periodos'][indice_periodo]
+        periodo = tabela["periodos"][indice_periodo]
         medicoes = solicitacao.medicoes.all()
         medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
         valores_dia += [
             medicao.valores_medicao.get(
-                dia=f'{dia:02d}',
+                dia=f"{dia:02d}",
                 categoria_medicao__nome=categoria_corrente,
                 faixa_etaria=faixa_id,
-                nome_campo='matriculados',
+                nome_campo="matriculados",
             ).valor
         ]
     except ValorMedicao.DoesNotExist:
-        valores_dia += ['0']
+        valores_dia += ["0"]
 
 
 def popula_campo_aprovadas(
@@ -425,9 +425,9 @@ def popula_campo_aprovadas(
     logs_dietas,
     periodo_corrente,
 ):
-    if campo == 'aprovadas':
+    if campo == "aprovadas":
         try:
-            if 'ENTERAL' in categoria_corrente:
+            if "ENTERAL" in categoria_corrente:
                 quantidade = (
                     logs_dietas.filter(
                         data__day=dia,
@@ -435,28 +435,28 @@ def popula_campo_aprovadas(
                         data__year=solicitacao.ano,
                         periodo_escolar__nome=periodo_corrente,
                         classificacao__nome__in=[
-                            'Tipo A RESTRIÇÃO DE AMINOÁCIDOS',
-                            'Tipo A ENTERAL',
+                            "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
+                            "Tipo A ENTERAL",
                         ],
                     )
-                    .aggregate(Sum('quantidade'))
-                    .get('quantidade__sum')
+                    .aggregate(Sum("quantidade"))
+                    .get("quantidade__sum")
                 )
-                valores_dia += [quantidade or '0']
+                valores_dia += [quantidade or "0"]
             else:
                 log_selec = logs_dietas.filter(
                     data__day=dia,
                     data__month=solicitacao.mes,
                     data__year=solicitacao.ano,
                     periodo_escolar__nome=periodo_corrente,
-                    classificacao__nome=categoria_corrente.split(' - ')[1].title(),
+                    classificacao__nome=categoria_corrente.split(" - ")[1].title(),
                 ).first()
                 if not log_selec:
-                    valores_dia += ['0']
+                    valores_dia += ["0"]
                 else:
                     valores_dia += [log_selec.quantidade]
         except LogQuantidadeDietasAutorizadas.DoesNotExist:
-            valores_dia += ['0']
+            valores_dia += ["0"]
 
 
 def popula_campo_aprovadas_cei(
@@ -470,8 +470,8 @@ def popula_campo_aprovadas_cei(
     indice_periodo,
 ):
     try:
-        periodo = tabela['periodos'][indice_periodo]
-        if 'TIPO A' in categoria_corrente.upper():
+        periodo = tabela["periodos"][indice_periodo]
+        if "TIPO A" in categoria_corrente.upper():
             quantidade = (
                 logs_dietas.filter(
                     data__day=dia,
@@ -480,15 +480,15 @@ def popula_campo_aprovadas_cei(
                     faixa_etaria=faixa_id,
                     periodo_escolar__nome=periodo,
                     classificacao__nome__in=[
-                        'Tipo A',
-                        'Tipo A RESTRIÇÃO DE AMINOÁCIDOS',
-                        'Tipo A ENTERAL',
+                        "Tipo A",
+                        "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
+                        "Tipo A ENTERAL",
                     ],
                 )
-                .aggregate(Sum('quantidade'))
-                .get('quantidade__sum')
+                .aggregate(Sum("quantidade"))
+                .get("quantidade__sum")
             )
-            valores_dia += [quantidade or '0']
+            valores_dia += [quantidade or "0"]
         else:
             log_selec = logs_dietas.filter(
                 data__day=dia,
@@ -496,72 +496,72 @@ def popula_campo_aprovadas_cei(
                 data__year=solicitacao.ano,
                 faixa_etaria=faixa_id,
                 periodo_escolar__nome=periodo,
-                classificacao__nome='Tipo B',
+                classificacao__nome="Tipo B",
             ).first()
             if not log_selec:
-                valores_dia += ['0']
+                valores_dia += ["0"]
             else:
                 valores_dia += [log_selec.quantidade]
 
     except LogQuantidadeDietasAutorizadasCEI.DoesNotExist:
-        valores_dia += ['0']
+        valores_dia += ["0"]
 
 
 def popula_campos_preenchidos_pela_escola(
     solicitacao, tabela, campo, dia, indice_periodo, categoria_corrente, valores_dia
 ):
     try:
-        periodo = tabela['periodos'][indice_periodo]
+        periodo = tabela["periodos"][indice_periodo]
         medicoes = solicitacao.medicoes.all()
-        if periodo in ['ETEC', 'Solicitações de Alimentação', 'Programas e Projetos']:
+        if periodo in ["ETEC", "Solicitações de Alimentação", "Programas e Projetos"]:
             medicao = medicoes.get(grupo__nome=periodo)
         else:
             medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
         valores_dia += [
             medicao.valores_medicao.get(
-                dia=f'{dia:02d}',
+                dia=f"{dia:02d}",
                 categoria_medicao__nome=categoria_corrente,
                 nome_campo=campo,
             ).valor
         ]
     except ValorMedicao.DoesNotExist:
-        valores_dia += ['0']
+        valores_dia += ["0"]
 
 
 def popula_campos_preenchidos_pela_escola_cei(
     solicitacao, tabela, faixa_id, dia, indice_periodo, categoria_corrente, valores_dia
 ):
     try:
-        periodo = tabela['periodos'][indice_periodo]
+        periodo = tabela["periodos"][indice_periodo]
         medicoes = solicitacao.medicoes.all()
         medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
         quantidade = medicao.valores_medicao.get(
-            dia=f'{dia:02d}',
+            dia=f"{dia:02d}",
             categoria_medicao__nome=categoria_corrente,
             faixa_etaria=faixa_id,
-            nome_campo='frequencia',
+            nome_campo="frequencia",
         ).valor
         valores_dia += [quantidade]
     except ValorMedicao.DoesNotExist:
-        valores_dia += ['0']
+        valores_dia += ["0"]
 
 
 def contador_frequencia_diaria_cei(
     solicitacao, tabela, dia, indice_periodo, categoria_corrente
 ):
     try:
-        periodo = tabela['periodos'][indice_periodo]
+        periodo = tabela["periodos"][indice_periodo]
         medicoes = solicitacao.medicoes.all()
         medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
         queryset = medicao.valores_medicao.filter(
-            dia=f'{int(dia):02d}',
+            dia=f"{int(dia):02d}",
             categoria_medicao__nome=categoria_corrente,
-            nome_campo='frequencia',
+            nome_campo="frequencia",
         )
 
         total = queryset.annotate(
-            valor_numerico=Cast('valor', IntegerField())
-        ).aggregate(soma_total=Sum('valor_numerico'))['soma_total']
+            valor_numerico=Cast("valor", IntegerField())
+        ).aggregate(soma_total=Sum("valor_numerico"))["soma_total"]
 
     except ValorMedicao.DoesNotExist:
         total = 0
@@ -572,18 +572,18 @@ def contador_frequencia_total_cei(
     solicitacao, tabela, faixa_id, indice_periodo, categoria_corrente
 ):
     try:
-        periodo = tabela['periodos'][indice_periodo]
+        periodo = tabela["periodos"][indice_periodo]
         medicoes = solicitacao.medicoes.all()
         medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
         queryset = medicao.valores_medicao.filter(
             faixa_etaria=faixa_id,
             categoria_medicao__nome=categoria_corrente,
-            nome_campo='frequencia',
+            nome_campo="frequencia",
         )
 
         total = queryset.annotate(
-            valor_numerico=Cast('valor', IntegerField())
-        ).aggregate(soma_total=Sum('valor_numerico'))['soma_total']
+            valor_numerico=Cast("valor", IntegerField())
+        ).aggregate(soma_total=Sum("valor_numerico"))["soma_total"]
 
     except ValorMedicao.DoesNotExist:
         total = 0
@@ -593,21 +593,21 @@ def contador_frequencia_total_cei(
 def popula_campo_consumido_solicitacoes_alimentacao(
     solicitacao, dia, campo, categoria_corrente, valores_dia
 ):
-    if campo == 'consumido':
+    if campo == "consumido":
         try:
-            medicao = solicitacao.medicoes.get(grupo__nome__icontains='Solicitações')
+            medicao = solicitacao.medicoes.get(grupo__nome__icontains="Solicitações")
             nome_campo = (
-                'lanche_emergencial'
-                if categoria_corrente == 'LANCHE EMERGENCIAL'
-                else 'kit_lanche'
+                "lanche_emergencial"
+                if categoria_corrente == "LANCHE EMERGENCIAL"
+                else "kit_lanche"
             )
             valores_dia += [
                 medicao.valores_medicao.get(
-                    dia=f'{dia:02d}', nome_campo=nome_campo
+                    dia=f"{dia:02d}", nome_campo=nome_campo
                 ).valor
             ]
         except Exception:
-            valores_dia += ['0']
+            valores_dia += ["0"]
 
 
 def get_index_refeicao(indexes_refeicao, indice_periodo):
@@ -621,29 +621,29 @@ def get_index_refeicao(indexes_refeicao, indice_periodo):
 def popula_campo_total_refeicoes_pagamento(
     solicitacao, tabela, campo, categoria_corrente, valores_dia, indice_periodo
 ):
-    if campo == 'total_refeicoes_pagamento':
+    if campo == "total_refeicoes_pagamento":
         try:
-            campos = tabela['nomes_campos']
+            campos = tabela["nomes_campos"]
             indexes_refeicao = [
-                i for i, campo in enumerate(campos) if campo == 'refeicao'
+                i for i, campo in enumerate(campos) if campo == "refeicao"
             ]
             index_refeicao = get_index_refeicao(indexes_refeicao, indice_periodo)
             valor_refeicao = (
-                valores_dia[index_refeicao + 1] if 'refeicao' in campos else 0
+                valores_dia[index_refeicao + 1] if "refeicao" in campos else 0
             )
             valor_repeticao_refeicao = (
-                valores_dia[campos.index('repeticao_refeicao') + 1]
-                if 'repeticao_refeicao' in campos
+                valores_dia[campos.index("repeticao_refeicao") + 1]
+                if "repeticao_refeicao" in campos
                 else 0
             )
             valor_matriculados = (
-                valores_dia[campos.index('matriculados') + 1]
-                if 'matriculados' in campos
+                valores_dia[campos.index("matriculados") + 1]
+                if "matriculados" in campos
                 else 0
             )
             valor_numero_de_alunos = (
-                valores_dia[campos.index('numero_de_alunos') + 1]
-                if 'numero_de_alunos' in campos
+                valores_dia[campos.index("numero_de_alunos") + 1]
+                if "numero_de_alunos" in campos
                 else 0
             )
             if solicitacao.escola.eh_emei:
@@ -658,33 +658,33 @@ def popula_campo_total_refeicoes_pagamento(
                 total_refeicao = min(int(total_refeicao), int(valor_comparativo))
                 valores_dia += [total_refeicao]
         except Exception:
-            valores_dia += ['0']
+            valores_dia += ["0"]
 
 
 def popula_campo_total_sobremesas_pagamento(
     solicitacao, tabela, campo, categoria_corrente, valores_dia
 ):
-    if campo == 'total_sobremesas_pagamento':
+    if campo == "total_sobremesas_pagamento":
         try:
-            campos = tabela['nomes_campos']
+            campos = tabela["nomes_campos"]
             valor_sobremesa = (
-                valores_dia[campos.index('sobremesa') + 1]
-                if 'sobremesa' in campos
+                valores_dia[campos.index("sobremesa") + 1]
+                if "sobremesa" in campos
                 else 0
             )
             valor_repeticao_sobremesa = (
-                valores_dia[campos.index('repeticao_sobremesa') + 1]
-                if 'repeticao_sobremesa' in campos
+                valores_dia[campos.index("repeticao_sobremesa") + 1]
+                if "repeticao_sobremesa" in campos
                 else 0
             )
             valor_matriculados = (
-                valores_dia[campos.index('matriculados') + 1]
-                if 'matriculados' in campos
+                valores_dia[campos.index("matriculados") + 1]
+                if "matriculados" in campos
                 else 0
             )
             valor_numero_de_alunos = (
-                valores_dia[campos.index('numero_de_alunos') + 1]
-                if 'numero_de_alunos' in campos
+                valores_dia[campos.index("numero_de_alunos") + 1]
+                if "numero_de_alunos" in campos
                 else 0
             )
             if solicitacao.escola.eh_emei:
@@ -699,19 +699,19 @@ def popula_campo_total_sobremesas_pagamento(
                 total_sobremesa = min(int(total_sobremesa), int(valor_comparativo))
                 valores_dia += [total_sobremesa]
         except Exception:
-            valores_dia += ['0']
+            valores_dia += ["0"]
 
 
 def popula_solicitado_total_lanche_emergencial(
     categoria_corrente, alteracoes_lanche_emergencial, valores_dia, dia
 ):
-    if categoria_corrente != 'LANCHE EMERGENCIAL':
+    if categoria_corrente != "LANCHE EMERGENCIAL":
         return valores_dia
 
     total_lanche_emergencial = sum(
-        alt['numero_alunos']
+        alt["numero_alunos"]
         for alt in alteracoes_lanche_emergencial
-        if alt['dia'] == f'{dia:02d}'
+        if alt["dia"] == f"{dia:02d}"
     )
     valores_dia += [total_lanche_emergencial]
     return valores_dia
@@ -720,11 +720,11 @@ def popula_solicitado_total_lanche_emergencial(
 def popula_solicitado_total_kit_lanche(
     categoria_corrente, kits_lanches, valores_dia, dia
 ):
-    if categoria_corrente != 'KIT LANCHE':
+    if categoria_corrente != "KIT LANCHE":
         return valores_dia
 
     total_kits = sum(
-        [kit['numero_alunos'] for kit in kits_lanches if kit['dia'] == f'{dia:02d}']
+        [kit["numero_alunos"] for kit in kits_lanches if kit["dia"] == f"{dia:02d}"]
     )
     valores_dia += [total_kits]
     return valores_dia
@@ -740,7 +740,7 @@ def popula_campo_solicitado(
     alteracoes_lanche_emergencial,
     kits_lanches,
 ):
-    if campo != 'solicitado':
+    if campo != "solicitado":
         return
     try:
         valores_dia = popula_solicitado_total_lanche_emergencial(
@@ -750,67 +750,67 @@ def popula_campo_solicitado(
             categoria_corrente, kits_lanches, valores_dia, dia
         )
     except Exception:
-        valores_dia += ['0']
+        valores_dia += ["0"]
 
 
 def popula_campo_total(
     tabela, campo, valores_dia, indice_categoria, indice_campo, categoria_corrente
 ):
-    if campo in ['matriculados', 'numero_de_alunos', 'frequencia', 'aprovadas']:
-        valores_dia += ['-']
+    if campo in ["matriculados", "numero_de_alunos", "frequencia", "aprovadas"]:
+        valores_dia += ["-"]
     else:
         try:
             if indice_categoria == 0:
                 values = [
-                    valores[tabela['nomes_campos'].index(campo) + 1]
-                    for valores in tabela['valores_campos']
+                    valores[tabela["nomes_campos"].index(campo) + 1]
+                    for valores in tabela["valores_campos"]
                 ]
             else:
                 i = 1
                 indice_valor_campo = 0
                 while i <= indice_categoria:
-                    indice_valor_campo += tabela['len_categorias'][indice_categoria - i]
+                    indice_valor_campo += tabela["len_categorias"][indice_categoria - i]
                     i += 1
                 indice_valor_campo += indice_campo
                 values = [
                     valores[indice_valor_campo + 1]
-                    for valores in tabela['valores_campos']
+                    for valores in tabela["valores_campos"]
                 ]
             valores_dia += [sum(int(x) for x in values)]
         except Exception:
-            valores_dia += ['0']
+            valores_dia += ["0"]
 
 
 def popula_campo_total_cei(
     tabela, campo, valores_dia, indice_categoria, indice_campo, categoria_corrente
 ):
-    if campo in ['matriculados', 'numero_de_alunos', 'frequencia', 'aprovadas']:
-        valores_dia += ['-']
+    if campo in ["matriculados", "numero_de_alunos", "frequencia", "aprovadas"]:
+        valores_dia += ["-"]
     else:
         try:
             if indice_categoria == 0:
                 values = [
-                    valores[tabela['nomes_campos'].index(campo) + 1]
-                    for valores in tabela['valores_campos']
+                    valores[tabela["nomes_campos"].index(campo) + 1]
+                    for valores in tabela["valores_campos"]
                 ]
             else:
                 i = 1
                 indice_valor_campo = 0
                 while i <= indice_categoria:
-                    indice_valor_campo += tabela['len_categorias'][indice_categoria - i]
+                    indice_valor_campo += tabela["len_categorias"][indice_categoria - i]
                     i += 1
                 indice_valor_campo += indice_campo
                 values = [
                     valores[indice_valor_campo + 1]
-                    for valores in tabela['valores_campos']
+                    for valores in tabela["valores_campos"]
                 ]
             valores_dia += [sum(int(x) for x in values)]
         except Exception:
-            valores_dia += ['0']
+            valores_dia += ["0"]
 
 
 def get_eh_dia_letivo(dia, solicitacao):
-    if not dia == 'Total':
+    if not dia == "Total":
         try:
             eh_dia_letivo = DiaCalendario.objects.get(
                 escola=solicitacao.escola,
@@ -837,19 +837,19 @@ def popula_campos(
     eh_dia_letivo = get_eh_dia_letivo(dia, solicitacao)
     indice_campo = 0
     indice_categoria = 0
-    categoria_corrente = tabela['categorias'][indice_categoria]
-    periodo_corrente = tabela['periodos'][indice_periodo]
-    for campo in tabela['nomes_campos']:
-        if indice_campo > tabela['len_categorias'][indice_categoria] - 1:
+    categoria_corrente = tabela["categorias"][indice_categoria]
+    periodo_corrente = tabela["periodos"][indice_periodo]
+    for campo in tabela["nomes_campos"]:
+        if indice_campo > tabela["len_categorias"][indice_categoria] - 1:
             indice_campo = 0
             indice_categoria += 1
-            categoria_corrente = tabela['categorias'][indice_categoria]
-            periodo_corrente = tabela['periodos'][indice_periodo]
+            categoria_corrente = tabela["categorias"][indice_categoria]
+            periodo_corrente = tabela["periodos"][indice_periodo]
             if indice_categoria > len(
-                tabela['categorias_dos_periodos'][periodo_corrente]
-            ) - 1 and indice_periodo + 1 < len(tabela['periodos']):
+                tabela["categorias_dos_periodos"][periodo_corrente]
+            ) - 1 and indice_periodo + 1 < len(tabela["periodos"]):
                 indice_periodo += 1
-        if dia == 'Total':
+        if dia == "Total":
             popula_campo_total(
                 tabela,
                 campo,
@@ -903,12 +903,12 @@ def popula_campos(
                 kits_lanches,
             )
             if campo not in [
-                'matriculados',
-                'aprovadas',
-                'total_refeicoes_pagamento',
-                'total_sobremesas_pagamento',
-                'solicitado',
-                'consumido',
+                "matriculados",
+                "aprovadas",
+                "total_refeicoes_pagamento",
+                "total_sobremesas_pagamento",
+                "solicitado",
+                "consumido",
             ]:
                 popula_campos_preenchidos_pela_escola(
                     solicitacao,
@@ -920,8 +920,8 @@ def popula_campos(
                     valores_dia,
                 )
         indice_campo += 1
-    tabela['valores_campos'] += [valores_dia]
-    tabela['dias_letivos'] += [eh_dia_letivo if not dia == 'Total' else False]
+    tabela["valores_campos"] += [valores_dia]
+    tabela["dias_letivos"] += [eh_dia_letivo if not dia == "Total" else False]
 
 
 def popula_campos_cei(  # noqa C901
@@ -933,17 +933,17 @@ def popula_campos_cei(  # noqa C901
     indice_faixa = 0
     todas_faixas = []
 
-    for categoria in tabela['categorias']:
-        todas_faixas += categoria['faixas_etarias']
+    for categoria in tabela["categorias"]:
+        todas_faixas += categoria["faixas_etarias"]
 
-    categoria_corrente = tabela['categorias'][indice_categoria]['categoria']
-    faixas_etarias = tabela['categorias'][indice_categoria]['faixas_etarias']
-    len_faixas = len([item for item in faixas_etarias if 'total' not in item])
+    categoria_corrente = tabela["categorias"][indice_categoria]["categoria"]
+    faixas_etarias = tabela["categorias"][indice_categoria]["faixas_etarias"]
+    len_faixas = len([item for item in faixas_etarias if "total" not in item])
 
     for faixa in todas_faixas:
-        if faixa == 'total':
+        if faixa == "total":
             indice_campo += 1
-            if dia != 'Total':
+            if dia != "Total":
                 total = contador_frequencia_diaria_cei(
                     solicitacao, tabela, dia, indice_periodo, categoria_corrente
                 )
@@ -959,25 +959,25 @@ def popula_campos_cei(  # noqa C901
             if indice_faixa > len_faixas - 1:
                 indice_faixa = 0
                 indice_categoria += 1
-                categoria_corrente = tabela['categorias'][indice_categoria]['categoria']
-                faixas_etarias = tabela['categorias'][indice_categoria][
-                    'faixas_etarias'
+                categoria_corrente = tabela["categorias"][indice_categoria]["categoria"]
+                faixas_etarias = tabela["categorias"][indice_categoria][
+                    "faixas_etarias"
                 ]
                 len_faixas = len(
-                    [item for item in faixas_etarias if 'total' not in item]
+                    [item for item in faixas_etarias if "total" not in item]
                 )
 
-                if indice_campo > tabela['len_periodos'][
+                if indice_campo > tabela["len_periodos"][
                     indice_periodo
-                ] - 1 and indice_periodo + 1 < len(tabela['periodos']):
+                ] - 1 and indice_periodo + 1 < len(tabela["periodos"]):
                     indice_periodo += 1
-            if dia == 'Total':
+            if dia == "Total":
                 total = contador_frequencia_total_cei(
                     solicitacao, tabela, faixa_id, indice_periodo, categoria_corrente
                 )
-                valores_dia += ['-', str(total if total else 0)]
+                valores_dia += ["-", str(total if total else 0)]
             else:
-                if categoria_corrente == 'ALIMENTAÇÃO':
+                if categoria_corrente == "ALIMENTAÇÃO":
                     popula_campo_matriculados_cei(
                         solicitacao,
                         tabela,
@@ -1012,7 +1012,7 @@ def popula_campos_cei(  # noqa C901
 
                 indice_campo += 2
                 indice_faixa += 1
-    tabela['valores_campos'] += [valores_dia]
+    tabela["valores_campos"] += [valores_dia]
     return total_mensal_categoria
 
 
@@ -1023,7 +1023,7 @@ def get_alteracoes_lanche_emergencial(solicitacao):
     query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
     query_set = query_set.filter(data_evento__month=mes, data_evento__year=ano)
     query_set = query_set.filter(data_evento__lt=datetime.date.today())
-    query_set = query_set.filter(motivo__icontains='Emergencial')
+    query_set = query_set.filter(motivo__icontains="Emergencial")
     aux = []
     sem_uuid_repetido = []
     for resultado in query_set:
@@ -1038,8 +1038,8 @@ def get_alteracoes_lanche_emergencial(solicitacao):
         )
         alteracoes_lanche_emergencial.append(
             {
-                'dia': f'{alteracao.data.day:02d}',
-                'numero_alunos': sum(
+                "dia": f"{alteracao.data.day:02d}",
+                "numero_alunos": sum(
                     [
                         sub.qtd_alunos
                         for sub in alteracao.substituicoes_periodo_escolar.all()
@@ -1057,7 +1057,7 @@ def get_kit_lanche(solicitacao):
     query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
     query_set = query_set.filter(data_evento__month=mes, data_evento__year=ano)
     query_set = query_set.filter(data_evento__lt=datetime.date.today())
-    query_set = query_set.filter(desc_doc__icontains='Kit Lanche')
+    query_set = query_set.filter(desc_doc__icontains="Kit Lanche")
     aux = []
     sem_uuid_repetido = []
     for resultado in query_set:
@@ -1071,8 +1071,8 @@ def get_kit_lanche(solicitacao):
         if kit_lanche:
             kits_lanches.append(
                 {
-                    'dia': f'{kit_lanche.solicitacao_kit_lanche.data.day:02d}',
-                    'numero_alunos': kit_lanche.quantidade_alimentacoes,
+                    "dia": f"{kit_lanche.solicitacao_kit_lanche.data.day:02d}",
+                    "numero_alunos": kit_lanche.quantidade_alimentacoes,
                 }
             )
 
@@ -1087,7 +1087,7 @@ def popula_tabelas(solicitacao, tabelas):
         escola=solicitacao.escola,
         criado_em__month=solicitacao.mes,
         criado_em__year=solicitacao.ano,
-        tipo_turma='REGULAR',
+        tipo_turma="REGULAR",
     )
     logs_dietas = LogQuantidadeDietasAutorizadas.objects.filter(
         escola=solicitacao.escola,
@@ -1103,7 +1103,7 @@ def popula_tabelas(solicitacao, tabelas):
 
     for indice_tabela in quantidade_tabelas:
         tabela = tabelas[indice_tabela]
-        for dia in list(dias_no_mes) + ['Total']:
+        for dia in list(dias_no_mes) + ["Total"]:
             popula_campos(
                 solicitacao,
                 tabela,
@@ -1139,7 +1139,7 @@ def popula_tabelas_cei(solicitacao, tabelas):
 
     for indice_tabela in quantidade_tabelas:
         tabela = tabelas[indice_tabela]
-        for dia in list(dias_no_mes) + ['Total']:
+        for dia in list(dias_no_mes) + ["Total"]:
             total_mensal_categoria = popula_campos_cei(
                 solicitacao,
                 tabela,
@@ -1172,49 +1172,49 @@ def build_tabelas_relatorio_medicao_cei(solicitacao):
 
 def tratar_valores(escola, valores):
     if escola.eh_emei:
-        campos_repeticao = ['repeticao_refeicao', 'repeticao_sobremesa']
+        campos_repeticao = ["repeticao_refeicao", "repeticao_sobremesa"]
         valores = [
-            valor for valor in valores if valor['nome_campo'] not in campos_repeticao
+            valor for valor in valores if valor["nome_campo"] not in campos_repeticao
         ]
     else:
         repeticao_refeicao = [
-            valor for valor in valores if valor['nome_campo'] == 'repeticao_refeicao'
+            valor for valor in valores if valor["nome_campo"] == "repeticao_refeicao"
         ]
         repeticao_sobremesa = [
-            valor for valor in valores if valor['nome_campo'] == 'repeticao_sobremesa'
+            valor for valor in valores if valor["nome_campo"] == "repeticao_sobremesa"
         ]
         if repeticao_refeicao:
-            valor_repeticao_refeicao = repeticao_refeicao[0]['valor']
+            valor_repeticao_refeicao = repeticao_refeicao[0]["valor"]
             obj_refeicao = [
-                valor for valor in valores if valor['nome_campo'] == 'refeicao'
+                valor for valor in valores if valor["nome_campo"] == "refeicao"
             ]
-            valor_refeicao = obj_refeicao[0]['valor'] if obj_refeicao else 0
-            campos_refeicao = ['refeicao', 'repeticao_refeicao']
+            valor_refeicao = obj_refeicao[0]["valor"] if obj_refeicao else 0
+            campos_refeicao = ["refeicao", "repeticao_refeicao"]
             valores = [
-                valor for valor in valores if valor['nome_campo'] not in campos_refeicao
+                valor for valor in valores if valor["nome_campo"] not in campos_refeicao
             ]
             valores.append(
                 {
-                    'nome_campo': 'refeicao',
-                    'valor': valor_repeticao_refeicao + valor_refeicao,
+                    "nome_campo": "refeicao",
+                    "valor": valor_repeticao_refeicao + valor_refeicao,
                 }
             )
         if repeticao_sobremesa:
-            valor_repeticao_sobremesa = repeticao_sobremesa[0]['valor']
+            valor_repeticao_sobremesa = repeticao_sobremesa[0]["valor"]
             obj_sobremesa = [
-                valor for valor in valores if valor['nome_campo'] == 'sobremesa'
+                valor for valor in valores if valor["nome_campo"] == "sobremesa"
             ]
-            valor_sobremesa = obj_sobremesa[0]['valor'] if obj_sobremesa else 0
-            campos_sobremesa = ['sobremesa', 'repeticao_sobremesa']
+            valor_sobremesa = obj_sobremesa[0]["valor"] if obj_sobremesa else 0
+            campos_sobremesa = ["sobremesa", "repeticao_sobremesa"]
             valores = [
                 valor
                 for valor in valores
-                if valor['nome_campo'] not in campos_sobremesa
+                if valor["nome_campo"] not in campos_sobremesa
             ]
             valores.append(
                 {
-                    'nome_campo': 'sobremesa',
-                    'valor': valor_repeticao_sobremesa + valor_sobremesa,
+                    "nome_campo": "sobremesa",
+                    "valor": valor_repeticao_sobremesa + valor_sobremesa,
                 }
             )
     return valores
@@ -1222,15 +1222,15 @@ def tratar_valores(escola, valores):
 
 def get_nome_campo(campo):
     campos = {
-        'desjejum': 'Desjejum',
-        'lanche': 'Lanche',
-        'lanche_4h': 'Lanche 4h',
-        'refeicao': 'Refeição',
-        'repeticao_refeicao': 'Repetição de Refeição',
-        'lanche_emergencial': 'Lanche Emergencial',
-        'kit_lanche': 'Kit Lanche',
-        'sobremesa': 'Sobremesa',
-        'repeticao_sobremesa': 'Repetição de Sobremesa',
+        "desjejum": "Desjejum",
+        "lanche": "Lanche",
+        "lanche_4h": "Lanche 4h",
+        "refeicao": "Refeição",
+        "repeticao_refeicao": "Repetição de Refeição",
+        "lanche_emergencial": "Lanche Emergencial",
+        "kit_lanche": "Kit Lanche",
+        "sobremesa": "Sobremesa",
+        "repeticao_sobremesa": "Repetição de Sobremesa",
     }
     return campos.get(campo, campo)
 
@@ -1244,22 +1244,22 @@ def somar_valores_de_repeticao(
             if medicao.periodo_escolar
             else medicao.grupo.nome
         )
-        if campo == 'refeicao':
+        if campo == "refeicao":
             if medicao_nome in dict_total_refeicoes.keys():
                 values = dict_total_refeicoes[medicao_nome]
             else:
                 values_repeticao_refeicao = medicao.valores_medicao.filter(
-                    categoria_medicao__nome='ALIMENTAÇÃO',
-                    nome_campo='repeticao_refeicao',
+                    categoria_medicao__nome="ALIMENTAÇÃO",
+                    nome_campo="repeticao_refeicao",
                 )
                 values = values | values_repeticao_refeicao
-        if campo == 'sobremesa':
+        if campo == "sobremesa":
             if medicao_nome in dict_total_sobremesas.keys():
                 values = dict_total_sobremesas[medicao_nome]
             else:
                 values_repeticao_sobremesa = medicao.valores_medicao.filter(
-                    categoria_medicao__nome='ALIMENTAÇÃO',
-                    nome_campo='repeticao_sobremesa',
+                    categoria_medicao__nome="ALIMENTAÇÃO",
+                    nome_campo="repeticao_sobremesa",
                 )
                 values = values | values_repeticao_sobremesa
     return values
@@ -1269,9 +1269,9 @@ def get_somatorio_manha(
     campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
     try:
-        medicao = solicitacao.medicoes.get(periodo_escolar__nome='MANHA', grupo=None)
+        medicao = solicitacao.medicoes.get(periodo_escolar__nome="MANHA", grupo=None)
         values = medicao.valores_medicao.filter(
-            categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo
+            categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
         values = somar_valores_de_repeticao(
             values,
@@ -1285,9 +1285,9 @@ def get_somatorio_manha(
             values if type(values) is int else sum([int(v.valor) for v in values])
         )
         if somatorio_manha == 0:
-            somatorio_manha = ' - '
+            somatorio_manha = " - "
     except Exception:
-        somatorio_manha = ' - '
+        somatorio_manha = " - "
     return somatorio_manha
 
 
@@ -1295,9 +1295,9 @@ def get_somatorio_tarde(
     campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
     try:
-        medicao = solicitacao.medicoes.get(periodo_escolar__nome='TARDE', grupo=None)
+        medicao = solicitacao.medicoes.get(periodo_escolar__nome="TARDE", grupo=None)
         values = medicao.valores_medicao.filter(
-            categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo
+            categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
         values = somar_valores_de_repeticao(
             values,
@@ -1311,9 +1311,9 @@ def get_somatorio_tarde(
             values if type(values) is int else sum([int(v.valor) for v in values])
         )
         if somatorio_tarde == 0:
-            somatorio_tarde = ' - '
+            somatorio_tarde = " - "
     except Exception:
-        somatorio_tarde = ' - '
+        somatorio_tarde = " - "
     return somatorio_tarde
 
 
@@ -1321,9 +1321,9 @@ def get_somatorio_integral(
     campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
     try:
-        medicao = solicitacao.medicoes.get(periodo_escolar__nome='INTEGRAL', grupo=None)
+        medicao = solicitacao.medicoes.get(periodo_escolar__nome="INTEGRAL", grupo=None)
         values = medicao.valores_medicao.filter(
-            categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo
+            categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
         values = somar_valores_de_repeticao(
             values,
@@ -1337,9 +1337,9 @@ def get_somatorio_integral(
             values if type(values) is int else sum([int(v.valor) for v in values])
         )
         if somatorio_integral == 0:
-            somatorio_integral = ' - '
+            somatorio_integral = " - "
     except Exception:
-        somatorio_integral = ' - '
+        somatorio_integral = " - "
     return somatorio_integral
 
 
@@ -1347,11 +1347,11 @@ def get_somatorio_programas_e_projetos(
     campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
     try:
-        medicoes = solicitacao.medicoes.filter(grupo__nome='Programas e Projetos')
+        medicoes = solicitacao.medicoes.filter(grupo__nome="Programas e Projetos")
         somatorio_programas_e_projetos = 0
         for medicao in medicoes:
             qs_values = medicao.valores_medicao.filter(
-                categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo
+                categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
             )
             qs_values = somar_valores_de_repeticao(
                 qs_values,
@@ -1366,33 +1366,33 @@ def get_somatorio_programas_e_projetos(
             else:
                 somatorio_programas_e_projetos = sum([int(v.valor) for v in qs_values])
         if somatorio_programas_e_projetos == 0:
-            somatorio_programas_e_projetos = ' - '
+            somatorio_programas_e_projetos = " - "
     except Exception:
-        somatorio_programas_e_projetos = ' - '
+        somatorio_programas_e_projetos = " - "
     return somatorio_programas_e_projetos
 
 
 def get_somatorio_solicitacoes_de_alimentacao(campo, solicitacao):
     try:
-        medicao = solicitacao.medicoes.get(grupo__nome='Solicitações de Alimentação')
+        medicao = solicitacao.medicoes.get(grupo__nome="Solicitações de Alimentação")
         values = medicao.valores_medicao.filter(nome_campo=campo)
         somatorio_solicitacoes_de_alimentacao = sum([int(v.valor) for v in values])
         if somatorio_solicitacoes_de_alimentacao == 0:
-            somatorio_solicitacoes_de_alimentacao = ' - '
+            somatorio_solicitacoes_de_alimentacao = " - "
     except Exception:
-        somatorio_solicitacoes_de_alimentacao = ' - '
+        somatorio_solicitacoes_de_alimentacao = " - "
     return somatorio_solicitacoes_de_alimentacao
 
 
 def get_somatorio_total_tabela(valores_somatorios_tabela):
     valores_somatorio = []
-    [valores_somatorio.append(v) for v in valores_somatorios_tabela if v != ' - ']
+    [valores_somatorio.append(v) for v in valores_somatorios_tabela if v != " - "]
     try:
         somatorio_total_tabela = sum([int(v) for v in valores_somatorio])
         if somatorio_total_tabela == 0:
-            somatorio_total_tabela = ' - '
+            somatorio_total_tabela = " - "
     except Exception:
-        somatorio_total_tabela = ' - '
+        somatorio_total_tabela = " - "
     return somatorio_total_tabela
 
 
@@ -1401,9 +1401,9 @@ def get_somatorio_noite_eja(
 ):
     # ajustar para filtrar periodo/grupo EJA
     try:
-        medicao = solicitacao.medicoes.get(periodo_escolar__nome='NOITE', grupo=None)
+        medicao = solicitacao.medicoes.get(periodo_escolar__nome="NOITE", grupo=None)
         values = medicao.valores_medicao.filter(
-            categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo
+            categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
         values = somar_valores_de_repeticao(
             values,
@@ -1417,17 +1417,17 @@ def get_somatorio_noite_eja(
             values if type(values) is int else sum([int(v.valor) for v in values])
         )
         if somatorio_noite == 0:
-            somatorio_noite = ' - '
+            somatorio_noite = " - "
     except Exception:
-        somatorio_noite = ' - '
+        somatorio_noite = " - "
     return somatorio_noite
 
 
 def get_somatorio_etec(campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas):
     try:
-        medicao = solicitacao.medicoes.get(grupo__nome='ETEC')
+        medicao = solicitacao.medicoes.get(grupo__nome="ETEC")
         values = medicao.valores_medicao.filter(
-            categoria_medicao__nome='ALIMENTAÇÃO', nome_campo=campo
+            categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
         values = somar_valores_de_repeticao(
             values,
@@ -1441,9 +1441,9 @@ def get_somatorio_etec(campo, solicitacao, dict_total_refeicoes, dict_total_sobr
             values if type(values) is int else sum([int(v.valor) for v in values])
         )
         if somatorio_etec == 0:
-            somatorio_etec = ' - '
+            somatorio_etec = " - "
     except Exception:
-        somatorio_etec = ' - '
+        somatorio_etec = " - "
     return somatorio_etec
 
 
@@ -1451,23 +1451,23 @@ def build_tabela_somatorio_body(
     solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
     ORDEM_CAMPOS = {
-        'numero_de_alunos': 1,
-        'matriculados': 2,
-        'aprovadas': 3,
-        'frequencia': 4,
-        'solicitado': 5,
-        'consumido': 6,
-        'desjejum': 7,
-        'lanche': 8,
-        'lanche_4h': 9,
-        'refeicao': 10,
-        'repeticao_refeicao': 11,
-        'kit_lanche': 12,
-        'total_refeicoes_pagamento': 13,
-        'sobremesa': 14,
-        'repeticao_sobremesa': 15,
-        'total_sobremesas_pagamento': 16,
-        'lanche_emergencial': 17,
+        "numero_de_alunos": 1,
+        "matriculados": 2,
+        "aprovadas": 3,
+        "frequencia": 4,
+        "solicitado": 5,
+        "consumido": 6,
+        "desjejum": 7,
+        "lanche": 8,
+        "lanche_4h": 9,
+        "refeicao": 10,
+        "repeticao_refeicao": 11,
+        "kit_lanche": 12,
+        "total_refeicoes_pagamento": 13,
+        "sobremesa": 14,
+        "repeticao_sobremesa": 15,
+        "total_sobremesas_pagamento": 16,
+        "lanche_emergencial": 17,
     }
     campos_tipos_alimentacao = []
     for medicao in sorted(
@@ -1477,16 +1477,16 @@ def build_tabela_somatorio_body(
         campos = (
             medicao.valores_medicao.exclude(
                 nome_campo__in=[
-                    'observacoes',
-                    'dietas_autorizadas',
-                    'frequencia',
-                    'matriculados',
-                    'numero_de_alunos',
-                    'repeticao_refeicao',
-                    'repeticao_sobremesa',
+                    "observacoes",
+                    "dietas_autorizadas",
+                    "frequencia",
+                    "matriculados",
+                    "numero_de_alunos",
+                    "repeticao_refeicao",
+                    "repeticao_sobremesa",
                 ]
             )
-            .values_list('nome_campo', flat=True)
+            .values_list("nome_campo", flat=True)
             .distinct()
         )
         [
@@ -1565,31 +1565,31 @@ def build_valores_campos(solicitacao, tabela):  # noqa C901
     for medicao in medicoes:
         faixas_etarias_ids.update(
             medicao.valores_medicao.all()
-            .values_list('faixa_etaria', flat=True)
+            .values_list("faixa_etaria", flat=True)
             .distinct()
         )
 
     faixas_etarias = FaixaEtaria.objects.filter(id__in=faixas_etarias_ids, ativo=True)
     faixa_etaria_dict = {fe.id: str(fe) for fe in faixas_etarias}
-    categorias = ['ALIMENTAÇÃO', 'DIETA ESPECIAL - TIPO A', 'DIETA ESPECIAL - TIPO B']
+    categorias = ["ALIMENTAÇÃO", "DIETA ESPECIAL - TIPO A", "DIETA ESPECIAL - TIPO B"]
 
     valores_campos = []
-    totais = ['total'] + [0] * (
-        len(tabela['periodos']) * len(categorias) + len(tabela['periodos'])
+    totais = ["total"] + [0] * (
+        len(tabela["periodos"]) * len(categorias) + len(tabela["periodos"])
     )
 
     for faixa_id, faixa_nome in faixa_etaria_dict.items():
         linha = [faixa_nome]
 
-        for indice_periodo, periodo in enumerate(tabela['periodos']):
+        for indice_periodo, periodo in enumerate(tabela["periodos"]):
             for idx_categoria, categoria in enumerate(categorias):
                 try:
                     medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
                     valores_frequencia = medicao.valores_medicao.filter(
                         categoria_medicao__nome=categoria,
                         faixa_etaria=faixa_id,
-                        nome_campo='frequencia',
-                    ).values_list('valor', flat=True)
+                        nome_campo="frequencia",
+                    ).values_list("valor", flat=True)
 
                     quantidade = sum(
                         int(valor) for valor in valores_frequencia if valor.isdigit()
@@ -1600,9 +1600,9 @@ def build_valores_campos(solicitacao, tabela):  # noqa C901
                     totais[indice_total] += quantidade
 
                 except ObjectDoesNotExist:
-                    linha.append('-')
+                    linha.append("-")
 
-            total = sum(int(val) for val in linha[-3:] if val != '-')
+            total = sum(int(val) for val in linha[-3:] if val != "-")
             linha.append(str(total))
 
             totais[1 + indice_periodo * 4 + 3] += total
@@ -1617,13 +1617,13 @@ def build_valores_campos(solicitacao, tabela):  # noqa C901
 
 def build_tabela_somatorio_body_cei(solicitacao):
     ORDEM_PERIODOS_GRUPOS_CEI = {
-        'INTEGRAL': 1,
-        'PARCIAL': 2,
-        'MANHA': 3,
-        'TARDE': 4,
+        "INTEGRAL": 1,
+        "PARCIAL": 2,
+        "MANHA": 3,
+        "TARDE": 4,
     }
 
-    CATEGORIAS = ['ALIMENTAÇÃO', 'DIETA TIPO A', 'DIETA TIPO B', 'total']
+    CATEGORIAS = ["ALIMENTAÇÃO", "DIETA TIPO A", "DIETA TIPO B", "total"]
 
     periodos_ordenados = sorted(
         [medicao.nome_periodo_grupo for medicao in solicitacao.medicoes.all()],
@@ -1636,30 +1636,30 @@ def build_tabela_somatorio_body_cei(solicitacao):
     tabelas = []
     for grupo in grupos_periodos:
         tabela = {
-            'periodos': grupo,
-            'categorias': CATEGORIAS * len(grupo),
-            'len_periodos': [4] * len(grupo),
-            'ordem_periodos_grupos': [
+            "periodos": grupo,
+            "categorias": CATEGORIAS * len(grupo),
+            "len_periodos": [4] * len(grupo),
+            "ordem_periodos_grupos": [
                 ORDEM_PERIODOS_GRUPOS_CEI[periodo] for periodo in grupo
             ],
-            'len_linha': 9,
-            'valores_campos': [],
+            "len_linha": 9,
+            "valores_campos": [],
         }
         tabelas.append(tabela)
 
     for tabela in tabelas:
-        tabela['valores_campos'] = build_valores_campos(solicitacao, tabela)
+        tabela["valores_campos"] = build_valores_campos(solicitacao, tabela)
 
     return tabelas
 
 
 def atualizar_anexos_ocorrencia(anexos, solicitacao_medicao_inicial):
     for anexo in anexos:
-        if '.pdf' in anexo['nome']:
-            arquivo = convert_base64_to_contentfile(anexo['base64'])
+        if ".pdf" in anexo["nome"]:
+            arquivo = convert_base64_to_contentfile(anexo["base64"])
             solicitacao_medicao_inicial.ocorrencia.ultimo_arquivo = arquivo
             solicitacao_medicao_inicial.ocorrencia.nome_ultimo_arquivo = anexo.get(
-                'nome'
+                "nome"
             )
             solicitacao_medicao_inicial.ocorrencia.save()
 
@@ -1683,23 +1683,23 @@ def atualizar_status_ocorrencia(
 
 def dict_informacoes_iniciais(user, acao):
     return {
-        'usuario': {
-            'uuid': str(user.uuid),
-            'nome': user.nome,
-            'username': user.username,
-            'email': user.email,
+        "usuario": {
+            "uuid": str(user.uuid),
+            "nome": user.nome,
+            "username": user.username,
+            "email": user.email,
         },
-        'criado_em': datetime.datetime.today().strftime('%d/%m/%Y %H:%M:%S'),
-        'acao': acao,
-        'alteracoes': [],
+        "criado_em": datetime.datetime.today().strftime("%d/%m/%Y %H:%M:%S"),
+        "acao": acao,
+        "alteracoes": [],
     }
 
 
 def get_medicoes_por_acao(solicitacao, acao):
-    if acao == 'MEDICAO_CORRECAO_SOLICITADA_CODAE':
-        return solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA_CODAE')
+    if acao == "MEDICAO_CORRECAO_SOLICITADA_CODAE":
+        return solicitacao.medicoes.filter(status="MEDICAO_CORRECAO_SOLICITADA_CODAE")
     else:
-        return solicitacao.medicoes.filter(status='MEDICAO_CORRECAO_SOLICITADA')
+        return solicitacao.medicoes.filter(status="MEDICAO_CORRECAO_SOLICITADA")
 
 
 def criar_log_solicitar_correcao_periodos(user, solicitacao, acao):
@@ -1714,40 +1714,40 @@ def criar_log_solicitar_correcao_periodos(user, solicitacao, acao):
             periodo_nome = medicao.grupo.nome
 
         alteracoes_dict = {
-            'periodo_escolar': periodo_nome,
-            'justificativa': medicao.logs.last().justificativa,
-            'tabelas_lancamentos': [],
+            "periodo_escolar": periodo_nome,
+            "justificativa": medicao.logs.last().justificativa,
+            "tabelas_lancamentos": [],
         }
         valores_medicao = medicao.valores_medicao.filter(
             habilitado_correcao=True
-        ).order_by('semana')
+        ).order_by("semana")
         tabelas_lancamentos = (
-            valores_medicao.order_by('categoria_medicao__nome')
-            .values_list('categoria_medicao__nome', flat=True)
+            valores_medicao.order_by("categoria_medicao__nome")
+            .values_list("categoria_medicao__nome", flat=True)
             .distinct()
         )
 
         for tabela in tabelas_lancamentos:
             valores_da_tabela = valores_medicao.filter(categoria_medicao__nome=tabela)
-            semanas = valores_da_tabela.values_list('semana', flat=True).distinct()
-            tabela_dict = {'categoria_medicao': tabela, 'semanas': []}
+            semanas = valores_da_tabela.values_list("semana", flat=True).distinct()
+            tabela_dict = {"categoria_medicao": tabela, "semanas": []}
 
             for semana in semanas:
                 dias = valores_da_tabela.filter(semana=semana)
                 dias = list(
-                    dias.order_by('dia').values_list('dia', flat=True).distinct()
+                    dias.order_by("dia").values_list("dia", flat=True).distinct()
                 )
-                semana_dict = {'semana': semana, 'dias': dias}
-                tabela_dict['semanas'].append(semana_dict)
-            alteracoes_dict['tabelas_lancamentos'].append(tabela_dict)
-        log['alteracoes'].append(alteracoes_dict)
+                semana_dict = {"semana": semana, "dias": dias}
+                tabela_dict["semanas"].append(semana_dict)
+            alteracoes_dict["tabelas_lancamentos"].append(tabela_dict)
+        log["alteracoes"].append(alteracoes_dict)
     return log
 
 
 def log_anterior_para_busca(acao):
-    if acao == 'MEDICAO_APROVADA_PELA_DRE':
-        return 'MEDICAO_CORRECAO_SOLICITADA'
-    return 'MEDICAO_CORRECAO_SOLICITADA_CODAE'
+    if acao == "MEDICAO_APROVADA_PELA_DRE":
+        return "MEDICAO_CORRECAO_SOLICITADA"
+    return "MEDICAO_CORRECAO_SOLICITADA_CODAE"
 
 
 def criar_log_aprovar_periodos_corrigidos(user, solicitacao, acao):
@@ -1756,17 +1756,17 @@ def criar_log_aprovar_periodos_corrigidos(user, solicitacao, acao):
     log = dict_informacoes_iniciais(user, acao)
     historico = json.loads(solicitacao.historico)
     lista_logs = list(
-        filter(lambda log: log['acao'] == log_anterior_para_busca(acao), historico)
+        filter(lambda log: log["acao"] == log_anterior_para_busca(acao), historico)
     )
     for log_do_historico in lista_logs:
-        for alteracao in log_do_historico['alteracoes']:
-            log['alteracoes'].append({'periodo_escolar': alteracao['periodo_escolar']})
+        for alteracao in log_do_historico["alteracoes"]:
+            log["alteracoes"].append({"periodo_escolar": alteracao["periodo_escolar"]})
     return log
 
 
 def encontrar_ou_criar_log_inicial(user, acao, historico):
     lista_logs = list(
-        filter(lambda log: log['acao'] == acao and log == historico[-1], historico)
+        filter(lambda log: log["acao"] == acao and log == historico[-1], historico)
     )
     if not lista_logs:
         return dict_informacoes_iniciais(user, acao)
@@ -1778,13 +1778,13 @@ def buscar_valores_medicao(
     medicao, dia, nome_campo, categoria_medicao, uuid_faixa_etaria
 ):
     filtro = {
-        'medicao': medicao,
-        'dia': dia,
-        'nome_campo': nome_campo,
-        'categoria_medicao': categoria_medicao,
+        "medicao": medicao,
+        "dia": dia,
+        "nome_campo": nome_campo,
+        "categoria_medicao": categoria_medicao,
     }
     if uuid_faixa_etaria:
-        filtro['faixa_etaria__uuid'] = uuid_faixa_etaria
+        filtro["faixa_etaria__uuid"] = uuid_faixa_etaria
     return ValorMedicao.objects.filter(**filtro)
 
 
@@ -1797,19 +1797,19 @@ def gerar_dicionario_e_buscar_valores_medicao(data, medicao):
 
         valor_medicao = buscar_valores_medicao(
             medicao,
-            valor_atualizado.get('dia', ''),
-            valor_atualizado.get('nome_campo', ''),
-            valor_atualizado.get('categoria_medicao', ''),
-            valor_atualizado.get('faixa_etaria', ''),
+            valor_atualizado.get("dia", ""),
+            valor_atualizado.get("nome_campo", ""),
+            valor_atualizado.get("categoria_medicao", ""),
+            valor_atualizado.get("faixa_etaria", ""),
         )
 
         if (
             valor_medicao.exists()
-            and valor_medicao.first().valor != valor_atualizado.get('valor')
+            and valor_medicao.first().valor != valor_atualizado.get("valor")
         ):
             dicionario_alteracoes[
                 str(valor_medicao.first().uuid)
-            ] = valor_atualizado.get('valor')
+            ] = valor_atualizado.get("valor")
 
     valores_medicao = ValorMedicao.objects.filter(uuid__in=dicionario_alteracoes.keys())
     return dicionario_alteracoes, valores_medicao
@@ -1822,16 +1822,16 @@ def buscar_valores_medicao_por_categoria(valores_medicao, categoria):
 def criar_dia_dict(
     valores_da_tabela, dia, medicao, dicionario_alteracoes, tabela, semana
 ):
-    dia_dict = {'dia': dia, 'campos': []}
+    dia_dict = {"dia": dia, "campos": []}
     faixas_etarias = [
         faixa
         for faixa in valores_da_tabela.filter(dia=dia)
-        .values_list('faixa_etaria', flat=True)
+        .values_list("faixa_etaria", flat=True)
         .distinct()
         if faixa is not None
     ]
 
-    chave = 'faixa_etaria' if faixas_etarias else 'nome_campo'
+    chave = "faixa_etaria" if faixas_etarias else "nome_campo"
     valores_chave = (
         valores_da_tabela.filter(dia=dia).values_list(chave, flat=True).distinct()
     )
@@ -1839,19 +1839,19 @@ def criar_dia_dict(
     for valor in valores_chave:
         filtro = {
             chave: valor,
-            'semana': semana,
-            'dia': dia,
-            'categoria_medicao__nome': tabela,
-            'medicao': medicao,
+            "semana": semana,
+            "dia": dia,
+            "categoria_medicao__nome": tabela,
+            "medicao": medicao,
         }
         vm = valores_da_tabela.get(**filtro)
 
         campo = {
-            'campo_nome': str(getattr(vm, chave)),
-            'de': vm.valor,
-            'para': dicionario_alteracoes.get(str(vm.uuid), vm.valor),
+            "campo_nome": str(getattr(vm, chave)),
+            "de": vm.valor,
+            "para": dicionario_alteracoes.get(str(vm.uuid), vm.valor),
         }
-        dia_dict['campos'].append(campo)
+        dia_dict["campos"].append(campo)
 
     return dia_dict
 
@@ -1862,20 +1862,20 @@ def criar_log_escola_corrigiu(
     periodo_nome = (
         medicao.periodo_escolar.nome if medicao.periodo_escolar else medicao.grupo.nome
     )
-    alteracoes_dict = {'periodo_escolar': periodo_nome, 'tabelas_lancamentos': []}
+    alteracoes_dict = {"periodo_escolar": periodo_nome, "tabelas_lancamentos": []}
 
     for tabela in valores_medicao.values_list(
-        'categoria_medicao__nome', flat=True
+        "categoria_medicao__nome", flat=True
     ).distinct():
         valores_da_tabela = buscar_valores_medicao_por_categoria(
             valores_medicao, tabela
         )
         tabelas_dict = {
-            'categoria_medicao': tabela,
-            'semanas': [
+            "categoria_medicao": tabela,
+            "semanas": [
                 {
-                    'semana': semana,
-                    'dias': [
+                    "semana": semana,
+                    "dias": [
                         criar_dia_dict(
                             valores_da_tabela.filter(semana=semana),
                             dia,
@@ -1885,18 +1885,18 @@ def criar_log_escola_corrigiu(
                             semana,
                         )
                         for dia in valores_da_tabela.filter(semana=semana)
-                        .values_list('dia', flat=True)
+                        .values_list("dia", flat=True)
                         .distinct()
                     ],
                 }
                 for semana in valores_da_tabela.values_list(
-                    'semana', flat=True
+                    "semana", flat=True
                 ).distinct()
             ],
         }
-        alteracoes_dict['tabelas_lancamentos'].append(tabelas_dict)
+        alteracoes_dict["tabelas_lancamentos"].append(tabelas_dict)
 
-    log_inicial['alteracoes'].append(alteracoes_dict)
+    log_inicial["alteracoes"].append(alteracoes_dict)
     historico.append(log_inicial)
     solicitacao.historico = json.dumps(historico)
     solicitacao.save()
@@ -1904,13 +1904,13 @@ def criar_log_escola_corrigiu(
 
 def get_alteracoes_log(lista_alteracoes, log_inicial, periodo_nome):
     if not lista_alteracoes:
-        log_inicial['alteracoes'].append(
-            {'periodo_escolar': periodo_nome, 'tabelas_lancamentos': []}
+        log_inicial["alteracoes"].append(
+            {"periodo_escolar": periodo_nome, "tabelas_lancamentos": []}
         )
-        cp_alteracao_dict = log_inicial['alteracoes'][-1]
+        cp_alteracao_dict = log_inicial["alteracoes"][-1]
     else:
         cp_alteracao_dict = lista_alteracoes[0]
-    alteracao_idx = log_inicial['alteracoes'].index(cp_alteracao_dict)
+    alteracao_idx = log_inicial["alteracoes"].index(cp_alteracao_dict)
     return log_inicial, cp_alteracao_dict, alteracao_idx
 
 
@@ -1918,20 +1918,20 @@ def atualiza_ou_cria_tabela_lancamentos_log(
     valor_medicao, cp_alteracao_dict, log_inicial, alteracao_idx
 ):
     categoria_medicao = valor_medicao.categoria_medicao.nome
-    lista = cp_alteracao_dict['tabelas_lancamentos']
+    lista = cp_alteracao_dict["tabelas_lancamentos"]
     lista_categorias = list(
-        filter(lambda tabela: tabela['categoria_medicao'] == categoria_medicao, lista)
+        filter(lambda tabela: tabela["categoria_medicao"] == categoria_medicao, lista)
     )
     if not lista_categorias:
-        log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'].append(
-            {'categoria_medicao': categoria_medicao, 'semanas': []}
+        log_inicial["alteracoes"][alteracao_idx]["tabelas_lancamentos"].append(
+            {"categoria_medicao": categoria_medicao, "semanas": []}
         )
-        cp_categorias_dict = log_inicial['alteracoes'][alteracao_idx][
-            'tabelas_lancamentos'
+        cp_categorias_dict = log_inicial["alteracoes"][alteracao_idx][
+            "tabelas_lancamentos"
         ][-1]
     else:
         cp_categorias_dict = lista_categorias[0]
-    categoria_idx = cp_alteracao_dict['tabelas_lancamentos'].index(cp_categorias_dict)
+    categoria_idx = cp_alteracao_dict["tabelas_lancamentos"].index(cp_categorias_dict)
     return log_inicial, cp_categorias_dict, categoria_idx
 
 
@@ -1944,16 +1944,16 @@ def atualiza_ou_cria_semanas_log(
     cp_categorias_dict,
 ):
     if not lista_semanas:
-        log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'][categoria_idx][
-            'semanas'
-        ].append({'semana': valor_medicao.semana, 'dias': []})
-        cp_semana_dict = log_inicial['alteracoes'][alteracao_idx]
-        cp_semana_dict = cp_semana_dict['tabelas_lancamentos'][categoria_idx][
-            'semanas'
+        log_inicial["alteracoes"][alteracao_idx]["tabelas_lancamentos"][categoria_idx][
+            "semanas"
+        ].append({"semana": valor_medicao.semana, "dias": []})
+        cp_semana_dict = log_inicial["alteracoes"][alteracao_idx]
+        cp_semana_dict = cp_semana_dict["tabelas_lancamentos"][categoria_idx][
+            "semanas"
         ][-1]
     else:
         cp_semana_dict = lista_semanas[0]
-    semana_idx = cp_categorias_dict['semanas'].index(cp_semana_dict)
+    semana_idx = cp_categorias_dict["semanas"].index(cp_semana_dict)
     return log_inicial, semana_idx, cp_semana_dict
 
 
@@ -1968,17 +1968,17 @@ def atualiza_ou_cria_dias_log(
 ):
     if not lista_dias:
         (
-            log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'][
+            log_inicial["alteracoes"][alteracao_idx]["tabelas_lancamentos"][
                 categoria_idx
-            ]['semanas'][semana_idx]['dias']
-        ).append({'dia': valor_medicao.dia, 'campos': []})
-        cp_dias_dict = log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'][
+            ]["semanas"][semana_idx]["dias"]
+        ).append({"dia": valor_medicao.dia, "campos": []})
+        cp_dias_dict = log_inicial["alteracoes"][alteracao_idx]["tabelas_lancamentos"][
             categoria_idx
         ]
-        cp_dias_dict = cp_dias_dict['semanas'][semana_idx]['dias'][-1]
+        cp_dias_dict = cp_dias_dict["semanas"][semana_idx]["dias"][-1]
     else:
         cp_dias_dict = lista_dias[0]
-    dia_idx = cp_semana_dict['dias'].index(cp_dias_dict)
+    dia_idx = cp_semana_dict["dias"].index(cp_dias_dict)
     return log_inicial, dia_idx, cp_dias_dict
 
 
@@ -1995,29 +1995,29 @@ def atualiza_ou_cria_nome_campo_log(
 ):
     if not lista_campos:
         (
-            log_inicial['alteracoes'][alteracao_idx]['tabelas_lancamentos'][
+            log_inicial["alteracoes"][alteracao_idx]["tabelas_lancamentos"][
                 categoria_idx
-            ]['semanas'][semana_idx]['dias'][dia_idx]['campos']
+            ]["semanas"][semana_idx]["dias"][dia_idx]["campos"]
         ).append(
             {
-                'campo_nome': (
+                "campo_nome": (
                     str(valor_medicao.faixa_etaria)
                     if valor_medicao.faixa_etaria
                     else valor_medicao.nome_campo
                 ),
-                'de': valor_medicao.valor,
-                'para': value,
+                "de": valor_medicao.valor,
+                "para": value,
             }
         )
-        cp_campos_dict = log_inicial['alteracoes'][alteracao_idx][
-            'tabelas_lancamentos'
+        cp_campos_dict = log_inicial["alteracoes"][alteracao_idx][
+            "tabelas_lancamentos"
         ][categoria_idx]
-        cp_campos_dict = cp_campos_dict['semanas'][semana_idx]['dias'][dia_idx][
-            'campos'
+        cp_campos_dict = cp_campos_dict["semanas"][semana_idx]["dias"][dia_idx][
+            "campos"
         ][-1]
     else:
         cp_campos_dict = lista_campos[0]
-    campo_idx = cp_dias_dict['campos'].index(cp_campos_dict)
+    campo_idx = cp_dias_dict["campos"].index(cp_campos_dict)
     return log_inicial, campo_idx, cp_campos_dict
 
 
@@ -2032,7 +2032,7 @@ def atualizar_log_escola_corrigiu(
 
     lista_alteracoes = list(
         filter(
-            lambda a: a['periodo_escolar'] == periodo_nome, log_inicial['alteracoes']
+            lambda a: a["periodo_escolar"] == periodo_nome, log_inicial["alteracoes"]
         )
     )
 
@@ -2051,8 +2051,8 @@ def atualizar_log_escola_corrigiu(
 
         lista_semanas = list(
             filter(
-                lambda s: s['semana'] == valor_medicao.semana,
-                cp_categorias_dict['semanas'],
+                lambda s: s["semana"] == valor_medicao.semana,
+                cp_categorias_dict["semanas"],
             )
         )
 
@@ -2066,7 +2066,7 @@ def atualizar_log_escola_corrigiu(
         )
 
         lista_dias = list(
-            filter(lambda dia: dia['dia'] == valor_medicao.dia, cp_semana_dict['dias'])
+            filter(lambda dia: dia["dia"] == valor_medicao.dia, cp_semana_dict["dias"])
         )
 
         log_inicial, dia_idx, cp_dias_dict = atualiza_ou_cria_dias_log(
@@ -2081,8 +2081,8 @@ def atualizar_log_escola_corrigiu(
 
         lista_campos = list(
             filter(
-                lambda c: c['campo_nome'] == valor_medicao.nome_campo,
-                cp_dias_dict['campos'],
+                lambda c: c["campo_nome"] == valor_medicao.nome_campo,
+                cp_dias_dict["campos"],
             )
         )
 
@@ -2099,9 +2099,9 @@ def atualizar_log_escola_corrigiu(
         )
 
         (
-            historico[log_idx]['alteracoes'][alteracao_idx]['tabelas_lancamentos'][
+            historico[log_idx]["alteracoes"][alteracao_idx]["tabelas_lancamentos"][
                 categoria_idx
-            ]['semanas'][semana_idx]['dias'][dia_idx]['campos'][campo_idx]['para']
+            ]["semanas"][semana_idx]["dias"][dia_idx]["campos"][campo_idx]["para"]
         ) = value
     solicitacao.historico = json.dumps(historico)
     solicitacao.save()
@@ -2119,7 +2119,7 @@ def log_alteracoes_escola_corrige_periodo(user, medicao, acao, data):
     )
     if not valores_medicao:
         return
-    if not log_inicial['alteracoes']:
+    if not log_inicial["alteracoes"]:
         criar_log_escola_corrigiu(
             medicao,
             valores_medicao,
@@ -2135,39 +2135,39 @@ def log_alteracoes_escola_corrige_periodo(user, medicao, acao, data):
 
 
 def tratar_workflow_todos_lancamentos(usuario, raw_sql):
-    if usuario.tipo_usuario == 'medicao':
+    if usuario.tipo_usuario == "medicao":
         raw_sql += (
-            'WHERE %(solicitacao_medicao_inicial)s.status IN ('
+            "WHERE %(solicitacao_medicao_inicial)s.status IN ("
             "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE', "
             "'MEDICAO_APROVADA_PELA_DRE', "
             "'MEDICAO_CORRECAO_SOLICITADA_CODAE', "
             "'MEDICAO_CORRIGIDA_PARA_CODAE', "
             "'MEDICAO_APROVADA_PELA_CODAE') "
         )
-    elif usuario.tipo_usuario == 'diretoriaregional':
-        raw_sql += 'WHERE NOT %(solicitacao_medicao_inicial)s.status = ' "'' "
+    elif usuario.tipo_usuario == "diretoriaregional":
+        raw_sql += "WHERE NOT %(solicitacao_medicao_inicial)s.status = " "'' "
     else:
         raw_sql += (
-            'WHERE NOT %(solicitacao_medicao_inicial)s.status = '
+            "WHERE NOT %(solicitacao_medicao_inicial)s.status = "
             "'MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE' "
         )
     return raw_sql
 
 
 def get_valor_total(escola, valores, medicao):
-    valor_total = sum(v['valor'] for v in valores)
+    valor_total = sum(v["valor"] for v in valores)
     if escola.eh_cei:
         fator_multiplicativo = 2
-        if medicao.nome_periodo_grupo == 'INTEGRAL':
+        if medicao.nome_periodo_grupo == "INTEGRAL":
             fator_multiplicativo = 5
-        elif medicao.nome_periodo_grupo == 'PARCIAL':
+        elif medicao.nome_periodo_grupo == "PARCIAL":
             fator_multiplicativo = 3
         valor_total *= fator_multiplicativo
     return valor_total
 
 
 def get_campos_a_desconsiderar(escola):
-    campos_a_desconsiderar = ['matriculados', 'numero_de_alunos', 'observacoes']
+    campos_a_desconsiderar = ["matriculados", "numero_de_alunos", "observacoes"]
     if not escola.eh_cei:
-        campos_a_desconsiderar.append('frequencia')
+        campos_a_desconsiderar.append("frequencia")
     return campos_a_desconsiderar

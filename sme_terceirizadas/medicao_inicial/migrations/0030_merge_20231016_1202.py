@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('medicao_inicial', '0029_alter_permissaolancamentoespecial_options_and_more'),
-        ('medicao_inicial', '0029_diaparacorrigir'),
+        ("medicao_inicial", "0029_alter_permissaolancamentoespecial_options_and_more"),
+        ("medicao_inicial", "0029_diaparacorrigir"),
     ]
 
-    operations = [
-    ]
+    operations = []

@@ -7,19 +7,19 @@ from rest_framework.pagination import PageNumberPagination
 
 from sme_terceirizadas.eol_servico.utils import EOLServicoSGP
 
-logger = logging.getLogger('sigpae.taskEscola')
+logger = logging.getLogger("sigpae.taskEscola")
 
 
 def meses_to_mes_e_ano_string(total_meses):
     anos = total_meses // 12
     meses = total_meses % 12
 
-    saida = ''
+    saida = ""
 
     if anos > 0:
         saida = f"{anos:02d} {'ano' if anos == 1 else 'anos'}"
         if meses > 0:
-            saida += ' e '
+            saida += " e "
 
     if anos == 0 or meses > 0:
         saida += f"{meses:02d} {'mês' if meses == 1 else 'meses'}"
@@ -31,19 +31,19 @@ def faixa_to_string(inicio, fim):
     if fim - inicio == 1:
         return meses_to_mes_e_ano_string(inicio)
     if inicio == 0:
-        str_inicio = '0 meses'
+        str_inicio = "0 meses"
     else:
         str_inicio = (
-            meses_to_mes_e_ano_string(inicio) if inicio >= 12 else f'{inicio:02d}'
+            meses_to_mes_e_ano_string(inicio) if inicio >= 12 else f"{inicio:02d}"
         )
-    str_fim = '06 anos' if fim == 72 else meses_to_mes_e_ano_string(fim - 1)
+    str_fim = "06 anos" if fim == 72 else meses_to_mes_e_ano_string(fim - 1)
 
-    return f'{str_inicio} a {str_fim}'
+    return f"{str_inicio} a {str_fim}"
 
 
 def string_to_faixa(faixa_str):
-    if 'a' in faixa_str:
-        str_inicio, str_fim = faixa_str.split(' a ')
+    if "a" in faixa_str:
+        str_inicio, str_fim = faixa_str.split(" a ")
     else:
         str_inicio = str_fim = faixa_str
 
@@ -56,23 +56,23 @@ def string_to_faixa(faixa_str):
 
 
 def string_to_meses(str_meses):
-    if 'ano' in str_meses:
-        anos, restante = str_meses.split(' ano')
+    if "ano" in str_meses:
+        anos, restante = str_meses.split(" ano")
         anos = int(anos)
         meses = 0
-        if ' e ' in restante:
-            _, str_mes = restante.split(' e ')
-            meses = int(str_mes.split(' ')[0])
+        if " e " in restante:
+            _, str_mes = restante.split(" e ")
+            meses = int(str_mes.split(" ")[0])
         total_meses = anos * 12 + meses
     else:
-        total_meses = int(str_meses.split(' ')[0])
+        total_meses = int(str_meses.split(" ")[0])
     return total_meses
 
 
 def remove_acentos(texto):
-    resultado = re.sub(u'[àáâãäå]', 'a', texto)
-    resultado = re.sub(u'[èéêë]', 'e', resultado)
-    resultado = re.sub(u'[ìíîï]', 'i', resultado)
+    resultado = re.sub("[àáâãäå]", "a", texto)
+    resultado = re.sub("[èéêë]", "e", resultado)
+    resultado = re.sub("[ìíîï]", "i", resultado)
     return resultado
 
 
@@ -101,14 +101,14 @@ def registra_quantidade_matriculados(matriculas, ontem, tipo_turma):  # noqa C90
 
     objs = []
     matriculas = (
-        pd.DataFrame(matriculas).astype(str).drop_duplicates().to_dict('records')
+        pd.DataFrame(matriculas).astype(str).drop_duplicates().to_dict("records")
     )
     for matricula in matriculas:
-        escola = Escola.objects.filter(codigo_eol=matricula['codigoEolEscola']).first()
-        turnos = ast.literal_eval(matricula['turnos'])
+        escola = Escola.objects.filter(codigo_eol=matricula["codigoEolEscola"]).first()
+        turnos = ast.literal_eval(matricula["turnos"])
         periodos = []
         for turno_resp in turnos:
-            turno = remove_acentos(turno_resp['turno'])
+            turno = remove_acentos(turno_resp["turno"])
             periodo = PeriodoEscolar.objects.filter(nome=turno.upper()).first()
             if not periodo:
                 logger.debug(
@@ -116,27 +116,27 @@ def registra_quantidade_matriculados(matriculas, ontem, tipo_turma):  # noqa C90
                 )
                 continue
             periodos.append(periodo)
-            if tipo_turma == 'REGULAR':
+            if tipo_turma == "REGULAR":
                 create_update_objeto_escola_periodo_escolar(
-                    escola, periodo, turno_resp['quantidade']
+                    escola, periodo, turno_resp["quantidade"]
                 )
             matricula_sigpae = AlunosMatriculadosPeriodoEscola.objects.filter(
                 tipo_turma=tipo_turma, escola=escola, periodo_escolar=periodo
             ).first()
             if matricula_sigpae:
-                matricula_sigpae.quantidade_alunos = turno_resp['quantidade']
+                matricula_sigpae.quantidade_alunos = turno_resp["quantidade"]
                 objs.append(matricula_sigpae)
             else:
                 AlunosMatriculadosPeriodoEscola.criar(
                     escola=escola,
                     periodo_escolar=periodo,
-                    quantidade_alunos=turno_resp['quantidade'],
+                    quantidade_alunos=turno_resp["quantidade"],
                     tipo_turma=tipo_turma,
                 )
             LogAlunosMatriculadosPeriodoEscola.criar(
                 escola=escola,
                 periodo_escolar=periodo,
-                quantidade_alunos=turno_resp['quantidade'],
+                quantidade_alunos=turno_resp["quantidade"],
                 data=ontem,
                 tipo_turma=tipo_turma,
             )
@@ -144,7 +144,7 @@ def registra_quantidade_matriculados(matriculas, ontem, tipo_turma):  # noqa C90
         AlunosMatriculadosPeriodoEscola.objects.filter(
             tipo_turma=tipo_turma, escola=escola
         ).exclude(periodo_escolar__in=periodos).delete()
-    AlunosMatriculadosPeriodoEscola.objects.bulk_update(objs, ['quantidade_alunos'])
+    AlunosMatriculadosPeriodoEscola.objects.bulk_update(objs, ["quantidade_alunos"])
     update_datetime_LogAlunosMatriculadosPeriodoEscola()
 
 
@@ -189,7 +189,7 @@ def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
     total = len(dres)
     cont = 1
     for dre in dres:
-        logger.debug(f'Processando {cont} de {total}')
+        logger.debug(f"Processando {cont} de {total}")
         logger.debug(
             f"""Consultando matriculados da dre com Nome: {dre.nome}
         e código eol: {dre.codigo_eol}, data: {hoje.strftime('%Y-%m-%d')} para o tipo turma {tipo_turma.name}"""
@@ -197,7 +197,7 @@ def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
         try:
             resposta = EOLServicoSGP.matricula_por_escola(
                 codigo_eol=dre.codigo_eol,
-                data=hoje.strftime('%Y-%m-%d'),
+                data=hoje.strftime("%Y-%m-%d"),
                 tipo_turma=tipo_turma.value,
             )
             logger.debug(resposta)
@@ -207,8 +207,8 @@ def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
             dois_dias_atras = ontem - timedelta(days=1)
             duplica_dia_anterior(dre, dois_dias_atras, ontem, tipo_turma.name)
             logger.error(
-                f'Houve um erro inesperado ao consultar a Diretoria Regional {dre} : {str(e)}; '
-                'as quantidades de alunos foram duplicadas do dia anterior'
+                f"Houve um erro inesperado ao consultar a Diretoria Regional {dre} : {str(e)}; "
+                "as quantidades de alunos foram duplicadas do dia anterior"
             )
         cont += 1
 
@@ -217,7 +217,7 @@ def processa_dias_letivos(lista_dias_letivos, escola):
     from sme_terceirizadas.escola.models import DiaCalendario
 
     for dia_dict in lista_dias_letivos:
-        data = datetime.strptime(dia_dict['data'], '%Y-%m-%dT00:00:00')
+        data = datetime.strptime(dia_dict["data"], "%Y-%m-%dT00:00:00")
         dia_calendario: DiaCalendario = DiaCalendario.objects.filter(
             escola=escola,
             data__year=data.year,
@@ -226,10 +226,10 @@ def processa_dias_letivos(lista_dias_letivos, escola):
         ).first()
         if not dia_calendario:
             dia_calendario = DiaCalendario.objects.create(
-                escola=escola, data=data, dia_letivo=dia_dict['ehLetivo']
+                escola=escola, data=data, dia_letivo=dia_dict["ehLetivo"]
             )
         else:
-            dia_calendario.dia_letivo = dia_dict['ehLetivo']
+            dia_calendario.dia_letivo = dia_dict["ehLetivo"]
             dia_calendario.save()
 
 
@@ -243,15 +243,15 @@ def calendario_sgp():  # noqa C901
     escolas = Escola.objects.all()
     total = len(escolas)
     for cont, escola in enumerate(escolas, 1):
-        logger.debug(f'Processando {cont} de {total}')
+        logger.debug(f"Processando {cont} de {total}")
         logger.debug(
             f"""Consultando dias letivos da escola com Nome: {escola.nome}
         e código eol: {escola.codigo_eol}, data: {hoje.strftime('%Y-%m-%d')}"""
         )
         try:
-            data_inicio = hoje.strftime('%Y-%m-%d')
+            data_inicio = hoje.strftime("%Y-%m-%d")
             data_final = (hoje + pd.DateOffset(months=3)).date()
-            data_fim = data_final.strftime('%Y-%m-%d')
+            data_fim = data_final.strftime("%Y-%m-%d")
 
             resposta = NovoSGPServico.dias_letivos(
                 codigo_eol=escola.codigo_eol, data_inicio=data_inicio, data_fim=data_fim
@@ -260,8 +260,8 @@ def calendario_sgp():  # noqa C901
 
             processa_dias_letivos(resposta, escola)
         except Exception as e:
-            logger.error(f'Dados não encontrados para escola {escola} : {str(e)}')
-            logger.debug('Tentando buscar dias letivos no novo sgp para turno da noite')
+            logger.error(f"Dados não encontrados para escola {escola} : {str(e)}")
+            logger.debug("Tentando buscar dias letivos no novo sgp para turno da noite")
             try:
                 resposta = NovoSGPServico.dias_letivos(
                     codigo_eol=escola.codigo_eol,
@@ -273,13 +273,13 @@ def calendario_sgp():  # noqa C901
                 processa_dias_letivos(resposta, escola)
             except Exception as e:
                 logger.error(
-                    f'Erro ao buscar por turno noite para escola {escola} : {str(e)}'
+                    f"Erro ao buscar por turno noite para escola {escola} : {str(e)}"
                 )
 
 
 class EscolaSimplissimaPagination(PageNumberPagination):
     page_size = 10
-    page_size_query_param = 'page_size'
+    page_size_query_param = "page_size"
 
 
 def lotes_endpoint_filtrar_relatorio_alunos_matriculados(instituicao, Codae, Lote):
@@ -310,7 +310,7 @@ def eh_dia_sem_atividade_escolar(escola, data, alteracao):
         eh_dia_letivo = True
     eh_dia_de_suspensao = DiaSuspensaoAtividades.eh_dia_de_suspensao(escola, data)
     periodos_escolares_alteracao = alteracao.substituicoes.values_list(
-        'periodo_escolar'
+        "periodo_escolar"
     )
     return (
         (not eh_dia_letivo or eh_dia_de_suspensao)
@@ -318,10 +318,10 @@ def eh_dia_sem_atividade_escolar(escola, data, alteracao):
             inclusoes_normais__cancelado=False,
             inclusoes_normais__data=data,
             quantidades_por_periodo__periodo_escolar__in=periodos_escolares_alteracao,
-            status='CODAE_AUTORIZADO',
+            status="CODAE_AUTORIZADO",
         ).exists()
         and not escola.inclusoes_continuas.filter(
-            status='CODAE_AUTORIZADO',
+            status="CODAE_AUTORIZADO",
             data_inicial__lte=data,
             data_final__gte=data,
             quantidades_por_periodo__periodo_escolar__in=periodos_escolares_alteracao,

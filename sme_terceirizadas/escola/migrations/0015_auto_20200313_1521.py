@@ -6,14 +6,18 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('escola', '0014_mudancafaixasetarias_uuid'),
+        ("escola", "0014_mudancafaixasetarias_uuid"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='aluno',
-            name='codigo_eol',
-            field=models.CharField(max_length=7, unique=True, validators=[django.core.validators.MinLengthValidator(7)],
-                                   verbose_name='Código EOL'),
+            model_name="aluno",
+            name="codigo_eol",
+            field=models.CharField(
+                max_length=7,
+                unique=True,
+                validators=[django.core.validators.MinLengthValidator(7)],
+                verbose_name="Código EOL",
+            ),
         ),
     ]

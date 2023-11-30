@@ -41,7 +41,7 @@ ocorrencia_em_atraso = ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREG
 
 
 def remove_acentos_de_strings(nome: str) -> str:
-    return normalize('NFKD', nome).encode('ASCII', 'ignore').decode('ASCII')
+    return normalize("NFKD", nome).encode("ASCII", "ignore").decode("ASCII")
 
 
 def retorna_status_das_requisicoes(status_list: list) -> list:  # noqa C901
@@ -56,20 +56,20 @@ def retorna_status_das_requisicoes(status_list: list) -> list:  # noqa C901
     if len(status_list) == 0:
         return todos_status
     elif len(status_list) == 1:
-        if status_list[0] == ' ' or status_list[0] == '':
+        if status_list[0] == " " or status_list[0] == "":
             return todos_status
     for status in status_list:
-        if status == 'Todos':
+        if status == "Todos":
             return todos_status
-        elif status == 'Aguardando envio':
+        elif status == "Aguardando envio":
             lista_com_status.append(SolicitacaoRemessaWorkFlow.AGUARDANDO_ENVIO)
-        elif status == 'Enviada':
+        elif status == "Enviada":
             lista_com_status.append(SolicitacaoRemessaWorkFlow.DILOG_ENVIA)
-        elif status == 'Cancelada':
+        elif status == "Cancelada":
             lista_com_status.append(SolicitacaoRemessaWorkFlow.PAPA_CANCELA)
-        elif status == 'Confirmada':
+        elif status == "Confirmada":
             lista_com_status.append(SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA)
-        elif status == 'Em análise':
+        elif status == "Em análise":
             lista_com_status.append(
                 SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_SOLICITA_ALTERACAO
             )
@@ -77,63 +77,63 @@ def retorna_status_das_requisicoes(status_list: list) -> list:  # noqa C901
 
 
 def retorna_status_para_usuario(status_evento: str) -> str:  # noqa C901
-    if status_evento == 'Papa enviou a requisição':
-        return 'Aguardando envio'
-    elif status_evento == 'Dilog Enviou a requisição':
-        return 'Enviada'
-    elif status_evento == 'Distribuidor confirmou requisição':
-        return 'Confirmada'
-    elif status_evento == 'Distribuidor pede alteração da requisição':
-        return 'Em análise'
+    if status_evento == "Papa enviou a requisição":
+        return "Aguardando envio"
+    elif status_evento == "Dilog Enviou a requisição":
+        return "Enviada"
+    elif status_evento == "Distribuidor confirmou requisição":
+        return "Confirmada"
+    elif status_evento == "Distribuidor pede alteração da requisição":
+        return "Em análise"
     else:
-        return 'Cancelada'
+        return "Cancelada"
 
 
 def retorna_dados_normalizados_excel_visao_distribuidor(queryset):
     requisicoes = queryset.annotate(
         endereco_unidade=Concat(
-            'guias__endereco_unidade',
-            Value(' Nº '),
-            'guias__codigo_unidade',
+            "guias__endereco_unidade",
+            Value(" Nº "),
+            "guias__codigo_unidade",
             output_field=CharField(),
         ),
         embalagem=Concat(
-            'guias__alimentos__embalagens__descricao_embalagem',
-            Value(' '),
-            'guias__alimentos__embalagens__capacidade_embalagem',
-            Value(' '),
-            'guias__alimentos__embalagens__unidade_medida',
+            "guias__alimentos__embalagens__descricao_embalagem",
+            Value(" "),
+            "guias__alimentos__embalagens__capacidade_embalagem",
+            Value(" "),
+            "guias__alimentos__embalagens__unidade_medida",
             output_field=CharField(),
         ),
         status_requisicao=Case(
-            When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
-            When(status='DILOG_ENVIA', then=Value('Enviada')),
-            When(status='CANCELADA', then=Value('Cancelada')),
-            When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
-            When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
-            When(status='DILOG_ACEITA_ALTERACAO', then=Value('Alterada')),
+            When(status="AGUARDANDO_ENVIO", then=Value("Aguardando envio")),
+            When(status="DILOG_ENVIA", then=Value("Enviada")),
+            When(status="CANCELADA", then=Value("Cancelada")),
+            When(status="DISTRIBUIDOR_CONFIRMA", then=Value("Confirmada")),
+            When(status="DISTRIBUIDOR_SOLICITA_ALTERACAO", then=Value("Em análise")),
+            When(status="DILOG_ACEITA_ALTERACAO", then=Value("Alterada")),
             output_field=CharField(),
         ),
     ).values(
-        'numero_solicitacao',
-        'status_requisicao',
-        'guias__data_entrega',
-        'guias__alimentos__nome_alimento',
-        'guias__nome_unidade',
-        'guias__escola__codigo_eol',
-        'guias__endereco_unidade',
-        'guias__numero_unidade',
-        'guias__bairro_unidade',
-        'guias__cep_unidade',
-        'guias__telefone_unidade',
-        'guias__numero_guia',
-        'guias__alimentos__embalagens__tipo_embalagem',
-        'guias__alimentos__embalagens__qtd_volume',
-        'guias__alimentos__embalagens__descricao_embalagem',
-        'guias__alimentos__embalagens__capacidade_embalagem',
-        'guias__alimentos__embalagens__unidade_medida',
-        'guias__alimentos__codigo_suprimento',
-        'guias__escola__subprefeitura__agrupamento',
+        "numero_solicitacao",
+        "status_requisicao",
+        "guias__data_entrega",
+        "guias__alimentos__nome_alimento",
+        "guias__nome_unidade",
+        "guias__escola__codigo_eol",
+        "guias__endereco_unidade",
+        "guias__numero_unidade",
+        "guias__bairro_unidade",
+        "guias__cep_unidade",
+        "guias__telefone_unidade",
+        "guias__numero_guia",
+        "guias__alimentos__embalagens__tipo_embalagem",
+        "guias__alimentos__embalagens__qtd_volume",
+        "guias__alimentos__embalagens__descricao_embalagem",
+        "guias__alimentos__embalagens__capacidade_embalagem",
+        "guias__alimentos__embalagens__unidade_medida",
+        "guias__alimentos__codigo_suprimento",
+        "guias__escola__subprefeitura__agrupamento",
     )
 
     return requisicoes
@@ -142,148 +142,148 @@ def retorna_dados_normalizados_excel_visao_distribuidor(queryset):
 def retorna_dados_normalizados_excel_visao_dilog(queryset):
     requisicoes = queryset.annotate(
         status_requisicao=Case(
-            When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
-            When(status='DILOG_ENVIA', then=Value('Enviada')),
-            When(status='CANCELADA', then=Value('Cancelada')),
-            When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
-            When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
-            When(status='DILOG_ACEITA_ALTERACAO', then=Value('Alterada')),
+            When(status="AGUARDANDO_ENVIO", then=Value("Aguardando envio")),
+            When(status="DILOG_ENVIA", then=Value("Enviada")),
+            When(status="CANCELADA", then=Value("Cancelada")),
+            When(status="DISTRIBUIDOR_CONFIRMA", then=Value("Confirmada")),
+            When(status="DISTRIBUIDOR_SOLICITA_ALTERACAO", then=Value("Em análise")),
+            When(status="DILOG_ACEITA_ALTERACAO", then=Value("Alterada")),
             output_field=CharField(),
         ),
-        codigo_eol_unidade=Value('', output_field=CharField()),
+        codigo_eol_unidade=Value("", output_field=CharField()),
     ).values(
-        'distribuidor__nome_fantasia',
-        'numero_solicitacao',
-        'status_requisicao',
-        'quantidade_total_guias',
-        'guias__numero_guia',
-        'guias__status',
-        'guias__data_entrega',
-        'guias__codigo_unidade',
-        'guias__nome_unidade',
-        'guias__endereco_unidade',
-        'guias__endereco_unidade',
-        'guias__numero_unidade',
-        'guias__bairro_unidade',
-        'guias__cep_unidade',
-        'guias__cidade_unidade',
-        'guias__estado_unidade',
-        'guias__contato_unidade',
-        'guias__telefone_unidade',
-        'guias__alimentos__nome_alimento',
-        'guias__alimentos__codigo_suprimento',
-        'guias__alimentos__codigo_papa',
-        'guias__alimentos__embalagens__tipo_embalagem',
-        'codigo_eol_unidade',
-        'guias__alimentos__embalagens__descricao_embalagem',
-        'guias__alimentos__embalagens__capacidade_embalagem',
-        'guias__alimentos__embalagens__unidade_medida',
-        'guias__alimentos__embalagens__qtd_volume',
+        "distribuidor__nome_fantasia",
+        "numero_solicitacao",
+        "status_requisicao",
+        "quantidade_total_guias",
+        "guias__numero_guia",
+        "guias__status",
+        "guias__data_entrega",
+        "guias__codigo_unidade",
+        "guias__nome_unidade",
+        "guias__endereco_unidade",
+        "guias__endereco_unidade",
+        "guias__numero_unidade",
+        "guias__bairro_unidade",
+        "guias__cep_unidade",
+        "guias__cidade_unidade",
+        "guias__estado_unidade",
+        "guias__contato_unidade",
+        "guias__telefone_unidade",
+        "guias__alimentos__nome_alimento",
+        "guias__alimentos__codigo_suprimento",
+        "guias__alimentos__codigo_papa",
+        "guias__alimentos__embalagens__tipo_embalagem",
+        "codigo_eol_unidade",
+        "guias__alimentos__embalagens__descricao_embalagem",
+        "guias__alimentos__embalagens__capacidade_embalagem",
+        "guias__alimentos__embalagens__unidade_medida",
+        "guias__alimentos__embalagens__qtd_volume",
     )
 
-    escolas = Escola.objects.all().values('codigo_eol', 'codigo_codae')
+    escolas = Escola.objects.all().values("codigo_eol", "codigo_codae")
 
     for requisicao in requisicoes:
         for escola in escolas:
-            if requisicao['guias__codigo_unidade'] == escola['codigo_codae']:
-                requisicao['codigo_eol_unidade'] = escola.get('codigo_eol', '')
+            if requisicao["guias__codigo_unidade"] == escola["codigo_codae"]:
+                requisicao["codigo_eol_unidade"] = escola.get("codigo_eol", "")
     return requisicoes
 
 
 def retorna_dados_normalizados_excel_entregas_distribuidor(queryset):  # noqa C901
     requisicoes = queryset.annotate(
         status_requisicao=Case(
-            When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
-            When(status='DILOG_ENVIA', then=Value('Recebida')),
-            When(status='CANCELADA', then=Value('Cancelada')),
-            When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
-            When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
-            When(status='DILOG_ACEITA_ALTERACAO', then=Value('Alterada')),
+            When(status="AGUARDANDO_ENVIO", then=Value("Aguardando envio")),
+            When(status="DILOG_ENVIA", then=Value("Recebida")),
+            When(status="CANCELADA", then=Value("Cancelada")),
+            When(status="DISTRIBUIDOR_CONFIRMA", then=Value("Confirmada")),
+            When(status="DISTRIBUIDOR_SOLICITA_ALTERACAO", then=Value("Em análise")),
+            When(status="DILOG_ACEITA_ALTERACAO", then=Value("Alterada")),
             output_field=CharField(),
         )
     ).values(
-        'numero_solicitacao',
-        'status_requisicao',
-        'quantidade_total_guias',
-        'guias__numero_guia',
-        'guias__data_entrega',
-        'guias__codigo_unidade',
-        'guias__escola__codigo_eol',
-        'guias__nome_unidade',
-        'guias__endereco_unidade',
-        'guias__numero_unidade',
-        'guias__bairro_unidade',
-        'guias__cep_unidade',
-        'guias__cidade_unidade',
-        'guias__estado_unidade',
-        'guias__contato_unidade',
-        'guias__telefone_unidade',
-        'guias__alimentos__nome_alimento',
-        'guias__alimentos__codigo_suprimento',
-        'guias__alimentos__codigo_papa',
-        'guias__alimentos__embalagens__tipo_embalagem',
-        'guias__alimentos__embalagens__descricao_embalagem',
-        'guias__alimentos__embalagens__capacidade_embalagem',
-        'guias__alimentos__embalagens__unidade_medida',
-        'guias__alimentos__embalagens__qtd_volume',
-        'guias__status',
-        'guias__alimentos__embalagens__qtd_a_receber',
-        'guias__insucessos__placa_veiculo',
-        'guias__insucessos__nome_motorista',
-        'guias__insucessos__criado_em',
-        'guias__insucessos__hora_tentativa',
-        'guias__insucessos__motivo',
-        'guias__insucessos__justificativa',
-        'guias__insucessos__criado_por__cpf',
-        'guias__insucessos__criado_por__nome',
-        'distribuidor__nome_fantasia',
-        'guias__escola__subprefeitura__agrupamento',
+        "numero_solicitacao",
+        "status_requisicao",
+        "quantidade_total_guias",
+        "guias__numero_guia",
+        "guias__data_entrega",
+        "guias__codigo_unidade",
+        "guias__escola__codigo_eol",
+        "guias__nome_unidade",
+        "guias__endereco_unidade",
+        "guias__numero_unidade",
+        "guias__bairro_unidade",
+        "guias__cep_unidade",
+        "guias__cidade_unidade",
+        "guias__estado_unidade",
+        "guias__contato_unidade",
+        "guias__telefone_unidade",
+        "guias__alimentos__nome_alimento",
+        "guias__alimentos__codigo_suprimento",
+        "guias__alimentos__codigo_papa",
+        "guias__alimentos__embalagens__tipo_embalagem",
+        "guias__alimentos__embalagens__descricao_embalagem",
+        "guias__alimentos__embalagens__capacidade_embalagem",
+        "guias__alimentos__embalagens__unidade_medida",
+        "guias__alimentos__embalagens__qtd_volume",
+        "guias__status",
+        "guias__alimentos__embalagens__qtd_a_receber",
+        "guias__insucessos__placa_veiculo",
+        "guias__insucessos__nome_motorista",
+        "guias__insucessos__criado_em",
+        "guias__insucessos__hora_tentativa",
+        "guias__insucessos__motivo",
+        "guias__insucessos__justificativa",
+        "guias__insucessos__criado_por__cpf",
+        "guias__insucessos__criado_por__nome",
+        "distribuidor__nome_fantasia",
+        "guias__escola__subprefeitura__agrupamento",
     )
 
     for requisicao in requisicoes:
         for guia in queryset[0].guias.all():
-            if guia.numero_guia == requisicao['guias__numero_guia']:
+            if guia.numero_guia == requisicao["guias__numero_guia"]:
                 if guia.conferencias.first():
-                    conferencias = guia.conferencias.all().order_by('criado_em')
-                    requisicao['primeira_conferencia'] = conferencias[0]
+                    conferencias = guia.conferencias.all().order_by("criado_em")
+                    requisicao["primeira_conferencia"] = conferencias[0]
                     conferencia_alimento = alinhaAlimentos(requisicao, conferencias[0])
                     if conferencia_alimento:
-                        requisicao['conferencia_alimento'] = conferencia_alimento
+                        requisicao["conferencia_alimento"] = conferencia_alimento
                     for conferencia in conferencias:
                         if conferencia.eh_reposicao:
-                            requisicao['primeira_reposicao'] = conferencia
+                            requisicao["primeira_reposicao"] = conferencia
                             reposicao_alimento = alinhaAlimentos(
                                 requisicao, conferencia
                             )
                             if reposicao_alimento:
-                                requisicao['reposicao_alimento'] = reposicao_alimento
+                                requisicao["reposicao_alimento"] = reposicao_alimento
                             break
     return requisicoes
 
 
 def alinhaAlimentos(requisicao, conferencia):
     for conf_alim in conferencia.conferencia_dos_alimentos.all():
-        if conf_alim.nome_alimento == requisicao['guias__alimentos__nome_alimento']:
+        if conf_alim.nome_alimento == requisicao["guias__alimentos__nome_alimento"]:
             return conf_alim
 
 
 def valida_guia_conferencia(queryset, escola):
     if queryset.count() == 0:
         return Response(
-            dict(detail='Erro: Guia não encontrada', status=False),
+            dict(detail="Erro: Guia não encontrada", status=False),
             status=HTTP_404_NOT_FOUND,
         )
     guia = queryset.first()
     if guia.status in status_invalidos_para_conferencia:
         return Response(
             dict(
-                detail='Erro ao buscar guia: Essa guia não está pronta para o processo de conferencia'
+                detail="Erro ao buscar guia: Essa guia não está pronta para o processo de conferencia"
             ),
             status=HTTP_400_BAD_REQUEST,
         )
     if guia.escola != escola:
         return Response(
-            dict(detail='Erro ao buscar guia: Essa guia não pertence a sua escola'),
+            dict(detail="Erro ao buscar guia: Essa guia não pertence a sua escola"),
             status=HTTP_400_BAD_REQUEST,
         )
     serializer = GuiaDaRemessaComAlimentoSerializer(guia)
@@ -293,14 +293,14 @@ def valida_guia_conferencia(queryset, escola):
 def valida_guia_insucesso(queryset):
     if queryset.count() == 0:
         return Response(
-            dict(detail='Erro: Guia não encontrada', status=False),
+            dict(detail="Erro: Guia não encontrada", status=False),
             status=HTTP_404_NOT_FOUND,
         )
     guia = queryset.first()
     if guia.status in status_invalidos_para_conferencia:
         return Response(
             dict(
-                detail='Erro ao buscar guia: Essa guia não está pronta para registro de insucesso'
+                detail="Erro ao buscar guia: Essa guia não está pronta para registro de insucesso"
             ),
             status=HTTP_400_BAD_REQUEST,
         )
@@ -313,16 +313,16 @@ def verifica_se_a_guia_pode_ser_conferida(guia):
     try:
         if guia.status in status_invalidos_para_conferencia:
             raise ValidationError(
-                'Erro ao buscar guia: Essa guia ainda não pode ser conferida.'
+                "Erro ao buscar guia: Essa guia ainda não pode ser conferida."
             )
     except ObjectDoesNotExist:
-        raise ValidationError('Guia de remessa não existe.')
+        raise ValidationError("Guia de remessa não existe.")
 
 
 def resolve_notificacao_de_pendencia_de_atraso(guia, eh_reposicao):
     hoje = datetime.date.today()
     if not eh_reposicao and guia.data_entrega < hoje:
-        titulo = f'Registre a conferência da Guia de Remessa de alimentos! | Guia: {guia.numero_guia}'
+        titulo = f"Registre a conferência da Guia de Remessa de alimentos! | Guia: {guia.numero_guia}"
         Notificacao.resolver_pendencia(titulo=titulo, guia=guia)
 
 
@@ -335,7 +335,7 @@ def atualiza_guia_com_base_nas_conferencias_por_alimentos(  # noqa: C901
     """
     try:
         if len(status_dos_alimentos) == 0:
-            raise ValidationError('Status dos alimentos não foram informados.')
+            raise ValidationError("Status dos alimentos não foram informados.")
         elif all(status == status_alimento_recebido for status in status_dos_alimentos):
             guia.reposicao_total(user=user) if eh_reposicao else guia.escola_recebe(
                 user=user
@@ -359,9 +359,9 @@ def atualiza_guia_com_base_nas_conferencias_por_alimentos(  # noqa: C901
         # Resolve notificação de pendencia de atraso caso exista
         resolve_notificacao_de_pendencia_de_atraso(guia, eh_reposicao)
     except InvalidTransitionError as e:
-        raise ValidationError(f'Erro de transição de estado: {e}')
+        raise ValidationError(f"Erro de transição de estado: {e}")
     except ObjectDoesNotExist:
-        raise ValidationError('Guia de remessa não existe.')
+        raise ValidationError("Guia de remessa não existe.")
 
 
 def registra_qtd_a_receber(conferencia_individual, edicao=False):  # noqa C901
@@ -399,7 +399,7 @@ def registra_qtd_a_receber(conferencia_individual, edicao=False):  # noqa C901
             embalagem.qtd_a_receber = 0
         embalagem.save()
     except ObjectDoesNotExist:
-        raise ValidationError('Alimento ou embalagem não existe.')
+        raise ValidationError("Alimento ou embalagem não existe.")
 
 
 def retorna_status_alimento(status):
@@ -409,7 +409,7 @@ def retorna_status_alimento(status):
         status_alimento_nao_recebido: nomes_alimentos[status_alimento_nao_recebido],
         status_alimento_parcial: nomes_alimentos[status_alimento_parcial],
     }
-    return switcher.get(status, 'Status Inválido')
+    return switcher.get(status, "Status Inválido")
 
 
 def retorna_ocorrencias_alimento(ocorrencias):
@@ -449,8 +449,8 @@ def retorna_ocorrencias_alimento(ocorrencias):
             falta_urbanidade: nomes_ocorrencias[falta_urbanidade],
             falta_espaco_armazenamento: nomes_ocorrencias[falta_espaco_armazenamento],
         }
-        ocorrencias_retorno.insert(0, switcher.get(ocorrencia, 'Ocorrência Inválida'))
-    return ', '.join(ocorrencias_retorno)
+        ocorrencias_retorno.insert(0, switcher.get(ocorrencia, "Ocorrência Inválida"))
+    return ", ".join(ocorrencias_retorno)
 
 
 def retorna_status_guia_remessa(status):
@@ -480,7 +480,7 @@ def retorna_status_guia_remessa(status):
         cancelada: nomes_status[cancelada],
     }
 
-    state = switcher.get(status, 'Status Inválido')
+    state = switcher.get(status, "Status Inválido")
     if isinstance(state, str):
         return state
     else:
@@ -509,7 +509,7 @@ def retorna_motivo_insucesso(motivo):
         outros: nomes_motivos[outros],
     }
 
-    return switcher.get(motivo, 'Motivo Inválido')
+    return switcher.get(motivo, "Motivo Inválido")
 
 
 def registra_conferencias_individuais(
@@ -519,12 +519,12 @@ def registra_conferencias_individuais(
     status_dos_alimentos = []
     ocorrencias_dos_alimentos = []
     for alimento in conferencia_dos_alimentos:
-        alimento['conferencia'] = conferencia
-        if alimento['ocorrencia']:
-            alimento['tem_ocorrencia'] = True
-        status_dos_alimentos.append(alimento['status_alimento'])
+        alimento["conferencia"] = conferencia
+        if alimento["ocorrencia"]:
+            alimento["tem_ocorrencia"] = True
+        status_dos_alimentos.append(alimento["status_alimento"])
         ocorrencias_dos_alimentos = ocorrencias_dos_alimentos + list(
-            alimento['ocorrencia']
+            alimento["ocorrencia"]
         )
         conferencia_individual = ConferenciaIndividualPorAlimento.objects.create(
             **alimento

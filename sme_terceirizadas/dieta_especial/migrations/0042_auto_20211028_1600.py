@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0041_solicitacaodietaespecial_eh_importado'),
+        ("dieta_especial", "0041_solicitacaodietaespecial_eh_importado"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='arquivocargadietaespecial',
-            name='conteudo',
-            field=models.FileField(blank=True, default='', upload_to=''),
+            model_name="arquivocargadietaespecial",
+            name="conteudo",
+            field=models.FileField(blank=True, default="", upload_to=""),
         ),
         migrations.AlterField(
-            model_name='arquivocargadietaespecial',
-            name='log',
-            field=models.TextField(blank=True, default=''),
+            model_name="arquivocargadietaespecial",
+            name="log",
+            field=models.TextField(blank=True, default=""),
         ),
     ]

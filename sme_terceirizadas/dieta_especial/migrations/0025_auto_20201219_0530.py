@@ -4,14 +4,16 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0024_merge_20201215_1755'),
+        ("dieta_especial", "0024_merge_20201215_1755"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='alimentoproprio',
-            options={'verbose_name': 'alimento próprio CODAE', 'verbose_name_plural': 'alimentos próprios CODAE'},
+            name="alimentoproprio",
+            options={
+                "verbose_name": "alimento próprio CODAE",
+                "verbose_name_plural": "alimentos próprios CODAE",
+            },
         ),
     ]

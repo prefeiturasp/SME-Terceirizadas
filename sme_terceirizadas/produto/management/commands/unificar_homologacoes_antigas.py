@@ -5,39 +5,39 @@ from sme_terceirizadas.produto.models import HomologacaoProduto, Produto
 
 
 class Command(BaseCommand):
-    help = 'Unificar todas homologacoes em uma unica instancia do modelo HomologacaoProduto.'
+    help = "Unificar todas homologacoes em uma unica instancia do modelo HomologacaoProduto."
 
     def handle(self, *args, **options):
         self.stdout.write(
-            self.style.SUCCESS('*** Iniciando processo de migracao de dados ***')
+            self.style.SUCCESS("*** Iniciando processo de migracao de dados ***")
         )
         queryset = Produto.objects.exclude(homologacoes=None)
         for produto in queryset:
             self.stdout.write(
                 self.style.SUCCESS(
-                    '****************************************************************'
+                    "****************************************************************"
                 )
             )
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'*** Unificando homologacoes do produto: {produto.uuid} ***'
+                    f"*** Unificando homologacoes do produto: {produto.uuid} ***"
                 )
             )
-            self.stdout.write(self.style.SUCCESS(f'*** Nome: {produto.nome} ***'))
+            self.stdout.write(self.style.SUCCESS(f"*** Nome: {produto.nome} ***"))
             self.stdout.write(
-                self.style.SUCCESS(f'*** Marca: {produto.marca.nome} ***')
+                self.style.SUCCESS(f"*** Marca: {produto.marca.nome} ***")
             )
             self.stdout.write(
-                self.style.SUCCESS(f'*** Fabricante: {produto.fabricante.nome} ***')
+                self.style.SUCCESS(f"*** Fabricante: {produto.fabricante.nome} ***")
             )
             self.stdout.write(
                 self.style.SUCCESS(
-                    '****************************************************************'
+                    "****************************************************************"
                 )
             )
             self.create_homologacao_produto(produto)
         self.stdout.write(
-            self.style.SUCCESS('*** Finalizando processo de migracao de dados ***')
+            self.style.SUCCESS("*** Finalizando processo de migracao de dados ***")
         )
 
     def get_pdf_gerado(self, homologacoes):
@@ -50,7 +50,7 @@ class Command(BaseCommand):
         if homologacoes_com_protocolo.count() > 0:
             return homologacoes_com_protocolo.last().protocolo_analise_sensorial
         else:
-            return ''
+            return ""
 
     def get_necessita_analise_sensorial(self, status):
         if status == HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL:
@@ -82,12 +82,12 @@ class Command(BaseCommand):
             )
 
     def create_homologacao_produto(self, produto):
-        homologacoes = produto.homologacoes.order_by('criado_em')
+        homologacoes = produto.homologacoes.order_by("criado_em")
         primeira_homologacao = homologacoes.first()
         ultima_homologacao = homologacoes.last()
 
         homologacoes_com_protocolo = homologacoes.exclude(
-            protocolo_analise_sensorial=''
+            protocolo_analise_sensorial=""
         )
 
         pdf_gerado = self.get_pdf_gerado(homologacoes)

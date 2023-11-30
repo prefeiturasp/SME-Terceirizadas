@@ -4,14 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('medicao_inicial', '0005_auto_20220928_1333'),
+        ("medicao_inicial", "0005_auto_20220928_1333"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='solicitacaomedicaoinicial',
-            options={'ordering': ('-ano', '-mes'), 'verbose_name': 'Solicitação de medição inicial', 'verbose_name_plural': 'Solicitações de medição inicial'},
+            name="solicitacaomedicaoinicial",
+            options={
+                "ordering": ("-ano", "-mes"),
+                "verbose_name": "Solicitação de medição inicial",
+                "verbose_name_plural": "Solicitações de medição inicial",
+            },
         ),
     ]

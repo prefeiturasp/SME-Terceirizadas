@@ -16,22 +16,22 @@ from ...medicao_inicial.models import SolicitacaoMedicaoInicial
 from ...perfil.models import Vinculo
 from .. import models
 
-fake = Faker('pt_BR')
+fake = Faker("pt_BR")
 Faker.seed(420)
 
 
 @pytest.fixture
 def tipo_unidade_escolar():
-    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
-    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    cardapio1 = mommy.make("cardapio.Cardapio", data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make("cardapio.Cardapio", data=datetime.date(2019, 10, 15))
     return mommy.make(
-        models.TipoUnidadeEscolar, iniciais='EMEF', cardapios=[cardapio1, cardapio2]
+        models.TipoUnidadeEscolar, iniciais="EMEF", cardapios=[cardapio1, cardapio2]
     )
 
 
 @pytest.fixture
 def tipo_gestao():
-    return mommy.make(models.TipoGestao, nome='TERC TOTAL')
+    return mommy.make(models.TipoGestao, nome="TERC TOTAL")
 
 
 @pytest.fixture
@@ -39,12 +39,12 @@ def diretoria_regional(tipo_gestao):
     dre = mommy.make(
         models.DiretoriaRegional,
         nome=fake.name(),
-        uuid='d305add2-f070-4ad3-8c17-ba9664a7c655',
+        uuid="d305add2-f070-4ad3-8c17-ba9664a7c655",
         make_m2m=True,
     )
-    mommy.make('Escola', diretoria_regional=dre, tipo_gestao=tipo_gestao)
-    mommy.make('Escola', diretoria_regional=dre, tipo_gestao=tipo_gestao)
-    mommy.make('Escola', diretoria_regional=dre, tipo_gestao=tipo_gestao)
+    mommy.make("Escola", diretoria_regional=dre, tipo_gestao=tipo_gestao)
+    mommy.make("Escola", diretoria_regional=dre, tipo_gestao=tipo_gestao)
+    mommy.make("Escola", diretoria_regional=dre, tipo_gestao=tipo_gestao)
     return dre
 
 
@@ -52,9 +52,9 @@ def diretoria_regional(tipo_gestao):
 def lote():
     return mommy.make(
         models.Lote,
-        nome='lote',
-        iniciais='lt',
-        uuid='49696643-7a47-4324-989b-9380177fef2d',
+        nome="lote",
+        iniciais="lt",
+        uuid="49696643-7a47-4324-989b-9380177fef2d",
     )
 
 
@@ -72,16 +72,16 @@ def escola(lote, tipo_gestao, diretoria_regional):
 
 @pytest.fixture
 def escola_cei():
-    terceirizada = mommy.make('Terceirizada')
-    lote = mommy.make('Lote', terceirizada=terceirizada)
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make("Lote", terceirizada=terceirizada)
     diretoria_regional = mommy.make(
-        'DiretoriaRegional', nome='DIRETORIA REGIONAL TESTE'
+        "DiretoriaRegional", nome="DIRETORIA REGIONAL TESTE"
     )
-    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
-    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='CEI DIRET')
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEI DIRET")
     return mommy.make(
-        'Escola',
-        nome='CEI DIRET TESTE',
+        "Escola",
+        nome="CEI DIRET TESTE",
         lote=lote,
         diretoria_regional=diretoria_regional,
         tipo_gestao=tipo_gestao,
@@ -91,50 +91,50 @@ def escola_cei():
 
 @pytest.fixture
 def escola_cemei(periodo_escolar):
-    terceirizada = mommy.make('Terceirizada')
-    lote = mommy.make('Lote', terceirizada=terceirizada)
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make("Lote", terceirizada=terceirizada)
     diretoria_regional = mommy.make(
-        'DiretoriaRegional', nome='DIRETORIA REGIONAL TESTE'
+        "DiretoriaRegional", nome="DIRETORIA REGIONAL TESTE"
     )
-    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
-    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='CEMEI')
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEMEI")
     escola = mommy.make(
-        'Escola',
-        nome='CEMEI TESTE',
+        "Escola",
+        nome="CEMEI TESTE",
         lote=lote,
         diretoria_regional=diretoria_regional,
         tipo_gestao=tipo_gestao,
         tipo_unidade=tipo_unidade_escolar,
     )
-    mommy.make('Aluno', serie='1', escola=escola, periodo_escolar=periodo_escolar)
-    mommy.make('Aluno', serie='5', escola=escola, periodo_escolar=periodo_escolar)
+    mommy.make("Aluno", serie="1", escola=escola, periodo_escolar=periodo_escolar)
+    mommy.make("Aluno", serie="5", escola=escola, periodo_escolar=periodo_escolar)
     return escola
 
 
 @pytest.fixture
 def escola_emebs(periodo_escolar):
-    terceirizada = mommy.make('Terceirizada')
-    lote = mommy.make('Lote', terceirizada=terceirizada)
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make("Lote", terceirizada=terceirizada)
     diretoria_regional = mommy.make(
-        'DiretoriaRegional', nome='DIRETORIA REGIONAL TESTE'
+        "DiretoriaRegional", nome="DIRETORIA REGIONAL TESTE"
     )
-    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
-    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='EMEBS')
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="EMEBS")
     escola = mommy.make(
-        'Escola',
-        nome='EMEBS TESTE',
+        "Escola",
+        nome="EMEBS TESTE",
         lote=lote,
         diretoria_regional=diretoria_regional,
         tipo_gestao=tipo_gestao,
         tipo_unidade=tipo_unidade_escolar,
     )
     mommy.make(
-        'Aluno',
+        "Aluno",
         etapa=Aluno.ETAPA_INFANTIL,
         escola=escola,
         periodo_escolar=periodo_escolar,
     )
-    mommy.make('Aluno', serie=14, escola=escola, periodo_escolar=periodo_escolar)
+    mommy.make("Aluno", serie=14, escola=escola, periodo_escolar=periodo_escolar)
     return escola
 
 
@@ -155,7 +155,7 @@ def codae(escola):
 
 @pytest.fixture
 def periodo_escolar():
-    return mommy.make(models.PeriodoEscolar, nome='INTEGRAL')
+    return mommy.make(models.PeriodoEscolar, nome="INTEGRAL")
 
 
 @pytest.fixture
@@ -171,7 +171,7 @@ def sub_prefeitura():
 @pytest.fixture
 def vinculo(escola):
     return mommy.make(
-        Vinculo, uuid='a19baa09-f8cc-49a7-a38d-2a38270ddf45', instituicao=escola
+        Vinculo, uuid="a19baa09-f8cc-49a7-a38d-2a38270ddf45", instituicao=escola
     )
 
 
@@ -184,8 +184,8 @@ def vinculo_instituto_serializer(vinculo):
 def aluno(escola):
     return mommy.make(
         models.Aluno,
-        nome='Fulano da Silva',
-        codigo_eol='000001',
+        nome="Fulano da Silva",
+        codigo_eol="000001",
         data_nascimento=datetime.date(2000, 1, 1),
         escola=escola,
     )
@@ -194,10 +194,10 @@ def aluno(escola):
 @pytest.fixture
 def client_autenticado_coordenador_codae(client, django_user_model):
     email, password, rf, cpf = (
-        'cogestor_1@sme.prefeitura.sp.gov.br',
-        'adminadmin',
-        '0000001',
-        '44426575052',
+        "cogestor_1@sme.prefeitura.sp.gov.br",
+        "adminadmin",
+        "0000001",
+        "44426575052",
     )
     user = django_user_model.objects.create_user(
         username=email, password=password, email=email, registro_funcional=rf, cpf=cpf
@@ -205,19 +205,19 @@ def client_autenticado_coordenador_codae(client, django_user_model):
     client.login(username=email, password=password)
 
     codae = mommy.make(
-        'Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
+        "Codae", nome="CODAE", uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd"
     )
 
     perfil_coordenador = mommy.make(
-        'Perfil',
-        nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
+        "Perfil",
+        nome="COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA",
         ativo=True,
-        uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+        uuid="41c20c8b-7e57-41ed-9433-ccb92e8afaf1",
     )
-    mommy.make('Lote', uuid='143c2550-8bf0-46b4-b001-27965cfcd107')
+    mommy.make("Lote", uuid="143c2550-8bf0-46b4-b001-27965cfcd107")
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=codae,
         perfil=perfil_coordenador,
@@ -225,37 +225,37 @@ def client_autenticado_coordenador_codae(client, django_user_model):
         ativo=True,
     )
     mommy.make(
-        'TipoUnidadeEscolar',
-        iniciais='EMEF',
-        uuid='1cc3253b-e297-42b3-8e57-ebfd115a1aba',
+        "TipoUnidadeEscolar",
+        iniciais="EMEF",
+        uuid="1cc3253b-e297-42b3-8e57-ebfd115a1aba",
     )
     mommy.make(
-        'TipoUnidadeEscolar',
-        iniciais='CEU GESTAO',
-        uuid='40ee89a7-dc70-4abb-ae21-369c67f2b9e3',
+        "TipoUnidadeEscolar",
+        iniciais="CEU GESTAO",
+        uuid="40ee89a7-dc70-4abb-ae21-369c67f2b9e3",
     )
     mommy.make(
-        'TipoUnidadeEscolar',
-        iniciais='CIEJA',
-        uuid='ac4858ff-1c11-41f3-b539-7a02696d6d1b',
+        "TipoUnidadeEscolar",
+        iniciais="CIEJA",
+        uuid="ac4858ff-1c11-41f3-b539-7a02696d6d1b",
     )
     return client
 
 
 @pytest.fixture
 def client_autenticado_da_escola(client, django_user_model, escola):
-    email = 'user@escola.com'
-    password = 'admin@123'
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    email = "user@escola.com"
+    password = "admin@123"
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
     usuario = django_user_model.objects.create_user(
         username=email,
         password=password,
         email=email,
-        registro_funcional='123456',
+        registro_funcional="123456",
     )
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario,
         instituicao=escola,
         perfil=perfil_diretor,
@@ -268,15 +268,15 @@ def client_autenticado_da_escola(client, django_user_model, escola):
 
 @pytest.fixture
 def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
-    email = 'user@dre.com'
-    password = 'admin@123'
-    perfil_adm_dre = mommy.make('Perfil', nome='ADM_DRE', ativo=True)
+    email = "user@dre.com"
+    password = "admin@123"
+    perfil_adm_dre = mommy.make("Perfil", nome="ADM_DRE", ativo=True)
     usuario = django_user_model.objects.create_user(
-        password=password, username=email, email=email, registro_funcional='123456'
+        password=password, username=email, email=email, registro_funcional="123456"
     )
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario,
         instituicao=diretoria_regional,
         perfil=perfil_adm_dre,
@@ -300,14 +300,14 @@ def faixas_etarias_ativas():
         (48, 72),
     ]
     return [
-        mommy.make('FaixaEtaria', inicio=inicio, fim=fim, ativo=True)
+        mommy.make("FaixaEtaria", inicio=inicio, fim=fim, ativo=True)
         for (inicio, fim) in faixas
     ]
 
 
 @pytest.fixture
 def faixas_etarias(faixas_etarias_ativas):
-    return faixas_etarias_ativas + mommy.make('FaixaEtaria', ativo=False, _quantity=8)
+    return faixas_etarias_ativas + mommy.make("FaixaEtaria", ativo=False, _quantity=8)
 
 
 # Data referencia = 2019-06-20
@@ -327,7 +327,7 @@ def datas_e_faixas(request):
     (data, inicio_faixa, fim_faixa, eh_pertencente) = request.param
     return (
         data,
-        mommy.make('FaixaEtaria', inicio=inicio_faixa, fim=fim_faixa, ativo=True),
+        mommy.make("FaixaEtaria", inicio=inicio_faixa, fim=fim_faixa, ativo=True),
         eh_pertencente,
     )
 
@@ -335,25 +335,25 @@ def datas_e_faixas(request):
 @pytest.fixture
 def eolservice_get_informacoes_escola_turma_aluno(monkeypatch):
     with open(
-        'sme_terceirizadas/escola/__tests__/massa_eolservice_get_informacoes_escola_turma_aluno.json'
+        "sme_terceirizadas/escola/__tests__/massa_eolservice_get_informacoes_escola_turma_aluno.json"
     ) as jsfile:
         js = json.load(jsfile)
     return monkeypatch.setattr(
-        EOLService, 'get_informacoes_escola_turma_aluno', lambda x: js['results']
+        EOLService, "get_informacoes_escola_turma_aluno", lambda x: js["results"]
     )
 
 
 @pytest.fixture
 def arquivo():
     return SimpleUploadedFile(
-        'planilha-teste.pdf', bytes('CONTEUDO TESTE TESTE TESTE', encoding='utf-8')
+        "planilha-teste.pdf", bytes("CONTEUDO TESTE TESTE TESTE", encoding="utf-8")
     )
 
 
 @pytest.fixture
 def planilha_de_para_eol_codae(arquivo):
     return mommy.make(
-        'PlanilhaEscolaDeParaCodigoEolCodigoCoade',
+        "PlanilhaEscolaDeParaCodigoEolCodigoCoade",
         planilha=arquivo,
         criado_em=datetime.date.today(),
         codigos_codae_vinculados=False,
@@ -363,10 +363,10 @@ def planilha_de_para_eol_codae(arquivo):
 @pytest.fixture
 def planilha_atualizacao_tipo_gestao(arquivo):
     return mommy.make(
-        'PlanilhaAtualizacaoTipoGestaoEscola',
+        "PlanilhaAtualizacaoTipoGestaoEscola",
         conteudo=arquivo,
         criado_em=datetime.date.today(),
-        status='SUCESSO',
+        status="SUCESSO",
     )
 
 
@@ -439,7 +439,7 @@ def mocked_response(*args, **kwargs):
         def __init__(self, json_data, status_code):
             self.json_data = json_data
             self.status_code = status_code
-            self.content = b'erro'
+            self.content = b"erro"
 
         def json(self):
             return self.json_data
@@ -448,17 +448,17 @@ def mocked_response(*args, **kwargs):
 
 
 def mocked_token_novosgp():
-    return {'token': 'abc123'}
+    return {"token": "abc123"}
 
 
 def mocked_foto_aluno_novosgp():
     return {
-        'codigo': 'a28395ef-74db-48c0-923a-0e86509f9d59',
-        'nome': 'IMG_0106.jpg',
-        'download': {
-            'item1': '/9j/4AAQSkZJRgABAQAAAQABAA==',
-            'item2': 'image/jpeg',
-            'item3': 'IMG_0106.jpg',
+        "codigo": "a28395ef-74db-48c0-923a-0e86509f9d59",
+        "nome": "IMG_0106.jpg",
+        "download": {
+            "item1": "/9j/4AAQSkZJRgABAQAAAQABAA==",
+            "item2": "image/jpeg",
+            "item3": "IMG_0106.jpg",
         },
     }
 
@@ -507,100 +507,100 @@ def log_rotina_diaria_alunos():
 def mocked_informacoes_escola_turma_aluno():
     informacoes = [
         {
-            'cod_dre': '108600',
-            'sg_dre': 'DRE - IP',
-            'dre': 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
-            'cd_turma_escola': 2531083,
-            'dc_turma_escola': '1B',
-            'dc_serie_ensino': 'Bercario I',
-            'dc_tipo_turno': 'Integral            ',
-            'cd_aluno': 8069951,
-            'nm_aluno': 'HEITOR ALVES CAMPELO',
-            'dt_nascimento_aluno': '2022-08-06T00:00:00',
+            "cod_dre": "108600",
+            "sg_dre": "DRE - IP",
+            "dre": "DIRETORIA REGIONAL DE EDUCACAO IPIRANGA",
+            "cd_turma_escola": 2531083,
+            "dc_turma_escola": "1B",
+            "dc_serie_ensino": "Bercario I",
+            "dc_tipo_turno": "Integral            ",
+            "cd_aluno": 8069951,
+            "nm_aluno": "HEITOR ALVES CAMPELO",
+            "dt_nascimento_aluno": "2022-08-06T00:00:00",
         },
         {
-            'cod_dre': '108600',
-            'sg_dre': 'DRE - IP',
-            'dre': 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
-            'cd_turma_escola': 2531083,
-            'dc_turma_escola': '1B',
-            'dc_serie_ensino': 'Bercario I',
-            'dc_tipo_turno': 'Integral            ',
-            'cd_aluno': 8120853,
-            'nm_aluno': 'BENICIO NEVES GUIMARAES',
-            'dt_nascimento_aluno': '2022-06-25T00:00:00',
+            "cod_dre": "108600",
+            "sg_dre": "DRE - IP",
+            "dre": "DIRETORIA REGIONAL DE EDUCACAO IPIRANGA",
+            "cd_turma_escola": 2531083,
+            "dc_turma_escola": "1B",
+            "dc_serie_ensino": "Bercario I",
+            "dc_tipo_turno": "Integral            ",
+            "cd_aluno": 8120853,
+            "nm_aluno": "BENICIO NEVES GUIMARAES",
+            "dt_nascimento_aluno": "2022-06-25T00:00:00",
         },
         {
-            'cod_dre': '108600',
-            'sg_dre': 'DRE - IP',
-            'dre': 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
-            'cd_turma_escola': 2531164,
-            'dc_turma_escola': '2D',
-            'dc_serie_ensino': 'Bercario II',
-            'dc_tipo_turno': 'Manhã            ',
-            'cd_aluno': 8050067,
-            'nm_aluno': 'DANIEL ALEXANDRE SANCHES CAMARGO',
-            'dt_nascimento_aluno': '2021-08-28T00:00:00',
+            "cod_dre": "108600",
+            "sg_dre": "DRE - IP",
+            "dre": "DIRETORIA REGIONAL DE EDUCACAO IPIRANGA",
+            "cd_turma_escola": 2531164,
+            "dc_turma_escola": "2D",
+            "dc_serie_ensino": "Bercario II",
+            "dc_tipo_turno": "Manhã            ",
+            "cd_aluno": 8050067,
+            "nm_aluno": "DANIEL ALEXANDRE SANCHES CAMARGO",
+            "dt_nascimento_aluno": "2021-08-28T00:00:00",
         },
         {
-            'cod_dre': '108600',
-            'sg_dre': 'DRE - IP',
-            'dre': 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
-            'cd_turma_escola': 2531164,
-            'dc_turma_escola': '2D',
-            'dc_serie_ensino': 'Bercario II',
-            'dc_tipo_turno': 'Integral            ',
-            'cd_aluno': 7895682,
-            'nm_aluno': 'ENRICO LIRA FERREIRA',
-            'dt_nascimento_aluno': '2021-11-29T00:00:00',
+            "cod_dre": "108600",
+            "sg_dre": "DRE - IP",
+            "dre": "DIRETORIA REGIONAL DE EDUCACAO IPIRANGA",
+            "cd_turma_escola": 2531164,
+            "dc_turma_escola": "2D",
+            "dc_serie_ensino": "Bercario II",
+            "dc_tipo_turno": "Integral            ",
+            "cd_aluno": 7895682,
+            "nm_aluno": "ENRICO LIRA FERREIRA",
+            "dt_nascimento_aluno": "2021-11-29T00:00:00",
         },
         {
-            'cod_dre': '108600',
-            'sg_dre': 'DRE - IP',
-            'dre': 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
-            'cd_turma_escola': 2531192,
-            'dc_turma_escola': '3C',
-            'dc_serie_ensino': 'MINI GRUPO I',
-            'dc_tipo_turno': 'Integral            ',
-            'cd_aluno': 8113297,
-            'nm_aluno': 'LEONARDO NOSSE SANCHES',
-            'dt_nascimento_aluno': '2021-02-14T00:00:00',
+            "cod_dre": "108600",
+            "sg_dre": "DRE - IP",
+            "dre": "DIRETORIA REGIONAL DE EDUCACAO IPIRANGA",
+            "cd_turma_escola": 2531192,
+            "dc_turma_escola": "3C",
+            "dc_serie_ensino": "MINI GRUPO I",
+            "dc_tipo_turno": "Integral            ",
+            "cd_aluno": 8113297,
+            "nm_aluno": "LEONARDO NOSSE SANCHES",
+            "dt_nascimento_aluno": "2021-02-14T00:00:00",
         },
         {
-            'cod_dre': '108600',
-            'sg_dre': 'DRE - IP',
-            'dre': 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
-            'cd_turma_escola': 2531192,
-            'dc_turma_escola': '3C',
-            'dc_serie_ensino': 'MINI GRUPO I',
-            'dc_tipo_turno': 'Integral            ',
-            'cd_aluno': 7852833,
-            'nm_aluno': 'CAETANO MALTA MORI',
-            'dt_nascimento_aluno': '2020-07-07T00:00:00',
+            "cod_dre": "108600",
+            "sg_dre": "DRE - IP",
+            "dre": "DIRETORIA REGIONAL DE EDUCACAO IPIRANGA",
+            "cd_turma_escola": 2531192,
+            "dc_turma_escola": "3C",
+            "dc_serie_ensino": "MINI GRUPO I",
+            "dc_tipo_turno": "Integral            ",
+            "cd_aluno": 7852833,
+            "nm_aluno": "CAETANO MALTA MORI",
+            "dt_nascimento_aluno": "2020-07-07T00:00:00",
         },
         {
-            'cod_dre': '108600',
-            'sg_dre': 'DRE - IP',
-            'dre': 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
-            'cd_turma_escola': 2531209,
-            'dc_turma_escola': '4B',
-            'dc_serie_ensino': 'MINI GRUPO II',
-            'dc_tipo_turno': 'Manhã            ',
-            'cd_aluno': 7591345,
-            'nm_aluno': 'ISAAC LOPES DE SOUZA',
-            'dt_nascimento_aluno': '2019-08-03T00:00:00',
+            "cod_dre": "108600",
+            "sg_dre": "DRE - IP",
+            "dre": "DIRETORIA REGIONAL DE EDUCACAO IPIRANGA",
+            "cd_turma_escola": 2531209,
+            "dc_turma_escola": "4B",
+            "dc_serie_ensino": "MINI GRUPO II",
+            "dc_tipo_turno": "Manhã            ",
+            "cd_aluno": 7591345,
+            "nm_aluno": "ISAAC LOPES DE SOUZA",
+            "dt_nascimento_aluno": "2019-08-03T00:00:00",
         },
         {
-            'cod_dre': '108600',
-            'sg_dre': 'DRE - IP',
-            'dre': 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
-            'cd_turma_escola': 2531209,
-            'dc_turma_escola': '4B',
-            'dc_serie_ensino': 'MINI GRUPO II',
-            'dc_tipo_turno': 'Integral            ',
-            'cd_aluno': 8247330,
-            'nm_aluno': 'ALYSSE EMANUELLY DE OLIVEIRA MACIEL',
-            'dt_nascimento_aluno': '2019-08-23T00:00:00',
+            "cod_dre": "108600",
+            "sg_dre": "DRE - IP",
+            "dre": "DIRETORIA REGIONAL DE EDUCACAO IPIRANGA",
+            "cd_turma_escola": 2531209,
+            "dc_turma_escola": "4B",
+            "dc_serie_ensino": "MINI GRUPO II",
+            "dc_tipo_turno": "Integral            ",
+            "cd_aluno": 8247330,
+            "nm_aluno": "ALYSSE EMANUELLY DE OLIVEIRA MACIEL",
+            "dt_nascimento_aluno": "2019-08-23T00:00:00",
         },
     ]
     return informacoes
@@ -610,16 +610,16 @@ def mocked_informacoes_escola_turma_aluno():
 def alunos_periodo_parcial(escola_cei, periodo_escolar):
     data = datetime.date(2023, 8, 28)
     solicitacao_medicao = SolicitacaoMedicaoInicial.objects.create(
-        escola=escola_cei, ano=data.year, mes=f'{data.month:02d}'
+        escola=escola_cei, ano=data.year, mes=f"{data.month:02d}"
     )
     for i in range(0, len(mocked_informacoes_escola_turma_aluno()), 2):
         informacao_aluno = mocked_informacoes_escola_turma_aluno()[i]
         aluno = mommy.make(
-            'Aluno',
-            nome=informacao_aluno['nm_aluno'],
-            codigo_eol=informacao_aluno['cd_aluno'],
+            "Aluno",
+            nome=informacao_aluno["nm_aluno"],
+            codigo_eol=informacao_aluno["cd_aluno"],
             data_nascimento=dt_nascimento_from_api(
-                informacao_aluno['dt_nascimento_aluno']
+                informacao_aluno["dt_nascimento_aluno"]
             ),
             escola=escola_cei,
             periodo_escolar=periodo_escolar,
@@ -638,15 +638,15 @@ def alunos(escola_cei, periodo_escolar):
     for i in range(0, len(mocked_informacoes_escola_turma_aluno())):
         informacao_aluno = mocked_informacoes_escola_turma_aluno()[i]
         mommy.make(
-            'Aluno',
-            nome=informacao_aluno['nm_aluno'],
-            codigo_eol=informacao_aluno['cd_aluno'],
+            "Aluno",
+            nome=informacao_aluno["nm_aluno"],
+            codigo_eol=informacao_aluno["cd_aluno"],
             data_nascimento=dt_nascimento_from_api(
-                informacao_aluno['dt_nascimento_aluno']
+                informacao_aluno["dt_nascimento_aluno"]
             ),
             escola=escola_cei,
             periodo_escolar=periodo_escolar,
-            serie=f'{i}A',
+            serie=f"{i}A",
         )
     return models.Aluno.objects.all()
 
@@ -654,7 +654,7 @@ def alunos(escola_cei, periodo_escolar):
 @pytest.fixture
 def dia_suspensao_atividades(tipo_unidade_escolar):
     return mommy.make(
-        'DiaSuspensaoAtividades',
+        "DiaSuspensaoAtividades",
         data=datetime.date(2022, 8, 8),
         tipo_unidade=tipo_unidade_escolar,
     )

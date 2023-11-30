@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('pre_recebimento', '0022_alter_layoutdeembalagem_status'),
+        ("pre_recebimento", "0022_alter_layoutdeembalagem_status"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='tipodeembalagemdelayout',
-            unique_together={('layout_de_embalagem', 'tipo_embalagem')},
+            name="tipodeembalagemdelayout",
+            unique_together={("layout_de_embalagem", "tipo_embalagem")},
         ),
     ]

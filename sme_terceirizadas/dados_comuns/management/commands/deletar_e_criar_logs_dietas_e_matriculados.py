@@ -11,47 +11,47 @@ from sme_terceirizadas.escola.models import Escola, LogAlunosMatriculadosPeriodo
 
 
 class Command(BaseCommand):
-    help = 'Deleta logs duplicados e cria logs, caso não existam, dos modelos de '
-    help += 'LogQuantidadeDietasAutorizadas, LogQuantidadeDietasAutorizadasCEI e LogAlunosMatriculadosPeriodoEscola'
-    help += ' do mês de Agosto de 2023'
+    help = "Deleta logs duplicados e cria logs, caso não existam, dos modelos de "
+    help += "LogQuantidadeDietasAutorizadas, LogQuantidadeDietasAutorizadasCEI e LogAlunosMatriculadosPeriodoEscola"
+    help += " do mês de Agosto de 2023"
 
     def handle(self, *args, **options):
         self.stdout.write(
             self.style.SUCCESS(
-                'Iniciando análise de LogAlunosMatriculadosPeriodoEscola'
+                "Iniciando análise de LogAlunosMatriculadosPeriodoEscola"
             )
         )
         self.analisa_logs_alunos_matriculados_mes()
         self.stdout.write(
-            self.style.SUCCESS('Finaliza análise de LogAlunosMatriculadosPeriodoEscola')
+            self.style.SUCCESS("Finaliza análise de LogAlunosMatriculadosPeriodoEscola")
         )
         self.stdout.write(
             self.style.SUCCESS(
-                'Iniciando análise de LogQuantidadeDietasAutorizadas / LogQuantidadeDietasAutorizadasCEI'
+                "Iniciando análise de LogQuantidadeDietasAutorizadas / LogQuantidadeDietasAutorizadasCEI"
             )
         )
         self.analisa_logs_quantidade_dietas_autorizadas_mes()
         self.stdout.write(
             self.style.SUCCESS(
-                'Finaliza análise de LogQuantidadeDietasAutorizadas / LogQuantidadeDietasAutorizadasCEI'
+                "Finaliza análise de LogQuantidadeDietasAutorizadas / LogQuantidadeDietasAutorizadasCEI"
             )
         )
 
     def analisa_logs_alunos_matriculados_mes(self, mes=8, ano=2023):
         escolas = Escola.objects.all()
         for index, escola in enumerate(escolas):
-            msg = f'análise de LogAlunosMatriculadosPeriodoEscola para escola {escola.nome}'
-            msg += f' ({index + 1}/{(escolas).count()})'
+            msg = f"análise de LogAlunosMatriculadosPeriodoEscola para escola {escola.nome}"
+            msg += f" ({index + 1}/{(escolas).count()})"
             try:
                 self.stdout.write(
-                    self.style.WARNING(f'x-x-x-x Iniciando {msg} x-x-x-x')
+                    self.style.WARNING(f"x-x-x-x Iniciando {msg} x-x-x-x")
                 )
                 self.deletar_logs_alunos_matriculados_duplicados_mes(escola, mes, ano)
                 self.criar_logs_alunos_matriculados_inexistentes_mes(escola, mes, ano)
-                self.stdout.write(self.style.WARNING(f'x-x-x-x Finaliza {msg} x-x-x-x'))
+                self.stdout.write(self.style.WARNING(f"x-x-x-x Finaliza {msg} x-x-x-x"))
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'x-x-x-x Erro na {msg} x-x-x-x'))
-                self.stdout.write(self.style.ERROR(f'`--> {e}'))
+                self.stdout.write(self.style.ERROR(f"x-x-x-x Erro na {msg} x-x-x-x"))
+                self.stdout.write(self.style.ERROR(f"`--> {e}"))
 
     def deletar_logs_alunos_matriculados_duplicados_mes(self, escola, mes, ano):
         for dia in range(calendar._monthlen(ano, mes), 0, -1):
@@ -65,7 +65,7 @@ class Command(BaseCommand):
             for log in logs:
                 logs_filtrados = logs.filter(
                     periodo_escolar=log.periodo_escolar, tipo_turma=log.tipo_turma
-                ).order_by('-criado_em')
+                ).order_by("-criado_em")
                 for log_filtrado in logs_filtrados[1 : logs_filtrados.count()]:
                     if log_filtrado.uuid not in logs_para_deletar:
                         logs_para_deletar.append(log_filtrado.uuid)
@@ -106,22 +106,22 @@ class Command(BaseCommand):
                         break
 
     def analisa_logs_quantidade_dietas_autorizadas_mes(self, mes=8, ano=2023):
-        escolas = Escola.objects.filter(tipo_gestao__nome='TERC TOTAL')
+        escolas = Escola.objects.filter(tipo_gestao__nome="TERC TOTAL")
         for index, escola in enumerate(escolas):
-            msg = 'análise de LogQuantidadeDietasAutorizadas / LogQuantidadeDietasAutorizadasCEI'
-            msg += f' para escola {escola.nome} ({index + 1}/{(escolas).count()})'
+            msg = "análise de LogQuantidadeDietasAutorizadas / LogQuantidadeDietasAutorizadasCEI"
+            msg += f" para escola {escola.nome} ({index + 1}/{(escolas).count()})"
             try:
                 self.stdout.write(
-                    self.style.WARNING(f'x-x-x-x Iniciando {msg} x-x-x-x')
+                    self.style.WARNING(f"x-x-x-x Iniciando {msg} x-x-x-x")
                 )
                 self.deletar_logs_quantidade_dietas_autorizadas_mes(escola, mes, ano)
                 self.criar_logs_quantidade_dietas_autorizadas_inexistentes_mes(
                     escola, mes, ano
                 )
-                self.stdout.write(self.style.WARNING(f'x-x-x-x Finaliza {msg} x-x-x-x'))
+                self.stdout.write(self.style.WARNING(f"x-x-x-x Finaliza {msg} x-x-x-x"))
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'x-x-x-x Erro na {msg} x-x-x-x'))
-                self.stdout.write(self.style.ERROR(f'`--> {e}'))
+                self.stdout.write(self.style.ERROR(f"x-x-x-x Erro na {msg} x-x-x-x"))
+                self.stdout.write(self.style.ERROR(f"`--> {e}"))
 
     def deletar_logs_quantidade_dietas_autorizadas_mes(self, escola, mes, ano):
         modelo = self.get_modelo(escola)
@@ -133,11 +133,11 @@ class Command(BaseCommand):
             for log in logs:
                 logs_filtrados = logs.filter(
                     periodo_escolar=log.periodo_escolar, classificacao=log.classificacao
-                ).order_by('-criado_em')
+                ).order_by("-criado_em")
                 if escola.eh_cei:
                     logs_filtrados = logs_filtrados.filter(
                         faixa_etaria=log.faixa_etaria
-                    ).order_by('-criado_em')
+                    ).order_by("-criado_em")
                 for log_filtrado in logs_filtrados[1 : logs_filtrados.count()]:
                     if log_filtrado.uuid not in logs_para_deletar:
                         logs_para_deletar.append(log_filtrado.uuid)

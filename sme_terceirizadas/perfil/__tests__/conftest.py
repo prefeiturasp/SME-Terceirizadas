@@ -9,15 +9,15 @@ from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from .. import models
 from ..api.serializers import UsuarioSerializer, UsuarioUpdateSerializer
 
-f = Faker(locale='pt-Br')
+f = Faker(locale="pt-Br")
 
 
 @pytest.fixture
 def perfil():
     return mommy.make(
         models.Perfil,
-        nome='título do perfil',
-        uuid='d38e10da-c5e3-4dd5-9916-010fc250595a',
+        nome="título do perfil",
+        uuid="d38e10da-c5e3-4dd5-9916-010fc250595a",
     )
 
 
@@ -25,8 +25,8 @@ def perfil():
 def perfil_distribuidor():
     return mommy.make(
         models.Perfil,
-        nome='ADMINISTRADOR_EMPRESA',
-        uuid='daf2c069-7cd9-4cd4-8fde-624c08f55ae7',
+        nome="ADMINISTRADOR_EMPRESA",
+        uuid="daf2c069-7cd9-4cd4-8fde-624c08f55ae7",
     )
 
 
@@ -34,8 +34,8 @@ def perfil_distribuidor():
 def perfil_escola():
     return mommy.make(
         models.Perfil,
-        nome='ADMINISTRADOR_UE',
-        uuid='F38e10da-c5e3-4dd5-9916-010fc250595a',
+        nome="ADMINISTRADOR_UE",
+        uuid="F38e10da-c5e3-4dd5-9916-010fc250595a",
     )
 
 
@@ -50,13 +50,13 @@ def perfis_vinculados(perfil, perfil_distribuidor, perfil_escola):
 
 @pytest.fixture
 def escola(tipo_gestao):
-    dre = mommy.make('DiretoriaRegional')
+    dre = mommy.make("DiretoriaRegional")
     return mommy.make(
-        'Escola',
+        "Escola",
         diretoria_regional=dre,
-        nome='EscolaTeste',
-        codigo_eol='400221',
-        uuid='230453bb-d6f1-4513-b638-8d6d150d1ac6',
+        nome="EscolaTeste",
+        codigo_eol="400221",
+        uuid="230453bb-d6f1-4513-b638-8d6d150d1ac6",
         tipo_gestao=tipo_gestao,
     )
 
@@ -64,36 +64,36 @@ def escola(tipo_gestao):
 @pytest.fixture
 def diretoria_regional():
     return mommy.make(
-        'DiretoriaRegional',
-        nome='DIRETORIA REGIONAL DE EDUCACAO ITAQUERA',
-        uuid='7bb20934-e740-4621-a906-bccb8ea98414',
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL DE EDUCACAO ITAQUERA",
+        uuid="7bb20934-e740-4621-a906-bccb8ea98414",
     )
 
 
 @pytest.fixture
 def terceirizada():
     return mommy.make(
-        'Terceirizada',
-        contatos=[mommy.make('dados_comuns.Contato')],
+        "Terceirizada",
+        contatos=[mommy.make("dados_comuns.Contato")],
         make_m2m=True,
-        nome_fantasia='Alimentos SA',
-        cnpj='85786774000142',
+        nome_fantasia="Alimentos SA",
+        cnpj="85786774000142",
     )
 
 
 @pytest.fixture
 def codae(escola):
-    return mommy.make('Codae', make_m2m=True)
+    return mommy.make("Codae", make_m2m=True)
 
 
 @pytest.fixture
 def usuario():
     return mommy.make(
         models.Usuario,
-        nome='Fulano da Silva',
-        email='fulano@teste.com',
-        cpf='52347255100',
-        registro_funcional='1234567',
+        nome="Fulano da Silva",
+        email="fulano@teste.com",
+        cpf="52347255100",
+        registro_funcional="1234567",
     )
 
 
@@ -101,11 +101,11 @@ def usuario():
 def usuario_2():
     return mommy.make(
         models.Usuario,
-        uuid='8344f23a-95c4-4871-8f20-3880529767c0',
-        nome='Fulano da Silva',
-        email='fulano@teste.com',
-        cpf='11111111111',
-        registro_funcional='1234567',
+        uuid="8344f23a-95c4-4871-8f20-3880529767c0",
+        nome="Fulano da Silva",
+        email="fulano@teste.com",
+        cpf="11111111111",
+        registro_funcional="1234567",
     )
 
 
@@ -113,17 +113,17 @@ def usuario_2():
 def usuario_3():
     user = mommy.make(
         models.Usuario,
-        username='7654321',
-        uuid='155743d3-b16d-4899-8224-efc694053055',
-        nome='Siclano Souza',
-        email='siclano@teste.com',
-        cpf='22222222222',
-        registro_funcional='7654321',
+        username="7654321",
+        uuid="155743d3-b16d-4899-8224-efc694053055",
+        nome="Siclano Souza",
+        email="siclano@teste.com",
+        cpf="22222222222",
+        registro_funcional="7654321",
     )
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
-        perfil=mommy.make('Perfil'),
+        perfil=mommy.make("Perfil"),
         ativo=True,
         data_inicial=datetime.date.today(),
         data_final=None,
@@ -135,14 +135,14 @@ def usuario_3():
 def usuario_com_rf_de_diretor(escola):
     hoje = datetime.date.today()
     perfil_diretor = mommy.make(
-        'Perfil',
-        nome='DIRETOR_UE',
+        "Perfil",
+        nome="DIRETOR_UE",
         ativo=True,
-        uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+        uuid="41c20c8b-7e57-41ed-9433-ccb92e8afaf1",
     )
-    user = mommy.make(models.Usuario, registro_funcional='6580157')
+    user = mommy.make(models.Usuario, registro_funcional="6580157")
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=escola,
         perfil=perfil_diretor,
@@ -162,7 +162,7 @@ def usuario_serializer(usuario):
 def vinculo(perfil, usuario):
     hoje = datetime.date.today()
     return mommy.make(
-        'Vinculo',
+        "Vinculo",
         perfil=perfil,
         usuario=usuario,
         data_inicial=hoje,
@@ -174,7 +174,7 @@ def vinculo(perfil, usuario):
 @pytest.fixture
 def vinculo_aguardando_ativacao(perfil, usuario):
     return mommy.make(
-        'Vinculo',
+        "Vinculo",
         perfil=perfil,
         usuario=usuario,
         data_inicial=None,
@@ -202,7 +202,7 @@ def vinculo_aguardando_ativacao(perfil, usuario):
 def vinculo_invalido(perfil, usuario, request):
     dataini, datafim, ativo = request.param
     return mommy.make(
-        'Vinculo',
+        "Vinculo",
         perfil=perfil,
         usuario=usuario,
         data_inicial=dataini,
@@ -214,11 +214,11 @@ def vinculo_invalido(perfil, usuario, request):
 @pytest.fixture
 def vinculo_diretoria_regional(usuario):
     return mommy.make(
-        'Vinculo',
+        "Vinculo",
         data_inicial=datetime.date.today(),
         ativo=True,
         usuario=usuario,
-        content_type=models.ContentType.objects.get(model='diretoriaregional'),
+        content_type=models.ContentType.objects.get(model="diretoriaregional"),
     )
 
 
@@ -229,15 +229,15 @@ def usuario_update_serializer(usuario_2):
 
 @pytest.fixture
 def tipo_gestao():
-    return mommy.make('TipoGestao', nome='TERC TOTAL')
+    return mommy.make("TipoGestao", nome="TERC TOTAL")
 
 
 @pytest.fixture(
     params=[
-        ('admin_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000002'),
-        ('admin_2@sme.prefeitura.sp.gov.br', 'xxASD123@@', '0000013'),
-        ('admin_3@sme.prefeitura.sp.gov.br', '....!!!123213#$', '0044002'),
-        ('admin_4@sme.prefeitura.sp.gov.br', 'XXXDDxx@@@77', '0000552'),
+        ("admin_1@sme.prefeitura.sp.gov.br", "adminadmin", "0000002"),
+        ("admin_2@sme.prefeitura.sp.gov.br", "xxASD123@@", "0000013"),
+        ("admin_3@sme.prefeitura.sp.gov.br", "....!!!123213#$", "0044002"),
+        ("admin_4@sme.prefeitura.sp.gov.br", "XXXDDxx@@@77", "0000552"),
     ]
 )
 def users_admin_escola(client, django_user_model, request, tipo_gestao):
@@ -248,54 +248,54 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
     client.login(username=email, password=password)
 
     diretoria_regional = mommy.make(
-        'DiretoriaRegional',
-        nome='DIRETORIA REGIONAL IPIRANGA',
-        uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad',
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL IPIRANGA",
+        uuid="7da9acec-48e1-430c-8a5c-1f1efc666fad",
         codigo_eol=987656,
     )
-    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
-    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    cardapio1 = mommy.make("cardapio.Cardapio", data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make("cardapio.Cardapio", data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make(
-        'escola.TipoUnidadeEscolar',
+        "escola.TipoUnidadeEscolar",
         iniciais=f.name()[:10],
         cardapios=[cardapio1, cardapio2],
-        uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+        uuid="56725de5-89d3-4edf-8633-3e0b5c99e9d4",
     )
     escola = mommy.make(
-        'Escola',
-        nome='EMEI NOE AZEVEDO, PROF',
-        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+        "Escola",
+        nome="EMEI NOE AZEVEDO, PROF",
+        uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd",
         diretoria_regional=diretoria_regional,
-        codigo_eol='256341',
+        codigo_eol="256341",
         tipo_unidade=tipo_unidade_escolar,
         tipo_gestao=tipo_gestao,
     )
     periodo_escolar_tarde = mommy.make(
-        'PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7'
+        "PeriodoEscolar", nome="TARDE", uuid="57af972c-938f-4f6f-9f4b-cf7b983a10b7"
     )
     periodo_escolar_manha = mommy.make(
-        'PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81'
+        "PeriodoEscolar", nome="MANHA", uuid="d0c12dae-a215-41f6-af86-b7cd1838ba81"
     )
     mommy.make(
-        'AlunosMatriculadosPeriodoEscola',
+        "AlunosMatriculadosPeriodoEscola",
         escola=escola,
         quantidade_alunos=230,
         periodo_escolar=periodo_escolar_tarde,
     )
     mommy.make(
-        'AlunosMatriculadosPeriodoEscola',
+        "AlunosMatriculadosPeriodoEscola",
         escola=escola,
         quantidade_alunos=220,
         periodo_escolar=periodo_escolar_manha,
     )
-    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=False)
+    perfil_professor = mommy.make("Perfil", nome="ADMINISTRADOR_UE", ativo=False)
     perfil_admin = mommy.make(
-        'Perfil', nome='Admin', ativo=True, uuid='d6fd15cc-52c6-4db4-b604-018d22eeb3dd'
+        "Perfil", nome="Admin", ativo=True, uuid="d6fd15cc-52c6-4db4-b604-018d22eeb3dd"
     )
     hoje = datetime.date.today()
 
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=escola,
         perfil=perfil_professor,
@@ -304,7 +304,7 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
         ativo=False,
     )  # finalizado
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=escola,
         perfil=perfil_admin,
@@ -318,16 +318,16 @@ def users_admin_escola(client, django_user_model, request, tipo_gestao):
 @pytest.fixture(
     params=[
         # email, senha, rf, cpf
-        ('diretor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
+        ("diretor_1@sme.prefeitura.sp.gov.br", "adminadmin", "0000001", "44426575052"),
         (
-            'diretor_2@sme.prefeitura.sp.gov.br',
-            'aasdsadsadff',
-            '0000002',
-            '56789925031',
+            "diretor_2@sme.prefeitura.sp.gov.br",
+            "aasdsadsadff",
+            "0000002",
+            "56789925031",
         ),
-        ('diretor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
-        ('diretor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
-        ('diretor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013'),
+        ("diretor_3@sme.prefeitura.sp.gov.br", "98as7d@@#", "0000147", "86880963099"),
+        ("diretor_4@sme.prefeitura.sp.gov.br", "##$$csazd@!", "0000441", "13151715036"),
+        ("diretor_5@sme.prefeitura.sp.gov.br", "!!@##FFG121", "0005551", "40296233013"),
     ]
 )
 def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_gestao):
@@ -338,63 +338,63 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
     client.login(username=email, password=password)
 
     diretoria_regional = mommy.make(
-        'DiretoriaRegional',
-        nome='DIRETORIA REGIONAL IPIRANGA',
-        iniciais='IP',
-        uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad',
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL IPIRANGA",
+        iniciais="IP",
+        uuid="7da9acec-48e1-430c-8a5c-1f1efc666fad",
         codigo_eol=987656,
     )
-    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
-    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    cardapio1 = mommy.make("cardapio.Cardapio", data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make("cardapio.Cardapio", data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make(
-        'escola.TipoUnidadeEscolar',
-        iniciais='EMEF',
+        "escola.TipoUnidadeEscolar",
+        iniciais="EMEF",
         cardapios=[cardapio1, cardapio2],
-        uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+        uuid="56725de5-89d3-4edf-8633-3e0b5c99e9d4",
     )
     escola = mommy.make(
-        'Escola',
-        nome='EMEI NOE AZEVEDO, PROF',
-        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+        "Escola",
+        nome="EMEI NOE AZEVEDO, PROF",
+        uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd",
         diretoria_regional=diretoria_regional,
-        codigo_eol='256341',
+        codigo_eol="256341",
         tipo_unidade=tipo_unidade_escolar,
         tipo_gestao=tipo_gestao,
     )
     periodo_escolar_tarde = mommy.make(
-        'PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7'
+        "PeriodoEscolar", nome="TARDE", uuid="57af972c-938f-4f6f-9f4b-cf7b983a10b7"
     )
     periodo_escolar_manha = mommy.make(
-        'PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81'
+        "PeriodoEscolar", nome="MANHA", uuid="d0c12dae-a215-41f6-af86-b7cd1838ba81"
     )
     mommy.make(
-        'AlunosMatriculadosPeriodoEscola',
+        "AlunosMatriculadosPeriodoEscola",
         escola=escola,
         quantidade_alunos=230,
         periodo_escolar=periodo_escolar_tarde,
     )
     mommy.make(
-        'AlunosMatriculadosPeriodoEscola',
+        "AlunosMatriculadosPeriodoEscola",
         escola=escola,
         quantidade_alunos=220,
         periodo_escolar=periodo_escolar_manha,
     )
     perfil_professor = mommy.make(
-        'Perfil',
-        nome='ADMINISTRADOR_UE',
+        "Perfil",
+        nome="ADMINISTRADOR_UE",
         ativo=False,
-        uuid='48330a6f-c444-4462-971e-476452b328b2',
+        uuid="48330a6f-c444-4462-971e-476452b328b2",
     )
     perfil_diretor = mommy.make(
-        'Perfil',
-        nome='DIRETOR_UE',
+        "Perfil",
+        nome="DIRETOR_UE",
         ativo=True,
-        uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+        uuid="41c20c8b-7e57-41ed-9433-ccb92e8afaf1",
     )
 
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=escola,
         perfil=perfil_professor,
@@ -403,7 +403,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
         data_final=hoje + datetime.timedelta(days=30),
     )  # finalizado
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=escola,
         perfil=perfil_diretor,
@@ -411,7 +411,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
         ativo=True,
     )
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario_2,
         instituicao=escola,
         perfil=perfil_professor,
@@ -424,25 +424,25 @@ def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_ges
 @pytest.fixture(
     params=[
         # email, senha, rf, cpf
-        ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
+        ("cogestor_1@sme.prefeitura.sp.gov.br", "adminadmin", "0000001", "44426575052"),
         (
-            'cogestor_2@sme.prefeitura.sp.gov.br',
-            'aasdsadsadff',
-            '0000002',
-            '56789925031',
+            "cogestor_2@sme.prefeitura.sp.gov.br",
+            "aasdsadsadff",
+            "0000002",
+            "56789925031",
         ),
-        ('cogestor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
+        ("cogestor_3@sme.prefeitura.sp.gov.br", "98as7d@@#", "0000147", "86880963099"),
         (
-            'cogestor_4@sme.prefeitura.sp.gov.br',
-            '##$$csazd@!',
-            '0000441',
-            '13151715036',
+            "cogestor_4@sme.prefeitura.sp.gov.br",
+            "##$$csazd@!",
+            "0000441",
+            "13151715036",
         ),
         (
-            'cogestor_5@sme.prefeitura.sp.gov.br',
-            '!!@##FFG121',
-            '0005551',
-            '40296233013',
+            "cogestor_5@sme.prefeitura.sp.gov.br",
+            "!!@##FFG121",
+            "0005551",
+            "40296233013",
         ),
     ]
 )
@@ -454,22 +454,22 @@ def users_cogestor_diretoria_regional(client, django_user_model, request, usuari
     client.login(username=email, password=password)
 
     diretoria_regional = mommy.make(
-        'DiretoriaRegional',
-        nome='DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
-        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-        codigo_eol='0002',
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO",
+        uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd",
+        codigo_eol="0002",
     )
 
     perfil_cogestor = mommy.make(
-        'Perfil',
-        nome='COGESTOR_DRE',
+        "Perfil",
+        nome="COGESTOR_DRE",
         ativo=True,
-        uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+        uuid="41c20c8b-7e57-41ed-9433-ccb92e8afaf1",
     )
 
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=diretoria_regional,
         perfil=perfil_cogestor,
@@ -477,7 +477,7 @@ def users_cogestor_diretoria_regional(client, django_user_model, request, usuari
         ativo=True,
     )
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario_2,
         instituicao=diretoria_regional,
         perfil=perfil_cogestor,
@@ -491,25 +491,25 @@ def users_cogestor_diretoria_regional(client, django_user_model, request, usuari
 @pytest.fixture(
     params=[
         # email, senha, rf, cpf
-        ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
+        ("cogestor_1@sme.prefeitura.sp.gov.br", "adminadmin", "0000001", "44426575052"),
         (
-            'cogestor_2@sme.prefeitura.sp.gov.br',
-            'aasdsadsadff',
-            '0000002',
-            '56789925031',
+            "cogestor_2@sme.prefeitura.sp.gov.br",
+            "aasdsadsadff",
+            "0000002",
+            "56789925031",
         ),
-        ('cogestor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
+        ("cogestor_3@sme.prefeitura.sp.gov.br", "98as7d@@#", "0000147", "86880963099"),
         (
-            'cogestor_4@sme.prefeitura.sp.gov.br',
-            '##$$csazd@!',
-            '0000441',
-            '13151715036',
+            "cogestor_4@sme.prefeitura.sp.gov.br",
+            "##$$csazd@!",
+            "0000441",
+            "13151715036",
         ),
         (
-            'cogestor_5@sme.prefeitura.sp.gov.br',
-            '!!@##FFG121',
-            '0005551',
-            '40296233013',
+            "cogestor_5@sme.prefeitura.sp.gov.br",
+            "!!@##FFG121",
+            "0005551",
+            "40296233013",
         ),
     ]
 )
@@ -521,24 +521,24 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
     client.login(username=email, password=password)
 
     codae = mommy.make(
-        'Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
+        "Codae", nome="CODAE", uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd"
     )
 
     perfil_administrador_codae = mommy.make(
-        'Perfil',
-        nome='ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
+        "Perfil",
+        nome="ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA",
         ativo=True,
-        uuid='48330a6f-c444-4462-971e-476452b328b2',
+        uuid="48330a6f-c444-4462-971e-476452b328b2",
     )
     perfil_coordenador = mommy.make(
-        'Perfil',
-        nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
+        "Perfil",
+        nome="COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA",
         ativo=True,
-        uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+        uuid="41c20c8b-7e57-41ed-9433-ccb92e8afaf1",
     )
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=codae,
         perfil=perfil_administrador_codae,
@@ -547,7 +547,7 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
         data_final=hoje + datetime.timedelta(days=30),
     )  # finalizado
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=codae,
         perfil=perfil_coordenador,
@@ -555,7 +555,7 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
         ativo=True,
     )
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario_2,
         instituicao=codae,
         perfil=perfil_administrador_codae,
@@ -569,25 +569,25 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
 @pytest.fixture(
     params=[
         # email, senha, rf, cpf
-        ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
+        ("cogestor_1@sme.prefeitura.sp.gov.br", "adminadmin", "0000001", "44426575052"),
         (
-            'cogestor_2@sme.prefeitura.sp.gov.br',
-            'aasdsadsadff',
-            '0000002',
-            '56789925031',
+            "cogestor_2@sme.prefeitura.sp.gov.br",
+            "aasdsadsadff",
+            "0000002",
+            "56789925031",
         ),
-        ('cogestor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
+        ("cogestor_3@sme.prefeitura.sp.gov.br", "98as7d@@#", "0000147", "86880963099"),
         (
-            'cogestor_4@sme.prefeitura.sp.gov.br',
-            '##$$csazd@!',
-            '0000441',
-            '13151715036',
+            "cogestor_4@sme.prefeitura.sp.gov.br",
+            "##$$csazd@!",
+            "0000441",
+            "13151715036",
         ),
         (
-            'cogestor_5@sme.prefeitura.sp.gov.br',
-            '!!@##FFG121',
-            '0005551',
-            '40296233013',
+            "cogestor_5@sme.prefeitura.sp.gov.br",
+            "!!@##FFG121",
+            "0005551",
+            "40296233013",
         ),
     ]
 )
@@ -597,28 +597,28 @@ def users_terceirizada(client, django_user_model, request, usuario_2):
         username=rf, password=password, email=email, registro_funcional=rf, cpf=cpf
     )
     client.login(username=rf, password=password)
-    mommy.make('Codae')
+    mommy.make("Codae")
     terceirizada = mommy.make(
-        'Terceirizada',
-        nome_fantasia='Alimentos LTDA',
-        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+        "Terceirizada",
+        nome_fantasia="Alimentos LTDA",
+        uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd",
     )
 
     perfil_nutri_admin_responsavel = mommy.make(
-        'Perfil',
-        nome='ADMINISTRADOR_EMPRESA',
+        "Perfil",
+        nome="ADMINISTRADOR_EMPRESA",
         ativo=True,
-        uuid='48330a6f-c444-4462-971e-476452b328b2',
+        uuid="48330a6f-c444-4462-971e-476452b328b2",
     )
     perfil_administrador_terceirizada = mommy.make(
-        'Perfil',
-        nome='USUARIO_EMPRESA',
+        "Perfil",
+        nome="USUARIO_EMPRESA",
         ativo=True,
-        uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+        uuid="41c20c8b-7e57-41ed-9433-ccb92e8afaf1",
     )
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=terceirizada,
         perfil=perfil_administrador_terceirizada,
@@ -627,7 +627,7 @@ def users_terceirizada(client, django_user_model, request, usuario_2):
         data_final=hoje + datetime.timedelta(days=30),
     )  # finalizado
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=terceirizada,
         perfil=perfil_nutri_admin_responsavel,
@@ -635,7 +635,7 @@ def users_terceirizada(client, django_user_model, request, usuario_2):
         ativo=True,
     )
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario_2,
         instituicao=terceirizada,
         perfil=perfil_administrador_terceirizada,
@@ -649,18 +649,18 @@ def users_terceirizada(client, django_user_model, request, usuario_2):
 def mocked_request_api_eol():
     return [
         {
-            'nm_pessoa': 'IARA DAREZZO',
-            'cargo': 'PROF.ED.INF.E ENS.FUND.I',
-            'divisao': 'ODILIO DENYS, MAL.',
-            'cd_cpf_pessoa': '95887745002',
-            'coord': 'DIRETORIA REGIONAL DE EDUCACAO FREGUESIA/BRASILANDIA',
+            "nm_pessoa": "IARA DAREZZO",
+            "cargo": "PROF.ED.INF.E ENS.FUND.I",
+            "divisao": "ODILIO DENYS, MAL.",
+            "cd_cpf_pessoa": "95887745002",
+            "coord": "DIRETORIA REGIONAL DE EDUCACAO FREGUESIA/BRASILANDIA",
         },
         {
-            'nm_pessoa': 'IARA DAREZZO',
-            'cargo': 'PROF.ENS.FUND.II E MED.-PORTUGUES',
-            'divisao': 'NOE AZEVEDO, PROF',
-            'cd_cpf_pessoa': '95887745002',
-            'coord': 'DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE',
+            "nm_pessoa": "IARA DAREZZO",
+            "cargo": "PROF.ENS.FUND.II E MED.-PORTUGUES",
+            "divisao": "NOE AZEVEDO, PROF",
+            "cd_cpf_pessoa": "95887745002",
+            "coord": "DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE",
         },
     ]
 
@@ -668,11 +668,11 @@ def mocked_request_api_eol():
 def mocked_request_api_eol_usuario_diretoria_regional():
     return [
         {
-            'nm_pessoa': 'LUIZA MARIA BASTOS',
-            'cargo': 'AUXILIAR TECNICO DE EDUCACAO',
-            'divisao': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
-            'cd_cpf_pessoa': '47088910080',
-            'coord': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
+            "nm_pessoa": "LUIZA MARIA BASTOS",
+            "cargo": "AUXILIAR TECNICO DE EDUCACAO",
+            "divisao": "DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO",
+            "cd_cpf_pessoa": "47088910080",
+            "coord": "DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO",
         }
     ]
 
@@ -688,46 +688,46 @@ def mocked_request_api_eol_usuario_diretoria_regional():
     ]
 )
 def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
-    nome = 'Bruno da Conceição'
-    uuid = 'd36fa08e-e91e-4acb-9d54-b88115147e8e'
+    nome = "Bruno da Conceição"
+    uuid = "d36fa08e-e91e-4acb-9d54-b88115147e8e"
     usuario = mommy.make(
-        'Usuario',
+        "Usuario",
         nome=nome,
         uuid=uuid,
-        username='1234567',
+        username="1234567",
         is_active=False,
-        registro_funcional='1234567',
-        email='GrVdXIhxqb@example.com',
+        registro_funcional="1234567",
+        email="GrVdXIhxqb@example.com",
     )
     hoje = datetime.date.today()
 
     diretoria_regional = mommy.make(
-        'DiretoriaRegional',
-        nome='DIRETORIA REGIONAL IPIRANGA',
-        iniciais='IP',
-        uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad',
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL IPIRANGA",
+        iniciais="IP",
+        uuid="7da9acec-48e1-430c-8a5c-1f1efc666fad",
         codigo_eol=987656,
     )
-    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
-    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    cardapio1 = mommy.make("cardapio.Cardapio", data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make("cardapio.Cardapio", data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make(
-        'escola.TipoUnidadeEscolar',
-        iniciais='EMEF',
+        "escola.TipoUnidadeEscolar",
+        iniciais="EMEF",
         cardapios=[cardapio1, cardapio2],
-        uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+        uuid="56725de5-89d3-4edf-8633-3e0b5c99e9d4",
     )
     escola = mommy.make(
-        'Escola',
-        nome='EMEI NOE AZEVEDO, PROF',
-        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+        "Escola",
+        nome="EMEI NOE AZEVEDO, PROF",
+        uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd",
         diretoria_regional=diretoria_regional,
-        codigo_eol='256341',
+        codigo_eol="256341",
         tipo_unidade=tipo_unidade_escolar,
         tipo_gestao=tipo_gestao,
     )
 
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         perfil=perfil,
         usuario=usuario,
         data_inicial=None,
@@ -737,7 +737,7 @@ def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
     )  # vinculo esperando ativacao
 
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         perfil=perfil,
         usuario=usuario,
         data_inicial=hoje,
@@ -753,28 +753,28 @@ def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
     params=[
         # email, esprado
         (
-            'tebohelleb-2297@sme.prefeitura.sp.gov.br',
-            't*************7@sme.prefeitura.sp.gov.br',
+            "tebohelleb-2297@sme.prefeitura.sp.gov.br",
+            "t*************7@sme.prefeitura.sp.gov.br",
         ),
         (
-            'surracecyss-9018@sme.prefeitura.sp.gov.br',
-            's**************8@sme.prefeitura.sp.gov.br',
+            "surracecyss-9018@sme.prefeitura.sp.gov.br",
+            "s**************8@sme.prefeitura.sp.gov.br",
         ),
         (
-            'zoffexupi-7784@sme.prefeitura.sp.gov.br',
-            'z************4@sme.prefeitura.sp.gov.br',
+            "zoffexupi-7784@sme.prefeitura.sp.gov.br",
+            "z************4@sme.prefeitura.sp.gov.br",
         ),
-        ('fulano157@sme.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br'),
+        ("fulano157@sme.prefeitura.sp.gov.br", "f*******7@sme.prefeitura.sp.gov.br"),
         (
-            'tebohelleb-2297@prefeitura.sp.gov.br',
-            't*************7@prefeitura.sp.gov.br',
+            "tebohelleb-2297@prefeitura.sp.gov.br",
+            "t*************7@prefeitura.sp.gov.br",
         ),
         (
-            'surracecyss-9018@prefeitura.sp.gov.br',
-            's**************8@prefeitura.sp.gov.br',
+            "surracecyss-9018@prefeitura.sp.gov.br",
+            "s**************8@prefeitura.sp.gov.br",
         ),
-        ('zoffexupi-7784@prefeitura.sp.gov.br', 'z************4@prefeitura.sp.gov.br'),
-        ('fulano157@prefeitura.sp.gov.br', 'f*******7@prefeitura.sp.gov.br'),
+        ("zoffexupi-7784@prefeitura.sp.gov.br", "z************4@prefeitura.sp.gov.br"),
+        ("fulano157@prefeitura.sp.gov.br", "f*******7@prefeitura.sp.gov.br"),
     ]
 )
 def email_list(request):
@@ -785,31 +785,31 @@ def email_list(request):
     params=[
         # email, esprado
         (
-            'tebohelleb-2297@smea.prefeitura.sp.gov.br',
-            't*************7@sme.prefeitura.sp.gov.br',
+            "tebohelleb-2297@smea.prefeitura.sp.gov.br",
+            "t*************7@sme.prefeitura.sp.gov.br",
         ),
         (
-            'surracecyss-9018@smes.prefeitura.sp.gov.br',
-            's**************8@sme.prefeitura.sp.gov.br',
+            "surracecyss-9018@smes.prefeitura.sp.gov.br",
+            "s**************8@sme.prefeitura.sp.gov.br",
         ),
         (
-            'zoffexupi-7784@smed.prefeitura.sp.gov.br',
-            'z************4@sme.prefeitura.sp.gov.br',
+            "zoffexupi-7784@smed.prefeitura.sp.gov.br",
+            "z************4@sme.prefeitura.sp.gov.br",
         ),
-        ('fulano157@smea.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br'),
+        ("fulano157@smea.prefeitura.sp.gov.br", "f*******7@sme.prefeitura.sp.gov.br"),
         (
-            'tebohelleb-2297@prefeituraa.sp.gov.br',
-            't*************7@prefeiturab.sp.gov.br',
-        ),
-        (
-            'surracecyss-9018@prefeiturab.sp.gov.br',
-            's**************8@prefeiturac.sp.gov.br',
+            "tebohelleb-2297@prefeituraa.sp.gov.br",
+            "t*************7@prefeiturab.sp.gov.br",
         ),
         (
-            'zoffexupi-7784@prefeiturac.sp.gov.br',
-            'z************4@prefeiturad.sp.gov.br',
+            "surracecyss-9018@prefeiturab.sp.gov.br",
+            "s**************8@prefeiturac.sp.gov.br",
         ),
-        ('fulano157@prefeiturad.sp.gov.br', 'f*******7@prefeiturae.sp.gov.br'),
+        (
+            "zoffexupi-7784@prefeiturac.sp.gov.br",
+            "z************4@prefeiturad.sp.gov.br",
+        ),
+        ("fulano157@prefeiturad.sp.gov.br", "f*******7@prefeiturae.sp.gov.br"),
     ]
 )
 def email_list_invalidos(request):
@@ -818,21 +818,21 @@ def email_list_invalidos(request):
 
 @pytest.fixture
 def fake_user(client):
-    email = 'admin@admin.com'
+    email = "admin@admin.com"
     password = DJANGO_ADMIN_PASSWORD
     user = models.Usuario.objects.create_user(
         email=email,
         password=password,
-        nome='admin',
-        cpf='0',
-        registro_funcional='1234',
+        nome="admin",
+        cpf="0",
+        registro_funcional="1234",
     )
     return user, password
 
 
 @pytest.fixture
 def usuario_autenticado(client):
-    email = 'admin@admin.com'
+    email = "admin@admin.com"
     password = DJANGO_ADMIN_PASSWORD
     client.login(username=email, password=password)
     return client
@@ -847,54 +847,54 @@ def authenticated_client(client, fake_user):
 
 @pytest.fixture
 def arquivo_pdf():
-    type_pdf = 'application/pdf'
+    type_pdf = "application/pdf"
     return SimpleUploadedFile(
-        'arquivo-teste.pdf', str.encode('file_content'), content_type=type_pdf
+        "arquivo-teste.pdf", str.encode("file_content"), content_type=type_pdf
     )
 
 
 @pytest.fixture
 def arquivo_xls():
     return SimpleUploadedFile(
-        'arquivo.xls', bytes('Código eol,\n93238,', encoding='utf-8')
+        "arquivo.xls", bytes("Código eol,\n93238,", encoding="utf-8")
     )
 
 
 @pytest.fixture
 def planilha_usuario_externo(arquivo_xls):
-    return mommy.make('ImportacaoPlanilhaUsuarioExternoCoreSSO', conteudo=arquivo_xls)
+    return mommy.make("ImportacaoPlanilhaUsuarioExternoCoreSSO", conteudo=arquivo_xls)
 
 
 @pytest.fixture
 def planilha_usuario_servidor(arquivo_xls):
-    return mommy.make('ImportacaoPlanilhaUsuarioServidorCoreSSO', conteudo=arquivo_xls)
+    return mommy.make("ImportacaoPlanilhaUsuarioServidorCoreSSO", conteudo=arquivo_xls)
 
 
 @pytest.fixture
 def escola_cei():
     return mommy.make(
-        'Escola', nome='CEI DIRET - JOSE DE MOURA, VER.', codigo_eol='400158'
+        "Escola", nome="CEI DIRET - JOSE DE MOURA, VER.", codigo_eol="400158"
     )
 
 
 @pytest.fixture
 def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
-    email = 'user@escola.com'
-    rf = '1234567'
+    email = "user@escola.com"
+    rf = "1234567"
     password = DJANGO_ADMIN_PASSWORD
-    mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    mommy.make("Perfil", nome="ADMINISTRADOR_UE", ativo=True)
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
     usuario = django_user_model.objects.create_user(
-        nome='RONALDO DIRETOR',
+        nome="RONALDO DIRETOR",
         username=rf,
         password=password,
         email=email,
         registro_funcional=rf,
-        cpf='93697506064',
+        cpf="93697506064",
     )
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario,
         instituicao=escola,
         perfil=perfil_diretor,
@@ -909,22 +909,22 @@ def client_autenticado_da_escola(client, django_user_model, escola, escola_cei):
 def client_autenticado_da_escola_email_invalido(
     client, django_user_model, escola, escola_cei
 ):
-    email = 'invalido'
-    rf = '1234567'
+    email = "invalido"
+    rf = "1234567"
     password = DJANGO_ADMIN_PASSWORD
-    mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    mommy.make("Perfil", nome="ADMINISTRADOR_UE", ativo=True)
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
     usuario = django_user_model.objects.create_user(
-        nome='RONALDO DIRETOR',
+        nome="RONALDO DIRETOR",
         username=rf,
         password=password,
         email=email,
         registro_funcional=rf,
-        cpf='93697506064',
+        cpf="93697506064",
     )
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario,
         instituicao=escola,
         perfil=perfil_diretor,
@@ -939,18 +939,18 @@ def client_autenticado_da_escola_email_invalido(
 def client_autenticado_da_escola_sem_vinculo(
     client, django_user_model, escola, escola_cei
 ):
-    email = 'user@escola.com'
-    rf = '1234567'
+    email = "user@escola.com"
+    rf = "1234567"
     password = DJANGO_ADMIN_PASSWORD
-    mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
-    mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
+    mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
+    mommy.make("Perfil", nome="ADMINISTRADOR_UE", ativo=True)
     django_user_model.objects.create_user(
-        nome='RONALDO DIRETOR',
+        nome="RONALDO DIRETOR",
         username=rf,
         password=password,
         email=email,
         registro_funcional=rf,
-        cpf='93697506064',
+        cpf="93697506064",
     )
     client.login(username=rf, password=password)
     return client
@@ -958,22 +958,22 @@ def client_autenticado_da_escola_sem_vinculo(
 
 @pytest.fixture
 def client_autenticado_da_escola_adm(client, django_user_model, escola, escola_cei):
-    email = 'user@escola.com'
-    rf = '1234567'
+    email = "user@escola.com"
+    rf = "1234567"
     password = DJANGO_ADMIN_PASSWORD
-    mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
-    perfil_adm = mommy.make('Perfil', nome='ADMINISTRADOR_UE', ativo=True)
+    mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
+    perfil_adm = mommy.make("Perfil", nome="ADMINISTRADOR_UE", ativo=True)
     usuario = django_user_model.objects.create_user(
-        nome='RONALDO DIRETOR',
+        nome="RONALDO DIRETOR",
         username=rf,
         password=password,
         email=email,
         registro_funcional=rf,
-        cpf='93697506064',
+        cpf="93697506064",
     )
     ontem = datetime.date.today() - datetime.timedelta(days=1)
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario,
         instituicao=escola,
         perfil=perfil_adm,
@@ -986,21 +986,21 @@ def client_autenticado_da_escola_adm(client, django_user_model, escola, escola_c
 
 @pytest.fixture
 def client_autenticado_da_dre(client, django_user_model, escola, escola_cei):
-    email = 'user@escola.com'
-    rf = '1234567'
+    email = "user@escola.com"
+    rf = "1234567"
     password = DJANGO_ADMIN_PASSWORD
-    perfil_dre = mommy.make('Perfil', nome='COGESTOR_DRE', ativo=True)
+    perfil_dre = mommy.make("Perfil", nome="COGESTOR_DRE", ativo=True)
     usuario = django_user_model.objects.create_user(
-        nome='RONALDO COGESTOR',
+        nome="RONALDO COGESTOR",
         username=rf,
         password=password,
         email=email,
         registro_funcional=rf,
-        cpf='93697506064',
+        cpf="93697506064",
     )
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario,
         instituicao=escola.diretoria_regional,
         perfil=perfil_dre,
@@ -1013,169 +1013,169 @@ def client_autenticado_da_dre(client, django_user_model, escola, escola_cei):
 
 def mocked_response_autentica_coresso_adm_ue():
     return {
-        'nome': 'RONALDO DIRETOR',
-        'cpf': '93697506064',
-        'email': 'user@escola.com',
-        'login': '1234567',
-        'visoes': ['ADMINISTRADOR_UE'],
-        'perfis_por_sistema': [{'sistema': 1004, 'perfis': ['ADMINISTRADOR_UE']}],
+        "nome": "RONALDO DIRETOR",
+        "cpf": "93697506064",
+        "email": "user@escola.com",
+        "login": "1234567",
+        "visoes": ["ADMINISTRADOR_UE"],
+        "perfis_por_sistema": [{"sistema": 1004, "perfis": ["ADMINISTRADOR_UE"]}],
     }
 
 
 def mocked_response_autentica_coresso_diretor():
     return {
-        'nome': 'RONALDO DIRETOR',
-        'cpf': '93697506064',
-        'email': 'user@escola.com',
-        'login': '1234567',
-        'visoes': ['DIRETOR_UE'],
-        'perfis_por_sistema': [{'sistema': 1004, 'perfis': ['DIRETOR_UE']}],
+        "nome": "RONALDO DIRETOR",
+        "cpf": "93697506064",
+        "email": "user@escola.com",
+        "login": "1234567",
+        "visoes": ["DIRETOR_UE"],
+        "perfis_por_sistema": [{"sistema": 1004, "perfis": ["DIRETOR_UE"]}],
     }
 
 
 def mocked_response_autentica_coresso_cogestor():
     return {
-        'nome': 'RONALDO COGESTOR',
-        'cpf': '93697506064',
-        'email': 'user@escola.com',
-        'login': '1234567',
-        'visoes': ['COGESTOR_DRE'],
-        'perfis_por_sistema': [{'sistema': 1004, 'perfis': ['COGESTOR_DRE']}],
+        "nome": "RONALDO COGESTOR",
+        "cpf": "93697506064",
+        "email": "user@escola.com",
+        "login": "1234567",
+        "visoes": ["COGESTOR_DRE"],
+        "perfis_por_sistema": [{"sistema": 1004, "perfis": ["COGESTOR_DRE"]}],
     }
 
 
 def mocked_response_autentica_coresso_diretor_login_errado():
     return {
-        'nome': 'RONALDO DIRETOR',
-        'cpf': '93697506064',
-        'email': 'user@escola.com',
-        'login': '1234568',
-        'visoes': ['DIRETOR_UE'],
-        'perfis_por_sistema': [{'sistema': 1004, 'perfis': ['DIRETOR_UE']}],
+        "nome": "RONALDO DIRETOR",
+        "cpf": "93697506064",
+        "email": "user@escola.com",
+        "login": "1234568",
+        "visoes": ["DIRETOR_UE"],
+        "perfis_por_sistema": [{"sistema": 1004, "perfis": ["DIRETOR_UE"]}],
     }
 
 
 def mocked_response_get_dados_usuario_coresso():
     return {
-        'rf': '1234567',
-        'cpf': '93697506064',
-        'email': 'user@escola.com',
-        'cargos': [
+        "rf": "1234567",
+        "cpf": "93697506064",
+        "email": "user@escola.com",
+        "cargos": [
             {
-                'codigoCargo': 3360,
-                'descricaoCargo': 'DIRETOR DE ESCOLA                       ',
-                'codigoUnidade': '400158',
-                'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
-                'codigoDre': '108600',
+                "codigoCargo": 3360,
+                "descricaoCargo": "DIRETOR DE ESCOLA                       ",
+                "codigoUnidade": "400158",
+                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "codigoDre": "108600",
             }
         ],
-        'nome': 'RONALDO DIRETOR',
+        "nome": "RONALDO DIRETOR",
     }
 
 
 def mocked_response_get_dados_usuario_coresso_coordenador():
     return {
-        'rf': '1234567',
-        'cpf': '93697506064',
-        'email': 'user@escola.com',
-        'cargos': [
+        "rf": "1234567",
+        "cpf": "93697506064",
+        "email": "user@escola.com",
+        "cargos": [
             {
-                'codigoCargo': 43,
-                'descricaoCargo': 'COORDENADOR GERAL                       ',
-                'codigoUnidade': '400158',
-                'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
-                'codigoDre': '108600',
+                "codigoCargo": 43,
+                "descricaoCargo": "COORDENADOR GERAL                       ",
+                "codigoUnidade": "400158",
+                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "codigoDre": "108600",
             }
         ],
-        'nome': 'RONALDO DIRETOR',
+        "nome": "RONALDO DIRETOR",
     }
 
 
 def mocked_response_get_dados_usuario_coresso_gestor():
     return {
-        'rf': '1234567',
-        'cpf': '93697506064',
-        'email': 'user@escola.com',
-        'cargos': [
+        "rf": "1234567",
+        "cpf": "93697506064",
+        "email": "user@escola.com",
+        "cargos": [
             {
-                'codigoCargo': 515,
-                'descricaoCargo': 'GESTOR DE EQUIPAMENTO PÚBLICO II                       ',
-                'codigoUnidade': '400158',
-                'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
-                'codigoDre': '108600',
+                "codigoCargo": 515,
+                "descricaoCargo": "GESTOR DE EQUIPAMENTO PÚBLICO II                       ",
+                "codigoUnidade": "400158",
+                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "codigoDre": "108600",
             }
         ],
-        'nome': 'RONALDO DIRETOR',
+        "nome": "RONALDO DIRETOR",
     }
 
 
 def mocked_response_get_dados_usuario_coresso_sem_email():
     return {
-        'rf': '1234567',
-        'cpf': '93697506064',
-        'email': None,
-        'cargos': [
+        "rf": "1234567",
+        "cpf": "93697506064",
+        "email": None,
+        "cargos": [
             {
-                'codigoCargo': 3360,
-                'descricaoCargo': 'DIRETOR DE ESCOLA                       ',
-                'codigoUnidade': '400158',
-                'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
-                'codigoDre': '108600',
+                "codigoCargo": 3360,
+                "descricaoCargo": "DIRETOR DE ESCOLA                       ",
+                "codigoUnidade": "400158",
+                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "codigoDre": "108600",
             }
         ],
-        'nome': 'RONALDO DIRETOR',
+        "nome": "RONALDO DIRETOR",
     }
 
 
 def mocked_response_get_dados_usuario_coresso_cogestor():
     return {
-        'rf': '1234567',
-        'cpf': '93697506064',
-        'email': 'user@escola.com',
-        'cargos': [
+        "rf": "1234567",
+        "cpf": "93697506064",
+        "email": "user@escola.com",
+        "cargos": [
             {
-                'codigoCargo': 2,
-                'descricaoCargo': 'COGESTOR                       ',
-                'codigoUnidade': '400158',
-                'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
-                'codigoDre': '108600',
+                "codigoCargo": 2,
+                "descricaoCargo": "COGESTOR                       ",
+                "codigoUnidade": "400158",
+                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "codigoDre": "108600",
             }
         ],
-        'nome': 'RONALDO COGESTOR',
+        "nome": "RONALDO COGESTOR",
     }
 
 
 def mocked_response_get_dados_usuario_coresso_adm_escola():
     return {
-        'rf': '1234567',
-        'cpf': '93697506064',
-        'email': 'user@escola.com',
-        'cargos': [
+        "rf": "1234567",
+        "cpf": "93697506064",
+        "email": "user@escola.com",
+        "cargos": [
             {
-                'codigoCargo': 3379,
-                'descricaoCargo': 'COORDENADOR PEDAGÓGICO                       ',
-                'codigoUnidade': '400158',
-                'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
-                'codigoDre': '108600',
+                "codigoCargo": 3379,
+                "descricaoCargo": "COORDENADOR PEDAGÓGICO                       ",
+                "codigoUnidade": "400158",
+                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "codigoDre": "108600",
             }
         ],
-        'nome': 'RONALDO DIRETOR',
+        "nome": "RONALDO DIRETOR",
     }
 
 
 def mocked_response_get_dados_usuario_coresso_sem_acesso_automatico():
     return {
-        'rf': '1234567',
-        'cpf': '93697506064',
-        'email': 'user@escola.com',
-        'cargos': [
+        "rf": "1234567",
+        "cpf": "93697506064",
+        "email": "user@escola.com",
+        "cargos": [
             {
-                'codigoCargo': 1,
-                'descricaoCargo': 'ATE                      ',
-                'codigoUnidade': '400158',
-                'descricaoUnidade': 'CEI DIRET - JOSE DE MOURA, VER.',
-                'codigoDre': '108600',
+                "codigoCargo": 1,
+                "descricaoCargo": "ATE                      ",
+                "codigoUnidade": "400158",
+                "descricaoUnidade": "CEI DIRET - JOSE DE MOURA, VER.",
+                "codigoDre": "108600",
             }
         ],
-        'nome': 'RONALDO DIRETOR',
+        "nome": "RONALDO DIRETOR",
     }

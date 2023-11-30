@@ -18,12 +18,12 @@ from ...models import (
 
 env = environ.Env()
 
-logger = logging.getLogger('sigpae.cmd_atualiza_alunos_escolas')
+logger = logging.getLogger("sigpae.cmd_atualiza_alunos_escolas")
 
 
 class Command(BaseCommand):
-    help = 'Atualiza os dados de alunos das Escolas baseados na api do SGP'
-    headers = {'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}'}
+    help = "Atualiza os dados de alunos das Escolas baseados na api do SGP"
+    headers = {"x-api-eol-key": f"{DJANGO_EOL_SGP_API_TOKEN}"}
     timeout = 10
     contador_alunos = 0
     total_alunos = 0
@@ -35,7 +35,7 @@ class Command(BaseCommand):
         super().__init__()
         lista_tipo_turnos = list(
             PeriodoEscolar.objects.filter(tipo_turno__isnull=False).values_list(
-                'tipo_turno', flat=True
+                "tipo_turno", flat=True
             )
         )
         dict_periodos_escolares_por_tipo_turno = {}
@@ -64,13 +64,13 @@ class Command(BaseCommand):
         toc = timeit.default_timer()
         result = round(toc - tic, 2)
         if result > 60:
-            logger.debug(f'Total time: {round(result // 60, 2)} min')
+            logger.debug(f"Total time: {round(result // 60, 2)} min")
         else:
-            logger.debug(f'Total time: {round(result, 2)} s')
+            logger.debug(f"Total time: {round(result, 2)} s")
 
     def _salva_logs_requisicao(self, r, cod_eol_escola):
         if not r.status_code == 404:
-            msg_erro = '' if r.status_code == 200 else r.text
+            msg_erro = "" if r.status_code == 200 else r.text
             log_erro = LogAtualizaDadosAluno(
                 status=r.status_code,
                 codigo_eol=cod_eol_escola,
@@ -83,7 +83,7 @@ class Command(BaseCommand):
         ano = datetime.date.today().year
         try:
             r = requests.get(
-                f'{DJANGO_EOL_SGP_API_URL}/alunos/ues/{cod_eol_escola}/anosLetivos/{ano_param or ano}',
+                f"{DJANGO_EOL_SGP_API_URL}/alunos/ues/{cod_eol_escola}/anosLetivos/{ano_param or ano}",
                 headers=self.headers,
             )
             self._salva_logs_requisicao(r, cod_eol_escola)
@@ -93,7 +93,7 @@ class Command(BaseCommand):
             else:
                 return []
         except ConnectionError as e:
-            msg = f'Erro de conexão na api do EOL: {e}'
+            msg = f"Erro de conexão na api do EOL: {e}"
             log_erro = LogAtualizaDadosAluno(
                 status=502,
                 codigo_eol=cod_eol_escola,
@@ -106,35 +106,35 @@ class Command(BaseCommand):
 
     def _monta_obj_aluno(self, registro, escola, data_nascimento):
         obj_aluno = Aluno(
-            nome=registro['nomeAluno'].strip(),
-            codigo_eol=registro['codigoAluno'],
+            nome=registro["nomeAluno"].strip(),
+            codigo_eol=registro["codigoAluno"],
             data_nascimento=data_nascimento,
             escola=escola,
-            serie=registro['turmaNome'],
+            serie=registro["turmaNome"],
             periodo_escolar=self.dict_periodos_escolares_por_tipo_turno[
-                registro['tipoTurno']
+                registro["tipoTurno"]
             ],
-            etapa=registro.get('etapaEnsino', None),
-            ciclo=registro.get('cicloEnsino', None),
-            desc_etapa=registro.get('descEtapaEnsino', ''),
-            desc_ciclo=registro.get('descCicloEnsino', ''),
+            etapa=registro.get("etapaEnsino", None),
+            ciclo=registro.get("cicloEnsino", None),
+            desc_etapa=registro.get("descEtapaEnsino", ""),
+            desc_ciclo=registro.get("descCicloEnsino", ""),
         )
         return obj_aluno
 
     def _atualiza_aluno(self, aluno, registro, data_nascimento, escola):
-        aluno.nome = registro['nomeAluno'].strip()
-        aluno.codigo_eol = registro['codigoAluno']
+        aluno.nome = registro["nomeAluno"].strip()
+        aluno.codigo_eol = registro["codigoAluno"]
         aluno.data_nascimento = data_nascimento
         aluno.escola = escola
         aluno.nao_matriculado = False
-        aluno.serie = registro['turmaNome']
+        aluno.serie = registro["turmaNome"]
         aluno.periodo_escolar = self.dict_periodos_escolares_por_tipo_turno[
-            registro['tipoTurno']
+            registro["tipoTurno"]
         ]
-        aluno.etapa = registro.get('etapaEnsino', None)
-        aluno.ciclo = registro.get('cicloEnsino', None)
-        aluno.desc_etapa = registro.get('descEtapaEnsino', '')
-        aluno.desc_ciclo = registro.get('descCicloEnsino', '')
+        aluno.etapa = registro.get("etapaEnsino", None)
+        aluno.ciclo = registro.get("cicloEnsino", None)
+        aluno.desc_etapa = registro.get("descEtapaEnsino", "")
+        aluno.desc_ciclo = registro.get("descCicloEnsino", "")
         aluno.save()
 
     def _desvincular_matriculas(self, alunos):
@@ -145,11 +145,11 @@ class Command(BaseCommand):
 
     def aluno_matriculado_prox_ano(self, dados, aluno_nome):
         aluno_encontrado = next(
-            (aluno for aluno in dados if aluno['nomeAluno'] == aluno_nome), None
+            (aluno for aluno in dados if aluno["nomeAluno"] == aluno_nome), None
         )
         return (
             aluno_encontrado
-            and aluno_encontrado['codigoSituacaoMatricula']
+            and aluno_encontrado["codigoSituacaoMatricula"]
             in self.status_matricula_ativa
         )
 
@@ -163,22 +163,22 @@ class Command(BaseCommand):
             self.contador_alunos += 1
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'{self.contador_alunos} DE UM TOTAL DE {self.total_alunos} MATRICULAS'
+                    f"{self.contador_alunos} DE UM TOTAL DE {self.total_alunos} MATRICULAS"
                 )
             )
             if (
-                registro['codigoSituacaoMatricula'] in self.status_matricula_ativa
+                registro["codigoSituacaoMatricula"] in self.status_matricula_ativa
                 or self.aluno_matriculado_prox_ano(
-                    dados_alunos_escola_prox_ano, registro['nomeAluno']
+                    dados_alunos_escola_prox_ano, registro["nomeAluno"]
                 )
-            ) and registro['codigoTipoTurma'] == self.codigo_turma_regular:
-                codigos_consultados.append(registro['codigoAluno'])
-                aluno = Aluno.objects.filter(codigo_eol=registro['codigoAluno']).first()
-                data_nascimento = registro['dataNascimento'].split('T')[0]
+            ) and registro["codigoTipoTurma"] == self.codigo_turma_regular:
+                codigos_consultados.append(registro["codigoAluno"])
+                aluno = Aluno.objects.filter(codigo_eol=registro["codigoAluno"]).first()
+                data_nascimento = registro["dataNascimento"].split("T")[0]
                 if aluno:
                     self._atualiza_aluno(aluno, registro, data_nascimento, escola)
                 else:
-                    novos_alunos[registro['codigoAluno']] = self._monta_obj_aluno(
+                    novos_alunos[registro["codigoAluno"]] = self._monta_obj_aluno(
                         registro, escola, data_nascimento
                     )
 
@@ -194,7 +194,7 @@ class Command(BaseCommand):
 
         total = escolas.count()
         for i, escola in enumerate(escolas):
-            logger.debug(f'{i+1}/{total} - {escola}')
+            logger.debug(f"{i+1}/{total} - {escola}")
             dados_alunos_escola = self._obtem_alunos_escola(escola.codigo_eol)
             dados_alunos_escola_prox_ano = self._obtem_alunos_escola(
                 escola.codigo_eol, proximo_ano

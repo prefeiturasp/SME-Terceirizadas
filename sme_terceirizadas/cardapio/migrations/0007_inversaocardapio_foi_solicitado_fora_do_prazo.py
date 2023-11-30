@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0006_alteracaocardapio_foi_solicitado_fora_do_prazo'),
+        ("cardapio", "0006_alteracaocardapio_foi_solicitado_fora_do_prazo"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='inversaocardapio',
-            name='foi_solicitado_fora_do_prazo',
-            field=models.BooleanField(default=False, verbose_name='Solicitação foi criada em cima da hora (5 dias úteis ou menos)?'),
+            model_name="inversaocardapio",
+            name="foi_solicitado_fora_do_prazo",
+            field=models.BooleanField(
+                default=False,
+                verbose_name="Solicitação foi criada em cima da hora (5 dias úteis ou menos)?",
+            ),
         ),
     ]

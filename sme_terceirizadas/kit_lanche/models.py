@@ -24,9 +24,12 @@ from ..dados_comuns.behaviors import (  # noqa I101
     TemObservacao,
     TempoPasseio,
     TemPrioridade,
-    TemTerceirizadaConferiuGestaoAlimentacao
+    TemTerceirizadaConferiuGestaoAlimentacao,
 )
-from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola
+from ..dados_comuns.fluxo_status import (
+    FluxoAprovacaoPartindoDaDiretoriaRegional,
+    FluxoAprovacaoPartindoDaEscola,
+)
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from .managers import (
     SolicitacaoUnificadaDestaSemanaManager,
@@ -36,11 +39,13 @@ from .managers import (
     SolicitacoesKitLancheAvulsaDesteMesManager,
     SolicitacoesKitLancheAvulsaVencidaDiasManager,
     SolicitacoesKitLancheCemeiDestaSemanaManager,
-    SolicitacoesKitLancheCemeiDesteMesManager
+    SolicitacoesKitLancheCemeiDesteMesManager,
 )
 
 
-class ItemKitLanche(ExportModelOperationsMixin('item_kit_lanche'), Nomeavel, TemChaveExterna):
+class ItemKitLanche(
+    ExportModelOperationsMixin("item_kit_lanche"), Nomeavel, TemChaveExterna
+):
     """Que compõe o KitLanche.
 
     - Barra de Cereal (20 a 25 g embalagem individual)
@@ -53,60 +58,80 @@ class ItemKitLanche(ExportModelOperationsMixin('item_kit_lanche'), Nomeavel, Tem
         return self.nome
 
     class Meta:
-        verbose_name = 'Item do kit lanche'
-        verbose_name_plural = 'Item do kit lanche'
+        verbose_name = "Item do kit lanche"
+        verbose_name_plural = "Item do kit lanche"
 
 
-class KitLanche(ExportModelOperationsMixin('kit_lanche'), Nomeavel, TemChaveExterna):
+class KitLanche(ExportModelOperationsMixin("kit_lanche"), Nomeavel, TemChaveExterna):
     """kit1, kit2, kit3."""
 
-    ATIVO = 'ATIVO'
-    INATIVO = 'INATIVO'
+    ATIVO = "ATIVO"
+    INATIVO = "INATIVO"
 
     STATUS_CHOICES = (
-        (ATIVO, 'Ativo'),
-        (INATIVO, 'Inativo'),
+        (ATIVO, "Ativo"),
+        (INATIVO, "Inativo"),
     )
 
-    descricao = models.TextField(default='')
+    descricao = models.TextField(default="")
     edital = models.ForeignKey(
-        'terceirizada.Edital', on_delete=models.DO_NOTHING, related_name='edital_kit_lanche', default=None, null=True)
+        "terceirizada.Edital",
+        on_delete=models.DO_NOTHING,
+        related_name="edital_kit_lanche",
+        default=None,
+        null=True,
+    )
     status = models.CharField(choices=STATUS_CHOICES, max_length=10, default=ATIVO)
 
     def __str__(self):
         return self.nome
 
     class Meta:
-        verbose_name = 'Kit lanche'
-        verbose_name_plural = 'Kit lanches'
-        ordering = ('nome',)
+        verbose_name = "Kit lanche"
+        verbose_name_plural = "Kit lanches"
+        ordering = ("nome",)
 
 
-class SolicitacaoKitLanche(ExportModelOperationsMixin('kit_lanche_base'), TemData, Motivo, Descritivel, CriadoEm,
-                           TempoPasseio, TemChaveExterna):
+class SolicitacaoKitLanche(
+    ExportModelOperationsMixin("kit_lanche_base"),
+    TemData,
+    Motivo,
+    Descritivel,
+    CriadoEm,
+    TempoPasseio,
+    TemChaveExterna,
+):
     # TODO: implementar one to one, nas duas tabelas que apontam pra essa
     # https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.OneToOneField
 
     kits = models.ManyToManyField(KitLanche, blank=True)
 
     def __str__(self):
-        return f'{self.motivo} criado em {self.criado_em}'
+        return f"{self.motivo} criado em {self.criado_em}"
 
     class Meta:
-        verbose_name = 'Solicitação kit lanche base'
-        verbose_name_plural = 'Solicitações kit lanche base'
+        verbose_name = "Solicitação kit lanche base"
+        verbose_name_plural = "Solicitações kit lanche base"
 
 
-class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
-                                     FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                     CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo,
-                                     TemTerceirizadaConferiuGestaoAlimentacao):
+class SolicitacaoKitLancheAvulsaBase(
+    TemChaveExterna,  # type: ignore
+    FluxoAprovacaoPartindoDaEscola,
+    TemIdentificadorExternoAmigavel,
+    CriadoPor,
+    TemPrioridade,
+    Logs,
+    SolicitacaoForaDoPrazo,
+    TemTerceirizadaConferiuGestaoAlimentacao,
+):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
-    DESCRICAO = 'Kit Lanche'
+    DESCRICAO = "Kit Lanche"
     local = models.CharField(max_length=160)
     evento = models.CharField(max_length=160, blank=True)
-    solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
+    solicitacao_kit_lanche = models.ForeignKey(
+        SolicitacaoKitLanche, on_delete=models.DO_NOTHING
+    )
 
     objects = models.Manager()  # Manager Padrão
     desta_semana = SolicitacoesKitLancheAvulsaDestaSemanaManager()
@@ -123,8 +148,8 @@ class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
         return self.solicitacao_kit_lanche.data
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
-        justificativa = kwargs.get('justificativa', '')
-        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        justificativa = kwargs.get("justificativa", "")
+        resposta_sim_nao = kwargs.get("resposta_sim_nao", False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
@@ -132,19 +157,21 @@ class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
             usuario=usuario,
             uuid_original=self.uuid,
             justificativa=justificativa,
-            resposta_sim_nao=resposta_sim_nao
+            resposta_sim_nao=resposta_sim_nao,
         )
 
     @property
     def template_mensagem(self):
-        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
+        template = TemplateMensagem.objects.get(
+            tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA
+        )
         template_troca = {
-            '@id': self.id_externo,
-            '@criado_em': str(self.solicitacao_kit_lanche.criado_em),
-            '@criado_por': str(self.criado_por),
-            '@status': str(self.status),
+            "@id": self.id_externo,
+            "@criado_em": str(self.solicitacao_kit_lanche.criado_em),
+            "@criado_por": str(self.criado_por),
+            "@status": str(self.status),
             # TODO: verificar a url padrão do pedido
-            '@link': 'http://teste.com',
+            "@link": "http://teste.com",
         }
         corpo = template.template_html
         for chave, valor in template_troca.items():
@@ -155,20 +182,28 @@ class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
         abstract = True
 
 
-class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa'), SolicitacaoKitLancheAvulsaBase):
+class SolicitacaoKitLancheAvulsa(
+    ExportModelOperationsMixin("kit_lanche_avulsa"), SolicitacaoKitLancheAvulsaBase
+):
     quantidade_alunos = models.BigIntegerField(blank=True, null=True)
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
-                               related_name='solicitacoes_kit_lanche_avulsa')
-    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
+    escola = models.ForeignKey(
+        "escola.Escola",
+        on_delete=models.DO_NOTHING,
+        related_name="solicitacoes_kit_lanche_avulsa",
+    )
+    alunos_com_dieta_especial_participantes = models.ManyToManyField("escola.Aluno")
 
     @property
     def solicitacoes_similares(self):
         tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
         data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheAvulsa.objects.filter(escola=self.escola).exclude(
-            status=SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO)
-        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
-                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
+        all_objects = SolicitacaoKitLancheAvulsa.objects.filter(
+            escola=self.escola
+        ).exclude(status=SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO)
+        solicitacoes_similares = all_objects.filter(
+            solicitacao_kit_lanche__data=data_evento,
+            solicitacao_kit_lanche__tempo_passeio=tempo_passeio,
+        )
         solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
         return solicitacoes_similares
 
@@ -178,11 +213,11 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
 
     @property
     def tipo(self):
-        return 'Kit Lanche Passeio'
+        return "Kit Lanche Passeio"
 
     @property
     def path(self):
-        return f'solicitacao-de-kit-lanche/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
+        return f"solicitacao-de-kit-lanche/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal"
 
     @property
     def numero_alunos(self):
@@ -190,37 +225,47 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
 
     def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
-            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
-            'unidade_educacional': self.rastro_escola.nome,
-            'terceirizada': self.rastro_terceirizada.nome,
-            'tipo_doc': 'Kit Lanche Passeio',
-            'data_evento': self.data,
-            'numero_alunos': self.numero_alunos,
-            'local_passeio': self.local,
-            'evento': self.evento,
-            'observacao': self.observacao,
-            'data_autorizacao': self.data_autorizacao,
-            'tempo_passeio': self.solicitacao_kit_lanche.get_tempo_passeio_display(),
-            'kits': ', '.join(list(self.solicitacao_kit_lanche.kits.all().values_list('nome', flat=True))),
-            'total_kits': self.quantidade_alimentacoes,
-            'label_data': label_data,
-            'data_log': data_log,
-            'id_externo': self.id_externo
+            "lote": f"{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}",
+            "unidade_educacional": self.rastro_escola.nome,
+            "terceirizada": self.rastro_terceirizada.nome,
+            "tipo_doc": "Kit Lanche Passeio",
+            "data_evento": self.data,
+            "numero_alunos": self.numero_alunos,
+            "local_passeio": self.local,
+            "evento": self.evento,
+            "observacao": self.observacao,
+            "data_autorizacao": self.data_autorizacao,
+            "tempo_passeio": self.solicitacao_kit_lanche.get_tempo_passeio_display(),
+            "kits": ", ".join(
+                list(
+                    self.solicitacao_kit_lanche.kits.all().values_list(
+                        "nome", flat=True
+                    )
+                )
+            ),
+            "total_kits": self.quantidade_alimentacoes,
+            "label_data": label_data,
+            "data_log": data_log,
+            "id_externo": self.id_externo,
         }
 
     def __str__(self):
-        return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'
+        return f"{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}"
 
     class Meta:
-        verbose_name = 'Solicitação de kit lanche avulsa'
-        verbose_name_plural = 'Solicitações de kit lanche avulsa'
+        verbose_name = "Solicitação de kit lanche avulsa"
+        verbose_name_plural = "Solicitações de kit lanche avulsa"
 
 
-class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_avulsa'),
-                                    SolicitacaoKitLancheAvulsaBase):
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
-                               related_name='solicitacoes_kit_lanche_cei_avulsa')
-    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
+class SolicitacaoKitLancheCEIAvulsa(
+    ExportModelOperationsMixin("kit_lanche_cei_avulsa"), SolicitacaoKitLancheAvulsaBase
+):
+    escola = models.ForeignKey(
+        "escola.Escola",
+        on_delete=models.DO_NOTHING,
+        related_name="solicitacoes_kit_lanche_cei_avulsa",
+    )
+    alunos_com_dieta_especial_participantes = models.ManyToManyField("escola.Aluno")
 
     @property
     def observacao(self):
@@ -228,15 +273,17 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
 
     @property
     def tipo(self):
-        return 'Kit Lanche Passeio'
+        return "Kit Lanche Passeio"
 
     @property
     def path(self):
-        return f'solicitacao-de-kit-lanche/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-cei'
+        return f"solicitacao-de-kit-lanche/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-cei"
 
     @property
     def quantidade_alunos(self):
-        return self.faixas_etarias.all().aggregate(models.Sum('quantidade'))['quantidade__sum']
+        return self.faixas_etarias.all().aggregate(models.Sum("quantidade"))[
+            "quantidade__sum"
+        ]
 
     @property
     def numero_alunos(self):
@@ -244,79 +291,106 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
 
     @property
     def total_matriculados_quando_criado(self):
-        return sum(list(self.faixas_etarias.values_list('matriculados_quando_criado', flat=True)))
+        return sum(
+            list(
+                self.faixas_etarias.values_list("matriculados_quando_criado", flat=True)
+            )
+        )
 
     @property
     def get_faixas_etarias_dict(self):
         faixas_etarias = []
         for faixa in self.faixas_etarias.all():
-            faixas_etarias.append({
-                'faixa_etaria': faixa.faixa_etaria.__str__(),
-                'matriculados_quando_criado': faixa.matriculados_quando_criado,
-                'quantidade': faixa.quantidade
-            })
+            faixas_etarias.append(
+                {
+                    "faixa_etaria": faixa.faixa_etaria.__str__(),
+                    "matriculados_quando_criado": faixa.matriculados_quando_criado,
+                    "quantidade": faixa.quantidade,
+                }
+            )
         return faixas_etarias
 
     def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
-            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
-            'unidade_educacional': self.rastro_escola.nome,
-            'terceirizada': self.rastro_terceirizada.nome,
-            'tipo_doc': 'Kit Lanche Passeio de CEI',
-            'data_evento': self.data,
-            'numero_alunos': self.numero_alunos,
-            'local_passeio': self.local,
-            'evento': self.evento,
-            'observacao': self.observacao,
-            'data_autorizacao': self.data_autorizacao,
-            'tempo_passeio': self.solicitacao_kit_lanche.get_tempo_passeio_display(),
-            'kits': ', '.join(list(self.solicitacao_kit_lanche.kits.all().values_list('nome', flat=True))),
-            'total_kits': self.quantidade_alimentacoes,
-            'total_alunos': self.quantidade_alunos,
-            'label_data': label_data,
-            'data_log': data_log,
-            'faixas_etarias': self.get_faixas_etarias_dict,
-            'total_matriculados': self.total_matriculados_quando_criado,
-            'id_externo': self.id_externo
+            "lote": f"{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}",
+            "unidade_educacional": self.rastro_escola.nome,
+            "terceirizada": self.rastro_terceirizada.nome,
+            "tipo_doc": "Kit Lanche Passeio de CEI",
+            "data_evento": self.data,
+            "numero_alunos": self.numero_alunos,
+            "local_passeio": self.local,
+            "evento": self.evento,
+            "observacao": self.observacao,
+            "data_autorizacao": self.data_autorizacao,
+            "tempo_passeio": self.solicitacao_kit_lanche.get_tempo_passeio_display(),
+            "kits": ", ".join(
+                list(
+                    self.solicitacao_kit_lanche.kits.all().values_list(
+                        "nome", flat=True
+                    )
+                )
+            ),
+            "total_kits": self.quantidade_alimentacoes,
+            "total_alunos": self.quantidade_alunos,
+            "label_data": label_data,
+            "data_log": data_log,
+            "faixas_etarias": self.get_faixas_etarias_dict,
+            "total_matriculados": self.total_matriculados_quando_criado,
+            "id_externo": self.id_externo,
         }
 
     @property
     def solicitacoes_similares(self):
         tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
         data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheCEIAvulsa.objects.filter(escola=self.escola).exclude(
-            status=SolicitacaoKitLancheCEIAvulsa.workflow_class.RASCUNHO)
-        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
-                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
+        all_objects = SolicitacaoKitLancheCEIAvulsa.objects.filter(
+            escola=self.escola
+        ).exclude(status=SolicitacaoKitLancheCEIAvulsa.workflow_class.RASCUNHO)
+        solicitacoes_similares = all_objects.filter(
+            solicitacao_kit_lanche__data=data_evento,
+            solicitacao_kit_lanche__tempo_passeio=tempo_passeio,
+        )
         solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
         return solicitacoes_similares
 
     def __str__(self):
-        return f'{self.escola} SOLICITA EM {self.local}'
+        return f"{self.escola} SOLICITA EM {self.local}"
 
     class Meta:
-        verbose_name = 'Solicitação de kit lanche CEI avulsa'
-        verbose_name_plural = 'Solicitações de kit lanche CEI avulsa'
+        verbose_name = "Solicitação de kit lanche CEI avulsa"
+        verbose_name_plural = "Solicitações de kit lanche CEI avulsa"
 
 
-class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(TemChaveExterna, TemFaixaEtariaEQuantidade, MatriculadosQuandoCriado):
-    solicitacao_kit_lanche_avulsa = models.ForeignKey('SolicitacaoKitLancheCEIAvulsa',
-                                                      on_delete=models.CASCADE, related_name='faixas_etarias')
+class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(
+    TemChaveExterna, TemFaixaEtariaEQuantidade, MatriculadosQuandoCriado
+):
+    solicitacao_kit_lanche_avulsa = models.ForeignKey(
+        "SolicitacaoKitLancheCEIAvulsa",
+        on_delete=models.CASCADE,
+        related_name="faixas_etarias",
+    )
 
     def __str__(self):
-        retorno = f'Faixa Etária de solicitação de kit lanche CEI avulsa {self.uuid}'
-        retorno += f' da solicitação: {self.solicitacao_kit_lanche_avulsa.uuid}'
+        retorno = f"Faixa Etária de solicitação de kit lanche CEI avulsa {self.uuid}"
+        retorno += f" da solicitação: {self.solicitacao_kit_lanche_avulsa.uuid}"
         return retorno
 
     class Meta:
-        verbose_name = 'Faixa Etária de solicitação de kit lanche CEI avulsa'
-        verbose_name_plural = 'Faixas Etárias de solicitação de kit lanche CEI avulsa'
+        verbose_name = "Faixa Etária de solicitação de kit lanche CEI avulsa"
+        verbose_name_plural = "Faixas Etárias de solicitação de kit lanche CEI avulsa"
 
 
-class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unificada'), CriadoPor, TemChaveExterna,
-                                    TemIdentificadorExternoAmigavel, SolicitacaoForaDoPrazo,
-                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade,
-                                    TemTerceirizadaConferiuGestaoAlimentacao):
+class SolicitacaoKitLancheUnificada(
+    ExportModelOperationsMixin("kit_lanche_unificada"),
+    CriadoPor,
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel,
+    SolicitacaoForaDoPrazo,
+    FluxoAprovacaoPartindoDaDiretoriaRegional,
+    Logs,
+    TemPrioridade,
+    TemTerceirizadaConferiuGestaoAlimentacao,
+):
     """Uma DRE pede para as suas escolas.
 
     lista_kit_lanche_igual é a mesma lista de kit lanche pra todos.
@@ -329,15 +403,19 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
 
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
-    DESCRICAO = 'Kit Lanche Unificado'
+    DESCRICAO = "Kit Lanche Unificado"
 
     outro_motivo = models.TextField(blank=True)
     local = models.CharField(max_length=160)
     evento = models.CharField(max_length=160, blank=True)
     lista_kit_lanche_igual = models.BooleanField(default=True)
 
-    diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
-    solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
+    diretoria_regional = models.ForeignKey(
+        "escola.DiretoriaRegional", on_delete=models.DO_NOTHING
+    )
+    solicitacao_kit_lanche = models.ForeignKey(
+        SolicitacaoKitLanche, on_delete=models.DO_NOTHING
+    )
 
     objects = models.Manager()  # Manager Padrão
     desta_semana = SolicitacaoUnificadaDestaSemanaManager()
@@ -345,7 +423,9 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     vencidos = SolicitacaoUnificadaVencidaManager()
 
     def possui_escola_na_solicitacao(self, escola):
-        return escola.nome in str(self.escolas_quantidades.all().values('escola__nome').distinct())
+        return escola.nome in str(
+            self.escolas_quantidades.all().values("escola__nome").distinct()
+        )
 
     @property
     def data(self):
@@ -353,11 +433,11 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
 
     @property
     def tipo(self):
-        return 'Kit Lanche Unificado'
+        return "Kit Lanche Unificado"
 
     @property
     def path(self):
-        return f'solicitacao-unificada/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal'
+        return f"solicitacao-unificada/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-normal"
 
     @property
     def observacao(self):
@@ -373,7 +453,7 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
             escola_quantidade = self.escolas_quantidades.first()
             lote_nome = escola_quantidade.escola.lote.nome
         except ObjectDoesNotExist:
-            lote_nome = 'Não tem lote'
+            lote_nome = "Não tem lote"
         return lote_nome
 
     @property
@@ -395,13 +475,13 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     def get_pedidos_rascunho(cls, usuario):
         solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
             criado_por=usuario,
-            status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO
+            status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO,
         )
         return solicitacoes_unificadas
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
-        justificativa = kwargs.get('justificativa', '')
-        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        justificativa = kwargs.get("justificativa", "")
+        resposta_sim_nao = kwargs.get("resposta_sim_nao", False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
@@ -409,12 +489,12 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
             usuario=usuario,
             uuid_original=self.uuid,
             justificativa=justificativa,
-            resposta_sim_nao=resposta_sim_nao
+            resposta_sim_nao=resposta_sim_nao,
         )
 
     @property
     def quantidade_de_lotes(self):
-        return self.escolas_quantidades.distinct('escola__lote').count()
+        return self.escolas_quantidades.distinct("escola__lote").count()
 
     def dividir_por_lote(self):
         if self.quantidade_de_lotes > 1:
@@ -429,7 +509,9 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     def dividir_por_dois_lotes(self) -> models.QuerySet:
         primeiro_id = self.id
         primeiro_lote = self.escolas_quantidades.first().escola.lote  # type: ignore
-        escolas_quantidades_desse_lote = self.escolas_quantidades.filter(escola__lote=primeiro_lote)
+        escolas_quantidades_desse_lote = self.escolas_quantidades.filter(
+            escola__lote=primeiro_lote
+        )
         for escola_quantidade in escolas_quantidades_desse_lote:
             self.escolas_quantidades.remove(escola_quantidade)
         solicitacao_segundo_lote = self
@@ -437,7 +519,9 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
         solicitacao_segundo_lote.uuid = uuid.uuid4()
         solicitacao_segundo_lote.save()
         solicitacao_segundo_lote.escolas_quantidades.set(escolas_quantidades_desse_lote)
-        return SolicitacaoKitLancheUnificada.objects.filter(id__in=[primeiro_id, solicitacao_segundo_lote.id])
+        return SolicitacaoKitLancheUnificada.objects.filter(
+            id__in=[primeiro_id, solicitacao_segundo_lote.id]
+        )
 
     # TODO: se esse caso existir algum dia, implementar
     def dividir_por_tres_ou_mais_lotes(self):
@@ -445,14 +529,16 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
 
     @property
     def template_mensagem(self):
-        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA)
+        template = TemplateMensagem.objects.get(
+            tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA
+        )
         template_troca = {
-            '@id': self.id_externo,
-            '@criado_em': str(self.solicitacao_kit_lanche.criado_em),
-            '@criado_por': str(self.criado_por),
-            '@status': str(self.status),
+            "@id": self.id_externo,
+            "@criado_em": str(self.solicitacao_kit_lanche.criado_em),
+            "@criado_por": str(self.criado_por),
+            "@status": str(self.status),
             # TODO: verificar a url padrão do pedido
-            '@link': 'http://teste.com',
+            "@link": "http://teste.com",
         }
         corpo = template.template_html
         for chave, valor in template_troca.items():
@@ -462,9 +548,15 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     @property
     def total_kit_lanche(self):
         if self.lista_kit_lanche_igual:
-            total_alunos = SolicitacaoKitLancheUnificada.objects.annotate(
-                total_alunos=Coalesce(models.Sum('escolas_quantidades__quantidade_alunos'), 0)).get(
-                id=self.id).total_alunos
+            total_alunos = (
+                SolicitacaoKitLancheUnificada.objects.annotate(
+                    total_alunos=Coalesce(
+                        models.Sum("escolas_quantidades__quantidade_alunos"), 0
+                    )
+                )
+                .get(id=self.id)
+                .total_alunos
+            )
             total_kit_lanche = self.solicitacao_kit_lanche.kits.all().count()
             return total_alunos * total_kit_lanche
         else:
@@ -475,13 +567,17 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
 
     def total_kit_lanche_escola(self, escola_uuid):
         try:
-            return self.escolas_quantidades.get(escola__uuid=escola_uuid).total_kit_lanche
+            return self.escolas_quantidades.get(
+                escola__uuid=escola_uuid
+            ).total_kit_lanche
         except EscolaQuantidade.DoesNotExist:
             return 0
 
     @property
     def numero_alunos(self):
-        return self.escolas_quantidades.aggregate(Sum('quantidade_alunos'))['quantidade_alunos__sum']
+        return self.escolas_quantidades.aggregate(Sum("quantidade_alunos"))[
+            "quantidade_alunos__sum"
+        ]
 
     def get_escolas_quantidades_dict(self, instituicao=None):
         escolas_quantidades = []
@@ -489,45 +585,58 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
         if instituicao:
             qs_escolas_quantidades = qs_escolas_quantidades.filter(escola=instituicao)
         for escola_quantidade in qs_escolas_quantidades:
-            escolas_quantidades.append({
-                'codigo': escola_quantidade.escola.codigo_eol,
-                'unidade_escolar': escola_quantidade.escola.nome,
-                'quantidade': escola_quantidade.quantidade_alunos,
-                'tempo_passeio': escola_quantidade.get_tempo_passeio_display(),
-                'opcao_desejada': ', '.join(list(escola_quantidade.kits.all().values_list('nome', flat=True))),
-                'total_kits': escola_quantidade.total_kit_lanche
-            })
+            escolas_quantidades.append(
+                {
+                    "codigo": escola_quantidade.escola.codigo_eol,
+                    "unidade_escolar": escola_quantidade.escola.nome,
+                    "quantidade": escola_quantidade.quantidade_alunos,
+                    "tempo_passeio": escola_quantidade.get_tempo_passeio_display(),
+                    "opcao_desejada": ", ".join(
+                        list(
+                            escola_quantidade.kits.all().values_list("nome", flat=True)
+                        )
+                    ),
+                    "total_kits": escola_quantidade.total_kit_lanche,
+                }
+            )
         return escolas_quantidades
 
     def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         from sme_terceirizadas.escola.models import Escola
+
         dict_ = {
-            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
-            'unidade_educacional': (f'{self.escolas_quantidades.count()} Escolas'
-                                    if self.escolas_quantidades.count() > 1
-                                    else self.escolas_quantidades.get().escola.nome),
-            'terceirizada': 'Várias Terceirizadas',
-            'tipo_doc': 'Kit Lanche Unificado',
-            'data_evento': self.data,
-            'numero_alunos': self.numero_alunos,
-            'local_passeio': self.local,
-            'evento': self.evento,
-            'observacao': self.observacao,
-            'data_autorizacao': self.data_autorizacao,
-            'tempo_passeio': self.solicitacao_kit_lanche.get_tempo_passeio_display(),
-            'total_kits': self.quantidade_alimentacoes,
-            'label_data': label_data,
-            'data_log': data_log,
-            'escolas_quantidades': self.get_escolas_quantidades_dict(),
-            'id_externo': self.id_externo
+            "lote": f"{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}",
+            "unidade_educacional": (
+                f"{self.escolas_quantidades.count()} Escolas"
+                if self.escolas_quantidades.count() > 1
+                else self.escolas_quantidades.get().escola.nome
+            ),
+            "terceirizada": "Várias Terceirizadas",
+            "tipo_doc": "Kit Lanche Unificado",
+            "data_evento": self.data,
+            "numero_alunos": self.numero_alunos,
+            "local_passeio": self.local,
+            "evento": self.evento,
+            "observacao": self.observacao,
+            "data_autorizacao": self.data_autorizacao,
+            "tempo_passeio": self.solicitacao_kit_lanche.get_tempo_passeio_display(),
+            "total_kits": self.quantidade_alimentacoes,
+            "label_data": label_data,
+            "data_log": data_log,
+            "escolas_quantidades": self.get_escolas_quantidades_dict(),
+            "id_externo": self.id_externo,
         }
 
         if isinstance(instituicao, Escola):
-            dict_['unidade_educacional'] = instituicao.nome
-            dict_['terceirizada'] = instituicao.lote.terceirizada.nome_fantasia
-            dict_['numero_alunos'] = self.escolas_quantidades.get(escola=instituicao).quantidade_alunos
-            dict_['total_kits'] = self.total_kit_lanche_escola(instituicao.uuid)
-            dict_['escolas_quantidades'] = self.get_escolas_quantidades_dict(instituicao)
+            dict_["unidade_educacional"] = instituicao.nome
+            dict_["terceirizada"] = instituicao.lote.terceirizada.nome_fantasia
+            dict_["numero_alunos"] = self.escolas_quantidades.get(
+                escola=instituicao
+            ).quantidade_alunos
+            dict_["total_kits"] = self.total_kit_lanche_escola(instituicao.uuid)
+            dict_["escolas_quantidades"] = self.get_escolas_quantidades_dict(
+                instituicao
+            )
 
         return dict_
 
@@ -535,31 +644,41 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     def solicitacoes_similares(self):
         tempo_passeio = self.solicitacao_kit_lanche.tempo_passeio
         data_evento = self.solicitacao_kit_lanche.data
-        all_objects = SolicitacaoKitLancheUnificada.objects.filter(diretoria_regional=self.diretoria_regional).exclude(
-            status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO)
-        solicitacoes_similares = all_objects.filter(solicitacao_kit_lanche__data=data_evento,
-                                                    solicitacao_kit_lanche__tempo_passeio=tempo_passeio)
+        all_objects = SolicitacaoKitLancheUnificada.objects.filter(
+            diretoria_regional=self.diretoria_regional
+        ).exclude(status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO)
+        solicitacoes_similares = all_objects.filter(
+            solicitacao_kit_lanche__data=data_evento,
+            solicitacao_kit_lanche__tempo_passeio=tempo_passeio,
+        )
         solicitacoes_similares = solicitacoes_similares.exclude(uuid=self.uuid)
         return solicitacoes_similares
 
     def __str__(self):
         dre = self.diretoria_regional
-        return f'{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}'
+        return f"{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}"
 
     class Meta:
-        verbose_name = 'Solicitação kit lanche unificada'
-        verbose_name_plural = 'Solicitações de  kit lanche unificadas'
+        verbose_name = "Solicitação kit lanche unificada"
+        verbose_name_plural = "Solicitações de  kit lanche unificadas"
 
 
-class EscolaQuantidade(ExportModelOperationsMixin('escola_quantidade'), TemChaveExterna, TempoPasseio,
-                       CanceladoIndividualmente):
+class EscolaQuantidade(
+    ExportModelOperationsMixin("escola_quantidade"),
+    TemChaveExterna,
+    TempoPasseio,
+    CanceladoIndividualmente,
+):
     quantidade_alunos = models.PositiveSmallIntegerField()
-    solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada,
-                                              on_delete=models.CASCADE,
-                                              related_name='escolas_quantidades',
-                                              blank=True, null=True)
+    solicitacao_unificada = models.ForeignKey(
+        SolicitacaoKitLancheUnificada,
+        on_delete=models.CASCADE,
+        related_name="escolas_quantidades",
+        blank=True,
+        null=True,
+    )
     kits = models.ManyToManyField(KitLanche, blank=True)
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey("escola.Escola", on_delete=models.DO_NOTHING)
 
     @property
     def total_kit_lanche(self):
@@ -568,33 +687,43 @@ class EscolaQuantidade(ExportModelOperationsMixin('escola_quantidade'), TemChave
     def __str__(self):
         kit_lanche_personalizado = bool(self.kits.count())
         tempo_passeio = self.get_tempo_passeio_display()
-        return f'{tempo_passeio} para {self.quantidade_alunos} alunos, kits diferenciados? {kit_lanche_personalizado}'
+        return f"{tempo_passeio} para {self.quantidade_alunos} alunos, kits diferenciados? {kit_lanche_personalizado}"
 
     class Meta:
-        verbose_name = 'Escola quantidade'
-        verbose_name_plural = 'Escolas quantidades'
+        verbose_name = "Escola quantidade"
+        verbose_name_plural = "Escolas quantidades"
 
 
-class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo, CriadoEm, TemObservacao,
-                                TemTerceirizadaConferiuGestaoAlimentacao):
-    TODOS = 'TODOS'
-    CEI = 'CEI'
-    EMEI = 'EMEI'
+class SolicitacaoKitLancheCEMEI(
+    TemChaveExterna,
+    FluxoAprovacaoPartindoDaEscola,
+    TemIdentificadorExternoAmigavel,
+    CriadoPor,
+    TemPrioridade,
+    Logs,
+    SolicitacaoForaDoPrazo,
+    CriadoEm,
+    TemObservacao,
+    TemTerceirizadaConferiuGestaoAlimentacao,
+):
+    TODOS = "TODOS"
+    CEI = "CEI"
+    EMEI = "EMEI"
 
-    STATUS_CHOICES = (
-        (TODOS, 'Todos'),
-        (CEI, 'CEI'),
-        (EMEI, 'EMEI')
-    )
+    STATUS_CHOICES = ((TODOS, "Todos"), (CEI, "CEI"), (EMEI, "EMEI"))
 
-    DESCRICAO = 'Kit Lanche CEMEI'
+    DESCRICAO = "Kit Lanche CEMEI"
     local = models.CharField(max_length=160)
     evento = models.CharField(max_length=160, blank=True)
-    data = models.DateField('Data')
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
-                               related_name='solicitacoes_kit_lanche_cemei')
-    alunos_cei_e_ou_emei = models.CharField(choices=STATUS_CHOICES, max_length=10, default=TODOS)
+    data = models.DateField("Data")
+    escola = models.ForeignKey(
+        "escola.Escola",
+        on_delete=models.DO_NOTHING,
+        related_name="solicitacoes_kit_lanche_cemei",
+    )
+    alunos_cei_e_ou_emei = models.CharField(
+        choices=STATUS_CHOICES, max_length=10, default=TODOS
+    )
 
     objects = models.Manager()  # Manager Padrão
     desta_semana = SolicitacoesKitLancheCemeiDestaSemanaManager()
@@ -602,19 +731,19 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
 
     @property
     def tem_solicitacao_cei(self):
-        return hasattr(self, 'solicitacao_cei')
+        return hasattr(self, "solicitacao_cei")
 
     @property
     def tem_solicitacao_emei(self):
-        return hasattr(self, 'solicitacao_emei')
+        return hasattr(self, "solicitacao_emei")
 
     @property
     def tipo(self):
-        return 'Kit Lanche Passeio'
+        return "Kit Lanche Passeio"
 
     @property
     def path(self):
-        return f'solicitacao-de-kit-lanche-cemei/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-cemei'
+        return f"solicitacao-de-kit-lanche-cemei/relatorio?uuid={self.uuid}&tipoSolicitacao=solicitacao-cemei"
 
     @property
     def numero_alunos(self):
@@ -639,8 +768,8 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
         return self.total_kits
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
-        justificativa = kwargs.get('justificativa', '')
-        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        justificativa = kwargs.get("justificativa", "")
+        resposta_sim_nao = kwargs.get("resposta_sim_nao", False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
@@ -648,7 +777,7 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             usuario=usuario,
             uuid_original=self.uuid,
             justificativa=justificativa,
-            resposta_sim_nao=resposta_sim_nao
+            resposta_sim_nao=resposta_sim_nao,
         )
 
     @property
@@ -662,17 +791,21 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
             for faixa in self.solicitacao_cei.faixas_quantidades.all():
                 total_alunos += faixa.quantidade_alunos
                 total_matriculados += faixa.matriculados_quando_criado
-                alunos_cei.append({
-                    'faixa_etaria': faixa.faixa_etaria.__str__(),
-                    'quantidade': faixa.quantidade_alunos,
-                    'matriculados_quando_criado': faixa.matriculados_quando_criado
-                })
+                alunos_cei.append(
+                    {
+                        "faixa_etaria": faixa.faixa_etaria.__str__(),
+                        "quantidade": faixa.quantidade_alunos,
+                        "matriculados_quando_criado": faixa.matriculados_quando_criado,
+                    }
+                )
         return {
-            'tempo_passeio': self.solicitacao_cei.get_tempo_passeio_display(),
-            'alunos_cei': alunos_cei,
-            'kits': ', '.join(list(self.solicitacao_cei.kits.all().values_list('nome', flat=True))),
-            'total_alunos': total_alunos,
-            'total_matriculados': total_matriculados
+            "tempo_passeio": self.solicitacao_cei.get_tempo_passeio_display(),
+            "alunos_cei": alunos_cei,
+            "kits": ", ".join(
+                list(self.solicitacao_cei.kits.all().values_list("nome", flat=True))
+            ),
+            "total_alunos": total_alunos,
+            "total_matriculados": total_matriculados,
         }
 
     @property
@@ -680,108 +813,137 @@ class SolicitacaoKitLancheCEMEI(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
         if not self.tem_solicitacao_emei:
             return {}
         return {
-            'tempo_passeio': self.solicitacao_emei.get_tempo_passeio_display(),
-            'kits': ', '.join(list(self.solicitacao_emei.kits.all().values_list('nome', flat=True))),
-            'matriculados_quando_criado': self.solicitacao_emei.matriculados_quando_criado,
-            'quantidade_alunos': self.solicitacao_emei.quantidade_alunos
+            "tempo_passeio": self.solicitacao_emei.get_tempo_passeio_display(),
+            "kits": ", ".join(
+                list(self.solicitacao_emei.kits.all().values_list("nome", flat=True))
+            ),
+            "matriculados_quando_criado": self.solicitacao_emei.matriculados_quando_criado,
+            "quantidade_alunos": self.solicitacao_emei.quantidade_alunos,
         }
 
     def solicitacao_dict_para_relatorio(self, label_data, data_log, instituicao):
         return {
-            'lote': f'{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}',
-            'unidade_educacional': self.rastro_escola.nome,
-            'terceirizada': self.rastro_terceirizada.nome,
-            'tipo_doc': 'Kit Lanche Passeio de CEMEI',
-            'data_evento': self.data,
-            'numero_alunos': self.numero_alunos,
-            'label_data': label_data,
-            'data_log': data_log,
-            'local_passeio': self.local,
-            'evento': self.evento,
-            'observacao': self.observacao,
-            'data_autorizacao': self.data_autorizacao,
-            'solicitacao_cei': self.get_solicitacao_cei_dict,
-            'solicitacao_emei': self.get_solicitacao_emei_dict,
-            'total_kits': self.total_kits,
-            'id_externo': self.id_externo
+            "lote": f"{self.rastro_lote.diretoria_regional.iniciais} - {self.rastro_lote.nome}",
+            "unidade_educacional": self.rastro_escola.nome,
+            "terceirizada": self.rastro_terceirizada.nome,
+            "tipo_doc": "Kit Lanche Passeio de CEMEI",
+            "data_evento": self.data,
+            "numero_alunos": self.numero_alunos,
+            "label_data": label_data,
+            "data_log": data_log,
+            "local_passeio": self.local,
+            "evento": self.evento,
+            "observacao": self.observacao,
+            "data_autorizacao": self.data_autorizacao,
+            "solicitacao_cei": self.get_solicitacao_cei_dict,
+            "solicitacao_emei": self.get_solicitacao_emei_dict,
+            "total_kits": self.total_kits,
+            "id_externo": self.id_externo,
         }
 
     @property
     def solicitacoes_similares(self):
-        filtros = {'data': self.data, 'escola': self.escola}
+        filtros = {"data": self.data, "escola": self.escola}
         if self.tem_solicitacao_cei:
-            filtros['solicitacao_cei__tempo_passeio'] = self.solicitacao_cei.tempo_passeio
+            filtros[
+                "solicitacao_cei__tempo_passeio"
+            ] = self.solicitacao_cei.tempo_passeio
         if self.tem_solicitacao_emei:
-            filtros['solicitacao_emei__tempo_passeio'] = self.solicitacao_emei.tempo_passeio
+            filtros[
+                "solicitacao_emei__tempo_passeio"
+            ] = self.solicitacao_emei.tempo_passeio
         return SolicitacaoKitLancheCEMEI.objects.filter(**filtros).exclude(
-            Q(uuid=self.uuid) | Q(status=SolicitacaoKitLancheCEMEI.workflow_class.RASCUNHO))
+            Q(uuid=self.uuid)
+            | Q(status=SolicitacaoKitLancheCEMEI.workflow_class.RASCUNHO)
+        )
 
     class Meta:
-        verbose_name = 'Solicitação Kit Lanche CEMEI'
-        verbose_name_plural = 'Solicitações Kit Lanche CEMEI'
-        ordering = ('-criado_em',)
+        verbose_name = "Solicitação Kit Lanche CEMEI"
+        verbose_name_plural = "Solicitações Kit Lanche CEMEI"
+        ordering = ("-criado_em",)
 
 
 class SolicitacaoKitLancheCEIdaCEMEI(TemChaveExterna, TempoPasseio):
     kits = models.ManyToManyField(KitLanche, blank=True)
-    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
-    solicitacao_kit_lanche_cemei = models.OneToOneField(SolicitacaoKitLancheCEMEI,
-                                                        blank=True,
-                                                        null=True,
-                                                        on_delete=models.CASCADE,
-                                                        related_name='solicitacao_cei')
+    alunos_com_dieta_especial_participantes = models.ManyToManyField("escola.Aluno")
+    solicitacao_kit_lanche_cemei = models.OneToOneField(
+        SolicitacaoKitLancheCEMEI,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="solicitacao_cei",
+    )
 
     @property
     def quantidade_alimentacoes(self):
-        return sum(self.faixas_quantidades.values_list('quantidade_alunos', flat=True)) * self.kits.count()
+        return (
+            sum(self.faixas_quantidades.values_list("quantidade_alunos", flat=True))
+            * self.kits.count()
+        )
 
     @property
     def quantidade_alunos(self):
-        return sum(self.faixas_quantidades.values_list('quantidade_alunos', flat=True))
+        return sum(self.faixas_quantidades.values_list("quantidade_alunos", flat=True))
 
     @property
     def quantidade_matriculados(self):
-        return sum(self.faixas_quantidades.values_list('matriculados_quando_criado', flat=True))
+        return sum(
+            self.faixas_quantidades.values_list("matriculados_quando_criado", flat=True)
+        )
 
     @property
     def nomes_kits(self):
-        return ', '.join(list(self.kits.values_list('nome', flat=True)))
+        return ", ".join(list(self.kits.values_list("nome", flat=True)))
 
     @property
     def tem_alunos_com_dieta(self):
         return self.alunos_com_dieta_especial_participantes.exists()
 
     class Meta:
-        verbose_name = 'Solicitação Kit Lanche CEI da EMEI'
-        verbose_name_plural = 'Solicitações Kit Lanche CEI da EMEI'
+        verbose_name = "Solicitação Kit Lanche CEI da EMEI"
+        verbose_name_plural = "Solicitações Kit Lanche CEI da EMEI"
 
 
 class FaixasQuantidadesKitLancheCEIdaCEMEI(TemChaveExterna, MatriculadosQuandoCriado):
-    solicitacao_kit_lanche_cei_da_cemei = models.ForeignKey(SolicitacaoKitLancheCEIdaCEMEI,
-                                                            on_delete=models.CASCADE,
-                                                            related_name='faixas_quantidades')
-    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.PROTECT)
+    solicitacao_kit_lanche_cei_da_cemei = models.ForeignKey(
+        SolicitacaoKitLancheCEIdaCEMEI,
+        on_delete=models.CASCADE,
+        related_name="faixas_quantidades",
+    )
+    quantidade_alunos = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)]
+    )
+    faixa_etaria = models.ForeignKey("escola.FaixaEtaria", on_delete=models.PROTECT)
 
     class Meta:
-        ordering = ('faixa_etaria__inicio',)
-        verbose_name = 'Faixa e quantidade de alunos da CEI da solicitação kit lanche CEMEI'
-        verbose_name_plural = 'Faixas e quantidade de alunos da CEI das solicitações kit lanche CEMEI'
+        ordering = ("faixa_etaria__inicio",)
+        verbose_name = (
+            "Faixa e quantidade de alunos da CEI da solicitação kit lanche CEMEI"
+        )
+        verbose_name_plural = (
+            "Faixas e quantidade de alunos da CEI das solicitações kit lanche CEMEI"
+        )
 
 
-class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio, MatriculadosQuandoCriado):
+class SolicitacaoKitLancheEMEIdaCEMEI(
+    TemChaveExterna, TempoPasseio, MatriculadosQuandoCriado
+):
     kits = models.ManyToManyField(KitLanche, blank=True)
-    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
-    solicitacao_kit_lanche_cemei = models.OneToOneField(SolicitacaoKitLancheCEMEI,
-                                                        blank=True,
-                                                        null=True,
-                                                        on_delete=models.CASCADE,
-                                                        related_name='solicitacao_emei')
+    quantidade_alunos = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)]
+    )
+    alunos_com_dieta_especial_participantes = models.ManyToManyField("escola.Aluno")
+    solicitacao_kit_lanche_cemei = models.OneToOneField(
+        SolicitacaoKitLancheCEMEI,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="solicitacao_emei",
+    )
 
     @property
     def nomes_kits(self):
-        return ', '.join(list(self.kits.values_list('nome', flat=True)))
+        return ", ".join(list(self.kits.values_list("nome", flat=True)))
 
     @property
     def quantidade_alimentacoes(self):
@@ -792,5 +954,5 @@ class SolicitacaoKitLancheEMEIdaCEMEI(TemChaveExterna, TempoPasseio, Matriculado
         return self.alunos_com_dieta_especial_participantes.exists()
 
     class Meta:
-        verbose_name = 'Solicitação Kit Lanche CEI da EMEI'
-        verbose_name_plural = 'Solicitações Kit Lanche CEI da EMEI'
+        verbose_name = "Solicitação Kit Lanche CEI da EMEI"
+        verbose_name_plural = "Solicitações Kit Lanche CEI da EMEI"

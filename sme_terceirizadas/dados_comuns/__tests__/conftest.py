@@ -14,12 +14,12 @@ from ...escola import models
 from ..constants import COORDENADOR_LOGISTICA, DJANGO_ADMIN_PASSWORD
 from ..models import CentralDeDownload, Notificacao, TemplateMensagem
 
-fake = Faker('pt_BR')
+fake = Faker("pt_BR")
 Faker.seed(420)
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
         # dia, dias antecedencia, esperado
         # dia fake do teste: "2019-05-22"
@@ -34,29 +34,29 @@ def dias_teste_antecedencia(request):
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
         # dia, dias antecedencia, esperado
         # dia fake do teste: "2019-05-22"
         (
             datetime.date(2019, 5, 27),
             5,
-            'Deve pedir com pelo menos 5 dias úteis de antecedência',
+            "Deve pedir com pelo menos 5 dias úteis de antecedência",
         ),
         (
             datetime.date(2019, 5, 28),
             5,
-            'Deve pedir com pelo menos 5 dias úteis de antecedência',
+            "Deve pedir com pelo menos 5 dias úteis de antecedência",
         ),
         (
             datetime.date(2019, 5, 23),
             2,
-            'Deve pedir com pelo menos 2 dias úteis de antecedência',
+            "Deve pedir com pelo menos 2 dias úteis de antecedência",
         ),
         (
             datetime.date(2019, 5, 21),
             2,
-            'Deve pedir com pelo menos 2 dias úteis de antecedência',
+            "Deve pedir com pelo menos 2 dias úteis de antecedência",
         ),
     ],
 )
@@ -65,7 +65,7 @@ def dias_teste_antecedencia_erro(request):
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
         # dia, esperado
         (datetime.date(2019, 12, 23), True),
@@ -78,11 +78,11 @@ def dias_uteis(request):
     return request.param
 
 
-esperado = 'Não é dia útil em São Paulo'
+esperado = "Não é dia útil em São Paulo"
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
         # dia, esperado
         (datetime.date(2019, 12, 25), esperado),  # natal
@@ -97,7 +97,7 @@ def dias_nao_uteis(request):
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
         # dia,  esperado
         # dia fake do teste: "2019-05-22"
@@ -111,11 +111,11 @@ def dias_futuros(request):
     return request.param
 
 
-dia_passado_esperado = 'Não pode ser no passado'
+dia_passado_esperado = "Não pode ser no passado"
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
         # dia,  esperado
         # dia fake do teste: "2019-05-22"
@@ -129,7 +129,7 @@ def dias_passados(request):
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
         # dia,  esperado
         # dia fake do teste: "2019-07-10" -> qua
@@ -143,22 +143,22 @@ def dias_uteis_apos(request):
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
         # model-params-dict, esperado
         (
             {
-                '_model': 'TemplateMensagem',
-                'assunto': 'Inversão de cardápio',
-                'template_html': '<p><span style="color: rgb(133,135,150);background-color:'
+                "_model": "TemplateMensagem",
+                "assunto": "Inversão de cardápio",
+                "template_html": '<p><span style="color: rgb(133,135,150);background-color:'
                 ' rgb(255,255,255);font-size: 16px;">Ola @nome, a Inversão de'
-                ' cardápio #@id pedida por @criado_por está em @status. '
-                'Acesse: @link</span></p>',
+                " cardápio #@id pedida por @criado_por está em @status. "
+                "Acesse: @link</span></p>",
             },
             '<p><span style="color: rgb(133,135,150);background-color:'
             ' rgb(255,255,255);font-size: 16px;">Ola fulano, a Inversão de'
-            ' cardápio #FAKE_id_externo pedida por FAKE_criado_por está em FAKE_status. '
-            'Acesse: http:teste.com</span></p>',
+            " cardápio #FAKE_id_externo pedida por FAKE_criado_por está em FAKE_status. "
+            "Acesse: http:teste.com</span></p>",
         ),
     ],
 )
@@ -178,22 +178,22 @@ def enable_db_access_for_all_tests(db):
 
 @pytest.fixture
 def validators_models_object():
-    return mommy.make('dados_comuns.TemplateMensagem', assunto='TESTE')
+    return mommy.make("dados_comuns.TemplateMensagem", assunto="TESTE")
 
 
 @pytest.fixture
 def validators_valor_str():
-    return {'texto': 'Nome', 'none': None}
+    return {"texto": "Nome", "none": None}
 
 
 @pytest.fixture
 def tipo_unidade():
-    return mommy.make('TipoUnidadeEscolar', iniciais='EMEF')
+    return mommy.make("TipoUnidadeEscolar", iniciais="EMEF")
 
 
 @pytest.fixture
 def escola(tipo_unidade):
-    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
     return mommy.make(
         models.Escola,
         nome=fake.name(),
@@ -206,14 +206,14 @@ def escola(tipo_unidade):
 @pytest.fixture
 def dia_suspensao_atividades(escola):
     return mommy.make(
-        'DiaSuspensaoAtividades',
+        "DiaSuspensaoAtividades",
         tipo_unidade=escola.tipo_unidade,
         data=datetime.date(2023, 9, 26),
     )
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
         # dia do cardápio
         (datetime.date(2019, 5, 18)),
@@ -231,15 +231,15 @@ def dias_sem_cardapio(request):
     params=[
         (
             datetime.date(datetime.datetime.now().year - 1, 5, 26),
-            'Solicitação deve ser solicitada no ano corrente',
+            "Solicitação deve ser solicitada no ano corrente",
         ),
         (
             datetime.date(datetime.datetime.now().year + 1, 1, 1),
-            'Solicitação deve ser solicitada no ano corrente',
+            "Solicitação deve ser solicitada no ano corrente",
         ),
         (
             datetime.date(datetime.datetime.now().year + 2, 12, 1),
-            'Solicitação deve ser solicitada no ano corrente',
+            "Solicitação deve ser solicitada no ano corrente",
         ),
     ]
 )
@@ -261,10 +261,10 @@ def data_inversao_mesmo_ano(request):
 @pytest.fixture
 def client_autenticado_coordenador_codae(client, django_user_model):
     email, password, rf, cpf = (
-        'cogestor_1@sme.prefeitura.sp.gov.br',
+        "cogestor_1@sme.prefeitura.sp.gov.br",
         DJANGO_ADMIN_PASSWORD,
-        '0000001',
-        '44426575052',
+        "0000001",
+        "44426575052",
     )
     user = django_user_model.objects.create_user(
         username=email, password=password, email=email, registro_funcional=rf, cpf=cpf
@@ -272,19 +272,19 @@ def client_autenticado_coordenador_codae(client, django_user_model):
     client.login(username=email, password=password)
 
     codae = mommy.make(
-        'Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
+        "Codae", nome="CODAE", uuid="b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd"
     )
 
     perfil_coordenador = mommy.make(
-        'Perfil',
-        nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
+        "Perfil",
+        nome="COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA",
         ativo=True,
-        uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1',
+        uuid="41c20c8b-7e57-41ed-9433-ccb92e8afaf1",
     )
-    mommy.make('Lote', uuid='143c2550-8bf0-46b4-b001-27965cfcd107')
+    mommy.make("Lote", uuid="143c2550-8bf0-46b4-b001-27965cfcd107")
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=codae,
         perfil=perfil_coordenador,
@@ -297,18 +297,18 @@ def client_autenticado_coordenador_codae(client, django_user_model):
 
 @pytest.fixture
 def client_autenticado_da_escola(client, django_user_model, escola):
-    email = 'user@escola.com'
-    password = 'admin@123'
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    email = "user@escola.com"
+    password = "admin@123"
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
     usuario = django_user_model.objects.create_user(
         username=email,
         password=password,
         email=email,
-        registro_funcional='123456',
+        registro_funcional="123456",
     )
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=usuario,
         instituicao=escola,
         perfil=perfil_diretor,
@@ -321,15 +321,15 @@ def client_autenticado_da_escola(client, django_user_model, escola):
 
 @pytest.fixture
 def usuario_teste_notificacao_autenticado(client, django_user_model):
-    email, password = ('usuario_teste@admin.com', DJANGO_ADMIN_PASSWORD)
+    email, password = ("usuario_teste@admin.com", DJANGO_ADMIN_PASSWORD)
     user = django_user_model.objects.create_user(
-        username=email, password=password, email=email, registro_funcional='8888888'
+        username=email, password=password, email=email, registro_funcional="8888888"
     )
-    perfil_admin_dilog = mommy.make('Perfil', nome=COORDENADOR_LOGISTICA, ativo=True)
-    codae = mommy.make('Codae')
+    perfil_admin_dilog = mommy.make("Perfil", nome=COORDENADOR_LOGISTICA, ativo=True)
+    codae = mommy.make("Codae")
     hoje = datetime.date.today()
     mommy.make(
-        'Vinculo',
+        "Vinculo",
         usuario=user,
         instituicao=codae,
         perfil=perfil_admin_dilog,
@@ -345,11 +345,11 @@ def usuario_teste_notificacao_autenticado(client, django_user_model):
 def notificacao(usuario_teste_notificacao_autenticado):
     user, client = usuario_teste_notificacao_autenticado
     return mommy.make(
-        'Notificacao',
+        "Notificacao",
         tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
         categoria=Notificacao.CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA,
-        titulo='Nova requisição de entrega',
-        descricao='A requisição 0000 está disponivel para envio ao distribuidor',
+        titulo="Nova requisição de entrega",
+        descricao="A requisição 0000 está disponivel para envio ao distribuidor",
         usuario=user,
         lido=True,
     )
@@ -359,11 +359,11 @@ def notificacao(usuario_teste_notificacao_autenticado):
 def notificacao_de_pendencia(usuario_teste_notificacao_autenticado):
     user, client = usuario_teste_notificacao_autenticado
     return mommy.make(
-        'Notificacao',
+        "Notificacao",
         tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
         categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
-        titulo='Conferencia em atraso',
-        descricao='A guia 0000 precisa ser conferida',
+        titulo="Conferencia em atraso",
+        descricao="A guia 0000 precisa ser conferida",
         usuario=user,
     )
 
@@ -371,26 +371,26 @@ def notificacao_de_pendencia(usuario_teste_notificacao_autenticado):
 @pytest.fixture
 def notificacao_de_pendencia_com_requisicao(usuario_teste_notificacao_autenticado):
     distribuidor = mommy.make(
-        'Terceirizada',
-        contatos=[mommy.make('dados_comuns.Contato')],
+        "Terceirizada",
+        contatos=[mommy.make("dados_comuns.Contato")],
         make_m2m=True,
-        nome_fantasia='Alimentos SA',
+        nome_fantasia="Alimentos SA",
     )
     requisicao = mommy.make(
-        'SolicitacaoRemessa',
-        cnpj='12345678901234',
-        numero_solicitacao='559890',
+        "SolicitacaoRemessa",
+        cnpj="12345678901234",
+        numero_solicitacao="559890",
         sequencia_envio=1212,
         quantidade_total_guias=2,
         distribuidor=distribuidor,
     )
     user, client = usuario_teste_notificacao_autenticado
     return mommy.make(
-        'Notificacao',
+        "Notificacao",
         tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
         categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
-        titulo='Conferencia em atraso',
-        descricao='A guia 0000 precisa ser conferida',
+        titulo="Conferencia em atraso",
+        descricao="A guia 0000 precisa ser conferida",
         usuario=user,
         requisicao=requisicao,
     )
@@ -398,30 +398,30 @@ def notificacao_de_pendencia_com_requisicao(usuario_teste_notificacao_autenticad
 
 @pytest.fixture
 def arquivo():
-    return SimpleUploadedFile('teste.pdf', bytes('CONTEUDO TESTE', encoding='utf-8'))
+    return SimpleUploadedFile("teste.pdf", bytes("CONTEUDO TESTE", encoding="utf-8"))
 
 
 @pytest.fixture
 def download(usuario_teste_notificacao_autenticado, arquivo):
     user, client = usuario_teste_notificacao_autenticado
     return mommy.make(
-        'CentralDeDownload',
+        "CentralDeDownload",
         status=CentralDeDownload.STATUS_CONCLUIDO,
-        identificador='teste.pdf',
+        identificador="teste.pdf",
         arquivo=arquivo,
         usuario=user,
         visto=False,
         criado_em=datetime.datetime.now(),
-        msg_erro='',
+        msg_erro="",
     )
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
-        'anexo.pdf',
-        'anexo_1.xls',
-        'anexo_2.xlsx',
+        "anexo.pdf",
+        "anexo_1.xls",
+        "anexo_2.xlsx",
     ],
 )
 def nomes_anexos_validos(request):
@@ -429,11 +429,11 @@ def nomes_anexos_validos(request):
 
 
 @pytest.fixture(
-    scope='function',
+    scope="function",
     params=[
-        'anexo.zip',
-        'anexo_1.py',
-        'anexo_2.js',
+        "anexo.zip",
+        "anexo_1.py",
+        "anexo_2.js",
     ],
 )
 def nomes_anexos_invalidos(request):
@@ -447,16 +447,16 @@ def data_maior_que_hoje():
 
 @pytest.fixture
 def escola_cei():
-    terceirizada = mommy.make('Terceirizada')
-    lote = mommy.make('Lote', terceirizada=terceirizada)
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make("Lote", terceirizada=terceirizada)
     diretoria_regional = mommy.make(
-        'DiretoriaRegional', nome='DIRETORIA REGIONAL TESTE'
+        "DiretoriaRegional", nome="DIRETORIA REGIONAL TESTE"
     )
-    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
-    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='CEI DIRET')
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEI DIRET")
     return mommy.make(
-        'Escola',
-        nome='CEI DIRET TESTE',
+        "Escola",
+        nome="CEI DIRET TESTE",
         lote=lote,
         diretoria_regional=diretoria_regional,
         tipo_gestao=tipo_gestao,
@@ -466,7 +466,7 @@ def escola_cei():
 
 @pytest.fixture
 def periodo_escolar():
-    return mommy.make(models.PeriodoEscolar, nome='INTEGRAL')
+    return mommy.make(models.PeriodoEscolar, nome="INTEGRAL")
 
 
 @pytest.fixture
@@ -503,7 +503,7 @@ def logs_quantidade_dietas_autorizadas_escola_comum(escola, periodo_escolar):
     ontem = hoje - datetime.timedelta(days=1)
     tres_dias_atras = hoje - datetime.timedelta(days=3)
     quantidades = [10, 10]
-    classificacao = mommy.make(ClassificacaoDieta, nome='Tipo A')
+    classificacao = mommy.make(ClassificacaoDieta, nome="Tipo A")
     for quantidade in quantidades:
         mommy.make(
             LogQuantidadeDietasAutorizadas,

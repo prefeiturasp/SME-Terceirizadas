@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kit_lanche', '0003_auto_20191206_1113'),
+        ("kit_lanche", "0003_auto_20191206_1113"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaokitlancheunificada',
-            name='foi_solicitado_fora_do_prazo',
-            field=models.BooleanField(default=False, verbose_name='Solicitação foi criada em cima da hora (5 dias úteis ou menos)?'),
+            model_name="solicitacaokitlancheunificada",
+            name="foi_solicitado_fora_do_prazo",
+            field=models.BooleanField(
+                default=False,
+                verbose_name="Solicitação foi criada em cima da hora (5 dias úteis ou menos)?",
+            ),
         ),
     ]

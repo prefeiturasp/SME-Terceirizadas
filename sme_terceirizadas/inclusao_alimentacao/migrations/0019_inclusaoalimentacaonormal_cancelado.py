@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0018_auto_20220426_1325'),
+        ("inclusao_alimentacao", "0018_auto_20220426_1325"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='inclusaoalimentacaonormal',
-            name='cancelado',
-            field=models.BooleanField(default=False, verbose_name='Esta cancelado?'),
+            model_name="inclusaoalimentacaonormal",
+            name="cancelado",
+            field=models.BooleanField(default=False, verbose_name="Esta cancelado?"),
         ),
     ]

@@ -16,7 +16,7 @@ from ..escola.models import (
 )
 from .models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 
-logger = logging.getLogger('sigpae.taskCardapio')
+logger = logging.getLogger("sigpae.taskCardapio")
 
 
 def bypass_ativa_vinculos(tipo_unidade, periodos_escolares):
@@ -35,7 +35,7 @@ def bypass_ativa_vinculos(tipo_unidade, periodos_escolares):
 
 @shared_task(
     retry_backoff=5,
-    retry_kwargs={'max_retries': 2},
+    retry_kwargs={"max_retries": 2},
 )
 def ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar():
     """O sistema assume que todas as escolas tem todos os períodos.
@@ -47,12 +47,12 @@ def ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escol
     vide `tem_somente_integral_e_parcial()` em TipoUnidadeEscolar
     """
     logger.debug(
-        'Iniciando task ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar'
-        f' às {datetime.datetime.now()}'
+        "Iniciando task ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar"
+        f" às {datetime.datetime.now()}"
     )
 
     # SGP não tem informações de CEU GESTAO, estamos colocando manualmente até o momento 22/07/2022
-    for tipo_unidade in TipoUnidadeEscolar.objects.all().exclude(iniciais='CEU GESTAO'):
+    for tipo_unidade in TipoUnidadeEscolar.objects.all().exclude(iniciais="CEU GESTAO"):
         # atualiza com base nos dados da api do EOL
         for periodo_escolar in PeriodoEscolar.objects.all():
             (
@@ -68,12 +68,12 @@ def ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escol
             ).exists()
             vinculo.ativo = tem_alunos_neste_periodo_e_tipo_ue
             vinculo.save()
-            if tipo_unidade.iniciais in ['EMEF P FOM', 'EMEI P FOM']:
+            if tipo_unidade.iniciais in ["EMEF P FOM", "EMEI P FOM"]:
                 tem_alunos_neste_periodo_e_eh_p_fom = (
                     AlunosMatriculadosPeriodoEscola.objects.filter(
                         periodo_escolar=periodo_escolar,
                         escola__tipo_unidade__iniciais=tipo_unidade,
-                        tipo_turma='REGULAR',
+                        tipo_turma="REGULAR",
                     ).exists()
                 )
                 vinculo.ativo = tem_alunos_neste_periodo_e_eh_p_fom

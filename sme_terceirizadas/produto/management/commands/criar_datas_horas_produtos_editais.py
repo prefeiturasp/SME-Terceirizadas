@@ -5,56 +5,56 @@ from sme_terceirizadas.produto.models import HomologacaoProduto, Produto, Produt
 
 
 class Command(BaseCommand):
-    help = 'Cria objetos DataHoraVinculoProdutoEdital para todos os produtos'
+    help = "Cria objetos DataHoraVinculoProdutoEdital para todos os produtos"
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS('Iniciando processo de criação dos dados'))
+        self.stdout.write(self.style.SUCCESS("Iniciando processo de criação dos dados"))
         produtos = Produto.objects.filter(vinculos__isnull=False).distinct()
         self.stdout.write(
             self.style.SUCCESS(
-                f'Criando objetos DataHora de {produtos.count()} produtos simples...'
+                f"Criando objetos DataHora de {produtos.count()} produtos simples..."
             )
         )
         self.cria_datas_horas_dos_vinculos_do_produto(produtos)
         self.stdout.write(
             self.style.SUCCESS(
-                f'DataHora de {produtos.count()} produtos simples finalizado.'
+                f"DataHora de {produtos.count()} produtos simples finalizado."
             )
         )
         self.stdout.write(
-            self.style.SUCCESS('Verificando quantidade de produtos complexos...')
+            self.style.SUCCESS("Verificando quantidade de produtos complexos...")
         )
         hom_produtos_complexos_uuids = self.produtos_complexos()
         self.stdout.write(
             self.style.SUCCESS(
-                'Criando objetos DataHora de '
-                f'{len(hom_produtos_complexos_uuids)} produtos complexos...'
+                "Criando objetos DataHora de "
+                f"{len(hom_produtos_complexos_uuids)} produtos complexos..."
             )
         )
         self.lida_com_produtos_complexos(hom_produtos_complexos_uuids)
         self.stdout.write(
             self.style.SUCCESS(
-                f'DataHora de {len(hom_produtos_complexos_uuids)} '
-                'produtos complexos finalizado.'
+                f"DataHora de {len(hom_produtos_complexos_uuids)} "
+                "produtos complexos finalizado."
             )
         )
         uuids_suspensos_editais = LogSolicitacoesUsuario.objects.filter(
             status_evento=LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS
-        ).values_list('uuid_original', flat=True)
+        ).values_list("uuid_original", flat=True)
         self.stdout.write(
             self.style.SUCCESS(
-                'Criando objetos DataHora de '
-                f'{len(uuids_suspensos_editais)} produtos com log de editais suspensos...'
+                "Criando objetos DataHora de "
+                f"{len(uuids_suspensos_editais)} produtos com log de editais suspensos..."
             )
         )
         self.lida_com_log_editais_suspensos(uuids_suspensos_editais)
         self.stdout.write(
             self.style.SUCCESS(
-                f'DataHora de {len(uuids_suspensos_editais)} produtos finalizado.'
+                f"DataHora de {len(uuids_suspensos_editais)} produtos finalizado."
             )
         )
         self.stdout.write(
-            self.style.SUCCESS('Finalizando processo de migracao de dados')
+            self.style.SUCCESS("Finalizando processo de migracao de dados")
         )
 
     def cria_datas_horas_dos_vinculos_do_produto(self, produtos):
@@ -63,11 +63,11 @@ class Command(BaseCommand):
                 data_hora = produto_edital.criar_data_hora_vinculo()
                 data_hora.criado_em = produto_edital.criado_em
                 data_hora.save()
-                if produto_edital.edital.numero == 'Edital de Pregão n°78/SME/2016':
+                if produto_edital.edital.numero == "Edital de Pregão n°78/SME/2016":
                     data_hora.criado_em = produto_edital.produto.data_homologacao
                     data_hora.save()
             if index % 100 == 0 and index:
-                self.stdout.write(self.style.SUCCESS(f'Já foram {index}...'))
+                self.stdout.write(self.style.SUCCESS(f"Já foram {index}..."))
 
     def produtos_complexos(self):
         produtos = Produto.objects.filter(vinculos__isnull=False).distinct()
@@ -76,9 +76,9 @@ class Command(BaseCommand):
             hom = produto.homologacao
             for log in hom.logs.all():
                 if (
-                    'suspen' in log.get_status_evento_display()
-                    or 'não homol' in log.get_status_evento_display()
-                    or 'autorizou reclamação' in log.get_status_evento_display()
+                    "suspen" in log.get_status_evento_display()
+                    or "não homol" in log.get_status_evento_display()
+                    or "autorizou reclamação" in log.get_status_evento_display()
                 ):
                     prods_log_editais.append(hom.uuid)
                     continue
@@ -109,10 +109,10 @@ class Command(BaseCommand):
         )
         for hom_produto in hom_produtos:
             for log in hom_produto.logs.all():
-                if log.get_status_evento_display() == 'Suspenso em alguns editais':
-                    editais = log.justificativa.split('<p>Editais suspensos:</p>')[1][
+                if log.get_status_evento_display() == "Suspenso em alguns editais":
+                    editais = log.justificativa.split("<p>Editais suspensos:</p>")[1][
                         3:-4
-                    ].split(', ')
+                    ].split(", ")
                     for edital in editais:
                         produto_edital = ProdutoEdital.objects.get(
                             produto=hom_produto.produto, edital__numero=edital

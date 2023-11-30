@@ -70,28 +70,28 @@ logger = logging.getLogger(__name__)
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = Usuario.objects.all()
     serializer_class = UsuarioDetalheSerializer
 
-    @action(detail=False, url_path='atualizar-email', methods=['patch'])
+    @action(detail=False, url_path="atualizar-email", methods=["patch"])
     def atualizar_email(self, request):
         usuario = request.user
-        tipo_email = request.data.get('tipo_email')
+        tipo_email = request.data.get("tipo_email")
         usuario.tipo_email = tipo_email
-        usuario.email = request.data.get('email')
+        usuario.email = request.data.get("email")
         usuario.save()
         serializer = self.get_serializer(usuario)
         return Response(serializer.data)
 
-    @action(detail=False, url_path='atualizar-cargo', methods=['get'])
+    @action(detail=False, url_path="atualizar-cargo", methods=["get"])
     def atualizar_cargo(self, request):
         usuario = request.user
         registro_funcional = usuario.registro_funcional
         busca_cargo_de_usuario.delay(registro_funcional)
-        return Response({'detail': 'sucesso'}, status=status.HTTP_200_OK)
+        return Response({"detail": "sucesso"}, status=status.HTTP_200_OK)
 
-    @action(detail=False, url_path='atualizar-senha', methods=['patch'])
+    @action(detail=False, url_path="atualizar-senha", methods=["patch"])
     @transaction.atomic
     def atualizar_senha(self, request):
         serializer = RedefinirSenhaSerializer()
@@ -103,13 +103,13 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
         if isinstance(result, Response):
             usuario.last_login = None
             usuario.save()
-            logger.error('Erro ao alterar a senha:', result)
+            logger.error("Erro ao alterar a senha:", result)
             return result
         return Response(
-            {'detail': 'Senha alterada com sucesso'}, status=status.HTTP_200_OK
+            {"detail": "Senha alterada com sucesso"}, status=status.HTTP_200_OK
         )
 
-    @action(detail=False, url_path='meus-dados')
+    @action(detail=False, url_path="meus-dados")
     def meus_dados(self, request):
         usuario = request.user
         serializer = self.get_serializer(usuario)
@@ -121,17 +121,17 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     serializer_class = UsuarioUpdateSerializer
 
     def get_authenticators(self, *args, **kwargs):
-        if 'post' in self.action_map and self.action_map['post'] == 'create':
+        if "post" in self.action_map and self.action_map["post"] == "create":
             return []
         return super().get_authenticators(*args, **kwargs)
 
     def _get_usuario(self, request):
-        if request.data.get('registro_funcional') is not None:
+        if request.data.get("registro_funcional") is not None:
             return Usuario.objects.get(
-                registro_funcional=request.data.get('registro_funcional')
+                registro_funcional=request.data.get("registro_funcional")
             )
         else:
-            return Usuario.objects.get(email=request.data.get('email'))
+            return Usuario.objects.get(email=request.data.get("email"))
 
     def _get_usuario_por_rf_cpf(self, registro_funcional_ou_cpf):
         return Usuario.objects.get(username=registro_funcional_ou_cpf)
@@ -148,45 +148,45 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
             return Response(UsuarioDetalheSerializer(usuario).data)
         except ValidationError as e:
             return Response(
-                {'detail': e.detail[0].title()}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": e.detail[0].title()}, status=status.HTTP_400_BAD_REQUEST
             )
         except ObjectDoesNotExist:
-            if request.data.get('registro_funcional'):
-                mensagem = 'RF não cadastrado no sistema'
+            if request.data.get("registro_funcional"):
+                mensagem = "RF não cadastrado no sistema"
             else:
-                mensagem = 'E-mail não cadastrado no sistema'
-            return Response({'detail': mensagem}, status=status.HTTP_400_BAD_REQUEST)
+                mensagem = "E-mail não cadastrado no sistema"
+            return Response({"detail": mensagem}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, url_path='recuperar-senha/(?P<registro_funcional_ou_cpf>.*)')
+    @action(detail=False, url_path="recuperar-senha/(?P<registro_funcional_ou_cpf>.*)")
     def recuperar_senha(self, request, registro_funcional_ou_cpf=None):
         try:
             usuario = self._get_usuario_por_rf_cpf(registro_funcional_ou_cpf)
         except ObjectDoesNotExist:
             return Response(
-                {'detail': 'Não existe usuário com este CPF ou RF'},
+                {"detail": "Não existe usuário com este CPF ou RF"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         usuario.enviar_email_recuperacao_senha()
-        return Response({'email': f'{ofuscar_email(usuario.email)}'})
+        return Response({"email": f"{ofuscar_email(usuario.email)}"})
 
     @action(
         detail=False,
-        methods=['POST'],
-        url_path='atualizar-senha/(?P<usuario_uuid>.*)/(?P<token_reset>.*)',
+        methods=["POST"],
+        url_path="atualizar-senha/(?P<usuario_uuid>.*)/(?P<token_reset>.*)",
     )  # noqa
     def atualizar_senha(self, request, usuario_uuid=None, token_reset=None):
         serializer = RedefinirSenhaSerializer()
         data = {
-            'senha': request.data.get('senha1'),
-            'confirmar_senha': request.data.get('senha2'),
-            'token': token_reset,
+            "senha": request.data.get("senha1"),
+            "confirmar_senha": request.data.get("senha2"),
+            "token": token_reset,
         }
         validated_data = serializer.validate(data)
         try:
             usuario = Usuario.objects.get(uuid=usuario_uuid)
         except ObjectDoesNotExist:
             return Response(
-                {'detail': 'Não existe usuário com este e-mail ou RF'},
+                {"detail": "Não existe usuário com este e-mail ou RF"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         result = serializer.update(usuario, validated_data)
@@ -195,16 +195,16 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
         if isinstance(result, Response):
             usuario.last_login = None
             usuario.save()
-            logger.error('Erro ao alterar a senha:', result)
+            logger.error("Erro ao alterar a senha:", result)
             return result
         return Response(
-            {'detail': 'Senha alterada com sucesso'}, status=status.HTTP_200_OK
+            {"detail": "Senha alterada com sucesso"}, status=status.HTTP_200_OK
         )
 
 
 class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = Perfil.objects.all()
     serializer_class = PerfilSimplesSerializer
 
@@ -218,7 +218,7 @@ class PerfisVinculadosViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PerfisVinculados.objects.all()
     serializer_class = PerfisVinculadosSerializer
 
-    @action(detail=True, methods=['get'], url_path='perfis-subordinados')
+    @action(detail=True, methods=["get"], url_path="perfis-subordinados")
     def retorna_perfis_subordinados(self, request, pk=None):
         try:
             perfil_buscado = Perfil.objects.get(nome=pk)
@@ -232,7 +232,7 @@ class PerfisVinculadosViewSet(viewsets.ReadOnlyModelViewSet):
 
         except ObjectDoesNotExist:
             return Response(
-                {'detail': 'Perfil ou Perfis Vinculados não encontrado'},
+                {"detail": "Perfil ou Perfis Vinculados não encontrado"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -249,7 +249,7 @@ class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
             usuario.is_active = usuario.is_confirmed
         except ObjectDoesNotExist:
             return Response(
-                {'detail': 'Erro ao confirmar email'},
+                {"detail": "Erro ao confirmar email"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -262,7 +262,7 @@ class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
             vinculo_esperando_ativacao.save()
         except ObjectDoesNotExist:
             return Response(
-                {'detail': 'Não possui vínculo'}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Não possui vínculo"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         usuario.save()
@@ -271,7 +271,7 @@ class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
 
 class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = Vinculo.objects.all()
     serializer_class = VinculoSerializer
     pagination_class = PerfilPagination
@@ -280,8 +280,8 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(
         detail=False,
-        methods=['GET'],
-        url_path='vinculos-ativos',
+        methods=["GET"],
+        url_path="vinculos-ativos",
         permission_classes=(PermissaoParaCriarUsuarioComCoresso,),
     )
     def lista_vinculos_ativos(self, request):
@@ -298,10 +298,10 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
                     content_type=usuario.vinculo_atual.content_type,
                     object_id=usuario.vinculo_atual.object_id,
                 )
-                .order_by('-data_inicial')
+                .order_by("-data_inicial")
             )
         else:
-            queryset = self.get_queryset().order_by('-data_inicial')
+            queryset = self.get_queryset().order_by("-data_inicial")
 
         queryset = queryset.filtrar_por_usernames_validos().exclude(
             usuario=request.user
@@ -322,8 +322,8 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(
         detail=False,
-        methods=['GET'],
-        url_path='vinculo-empresa',
+        methods=["GET"],
+        url_path="vinculo-empresa",
         permission_classes=(IsAuthenticated,),
     )
     def vinculo_empresa(self, request):
@@ -337,58 +337,58 @@ class VinculoViewSet(viewsets.ReadOnlyModelViewSet):
                 vinc for vinc in vinculos if vinc.status is Vinculo.STATUS_ATIVO
             ][0]
             response = {
-                'nome': vinculo.instituicao.nome,
-                'cnpj': vinculo.instituicao.cnpj,
+                "nome": vinculo.instituicao.nome,
+                "cnpj": vinculo.instituicao.cnpj,
             }
         else:
-            response = {'erro': 'Vínculo não encontrato.'}
+            response = {"erro": "Vínculo não encontrato."}
         return Response(response, status=status.HTTP_200_OK)
 
 
 def exportar_planilha_importacao_usuarios_perfil_codae(request, **kwargs):
     response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     response[
-        'Content-Disposition'
-    ] = 'attachment; filename=planilha_importacao_usuarios_perfil_CODAE.xlsx'
+        "Content-Disposition"
+    ] = "attachment; filename=planilha_importacao_usuarios_perfil_CODAE.xlsx"
     workbook: Workbook = Workbook()
     ws = workbook.active
-    ws.title = 'CODAE'
+    ws.title = "CODAE"
     headers = [
-        'Nome do Usuário',
-        'Cargo',
-        'Email',
-        'CPF',
-        'Telefone',
-        'RF',
-        'Perfil',
-        'Número CRN',
+        "Nome do Usuário",
+        "Cargo",
+        "Email",
+        "CPF",
+        "Telefone",
+        "RF",
+        "Perfil",
+        "Número CRN",
     ]
-    _font = styles.Font(name='Calibri', sz=10)
+    _font = styles.Font(name="Calibri", sz=10)
     {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
     for i in range(0, len(headers)):
         cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
-        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
-        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.fill = styles.PatternFill("solid", fgColor="ffff99")
+        cabecalho.font = styles.Font(name="Calibri", size=10, bold=True)
         cabecalho.border = styles.Border(
-            left=styles.Side(border_style='thin', color='000000'),
-            right=styles.Side(border_style='thin', color='000000'),
-            top=styles.Side(border_style='thin', color='000000'),
-            bottom=styles.Side(border_style='thin', color='000000'),
+            left=styles.Side(border_style="thin", color="000000"),
+            right=styles.Side(border_style="thin", color="000000"),
+            top=styles.Side(border_style="thin", color="000000"),
+            bottom=styles.Side(border_style="thin", color="000000"),
         )
     dv = DataValidation(
-        type='list',
+        type="list",
         formula1='"COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,'
-        'COORDENADOR_DIETA_ESPECIAL,'
-        'COORDENADOR_SUPERVISAO_NUTRICAO,'
+        "COORDENADOR_DIETA_ESPECIAL,"
+        "COORDENADOR_SUPERVISAO_NUTRICAO,"
         'COORDENADOR_GESTAO_PRODUTO"',
         allow_blank=True,
     )
-    dv.error = 'Perfil Inválido'
-    dv.errorTitle = 'Perfil não permitido'
+    dv.error = "Perfil Inválido"
+    dv.errorTitle = "Perfil não permitido"
     ws.add_data_validation(dv)
-    dv.add('G2:G1048576')
+    dv.add("G2:G1048576")
     workbook.save(response)
 
     return response
@@ -396,41 +396,41 @@ def exportar_planilha_importacao_usuarios_perfil_codae(request, **kwargs):
 
 def exportar_planilha_importacao_usuarios_perfil_escola(request, **kwargs):
     response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     response[
-        'Content-Disposition'
-    ] = 'attachment; filename=planilha_importacao_usuarios_perfil_ESCOLA.xlsx'
+        "Content-Disposition"
+    ] = "attachment; filename=planilha_importacao_usuarios_perfil_ESCOLA.xlsx"
     workbook: Workbook = Workbook()
     ws = workbook.active
-    ws.title = 'ESCOLA'
+    ws.title = "ESCOLA"
     headers = [
-        'Cód. EOL da U.E',
-        'Nome do Usuário',
-        'Cargo',
-        'Email',
-        'CPF',
-        'Telefone',
-        'RF',
-        'Perfil',
+        "Cód. EOL da U.E",
+        "Nome do Usuário",
+        "Cargo",
+        "Email",
+        "CPF",
+        "Telefone",
+        "RF",
+        "Perfil",
     ]
-    _font = styles.Font(name='Calibri', sz=10)
+    _font = styles.Font(name="Calibri", sz=10)
     {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
     for i in range(0, len(headers)):
         cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
-        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
-        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.fill = styles.PatternFill("solid", fgColor="ffff99")
+        cabecalho.font = styles.Font(name="Calibri", size=10, bold=True)
         cabecalho.border = styles.Border(
-            left=styles.Side(border_style='thin', color='000000'),
-            right=styles.Side(border_style='thin', color='000000'),
-            top=styles.Side(border_style='thin', color='000000'),
-            bottom=styles.Side(border_style='thin', color='000000'),
+            left=styles.Side(border_style="thin", color="000000"),
+            right=styles.Side(border_style="thin", color="000000"),
+            top=styles.Side(border_style="thin", color="000000"),
+            bottom=styles.Side(border_style="thin", color="000000"),
         )
-    dv = DataValidation(type='list', formula1='"DIRETOR_UE"', allow_blank=True)
-    dv.error = 'Perfil Inválido'
-    dv.errorTitle = 'Perfil não permitido'
+    dv = DataValidation(type="list", formula1='"DIRETOR_UE"', allow_blank=True)
+    dv.error = "Perfil Inválido"
+    dv.errorTitle = "Perfil não permitido"
     ws.add_data_validation(dv)
-    dv.add('H2:H1048576')
+    dv.add("H2:H1048576")
     workbook.save(response)
 
     return response
@@ -438,41 +438,41 @@ def exportar_planilha_importacao_usuarios_perfil_escola(request, **kwargs):
 
 def exportar_planilha_importacao_usuarios_perfil_dre(request, **kwargs):
     response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     response[
-        'Content-Disposition'
-    ] = 'attachment; filename=planilha_importacao_usuarios_perfil_DRE.xlsx'
+        "Content-Disposition"
+    ] = "attachment; filename=planilha_importacao_usuarios_perfil_DRE.xlsx"
     workbook: Workbook = Workbook()
     ws = workbook.active
-    ws.title = 'DRE'
+    ws.title = "DRE"
     headers = [
-        'Cód. EOL da DRE',
-        'Nome do Usuário',
-        'Cargo',
-        'Email',
-        'CPF',
-        'Telefone',
-        'RF',
-        'Perfil',
+        "Cód. EOL da DRE",
+        "Nome do Usuário",
+        "Cargo",
+        "Email",
+        "CPF",
+        "Telefone",
+        "RF",
+        "Perfil",
     ]
-    _font = styles.Font(name='Calibri', sz=10)
+    _font = styles.Font(name="Calibri", sz=10)
     {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
     for i in range(0, len(headers)):
         cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
-        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
-        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.fill = styles.PatternFill("solid", fgColor="ffff99")
+        cabecalho.font = styles.Font(name="Calibri", size=10, bold=True)
         cabecalho.border = styles.Border(
-            left=styles.Side(border_style='thin', color='000000'),
-            right=styles.Side(border_style='thin', color='000000'),
-            top=styles.Side(border_style='thin', color='000000'),
-            bottom=styles.Side(border_style='thin', color='000000'),
+            left=styles.Side(border_style="thin", color="000000"),
+            right=styles.Side(border_style="thin", color="000000"),
+            top=styles.Side(border_style="thin", color="000000"),
+            bottom=styles.Side(border_style="thin", color="000000"),
         )
-    dv = DataValidation(type='list', formula1='"COGESTOR_DRE"', allow_blank=True)
-    dv.error = 'Perfil Inválido'
-    dv.errorTitle = 'Perfil não permitido'
+    dv = DataValidation(type="list", formula1='"COGESTOR_DRE"', allow_blank=True)
+    dv.error = "Perfil Inválido"
+    dv.errorTitle = "Perfil não permitido"
     ws.add_data_validation(dv)
-    dv.add('H2:H1048576')
+    dv.add("H2:H1048576")
     workbook.save(response)
 
     return response
@@ -480,62 +480,62 @@ def exportar_planilha_importacao_usuarios_perfil_dre(request, **kwargs):
 
 def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
     response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     response[
-        'Content-Disposition'
-    ] = 'attachment; filename=planilha_importacao_usuarios_perfil_servidor_coresso.xlsx'
+        "Content-Disposition"
+    ] = "attachment; filename=planilha_importacao_usuarios_perfil_servidor_coresso.xlsx"
     workbook: Workbook = Workbook()
     ws = workbook.active
-    ws.title = 'Servidores CoreSSO'
+    ws.title = "Servidores CoreSSO"
     headers = [
-        'Cód. EOL da Instituição (Escola, DRE ou CODAE)',
-        'Nome do Usuário',
-        'Cargo',
-        'Email',
-        'CPF',
-        'RF',
-        'Tipo de perfil',
-        'Perfil',
-        'CODAE',
+        "Cód. EOL da Instituição (Escola, DRE ou CODAE)",
+        "Nome do Usuário",
+        "Cargo",
+        "Email",
+        "CPF",
+        "RF",
+        "Tipo de perfil",
+        "Perfil",
+        "CODAE",
     ]
-    _font = styles.Font(name='Calibri', sz=10)
+    _font = styles.Font(name="Calibri", sz=10)
     {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
     for i in range(0, len(headers)):
         cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
-        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
-        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.fill = styles.PatternFill("solid", fgColor="ffff99")
+        cabecalho.font = styles.Font(name="Calibri", size=10, bold=True)
         cabecalho.border = styles.Border(
-            left=styles.Side(border_style='thin', color='000000'),
-            right=styles.Side(border_style='thin', color='000000'),
-            top=styles.Side(border_style='thin', color='000000'),
-            bottom=styles.Side(border_style='thin', color='000000'),
+            left=styles.Side(border_style="thin", color="000000"),
+            right=styles.Side(border_style="thin", color="000000"),
+            top=styles.Side(border_style="thin", color="000000"),
+            bottom=styles.Side(border_style="thin", color="000000"),
         )
-    tipos_de_perfil = 'escola,dre,codae'
-    dv = DataValidation(type='list', formula1=f'{tipos_de_perfil}', allow_blank=True)
-    dv.error = 'Tipo de perfil Inválido'
-    dv.errorTitle = 'Tipo de Perfil não permitido'
+    tipos_de_perfil = "escola,dre,codae"
+    dv = DataValidation(type="list", formula1=f"{tipos_de_perfil}", allow_blank=True)
+    dv.error = "Tipo de perfil Inválido"
+    dv.errorTitle = "Tipo de Perfil não permitido"
     ws.add_data_validation(dv)
-    dv.add('G2:G1048576')
+    dv.add("G2:G1048576")
 
-    perfis_negados = ['ADMINISTRADOR_EMPRESA', 'USUARIO_EMPRESA']
-    perfis = ', '.join(
+    perfis_negados = ["ADMINISTRADOR_EMPRESA", "USUARIO_EMPRESA"]
+    perfis = ", ".join(
         [p.nome for p in Perfil.objects.exclude(nome__in=perfis_negados)]
     )
-    dv2 = DataValidation(type='list', formula1=f'{perfis}', allow_blank=True)
-    dv2.error = 'Perfil Inválido'
-    dv2.errorTitle = 'Perfil não permitido'
+    dv2 = DataValidation(type="list", formula1=f"{perfis}", allow_blank=True)
+    dv2.error = "Perfil Inválido"
+    dv2.errorTitle = "Perfil não permitido"
     ws.add_data_validation(dv2)
-    dv2.add('H2:H1048576')
+    dv2.add("H2:H1048576")
 
-    codaes = ', '.join([c.nome.split(' - ')[1] for c in Codae.objects.all()]).replace(
-        ' ', ''
+    codaes = ", ".join([c.nome.split(" - ")[1] for c in Codae.objects.all()]).replace(
+        " ", ""
     )
-    dv3 = DataValidation(type='list', formula1=f'{codaes}', allow_blank=True)
-    dv3.error = 'CODAE Inválida'
-    dv3.errorTitle = 'CODAE não permitida'
+    dv3 = DataValidation(type="list", formula1=f"{codaes}", allow_blank=True)
+    dv3.error = "CODAE Inválida"
+    dv3.errorTitle = "CODAE não permitida"
     ws.add_data_validation(dv3)
-    dv3.add('I2:I1048576')
+    dv3.add("I2:I1048576")
 
     workbook.save(response)
 
@@ -544,37 +544,37 @@ def exportar_planilha_importacao_usuarios_servidor_coresso(request, **kwargs):
 
 def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
     response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     response[
-        'Content-Disposition'
-    ] = 'attachment; filename=planilha_importacao_usuarios_perfil_servidor_coresso.xlsx'
+        "Content-Disposition"
+    ] = "attachment; filename=planilha_importacao_usuarios_perfil_servidor_coresso.xlsx"
     workbook: Workbook = Workbook()
     ws = workbook.active
-    ws.title = 'Usuários Externos CoreSSO'
-    headers = ['Nome do Usuário', 'Email', 'CPF', 'Perfil', 'CNPJ da Empresa']
-    _font = styles.Font(name='Calibri', sz=10)
+    ws.title = "Usuários Externos CoreSSO"
+    headers = ["Nome do Usuário", "Email", "CPF", "Perfil", "CNPJ da Empresa"]
+    _font = styles.Font(name="Calibri", sz=10)
     {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
     for i in range(0, len(headers)):
         cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
-        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
-        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.fill = styles.PatternFill("solid", fgColor="ffff99")
+        cabecalho.font = styles.Font(name="Calibri", size=10, bold=True)
         cabecalho.border = styles.Border(
-            left=styles.Side(border_style='thin', color='000000'),
-            right=styles.Side(border_style='thin', color='000000'),
-            top=styles.Side(border_style='thin', color='000000'),
-            bottom=styles.Side(border_style='thin', color='000000'),
+            left=styles.Side(border_style="thin", color="000000"),
+            right=styles.Side(border_style="thin", color="000000"),
+            top=styles.Side(border_style="thin", color="000000"),
+            bottom=styles.Side(border_style="thin", color="000000"),
         )
 
-    perfis_permitidos = ['ADMINISTRADOR_EMPRESA', 'USUARIO_EMPRESA']
-    perfis = ', '.join(
+    perfis_permitidos = ["ADMINISTRADOR_EMPRESA", "USUARIO_EMPRESA"]
+    perfis = ", ".join(
         [p.nome for p in Perfil.objects.filter(nome__in=perfis_permitidos)]
     )
-    dv = DataValidation(type='list', formula1=f'{perfis}', allow_blank=True)
-    dv.error = 'Perfil Inválido'
-    dv.errorTitle = 'Perfil não permitido'
+    dv = DataValidation(type="list", formula1=f"{perfis}", allow_blank=True)
+    dv.error = "Perfil Inválido"
+    dv.errorTitle = "Perfil não permitido"
     ws.add_data_validation(dv)
-    dv.add('D2:D1048576')
+    dv.add("D2:D1048576")
 
     workbook.save(response)
 
@@ -583,45 +583,45 @@ def exportar_planilha_importacao_usuarios_externos_coresso(request, **kwargs):
 
 def exportar_planilha_importacao_usuarios_ue_parceira_coresso(request, **kwargs):
     response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     response[
-        'Content-Disposition'
-    ] = 'attachment; filename=planilha_importacao_usuarios_perfil_ue_parceira_coresso.xlsx'
+        "Content-Disposition"
+    ] = "attachment; filename=planilha_importacao_usuarios_perfil_ue_parceira_coresso.xlsx"
     workbook: Workbook = Workbook()
     ws = workbook.active
-    ws.title = 'UEs Parceiras CoreSSO'
+    ws.title = "UEs Parceiras CoreSSO"
     headers = [
-        'Cód. EOL da Instituição (Unidade Parceira)',
-        'Nome do Usuário',
-        'Cargo',
-        'Email',
-        'CPF',
-        'Perfil',
+        "Cód. EOL da Instituição (Unidade Parceira)",
+        "Nome do Usuário",
+        "Cargo",
+        "Email",
+        "CPF",
+        "Perfil",
     ]
 
-    _font = styles.Font(name='Calibri', sz=10)
+    _font = styles.Font(name="Calibri", sz=10)
     {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
     for i in range(0, len(headers)):
         cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
-        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
-        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.fill = styles.PatternFill("solid", fgColor="ffff99")
+        cabecalho.font = styles.Font(name="Calibri", size=10, bold=True)
         cabecalho.border = styles.Border(
-            left=styles.Side(border_style='thin', color='000000'),
-            right=styles.Side(border_style='thin', color='000000'),
-            top=styles.Side(border_style='thin', color='000000'),
-            bottom=styles.Side(border_style='thin', color='000000'),
+            left=styles.Side(border_style="thin", color="000000"),
+            right=styles.Side(border_style="thin", color="000000"),
+            top=styles.Side(border_style="thin", color="000000"),
+            bottom=styles.Side(border_style="thin", color="000000"),
         )
 
-    perfis_permitidos = ['DIRETOR_UE', 'ADMINISTRADOR_UE']
-    perfis = ', '.join(
+    perfis_permitidos = ["DIRETOR_UE", "ADMINISTRADOR_UE"]
+    perfis = ", ".join(
         [p.nome for p in Perfil.objects.filter(nome__in=perfis_permitidos)]
     )
-    dv = DataValidation(type='list', formula1=f'{perfis}', allow_blank=True)
-    dv.error = 'Perfil Inválido'
-    dv.errorTitle = 'Perfil não permitido'
+    dv = DataValidation(type="list", formula1=f"{perfis}", allow_blank=True)
+    dv.error = "Perfil Inválido"
+    dv.errorTitle = "Perfil não permitido"
     ws.add_data_validation(dv)
-    dv.add('F2:F1048576')
+    dv.add("F2:F1048576")
 
     workbook.save(response)
 
@@ -629,20 +629,20 @@ def exportar_planilha_importacao_usuarios_ue_parceira_coresso(request, **kwargs)
 
 
 class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    lookup_field = 'username'
+    lookup_field = "username"
     permission_classes = (IsAuthenticated,)
     serializer_class = UsuarioComCoreSSOCreateSerializer
     permission_action_classes = {
-        'create': [PermissaoParaCriarUsuarioComCoresso],
-        'delete': [PermissaoParaCriarUsuarioComCoresso],
+        "create": [PermissaoParaCriarUsuarioComCoresso],
+        "delete": [PermissaoParaCriarUsuarioComCoresso],
     }
     queryset = Usuario.objects.all()
 
     @action(
         detail=True,
         permission_classes=(UsuarioPodeFinalizarVinculo,),
-        methods=['post'],
-        url_path='finalizar-vinculo',
+        methods=["post"],
+        url_path="finalizar-vinculo",
     )
     def finaliza_vinculo(self, request, username):
         """(post) /cadastro-com-coresso/{usuario.username}/finalizar-vinculo/."""
@@ -650,18 +650,18 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
             user = Usuario.objects.get(username=username)
             user.vinculo_atual.finalizar_vinculo()
             return Response(
-                dict(detail='Acesso removido com sucesso!'), status=HTTP_200_OK
+                dict(detail="Acesso removido com sucesso!"), status=HTTP_200_OK
             )
         except ObjectDoesNotExist as e:
             return Response(
-                dict(detail=f'Usuário não encontrado: {e}'), status=HTTP_400_BAD_REQUEST
+                dict(detail=f"Usuário não encontrado: {e}"), status=HTTP_400_BAD_REQUEST
             )
 
     @action(
         detail=True,
         permission_classes=(UsuarioSuperCodae,),
-        url_path='alterar-email',
-        methods=['patch'],
+        url_path="alterar-email",
+        methods=["patch"],
     )
     @transaction.atomic
     def altera_email(self, request, username):
@@ -675,7 +675,7 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
             if isinstance(instance, Response):
                 return instance
             return Response(
-                UsuarioSerializer(instance, context={'request': request}).data,
+                UsuarioSerializer(instance, context={"request": request}).data,
                 status=status.HTTP_200_OK,
             )
         else:
@@ -685,8 +685,8 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
     @action(
         detail=True,
         permission_classes=(UsuarioPodeAlterarVinculo,),
-        url_path='alterar-vinculo',
-        methods=['patch'],
+        url_path="alterar-vinculo",
+        methods=["patch"],
     )
     @transaction.atomic
     def altera_vinculo(self, request, username):
@@ -699,7 +699,7 @@ class UsuarioComCoreSSOViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
         if isinstance(instance, Response):
             return instance
         return Response(
-            UsuarioSerializer(instance, context={'request': request}).data,
+            UsuarioSerializer(instance, context={"request": request}).data,
             status=status.HTTP_200_OK,
         )
 
@@ -711,9 +711,9 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(
     viewsets.GenericViewSet,
 ):
     permission_classes = (UsuarioSuperCodae,)
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = ImportacaoPlanilhaUsuarioServidorCoreSSO.objects.all().order_by(
-        '-criado_em'
+        "-criado_em"
     )
     serializer_class = ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer
     pagination_class = PerfilPagination
@@ -721,16 +721,16 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(
     filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ["retrieve", "list"]:
             return ImportacaoPlanilhaUsuarioServidorCoreSSOSerializer
         else:
             return ImportacaoPlanilhaUsuarioServidorCoreSSOCreateSerializer
 
     @action(
         detail=False,
-        methods=['GET'],
+        methods=["GET"],
         permission_classes=(UsuarioSuperCodae,),
-        url_path='download-planilha-servidor',
+        url_path="download-planilha-servidor",
     )
     def exportar_planilha_servidor(self, request):
         return exportar_planilha_importacao_usuarios_servidor_coresso(request)
@@ -738,19 +738,19 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(
     @action(
         detail=True,
         permission_classes=(UsuarioSuperCodae,),
-        methods=['post'],
-        url_path='processar-importacao',
+        methods=["post"],
+        url_path="processar-importacao",
     )
     def processar_importacao_usuario_servidor(self, request, uuid):
         """(post) /planilha-coresso-servidor/{ImportacaoPlanilhaUsuarioServidorCoreSSO.uuid}/processar-importacao/."""
         logger.info(
-            'Processando arquivo de carga de usuário externo com uuid %s.', uuid
+            "Processando arquivo de carga de usuário externo com uuid %s.", uuid
         )
         username = request.user.get_username()
 
         arquivo = self.get_object()
         if not arquivo:
-            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            msg = f"Arquivo com uuid {uuid} não encontrado."
             logger.info(msg)
             return Response(msg, status=status.HTTP_404_NOT_FOUND)
         processa_planilha_usuario_servidor_coresso_async.delay(
@@ -758,28 +758,28 @@ class ImportacaoPlanilhaUsuarioServidorCoreSSOViewSet(
         )
 
         return Response(
-            dict(detail='Processamento de importação iniciado com sucesso.'),
+            dict(detail="Processamento de importação iniciado com sucesso."),
             status=HTTP_200_OK,
         )
 
     @action(
         detail=True,
         permission_classes=(UsuarioSuperCodae,),
-        methods=['patch'],
-        url_path='remover',
+        methods=["patch"],
+        url_path="remover",
     )
     def remover_planilha_usuario_servidor(self, request, uuid):
         """(patch) /planilha-coresso-servidor/{ImportacaoPlanilhaUsuarioServidorCoreSSO.uuid}/remover/."""
         arquivo = self.get_object()
         if not arquivo:
-            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            msg = f"Arquivo com uuid {uuid} não encontrado."
             logger.info(msg)
             return Response(msg, status=status.HTTP_404_NOT_FOUND)
 
         arquivo.removido()
 
         return Response(
-            dict(detail='Arquivo removido com sucesso.'), status=HTTP_200_OK
+            dict(detail="Arquivo removido com sucesso."), status=HTTP_200_OK
         )
 
 
@@ -790,9 +790,9 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(
     viewsets.GenericViewSet,
 ):
     permission_classes = (UsuarioSuperCodae,)
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = ImportacaoPlanilhaUsuarioExternoCoreSSO.objects.all().order_by(
-        '-criado_em'
+        "-criado_em"
     )
     serializer_class = ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer
     pagination_class = PerfilPagination
@@ -800,16 +800,16 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(
     filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ["retrieve", "list"]:
             return ImportacaoPlanilhaUsuarioExternoCoreSSOSerializer
         else:
             return ImportacaoPlanilhaUsuarioExternoCoreSSOCreateSerializer
 
     @action(
         detail=False,
-        methods=['GET'],
+        methods=["GET"],
         permission_classes=(UsuarioSuperCodae,),
-        url_path='download-planilha-nao-servidor',
+        url_path="download-planilha-nao-servidor",
     )
     def exportar_planilha_externos(self, request):
         return exportar_planilha_importacao_usuarios_externos_coresso(request)
@@ -817,19 +817,19 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(
     @action(
         detail=True,
         permission_classes=(UsuarioSuperCodae,),
-        methods=['post'],
-        url_path='processar-importacao',
+        methods=["post"],
+        url_path="processar-importacao",
     )
     def processar_importacao_usuario_externo(self, request, uuid):
         """(post) /planilha-coresso-externo/{ImportacaoPlanilhaUsuarioExternoCoreSSO.uuid}/processar-importacao/."""
         logger.info(
-            'Processando arquivo de carga de usuário externo com uuid %s.', uuid
+            "Processando arquivo de carga de usuário externo com uuid %s.", uuid
         )
         username = request.user.get_username()
 
         arquivo = self.get_object()
         if not arquivo:
-            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            msg = f"Arquivo com uuid {uuid} não encontrado."
             logger.info(msg)
             return Response(msg, status=status.HTTP_404_NOT_FOUND)
 
@@ -838,28 +838,28 @@ class ImportacaoPlanilhaUsuarioExternoCoreSSOViewSet(
         )
 
         return Response(
-            dict(detail='Processamento de importação iniciado com sucesso.'),
+            dict(detail="Processamento de importação iniciado com sucesso."),
             status=HTTP_200_OK,
         )
 
     @action(
         detail=True,
         permission_classes=(UsuarioSuperCodae,),
-        methods=['patch'],
-        url_path='remover',
+        methods=["patch"],
+        url_path="remover",
     )
     def remover_planilha_usuario_externo(self, request, uuid):
         """(patch) /planilha-coresso-externo/{ImportacaoPlanilhaUsuarioExternoCoreSSO.uuid}/remover/."""
         arquivo = self.get_object()
         if not arquivo:
-            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            msg = f"Arquivo com uuid {uuid} não encontrado."
             logger.info(msg)
             return Response(msg, status=status.HTTP_404_NOT_FOUND)
 
         arquivo.removido()
 
         return Response(
-            dict(detail='Arquivo removido com sucesso.'), status=HTTP_200_OK
+            dict(detail="Arquivo removido com sucesso."), status=HTTP_200_OK
         )
 
 
@@ -870,9 +870,9 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(
     viewsets.GenericViewSet,
 ):
     permission_classes = (UsuarioSuperCodae,)
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = ImportacaoPlanilhaUsuarioUEParceiraCoreSSO.objects.all().order_by(
-        '-criado_em'
+        "-criado_em"
     )
     serializer_class = ImportacaoPlanilhaUsuarioUEParceiraCoreSSOSerializer
     pagination_class = PerfilPagination
@@ -880,16 +880,16 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(
     filterset_class = ImportacaoPlanilhaUsuarioCoreSSOFilter
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ["retrieve", "list"]:
             return ImportacaoPlanilhaUsuarioUEParceiraCoreSSOSerializer
         else:
             return ImportacaoPlanilhaUsuarioUEParceiraCoreSSOCreateSerializer
 
     @action(
         detail=False,
-        methods=['GET'],
+        methods=["GET"],
         permission_classes=(UsuarioSuperCodae,),
-        url_path='download-planilha-ue-parceira',
+        url_path="download-planilha-ue-parceira",
     )
     def exportar_planilha_ue_parceira(self, request):
         return exportar_planilha_importacao_usuarios_ue_parceira_coresso(request)
@@ -897,19 +897,19 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(
     @action(
         detail=True,
         permission_classes=(UsuarioSuperCodae,),
-        methods=['post'],
-        url_path='processar-importacao',
+        methods=["post"],
+        url_path="processar-importacao",
     )
     def processar_importacao_usuario_servidor(self, request, uuid):
         """(post) /planilha-coresso-ue-parceira/{ImportacaoPlanilhaUsuarioUEParceiraCoreSSO.uuid}/processar-importacao/."""  # noqa E501
         logger.info(
-            'Processando arquivo de carga de usuário UE parceira com uuid %s.', uuid
+            "Processando arquivo de carga de usuário UE parceira com uuid %s.", uuid
         )
         username = request.user.get_username()
 
         arquivo = self.get_object()
         if not arquivo:
-            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            msg = f"Arquivo com uuid {uuid} não encontrado."
             logger.info(msg)
             return Response(msg, status=status.HTTP_404_NOT_FOUND)
         processa_planilha_usuario_ue_parceira_coresso_async.delay(
@@ -917,26 +917,26 @@ class ImportacaoPlanilhaUsuarioUEParceiraCoreSSOViewSet(
         )
 
         return Response(
-            dict(detail='Processamento de importação iniciado com sucesso.'),
+            dict(detail="Processamento de importação iniciado com sucesso."),
             status=HTTP_200_OK,
         )
 
     @action(
         detail=True,
         permission_classes=(UsuarioSuperCodae,),
-        methods=['patch'],
-        url_path='remover',
+        methods=["patch"],
+        url_path="remover",
     )
     def remover_planilha_usuario_servidor(self, request, uuid):
         """(patch) /planilha-coresso-ue-parceira/{ImportacaoPlanilhaUsuarioUEParceiraCoreSSO.uuid}/remover/."""
         arquivo = self.get_object()
         if not arquivo:
-            msg = f'Arquivo com uuid {uuid} não encontrado.'
+            msg = f"Arquivo com uuid {uuid} não encontrado."
             logger.info(msg)
             return Response(msg, status=status.HTTP_404_NOT_FOUND)
 
         arquivo.removido()
 
         return Response(
-            dict(detail='Arquivo removido com sucesso.'), status=HTTP_200_OK
+            dict(detail="Arquivo removido com sucesso."), status=HTTP_200_OK
         )

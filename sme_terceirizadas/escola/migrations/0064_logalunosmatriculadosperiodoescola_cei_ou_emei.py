@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0063_aluno_ciclo_aluno_desc_ciclo_aluno_desc_etapa_and_more'),
+        ("escola", "0063_aluno_ciclo_aluno_desc_ciclo_aluno_desc_etapa_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='logalunosmatriculadosperiodoescola',
-            name='cei_ou_emei',
-            field=models.CharField(choices=[('N/A', 'N/A'), ('CEI', 'CEI'), ('EMEI', 'EMEI')], default='N/A', max_length=4),
+            model_name="logalunosmatriculadosperiodoescola",
+            name="cei_ou_emei",
+            field=models.CharField(
+                choices=[("N/A", "N/A"), ("CEI", "CEI"), ("EMEI", "EMEI")],
+                default="N/A",
+                max_length=4,
+            ),
         ),
     ]

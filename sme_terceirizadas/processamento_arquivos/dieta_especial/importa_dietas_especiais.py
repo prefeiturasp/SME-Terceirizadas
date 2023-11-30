@@ -25,7 +25,7 @@ from sme_terceirizadas.terceirizada.models import Edital
 
 from .schemas import ArquivoCargaDietaEspecialSchema
 
-logger = logging.getLogger('sigpae.importa_dietas_especiais')
+logger = logging.getLogger("sigpae.importa_dietas_especiais")
 
 
 class ProcessadorPlanilha:
@@ -48,11 +48,11 @@ class ProcessadorPlanilha:
 
         linhas = list(self.worksheet.rows)
         logger.info(
-            f'Quantidade de linhas: {len(linhas)} - Quantidade colunas {len(linhas[0])}'
+            f"Quantidade de linhas: {len(linhas)} - Quantidade colunas {len(linhas[0])}"
         )
         if self.worksheet.max_column != 12:
             self.erros.append(
-                'Erro: O número de colunas diferente das estrutura definida.'
+                "Erro: O número de colunas diferente das estrutura definida."
             )
             return
 
@@ -94,7 +94,7 @@ class ProcessadorPlanilha:
                     protocolo_padrao,
                 )
             except Exception as exc:
-                self.erros.append(f'Linha {ind} - {exc}')
+                self.erros.append(f"Linha {ind} - {exc}")
 
     def abre_worksheet(self):
         return load_workbook(self.path).active
@@ -104,14 +104,14 @@ class ProcessadorPlanilha:
 
     def existe_conteudo(self) -> bool:
         if not self.arquivo.conteudo:
-            self.arquivo.log = 'Não foi feito o upload da planilha'
+            self.arquivo.log = "Não foi feito o upload da planilha"
             self.arquivo.erro_no_processamento()
             return False
         return True
 
     def extensao_do_arquivo_esta_correta(self) -> bool:
-        if not self.path.endswith('.xlsx'):
-            self.arquivo.log = 'Planilha precisa ter extensão .xlsx'
+        if not self.path.endswith(".xlsx"):
+            self.arquivo.log = "Planilha precisa ter extensão .xlsx"
             self.arquivo.erro_no_processamento()
             return False
         return True
@@ -120,7 +120,7 @@ class ProcessadorPlanilha:
         return {
             key: linha[index].value
             for index, key in enumerate(
-                ArquivoCargaDietaEspecialSchema.schema()['properties'].keys()
+                ArquivoCargaDietaEspecialSchema.schema()["properties"].keys()
             )
         }
 
@@ -130,14 +130,14 @@ class ProcessadorPlanilha:
         ).first()
         if not aluno:
             raise Exception(
-                f'Erro: Aluno com código eol {solicitacao_dieta_schema.codigo_eol_aluno} não encontrado.'
+                f"Erro: Aluno com código eol {solicitacao_dieta_schema.codigo_eol_aluno} não encontrado."
             )
 
         if solicitacao_dieta_schema.nome_aluno.upper() != aluno.nome:
             raise Exception(
-                f'Erro: Nome divergente para o código eol {aluno.codigo_eol}: '
-                + 'Nome aluno planilha: '
-                + f'{solicitacao_dieta_schema.nome_aluno.upper()} != Nome aluno sistema: {aluno.nome}'
+                f"Erro: Nome divergente para o código eol {aluno.codigo_eol}: "
+                + "Nome aluno planilha: "
+                + f"{solicitacao_dieta_schema.nome_aluno.upper()} != Nome aluno sistema: {aluno.nome}"
             )
         return aluno
 
@@ -147,7 +147,7 @@ class ProcessadorPlanilha:
         ).first()
         if not escola:
             raise Exception(
-                f'Erro: escola com código codae {solicitacao_dieta_schema.codigo_escola} não encontrada.'
+                f"Erro: escola com código codae {solicitacao_dieta_schema.codigo_escola} não encontrada."
             )
         return escola
 
@@ -156,11 +156,11 @@ class ProcessadorPlanilha:
     ) -> ProtocoloPadraoDietaEspecial:
         if not escola:
             raise Exception(
-                'Erro: Escola inválida. Não foi possível encontrar os editais e protocolos.'
+                "Erro: Escola inválida. Não foi possível encontrar os editais e protocolos."
             )
         editais = Edital.objects.filter(uuid__in=escola.editais)
         protocolos_uuids = editais.values_list(
-            'protocolos_padroes_dieta_especial__uuid', flat=True
+            "protocolos_padroes_dieta_especial__uuid", flat=True
         )
         protocolos = ProtocoloPadraoDietaEspecial.objects.filter(
             uuid__in=protocolos_uuids
@@ -169,27 +169,27 @@ class ProcessadorPlanilha:
             nome_protocolo=solicitacao_dieta_schema.protocolo_dieta
         )
         if not protocolos:
-            msg_part_1 = 'Erro: protocolo padrão'
+            msg_part_1 = "Erro: protocolo padrão"
             msg_part_2 = (
-                'não encontrado com este nome ao edital que a escola está relacionada.'
+                "não encontrado com este nome ao edital que a escola está relacionada."
             )
             raise Exception(
-                f'{msg_part_1} {solicitacao_dieta_schema.protocolo_dieta} {msg_part_2}'
+                f"{msg_part_1} {solicitacao_dieta_schema.protocolo_dieta} {msg_part_2}"
             )
         return protocolos.first()
 
     def consulta_classificacao(self, dieta_schema) -> ClassificacaoDieta:
         classificacao_dieta = ClassificacaoDieta.objects.filter(
-            nome=f'Tipo {dieta_schema.codigo_categoria_dieta}'
+            nome=f"Tipo {dieta_schema.codigo_categoria_dieta}"
         ).first()
         if not classificacao_dieta:
             raise Exception(
-                f'Erro: A categoria da dieta {dieta_schema.codigo_categoria_dieta} não encontrado.'
+                f"Erro: A categoria da dieta {dieta_schema.codigo_categoria_dieta} não encontrado."
             )
         return classificacao_dieta
 
     def monta_diagnosticos(self, codigo_diagnostico: str) -> List[AlergiaIntolerancia]:
-        lista_nomes_diagnosticos = codigo_diagnostico.split(';')
+        lista_nomes_diagnosticos = codigo_diagnostico.split(";")
         lista_diagnosticos = []
         for nome_diagnostico in lista_nomes_diagnosticos:
             # Checando se existe o diagnóstico tanto pelo nome que veio na planilha quanto pelo nome
@@ -227,13 +227,13 @@ class ProcessadorPlanilha:
             in solicitacao.classificacao.nome
             and [
                 x.upper()
-                for x in solicitacao_dieta_schema.codigo_diagnostico.split(';')
+                for x in solicitacao_dieta_schema.codigo_diagnostico.split(";")
             ]
             == [x.descricao.upper() for x in solicitacao.alergias_intolerancias.all()]
         ):
             raise Exception(
-                'Erro: Já existe uma solicitação ativa que foi importada para o aluno com código eol: '
-                + f'{solicitacao_dieta_schema.codigo_eol_aluno} exatamente igual a esta'
+                "Erro: Já existe uma solicitação ativa que foi importada para o aluno com código eol: "
+                + f"{solicitacao_dieta_schema.codigo_eol_aluno} exatamente igual a esta"
             )
 
     def checa_existencia_solicitacao(self, solicitacao_dieta_schema, aluno) -> None:
@@ -263,13 +263,13 @@ class ProcessadorPlanilha:
     ):  # noqa C901
         observacoes = """Essa Dieta Especial foi autorizada anteriormente a implantação do SIGPAE."""
 
-        email_fake = f'fake{escola.id}@admin.com'
+        email_fake = f"fake{escola.id}@admin.com"
         usuario_escola = Usuario.objects.filter(email=email_fake).first()
         registro_funcional_nutricionista = (
-            f'Elaborado por {self.usuario.nome} - RF {self.usuario.registro_funcional}'
+            f"Elaborado por {self.usuario.nome} - RF {self.usuario.registro_funcional}"
         )
         if not usuario_escola:
-            perfil = Perfil.objects.get(nome='DIRETOR_UE')
+            perfil = Perfil.objects.get(nome="DIRETOR_UE")
             data_atual = date.today()
             # Esse Usuário não consegue acessar o sistema
             # Troquei a senha pra reforçar que essa não funciona
@@ -279,7 +279,7 @@ class ProcessadorPlanilha:
                 email=email_fake,
                 password=DJANGO_ADMIN_PASSWORD,
                 nome=escola.nome,
-                cargo='DIRETOR',
+                cargo="DIRETOR",
                 is_active=False,
             )
             Vinculo.objects.create(
@@ -325,25 +325,25 @@ class ProcessadorPlanilha:
 
     def finaliza_processamento(self) -> None:
         if self.erros:
-            self.arquivo.log = '\n'.join(self.erros)
+            self.arquivo.log = "\n".join(self.erros)
             self.arquivo.processamento_com_erro()
             self.cria_planilha_de_erros()
         else:
-            self.arquivo.log = 'Planilha processada com sucesso.'
+            self.arquivo.log = "Planilha processada com sucesso."
             self.arquivo.processamento_com_sucesso()
 
     def cria_planilha_de_erros(self) -> None:
         workbook: Workbook = Workbook()
         ws = workbook.active
-        ws.title = 'Erros'
+        ws.title = "Erros"
         cabecalho = ws.cell(
-            row=1, column=1, value='Erros encontrados no processamento da planilha'
+            row=1, column=1, value="Erros encontrados no processamento da planilha"
         )
-        cabecalho.fill = styles.PatternFill('solid', fgColor='808080')
+        cabecalho.fill = styles.PatternFill("solid", fgColor="808080")
         for index, erro in enumerate(self.erros, 2):
             ws.cell(row=index, column=1, value=erro)
 
-        filename = f'arquivo_resultado_{self.arquivo.pk}.xlsx'
+        filename = f"arquivo_resultado_{self.arquivo.pk}.xlsx"
         with NamedTemporaryFile() as tmp:
             workbook.save(tmp.name)
             self.arquivo.resultado.save(name=filename, content=File(tmp))
@@ -352,10 +352,10 @@ class ProcessadorPlanilha:
 def importa_dietas_especiais(
     usuario: Usuario, arquivo: ArquivoCargaDietaEspecial
 ) -> None:
-    logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
+    logger.debug(f"Iniciando o processamento do arquivo: {arquivo.uuid}")
     try:
         processador = ProcessadorPlanilha(usuario, arquivo)
         processador.processamento()
         processador.finaliza_processamento()
     except Exception as exc:
-        logger.error(f'Erro genérico: {exc}')
+        logger.error(f"Erro genérico: {exc}")

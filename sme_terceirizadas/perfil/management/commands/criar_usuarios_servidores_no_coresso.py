@@ -8,38 +8,38 @@ from django.core.management import BaseCommand
 from sme_terceirizadas.eol_servico.utils import EOLServicoSGP
 from sme_terceirizadas.perfil.models import Usuario
 
-logger = logging.getLogger('sigpae.cmd_cria_usuarios_no_coresso')
+logger = logging.getLogger("sigpae.cmd_cria_usuarios_no_coresso")
 
 env = environ.Env()
 
 
 class Command(BaseCommand):
-    help = 'Cria ou atribui acesso ao SIGPAE a usuários servidores (que possuem RF) no CoreSSO'
+    help = "Cria ou atribui acesso ao SIGPAE a usuários servidores (que possuem RF) no CoreSSO"
 
     def handle(self, *args, **options):
-        if env('DJANGO_ENV') != 'production':
+        if env("DJANGO_ENV") != "production":
             self.stdout.write(
                 self.style.ERROR(
-                    'SOMENTE USUÁRIOS DE PRODUÇÃO PODEM SER CRIADOS EM MASSA NO CORESSO!'
+                    "SOMENTE USUÁRIOS DE PRODUÇÃO PODEM SER CRIADOS EM MASSA NO CORESSO!"
                 )
             )
             return
         self.cria_usuarios_servidores_no_coresso()
 
     def cria_usuarios_servidores_no_coresso(self):  # noqa
-        logger.info('Inicia criação/atribuição de usuários servidores no CoreSSO.')
+        logger.info("Inicia criação/atribuição de usuários servidores no CoreSSO.")
 
         usuarios = (
             Usuario.objects.exclude(is_active=False)
-            .exclude(email__contains='@admin.com')
-            .exclude(email__contains='@amcom.com.br')
+            .exclude(email__contains="@admin.com")
+            .exclude(email__contains="@amcom.com.br")
             .exclude(registro_funcional=None)
-            .exclude(registro_funcional='')
+            .exclude(registro_funcional="")
             .exclude(vinculos__isnull=True)
         )
 
         logger.info(
-            f'Foram encontrados {usuarios.count()} usuários para serem criados/atribuidos no CoreSSO.'
+            f"Foram encontrados {usuarios.count()} usuários para serem criados/atribuidos no CoreSSO."
         )
 
         usuarios_qtd = 0
@@ -58,7 +58,7 @@ class Command(BaseCommand):
                             email=usuario.email,
                             e_servidor=True,
                         )
-                        logger.info(f'Usuario {usuario.username} criado no CoreSSO.')
+                        logger.info(f"Usuario {usuario.username} criado no CoreSSO.")
                         usuarios_sem_coresso.append(usuario.registro_funcional)
                         usuarios_qtd += 1
                         usuario.last_login = None
@@ -75,11 +75,11 @@ class Command(BaseCommand):
                     time.sleep(0.3)
 
             except Exception as e:
-                msg = f'Erro ao tentar criar/atribuir usuário {usuario.username} no CoreSSO/SIGPAE: {str(e)}'
+                msg = f"Erro ao tentar criar/atribuir usuário {usuario.username} no CoreSSO/SIGPAE: {str(e)}"
                 logger.error(msg)
                 self.stdout.write(self.style.ERROR(msg))
 
             logger.info(
-                f'{usuarios_qtd} usuarios foram criados e {atribuidos_qtd} tiveram perfis atribuidos no CoreSSO.'
+                f"{usuarios_qtd} usuarios foram criados e {atribuidos_qtd} tiveram perfis atribuidos no CoreSSO."
             )
         logger.info(usuarios_sem_coresso)

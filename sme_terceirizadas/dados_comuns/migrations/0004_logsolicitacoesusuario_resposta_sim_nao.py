@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0003_auto_20191206_1113'),
+        ("dados_comuns", "0003_auto_20191206_1113"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='logsolicitacoesusuario',
-            name='resposta_sim_nao',
-            field=models.BooleanField(default=False, verbose_name='Resposta - Sim ou Não'),
+            model_name="logsolicitacoesusuario",
+            name="resposta_sim_nao",
+            field=models.BooleanField(
+                default=False, verbose_name="Resposta - Sim ou Não"
+            ),
         ),
     ]
