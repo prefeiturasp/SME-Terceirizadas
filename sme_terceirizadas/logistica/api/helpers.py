@@ -326,9 +326,9 @@ def resolve_notificacao_de_pendencia_de_atraso(guia, eh_reposicao):
         Notificacao.resolver_pendencia(titulo=titulo, guia=guia)
 
 
-def atualiza_guia_com_base_nas_conferencias_por_alimentos(
+def atualiza_guia_com_base_nas_conferencias_por_alimentos(  # noqa: C901
     guia, user, status_dos_alimentos, eh_reposicao, ocorrencias_dos_alimentos
-):  # noqa C901
+):
     """
     Método responsavel por chamar hooks de atualização de status das guias baseado nos status dos alimentos conferidos e
     no tipo de conferencia caso seja uma reposição.

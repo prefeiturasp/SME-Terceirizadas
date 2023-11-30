@@ -514,9 +514,9 @@ class SolicitacaoDietaEspecialViewSet(
                 status=HTTP_400_BAD_REQUEST,
             )  # noqa
 
-    def get_queryset_relatorio_quantitativo_solic_dieta_esp(
+    def get_queryset_relatorio_quantitativo_solic_dieta_esp(  # noqa: C901
         self, form, campos
-    ):  # noqa C901
+    ):
         user = self.request.user
         qs = self.get_queryset()
 
@@ -1086,7 +1086,7 @@ class SolicitacaoDietaEspecialViewSet(
             status=status.HTTP_200_OK,
         )
 
-    def build_texto(
+    def build_texto(  # noqa: C901
         self,
         lotes,
         classificacoes,
@@ -1094,7 +1094,7 @@ class SolicitacaoDietaEspecialViewSet(
         alergias_intolerancias,
         data_inicial,
         data_final,
-    ):  # noqa C901
+    ):
         filtros = ''
         if lotes:
             nomes_lotes = ', '.join(

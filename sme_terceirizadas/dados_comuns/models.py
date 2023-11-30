@@ -635,14 +635,14 @@ class Notificacao(models.Model):
         return self.titulo
 
     @classmethod
-    def notificar(
+    def notificar(  # noqa: C901
         cls,
         tipo,
         categoria,
         titulo,
         descricao,
         usuario,
-        link,  # noqa C901
+        link,
         requisicao=None,
         solicitacao_alteracao=None,
         guia=None,
