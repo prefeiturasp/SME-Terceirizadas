@@ -904,6 +904,18 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             query_set = query_set.exclude(motivo__icontains='Emergencial')
         return query_set
 
+    def get_alteracao_obj(self, alteracao, nome_periodo_escolar):
+        alt = None
+        if alteracao.escola.eh_cemei:
+            nome_periodo_escolar = nome_periodo_escolar.split(' ')[1]
+            if alteracao.substituicoes_cemei_emei_periodo_escolar.filter(
+                    periodo_escolar__nome=nome_periodo_escolar).exists():
+                alt = alteracao.substituicoes_cemei_emei_periodo_escolar.get(
+                    periodo_escolar__nome=nome_periodo_escolar)
+        elif alteracao.substituicoes_periodo_escolar.filter(periodo_escolar__nome=nome_periodo_escolar).exists():
+            alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
+        return alt
+
     @action(detail=False, methods=['GET'], url_path=f'{ALTERACOES_ALIMENTACAO_AUTORIZADAS}')
     def alteracoes_alimentacoes_autorizadas(self, request):
         escola_uuid = request.query_params.get('escola_uuid')
@@ -931,8 +943,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                         'motivo': alteracao_alimentacao.motivo
                     })
             else:
-                if alteracao.substituicoes_periodo_escolar.filter(periodo_escolar__nome=nome_periodo_escolar).exists():
-                    alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
+                alt = self.get_alteracao_obj(alteracao, nome_periodo_escolar)
+                if alt:
                     for data_evento in alteracao.datas_intervalo.filter(data__month=mes, data__year=ano,
                                                                         cancelado=False):
                         return_dict.append({
