@@ -289,9 +289,8 @@ def test_url_endpoint_solicitacoes_inversao_codae_questiona_error(
         f'/{ENDPOINT_INVERSOES}/{inversao_dia_cardapio_codae_autorizado.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/'
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {
-        'detail': "Erro de transição de estado: Transition 'codae_questiona' isn't available from state 'CODAE_AUTORIZADO'."
-    }
+    detail = "Erro de transição de estado: Transition 'codae_questiona' isn't available from state 'CODAE_AUTORIZADO'."
+    assert response.json() == {'detail': detail}
 
 
 def test_url_endpoint_solicitacoes_inversao_terceirizada_responde_questionamento(
@@ -330,10 +329,9 @@ def test_url_endpoint_solicitacoes_inversao_terceirizada_responde_questionamento
         data={'justificativa': justificativa, 'resposta_sim_nao': resposta},
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {
-        'detail': "Erro de transição de estado: Transition 'terceirizada_responde_questionamento' isn't available from state "
-        "'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO'."
-    }
+    detail = "Erro de transição de estado: Transition 'terceirizada_responde_questionamento' isn't available from state"
+    " 'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO'."
+    assert response.json() == {'detail': detail}
 
 
 def test_url_endpoint_solicitacoes_inversao_terceirizada_ciencia(
