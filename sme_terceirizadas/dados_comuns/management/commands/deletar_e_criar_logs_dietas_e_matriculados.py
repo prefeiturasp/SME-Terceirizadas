@@ -66,9 +66,9 @@ class Command(BaseCommand):
                 logs_filtrados = logs.filter(
                     periodo_escolar=log.periodo_escolar, tipo_turma=log.tipo_turma
                 ).order_by('-criado_em')
-                for l in logs_filtrados[1 : logs_filtrados.count()]:
-                    if l.uuid not in logs_para_deletar:
-                        logs_para_deletar.append(l.uuid)
+                for log_filtrado in logs_filtrados[1 : logs_filtrados.count()]:
+                    if log_filtrado.uuid not in logs_para_deletar:
+                        logs_para_deletar.append(log_filtrado.uuid)
             logs.filter(uuid__in=logs_para_deletar).delete()
 
     def criar_logs_alunos_matriculados_inexistentes_mes(self, escola, mes, ano):
@@ -138,9 +138,9 @@ class Command(BaseCommand):
                     logs_filtrados = logs_filtrados.filter(
                         faixa_etaria=log.faixa_etaria
                     ).order_by('-criado_em')
-                for l in logs_filtrados[1 : logs_filtrados.count()]:
-                    if l.uuid not in logs_para_deletar:
-                        logs_para_deletar.append(l.uuid)
+                for log_filtrado in logs_filtrados[1 : logs_filtrados.count()]:
+                    if log_filtrado.uuid not in logs_para_deletar:
+                        logs_para_deletar.append(log_filtrado.uuid)
             logs.filter(uuid__in=logs_para_deletar).delete()
 
     def criar_logs_quantidade_dietas_autorizadas_inexistentes_mes(

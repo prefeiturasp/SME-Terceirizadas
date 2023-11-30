@@ -440,9 +440,9 @@ def deletar_logs_alunos_matriculados_duplicados(escola, hoje):
                 cei_ou_emei=log.cei_ou_emei,
                 infantil_ou_fundamental=log.infantil_ou_fundamental,
             ).order_by('-criado_em')
-            for l in logs_filtrados[1 : logs_filtrados.count()]:
-                if l.uuid not in logs_para_deletar:
-                    logs_para_deletar.append(l.uuid)
+            for log_filtrado in logs_filtrados[1 : logs_filtrados.count()]:
+                if log_filtrado.uuid not in logs_para_deletar:
+                    logs_para_deletar.append(log_filtrado.uuid)
         logs.filter(uuid__in=logs_para_deletar).delete()
 
 
@@ -557,9 +557,9 @@ def deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo):
 
 def uuids_logs_para_deletar(logs_filtrados):
     logs_para_deletar = []
-    for l in logs_filtrados[1 : logs_filtrados.count()]:
-        if l.uuid not in logs_para_deletar:
-            logs_para_deletar.append(l.uuid)
+    for log_filtrado in logs_filtrados[1 : logs_filtrados.count()]:
+        if log_filtrado.uuid not in logs_para_deletar:
+            logs_para_deletar.append(log_filtrado.uuid)
     return logs_para_deletar
 
 
