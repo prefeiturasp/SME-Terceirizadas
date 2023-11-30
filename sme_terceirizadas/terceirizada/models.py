@@ -8,14 +8,19 @@ from django_prometheus.models import ExportModelOperationsMixin
 
 from sme_terceirizadas.dieta_especial.managers import EditalManager
 
-from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..cardapio.models import (
+    AlteracaoCardapio,
+    AlteracaoCardapioCEI,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+)
 from ..dados_comuns.behaviors import (
     Ativavel,
     IntervaloDeDia,
     Nomeavel,
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
-    TemVinculos
+    TemVinculos,
 )
 from ..dados_comuns.constants import ADMINISTRADOR_EMPRESA
 from ..dados_comuns.utils import queryset_por_data
@@ -23,17 +28,26 @@ from ..escola.models import DiretoriaRegional, Lote
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
-    InclusaoAlimentacaoDaCEI
+    InclusaoAlimentacaoDaCEI,
 )
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..kit_lanche.models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
+    SolicitacaoKitLancheUnificada,
+)
 from ..perfil.models.usuario import Usuario
 
 
 class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
-    numero = models.CharField('Edital No', max_length=100, help_text='Número do Edital', unique=True)
+    numero = models.CharField(
+        'Edital No', max_length=100, help_text='Número do Edital', unique=True
+    )
     tipo_contratacao = models.CharField('Tipo de contratação', max_length=100)
-    processo = models.CharField('Processo Administrativo', max_length=100,
-                                help_text='Processo administrativo do edital')
+    processo = models.CharField(
+        'Processo Administrativo',
+        max_length=100,
+        help_text='Processo administrativo do edital',
+    )
     objeto = models.TextField('objeto resumido')
 
     objects = EditalManager()
@@ -47,17 +61,22 @@ class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
 
 
 # TODO: remover esse modelo (deprecado)
-class Nutricionista(ExportModelOperationsMixin('nutricionista'), TemChaveExterna, Nomeavel):
+class Nutricionista(
+    ExportModelOperationsMixin('nutricionista'), TemChaveExterna, Nomeavel
+):
     # TODO: verificar a diferença dessa pra nutricionista da CODAE
 
-    crn_numero = models.CharField('Nutricionista crn', max_length=160,
-                                  blank=True)
-    terceirizada = models.ForeignKey('Terceirizada',
-                                     on_delete=models.CASCADE,
-                                     related_name='nutricionistas',
-                                     blank=True,
-                                     null=True)
-    admin = models.BooleanField('É Administrador por parte das Terceirizadas?', default=False)
+    crn_numero = models.CharField('Nutricionista crn', max_length=160, blank=True)
+    terceirizada = models.ForeignKey(
+        'Terceirizada',
+        on_delete=models.CASCADE,
+        related_name='nutricionistas',
+        blank=True,
+        null=True,
+    )
+    admin = models.BooleanField(
+        'É Administrador por parte das Terceirizadas?', default=False
+    )
     # TODO: retornar aqui quando tiver um perfil definido
     contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
 
@@ -70,8 +89,13 @@ class Nutricionista(ExportModelOperationsMixin('nutricionista'), TemChaveExterna
         ordering = ['-admin']
 
 
-class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, Ativavel,
-                   TemIdentificadorExternoAmigavel, TemVinculos):
+class Terceirizada(
+    ExportModelOperationsMixin('terceirizada'),
+    TemChaveExterna,
+    Ativavel,
+    TemIdentificadorExternoAmigavel,
+    TemVinculos,
+):
     # Tipo de servico
     TERCEIRIZADA = 'TERCEIRIZADA'
     DISTRIBUIDOR_ARMAZEM = 'DISTRIBUIDOR_ARMAZEM'
@@ -108,7 +132,6 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
         TIPO_ALIMENTO_PAES_E_BOLO: 'Pães & bolos',
         TIPO_ALIMENTO_SECOS: 'Secos',
         TIPO_ALIMENTO_TERCEIRIZADA: 'Terceirizada',
-
     }
 
     TIPO_ALIMENTO_CHOICES = (
@@ -121,9 +144,15 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     nome_fantasia = models.CharField('Nome fantasia', max_length=160, blank=True)
     razao_social = models.CharField('Razao social', max_length=160, blank=True)
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
-    representante_legal = models.CharField('Representante legal', max_length=160, blank=True)
-    representante_telefone = models.CharField('Representante contato (telefone)', max_length=160, blank=True)
-    representante_email = models.CharField('Representante contato (email)', max_length=160, blank=True)
+    representante_legal = models.CharField(
+        'Representante legal', max_length=160, blank=True
+    )
+    representante_telefone = models.CharField(
+        'Representante contato (telefone)', max_length=160, blank=True
+    )
+    representante_email = models.CharField(
+        'Representante contato (email)', max_length=160, blank=True
+    )
     endereco = models.CharField('Endereco', max_length=160, blank=True)
     cep = models.CharField('CEP', max_length=8, blank=True)
     bairro = models.CharField('Bairro', max_length=150, blank=True)
@@ -132,14 +161,29 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     numero = models.CharField('Número', max_length=10, blank=True)
     complemento = models.CharField('Complemento', max_length=50, blank=True)
     responsavel_nome = models.CharField('Responsável', max_length=160, blank=True)
-    responsavel_email = models.CharField('Responsável contato (email)', max_length=160, blank=True)
-    responsavel_cpf = models.CharField(max_length=11, blank=True, null=True, unique=True,  # noqa DJ01
-                           validators=[MinLengthValidator(11)])
-    responsavel_telefone = models.CharField('Responsável contato (telefone)', max_length=160, blank=True)
+    responsavel_email = models.CharField(
+        'Responsável contato (email)', max_length=160, blank=True
+    )
+    responsavel_cpf = models.CharField(
+        max_length=11,
+        blank=True,
+        null=True,
+        unique=True,  # noqa DJ01
+        validators=[MinLengthValidator(11)],
+    )
+    responsavel_telefone = models.CharField(
+        'Responsável contato (telefone)', max_length=160, blank=True
+    )
     responsavel_cargo = models.CharField('Responsável cargo', max_length=50, blank=True)
-    tipo_empresa = models.CharField(choices=TIPO_EMPRESA_CHOICES, max_length=25, default=TERCEIRIZADA)
-    tipo_servico = models.CharField(choices=TIPO_SERVICO_CHOICES, max_length=25, default=TERCEIRIZADA)
-    tipo_alimento = models.CharField(choices=TIPO_ALIMENTO_CHOICES, max_length=25, default=TIPO_ALIMENTO_TERCEIRIZADA)
+    tipo_empresa = models.CharField(
+        choices=TIPO_EMPRESA_CHOICES, max_length=25, default=TERCEIRIZADA
+    )
+    tipo_servico = models.CharField(
+        choices=TIPO_SERVICO_CHOICES, max_length=25, default=TERCEIRIZADA
+    )
+    tipo_alimento = models.CharField(
+        choices=TIPO_ALIMENTO_CHOICES, max_length=25, default=TIPO_ALIMENTO_TERCEIRIZADA
+    )
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
 
     # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
@@ -150,8 +194,10 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     @property
     def vinculos_que_podem_ser_finalizados(self):
         return self.vinculos.filter(
-            Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
-            Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
+            Q(data_inicial=None, data_final=None, ativo=False)
+            | Q(  # noqa W504 esperando ativacao
+                data_inicial__isnull=False, data_final=None, ativo=True
+            )  # noqa W504 ativo
         ).exclude(perfil__nome=ADMINISTRADOR_EMPRESA)
 
     @property
@@ -167,7 +213,10 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
 
     @property
     def eh_distribuidor(self):
-        return self.tipo_servico in [self.DISTRIBUIDOR_ARMAZEM, self.FORNECEDOR_E_DISTRIBUIDOR]
+        return self.tipo_servico in [
+            self.DISTRIBUIDOR_ARMAZEM,
+            self.FORNECEDOR_E_DISTRIBUIDOR,
+        ]
 
     @property
     def eh_fornecedor(self):
@@ -181,38 +230,44 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     def inclusoes_continuas_autorizadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status__in=[InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-                        InclusaoAlimentacaoContinua.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
+            status__in=[
+                InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
+                InclusaoAlimentacaoContinua.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+            ],
         )
 
     @property
     def inclusoes_normais_autorizadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
-                        GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
+            status__in=[
+                GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
+                GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+            ],
         )
 
     @property
     def inclusoes_continuas_reprovadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_NEGOU_PEDIDO
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_NEGOU_PEDIDO,
         )
 
     @property
     def solicitacao_kit_lanche_avulsa_autorizadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
-                        SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
+            status__in=[
+                SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
+                SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+            ],
         )
 
     @property
     def inclusoes_normais_reprovadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_NEGOU_PEDIDO
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_NEGOU_PEDIDO,
         )
 
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
@@ -225,7 +280,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             inclusoes_continuas = InclusaoAlimentacaoContinua.vencidos
         return inclusoes_continuas.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
@@ -235,7 +290,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             inclusoes_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
         return inclusoes_continuas.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
@@ -247,7 +302,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             inclusoes_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
         return inclusoes_continuas.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
@@ -258,7 +313,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.vencidos
         return inclusoes_normais.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
@@ -268,7 +323,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
         return inclusoes_normais.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
@@ -280,7 +335,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
         return inclusoes_normais.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
@@ -291,7 +346,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             alteracoes_cardapio = AlteracaoCardapio.vencidos
         return alteracoes_cardapio.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
@@ -301,7 +356,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
         return alteracoes_cardapio.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
@@ -313,65 +368,70 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
         return alteracoes_cardapio.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
         return queryset.filter(
-            status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
-                        AlteracaoCardapio.workflow_class.CODAE_QUESTIONADO],
-            escola__lote__in=self.lotes.all()
+            status__in=[
+                AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+                AlteracaoCardapio.workflow_class.CODAE_QUESTIONADO,
+            ],
+            escola__lote__in=self.lotes.all(),
         )
 
     def alteracoes_cardapio_cei_das_minhas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEI)
         return queryset.filter(
-            status__in=[AlteracaoCardapioCEI.workflow_class.CODAE_AUTORIZADO,
-                        AlteracaoCardapioCEI.workflow_class.CODAE_QUESTIONADO],
-            escola__lote__in=self.lotes.all()
+            status__in=[
+                AlteracaoCardapioCEI.workflow_class.CODAE_AUTORIZADO,
+                AlteracaoCardapioCEI.workflow_class.CODAE_QUESTIONADO,
+            ],
+            escola__lote__in=self.lotes.all(),
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
         return queryset.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
-            filtro_aplicado,
-            InclusaoAlimentacaoDaCEI
+            filtro_aplicado, InclusaoAlimentacaoDaCEI
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, InclusaoAlimentacaoContinua)
         return queryset.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     def suspensoes_alimentacao_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, GrupoSuspensaoAlimentacao)
         return queryset.filter(
             status=GrupoSuspensaoAlimentacao.workflow_class.INFORMADO,
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
         )
 
     @property
     def alteracoes_cardapio_autorizadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
-                        AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
+            status__in=[
+                AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+                AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+            ],
         )
 
     @property
     def alteracoes_cardapio_reprovadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=AlteracaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO
+            status=AlteracaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO,
         )
 
     #
@@ -387,15 +447,17 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             inversoes_cardapio = InversaoCardapio.objects  # type: ignore
         return inversoes_cardapio.filter(
             escola__lote__in=self.lotes.all(),
-            status=InversaoCardapio.workflow_class.CODAE_AUTORIZADO
+            status=InversaoCardapio.workflow_class.CODAE_AUTORIZADO,
         )
 
     @property
     def inversoes_cardapio_autorizadas(self):
         return InversaoCardapio.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status__in=[InversaoCardapio.workflow_class.CODAE_AUTORIZADO,
-                        InversaoCardapio.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
+            status__in=[
+                InversaoCardapio.workflow_class.CODAE_AUTORIZADO,
+                InversaoCardapio.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+            ],
         )
 
     #
@@ -411,15 +473,17 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects  # type: ignore
         return solicitacoes_unificadas.filter(
             escolas_quantidades__escola__lote__in=self.lotes.all(),
-            status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_AUTORIZADO
+            status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_AUTORIZADO,
         ).distinct()
 
     @property
     def solicitacoes_unificadas_autorizadas(self):
         return SolicitacaoKitLancheUnificada.objects.filter(
             escolas_quantidades__escola__lote__in=self.lotes.all(),
-            status__in=[SolicitacaoKitLancheUnificada.workflow_class.CODAE_AUTORIZADO,
-                        SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
+            status__in=[
+                SolicitacaoKitLancheUnificada.workflow_class.CODAE_AUTORIZADO,
+                SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+            ],
         ).distinct()
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
@@ -431,8 +495,10 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects  # type: ignore
         return solicitacoes_kit_lanche.filter(
             escola__lote__in=self.lotes.all(),
-            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
-                        SolicitacaoKitLancheAvulsa.workflow_class.CODAE_QUESTIONADO]
+            status__in=[
+                SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
+                SolicitacaoKitLancheAvulsa.workflow_class.CODAE_QUESTIONADO,
+            ],
         )
 
     def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
@@ -444,17 +510,26 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             solicitacoes_kit_lanche = SolicitacaoKitLancheCEIAvulsa.objects  # type: ignore
         return solicitacoes_kit_lanche.filter(
             escola__lote__in=self.lotes.all(),
-            status__in=[SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_AUTORIZADO,
-                        SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_QUESTIONADO]
+            status__in=[
+                SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_AUTORIZADO,
+                SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_QUESTIONADO,
+            ],
         )
 
     def emails_por_modulo(self, modulo_nome):
-        return list(self.emails_terceirizadas.filter(modulo__nome=modulo_nome).values_list('email', flat=True))
+        return list(
+            self.emails_terceirizadas.filter(modulo__nome=modulo_nome).values_list(
+                'email', flat=True
+            )
+        )
 
     @staticmethod
     def todos_emails_por_modulo(modulo_nome):
-        return list(EmailTerceirizadaPorModulo.objects.filter(
-            modulo__nome=modulo_nome).values_list('email', flat=True))
+        return list(
+            EmailTerceirizadaPorModulo.objects.filter(
+                modulo__nome=modulo_nome
+            ).values_list('email', flat=True)
+        )
 
     def __str__(self):
         return f'{self.nome_fantasia}'
@@ -466,19 +541,38 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
 
 class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
     numero = models.CharField('No do contrato', max_length=100, unique=True)
-    processo = models.CharField('Processo Administrativo', max_length=100,
-                                help_text='Processo administrativo do contrato')
+    processo = models.CharField(
+        'Processo Administrativo',
+        max_length=100,
+        help_text='Processo administrativo do contrato',
+    )
     data_proposta = models.DateField('Data da proposta', blank=True, null=True)
     lotes = models.ManyToManyField(Lote, related_name='contratos_do_lote', blank=True)
-    terceirizada = models.ForeignKey(Terceirizada, on_delete=models.PROTECT,
-                                     related_name='contratos', blank=True, null=True)
-    edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='contratos', blank=True, null=True)
-    diretorias_regionais = models.ManyToManyField(DiretoriaRegional, related_name='contratos_da_diretoria_regional',
-                                                  blank=True)
+    terceirizada = models.ForeignKey(
+        Terceirizada,
+        on_delete=models.PROTECT,
+        related_name='contratos',
+        blank=True,
+        null=True,
+    )
+    edital = models.ForeignKey(
+        Edital,
+        on_delete=models.CASCADE,
+        related_name='contratos',
+        blank=True,
+        null=True,
+    )
+    diretorias_regionais = models.ManyToManyField(
+        DiretoriaRegional, related_name='contratos_da_diretoria_regional', blank=True
+    )
     encerrado = models.BooleanField('Encerrado?', default=False)
-    data_hora_encerramento = models.DateTimeField('Data e hora do encerramento', null=True, default=None)
+    data_hora_encerramento = models.DateTimeField(
+        'Data e hora do encerramento', null=True, default=None
+    )
     ata = models.CharField('No da Ata/Chamada Pública', max_length=100, blank=True)
-    pregao_chamada_publica = models.CharField('No do Pregão Eletrônico', max_length=100, blank=True)
+    pregao_chamada_publica = models.CharField(
+        'No do Pregão Eletrônico', max_length=100, blank=True
+    )
 
     def __str__(self):
         return f'Contrato:{self.numero} Processo: {self.processo}'
@@ -487,14 +581,18 @@ class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
     def encerra_contrato(cls, uuid):
         contrato = cls.objects.get(uuid=uuid)
         if contrato.encerrado:
-            raise IntegrityError('Contrato já encerrado. Não é possivel encerrar novamente!')
+            raise IntegrityError(
+                'Contrato já encerrado. Não é possivel encerrar novamente!'
+            )
         contrato.encerrado = True
         contrato.data_hora_encerramento = datetime.datetime.now()
         contrato.save()
 
         dados_encerramento = {
             'encerrado': contrato.encerrado,
-            'data_hora_encerramento': contrato.data_hora_encerramento.strftime('%d/%m/%Y - %H:%M')
+            'data_hora_encerramento': contrato.data_hora_encerramento.strftime(
+                '%d/%m/%Y - %H:%M'
+            ),
         }
 
         return dados_encerramento
@@ -504,11 +602,21 @@ class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
         verbose_name_plural = 'Contratos'
 
 
-class VigenciaContrato(ExportModelOperationsMixin('vigencia_contrato'), TemChaveExterna, IntervaloDeDia):
-    contrato = models.ForeignKey(Contrato, on_delete=models.CASCADE, related_name='vigencias', null=True, blank=True)
+class VigenciaContrato(
+    ExportModelOperationsMixin('vigencia_contrato'), TemChaveExterna, IntervaloDeDia
+):
+    contrato = models.ForeignKey(
+        Contrato,
+        on_delete=models.CASCADE,
+        related_name='vigencias',
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
-        return f'Contrato:{self.contrato.numero} {self.data_inicial} a {self.data_final}'
+        return (
+            f'Contrato:{self.contrato.numero} {self.data_inicial} a {self.data_final}'
+        )
 
     class Meta:
         verbose_name = 'Vigência de contrato'
@@ -526,12 +634,20 @@ class Modulo(ExportModelOperationsMixin('modulo'), TemChaveExterna):
         verbose_name_plural = 'Módulos'
 
 
-class EmailTerceirizadaPorModulo(ExportModelOperationsMixin('email_terceirizada_por_modulo'), TemChaveExterna):
+class EmailTerceirizadaPorModulo(
+    ExportModelOperationsMixin('email_terceirizada_por_modulo'), TemChaveExterna
+):
     email = models.EmailField('E-mail')
-    terceirizada = models.ForeignKey(Terceirizada, on_delete=models.CASCADE, related_name='emails_terceirizadas')
-    modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='emails_terceirizadas')
+    terceirizada = models.ForeignKey(
+        Terceirizada, on_delete=models.CASCADE, related_name='emails_terceirizadas'
+    )
+    modulo = models.ForeignKey(
+        Modulo, on_delete=models.CASCADE, related_name='emails_terceirizadas'
+    )
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
-    criado_por = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='emails_terceirizadas')
+    criado_por = models.ForeignKey(
+        Usuario, on_delete=models.PROTECT, related_name='emails_terceirizadas'
+    )
 
     def __str__(self):
         return f'{self.email} - {self.terceirizada.nome_fantasia} - {self.modulo.nome}'
