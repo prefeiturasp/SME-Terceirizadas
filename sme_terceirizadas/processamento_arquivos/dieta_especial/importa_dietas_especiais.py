@@ -16,7 +16,7 @@ from sme_terceirizadas.dieta_especial.models import (
     ProtocoloPadraoDietaEspecial,
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento,
-    SubstituicaoAlimentoProtocoloPadrao
+    SubstituicaoAlimentoProtocoloPadrao,
 )
 from sme_terceirizadas.escola.models import Aluno, Escola
 from sme_terceirizadas.perfil.models.perfil import Perfil, Vinculo
@@ -47,32 +47,52 @@ class ProcessadorPlanilha:
             return
 
         linhas = list(self.worksheet.rows)
-        logger.info(f'Quantidade de linhas: {len(linhas)} - Quantidade colunas {len(linhas[0])}')
+        logger.info(
+            f'Quantidade de linhas: {len(linhas)} - Quantidade colunas {len(linhas[0])}'
+        )
         if self.worksheet.max_column != 12:
-            self.erros.append('Erro: O número de colunas diferente das estrutura definida.')
+            self.erros.append(
+                'Erro: O número de colunas diferente das estrutura definida.'
+            )
             return
 
-        for ind, linha in enumerate(linhas[1:], 2):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
+        for ind, linha in enumerate(
+            linhas[1:], 2
+        ):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
             try:
                 dicionario_dados = self.monta_dicionario_de_dados(linha)
 
                 # Faz validações dos campos usando o schema para a dieta
-                solicitacao_dieta_schema = ArquivoCargaDietaEspecialSchema(**dicionario_dados)
+                solicitacao_dieta_schema = ArquivoCargaDietaEspecialSchema(
+                    **dicionario_dados
+                )
 
                 aluno = self.consulta_aluno(solicitacao_dieta_schema)
 
                 escola = self.consulta_escola(solicitacao_dieta_schema)
 
-                protocolo_padrao = self.consulta_protocolo_padrao(solicitacao_dieta_schema, escola)
+                protocolo_padrao = self.consulta_protocolo_padrao(
+                    solicitacao_dieta_schema, escola
+                )
 
-                classificacao_dieta = self.consulta_classificacao(solicitacao_dieta_schema)
+                classificacao_dieta = self.consulta_classificacao(
+                    solicitacao_dieta_schema
+                )
 
-                diagnosticos = self.monta_diagnosticos(solicitacao_dieta_schema.codigo_diagnostico)
+                diagnosticos = self.monta_diagnosticos(
+                    solicitacao_dieta_schema.codigo_diagnostico
+                )
 
                 self.checa_existencia_solicitacao(solicitacao_dieta_schema, aluno)
 
-                self.cria_solicitacao(solicitacao_dieta_schema, aluno, classificacao_dieta,
-                                      diagnosticos, escola, protocolo_padrao)
+                self.cria_solicitacao(
+                    solicitacao_dieta_schema,
+                    aluno,
+                    classificacao_dieta,
+                    diagnosticos,
+                    escola,
+                    protocolo_padrao,
+                )
             except Exception as exc:
                 self.erros.append(f'Linha {ind} - {exc}')
 
@@ -80,7 +100,7 @@ class ProcessadorPlanilha:
         return load_workbook(self.path).active
 
     def validacao_inicial(self) -> bool:
-        return (self.existe_conteudo() and self.extensao_do_arquivo_esta_correta())
+        return self.existe_conteudo() and self.extensao_do_arquivo_esta_correta()
 
     def existe_conteudo(self) -> bool:
         if not self.arquivo.conteudo:
@@ -97,44 +117,75 @@ class ProcessadorPlanilha:
         return True
 
     def monta_dicionario_de_dados(self, linha: tuple) -> dict:
-        return {key: linha[index].value
-                for index, key in enumerate(ArquivoCargaDietaEspecialSchema.schema()['properties'].keys())}
+        return {
+            key: linha[index].value
+            for index, key in enumerate(
+                ArquivoCargaDietaEspecialSchema.schema()['properties'].keys()
+            )
+        }
 
     def consulta_aluno(self, solicitacao_dieta_schema) -> Aluno:
-        aluno = Aluno.objects.filter(codigo_eol=solicitacao_dieta_schema.codigo_eol_aluno).first()
+        aluno = Aluno.objects.filter(
+            codigo_eol=solicitacao_dieta_schema.codigo_eol_aluno
+        ).first()
         if not aluno:
-            raise Exception(f'Erro: Aluno com código eol {solicitacao_dieta_schema.codigo_eol_aluno} não encontrado.')
+            raise Exception(
+                f'Erro: Aluno com código eol {solicitacao_dieta_schema.codigo_eol_aluno} não encontrado.'
+            )
 
         if solicitacao_dieta_schema.nome_aluno.upper() != aluno.nome:
-            raise Exception(f'Erro: Nome divergente para o código eol {aluno.codigo_eol}: '
-                            + 'Nome aluno planilha: '
-                            + f'{solicitacao_dieta_schema.nome_aluno.upper()} != Nome aluno sistema: {aluno.nome}')
+            raise Exception(
+                f'Erro: Nome divergente para o código eol {aluno.codigo_eol}: '
+                + 'Nome aluno planilha: '
+                + f'{solicitacao_dieta_schema.nome_aluno.upper()} != Nome aluno sistema: {aluno.nome}'
+            )
         return aluno
 
     def consulta_escola(self, solicitacao_dieta_schema) -> Escola:
-        escola = Escola.objects.filter(codigo_codae=solicitacao_dieta_schema.codigo_escola).first()
+        escola = Escola.objects.filter(
+            codigo_codae=solicitacao_dieta_schema.codigo_escola
+        ).first()
         if not escola:
-            raise Exception(f'Erro: escola com código codae {solicitacao_dieta_schema.codigo_escola} não encontrada.')
+            raise Exception(
+                f'Erro: escola com código codae {solicitacao_dieta_schema.codigo_escola} não encontrada.'
+            )
         return escola
 
-    def consulta_protocolo_padrao(self, solicitacao_dieta_schema, escola) -> ProtocoloPadraoDietaEspecial:
+    def consulta_protocolo_padrao(
+        self, solicitacao_dieta_schema, escola
+    ) -> ProtocoloPadraoDietaEspecial:
         if not escola:
-            raise Exception(f'Erro: Escola inválida. Não foi possível encontrar os editais e protocolos.')
+            raise Exception(
+                'Erro: Escola inválida. Não foi possível encontrar os editais e protocolos.'
+            )
         editais = Edital.objects.filter(uuid__in=escola.editais)
-        protocolos_uuids = editais.values_list('protocolos_padroes_dieta_especial__uuid', flat=True)
-        protocolos = ProtocoloPadraoDietaEspecial.objects.filter(uuid__in=protocolos_uuids)
-        protocolos = protocolos.filter(nome_protocolo=solicitacao_dieta_schema.protocolo_dieta)
+        protocolos_uuids = editais.values_list(
+            'protocolos_padroes_dieta_especial__uuid', flat=True
+        )
+        protocolos = ProtocoloPadraoDietaEspecial.objects.filter(
+            uuid__in=protocolos_uuids
+        )
+        protocolos = protocolos.filter(
+            nome_protocolo=solicitacao_dieta_schema.protocolo_dieta
+        )
         if not protocolos:
             msg_part_1 = 'Erro: protocolo padrão'
-            msg_part_2 = 'não encontrado com este nome ao edital que a escola está relacionada.'
-            raise Exception(f'{msg_part_1} {solicitacao_dieta_schema.protocolo_dieta} {msg_part_2}')
+            msg_part_2 = (
+                'não encontrado com este nome ao edital que a escola está relacionada.'
+            )
+            raise Exception(
+                f'{msg_part_1} {solicitacao_dieta_schema.protocolo_dieta} {msg_part_2}'
+            )
         return protocolos.first()
 
     def consulta_classificacao(self, dieta_schema) -> ClassificacaoDieta:
         classificacao_dieta = ClassificacaoDieta.objects.filter(
-            nome=f'Tipo {dieta_schema.codigo_categoria_dieta}').first()
+            nome=f'Tipo {dieta_schema.codigo_categoria_dieta}'
+        ).first()
         if not classificacao_dieta:
-            raise Exception(f'Erro: A categoria da dieta {dieta_schema.codigo_categoria_dieta} não encontrado.')
+            raise Exception(
+                f'Erro: A categoria da dieta {dieta_schema.codigo_categoria_dieta} não encontrado.'
+            )
         return classificacao_dieta
 
     def monta_diagnosticos(self, codigo_diagnostico: str) -> List[AlergiaIntolerancia]:
@@ -144,9 +195,12 @@ class ProcessadorPlanilha:
             # Checando se existe o diagnóstico tanto pelo nome que veio na planilha quanto pelo nome
             # em uppercase
             diag = AlergiaIntolerancia.objects.filter(
-                Q(descricao=nome_diagnostico) | Q(descricao=nome_diagnostico.upper())).first()
+                Q(descricao=nome_diagnostico) | Q(descricao=nome_diagnostico.upper())
+            ).first()
             if not diag:
-                diag = AlergiaIntolerancia.objects.create(descricao=nome_diagnostico.upper())
+                diag = AlergiaIntolerancia.objects.create(
+                    descricao=nome_diagnostico.upper()
+                )
             else:
                 diag.descricao = diag.descricao.upper()
                 diag.save()
@@ -156,34 +210,64 @@ class ProcessadorPlanilha:
 
     def consulta_relacao_lote_terceirizada(self, solicitacao) -> None:
         if solicitacao.rastro_terceirizada is None:
-            raise Exception(f'Lote "{solicitacao.rastro_lote.nome}" relacionado à escola '
-                            + f'"{solicitacao.rastro_escola.nome}" não está vinculado à uma terceirizada.')
+            raise Exception(
+                f'Lote "{solicitacao.rastro_lote.nome}" relacionado à escola '
+                + f'"{solicitacao.rastro_escola.nome}" não está vinculado à uma terceirizada.'
+            )
 
     def eh_exatamente_mesma_solicitacao(self, solicitacao, solicitacao_dieta_schema):
-        if (solicitacao.escola_destino.codigo_codae == solicitacao_dieta_schema.codigo_escola and
-            solicitacao.aluno.codigo_eol == solicitacao_dieta_schema.codigo_eol_aluno and
-            solicitacao.nome_protocolo.upper() == solicitacao_dieta_schema.protocolo_dieta.upper() and
-            solicitacao_dieta_schema.codigo_categoria_dieta in solicitacao.classificacao.nome and
-                [x.upper() for x in solicitacao_dieta_schema.codigo_diagnostico.split(';')] == [
-                x.descricao.upper() for x in solicitacao.alergias_intolerancias.all()]):
-            raise Exception('Erro: Já existe uma solicitação ativa que foi importada para o aluno com código eol: '
-                            + f'{solicitacao_dieta_schema.codigo_eol_aluno} exatamente igual a esta')
+        if (
+            solicitacao.escola_destino.codigo_codae
+            == solicitacao_dieta_schema.codigo_escola
+            and solicitacao.aluno.codigo_eol
+            == solicitacao_dieta_schema.codigo_eol_aluno
+            and solicitacao.nome_protocolo.upper()
+            == solicitacao_dieta_schema.protocolo_dieta.upper()
+            and solicitacao_dieta_schema.codigo_categoria_dieta
+            in solicitacao.classificacao.nome
+            and [
+                x.upper()
+                for x in solicitacao_dieta_schema.codigo_diagnostico.split(';')
+            ]
+            == [x.descricao.upper() for x in solicitacao.alergias_intolerancias.all()]
+        ):
+            raise Exception(
+                'Erro: Já existe uma solicitação ativa que foi importada para o aluno com código eol: '
+                + f'{solicitacao_dieta_schema.codigo_eol_aluno} exatamente igual a esta'
+            )
 
     def checa_existencia_solicitacao(self, solicitacao_dieta_schema, aluno) -> None:
-        if SolicitacaoDietaEspecial.objects.filter(aluno=aluno, ativo=True, eh_importado=True).exists():
-            solicitacao = SolicitacaoDietaEspecial.objects.get(aluno=aluno, ativo=True, eh_importado=True)
+        if SolicitacaoDietaEspecial.objects.filter(
+            aluno=aluno, ativo=True, eh_importado=True
+        ).exists():
+            solicitacao = SolicitacaoDietaEspecial.objects.get(
+                aluno=aluno, ativo=True, eh_importado=True
+            )
             self.eh_exatamente_mesma_solicitacao(solicitacao, solicitacao_dieta_schema)
-        if SolicitacaoDietaEspecial.objects.filter(aluno=aluno, ativo=True, eh_importado=False).exists():
-            SolicitacaoDietaEspecial.objects.filter(aluno=aluno, ativo=True, eh_importado=False).update(ativo=False)
+        if SolicitacaoDietaEspecial.objects.filter(
+            aluno=aluno, ativo=True, eh_importado=False
+        ).exists():
+            SolicitacaoDietaEspecial.objects.filter(
+                aluno=aluno, ativo=True, eh_importado=False
+            ).update(ativo=False)
 
     @transaction.atomic
-    def cria_solicitacao(self, solicitacao_dieta_schema, aluno,
-                         classificacao_dieta, diagnosticos, escola, protocolo_padrao):  # noqa C901
+    def cria_solicitacao(
+        self,
+        solicitacao_dieta_schema,
+        aluno,
+        classificacao_dieta,
+        diagnosticos,
+        escola,
+        protocolo_padrao,
+    ):  # noqa C901
         observacoes = """Essa Dieta Especial foi autorizada anteriormente a implantação do SIGPAE."""
 
         email_fake = f'fake{escola.id}@admin.com'
         usuario_escola = Usuario.objects.filter(email=email_fake).first()
-        registro_funcional_nutricionista = f'Elaborado por {self.usuario.nome} - RF {self.usuario.registro_funcional}'
+        registro_funcional_nutricionista = (
+            f'Elaborado por {self.usuario.nome} - RF {self.usuario.registro_funcional}'
+        )
         if not usuario_escola:
             perfil = Perfil.objects.get(nome='DIRETOR_UE')
             data_atual = date.today()
@@ -196,14 +280,14 @@ class ProcessadorPlanilha:
                 password=DJANGO_ADMIN_PASSWORD,
                 nome=escola.nome,
                 cargo='DIRETOR',
-                is_active=False
+                is_active=False,
             )
             Vinculo.objects.create(
                 instituicao=escola,
                 perfil=perfil,
                 usuario=usuario_escola,
                 data_inicial=data_atual,
-                ativo=True
+                ativo=True,
             )
 
         solicitacao: SolicitacaoDietaEspecial = SolicitacaoDietaEspecial.objects.create(
@@ -218,21 +302,25 @@ class ProcessadorPlanilha:
             observacoes=observacoes,
             registro_funcional_nutricionista=registro_funcional_nutricionista,
             conferido=True,
-            eh_importado=True
+            eh_importado=True,
         )
         solicitacao.inicia_fluxo(user=usuario_escola)
         solicitacao.alergias_intolerancias.add(*diagnosticos)
         self.consulta_relacao_lote_terceirizada(solicitacao)
         solicitacao.save()
-        substituicoes = SubstituicaoAlimentoProtocoloPadrao.objects.filter(protocolo_padrao=protocolo_padrao)
+        substituicoes = SubstituicaoAlimentoProtocoloPadrao.objects.filter(
+            protocolo_padrao=protocolo_padrao
+        )
         for substituicao in substituicoes:
             substituicao_alimento = SubstituicaoAlimento.objects.create(
                 solicitacao_dieta_especial=solicitacao,
                 alimento=substituicao.alimento,
-                tipo=substituicao.tipo
+                tipo=substituicao.tipo,
             )
             substituicao_alimento.substitutos.set(substituicao.substitutos.all())
-            substituicao_alimento.alimentos_substitutos.set(substituicao.alimentos_substitutos.all())
+            substituicao_alimento.alimentos_substitutos.set(
+                substituicao.alimentos_substitutos.all()
+            )
         solicitacao.codae_autoriza(user=self.usuario, eh_importacao=True)
 
     def finaliza_processamento(self) -> None:
@@ -248,7 +336,9 @@ class ProcessadorPlanilha:
         workbook: Workbook = Workbook()
         ws = workbook.active
         ws.title = 'Erros'
-        cabecalho = ws.cell(row=1, column=1, value='Erros encontrados no processamento da planilha')
+        cabecalho = ws.cell(
+            row=1, column=1, value='Erros encontrados no processamento da planilha'
+        )
         cabecalho.fill = styles.PatternFill('solid', fgColor='808080')
         for index, erro in enumerate(self.erros, 2):
             ws.cell(row=index, column=1, value=erro)
@@ -259,7 +349,9 @@ class ProcessadorPlanilha:
             self.arquivo.resultado.save(name=filename, content=File(tmp))
 
 
-def importa_dietas_especiais(usuario: Usuario, arquivo: ArquivoCargaDietaEspecial) -> None:
+def importa_dietas_especiais(
+    usuario: Usuario, arquivo: ArquivoCargaDietaEspecial
+) -> None:
     logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
     try:
         processador = ProcessadorPlanilha(usuario, arquivo)

@@ -15,9 +15,12 @@ class Command(BaseCommand):
         self.atualiza_username_com_cpf()
 
     def atualiza_username_com_cpf(self):
-        logger.info(f'Inicia atualização do campo username.')
-        uuids_usuarios = Vinculo.objects.filter(
-            content_type__model='terceirizada', usuario__is_active=True, ativo=True
-        ).exclude(usuario__cpf=None).values_list('usuario__uuid', flat=True)
-        Usuario.objects.filter(uuid__in=uuids_usuarios).update(
-            username=F('cpf'))
+        logger.info('Inicia atualização do campo username.')
+        uuids_usuarios = (
+            Vinculo.objects.filter(
+                content_type__model='terceirizada', usuario__is_active=True, ativo=True
+            )
+            .exclude(usuario__cpf=None)
+            .values_list('usuario__uuid', flat=True)
+        )
+        Usuario.objects.filter(uuid__in=uuids_usuarios).update(username=F('cpf'))

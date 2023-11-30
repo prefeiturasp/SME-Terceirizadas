@@ -10,18 +10,23 @@ from rest_framework.test import APIClient
 
 from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
-from sme_terceirizadas.dados_comuns.fluxo_status import DocumentoDeRecebimentoWorkflow, LayoutDeEmbalagemWorkflow
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    DocumentoDeRecebimentoWorkflow,
+    LayoutDeEmbalagemWorkflow,
+)
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     FichaTecnicaDetalharSerializer,
     FichaTecnicalistagemSerializer,
-    NomeEAbreviacaoUnidadeMedidaSerializer
+    NomeEAbreviacaoUnidadeMedidaSerializer,
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
-    ServiceDashboardLayoutEmbalagem
+    ServiceDashboardLayoutEmbalagem,
 )
-from sme_terceirizadas.pre_recebimento.fixtures.factories.documentos_de_recebimento_factory import fake
+from sme_terceirizadas.pre_recebimento.fixtures.factories.documentos_de_recebimento_factory import (
+    fake,
+)
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     DocumentoDeRecebimento,
@@ -31,36 +36,31 @@ from sme_terceirizadas.pre_recebimento.models import (
     SolicitacaoAlteracaoCronograma,
     TipoDeDocumentoDeRecebimento,
     TipoEmbalagemQld,
-    UnidadeMedida
+    UnidadeMedida,
 )
 
 
-def test_url_endpoint_cronograma(client_autenticado_codae_dilog, armazem, contrato, empresa):
+def test_url_endpoint_cronograma(
+    client_autenticado_codae_dilog, armazem, contrato, empresa
+):
     data = {
         'armazem': str(armazem.uuid),
         'contrato': str(contrato.uuid),
         'empresa': str(empresa.uuid),
         'cadastro_finalizado': False,
         'etapas': [
-            {
-                'numero_empenho': '123456789'
-            },
-            {
-                'numero_empenho': '1891425',
-                'etapa': 'Etapa 1'
-            }
+            {'numero_empenho': '123456789'},
+            {'numero_empenho': '1891425', 'etapa': 'Etapa 1'},
         ],
         'programacoes_de_recebimento': [
             {
                 'data_programada': '22/08/2022 - Etapa 1 - Parte 1',
-                'tipo_carga': 'PALETIZADA'
+                'tipo_carga': 'PALETIZADA',
             }
-        ]
+        ],
     }
     response = client_autenticado_codae_dilog.post(
-        '/cronogramas/',
-        content_type='application/json',
-        data=json.dumps(data)
+        '/cronogramas/', content_type='application/json', data=json.dumps(data)
     )
     assert response.status_code == status.HTTP_201_CREATED
     obj = Cronograma.objects.last()
@@ -72,7 +72,9 @@ def test_url_lista_etapas_authorized_numeros(client_autenticado_codae_dilog):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_list_cronogramas(client_autenticado_codae_dilog, cronogramas_multiplos_status_com_log):
+def test_url_list_cronogramas(
+    client_autenticado_codae_dilog, cronogramas_multiplos_status_com_log
+):
     response = client_autenticado_codae_dilog.get('/cronogramas/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
@@ -90,8 +92,12 @@ def test_url_list_cronogramas_fornecedor(client_autenticado_fornecedor):
     assert 'previous' in json
 
 
-def test_url_list_solicitacoes_alteracao_cronograma(client_autenticado_dilog_cronograma):
-    response = client_autenticado_dilog_cronograma.get('/solicitacao-de-alteracao-de-cronograma/')
+def test_url_list_solicitacoes_alteracao_cronograma(
+    client_autenticado_dilog_cronograma,
+):
+    response = client_autenticado_dilog_cronograma.get(
+        '/solicitacao-de-alteracao-de-cronograma/'
+    )
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert 'count' in json
@@ -99,8 +105,12 @@ def test_url_list_solicitacoes_alteracao_cronograma(client_autenticado_dilog_cro
     assert 'previous' in json
 
 
-def test_url_list_solicitacoes_alteracao_cronograma_fornecedor(client_autenticado_fornecedor):
-    response = client_autenticado_fornecedor.get('/solicitacao-de-alteracao-de-cronograma/')
+def test_url_list_solicitacoes_alteracao_cronograma_fornecedor(
+    client_autenticado_fornecedor,
+):
+    response = client_autenticado_fornecedor.get(
+        '/solicitacao-de-alteracao-de-cronograma/'
+    )
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert 'count' in json
@@ -108,7 +118,9 @@ def test_url_list_solicitacoes_alteracao_cronograma_fornecedor(client_autenticad
     assert 'previous' in json
 
 
-def test_url_solicitacao_alteracao_fornecedor(client_autenticado_fornecedor, cronograma_assinado_perfil_dilog):
+def test_url_solicitacao_alteracao_fornecedor(
+    client_autenticado_fornecedor, cronograma_assinado_perfil_dilog
+):
     data = {
         'cronograma': str(cronograma_assinado_perfil_dilog.uuid),
         'etapas': [
@@ -118,29 +130,31 @@ def test_url_solicitacao_alteracao_fornecedor(client_autenticado_fornecedor, cro
                 'parte': 'Parte 2',
                 'data_programada': '2023-06-03',
                 'quantidade': 123,
-                'total_embalagens': 333
+                'total_embalagens': 333,
             },
             {
                 'etapa': 'Etapa 1',
                 'parte': 'Parte 1',
                 'data_programada': '2023-09-14',
                 'quantidade': '0',
-                'total_embalagens': 1
-            }
+                'total_embalagens': 1,
+            },
         ],
-        'justificativa': 'Teste'
+        'justificativa': 'Teste',
     }
     response = client_autenticado_fornecedor.post(
         '/solicitacao-de-alteracao-de-cronograma/',
         content_type='application/json',
-        data=json.dumps(data)
+        data=json.dumps(data),
     )
     assert response.status_code == status.HTTP_201_CREATED
     obj = SolicitacaoAlteracaoCronograma.objects.last()
     assert obj.status == 'EM_ANALISE'
 
 
-def test_url_solicitacao_alteracao_dilog(client_autenticado_dilog_cronograma, cronograma_assinado_perfil_dilog):
+def test_url_solicitacao_alteracao_dilog(
+    client_autenticado_dilog_cronograma, cronograma_assinado_perfil_dilog
+):
     data = {
         'cronograma': str(cronograma_assinado_perfil_dilog.uuid),
         'qtd_total_programada': 124,
@@ -151,29 +165,29 @@ def test_url_solicitacao_alteracao_dilog(client_autenticado_dilog_cronograma, cr
                 'parte': 'Parte 2',
                 'data_programada': '2023-06-03',
                 'quantidade': 123,
-                'total_embalagens': 333
+                'total_embalagens': 333,
             },
             {
                 'etapa': 'Etapa 1',
                 'parte': 'Parte 1',
                 'data_programada': '2023-09-14',
                 'quantidade': 1,
-                'total_embalagens': 1
-            }
+                'total_embalagens': 1,
+            },
         ],
         'justificativa': 'Teste',
         'programacoes_de_recebimento': [
             {
                 'data_programada': '14/09/2023 - Etapa 1 - Parte 1',
-                'tipo_carga': 'PALETIZADA'
+                'tipo_carga': 'PALETIZADA',
             }
-        ]
+        ],
     }
 
     response = client_autenticado_dilog_cronograma.post(
         '/solicitacao-de-alteracao-de-cronograma/',
         content_type='application/json',
-        data=json.dumps(data)
+        data=json.dumps(data),
     )
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -183,221 +197,245 @@ def test_url_solicitacao_alteracao_dilog(client_autenticado_dilog_cronograma, cr
     assert obj.programacoes_novas.count() > 0
 
 
-def test_url_perfil_cronograma_ciente_alteracao_cronograma(client_autenticado_dilog_cronograma,
-                                                           solicitacao_cronograma_em_analise):
-    data = json.dumps({
-        'justificativa_cronograma': 'teste justificativa',
-        'etapas': [
-            {
-                'numero_empenho': '123456789'
-            },
-            {
-                'numero_empenho': '1891425',
-                'etapa': 'Etapa 1'
-            }
-        ],
-        'programacoes_de_recebimento': [
-            {
-                'data_programada': '22/08/2022 - Etapa 1 - Parte 1',
-                'tipo_carga': 'PALETIZADA'
-            }
-        ]
-    })
+def test_url_perfil_cronograma_ciente_alteracao_cronograma(
+    client_autenticado_dilog_cronograma, solicitacao_cronograma_em_analise
+):
+    data = json.dumps(
+        {
+            'justificativa_cronograma': 'teste justificativa',
+            'etapas': [
+                {'numero_empenho': '123456789'},
+                {'numero_empenho': '1891425', 'etapa': 'Etapa 1'},
+            ],
+            'programacoes_de_recebimento': [
+                {
+                    'data_programada': '22/08/2022 - Etapa 1 - Parte 1',
+                    'tipo_carga': 'PALETIZADA',
+                }
+            ],
+        }
+    )
     response = client_autenticado_dilog_cronograma.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_em_analise.uuid}/cronograma-ciente/',
-        data, content_type='application/json')
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_200_OK
-    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_em_analise.uuid)
+    obj = SolicitacaoAlteracaoCronograma.objects.get(
+        uuid=solicitacao_cronograma_em_analise.uuid
+    )
     assert obj.status == 'CRONOGRAMA_CIENTE'
 
 
-def test_url_cronograma_ciente_erro_solicitacao_cronograma_invalida(client_autenticado_dilog_cronograma):
+def test_url_cronograma_ciente_erro_solicitacao_cronograma_invalida(
+    client_autenticado_dilog_cronograma,
+):
     response = client_autenticado_dilog_cronograma.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{uuid.uuid4()}/cronograma-ciente/',
-        content_type='application/json'
+        content_type='application/json',
     )
     assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
 
 
 def test_url_cronograma_ciente_erro_transicao_estado(
-    client_autenticado_dilog_cronograma,
-    solicitacao_cronograma_ciente
+    client_autenticado_dilog_cronograma, solicitacao_cronograma_ciente
 ):
-    data = json.dumps({
-        'justificativa_cronograma': 'teste justificativa',
-    })
+    data = json.dumps(
+        {
+            'justificativa_cronograma': 'teste justificativa',
+        }
+    )
     response = client_autenticado_dilog_cronograma.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/cronograma-ciente/',
         data,
-        content_type='application/json'
+        content_type='application/json',
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_perfil_dinutre_aprova_alteracao_cronograma(client_autenticado_dinutre_diretoria,
-                                                        solicitacao_cronograma_ciente):
-    data = json.dumps({
-        'aprovado': True
-    })
+def test_url_perfil_dinutre_aprova_alteracao_cronograma(
+    client_autenticado_dinutre_diretoria, solicitacao_cronograma_ciente
+):
+    data = json.dumps({'aprovado': True})
     response = client_autenticado_dinutre_diretoria.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dinutre/',
-        data, content_type='application/json')
+        data,
+        content_type='application/json',
+    )
 
     assert response.status_code == status.HTTP_200_OK
-    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_ciente.uuid)
+    obj = SolicitacaoAlteracaoCronograma.objects.get(
+        uuid=solicitacao_cronograma_ciente.uuid
+    )
     assert obj.status == 'APROVADO_DINUTRE'
 
 
-def test_url_perfil_dinutre_reprova_alteracao_cronograma(client_autenticado_dinutre_diretoria,
-                                                         solicitacao_cronograma_ciente):
-    data = json.dumps({
-        'justificativa_dinutre': 'teste justificativa',
-        'aprovado': False
-    })
+def test_url_perfil_dinutre_reprova_alteracao_cronograma(
+    client_autenticado_dinutre_diretoria, solicitacao_cronograma_ciente
+):
+    data = json.dumps(
+        {'justificativa_dinutre': 'teste justificativa', 'aprovado': False}
+    )
     response = client_autenticado_dinutre_diretoria.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dinutre/',
-        data, content_type='application/json')
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_200_OK
-    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_ciente.uuid)
+    obj = SolicitacaoAlteracaoCronograma.objects.get(
+        uuid=solicitacao_cronograma_ciente.uuid
+    )
     assert obj.status == 'REPROVADO_DINUTRE'
 
 
 def test_url_analise_dinutre_erro_parametro_aprovado_invalida(
-    client_autenticado_dinutre_diretoria,
-    solicitacao_cronograma_ciente
+    client_autenticado_dinutre_diretoria, solicitacao_cronograma_ciente
 ):
-    data = json.dumps({
-        'justificativa_dilog': 'teste justificativa',
-        'aprovado': ''
-    })
+    data = json.dumps({'justificativa_dilog': 'teste justificativa', 'aprovado': ''})
     response = client_autenticado_dinutre_diretoria.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dinutre/',
         data,
-        content_type='application/json'
+        content_type='application/json',
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_analise_dinutre_erro_solicitacao_cronograma_invalido(client_autenticado_dinutre_diretoria):
+def test_url_analise_dinutre_erro_solicitacao_cronograma_invalido(
+    client_autenticado_dinutre_diretoria,
+):
     response = client_autenticado_dinutre_diretoria.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{uuid.uuid4()}/analise-dinutre/',
-        content_type='application/json'
+        content_type='application/json',
     )
     assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
 
 
 def test_url_analise_dinutre_erro_transicao_estado(
-    client_autenticado_dinutre_diretoria,
-    solicitacao_cronograma_aprovado_dinutre
+    client_autenticado_dinutre_diretoria, solicitacao_cronograma_aprovado_dinutre
 ):
-    data = json.dumps({
-        'justificativa_dilog': 'teste justificativa',
-        'aprovado': True
-    })
+    data = json.dumps({'justificativa_dilog': 'teste justificativa', 'aprovado': True})
     response = client_autenticado_dinutre_diretoria.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_aprovado_dinutre.uuid}/analise-dinutre/',
         data,
-        content_type='application/json'
+        content_type='application/json',
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_perfil_dilog_aprova_alteracao_cronograma(client_autenticado_dilog_diretoria,
-                                                      solicitacao_cronograma_aprovado_dinutre):
-    data = json.dumps({
-        'aprovado': True
-    })
+def test_url_perfil_dilog_aprova_alteracao_cronograma(
+    client_autenticado_dilog_diretoria, solicitacao_cronograma_aprovado_dinutre
+):
+    data = json.dumps({'aprovado': True})
     response = client_autenticado_dilog_diretoria.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_aprovado_dinutre.uuid}/analise-dilog/',
-        data, content_type='application/json')
+        data,
+        content_type='application/json',
+    )
 
     assert response.status_code == status.HTTP_200_OK
-    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_aprovado_dinutre.uuid)
+    obj = SolicitacaoAlteracaoCronograma.objects.get(
+        uuid=solicitacao_cronograma_aprovado_dinutre.uuid
+    )
     assert obj.status == 'APROVADO_DILOG'
 
 
-def test_url_perfil_dilog_reprova_alteracao_cronograma(client_autenticado_dilog_diretoria,
-                                                       solicitacao_cronograma_aprovado_dinutre):
-    data = json.dumps({
-        'justificativa_dilog': 'teste justificativa',
-        'aprovado': False
-    })
+def test_url_perfil_dilog_reprova_alteracao_cronograma(
+    client_autenticado_dilog_diretoria, solicitacao_cronograma_aprovado_dinutre
+):
+    data = json.dumps({'justificativa_dilog': 'teste justificativa', 'aprovado': False})
     response = client_autenticado_dilog_diretoria.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_aprovado_dinutre.uuid}/analise-dilog/',
-        data, content_type='application/json')
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_200_OK
-    obj = SolicitacaoAlteracaoCronograma.objects.get(uuid=solicitacao_cronograma_aprovado_dinutre.uuid)
+    obj = SolicitacaoAlteracaoCronograma.objects.get(
+        uuid=solicitacao_cronograma_aprovado_dinutre.uuid
+    )
     assert obj.status == 'REPROVADO_DILOG'
 
 
-def test_url_analise_dilog_erro_solicitacao_cronograma_invalido(client_autenticado_dilog_diretoria):
+def test_url_analise_dilog_erro_solicitacao_cronograma_invalido(
+    client_autenticado_dilog_diretoria,
+):
     response = client_autenticado_dilog_diretoria.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{uuid.uuid4()}/analise-dilog/',
-        content_type='application/json'
+        content_type='application/json',
     )
     assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
 
 
 def test_url_analise_dilog_erro_parametro_aprovado_invalida(
-    client_autenticado_dilog_diretoria,
-    solicitacao_cronograma_aprovado_dinutre
+    client_autenticado_dilog_diretoria, solicitacao_cronograma_aprovado_dinutre
 ):
-    data = json.dumps({
-        'justificativa_dilog': 'teste justificativa',
-        'aprovado': ''
-    })
+    data = json.dumps({'justificativa_dilog': 'teste justificativa', 'aprovado': ''})
     response = client_autenticado_dilog_diretoria.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_aprovado_dinutre.uuid}/analise-dilog/',
         data,
-        content_type='application/json'
+        content_type='application/json',
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def test_url_analise_dilog_erro_transicao_estado(
-    client_autenticado_dilog_diretoria,
-    solicitacao_cronograma_ciente
+    client_autenticado_dilog_diretoria, solicitacao_cronograma_ciente
 ):
-    data = json.dumps({
-        'justificativa_dilog': 'teste justificativa',
-        'aprovado': True
-    })
+    data = json.dumps({'justificativa_dilog': 'teste justificativa', 'aprovado': True})
     response = client_autenticado_dilog_diretoria.patch(
         f'/solicitacao-de-alteracao-de-cronograma/{solicitacao_cronograma_ciente.uuid}/analise-dilog/',
         data,
-        content_type='application/json'
+        content_type='application/json',
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_fornecedor_assina_cronograma_authorized(client_autenticado_fornecedor, cronograma_recebido):
+def test_url_fornecedor_assina_cronograma_authorized(
+    client_autenticado_fornecedor, cronograma_recebido
+):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
-        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/', data, content_type='application/json')
+        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/',
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_200_OK
     obj = Cronograma.objects.get(uuid=cronograma_recebido.uuid)
     assert obj.status == 'ASSINADO_FORNECEDOR'
 
 
-def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(client_autenticado_fornecedor, cronograma):
+def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(
+    client_autenticado_fornecedor, cronograma
+):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
-        f'/cronogramas/{cronograma.uuid}/fornecedor-assina-cronograma/', data,
-        content_type='application/json')
+        f'/cronogramas/{cronograma.uuid}/fornecedor-assina-cronograma/',
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_fornecedor_confirma_not_authorized(client_autenticado_fornecedor, cronograma_recebido):
+def test_url_fornecedor_confirma_not_authorized(
+    client_autenticado_fornecedor, cronograma_recebido
+):
     data = json.dumps({'password': 'senha-errada'})
     response = client_autenticado_fornecedor.patch(
-        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/', data, content_type='application/json')
+        f'/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/',
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_url_fornecedor_assina_cronograma_erro_cronograma_invalido(client_autenticado_fornecedor):
+def test_url_fornecedor_assina_cronograma_erro_cronograma_invalido(
+    client_autenticado_fornecedor,
+):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_fornecedor.patch(
-        f'/cronogramas/{uuid.uuid4()}/fornecedor-assina-cronograma/', data, content_type='application/json')
+        f'/cronogramas/{uuid.uuid4()}/fornecedor-assina-cronograma/',
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
 
 
@@ -408,32 +446,29 @@ def test_url_list_rascunhos_cronogramas(client_autenticado_codae_dilog):
     assert 'results' in json
 
 
-def test_url_endpoint_cronograma_editar(client_autenticado_codae_dilog, cronograma_rascunho, contrato, empresa):
+def test_url_endpoint_cronograma_editar(
+    client_autenticado_codae_dilog, cronograma_rascunho, contrato, empresa
+):
     data = {
         'empresa': str(empresa.uuid),
         'contrato': str(contrato.uuid),
         'password': constants.DJANGO_ADMIN_PASSWORD,
         'cadastro_finalizado': True,
         'etapas': [
-            {
-                'numero_empenho': '123456789'
-            },
-            {
-                'numero_empenho': '1891425',
-                'etapa': 'Etapa 1'
-            }
+            {'numero_empenho': '123456789'},
+            {'numero_empenho': '1891425', 'etapa': 'Etapa 1'},
         ],
         'programacoes_de_recebimento': [
             {
                 'data_programada': '22/08/2022 - Etapa 1 - Parte 1',
-                'tipo_carga': 'PALETIZADA'
+                'tipo_carga': 'PALETIZADA',
             }
-        ]
+        ],
     }
     response = client_autenticado_codae_dilog.put(
         f'/cronogramas/{cronograma_rascunho.uuid}/',
         content_type='application/json',
-        data=json.dumps(data)
+        data=json.dumps(data),
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -460,12 +495,10 @@ def test_url_endpoint_laboratorio(client_autenticado_qualidade):
         'bairro': 'CENTRO',
         'cidade': 'IGARASSU',
         'estado': 'PE',
-        'credenciado': True
+        'credenciado': True,
     }
     response = client_autenticado_qualidade.post(
-        '/laboratorios/',
-        content_type='application/json',
-        data=json.dumps(data)
+        '/laboratorios/', content_type='application/json', data=json.dumps(data)
     )
     assert response.status_code == status.HTTP_201_CREATED
     obj = Laboratorio.objects.last()
@@ -495,12 +528,12 @@ def test_url_endpoint_laboratorio_editar(client_autenticado_qualidade, laborator
         'bairro': 'CENTRO',
         'cidade': 'IGARASSU',
         'estado': 'PE',
-        'credenciado': True
+        'credenciado': True,
     }
     response = client_autenticado_qualidade.put(
         f'/laboratorios/{laboratorio.uuid}/',
         content_type='application/json',
-        data=json.dumps(data)
+        data=json.dumps(data),
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -514,19 +547,16 @@ def test_url_lista_laboratorios_authorized(client_autenticado_qualidade):
 
 
 def test_url_lista_nomes_laboratorios_authorized(client_autenticado_qualidade):
-    response = client_autenticado_qualidade.get('/laboratorios/lista-nomes-laboratorios/')
+    response = client_autenticado_qualidade.get(
+        '/laboratorios/lista-nomes-laboratorios/'
+    )
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_url_endpoint_embalagem_create(client_autenticado_qualidade):
-    data = {
-        'nome': 'fardo',
-        'abreviacao': 'FD'
-    }
+    data = {'nome': 'fardo', 'abreviacao': 'FD'}
     response = client_autenticado_qualidade.post(
-        '/tipos-embalagens/',
-        content_type='application/json',
-        data=json.dumps(data)
+        '/tipos-embalagens/', content_type='application/json', data=json.dumps(data)
     )
     assert response.status_code == status.HTTP_201_CREATED
     obj = TipoEmbalagemQld.objects.last()
@@ -539,194 +569,223 @@ def test_url_embalagen_authorized(client_autenticado_qualidade):
 
 
 def test_url_lista_nomes_tipos_embalagens_authorized(client_autenticado_qualidade):
-    response = client_autenticado_qualidade.get('/tipos-embalagens/lista-nomes-tipos-embalagens/')
+    response = client_autenticado_qualidade.get(
+        '/tipos-embalagens/lista-nomes-tipos-embalagens/'
+    )
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_lista_abreviacoes_tipos_embalagens_authorized(client_autenticado_qualidade):
-    response = client_autenticado_qualidade.get('/tipos-embalagens/lista-abreviacoes-tipos-embalagens/')
+def test_url_lista_abreviacoes_tipos_embalagens_authorized(
+    client_autenticado_qualidade,
+):
+    response = client_autenticado_qualidade.get(
+        '/tipos-embalagens/lista-abreviacoes-tipos-embalagens/'
+    )
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_endpoint_embalagem_update(client_autenticado_qualidade, tipo_emabalagem_qld):
-    data = {
-        'nome': 'saco',
-        'abreviacao': 'SC'
-    }
+def test_url_endpoint_embalagem_update(
+    client_autenticado_qualidade, tipo_emabalagem_qld
+):
+    data = {'nome': 'saco', 'abreviacao': 'SC'}
     response = client_autenticado_qualidade.put(
         f'/tipos-embalagens/{tipo_emabalagem_qld.uuid}/',
         content_type='application/json',
-        data=json.dumps(data)
+        data=json.dumps(data),
     )
     assert response.status_code == status.HTTP_200_OK
     obj = TipoEmbalagemQld.objects.last()
     assert obj.nome == 'SACO'
 
 
-def test_url_perfil_cronograma_assina_cronograma_authorized(client_autenticado_dilog_cronograma,
-                                                            empresa, contrato, armazem):
+def test_url_perfil_cronograma_assina_cronograma_authorized(
+    client_autenticado_dilog_cronograma, empresa, contrato, armazem
+):
     data = {
         'empresa': str(empresa.uuid),
         'password': constants.DJANGO_ADMIN_PASSWORD,
         'contrato': str(contrato.uuid),
         'cadastro_finalizado': True,
         'etapas': [
-            {
-                'numero_empenho': '123456789'
-            },
-            {
-                'numero_empenho': '1891425',
-                'etapa': 'Etapa 1'
-            }
+            {'numero_empenho': '123456789'},
+            {'numero_empenho': '1891425', 'etapa': 'Etapa 1'},
         ],
         'programacoes_de_recebimento': [
             {
                 'data_programada': '22/08/2022 - Etapa 1 - Parte 1',
-                'tipo_carga': 'PALETIZADA'
+                'tipo_carga': 'PALETIZADA',
             }
-        ]
+        ],
     }
     response = client_autenticado_dilog_cronograma.post(
-        '/cronogramas/',
-        content_type='application/json',
-        data=json.dumps(data)
+        '/cronogramas/', content_type='application/json', data=json.dumps(data)
     )
 
     assert response.status_code == status.HTTP_201_CREATED
 
 
-def test_url_perfil_cronograma_assina_cronograma_erro_senha(client_autenticado_dilog_cronograma,
-                                                            empresa, contrato):
+def test_url_perfil_cronograma_assina_cronograma_erro_senha(
+    client_autenticado_dilog_cronograma, empresa, contrato
+):
     data = {
         'empresa': str(empresa.uuid),
         'password': 'senha_errada',
         'contrato': str(contrato.uuid),
         'cadastro_finalizado': True,
         'etapas': [
-            {
-                'numero_empenho': '123456789'
-            },
-            {
-                'numero_empenho': '1891425',
-                'etapa': 'Etapa 1'
-            }
+            {'numero_empenho': '123456789'},
+            {'numero_empenho': '1891425', 'etapa': 'Etapa 1'},
         ],
         'programacoes_de_recebimento': [
             {
                 'data_programada': '22/08/2022 - Etapa 1 - Parte 1',
-                'tipo_carga': 'PALETIZADA'
+                'tipo_carga': 'PALETIZADA',
             }
-        ]
+        ],
     }
     response = client_autenticado_dilog_cronograma.post(
-        f'/cronogramas/', data, content_type='application/json')
+        '/cronogramas/', data, content_type='application/json'
+    )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_url_perfil_cronograma_assina_not_authorized(client_autenticado_dilog):
-    response = client_autenticado_dilog.post(
-        f'/cronogramas/')
+    response = client_autenticado_dilog.post('/cronogramas/')
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_dinutre_assina_cronograma_authorized(client_autenticado_dinutre_diretoria,
-                                                  cronograma_assinado_fornecedor):
+def test_url_dinutre_assina_cronograma_authorized(
+    client_autenticado_dinutre_diretoria, cronograma_assinado_fornecedor
+):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_dinutre_diretoria.patch(
         f'/cronogramas/{cronograma_assinado_fornecedor.uuid}/dinutre-assina/',
-        data, content_type='application/json')
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_200_OK
     obj = Cronograma.objects.get(uuid=cronograma_assinado_fornecedor.uuid)
     assert obj.status == 'ASSINADO_DINUTRE'
 
 
-def test_url_dinutre_assina_cronograma_erro_senha(client_autenticado_dinutre_diretoria,
-                                                  cronograma_assinado_fornecedor):
+def test_url_dinutre_assina_cronograma_erro_senha(
+    client_autenticado_dinutre_diretoria, cronograma_assinado_fornecedor
+):
     data = json.dumps({'password': 'senha_errada'})
     response = client_autenticado_dinutre_diretoria.patch(
-        f'/cronogramas/{cronograma_assinado_fornecedor.uuid}/dinutre-assina/', data, content_type='application/json')
+        f'/cronogramas/{cronograma_assinado_fornecedor.uuid}/dinutre-assina/',
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_url_dinutre_assina_cronograma_erro_cronograma_invalido(client_autenticado_dinutre_diretoria):
+def test_url_dinutre_assina_cronograma_erro_cronograma_invalido(
+    client_autenticado_dinutre_diretoria,
+):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_dinutre_diretoria.patch(
         f'/cronogramas/{uuid.uuid4()}/dinutre-assina/',
-        data, content_type='application/json')
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
 
 
-def test_url_dinutre_assina_cronograma_erro_transicao_estado(client_autenticado_dinutre_diretoria,
-                                                             cronograma):
+def test_url_dinutre_assina_cronograma_erro_transicao_estado(
+    client_autenticado_dinutre_diretoria, cronograma
+):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_dinutre_diretoria.patch(
-        f'/cronogramas/{cronograma.uuid}/dinutre-assina/', data,
-        content_type='application/json')
+        f'/cronogramas/{cronograma.uuid}/dinutre-assina/',
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_dinutre_assina_cronograma_not_authorized(client_autenticado_dilog,
-                                                      cronograma_recebido):
+def test_url_dinutre_assina_cronograma_not_authorized(
+    client_autenticado_dilog, cronograma_recebido
+):
     response = client_autenticado_dilog.patch(
-        f'/cronogramas/{cronograma_recebido.uuid}/dinutre-assina/')
+        f'/cronogramas/{cronograma_recebido.uuid}/dinutre-assina/'
+    )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_dilog_assina_cronograma_authorized(client_autenticado_dilog_diretoria,
-                                                cronograma_assinado_perfil_dinutre):
+def test_url_dilog_assina_cronograma_authorized(
+    client_autenticado_dilog_diretoria, cronograma_assinado_perfil_dinutre
+):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_dilog_diretoria.patch(
         f'/cronogramas/{cronograma_assinado_perfil_dinutre.uuid}/codae-assina/',
-        data, content_type='application/json')
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_200_OK
     obj = Cronograma.objects.get(uuid=cronograma_assinado_perfil_dinutre.uuid)
     assert obj.status == 'ASSINADO_CODAE'
 
 
-def test_url_dilog_assina_cronograma_erro_senha(client_autenticado_dilog_diretoria,
-                                                cronograma_assinado_perfil_dinutre):
+def test_url_dilog_assina_cronograma_erro_senha(
+    client_autenticado_dilog_diretoria, cronograma_assinado_perfil_dinutre
+):
     data = json.dumps({'password': 'senha_errada'})
     response = client_autenticado_dilog_diretoria.patch(
-        f'/cronogramas/{cronograma_assinado_perfil_dinutre.uuid}/codae-assina/', data, content_type='application/json')
+        f'/cronogramas/{cronograma_assinado_perfil_dinutre.uuid}/codae-assina/',
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_url_dilog_assina_cronograma_erro_cronograma_invalido(client_autenticado_dilog_diretoria):
+def test_url_dilog_assina_cronograma_erro_cronograma_invalido(
+    client_autenticado_dilog_diretoria,
+):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_dilog_diretoria.patch(
         f'/cronogramas/{uuid.uuid4()}/codae-assina/',
-        data, content_type='application/json')
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_406_NOT_ACCEPTABLE
 
 
-def test_url_dilog_assina_cronograma_erro_transicao_estado(client_autenticado_dilog_diretoria,
-                                                           cronograma):
+def test_url_dilog_assina_cronograma_erro_transicao_estado(
+    client_autenticado_dilog_diretoria, cronograma
+):
     data = json.dumps({'password': constants.DJANGO_ADMIN_PASSWORD})
     response = client_autenticado_dilog_diretoria.patch(
-        f'/cronogramas/{cronograma.uuid}/codae-assina/', data,
-        content_type='application/json')
+        f'/cronogramas/{cronograma.uuid}/codae-assina/',
+        data,
+        content_type='application/json',
+    )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_url_dilog_assina_cronograma_not_authorized(client_autenticado_dilog,
-                                                    cronograma_recebido):
+def test_url_dilog_assina_cronograma_not_authorized(
+    client_autenticado_dilog, cronograma_recebido
+):
     response = client_autenticado_dilog.patch(
-        f'/cronogramas/{cronograma_recebido.uuid}/codae-assina/')
+        f'/cronogramas/{cronograma_recebido.uuid}/codae-assina/'
+    )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_detalhar_com_log(client_autenticado_dinutre_diretoria, cronogramas_multiplos_status_com_log):
+def test_url_detalhar_com_log(
+    client_autenticado_dinutre_diretoria, cronogramas_multiplos_status_com_log
+):
     cronograma_com_log = Cronograma.objects.first()
     response = client_autenticado_dinutre_diretoria.get(
-        f'/cronogramas/{cronograma_com_log.uuid}/detalhar-com-log/')
+        f'/cronogramas/{cronograma_com_log.uuid}/detalhar-com-log/'
+    )
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
-                                              cronogramas_multiplos_status_com_log):
-    response = client_autenticado_dinutre_diretoria.get(
-        f'/cronogramas/dashboard/'
-    )
+def test_url_dashboard_painel_usuario_dinutre(
+    client_autenticado_dinutre_diretoria, cronogramas_multiplos_status_com_log
+):
+    response = client_autenticado_dinutre_diretoria.get('/cronogramas/dashboard/')
     assert response.status_code == status.HTTP_200_OK
 
     status_esperados = ['ASSINADO_FORNECEDOR', 'ASSINADO_DINUTRE', 'ASSINADO_CODAE']
@@ -744,10 +803,11 @@ def test_url_dashboard_painel_usuario_dinutre(client_autenticado_dinutre_diretor
             assert len(resultado['dados']) == 1
 
 
-def test_url_dashboard_painel_usuario_dinutre_com_paginacao(client_autenticado_dinutre_diretoria,
-                                                            cronogramas_multiplos_status_com_log):
+def test_url_dashboard_painel_usuario_dinutre_com_paginacao(
+    client_autenticado_dinutre_diretoria, cronogramas_multiplos_status_com_log
+):
     response = client_autenticado_dinutre_diretoria.get(
-        f'/cronogramas/dashboard/?status=ASSINADO_FORNECEDOR&limit=2&offset=0'
+        '/cronogramas/dashboard/?status=ASSINADO_FORNECEDOR&limit=2&offset=0'
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']) == 1
@@ -756,19 +816,20 @@ def test_url_dashboard_painel_usuario_dinutre_com_paginacao(client_autenticado_d
     assert len(response.json()['results'][0]['dados']) == 2
 
 
-def test_url_dashboard_com_filtro_painel_usuario_dinutre(client_autenticado_dinutre_diretoria,
-                                                         cronogramas_multiplos_status_com_log):
+def test_url_dashboard_com_filtro_painel_usuario_dinutre(
+    client_autenticado_dinutre_diretoria, cronogramas_multiplos_status_com_log
+):
     response = client_autenticado_dinutre_diretoria.get(
-        f'/cronogramas/dashboard-com-filtro/'
+        '/cronogramas/dashboard-com-filtro/'
     )
     response_filtro1 = client_autenticado_dinutre_diretoria.get(
-        f'/cronogramas/dashboard-com-filtro/?nome_produto=Arroz'
+        '/cronogramas/dashboard-com-filtro/?nome_produto=Arroz'
     )
     response_filtro2 = client_autenticado_dinutre_diretoria.get(
-        f'/cronogramas/dashboard-com-filtro/?numero_cronograma=003/2023'
+        '/cronogramas/dashboard-com-filtro/?numero_cronograma=003/2023'
     )
     response_filtro3 = client_autenticado_dinutre_diretoria.get(
-        f'/cronogramas/dashboard-com-filtro/?nome_fornecedor=Alimentos'
+        '/cronogramas/dashboard-com-filtro/?nome_fornecedor=Alimentos'
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -777,65 +838,100 @@ def test_url_dashboard_com_filtro_painel_usuario_dinutre(client_autenticado_dinu
     assert response_filtro3.status_code == status.HTTP_200_OK
 
     resultados_assinado_fornecedor = [
-        r for r in response.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+        r for r in response.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'
+    ][0]
     assert len(resultados_assinado_fornecedor['dados']) == 3
     resultados_assinado_dinutre = [
-        r for r in response.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+        r for r in response.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'
+    ][0]
     assert len(resultados_assinado_dinutre['dados']) == 2
     resultados_assinado_codae = [
-        r for r in response.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+        r for r in response.json()['results'] if r['status'] == 'ASSINADO_CODAE'
+    ][0]
     assert len(resultados_assinado_codae['dados']) == 1
 
     resultados_assinado_fornecedor = [
-        r for r in response_filtro1.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+        r
+        for r in response_filtro1.json()['results']
+        if r['status'] == 'ASSINADO_FORNECEDOR'
+    ][0]
     assert len(resultados_assinado_fornecedor['dados']) == 1
     resultados_assinado_dinutre = [
-        r for r in response_filtro1.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+        r
+        for r in response_filtro1.json()['results']
+        if r['status'] == 'ASSINADO_DINUTRE'
+    ][0]
     assert len(resultados_assinado_dinutre['dados']) == 1
     resultados_assinado_codae = [
-        r for r in response_filtro1.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+        r for r in response_filtro1.json()['results'] if r['status'] == 'ASSINADO_CODAE'
+    ][0]
     assert len(resultados_assinado_codae['dados']) == 0
 
     resultados_assinado_fornecedor = [
-        r for r in response_filtro2.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+        r
+        for r in response_filtro2.json()['results']
+        if r['status'] == 'ASSINADO_FORNECEDOR'
+    ][0]
     assert len(resultados_assinado_fornecedor['dados']) == 1
     resultados_assinado_dinutre = [
-        r for r in response_filtro2.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+        r
+        for r in response_filtro2.json()['results']
+        if r['status'] == 'ASSINADO_DINUTRE'
+    ][0]
     assert len(resultados_assinado_dinutre['dados']) == 0
     resultados_assinado_codae = [
-        r for r in response_filtro2.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+        r for r in response_filtro2.json()['results'] if r['status'] == 'ASSINADO_CODAE'
+    ][0]
     assert len(resultados_assinado_codae['dados']) == 0
 
     resultados_assinado_fornecedor = [
-        r for r in response_filtro3.json()['results'] if r['status'] == 'ASSINADO_FORNECEDOR'][0]
+        r
+        for r in response_filtro3.json()['results']
+        if r['status'] == 'ASSINADO_FORNECEDOR'
+    ][0]
     assert len(resultados_assinado_fornecedor['dados']) == 3
     resultados_assinado_dinutre = [
-        r for r in response_filtro3.json()['results'] if r['status'] == 'ASSINADO_DINUTRE'][0]
+        r
+        for r in response_filtro3.json()['results']
+        if r['status'] == 'ASSINADO_DINUTRE'
+    ][0]
     assert len(resultados_assinado_dinutre['dados']) == 2
     resultados_assinado_codae = [
-        r for r in response_filtro3.json()['results'] if r['status'] == 'ASSINADO_CODAE'][0]
+        r for r in response_filtro3.json()['results'] if r['status'] == 'ASSINADO_CODAE'
+    ][0]
     assert len(resultados_assinado_codae['dados']) == 1
 
 
-def test_url_dashboard_painel_solicitacao_alteracao_dinutre(client_autenticado_dinutre_diretoria,
-                                                            cronogramas_multiplos_status_com_log_cronograma_ciente):
+def test_url_dashboard_painel_solicitacao_alteracao_dinutre(
+    client_autenticado_dinutre_diretoria,
+    cronogramas_multiplos_status_com_log_cronograma_ciente,
+):
     response = client_autenticado_dinutre_diretoria.get(
-        f'/solicitacao-de-alteracao-de-cronograma/dashboard/'
+        '/solicitacao-de-alteracao-de-cronograma/dashboard/'
     )
     QTD_STATUS_DASHBOARD_DINUTRE = 5
     SOLICITACOES_STATUS_CRONOGRAMA_CIENTE = 2
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']) == QTD_STATUS_DASHBOARD_DINUTRE
     assert response.json()['results'][0]['status'] == 'CRONOGRAMA_CIENTE'
-    assert len(response.json()['results'][0]['dados']) == SOLICITACOES_STATUS_CRONOGRAMA_CIENTE
+    assert (
+        len(response.json()['results'][0]['dados'])
+        == SOLICITACOES_STATUS_CRONOGRAMA_CIENTE
+    )
 
 
-def test_url_relatorio_cronograma_authorized(client_autenticado_dinutre_diretoria, cronograma):
-    response = client_autenticado_dinutre_diretoria.get(f'/cronogramas/{str(cronograma.uuid)}/gerar-pdf-cronograma/')
+def test_url_relatorio_cronograma_authorized(
+    client_autenticado_dinutre_diretoria, cronograma
+):
+    response = client_autenticado_dinutre_diretoria.get(
+        f'/cronogramas/{str(cronograma.uuid)}/gerar-pdf-cronograma/'
+    )
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_unidades_medida_listar(client_autenticado_dilog_cronograma, unidades_medida_logistica):
+def test_url_unidades_medida_listar(
+    client_autenticado_dilog_cronograma, unidades_medida_logistica
+):
     """Deve obter lista paginada de unidades de medida."""
     client = client_autenticado_dilog_cronograma
 
@@ -847,7 +943,9 @@ def test_url_unidades_medida_listar(client_autenticado_dilog_cronograma, unidade
     assert response.data['next'] is not None
 
 
-def test_url_unidades_medida_listar_com_filtros(client_autenticado_dilog_cronograma, unidades_medida_reais_logistica):
+def test_url_unidades_medida_listar_com_filtros(
+    client_autenticado_dilog_cronograma, unidades_medida_reais_logistica
+):
     """Deve obter lista paginada e filtrada de unidades de medida."""
     client = client_autenticado_dilog_cronograma
 
@@ -863,8 +961,12 @@ def test_url_unidades_medida_listar_com_filtros(client_autenticado_dilog_cronogr
     assert response.data['count'] == 1
     assert response.data['results'][0]['nome'] == 'KILOGRAMA'
 
-    data_cadastro = unidades_medida_reais_logistica[0].criado_em.date().strftime('%d/%m/%Y')
-    url_com_filtro_data_cadastro = f'/unidades-medida-logistica/?data_cadastro={data_cadastro}'
+    data_cadastro = (
+        unidades_medida_reais_logistica[0].criado_em.date().strftime('%d/%m/%Y')
+    )
+    url_com_filtro_data_cadastro = (
+        f'/unidades-medida-logistica/?data_cadastro={data_cadastro}'
+    )
     response = client.get(url_com_filtro_data_cadastro)
     assert response.status_code == status.HTTP_200_OK
     assert response.data['count'] == 2
@@ -875,29 +977,35 @@ def test_url_unidades_medida_listar_com_filtros(client_autenticado_dilog_cronogr
     assert response.data['count'] == 0
 
 
-def test_url_unidades_medida_detalhar(client_autenticado_dilog_cronograma, unidade_medida_logistica):
+def test_url_unidades_medida_detalhar(
+    client_autenticado_dilog_cronograma, unidade_medida_logistica
+):
     """Deve obter detalhes de uma unidade de medida."""
     client = client_autenticado_dilog_cronograma
 
-    response = client.get(f'/unidades-medida-logistica/{unidade_medida_logistica.uuid}/')
+    response = client.get(
+        f'/unidades-medida-logistica/{unidade_medida_logistica.uuid}/'
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data['uuid'] == str(unidade_medida_logistica.uuid)
     assert response.data['nome'] == str(unidade_medida_logistica.nome)
     assert response.data['abreviacao'] == str(unidade_medida_logistica.abreviacao)
     assert response.data['criado_em'] == unidade_medida_logistica.criado_em.strftime(
-        settings.REST_FRAMEWORK['DATETIME_FORMAT'])
+        settings.REST_FRAMEWORK['DATETIME_FORMAT']
+    )
 
 
 def test_url_unidades_medida_criar(client_autenticado_dilog_cronograma):
     """Deve criar com sucesso uma unidade de medida."""
     client = client_autenticado_dilog_cronograma
-    payload = {
-        'nome': 'UNIDADE MEDIDA TESTE',
-        'abreviacao': 'umt'
-    }
+    payload = {'nome': 'UNIDADE MEDIDA TESTE', 'abreviacao': 'umt'}
 
-    response = client.post('/unidades-medida-logistica/', data=json.dumps(payload), content_type='application/json')
+    response = client.post(
+        '/unidades-medida-logistica/',
+        data=json.dumps(payload),
+        content_type='application/json',
+    )
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data['nome'] == payload['nome']
@@ -905,68 +1013,89 @@ def test_url_unidades_medida_criar(client_autenticado_dilog_cronograma):
     assert UnidadeMedida.objects.filter(uuid=response.data['uuid']).exists()
 
 
-def test_url_unidades_medida_criar_com_nome_invalido(client_autenticado_dilog_cronograma):
+def test_url_unidades_medida_criar_com_nome_invalido(
+    client_autenticado_dilog_cronograma,
+):
     """Deve falhar ao tentar criar uma unidade de medida com atributo nome inválido (caixa baixa)."""
     client = client_autenticado_dilog_cronograma
-    payload = {
-        'nome': 'unidade medida teste',
-        'abreviacao': 'umt'
-    }
+    payload = {'nome': 'unidade medida teste', 'abreviacao': 'umt'}
 
-    response = client.post('/unidades-medida-logistica/', data=json.dumps(payload), content_type='application/json')
+    response = client.post(
+        '/unidades-medida-logistica/',
+        data=json.dumps(payload),
+        content_type='application/json',
+    )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert str(response.data['nome'][0]) == 'O campo deve conter apenas letras maiúsculas.'
+    assert (
+        str(response.data['nome'][0]) == 'O campo deve conter apenas letras maiúsculas.'
+    )
 
 
-def test_url_unidades_medida_criar_com_abreviacao_invalida(client_autenticado_dilog_cronograma):
+def test_url_unidades_medida_criar_com_abreviacao_invalida(
+    client_autenticado_dilog_cronograma,
+):
     """Deve falhar ao tentar criar uma unidade de medida com atributo abreviacao inválida (caixa alta)."""
     client = client_autenticado_dilog_cronograma
-    payload = {
-        'nome': 'UNIDADE MEDIDA TESTE',
-        'abreviacao': 'UMT'
-    }
+    payload = {'nome': 'UNIDADE MEDIDA TESTE', 'abreviacao': 'UMT'}
 
-    response = client.post('/unidades-medida-logistica/', data=json.dumps(payload), content_type='application/json')
+    response = client.post(
+        '/unidades-medida-logistica/',
+        data=json.dumps(payload),
+        content_type='application/json',
+    )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert str(response.data['abreviacao'][0]) == 'O campo deve conter apenas letras minúsculas.'
+    assert (
+        str(response.data['abreviacao'][0])
+        == 'O campo deve conter apenas letras minúsculas.'
+    )
 
 
-def test_url_unidades_medida_criar_repetida(client_autenticado_dilog_cronograma, unidade_medida_logistica):
+def test_url_unidades_medida_criar_repetida(
+    client_autenticado_dilog_cronograma, unidade_medida_logistica
+):
     """Deve falhar ao tentar criar uma unidade de medida que já esteja cadastrada."""
     client = client_autenticado_dilog_cronograma
-    payload = {
-        'nome': 'UNIDADE TESTE',
-        'abreviacao': 'ut'
-    }
+    payload = {'nome': 'UNIDADE TESTE', 'abreviacao': 'ut'}
 
-    response = client.post('/unidades-medida-logistica/', data=json.dumps(payload), content_type='application/json')
+    response = client.post(
+        '/unidades-medida-logistica/',
+        data=json.dumps(payload),
+        content_type='application/json',
+    )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data['non_field_errors'][0].code == 'unique'
 
 
-def test_url_unidades_medida_atualizar(client_autenticado_dilog_cronograma, unidade_medida_logistica):
+def test_url_unidades_medida_atualizar(
+    client_autenticado_dilog_cronograma, unidade_medida_logistica
+):
     """Deve atualizar com sucesso uma unidade de medida."""
     client = client_autenticado_dilog_cronograma
-    payload = {
-        'nome': 'UNIDADE MEDIDA TESTE ATUALIZADA',
-        'abreviacao': 'umta'
-    }
+    payload = {'nome': 'UNIDADE MEDIDA TESTE ATUALIZADA', 'abreviacao': 'umta'}
 
-    response = client.patch(f'/unidades-medida-logistica/{unidade_medida_logistica.uuid}/', data=json.dumps(payload),
-                            content_type='application/json')
+    response = client.patch(
+        f'/unidades-medida-logistica/{unidade_medida_logistica.uuid}/',
+        data=json.dumps(payload),
+        content_type='application/json',
+    )
 
     unidade_medida_logistica.refresh_from_db()
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data['nome'] == unidade_medida_logistica.nome == payload['nome']
-    assert response.data['abreviacao'] == unidade_medida_logistica.abreviacao == payload['abreviacao']
+    assert (
+        response.data['abreviacao']
+        == unidade_medida_logistica.abreviacao
+        == payload['abreviacao']
+    )
 
 
-def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado_dilog_cronograma,
-                                                             unidades_medida_logistica):
+def test_url_unidades_medida_action_listar_nomes_abreviacoes(
+    client_autenticado_dilog_cronograma, unidades_medida_logistica
+):
     """Deve obter lista com nomes e abreviações de todas as unidades de medida cadastradas."""
     client = client_autenticado_dilog_cronograma
     response = client.get('/unidades-medida-logistica/lista-nomes-abreviacoes/')
@@ -975,32 +1104,44 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(client_autenticado_
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data['results']) == len(unidades_medida_logistica)
-    assert response.data['results'] == NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True).data
+    assert (
+        response.data['results']
+        == NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True).data
+    )
 
 
-def test_url_cronograma_action_listar_para_cadastro(client_autenticado_fornecedor,
-                                                    django_user_model, cronograma_factory):
+def test_url_cronograma_action_listar_para_cadastro(
+    client_autenticado_fornecedor, django_user_model, cronograma_factory
+):
     """Deve obter lista com numeros, pregao e nome do produto dos cronogramas cadastrados do fornecedor."""
     user_id = client_autenticado_fornecedor.session['_auth_user_id']
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
-    cronogramas_do_fornecedor = [cronograma_factory.create(empresa=empresa) for _ in range(10)]
+    cronogramas_do_fornecedor = [
+        cronograma_factory.create(empresa=empresa) for _ in range(10)
+    ]
     outros_cronogramas = [cronograma_factory.create() for _ in range(5)]
     todos_cronogramas = cronogramas_do_fornecedor + outros_cronogramas
-    response = client_autenticado_fornecedor.get('/cronogramas/lista-cronogramas-cadastro/')
+    response = client_autenticado_fornecedor.get(
+        '/cronogramas/lista-cronogramas-cadastro/'
+    )
 
     cronogramas = Cronograma.objects.filter(empresa=empresa).order_by('-criado_em')
 
     # Testa se o usuário fornecedor acessa apenas os seus cronogramas
     assert response.status_code == status.HTTP_200_OK
-    assert response.data['results'] == CronogramaSimplesSerializer(cronogramas, many=True).data
+    assert (
+        response.data['results']
+        == CronogramaSimplesSerializer(cronogramas, many=True).data
+    )
     assert len(response.data['results']) == len(cronogramas_do_fornecedor)
 
     # Testa se a quantidade de cronogramas do response é diferente da quantidade total de cronogramas
     assert len(response.data['results']) != len(todos_cronogramas)
 
 
-def test_url_endpoint_layout_de_embalagem_create(client_autenticado_fornecedor,
-                                                 cronograma_assinado_perfil_dilog, arquivo_base64):
+def test_url_endpoint_layout_de_embalagem_create(
+    client_autenticado_fornecedor, cronograma_assinado_perfil_dilog, arquivo_base64
+):
     data = {
         'cronograma': str(cronograma_assinado_perfil_dilog.uuid),
         'observacoes': 'Imagine uma observação aqui.',
@@ -1008,32 +1149,21 @@ def test_url_endpoint_layout_de_embalagem_create(client_autenticado_fornecedor,
             {
                 'tipo_embalagem': 'PRIMARIA',
                 'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo2.jpg'},
+                ],
             },
             {
                 'tipo_embalagem': 'SECUNDARIA',
                 'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo1.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo1.jpg'}
+                ],
             },
         ],
     }
 
     response = client_autenticado_fornecedor.post(
-        '/layouts-de-embalagem/',
-        content_type='application/json',
-        data=json.dumps(data)
+        '/layouts-de-embalagem/', content_type='application/json', data=json.dumps(data)
     )
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -1042,7 +1172,9 @@ def test_url_endpoint_layout_de_embalagem_create(client_autenticado_fornecedor,
     assert obj.tipos_de_embalagens.count() == 2
 
 
-def test_url_endpoint_layout_de_embalagem_create_cronograma_nao_existe(client_autenticado_fornecedor):
+def test_url_endpoint_layout_de_embalagem_create_cronograma_nao_existe(
+    client_autenticado_fornecedor,
+):
     """Uuid do cronograma precisa existir na base, imagens_do_tipo_de_embalagem e arquivo são obrigatórios."""
     data = {
         'cronograma': str(uuid.uuid4()),
@@ -1053,28 +1185,26 @@ def test_url_endpoint_layout_de_embalagem_create_cronograma_nao_existe(client_au
             },
             {
                 'tipo_embalagem': 'SECUNDARIA',
-                'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': '',
-                        'nome': 'Anexo1.jpg'
-                    }
-                ]
+                'imagens_do_tipo_de_embalagem': [{'arquivo': '', 'nome': 'Anexo1.jpg'}],
             },
         ],
     }
 
     response = client_autenticado_fornecedor.post(
-        '/layouts-de-embalagem/',
-        content_type='application/json',
-        data=json.dumps(data)
+        '/layouts-de-embalagem/', content_type='application/json', data=json.dumps(data)
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Cronograma não existe' in response.data['cronograma']
-    assert 'Este campo é obrigatório.' in response.data['tipos_de_embalagens'][0]['imagens_do_tipo_de_embalagem']
+    assert (
+        'Este campo é obrigatório.'
+        in response.data['tipos_de_embalagens'][0]['imagens_do_tipo_de_embalagem']
+    )
 
 
-def test_url_layout_de_embalagem_listagem(client_autenticado_qualidade, lista_layouts_de_embalagem):
+def test_url_layout_de_embalagem_listagem(
+    client_autenticado_qualidade, lista_layouts_de_embalagem
+):
     """Deve obter lista paginada de layouts de embalagens."""
     client = client_autenticado_qualidade
     response = client.get('/layouts-de-embalagem/')
@@ -1085,11 +1215,15 @@ def test_url_layout_de_embalagem_listagem(client_autenticado_qualidade, lista_la
     assert response.data['next'] is not None
 
 
-def test_url_layout_de_embalagem_detalhar(client_autenticado_codae_dilog, lista_layouts_de_embalagem):
+def test_url_layout_de_embalagem_detalhar(
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem
+):
     layout_esperado = LayoutDeEmbalagem.objects.first()
     cronograma_esperado = layout_esperado.cronograma
 
-    response = client_autenticado_codae_dilog.get(f'/layouts-de-embalagem/{layout_esperado.uuid}/')
+    response = client_autenticado_codae_dilog.get(
+        f'/layouts-de-embalagem/{layout_esperado.uuid}/'
+    )
     dedos_layout_recebido = response.json()
 
     assert response.status_code == status.HTTP_200_OK
@@ -1097,17 +1231,23 @@ def test_url_layout_de_embalagem_detalhar(client_autenticado_codae_dilog, lista_
     assert dedos_layout_recebido['uuid'] == str(layout_esperado.uuid)
     assert dedos_layout_recebido['observacoes'] == str(layout_esperado.observacoes)
     assert dedos_layout_recebido['criado_em'] == layout_esperado.criado_em.strftime(
-        settings.REST_FRAMEWORK['DATETIME_FORMAT'])
+        settings.REST_FRAMEWORK['DATETIME_FORMAT']
+    )
     assert dedos_layout_recebido['status'] == layout_esperado.get_status_display()
     assert dedos_layout_recebido['numero_cronograma'] == str(cronograma_esperado.numero)
-    assert dedos_layout_recebido['pregao_chamada_publica'] == str(cronograma_esperado.contrato.pregao_chamada_publica)
-    assert dedos_layout_recebido['nome_produto'] == str(cronograma_esperado.produto.nome)
-    assert dedos_layout_recebido['nome_empresa'] == str(cronograma_esperado.empresa.razao_social)
+    assert dedos_layout_recebido['pregao_chamada_publica'] == str(
+        cronograma_esperado.contrato.pregao_chamada_publica
+    )
+    assert dedos_layout_recebido['nome_produto'] == str(
+        cronograma_esperado.produto.nome
+    )
+    assert dedos_layout_recebido['nome_empresa'] == str(
+        cronograma_esperado.empresa.razao_social
+    )
 
 
 def test_url_dashboard_layout_embalagens_status_retornados(
-    client_autenticado_codae_dilog,
-    lista_layouts_de_embalagem
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem
 ):
     response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/')
 
@@ -1127,21 +1267,18 @@ def test_url_dashboard_layout_embalagens_status_retornados(
         LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         LayoutDeEmbalagemWorkflow.APROVADO,
         LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
-    ]
+    ],
 )
 def test_url_dashboard_layout_embalagens_quantidade_itens_por_card(
-    client_autenticado_codae_dilog,
-    lista_layouts_de_embalagem,
-    status_card
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem, status_card
 ):
     response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/')
 
     assert response.status_code == status.HTTP_200_OK
 
-    dados_card = list(filter(
-        lambda e: e['status'] == status_card,
-        response.json()['results']
-    )).pop()['dados']
+    dados_card = list(
+        filter(lambda e: e['status'] == status_card, response.json()['results'])
+    ).pop()['dados']
 
     assert len(dados_card) == 6
 
@@ -1152,51 +1289,54 @@ def test_url_dashboard_layout_embalagens_quantidade_itens_por_card(
         LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         LayoutDeEmbalagemWorkflow.APROVADO,
         LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
-    ]
+    ],
 )
 def test_url_dashboard_layout_embalagens_com_filtro(
-    client_autenticado_codae_dilog,
-    lista_layouts_de_embalagem,
-    status_card
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem, status_card
 ):
     filtros = {'numero_cronograma': '003/2022'}
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
-    dados_card = list(filter(
-        lambda e: e['status'] == status_card,
-        response.json()['results']
-    )).pop()['dados']
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
+    dados_card = list(
+        filter(lambda e: e['status'] == status_card, response.json()['results'])
+    ).pop()['dados']
     assert len(dados_card) == 5
 
     filtros = {'nome_produto': 'Arroz'}
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
-    dados_card = list(filter(
-        lambda e: e['status'] == status_card,
-        response.json()['results']
-    )).pop()['dados']
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
+    dados_card = list(
+        filter(lambda e: e['status'] == status_card, response.json()['results'])
+    ).pop()['dados']
     assert len(dados_card) == 5
 
     filtros = {'numero_cronograma': '004/2022'}
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
-    dados_card = list(filter(
-        lambda e: e['status'] == status_card,
-        response.json()['results']
-    )).pop()['dados']
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
+    dados_card = list(
+        filter(lambda e: e['status'] == status_card, response.json()['results'])
+    ).pop()['dados']
     assert len(dados_card) == 6
 
     filtros = {'nome_produto': 'Macarrão'}
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
-    dados_card = list(filter(
-        lambda e: e['status'] == status_card,
-        response.json()['results']
-    )).pop()['dados']
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
+    dados_card = list(
+        filter(lambda e: e['status'] == status_card, response.json()['results'])
+    ).pop()['dados']
     assert len(dados_card) == 6
 
     filtros = {'nome_fornecedor': 'Alimentos'}
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
-    dados_card = list(filter(
-        lambda e: e['status'] == status_card,
-        response.json()['results']
-    )).pop()['dados']
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
+    dados_card = list(
+        filter(lambda e: e['status'] == status_card, response.json()['results'])
+    ).pop()['dados']
     assert len(dados_card) == 6
 
 
@@ -1206,19 +1346,15 @@ def test_url_dashboard_layout_embalagens_com_filtro(
         LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         LayoutDeEmbalagemWorkflow.APROVADO,
         LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
-    ]
+    ],
 )
 def test_url_dashboard_layout_embalagens_ver_mais(
-    client_autenticado_codae_dilog,
-    lista_layouts_de_embalagem,
-    status_card
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem, status_card
 ):
-    filtros = {
-        'status': status_card,
-        'offset': 0,
-        'limit': 10
-    }
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    filtros = {'status': status_card, 'offset': 0, 'limit': 10}
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']['dados']) == 10
@@ -1233,12 +1369,10 @@ def test_url_dashboard_layout_embalagens_ver_mais(
         LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         LayoutDeEmbalagemWorkflow.APROVADO,
         LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
-    ]
+    ],
 )
 def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
-    client_autenticado_codae_dilog,
-    lista_layouts_de_embalagem,
-    status_card
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem, status_card
 ):
     filtros = {
         'status': status_card,
@@ -1246,17 +1380,24 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
         'limit': 10,
         'numero_cronograma': '003/2022',
     }
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
     assert len(response.json()['results']['dados']) == 5
 
     layouts_esperados = LayoutDeEmbalagem.objects.filter(
-        status=status_card,
-        cronograma__numero='003/2022'
+        status=status_card, cronograma__numero='003/2022'
     ).order_by('-criado_em')[:10]
     primeiro_layout_esperado = layouts_esperados[0]
     ultimo_layout_esperado = layouts_esperados[4]
-    assert str(primeiro_layout_esperado.uuid) == response.json()['results']['dados'][0]['uuid']
-    assert str(ultimo_layout_esperado.uuid) == response.json()['results']['dados'][-1]['uuid']
+    assert (
+        str(primeiro_layout_esperado.uuid)
+        == response.json()['results']['dados'][0]['uuid']
+    )
+    assert (
+        str(ultimo_layout_esperado.uuid)
+        == response.json()['results']['dados'][-1]['uuid']
+    )
 
     filtros = {
         'status': status_card,
@@ -1264,7 +1405,9 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
         'limit': 10,
         'nome_produto': 'Arroz',
     }
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
     assert len(response.json()['results']['dados']) == 5
 
     filtros = {
@@ -1273,17 +1416,24 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
         'limit': 10,
         'numero_cronograma': '004/2022',
     }
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
     assert len(response.json()['results']['dados']) == 10
 
     layouts_esperados = LayoutDeEmbalagem.objects.filter(
-        status=status_card,
-        cronograma__numero='004/2022'
+        status=status_card, cronograma__numero='004/2022'
     ).order_by('-criado_em')[:10]
     primeiro_layout_esperado = layouts_esperados[0]
     ultimo_layout_esperado = layouts_esperados[9]
-    assert str(primeiro_layout_esperado.uuid) == response.json()['results']['dados'][0]['uuid']
-    assert str(ultimo_layout_esperado.uuid) == response.json()['results']['dados'][-1]['uuid']
+    assert (
+        str(primeiro_layout_esperado.uuid)
+        == response.json()['results']['dados'][0]['uuid']
+    )
+    assert (
+        str(ultimo_layout_esperado.uuid)
+        == response.json()['results']['dados'][-1]['uuid']
+    )
 
     filtros = {
         'status': status_card,
@@ -1291,7 +1441,9 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
         'limit': 10,
         'nome_produto': 'Macarrão',
     }
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
     assert len(response.json()['results']['dados']) == 10
 
     filtros = {
@@ -1300,32 +1452,39 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
         'limit': 10,
         'nome_fornecedor': 'Alimentos',
     }
-    response = client_autenticado_codae_dilog.get('/layouts-de-embalagem/dashboard/', filtros)
+    response = client_autenticado_codae_dilog.get(
+        '/layouts-de-embalagem/dashboard/', filtros
+    )
     assert len(response.json()['results']['dados']) == 10
 
 
 def test_url_layout_embalagens_analise_aprovando(
-    client_autenticado_codae_dilog,
-    lista_layouts_de_embalagem_com_tipo_embalagem
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem_com_tipo_embalagem
 ):
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
     tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
     dados_analise = {
         'tipos_de_embalagens': [
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid
+                ),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='TERCIARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='TERCIARIA').uuid
+                ),
                 'tipo_embalagem': 'TERCIARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1336,7 +1495,7 @@ def test_url_layout_embalagens_analise_aprovando(
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
-        data=json.dumps(dados_analise)
+        data=json.dumps(dados_analise),
     )
     layout_analisado.refresh_from_db()
 
@@ -1348,13 +1507,17 @@ def test_url_layout_embalagens_analise_aprovando(
     dados_analise = {
         'tipos_de_embalagens': [
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid
+                ),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1365,7 +1528,7 @@ def test_url_layout_embalagens_analise_aprovando(
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
-        data=json.dumps(dados_analise)
+        data=json.dumps(dados_analise),
     )
     layout_analisado.refresh_from_db()
 
@@ -1374,27 +1537,32 @@ def test_url_layout_embalagens_analise_aprovando(
 
 
 def test_url_layout_embalagens_analise_solicitando_correcao(
-    client_autenticado_codae_dilog,
-    lista_layouts_de_embalagem_com_tipo_embalagem
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem_com_tipo_embalagem
 ):
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
     tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
     dados_analise = {
         'tipos_de_embalagens': [
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid
+                ),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='TERCIARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='TERCIARIA').uuid
+                ),
                 'tipo_embalagem': 'TERCIARIA',
                 'status': 'REPROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1405,7 +1573,7 @@ def test_url_layout_embalagens_analise_solicitando_correcao(
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
-        data=json.dumps(dados_analise)
+        data=json.dumps(dados_analise),
     )
     layout_analisado.refresh_from_db()
 
@@ -1417,13 +1585,17 @@ def test_url_layout_embalagens_analise_solicitando_correcao(
     dados_analise = {
         'tipos_de_embalagens': [
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'REPROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid
+                ),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1434,7 +1606,7 @@ def test_url_layout_embalagens_analise_solicitando_correcao(
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
-        data=json.dumps(dados_analise)
+        data=json.dumps(dados_analise),
     )
     layout_analisado.refresh_from_db()
 
@@ -1443,21 +1615,24 @@ def test_url_layout_embalagens_analise_solicitando_correcao(
 
 
 def test_url_layout_embalagens_validacao_primeira_analise(
-    client_autenticado_codae_dilog,
-    lista_layouts_de_embalagem_com_tipo_embalagem
+    client_autenticado_codae_dilog, lista_layouts_de_embalagem_com_tipo_embalagem
 ):
     layout_analisado = lista_layouts_de_embalagem_com_tipo_embalagem[0]
     tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
     dados_analise = {
         'tipos_de_embalagens': [
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid
+                ),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1468,33 +1643,36 @@ def test_url_layout_embalagens_validacao_primeira_analise(
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
-        data=json.dumps(dados_analise)
+        data=json.dumps(dados_analise),
     )
 
     msg_erro = (
-        'Quantidade de Tipos de Embalagem recebida para primeira análise ' +
-        'é diferente da quantidade presente no Layout de Embalagem.'
+        'Quantidade de Tipos de Embalagem recebida para primeira análise '
+        + 'é diferente da quantidade presente no Layout de Embalagem.'
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro in response.json()['tipos_de_embalagens']
 
 
 def test_url_layout_embalagens_analise_correcao(
-    client_autenticado_codae_dilog,
-    layout_de_embalagem_em_analise_com_correcao
+    client_autenticado_codae_dilog, layout_de_embalagem_em_analise_com_correcao
 ):
     layout_analisado = layout_de_embalagem_em_analise_com_correcao
     tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
     dados_analise = {
         'tipos_de_embalagens': [
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='TERCIARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='TERCIARIA').uuid
+                ),
                 'tipo_embalagem': 'TERCIARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1507,7 +1685,7 @@ def test_url_layout_embalagens_analise_correcao(
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
-        data=json.dumps(dados_analise)
+        data=json.dumps(dados_analise),
     )
     layout_analisado.refresh_from_db()
 
@@ -1516,21 +1694,24 @@ def test_url_layout_embalagens_analise_correcao(
 
 
 def test_url_layout_embalagens_validacao_analise_correcao(
-    client_autenticado_codae_dilog,
-    layout_de_embalagem_em_analise_com_correcao
+    client_autenticado_codae_dilog, layout_de_embalagem_em_analise_com_correcao
 ):
     layout_analisado = layout_de_embalagem_em_analise_com_correcao
     tipos_embalagem_analisados = layout_analisado.tipos_de_embalagens.all()
     dados_analise = {
         'tipos_de_embalagens': [
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
             },
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='SECUNDARIA').uuid
+                ),
                 'tipo_embalagem': 'SECUNDARIA',
                 'status': 'REPROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1543,17 +1724,22 @@ def test_url_layout_embalagens_validacao_analise_correcao(
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
-        data=json.dumps(dados_analise)
+        data=json.dumps(dados_analise),
     )
 
     msg_erro = 'O Tipo/UUID informado não pode ser analisado pois não está em análise.'
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert msg_erro in response.json()['tipos_de_embalagens'][1]['Layout Embalagem SECUNDARIA']
+    assert (
+        msg_erro
+        in response.json()['tipos_de_embalagens'][1]['Layout Embalagem SECUNDARIA']
+    )
 
     dados_analise = {
         'tipos_de_embalagens': [
             {
-                'uuid': str(tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid),
+                'uuid': str(
+                    tipos_embalagem_analisados.get(tipo_embalagem='PRIMARIA').uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'status': 'APROVADO',
                 'complemento_do_status': 'Teste complemento',
@@ -1564,36 +1750,35 @@ def test_url_layout_embalagens_validacao_analise_correcao(
     response = client_autenticado_codae_dilog.patch(
         f'/layouts-de-embalagem/{layout_analisado.uuid}/codae-aprova-ou-solicita-correcao/',
         content_type='application/json',
-        data=json.dumps(dados_analise)
+        data=json.dumps(dados_analise),
     )
 
     msg_erro = (
-        'Quantidade de Tipos de Embalagem recebida para análise da correção ' +
-        'é diferente da quantidade em análise.'
+        'Quantidade de Tipos de Embalagem recebida para análise da correção '
+        + 'é diferente da quantidade em análise.'
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro in response.json()['tipos_de_embalagens']
 
 
-def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(client_autenticado_fornecedor, arquivo_base64,
-                                                             layout_de_embalagem_para_correcao):
+def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(
+    client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_para_correcao
+):
     layout_para_corrigir = layout_de_embalagem_para_correcao
     dados_correcao = {
         'observacoes': 'Imagine uma nova observação aqui.',
         'tipos_de_embalagens': [
             {
-                'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='REPROVADO').uuid),
+                'uuid': str(
+                    layout_para_corrigir.tipos_de_embalagens.get(
+                        status='REPROVADO'
+                    ).uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo2.jpg'},
+                ],
             },
         ],
     }
@@ -1601,7 +1786,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(client_autenticado_
     response = client_autenticado_fornecedor.patch(
         f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
         content_type='application/json',
-        data=json.dumps(dados_correcao)
+        data=json.dumps(dados_correcao),
     )
 
     layout_para_corrigir.refresh_from_db()
@@ -1611,8 +1796,9 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(client_autenticado_
     assert layout_para_corrigir.observacoes == 'Imagine uma nova observação aqui.'
 
 
-def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(client_autenticado_fornecedor, arquivo_base64,
-                                                                    layout_de_embalagem_para_correcao):
+def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(
+    client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_para_correcao
+):
     """Checa transição de estado, UUID valido de tipo de embalagem e se pode ser de fato corrigido."""
     layout_para_corrigir = layout_de_embalagem_para_correcao
     dados = {
@@ -1622,21 +1808,17 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(client_auten
                 'uuid': str(uuid.uuid4()),
                 'tipo_embalagem': 'SECUNDARIA',
                 'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo1.jpg'
-                    },
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo1.jpg'},
+                ],
             },
             {
-                'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='APROVADO').uuid),
+                'uuid': str(
+                    layout_para_corrigir.tipos_de_embalagens.get(status='APROVADO').uuid
+                ),
                 'tipo_embalagem': 'TERCIARIA',
                 'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo1.jpg'
-                    },
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo1.jpg'},
+                ],
             },
         ],
     }
@@ -1644,27 +1826,34 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(client_auten
     response = client_autenticado_fornecedor.patch(
         f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
         content_type='application/json',
-        data=json.dumps(dados)
+        data=json.dumps(dados),
     )
 
     msg_erro1 = 'UUID do tipo informado não existe.'
     msg_erro2 = 'O Tipo/UUID informado não pode ser corrigido pois não está reprovado.'
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert msg_erro1 in response.json()['tipos_de_embalagens'][0]['Layout Embalagem SECUNDARIA'][0]
-    assert msg_erro2 in response.json()['tipos_de_embalagens'][1]['Layout Embalagem TERCIARIA'][0]
+    assert (
+        msg_erro1
+        in response.json()['tipos_de_embalagens'][0]['Layout Embalagem SECUNDARIA'][0]
+    )
+    assert (
+        msg_erro2
+        in response.json()['tipos_de_embalagens'][1]['Layout Embalagem TERCIARIA'][0]
+    )
 
     dados = {
         'observacoes': 'Imagine uma nova observação aqui.',
         'tipos_de_embalagens': [
             {
-                'uuid': str(layout_para_corrigir.tipos_de_embalagens.get(status='REPROVADO').uuid),
+                'uuid': str(
+                    layout_para_corrigir.tipos_de_embalagens.get(
+                        status='REPROVADO'
+                    ).uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo1.jpg'
-                    },
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo1.jpg'},
+                ],
             },
         ],
     }
@@ -1675,52 +1864,51 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(client_auten
     response = client_autenticado_fornecedor.patch(
         f'/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/',
         content_type='application/json',
-        data=json.dumps(dados)
+        data=json.dumps(dados),
     )
 
-    msg_erro3 = 'Erro de transição de estado. O status deste layout não permite correção'
+    msg_erro3 = (
+        'Erro de transição de estado. O status deste layout não permite correção'
+    )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro3 in response.json()[0]
 
 
-def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza(client_autenticado_fornecedor, arquivo_base64,
-                                                              layout_de_embalagem_aprovado):
+def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza(
+    client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_aprovado
+):
     layout_para_atualizar = layout_de_embalagem_aprovado
     dados_correcao = {
         'observacoes': 'Imagine uma nova observação aqui.',
         'tipos_de_embalagens': [
             {
-                'uuid': str(layout_para_atualizar.tipos_de_embalagens.get(tipo_embalagem='PRIMARIA').uuid),
+                'uuid': str(
+                    layout_para_atualizar.tipos_de_embalagens.get(
+                        tipo_embalagem='PRIMARIA'
+                    ).uuid
+                ),
                 'tipo_embalagem': 'PRIMARIA',
                 'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo2.jpg'},
+                ],
             },
             {
-                'uuid': str(layout_para_atualizar.tipos_de_embalagens.get(tipo_embalagem='SECUNDARIA').uuid),
+                'uuid': str(
+                    layout_para_atualizar.tipos_de_embalagens.get(
+                        tipo_embalagem='SECUNDARIA'
+                    ).uuid
+                ),
                 'tipo_embalagem': 'SECUNDARIA',
                 'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo3.jpg'
-                    },
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo3.jpg'},
+                ],
             },
             {
                 'tipo_embalagem': 'TERCIARIA',
                 'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo4.jpg'
-                    },
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo4.jpg'},
+                ],
             },
         ],
     }
@@ -1728,18 +1916,21 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza(client_autenticado
     response = client_autenticado_fornecedor.patch(
         f'/layouts-de-embalagem/{layout_para_atualizar.uuid}/',
         content_type='application/json',
-        data=json.dumps(dados_correcao)
+        data=json.dumps(dados_correcao),
     )
 
     layout_para_atualizar.refresh_from_db()
 
     assert response.status_code == status.HTTP_200_OK
-    assert layout_para_atualizar.status == LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+    assert (
+        layout_para_atualizar.status == LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
+    )
     assert layout_para_atualizar.observacoes == 'Imagine uma nova observação aqui.'
 
 
-def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza_not_ok(client_autenticado_fornecedor, arquivo_base64,
-                                                                     layout_de_embalagem_para_correcao):
+def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza_not_ok(
+    client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_para_correcao
+):
     """Checa transição de estado."""
     layout_para_atualizar = layout_de_embalagem_para_correcao
 
@@ -1747,14 +1938,15 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza_not_ok(client_aute
         'observacoes': 'Imagine uma nova observação aqui.',
         'tipos_de_embalagens': [
             {
-                'uuid': str(layout_para_atualizar.tipos_de_embalagens.get(tipo_embalagem='SECUNDARIA').uuid),
+                'uuid': str(
+                    layout_para_atualizar.tipos_de_embalagens.get(
+                        tipo_embalagem='SECUNDARIA'
+                    ).uuid
+                ),
                 'tipo_embalagem': 'SECUNDARIA',
                 'imagens_do_tipo_de_embalagem': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo1.jpg'
-                    },
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo1.jpg'},
+                ],
             },
         ],
     }
@@ -1762,16 +1954,19 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza_not_ok(client_aute
     response = client_autenticado_fornecedor.patch(
         f'/layouts-de-embalagem/{layout_para_atualizar.uuid}/',
         content_type='application/json',
-        data=json.dumps(dados)
+        data=json.dumps(dados),
     )
 
-    msg_erro3 = 'Erro de transição de estado. O status deste layout não permite correção'
+    msg_erro3 = (
+        'Erro de transição de estado. O status deste layout não permite correção'
+    )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert msg_erro3 in response.json()[0]
 
 
-def test_url_endpoint_documentos_recebimento_create(client_autenticado_fornecedor,
-                                                    cronograma_factory, arquivo_base64):
+def test_url_endpoint_documentos_recebimento_create(
+    client_autenticado_fornecedor, cronograma_factory, arquivo_base64
+):
     cronograma_obj = cronograma_factory.create()
     data = {
         'cronograma': str(cronograma_obj.uuid),
@@ -1780,24 +1975,15 @@ def test_url_endpoint_documentos_recebimento_create(client_autenticado_fornecedo
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo2.jpg'},
+                ],
             },
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_RASTREABILIDADE,
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Anexo1.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Anexo1.jpg'}
+                ],
             },
         ],
     }
@@ -1805,7 +1991,7 @@ def test_url_endpoint_documentos_recebimento_create(client_autenticado_fornecedo
     response = client_autenticado_fornecedor.post(
         '/documentos-de-recebimento/',
         content_type='application/json',
-        data=json.dumps(data)
+        data=json.dumps(data),
     )
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -1820,20 +2006,27 @@ def test_url_endpoint_documentos_recebimento_create(client_autenticado_fornecedo
     response = client_autenticado_fornecedor.post(
         '/documentos-de-recebimento/',
         content_type='application/json',
-        data=json.dumps(data)
+        data=json.dumps(data),
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Cronograma não existe' in response.data['cronograma']
-    assert 'Este campo é obrigatório.' in response.data['tipos_de_documentos'][1]['arquivos_do_tipo_de_documento']
+    assert (
+        'Este campo é obrigatório.'
+        in response.data['tipos_de_documentos'][1]['arquivos_do_tipo_de_documento']
+    )
 
 
-def test_url_documentos_de_recebimento_listagem(client_autenticado_fornecedor, django_user_model,
-                                                documento_de_recebimento_factory):
+def test_url_documentos_de_recebimento_listagem(
+    client_autenticado_fornecedor, django_user_model, documento_de_recebimento_factory
+):
     """Deve obter lista paginada e filtrada de documentos de recebimento."""
     user_id = client_autenticado_fornecedor.session['_auth_user_id']
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
-    documentos = [documento_de_recebimento_factory.create(cronograma__empresa=empresa) for _ in range(11)]
+    documentos = [
+        documento_de_recebimento_factory.create(cronograma__empresa=empresa)
+        for _ in range(11)
+    ]
     response = client_autenticado_fornecedor.get('/documentos-de-recebimento/')
 
     assert response.status_code == status.HTTP_200_OK
@@ -1849,7 +2042,9 @@ def test_url_documentos_de_recebimento_listagem(client_autenticado_fornecedor, d
     assert next_response.status_code == status.HTTP_200_OK
 
     # Tenta acessar uma página que não existe
-    response_not_found = client_autenticado_fornecedor.get('/documentos-de-recebimento/?page=1000')
+    response_not_found = client_autenticado_fornecedor.get(
+        '/documentos-de-recebimento/?page=1000'
+    )
     assert response_not_found.status_code == status.HTTP_404_NOT_FOUND
 
     # Testa a resposta em caso de erro (por exemplo, sem autenticação)
@@ -1859,7 +2054,9 @@ def test_url_documentos_de_recebimento_listagem(client_autenticado_fornecedor, d
 
     # Teste de consulta com parâmetros
     data = datetime.date.today() - datetime.timedelta(days=1)
-    response_filtro = client_autenticado_fornecedor.get(f'/documentos-de-recebimento/?data_cadastro={data}')
+    response_filtro = client_autenticado_fornecedor.get(
+        f'/documentos-de-recebimento/?data_cadastro={data}'
+    )
     assert response_filtro.status_code == status.HTTP_200_OK
     assert response_filtro.data['count'] == 0
 
@@ -1872,15 +2069,18 @@ def test_url_documentos_de_recebimento_listagem_not_authorized(client_autenticad
 
 
 def test_url_dashboard_documentos_de_recebimento_status_retornados(
-    client_autenticado_codae_dilog,
-    documento_de_recebimento_factory
+    client_autenticado_codae_dilog, documento_de_recebimento_factory
 ):
     user = get_user_model().objects.get()
-    status_esperados = ServiceDashboardDocumentosDeRecebimento.get_dashboard_status(user)
+    status_esperados = ServiceDashboardDocumentosDeRecebimento.get_dashboard_status(
+        user
+    )
     for status_esperado in status_esperados:
         documento_de_recebimento_factory(status=status_esperado)
 
-    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/')
+    response = client_autenticado_codae_dilog.get(
+        '/documentos-de-recebimento/dashboard/'
+    )
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -1899,9 +2099,7 @@ def test_url_dashboard_documentos_de_recebimento_status_retornados(
     ],
 )
 def test_url_dashboard_documentos_de_recebimento_quantidade_itens_por_card(
-    client_autenticado_codae_dilog,
-    documento_de_recebimento_factory,
-    status_card
+    client_autenticado_codae_dilog, documento_de_recebimento_factory, status_card
 ):
     documento_de_recebimento_factory.create_batch(size=10, status=status_card)
 
@@ -1924,39 +2122,44 @@ def test_url_dashboard_documentos_de_recebimento_quantidade_itens_por_card(
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
         DocumentoDeRecebimentoWorkflow.APROVADO,
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
-    ]
+    ],
 )
 def test_url_dashboard_documentos_de_recebimento_com_filtro(
-    client_autenticado_codae_dilog,
-    documento_de_recebimento_factory,
-    status_card
+    client_autenticado_codae_dilog, documento_de_recebimento_factory, status_card
 ):
-    documentos_de_recebimento = documento_de_recebimento_factory.create_batch(size=10, status=status_card)
+    documentos_de_recebimento = documento_de_recebimento_factory.create_batch(
+        size=10, status=status_card
+    )
 
     filtros = {'numero_cronograma': documentos_de_recebimento[0].cronograma.numero}
-    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
-    dados_card = list(filter(
-        lambda e: e['status'] == status_card,
-        response.json()['results']
-    )).pop()['dados']
+    response = client_autenticado_codae_dilog.get(
+        '/documentos-de-recebimento/dashboard/', filtros
+    )
+    dados_card = list(
+        filter(lambda e: e['status'] == status_card, response.json()['results'])
+    ).pop()['dados']
 
     assert len(dados_card) == 1
 
     filtros = {'nome_produto': documentos_de_recebimento[0].cronograma.produto.nome}
-    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
-    dados_card = list(filter(
-        lambda e: e['status'] == status_card,
-        response.json()['results']
-    )).pop()['dados']
+    response = client_autenticado_codae_dilog.get(
+        '/documentos-de-recebimento/dashboard/', filtros
+    )
+    dados_card = list(
+        filter(lambda e: e['status'] == status_card, response.json()['results'])
+    ).pop()['dados']
 
     assert len(dados_card) == 1
 
-    filtros = {'nome_fornecedor': documentos_de_recebimento[0].cronograma.empresa.razao_social}
-    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
-    dados_card = list(filter(
-        lambda e: e['status'] == status_card,
-        response.json()['results']
-    )).pop()['dados']
+    filtros = {
+        'nome_fornecedor': documentos_de_recebimento[0].cronograma.empresa.razao_social
+    }
+    response = client_autenticado_codae_dilog.get(
+        '/documentos-de-recebimento/dashboard/', filtros
+    )
+    dados_card = list(
+        filter(lambda e: e['status'] == status_card, response.json()['results'])
+    ).pop()['dados']
 
     assert len(dados_card) == 1
 
@@ -1967,21 +2170,19 @@ def test_url_dashboard_documentos_de_recebimento_com_filtro(
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
         DocumentoDeRecebimentoWorkflow.APROVADO,
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
-    ]
+    ],
 )
 def test_url_dashboard_documentos_de_recebimento_ver_mais(
-    client_autenticado_codae_dilog,
-    documento_de_recebimento_factory,
-    status_card
+    client_autenticado_codae_dilog, documento_de_recebimento_factory, status_card
 ):
-    documentos_de_recebimento = documento_de_recebimento_factory.create_batch(size=10, status=status_card)
+    documentos_de_recebimento = documento_de_recebimento_factory.create_batch(
+        size=10, status=status_card
+    )
 
-    filtros = {
-        'status': status_card,
-        'offset': 0,
-        'limit': 10
-    }
-    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+    filtros = {'status': status_card, 'offset': 0, 'limit': 10}
+    response = client_autenticado_codae_dilog.get(
+        '/documentos-de-recebimento/dashboard/', filtros
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()['results']['dados']) == 10
@@ -1995,22 +2196,24 @@ def test_url_dashboard_documentos_de_recebimento_ver_mais(
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
         DocumentoDeRecebimentoWorkflow.APROVADO,
         DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
-    ]
+    ],
 )
 def test_url_dashboard_documentos_de_recebimento_ver_mais_com_filtros(
-    client_autenticado_codae_dilog,
-    documento_de_recebimento_factory,
-    status_card
+    client_autenticado_codae_dilog, documento_de_recebimento_factory, status_card
 ):
-    documentos_de_recebimento = documento_de_recebimento_factory.create_batch(size=10, status=status_card)
+    documentos_de_recebimento = documento_de_recebimento_factory.create_batch(
+        size=10, status=status_card
+    )
 
     filtros = {
         'status': status_card,
         'offset': 0,
         'limit': 10,
-        'numero_cronograma': documentos_de_recebimento[0].cronograma.numero
+        'numero_cronograma': documentos_de_recebimento[0].cronograma.numero,
     }
-    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+    response = client_autenticado_codae_dilog.get(
+        '/documentos-de-recebimento/dashboard/', filtros
+    )
 
     assert len(response.json()['results']['dados']) == 1
 
@@ -2018,9 +2221,11 @@ def test_url_dashboard_documentos_de_recebimento_ver_mais_com_filtros(
         'status': status_card,
         'offset': 0,
         'limit': 10,
-        'nome_produto': documentos_de_recebimento[0].cronograma.produto.nome
+        'nome_produto': documentos_de_recebimento[0].cronograma.produto.nome,
     }
-    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+    response = client_autenticado_codae_dilog.get(
+        '/documentos-de-recebimento/dashboard/', filtros
+    )
 
     assert len(response.json()['results']['dados']) == 1
 
@@ -2028,44 +2233,75 @@ def test_url_dashboard_documentos_de_recebimento_ver_mais_com_filtros(
         'status': status_card,
         'offset': 0,
         'limit': 10,
-        'nome_fornecedor': documentos_de_recebimento[0].cronograma.empresa.razao_social
+        'nome_fornecedor': documentos_de_recebimento[0].cronograma.empresa.razao_social,
     }
-    response = client_autenticado_codae_dilog.get('/documentos-de-recebimento/dashboard/', filtros)
+    response = client_autenticado_codae_dilog.get(
+        '/documentos-de-recebimento/dashboard/', filtros
+    )
 
     assert len(response.json()['results']['dados']) == 1
 
 
-def test_url_documentos_de_recebimento_detalhar(client_autenticado_fornecedor, documento_de_recebimento_factory,
-                                                cronograma_factory, django_user_model,
-                                                tipo_de_documento_de_recebimento_factory):
+def test_url_documentos_de_recebimento_detalhar(
+    client_autenticado_fornecedor,
+    documento_de_recebimento_factory,
+    cronograma_factory,
+    django_user_model,
+    tipo_de_documento_de_recebimento_factory,
+):
     user_id = client_autenticado_fornecedor.session['_auth_user_id']
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     contrato = empresa.contratos.first()
     cronograma = cronograma_factory.create(empresa=empresa, contrato=contrato)
-    documento_de_recebimento = documento_de_recebimento_factory.create(cronograma=cronograma)
-    tipo_de_documento_de_recebimento_factory.create(documento_recebimento=documento_de_recebimento)
+    documento_de_recebimento = documento_de_recebimento_factory.create(
+        cronograma=cronograma
+    )
+    tipo_de_documento_de_recebimento_factory.create(
+        documento_recebimento=documento_de_recebimento
+    )
 
-    response = client_autenticado_fornecedor.get(f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/')
+    response = client_autenticado_fornecedor.get(
+        f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/'
+    )
     dedos_documento_de_recebimento = response.json()
 
     assert response.status_code == status.HTTP_200_OK
 
     assert dedos_documento_de_recebimento['uuid'] == str(documento_de_recebimento.uuid)
-    assert dedos_documento_de_recebimento['numero_laudo'] == str(documento_de_recebimento.numero_laudo)
-    assert dedos_documento_de_recebimento['criado_em'] == documento_de_recebimento.criado_em.strftime('%d/%m/%Y')
-    assert dedos_documento_de_recebimento['status'] == documento_de_recebimento.get_status_display()
+    assert dedos_documento_de_recebimento['numero_laudo'] == str(
+        documento_de_recebimento.numero_laudo
+    )
+    assert dedos_documento_de_recebimento[
+        'criado_em'
+    ] == documento_de_recebimento.criado_em.strftime('%d/%m/%Y')
+    assert (
+        dedos_documento_de_recebimento['status']
+        == documento_de_recebimento.get_status_display()
+    )
     assert dedos_documento_de_recebimento['numero_cronograma'] == str(cronograma.numero)
-    assert dedos_documento_de_recebimento['nome_produto'] == str(cronograma.produto.nome)
-    assert dedos_documento_de_recebimento['pregao_chamada_publica'] == str(cronograma.contrato.pregao_chamada_publica)
+    assert dedos_documento_de_recebimento['nome_produto'] == str(
+        cronograma.produto.nome
+    )
+    assert dedos_documento_de_recebimento['pregao_chamada_publica'] == str(
+        cronograma.contrato.pregao_chamada_publica
+    )
     assert dedos_documento_de_recebimento['tipos_de_documentos'] is not None
-    assert dedos_documento_de_recebimento['tipos_de_documentos'][0]['tipo_documento'] == 'LAUDO'
+    assert (
+        dedos_documento_de_recebimento['tipos_de_documentos'][0]['tipo_documento']
+        == 'LAUDO'
+    )
 
 
-def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimento_factory, laboratorio_factory,
-                                                          unidade_medida_factory, client_autenticado_qualidade):
+def test_url_documentos_de_recebimento_analisar_documento(
+    documento_de_recebimento_factory,
+    laboratorio_factory,
+    unidade_medida_factory,
+    client_autenticado_qualidade,
+):
     """Testa o cenário de rascunho, aprovação e sol. de correção."""
     documento = documento_de_recebimento_factory.create(
-        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE)
+        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    )
     laboratorio = laboratorio_factory.create(credenciado=True)
     unidade_medida = unidade_medida_factory()
 
@@ -2077,18 +2313,20 @@ def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimen
         'data_fabricacao_lote': str(datetime.date.today()),
         'validade_produto': str(datetime.date.today()),
         'data_final_lote': str(datetime.date.today()),
-        'saldo_laudo': 5.5
+        'saldo_laudo': 5.5,
     }
 
     response_rascunho = client_autenticado_qualidade.patch(
         f'/documentos-de-recebimento/{documento.uuid}/analise-documentos-rascunho/',
         content_type='application/json',
-        data=json.dumps(dados_atualizados)
+        data=json.dumps(dados_atualizados),
     )
 
     documento.refresh_from_db()
     assert response_rascunho.status_code == status.HTTP_200_OK
-    assert documento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    assert (
+        documento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    )
     assert documento.laboratorio == laboratorio
     assert documento.quantidade_laudo == 10.5
     assert documento.unidade_medida == unidade_medida
@@ -2102,22 +2340,22 @@ def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimen
     dados_atualizados['datas_fabricacao_e_prazos'] = [
         {
             'data_fabricacao': str(datetime.date.today()),
-            'prazo_maximo_recebimento': '30'
+            'prazo_maximo_recebimento': '30',
         },
         {
             'data_fabricacao': str(datetime.date.today()),
-            'prazo_maximo_recebimento': '60'
+            'prazo_maximo_recebimento': '60',
         },
         {
             'data_fabricacao': str(datetime.date.today()),
-            'prazo_maximo_recebimento': '30'
-        }
+            'prazo_maximo_recebimento': '30',
+        },
     ]
 
     response_aprovado = client_autenticado_qualidade.patch(
         f'/documentos-de-recebimento/{documento.uuid}/analise-documentos/',
         content_type='application/json',
-        data=json.dumps(dados_atualizados)
+        data=json.dumps(dados_atualizados),
     )
 
     documento.refresh_from_db()
@@ -2127,20 +2365,27 @@ def test_url_documentos_de_recebimento_analisar_documento(documento_de_recebimen
     assert documento.datas_fabricacao_e_prazos.count() == 3
 
     # Teste analise ação solicitar correção (Todos os campos são obrigatórios + correcao_solicitada)
-    dados_atualizados['correcao_solicitada'] = 'Documentos corrompidos, sem possibilidade de análise.'
+    dados_atualizados[
+        'correcao_solicitada'
+    ] = 'Documentos corrompidos, sem possibilidade de análise.'
     documento.status = DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
     documento.save()
 
     response_correcao = client_autenticado_qualidade.patch(
         f'/documentos-de-recebimento/{documento.uuid}/analise-documentos/',
         content_type='application/json',
-        data=json.dumps(dados_atualizados)
+        data=json.dumps(dados_atualizados),
     )
 
     documento.refresh_from_db()
     assert response_correcao.status_code == status.HTTP_200_OK
-    assert documento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO
-    assert documento.correcao_solicitada == 'Documentos corrompidos, sem possibilidade de análise.'
+    assert (
+        documento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO
+    )
+    assert (
+        documento.correcao_solicitada
+        == 'Documentos corrompidos, sem possibilidade de análise.'
+    )
 
 
 def test_url_documentos_de_recebimento_fornecedor_corrige(
@@ -2149,7 +2394,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige(
     arquivo_base64,
     django_user_model,
     cronograma_factory,
-    tipo_de_documento_de_recebimento_factory
+    tipo_de_documento_de_recebimento_factory,
 ):
     user_id = django_user_model.objects.first().id
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
@@ -2158,7 +2403,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige(
     )
     documento_de_recebimento = documento_de_recebimento_factory.create(
         cronograma=cronograma,
-        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO
+        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO,
     )
     tipo_de_documento_de_recebimento_factory.create(
         documento_recebimento=documento_de_recebimento
@@ -2166,7 +2411,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige(
     tipo_de_documento_de_recebimento_factory.create(
         documento_recebimento=documento_de_recebimento,
         tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS,
-        descricao_documento='Outro que precisa ser corrigido.'
+        descricao_documento='Outro que precisa ser corrigido.',
     )
     tipo_de_documento_de_recebimento_factory.create(
         documento_recebimento=documento_de_recebimento,
@@ -2178,42 +2423,24 @@ def test_url_documentos_de_recebimento_fornecedor_corrige(
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Laudo1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Laudo2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Laudo1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Laudo2.jpg'},
+                ],
             },
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010,
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Declaracao1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Declaracao2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Declaracao1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Declaracao2.jpg'},
+                ],
             },
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS,
                 'descricao_documento': 'Outro após a correção.',
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Outros1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Outros2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Outros1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Outros2.jpg'},
+                ],
             },
         ],
     }
@@ -2221,19 +2448,26 @@ def test_url_documentos_de_recebimento_fornecedor_corrige(
     response = client_autenticado_fornecedor.patch(
         f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
         content_type='application/json',
-        data=json.dumps(dados_correcao)
+        data=json.dumps(dados_correcao),
     )
 
     documento_de_recebimento.refresh_from_db()
     tipos_de_documentos = documento_de_recebimento.tipos_de_documentos.all()
-    laudo_atualizado = tipos_de_documentos.filter(tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO).first()
-    outros_atualizado = tipos_de_documentos.filter(tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS).first()
+    laudo_atualizado = tipos_de_documentos.filter(
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO
+    ).first()
+    outros_atualizado = tipos_de_documentos.filter(
+        tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS
+    ).first()
     declaracao_criado = tipos_de_documentos.filter(
         tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010
     ).first()
 
     assert response.status_code == status.HTTP_200_OK
-    assert documento_de_recebimento.status == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    assert (
+        documento_de_recebimento.status
+        == DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_ANALISE
+    )
     assert not tipos_de_documentos.filter(
         tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_RASTREABILIDADE
     ).exists()
@@ -2250,7 +2484,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
     arquivo_base64,
     django_user_model,
     cronograma_factory,
-    tipo_de_documento_de_recebimento_factory
+    tipo_de_documento_de_recebimento_factory,
 ):
     user_id = django_user_model.objects.first().id
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
@@ -2259,7 +2493,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
     )
     documento_de_recebimento = documento_de_recebimento_factory.create(
         cronograma=cronograma,
-        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO
+        status=DocumentoDeRecebimento.workflow_class.ENVIADO_PARA_CORRECAO,
     )
     tipo_de_documento_de_recebimento_factory.create(
         documento_recebimento=documento_de_recebimento
@@ -2267,7 +2501,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
     tipo_de_documento_de_recebimento_factory.create(
         documento_recebimento=documento_de_recebimento,
         tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS,
-        descricao_documento='Outro que precisa ser corrigido.'
+        descricao_documento='Outro que precisa ser corrigido.',
     )
     tipo_de_documento_de_recebimento_factory.create(
         documento_recebimento=documento_de_recebimento,
@@ -2280,15 +2514,9 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010,
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Declaracao1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Declaracao2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Declaracao1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Declaracao2.jpg'},
+                ],
             }
         ],
     }
@@ -2296,7 +2524,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
     response = client_autenticado_fornecedor.patch(
         f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
         content_type='application/json',
-        data=json.dumps(dados_correcao_sem_laudo)
+        data=json.dumps(dados_correcao_sem_laudo),
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -2307,15 +2535,9 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Laudo1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Laudo2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Laudo1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Laudo2.jpg'},
+                ],
             }
         ],
     }
@@ -2323,7 +2545,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
     response = client_autenticado_fornecedor.patch(
         f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
         content_type='application/json',
-        data=json.dumps(dados_correcao_sem_documentos)
+        data=json.dumps(dados_correcao_sem_documentos),
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -2339,8 +2561,8 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
                     },
                     {
                         'arquivo': arquivo_base64,
-                    }
-                ]
+                    },
+                ],
             },
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010,
@@ -2350,16 +2572,16 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
                     },
                     {
                         'arquivo': arquivo_base64,
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         ],
     }
 
     response = client_autenticado_fornecedor.patch(
         f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
         content_type='application/json',
-        data=json.dumps(dados_correcao_sem_arquivos)
+        data=json.dumps(dados_correcao_sem_arquivos),
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -2370,36 +2592,24 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Laudo1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Laudo2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Laudo1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Laudo2.jpg'},
+                ],
             },
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS,
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Outro1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Outro2.jpg'
-                    }
-                ]
-            }
+                    {'arquivo': arquivo_base64, 'nome': 'Outro1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Outro2.jpg'},
+                ],
+            },
         ],
     }
 
     response = client_autenticado_fornecedor.patch(
         f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
         content_type='application/json',
-        data=json.dumps(dados_correcao_sem_arquivos)
+        data=json.dumps(dados_correcao_sem_arquivos),
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -2418,8 +2628,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
         empresa=empresa,
     )
     documento_de_recebimento = documento_de_recebimento_factory.create(
-        cronograma=cronograma,
-        status=DocumentoDeRecebimento.workflow_class.APROVADO
+        cronograma=cronograma, status=DocumentoDeRecebimento.workflow_class.APROVADO
     )
 
     dados_correcao = {
@@ -2427,28 +2636,16 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO,
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Laudo1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Laudo2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Laudo1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Laudo2.jpg'},
+                ],
             },
             {
                 'tipo_documento': TipoDeDocumentoDeRecebimento.TIPO_DOC_DECLARACAO_LEI_1512010,
                 'arquivos_do_tipo_de_documento': [
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Declaracao1.jpg'
-                    },
-                    {
-                        'arquivo': arquivo_base64,
-                        'nome': 'Declaracao2.jpg'
-                    }
-                ]
+                    {'arquivo': arquivo_base64, 'nome': 'Declaracao1.jpg'},
+                    {'arquivo': arquivo_base64, 'nome': 'Declaracao2.jpg'},
+                ],
             },
         ],
     }
@@ -2456,27 +2653,35 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
     response = client_autenticado_fornecedor.patch(
         f'/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/',
         content_type='application/json',
-        data=json.dumps(dados_correcao)
+        data=json.dumps(dados_correcao),
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_rascunho_ficha_tecnica_list_metodo_nao_permitido(client_autenticado_fornecedor, ficha_tecnica_factory):
-
+def test_rascunho_ficha_tecnica_list_metodo_nao_permitido(
+    client_autenticado_fornecedor, ficha_tecnica_factory
+):
     url = '/rascunho-ficha-tecnica/'
     response = client_autenticado_fornecedor.get(url)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def test_rascunho_ficha_tecnica_retrieve_metodo_nao_permitido(client_autenticado_fornecedor, ficha_tecnica_factory):
+def test_rascunho_ficha_tecnica_retrieve_metodo_nao_permitido(
+    client_autenticado_fornecedor, ficha_tecnica_factory
+):
     url = f'/rascunho-ficha-tecnica/{ficha_tecnica_factory().uuid}/'
     response = client_autenticado_fornecedor.get(url)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def test_rascunho_ficha_tecnica_create_update(client_autenticado_fornecedor, produto_logistica_factory, empresa_factory,
-                                              marca_factory, fabricante_factory):
+def test_rascunho_ficha_tecnica_create_update(
+    client_autenticado_fornecedor,
+    produto_logistica_factory,
+    empresa_factory,
+    marca_factory,
+    fabricante_factory,
+):
     payload = {
         'produto': str(produto_logistica_factory().uuid),
         'marca': str(marca_factory().uuid),
@@ -2499,19 +2704,21 @@ def test_rascunho_ficha_tecnica_create_update(client_autenticado_fornecedor, pro
     response_create = client_autenticado_fornecedor.post(
         '/rascunho-ficha-tecnica/',
         content_type='application/json',
-        data=json.dumps(payload)
+        data=json.dumps(payload),
     )
 
     ultima_ficha_criada = FichaTecnicaDoProduto.objects.last()
 
     assert response_create.status_code == status.HTTP_201_CREATED
-    assert response_create.json()['numero'] == f'FT{str(ultima_ficha_criada.pk).zfill(3)}'
+    assert (
+        response_create.json()['numero'] == f'FT{str(ultima_ficha_criada.pk).zfill(3)}'
+    )
 
     payload['pregao_chamada_publica'] = '0987654321'
     response_update = client_autenticado_fornecedor.put(
         f'/rascunho-ficha-tecnica/{response_create.json()["uuid"]}/',
         content_type='application/json',
-        data=json.dumps(payload)
+        data=json.dumps(payload),
     )
     ficha = FichaTecnicaDoProduto.objects.last()
 
@@ -2519,20 +2726,29 @@ def test_rascunho_ficha_tecnica_create_update(client_autenticado_fornecedor, pro
     assert ficha.pregao_chamada_publica == '0987654321'
 
 
-def test_ficha_tecnica_list_ok(client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model):
+def test_ficha_tecnica_list_ok(
+    client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model
+):
     user_id = client_autenticado_fornecedor.session['_auth_user_id']
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     url = '/ficha-tecnica/'
     fichas_criadas = [ficha_tecnica_factory.create(empresa=empresa) for _ in range(10)]
     response = client_autenticado_fornecedor.get(url)
-    fichas = FichaTecnicaDoProduto.objects.filter(empresa=empresa).order_by('-criado_em')
+    fichas = FichaTecnicaDoProduto.objects.filter(empresa=empresa).order_by(
+        '-criado_em'
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data['results']) == len(fichas_criadas)
-    assert response.data['results'] == FichaTecnicalistagemSerializer(fichas, many=True).data
+    assert (
+        response.data['results']
+        == FichaTecnicalistagemSerializer(fichas, many=True).data
+    )
 
 
-def test_ficha_tecnica_retrieve_ok(client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model):
+def test_ficha_tecnica_retrieve_ok(
+    client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model
+):
     user_id = client_autenticado_fornecedor.session['_auth_user_id']
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     ficha_tecnica = ficha_tecnica_factory.create(empresa=empresa)
@@ -2540,4 +2756,6 @@ def test_ficha_tecnica_retrieve_ok(client_autenticado_fornecedor, ficha_tecnica_
     response = client_autenticado_fornecedor.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data == FichaTecnicaDetalharSerializer(ficha_tecnica, many=False).data
+    assert (
+        response.data == FichaTecnicaDetalharSerializer(ficha_tecnica, many=False).data
+    )

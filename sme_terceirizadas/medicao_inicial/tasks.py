@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 from ..dados_comuns.utils import (
     atualiza_central_download,
     atualiza_central_download_com_erro,
-    gera_objeto_na_central_download
+    gera_objeto_na_central_download,
 )
 from ..escola.models import AlunoPeriodoParcial, Escola
 from .models import Responsavel, SolicitacaoMedicaoInicial
@@ -27,35 +27,41 @@ def cria_solicitacao_medicao_inicial_mes_atual():
     for escola in Escola.objects.all():
         if not solicitacao_medicao_atual_existe(escola, data_hoje):
             try:
-                solicitacao_mes_anterior = buscar_solicitacao_mes_anterior(escola, data_mes_anterior)
-                solicitacao_atual = criar_nova_solicitacao(solicitacao_mes_anterior, escola, data_hoje)
+                solicitacao_mes_anterior = buscar_solicitacao_mes_anterior(
+                    escola, data_mes_anterior
+                )
+                solicitacao_atual = criar_nova_solicitacao(
+                    solicitacao_mes_anterior, escola, data_hoje
+                )
                 copiar_responsaveis(solicitacao_mes_anterior, solicitacao_atual)
 
                 if solicitacao_atual.ue_possui_alunos_periodo_parcial:
-                    copiar_alunos_periodo_parcial(solicitacao_mes_anterior, solicitacao_atual)
+                    copiar_alunos_periodo_parcial(
+                        solicitacao_mes_anterior, solicitacao_atual
+                    )
 
-                solicitacao_atual.inicia_fluxo(user=solicitacao_mes_anterior.logs.first().usuario)
+                solicitacao_atual.inicia_fluxo(
+                    user=solicitacao_mes_anterior.logs.first().usuario
+                )
 
             except SolicitacaoMedicaoInicial.DoesNotExist:
-                message = (f'x-x-x-x Não existe Solicitação de Medição Inicial para a escola '
-                           f'{escola.nome} no mês anterior ({data_mes_anterior.month:02d}/'
-                           f'{data_mes_anterior.year}) x-x-x-x')
+                message = (
+                    'x-x-x-x Não existe Solicitação de Medição Inicial para a escola '
+                    f'{escola.nome} no mês anterior ({data_mes_anterior.month:02d}/'
+                    f'{data_mes_anterior.year}) x-x-x-x'
+                )
                 logger.info(message)
 
 
 def solicitacao_medicao_atual_existe(escola, data):
     return SolicitacaoMedicaoInicial.objects.filter(
-        escola=escola,
-        ano=data.year,
-        mes=f'{data.month:02d}'
+        escola=escola, ano=data.year, mes=f'{data.month:02d}'
     ).exists()
 
 
 def buscar_solicitacao_mes_anterior(escola, data):
     return SolicitacaoMedicaoInicial.objects.get(
-        escola=escola,
-        ano=data.year,
-        mes=f'{data.month:02d}'
+        escola=escola, ano=data.year, mes=f'{data.month:02d}'
     )
 
 
@@ -64,13 +70,17 @@ def criar_nova_solicitacao(solicitacao_anterior, escola, data_hoje):
         'escola': escola,
         'ano': data_hoje.year,
         'mes': f'{data_hoje.month:02d}',
-        'criado_por': solicitacao_anterior.criado_por
+        'criado_por': solicitacao_anterior.criado_por,
     }
 
     if not solicitacao_anterior.escola.eh_cei:
-        attrs['tipo_contagem_alimentacoes'] = solicitacao_anterior.tipo_contagem_alimentacoes
+        attrs[
+            'tipo_contagem_alimentacoes'
+        ] = solicitacao_anterior.tipo_contagem_alimentacoes
     else:
-        attrs['ue_possui_alunos_periodo_parcial'] = solicitacao_anterior.ue_possui_alunos_periodo_parcial
+        attrs[
+            'ue_possui_alunos_periodo_parcial'
+        ] = solicitacao_anterior.ue_possui_alunos_periodo_parcial
 
     return SolicitacaoMedicaoInicial.objects.create(**attrs)
 
@@ -80,7 +90,7 @@ def copiar_responsaveis(solicitacao_origem, solicitacao_destino):
         Responsavel.objects.create(
             solicitacao_medicao_inicial=solicitacao_destino,
             nome=responsavel.nome,
-            rf=responsavel.rf
+            rf=responsavel.rf,
         )
 
 
@@ -90,7 +100,7 @@ def copiar_alunos_periodo_parcial(solicitacao_origem, solicitacao_destino):
         AlunoPeriodoParcial.objects.create(
             solicitacao_medicao_inicial=solicitacao_destino,
             aluno=aluno.aluno,
-            escola=solicitacao_destino.escola
+            escola=solicitacao_destino.escola,
         )
 
 
@@ -98,16 +108,22 @@ def copiar_alunos_periodo_parcial(solicitacao_origem, solicitacao_destino):
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limit=3000,
-    soft_time_limit=3000
+    soft_time_limit=3000,
 )
-def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(user, nome_arquivo, uuid_sol_medicao):
+def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(
+    user, nome_arquivo, uuid_sol_medicao
+):
     from ..medicao_inicial.models import SolicitacaoMedicaoInicial
-    from ..relatorios.relatorios import (relatorio_solicitacao_medicao_por_escola,
-                                         relatorio_solicitacao_medicao_por_escola_cei)
+    from ..relatorios.relatorios import (
+        relatorio_solicitacao_medicao_por_escola,
+        relatorio_solicitacao_medicao_por_escola_cei,
+    )
 
     solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid_sol_medicao)
     logger.info(f'x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x')
-    obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
+    obj_central_download = gera_objeto_na_central_download(
+        user=user, identificador=nome_arquivo
+    )
     try:
         if solicitacao.escola.eh_cei:
             arquivo = relatorio_solicitacao_medicao_por_escola_cei(solicitacao)

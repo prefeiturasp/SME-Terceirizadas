@@ -48,10 +48,10 @@ def test_notificar(notificacao):
     Notificacao.notificar(
         tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
         categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
-        titulo=f'Hoje tem entrega de alimentos',
+        titulo='Hoje tem entrega de alimentos',
         descricao='teste',
         usuario=notificacao.usuario,
-        link=f'/teste/',
+        link='/teste/',
     )
 
     obj = Notificacao.objects.last()
@@ -68,11 +68,11 @@ def test_resolver_pendencia(notificacao_de_pendencia_com_requisicao):
     Notificacao.notificar(
         tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
         categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
-        titulo=f'Hoje tem entrega de alimentos',
+        titulo='Hoje tem entrega de alimentos',
         descricao='teste',
         usuario=notificacao_de_pendencia_com_requisicao.usuario,
-        link=f'/teste/',
-        requisicao=notificacao_de_pendencia_com_requisicao.requisicao
+        link='/teste/',
+        requisicao=notificacao_de_pendencia_com_requisicao.requisicao,
     )
 
     obj = Notificacao.objects.last()
@@ -87,7 +87,9 @@ def test_resolver_pendencia(notificacao_de_pendencia_com_requisicao):
     assert obj.resolvido is False
     assert obj.lido is False
 
-    Notificacao.resolver_pendencia(titulo=obj.titulo, requisicao=notificacao_de_pendencia_com_requisicao.requisicao)
+    Notificacao.resolver_pendencia(
+        titulo=obj.titulo, requisicao=notificacao_de_pendencia_com_requisicao.requisicao
+    )
 
     obj2 = Notificacao.objects.last()
 

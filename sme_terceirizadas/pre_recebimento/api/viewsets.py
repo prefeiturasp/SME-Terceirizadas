@@ -7,7 +7,11 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_406_NOT_ACCEPTABLE
+from rest_framework.status import (
+    HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
+    HTTP_406_NOT_ACCEPTABLE,
+)
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_EMPRESA
@@ -34,7 +38,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     UsuarioEhDilogQualidade,
     UsuarioEhFornecedor,
-    ViewSetActionPermissionMixin
+    ViewSetActionPermissionMixin,
 )
 from sme_terceirizadas.pre_recebimento.api.filters import (
     CronogramaFilter,
@@ -43,12 +47,12 @@ from sme_terceirizadas.pre_recebimento.api.filters import (
     LayoutDeEmbalagemFilter,
     SolicitacaoAlteracaoCronogramaFilter,
     TipoEmbalagemQldFilter,
-    UnidadeMedidaFilter
+    UnidadeMedidaFilter,
 )
 from sme_terceirizadas.pre_recebimento.api.paginations import (
     CronogramaPagination,
     LaboratorioPagination,
-    TipoEmbalagemQldPagination
+    TipoEmbalagemQldPagination,
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
     CronogramaCreateSerializer,
@@ -63,7 +67,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     LayoutDeEmbalagemCreateSerializer,
     SolicitacaoDeAlteracaoCronogramaCreateSerializer,
     TipoEmbalagemQldCreateSerializer,
-    UnidadeMedidaCreateSerializer
+    UnidadeMedidaCreateSerializer,
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaComLogSerializer,
@@ -88,12 +92,12 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
     SolicitacaoAlteracaoCronogramaSerializer,
     TipoEmbalagemQldSerializer,
-    UnidadeMedidaSerialzer
+    UnidadeMedidaSerialzer,
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
     ServiceDashboardLayoutEmbalagem,
-    ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles
+    ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
@@ -103,7 +107,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     LayoutDeEmbalagem,
     SolicitacaoAlteracaoCronograma,
     TipoEmbalagemQld,
-    UnidadeMedida
+    UnidadeMedida,
 )
 
 from ...dados_comuns.api.paginations import DefaultPagination
@@ -122,7 +126,7 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
     permission_classes = (PermissaoParaVisualizarCronograma,)
     permission_action_classes = {
         'create': [PermissaoParaCriarCronograma],
-        'delete': [PermissaoParaCriarCronograma]
+        'delete': [PermissaoParaCriarCronograma],
     }
 
     def get_serializer_class(self):
@@ -147,22 +151,30 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
     def get_default_sql(self, workflow, query_set, use_raw):
         workflow = workflow if isinstance(workflow, list) else [workflow]
         if use_raw:
-            data = {'logs': LogSolicitacoesUsuario._meta.db_table,
-                    'cronograma': Cronograma._meta.db_table,
-                    'status': workflow}
-            raw_sql = ('SELECT %(cronograma)s.* FROM %(cronograma)s '
-                       'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
-                       'GROUP BY uuid_original) '
-                       'AS most_recent_log '
-                       'ON %(cronograma)s.uuid = most_recent_log.uuid_original '
-                       "WHERE %(cronograma)s.status = '%(status)s' ")
+            data = {
+                'logs': LogSolicitacoesUsuario._meta.db_table,
+                'cronograma': Cronograma._meta.db_table,
+                'status': workflow,
+            }
+            raw_sql = (
+                'SELECT %(cronograma)s.* FROM %(cronograma)s '
+                'JOIN (SELECT uuid_original, MAX(criado_em) AS log_criado_em FROM %(logs)s '
+                'GROUP BY uuid_original) '
+                'AS most_recent_log '
+                'ON %(cronograma)s.uuid = most_recent_log.uuid_original '
+                "WHERE %(cronograma)s.status = '%(status)s' "
+            )
             raw_sql += 'ORDER BY log_criado_em DESC'
 
             return query_set.raw(raw_sql % data)
         else:
-            qs = sorted(query_set.filter(status__in=workflow).distinct().all(),
-                        key=lambda x: x.log_mais_recente.criado_em
-                        if x.log_mais_recente else '-criado_em', reverse=True)
+            qs = sorted(
+                query_set.filter(status__in=workflow).distinct().all(),
+                key=lambda x: x.log_mais_recente.criado_em
+                if x.log_mais_recente
+                else '-criado_em',
+                reverse=True,
+            )
             return qs
 
     def dados_dashboard(self, request, query_set: QuerySet, use_raw) -> list:
@@ -171,35 +183,59 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         status = request.query_params.getlist('status', None)
         sumario = []
         if status:
-            qs = self.get_default_sql(workflow=status, query_set=query_set, use_raw=use_raw)
-            sumario.append({
-                'status': status,
-                'total': len(qs),
-                'dados': PainelCronogramaSerializer(
-                    qs[offset:limit + offset],
-                    context={'request': self.request, 'workflow': status}, many=True).data
-            })
+            qs = self.get_default_sql(
+                workflow=status, query_set=query_set, use_raw=use_raw
+            )
+            sumario.append(
+                {
+                    'status': status,
+                    'total': len(qs),
+                    'dados': PainelCronogramaSerializer(
+                        qs[offset : limit + offset],
+                        context={'request': self.request, 'workflow': status},
+                        many=True,
+                    ).data,
+                }
+            )
         else:
             for workflow in self.get_lista_status():
-                qs = self.get_default_sql(workflow=workflow, query_set=query_set, use_raw=use_raw)
-                sumario.append({
-                    'status': workflow,
-                    'dados': PainelCronogramaSerializer(
-                        qs[:6],
-                        context={'request': self.request, 'workflow': workflow}, many=True).data
-                })
+                qs = self.get_default_sql(
+                    workflow=workflow, query_set=query_set, use_raw=use_raw
+                )
+                sumario.append(
+                    {
+                        'status': workflow,
+                        'dados': PainelCronogramaSerializer(
+                            qs[:6],
+                            context={'request': self.request, 'workflow': workflow},
+                            many=True,
+                        ).data,
+                    }
+                )
 
         return sumario
 
-    @action(detail=False, methods=['GET'],
-            url_path='dashboard', permission_classes=(PermissaoParaDashboardCronograma,))
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='dashboard',
+        permission_classes=(PermissaoParaDashboardCronograma,),
+    )
     def dashboard(self, request):
         query_set = self.get_queryset()
-        response = {'results': self.dados_dashboard(query_set=query_set, request=request, use_raw=False)}
+        response = {
+            'results': self.dados_dashboard(
+                query_set=query_set, request=request, use_raw=False
+            )
+        }
         return Response(response)
 
-    @action(detail=False, methods=['GET'],
-            url_path='dashboard-com-filtro', permission_classes=(PermissaoParaDashboardCronograma,))
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='dashboard-com-filtro',
+        permission_classes=(PermissaoParaDashboardCronograma,),
+    )
     def dashboard_com_filtro(self, request):
         query_set = self.get_queryset()
         numero_cronograma = request.query_params.get('numero_cronograma', None)
@@ -213,7 +249,11 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         if fornecedor:
             query_set = query_set.filter(empresa__razao_social__icontains=fornecedor)
 
-        response = {'results': self.dados_dashboard(query_set=query_set, request=request, use_raw=False)}
+        response = {
+            'results': self.dados_dashboard(
+                query_set=query_set, request=request, use_raw=False
+            )
+        }
         return Response(response)
 
     def list(self, request, *args, **kwargs):
@@ -221,15 +261,16 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.order_by('-alterado_em').distinct()
 
-        if vinculo.perfil.nome == ADMINISTRADOR_EMPRESA and vinculo.instituicao.eh_fornecedor:
+        if (
+            vinculo.perfil.nome == ADMINISTRADOR_EMPRESA
+            and vinculo.instituicao.eh_fornecedor
+        ):
             queryset = queryset.filter(empresa=vinculo.instituicao)
 
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            response = self.get_paginated_response(
-                serializer.data
-            )
+            response = self.get_paginated_response(serializer.data)
             return response
 
         serializer = self.get_serializer(queryset, many=True)
@@ -246,38 +287,58 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         return Response(response)
 
     @transaction.atomic
-    @action(detail=True, permission_classes=(PermissaoParaAssinarCronogramaUsuarioFornecedor,),
-            methods=['patch'], url_path='fornecedor-assina-cronograma')
+    @action(
+        detail=True,
+        permission_classes=(PermissaoParaAssinarCronogramaUsuarioFornecedor,),
+        methods=['patch'],
+        url_path='fornecedor-assina-cronograma',
+    )
     def fornecedor_assina(self, request, uuid=None):
         usuario = request.user
 
         if not usuario.verificar_autenticidade(request.data.get('password')):
             return Response(
-                dict(detail=f'Assinatura do cronograma não foi validada. Verifique sua senha.'),
-                status=HTTP_401_UNAUTHORIZED
+                dict(
+                    detail='Assinatura do cronograma não foi validada. Verifique sua senha.'
+                ),
+                status=HTTP_401_UNAUTHORIZED,
             )
 
         try:
             cronograma = Cronograma.objects.get(uuid=uuid)
-            cronograma.fornecedor_assina(user=usuario, )
+            cronograma.fornecedor_assina(
+                user=usuario,
+            )
             serializer = CronogramaSerializer(cronograma)
             return Response(serializer.data)
 
         except ObjectDoesNotExist as e:
-            return Response(dict(detail=f'Cronograma informado não é valido: {e}'), status=HTTP_406_NOT_ACCEPTABLE)
+            return Response(
+                dict(detail=f'Cronograma informado não é valido: {e}'),
+                status=HTTP_406_NOT_ACCEPTABLE,
+            )
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=HTTP_400_BAD_REQUEST,
+            )
 
     @transaction.atomic
-    @action(detail=True, permission_classes=(PermissaoParaAssinarCronogramaUsuarioDinutre,),
-            methods=['patch'], url_path='dinutre-assina')
+    @action(
+        detail=True,
+        permission_classes=(PermissaoParaAssinarCronogramaUsuarioDinutre,),
+        methods=['patch'],
+        url_path='dinutre-assina',
+    )
     def dinutre_assina(self, request, uuid):
         usuario = request.user
 
         if not usuario.verificar_autenticidade(request.data.get('password')):
             return Response(
-                dict(detail=f'Assinatura do cronograma não foi validada. Verifique sua senha.'),
-                status=HTTP_401_UNAUTHORIZED
+                dict(
+                    detail='Assinatura do cronograma não foi validada. Verifique sua senha.'
+                ),
+                status=HTTP_401_UNAUTHORIZED,
             )
 
         try:
@@ -287,20 +348,32 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
             return Response(serializer.data)
 
         except ObjectDoesNotExist as e:
-            return Response(dict(detail=f'Cronograma informado não é valido: {e}'), status=HTTP_406_NOT_ACCEPTABLE)
+            return Response(
+                dict(detail=f'Cronograma informado não é valido: {e}'),
+                status=HTTP_406_NOT_ACCEPTABLE,
+            )
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=HTTP_400_BAD_REQUEST,
+            )
 
     @transaction.atomic
-    @action(detail=True, permission_classes=(PermissaoParaAssinarCronogramaUsuarioDilog,),
-            methods=['patch'], url_path='codae-assina')
+    @action(
+        detail=True,
+        permission_classes=(PermissaoParaAssinarCronogramaUsuarioDilog,),
+        methods=['patch'],
+        url_path='codae-assina',
+    )
     def codae_assina(self, request, uuid):
         usuario = request.user
 
         if not usuario.verificar_autenticidade(request.data.get('password')):
             return Response(
-                dict(detail=f'Assinatura do cronograma não foi validada. Verifique sua senha.'),
-                status=HTTP_401_UNAUTHORIZED
+                dict(
+                    detail='Assinatura do cronograma não foi validada. Verifique sua senha.'
+                ),
+                status=HTTP_401_UNAUTHORIZED,
             )
 
         try:
@@ -310,9 +383,15 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
             return Response(serializer.data)
 
         except ObjectDoesNotExist as e:
-            return Response(dict(detail=f'Cronograma informado não é valido: {e}'), status=HTTP_406_NOT_ACCEPTABLE)
+            return Response(
+                dict(detail=f'Cronograma informado não é valido: {e}'),
+                status=HTTP_406_NOT_ACCEPTABLE,
+            )
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=HTTP_400_BAD_REQUEST,
+            )
 
     @action(detail=True, methods=['GET'], url_path='gerar-pdf-cronograma')
     def gerar_pdf_cronograma(self, request, uuid=None):
@@ -351,7 +430,7 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
     permission_classes = (PermissaoParaCadastrarLaboratorio,)
     permission_action_classes = {
         'create': [PermissaoParaCadastrarLaboratorio],
-        'delete': [PermissaoParaCadastrarLaboratorio]
+        'delete': [PermissaoParaCadastrarLaboratorio],
     }
 
     def get_serializer_class(self):
@@ -369,7 +448,9 @@ class LaboratorioModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSe
     @action(detail=False, methods=['GET'], url_path='lista-laboratorios-credenciados')
     def lista_nomes_laboratorios_credenciados(self, request):
         laboratorios = self.get_queryset().filter(credenciado=True)
-        serializer = LaboratorioCredenciadoSimplesSerializer(laboratorios, many=True).data
+        serializer = LaboratorioCredenciadoSimplesSerializer(
+            laboratorios, many=True
+        ).data
         response = {'results': serializer}
         return Response(response)
 
@@ -402,7 +483,9 @@ class TipoEmbalagemQldModelViewSet(viewsets.ModelViewSet):
         response = {'results': queryset}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='lista-abreviacoes-tipos-embalagens')
+    @action(
+        detail=False, methods=['GET'], url_path='lista-abreviacoes-tipos-embalagens'
+    )
     def lista_abreviacoes_tipos_embalagens(self, request):
         queryset = TipoEmbalagemQld.objects.all().values_list('abreviacao', flat=True)
         response = {'results': queryset}
@@ -411,7 +494,7 @@ class TipoEmbalagemQldModelViewSet(viewsets.ModelViewSet):
 
 class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    filter_backends = (filters.DjangoFilterBackend, )
+    filter_backends = (filters.DjangoFilterBackend,)
     pagination_class = CronogramaPagination
     permission_classes = (IsAuthenticated,)
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
@@ -429,7 +512,9 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
             'list': SolicitacaoAlteracaoCronogramaSerializer,
             'retrieve': SolicitacaoAlteracaoCronogramaCompletoSerializer,
         }
-        return serializer_classes_map.get(self.action, SolicitacaoDeAlteracaoCronogramaCreateSerializer)
+        return serializer_classes_map.get(
+            self.action, SolicitacaoDeAlteracaoCronogramaCreateSerializer
+        )
 
     def get_permissions(self):
         permission_classes_map = {
@@ -442,152 +527,245 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
         return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
 
     def _dados_dashboard(self, request, filtros=None):
-        limit = int(request.query_params.get('limit', 10)) if 'limit' in request.query_params else 6
-        offset = int(request.query_params.get('offset', 0)) if 'offset' in request.query_params else 0
+        limit = (
+            int(request.query_params.get('limit', 10))
+            if 'limit' in request.query_params
+            else 6
+        )
+        offset = (
+            int(request.query_params.get('offset', 0))
+            if 'offset' in request.query_params
+            else 0
+        )
         status = request.query_params.getlist('status', None)
         dados_dashboard = []
         lista_status = (
-            [status] if status else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
-                self.request.user)
+            [status]
+            if status
+            else ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles.get_dashboard_status(
+                self.request.user
+            )
         )
         dados_dashboard = [
             {
                 'status': status,
                 'dados': SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
-                    status,
-                    filtros,
-                    offset,
-                    limit + offset
-                )
+                    status, filtros, offset, limit + offset
+                ),
             }
             for status in lista_status
         ]
 
         if status:
-            dados_dashboard[0]['total'] = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
-                status, filtros).count()
+            dados_dashboard[0][
+                'total'
+            ] = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
+                status, filtros
+            ).count()
 
         return dados_dashboard
 
-    @action(detail=False, methods=['GET'],
-            url_path='dashboard', permission_classes=(PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,))
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='dashboard',
+        permission_classes=(
+            PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
+        ),
+    )
     def dashboard(self, request):
-        serialized_data = PainelSolicitacaoAlteracaoCronogramaSerializer(self._dados_dashboard(request), many=True).data
+        serialized_data = PainelSolicitacaoAlteracaoCronogramaSerializer(
+            self._dados_dashboard(request), many=True
+        ).data
         return Response({'results': serialized_data})
 
-    @action(detail=False, methods=['GET'],
-            url_path='dashboard-com-filtro', permission_classes=(
-        PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,))
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='dashboard-com-filtro',
+        permission_classes=(
+            PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
+        ),
+    )
     def dashboard_com_filtro(self, request):
         filtros = request.query_params
-        serialized_data = PainelSolicitacaoAlteracaoCronogramaSerializer(self._dados_dashboard(
-            request, filtros), many=True).data
+        serialized_data = PainelSolicitacaoAlteracaoCronogramaSerializer(
+            self._dados_dashboard(request, filtros), many=True
+        ).data
         return Response({'results': serialized_data})
 
     @transaction.atomic
-    @action(detail=True, permission_classes=(PermissaoParaDarCienciaAlteracaoCronograma,),
-            methods=['patch'], url_path='cronograma-ciente')
+    @action(
+        detail=True,
+        permission_classes=(PermissaoParaDarCienciaAlteracaoCronograma,),
+        methods=['patch'],
+        url_path='cronograma-ciente',
+    )
     def cronograma_ciente(self, request, uuid):
         usuario = request.user
         justificativa = request.data.get('justificativa_cronograma')
         etapas = request.data.get('etapas', [])
         programacoes = request.data.get('programacoes_de_recebimento', [])
         try:
-            solicitacao_alteracao = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
-            solicitacao_alteracao.cronograma_confirma_ciencia(justificativa, usuario, etapas, programacoes)
+            solicitacao_alteracao = SolicitacaoAlteracaoCronograma.objects.get(
+                uuid=uuid
+            )
+            solicitacao_alteracao.cronograma_confirma_ciencia(
+                justificativa, usuario, etapas, programacoes
+            )
             serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_alteracao)
             return Response(serializer.data)
 
         except ObjectDoesNotExist as e:
-            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
-                            status=HTTP_406_NOT_ACCEPTABLE)
+            return Response(
+                dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                status=HTTP_406_NOT_ACCEPTABLE,
+            )
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=HTTP_400_BAD_REQUEST,
+            )
 
     @transaction.atomic
-    @action(detail=True, permission_classes=(PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,),
-            methods=['patch'], url_path='analise-dinutre')
+    @action(
+        detail=True,
+        permission_classes=(
+            PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,
+        ),
+        methods=['patch'],
+        url_path='analise-dinutre',
+    )
     def analise_dinutre(self, request, uuid):
         usuario = request.user
         aprovado = request.data.get(('aprovado'), 'aprovado')
         try:
-            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(
+                uuid=uuid
+            )
             if aprovado is True:
                 solicitacao_cronograma.dinutre_aprova(user=usuario)
             elif aprovado is False:
                 justificativa = request.data.get('justificativa_dinutre')
-                solicitacao_cronograma.dinutre_reprova(user=usuario, justificativa=justificativa)
+                solicitacao_cronograma.dinutre_reprova(
+                    user=usuario, justificativa=justificativa
+                )
             else:
-                raise ValidationError(f'Parametro aprovado deve ser true ou false.')
+                raise ValidationError('Parametro aprovado deve ser true ou false.')
             solicitacao_cronograma.save()
-            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(
+                solicitacao_cronograma
+            )
             return Response(serializer.data)
 
         except ObjectDoesNotExist as e:
-            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
-                            status=HTTP_406_NOT_ACCEPTABLE)
+            return Response(
+                dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                status=HTTP_406_NOT_ACCEPTABLE,
+            )
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=HTTP_400_BAD_REQUEST,
+            )
 
     @transaction.atomic
-    @action(detail=True, permission_classes=(PermissaoParaAnalisarDilogSolicitacaoAlteracaoCronograma,),
-            methods=['patch'], url_path='analise-dilog')
+    @action(
+        detail=True,
+        permission_classes=(PermissaoParaAnalisarDilogSolicitacaoAlteracaoCronograma,),
+        methods=['patch'],
+        url_path='analise-dilog',
+    )
     def analise_dilog(self, request, uuid):
         usuario = request.user
         aprovado = request.data.get(('aprovado'), 'aprovado')
         try:
-            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(
+                uuid=uuid
+            )
             if aprovado is True:
                 solicitacao_cronograma.dilog_aprova(user=usuario)
                 cronograma = solicitacao_cronograma.cronograma
                 cronograma.etapas.set(solicitacao_cronograma.etapas_novas.all())
                 cronograma.programacoes_de_recebimento.all().delete()
-                cronograma.programacoes_de_recebimento.set(solicitacao_cronograma.programacoes_novas.all())
+                cronograma.programacoes_de_recebimento.set(
+                    solicitacao_cronograma.programacoes_novas.all()
+                )
                 cronograma.save()
             elif aprovado is False:
                 justificativa = request.data.get('justificativa_dilog')
-                solicitacao_cronograma.dilog_reprova(user=usuario, justificativa=justificativa)
+                solicitacao_cronograma.dilog_reprova(
+                    user=usuario, justificativa=justificativa
+                )
             else:
-                raise ValidationError(f'Parametro aprovado deve ser true ou false.')
+                raise ValidationError('Parametro aprovado deve ser true ou false.')
             solicitacao_cronograma.save()
-            solicitacao_cronograma.cronograma.finaliza_solicitacao_alteracao(user=usuario)
-            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            solicitacao_cronograma.cronograma.finaliza_solicitacao_alteracao(
+                user=usuario
+            )
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(
+                solicitacao_cronograma
+            )
             return Response(serializer.data)
 
         except ObjectDoesNotExist as e:
-            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
-                            status=HTTP_406_NOT_ACCEPTABLE)
+            return Response(
+                dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                status=HTTP_406_NOT_ACCEPTABLE,
+            )
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=HTTP_400_BAD_REQUEST,
+            )
 
     @transaction.atomic
-    @action(detail=True, permission_classes=(PermissaoParaAssinarCronogramaUsuarioFornecedor,),
-            methods=['patch'], url_path='fornecedor-ciente')
+    @action(
+        detail=True,
+        permission_classes=(PermissaoParaAssinarCronogramaUsuarioFornecedor,),
+        methods=['patch'],
+        url_path='fornecedor-ciente',
+    )
     def fornecedor_ciente(self, request, uuid):
         usuario = request.user
         try:
-            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(uuid=uuid)
+            solicitacao_cronograma = SolicitacaoAlteracaoCronograma.objects.get(
+                uuid=uuid
+            )
 
             solicitacao_cronograma.fornecedor_ciente(user=usuario)
             cronograma = solicitacao_cronograma.cronograma
-            cronograma.qtd_total_programada = solicitacao_cronograma.qtd_total_programada
+            cronograma.qtd_total_programada = (
+                solicitacao_cronograma.qtd_total_programada
+            )
             cronograma.etapas.set(solicitacao_cronograma.etapas_novas.all())
             cronograma.programacoes_de_recebimento.all().delete()
-            cronograma.programacoes_de_recebimento.set(solicitacao_cronograma.programacoes_novas.all())
+            cronograma.programacoes_de_recebimento.set(
+                solicitacao_cronograma.programacoes_novas.all()
+            )
             cronograma.save()
 
             solicitacao_cronograma.save()
             # Pega o usuario CODAE do penúltimo log, pois ele sempre será a assinatura da CODAE
             usuario_codae = cronograma.logs[len(cronograma.logs) - 2].usuario
-            solicitacao_cronograma.cronograma.finaliza_solicitacao_alteracao(user=usuario_codae)
-            serializer = SolicitacaoAlteracaoCronogramaSerializer(solicitacao_cronograma)
+            solicitacao_cronograma.cronograma.finaliza_solicitacao_alteracao(
+                user=usuario_codae
+            )
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(
+                solicitacao_cronograma
+            )
             return Response(serializer.data)
 
         except ObjectDoesNotExist as e:
-            return Response(dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
-                            status=HTTP_406_NOT_ACCEPTABLE)
+            return Response(
+                dict(detail=f'Solicitação Cronograma informado não é valido: {e}'),
+                status=HTTP_406_NOT_ACCEPTABLE,
+            )
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f'Erro de transição de estado: {e}'),
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class UnidadeMedidaViewset(viewsets.ModelViewSet):
@@ -611,7 +789,9 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
         return Response(response)
 
 
-class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
+class LayoutDeEmbalagemModelViewSet(
+    ViewSetActionPermissionMixin, viewsets.ModelViewSet
+):
     lookup_field = 'uuid'
     serializer_class = LayoutDeEmbalagemSerializer
     filter_backends = (filters.DjangoFilterBackend,)
@@ -620,7 +800,7 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
     permission_classes = (PermissaoParaVisualizarLayoutDeEmbalagem,)
     permission_action_classes = {
         'create': [UsuarioEhFornecedor],
-        'delete': [UsuarioEhFornecedor]
+        'delete': [UsuarioEhFornecedor],
     }
 
     def get_queryset(self):
@@ -634,42 +814,52 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
     def get_serializer_class(self):
         serializer_classes_map = {
             'list': LayoutDeEmbalagemSerializer,
-            'retrieve': LayoutDeEmbalagemDetalheSerializer
+            'retrieve': LayoutDeEmbalagemDetalheSerializer,
         }
-        return serializer_classes_map.get(self.action, LayoutDeEmbalagemCreateSerializer)
+        return serializer_classes_map.get(
+            self.action, LayoutDeEmbalagemCreateSerializer
+        )
 
-    @action(detail=True, methods=['PATCH'],
-            url_path='codae-aprova-ou-solicita-correcao', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='codae-aprova-ou-solicita-correcao',
+        permission_classes=(PermissaoParaDashboardLayoutEmbalagem,),
+    )
     def codae_aprova_ou_solicita_correcao(self, request, uuid):
         serializer = LayoutDeEmbalagemAnaliseSerializer(
-            instance=self.get_object(),
-            data=request.data,
-            context={'request': request}
+            instance=self.get_object(), data=request.data, context={'request': request}
         )
 
         if serializer.is_valid(raise_exception=True):
             layout_atualizado = serializer.save()
             return Response(LayoutDeEmbalagemDetalheSerializer(layout_atualizado).data)
 
-    @action(detail=False, methods=['GET'],
-            url_path='dashboard', permission_classes=(PermissaoParaDashboardLayoutEmbalagem,))
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='dashboard',
+        permission_classes=(PermissaoParaDashboardLayoutEmbalagem,),
+    )
     def dashboard(self, request):
         dashboard_service = ServiceDashboardLayoutEmbalagem(
             self.get_queryset(),
             LayoutDeEmbalagemFilter,
             PainelLayoutEmbalagemSerializer,
-            request
+            request,
         )
 
         return Response({'results': dashboard_service.get_dados_dashboard()})
 
-    @action(detail=True, methods=['PATCH'],
-            url_path='fornecedor-realiza-correcao', permission_classes=(UsuarioEhFornecedor,))
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='fornecedor-realiza-correcao',
+        permission_classes=(UsuarioEhFornecedor,),
+    )
     def fornecedor_realiza_correcao(self, request, uuid):
         serializer = LayoutDeEmbalagemCorrecaoSerializer(
-            instance=self.get_object(),
-            data=request.data,
-            context={'request': request}
+            instance=self.get_object(), data=request.data, context={'request': request}
         )
 
         if serializer.is_valid(raise_exception=True):
@@ -677,7 +867,9 @@ class LayoutDeEmbalagemModelViewSet(ViewSetActionPermissionMixin, viewsets.Model
             return Response(LayoutDeEmbalagemDetalheSerializer(layout_corrigido).data)
 
 
-class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
+class DocumentoDeRecebimentoModelViewSet(
+    ViewSetActionPermissionMixin, viewsets.ModelViewSet
+):
     lookup_field = 'uuid'
     serializer_class = DocumentoDeRecebimentoSerializer
     filter_backends = (filters.DjangoFilterBackend,)
@@ -686,7 +878,7 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
     permission_classes = (PermissaoParaVisualizarDocumentosDeRecebimento,)
     permission_action_classes = {
         'create': [UsuarioEhFornecedor],
-        'delete': [UsuarioEhFornecedor]
+        'delete': [UsuarioEhFornecedor],
     }
 
     def get_queryset(self):
@@ -699,73 +891,103 @@ class DocumentoDeRecebimentoModelViewSet(ViewSetActionPermissionMixin, viewsets.
 
     def get_serializer_class(self):
         user = self.request.user
-        retrieve = DocRecebimentoDetalharSerializer if user.eh_fornecedor else DocRecebimentoDetalharCodaeSerializer
+        retrieve = (
+            DocRecebimentoDetalharSerializer
+            if user.eh_fornecedor
+            else DocRecebimentoDetalharCodaeSerializer
+        )
         serializer_classes_map = {
             'list': DocumentoDeRecebimentoSerializer,
             'retrieve': retrieve,
         }
-        return serializer_classes_map.get(self.action, DocumentoDeRecebimentoCreateSerializer)
+        return serializer_classes_map.get(
+            self.action, DocumentoDeRecebimentoCreateSerializer
+        )
 
-    @action(detail=False, methods=['GET'],
-            url_path='dashboard', permission_classes=(PermissaoParaDashboardDocumentosDeRecebimento,))
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='dashboard',
+        permission_classes=(PermissaoParaDashboardDocumentosDeRecebimento,),
+    )
     def dashboard(self, request):
         dashboard_service = ServiceDashboardDocumentosDeRecebimento(
             self.get_queryset(),
             DocumentoDeRecebimentoFilter,
             PainelDocumentoDeRecebimentoSerializer,
-            request
+            request,
         )
 
         return Response({'results': dashboard_service.get_dados_dashboard()})
 
-    @action(detail=True, methods=['PATCH'],
-            url_path='analise-documentos-rascunho', permission_classes=(UsuarioEhDilogQualidade,))
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='analise-documentos-rascunho',
+        permission_classes=(UsuarioEhDilogQualidade,),
+    )
     def codae_analisa_documentos_rascunho(self, request, uuid):
         serializer = DocumentoDeRecebimentoAnalisarRascunhoSerializer(
-            instance=self.get_object(),
-            data=request.data,
-            context={'request': request}
+            instance=self.get_object(), data=request.data, context={'request': request}
         )
 
         if serializer.is_valid(raise_exception=True):
             documento_recebimento_atualizado = serializer.save()
-            return Response(DocRecebimentoDetalharCodaeSerializer(documento_recebimento_atualizado).data)
+            return Response(
+                DocRecebimentoDetalharCodaeSerializer(
+                    documento_recebimento_atualizado
+                ).data
+            )
 
-    @action(detail=True, methods=['PATCH'],
-            url_path='analise-documentos', permission_classes=(UsuarioEhDilogQualidade,))
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='analise-documentos',
+        permission_classes=(UsuarioEhDilogQualidade,),
+    )
     def codae_analisa_documentos(self, request, uuid):
         serializer = DocumentoDeRecebimentoAnalisarSerializer(
-            instance=self.get_object(),
-            data=request.data,
-            context={'request': request}
+            instance=self.get_object(), data=request.data, context={'request': request}
         )
 
         if serializer.is_valid(raise_exception=True):
             documento_recebimento_atualizado = serializer.save()
-            return Response(DocRecebimentoDetalharCodaeSerializer(documento_recebimento_atualizado).data)
+            return Response(
+                DocRecebimentoDetalharCodaeSerializer(
+                    documento_recebimento_atualizado
+                ).data
+            )
 
-    @action(detail=True, methods=['PATCH'],
-            url_path='corrigir-documentos', permission_classes=(UsuarioEhFornecedor,))
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='corrigir-documentos',
+        permission_classes=(UsuarioEhFornecedor,),
+    )
     def fornecedor_realiza_correcao(self, request, uuid):
         serializer = DocumentoDeRecebimentoCorrecaoSerializer(
-            instance=self.get_object(),
-            data=request.data,
-            context={'request': request}
+            instance=self.get_object(), data=request.data, context={'request': request}
         )
 
         if serializer.is_valid(raise_exception=True):
             documentos_corrigidos = serializer.save()
-            return Response(DocRecebimentoDetalharSerializer(documentos_corrigidos).data)
+            return Response(
+                DocRecebimentoDetalharSerializer(documentos_corrigidos).data
+            )
 
 
-class FichaTecnicaRascunhoViewSet(mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+class FichaTecnicaRascunhoViewSet(
+    mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+):
     lookup_field = 'uuid'
     serializer_class = FichaTecnicaRascunhoSerializer
     queryset = FichaTecnicaDoProduto.objects.all().order_by('-criado_em')
     permission_classes = (UsuarioEhFornecedor,)
 
 
-class FichaTecnicaModelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class FichaTecnicaModelViewSet(
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+):
     lookup_field = 'uuid'
     serializer_class = FichaTecnicaRascunhoSerializer
     queryset = FichaTecnicaDoProduto.objects.all().order_by('-criado_em')

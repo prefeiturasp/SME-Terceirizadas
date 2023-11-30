@@ -207,8 +207,14 @@ class LogSolicitacoesUsuario(
             'Distribuidor pede alteração da requisição',
         ),  # noqa
         (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou a requisição'),
-        (PAPA_AGUARDA_CONFIRMACAO_CANCELAMENTO_SOLICITACAO, 'Papa aguarda confirmação do cancelamento da solicitação'),
-        (DISTRIBUIDOR_CONFIRMA_CANCELAMENTO, 'Distribuidor confirmou cancelamento e Papa cancelou a requisição'),
+        (
+            PAPA_AGUARDA_CONFIRMACAO_CANCELAMENTO_SOLICITACAO,
+            'Papa aguarda confirmação do cancelamento da solicitação',
+        ),
+        (
+            DISTRIBUIDOR_CONFIRMA_CANCELAMENTO,
+            'Distribuidor confirmou cancelamento e Papa cancelou a requisição',
+        ),
         (DILOG_ACEITA_ALTERACAO, 'Dilog Aceita Alteração'),
         (DILOG_NEGA_ALTERACAO, 'Dilog Nega Alteração'),
         (
@@ -219,7 +225,10 @@ class LogSolicitacoesUsuario(
             CANCELADO_ALUNO_NAO_PERTENCE_REDE,
             'Cancelamento para aluno não matriculado na rede municipal',
         ),
-        (MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE, 'Em aberto para preenchimento pela UE'),
+        (
+            MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
+            'Em aberto para preenchimento pela UE',
+        ),
         (MEDICAO_ENVIADA_PELA_UE, 'Enviado pela UE'),
         (MEDICAO_CORRECAO_SOLICITADA, 'Correção solicitada'),
         (MEDICAO_CORRIGIDA_PELA_UE, 'Corrigido para DRE'),
@@ -243,7 +252,10 @@ class LogSolicitacoesUsuario(
         (APROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Aprovado DILOG'),
         (REPROVADO_DILOG_SOLICITACAO_ALTERACAO, 'Reprovado DILOG'),
         (CODAE_CANCELOU_SOLICITACAO_CORRECAO, 'CODAE cancelou solicitação de correção'),
-        (TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO, 'Terceirizada cancelou solicitação de correção'),
+        (
+            TERCEIRIZADA_CANCELOU_SOLICITACAO_CORRECAO,
+            'Terceirizada cancelou solicitação de correção',
+        ),
         (SOLICITACAO_ALTERACAO_CRONOGRAMA_EM_ANALISE, 'Em Análise'),
         (NOTIFICACAO_CRIADA, 'Notificação criada'),
         (NOTIFICACAO_ENVIADA_FISCAL, 'Notificação enviada para o fiscal'),
@@ -289,7 +301,7 @@ class LogSolicitacoesUsuario(
         NOTIFICACAO_OCORRENCIA_GUIA,
         LAYOUT_DE_EMBALAGEM,
         DOCUMENTO_DE_RECEBIMENTO,
-        FICHA_TECNICA_DO_PRODUTO
+        FICHA_TECNICA_DO_PRODUTO,
     ) = range(24)
 
     TIPOS_SOLICITACOES = (
@@ -317,7 +329,7 @@ class LogSolicitacoesUsuario(
         (NOTIFICACAO_OCORRENCIA_GUIA, 'Notificação de guia com ocorrência'),
         (LAYOUT_DE_EMBALAGEM, 'Layout de embalagem'),
         (DOCUMENTO_DE_RECEBIMENTO, 'Documento de recebimento'),
-        (FICHA_TECNICA_DO_PRODUTO, 'Ficha técnica do produro')
+        (FICHA_TECNICA_DO_PRODUTO, 'Ficha técnica do produro'),
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -480,7 +492,10 @@ class Notificacao(models.Model):
     TIPO_NOTIFICACAO_CHOICES = (
         (TIPO_NOTIFICACAO_ALERTA, TIPO_NOTIFICACAO_NOMES[TIPO_NOTIFICACAO_ALERTA]),
         (TIPO_NOTIFICACAO_AVISO, TIPO_NOTIFICACAO_NOMES[TIPO_NOTIFICACAO_AVISO]),
-        (TIPO_NOTIFICACAO_PENDENCIA, TIPO_NOTIFICACAO_NOMES[TIPO_NOTIFICACAO_PENDENCIA]),
+        (
+            TIPO_NOTIFICACAO_PENDENCIA,
+            TIPO_NOTIFICACAO_NOMES[TIPO_NOTIFICACAO_PENDENCIA],
+        ),
     )
 
     # Categorias de Notificação
@@ -488,7 +503,9 @@ class Notificacao(models.Model):
     CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA = 'ALTERACAO_REQUISICAO_ENTREGA'
     CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA = 'GUIA_DE_REMESSA'
     CATEGORIA_NOTIFICACAO_CRONOGRAMA = 'CRONOGRAMA'
-    CATEGORIA_NOTIFICACAO_SOLICITACAO_ALTERACAO_CRONOGRAMA = 'SOLICITACAO_ALTERACAO_CRONOGRAMA'
+    CATEGORIA_NOTIFICACAO_SOLICITACAO_ALTERACAO_CRONOGRAMA = (
+        'SOLICITACAO_ALTERACAO_CRONOGRAMA'
+    )
     CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA = 'ALTERACAO_CRONOGRAMA'
     CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS = 'LAYOUT_DE_EMBALAGENS'
     CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO = 'DOCUMENTOS_DE_RECEBIMENTO'
@@ -501,33 +518,48 @@ class Notificacao(models.Model):
         CATEGORIA_NOTIFICACAO_SOLICITACAO_ALTERACAO_CRONOGRAMA: 'Solicitação de Alteração do Cronograma',
         CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA: 'Alteração do Cronograma',
         CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS: 'Layout de Embalagens',
-        CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO: 'Documentos de Recebimento'
+        CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO: 'Documentos de Recebimento',
     }
 
     CATEGORIA_NOTIFICACAO_CHOICES = (
-        (CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA,
-         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA]),
-
-        (CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA,
-         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA]),
-
-        (CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
-         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA]),
-
-        (CATEGORIA_NOTIFICACAO_CRONOGRAMA,
-         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_CRONOGRAMA]),
-
-        (CATEGORIA_NOTIFICACAO_SOLICITACAO_ALTERACAO_CRONOGRAMA,
-         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_SOLICITACAO_ALTERACAO_CRONOGRAMA]),
-
-        (CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA,
-         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA]),
-
-        (CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS,
-         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS]),
-
-        (CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO,
-         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO]),
+        (
+            CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA,
+            CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA],
+        ),
+        (
+            CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA,
+            CATEGORIA_NOTIFICACAO_NOMES[
+                CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA
+            ],
+        ),
+        (
+            CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
+            CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA],
+        ),
+        (
+            CATEGORIA_NOTIFICACAO_CRONOGRAMA,
+            CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_CRONOGRAMA],
+        ),
+        (
+            CATEGORIA_NOTIFICACAO_SOLICITACAO_ALTERACAO_CRONOGRAMA,
+            CATEGORIA_NOTIFICACAO_NOMES[
+                CATEGORIA_NOTIFICACAO_SOLICITACAO_ALTERACAO_CRONOGRAMA
+            ],
+        ),
+        (
+            CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA,
+            CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ALTERACAO_CRONOGRAMA],
+        ),
+        (
+            CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS,
+            CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_LAYOUT_DE_EMBALAGENS],
+        ),
+        (
+            CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO,
+            CATEGORIA_NOTIFICACAO_NOMES[
+                CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO
+            ],
+        ),
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -555,26 +587,45 @@ class Notificacao(models.Model):
 
     resolvido = models.BooleanField('Foi resolvido?', default=False)
 
-    usuario = models.ForeignKey('perfil.Usuario', on_delete=models.CASCADE, default='', null=True, blank=True)
+    usuario = models.ForeignKey(
+        'perfil.Usuario', on_delete=models.CASCADE, default='', null=True, blank=True
+    )
 
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
 
     link = models.CharField('Link', max_length=100, default='', blank=True)
 
-    requisicao = models.ForeignKey('logistica.SolicitacaoRemessa', on_delete=models.CASCADE,
-                                   related_name='notificacoes_da_requisicao', blank=True, null=True)
+    requisicao = models.ForeignKey(
+        'logistica.SolicitacaoRemessa',
+        on_delete=models.CASCADE,
+        related_name='notificacoes_da_requisicao',
+        blank=True,
+        null=True,
+    )
 
-    solicitacao_alteracao = models.ForeignKey('logistica.SolicitacaoDeAlteracaoRequisicao',
-                                              on_delete=models.CASCADE,
-                                              related_name='notificacoes_da_solicitacao_alteracao',
-                                              blank=True,
-                                              null=True)
+    solicitacao_alteracao = models.ForeignKey(
+        'logistica.SolicitacaoDeAlteracaoRequisicao',
+        on_delete=models.CASCADE,
+        related_name='notificacoes_da_solicitacao_alteracao',
+        blank=True,
+        null=True,
+    )
 
-    guia = models.ForeignKey('logistica.Guia', on_delete=models.CASCADE, related_name='notificacoes_da_guia',
-                             blank=True, null=True)
+    guia = models.ForeignKey(
+        'logistica.Guia',
+        on_delete=models.CASCADE,
+        related_name='notificacoes_da_guia',
+        blank=True,
+        null=True,
+    )
 
-    cronograma = models.ForeignKey('pre_recebimento.Cronograma', on_delete=models.CASCADE,
-                                   related_name='notificacoes_do_cronograma', blank=True, null=True)
+    cronograma = models.ForeignKey(
+        'pre_recebimento.Cronograma',
+        on_delete=models.CASCADE,
+        related_name='notificacoes_do_cronograma',
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         verbose_name = 'Notificação'
@@ -584,20 +635,33 @@ class Notificacao(models.Model):
         return self.titulo
 
     @classmethod
-    def notificar(cls, tipo, categoria, titulo, descricao, usuario, link,  # noqa C901
-                  requisicao=None, solicitacao_alteracao=None, guia=None, renotificar=True, cronograma=None):
-
+    def notificar(
+        cls,
+        tipo,
+        categoria,
+        titulo,
+        descricao,
+        usuario,
+        link,  # noqa C901
+        requisicao=None,
+        solicitacao_alteracao=None,
+        guia=None,
+        renotificar=True,
+        cronograma=None,
+    ):
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
             raise NotificacaoException(f'Tipo {tipo} não é um tipo válido.')
 
         if categoria not in cls.CATEGORIA_NOTIFICACAO_NOMES.keys():
-            raise NotificacaoException(f'Categoria {categoria} não é uma categoria válida.')
+            raise NotificacaoException(
+                f'Categoria {categoria} não é uma categoria válida.'
+            )
 
         if not titulo:
-            raise NotificacaoException(f'O título não pode ser vazio.')
+            raise NotificacaoException('O título não pode ser vazio.')
 
         if not usuario:
-            raise NotificacaoException(f'É necessário definir o usuário destinatário.')
+            raise NotificacaoException('É necessário definir o usuário destinatário.')
 
         if not renotificar:
             notificacao_existente = cls.objects.filter(
@@ -623,12 +687,16 @@ class Notificacao(models.Model):
             )
 
     @classmethod
-    def resolver_pendencia(cls, titulo, requisicao=None, solicitacao_alteracao=None, guia=None):
+    def resolver_pendencia(
+        cls, titulo, requisicao=None, solicitacao_alteracao=None, guia=None
+    ):
         if not titulo:
-            raise NotificacaoException(f'O título não pode ser vazio.')
+            raise NotificacaoException('O título não pode ser vazio.')
         if not requisicao and not solicitacao_alteracao and not guia:
-            raise NotificacaoException(f'É preciso informar uma requisição, solicitação de alteração ou guia para '
-                                       f'resolver uma pendência.')
+            raise NotificacaoException(
+                'É preciso informar uma requisição, solicitação de alteração ou guia para '
+                'resolver uma pendência.'
+            )
 
         pendencias = cls.objects.filter(
             tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
@@ -636,7 +704,7 @@ class Notificacao(models.Model):
             requisicao=requisicao,
             solicitacao_alteracao=solicitacao_alteracao,
             guia=guia,
-            resolvido=False
+            resolvido=False,
         )
         pendencias.update(resolvido=True, lido=True)
 
@@ -650,27 +718,28 @@ class CentralDeDownload(models.Model):
     STATUS_NOMES = {
         STATUS_EM_PROCESSAMENTO: 'Em processamento',
         STATUS_CONCLUIDO: 'Concluído',
-        STATUS_ERRO: 'Erro'
+        STATUS_ERRO: 'Erro',
     }
 
     STATUS_CHOICES = (
         (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
         (STATUS_CONCLUIDO, STATUS_NOMES[STATUS_CONCLUIDO]),
-        (STATUS_ERRO, STATUS_NOMES[STATUS_ERRO])
+        (STATUS_ERRO, STATUS_NOMES[STATUS_ERRO]),
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     identificador = models.CharField('Nome do arquivo', max_length=200, default='')
-    arquivo = models.FileField(blank=True, verbose_name='Arquivo', upload_to='cental_downloads')
+    arquivo = models.FileField(
+        blank=True, verbose_name='Arquivo', upload_to='cental_downloads'
+    )
     status = models.CharField(
-        'status',
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default=STATUS_EM_PROCESSAMENTO
+        'status', max_length=20, choices=STATUS_CHOICES, default=STATUS_EM_PROCESSAMENTO
     )
     msg_erro = models.CharField('Mensagem erro', max_length=300, blank=True)
     visto = models.BooleanField('Foi visto?', default=False)
-    usuario = models.ForeignKey('perfil.Usuario', on_delete=models.CASCADE, default='', null=True, blank=True)
+    usuario = models.ForeignKey(
+        'perfil.Usuario', on_delete=models.CASCADE, default='', null=True, blank=True
+    )
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
 
     class Meta:

@@ -4,9 +4,15 @@ from rest_framework import serializers
 from rest_framework.exceptions import NotAuthenticated
 from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.dados_comuns.api.serializers import CamposObrigatoriosMixin, ContatoSerializer
+from sme_terceirizadas.dados_comuns.api.serializers import (
+    CamposObrigatoriosMixin,
+    ContatoSerializer,
+)
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
-from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
+from sme_terceirizadas.dados_comuns.utils import (
+    convert_base64_to_contentfile,
+    update_instance_from_dict,
+)
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     DataDeFabricaoEPrazo,
@@ -20,7 +26,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
-    UnidadeMedida
+    UnidadeMedida,
 )
 from sme_terceirizadas.produto.models import Fabricante, Marca, NomeDeProdutoEdital
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
@@ -31,7 +37,7 @@ from ..helpers import (
     cria_etapas_de_cronograma,
     cria_programacao_de_cronograma,
     cria_tipos_de_documentos,
-    cria_tipos_de_embalagens
+    cria_tipos_de_embalagens,
 )
 from ..validators import contrato_pertence_a_empresa
 
@@ -39,7 +45,10 @@ from ..validators import contrato_pertence_a_empresa
 class ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(serializers.ModelSerializer):
     data_programada = serializers.CharField(required=False)
     tipo_carga = serializers.ChoiceField(
-        choices=ProgramacaoDoRecebimentoDoCronograma.TIPO_CARGA_CHOICES, required=False, allow_blank=True)
+        choices=ProgramacaoDoRecebimentoDoCronograma.TIPO_CARGA_CHOICES,
+        required=False,
+        allow_blank=True,
+    )
 
     class Meta:
         model = ProgramacaoDoRecebimentoDoCronograma
@@ -63,8 +72,10 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
     armazem = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM),
-        allow_null=True
+        queryset=Terceirizada.objects.filter(
+            tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM
+        ),
+        allow_null=True,
     )
     empresa = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -75,26 +86,29 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         required=False,
         queryset=Contrato.objects.all(),
-        allow_null=True
+        allow_null=True,
     )
     produto = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
         queryset=NomeDeProdutoEdital.objects.all(),
-        allow_null=True
+        allow_null=True,
     )
     unidade_medida = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
         queryset=UnidadeMedida.objects.all(),
-        allow_null=True
+        allow_null=True,
     )
     password = serializers.CharField(required=False)
     qtd_total_programada = serializers.FloatField(required=False)
     tipo_embalagem = serializers.ChoiceField(
-        choices=Cronograma.TIPO_EMBALAGEM_CHOICES, required=False, allow_blank=True)
+        choices=Cronograma.TIPO_EMBALAGEM_CHOICES, required=False, allow_blank=True
+    )
     etapas = EtapasDoCronogramaCreateSerializer(many=True, required=False)
-    programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(many=True, required=False)
+    programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(
+        many=True, required=False
+    )
     cadastro_finalizado = serializers.BooleanField(required=False)
 
     def gera_proximo_numero_cronograma(self):
@@ -108,9 +122,12 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = self.context['request'].user
         cadastro_finalizado = attrs.get('cadastro_finalizado', None)
-        if cadastro_finalizado and not user.verificar_autenticidade(attrs.pop('password', None)):
+        if cadastro_finalizado and not user.verificar_autenticidade(
+            attrs.pop('password', None)
+        ):
             raise NotAuthenticated(
-                'Assinatura do cronograma não foi validada. Verifique sua senha.')
+                'Assinatura do cronograma não foi validada. Verifique sua senha.'
+            )
         return super().validate(attrs)
 
     def create(self, validated_data):
@@ -120,10 +137,16 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         cadastro_finalizado = validated_data.pop('cadastro_finalizado', None)
         etapas = validated_data.pop('etapas', [])
-        programacoes_de_recebimento = validated_data.pop('programacoes_de_recebimento', [])
+        programacoes_de_recebimento = validated_data.pop(
+            'programacoes_de_recebimento', []
+        )
         numero_cronograma = self.gera_proximo_numero_cronograma()
-        cronograma = Cronograma.objects.create(numero=numero_cronograma, **validated_data)
-        cronograma.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CRIADO, usuario=user)
+        cronograma = Cronograma.objects.create(
+            numero=numero_cronograma, **validated_data
+        )
+        cronograma.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CRONOGRAMA_CRIADO, usuario=user
+        )
 
         cria_etapas_de_cronograma(etapas, cronograma)
         cria_programacao_de_cronograma(programacoes_de_recebimento, cronograma)
@@ -137,7 +160,9 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         cadastro_finalizado = validated_data.pop('cadastro_finalizado', None)
         etapas = validated_data.pop('etapas', [])
-        programacoes_de_recebimento = validated_data.pop('programacoes_de_recebimento', [])
+        programacoes_de_recebimento = validated_data.pop(
+            'programacoes_de_recebimento', []
+        )
 
         instance.etapas.all().delete()
         instance.programacoes_de_recebimento.all().delete()
@@ -170,8 +195,7 @@ class LaboratorioCreateSerializer(serializers.ModelSerializer):
 
     def cria_contatos(self, contatos, laboratorio):
         for contato_json in contatos:
-            contato = ContatoSerializer().create(
-                validated_data=contato_json)
+            contato = ContatoSerializer().create(validated_data=contato_json)
             laboratorio.contatos.add(contato)
 
     def create(self, validated_data):
@@ -195,7 +219,7 @@ class LaboratorioCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Laboratorio
-        exclude = ('id', )
+        exclude = ('id',)
 
 
 class TipoEmbalagemQldCreateSerializer(serializers.ModelSerializer):
@@ -218,7 +242,7 @@ class TipoEmbalagemQldCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoEmbalagemQld
-        exclude = ('id', )
+        exclude = ('id',)
 
 
 def novo_numero_solicitacao(objeto):
@@ -235,16 +259,16 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
     def validate_cronograma(self, value):
         cronograma = Cronograma.objects.filter(uuid=value)
         if not cronograma:
-            raise serializers.ValidationError(f'Cronograma não existe')
+            raise serializers.ValidationError('Cronograma não existe')
         if not cronograma.first().status == Cronograma.workflow_class.ASSINADO_CODAE:
-            raise serializers.ValidationError(f'Não é possivel criar Solicitação de alteração neste momento!')
+            raise serializers.ValidationError(
+                'Não é possivel criar Solicitação de alteração neste momento!'
+            )
         return value
 
     def valida_campo_etapa(self, etapa, campo):
         if not etapa[campo]:
-            raise serializers.ValidationError(
-                {campo: ['Este campo é obrigatório.']}
-            )
+            raise serializers.ValidationError({campo: ['Este campo é obrigatório.']})
 
     def validate(self, attrs):
         for etapa in attrs['etapas']:
@@ -258,9 +282,7 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
     def _criar_etapas(self, etapas):
         etapas_created = []
         for etapa in etapas:
-            etapas_created.append(EtapasDoCronograma.objects.create(
-                **etapa
-            ))
+            etapas_created.append(EtapasDoCronograma.objects.create(**etapa))
         return etapas_created
 
     def create(self, validated_data):
@@ -271,7 +293,8 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
         cronograma = Cronograma.objects.get(uuid=uuid_cronograma)
         alteracao_cronograma = SolicitacaoAlteracaoCronograma.objects.create(
             usuario_solicitante=user,
-            cronograma=cronograma, **validated_data,
+            cronograma=cronograma,
+            **validated_data,
         )
         alteracao_cronograma.etapas_antigas.set(cronograma.etapas.all())
         etapas_created = cria_etapas_de_cronograma(etapas)
@@ -279,28 +302,42 @@ class SolicitacaoDeAlteracaoCronogramaCreateSerializer(serializers.ModelSerializ
         programacoes_criadas = cria_programacao_de_cronograma(programacoes)
         alteracao_cronograma.programacoes_novas.set(programacoes_criadas)
         self._alterna_estado_cronograma(cronograma, user, alteracao_cronograma)
-        self._alterna_estado_solicitacao_alteracao_cronograma(alteracao_cronograma, user, validated_data)
+        self._alterna_estado_solicitacao_alteracao_cronograma(
+            alteracao_cronograma, user, validated_data
+        )
         return alteracao_cronograma
 
     def _alterna_estado_cronograma(self, cronograma, user, alteracao_cronograma):
         try:
             if user.eh_fornecedor:
-                cronograma.fornecedor_solicita_alteracao(user=user, justificativa=alteracao_cronograma.uuid)
+                cronograma.fornecedor_solicita_alteracao(
+                    user=user, justificativa=alteracao_cronograma.uuid
+                )
             else:
-                cronograma.codae_realiza_alteracao(user=user, justificativa=alteracao_cronograma.uuid)
+                cronograma.codae_realiza_alteracao(
+                    user=user, justificativa=alteracao_cronograma.uuid
+                )
         except InvalidTransitionError as e:
-            raise serializers.ValidationError(f'Erro de transição de estado do cronograma: {e}')
+            raise serializers.ValidationError(
+                f'Erro de transição de estado do cronograma: {e}'
+            )
 
-    def _alterna_estado_solicitacao_alteracao_cronograma(self, alteracao_cronograma, user, validated_data):
+    def _alterna_estado_solicitacao_alteracao_cronograma(
+        self, alteracao_cronograma, user, validated_data
+    ):
         try:
             if user.eh_fornecedor:
-                alteracao_cronograma.inicia_fluxo(user=user, justificativa=validated_data.get('justificativa', ''))
+                alteracao_cronograma.inicia_fluxo(
+                    user=user, justificativa=validated_data.get('justificativa', '')
+                )
             else:
                 alteracao_cronograma.inicia_fluxo_codae(
                     user=user, justificativa=validated_data.get('justificativa', '')
                 )
         except InvalidTransitionError as e:
-            raise serializers.ValidationError(f'Erro de transição de estado da alteração: {e}')
+            raise serializers.ValidationError(
+                f'Erro de transição de estado da alteração: {e}'
+            )
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
@@ -315,18 +352,25 @@ class UnidadeMedidaCreateSerializer(serializers.ModelSerializer):
 
     def validate_nome(self, value):
         if not value.isupper():
-            raise serializers.ValidationError('O campo deve conter apenas letras maiúsculas.')
+            raise serializers.ValidationError(
+                'O campo deve conter apenas letras maiúsculas.'
+            )
         return value
 
     def validate_abreviacao(self, value):
         if not value.islower():
-            raise serializers.ValidationError('O campo deve conter apenas letras minúsculas.')
+            raise serializers.ValidationError(
+                'O campo deve conter apenas letras minúsculas.'
+            )
         return value
 
 
 class TipoDeEmbalagemDeLayoutCreateSerializer(serializers.ModelSerializer):
     tipo_embalagem = serializers.ChoiceField(
-        choices=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_CHOICES, required=True, allow_blank=True)
+        choices=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_CHOICES,
+        required=True,
+        allow_blank=True,
+    )
     imagens_do_tipo_de_embalagem = serializers.JSONField(write_only=True)
 
     def validate(self, attrs):
@@ -334,14 +378,18 @@ class TipoDeEmbalagemDeLayoutCreateSerializer(serializers.ModelSerializer):
         imagens = attrs.get('imagens_do_tipo_de_embalagem', None)
         tipos_obrigatorios = [
             TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_PRIMARIA,
-            TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA
+            TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_SECUNDARIA,
         ]
 
         if tipo_embalagem in tipos_obrigatorios:
             for img in imagens:
                 if not img['arquivo'] or not img['nome']:
                     raise serializers.ValidationError(
-                        {f'Layout Embalagem {tipo_embalagem}': ['Este campo é obrigatório.']}
+                        {
+                            f'Layout Embalagem {tipo_embalagem}': [
+                                'Este campo é obrigatório.'
+                            ]
+                        }
                     )
         return attrs
 
@@ -352,14 +400,16 @@ class TipoDeEmbalagemDeLayoutCreateSerializer(serializers.ModelSerializer):
 
 class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
     cronograma = serializers.UUIDField(required=False)
-    tipos_de_embalagens = TipoDeEmbalagemDeLayoutCreateSerializer(many=True, required=False)
+    tipos_de_embalagens = TipoDeEmbalagemDeLayoutCreateSerializer(
+        many=True, required=False
+    )
     observacoes = serializers.CharField(required=False)
 
     def validate_cronograma(self, value):
         if value is not None:
             cronograma = Cronograma.objects.filter(uuid=value)
             if not cronograma:
-                raise serializers.ValidationError(f'Cronograma não existe')
+                raise serializers.ValidationError('Cronograma não existe')
         return value
 
     def create(self, validated_data):
@@ -369,7 +419,8 @@ class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
         tipos_de_embalagens = validated_data.pop('tipos_de_embalagens', [])
         cronograma = Cronograma.objects.get(uuid=uuid_cronograma)
         layout_de_embalagem = LayoutDeEmbalagem.objects.create(
-            cronograma=cronograma, **validated_data,
+            cronograma=cronograma,
+            **validated_data,
         )
         cria_tipos_de_embalagens(tipos_de_embalagens, layout_de_embalagem)
         layout_de_embalagem.inicia_fluxo(user=user)
@@ -390,7 +441,8 @@ class LayoutDeEmbalagemCreateSerializer(serializers.ModelSerializer):
 
         except InvalidTransitionError as e:
             raise serializers.ValidationError(
-                f'Erro de transição de estado. O status deste layout não permite correção: {e}')
+                f'Erro de transição de estado. O status deste layout não permite correção: {e}'
+            )
 
         return instance
 
@@ -408,17 +460,25 @@ class TipoDeEmbalagemDeLayoutAnaliseSerializer(serializers.ModelSerializer):
         embalagem = TipoDeEmbalagemDeLayout.objects.filter(uuid=uuid).last()
 
         if not embalagem:
-            raise serializers.ValidationError({f'Layout Embalagem {tipo_embalagem}': [
-                'UUID do tipo informado não existe.'
-            ]})
+            raise serializers.ValidationError(
+                {
+                    f'Layout Embalagem {tipo_embalagem}': [
+                        'UUID do tipo informado não existe.'
+                    ]
+                }
+            )
 
         if (
-            not embalagem.layout_de_embalagem.eh_primeira_analise and
-            embalagem.status != TipoDeEmbalagemDeLayout.STATUS_EM_ANALISE
+            not embalagem.layout_de_embalagem.eh_primeira_analise
+            and embalagem.status != TipoDeEmbalagemDeLayout.STATUS_EM_ANALISE
         ):
-            raise serializers.ValidationError({f'Layout Embalagem {tipo_embalagem}': [
-                'O Tipo/UUID informado não pode ser analisado pois não está em análise.'
-            ]})
+            raise serializers.ValidationError(
+                {
+                    f'Layout Embalagem {tipo_embalagem}': [
+                        'O Tipo/UUID informado não pode ser analisado pois não está em análise.'
+                    ]
+                }
+            )
 
         return attrs
 
@@ -446,16 +506,19 @@ class LayoutDeEmbalagemAnaliseSerializer(serializers.ModelSerializer):
         if self.instance.eh_primeira_analise:
             if not len(value) == self.instance.tipos_de_embalagens.count():
                 raise serializers.ValidationError(
-                    'Quantidade de Tipos de Embalagem recebida para primeira análise ' +
-                    'é diferente da quantidade presente no Layout de Embalagem.'
+                    'Quantidade de Tipos de Embalagem recebida para primeira análise '
+                    + 'é diferente da quantidade presente no Layout de Embalagem.'
                 )
 
     def _validar_analise_correcao(self, value):
         if not self.instance.eh_primeira_analise:
-            if not len(value) == self.instance.tipos_de_embalagens.filter(status='EM_ANALISE').count():
+            if (
+                not len(value)
+                == self.instance.tipos_de_embalagens.filter(status='EM_ANALISE').count()
+            ):
                 raise serializers.ValidationError(
-                    'Quantidade de Tipos de Embalagem recebida para análise da correção' +
-                    ' é diferente da quantidade em análise.'
+                    'Quantidade de Tipos de Embalagem recebida para análise da correção'
+                    + ' é diferente da quantidade em análise.'
                 )
 
     def update(self, instance, validated_data):
@@ -469,11 +532,14 @@ class LayoutDeEmbalagemAnaliseSerializer(serializers.ModelSerializer):
                 tipo_de_embalagem.complemento_do_status = dados['complemento_do_status']
                 tipo_de_embalagem.save()
 
-            instance.codae_aprova(user=user) if instance.aprovado else instance.codae_solicita_correcao(user=user)
+            instance.codae_aprova(
+                user=user
+            ) if instance.aprovado else instance.codae_solicita_correcao(user=user)
 
         except InvalidTransitionError as e:
             raise serializers.ValidationError(
-                f'Erro de transição de estado. O status deste layout não permite analise: {e}')
+                f'Erro de transição de estado. O status deste layout não permite analise: {e}'
+            )
 
         return instance
 
@@ -485,7 +551,10 @@ class LayoutDeEmbalagemAnaliseSerializer(serializers.ModelSerializer):
 class TipoDeEmbalagemDeLayoutCorrecaoSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField()
     tipo_embalagem = serializers.ChoiceField(
-        choices=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_CHOICES, required=True, allow_blank=True)
+        choices=TipoDeEmbalagemDeLayout.TIPO_EMBALAGEM_CHOICES,
+        required=True,
+        allow_blank=True,
+    )
     imagens_do_tipo_de_embalagem = serializers.JSONField(write_only=True, required=True)
 
     def validate(self, attrs):
@@ -500,7 +569,11 @@ class TipoDeEmbalagemDeLayoutCorrecaoSerializer(serializers.ModelSerializer):
             )
         if embalagem.status != TipoDeEmbalagemDeLayout.STATUS_REPROVADO:
             raise serializers.ValidationError(
-                {f'Layout Embalagem {tipo}': ['O Tipo/UUID informado não pode ser corrigido pois não está reprovado.']}
+                {
+                    f'Layout Embalagem {tipo}': [
+                        'O Tipo/UUID informado não pode ser corrigido pois não está reprovado.'
+                    ]
+                }
             )
         for img in imagens:
             if not img['arquivo'] or not img['nome']:
@@ -515,7 +588,9 @@ class TipoDeEmbalagemDeLayoutCorrecaoSerializer(serializers.ModelSerializer):
 
 
 class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
-    tipos_de_embalagens = TipoDeEmbalagemDeLayoutCorrecaoSerializer(many=True, required=True)
+    tipos_de_embalagens = TipoDeEmbalagemDeLayoutCorrecaoSerializer(
+        many=True, required=True
+    )
     observacoes = serializers.CharField(required=False)
 
     def update(self, instance, validated_data):
@@ -524,7 +599,9 @@ class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
             dados_correcao = validated_data.pop('tipos_de_embalagens', [])
 
             for embalagem in dados_correcao:
-                tipo_embalagem = instance.tipos_de_embalagens.get(uuid=embalagem['uuid'])
+                tipo_embalagem = instance.tipos_de_embalagens.get(
+                    uuid=embalagem['uuid']
+                )
                 tipo_embalagem.status = TipoDeEmbalagemDeLayout.STATUS_EM_ANALISE
                 tipo_embalagem.imagens.all().delete()
                 tipo_embalagem.save()
@@ -532,7 +609,9 @@ class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
                 for img in imagens:
                     data = convert_base64_to_contentfile(img.get('arquivo'))
                     ImagemDoTipoDeEmbalagem.objects.create(
-                        tipo_de_embalagem=tipo_embalagem, arquivo=data, nome=img.get('nome', '')
+                        tipo_de_embalagem=tipo_embalagem,
+                        arquivo=data,
+                        nome=img.get('nome', ''),
                     )
 
             instance.observacoes = validated_data.pop('observacoes', '')
@@ -541,7 +620,8 @@ class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
 
         except InvalidTransitionError as e:
             raise serializers.ValidationError(
-                f'Erro de transição de estado. O status deste layout não permite correção: {e}')
+                f'Erro de transição de estado. O status deste layout não permite correção: {e}'
+            )
 
         return instance
 
@@ -552,7 +632,10 @@ class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
 
 class TipoDeDocumentoDeRecebimentoCreateSerializer(serializers.ModelSerializer):
     tipo_documento = serializers.ChoiceField(
-        choices=TipoDeDocumentoDeRecebimento.TIPO_DOC_CHOICES, required=True, allow_blank=False)
+        choices=TipoDeDocumentoDeRecebimento.TIPO_DOC_CHOICES,
+        required=True,
+        allow_blank=False,
+    )
     arquivos_do_tipo_de_documento = serializers.JSONField(write_only=True)
     descricao_documento = serializers.CharField(required=False)
 
@@ -578,13 +661,15 @@ class TipoDeDocumentoDeRecebimentoCreateSerializer(serializers.ModelSerializer):
 
 class DocumentoDeRecebimentoCreateSerializer(serializers.ModelSerializer):
     cronograma = serializers.UUIDField(required=True)
-    tipos_de_documentos = TipoDeDocumentoDeRecebimentoCreateSerializer(many=True, required=False)
+    tipos_de_documentos = TipoDeDocumentoDeRecebimentoCreateSerializer(
+        many=True, required=False
+    )
     numero_laudo = serializers.CharField(required=True)
 
     def validate_cronograma(self, value):
         cronograma = Cronograma.objects.filter(uuid=value)
         if not cronograma:
-            raise serializers.ValidationError(f'Cronograma não existe')
+            raise serializers.ValidationError('Cronograma não existe')
         return value
 
     def create(self, validated_data):
@@ -594,7 +679,8 @@ class DocumentoDeRecebimentoCreateSerializer(serializers.ModelSerializer):
         tipos_de_documentos = validated_data.pop('tipos_de_documentos', [])
         cronograma = Cronograma.objects.get(uuid=uuid_cronograma)
         documento_de_recebimento = DocumentoDeRecebimento.objects.create(
-            cronograma=cronograma, **validated_data,
+            cronograma=cronograma,
+            **validated_data,
         )
         cria_tipos_de_documentos(tipos_de_documentos, documento_de_recebimento)
         documento_de_recebimento.inicia_fluxo(user=user)
@@ -609,7 +695,8 @@ class DocumentoDeRecebimentoCreateSerializer(serializers.ModelSerializer):
 class DataDeFabricaoEPrazoAnalisarRascunhoSerializer(serializers.ModelSerializer):
     data_fabricacao = serializers.DateField(required=False, allow_null=True)
     prazo_maximo_recebimento = serializers.ChoiceField(
-        choices=DataDeFabricaoEPrazo.PRAZO_CHOICES, required=False, allow_blank=True)
+        choices=DataDeFabricaoEPrazo.PRAZO_CHOICES, required=False, allow_blank=True
+    )
     justificativa = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
@@ -617,14 +704,19 @@ class DataDeFabricaoEPrazoAnalisarRascunhoSerializer(serializers.ModelSerializer
         fields = ('data_fabricacao', 'prazo_maximo_recebimento', 'justificativa')
 
 
-class DataDeFabricaoEPrazoAnalisarSerializer(DataDeFabricaoEPrazoAnalisarRascunhoSerializer):
-
+class DataDeFabricaoEPrazoAnalisarSerializer(
+    DataDeFabricaoEPrazoAnalisarRascunhoSerializer
+):
     def validate(self, attrs):
         prazo_maximo = attrs.get('prazo_maximo_recebimento', None)
         justificativa = attrs.get('justificativa', None)
         if prazo_maximo == DataDeFabricaoEPrazo.PRAZO_OUTRO and not justificativa:
             raise serializers.ValidationError(
-                {f'justificativa': ['Este campo é obrigatório quando o prazo maximo de recebimento é OUTRO.']}
+                {
+                    'justificativa': [
+                        'Este campo é obrigatório quando o prazo maximo de recebimento é OUTRO.'
+                    ]
+                }
             )
         return attrs
 
@@ -640,20 +732,22 @@ class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializ
         slug_field='uuid',
         required=False,
         queryset=Laboratorio.objects.all(),
-        allow_null=True
+        allow_null=True,
     )
     unidade_medida = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
         queryset=UnidadeMedida.objects.all(),
-        allow_null=True
+        allow_null=True,
     )
     quantidade_laudo = serializers.FloatField(required=False, allow_null=True)
     saldo_laudo = serializers.FloatField(required=False, allow_null=True)
     data_fabricacao_lote = serializers.DateField(required=False, allow_null=True)
     validade_produto = serializers.DateField(required=False, allow_null=True)
     data_final_lote = serializers.DateField(required=False, allow_null=True)
-    datas_fabricacao_e_prazos = DataDeFabricaoEPrazoAnalisarRascunhoSerializer(many=True, required=False)
+    datas_fabricacao_e_prazos = DataDeFabricaoEPrazoAnalisarRascunhoSerializer(
+        many=True, required=False
+    )
 
     def update(self, instance, validated_data):
         datas_fabricacao_e_prazos = validated_data.pop('datas_fabricacao_e_prazos', [])
@@ -665,12 +759,21 @@ class DocumentoDeRecebimentoAnalisarRascunhoSerializer(serializers.ModelSerializ
 
     class Meta:
         model = DocumentoDeRecebimento
-        fields = ('laboratorio', 'quantidade_laudo', 'unidade_medida', 'data_fabricacao_lote',
-                  'validade_produto', 'data_final_lote', 'saldo_laudo', 'datas_fabricacao_e_prazos')
+        fields = (
+            'laboratorio',
+            'quantidade_laudo',
+            'unidade_medida',
+            'data_fabricacao_lote',
+            'validade_produto',
+            'data_final_lote',
+            'saldo_laudo',
+            'datas_fabricacao_e_prazos',
+        )
 
 
-class DocumentoDeRecebimentoAnalisarSerializer(CamposObrigatoriosMixin,
-                                               DocumentoDeRecebimentoAnalisarRascunhoSerializer):
+class DocumentoDeRecebimentoAnalisarSerializer(
+    CamposObrigatoriosMixin, DocumentoDeRecebimentoAnalisarRascunhoSerializer
+):
     def __init__(self, *args, **kwargs):
         """Exceção ao demais campos, correcao_solicitada não é obrigatório."""
         super().__init__(*args, **kwargs)
@@ -685,17 +788,22 @@ class DocumentoDeRecebimentoAnalisarSerializer(CamposObrigatoriosMixin,
         cria_datas_e_prazos_doc_recebimento(datas_fabricacao_e_prazos, instance)
         try:
             if tem_solicitacao_correcao:
-                instance.qualidade_solicita_correcao(user=user, justificativa=tem_solicitacao_correcao)
+                instance.qualidade_solicita_correcao(
+                    user=user, justificativa=tem_solicitacao_correcao
+                )
             else:
                 instance.qualidade_aprova_analise(user=user)
         except InvalidTransitionError as e:
             raise serializers.ValidationError(
-                f'Erro de transição de estado. O status atual não permite análise: {e}')
+                f'Erro de transição de estado. O status atual não permite análise: {e}'
+            )
         instance.save()
         return instance
 
     class Meta(DocumentoDeRecebimentoAnalisarRascunhoSerializer.Meta):
-        fields = DocumentoDeRecebimentoAnalisarRascunhoSerializer.Meta.fields + ('correcao_solicitada',)
+        fields = DocumentoDeRecebimentoAnalisarRascunhoSerializer.Meta.fields + (
+            'correcao_solicitada',
+        )
 
 
 class TipoDeDocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
@@ -705,7 +813,9 @@ class TipoDeDocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer
         allow_blank=True,
     )
 
-    arquivos_do_tipo_de_documento = serializers.JSONField(write_only=True, required=True)
+    arquivos_do_tipo_de_documento = serializers.JSONField(
+        write_only=True, required=True
+    )
 
     def validate(self, attrs):
         tipo = attrs.get('tipo_documento')
@@ -715,40 +825,63 @@ class TipoDeDocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer
         if tipo == TipoDeDocumentoDeRecebimento.TIPO_DOC_OUTROS:
             if not descricao_documento:
                 raise serializers.ValidationError(
-                    {'tipo_documento': ['O campo descricao_documento é obrigatório para documentos do tipo Outros.']}
+                    {
+                        'tipo_documento': [
+                            'O campo descricao_documento é obrigatório para documentos do tipo Outros.'
+                        ]
+                    }
                 )
 
         for arquivo in arquivos_do_tipo_de_documento:
             if not arquivo.get('arquivo') or not arquivo.get('nome'):
                 raise serializers.ValidationError(
-                    {'arquivos_do_tipo_de_documento': ['Os campos arquivo e nome são obrigatórios.']}
+                    {
+                        'arquivos_do_tipo_de_documento': [
+                            'Os campos arquivo e nome são obrigatórios.'
+                        ]
+                    }
                 )
 
         return attrs
 
     class Meta:
         model = TipoDeDocumentoDeRecebimento
-        fields = ('tipo_documento', 'descricao_documento', 'arquivos_do_tipo_de_documento')
+        fields = (
+            'tipo_documento',
+            'descricao_documento',
+            'arquivos_do_tipo_de_documento',
+        )
 
 
 class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
-    tipos_de_documentos = TipoDeDocumentoDeRecebimentoCorrecaoSerializer(many=True, required=True)
+    tipos_de_documentos = TipoDeDocumentoDeRecebimentoCorrecaoSerializer(
+        many=True, required=True
+    )
 
     def validate(self, attrs):
-        tipos_documentos_recebidos = [dados['tipo_documento'] for dados in attrs['tipos_de_documentos']]
-        if TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO not in tipos_documentos_recebidos:
+        tipos_documentos_recebidos = [
+            dados['tipo_documento'] for dados in attrs['tipos_de_documentos']
+        ]
+        if (
+            TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO
+            not in tipos_documentos_recebidos
+        ):
             raise serializers.ValidationError(
-                {'tipos_de_documentos': 'É obrigatório pelo menos um documento do tipo Laudo.'}
+                {
+                    'tipos_de_documentos': 'É obrigatório pelo menos um documento do tipo Laudo.'
+                }
             )
 
-        choices_tipos_documentos = set([choice[0] for choice in TipoDeDocumentoDeRecebimento.TIPO_DOC_CHOICES])
+        choices_tipos_documentos = set(
+            [choice[0] for choice in TipoDeDocumentoDeRecebimento.TIPO_DOC_CHOICES]
+        )
         if len(choices_tipos_documentos.intersection(tipos_documentos_recebidos)) < 2:
             raise serializers.ValidationError(
                 {
                     'tipos_de_documentos': (
-                        'É obrigatório pelo menos um documento do tipo Laudo' +
-                        ' e um documento de algum dos tipos' +
-                        f' {", ".join(choices_tipos_documentos)}.'
+                        'É obrigatório pelo menos um documento do tipo Laudo'
+                        + ' e um documento de algum dos tipos'
+                        + f' {", ".join(choices_tipos_documentos)}.'
                     )
                 }
             )
@@ -759,7 +892,9 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
         try:
             user = self.context['request'].user
 
-            dados_tipos_documentos_corrigidos = validated_data.pop('tipos_de_documentos', [])
+            dados_tipos_documentos_corrigidos = validated_data.pop(
+                'tipos_de_documentos', []
+            )
 
             for tipo_documento_antigo in instance.tipos_de_documentos.all():
                 tipo_documento_antigo.arquivos.all().delete()
@@ -784,27 +919,23 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
 
 class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     produto = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=NomeDeProdutoEdital.objects.all()
+        slug_field='uuid', required=True, queryset=NomeDeProdutoEdital.objects.all()
     )
     marca = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Marca.objects.all()
+        slug_field='uuid', required=True, queryset=Marca.objects.all()
     )
-    categoria = serializers.ChoiceField(choices=FichaTecnicaDoProduto.CATEGORIA_CHOICES, required=True)
+    categoria = serializers.ChoiceField(
+        choices=FichaTecnicaDoProduto.CATEGORIA_CHOICES, required=True
+    )
     pregao_chamada_publica = serializers.CharField(required=True)
     empresa = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Terceirizada.objects.all()
+        slug_field='uuid', required=True, queryset=Terceirizada.objects.all()
     )
     fabricante = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
         queryset=Fabricante.objects.all(),
-        allow_null=True
+        allow_null=True,
     )
     cnpj_fabricante = serializers.CharField(required=True, allow_blank=True)
     cep_fabricante = serializers.CharField(required=True, allow_blank=True)

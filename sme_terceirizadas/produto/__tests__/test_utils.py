@@ -13,7 +13,7 @@ from ..utils import (
     cria_filtro_produto_por_parametros_form,
     get_filtros_data,
     get_filtros_data_range,
-    mudancas_para_justificativa_html
+    mudancas_para_justificativa_html,
 )
 
 pytestmark = pytest.mark.django_db
@@ -33,22 +33,18 @@ def test_cria_filtro_produto_por_parametros_form_parametros():
         'data_inicial': 'homologacao__criado_em__gte',
         'status': 'homologacao__status__in',
         'tem_aditivos_alergenicos': 'tem_aditivos_alergenicos',
-        'eh_para_alunos_com_dieta': 'eh_para_alunos_com_dieta'
+        'eh_para_alunos_com_dieta': 'eh_para_alunos_com_dieta',
     }
     VALOR = 'qualquer coisa'
     for parametro_form, parametro_filtro in parametros.items():
-        form_data = {
-            parametro_form: VALOR
-        }
+        form_data = {parametro_form: VALOR}
         campos_filtrados = cria_filtro_produto_por_parametros_form(form_data)
         assert campos_filtrados[parametro_filtro] == VALOR
 
 
 def test_cria_filtro_produto_por_parametros_form_data_final():
     data = date(2020, 4, 30)
-    campos_filtrados = cria_filtro_produto_por_parametros_form({
-        'data_final': data
-    })
+    campos_filtrados = cria_filtro_produto_por_parametros_form({'data_final': data})
     assert campos_filtrados['homologacao__criado_em__lt'] == date(2020, 5, 1)
 
 
@@ -77,27 +73,32 @@ def test_cria_filtro_aditivos():
     assert len(filtro) == 2
 
 
-def test_compara_lista_informacoes_nutricionais(info_nutricional1,
-                                                info_nutricional2,
-                                                info_nutricional3,
-                                                info_nutricional_produto1,
-                                                info_nutricional_produto2,
-                                                info_nutricional_produto3):
-
+def test_compara_lista_informacoes_nutricionais(
+    info_nutricional1,
+    info_nutricional2,
+    info_nutricional3,
+    info_nutricional_produto1,
+    info_nutricional_produto2,
+    info_nutricional_produto3,
+):
     anterior = [info_nutricional_produto1, info_nutricional_produto2]
-    proxima = [{
-        'informacao_nutricional': info_nutricional1,
-        'quantidade_porcao': '1',
-        'valor_diario': '9',
-    }, {
-        'informacao_nutricional': info_nutricional2,
-        'quantidade_porcao': '8',
-        'valor_diario': '4',
-    }, {
-        'informacao_nutricional': info_nutricional3,
-        'quantidade_porcao': '5',
-        'valor_diario': '6',
-    }]
+    proxima = [
+        {
+            'informacao_nutricional': info_nutricional1,
+            'quantidade_porcao': '1',
+            'valor_diario': '9',
+        },
+        {
+            'informacao_nutricional': info_nutricional2,
+            'quantidade_porcao': '8',
+            'valor_diario': '4',
+        },
+        {
+            'informacao_nutricional': info_nutricional3,
+            'quantidade_porcao': '5',
+            'valor_diario': '6',
+        },
+    ]
 
     resultado = compara_lista_informacoes_nutricionais(anterior, proxima)
 
@@ -138,13 +139,13 @@ def test_compara_lista_protocolos(protocolo1, protocolo2, protocolo3):
 def test_compara_lista_imagens(produto, imagem_produto1, imagem_produto2):
     anterior = produto.imagens.all()
     proxima = [
+        {'arquivo': imagem_produto1.arquivo, 'nome': imagem_produto1.nome},
         {
-            'arquivo': imagem_produto1.arquivo,
-            'nome': imagem_produto1.nome
-        }, {
-            'arquivo': SimpleUploadedFile(f'doc-novo.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8')),
-            'nome': 'doc-novo'
-        }
+            'arquivo': SimpleUploadedFile(
+                'doc-novo.pdf', bytes('CONTEUDO TESTE TESTE TESTE', encoding='utf-8')
+            ),
+            'nome': 'doc-novo',
+        },
     ]
 
     resultado = compara_lista_imagens(anterior, proxima)
@@ -153,9 +154,18 @@ def test_compara_lista_imagens(produto, imagem_produto1, imagem_produto2):
     assert resultado['adicoes'][0]['nome'] == 'doc-novo'
 
 
-def test_changes_between(produto, info_nutricional1, info_nutricional2, info_nutricional3,
-                         info_nutricional_produto1, info_nutricional_produto2,
-                         imagem_produto1, imagem_produto2, marca2, usuario):
+def test_changes_between(
+    produto,
+    info_nutricional1,
+    info_nutricional2,
+    info_nutricional3,
+    info_nutricional_produto1,
+    info_nutricional_produto2,
+    imagem_produto1,
+    imagem_produto2,
+    marca2,
+    usuario,
+):
     validated_data = {
         'nome': produto.nome,
         'eh_para_alunos_com_dieta': True,
@@ -170,33 +180,44 @@ def test_changes_between(produto, info_nutricional1, info_nutricional2, info_nut
         'porcao': '5 cuias',
         'unidade_caseira': 'Unidade3',
         'marca': marca2,
-        'informacoes_nutricionais': [{
-            'informacao_nutricional': info_nutricional1,
-            'quantidade_porcao': '1',
-            'valor_diario': '9',
-        }, {
-            'informacao_nutricional': info_nutricional2,
-            'quantidade_porcao': '8',
-            'valor_diario': '4',
-        }, {
-            'informacao_nutricional': info_nutricional3,
-            'quantidade_porcao': '5',
-            'valor_diario': '6',
-        }],
-        'imagens': [
+        'informacoes_nutricionais': [
             {
-                'arquivo': imagem_produto1.arquivo,
-                'nome': imagem_produto1.nome
-            }, {
-                'arquivo': SimpleUploadedFile(f'doc-novo.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8')),
-                'nome': 'doc-novo'
-            }
-        ]
+                'informacao_nutricional': info_nutricional1,
+                'quantidade_porcao': '1',
+                'valor_diario': '9',
+            },
+            {
+                'informacao_nutricional': info_nutricional2,
+                'quantidade_porcao': '8',
+                'valor_diario': '4',
+            },
+            {
+                'informacao_nutricional': info_nutricional3,
+                'quantidade_porcao': '5',
+                'valor_diario': '6',
+            },
+        ],
+        'imagens': [
+            {'arquivo': imagem_produto1.arquivo, 'nome': imagem_produto1.nome},
+            {
+                'arquivo': SimpleUploadedFile(
+                    'doc-novo.pdf',
+                    bytes('CONTEUDO TESTE TESTE TESTE', encoding='utf-8'),
+                ),
+                'nome': 'doc-novo',
+            },
+        ],
     }
     changes = changes_between(produto, validated_data, usuario)
 
-    assert changes['componentes'] == {'de': 'Componente1, Componente2', 'para': 'Componente3, Componente4'}
-    assert changes['info_armazenamento'] == {'de': 'Guardem bem', 'para': 'Bote na geladeira'}
+    assert changes['componentes'] == {
+        'de': 'Componente1, Componente2',
+        'para': 'Componente3, Componente4',
+    }
+    assert changes['info_armazenamento'] == {
+        'de': 'Guardem bem',
+        'para': 'Bote na geladeira',
+    }
     assert changes['marca'] == {'de': produto.marca, 'para': validated_data['marca']}
 
     assert len(changes['informacoes_nutricionais']['adicoes']) == 1
@@ -223,16 +244,24 @@ def test_changes_between(produto, info_nutricional1, info_nutricional2, info_nut
     assert changes['imagens']['adicoes'][0]['nome'] == 'doc-novo'
 
 
-def test_mudancas_para_justificativa(info_nutricional1, info_nutricional2, info_nutricional3,
-                                     protocolo2, protocolo3, imagem_produto1, marca1, marca2,
-                                     produto):
+def test_mudancas_para_justificativa(
+    info_nutricional1,
+    info_nutricional2,
+    info_nutricional3,
+    protocolo2,
+    protocolo3,
+    imagem_produto1,
+    marca1,
+    marca2,
+    produto,
+):
     mudancas = {
         'informacoes_nutricionais': {
             'adicoes': [
                 {
                     'informacao_nutricional': info_nutricional1,
                     'quantidade_porcao': '5',
-                    'valor_diario': '6'
+                    'valor_diario': '6',
                 }
             ],
             'modificacoes': [
@@ -240,30 +269,29 @@ def test_mudancas_para_justificativa(info_nutricional1, info_nutricional2, info_
                     'informacao_nutricional': info_nutricional2,
                     'valor': 'valor_diario',
                     'de': '2',
-                    'para': '9'
+                    'para': '9',
                 },
                 {
                     'informacao_nutricional': info_nutricional3,
                     'valor': 'quantidade_porcao',
                     'de': '3',
-                    'para': '8'
-                }
-            ]
+                    'para': '8',
+                },
+            ],
         },
         'eh_para_alunos_com_dieta': {'de': True, 'para': False},
         'marca': {'de': marca1, 'para': marca2},
-        'componentes': {'de': 'Componente1, Componente2', 'para': 'Componente3, Componente4'},
-        'info_armazenamento': {'de': 'Guardem bem', 'para': 'Bote na geladeira'},
-        'protocolos': {
-            'adicoes': [protocolo3],
-            'exclusoes': [protocolo2]
+        'componentes': {
+            'de': 'Componente1, Componente2',
+            'para': 'Componente3, Componente4',
         },
-        'imagens': {
-            'adicoes': [{'nome': 'Imagem3'}],
-            'exclusoes': [imagem_produto1]
-        }
+        'info_armazenamento': {'de': 'Guardem bem', 'para': 'Bote na geladeira'},
+        'protocolos': {'adicoes': [protocolo3], 'exclusoes': [protocolo2]},
+        'imagens': {'adicoes': [{'nome': 'Imagem3'}], 'exclusoes': [imagem_produto1]},
     }
 
-    justificativa = mudancas_para_justificativa_html(mudancas, produto._meta.get_fields())
+    justificativa = mudancas_para_justificativa_html(
+        mudancas, produto._meta.get_fields()
+    )
 
     assert len(justificativa) == 1313

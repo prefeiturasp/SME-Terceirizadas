@@ -2,7 +2,10 @@ from django.core.management.base import BaseCommand
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 
-from sme_terceirizadas.dieta_especial.models import ProtocoloPadraoDietaEspecial, SolicitacaoDietaEspecial
+from sme_terceirizadas.dieta_especial.models import (
+    ProtocoloPadraoDietaEspecial,
+    SolicitacaoDietaEspecial,
+)
 from sme_terceirizadas.terceirizada.models import Edital
 
 
@@ -45,7 +48,7 @@ class Command(BaseCommand):
             ws.cell(row=ind, column=5, value=dict_solicitacao['edital'])
             ws.cell(row=ind, column=6, value=dict_solicitacao['nome_protocolo'])
 
-        wb.save(f'relacao-planilha-nao-relacionados.xlsx')
+        wb.save('relacao-planilha-nao-relacionados.xlsx')
 
     def handle(self, *args, **options):
         dados_planilha = self.extrair_dados_planilha()
@@ -55,13 +58,22 @@ class Command(BaseCommand):
             if solicitacao:
                 solicitacao = solicitacao.first()
                 editais = Edital.objects.filter(numero=dado['editais'])
-                protocolos_uuids = editais.values_list('protocolos_padroes_dieta_especial__uuid')
+                protocolos_uuids = editais.values_list(
+                    'protocolos_padroes_dieta_especial__uuid'
+                )
                 nome_protocolo = dado[None]
-                protocolos = ProtocoloPadraoDietaEspecial.objects.filter(uuid__in=protocolos_uuids,
-                                                                         nome_protocolo=nome_protocolo)
+                protocolos = ProtocoloPadraoDietaEspecial.objects.filter(
+                    uuid__in=protocolos_uuids, nome_protocolo=nome_protocolo
+                )
                 if not protocolos:
-                    objeto = {'uuid': dado['uuid'], 'escola': dado['escola'], 'aluno': dado['aluno'],
-                              'lote': dado['lote'], 'edital': dado['editais'], 'nome_protocolo': dado[None]}
+                    objeto = {
+                        'uuid': dado['uuid'],
+                        'escola': dado['escola'],
+                        'aluno': dado['aluno'],
+                        'lote': dado['lote'],
+                        'edital': dado['editais'],
+                        'nome_protocolo': dado[None],
+                    }
                     solicitacoes_nao_relacionadas.append(objeto)
                 else:
                     solicitacao.protocolo_padrao = protocolos.first()

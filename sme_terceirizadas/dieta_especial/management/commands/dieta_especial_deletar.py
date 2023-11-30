@@ -16,15 +16,16 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--uuid', '-u',
+            '--uuid',
+            '-u',
             dest='uuid',
-            help='Informar uuid (5 primeiros dígitos) da dieta.'
+            help='Informar uuid (5 primeiros dígitos) da dieta.',
         )
 
     def handle(self, *args, **options):
         if settings.DEBUG:
             uuid = options['uuid']
             deletar_dieta(uuid)
-            self.stdout.write(f'Dieta Deletada.')
+            self.stdout.write('Dieta Deletada.')
         else:
-            self.stdout.write(f'Usar somente em Dev.')
+            self.stdout.write('Usar somente em Dev.')

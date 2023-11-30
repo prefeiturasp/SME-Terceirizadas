@@ -14,7 +14,7 @@ from sme_terceirizadas.escola.utils_escola import create_tempfile, escreve_escol
 from sme_terceirizadas.processamento_arquivos.dieta_especial import (
     importa_alimentos,
     importa_dietas_especiais,
-    importa_usuarios_escola
+    importa_usuarios_escola,
 )
 
 from .forms import AlimentoProprioForm
@@ -37,7 +37,7 @@ from .models import (
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento,
     SubstituicaoAlimentoProtocoloPadrao,
-    TipoContagem
+    TipoContagem,
 )
 from .tasks import get_escolas_task, processa_dietas_especiais_task
 from .utils import is_alpha_numeric_and_has_single_space
@@ -52,9 +52,9 @@ class AlergiaIntoleranciaAdmin(admin.ModelAdmin):
     def message_user(self, *args):
         pass
 
-    def save_model(self, request, obj, form, change): # noqa C901
+    def save_model(self, request, obj, form, change):  # noqa C901
         if obj.descricao in ['', None]:
-            messages.error(request, f'É necessário preencher o campo descrição!')
+            messages.error(request, 'É necessário preencher o campo descrição!')
             return
         obj.descricao = obj.descricao.strip().upper()
         obj.descricao = re.sub(r'\s+', ' ', obj.descricao)
@@ -62,13 +62,18 @@ class AlergiaIntoleranciaAdmin(admin.ModelAdmin):
         if change:
             acao = 'alterado'
         if AlergiaIntolerancia.objects.filter(descricao=obj.descricao):
-            messages.error(request, f'Diagnóstico já cadastrado!')
+            messages.error(request, 'Diagnóstico já cadastrado!')
             return
         if not is_alpha_numeric_and_has_single_space(obj.descricao):
-            messages.error(request, f'Diagnóstico "{obj.descricao}" inválido. Permitido apenas letras e números!')
+            messages.error(
+                request,
+                f'Diagnóstico "{obj.descricao}" inválido. Permitido apenas letras e números!',
+            )
             return
         messages.success(request, f'Diagnóstico {acao} com sucesso!')
-        super(AlergiaIntoleranciaAdmin, self).save_model(request, obj, form, change)  # noqa
+        super(AlergiaIntoleranciaAdmin, self).save_model(
+            request, obj, form, change
+        )  # noqa
 
 
 @admin.register(Alimento)
@@ -106,11 +111,11 @@ class AlimentoProprioAdmin(admin.ModelAdmin):
         if usuario:
             if not usuario.is_anonymous:
                 return (
-                    not usuario.is_anonymous and
-                    usuario.vinculo_atual and
-                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA] or
-                    usuario.email == 'admin@admin.com'
+                    not usuario.is_anonymous
+                    and usuario.vinculo_atual
+                    and isinstance(usuario.vinculo_atual.instituicao, Codae)
+                    and usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA]
+                    or usuario.email == 'admin@admin.com'
                 )
         return False
 
@@ -137,7 +142,10 @@ class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         my_urls = [
-            path('inativa_dietas/', self.admin_site.admin_view(self.inativa_dietas, cacheable=True)),
+            path(
+                'inativa_dietas/',
+                self.admin_site.admin_view(self.inativa_dietas, cacheable=True),
+            ),
         ]
         return my_urls + urls
 
@@ -146,7 +154,7 @@ class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
         messages.add_message(
             request,
             messages.INFO,
-            'Inativação de dietas disparada com sucesso. Dentro de instantes as dietas serão atualizadas.'
+            'Inativação de dietas disparada com sucesso. Dentro de instantes as dietas serão atualizadas.',
         )
         return redirect('admin:dieta_especial_solicitacaodietaespecial_changelist')
 
@@ -180,7 +188,7 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
         resultado, arquivo_final = main(
             arquivo=arquivo,
             arquivo_codigos_escolas=arquivo_unidades_da_rede,
-            tempfile=tempfile
+            tempfile=tempfile,
         )
 
         with open(arquivo_final, 'rb') as f:
@@ -193,7 +201,9 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
         response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
         return response
 
-    analisar_planilha_dietas_ativas.short_description = 'Analisar planilha dietas ativas'
+    analisar_planilha_dietas_ativas.short_description = (
+        'Analisar planilha dietas ativas'
+    )
 
     def gerar_json_do_eol(self, request, queryset):
         # Lê a API do EOL e gera um arquivo JSON.
@@ -218,7 +228,7 @@ class LogDietasAtivasCanceladasAutomaticamenteAdmin(admin.ModelAdmin):
         'codigo_eol_escola_origem',
         'codigo_eol_escola_destino',
         'get_escola_existe',
-        'get_criado_em'
+        'get_criado_em',
     )
     search_fields = (
         'codigo_eol_aluno',
@@ -273,9 +283,14 @@ class ArquivoCargaDietaEspecialAdmin(admin.ModelAdmin):
             return
 
         importa_dietas_especiais(usuario=request.user, arquivo=queryset.first())
-        self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
+        self.message_user(
+            request,
+            f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}',
+        )
 
-    processa_carga.short_description = 'Realiza a importação das solicitações de dietas especiais'
+    processa_carga.short_description = (
+        'Realiza a importação das solicitações de dietas especiais'
+    )
 
 
 @admin.register(ArquivoCargaAlimentosSubstitutos)
@@ -291,9 +306,14 @@ class ArquivoCargaAlimentosSubstitutosAdmin(admin.ModelAdmin):
             return
 
         importa_alimentos(arquivo=queryset.first())
-        self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
+        self.message_user(
+            request,
+            f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}',
+        )
 
-    processa_carga.short_description = 'Realiza a importação dos alimentos e alimentos substitutos'
+    processa_carga.short_description = (
+        'Realiza a importação dos alimentos e alimentos substitutos'
+    )
 
 
 @admin.register(ArquivoCargaUsuariosEscola)
@@ -309,23 +329,52 @@ class ArquivoCargaUsuariosEscolaAdmin(admin.ModelAdmin):
             return
 
         importa_usuarios_escola(request.user, queryset.first())
-        self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
+        self.message_user(
+            request,
+            f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}',
+        )
 
-    processa_carga.short_description = 'Realiza a importação dos usuários Diretor e Assistente Diretor'
+    processa_carga.short_description = (
+        'Realiza a importação dos usuários Diretor e Assistente Diretor'
+    )
 
 
 @admin.register(LogQuantidadeDietasAutorizadas)
 class LogQuantidadeDietasAutorizadasAdmin(admin.ModelAdmin):
-    list_display = ('escola', 'periodo_escolar', 'cei_ou_emei', 'classificacao', 'quantidade', 'data', 'criado_em')
+    list_display = (
+        'escola',
+        'periodo_escolar',
+        'cei_ou_emei',
+        'classificacao',
+        'quantidade',
+        'data',
+        'criado_em',
+    )
     search_fields = ('escola__nome', 'escola__codigo_eol')
-    list_filter = (('data', DateRangeFilter), 'classificacao__nome', 'periodo_escolar__nome')
+    list_filter = (
+        ('data', DateRangeFilter),
+        'classificacao__nome',
+        'periodo_escolar__nome',
+    )
 
 
 @admin.register(LogQuantidadeDietasAutorizadasCEI)
 class LogQuantidadeDietasAutorizadasCEIAdmin(admin.ModelAdmin):
-    list_display = ('escola', 'periodo_escolar', 'faixa_etaria', 'classificacao', 'quantidade', 'data', 'criado_em')
+    list_display = (
+        'escola',
+        'periodo_escolar',
+        'faixa_etaria',
+        'classificacao',
+        'quantidade',
+        'data',
+        'criado_em',
+    )
     search_fields = ('escola__nome', 'escola__codigo_eol')
-    list_filter = (('data', DateRangeFilter), 'classificacao__nome', 'periodo_escolar__nome')
+    list_filter = (
+        ('data', DateRangeFilter),
+        'classificacao__nome',
+        'periodo_escolar__nome',
+    )
 
 
 admin.site.register(Anexo)

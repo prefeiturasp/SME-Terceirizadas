@@ -14,7 +14,7 @@ class Command(BaseCommand):
     help = 'Corrige alergias/intolerancias duplicadas'
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS(f'*** Gerando logs ***'))
+        self.stdout.write(self.style.SUCCESS('*** Gerando logs ***'))
         logs_para_criar = []
         dict_periodos = PeriodoEscolar.dict_periodos()
         for log in LogQuantidadeDietasAutorizadas.objects.all():
@@ -24,8 +24,10 @@ class Command(BaseCommand):
                     escola=log.escola,
                     data=log.data,
                     periodo_escolar=dict_periodos[periodo_escolar_nome],
-                    classificacao=log.classificacao
+                    classificacao=log.classificacao,
                 )
                 logs_para_criar.append(novo_log)
         LogQuantidadeDietasAutorizadas.objects.bulk_create(logs_para_criar)
-        self.stdout.write(self.style.SUCCESS(f'*** {len(logs_para_criar)} logs criados ***'))
+        self.stdout.write(
+            self.style.SUCCESS(f'*** {len(logs_para_criar)} logs criados ***')
+        )

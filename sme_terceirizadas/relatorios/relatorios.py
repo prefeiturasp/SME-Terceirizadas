@@ -10,7 +10,10 @@ from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidad
 from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
-from ..escola.constants import PERIODOS_CEMEI_EVENTO_ESPECIFICO, PERIODOS_ESPECIAIS_CEMEI
+from ..escola.constants import (
+    PERIODOS_CEMEI_EVENTO_ESPECIFICO,
+    PERIODOS_ESPECIAIS_CEMEI,
+)
 from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
@@ -18,9 +21,14 @@ from ..medicao_inicial.utils import (
     build_tabela_somatorio_body,
     build_tabela_somatorio_body_cei,
     build_tabelas_relatorio_medicao,
-    build_tabelas_relatorio_medicao_cei
+    build_tabelas_relatorio_medicao_cei,
 )
-from ..relatorios.utils import html_to_pdf_cancelada, html_to_pdf_file, html_to_pdf_multiple, html_to_pdf_response
+from ..relatorios.utils import (
+    html_to_pdf_cancelada,
+    html_to_pdf_file,
+    html_to_pdf_multiple,
+    html_to_pdf_response,
+)
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import (
@@ -35,13 +43,15 @@ from .utils import (
     get_diretorias_regionais,
     get_ultima_justificativa_analise_sensorial,
     get_width,
-    todas_escolas_sol_kit_lanche_unificado_cancelado
+    todas_escolas_sol_kit_lanche_unificado_cancelado,
 )
 
 env = environ.Env()
 
 
-def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre_nome=''):
+def relatorio_filtro_periodo(
+    request, query_set_consolidado, escola_nome='', dre_nome=''
+):
     # TODO: se query_set_consolidado tiver muitos resultados, pode demorar no front-end
     # melhor mandar via celery pro email de quem solicitou
     # ou por padrão manda tudo pro celery
@@ -50,45 +60,66 @@ def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre
     tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
     status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
     data_inicial = datetime.datetime.strptime(
-        request_params.get('data_inicial'), '%Y-%m-%d')
+        request_params.get('data_inicial'), '%Y-%m-%d'
+    )
     data_final = datetime.datetime.strptime(
-        request_params.get('data_final'), '%Y-%m-%d')
-    filtro = {'tipo_solicitacao': tipo_solicitacao, 'status': status_solicitacao,
-              'data_inicial': data_inicial, 'data_final': data_final}
+        request_params.get('data_final'), '%Y-%m-%d'
+    )
+    filtro = {
+        'tipo_solicitacao': tipo_solicitacao,
+        'status': status_solicitacao,
+        'data_inicial': data_inicial,
+        'data_final': data_final,
+    }
 
     html_string = render_to_string(
         'relatorio_filtro.html',
         {
-            'diretoria_regional_nome': dre_nome, 'escola_nome': escola_nome, 'filtro': filtro,
-            'query_set_consolidado': query_set_consolidado
-        }
+            'diretoria_regional_nome': dre_nome,
+            'escola_nome': escola_nome,
+            'filtro': filtro,
+            'query_set_consolidado': query_set_consolidado,
+        },
     )
-    return html_to_pdf_response(html_string, f'relatorio_filtro_de_{data_inicial}_ate_{data_final}.pdf')
+    return html_to_pdf_response(
+        html_string, f'relatorio_filtro_de_{data_inicial}_ate_{data_final}.pdf'
+    )
 
 
 def relatorio_resumo_anual_e_mensal(request, resumos_mes, resumo_ano):
     meses = range(12)
     escola_nome = 'ESCOLA'
     dre_nome = 'DRE'
-    filtro = {'tipo_solicitacao': 'TODOS', 'status': 'TODOS',
-              'data_inicial': 'data_inicial', 'data_final': 'data_final'}
+    filtro = {
+        'tipo_solicitacao': 'TODOS',
+        'status': 'TODOS',
+        'data_inicial': 'data_inicial',
+        'data_final': 'data_final',
+    }
 
     html_string = render_to_string(
         'relatorio_resumo_mes_ano.html',
         {
-            'diretoria_regional_nome': dre_nome, 'escola_nome': escola_nome, 'filtro': filtro,
-            'resumos_mes': resumos_mes, 'resumo_ano': resumo_ano, 'meses': meses
-        }
+            'diretoria_regional_nome': dre_nome,
+            'escola_nome': escola_nome,
+            'filtro': filtro,
+            'resumos_mes': resumos_mes,
+            'resumo_ano': resumo_ano,
+            'meses': meses,
+        },
     )
-    return html_to_pdf_response(html_string, f'relatorio_resumo_anual_e_mensal.pdf')
+    return html_to_pdf_response(html_string, 'relatorio_resumo_anual_e_mensal.pdf')
 
 
 def relatorio_kit_lanche_unificado(request, solicitacao):
     qtd_escolas = EscolaQuantidade.objects.filter(
-        solicitacao_unificada=solicitacao).count()
+        solicitacao_unificada=solicitacao
+    ).count()
     instituicao = request.user.vinculo_atual.instituicao
     usuario_eh_escola = isinstance(instituicao, Escola)
-    usuario_eh_dre_ou_codae = isinstance(instituicao, DiretoriaRegional) or isinstance(instituicao, Codae)
+    usuario_eh_dre_ou_codae = isinstance(instituicao, DiretoriaRegional) or isinstance(
+        instituicao, Codae
+    )
     sol_unificada_escola = None
     justificativas_formatadas = None
     todos_kits_cancelados = None
@@ -97,10 +128,16 @@ def relatorio_kit_lanche_unificado(request, solicitacao):
     logs = solicitacao.logs
 
     if usuario_eh_escola:
-        sol_unificada_escola = solicitacao.escolas_quantidades.filter(escola__uuid=instituicao.uuid)[0]
+        sol_unificada_escola = solicitacao.escolas_quantidades.filter(
+            escola__uuid=instituicao.uuid
+        )[0]
         if sol_unificada_escola.cancelado:
-            inst_sol_unificada_escola = sol_unificada_escola.cancelado_por.vinculo_atual.instituicao
-            if sol_unificada_escola.cancelado and isinstance(inst_sol_unificada_escola, Escola):
+            inst_sol_unificada_escola = (
+                sol_unificada_escola.cancelado_por.vinculo_atual.instituicao
+            )
+            if sol_unificada_escola.cancelado and isinstance(
+                inst_sol_unificada_escola, Escola
+            ):
                 status_ev = LogSolicitacoesUsuario.ESCOLA_CANCELOU
                 log_criado = LogSolicitacoesUsuario.objects.create(
                     descricao=str(solicitacao),
@@ -110,18 +147,18 @@ def relatorio_kit_lanche_unificado(request, solicitacao):
                     uuid_original=solicitacao.uuid,
                     justificativa=sol_unificada_escola.cancelado_justificativa,
                     resposta_sim_nao=False,
-                    criado_em=sol_unificada_escola.cancelado_em
+                    criado_em=sol_unificada_escola.cancelado_em,
                 )
                 uuid_log_temporario = log_criado.uuid
                 log_criado.criado_em = sol_unificada_escola.cancelado_em
                 log_criado.save()
                 log_temporario = True
                 logs = formata_logs_kit_lanche_unificado_cancelado_por_usuario_escola(
-                    solicitacao,
-                    uuid_log_temporario,
-                    logs
+                    solicitacao, uuid_log_temporario, logs
                 )
-            cancelado_pela_dre = sol_unificada_escola.cancelado_por.tipo_usuario == 'diretoriaregional'
+            cancelado_pela_dre = (
+                sol_unificada_escola.cancelado_por.tipo_usuario == 'diretoriaregional'
+            )
             if sol_unificada_escola.cancelado and cancelado_pela_dre:
                 status_ev = LogSolicitacoesUsuario.DRE_CANCELOU
                 log_criado = LogSolicitacoesUsuario.objects.create(
@@ -132,38 +169,47 @@ def relatorio_kit_lanche_unificado(request, solicitacao):
                     uuid_original=solicitacao.uuid,
                     justificativa=sol_unificada_escola.cancelado_justificativa,
                     resposta_sim_nao=False,
-                    criado_em=sol_unificada_escola.cancelado_em
+                    criado_em=sol_unificada_escola.cancelado_em,
                 )
                 uuid_log_temporario = log_criado.uuid
                 log_criado.criado_em = sol_unificada_escola.cancelado_em
                 log_criado.save()
                 log_temporario = True
                 logs = formata_logs_kit_lanche_unificado_cancelado_por_usuario_dre(
-                    solicitacao,
-                    uuid_log_temporario,
-                    logs
+                    solicitacao, uuid_log_temporario, logs
                 )
     if usuario_eh_dre_ou_codae:
-        justificativas_formatadas = formata_justificativas_usuario_dre_codae(solicitacao)
-        todos_kits_cancelados = todas_escolas_sol_kit_lanche_unificado_cancelado(solicitacao)
+        justificativas_formatadas = formata_justificativas_usuario_dre_codae(
+            solicitacao
+        )
+        todos_kits_cancelados = todas_escolas_sol_kit_lanche_unificado_cancelado(
+            solicitacao
+        )
     html_string = render_to_string(
         'solicitacao_kit_lanche_unificado.html',
-        {'solicitacao': solicitacao, 'qtd_escolas': qtd_escolas,
-         'fluxo': constants.FLUXO_PARTINDO_DRE,
-         'width': get_width(constants.FLUXO_PARTINDO_DRE, logs),
-         'logs': formata_logs(logs),
-         'usuario_eh_escola': usuario_eh_escola,
-         'usuario_eh_dre_ou_codae': usuario_eh_dre_ou_codae,
-         'nome_instituicao': instituicao.nome,
-         'justificativas_formatadas': justificativas_formatadas,
-         'todos_kits_cancelados': todos_kits_cancelados,
-         'sol_unificada_escola': sol_unificada_escola}
+        {
+            'solicitacao': solicitacao,
+            'qtd_escolas': qtd_escolas,
+            'fluxo': constants.FLUXO_PARTINDO_DRE,
+            'width': get_width(constants.FLUXO_PARTINDO_DRE, logs),
+            'logs': formata_logs(logs),
+            'usuario_eh_escola': usuario_eh_escola,
+            'usuario_eh_dre_ou_codae': usuario_eh_dre_ou_codae,
+            'nome_instituicao': instituicao.nome,
+            'justificativas_formatadas': justificativas_formatadas,
+            'todos_kits_cancelados': todos_kits_cancelados,
+            'sol_unificada_escola': sol_unificada_escola,
+        },
     )
-    deleta_log_temporario_se_necessario(log_temporario, solicitacao, uuid_log_temporario)
-    return html_to_pdf_response(html_string, f'solicitacao_unificada_{solicitacao.id_externo}.pdf')
+    deleta_log_temporario_se_necessario(
+        log_temporario, solicitacao, uuid_log_temporario
+    )
+    return html_to_pdf_response(
+        html_string, f'solicitacao_unificada_{solicitacao.id_externo}.pdf'
+    )
 
 
-def relatorio_alteracao_cardapio(request, solicitacao): # noqa C901
+def relatorio_alteracao_cardapio(request, solicitacao):  # noqa C901
     substituicoes = solicitacao.substituicoes_periodo_escolar
     formata_substituicoes = []
 
@@ -186,10 +232,12 @@ def relatorio_alteracao_cardapio(request, solicitacao): # noqa C901
             else:
                 tap_formatado = tap.nome
 
-        resultado = {'periodo': subs.periodo_escolar.nome,
-                     'qtd_alunos': subs.qtd_alunos,
-                     'tipos_alimentacao_de': tad_formatado,
-                     'tipos_alimentacao_para': tap_formatado}
+        resultado = {
+            'periodo': subs.periodo_escolar.nome,
+            'qtd_alunos': subs.qtd_alunos,
+            'tipos_alimentacao_de': tad_formatado,
+            'tipos_alimentacao_para': tap_formatado,
+        }
 
         formata_substituicoes.append(resultado)
 
@@ -197,14 +245,18 @@ def relatorio_alteracao_cardapio(request, solicitacao): # noqa C901
     logs = solicitacao.logs
     html_string = render_to_string(
         'solicitacao_alteracao_cardapio.html',
-        {'escola': escola,
-         'solicitacao': solicitacao,
-         'substituicoes': formata_substituicoes,
-         'fluxo': constants.FLUXO_ALTERACAO_DE_CARDAPIO,
-         'width': get_width(constants.FLUXO_ALTERACAO_DE_CARDAPIO, solicitacao.logs),
-         'logs': formata_logs(logs)}
+        {
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'substituicoes': formata_substituicoes,
+            'fluxo': constants.FLUXO_ALTERACAO_DE_CARDAPIO,
+            'width': get_width(constants.FLUXO_ALTERACAO_DE_CARDAPIO, solicitacao.logs),
+            'logs': formata_logs(logs),
+        },
     )
-    return html_to_pdf_response(html_string, f'alteracao_cardapio_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'alteracao_cardapio_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_alteracao_cardapio_cei(request, solicitacao):
@@ -213,17 +265,21 @@ def relatorio_alteracao_cardapio_cei(request, solicitacao):
     logs = solicitacao.logs
     html_string = render_to_string(
         'solicitacao_alteracao_cardapio_cei.html',
-        {'escola': escola,
-         'solicitacao': solicitacao,
-         'substituicoes': substituicoes,
-         'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-         'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
-         'logs': formata_logs(logs)}
+        {
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'substituicoes': substituicoes,
+            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'logs': formata_logs(logs),
+        },
     )
-    return html_to_pdf_response(html_string, f'alteracao_cardapio_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'alteracao_cardapio_{solicitacao.id_externo}.pdf'
+    )
 
 
-def relatorio_alteracao_alimentacao_cemei(request, solicitacao): # noqa C901
+def relatorio_alteracao_alimentacao_cemei(request, solicitacao):  # noqa C901
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
     periodos_escolares_cei = []
@@ -237,11 +293,15 @@ def relatorio_alteracao_alimentacao_cemei(request, solicitacao): # noqa C901
         if each.periodo_escolar.nome not in periodos_escolares_emei:
             periodos_escolares_emei.append(each.periodo_escolar.nome)
     vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-    vinculos_cei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
-                                                 tipo_unidade_escolar__iniciais__in=['CEI DIRET'])
+    vinculos_cei = vinculos_class.objects.filter(
+        periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+        tipo_unidade_escolar__iniciais__in=['CEI DIRET'],
+    )
     vinculos_cei = vinculos_cei.order_by('periodo_escolar__posicao')
-    vinculos_emei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
-                                                  tipo_unidade_escolar__iniciais__in=['EMEI'])
+    vinculos_emei = vinculos_class.objects.filter(
+        periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+        tipo_unidade_escolar__iniciais__in=['EMEI'],
+    )
     vinculos_emei = vinculos_emei.order_by('periodo_escolar__posicao')
 
     for vinculo in vinculos_cei:
@@ -249,44 +309,70 @@ def relatorio_alteracao_alimentacao_cemei(request, solicitacao): # noqa C901
             periodo = {}
             faixas = []
             periodo['nome'] = vinculo.periodo_escolar.nome
-            qtd_solicitacao = solicitacao.substituicoes_cemei_cei_periodo_escolar.filter(
-                periodo_escolar__nome=vinculo.periodo_escolar.nome)
+            qtd_solicitacao = (
+                solicitacao.substituicoes_cemei_cei_periodo_escolar.filter(
+                    periodo_escolar__nome=vinculo.periodo_escolar.nome
+                )
+            )
             for faixa in qtd_solicitacao:
                 periodo['tipos_alimentacao_de'] = ', '.join(
-                    faixa.tipos_alimentacao_de.values_list('nome', flat=True))
+                    faixa.tipos_alimentacao_de.values_list('nome', flat=True)
+                )
                 periodo['tipos_alimentacao_para'] = ', '.join(
-                    faixa.tipos_alimentacao_para.values_list('nome', flat=True))
+                    faixa.tipos_alimentacao_para.values_list('nome', flat=True)
+                )
 
                 for f in faixa.faixas_etarias.all():
-                    faixas.append({'faixa_etaria': f.faixa_etaria.__str__,
-                                   'quantidade_alunos': f.quantidade,
-                                   'matriculados_quando_criado': f.matriculados_quando_criado})
+                    faixas.append(
+                        {
+                            'faixa_etaria': f.faixa_etaria.__str__,
+                            'quantidade_alunos': f.quantidade,
+                            'matriculados_quando_criado': f.matriculados_quando_criado,
+                        }
+                    )
             periodo['faixas_etarias'] = faixas
 
-            periodo['total_solicitacao'] = sum(qtd_solicitacao.exclude(
-                faixas_etarias__quantidade__isnull=True).values_list(
-                'faixas_etarias__quantidade', flat=True))
-            periodo['total_matriculados'] = sum(qtd_solicitacao.exclude(
-                faixas_etarias__matriculados_quando_criado__isnull=True).values_list(
-                'faixas_etarias__matriculados_quando_criado', flat=True))
+            periodo['total_solicitacao'] = sum(
+                qtd_solicitacao.exclude(
+                    faixas_etarias__quantidade__isnull=True
+                ).values_list('faixas_etarias__quantidade', flat=True)
+            )
+            periodo['total_matriculados'] = sum(
+                qtd_solicitacao.exclude(
+                    faixas_etarias__matriculados_quando_criado__isnull=True
+                ).values_list('faixas_etarias__matriculados_quando_criado', flat=True)
+            )
             periodos_cei.append(periodo)
 
     for vinculo in vinculos_emei:
         if vinculo.periodo_escolar.nome in periodos_escolares_emei:
             periodo = {}
             periodo['nome'] = vinculo.periodo_escolar.nome
-            qtd_solicitacao = solicitacao.substituicoes_cemei_emei_periodo_escolar.filter(
-                periodo_escolar__nome=vinculo.periodo_escolar.nome)
+            qtd_solicitacao = (
+                solicitacao.substituicoes_cemei_emei_periodo_escolar.filter(
+                    periodo_escolar__nome=vinculo.periodo_escolar.nome
+                )
+            )
             periodo['tipos_alimentacao_de'] = ', '.join(
-                qtd_solicitacao.exclude(tipos_alimentacao_de__nome__isnull=True).values_list(
-                    'tipos_alimentacao_de__nome', flat=True))
+                qtd_solicitacao.exclude(
+                    tipos_alimentacao_de__nome__isnull=True
+                ).values_list('tipos_alimentacao_de__nome', flat=True)
+            )
             periodo['tipos_alimentacao_para'] = ', '.join(
-                qtd_solicitacao.exclude(tipos_alimentacao_para__nome__isnull=True).values_list(
-                    'tipos_alimentacao_para__nome', flat=True))
-            periodo['total_solicitacao'] = sum(qtd_solicitacao.exclude(
-                qtd_alunos__isnull=True).values_list('qtd_alunos', flat=True))
-            periodo['total_matriculados'] = sum(qtd_solicitacao.exclude(
-                matriculados_quando_criado__isnull=True).values_list('matriculados_quando_criado', flat=True))
+                qtd_solicitacao.exclude(
+                    tipos_alimentacao_para__nome__isnull=True
+                ).values_list('tipos_alimentacao_para__nome', flat=True)
+            )
+            periodo['total_solicitacao'] = sum(
+                qtd_solicitacao.exclude(qtd_alunos__isnull=True).values_list(
+                    'qtd_alunos', flat=True
+                )
+            )
+            periodo['total_matriculados'] = sum(
+                qtd_solicitacao.exclude(
+                    matriculados_quando_criado__isnull=True
+                ).values_list('matriculados_quando_criado', flat=True)
+            )
             periodos_emei.append(periodo)
     data_final = None
     if solicitacao.data_final:
@@ -304,11 +390,12 @@ def relatorio_alteracao_alimentacao_cemei(request, solicitacao): # noqa C901
             'periodos_escolares_emei': periodos_escolares_emei,
             'motivo': solicitacao.motivo,
             'data_de': solicitacao.data.strftime('%d/%m/%Y'),
-            'data_ate': data_final
-        }
+            'data_ate': data_final,
+        },
     )
-    return html_to_pdf_response(html_string,
-                                f'alteracao_tipo_alimentacao_cemei_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'alteracao_tipo_alimentacao_cemei_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_dieta_especial_conteudo(solicitacao):
@@ -318,8 +405,12 @@ def relatorio_dieta_especial_conteudo(solicitacao):
         escola = solicitacao.escola_destino
     escola_origem = solicitacao.rastro_escola
     logs = solicitacao.logs
-    if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO).exists():
-        if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA).exists():
+    if solicitacao.logs.filter(
+        status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO
+    ).exists():
+        if solicitacao.logs.filter(
+            status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA
+        ).exists():
             fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO
         else:
             fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO
@@ -337,13 +428,13 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             'width': get_width(fluxo, solicitacao.logs),
             'logs': formata_logs(logs),
             'eh_importado': eh_importado,
-            'foto_aluno': solicitacao.aluno.foto_aluno_base64
-        }
+            'foto_aluno': solicitacao.aluno.foto_aluno_base64,
+        },
     )
     return html_string
 
 
-def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
+def relatorio_guia_de_remessa(guias, is_async=False):  # noqa C901
     SERVER_NAME = env.str('SERVER_NAME', default=None)
     page = None
     lista_pdfs = []
@@ -356,11 +447,15 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
         insucesso = guia.insucessos.last() if guia.insucessos else None
         todos_alimentos = guia.alimentos.all().annotate(
             peso_total=Sum(
-                F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
+                F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'),
+                output_field=FloatField(),
             )
         )
 
-        if guia.status == GuiaStatus.PENDENTE_DE_CONFERENCIA or guia.status == GuiaStatus.CANCELADA:
+        if (
+            guia.status == GuiaStatus.PENDENTE_DE_CONFERENCIA
+            or guia.status == GuiaStatus.CANCELADA
+        ):
             conferencia = None
             reposicao = None
         elif guia.status == GuiaStatus.RECEBIDA:
@@ -377,20 +472,32 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
                 conferencias_alimento = []
                 reposicoes_alimento = []
                 for alimento_conferencia in conferencias_individuais:
-                    if alimento_guia.nome_alimento == alimento_conferencia.nome_alimento:
+                    if (
+                        alimento_guia.nome_alimento
+                        == alimento_conferencia.nome_alimento
+                    ):
                         for embalagem in alimento_guia.embalagens.all():
-                            if embalagem.tipo_embalagem == alimento_conferencia.tipo_embalagem:
-                                embalagem.qtd_recebido = alimento_conferencia.qtd_recebido
+                            if (
+                                embalagem.tipo_embalagem
+                                == alimento_conferencia.tipo_embalagem
+                            ):
+                                embalagem.qtd_recebido = (
+                                    alimento_conferencia.qtd_recebido
+                                )
                                 embalagem.ocorrencia = alimento_conferencia.ocorrencia
                                 embalagem.observacao = alimento_conferencia.observacao
                                 embalagem.arquivo = alimento_conferencia.arquivo
                                 if alimento_conferencia.arquivo:
                                     imagem = {
                                         'nome_alimento': alimento_guia.nome_alimento,
-                                        'arquivo': alimento_conferencia.arquivo
+                                        'arquivo': alimento_conferencia.arquivo,
                                     }
-                                    lista_filtrada = [a for a in lista_imagens_conferencia
-                                                      if a['nome_alimento'] == alimento_guia.nome_alimento]
+                                    lista_filtrada = [
+                                        a
+                                        for a in lista_imagens_conferencia
+                                        if a['nome_alimento']
+                                        == alimento_guia.nome_alimento
+                                    ]
                                     if not lista_filtrada:
                                         lista_imagens_conferencia.append(imagem)
                                 conferencias_alimento.append(embalagem)
@@ -398,7 +505,10 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
                 for alimento_reposicao in reposicoes_individuais:
                     if alimento_guia.nome_alimento == alimento_reposicao.nome_alimento:
                         for embalagem in alimento_guia.embalagens.all():
-                            if embalagem.tipo_embalagem == alimento_reposicao.tipo_embalagem:
+                            if (
+                                embalagem.tipo_embalagem
+                                == alimento_reposicao.tipo_embalagem
+                            ):
                                 embalagem.qtd_recebido = alimento_reposicao.qtd_recebido
                                 embalagem.ocorrencia = alimento_reposicao.ocorrencia
                                 embalagem.observacao = alimento_reposicao.observacao
@@ -406,10 +516,14 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
                                 if alimento_reposicao.arquivo:
                                     imagem = {
                                         'nome_alimento': alimento_guia.nome_alimento,
-                                        'arquivo': alimento_reposicao.arquivo
+                                        'arquivo': alimento_reposicao.arquivo,
                                     }
-                                    lista_filtrada = [a for a in lista_imagens_reposicao
-                                                      if a['nome_alimento'] == alimento_guia.nome_alimento]
+                                    lista_filtrada = [
+                                        a
+                                        for a in lista_imagens_reposicao
+                                        if a['nome_alimento']
+                                        == alimento_guia.nome_alimento
+                                    ]
                                     if not lista_filtrada:
                                         lista_imagens_reposicao.append(imagem)
                                 reposicoes_alimento.append(embalagem)
@@ -417,7 +531,9 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
 
         if todos_alimentos:
             page = guia.as_dict()
-            peso_total_pagina = round(sum(alimento.peso_total for alimento in todos_alimentos), 2)
+            peso_total_pagina = round(
+                sum(alimento.peso_total for alimento in todos_alimentos), 2
+            )
             page['alimentos'] = todos_alimentos
             page['peso_total'] = peso_total_pagina
             page['status_guia'] = retorna_status_guia_remessa(page['status'])
@@ -428,8 +544,13 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
             page['lista_imagens_reposicao'] = lista_imagens_reposicao
 
         html_template = get_template('logistica/guia_remessa/relatorio_guia.html')
-        html_string = html_template.render({'pages': [page], 'URL': SERVER_NAME,
-                                            'base_static_url': staticfiles_storage.location})
+        html_string = html_template.render(
+            {
+                'pages': [page],
+                'URL': SERVER_NAME,
+                'base_static_url': staticfiles_storage.location,
+            }
+        )
 
         data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
 
@@ -437,21 +558,31 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
 
     if len(lista_pdfs) == 1:
         if guia.status == GuiaStatus.CANCELADA:
-            return html_to_pdf_cancelada(lista_pdfs[0], f'guia_{guia.numero_guia}.pdf', is_async)
+            return html_to_pdf_cancelada(
+                lista_pdfs[0], f'guia_{guia.numero_guia}.pdf', is_async
+            )
         else:
-            return html_to_pdf_file(lista_pdfs[0], f'guia_{guia.numero_guia}.pdf', is_async)
+            return html_to_pdf_file(
+                lista_pdfs[0], f'guia_{guia.numero_guia}.pdf', is_async
+            )
     else:
         return html_to_pdf_multiple(lista_pdfs, 'guias_de_remessa.pdf', is_async)
 
 
 def relatorio_dieta_especial(request, solicitacao):
     html_string = relatorio_dieta_especial_conteudo(solicitacao)
-    return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'dieta_especial_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_dietas_especiais_terceirizada(dados):
-    html_string = render_to_string('relatorio_dietas_especiais_terceirizada.html', dados)
-    return html_to_pdf_file(html_string, 'produtos_homologados_por_terceirizada.pdf', True)
+    html_string = render_to_string(
+        'relatorio_dietas_especiais_terceirizada.html', dados
+    )
+    return html_to_pdf_file(
+        html_string, 'produtos_homologados_por_terceirizada.pdf', True
+    )
 
 
 def relatorio_dieta_especial_protocolo(request, solicitacao):
@@ -467,12 +598,16 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
             'solicitacao': solicitacao,
             'substituicoes': substituicao_ordenada,
             'data_termino': solicitacao.data_termino,
-            'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU),
-            'foto_aluno': solicitacao.aluno.foto_aluno_base64
-        }
+            'log_autorizacao': solicitacao.logs.get(
+                status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU
+            ),
+            'foto_aluno': solicitacao.aluno.foto_aluno_base64,
+        },
     )
     if request:
-        return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
+        return html_to_pdf_response(
+            html_string, f'dieta_especial_{solicitacao.id_externo}.pdf'
+        )
     else:
         return html_string
 
@@ -488,10 +623,12 @@ def relatorio_inclusao_alimentacao_continua(request, solicitacao):
             'fluxo': constants.FLUXO_INCLUSAO_ALIMENTACAO,
             'width': get_width(constants.FLUXO_INCLUSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs),
-            'week': {'D': 6, 'S': 0, 'T': 1, 'Q': 2, 'Qi': 3, 'Sx': 4, 'Sb': 5}
-        }
+            'week': {'D': 6, 'S': 0, 'T': 1, 'Q': 2, 'Qi': 3, 'Sx': 4, 'Sb': 5},
+        },
     )
-    return html_to_pdf_response(html_string, f'inclusao_alimentacao_continua_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'inclusao_alimentacao_continua_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_inclusao_alimentacao_normal(request, solicitacao):
@@ -500,13 +637,16 @@ def relatorio_inclusao_alimentacao_normal(request, solicitacao):
     html_string = render_to_string(
         'solicitacao_inclusao_alimentacao_normal.html',
         {
-            'escola': escola, 'solicitacao': solicitacao,
+            'escola': escola,
+            'solicitacao': solicitacao,
             'fluxo': constants.FLUXO_INCLUSAO_ALIMENTACAO,
             'width': get_width(constants.FLUXO_INCLUSAO_ALIMENTACAO, solicitacao.logs),
-            'logs': formata_logs(logs)
-        }
+            'logs': formata_logs(logs),
+        },
     )
-    return html_to_pdf_response(html_string, f'inclusao_alimentacao_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'inclusao_alimentacao_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_inclusao_alimentacao_cei(request, solicitacao):
@@ -520,42 +660,78 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
                 'solicitacao': solicitacao,
                 'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
                 'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
-                'logs': formata_logs(logs)
-            }
+                'logs': formata_logs(logs),
+            },
         )
     else:
         qa = solicitacao.quantidade_alunos_por_faixas_etarias
         vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
         inclusoes = []
-        for periodo_externo in solicitacao.periodos_da_solicitacao(nivel_interno=False, nome_coluna='periodo_externo'):
+        for periodo_externo in solicitacao.periodos_da_solicitacao(
+            nivel_interno=False, nome_coluna='periodo_externo'
+        ):
             inclusao = {'periodo_externo_nome': periodo_externo}
-            vinculo = vinculos_class.objects.filter(periodo_escolar__nome=periodo_externo, ativo=True,
-                                                    tipo_unidade_escolar=escola.tipo_unidade).first()
+            vinculo = vinculos_class.objects.filter(
+                periodo_escolar__nome=periodo_externo,
+                ativo=True,
+                tipo_unidade_escolar=escola.tipo_unidade,
+            ).first()
             if vinculo:
-                inclusao['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.values_list('nome', flat=True))
+                inclusao['tipos_alimentacao'] = ', '.join(
+                    vinculo.tipos_alimentacao.values_list('nome', flat=True)
+                )
             else:
                 inclusao['tipos_alimentacao'] = ''
             if periodo_externo == 'INTEGRAL':
                 inclusao['periodos_internos'] = []
-                for periodo_interno in solicitacao.periodos_da_solicitacao(nivel_interno=True, nome_coluna='periodo'):
-                    p_faixas = qa.filter(periodo__nome=periodo_interno, periodo_externo__nome=periodo_externo)
-                    total_inclusao = sum(p_faixas.values_list('quantidade_alunos', flat=True))
-                    total_matriculados = sum(p_faixas.values_list('matriculados_quando_criado', flat=True))
+                for periodo_interno in solicitacao.periodos_da_solicitacao(
+                    nivel_interno=True, nome_coluna='periodo'
+                ):
+                    p_faixas = qa.filter(
+                        periodo__nome=periodo_interno,
+                        periodo_externo__nome=periodo_externo,
+                    )
+                    total_inclusao = sum(
+                        p_faixas.values_list('quantidade_alunos', flat=True)
+                    )
+                    total_matriculados = sum(
+                        p_faixas.values_list('matriculados_quando_criado', flat=True)
+                    )
 
-                    p_faixas = [{'nome_faixa': x.faixa_etaria.__str__(),
-                                 'quantidade_alunos': x.quantidade_alunos,
-                                 'matriculados_quando_criado': x.matriculados_quando_criado} for x in p_faixas]
-                    inclusao['periodos_internos'].append({'periodo_interno_nome': periodo_interno,
-                                                          'quantidades_faixas': p_faixas,
-                                                          'total_inclusao': total_inclusao,
-                                                          'total_matriculados': total_matriculados})
+                    p_faixas = [
+                        {
+                            'nome_faixa': x.faixa_etaria.__str__(),
+                            'quantidade_alunos': x.quantidade_alunos,
+                            'matriculados_quando_criado': x.matriculados_quando_criado,
+                        }
+                        for x in p_faixas
+                    ]
+                    inclusao['periodos_internos'].append(
+                        {
+                            'periodo_interno_nome': periodo_interno,
+                            'quantidades_faixas': p_faixas,
+                            'total_inclusao': total_inclusao,
+                            'total_matriculados': total_matriculados,
+                        }
+                    )
             else:
-                p_faixas = qa.filter(periodo__nome=periodo_externo, periodo_externo__nome=periodo_externo)
-                total_inclusao = sum(p_faixas.values_list('quantidade_alunos', flat=True))
-                total_matriculados = sum(p_faixas.values_list('matriculados_quando_criado', flat=True))
-                p_faixas = [{'nome_faixa': x.faixa_etaria.__str__(),
-                             'quantidade_alunos': x.quantidade_alunos,
-                             'matriculados_quando_criado': x.matriculados_quando_criado} for x in p_faixas]
+                p_faixas = qa.filter(
+                    periodo__nome=periodo_externo, periodo_externo__nome=periodo_externo
+                )
+                total_inclusao = sum(
+                    p_faixas.values_list('quantidade_alunos', flat=True)
+                )
+                total_matriculados = sum(
+                    p_faixas.values_list('matriculados_quando_criado', flat=True)
+                )
+                p_faixas = [
+                    {
+                        'nome_faixa': x.faixa_etaria.__str__(),
+                        'quantidade_alunos': x.quantidade_alunos,
+                        'matriculados_quando_criado': x.matriculados_quando_criado,
+                    }
+                    for x in p_faixas
+                ]
                 inclusao['quantidades_faixas'] = p_faixas
                 inclusao['total_inclusao'] = total_inclusao
                 inclusao['total_matriculados'] = total_matriculados
@@ -569,13 +745,15 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
                 'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
                 'logs': formata_logs(logs),
                 'inclusoes': inclusoes,
-                'dias_motivos_da_inclusao_cei': solicitacao.inclusoes.all()
-            }
+                'dias_motivos_da_inclusao_cei': solicitacao.inclusoes.all(),
+            },
         )
-    return html_to_pdf_response(html_string, f'inclusao_alimentacao_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'inclusao_alimentacao_{solicitacao.id_externo}.pdf'
+    )
 
 
-def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
+def relatorio_inclusao_alimentacao_cemei(request, solicitacao):  # noqa C901
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
     periodos_escolares_cei = []
@@ -592,49 +770,88 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
             periodos_escolares_emei.append(each.periodo_escolar.nome)
 
     vinculos_class = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-    vinculos_cei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
-                                                 tipo_unidade_escolar__iniciais__in=['CEI DIRET'])
+    vinculos_cei = vinculos_class.objects.filter(
+        periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+        tipo_unidade_escolar__iniciais__in=['CEI DIRET'],
+    )
     vinculos_cei = vinculos_cei.order_by('periodo_escolar__posicao')
-    vinculos_emei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
-                                                  tipo_unidade_escolar__iniciais__in=['EMEI'])
+    vinculos_emei = vinculos_class.objects.filter(
+        periodo_escolar__nome__in=PERIODOS_ESPECIAIS_CEMEI,
+        tipo_unidade_escolar__iniciais__in=['EMEI'],
+    )
 
-    if solicitacao.dias_motivos_da_inclusao_cemei.filter(motivo__nome='Evento Específico'):
+    if solicitacao.dias_motivos_da_inclusao_cemei.filter(
+        motivo__nome='Evento Específico'
+    ):
         eh_evento_especifico = True
-        vinculos_emei = vinculos_class.objects.filter(periodo_escolar__nome__in=PERIODOS_CEMEI_EVENTO_ESPECIFICO,
-                                                      tipo_unidade_escolar__iniciais__in=['EMEI'])
+        vinculos_emei = vinculos_class.objects.filter(
+            periodo_escolar__nome__in=PERIODOS_CEMEI_EVENTO_ESPECIFICO,
+            tipo_unidade_escolar__iniciais__in=['EMEI'],
+        )
     vinculos_emei = vinculos_emei.order_by('periodo_escolar__posicao')
     for vinculo in vinculos_cei:
         if vinculo.periodo_escolar.nome in periodos_escolares_cei:
             periodo = {}
             faixas = []
             periodo['nome'] = vinculo.periodo_escolar.nome
-            periodo['tipos_alimentacao'] = ', '.join(vinculo.tipos_alimentacao.values_list('nome', flat=True))
-            qtd_solicitacao = solicitacao.quantidade_alunos_cei_da_inclusao_cemei.filter(
-                periodo_escolar__nome=vinculo.periodo_escolar.nome)
+            periodo['tipos_alimentacao'] = ', '.join(
+                vinculo.tipos_alimentacao.values_list('nome', flat=True)
+            )
+            qtd_solicitacao = (
+                solicitacao.quantidade_alunos_cei_da_inclusao_cemei.filter(
+                    periodo_escolar__nome=vinculo.periodo_escolar.nome
+                )
+            )
             for faixa in qtd_solicitacao:
-                faixas.append({'faixa_etaria': faixa.faixa_etaria.__str__,
-                               'quantidade_alunos': faixa.quantidade_alunos,
-                               'matriculados_quando_criado': faixa.matriculados_quando_criado})
+                faixas.append(
+                    {
+                        'faixa_etaria': faixa.faixa_etaria.__str__,
+                        'quantidade_alunos': faixa.quantidade_alunos,
+                        'matriculados_quando_criado': faixa.matriculados_quando_criado,
+                    }
+                )
             periodo['faixas_etarias'] = faixas
-            periodo['total_solicitacao'] = sum(qtd_solicitacao.values_list('quantidade_alunos', flat=True))
-            periodo['total_matriculados'] = sum(qtd_solicitacao.values_list('matriculados_quando_criado', flat=True))
+            periodo['total_solicitacao'] = sum(
+                qtd_solicitacao.values_list('quantidade_alunos', flat=True)
+            )
+            periodo['total_matriculados'] = sum(
+                qtd_solicitacao.values_list('matriculados_quando_criado', flat=True)
+            )
             periodos_cei.append(periodo)
 
     for vinculo in vinculos_emei:
         if vinculo.periodo_escolar.nome in periodos_escolares_emei:
             periodo = {}
             periodo['nome'] = vinculo.periodo_escolar.nome
-            tipos_alimentacao = ', '.join(vinculo.tipos_alimentacao.exclude(
-                nome__icontains='Lanche Emergencial').values_list('nome', flat=True))
-            if eh_evento_especifico and not solicitacao.escola.periodos_escolares.filter(nome=periodo['nome']):
+            tipos_alimentacao = ', '.join(
+                vinculo.tipos_alimentacao.exclude(
+                    nome__icontains='Lanche Emergencial'
+                ).values_list('nome', flat=True)
+            )
+            if (
+                eh_evento_especifico
+                and not solicitacao.escola.periodos_escolares.filter(
+                    nome=periodo['nome']
+                )
+            ):
                 vinculo_integral = vinculos_emei.get(periodo_escolar__nome='INTEGRAL')
-                tipos_alimentacao = ', '.join(vinculo_integral.tipos_alimentacao.exclude(
-                    nome__icontains='Lanche Emergencial').values_list('nome', flat=True))
+                tipos_alimentacao = ', '.join(
+                    vinculo_integral.tipos_alimentacao.exclude(
+                        nome__icontains='Lanche Emergencial'
+                    ).values_list('nome', flat=True)
+                )
             periodo['tipos_alimentacao'] = tipos_alimentacao
-            qtd_solicitacao = solicitacao.quantidade_alunos_emei_da_inclusao_cemei.filter(
-                periodo_escolar__nome=vinculo.periodo_escolar.nome)
-            periodo['total_solicitacao'] = sum(qtd_solicitacao.values_list('quantidade_alunos', flat=True))
-            periodo['total_matriculados'] = sum(qtd_solicitacao.values_list('matriculados_quando_criado', flat=True))
+            qtd_solicitacao = (
+                solicitacao.quantidade_alunos_emei_da_inclusao_cemei.filter(
+                    periodo_escolar__nome=vinculo.periodo_escolar.nome
+                )
+            )
+            periodo['total_solicitacao'] = sum(
+                qtd_solicitacao.values_list('quantidade_alunos', flat=True)
+            )
+            periodo['total_matriculados'] = sum(
+                qtd_solicitacao.values_list('matriculados_quando_criado', flat=True)
+            )
             periodos_emei.append(periodo)
 
     motivos = formata_motivos_inclusao(solicitacao.dias_motivos_da_inclusao_cemei.all())
@@ -651,18 +868,16 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao): # noqa C901
             'periodos_escolares_cei': periodos_escolares_cei,
             'periodos_emei': periodos_emei,
             'periodos_escolares_emei': periodos_escolares_emei,
-            'eh_evento_especifico': eh_evento_especifico
-        }
+            'eh_evento_especifico': eh_evento_especifico,
+        },
     )
-    return html_to_pdf_response(html_string, f'inclusao_alimentacao_cemei_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'inclusao_alimentacao_cemei_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_kit_lanche_passeio(request, solicitacao):
-    TEMPO_PASSEIO = {
-        '0': 'até 4 horas',
-        '1': 'de 5 a 7 horas',
-        '2': '8 horas ou mais'
-    }
+    TEMPO_PASSEIO = {'0': 'até 4 horas', '1': 'de 5 a 7 horas', '2': '8 horas ou mais'}
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
     tempo_passeio_num = str(solicitacao.solicitacao_kit_lanche.tempo_passeio)
@@ -673,13 +888,16 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
             'tempo_passeio': tempo_passeio,
             'escola': escola,
             'solicitacao': solicitacao,
-            'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count() * solicitacao.quantidade_alunos,
+            'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count()
+            * solicitacao.quantidade_alunos,
             'fluxo': constants.FLUXO_KIT_LANCHE_PASSEIO,
             'width': get_width(constants.FLUXO_KIT_LANCHE_PASSEIO, solicitacao.logs),
-            'logs': formata_logs(logs)
-        }
+            'logs': formata_logs(logs),
+        },
     )
-    return html_to_pdf_response(html_string, f'solicitacao_avulsa_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'solicitacao_avulsa_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_kit_lanche_passeio_cei(request, solicitacao):
@@ -690,21 +908,20 @@ def relatorio_kit_lanche_passeio_cei(request, solicitacao):
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count() * solicitacao.quantidade_alunos,
+            'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count()
+            * solicitacao.quantidade_alunos,
             'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
             'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
-            'logs': formata_logs(logs)
-        }
+            'logs': formata_logs(logs),
+        },
     )
-    return html_to_pdf_response(html_string, f'solicitacao_avulsa_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'solicitacao_avulsa_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_kit_lanche_passeio_cemei(request, solicitacao):
-    TEMPO_PASSEIO = {
-        0: 'até 4 horas',
-        1: 'de 5 a 7 horas',
-        2: '8 horas ou mais'
-    }
+    TEMPO_PASSEIO = {0: 'até 4 horas', 1: 'de 5 a 7 horas', 2: '8 horas ou mais'}
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
     tempo_passeio_cei = None
@@ -712,7 +929,9 @@ def relatorio_kit_lanche_passeio_cemei(request, solicitacao):
     if solicitacao.tem_solicitacao_cei:
         tempo_passeio_cei = TEMPO_PASSEIO.get(solicitacao.solicitacao_cei.tempo_passeio)
     if solicitacao.tem_solicitacao_emei:
-        tempo_passeio_emei = TEMPO_PASSEIO.get(solicitacao.solicitacao_emei.tempo_passeio)
+        tempo_passeio_emei = TEMPO_PASSEIO.get(
+            solicitacao.solicitacao_emei.tempo_passeio
+        )
     html_string = render_to_string(
         'solicitacao_kit_lanche_cemei.html',
         {
@@ -722,17 +941,27 @@ def relatorio_kit_lanche_passeio_cemei(request, solicitacao):
             'solicitacao': solicitacao,
             'fluxo': constants.FLUXO_KIT_LANCHE_PASSEIO,
             'width': get_width(constants.FLUXO_KIT_LANCHE_PASSEIO, solicitacao.logs),
-            'logs': formata_logs(logs)
-        }
+            'logs': formata_logs(logs),
+        },
     )
-    return html_to_pdf_response(html_string, f'solicitacao_kit_lanche_cemei_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'solicitacao_kit_lanche_cemei_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_inversao_dia_de_cardapio(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    data_de = solicitacao.cardapio_de.data if solicitacao.cardapio_de else solicitacao.data_de_inversao
-    data_para = solicitacao.cardapio_para.data if solicitacao.cardapio_para else solicitacao.data_para_inversao
+    data_de = (
+        solicitacao.cardapio_de.data
+        if solicitacao.cardapio_de
+        else solicitacao.data_de_inversao
+    )
+    data_para = (
+        solicitacao.cardapio_para.data
+        if solicitacao.cardapio_para
+        else solicitacao.data_para_inversao
+    )
     html_string = render_to_string(
         'solicitacao_inversao_de_cardapio.html',
         {
@@ -742,10 +971,12 @@ def relatorio_inversao_dia_de_cardapio(request, solicitacao):
             'data_para': data_para,
             'fluxo': constants.FLUXO_INVERSAO_DIA_CARDAPIO,
             'width': get_width(constants.FLUXO_INVERSAO_DIA_CARDAPIO, solicitacao.logs),
-            'logs': formata_logs(logs)
-        }
+            'logs': formata_logs(logs),
+        },
     )
-    return html_to_pdf_response(html_string, f'solicitacao_inversao_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'solicitacao_inversao_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_suspensao_de_alimentacao(request, solicitacao):
@@ -764,10 +995,12 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
             'quantidades_por_periodo': quantidades_por_periodo,
             'fluxo': constants.FLUXO_SUSPENSAO_ALIMENTACAO,
             'width': get_width(constants.FLUXO_SUSPENSAO_ALIMENTACAO, solicitacao.logs),
-            'logs': formata_logs(logs)
-        }
+            'logs': formata_logs(logs),
+        },
     )
-    return html_to_pdf_response(html_string, f'solicitacao_suspensao_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'solicitacao_suspensao_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_suspensao_de_alimentacao_cei(request, solicitacao):
@@ -782,20 +1015,25 @@ def relatorio_suspensao_de_alimentacao_cei(request, solicitacao):
             'periodos_escolares': periodos_escolares,
             'fluxo': constants.FLUXO_SUSPENSAO_ALIMENTACAO,
             'width': get_width(constants.FLUXO_SUSPENSAO_ALIMENTACAO, solicitacao.logs),
-            'logs': formata_logs(logs)
-        }
+            'logs': formata_logs(logs),
+        },
     )
-    return html_to_pdf_response(html_string, f'solicitacao_suspensao_cei_{solicitacao.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'solicitacao_suspensao_cei_{solicitacao.id_externo}.pdf'
+    )
 
 
 def relatorio_produto_homologacao(request, produto):
     homologacao = produto.homologacao
     terceirizada = homologacao.rastro_terceirizada
     reclamacao = homologacao.reclamacoes.filter(
-        status=ReclamacaoProdutoWorkflow.CODAE_ACEITOU).first()
+        status=ReclamacaoProdutoWorkflow.CODAE_ACEITOU
+    ).first()
     logs = homologacao.logs
     lotes = terceirizada.lotes.all()
-    justificativa_analise_sensorial = get_ultima_justificativa_analise_sensorial(produto)
+    justificativa_analise_sensorial = get_ultima_justificativa_analise_sensorial(
+        produto
+    )
     html_string = render_to_string(
         'homologacao_produto.html',
         {
@@ -807,10 +1045,12 @@ def relatorio_produto_homologacao(request, produto):
             'produto': produto,
             'diretorias_regionais': get_diretorias_regionais(lotes),
             'logs': formata_logs(logs),
-            'justificativa_analise_sensorial': justificativa_analise_sensorial
-        }
+            'justificativa_analise_sensorial': justificativa_analise_sensorial,
+        },
     )
-    return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'produto_homologacao_{produto.id_externo}.pdf'
+    )
 
 
 def relatorio_marcas_por_produto_homologacao(produtos, dados, filtros):
@@ -820,10 +1060,12 @@ def relatorio_marcas_por_produto_homologacao(produtos, dados, filtros):
             'produtos': produtos,
             'hoje': datetime.date.today(),
             'dados': dados,
-            'filtros': filtros
-        }
+            'filtros': filtros,
+        },
     )
-    return html_to_pdf_file(html_string, f'relatorio_marcas_por_produto_homologacao.pdf', True)
+    return html_to_pdf_file(
+        html_string, 'relatorio_marcas_por_produto_homologacao.pdf', True
+    )
 
 
 def produtos_suspensos_por_edital(produtos, data_final, nome_edital, filtros):
@@ -833,84 +1075,89 @@ def produtos_suspensos_por_edital(produtos, data_final, nome_edital, filtros):
             'produtos': produtos,
             'total': len(produtos),
             'hoje': datetime.date.today().strftime('%d/%m/%Y'),
-            'data_final': data_final if data_final else datetime.date.today().strftime('%d/%m/%Y'),
+            'data_final': data_final
+            if data_final
+            else datetime.date.today().strftime('%d/%m/%Y'),
             'nome_edital': nome_edital,
-            'filtros': filtros
-        }
+            'filtros': filtros,
+        },
     )
-    return html_to_pdf_file(html_string, f'relatorio_produto_suspenso_no_edital.pdf', True)
+    return html_to_pdf_file(
+        html_string, 'relatorio_produto_suspenso_no_edital.pdf', True
+    )
 
 
 def relatorio_produtos_suspensos(produtos, filtros):
-    if filtros['cabecario_tipo'] == 'CABECARIO_POR_DATA' and 'data_suspensao_inicial' not in filtros:
+    if (
+        filtros['cabecario_tipo'] == 'CABECARIO_POR_DATA'
+        and 'data_suspensao_inicial' not in filtros
+    ):
         data_suspensao_inicial = datetime.datetime.today()
         for produto in produtos:
             ultimo_log = produto.ultima_homologacao.ultimo_log
             if ultimo_log.criado_em < data_suspensao_inicial:
                 data_suspensao_inicial = ultimo_log.criado_em
-        filtros['data_suspensao_inicial'] = data_suspensao_inicial.strftime(
-            '%d/%m/%Y')
+        filtros['data_suspensao_inicial'] = data_suspensao_inicial.strftime('%d/%m/%Y')
 
     html_string = render_to_string(
-        'relatorio_suspensoes_produto.html',
-        {
-            'produtos': produtos,
-            'config': filtros
-        }
+        'relatorio_suspensoes_produto.html', {'produtos': produtos, 'config': filtros}
     )
     return html_to_pdf_response(html_string, 'relatorio_suspensoes_produto.pdf')
 
 
 def relatorio_produtos_em_analise_sensorial(produtos, filtros):
     data_incial_analise_padrao = produtos[0]['ultima_homologacao'][
-        'log_solicitacao_analise']['criado_em']
-    contatos_terceirizada = produtos[0]['ultima_homologacao'][
-        'rastro_terceirizada']['contatos']
+        'log_solicitacao_analise'
+    ]['criado_em']
+    contatos_terceirizada = produtos[0]['ultima_homologacao']['rastro_terceirizada'][
+        'contatos'
+    ]
     config = get_config_cabecario_relatorio_analise(
-        filtros,
-        data_incial_analise_padrao,
-        contatos_terceirizada)
+        filtros, data_incial_analise_padrao, contatos_terceirizada
+    )
     html_string = render_to_string(
         'relatorio_produto_em_analise_sensorial.html',
-        {
-            'produtos': produtos,
-            'config': config
-        }
+        {'produtos': produtos, 'config': config},
     )
-    return html_to_pdf_response(html_string, 'relatorio_produtos_em_analise_sensorial.pdf')
+    return html_to_pdf_response(
+        html_string, 'relatorio_produtos_em_analise_sensorial.pdf'
+    )
 
 
 def relatorio_reclamacao(produtos, filtros):
-    if filtros['cabecario_tipo'] == 'CABECARIO_POR_DATA' and 'data_inicial_reclamacao' not in filtros:
+    if (
+        filtros['cabecario_tipo'] == 'CABECARIO_POR_DATA'
+        and 'data_inicial_reclamacao' not in filtros
+    ):
         data_inicial_reclamacao = datetime.datetime.today()
         for produto in produtos:
             reclamacao = produto.ultima_homologacao.reclamacoes.first()
             if reclamacao.criado_em < data_inicial_reclamacao:
                 data_inicial_reclamacao = reclamacao.criado_em
         filtros['data_inicial_reclamacao'] = data_inicial_reclamacao.strftime(
-            '%d/%m/%Y')
+            '%d/%m/%Y'
+        )
     html_string = render_to_string(
-        'relatorio_reclamacao.html',
-        {
-            'produtos': produtos,
-            'config': filtros
-        }
+        'relatorio_reclamacao.html', {'produtos': produtos, 'config': filtros}
     )
     return html_to_pdf_response(html_string, 'relatorio_reclamacao.pdf')
 
 
 def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
     dados_relatorio_transformados = transforma_dados_relatorio_quantitativo(
-        dados_relatorio)
+        dados_relatorio
+    )
     html_string = render_to_string(
         'relatorio_quantitativo_por_terceirizada.html',
         {
             'filtros': filtros,
             'dados_relatorio': dados_relatorio_transformados,
-            'qtde_filtros': conta_filtros(filtros)
-        }
+            'qtde_filtros': conta_filtros(filtros),
+        },
     )
-    return html_to_pdf_response(html_string, 'relatorio_quantitativo_por_terceirizada.pdf')
+    return html_to_pdf_response(
+        html_string, 'relatorio_quantitativo_por_terceirizada.pdf'
+    )
 
 
 def relatorio_produto_analise_sensorial(request, produto):
@@ -928,13 +1175,17 @@ def relatorio_produto_analise_sensorial(request, produto):
             'produto': produto,
             'diretorias_regionais': get_diretorias_regionais(lotes),
             'logs': formata_logs(logs),
-            'ultimo_log': homologacao.logs.last()
-        }
+            'ultimo_log': homologacao.logs.last(),
+        },
     )
-    return html_to_pdf_response(html_string, f'produto_homologacao_relatorio_{produto.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'produto_homologacao_relatorio_{produto.id_externo}.pdf'
+    )
 
 
-def relatorio_produtos_agrupado_terceirizada(tipo_usuario, dados_agrupados, dados, filtros):
+def relatorio_produtos_agrupado_terceirizada(
+    tipo_usuario, dados_agrupados, dados, filtros
+):
     html_string = render_to_string(
         'relatorio_produtos_por_terceirizada.html',
         {
@@ -942,10 +1193,12 @@ def relatorio_produtos_agrupado_terceirizada(tipo_usuario, dados_agrupados, dado
             'dados': dados,
             'filtros': filtros,
             'qtde_filtros': conta_filtros(filtros),
-            'exibe_coluna_terceirizada': tipo_usuario not in ['escola', 'terceirizada']
-        }
+            'exibe_coluna_terceirizada': tipo_usuario not in ['escola', 'terceirizada'],
+        },
     )
-    return html_to_pdf_file(html_string, 'produtos_homologados_por_terceirizada.pdf', True)
+    return html_to_pdf_file(
+        html_string, 'produtos_homologados_por_terceirizada.pdf', True
+    )
 
 
 def relatorio_produto_analise_sensorial_recebimento(request, produto):
@@ -963,17 +1216,20 @@ def relatorio_produto_analise_sensorial_recebimento(request, produto):
             'produto': produto,
             'diretorias_regionais': get_diretorias_regionais(lotes),
             'logs': formata_logs(logs),
-            'ultimo_log': homologacao.logs.last()
-        }
+            'ultimo_log': homologacao.logs.last(),
+        },
     )
-    return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
+    return html_to_pdf_response(
+        html_string, f'produto_homologacao_{produto.id_externo}.pdf'
+    )
 
 
 def get_relatorio_dieta_especial(campos, form, queryset, user, nome_relatorio):
     status = None
     if 'status' in form.cleaned_data:
         status = dict(form.fields['status'].choices).get(
-            form.cleaned_data['status'], '')
+            form.cleaned_data['status'], ''
+        )
     html_string = render_to_string(
         f'{nome_relatorio}.html',
         {
@@ -981,20 +1237,30 @@ def get_relatorio_dieta_especial(campos, form, queryset, user, nome_relatorio):
             'status': status,
             'filtros': form.cleaned_data,
             'queryset': queryset,
-            'user': user
-        }
+            'user': user,
+        },
     )
     return html_to_pdf_response(html_string, f'{nome_relatorio}.pdf')
 
 
 def relatorio_quantitativo_solic_dieta_especial(campos, form, queryset, user):
     return get_relatorio_dieta_especial(
-        campos, form, queryset, user, 'relatorio_quantitativo_solicitacoes_dieta_especial')
+        campos,
+        form,
+        queryset,
+        user,
+        'relatorio_quantitativo_solicitacoes_dieta_especial',
+    )
 
 
 def relatorio_quantitativo_classificacao_dieta_especial(campos, form, queryset, user):
     return get_relatorio_dieta_especial(
-        campos, form, queryset, user, 'relatorio_quantitativo_classificacao_dieta_especial')
+        campos,
+        form,
+        queryset,
+        user,
+        'relatorio_quantitativo_classificacao_dieta_especial',
+    )
 
 
 def relatorio_quantitativo_diag_dieta_especial(campos, form, queryset, user):
@@ -1003,49 +1269,56 @@ def relatorio_quantitativo_diag_dieta_especial(campos, form, queryset, user):
         form,
         queryset,
         user,
-        'relatorio_quantitativo_diagnostico_dieta_especial'
+        'relatorio_quantitativo_diagnostico_dieta_especial',
     )
 
 
-def relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas(campos, form, queryset, user):
+def relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas(
+    campos, form, queryset, user
+):
     return get_relatorio_dieta_especial(
         campos,
         form,
         queryset,
         user,
-        'relatorio_quantitativo_diagnostico_dieta_especial_somente_dietas_ativas'
+        'relatorio_quantitativo_diagnostico_dieta_especial_somente_dietas_ativas',
     )
 
 
 def relatorio_geral_dieta_especial(form, queryset, user):
     return get_relatorio_dieta_especial(
-        None, form, queryset, user, 'relatorio_dieta_especial')
+        None, form, queryset, user, 'relatorio_dieta_especial'
+    )
 
 
 def relatorio_geral_dieta_especial_pdf(form, queryset, user):
     status = None
     if 'status' in form.cleaned_data:
         status = dict(form.fields['status'].choices).get(
-            form.cleaned_data['status'], '')
+            form.cleaned_data['status'], ''
+        )
     html_string = render_to_string(
-        f'relatorio_dieta_especial.html',
+        'relatorio_dieta_especial.html',
         {
             'status': status,
             'filtros': form.cleaned_data,
             'queryset': queryset,
-            'user': user
-        }
+            'user': user,
+        },
     )
-    return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
+    return html_to_pdf_file(html_string, 'relatorio_dieta_especial.pdf', is_async=True)
 
 
 def get_total_refeicoes_por_periodo(tabelas):
     dict_periodos_total_refeicoes = {}
     for tabela in tabelas:
         if 'total_refeicoes_pagamento' in tabela['nomes_campos']:
-            idx_total_refeicoes_pagamento = tabela['nomes_campos'].index('total_refeicoes_pagamento')
-            dict_periodos_total_refeicoes[
-                tabela['periodos'][0]] = tabela['valores_campos'][-1][idx_total_refeicoes_pagamento + 1]
+            idx_total_refeicoes_pagamento = tabela['nomes_campos'].index(
+                'total_refeicoes_pagamento'
+            )
+            dict_periodos_total_refeicoes[tabela['periodos'][0]] = tabela[
+                'valores_campos'
+            ][-1][idx_total_refeicoes_pagamento + 1]
     return dict_periodos_total_refeicoes
 
 
@@ -1053,9 +1326,12 @@ def get_total_sobremesas_por_periodo(tabelas):
     dict_periodos_total_sobremesas = {}
     for tabela in tabelas:
         if 'total_sobremesas_pagamento' in tabela['nomes_campos']:
-            idx_total_sobremesas_pagamento = tabela['nomes_campos'].index('total_sobremesas_pagamento')
-            dict_periodos_total_sobremesas[
-                tabela['periodos'][0]] = tabela['valores_campos'][-1][idx_total_sobremesas_pagamento + 1]
+            idx_total_sobremesas_pagamento = tabela['nomes_campos'].index(
+                'total_sobremesas_pagamento'
+            )
+            dict_periodos_total_sobremesas[tabela['periodos'][0]] = tabela[
+                'valores_campos'
+            ][-1][idx_total_sobremesas_pagamento + 1]
     return dict_periodos_total_sobremesas
 
 
@@ -1063,74 +1339,88 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
     tabelas = build_tabelas_relatorio_medicao(solicitacao)
     dict_total_refeicoes = get_total_refeicoes_por_periodo(tabelas)
     dict_total_sobremesas = get_total_sobremesas_por_periodo(tabelas)
-    tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list('nome', flat=True)
+    tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list(
+        'nome', flat=True
+    )
     tipos_contagem_alimentacao = ', '.join(list(set(tipos_contagem_alimentacao)))
     tabela_observacoes = list(
-        solicitacao.medicoes.filter(
-            valores_medicao__nome_campo='observacoes'
-        ).values_list(
+        solicitacao.medicoes.filter(valores_medicao__nome_campo='observacoes')
+        .values_list(
             'valores_medicao__dia',
             'periodo_escolar__nome',
             'valores_medicao__categoria_medicao__nome',
             'valores_medicao__valor',
-            'grupo__nome'
-        ).order_by(
+            'grupo__nome',
+        )
+        .order_by(
             'valores_medicao__dia',
             'periodo_escolar__nome',
-            'valores_medicao__categoria_medicao__nome'))
-    tabela_somatorio = build_tabela_somatorio_body(solicitacao, dict_total_refeicoes, dict_total_sobremesas)
+            'valores_medicao__categoria_medicao__nome',
+        )
+    )
+    tabela_somatorio = build_tabela_somatorio_body(
+        solicitacao, dict_total_refeicoes, dict_total_sobremesas
+    )
     html_string = render_to_string(
-        f'relatorio_solicitacao_medicao_por_escola.html',
+        'relatorio_solicitacao_medicao_por_escola.html',
         {
             'solicitacao': solicitacao,
             'tipos_contagem_alimentacao': tipos_contagem_alimentacao,
             'responsaveis': solicitacao.responsaveis.all(),
             'assinatura_escola': solicitacao.assinatura_ue,
             'assinatura_dre': solicitacao.assinatura_dre,
-            'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
+            'quantidade_dias_mes': range(
+                1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1
+            ),
             'tabelas': tabelas,
             'tabela_observacoes': tabela_observacoes,
-            'tabela_somatorio': tabela_somatorio
-        }
+            'tabela_somatorio': tabela_somatorio,
+        },
     )
 
-    return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
+    return html_to_pdf_file(html_string, 'relatorio_dieta_especial.pdf', is_async=True)
 
 
 def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
     tabelas, dias_letivos = build_tabelas_relatorio_medicao_cei(solicitacao)
     tabelas_somatorios = build_tabela_somatorio_body_cei(solicitacao)
-    tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list('nome', flat=True)
+    tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list(
+        'nome', flat=True
+    )
     tipos_contagem_alimentacao = ', '.join(list(set(tipos_contagem_alimentacao)))
     tabela_observacoes = list(
-        solicitacao.medicoes.filter(
-            valores_medicao__nome_campo='observacoes'
-        ).values_list(
+        solicitacao.medicoes.filter(valores_medicao__nome_campo='observacoes')
+        .values_list(
             'valores_medicao__dia',
             'periodo_escolar__nome',
             'valores_medicao__categoria_medicao__nome',
             'valores_medicao__valor',
-            'grupo__nome'
-        ).order_by(
+            'grupo__nome',
+        )
+        .order_by(
             'valores_medicao__dia',
             'periodo_escolar__nome',
-            'valores_medicao__categoria_medicao__nome'))
+            'valores_medicao__categoria_medicao__nome',
+        )
+    )
     html_string = render_to_string(
-        f'relatorio_solicitacao_medicao_por_escola_cei.html',
+        'relatorio_solicitacao_medicao_por_escola_cei.html',
         {
             'solicitacao': solicitacao,
             'tipos_contagem_alimentacao': tipos_contagem_alimentacao,
             'responsaveis': solicitacao.responsaveis.all(),
             'assinatura_escola': solicitacao.assinatura_ue,
             'assinatura_dre': solicitacao.assinatura_dre,
-            'quantidade_dias_mes': range(1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1),
+            'quantidade_dias_mes': range(
+                1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1
+            ),
             'tabelas': tabelas,
             'dias_letivos': dias_letivos,
             'tabela_observacoes': tabela_observacoes,
             'tabelas_somatorios': tabelas_somatorios,
-        }
+        },
     )
-    return html_to_pdf_file(html_string, f'relatorio_dieta_especial.pdf', is_async=True)
+    return html_to_pdf_file(html_string, 'relatorio_dieta_especial.pdf', is_async=True)
 
 
 def get_pdf_guia_distribuidor(data=None, many=False):
@@ -1140,14 +1430,17 @@ def get_pdf_guia_distribuidor(data=None, many=False):
     for guia in data:
         todos_alimentos = guia.alimentos.all().annotate(
             peso_total=Sum(
-                F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
+                F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'),
+                output_field=FloatField(),
             )
         )
         while True:
-            alimentos = todos_alimentos[inicio:inicio + num_alimentos_pagina]
+            alimentos = todos_alimentos[inicio : inicio + num_alimentos_pagina]
             if alimentos:
                 page = guia.as_dict()
-                peso_total_pagina = round(sum(alimento.peso_total for alimento in alimentos), 2)
+                peso_total_pagina = round(
+                    sum(alimento.peso_total for alimento in alimentos), 2
+                )
                 page['alimentos'] = alimentos
                 page['peso_total'] = peso_total_pagina
                 pages.append(page)
@@ -1155,10 +1448,14 @@ def get_pdf_guia_distribuidor(data=None, many=False):
             else:
                 break
         inicio = 0
-    html_string = render_to_string('logistica/guia_distribuidor/guia_distribuidor_v2.html', {'pages': pages})
+    html_string = render_to_string(
+        'logistica/guia_distribuidor/guia_distribuidor_v2.html', {'pages': pages}
+    )
     data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
 
-    return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
+    return html_to_pdf_response(
+        html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf'
+    )
 
 
 def get_pdf_cronograma(request, cronograma):
@@ -1171,8 +1468,11 @@ def get_pdf_cronograma(request, cronograma):
             'cronograma': cronograma,
             'etapas': cronograma.etapas.all(),
             'programacoes': cronograma.programacoes_de_recebimento.all(),
-            'logs': logs
-        }
+            'logs': logs,
+        },
     )
     data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
-    return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), f'cronogram_{cronograma.numero}.pdf')
+    return html_to_pdf_response(
+        html_string.replace('dt_file', data_arquivo),
+        f'cronogram_{cronograma.numero}.pdf',
+    )

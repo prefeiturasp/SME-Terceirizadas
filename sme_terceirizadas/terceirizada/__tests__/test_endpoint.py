@@ -13,7 +13,9 @@ def test_url_authorized_solicitacao(client_autenticado_dilog):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_endpoint_empresas_nao_terceirizadas_create(client_autenticado_dilog_cronograma):
+def test_url_endpoint_empresas_nao_terceirizadas_create(
+    client_autenticado_dilog_cronograma,
+):
     payload = {
         'nome_fantasia': 'Empresa Teste',
         'tipo_alimento': 'FLVO',
@@ -25,11 +27,7 @@ def test_url_endpoint_empresas_nao_terceirizadas_create(client_autenticado_dilog
         'endereco': 'Rua teste',
         'cep': '04037000',
         'contatos': [
-            {
-                'nome': 'nome',
-                'telefone': '0000000000000',
-                'email': 'teste@gmail.com'
-            }
+            {'nome': 'nome', 'telefone': '0000000000000', 'email': 'teste@gmail.com'}
         ],
         'bairro': 'Teste',
         'cidade': 'Teste',
@@ -50,30 +48,22 @@ def test_url_endpoint_empresas_nao_terceirizadas_create(client_autenticado_dilog
                 'ata': '1234',
                 'pregao_chamada_publica': '12345',
                 'vigencias': [
-                    {
-                        'data_inicial': '10/01/2023',
-                        'data_final': '15/01/2023'
-                    },
-                ]
+                    {'data_inicial': '10/01/2023', 'data_final': '15/01/2023'},
+                ],
             }
         ],
         'super_admin': {
             'nome': 'xxx',
             'cpf': '00000000000',
             'email': 'xxx@xxx.com',
-            'contatos': [
-                {
-                    'email': 'xxx@xxx.com',
-                    'telefone': '000000000'
-                }
-            ]
-        }
+            'contatos': [{'email': 'xxx@xxx.com', 'telefone': '000000000'}],
+        },
     }
 
     response = client_autenticado_dilog_cronograma.post(
         '/empresas-nao-terceirizadas/',
         data=json.dumps(payload),
-        content_type='application/json'
+        content_type='application/json',
     )
     empresa = Terceirizada.objects.first()
 
@@ -93,11 +83,8 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
                 'ata': '1',
                 'pregao_chamada_publica': '1',
                 'vigencias': [
-                    {
-                        'data_inicial': '01/01/2023',
-                        'data_final': '31/12/2023'
-                    },
-                ]
+                    {'data_inicial': '01/01/2023', 'data_final': '31/12/2023'},
+                ],
             },
             {
                 'encerrado': False,
@@ -106,11 +93,8 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
                 'ata': '2',
                 'pregao_chamada_publica': '2',
                 'vigencias': [
-                    {
-                        'data_inicial': '01/01/2023',
-                        'data_final': '31/12/2023'
-                    },
-                ]
+                    {'data_inicial': '01/01/2023', 'data_final': '31/12/2023'},
+                ],
             },
         ],
     }
@@ -118,7 +102,7 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
     response = client_autenticado_dilog_cronograma.patch(
         f'/empresas-nao-terceirizadas/{terceirizada.uuid}/',
         data=json.dumps(payload),
-        content_type='application/json'
+        content_type='application/json',
     )
 
     terceirizada.refresh_from_db()
@@ -135,11 +119,8 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
                 'ata': '9',
                 'pregao_chamada_publica': '9',
                 'vigencias': [
-                    {
-                        'data_inicial': '09/09/1999',
-                        'data_final': '31/12/2023'
-                    },
-                ]
+                    {'data_inicial': '09/09/1999', 'data_final': '31/12/2023'},
+                ],
             },
         ],
     }
@@ -147,7 +128,7 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
     response = client_autenticado_dilog_cronograma.patch(
         f'/empresas-nao-terceirizadas/{terceirizada.uuid}/',
         data=json.dumps(payload),
-        content_type='application/json'
+        content_type='application/json',
     )
     contrato_edicao.refresh_from_db()
     assert response.status_code == status.HTTP_200_OK
@@ -156,33 +137,41 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
 
     assert contrato_edicao.processo == payload['contratos'][0]['processo']
     assert contrato_edicao.ata == payload['contratos'][0]['ata']
-    assert contrato_edicao.pregao_chamada_publica == payload['contratos'][0]['pregao_chamada_publica']
+    assert (
+        contrato_edicao.pregao_chamada_publica
+        == payload['contratos'][0]['pregao_chamada_publica']
+    )
 
     vigencia_contrato_edicao = contrato_edicao.vigencias.last()
     vigencia_payload = payload['contratos'][0]['vigencias'][0]
-    assert vigencia_contrato_edicao.data_inicial.strftime('%d/%m/%Y') == vigencia_payload['data_inicial']
-    assert vigencia_contrato_edicao.data_final.strftime('%d/%m/%Y') == vigencia_payload['data_final']
+    assert (
+        vigencia_contrato_edicao.data_inicial.strftime('%d/%m/%Y')
+        == vigencia_payload['data_inicial']
+    )
+    assert (
+        vigencia_contrato_edicao.data_final.strftime('%d/%m/%Y')
+        == vigencia_payload['data_final']
+    )
 
 
 def test_url_endpoint_terceirizadas_actions(client_autenticado_dilog):
-
     client = client_autenticado_dilog
 
-    response = client.get(f'/terceirizadas/lista-nomes/')
+    response = client.get('/terceirizadas/lista-nomes/')
     assert response.status_code == status.HTTP_200_OK
 
-    response = client.get(f'/terceirizadas/lista-nomes-distribuidores/')
+    response = client.get('/terceirizadas/lista-nomes-distribuidores/')
     assert response.status_code == status.HTTP_200_OK
 
-    response = client.get(f'/terceirizadas/lista-empresas-cronograma/')
+    response = client.get('/terceirizadas/lista-empresas-cronograma/')
     assert response.status_code == status.HTTP_200_OK
 
-    response = client.get(f'/terceirizadas/lista-cnpjs/')
+    response = client.get('/terceirizadas/lista-cnpjs/')
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_url_endpoint_contratos_actions(client_autenticado_dilog_cronograma):
     client = client_autenticado_dilog_cronograma
 
-    response = client.get(f'/contratos/numeros-contratos-cadastrados/')
+    response = client.get('/contratos/numeros-contratos-cadastrados/')
     assert response.status_code == status.HTTP_200_OK

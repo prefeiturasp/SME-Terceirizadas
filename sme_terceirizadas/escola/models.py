@@ -1529,7 +1529,7 @@ class Aluno(TemChaveExterna):
             dieta_especial.ativo = False
             dieta_especial.save()
         except MultipleObjectsReturned:
-            logger.critical(f'Aluno não deve possuir mais de uma Dieta Especial ativa')
+            logger.critical('Aluno não deve possuir mais de uma Dieta Especial ativa')
 
     class Meta:
         verbose_name = 'Aluno'
