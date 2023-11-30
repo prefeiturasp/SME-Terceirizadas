@@ -906,7 +906,9 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
     def get_alteracao_obj(self, alteracao, nome_periodo_escolar):
         alt = None
-        if alteracao.escola.eh_cemei and 'Infantil' in nome_periodo_escolar:
+        if alteracao.escola.eh_cemei:
+            if 'Infantil' not in nome_periodo_escolar:
+                return alt
             nome_periodo_escolar = nome_periodo_escolar.split(' ')[1]
             if alteracao.substituicoes_cemei_emei_periodo_escolar.filter(
                     periodo_escolar__nome=nome_periodo_escolar).exists():
