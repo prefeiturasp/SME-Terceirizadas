@@ -73,6 +73,22 @@ def tratar_periodo_parcial(nome_periodo_escolar):
     return nome_periodo_escolar
 
 
+def tratar_periodo_parcial_cemei(nome_periodo_escolar, suspensao):
+    if not suspensao.escola.eh_cemei:
+        return nome_periodo_escolar
+    if (nome_periodo_escolar == 'PARCIAL' and
+        suspensao.quantidades_por_periodo.filter(
+            alunos_cei_ou_emei='CEI',
+            periodo_escolar__nome='INTEGRAL').exists()):
+        nome_periodo_escolar = 'INTEGRAL'
+    elif ('Infantil' in nome_periodo_escolar and
+          suspensao.quantidades_por_periodo.filter(
+              alunos_cei_ou_emei='EMEI',
+              periodo_escolar__nome=nome_periodo_escolar.split(' ')[1]).exists()):
+        nome_periodo_escolar = nome_periodo_escolar.split(' ')[1]
+    return nome_periodo_escolar
+
+
 def tratar_append_return_dict(dia, mes, ano, periodo, inclusao, return_dict):
     if (get_ultimo_dia_mes(datetime.date(int(ano), int(mes), 1)) < datetime.date.today() or
             dia < datetime.date.today().day):
