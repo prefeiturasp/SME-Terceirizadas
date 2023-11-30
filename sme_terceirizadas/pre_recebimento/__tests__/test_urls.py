@@ -13,6 +13,8 @@ from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
 from sme_terceirizadas.dados_comuns.fluxo_status import DocumentoDeRecebimentoWorkflow, LayoutDeEmbalagemWorkflow
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
+    FichaTecnicaDetalharSerializer,
+    FichaTecnicalistagemSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
@@ -23,6 +25,7 @@ from sme_terceirizadas.pre_recebimento.fixtures.factories.documentos_de_recebime
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     DocumentoDeRecebimento,
+    FichaTecnicaDoProduto,
     Laboratorio,
     LayoutDeEmbalagem,
     SolicitacaoAlteracaoCronograma,
@@ -2457,3 +2460,84 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_rascunho_ficha_tecnica_list_metodo_nao_permitido(client_autenticado_fornecedor, ficha_tecnica_factory):
+
+    url = '/rascunho-ficha-tecnica/'
+    response = client_autenticado_fornecedor.get(url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
+def test_rascunho_ficha_tecnica_retrieve_metodo_nao_permitido(client_autenticado_fornecedor, ficha_tecnica_factory):
+    url = f'/rascunho-ficha-tecnica/{ficha_tecnica_factory().uuid}/'
+    response = client_autenticado_fornecedor.get(url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
+def test_rascunho_ficha_tecnica_create_update(client_autenticado_fornecedor, produto_logistica_factory, empresa_factory,
+                                              marca_factory, fabricante_factory):
+    payload = {
+        'produto': str(produto_logistica_factory().uuid),
+        'marca': str(marca_factory().uuid),
+        'empresa': str(empresa_factory().uuid),
+        'fabricante': str(fabricante_factory().uuid),
+        'categoria': FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
+        'pregao_chamada_publica': '1234567890',
+        'cnpj_fabricante': '',
+        'cep_fabricante': '',
+        'endereco_fabricante': '',
+        'numero_fabricante': '',
+        'complemento_fabricante': '',
+        'bairro_fabricante': '',
+        'cidade_fabricante': '',
+        'estado_fabricante': '',
+        'email_fabricante': '',
+        'telefone_fabricante': '',
+    }
+
+    response_create = client_autenticado_fornecedor.post(
+        '/rascunho-ficha-tecnica/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+
+    ultima_ficha_criada = FichaTecnicaDoProduto.objects.last()
+
+    assert response_create.status_code == status.HTTP_201_CREATED
+    assert response_create.json()['numero'] == f'FT{str(ultima_ficha_criada.pk).zfill(3)}'
+
+    payload['pregao_chamada_publica'] = '0987654321'
+    response_update = client_autenticado_fornecedor.put(
+        f'/rascunho-ficha-tecnica/{response_create.json()["uuid"]}/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+    ficha = FichaTecnicaDoProduto.objects.last()
+
+    assert response_update.status_code == status.HTTP_200_OK
+    assert ficha.pregao_chamada_publica == '0987654321'
+
+
+def test_ficha_tecnica_list_ok(client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model):
+    user_id = client_autenticado_fornecedor.session['_auth_user_id']
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    url = '/ficha-tecnica/'
+    fichas_criadas = [ficha_tecnica_factory.create(empresa=empresa) for _ in range(10)]
+    response = client_autenticado_fornecedor.get(url)
+    fichas = FichaTecnicaDoProduto.objects.filter(empresa=empresa).order_by('-criado_em')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data['results']) == len(fichas_criadas)
+    assert response.data['results'] == FichaTecnicalistagemSerializer(fichas, many=True).data
+
+
+def test_ficha_tecnica_retrieve_ok(client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model):
+    user_id = client_autenticado_fornecedor.session['_auth_user_id']
+    empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
+    ficha_tecnica = ficha_tecnica_factory.create(empresa=empresa)
+    url = f'/ficha-tecnica/{ficha_tecnica.uuid}/'
+    response = client_autenticado_fornecedor.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == FichaTecnicaDetalharSerializer(ficha_tecnica, many=False).data
