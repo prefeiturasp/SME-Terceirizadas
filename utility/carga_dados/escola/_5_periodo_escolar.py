@@ -111,7 +111,7 @@ def vincula_tipo_ue_a_periodos_escolares():
         cod_eol = row.CODESC
         try:
             escola = Escola.objects.get(codigo_eol=cod_eol) or None
-        except:  # nosec
+        except:  # nosec # noqa: E722
             continue
         periodo_escolar_lista = []
         for periodo_letra in periodos_str:
