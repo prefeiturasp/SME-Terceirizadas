@@ -770,6 +770,7 @@ class FichaTecnicaModelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     serializer_class = FichaTecnicaRascunhoSerializer
     queryset = FichaTecnicaDoProduto.objects.all().order_by('-criado_em')
     permission_classes = (UsuarioEhFornecedor,)
+    pagination_class = DefaultPagination
 
     def get_queryset(self):
         user = self.request.user
