@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('terceirizada', '0016_alter_contrato_terceirizada'),
+        ("terceirizada", "0016_alter_contrato_terceirizada"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='contrato',
-            name='numero',
-            field=models.CharField(max_length=100, unique=True, verbose_name='No do contrato'),
+            model_name="contrato",
+            name="numero",
+            field=models.CharField(
+                max_length=100, unique=True, verbose_name="No do contrato"
+            ),
         ),
     ]

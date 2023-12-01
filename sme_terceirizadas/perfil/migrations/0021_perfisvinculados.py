@@ -5,21 +5,35 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('perfil', '0020_auto_20221004_1716'),
+        ("perfil", "0020_auto_20221004_1716"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PerfisVinculados',
+            name="PerfisVinculados",
             fields=[
-                ('perfil_master', models.OneToOneField(on_delete=django.db.models.deletion.PROTECT, primary_key=True, serialize=False, to='perfil.Perfil')),
-                ('perfis_subordinados', models.ManyToManyField(help_text='Perfis que serão subordinados ao perfil master especificado', related_name='perfis_subordinados', to='perfil.Perfil')),
+                (
+                    "perfil_master",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        primary_key=True,
+                        serialize=False,
+                        to="perfil.Perfil",
+                    ),
+                ),
+                (
+                    "perfis_subordinados",
+                    models.ManyToManyField(
+                        help_text="Perfis que serão subordinados ao perfil master especificado",
+                        related_name="perfis_subordinados",
+                        to="perfil.Perfil",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Perfis Vinculados',
-                'verbose_name_plural': 'Perfis Vinculados',
+                "verbose_name": "Perfis Vinculados",
+                "verbose_name_plural": "Perfis Vinculados",
             },
         ),
     ]

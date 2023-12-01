@@ -4,19 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('medicao_inicial', '0031_solicitacaomedicaoinicial_tipos_contagem_alimentacao'),
+        (
+            "medicao_inicial",
+            "0031_solicitacaomedicaoinicial_tipos_contagem_alimentacao",
+        ),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='solicitacaomedicaoinicial',
-            name='tipo_contagem_alimentacoes',
+            model_name="solicitacaomedicaoinicial",
+            name="tipo_contagem_alimentacoes",
         ),
         migrations.AlterField(
-            model_name='solicitacaomedicaoinicial',
-            name='tipos_contagem_alimentacao',
-            field=models.ManyToManyField(related_name='solicitacoes_medicao_inicial', to='medicao_inicial.tipocontagemalimentacao'),
+            model_name="solicitacaomedicaoinicial",
+            name="tipos_contagem_alimentacao",
+            field=models.ManyToManyField(
+                related_name="solicitacoes_medicao_inicial",
+                to="medicao_inicial.tipocontagemalimentacao",
+            ),
         ),
     ]

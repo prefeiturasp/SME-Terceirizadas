@@ -5,21 +5,28 @@ from .api import viewsets
 
 router = routers.DefaultRouter()
 
-router.register('cronogramas', viewsets.CronogramaModelViewSet)
-router.register('laboratorios', viewsets.LaboratorioModelViewSet)
-router.register('tipos-embalagens', viewsets.TipoEmbalagemQldModelViewSet)
-router.register('unidades-medida-logistica', viewsets.UnidadeMedidaViewset)
-router.register('layouts-de-embalagem', viewsets.LayoutDeEmbalagemModelViewSet,
-                basename='layouts-de-embalagem')
-router.register('documentos-de-recebimento', viewsets.DocumentoDeRecebimentoModelViewSet,
-                basename='documentos-de-recebimento')
+router.register("cronogramas", viewsets.CronogramaModelViewSet)
+router.register("laboratorios", viewsets.LaboratorioModelViewSet)
+router.register("tipos-embalagens", viewsets.TipoEmbalagemQldModelViewSet)
+router.register("unidades-medida-logistica", viewsets.UnidadeMedidaViewset)
+router.register(
+    "layouts-de-embalagem",
+    viewsets.LayoutDeEmbalagemModelViewSet,
+    basename="layouts-de-embalagem",
+)
+router.register(
+    "documentos-de-recebimento",
+    viewsets.DocumentoDeRecebimentoModelViewSet,
+    basename="documentos-de-recebimento",
+)
 
-router.register('solicitacao-de-alteracao-de-cronograma', viewsets.SolicitacaoDeAlteracaoCronogramaViewSet,
-                basename='solicitacao-de-alteracao-de-cronograma')
-router.register('rascunho-ficha-tecnica', viewsets.FichaTecnicaRascunhoViewSet)
-router.register('ficha-tecnica', viewsets.FichaTecnicaModelViewSet)
+router.register(
+    "solicitacao-de-alteracao-de-cronograma",
+    viewsets.SolicitacaoDeAlteracaoCronogramaViewSet,
+    basename="solicitacao-de-alteracao-de-cronograma",
+)
+router.register("rascunho-ficha-tecnica", viewsets.FichaTecnicaRascunhoViewSet)
+router.register("ficha-tecnica", viewsets.FichaTecnicaModelViewSet)
 
 
-urlpatterns = [
-    path('', include(router.urls))
-]
+urlpatterns = [path("", include(router.urls))]

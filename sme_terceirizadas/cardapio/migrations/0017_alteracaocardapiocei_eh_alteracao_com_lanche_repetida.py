@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0016_alteracaocardapio_eh_alteracao_com_lanche_repetida'),
+        ("cardapio", "0016_alteracaocardapio_eh_alteracao_com_lanche_repetida"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='alteracaocardapiocei',
-            name='eh_alteracao_com_lanche_repetida',
+            model_name="alteracaocardapiocei",
+            name="eh_alteracao_com_lanche_repetida",
             field=models.BooleanField(default=False),
         ),
     ]

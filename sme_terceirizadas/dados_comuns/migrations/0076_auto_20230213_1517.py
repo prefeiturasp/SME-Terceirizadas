@@ -4,16 +4,15 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0075_alter_logsolicitacoesusuario_status_evento'),
+        ("dados_comuns", "0075_alter_logsolicitacoesusuario_status_evento"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='FluxoAlteracaoCronograma',
+            name="FluxoAlteracaoCronograma",
         ),
         migrations.DeleteModel(
-            name='FluxoCronograma',
+            name="FluxoCronograma",
         ),
     ]

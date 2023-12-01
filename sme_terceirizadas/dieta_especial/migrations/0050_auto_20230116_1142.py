@@ -4,14 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0049_logquantidadedietasautorizadas'),
+        ("dieta_especial", "0049_logquantidadedietasautorizadas"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='protocolopadraodietaespecial',
-            options={'ordering': ('nome_protocolo',), 'verbose_name': 'Protocolo padrão de dieta especial', 'verbose_name_plural': 'Protocolos padrões de dieta especial'},
+            name="protocolopadraodietaespecial",
+            options={
+                "ordering": ("nome_protocolo",),
+                "verbose_name": "Protocolo padrão de dieta especial",
+                "verbose_name_plural": "Protocolos padrões de dieta especial",
+            },
         ),
     ]

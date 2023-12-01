@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0019_auto_20201124_2237'),
+        ("dieta_especial", "0019_auto_20201124_2237"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='alimento',
-            options={'ordering': ('nome',)},
+            name="alimento",
+            options={"ordering": ("nome",)},
         ),
     ]

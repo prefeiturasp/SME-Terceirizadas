@@ -6,20 +6,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0013_auto_20200526_1641'),
+        ("dados_comuns", "0013_auto_20200526_1641"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AnexoLogSolicitacoesUsuario',
+            name="AnexoLogSolicitacoesUsuario",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(blank=True, max_length=255)),
-                ('arquivo', models.FileField(upload_to='')),
-                ('log', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='anexos', to='dados_comuns.LogSolicitacoesUsuario')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("nome", models.CharField(blank=True, max_length=255)),
+                ("arquivo", models.FileField(upload_to="")),
+                (
+                    "log",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="anexos",
+                        to="dados_comuns.LogSolicitacoesUsuario",
+                    ),
+                ),
             ],
-            bases=(django_prometheus.models.ExportModelOperationsMixin('log_solicitacoes_anexo'), models.Model),
+            bases=(
+                django_prometheus.models.ExportModelOperationsMixin(
+                    "log_solicitacoes_anexo"
+                ),
+                models.Model,
+            ),
         ),
     ]

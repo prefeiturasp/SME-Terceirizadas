@@ -4,20 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0038_conferenciaguia_eh_reposicao'),
+        ("logistica", "0038_conferenciaguia_eh_reposicao"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='guia',
-            name='situacao',
-            field=models.CharField(choices=[('ATIVA', 'Ativa'), ('ARQUIVADA', 'Arquivada')], default='ATIVA', max_length=10),
+            model_name="guia",
+            name="situacao",
+            field=models.CharField(
+                choices=[("ATIVA", "Ativa"), ("ARQUIVADA", "Arquivada")],
+                default="ATIVA",
+                max_length=10,
+            ),
         ),
         migrations.AddField(
-            model_name='solicitacaoremessa',
-            name='situacao',
-            field=models.CharField(choices=[('ATIVA', 'Ativa'), ('ARQUIVADA', 'Arquivada')], default='ATIVA', max_length=10),
+            model_name="solicitacaoremessa",
+            name="situacao",
+            field=models.CharField(
+                choices=[("ATIVA", "Ativa"), ("ARQUIVADA", "Arquivada")],
+                default="ATIVA",
+                max_length=10,
+            ),
         ),
     ]

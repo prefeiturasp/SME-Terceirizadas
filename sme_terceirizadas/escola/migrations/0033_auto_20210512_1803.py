@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0032_auto_20210503_1404'),
+        ("escola", "0032_auto_20210503_1404"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='planilhaescoladeparacodigoeolcodigocoade',
-            name='planilha',
-            field=models.FileField(help_text='Deve ser inserido um arquivo excel em formato xlsx<br> O arquivo deve conter as colunas código eol e código codae.<br>O nome de cada coluna deve ser exatamente como a seguir:<br> <b>codigo_eol</b> e <b>codigo_unidade</b>', upload_to=''),
+            model_name="planilhaescoladeparacodigoeolcodigocoade",
+            name="planilha",
+            field=models.FileField(
+                help_text="Deve ser inserido um arquivo excel em formato xlsx<br> O arquivo deve conter as colunas código eol e código codae.<br>O nome de cada coluna deve ser exatamente como a seguir:<br> <b>codigo_eol</b> e <b>codigo_unidade</b>",
+                upload_to="",
+            ),
         ),
     ]

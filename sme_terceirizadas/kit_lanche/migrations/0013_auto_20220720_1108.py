@@ -5,26 +5,25 @@ from django.db import migrations, models
 
 ROOT_DIR = environ.Path(__file__) - 3
 
-sql_path = ROOT_DIR.path('paineis_consolidados/sql', '0019_solicitacoes.sql')
-with open(sql_path, 'r') as f:
+sql_path = ROOT_DIR.path("paineis_consolidados/sql", "0019_solicitacoes.sql")
+with open(sql_path, "r") as f:
     sql = f.read()
 
-sql_path = ROOT_DIR.path('paineis_consolidados/sql', '0020_solicitacoes.sql')
-with open(sql_path, 'r') as f:
+sql_path = ROOT_DIR.path("paineis_consolidados/sql", "0020_solicitacoes.sql")
+with open(sql_path, "r") as f:
     sql_recreate = f.read()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kit_lanche', '0012_auto_20220714_0817'),
+        ("kit_lanche", "0012_auto_20220714_0817"),
     ]
 
     operations = [
         migrations.RunSQL(sql),
         migrations.AlterField(
-            model_name='solicitacaokitlancheavulsa',
-            name='quantidade_alunos',
+            model_name="solicitacaokitlancheavulsa",
+            name="quantidade_alunos",
             field=models.BigIntegerField(blank=True, null=True),
         ),
         migrations.RunSQL(sql_recreate),

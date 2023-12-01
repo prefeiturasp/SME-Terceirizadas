@@ -4,14 +4,16 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('pre_recebimento', '0011_unidademedida'),
+        ("pre_recebimento", "0011_unidademedida"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='unidademedida',
-            options={'verbose_name': 'Unidade de Medida', 'verbose_name_plural': 'Unidades de Medida'},
+            name="unidademedida",
+            options={
+                "verbose_name": "Unidade de Medida",
+                "verbose_name_plural": "Unidades de Medida",
+            },
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kit_lanche', '0011_merge_20211130_1419'),
+        ("kit_lanche", "0011_merge_20211130_1419"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='solicitacaokitlancheavulsa',
-            name='quantidade_alunos',
+            model_name="solicitacaokitlancheavulsa",
+            name="quantidade_alunos",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
     ]

@@ -4,16 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0044_auto_20211025_1759'),
-        ('kit_lanche', '0009_remove_kitlanche_itens'),
+        ("escola", "0044_auto_20211025_1759"),
+        ("kit_lanche", "0009_remove_kitlanche_itens"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaokitlancheavulsa',
-            name='alunos_com_dieta_especial_participantes',
-            field=models.ManyToManyField(to='escola.Aluno'),
+            model_name="solicitacaokitlancheavulsa",
+            name="alunos_com_dieta_especial_participantes",
+            field=models.ManyToManyField(to="escola.Aluno"),
         ),
     ]

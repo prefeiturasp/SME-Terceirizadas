@@ -1,23 +1,27 @@
 from django.db import models
 
-from ..dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemData  # noqa I101
+from ..dados_comuns.behaviors import (  # noqa I101
+    CriadoEm,
+    CriadoPor,
+    Logs,
+    TemChaveExterna,
+    TemData,
+)
 from .utils import (
     alteracoes_de_cardapio_por_escola_periodo_escolar_e_data,
     total_kits_lanche_por_escola_e_data,
-    total_merendas_secas_por_escola_periodo_escolar_e_data
+    total_merendas_secas_por_escola_periodo_escolar_e_data,
 )
 
 
-class LancamentoDiario(CriadoEm, CriadoPor, TemData,
-                       Logs, TemChaveExterna, models.Model):
+class LancamentoDiario(
+    CriadoEm, CriadoPor, TemData, Logs, TemChaveExterna, models.Model
+):
     escola_periodo_escolar = models.ForeignKey(
-        'escola.EscolaPeriodoEscolar',
-        on_delete=models.DO_NOTHING
+        "escola.EscolaPeriodoEscolar", on_delete=models.DO_NOTHING
     )
     tipo_dieta = models.ForeignKey(
-        'dieta_especial.ClassificacaoDieta',
-        on_delete=models.DO_NOTHING,
-        null=True
+        "dieta_especial.ClassificacaoDieta", on_delete=models.DO_NOTHING, null=True
     )
     frequencia = models.IntegerField(null=True)
     merenda_seca = models.IntegerField(null=True)
@@ -55,10 +59,8 @@ class Refeicao(models.Model):
     sob_oferta = models.IntegerField(null=True)
     sob_repet = models.IntegerField(null=True)
     lancamento = models.ForeignKey(
-        LancamentoDiario,
-        on_delete=models.CASCADE,
-        related_name='refeicoes'
+        LancamentoDiario, on_delete=models.CASCADE, related_name="refeicoes"
     )
 
     def __str__(self):
-        return f'{self.id} - Pertencente ao lançamento ${self.lancamento.uuid}'
+        return f"{self.id} - Pertencente ao lançamento ${self.lancamento.uuid}"

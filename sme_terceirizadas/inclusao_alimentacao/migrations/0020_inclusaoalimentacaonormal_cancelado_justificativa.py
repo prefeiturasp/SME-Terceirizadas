@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0019_inclusaoalimentacaonormal_cancelado'),
+        ("inclusao_alimentacao", "0019_inclusaoalimentacaonormal_cancelado"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='inclusaoalimentacaonormal',
-            name='cancelado_justificativa',
-            field=models.CharField(blank=True, max_length=500, verbose_name='Porque foi cancelado individualmente'),
+            model_name="inclusaoalimentacaonormal",
+            name="cancelado_justificativa",
+            field=models.CharField(
+                blank=True,
+                max_length=500,
+                verbose_name="Porque foi cancelado individualmente",
+            ),
         ),
     ]

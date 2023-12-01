@@ -5,15 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0042_diacalendario_escola'),
+        ("escola", "0042_diacalendario_escola"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='escola',
-            name='tipo_gestao',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='escola.TipoGestao'),
+            model_name="escola",
+            name="tipo_gestao",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                to="escola.TipoGestao",
+            ),
         ),
     ]

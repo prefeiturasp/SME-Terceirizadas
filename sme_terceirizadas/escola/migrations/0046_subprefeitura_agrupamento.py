@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0045_auto_20220309_1632'),
+        ("escola", "0045_auto_20220309_1632"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='subprefeitura',
-            name='agrupamento',
-            field=models.PositiveSmallIntegerField(choices=[(1, 1), (2, 2), (3, 3), (4, 4)], default=1),
+            model_name="subprefeitura",
+            name="agrupamento",
+            field=models.PositiveSmallIntegerField(
+                choices=[(1, 1), (2, 2), (3, 3), (4, 4)], default=1
+            ),
         ),
     ]

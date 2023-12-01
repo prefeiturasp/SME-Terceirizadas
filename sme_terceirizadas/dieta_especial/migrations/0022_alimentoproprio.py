@@ -4,23 +4,21 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0021_auto_20201214_1005'),
+        ("dieta_especial", "0021_auto_20201214_1005"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AlimentoProprio',
-            fields=[
-            ],
+            name="AlimentoProprio",
+            fields=[],
             options={
-                'verbose_name': 'alimento próprio',
-                'verbose_name_plural': 'alimentos próprios',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "alimento próprio",
+                "verbose_name_plural": "alimentos próprios",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('dieta_especial.alimento',),
+            bases=("dieta_especial.alimento",),
         ),
     ]

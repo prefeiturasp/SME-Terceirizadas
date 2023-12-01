@@ -5,15 +5,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0035_merge_20210705_1200'),
+        ("dieta_especial", "0035_merge_20210705_1200"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='protocolopadraodietaespecial',
-            name='historico',
+            model_name="protocolopadraodietaespecial",
+            name="historico",
             field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, null=True),
         ),
     ]

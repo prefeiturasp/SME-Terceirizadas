@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0049_subprefeitura_codigo_eol'),
+        ("escola", "0049_subprefeitura_codigo_eol"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='periodoescolar',
-            name='posicao',
+            model_name="periodoescolar",
+            name="posicao",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
     ]

@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0004_auto_20191206_1113'),
-        ('cardapio', '0004_substituicaodocombodovinculotipoalimentacaoperiodotipoue'),
+        ("cardapio", "0004_auto_20191206_1113"),
+        ("cardapio", "0004_substituicaodocombodovinculotipoalimentacaoperiodotipoue"),
     ]
 
-    operations = [
-    ]
+    operations = []
