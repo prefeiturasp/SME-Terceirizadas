@@ -14,4 +14,4 @@ def cria_kit_lanche():
     # Deleta kits existentes
     KitLanche.objects.all().delete()
     for i in progressbar(range(1, 11), "Kit Lanche"):
-        kit_lanche = KitLanche.objects.create(nome=f"Kit {i}")
+        KitLanche.objects.create(nome=f"Kit {i}")

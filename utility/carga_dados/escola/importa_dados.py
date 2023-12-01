@@ -340,9 +340,9 @@ def busca_lote(dre=None, lote=None):
 
 def cria_usuario_diretor(arquivo, in_memory=False):  # noqa_ C901
     items = excel_to_list(arquivo, in_memory=in_memory)
-    diretores_unicos = len(
-        set([item["DIRETOR"] for item in items if item["DIRETOR"] != ""])
-    )  # noqa
+    # diretores_unicos = len(
+    #     set([item["DIRETOR"] for item in items if item["DIRETOR"] != ""])
+    # )  # noqa
 
     perfil_diretor, created = Perfil.objects.get_or_create(
         nome="DIRETOR_UE", ativo=True, super_usuario=True
@@ -429,15 +429,15 @@ def cria_usuario_cogestor(items):  # noqa_ C901
     Específico: depende dos items de cria_usuario_diretor,
     porque o InMemoryUploadedFile não deu certo aqui.
     """
-    cogestores_unicos = len(
-        set(
-            [
-                item["ASSISTENTE DE DIRETOR"]
-                for item in items
-                if item["ASSISTENTE DE DIRETOR"] != ""
-            ]
-        )
-    )  # noqa
+    # cogestores_unicos = len(
+    #     set(
+    #         [
+    #             item["ASSISTENTE DE DIRETOR"]
+    #             for item in items
+    #             if item["ASSISTENTE DE DIRETOR"] != ""
+    #         ]
+    #     )
+    # )  # noqa
     perfil_diretor, created = Perfil.objects.get_or_create(
         nome="COGESTOR_DRE", ativo=True, super_usuario=True
     )

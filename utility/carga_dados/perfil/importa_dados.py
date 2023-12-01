@@ -675,7 +675,7 @@ class ProcessadorPlanilhaUsuarioPerfilCodae:
         }
 
         try:
-            perfil = Perfil.objects.get(nome=usuario_schema.perfil)
+            Perfil.objects.get(nome=usuario_schema.perfil)
         except Perfil.DoesNotExist:
             logger.error(f"Este perfil não existe: {usuario_schema.perfil}")
             raise Exception(f"Este perfil não existe: {usuario_schema.perfil}")

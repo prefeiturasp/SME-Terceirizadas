@@ -162,7 +162,7 @@ def cria_inclusoes_continuas(qtd=50):
                 data_final=hoje + datetime.timedelta(days=random.randint(100, 200)),
             )
 
-            q = QuantidadePorPeriodo.objects.create(
+            QuantidadePorPeriodo.objects.create(
                 periodo_escolar=_get_random_periodo_escolar(),
                 numero_alunos=random.randint(10, 200),
                 inclusao_alimentacao_continua=inclusao_continua,
@@ -181,7 +181,7 @@ def cria_inclusoes_normais(qtd=50):
             grupo_inclusao_normal = GrupoInclusaoAlimentacaoNormal.objects.create(
                 descricao=f.text()[:160], criado_por=user, escola=_get_random_escola()
             )
-            q = QuantidadePorPeriodo.objects.create(
+            QuantidadePorPeriodo.objects.create(
                 periodo_escolar=_get_random_periodo_escolar(),
                 numero_alunos=random.randint(10, 200),
                 grupo_inclusao_normal=grupo_inclusao_normal,
@@ -286,7 +286,7 @@ def cria_suspensoes_alimentacao(qtd=50):
                 data=hoje + datetime.timedelta(days=random.randint(1, 180)),
                 motivo=_get_random_motivo_suspensao(),
             )
-            q = QuantidadePorPeriodoSuspensaoAlimentacao.objects.create(
+            QuantidadePorPeriodoSuspensaoAlimentacao.objects.create(
                 numero_alunos=random.randint(100, 420),
                 periodo_escolar=_get_random_periodo_escolar(),
                 grupo_suspensao=suspensao_grupo,
