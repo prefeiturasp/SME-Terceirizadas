@@ -2520,16 +2520,47 @@ def test_rascunho_ficha_tecnica_create_update(client_autenticado_fornecedor, pro
 
 
 def test_ficha_tecnica_list_ok(client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model):
+    """Deve obter lista paginada e filtrada de fichas técnicas."""
     user_id = client_autenticado_fornecedor.session['_auth_user_id']
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     url = '/ficha-tecnica/'
-    fichas_criadas = [ficha_tecnica_factory.create(empresa=empresa) for _ in range(10)]
+    fichas_criadas = [ficha_tecnica_factory.create(empresa=empresa) for _ in range(25)]
     response = client_autenticado_fornecedor.get(url)
     fichas = FichaTecnicaDoProduto.objects.filter(empresa=empresa).order_by('-criado_em')
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data['results']) == len(fichas_criadas)
-    assert response.data['results'] == FichaTecnicaListagemSerializer(fichas, many=True).data
+
+    # Teste de paginação
+    assert response.data['count'] == len(fichas_criadas)
+    assert len(response.data['results']) == DefaultPagination.page_size
+    assert response.data['next'] is not None
+
+    # Acessa a próxima página
+    next_page = response.data['next']
+    next_response = client_autenticado_fornecedor.get(next_page)
+    assert next_response.status_code == status.HTTP_200_OK
+
+    # Tenta acessar uma página que não existe
+    response_not_found = client_autenticado_fornecedor.get('/ficha-tecnica/?page=1000')
+    assert response_not_found.status_code == status.HTTP_404_NOT_FOUND
+
+    # Testa a resposta em caso de erro (por exemplo, sem autenticação)
+    client_nao_autenticado = APIClient()
+    response_error = client_nao_autenticado.get('/ficha-tecnica/')
+    assert response_error.status_code == status.HTTP_401_UNAUTHORIZED
+
+    # Teste de consulta com parâmetros
+    data = datetime.date.today() - datetime.timedelta(days=1)
+    response_filtro = client_autenticado_fornecedor.get(f'/ficha-tecnica/?data_cadastro={data}')
+    assert response_filtro.status_code == status.HTTP_200_OK
+    assert response_filtro.data['count'] == 0
+
+
+def test_ficha_tecnica_list_not_authorized(client_autenticado):
+    """Deve retornar status HTTP 403 ao tentar obter listagem com usuário não autorizado."""
+    response = client_autenticado.get('/ficha-tecnica/')
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_ficha_tecnica_retrieve_ok(client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model):
