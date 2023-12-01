@@ -455,7 +455,7 @@ class FichaTecnicaListagemSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
 
     def get_nome_produto(self, obj):
-        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+        return obj.produto.nome if obj.produto else None
 
     class Meta:
         model = FichaTecnicaDoProduto
