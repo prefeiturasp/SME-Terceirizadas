@@ -1,4 +1,3 @@
-import re
 from unicodedata import normalize
 
 import pandas as pd
@@ -6,7 +5,6 @@ import pandas as pd
 from sme_terceirizadas.escola.models import (
     DiretoriaRegional,
     Escola,
-    Lote,
     TipoGestao,
     TipoUnidadeEscolar,
 )

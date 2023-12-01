@@ -2,8 +2,6 @@ from typing import Optional
 
 from pydantic import BaseModel, root_validator, validator
 
-from sme_terceirizadas.perfil.models import Perfil
-
 TAMANHO_CPF = 11
 TAMANHO_RF = 7
 

@@ -4,10 +4,9 @@
 import datetime
 import random
 import string
-from base64 import b64encode
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from faker import Faker
 
 from sme_terceirizadas.dieta_especial.models import (
@@ -21,8 +20,6 @@ from sme_terceirizadas.dieta_especial.models import (
 )
 from sme_terceirizadas.escola.models import Aluno, Escola
 from sme_terceirizadas.perfil.models import Usuario
-
-from .helper import base64_encode
 
 f = Faker("pt-br")
 f.seed(420)

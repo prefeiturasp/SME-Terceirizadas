@@ -4,17 +4,8 @@ from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.escola.models import DiretoriaRegional
 from sme_terceirizadas.terceirizada.data.contratos import data_contratos
 from sme_terceirizadas.terceirizada.data.editais import data_editais
-from sme_terceirizadas.terceirizada.data.nutricionistas import data_nutricionistas
 from sme_terceirizadas.terceirizada.data.terceirizadas import data_terceirizadas
-from sme_terceirizadas.terceirizada.data.vigencias import data_vigencias
-from sme_terceirizadas.terceirizada.models import (
-    Contrato,
-    Edital,
-    Lote,
-    Nutricionista,
-    Terceirizada,
-    VigenciaContrato,
-)
+from sme_terceirizadas.terceirizada.models import Contrato, Edital, Lote, Terceirizada
 from utility.carga_dados.helper import ja_existe, progressbar
 
 
