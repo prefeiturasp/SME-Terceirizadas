@@ -6,29 +6,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0018_auto_20201110_1601'),
+        ("dieta_especial", "0018_auto_20201110_1601"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='alimento',
-            options={'ordering': ('nome',), 'verbose_name': 'alimento', 'verbose_name_plural': 'alimentos'},
+            name="alimento",
+            options={
+                "ordering": ("nome",),
+                "verbose_name": "alimento",
+                "verbose_name_plural": "alimentos",
+            },
         ),
         migrations.AddField(
-            model_name='alimento',
-            name='uuid',
+            model_name="alimento",
+            name="uuid",
             field=models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
         ),
         migrations.AddField(
-            model_name='substituicaoalimento',
-            name='alimentos_substitutos',
-            field=models.ManyToManyField(blank=True, related_name='alimentos_substitutos', to='dieta_especial.Alimento'),
+            model_name="substituicaoalimento",
+            name="alimentos_substitutos",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="alimentos_substitutos",
+                to="dieta_especial.Alimento",
+            ),
         ),
         migrations.AlterField(
-            model_name='substituicaoalimento',
-            name='substitutos',
-            field=models.ManyToManyField(blank=True, help_text='produtos substitutos', related_name='substitutos', to='produto.Produto'),
+            model_name="substituicaoalimento",
+            name="substitutos",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="produtos substitutos",
+                related_name="substitutos",
+                to="produto.Produto",
+            ),
         ),
     ]

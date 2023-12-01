@@ -4,19 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('terceirizada', '0008_emailterceirizadapormodulo_modulo'),
+        ("terceirizada", "0008_emailterceirizadapormodulo_modulo"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='emailterceirizadapormodulo',
-            name='email',
-            field=models.EmailField(max_length=254, verbose_name='E-mail'),
+            model_name="emailterceirizadapormodulo",
+            name="email",
+            field=models.EmailField(max_length=254, verbose_name="E-mail"),
         ),
         migrations.AlterUniqueTogether(
-            name='emailterceirizadapormodulo',
-            unique_together={('email', 'terceirizada', 'modulo')},
+            name="emailterceirizadapormodulo",
+            unique_together={("email", "terceirizada", "modulo")},
         ),
     ]

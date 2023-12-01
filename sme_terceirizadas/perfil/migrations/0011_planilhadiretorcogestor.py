@@ -4,17 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('perfil', '0010_cargo'),
+        ("perfil", "0010_cargo"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PlanilhaDiretorCogestor',
+            name="PlanilhaDiretorCogestor",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('arquivo', models.FileField(blank=True, null=True, upload_to='')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("arquivo", models.FileField(blank=True, null=True, upload_to="")),
             ],
         ),
     ]

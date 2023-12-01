@@ -8,26 +8,57 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('perfil', '0009_usuario_cargo'),
+        ("perfil", "0009_usuario_cargo"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Cargo',
+            name="Cargo",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(blank=True, max_length=100, verbose_name='Nome')),
-                ('ativo', models.BooleanField(default=True, verbose_name='Está ativo?')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('data_inicial', models.DateField(blank=True, null=True, verbose_name='Data inicial')),
-                ('data_final', models.DateField(blank=True, null=True, verbose_name='Data final')),
-                ('usuario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cargos', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(blank=True, max_length=100, verbose_name="Nome"),
+                ),
+                (
+                    "ativo",
+                    models.BooleanField(default=True, verbose_name="Está ativo?"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "data_inicial",
+                    models.DateField(
+                        blank=True, null=True, verbose_name="Data inicial"
+                    ),
+                ),
+                (
+                    "data_final",
+                    models.DateField(blank=True, null=True, verbose_name="Data final"),
+                ),
+                (
+                    "usuario",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cargos",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Cargo',
-                'verbose_name_plural': 'Cargos',
+                "verbose_name": "Cargo",
+                "verbose_name_plural": "Cargos",
             },
         ),
     ]

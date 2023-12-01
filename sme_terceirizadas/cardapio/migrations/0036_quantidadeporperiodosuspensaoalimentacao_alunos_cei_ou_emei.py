@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0035_auto_20220912_1019'),
+        ("cardapio", "0035_auto_20220912_1019"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='quantidadeporperiodosuspensaoalimentacao',
-            name='alunos_cei_ou_emei',
-            field=models.CharField(blank=True, choices=[('TODOS', 'Todos'), ('CEI', 'CEI'), ('EMEI', 'EMEI')], max_length=10),
+            model_name="quantidadeporperiodosuspensaoalimentacao",
+            name="alunos_cei_ou_emei",
+            field=models.CharField(
+                blank=True,
+                choices=[("TODOS", "Todos"), ("CEI", "CEI"), ("EMEI", "EMEI")],
+                max_length=10,
+            ),
         ),
     ]

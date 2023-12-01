@@ -5,15 +5,21 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0020_auto_20200826_1455'),
+        ("dados_comuns", "0020_auto_20200826_1455"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='fluxosolicitacaocadastroproduto',
-            name='status',
-            field=django_xworkflows.models.StateField(max_length=22, workflow=django_xworkflows.models._SerializedWorkflow(initial_state='AGUARDANDO_CONFIRMACAO', name='SolicitacaoCadastroProdutoWorkflow', states=['AGUARDANDO_CONFIRMACAO', 'CONFIRMADA'])),
+            model_name="fluxosolicitacaocadastroproduto",
+            name="status",
+            field=django_xworkflows.models.StateField(
+                max_length=22,
+                workflow=django_xworkflows.models._SerializedWorkflow(
+                    initial_state="AGUARDANDO_CONFIRMACAO",
+                    name="SolicitacaoCadastroProdutoWorkflow",
+                    states=["AGUARDANDO_CONFIRMACAO", "CONFIRMADA"],
+                ),
+            ),
         ),
     ]

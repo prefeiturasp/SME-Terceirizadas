@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0030_auto_20220603_2001'),
+        ("cardapio", "0030_auto_20220603_2001"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='suspensaoalimentacaodacei',
-            name='terceirizada_conferiu_gestao',
-            field=models.BooleanField(default=False, verbose_name='Terceirizada conferiu?'),
+            model_name="suspensaoalimentacaodacei",
+            name="terceirizada_conferiu_gestao",
+            field=models.BooleanField(
+                default=False, verbose_name="Terceirizada conferiu?"
+            ),
         ),
     ]

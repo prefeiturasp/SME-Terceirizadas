@@ -6,7 +6,6 @@ from rest_framework_simplejwt.exceptions import InvalidToken
 
 
 class JWTAuthenticationMiddleware:
-
     def __init__(self, get_response):
         """JWT Middleware."""
         self.get_response = get_response

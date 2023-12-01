@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0009_auto_20200205_1707'),
+        ("dieta_especial", "0009_auto_20200205_1707"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='anexo',
-            name='eh_laudo_alta',
+            model_name="anexo",
+            name="eh_laudo_alta",
             field=models.BooleanField(default=False),
         ),
     ]

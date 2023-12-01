@@ -48,7 +48,7 @@ class UsuarioEscolaTercTotal(BasePermission):
             not usuario.is_anonymous
             and usuario.vinculo_atual
             and isinstance(usuario.vinculo_atual.instituicao, Escola)
-            and usuario.vinculo_atual.instituicao.modulo_gestao == 'TERCEIRIZADA'
+            and usuario.vinculo_atual.instituicao.modulo_gestao == "TERCEIRIZADA"
             and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_UE]
         )
 
@@ -56,21 +56,21 @@ class UsuarioEscolaTercTotal(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         usuario = request.user
-        if hasattr(obj, 'escola') and hasattr(obj, 'rastro_escola'):
+        if hasattr(obj, "escola") and hasattr(obj, "rastro_escola"):
             return usuario.vinculo_atual.instituicao in [obj.escola, obj.rastro_escola]
-        elif hasattr(obj, 'escola'):
+        elif hasattr(obj, "escola"):
             return usuario.vinculo_atual.instituicao == obj.escola
-        elif hasattr(obj, 'rastro_escola'):
+        elif hasattr(obj, "rastro_escola"):
             return usuario.vinculo_atual.instituicao == obj.rastro_escola
         elif isinstance(obj, Medicao):
             return (
                 usuario.vinculo_atual.instituicao
                 == obj.solicitacao_medicao_inicial.escola
             )
-        elif obj.tipo == 'Kit Lanche Unificado':
+        elif obj.tipo == "Kit Lanche Unificado":
             return (
                 usuario.vinculo_atual.instituicao.id
-                in obj.escolas_quantidades.all().values_list('escola', flat=True)
+                in obj.escolas_quantidades.all().values_list("escola", flat=True)
             )
         else:
             return False
@@ -85,7 +85,7 @@ class UsuarioDiretorEscolaTercTotal(UsuarioEscolaTercTotal):
             not usuario.is_anonymous
             and usuario.vinculo_atual
             and isinstance(usuario.vinculo_atual.instituicao, Escola)
-            and usuario.vinculo_atual.instituicao.modulo_gestao == 'TERCEIRIZADA'
+            and usuario.vinculo_atual.instituicao.modulo_gestao == "TERCEIRIZADA"
             and usuario.vinculo_atual.perfil.nome == DIRETOR_UE
         )
 
@@ -511,7 +511,7 @@ class UsuarioEscolaAbastecimento(BasePermission):
             not usuario.is_anonymous
             and usuario.vinculo_atual
             and isinstance(usuario.vinculo_atual.instituicao, Escola)
-            and usuario.vinculo_atual.instituicao.modulo_gestao == 'ABASTECIMENTO'
+            and usuario.vinculo_atual.instituicao.modulo_gestao == "ABASTECIMENTO"
             and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_UE]
         )
 
@@ -928,8 +928,8 @@ class ViewSetActionPermissionMixin:
         except KeyError:
             if self.action:
                 action_func = getattr(self, self.action, {})
-                action_func_kwargs = getattr(action_func, 'kwargs', {})
-                permission_classes = action_func_kwargs.get('permission_classes')
+                action_func_kwargs = getattr(action_func, "kwargs", {})
+                permission_classes = action_func_kwargs.get("permission_classes")
             else:
                 permission_classes = None
 

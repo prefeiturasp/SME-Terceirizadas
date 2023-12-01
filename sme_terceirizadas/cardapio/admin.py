@@ -18,7 +18,7 @@ from .models import (
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoDaCEI,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
 )
 
 admin.site.register(TipoAlimentacao)
@@ -31,8 +31,10 @@ admin.site.register(HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar)
 
 
 @admin.register(SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
-class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(admin.ModelAdmin):
-    list_display = ('__str__',)
+class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(
+    admin.ModelAdmin
+):
+    list_display = ("__str__",)
 
 
 class SubstituicaoComboInline(admin.TabularInline):
@@ -43,9 +45,9 @@ class SubstituicaoComboInline(admin.TabularInline):
 @admin.register(ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(admin.ModelAdmin):
     inlines = [SubstituicaoComboInline]
-    search_fields = ('vinculo__tipo_unidade_escolar__iniciais',)
-    filter_horizontal = ('tipos_alimentacao',)
-    readonly_fields = ('vinculo',)
+    search_fields = ("vinculo__tipo_unidade_escolar__iniciais",)
+    filter_horizontal = ("tipos_alimentacao",)
+    readonly_fields = ("vinculo",)
 
 
 class ComboVinculoLine(admin.TabularInline):
@@ -55,21 +57,21 @@ class ComboVinculoLine(admin.TabularInline):
 
 @admin.register(VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
 class VinculoTipoAlimentacaoModelAdmin(admin.ModelAdmin):
-    list_filter = ('periodo_escolar__nome', 'tipo_unidade_escolar__iniciais', 'ativo')
+    list_filter = ("periodo_escolar__nome", "tipo_unidade_escolar__iniciais", "ativo")
     inlines = [ComboVinculoLine]
 
 
 @admin.register(Cardapio)
 class CardapioAdmin(admin.ModelAdmin):
-    list_display = ['data', 'criado_em', 'ativo']
-    ordering = ['data', 'criado_em']
+    list_display = ["data", "criado_em", "ativo"]
+    ordering = ["data", "criado_em"]
 
 
 @admin.register(AlteracaoCardapio)
 class AlteracaoCardapioModelAdmin(admin.ModelAdmin):
-    list_display = ('uuid', 'data_inicial', 'data_final', 'status', 'DESCRICAO')
-    list_filter = ('status',)
-    readonly_fields = ('escola',)
+    list_display = ("uuid", "data_inicial", "data_final", "status", "DESCRICAO")
+    list_filter = ("status",)
+    readonly_fields = ("escola",)
 
 
 class SubstituicoesCEIInLine(admin.TabularInline):
@@ -80,14 +82,14 @@ class SubstituicoesCEIInLine(admin.TabularInline):
 @admin.register(AlteracaoCardapioCEI)
 class AlteracaoCardapioCEIModelAdmin(admin.ModelAdmin):
     inlines = [SubstituicoesCEIInLine]
-    list_display = ['uuid', 'data', 'status']
-    list_filter = ['status']
+    list_display = ["uuid", "data", "status"]
+    list_filter = ["status"]
 
 
 @admin.register(AlteracaoCardapioCEMEI)
 class AlteracaoCardapioCEMEIModelAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'data', 'status']
-    list_filter = ['status']
+    list_display = ["uuid", "data", "status"]
+    list_filter = ["status"]
 
 
 class SuspensaoAlimentacaoInline(admin.TabularInline):
@@ -104,5 +106,5 @@ class QuantidadePorPeriodoSuspensaoAlimentacaoInline(admin.TabularInline):
 class GrupoSuspensaoAlimentacaoModelAdmin(admin.ModelAdmin):
     inlines = [
         SuspensaoAlimentacaoInline,
-        QuantidadePorPeriodoSuspensaoAlimentacaoInline
+        QuantidadePorPeriodoSuspensaoAlimentacaoInline,
     ]

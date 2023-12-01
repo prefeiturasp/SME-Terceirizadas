@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kit_lanche', '0018_auto_20230921_1823'),
+        ("kit_lanche", "0018_auto_20230921_1823"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaokitlancheunificada',
-            name='evento',
+            model_name="solicitacaokitlancheunificada",
+            name="evento",
             field=models.CharField(blank=True, max_length=160),
         ),
     ]

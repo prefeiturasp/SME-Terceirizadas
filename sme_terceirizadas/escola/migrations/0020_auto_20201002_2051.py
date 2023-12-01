@@ -5,20 +5,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0019_auto_20201002_1707'),
+        ("escola", "0019_auto_20201002_1707"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='aluno',
-            name='cpf',
-            field=models.CharField(blank=True, max_length=11, null=True, unique=True, validators=[django.core.validators.MinLengthValidator(11)]),
+            model_name="aluno",
+            name="cpf",
+            field=models.CharField(
+                blank=True,
+                max_length=11,
+                null=True,
+                unique=True,
+                validators=[django.core.validators.MinLengthValidator(11)],
+            ),
         ),
         migrations.AddField(
-            model_name='aluno',
-            name='nao_matriculado',
+            model_name="aluno",
+            name="nao_matriculado",
             field=models.BooleanField(default=False),
         ),
     ]

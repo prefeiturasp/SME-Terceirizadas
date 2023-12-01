@@ -4,22 +4,21 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0004_solicitacaodietaespecial_aluno'),
+        ("dieta_especial", "0004_solicitacaodietaespecial_aluno"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='solicitacaodietaespecial',
-            name='codigo_eol_aluno',
+            model_name="solicitacaodietaespecial",
+            name="codigo_eol_aluno",
         ),
         migrations.RemoveField(
-            model_name='solicitacaodietaespecial',
-            name='data_nascimento_aluno',
+            model_name="solicitacaodietaespecial",
+            name="data_nascimento_aluno",
         ),
         migrations.RemoveField(
-            model_name='solicitacaodietaespecial',
-            name='nome_completo_aluno',
+            model_name="solicitacaodietaespecial",
+            name="nome_completo_aluno",
         ),
     ]

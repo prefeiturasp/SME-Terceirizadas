@@ -6,85 +6,90 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
 
-from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, StatusProcessamentoArquivo
+from .constants import (
+    LIMITE_INFERIOR,
+    LIMITE_SUPERIOR,
+    PRIORITARIO,
+    StatusProcessamentoArquivo,
+)
 from .models import LogSolicitacoesUsuario
 from .utils import eh_dia_util, obter_dias_uteis_apos, ordena_dias_semana_comeca_domingo
 
 
 class Iniciais(models.Model):
-    iniciais = models.CharField('Iniciais', blank=True, max_length=20)
+    iniciais = models.CharField("Iniciais", blank=True, max_length=20)
 
     class Meta:
         abstract = True
 
 
 class Descritivel(models.Model):
-    descricao = models.TextField('Descricao', blank=True)
+    descricao = models.TextField("Descricao", blank=True)
 
     class Meta:
         abstract = True
 
 
 class Nomeavel(models.Model):
-    nome = models.CharField('Nome', blank=True, max_length=100)
+    nome = models.CharField("Nome", blank=True, max_length=100)
 
     class Meta:
         abstract = True
 
 
 class Motivo(models.Model):
-    motivo = models.TextField('Motivo', blank=True)
+    motivo = models.TextField("Motivo", blank=True)
 
     class Meta:
         abstract = True
 
 
 class Justificativa(models.Model):
-    justificativa = models.TextField('Motivo', blank=False)
+    justificativa = models.TextField("Motivo", blank=False)
 
     class Meta:
         abstract = True
 
 
 class Ativavel(models.Model):
-    ativo = models.BooleanField('Está ativo?', default=True)
+    ativo = models.BooleanField("Está ativo?", default=True)
 
     class Meta:
         abstract = True
 
 
 class CriadoEm(models.Model):
-    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
+    criado_em = models.DateTimeField("Criado em", editable=False, auto_now_add=True)
 
     class Meta:
         abstract = True
 
 
 class TemAlteradoEm(models.Model):
-    alterado_em = models.DateTimeField('Alterado em', editable=False, auto_now=True)
+    alterado_em = models.DateTimeField("Alterado em", editable=False, auto_now=True)
 
     class Meta:
         abstract = True
 
 
 class IntervaloDeTempo(models.Model):
-    data_hora_inicial = models.DateTimeField('Data/hora inicial')
-    data_hora_final = models.DateTimeField('Data/hora final')
+    data_hora_inicial = models.DateTimeField("Data/hora inicial")
+    data_hora_final = models.DateTimeField("Data/hora final")
 
     class Meta:
         abstract = True
 
 
 class IntervaloDeDia(models.Model):
-    data_inicial = models.DateField('Data inicial')
-    data_final = models.DateField('Data final')
+    data_inicial = models.DateField("Data inicial")
+    data_final = models.DateField("Data final")
 
     class Meta:
         abstract = True
 
 
 class TemData(models.Model):
-    data = models.DateField('Data')
+    data = models.DateField("Data")
 
     class Meta:
         abstract = True
@@ -103,7 +108,7 @@ class TemChaveExterna(models.Model):
 
 class TemCodigoEOL(models.Model):
     codigo_eol = models.CharField(
-        'Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)]
+        "Código EOL", max_length=6, unique=True, validators=[MinLengthValidator(6)]
     )
 
     class Meta:
@@ -120,30 +125,32 @@ class DiasSemana(models.Model):
     DOMINGO = 6
 
     DIAS = (
-        (SEGUNDA, 'Segunda'),
-        (TERCA, 'Terça'),
-        (QUARTA, 'Quarta'),
-        (QUINTA, 'Quinta'),
-        (SEXTA, 'Sexta'),
-        (SABADO, 'Sábado'),
-        (DOMINGO, 'Domingo'),
+        (SEGUNDA, "Segunda"),
+        (TERCA, "Terça"),
+        (QUARTA, "Quarta"),
+        (QUINTA, "Quinta"),
+        (SEXTA, "Sexta"),
+        (SABADO, "Sábado"),
+        (DOMINGO, "Domingo"),
     )
 
     dias_semana = ArrayField(
         models.PositiveSmallIntegerField(
             choices=DIAS, default=[], null=True, blank=True
-        ), null=True, blank=True
+        ),
+        null=True,
+        blank=True,
     )
 
     def dias_semana_display(self):
-        result = ''
+        result = ""
         choices = dict(self.DIAS)
         for index, value in enumerate(
             ordena_dias_semana_comeca_domingo(self.dias_semana)
         ):
-            result += '{0}'.format(choices[value])
+            result += "{0}".format(choices[value])
             if not index == len(self.dias_semana) - 1:
-                result += ', '
+                result += ", "
         return result
 
     class Meta:
@@ -156,9 +163,9 @@ class TempoPasseio(models.Model):
     OITO_OU_MAIS = 2
 
     HORAS = (
-        (QUATRO, 'Quatro horas'),
-        (CINCO_A_SETE, 'Cinco a sete horas'),
-        (OITO_OU_MAIS, 'Oito horas'),
+        (QUATRO, "Quatro horas"),
+        (CINCO_A_SETE, "Cinco a sete horas"),
+        (OITO_OU_MAIS, "Oito horas"),
     )
     tempo_passeio = models.PositiveSmallIntegerField(
         choices=HORAS, null=True, blank=True
@@ -171,7 +178,7 @@ class TempoPasseio(models.Model):
 class CriadoPor(models.Model):
     # TODO: futuramente deixar obrigatorio esse campo
     criado_por = models.ForeignKey(
-        'perfil.Usuario', on_delete=models.DO_NOTHING, null=True, blank=True
+        "perfil.Usuario", on_delete=models.DO_NOTHING, null=True, blank=True
     )
 
     class Meta:
@@ -179,7 +186,7 @@ class CriadoPor(models.Model):
 
 
 class TemObservacao(models.Model):
-    observacao = models.TextField('Observação', blank=True)
+    observacao = models.TextField("Observação", blank=True)
 
     class Meta:
         abstract = True
@@ -207,46 +214,69 @@ class TemPrioridade(object):
     def get_dias_suspensao_por_prioridade(self):
         from sme_terceirizadas.escola.models import DiaSuspensaoAtividades
         from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
+
         dias_suspensao_prioritario = 0
         dias_suspensao_inferior = 0
         dias_suspensao_superior = 0
-        if hasattr(self, 'escola'):
-            dias_suspensao_prioritario = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, False, PRIORITARIO)
-            dias_suspensao_inferior = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, False, LIMITE_INFERIOR)
-            dias_suspensao_superior = DiaSuspensaoAtividades.get_dias_com_suspensao(self.escola, False, LIMITE_SUPERIOR)
+        if hasattr(self, "escola"):
+            dias_suspensao_prioritario = DiaSuspensaoAtividades.get_dias_com_suspensao(
+                self.escola, False, PRIORITARIO
+            )
+            dias_suspensao_inferior = DiaSuspensaoAtividades.get_dias_com_suspensao(
+                self.escola, False, LIMITE_INFERIOR
+            )
+            dias_suspensao_superior = DiaSuspensaoAtividades.get_dias_com_suspensao(
+                self.escola, False, LIMITE_SUPERIOR
+            )
         elif isinstance(self, SolicitacaoKitLancheUnificada):
-            dias_suspensao_prioritario = DiaSuspensaoAtividades.get_dias_com_suspensao(None, True, PRIORITARIO)
-            dias_suspensao_inferior = DiaSuspensaoAtividades.get_dias_com_suspensao(None, True, LIMITE_INFERIOR)
-            dias_suspensao_superior = DiaSuspensaoAtividades.get_dias_com_suspensao(None, True, LIMITE_SUPERIOR)
-        return dias_suspensao_prioritario, dias_suspensao_inferior, dias_suspensao_superior
+            dias_suspensao_prioritario = DiaSuspensaoAtividades.get_dias_com_suspensao(
+                None, True, PRIORITARIO
+            )
+            dias_suspensao_inferior = DiaSuspensaoAtividades.get_dias_com_suspensao(
+                None, True, LIMITE_INFERIOR
+            )
+            dias_suspensao_superior = DiaSuspensaoAtividades.get_dias_com_suspensao(
+                None, True, LIMITE_SUPERIOR
+            )
+        return (
+            dias_suspensao_prioritario,
+            dias_suspensao_inferior,
+            dias_suspensao_superior,
+        )
 
     @property
     def prioridade(self):
-        descricao = 'VENCIDO'
+        descricao = "VENCIDO"
         hoje = datetime.date.today()
         try:
             data_pedido = self.data_evento
         except AttributeError:
             data_pedido = self.data
         ultimo_dia_util = self._get_ultimo_dia_util(data_pedido)
-        (dias_suspensao_prioritario,
-         dias_suspensao_inferior,
-         dias_suspensao_superior) = self.get_dias_suspensao_por_prioridade()
-        minimo_dias_para_pedido = obter_dias_uteis_apos(hoje, (PRIORITARIO + dias_suspensao_prioritario))
-        dias_uteis_limite_inferior = obter_dias_uteis_apos(hoje, (LIMITE_INFERIOR + dias_suspensao_inferior))
-        dias_uteis_limite_superior = obter_dias_uteis_apos(hoje, (LIMITE_SUPERIOR + dias_suspensao_superior))
+        (
+            dias_suspensao_prioritario,
+            dias_suspensao_inferior,
+            dias_suspensao_superior,
+        ) = self.get_dias_suspensao_por_prioridade()
+        minimo_dias_para_pedido = obter_dias_uteis_apos(
+            hoje, (PRIORITARIO + dias_suspensao_prioritario)
+        )
+        dias_uteis_limite_inferior = obter_dias_uteis_apos(
+            hoje, (LIMITE_INFERIOR + dias_suspensao_inferior)
+        )
+        dias_uteis_limite_superior = obter_dias_uteis_apos(
+            hoje, (LIMITE_SUPERIOR + dias_suspensao_superior)
+        )
 
         if ultimo_dia_util and minimo_dias_para_pedido >= ultimo_dia_util >= hoje:
-            descricao = 'PRIORITARIO'
+            descricao = "PRIORITARIO"
         elif (
             ultimo_dia_util
-            and dias_uteis_limite_superior
-            >= data_pedido
-            >= dias_uteis_limite_inferior
+            and dias_uteis_limite_superior >= data_pedido >= dias_uteis_limite_inferior
         ):
-            descricao = 'LIMITE'
+            descricao = "LIMITE"
         elif ultimo_dia_util and ultimo_dia_util >= dias_uteis_limite_superior:
-            descricao = 'REGULAR'
+            descricao = "REGULAR"
         return descricao
 
     def _get_ultimo_dia_util(self, data: datetime.date) -> datetime.date:
@@ -263,7 +293,9 @@ class TemPrioridade(object):
 class Logs(object):
     @property
     def logs(self):
-        return LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid).order_by('criado_em')
+        return LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid).order_by(
+            "criado_em"
+        )
 
     @property
     def log_mais_recente(self):
@@ -271,51 +303,72 @@ class Logs(object):
 
     @property
     def data_autorizacao(self):
-        if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid).first().solicitacao_tipo in [
-                LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO, LogSolicitacoesUsuario.SUSPENSAO_ALIMENTACAO_CEI]:
-            return self.logs.first().criado_em.strftime('%d/%m/%Y') if self.logs.exists() else ''
-        if LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid,
-                                                 status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU).exists():
+        if LogSolicitacoesUsuario.objects.filter(
+            uuid_original=self.uuid
+        ).first().solicitacao_tipo in [
+            LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO,
+            LogSolicitacoesUsuario.SUSPENSAO_ALIMENTACAO_CEI,
+        ]:
+            return (
+                self.logs.first().criado_em.strftime("%d/%m/%Y")
+                if self.logs.exists()
+                else ""
+            )
+        if LogSolicitacoesUsuario.objects.filter(
+            uuid_original=self.uuid,
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+        ).exists():
             log = LogSolicitacoesUsuario.objects.filter(
-                uuid_original=self.uuid, status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU
+                uuid_original=self.uuid,
+                status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
             )
             if log:
-                return log.last().criado_em.strftime('%d/%m/%Y')
-        return ''
+                return log.last().criado_em.strftime("%d/%m/%Y")
+        return ""
 
     @property
     def data_cancelamento(self):
         if LogSolicitacoesUsuario.objects.filter(
             uuid_original=self.uuid,
             status_evento__in=[
-                LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]).exists():
+                LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                LogSolicitacoesUsuario.DRE_CANCELOU,
+            ],
+        ).exists():
             log = LogSolicitacoesUsuario.objects.filter(
                 uuid_original=self.uuid,
                 status_evento__in=[
-                    LogSolicitacoesUsuario.ESCOLA_CANCELOU, LogSolicitacoesUsuario.DRE_CANCELOU]
+                    LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                    LogSolicitacoesUsuario.DRE_CANCELOU,
+                ],
             )
             if log:
-                return log.last().criado_em.strftime('%d/%m/%Y')
-        return ''
+                return log.last().criado_em.strftime("%d/%m/%Y")
+        return ""
 
     @property
     def data_negacao(self):
         if LogSolicitacoesUsuario.objects.filter(
             uuid_original=self.uuid,
             status_evento__in=[
-                LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]).exists():
+                LogSolicitacoesUsuario.CODAE_NEGOU,
+                LogSolicitacoesUsuario.DRE_NAO_VALIDOU,
+            ],
+        ).exists():
             log = LogSolicitacoesUsuario.objects.filter(
                 uuid_original=self.uuid,
                 status_evento__in=[
-                    LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
+                    LogSolicitacoesUsuario.CODAE_NEGOU,
+                    LogSolicitacoesUsuario.DRE_NAO_VALIDOU,
+                ],
             )
             if log:
-                return log.last().criado_em.strftime('%d/%m/%Y')
-        return ''
+                return log.last().criado_em.strftime("%d/%m/%Y")
+        return ""
 
 
 class TemVinculos(models.Model):
-    vinculos = GenericRelation('perfil.Vinculo')
+    vinculos = GenericRelation("perfil.Vinculo")
 
     class Meta:
         abstract = True
@@ -323,7 +376,7 @@ class TemVinculos(models.Model):
 
 class SolicitacaoForaDoPrazo(models.Model):
     foi_solicitado_fora_do_prazo = models.BooleanField(
-        'Solicitação foi criada em cima da hora (5 dias úteis ou menos)?', default=False
+        "Solicitação foi criada em cima da hora (5 dias úteis ou menos)?", default=False
     )
 
     class Meta:
@@ -331,7 +384,7 @@ class SolicitacaoForaDoPrazo(models.Model):
 
 
 class TemFaixaEtariaEQuantidade(models.Model):
-    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
+    faixa_etaria = models.ForeignKey("escola.FaixaEtaria", on_delete=models.DO_NOTHING)
     quantidade = models.PositiveSmallIntegerField()
 
     class Meta:
@@ -344,14 +397,14 @@ class ModeloBase(TemChaveExterna, CriadoEm, TemAlteradoEm):
 
 
 class ArquivoCargaBase(ModeloBase):
-    conteudo = models.FileField(blank=True, default='')
+    conteudo = models.FileField(blank=True, default="")
     status = models.CharField(
-        'status',
+        "status",
         max_length=35,
         choices=StatusProcessamentoArquivo.choices(),
-        default=StatusProcessamentoArquivo.PENDENTE.value
+        default=StatusProcessamentoArquivo.PENDENTE.value,
     )
-    log = models.TextField(blank=True, default='')
+    log = models.TextField(blank=True, default="")
 
     def inicia_processamento(self):
         self.status = StatusProcessamentoArquivo.PROCESSANDO.value
@@ -382,54 +435,59 @@ class ArquivoCargaBase(ModeloBase):
 class TemTerceirizadaConferiuGestaoAlimentacao(models.Model):
     """Indicação de que a terceirizada realizou avaliação da solicitação na gestão de alimentação."""
 
-    terceirizada_conferiu_gestao = models.BooleanField('Terceirizada conferiu?', default=False)
+    terceirizada_conferiu_gestao = models.BooleanField(
+        "Terceirizada conferiu?", default=False
+    )
 
     class Meta:
         abstract = True
 
 
 class TemAno(models.Model):
-    ano = models.CharField('Ano', max_length=4)
+    ano = models.CharField("Ano", max_length=4)
 
     class Meta:
         abstract = True
 
 
 class TemMes(models.Model):
-    mes = models.CharField('Mes', max_length=2)
+    mes = models.CharField("Mes", max_length=2)
 
     class Meta:
         abstract = True
 
 
 class TemDia(models.Model):
-    dia = models.CharField('Dia', max_length=2)
+    dia = models.CharField("Dia", max_length=2)
 
     class Meta:
         abstract = True
 
 
 class TemSemana(models.Model):
-    semana = models.CharField('Semana', max_length=1, blank=True)
+    semana = models.CharField("Semana", max_length=1, blank=True)
 
     class Meta:
         abstract = True
 
 
 class MatriculadosQuandoCriado(models.Model):
-    matriculados_quando_criado = models.PositiveSmallIntegerField(null=True, blank=True,
-                                                                  validators=[MinValueValidator(1)])
+    matriculados_quando_criado = models.PositiveSmallIntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1)]
+    )
 
     class Meta:
         abstract = True
 
 
 class CanceladoIndividualmente(models.Model):
-    cancelado = models.BooleanField('Esta cancelado?', default=False)
-    cancelado_justificativa = models.CharField('Porque foi cancelado individualmente', blank=True, max_length=500)
-    cancelado_em = models.DateTimeField('Cancelado em', null=True, blank=True)
+    cancelado = models.BooleanField("Esta cancelado?", default=False)
+    cancelado_justificativa = models.CharField(
+        "Porque foi cancelado individualmente", blank=True, max_length=500
+    )
+    cancelado_em = models.DateTimeField("Cancelado em", null=True, blank=True)
     cancelado_por = models.ForeignKey(
-        'perfil.Usuario', on_delete=models.DO_NOTHING, null=True, blank=True
+        "perfil.Usuario", on_delete=models.DO_NOTHING, null=True, blank=True
     )
 
     class Meta:
@@ -437,7 +495,9 @@ class CanceladoIndividualmente(models.Model):
 
 
 class Posicao(models.Model):
-    posicao = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
+    posicao = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)], blank=True, null=True
+    )
 
     class Meta:
         abstract = True

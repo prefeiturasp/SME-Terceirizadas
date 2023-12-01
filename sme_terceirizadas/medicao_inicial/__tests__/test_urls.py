@@ -89,7 +89,7 @@ def test_url_endpoint_solicitacao_medicao_inicial(
         "tipo_contagem_alimentacoes": [tipo_contagem_alimentacao.uuid],
     }
     response = client_autenticado_da_escola.post(
-        f"/medicao-inicial/solicitacao-medicao-inicial/",
+        "/medicao-inicial/solicitacao-medicao-inicial/",
         content_type="application/json",
         data=data_create,
     )
@@ -211,7 +211,7 @@ def test_url_endpoint_medicao(
 @freeze_time("2022-07-25")
 def test_url_endpoint_feriados_no_mes(client_autenticado_da_escola):
     response = client_autenticado_da_escola.get(
-        f"/medicao-inicial/medicao/feriados-no-mes/?mes=09&ano=2022",
+        "/medicao-inicial/medicao/feriados-no-mes/?mes=09&ano=2022",
         content_type="application/json",
     )
     assert response.data["results"] == ["07"]

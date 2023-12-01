@@ -4,15 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0067_produtoedital_ativo'),
+        ("produto", "0067_produtoedital_ativo"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='produtoedital',
-            name='tipo_produto',
-            field=models.CharField(blank=True, choices=[('COMUM', 'Comum'), ('DIETA_ESPECIAL', 'Dieta especial')], max_length=25, null=True, verbose_name='tipo de produto'),
+            model_name="produtoedital",
+            name="tipo_produto",
+            field=models.CharField(
+                blank=True,
+                choices=[("COMUM", "Comum"), ("DIETA_ESPECIAL", "Dieta especial")],
+                max_length=25,
+                null=True,
+                verbose_name="tipo de produto",
+            ),
         ),
     ]

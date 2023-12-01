@@ -4,22 +4,25 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0010_auto_20210114_1715'),
+        ("logistica", "0010_auto_20210114_1715"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='embalagem',
-            options={'ordering': ['criado_em', 'tipo_embalagem'], 'verbose_name': 'Embalagem', 'verbose_name_plural': 'Embalagens'},
+            name="embalagem",
+            options={
+                "ordering": ["criado_em", "tipo_embalagem"],
+                "verbose_name": "Embalagem",
+                "verbose_name_plural": "Embalagens",
+            },
         ),
         migrations.RemoveField(
-            model_name='alimento',
-            name='embalagem',
+            model_name="alimento",
+            name="embalagem",
         ),
         migrations.RemoveField(
-            model_name='alimento',
-            name='qtd_volume',
+            model_name="alimento",
+            name="qtd_volume",
         ),
     ]

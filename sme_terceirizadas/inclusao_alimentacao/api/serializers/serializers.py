@@ -7,7 +7,7 @@ from ....escola.api.serializers import (
     EscolaSimplissimaSerializer,
     FaixaEtariaSerializer,
     PeriodoEscolarSerializer,
-    PeriodoEscolarSimplesSerializer
+    PeriodoEscolarSimplesSerializer,
 )
 from ....escola.models import FaixaEtaria
 from ....inclusao_alimentacao.models import (
@@ -18,7 +18,7 @@ from ....inclusao_alimentacao.models import (
     MotivoInclusaoContinua,
     MotivoInclusaoNormal,
     QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
-    QuantidadePorPeriodo
+    QuantidadePorPeriodo,
 )
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
@@ -26,30 +26,32 @@ from ...models import (
     DiasMotivosInclusaoDeAlimentacaoCEMEI,
     InclusaoDeAlimentacaoCEMEI,
     QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI,
-    QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI
+    QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI,
 )
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoInclusaoContinua
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class MotivoInclusaoNormalSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoInclusaoNormal
-        exclude = ('id',)
+        exclude = ("id",)
 
 
-class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
+    serializers.ModelSerializer
+):
     faixa_etaria = FaixaEtariaSerializer()
     periodo = PeriodoEscolarSimplesSerializer()
     periodo_externo = PeriodoEscolarSimplesSerializer()
 
     class Meta:
         model = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI
-        exclude = ('id', 'inclusao_alimentacao_da_cei')
+        exclude = ("id", "inclusao_alimentacao_da_cei")
 
 
 class DiasMotivosInclusaoDeAlimentacaoCEISerializer(serializers.ModelSerializer):
@@ -57,7 +59,7 @@ class DiasMotivosInclusaoDeAlimentacaoCEISerializer(serializers.ModelSerializer)
 
     class Meta:
         model = DiasMotivosInclusaoDeAlimentacaoCEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
@@ -65,9 +67,14 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     periodo_escolar = PeriodoEscolarSimplesSerializer()
     tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True, read_only=True)
-    quantidade_alunos_por_faixas_etarias = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
-        many=True, read_only=True)
-    dias_motivos_da_inclusao_cei = DiasMotivosInclusaoDeAlimentacaoCEISerializer(many=True)
+    quantidade_alunos_por_faixas_etarias = (
+        QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
+            many=True, read_only=True
+        )
+    )
+    dias_motivos_da_inclusao_cei = DiasMotivosInclusaoDeAlimentacaoCEISerializer(
+        many=True
+    )
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
     datas = serializers.CharField()
@@ -78,26 +85,29 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
         # Inclui o total de alunos nas faixas etárias num período
         faixas_etarias_da_solicitacao = FaixaEtaria.objects.filter(
             uuid__in=[
-                f['faixa_etaria__uuid'] for f in
-                instance.quantidade_alunos_por_faixas_etarias.values('faixa_etaria__uuid')
+                f["faixa_etaria__uuid"]
+                for f in instance.quantidade_alunos_por_faixas_etarias.values(
+                    "faixa_etaria__uuid"
+                )
             ]
         )
 
         qtde_alunos = instance.escola.alunos_por_periodo_e_faixa_etaria(
-            instance.data,
-            faixas_etarias_da_solicitacao
+            instance.data, faixas_etarias_da_solicitacao
         )
 
-        nome_periodo = 'INTEGRAL'
-        for faixa_etaria in retorno['quantidade_alunos_por_faixas_etarias']:
-            uuid_faixa_etaria = faixa_etaria['faixa_etaria']['uuid']
-            faixa_etaria['total_alunos_no_periodo'] = qtde_alunos[nome_periodo][uuid_faixa_etaria]
+        nome_periodo = "INTEGRAL"
+        for faixa_etaria in retorno["quantidade_alunos_por_faixas_etarias"]:
+            uuid_faixa_etaria = faixa_etaria["faixa_etaria"]["uuid"]
+            faixa_etaria["total_alunos_no_periodo"] = qtde_alunos[nome_periodo][
+                uuid_faixa_etaria
+            ]
 
         return retorno
 
     class Meta:
         model = InclusaoAlimentacaoDaCEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
@@ -106,7 +116,7 @@ class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = QuantidadePorPeriodo
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class InclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
@@ -114,7 +124,7 @@ class InclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InclusaoAlimentacaoNormal
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
@@ -124,30 +134,26 @@ class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     dias_semana_explicacao = serializers.CharField(
-        source='dias_semana_display',
-        required=False,
-        read_only=True
+        source="dias_semana_display", required=False, read_only=True
     )
     id_externo = serializers.CharField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = InclusaoAlimentacaoContinua
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class InclusaoAlimentacaoContinuaSimplesSerializer(serializers.ModelSerializer):
     motivo = MotivoInclusaoContinuaSerializer()
     dias_semana_explicacao = serializers.CharField(
-        source='dias_semana_display',
-        required=False,
-        read_only=True
+        source="dias_semana_display", required=False, read_only=True
     )
     prioridade = serializers.CharField()
 
     class Meta:
         model = InclusaoAlimentacaoContinua
-        exclude = ('id', 'escola', 'criado_por')
+        exclude = ("id", "escola", "criado_por")
 
 
 class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
@@ -155,7 +161,7 @@ class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InclusaoAlimentacaoNormal
-        exclude = ('id', 'data')
+        exclude = ("id", "data")
 
 
 class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
@@ -170,7 +176,7 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class GrupoInclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
@@ -178,7 +184,7 @@ class GrupoInclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerialize
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
-        exclude = ('id', 'criado_por', 'escola')
+        exclude = ("id", "criado_por", "escola")
 
 
 class DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
@@ -186,32 +192,43 @@ class DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerialize
 
     class Meta:
         model = DiasMotivosInclusaoDeAlimentacaoCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
-class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
+class QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(
+    serializers.ModelSerializer
+):
     periodo_escolar = PeriodoEscolarSimplesSerializer()
 
     class Meta:
         model = QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
-class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEISerializer(
+    serializers.ModelSerializer
+):
     periodo_escolar = PeriodoEscolarSimplesSerializer()
     faixa_etaria = FaixaEtariaSerializer()
 
     class Meta:
         model = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class InclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
-    dias_motivos_da_inclusao_cemei = DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(many=True)
+    dias_motivos_da_inclusao_cemei = DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(
+        many=True
+    )
     quantidade_alunos_cei_da_inclusao_cemei = (
-        QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEISerializer(many=True))
-    quantidade_alunos_emei_da_inclusao_cemei = QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(many=True)
+        QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEISerializer(
+            many=True
+        )
+    )
+    quantidade_alunos_emei_da_inclusao_cemei = (
+        QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(many=True)
+    )
     id_externo = serializers.CharField()
     prioridade = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
@@ -219,15 +236,22 @@ class InclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InclusaoDeAlimentacaoCEMEI
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class InclusaoDeAlimentacaoCEMEIRetrieveSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
-    dias_motivos_da_inclusao_cemei = DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(many=True)
+    dias_motivos_da_inclusao_cemei = DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(
+        many=True
+    )
     quantidade_alunos_cei_da_inclusao_cemei = (
-        QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEISerializer(many=True))
-    quantidade_alunos_emei_da_inclusao_cemei = QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(many=True)
+        QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEISerializer(
+            many=True
+        )
+    )
+    quantidade_alunos_emei_da_inclusao_cemei = (
+        QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEISerializer(many=True)
+    )
     id_externo = serializers.CharField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
     prioridade = serializers.CharField()
@@ -235,4 +259,4 @@ class InclusaoDeAlimentacaoCEMEIRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InclusaoDeAlimentacaoCEMEI
-        exclude = ('id',)
+        exclude = ("id",)

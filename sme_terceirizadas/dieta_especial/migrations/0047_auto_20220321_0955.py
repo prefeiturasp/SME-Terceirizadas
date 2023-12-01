@@ -4,15 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0046_auto_20211122_1759'),
+        ("dieta_especial", "0046_auto_20211122_1759"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='solicitacaodietaespecial',
-            name='tipo_solicitacao',
-            field=models.CharField(choices=[('COMUM', 'Comum'), ('ALUNO_NAO_MATRICULADO', 'Aluno não matriculado'), ('ALTERACAO_UE', 'Alteração U.E'), ('CANCELAMENTO_DIETA', 'Cancelamento de dieta especial')], default='COMUM', max_length=30),
+            model_name="solicitacaodietaespecial",
+            name="tipo_solicitacao",
+            field=models.CharField(
+                choices=[
+                    ("COMUM", "Comum"),
+                    ("ALUNO_NAO_MATRICULADO", "Aluno não matriculado"),
+                    ("ALTERACAO_UE", "Alteração U.E"),
+                    ("CANCELAMENTO_DIETA", "Cancelamento de dieta especial"),
+                ],
+                default="COMUM",
+                max_length=30,
+            ),
         ),
     ]

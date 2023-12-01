@@ -6,35 +6,34 @@ from django.db import migrations, models
 def migrate_default_values(apps, schmema_editor):
     def get_perfil(nome):
         perfis_choices = {
-            'ADMINISTRADOR_UE': 'ESCOLA',
-            'COORDENADOR_CODAE_DILOG_LOGISTICA': 'CODAE',
-            'ADMINISTRADOR_CODAE_DILOG_JURIDICO': 'CODAE',
-            'ADMINISTRADOR_CODAE_DILOG_CONTABIL': 'CODAE',
-            'ADMINISTRADOR_CODAE_GABINETE': 'CODAE',
-            'COORDENADOR_LOGISTICA': 'CODAE',
-            'ADMINISTRADOR_EMPRESA': 'EMPRESA',
-            'USUARIO_EMPRESA': 'EMPRESA',
-            'DIRETOR': 'ESCOLA',
-            'DIRETOR_CEI': 'ESCOLA',
-            'ADMINISTRADOR_UE': 'ESCOLA',
-            'COGESTOR': 'DRE',
-            'COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO': 'CODAE',
-            'ADMINISTRADOR_SUPERVISAO_NUTRICAO': 'CODAE',
-            'COORDENADOR_SUPERVISAO_NUTRICAO': 'CODAE',
-            'ADMINISTRADOR_GESTAO_PRODUTO': 'CODAE',
-            'COORDENADOR_GESTAO_PRODUTO': 'CODAE',
-            'ADMINISTRADOR_DIETA_ESPECIAL': 'CODAE',
-            'COORDENADOR_DIETA_ESPECIAL': 'CODAE',
-            'COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA': 'CODAE',
-            'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA': 'CODAE',
-            'CODAE': 'CODAE',
-            'ADMINISTRADOR_MEDICAO': 'CODAE'
+            "ADMINISTRADOR_UE": "ESCOLA",
+            "COORDENADOR_CODAE_DILOG_LOGISTICA": "CODAE",
+            "ADMINISTRADOR_CODAE_DILOG_JURIDICO": "CODAE",
+            "ADMINISTRADOR_CODAE_DILOG_CONTABIL": "CODAE",
+            "ADMINISTRADOR_CODAE_GABINETE": "CODAE",
+            "COORDENADOR_LOGISTICA": "CODAE",
+            "ADMINISTRADOR_EMPRESA": "EMPRESA",
+            "USUARIO_EMPRESA": "EMPRESA",
+            "DIRETOR": "ESCOLA",
+            "DIRETOR_CEI": "ESCOLA",
+            "ADMINISTRADOR_UE": "ESCOLA",
+            "COGESTOR": "DRE",
+            "COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO": "CODAE",
+            "ADMINISTRADOR_SUPERVISAO_NUTRICAO": "CODAE",
+            "COORDENADOR_SUPERVISAO_NUTRICAO": "CODAE",
+            "ADMINISTRADOR_GESTAO_PRODUTO": "CODAE",
+            "COORDENADOR_GESTAO_PRODUTO": "CODAE",
+            "ADMINISTRADOR_DIETA_ESPECIAL": "CODAE",
+            "COORDENADOR_DIETA_ESPECIAL": "CODAE",
+            "COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA": "CODAE",
+            "ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA": "CODAE",
+            "CODAE": "CODAE",
+            "ADMINISTRADOR_MEDICAO": "CODAE",
         }
 
         return perfis_choices.get(nome, None)
 
-
-    Perfil = apps.get_model('perfil', 'Perfil')
+    Perfil = apps.get_model("perfil", "Perfil")
     perfis = Perfil.objects.all()
 
     for perfil in perfis:
@@ -43,16 +42,27 @@ def migrate_default_values(apps, schmema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('perfil', '0018_importacaoplanilhausuarioexternocoresso'),
+        ("perfil", "0018_importacaoplanilhausuarioexternocoresso"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='perfil',
-            name='visao',
-            field=models.CharField(blank=True, choices=[('ESCOLA', 'Escola'), ('DRE', 'Diretoria Regional'), ('CODAE', 'Codae'), ('EMPRESA', 'Empresa')], default=None, max_length=25, null=True, verbose_name='Visão'),
+            model_name="perfil",
+            name="visao",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("ESCOLA", "Escola"),
+                    ("DRE", "Diretoria Regional"),
+                    ("CODAE", "Codae"),
+                    ("EMPRESA", "Empresa"),
+                ],
+                default=None,
+                max_length=25,
+                null=True,
+                verbose_name="Visão",
+            ),
         ),
-        migrations.RunPython(migrate_default_values)
+        migrations.RunPython(migrate_default_values),
     ]

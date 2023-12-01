@@ -4,20 +4,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('terceirizada', '0012_auto_20230109_1328'),
+        ("terceirizada", "0012_auto_20230109_1328"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='contrato',
-            name='data_hora_encerramento',
-            field=models.DateTimeField(default=None, null=True, verbose_name='Data e hora do encerramento'),
+            model_name="contrato",
+            name="data_hora_encerramento",
+            field=models.DateTimeField(
+                default=None, null=True, verbose_name="Data e hora do encerramento"
+            ),
         ),
         migrations.AddField(
-            model_name='contrato',
-            name='encerrado',
-            field=models.BooleanField(default=False, verbose_name='Encerrado?'),
+            model_name="contrato",
+            name="encerrado",
+            field=models.BooleanField(default=False, verbose_name="Encerrado?"),
         ),
     ]

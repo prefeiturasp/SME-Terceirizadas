@@ -4,24 +4,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0002_auto_20201109_1201'),
+        ("logistica", "0002_auto_20201109_1201"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='guia',
-            options={'verbose_name': 'Guia de Remessa', 'verbose_name_plural': 'Guias de Remessas'},
+            name="guia",
+            options={
+                "verbose_name": "Guia de Remessa",
+                "verbose_name_plural": "Guias de Remessas",
+            },
         ),
         migrations.AlterField(
-            model_name='guia',
-            name='status',
-            field=models.CharField(choices=[('INTEGRADA', 'Integrada')], default='INTEGRADA', max_length=25, verbose_name='Status da guia'),
+            model_name="guia",
+            name="status",
+            field=models.CharField(
+                choices=[("INTEGRADA", "Integrada")],
+                default="INTEGRADA",
+                max_length=25,
+                verbose_name="Status da guia",
+            ),
         ),
         migrations.AlterField(
-            model_name='solicitacaoremessa',
-            name='status',
-            field=models.CharField(choices=[('INTEGRADA', 'Integrada')], default='INTEGRADA', max_length=25, verbose_name='Status da solicitação'),
+            model_name="solicitacaoremessa",
+            name="status",
+            field=models.CharField(
+                choices=[("INTEGRADA", "Integrada")],
+                default="INTEGRADA",
+                max_length=25,
+                verbose_name="Status da solicitação",
+            ),
         ),
     ]

@@ -4,20 +4,19 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0050_previsaocontratualnotificacao'),
+        ("logistica", "0050_previsaocontratualnotificacao"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='notificacaoocorrenciasguia',
-            old_name='distribuidor',
-            new_name='empresa',
+            model_name="notificacaoocorrenciasguia",
+            old_name="distribuidor",
+            new_name="empresa",
         ),
         migrations.RenameField(
-            model_name='previsaocontratualnotificacao',
-            old_name='tipo_ocorrencia',
-            new_name='motivo_ocorrencia',
+            model_name="previsaocontratualnotificacao",
+            old_name="tipo_ocorrencia",
+            new_name="motivo_ocorrencia",
         ),
     ]

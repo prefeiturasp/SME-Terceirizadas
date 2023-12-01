@@ -12,5 +12,7 @@ def test_contrato_pertence_a_empresa_validator(contrato, empresa):
 
     empresa.contratos.clear()
 
-    with pytest.raises(ValidationError, match='Contrato deve pertencer a empresa selecionada'):
+    with pytest.raises(
+        ValidationError, match="Contrato deve pertencer a empresa selecionada"
+    ):
         contrato_pertence_a_empresa(contrato, empresa)
