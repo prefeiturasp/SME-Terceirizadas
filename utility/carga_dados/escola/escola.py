@@ -58,7 +58,7 @@ def retira_espacos_entre_strings(palavra):
     return sem_espaco
 
 
-def busca_caso_sigla(sigla):
+def busca_caso_sigla(sigla):  # noqa: C901
     if sigla == " CS":
         return 1
     elif sigla == " FO":

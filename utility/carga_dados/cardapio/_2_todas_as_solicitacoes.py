@@ -91,7 +91,7 @@ def _get_random_tipos_alimentacao():
     return alimentacoes
 
 
-def fluxo_escola_felix(obj, user):
+def fluxo_escola_felix(obj, user):  # noqa: C901
     # print(f'aplicando fluxo ESCOLA feliz em {obj}')
     obj.inicia_fluxo(user=user, notificar=True)
     if random.random() < 0.3:

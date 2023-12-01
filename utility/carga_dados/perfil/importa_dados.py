@@ -640,7 +640,7 @@ class ProcessadorPlanilhaUsuarioPerfilCodae:
         self.checa_usuario(usuario_schema.rf, usuario_schema.email, usuario_schema.nome)
         self.__criar_usuario(codae, usuario_schema)
 
-    def consulta_codae_instituicao(self, usuario_schema):
+    def consulta_codae_instituicao(self, usuario_schema):  # noqa_ C901
         perfis = {
             "perfil_usuario_codae": Perfil.objects.get(
                 nome__unaccent__icontains="COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA"

@@ -25,7 +25,7 @@ f = Faker("pt-br")
 f.seed(420)
 
 
-def fluxo_escola_felix_dieta_especial(obj, user, index):
+def fluxo_escola_felix_dieta_especial(obj, user, index):  # noqa: C901
     obj.inicia_fluxo(user=user, notificar=True)
     jogada_de_dado = random.randint(1, 5)
     if jogada_de_dado == 1:

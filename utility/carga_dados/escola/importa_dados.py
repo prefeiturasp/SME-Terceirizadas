@@ -180,7 +180,7 @@ def cria_contatos_escola(arquivo):
             )
 
 
-def padroniza_dados(items):
+def padroniza_dados(items):  # noqa_ C901
     # Tudo Maiusculo + strip
     campos_maiusculos = (
         "EOL",
@@ -338,7 +338,7 @@ def busca_lote(dre=None, lote=None):
     return dre_obj, lote_obj
 
 
-def cria_usuario_diretor(arquivo, in_memory=False):
+def cria_usuario_diretor(arquivo, in_memory=False):  # noqa_ C901
     items = excel_to_list(arquivo, in_memory=in_memory)
     diretores_unicos = len(
         set([item["DIRETOR"] for item in items if item["DIRETOR"] != ""])
@@ -424,7 +424,7 @@ def cria_usuario_diretor(arquivo, in_memory=False):
     return items
 
 
-def cria_usuario_cogestor(items):
+def cria_usuario_cogestor(items):  # noqa_ C901
     """
     Específico: depende dos items de cria_usuario_diretor,
     porque o InMemoryUploadedFile não deu certo aqui.
