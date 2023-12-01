@@ -7,6 +7,7 @@ from ...dados_comuns.fluxo_status import (
     CronogramaAlteracaoWorkflow,
     CronogramaWorkflow,
     DocumentoDeRecebimentoWorkflow,
+    FichaTecnicaDoProdutoWorkflow,
     LayoutDeEmbalagemWorkflow
 )
 
@@ -148,6 +149,29 @@ class DocumentoDeRecebimentoFilter(filters.FilterSet):
     status = filters.MultipleChoiceFilter(
         field_name='status',
         choices=[(str(state), state) for state in DocumentoDeRecebimentoWorkflow.states],
+    )
+    data_cadastro = filters.DateFilter(
+        field_name='criado_em__date',
+        lookup_expr='exact',
+    )
+
+
+class FichaTecnicaFilter(filters.FilterSet):
+    numero_ficha = filters.CharFilter(
+        field_name='numero',
+        lookup_expr='icontains',
+    )
+    nome_produto = filters.CharFilter(
+        field_name='produto__nome',
+        lookup_expr='icontains',
+    )
+    pregao_chamada_publica = filters.CharFilter(
+        field_name='pregao_chamada_publica',
+        lookup_expr='icontains',
+    )
+    status = filters.MultipleChoiceFilter(
+        field_name='status',
+        choices=[(str(state), state) for state in FichaTecnicaDoProdutoWorkflow.states],
     )
     data_cadastro = filters.DateFilter(
         field_name='criado_em__date',
