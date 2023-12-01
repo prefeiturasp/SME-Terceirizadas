@@ -450,11 +450,16 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
                                                                  'correcao_solicitada')
 
 
-class FichaTecnicalistagemSerializer(serializers.ModelSerializer):
-    # TODO: personalizar quando entrar a história de filtros e listagem
+class FichaTecnicaListagemSerializer(serializers.ModelSerializer):
+    nome_produto = serializers.SerializerMethodField()
+    status = serializers.CharField(source='get_status_display')
+
+    def get_nome_produto(self, obj):
+        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+
     class Meta:
         model = FichaTecnicaDoProduto
-        exclude = ('id',)
+        fields = ('uuid', 'numero', 'nome_produto', 'pregao_chamada_publica', 'criado_em', 'status')
 
 
 class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):

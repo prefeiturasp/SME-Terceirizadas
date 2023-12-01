@@ -14,7 +14,7 @@ from sme_terceirizadas.dados_comuns.fluxo_status import DocumentoDeRecebimentoWo
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     FichaTecnicaDetalharSerializer,
-    FichaTecnicalistagemSerializer,
+    FichaTecnicaListagemSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
@@ -2529,7 +2529,7 @@ def test_ficha_tecnica_list_ok(client_autenticado_fornecedor, ficha_tecnica_fact
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data['results']) == len(fichas_criadas)
-    assert response.data['results'] == FichaTecnicalistagemSerializer(fichas, many=True).data
+    assert response.data['results'] == FichaTecnicaListagemSerializer(fichas, many=True).data
 
 
 def test_ficha_tecnica_retrieve_ok(client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model):

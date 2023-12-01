@@ -75,7 +75,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
     FichaTecnicaDetalharSerializer,
-    FichaTecnicalistagemSerializer,
+    FichaTecnicaListagemSerializer,
     LaboratorioCredenciadoSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
@@ -785,7 +785,7 @@ class FichaTecnicaModelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
     def get_serializer_class(self):
         serializer_classes_map = {
-            'list': FichaTecnicalistagemSerializer,
+            'list': FichaTecnicaListagemSerializer,
             'retrieve': FichaTecnicaDetalharSerializer,
         }
 
