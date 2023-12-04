@@ -1202,9 +1202,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             else:
                 alt = self.get_alteracao_obj(alteracao, nome_periodo_escolar)
                 if alt:
-                    alt = alteracao.substituicoes_periodo_escolar.get(
-                        periodo_escolar__nome=nome_periodo_escolar
-                    )
                     for data_evento in alteracao.datas_intervalo.filter(
                         data__month=mes, data__year=ano, cancelado=False
                     ):
