@@ -5211,23 +5211,37 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
             )
 
             numero_cronograma = self.cronograma.numero
-            nome_produto = self.cronograma.produto.nome
             url_documento_recebimento = (
                 f"/pre-recebimento/corrigir-documentos-recebimento?uuid={self.uuid}"
             )
+            contexto = {
+                "numero_cronograma": numero_cronograma,
+                "nome_produto": self.cronograma.produto.nome,
+                "data_solicitacao": self.log_mais_recente.criado_em.strftime(
+                    "%d/%m/%Y"
+                ),
+                "url_documento_recebimento": base_url + url_documento_recebimento,
+            }
 
             EmailENotificacaoService.enviar_notificacao(
                 template="pre_recebimento_notificacao_codae_solicita_correcao_documento_recebimento.html",
-                contexto_template={
-                    "numero_cronograna": numero_cronograma,
-                    "nome_produto": nome_produto,
-                },
+                contexto_template=contexto,
                 titulo_notificacao=f"Documentos do Cronograma {numero_cronograma} foram Enviados para correção",
                 tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_ALERTA,
                 categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO,
                 link_acesse_aqui=url_documento_recebimento,
                 usuarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
-                    self.cronograma
+                    cronograma=self.cronograma
+                ),
+            )
+
+            EmailENotificacaoService.enviar_email(
+                titulo=f"Solicitação de Correção Documentos de Recebimento Cronograma Nº {numero_cronograma}",
+                assunto=f"[SIGPAE] Solicitação de Correção Documentos de Recebimento do Cronograma Nº {numero_cronograma}",
+                template="pre_recebimento_email_codae_solicita_correcao_documento_recebimento.html",
+                contexto_template=contexto,
+                destinatarios=PartesInteressadasService.usuarios_vinculados_a_empresa_do_cronograma(
+                    cronograma=self.cronograma, somente_email=True
                 ),
             )
 
