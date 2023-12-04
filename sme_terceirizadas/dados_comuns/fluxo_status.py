@@ -5253,7 +5253,7 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
                 f"/pre-recebimento/analise-documento-recebimento?uuid={self.uuid}"
             )
             contexto = {
-                "numero_cronograna": numero_cronograma,
+                "numero_cronograma": numero_cronograma,
                 "nome_empresa": self.cronograma.empresa.nome_fantasia,
                 "nome_produto": self.cronograma.produto.nome,
                 "nome_usuario_empresa": user.nome,
