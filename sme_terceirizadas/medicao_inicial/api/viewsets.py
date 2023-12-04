@@ -391,12 +391,12 @@ class SolicitacaoMedicaoInicialViewSet(
         query_set = self.condicao_por_usuario(self.get_queryset())
         meses_anos = query_set.values_list("mes", "ano").distinct()
         meses_anos_unicos = []
-        qs_solicitacao_medicao = SolicitacaoMedicaoInicial.objects.all()  # noqa: F841
+        qs_solicitacao_medicao = SolicitacaoMedicaoInicial.objects.all()
         if isinstance(request.user.vinculo_atual.instituicao, DiretoriaRegional):
-            qs_solicitacao_medicao = query_set  # noqa: F841
+            qs_solicitacao_medicao = query_set
         for mes_ano in meses_anos:
             status_ = (
-                SolicitacaoMedicaoInicial.objects.filter(mes=mes_ano[0], ano=mes_ano[1])
+                qs_solicitacao_medicao.objects.filter(mes=mes_ano[0], ano=mes_ano[1])
                 .values_list("status", flat=True)
                 .distinct()
             )
