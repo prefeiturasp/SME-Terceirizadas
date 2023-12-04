@@ -18,7 +18,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     FichaTecnicaDetalharSerializer,
     FichaTecnicaListagemSerializer,
-    NomeEAbreviacaoUnidadeMedidaSerializer
+    NomeEAbreviacaoUnidadeMedidaSerializer,
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
@@ -2742,34 +2742,36 @@ def test_ficha_tecnica_list_ok(
     assert response.status_code == status.HTTP_200_OK
 
     # Teste de paginação
-    assert response.data['count'] == len(fichas_criadas)
-    assert len(response.data['results']) == DefaultPagination.page_size
-    assert response.data['next'] is not None
+    assert response.data["count"] == len(fichas_criadas)
+    assert len(response.data["results"]) == DefaultPagination.page_size
+    assert response.data["next"] is not None
 
     # Acessa a próxima página
-    next_page = response.data['next']
+    next_page = response.data["next"]
     next_response = client_autenticado_fornecedor.get(next_page)
     assert next_response.status_code == status.HTTP_200_OK
 
     # Tenta acessar uma página que não existe
-    response_not_found = client_autenticado_fornecedor.get('/ficha-tecnica/?page=1000')
+    response_not_found = client_autenticado_fornecedor.get("/ficha-tecnica/?page=1000")
     assert response_not_found.status_code == status.HTTP_404_NOT_FOUND
 
     # Testa a resposta em caso de erro (por exemplo, sem autenticação)
     client_nao_autenticado = APIClient()
-    response_error = client_nao_autenticado.get('/ficha-tecnica/')
+    response_error = client_nao_autenticado.get("/ficha-tecnica/")
     assert response_error.status_code == status.HTTP_401_UNAUTHORIZED
 
     # Teste de consulta com parâmetros
     data = datetime.date.today() - datetime.timedelta(days=1)
-    response_filtro = client_autenticado_fornecedor.get(f'/ficha-tecnica/?data_cadastro={data}')
+    response_filtro = client_autenticado_fornecedor.get(
+        f"/ficha-tecnica/?data_cadastro={data}"
+    )
     assert response_filtro.status_code == status.HTTP_200_OK
-    assert response_filtro.data['count'] == 0
+    assert response_filtro.data["count"] == 0
 
 
 def test_ficha_tecnica_list_not_authorized(client_autenticado):
     """Deve retornar status HTTP 403 ao tentar obter listagem com usuário não autorizado."""
-    response = client_autenticado.get('/ficha-tecnica/')
+    response = client_autenticado.get("/ficha-tecnica/")
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
 

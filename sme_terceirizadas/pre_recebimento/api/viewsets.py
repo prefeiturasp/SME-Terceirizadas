@@ -1007,8 +1007,8 @@ class FichaTecnicaModelViewSet(
 
     def get_serializer_class(self):
         serializer_classes_map = {
-            'list': FichaTecnicaListagemSerializer,
-            'retrieve': FichaTecnicaDetalharSerializer,
+            "list": FichaTecnicaListagemSerializer,
+            "retrieve": FichaTecnicaDetalharSerializer,
         }
 
         return serializer_classes_map.get(self.action, FichaTecnicaRascunhoSerializer)

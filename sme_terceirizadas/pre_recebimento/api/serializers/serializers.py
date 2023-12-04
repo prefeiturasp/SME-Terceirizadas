@@ -605,14 +605,21 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
 
 class FichaTecnicaListagemSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
 
     def get_nome_produto(self, obj):
         return obj.produto.nome if obj.produto else None
 
     class Meta:
         model = FichaTecnicaDoProduto
-        fields = ('uuid', 'numero', 'nome_produto', 'pregao_chamada_publica', 'criado_em', 'status')
+        fields = (
+            "uuid",
+            "numero",
+            "nome_produto",
+            "pregao_chamada_publica",
+            "criado_em",
+            "status",
+        )
 
 
 class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
