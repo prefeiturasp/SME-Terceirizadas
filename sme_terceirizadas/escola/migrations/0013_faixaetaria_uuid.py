@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0012_faixaetaria_mudancafaixasetarias'),
+        ("escola", "0012_faixaetaria_mudancafaixasetarias"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='faixaetaria',
-            name='uuid',
+            model_name="faixaetaria",
+            name="uuid",
             field=models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
         ),
     ]

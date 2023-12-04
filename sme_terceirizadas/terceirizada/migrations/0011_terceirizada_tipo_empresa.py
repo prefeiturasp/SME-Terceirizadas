@@ -4,15 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('terceirizada', '0010_auto_20230106_1708'),
+        ("terceirizada", "0010_auto_20230106_1708"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='terceirizada',
-            name='tipo_empresa',
-            field=models.CharField(choices=[('CONVENCIONAL', 'Convencional'), ('AGRICULTURA_FAMILIAR', 'Agricultura Familiar'), ('TERCEIRIZADA', 'Terceirizada')], default='TERCEIRIZADA', max_length=25),
+            model_name="terceirizada",
+            name="tipo_empresa",
+            field=models.CharField(
+                choices=[
+                    ("CONVENCIONAL", "Convencional"),
+                    ("AGRICULTURA_FAMILIAR", "Agricultura Familiar"),
+                    ("TERCEIRIZADA", "Terceirizada"),
+                ],
+                default="TERCEIRIZADA",
+                max_length=25,
+            ),
         ),
     ]

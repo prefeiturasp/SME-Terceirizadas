@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('pre_recebimento', '0012_alter_unidademedida_options'),
+        ("pre_recebimento", "0012_alter_unidademedida_options"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='cronograma',
-            name='unidade_medida',
+            model_name="cronograma",
+            name="unidade_medida",
         ),
     ]

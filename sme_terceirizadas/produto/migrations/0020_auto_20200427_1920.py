@@ -4,25 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0019_auto_20200426_2159'),
+        ("produto", "0019_auto_20200426_2159"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='informacaonutricional',
-            name='medida',
+            model_name="informacaonutricional",
+            name="medida",
             field=models.CharField(blank=True, max_length=10),
         ),
         migrations.AlterField(
-            model_name='informacoesnutricionaisdoproduto',
-            name='quantidade_porcao',
+            model_name="informacoesnutricionaisdoproduto",
+            name="quantidade_porcao",
             field=models.DecimalField(decimal_places=2, max_digits=2),
         ),
         migrations.AlterField(
-            model_name='informacoesnutricionaisdoproduto',
-            name='valor_diario',
+            model_name="informacoesnutricionaisdoproduto",
+            name="valor_diario",
             field=models.DecimalField(decimal_places=2, max_digits=2),
         ),
     ]

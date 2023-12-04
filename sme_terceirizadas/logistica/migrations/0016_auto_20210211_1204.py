@@ -4,19 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0015_merge_20210129_1150'),
+        ("logistica", "0015_merge_20210129_1150"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='solicitacaodealteracaorequisicao',
-            options={'verbose_name': 'Solicitação de Alteração de Requisição', 'verbose_name_plural': 'Solicitações de Alteração de Requisição'},
+            name="solicitacaodealteracaorequisicao",
+            options={
+                "verbose_name": "Solicitação de Alteração de Requisição",
+                "verbose_name_plural": "Solicitações de Alteração de Requisição",
+            },
         ),
         migrations.AddField(
-            model_name='solicitacaodealteracaorequisicao',
-            name='numero_solicitacao',
-            field=models.CharField(blank=True, max_length=50, unique=True, verbose_name='Número da solicitação'),
+            model_name="solicitacaodealteracaorequisicao",
+            name="numero_solicitacao",
+            field=models.CharField(
+                blank=True,
+                max_length=50,
+                unique=True,
+                verbose_name="Número da solicitação",
+            ),
         ),
     ]

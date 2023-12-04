@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0046_lognomedeprodutoedital'),
+        ("produto", "0046_lognomedeprodutoedital"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='produto',
-            name='embalagem',
-            field=models.CharField(blank=True, max_length=500, verbose_name='Embalagem Primária'),
+            model_name="produto",
+            name="embalagem",
+            field=models.CharField(
+                blank=True, max_length=500, verbose_name="Embalagem Primária"
+            ),
         ),
     ]

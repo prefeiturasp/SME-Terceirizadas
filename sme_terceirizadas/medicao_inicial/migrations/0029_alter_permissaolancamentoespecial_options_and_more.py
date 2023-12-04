@@ -4,19 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('medicao_inicial', '0028_alter_medicao_rastro_lote_and_more'),
+        ("medicao_inicial", "0028_alter_medicao_rastro_lote_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='permissaolancamentoespecial',
-            options={'ordering': ['-alterado_em'], 'verbose_name': 'Permissão de Lançamento Especial', 'verbose_name_plural': 'Permissões de Lançamentos Especiais'},
+            name="permissaolancamentoespecial",
+            options={
+                "ordering": ["-alterado_em"],
+                "verbose_name": "Permissão de Lançamento Especial",
+                "verbose_name_plural": "Permissões de Lançamentos Especiais",
+            },
         ),
         migrations.AddField(
-            model_name='permissaolancamentoespecial',
-            name='alterado_em',
-            field=models.DateTimeField(auto_now=True, verbose_name='Alterado em'),
+            model_name="permissaolancamentoespecial",
+            name="alterado_em",
+            field=models.DateTimeField(auto_now=True, verbose_name="Alterado em"),
         ),
     ]

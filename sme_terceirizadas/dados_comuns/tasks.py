@@ -8,7 +8,7 @@ from .utils import (
     analisa_logs_alunos_matriculados_periodo_escola,
     analisa_logs_quantidade_dietas_autorizadas,
     envia_email_em_massa,
-    envia_email_unico
+    envia_email_unico,
 )
 
 
@@ -16,24 +16,28 @@ from .utils import (
 @shared_task(
     autoretry_for=(SMTPServerDisconnected,),
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
+    retry_kwargs={"max_retries": 8},
 )
-def envia_email_em_massa_task(assunto, corpo, emails, template=None, dados_template=None, html=None):
+def envia_email_em_massa_task(
+    assunto, corpo, emails, template=None, dados_template=None, html=None
+):
     return envia_email_em_massa(assunto, corpo, emails, template, dados_template, html)
 
 
 @shared_task(
     autoretry_for=(SMTPServerDisconnected,),
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
+    retry_kwargs={"max_retries": 8},
 )
-def envia_email_unico_task(assunto, corpo, email, template=None, dados_template=None, html=None):
+def envia_email_unico_task(
+    assunto, corpo, email, template=None, dados_template=None, html=None
+):
     return envia_email_unico(assunto, corpo, email, template, dados_template, html)
 
 
 @shared_task(
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
+    retry_kwargs={"max_retries": 8},
 )
 def deleta_solicitacoes_abertas():
     for solicitacao in SolicitacaoAberta.objects.all():
@@ -43,7 +47,7 @@ def deleta_solicitacoes_abertas():
 
 @shared_task(
     retry_backoff=2,
-    retry_kwargs={'max_retries': 8},
+    retry_kwargs={"max_retries": 8},
 )
 def deleta_logs_duplicados_e_cria_logs_caso_nao_existam():
     analisa_logs_alunos_matriculados_periodo_escola()

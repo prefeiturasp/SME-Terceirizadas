@@ -4,7 +4,7 @@ import pandas as pd
 
 from sme_terceirizadas.escola.models import DiretoriaRegional, Lote
 
-caminho_excel = '/home/amcom/Documentos/docs PO alimentacao/lista de lotes.xlsx'
+caminho_excel = "/home/amcom/Documentos/docs PO alimentacao/lista de lotes.xlsx"
 
 arquivo_excel = pd.ExcelFile(caminho_excel)
 
@@ -13,8 +13,11 @@ ESC_SHEET_NAME = ()
 
 
 def busca_nome_sheet_planilha(arquivo_excel, ESC_SHEET_NAME):
-    nomes = (sheet_name for sheet_name in arquivo_excel.sheet_names
-             if sheet_name not in ESC_SHEET_NAME)
+    nomes = (
+        sheet_name
+        for sheet_name in arquivo_excel.sheet_names
+        if sheet_name not in ESC_SHEET_NAME
+    )
     return nomes
 
 
@@ -26,13 +29,12 @@ def busca_planilhas_do_excel(nomes_sheet):
 
 
 def normaliza_nome(nome):
-    nome_dre = normalize('NFKD', nome).encode(
-        'ASCII', 'ignore').decode('ASCII')
+    nome_dre = normalize("NFKD", nome).encode("ASCII", "ignore").decode("ASCII")
     return nome_dre
 
 
 def busca_dados_relacionamento(nome):
-    nome = ' ' + nome
+    nome = " " + nome
     dre = DiretoriaRegional.objects.get(nome=nome)
     return dre
 
@@ -40,11 +42,9 @@ def busca_dados_relacionamento(nome):
 def obtem_objetos(planilha):
     lista_objetos = []
     for index in planilha.index:
-        nome = normaliza_nome(planilha['LOTES'][index].upper())
-        dre = busca_dados_relacionamento(
-            planilha['DRE'][index]
-        )
-        objeto = {'nome': nome, 'dre_id': dre}
+        nome = normaliza_nome(planilha["LOTES"][index].upper())
+        dre = busca_dados_relacionamento(planilha["DRE"][index])
+        objeto = {"nome": nome, "dre_id": dre}
         lista_objetos.append(objeto)
     return lista_objetos
 
@@ -58,13 +58,9 @@ def busca_lotes(planilhas):
 
 def monta_salva_objeto(lotes):
     for lote in lotes:
-        lt = Lote(
-            nome=lote['nome'],
-            diretoria_regional=lote['dre_id']
-        )
+        lt = Lote(nome=lote["nome"], diretoria_regional=lote["dre_id"])
         lt.save()
     return None
-
 
 
 nomes_sheet = busca_nome_sheet_planilha(arquivo_excel, ESC_SHEET_NAME)

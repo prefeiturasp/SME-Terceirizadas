@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0037_alteracaocardapiocemei_faixaetariasubstituicaoalimentacaocemeicei_substituicaoalimentacaonoperiodoes'),
+        (
+            "cardapio",
+            "0037_alteracaocardapiocemei_faixaetariasubstituicaoalimentacaocemeicei_substituicaoalimentacaonoperiodoes",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='motivoalteracaocardapio',
-            name='ativo',
-            field=models.BooleanField(default=True, verbose_name='Está ativo?'),
+            model_name="motivoalteracaocardapio",
+            name="ativo",
+            field=models.BooleanField(default=True, verbose_name="Está ativo?"),
         ),
     ]

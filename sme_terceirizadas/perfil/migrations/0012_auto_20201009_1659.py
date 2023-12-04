@@ -5,20 +5,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('perfil', '0011_planilhadiretorcogestor'),
+        ("perfil", "0011_planilhadiretorcogestor"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='planilhadiretorcogestor',
-            options={'ordering': ('-criado_em',), 'verbose_name': 'Planilha Diretor Cogestor', 'verbose_name_plural': 'Planilhas Diretores Cogestores'},
+            name="planilhadiretorcogestor",
+            options={
+                "ordering": ("-criado_em",),
+                "verbose_name": "Planilha Diretor Cogestor",
+                "verbose_name_plural": "Planilhas Diretores Cogestores",
+            },
         ),
         migrations.AddField(
-            model_name='planilhadiretorcogestor',
-            name='criado_em',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now, verbose_name='criado em'),
+            model_name="planilhadiretorcogestor",
+            name="criado_em",
+            field=models.DateTimeField(
+                auto_now_add=True,
+                default=django.utils.timezone.now,
+                verbose_name="criado em",
+            ),
             preserve_default=False,
         ),
     ]

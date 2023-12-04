@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0056_auto_20220421_1551'),
+        ("dados_comuns", "0056_auto_20220421_1551"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='logsolicitacoesusuario',
-            options={'ordering': ('-criado_em',)},
+            name="logsolicitacoesusuario",
+            options={"ordering": ("-criado_em",)},
         ),
     ]

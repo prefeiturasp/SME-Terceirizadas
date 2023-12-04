@@ -5,24 +5,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0005_logalteracaoquantidadealunosporescolaeperiodoescolar'),
+        ("escola", "0005_logalteracaoquantidadealunosporescolaeperiodoescolar"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='escola',
-            name='quantidade_alunos',
+            model_name="escola",
+            name="quantidade_alunos",
         ),
         migrations.AlterField(
-            model_name='logalteracaoquantidadealunosporescolaeperiodoescolar',
-            name='escola',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='log_alteracao_quantidade_alunos', to='escola.Escola'),
+            model_name="logalteracaoquantidadealunosporescolaeperiodoescolar",
+            name="escola",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="log_alteracao_quantidade_alunos",
+                to="escola.Escola",
+            ),
         ),
         migrations.AlterField(
-            model_name='logalteracaoquantidadealunosporescolaeperiodoescolar',
-            name='periodo_escolar',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='log_alteracao_quantidade_alunos', to='escola.PeriodoEscolar'),
+            model_name="logalteracaoquantidadealunosporescolaeperiodoescolar",
+            name="periodo_escolar",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="log_alteracao_quantidade_alunos",
+                to="escola.PeriodoEscolar",
+            ),
         ),
     ]

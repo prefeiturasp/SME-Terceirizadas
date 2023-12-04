@@ -4,18 +4,20 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('pre_recebimento', '0017_solicitacaoalteracaocronograma_programacoes_novas'),
+        ("pre_recebimento", "0017_solicitacaoalteracaocronograma_programacoes_novas"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='EmbalagemQld',
-            new_name='TipoEmbalagemQld',
+            old_name="EmbalagemQld",
+            new_name="TipoEmbalagemQld",
         ),
         migrations.AlterModelOptions(
-            name='tipoembalagemqld',
-            options={'verbose_name': 'Tipo de Embalagem (Qualidade)', 'verbose_name_plural': 'Tipos de Embalagens (Qualidade)'},
+            name="tipoembalagemqld",
+            options={
+                "verbose_name": "Tipo de Embalagem (Qualidade)",
+                "verbose_name_plural": "Tipos de Embalagens (Qualidade)",
+            },
         ),
     ]

@@ -5,16 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0008_aluno'),
-        ('dieta_especial', '0003_auto_20200116_1601'),
+        ("escola", "0008_aluno"),
+        ("dieta_especial", "0003_auto_20200116_1601"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaodietaespecial',
-            name='aluno',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, to='escola.Aluno'),
+            model_name="solicitacaodietaespecial",
+            name="aluno",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                to="escola.Aluno",
+            ),
         ),
     ]

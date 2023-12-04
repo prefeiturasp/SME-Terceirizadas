@@ -16,7 +16,7 @@ def atualizar_valores(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('dados_comuns', '0097_alter_notificacao_categoria'),
+        ("dados_comuns", "0097_alter_notificacao_categoria"),
     ]
 
     operations = [

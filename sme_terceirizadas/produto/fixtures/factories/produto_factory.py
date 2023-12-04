@@ -3,7 +3,7 @@ from faker import Faker
 
 from sme_terceirizadas.produto.models import Fabricante, Marca, NomeDeProdutoEdital
 
-fake = Faker('pt_BR')
+fake = Faker("pt_BR")
 
 
 class ProdutoLogisticaFactory(DjangoModelFactory):

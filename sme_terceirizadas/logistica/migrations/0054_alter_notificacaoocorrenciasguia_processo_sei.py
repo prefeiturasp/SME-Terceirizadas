@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0053_remove_notificacaoocorrenciasguia_link_processo_sei'),
+        ("logistica", "0053_remove_notificacaoocorrenciasguia_link_processo_sei"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='notificacaoocorrenciasguia',
-            name='processo_sei',
-            field=models.CharField(max_length=20, null=True, verbose_name='Nº do Processo SEI'),
+            model_name="notificacaoocorrenciasguia",
+            name="processo_sei",
+            field=models.CharField(
+                max_length=20, null=True, verbose_name="Nº do Processo SEI"
+            ),
         ),
     ]

@@ -4,27 +4,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('pre_recebimento', '0014_cronograma_unidade_medida'),
+        ("pre_recebimento", "0014_cronograma_unidade_medida"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='solicitacaoalteracaocronograma',
-            name='etapas',
+            model_name="solicitacaoalteracaocronograma",
+            name="etapas",
         ),
         migrations.AddField(
-            model_name='solicitacaoalteracaocronograma',
-            name='etapas_antigas',
-            field=models.ManyToManyField(related_name='etapas_antigas', to='pre_recebimento.EtapasDoCronograma'),
+            model_name="solicitacaoalteracaocronograma",
+            name="etapas_antigas",
+            field=models.ManyToManyField(
+                related_name="etapas_antigas", to="pre_recebimento.EtapasDoCronograma"
+            ),
         ),
         migrations.AddField(
-            model_name='solicitacaoalteracaocronograma',
-            name='etapas_novas',
-            field=models.ManyToManyField(related_name='etapas_novas', to='pre_recebimento.EtapasDoCronograma'),
+            model_name="solicitacaoalteracaocronograma",
+            name="etapas_novas",
+            field=models.ManyToManyField(
+                related_name="etapas_novas", to="pre_recebimento.EtapasDoCronograma"
+            ),
         ),
         migrations.DeleteModel(
-            name='AlteracaoCronogramaEtapa',
+            name="AlteracaoCronogramaEtapa",
         ),
     ]

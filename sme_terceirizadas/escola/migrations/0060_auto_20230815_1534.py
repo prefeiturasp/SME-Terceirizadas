@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0059_alunoperiodoparcial'),
+        ("escola", "0059_alunoperiodoparcial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='diretoriaregional',
-            name='acesso_modulo_medicao_inicial',
+            model_name="diretoriaregional",
+            name="acesso_modulo_medicao_inicial",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='escola',
-            name='acesso_modulo_medicao_inicial',
+            model_name="escola",
+            name="acesso_modulo_medicao_inicial",
             field=models.BooleanField(default=False),
         ),
     ]

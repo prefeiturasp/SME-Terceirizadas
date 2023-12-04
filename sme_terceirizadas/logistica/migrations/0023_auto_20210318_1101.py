@@ -5,15 +5,28 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0022_auto_20210316_1405'),
+        ("logistica", "0022_auto_20210316_1405"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='solicitacaoremessa',
-            name='status',
-            field=django_xworkflows.models.StateField(max_length=31, workflow=django_xworkflows.models._SerializedWorkflow(initial_state='AGUARDANDO_ENVIO', name='SolicitacaoRemessaWorkFlow', states=['AGUARDANDO_ENVIO', 'DILOG_ENVIA', 'CANCELADA', 'DISTRIBUIDOR_CONFIRMA', 'DISTRIBUIDOR_SOLICITA_ALTERACAO', 'DILOG_ACEITA_ALTERACAO'])),
+            model_name="solicitacaoremessa",
+            name="status",
+            field=django_xworkflows.models.StateField(
+                max_length=31,
+                workflow=django_xworkflows.models._SerializedWorkflow(
+                    initial_state="AGUARDANDO_ENVIO",
+                    name="SolicitacaoRemessaWorkFlow",
+                    states=[
+                        "AGUARDANDO_ENVIO",
+                        "DILOG_ENVIA",
+                        "CANCELADA",
+                        "DISTRIBUIDOR_CONFIRMA",
+                        "DISTRIBUIDOR_SOLICITA_ALTERACAO",
+                        "DILOG_ACEITA_ALTERACAO",
+                    ],
+                ),
+            ),
         ),
     ]

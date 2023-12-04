@@ -4,14 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0042_auto_20230112_1501'),
+        ("cardapio", "0042_auto_20230112_1501"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='tipoalimentacao',
-            options={'ordering': ['posicao'], 'verbose_name': 'Tipo de alimentação', 'verbose_name_plural': 'Tipos de alimentação'},
+            name="tipoalimentacao",
+            options={
+                "ordering": ["posicao"],
+                "verbose_name": "Tipo de alimentação",
+                "verbose_name_plural": "Tipos de alimentação",
+            },
         ),
     ]

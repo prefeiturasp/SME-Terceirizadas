@@ -4,25 +4,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0017_auto_20200426_1914'),
+        ("produto", "0017_auto_20200426_1914"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='produto',
-            name='componentes',
-            field=models.CharField(blank=True, max_length=500, verbose_name='Componentes do Produto'),
+            model_name="produto",
+            name="componentes",
+            field=models.CharField(
+                blank=True, max_length=500, verbose_name="Componentes do Produto"
+            ),
         ),
         migrations.AlterField(
-            model_name='produto',
-            name='info_armazenamento',
-            field=models.CharField(blank=True, max_length=500, verbose_name='Informações de Armazenamento'),
+            model_name="produto",
+            name="info_armazenamento",
+            field=models.CharField(
+                blank=True, max_length=500, verbose_name="Informações de Armazenamento"
+            ),
         ),
         migrations.AlterField(
-            model_name='produto',
-            name='tipo',
-            field=models.CharField(blank=True, max_length=250, verbose_name='Tipo do Produto'),
+            model_name="produto",
+            name="tipo",
+            field=models.CharField(
+                blank=True, max_length=250, verbose_name="Tipo do Produto"
+            ),
         ),
     ]

@@ -9,7 +9,7 @@ from ...models import (
     Modulo,
     Nutricionista,
     Terceirizada,
-    VigenciaContrato
+    VigenciaContrato,
 )
 from ...utils import serializa_emails_terceirizadas
 
@@ -19,38 +19,43 @@ class NutricionistaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Nutricionista
-        exclude = ('id', 'terceirizada')
+        exclude = ("id", "terceirizada")
 
 
 class LoteSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lote
-        fields = ('uuid', 'nome',)
+        fields = (
+            "uuid",
+            "nome",
+        )
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiretoriaRegional
-        fields = ('uuid', 'nome',)
+        fields = (
+            "uuid",
+            "nome",
+        )
 
 
 class DistribuidorSimplesSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Terceirizada
-        fields = ('uuid', 'nome_fantasia', 'razao_social')
+        fields = ("uuid", "nome_fantasia", "razao_social")
 
 
 class VigenciaContratoSerializer(serializers.ModelSerializer):
     class Meta:
         model = VigenciaContrato
-        fields = ('uuid', 'data_inicial', 'data_final')
+        fields = ("uuid", "data_inicial", "data_final")
 
 
 class EditalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Edital
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class ContratoSimplesSerializer(serializers.ModelSerializer):
@@ -59,7 +64,7 @@ class ContratoSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contrato
-        exclude = ('id', 'terceirizada', 'diretorias_regionais', 'lotes')
+        exclude = ("id", "terceirizada", "diretorias_regionais", "lotes")
 
 
 class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
@@ -68,20 +73,18 @@ class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Terceirizada
-        fields = ('uuid', 'cnpj', 'nome_fantasia', 'contatos', 'contratos')
+        fields = ("uuid", "cnpj", "nome_fantasia", "contatos", "contratos")
 
 
 class TerceirizadaLookUpSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Terceirizada
-        fields = ('uuid', 'razao_social')
+        fields = ("uuid", "razao_social")
 
 
 class ContratoSerializer(serializers.ModelSerializer):
     edital = serializers.SlugRelatedField(
-        slug_field='uuid',
-        queryset=Edital.objects.all()
+        slug_field="uuid", queryset=Edital.objects.all()
     )
     vigencias = VigenciaContratoSerializer(many=True)
 
@@ -93,13 +96,13 @@ class ContratoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contrato
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class EditalSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Edital
-        fields = ('uuid', 'numero')
+        fields = ("uuid", "numero")
 
 
 class EditalContratosSerializer(serializers.ModelSerializer):
@@ -107,21 +110,20 @@ class EditalContratosSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Edital
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class ModuloSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Modulo
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class EmailsPorModuloSerializer(serializers.ModelSerializer):
     emails_terceirizadas = serializers.SerializerMethodField()
 
     def get_emails_terceirizadas(self, obj):
-        busca = self.context['busca']
+        busca = self.context["busca"]
         emails = obj.emails_terceirizadas.all()
         if busca and busca.upper() not in obj.razao_social.upper():
             emails = emails.filter(email__icontains=busca)
@@ -129,7 +131,7 @@ class EmailsPorModuloSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Terceirizada
-        fields = ('uuid', 'razao_social', 'emails_terceirizadas')
+        fields = ("uuid", "razao_social", "emails_terceirizadas")
 
 
 class EmailsTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
@@ -144,4 +146,4 @@ class EmailsTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmailTerceirizadaPorModulo
-        exclude = ('id', 'criado_por')
+        exclude = ("id", "criado_por")

@@ -12,14 +12,14 @@ from ....dados_comuns.constants import (
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_PRODUTO,
-    COORDENADOR_SUPERVISAO_NUTRICAO
+    COORDENADOR_SUPERVISAO_NUTRICAO,
 )
 
 
 class CargaPerfisVinculadosCommandTest(TestCase):
     def call_command(self, *args, **kwargs):
         call_command(
-            'carga_perfis_vinculados',
+            "carga_perfis_vinculados",
             *args,
             **kwargs,
         )
@@ -53,10 +53,18 @@ class CargaPerfisVinculadosCommandTest(TestCase):
     @pytest.mark.django_db(transaction=True)
     def test_command_carga(self) -> None:
         self.call_command()
-        dieta = PerfisVinculados.objects.filter(perfil_master__nome=COORDENADOR_DIETA_ESPECIAL)[0]
-        produto = PerfisVinculados.objects.filter(perfil_master__nome=COORDENADOR_GESTAO_PRODUTO)[0]
+        dieta = PerfisVinculados.objects.filter(
+            perfil_master__nome=COORDENADOR_DIETA_ESPECIAL
+        )[0]
+        produto = PerfisVinculados.objects.filter(
+            perfil_master__nome=COORDENADOR_GESTAO_PRODUTO
+        )[0]
         coordenador_supervisao_nutricao = PerfisVinculados.objects.filter(
-            perfil_master__nome=COORDENADOR_SUPERVISAO_NUTRICAO)[0]
+            perfil_master__nome=COORDENADOR_SUPERVISAO_NUTRICAO
+        )[0]
         assert dieta.perfis_subordinados.first().nome == ADMINISTRADOR_DIETA_ESPECIAL
         assert produto.perfis_subordinados.first().nome == ADMINISTRADOR_GESTAO_PRODUTO
-        assert coordenador_supervisao_nutricao.perfis_subordinados.first().nome == ADMINISTRADOR_SUPERVISAO_NUTRICAO
+        assert (
+            coordenador_supervisao_nutricao.perfis_subordinados.first().nome
+            == ADMINISTRADOR_SUPERVISAO_NUTRICAO
+        )

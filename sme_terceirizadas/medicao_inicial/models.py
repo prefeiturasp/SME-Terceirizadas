@@ -18,9 +18,12 @@ from ..dados_comuns.behaviors import (
     TemDia,
     TemIdentificadorExternoAmigavel,
     TemMes,
-    TemSemana
+    TemSemana,
 )
-from ..dados_comuns.fluxo_status import FluxoSolicitacaoMedicaoInicial, LogSolicitacoesUsuario
+from ..dados_comuns.fluxo_status import (
+    FluxoSolicitacaoMedicaoInicial,
+    LogSolicitacoesUsuario,
+)
 from ..escola.models import TipoUnidadeEscolar
 from ..perfil.models import Usuario
 
@@ -36,34 +39,51 @@ class DiaSobremesaDoce(TemData, TemChaveExterna, CriadoEm, CriadoPor):
         return f'{self.data.strftime("%d/%m/%Y")} - {self.tipo_unidade.iniciais}'
 
     class Meta:
-        verbose_name = 'Dia de sobremesa doce'
-        verbose_name_plural = 'Dias de sobremesa doce'
-        unique_together = ('tipo_unidade', 'data',)
-        ordering = ('data',)
+        verbose_name = "Dia de sobremesa doce"
+        verbose_name_plural = "Dias de sobremesa doce"
+        unique_together = (
+            "tipo_unidade",
+            "data",
+        )
+        ordering = ("data",)
 
 
 class SolicitacaoMedicaoInicial(
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
-    CriadoEm, CriadoPor,
-    TemMes, TemAno,
+    CriadoEm,
+    CriadoPor,
+    TemMes,
+    TemAno,
     FluxoSolicitacaoMedicaoInicial,
     Logs,
 ):
     """Solicitação de Medição Inicial."""
 
-    escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE,
-                               related_name='solicitacoes_medicao_inicial')
-    tipos_contagem_alimentacao = models.ManyToManyField('TipoContagemAlimentacao',
-                                                        related_name='solicitacoes_medicao_inicial')
-    com_ocorrencias = models.BooleanField('Com ocorrências?', default=False)
+    escola = models.ForeignKey(
+        "escola.Escola",
+        on_delete=models.CASCADE,
+        related_name="solicitacoes_medicao_inicial",
+    )
+    tipos_contagem_alimentacao = models.ManyToManyField(
+        "TipoContagemAlimentacao", related_name="solicitacoes_medicao_inicial"
+    )
+    com_ocorrencias = models.BooleanField("Com ocorrências?", default=False)
     historico = models.JSONField(blank=True, null=True)
-    ue_possui_alunos_periodo_parcial = models.BooleanField('Possui alunos periodo parcial?', default=False)
-    logs_salvos = models.BooleanField('Logs de matriculados, dietas autorizadas, etc foram salvos?', default=False)
+    ue_possui_alunos_periodo_parcial = models.BooleanField(
+        "Possui alunos periodo parcial?", default=False
+    )
+    logs_salvos = models.BooleanField(
+        "Logs de matriculados, dietas autorizadas, etc foram salvos?", default=False
+    )
     dre_ciencia_correcao_data = models.DateTimeField(blank=True, null=True)
     dre_ciencia_correcao_usuario = models.ForeignKey(
-        'perfil.Usuario', on_delete=models.SET_NULL, related_name='solicitacoes_medicao_ciencia_correcao',
-        blank=True, null=True)
+        "perfil.Usuario",
+        on_delete=models.SET_NULL,
+        related_name="solicitacoes_medicao_ciencia_correcao",
+        blank=True,
+        null=True,
+    )
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         LogSolicitacoesUsuario.objects.create(
@@ -78,25 +98,30 @@ class SolicitacaoMedicaoInicial(
     def todas_medicoes_e_ocorrencia_aprovados_por_medicao(self):
         ocorrencia_aprovada = True
         if self.tem_ocorrencia:
-            ocorrencia_aprovada = self.ocorrencia.status == self.ocorrencia.workflow_class.MEDICAO_APROVADA_PELA_CODAE
-        todas_medicoes_aprovadas = not self.medicoes.exclude(status='MEDICAO_APROVADA_PELA_CODAE').exists()
+            ocorrencia_aprovada = (
+                self.ocorrencia.status
+                == self.ocorrencia.workflow_class.MEDICAO_APROVADA_PELA_CODAE
+            )
+        todas_medicoes_aprovadas = not self.medicoes.exclude(
+            status="MEDICAO_APROVADA_PELA_CODAE"
+        ).exists()
         return ocorrencia_aprovada and todas_medicoes_aprovadas
 
     @property
     def assinatura_ue(self):
         try:
-            log_enviado_ue = self.logs.get(status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE)
+            log_enviado_ue = self.logs.get(
+                status_evento=LogSolicitacoesUsuario.MEDICAO_ENVIADA_PELA_UE
+            )
             assinatura_escola = None
             if log_enviado_ue:
                 razao_social = (
                     self.rastro_terceirizada.razao_social
                     if self.rastro_terceirizada
-                    else ''
+                    else ""
                 )
                 usuario_escola = log_enviado_ue.usuario
-                data_enviado_ue = log_enviado_ue.criado_em.strftime(
-                    '%d/%m/%Y às %H:%M'
-                )
+                data_enviado_ue = log_enviado_ue.criado_em.strftime("%d/%m/%Y às %H:%M")
                 assinatura_escola = f"""Documento conferido e registrado eletronicamente por {usuario_escola.nome},
                                         {usuario_escola.cargo}, {usuario_escola.registro_funcional},
                                         {self.escola.nome} em {data_enviado_ue}. O registro eletrônico da Medição
@@ -108,13 +133,15 @@ class SolicitacaoMedicaoInicial(
 
     @property
     def assinatura_dre(self):
-        log_aprovado_dre = self.logs.filter(status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE).last()
+        log_aprovado_dre = self.logs.filter(
+            status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE
+        ).last()
         if not log_aprovado_dre:
             return None
         usuario_dre = self.dre_ciencia_correcao_usuario or log_aprovado_dre.usuario
-        data_aprovado_dre = (self.dre_ciencia_correcao_data or log_aprovado_dre.criado_em).strftime(
-            '%d/%m/%Y às %H:%M'
-        )
+        data_aprovado_dre = (
+            self.dre_ciencia_correcao_data or log_aprovado_dre.criado_em
+        ).strftime("%d/%m/%Y às %H:%M")
         assinatura_dre = f"""Documento conferido e aprovado eletronicamente por {usuario_dre.nome},
                              {usuario_dre.cargo}, {usuario_dre.registro_funcional},
                              {self.rastro_lote.diretoria_regional.nome} em {data_aprovado_dre}."""
@@ -122,30 +149,34 @@ class SolicitacaoMedicaoInicial(
 
     @property
     def tem_ocorrencia(self):
-        return hasattr(self, 'ocorrencia')
+        return hasattr(self, "ocorrencia")
 
     @property
     def get_medicao_programas_e_projetos(self):
         try:
-            return self.medicoes.get(grupo__nome='Programas e Projetos')
+            return self.medicoes.get(grupo__nome="Programas e Projetos")
         except Medicao.DoesNotExist:
             return None
 
     @property
     def get_medicao_etec(self):
         try:
-            return self.medicoes.get(grupo__nome='ETEC')
+            return self.medicoes.get(grupo__nome="ETEC")
         except Medicao.DoesNotExist:
             return None
 
     class Meta:
-        verbose_name = 'Solicitação de medição inicial'
-        verbose_name_plural = 'Solicitações de medição inicial'
-        unique_together = ('escola', 'mes', 'ano',)
-        ordering = ('-ano', '-mes')
+        verbose_name = "Solicitação de medição inicial"
+        verbose_name_plural = "Solicitações de medição inicial"
+        unique_together = (
+            "escola",
+            "mes",
+            "ano",
+        )
+        ordering = ("-ano", "-mes")
 
     def __str__(self):
-        return f'Solicitação #{self.id_externo} -- Escola {self.escola.nome} -- {self.mes}/{self.ano}'
+        return f"Solicitação #{self.id_externo} -- Escola {self.escola.nome} -- {self.mes}/{self.ano}"
 
 
 class OcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedicaoInicial):
@@ -156,12 +187,13 @@ class OcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedicaoIni
     solicitacao_medicao_inicial = models.OneToOneField(
         SolicitacaoMedicaoInicial,
         on_delete=models.CASCADE,
-        related_name='ocorrencia',
-        blank=True, null=True
+        related_name="ocorrencia",
+        blank=True,
+        null=True,
     )
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
-        justificativa = kwargs.get('justificativa', '')
+        justificativa = kwargs.get("justificativa", "")
         log_transicao = LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             justificativa=justificativa,
@@ -178,37 +210,33 @@ class OcorrenciaMedicaoInicial(TemChaveExterna, Logs, FluxoSolicitacaoMedicaoIni
             log.delete()
 
     def __str__(self):
-        return f'Ocorrência {self.uuid} da Solicitação de Medição Inicial {self.solicitacao_medicao_inicial.uuid}'
+        return f"Ocorrência {self.uuid} da Solicitação de Medição Inicial {self.solicitacao_medicao_inicial.uuid}"
 
 
 class Responsavel(models.Model):
-    nome = models.CharField('Nome', max_length=100)
+    nome = models.CharField("Nome", max_length=100)
     rf = models.CharField(max_length=10)
     solicitacao_medicao_inicial = models.ForeignKey(
-        SolicitacaoMedicaoInicial,
-        related_name='responsaveis',
-        on_delete=models.CASCADE
+        SolicitacaoMedicaoInicial, related_name="responsaveis", on_delete=models.CASCADE
     )
 
     def __str__(self):
-        return f'Responsável {self.nome} - {self.rf}'
+        return f"Responsável {self.nome} - {self.rf}"
 
 
 class TipoContagemAlimentacao(Nomeavel, TemChaveExterna, Ativavel):
-
     class Meta:
-        verbose_name = 'Tipo de contagem das alimentações'
-        verbose_name_plural = 'Tipos de contagem das alimentações'
+        verbose_name = "Tipo de contagem das alimentações"
+        verbose_name_plural = "Tipos de contagem das alimentações"
 
     def __str__(self):
         return self.nome
 
 
 class GrupoMedicao(Nomeavel, TemChaveExterna, Ativavel):
-
     class Meta:
-        verbose_name = 'Grupo de medição'
-        verbose_name_plural = 'Grupos de medição'
+        verbose_name = "Grupo de medição"
+        verbose_name_plural = "Grupos de medição"
 
     def __str__(self):
         return self.nome
@@ -218,13 +246,20 @@ class Medicao(
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
     FluxoSolicitacaoMedicaoInicial,
-    CriadoEm, CriadoPor, Logs
+    CriadoEm,
+    CriadoPor,
+    Logs,
 ):
-    solicitacao_medicao_inicial = models.ForeignKey('SolicitacaoMedicaoInicial', on_delete=models.CASCADE,
-                                                    related_name='medicoes')
-    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', blank=True, null=True, on_delete=models.DO_NOTHING)
-    grupo = models.ForeignKey(GrupoMedicao, blank=True, null=True, on_delete=models.PROTECT)
-    alterado_em = models.DateTimeField('Alterado em', null=True, blank=True)
+    solicitacao_medicao_inicial = models.ForeignKey(
+        "SolicitacaoMedicaoInicial", on_delete=models.CASCADE, related_name="medicoes"
+    )
+    periodo_escolar = models.ForeignKey(
+        "escola.PeriodoEscolar", blank=True, null=True, on_delete=models.DO_NOTHING
+    )
+    grupo = models.ForeignKey(
+        GrupoMedicao, blank=True, null=True, on_delete=models.PROTECT
+    )
+    alterado_em = models.DateTimeField("Alterado em", null=True, blank=True)
 
     def deletar_log_correcao(self, status_evento, **kwargs):
         log = self.logs.last()
@@ -232,7 +267,7 @@ class Medicao(
             log.delete()
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
-        justificativa = kwargs.get('justificativa', '')
+        justificativa = kwargs.get("justificativa", "")
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             justificativa=justificativa,
@@ -245,48 +280,52 @@ class Medicao(
     @property
     def nome_periodo_grupo(self):
         if self.grupo and self.periodo_escolar:
-            nome_periodo_grupo = f'{self.grupo.nome} - ' + f'{self.periodo_escolar.nome}'
+            nome_periodo_grupo = (
+                f"{self.grupo.nome} - " + f"{self.periodo_escolar.nome}"
+            )
         elif self.grupo and not self.periodo_escolar:
-            nome_periodo_grupo = f'{self.grupo.nome}'
+            nome_periodo_grupo = f"{self.grupo.nome}"
         else:
-            nome_periodo_grupo = f'{self.periodo_escolar.nome}'
+            nome_periodo_grupo = f"{self.periodo_escolar.nome}"
         return nome_periodo_grupo
 
     class Meta:
-        verbose_name = 'Medição'
-        verbose_name_plural = 'Medições'
+        verbose_name = "Medição"
+        verbose_name_plural = "Medições"
 
     def __str__(self):
-        ano = f'{self.solicitacao_medicao_inicial.ano}'
-        mes = f'{self.solicitacao_medicao_inicial.mes}'
+        ano = f"{self.solicitacao_medicao_inicial.ano}"
+        mes = f"{self.solicitacao_medicao_inicial.mes}"
 
-        return f'Medição #{self.id_externo} -- {self.nome_periodo_grupo} -- {mes}/{ano}'
+        return f"Medição #{self.id_externo} -- {self.nome_periodo_grupo} -- {mes}/{ano}"
 
 
 class CategoriaMedicao(Nomeavel, Ativavel, TemChaveExterna):
-
     class Meta:
-        verbose_name = 'Categoria de medição'
-        verbose_name_plural = 'Categorias de medições'
+        verbose_name = "Categoria de medição"
+        verbose_name_plural = "Categorias de medições"
 
     def __str__(self):
         return self.nome
 
 
 class ValorMedicao(
-    TemChaveExterna,
-    TemIdentificadorExternoAmigavel,
-    CriadoEm, TemDia, TemSemana
+    TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, TemDia, TemSemana
 ):
-    valor = models.TextField('Valor do Campo')
+    valor = models.TextField("Valor do Campo")
     nome_campo = models.CharField(max_length=100)
-    medicao = models.ForeignKey('Medicao', on_delete=models.CASCADE, related_name='valores_medicao')
-    categoria_medicao = models.ForeignKey('CategoriaMedicao', on_delete=models.CASCADE,
-                                          related_name='valores_medicao')
-    tipo_alimentacao = models.ForeignKey('cardapio.TipoAlimentacao', blank=True,
-                                         null=True, on_delete=models.DO_NOTHING)
-    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', blank=True,
-                                     null=True, on_delete=models.DO_NOTHING)
+    medicao = models.ForeignKey(
+        "Medicao", on_delete=models.CASCADE, related_name="valores_medicao"
+    )
+    categoria_medicao = models.ForeignKey(
+        "CategoriaMedicao", on_delete=models.CASCADE, related_name="valores_medicao"
+    )
+    tipo_alimentacao = models.ForeignKey(
+        "cardapio.TipoAlimentacao", blank=True, null=True, on_delete=models.DO_NOTHING
+    )
+    faixa_etaria = models.ForeignKey(
+        "escola.FaixaEtaria", blank=True, null=True, on_delete=models.DO_NOTHING
+    )
     habilitado_correcao = models.BooleanField(default=False)
 
     @classmethod
@@ -297,36 +336,48 @@ class ValorMedicao(
         return week_of_month
 
     def __str__(self):
-        categoria = f'{self.categoria_medicao.nome}'
-        nome_campo = f'{self.nome_campo}'
-        dia = f'{self.dia}'
-        mes = f'{self.medicao.solicitacao_medicao_inicial.mes}'
-        return f'#{self.id_externo} -- Categoria {categoria} -- Campo {nome_campo} -- Dia/Mês {dia}/{mes}'
+        categoria = f"{self.categoria_medicao.nome}"
+        nome_campo = f"{self.nome_campo}"
+        dia = f"{self.dia}"
+        mes = f"{self.medicao.solicitacao_medicao_inicial.mes}"
+        return f"#{self.id_externo} -- Categoria {categoria} -- Campo {nome_campo} -- Dia/Mês {dia}/{mes}"
 
     class Meta:
-        verbose_name = 'Valor da Medição'
-        verbose_name_plural = 'Valores das Medições'
+        verbose_name = "Valor da Medição"
+        verbose_name_plural = "Valores das Medições"
 
 
 class AlimentacaoLancamentoEspecial(Nomeavel, Ativavel, TemChaveExterna, Posicao):
-
     class Meta:
-        verbose_name = 'Alimentação de Lançamento Especial'
-        verbose_name_plural = 'Alimentações de Lançamentos Especiais'
-        ordering = ['posicao']
+        verbose_name = "Alimentação de Lançamento Especial"
+        verbose_name_plural = "Alimentações de Lançamentos Especiais"
+        ordering = ["posicao"]
 
     def __str__(self):
         return self.nome
 
 
-class PermissaoLancamentoEspecial(CriadoPor, CriadoEm, TemAlteradoEm, TemChaveExterna, TemIdentificadorExternoAmigavel):
-    escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE, related_name='permissoes_lancamento_especial')
-    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', blank=True, null=True, on_delete=models.DO_NOTHING)
-    alimentacoes_lancamento_especial = models.ManyToManyField(AlimentacaoLancamentoEspecial)
-    diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', related_name='permissoes_lancamento_especial',
-                                           on_delete=models.DO_NOTHING)
-    data_inicial = models.DateField('Data inicial', null=True, blank=True)
-    data_final = models.DateField('Data final', null=True, blank=True)
+class PermissaoLancamentoEspecial(
+    CriadoPor, CriadoEm, TemAlteradoEm, TemChaveExterna, TemIdentificadorExternoAmigavel
+):
+    escola = models.ForeignKey(
+        "escola.Escola",
+        on_delete=models.CASCADE,
+        related_name="permissoes_lancamento_especial",
+    )
+    periodo_escolar = models.ForeignKey(
+        "escola.PeriodoEscolar", blank=True, null=True, on_delete=models.DO_NOTHING
+    )
+    alimentacoes_lancamento_especial = models.ManyToManyField(
+        AlimentacaoLancamentoEspecial
+    )
+    diretoria_regional = models.ForeignKey(
+        "escola.DiretoriaRegional",
+        related_name="permissoes_lancamento_especial",
+        on_delete=models.DO_NOTHING,
+    )
+    data_inicial = models.DateField("Data inicial", null=True, blank=True)
+    data_final = models.DateField("Data final", null=True, blank=True)
 
     @property
     def ativo(self):
@@ -341,44 +392,57 @@ class PermissaoLancamentoEspecial(CriadoPor, CriadoEm, TemAlteradoEm, TemChaveEx
             return True
 
     class Meta:
-        verbose_name = 'Permissão de Lançamento Especial'
-        verbose_name_plural = 'Permissões de Lançamentos Especiais'
-        ordering = ['-alterado_em']
+        verbose_name = "Permissão de Lançamento Especial"
+        verbose_name_plural = "Permissões de Lançamentos Especiais"
+        ordering = ["-alterado_em"]
 
     def __str__(self):
-        return f'Permissão #{self.id_externo} - {self.escola.nome}'
+        return f"Permissão #{self.id_externo} - {self.escola.nome}"
 
 
-class DiaParaCorrigir(TemChaveExterna, TemIdentificadorExternoAmigavel, TemDia, CriadoEm, CriadoPor):
-    medicao = models.ForeignKey('Medicao', on_delete=models.CASCADE, related_name='dias_para_corrigir')
+class DiaParaCorrigir(
+    TemChaveExterna, TemIdentificadorExternoAmigavel, TemDia, CriadoEm, CriadoPor
+):
+    medicao = models.ForeignKey(
+        "Medicao", on_delete=models.CASCADE, related_name="dias_para_corrigir"
+    )
     categoria_medicao = models.ForeignKey(
-        'CategoriaMedicao', on_delete=models.CASCADE, related_name='dias_para_corrigir')
+        "CategoriaMedicao", on_delete=models.CASCADE, related_name="dias_para_corrigir"
+    )
     habilitado_correcao = models.BooleanField(default=True)
 
     @classmethod
-    def cria_dias_para_corrigir(cls, medicao: Medicao, usuario: Usuario, list_dias_para_corrigir: list) -> None:
+    def cria_dias_para_corrigir(
+        cls, medicao: Medicao, usuario: Usuario, list_dias_para_corrigir: list
+    ) -> None:
         if not list_dias_para_corrigir:
             return
         medicao.dias_para_corrigir.all().delete()
         list_dias_para_corrigir_a_criar = []
         for dia_para_corrigir in list_dias_para_corrigir:
-            categoria_medicao = CategoriaMedicao.objects.get(uuid=dia_para_corrigir['categoria_medicao_uuid'])
+            categoria_medicao = CategoriaMedicao.objects.get(
+                uuid=dia_para_corrigir["categoria_medicao_uuid"]
+            )
             dia_obj = DiaParaCorrigir(
                 medicao=medicao,
-                dia=dia_para_corrigir['dia'],
+                dia=dia_para_corrigir["dia"],
                 categoria_medicao=categoria_medicao,
-                criado_por=usuario
+                criado_por=usuario,
             )
             list_dias_para_corrigir_a_criar.append(dia_obj)
         DiaParaCorrigir.objects.bulk_create(list_dias_para_corrigir_a_criar)
 
     def __str__(self):
         escola = self.medicao.solicitacao_medicao_inicial.escola.nome
-        periodo_ou_grupo = self.medicao.grupo.nome if self.medicao.grupo else self.medicao.periodo_escolar.nome
+        periodo_ou_grupo = (
+            self.medicao.grupo.nome
+            if self.medicao.grupo
+            else self.medicao.periodo_escolar.nome
+        )
         mes = self.medicao.solicitacao_medicao_inicial.mes
         ano = self.medicao.solicitacao_medicao_inicial.ano
-        return f'# {self.id_externo} - {escola} - {periodo_ou_grupo} - {self.dia}/{mes}/{ano}'
+        return f"# {self.id_externo} - {escola} - {periodo_ou_grupo} - {self.dia}/{mes}/{ano}"
 
     class Meta:
-        verbose_name = 'Dia da Medição para corrigir'
-        verbose_name_plural = 'Dias da Medição para corrigir'
+        verbose_name = "Dia da Medição para corrigir"
+        verbose_name_plural = "Dias da Medição para corrigir"

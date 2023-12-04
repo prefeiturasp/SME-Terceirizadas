@@ -5,15 +5,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0028_auto_20210304_1452'),
+        ("dieta_especial", "0028_auto_20210304_1452"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='logdietasativascanceladasautomaticamente',
-            name='dieta',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='dietas_especiais', to='dieta_especial.SolicitacaoDietaEspecial'),
+            model_name="logdietasativascanceladasautomaticamente",
+            name="dieta",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="dietas_especiais",
+                to="dieta_especial.SolicitacaoDietaEspecial",
+            ),
         ),
     ]

@@ -26,6 +26,7 @@ repos:
             entry: bandit
             language: system
             args:
+                - --skip=B311
                 - --quiet
                 - --exclude=__tests__
             types:

@@ -4,14 +4,16 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0011_inclusaoalimentacaodacei_outro_motivo'),
+        ("inclusao_alimentacao", "0011_inclusaoalimentacaodacei_outro_motivo"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='quantidadeporperiodo',
-            options={'verbose_name': 'Quantidade por periodo', 'verbose_name_plural': 'Quantidades por periodo'},
+            name="quantidadeporperiodo",
+            options={
+                "verbose_name": "Quantidade por periodo",
+                "verbose_name_plural": "Quantidades por periodo",
+            },
         ),
     ]

@@ -6,25 +6,48 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0025_auto_20201123_1149'),
+        ("escola", "0025_auto_20201123_1149"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='LogRotinaDiariaAlunos',
+            name="LogRotinaDiariaAlunos",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('criado_em', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('quantidade_alunos_antes', models.PositiveIntegerField(default=0, verbose_name='Quantidade de alunos antes')),
-                ('quantidade_alunos_atual', models.PositiveIntegerField(default=0, verbose_name='Quantidade de alunos atual')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "criado_em",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Criado em"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "quantidade_alunos_antes",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="Quantidade de alunos antes"
+                    ),
+                ),
+                (
+                    "quantidade_alunos_atual",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="Quantidade de alunos atual"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Log Rotina Diária quantidade de alunos',
-                'verbose_name_plural': 'Logs Rotina Diária quantidade de alunos',
-                'ordering': ('-criado_em',),
+                "verbose_name": "Log Rotina Diária quantidade de alunos",
+                "verbose_name_plural": "Logs Rotina Diária quantidade de alunos",
+                "ordering": ("-criado_em",),
             },
         ),
     ]

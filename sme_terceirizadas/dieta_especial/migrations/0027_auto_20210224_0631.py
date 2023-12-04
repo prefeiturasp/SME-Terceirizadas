@@ -4,20 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0026_planilhadietasativas'),
+        ("dieta_especial", "0026_planilhadietasativas"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='planilhadietasativas',
-            name='resultado',
-            field=models.FileField(blank=True, help_text='Arquivo com o resultado', null=True, upload_to=''),
+            model_name="planilhadietasativas",
+            name="resultado",
+            field=models.FileField(
+                blank=True, help_text="Arquivo com o resultado", null=True, upload_to=""
+            ),
         ),
         migrations.AddField(
-            model_name='planilhadietasativas',
-            name='tempfile',
-            field=models.CharField(blank=True, help_text='JSON temporario', max_length=100, null=True),
+            model_name="planilhadietasativas",
+            name="tempfile",
+            field=models.CharField(
+                blank=True, help_text="JSON temporario", max_length=100, null=True
+            ),
         ),
     ]

@@ -4,30 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0040_auto_20221121_1543'),
+        ("cardapio", "0040_auto_20221121_1543"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='inversaocardapio',
-            name='alunos_da_cemei_2',
-            field=models.CharField(blank=True, default='', max_length=50, verbose_name='Alunos da CEMEI'),
+            model_name="inversaocardapio",
+            name="alunos_da_cemei_2",
+            field=models.CharField(
+                blank=True, default="", max_length=50, verbose_name="Alunos da CEMEI"
+            ),
         ),
         migrations.AddField(
-            model_name='inversaocardapio',
-            name='data_de_inversao_2',
-            field=models.DateField(blank=True, null=True, verbose_name='Data de inversão'),
+            model_name="inversaocardapio",
+            name="data_de_inversao_2",
+            field=models.DateField(
+                blank=True, null=True, verbose_name="Data de inversão"
+            ),
         ),
         migrations.AddField(
-            model_name='inversaocardapio',
-            name='data_para_inversao_2',
-            field=models.DateField(blank=True, null=True, verbose_name='Data para inversão'),
+            model_name="inversaocardapio",
+            name="data_para_inversao_2",
+            field=models.DateField(
+                blank=True, null=True, verbose_name="Data para inversão"
+            ),
         ),
         migrations.AddField(
-            model_name='inversaocardapio',
-            name='tipos_alimentacao',
-            field=models.ManyToManyField(blank=True, help_text='Tipos de alimentacao.', to='cardapio.TipoAlimentacao'),
+            model_name="inversaocardapio",
+            name="tipos_alimentacao",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Tipos de alimentacao.",
+                to="cardapio.TipoAlimentacao",
+            ),
         ),
     ]
