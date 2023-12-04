@@ -1036,6 +1036,21 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                                 "faixas_etarias": faixas_etarias_uuids.distinct(),
                             }
                         )
+            elif inclusao.tipo_doc == "INC_ALIMENTA_CEMEI":
+                dias_motivos_cemei = inc.dias_motivos_da_inclusao_cemei.filter(data__month=mes, data__year=ano)
+                for periodo in periodos_escolares:
+                    if "Infantil" not in periodo:
+                        qtd_alunos_cei_cemei_por_periodo = inc.quantidade_alunos_cei_da_inclusao_cemei.filter(
+                            periodo_escolar__nome=periodo
+                        )
+                        faixas_etarias_uuids = qtd_alunos_cei_cemei_por_periodo.values_list(
+                            "faixa_etaria__uuid", flat=True
+                        )
+                        for dia_motivo_cemei in dias_motivos_cemei:
+                            return_dict.append({
+                                "dia": dia_motivo_cemei.data.day,
+                                "faixas_etarias": faixas_etarias_uuids.distinct(),
+                            })
             else:
                 for periodo in inc.quantidades_periodo.all():
                     if periodo.periodo_escolar.nome in periodos_escolares:
@@ -1187,9 +1202,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             else:
                 alt = self.get_alteracao_obj(alteracao, nome_periodo_escolar)
                 if alt:
-                    alt = alteracao.substituicoes_periodo_escolar.get(
-                        periodo_escolar__nome=nome_periodo_escolar
-                    )
                     for data_evento in alteracao.datas_intervalo.filter(
                         data__month=mes, data__year=ano, cancelado=False
                     ):
