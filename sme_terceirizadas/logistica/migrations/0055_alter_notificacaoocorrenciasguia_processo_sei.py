@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0054_alter_notificacaoocorrenciasguia_processo_sei'),
+        ("logistica", "0054_alter_notificacaoocorrenciasguia_processo_sei"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='notificacaoocorrenciasguia',
-            name='processo_sei',
-            field=models.CharField(blank=True, default='', max_length=20, verbose_name='Nº do Processo SEI'),
+            model_name="notificacaoocorrenciasguia",
+            name="processo_sei",
+            field=models.CharField(
+                blank=True, default="", max_length=20, verbose_name="Nº do Processo SEI"
+            ),
         ),
     ]

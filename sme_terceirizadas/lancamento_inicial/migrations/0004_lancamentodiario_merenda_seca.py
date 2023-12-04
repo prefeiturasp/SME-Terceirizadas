@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lancamento_inicial', '0003_lancamentodiario_eh_dia_de_sobremesa_doce'),
+        ("lancamento_inicial", "0003_lancamentodiario_eh_dia_de_sobremesa_doce"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='lancamentodiario',
-            name='merenda_seca',
+            model_name="lancamentodiario",
+            name="merenda_seca",
             field=models.IntegerField(null=True),
         ),
     ]

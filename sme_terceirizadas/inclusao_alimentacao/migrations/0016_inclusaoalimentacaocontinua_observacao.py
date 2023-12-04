@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0015_inclusaoalimentacaonormal_terceirizada_conferiu_gestao'),
+        (
+            "inclusao_alimentacao",
+            "0015_inclusaoalimentacaonormal_terceirizada_conferiu_gestao",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='inclusaoalimentacaocontinua',
-            name='observacao',
-            field=models.CharField(blank=True, max_length=1000, verbose_name='Observação'),
+            model_name="inclusaoalimentacaocontinua",
+            name="observacao",
+            field=models.CharField(
+                blank=True, max_length=1000, verbose_name="Observação"
+            ),
         ),
     ]

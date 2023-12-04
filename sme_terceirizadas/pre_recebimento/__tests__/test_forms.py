@@ -10,8 +10,8 @@ def test_caixa_alta_nome_form_validation():
     class CaixaAltaNomeFormComModelo(CaixaAltaNomeForm):
         class Meta:
             model = UnidadeMedida
-            fields = ['nome', 'abreviacao']
+            fields = ["nome", "abreviacao"]
 
-    form = CaixaAltaNomeFormComModelo(data={'nome': 'teste', 'abreviacao': 't'})
+    form = CaixaAltaNomeFormComModelo(data={"nome": "teste", "abreviacao": "t"})
     assert form.is_valid()
-    assert form.cleaned_data['nome'] == 'TESTE'
+    assert form.cleaned_data["nome"] == "TESTE"

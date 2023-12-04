@@ -5,16 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('terceirizada', '0003_auto_20191213_1339'),
-        ('logistica', '0004_auto_20201113_1658'),
+        ("terceirizada", "0003_auto_20191213_1339"),
+        ("logistica", "0004_auto_20201113_1658"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaoremessa',
-            name='distribuidor',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='solicitacoes', to='terceirizada.Terceirizada'),
+            model_name="solicitacaoremessa",
+            name="distribuidor",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="solicitacoes",
+                to="terceirizada.Terceirizada",
+            ),
         ),
     ]

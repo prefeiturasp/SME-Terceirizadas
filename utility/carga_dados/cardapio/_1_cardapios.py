@@ -11,7 +11,7 @@ from sme_terceirizadas.dados_comuns.utils import eh_dia_util
 from sme_terceirizadas.escola.models import TipoUnidadeEscolar
 from sme_terceirizadas.terceirizada.models import Edital
 
-f = Faker('pt-br')
+f = Faker("pt-br")
 f.seed(420)
 hoje = datetime.datetime.today()
 
@@ -29,13 +29,17 @@ def gera_muitos_cardapios(qtd=360):
 
         novodia = hoje + datetime.timedelta(days=i)
         if eh_dia_util(novodia):
-            cardapio, created_cardapio = Cardapio.objects.get_or_create(data=novodia, edital=edital, descricao=f.text())
+            cardapio, created_cardapio = Cardapio.objects.get_or_create(
+                data=novodia, edital=edital, descricao=f.text()
+            )
             if created_cardapio:
                 cont += 1
-                cardapio.tipos_alimentacao.set(alimentacoes_selecionadas)  # vincula tp alim para cardapio
-                print(f'Criado cardapio {cardapio}')
+                cardapio.tipos_alimentacao.set(
+                    alimentacoes_selecionadas
+                )  # vincula tp alim para cardapio
+                print(f"Criado cardapio {cardapio}")
         alimentacoes_selecionadas = []
-    print(f'Total de cardapios criados... {cont}')
+    print(f"Total de cardapios criados... {cont}")
 
 
 gera_muitos_cardapios(qtd=720)

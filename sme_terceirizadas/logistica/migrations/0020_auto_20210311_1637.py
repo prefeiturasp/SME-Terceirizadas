@@ -4,20 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0019_merge_20210302_1558'),
+        ("logistica", "0019_merge_20210302_1558"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaodealteracaorequisicao',
-            name='justificativa_aceite',
-            field=models.TextField(blank=True, verbose_name='Justificativa de aceite pela dilog'),
+            model_name="solicitacaodealteracaorequisicao",
+            name="justificativa_aceite",
+            field=models.TextField(
+                blank=True, verbose_name="Justificativa de aceite pela dilog"
+            ),
         ),
         migrations.AlterField(
-            model_name='solicitacaodealteracaorequisicao',
-            name='justificativa',
-            field=models.TextField(blank=True, verbose_name='Justificativa de solicitação pelo distribuidor'),
+            model_name="solicitacaodealteracaorequisicao",
+            name="justificativa",
+            field=models.TextField(
+                blank=True,
+                verbose_name="Justificativa de solicitação pelo distribuidor",
+            ),
         ),
     ]

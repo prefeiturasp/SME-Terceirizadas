@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0042_merge_20211027_0129'),
-        ('dados_comuns', '0043_auto_20211027_1146'),
+        ("dados_comuns", "0042_merge_20211027_0129"),
+        ("dados_comuns", "0043_auto_20211027_1146"),
     ]
 
-    operations = [
-    ]
+    operations = []

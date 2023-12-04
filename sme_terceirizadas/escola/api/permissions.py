@@ -6,12 +6,12 @@ from ...dados_comuns.constants import (
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_PRODUTO,
     COORDENADOR_SUPERVISAO_NUTRICAO,
-    DIRETOR_UE
+    DIRETOR_UE,
 )
 
 
 class PodeCriarAdministradoresDaEscola(permissions.BasePermission):
-    message = 'O seu perfil não tem permissao para criar administradores da escola'
+    message = "O seu perfil não tem permissao para criar administradores da escola"
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -25,38 +25,45 @@ class PodeCriarAdministradoresDaEscola(permissions.BasePermission):
 
 
 class PodeCriarAdministradoresDaDiretoriaRegional(permissions.BasePermission):
-    message = 'O seu perfil não tem permissao para criar administradores da diretoria regional'
+    message = "O seu perfil não tem permissao para criar administradores da diretoria regional"
 
     def has_permission(self, request, view):
         usuario = request.user
         if not usuario.is_anonymous:
-            perfil_cogestor_ou_suplente = usuario.vinculo_atual.perfil.nome in [COGESTOR_DRE]  # noqa
+            perfil_cogestor_ou_suplente = usuario.vinculo_atual.perfil.nome in [
+                COGESTOR_DRE
+            ]  # noqa
             return perfil_cogestor_ou_suplente
         return False
 
     def has_object_permission(self, request, view, obj):
         user = request.user
-        tem_vinculo_que_pode_criar_administradores = user.vinculo_atual.instituicao == obj
+        tem_vinculo_que_pode_criar_administradores = (
+            user.vinculo_atual.instituicao == obj
+        )
         if tem_vinculo_que_pode_criar_administradores:
             return True
         return False
 
 
-class PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada(permissions.BasePermission):
-    message = 'O seu perfil não tem permissão para criar administradores da codae - gestão alimentação'
+class PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada(
+    permissions.BasePermission
+):
+    message = "O seu perfil não tem permissão para criar administradores da codae - gestão alimentação"
 
     def has_permission(self, request, view):
         usuario = request.user
         if not usuario.is_anonymous:
             perfil_coordenador_gestao_alimentacao = (
-                usuario.vinculo_atual.perfil.nome == COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
+                usuario.vinculo_atual.perfil.nome
+                == COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
             )
             return perfil_coordenador_gestao_alimentacao
         return False
 
 
 class PodeCriarAdministradoresDaCODAEGestaoDietaEspecial(permissions.BasePermission):
-    message = 'O seu perfil não tem permissão para criar administradores da codae - dieta especial'
+    message = "O seu perfil não tem permissão para criar administradores da codae - dieta especial"
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -69,7 +76,7 @@ class PodeCriarAdministradoresDaCODAEGestaoDietaEspecial(permissions.BasePermiss
 
 
 class PodeCriarAdministradoresDaCODAEGestaoProdutos(permissions.BasePermission):
-    message = 'O seu perfil não tem permissão para criar administradores da codae - gestão de produtos'
+    message = "O seu perfil não tem permissão para criar administradores da codae - gestão de produtos"
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -82,7 +89,7 @@ class PodeCriarAdministradoresDaCODAEGestaoProdutos(permissions.BasePermission):
 
 
 class PodeCriarAdministradoresDaCODAESupervisaoNutricao(permissions.BasePermission):
-    message = 'O seu perfil não tem permissão para criar administradores da codae - gestão de produtos'
+    message = "O seu perfil não tem permissão para criar administradores da codae - gestão de produtos"
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -95,12 +102,16 @@ class PodeCriarAdministradoresDaCODAESupervisaoNutricao(permissions.BasePermissi
 
 
 class PodeVerEditarFotoAlunoNoSGP(permissions.BasePermission):
-    message = 'O seu perfil não tem permissão de ver/atualizar/excluir a foto do aluno no SGP'
+    message = (
+        "O seu perfil não tem permissão de ver/atualizar/excluir a foto do aluno no SGP"
+    )
 
     def has_object_permission(self, request, view, obj):
         if request.user and obj.escola:
-            if request.user.vinculo_atual.content_type.model == 'escola':
-                aluno_pertence_a_escola = request.user.vinculo_atual.object_id == obj.escola.id
+            if request.user.vinculo_atual.content_type.model == "escola":
+                aluno_pertence_a_escola = (
+                    request.user.vinculo_atual.object_id == obj.escola.id
+                )
                 return aluno_pertence_a_escola
             return True
         return False

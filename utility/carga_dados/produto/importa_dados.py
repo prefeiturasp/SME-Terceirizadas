@@ -1,17 +1,23 @@
 from random import choice, randint, random
-from utility.carga_dados.escola.helper import bcolors
-from utility.carga_dados.helper import get_modelo, ja_existe, le_dados, progressbar
+
+from faker import Faker
 
 from sme_terceirizadas.dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
-from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.dieta_especial.models import Alimento
-from sme_terceirizadas.produto.data.informacao_nutricional import data_informacao_nutricional  # noqa
-from sme_terceirizadas.produto.data.protocolo_de_dieta_especial import data_protocolo_de_dieta_especial  # noqa
-from sme_terceirizadas.produto.data.tipo_informacao_nutricional import data_tipo_informacao_nutricional  # noqa
+from sme_terceirizadas.perfil.models import Usuario
+from sme_terceirizadas.produto.data.informacao_nutricional import (  # noqa
+    data_informacao_nutricional,
+)
+from sme_terceirizadas.produto.data.marcas import data_marcas
 from sme_terceirizadas.produto.data.produtos import data_produtos
 from sme_terceirizadas.produto.data.produtos_marcas import data_produtos_marcas
-from sme_terceirizadas.produto.data.marcas import data_marcas
+from sme_terceirizadas.produto.data.protocolo_de_dieta_especial import (  # noqa
+    data_protocolo_de_dieta_especial,
+)
+from sme_terceirizadas.produto.data.tipo_informacao_nutricional import (  # noqa
+    data_tipo_informacao_nutricional,
+)
 from sme_terceirizadas.produto.models import (
     Fabricante,
     HomologacaoDoProduto,
@@ -21,53 +27,60 @@ from sme_terceirizadas.produto.models import (
     ProtocoloDeDietaEspecial,
     TipoDeInformacaoNutricional,
 )
-from faker import Faker
+from utility.carga_dados.escola.helper import bcolors
+from utility.carga_dados.helper import get_modelo, ja_existe, le_dados, progressbar
 
 faker = Faker()
-fake = Faker('pt-br')
+fake = Faker("pt-br")
 
 
 def cria_informacao_nutricional():
     dict_tipo_nutricional = le_dados(data_tipo_informacao_nutricional)
-    for item in progressbar(data_informacao_nutricional, 'Informacao Nutricional'):  # noqa
+    for item in progressbar(
+        data_informacao_nutricional, "Informacao Nutricional"
+    ):  # noqa
         tipo_nutricional = get_modelo(
             modelo=TipoDeInformacaoNutricional,
-            modelo_id=item.get('tipo_nutricional'),
+            modelo_id=item.get("tipo_nutricional"),
             dicionario=dict_tipo_nutricional,
-            campo_unico='nome'
+            campo_unico="nome",
         )
 
         data = dict(
-            nome=item.get('nome'),
+            nome=item.get("nome"),
             tipo_nutricional=tipo_nutricional,
-            medida=item.get('medida')
+            medida=item.get("medida"),
         )
         _, created = InformacaoNutricional.objects.get_or_create(**data)
         if not created:
-            ja_existe('InformacaoNutricional', item['nome'])
+            ja_existe("InformacaoNutricional", item["nome"])
 
 
 def cria_tipo_informacao_nutricional():
-    for item in progressbar(data_tipo_informacao_nutricional, 'Tipo de Informacao Nutricional'):  # noqa
+    for item in progressbar(
+        data_tipo_informacao_nutricional, "Tipo de Informacao Nutricional"
+    ):  # noqa
         _, created = TipoDeInformacaoNutricional.objects.get_or_create(
-            nome=item['nome'])
+            nome=item["nome"]
+        )
         if not created:
-            ja_existe('TipoDeInformacaoNutricional', item['nome'])
+            ja_existe("TipoDeInformacaoNutricional", item["nome"])
 
 
 def cria_diagnosticos():
     # Protocolo de Dieta Especial
-    usuario_codae = Usuario.objects.get(email='codae@admin.com')
-    for item in progressbar(data_protocolo_de_dieta_especial, 'Protocolo de Dieta Especial'):  # noqa
+    usuario_codae = Usuario.objects.get(email="codae@admin.com")
+    for item in progressbar(
+        data_protocolo_de_dieta_especial, "Protocolo de Dieta Especial"
+    ):  # noqa
         obj = ProtocoloDeDietaEspecial.objects.filter(nome=item).first()
         if not obj:
-            ProtocoloDeDietaEspecial.objects.create(
-                nome=item,
-                criado_por=usuario_codae
-            )
+            ProtocoloDeDietaEspecial.objects.create(nome=item, criado_por=usuario_codae)
         else:
             nome = item
-            print(f'{bcolors.FAIL}Aviso: ProtocoloDeDietaEspecial: "{nome}" já existe!{bcolors.ENDC}')  # noqa
+            print(
+                f'{bcolors.FAIL}Aviso: ProtocoloDeDietaEspecial: "{nome}" já existe!{bcolors.ENDC}'
+            )  # noqa
 
 
 def cria_marca():
@@ -76,40 +89,40 @@ def cria_marca():
     Alimento.objects.all().delete()
     Marca.objects.all().delete()
     # Cria marcas novas.
-    for item in progressbar(data_marcas, 'Marca'):
+    for item in progressbar(data_marcas, "Marca"):
         nome = item
         Marca.objects.create(nome=nome)
 
 
 def cria_marca2():
     # Cria marcas novas.
-    for item in progressbar(data_marcas, 'Marca'):
+    for item in progressbar(data_marcas, "Marca"):
         nome = item
         Marca.objects.get_or_create(nome=nome)
 
 
 def cria_fabricante():
     Fabricante.objects.all().delete()
-    for item in progressbar(data_marcas, 'Fabricante'):
-        sufixo = choice(['Ltda', 'S.A.', 'M.E.'])
-        nome = f'{item} {sufixo}'
+    for item in progressbar(data_marcas, "Fabricante"):
+        sufixo = choice(["Ltda", "S.A.", "M.E."])
+        nome = f"{item} {sufixo}"
         Fabricante.objects.create(nome=nome)
 
 
 def cria_homologacao_do_produto_passo_01(produto, codae_homologa=False):
-    criado_por = Usuario.objects.get(email='terceirizada@admin.com')
+    criado_por = Usuario.objects.get(email="terceirizada@admin.com")
     # Se não colocar o 'rastro_terceirizada'
     # ele não mostra os produtos no dashboard.
     rastro_terceirizada = criado_por.vinculo_atual.instituicao
     if codae_homologa:
-        status = 'CODAE_HOMOLOGADO'
+        status = "CODAE_HOMOLOGADO"
     else:
-        status = 'CODAE_PENDENTE_HOMOLOGACAO'
+        status = "CODAE_PENDENTE_HOMOLOGACAO"
     homologacao_do_produto = HomologacaoDoProduto.objects.create(
         criado_por=criado_por,
         produto=produto,
         status=status,
-        rastro_terceirizada=rastro_terceirizada
+        rastro_terceirizada=rastro_terceirizada,
     )
 
     # Monta um dicionário dos STATUS_POSSIVEIS
@@ -122,16 +135,16 @@ def cria_homologacao_do_produto_passo_01(produto, codae_homologa=False):
     LogSolicitacoesUsuario.objects.create(
         descricao=homologacao_do_produto,
         justificativa=fake.sentence(),
-        status_evento=status['Solicitação Realizada'],
-        solicitacao_tipo=tipos['Homologação de Produto'],
+        status_evento=status["Solicitação Realizada"],
+        solicitacao_tipo=tipos["Homologação de Produto"],
         usuario=criado_por,
         uuid_original=homologacao_do_produto.uuid,
     )
 
 
 def cria_produto():
-    criado_por = Usuario.objects.get(email='terceirizada@admin.com')
-    for item in progressbar(data_produtos, 'Produto'):
+    criado_por = Usuario.objects.get(email="terceirizada@admin.com")
+    for item in progressbar(data_produtos, "Produto"):
         marcas = Marca.objects.all()
         marca = choice([item for item in marcas])
 
@@ -142,12 +155,14 @@ def cria_produto():
         aditivos = fake.sentence(nb_words=10)
         tipo = fake.word()
         embalagem = fake.word()
-        prazo_validade = faker.date_this_year().strftime('%d/%m/%Y')
+        prazo_validade = faker.date_this_year().strftime("%d/%m/%Y")
         info_armazenamento = fake.sentence(nb_words=5)
         outras_informacoes = fake.sentence(nb_words=10)
-        numero_registro = faker.bothify(letters='ABCDEFGHIJ')
-        porcao = str(randint(50, 300)) + str(choice([' g', ' ml']))
-        unidade_caseira = str(round(randint(1, 5) * random(), 2)).replace('.', ',') + ' unidade'  # noqa
+        numero_registro = faker.bothify(letters="ABCDEFGHIJ")
+        porcao = str(randint(50, 300)) + str(choice([" g", " ml"]))
+        unidade_caseira = (
+            str(round(randint(1, 5) * random(), 2)).replace(".", ",") + " unidade"
+        )  # noqa
 
         produto = Produto.objects.create(
             nome=item,
@@ -169,8 +184,8 @@ def cria_produto():
 
 
 def cria_produto_marca():
-    criado_por = Usuario.objects.get(email='terceirizada@admin.com')
-    for item in progressbar(data_produtos_marcas, 'Produto/Marca'):
+    criado_por = Usuario.objects.get(email="terceirizada@admin.com")
+    for item in progressbar(data_produtos_marcas, "Produto/Marca"):
         marca = Marca.objects.filter(nome=item[1]).first()
         fabricante = Fabricante.objects.filter(nome__startswith=item[1]).first()
         fabricantes = Fabricante.objects.all()
@@ -181,12 +196,14 @@ def cria_produto_marca():
         aditivos = fake.sentence(nb_words=10)
         tipo = fake.word()
         embalagem = fake.word()
-        prazo_validade = faker.date_this_year().strftime('%d/%m/%Y')
+        prazo_validade = faker.date_this_year().strftime("%d/%m/%Y")
         info_armazenamento = fake.sentence(nb_words=5)
         outras_informacoes = fake.sentence(nb_words=10)
-        numero_registro = faker.bothify(letters='ABCDEFGHIJ')
-        porcao = str(randint(50, 300)) + str(choice([' g', ' ml']))
-        unidade_caseira = str(round(randint(1, 5) * random(), 2)).replace('.', ',') + ' unidade'  # noqa
+        numero_registro = faker.bothify(letters="ABCDEFGHIJ")
+        porcao = str(randint(50, 300)) + str(choice([" g", " ml"]))
+        unidade_caseira = (
+            str(round(randint(1, 5) * random(), 2)).replace(".", ",") + " unidade"
+        )  # noqa
 
         if not Produto.objects.filter(nome=item[0], marca=marca).first():
             produto = Produto.objects.create(
@@ -211,12 +228,12 @@ def cria_produto_marca():
 def cria_homologacao_do_produto():
     # Não utilizado no momento..
     # Percorre os status de homologação
-    criado_por = Usuario.objects.get(email='terceirizada@admin.com')
+    criado_por = Usuario.objects.get(email="terceirizada@admin.com")
     for status in HomologacaoProdutoWorkflow.states:
         produto = Produto.objects.first()
         HomologacaoDoProduto.objects.create(
             criado_por=criado_por,
             produto=produto,
             status=status,
-            rastro_terceirizada=criado_por.vinculo_atual.instituicao
+            rastro_terceirizada=criado_por.vinculo_atual.instituicao,
         )

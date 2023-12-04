@@ -1,10 +1,15 @@
 from factory import DjangoModelFactory, SubFactory
 from faker import Faker
 
-from sme_terceirizadas.pre_recebimento.fixtures.factories.cronograma_factory import CronogramaFactory
-from sme_terceirizadas.pre_recebimento.models import DocumentoDeRecebimento, TipoDeDocumentoDeRecebimento
+from sme_terceirizadas.pre_recebimento.fixtures.factories.cronograma_factory import (
+    CronogramaFactory,
+)
+from sme_terceirizadas.pre_recebimento.models import (
+    DocumentoDeRecebimento,
+    TipoDeDocumentoDeRecebimento,
+)
 
-fake = Faker('pt_BR')
+fake = Faker("pt_BR")
 
 
 class DocumentoDeRecebimentoFactory(DjangoModelFactory):
@@ -12,7 +17,7 @@ class DocumentoDeRecebimentoFactory(DjangoModelFactory):
         model = DocumentoDeRecebimento
 
     cronograma = SubFactory(CronogramaFactory)
-    numero_laudo = fake.unique.random_int(min=10 ** 9, max=(10 ** 10) - 1)
+    numero_laudo = fake.unique.random_int(min=10**9, max=(10**10) - 1)
 
 
 class TipoDeDocumentoDeRecebimentoFactory(DjangoModelFactory):

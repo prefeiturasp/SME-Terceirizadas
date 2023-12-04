@@ -22,7 +22,7 @@ from ..models import (
     Notificacao,
     PerguntaFrequente,
     SolicitacaoAberta,
-    TemplateMensagem
+    TemplateMensagem,
 )
 from ..permissions import UsuarioCODAEGestaoAlimentacao
 from ..utils import obter_dias_uteis_apos
@@ -37,7 +37,7 @@ from .serializers import (
     NotificacaoSerializer,
     PerguntaFrequenteCreateSerializer,
     PerguntaFrequenteSerializer,
-    SolicitacaoAbertaSerializer
+    SolicitacaoAbertaSerializer,
 )
 
 calendario = BrazilSaoPauloCity()
@@ -47,7 +47,7 @@ class ApiVersion(viewsets.ViewSet):
     permission_classes = (AllowAny,)
 
     def list(self, request):
-        return Response({'API_Version': __version__})
+        return Response({"API_Version": __version__})
 
 
 class DiasDaSemanaViewSet(ViewSet):
@@ -64,11 +64,18 @@ class TempoDePasseioViewSet(ViewSet):
     @method_decorator(cache_page(TEMPO_CACHE_6H))
     def list(self, request):
         tempo_de_passeio_descricao = {
-            TempoPasseio.QUATRO: {'quantidade_kits': 1, 'descricao': 'até 4 horas: 1 kit'},
-            TempoPasseio.CINCO_A_SETE: {'quantidade_kits': 2,
-                                        'descricao': 'entre 5 e 7 horas: 2 kits'},
-            TempoPasseio.OITO_OU_MAIS: {'quantidade_kits': 3,
-                                        'descricao': '8 ou mais horas: 3 kits'}
+            TempoPasseio.QUATRO: {
+                "quantidade_kits": 1,
+                "descricao": "até 4 horas: 1 kit",
+            },
+            TempoPasseio.CINCO_A_SETE: {
+                "quantidade_kits": 2,
+                "descricao": "entre 5 e 7 horas: 2 kits",
+            },
+            TempoPasseio.OITO_OU_MAIS: {
+                "quantidade_kits": 3,
+                "descricao": "8 ou mais horas: 3 kits",
+            },
         }
         return Response(tempo_de_passeio_descricao)
 
@@ -77,25 +84,39 @@ class DiasUteisViewSet(ViewSet):
     permission_classes = (IsAuthenticated,)
 
     def list(self, request):
-        data = request.query_params.get('data', '')
-        escola_uuid = request.query_params.get('escola_uuid')
-        eh_solicitacao_unificada = request.query_params.get('eh_solicitacao_unificada', False)
+        data = request.query_params.get("data", "")
+        escola_uuid = request.query_params.get("escola_uuid")
+        eh_solicitacao_unificada = request.query_params.get(
+            "eh_solicitacao_unificada", False
+        )
         if data:
-            result = obter_dias_uteis_apos(datetime.datetime.strptime(data, '%d/%m/%Y'), quantidade_dias=4)
-            return Response({'data_apos_quatro_dias_uteis': result})
+            result = obter_dias_uteis_apos(
+                datetime.datetime.strptime(data, "%d/%m/%Y"), quantidade_dias=4
+            )
+            return Response({"data_apos_quatro_dias_uteis": result})
         dias_com_suspensao_2 = 0
         dias_com_suspensao_5 = 0
-        if escola_uuid or eh_solicitacao_unificada == 'true':
+        if escola_uuid or eh_solicitacao_unificada == "true":
             escola = None
             if escola_uuid:
                 escola = Escola.objects.get(uuid=escola_uuid)
             dias_com_suspensao_2 = DiaSuspensaoAtividades.get_dias_com_suspensao(
-                escola=escola, eh_solicitacao_unificada=eh_solicitacao_unificada, quantidade_dias=2)
+                escola=escola,
+                eh_solicitacao_unificada=eh_solicitacao_unificada,
+                quantidade_dias=2,
+            )
             dias_com_suspensao_5 = DiaSuspensaoAtividades.get_dias_com_suspensao(
-                escola=escola, eh_solicitacao_unificada=eh_solicitacao_unificada, quantidade_dias=5)
+                escola=escola,
+                eh_solicitacao_unificada=eh_solicitacao_unificada,
+                quantidade_dias=5,
+            )
         dias_uteis = {
-            'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5 + dias_com_suspensao_5),
-            'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(3 + dias_com_suspensao_2)
+            "proximos_cinco_dias_uteis": obter_dias_uteis_apos_hoje(
+                5 + dias_com_suspensao_5
+            ),
+            "proximos_dois_dias_uteis": obter_dias_uteis_apos_hoje(
+                3 + dias_com_suspensao_2
+            ),
         }
         return Response(dias_uteis)
 
@@ -107,11 +128,11 @@ class FeriadosAnoViewSet(ViewSet):
         calendario.holidays()
 
         def formatar_data(data):
-            return datetime.date.strftime(data, '%d/%m/%Y')
+            return datetime.date.strftime(data, "%d/%m/%Y")
 
         retorno = [formatar_data(h[0]) for h in calendario.holidays()]
 
-        return Response({'results': retorno}, status=status.HTTP_200_OK)
+        return Response({"results": retorno}, status=status.HTTP_200_OK)
 
 
 class ConfiguracaoEmailViewSet(ModelViewSet):
@@ -122,49 +143,53 @@ class ConfiguracaoEmailViewSet(ModelViewSet):
         try:
             return super().create(request, *args, **kwargs)
         except IntegrityError as e:
-            return Response(data={'error': 'A configuração já existe, tente usar o método PUT',
-                                  'detail': f'{e}'},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                data={
+                    "error": "A configuração já existe, tente usar o método PUT",
+                    "detail": f"{e}",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class TemplateMensagemViewSet(ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = TemplateMensagem.objects.all()
     serializer_class = ConfiguracaoMensagemSerializer
 
 
 class CategoriaPerguntaFrequenteViewSet(ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = CategoriaPerguntaFrequente.objects.all()
 
     def get_serializer_class(self):
-        if self.action == 'perguntas_por_categoria':
+        if self.action == "perguntas_por_categoria":
             return ConsultaPerguntasFrequentesSerializer
         return CategoriaPerguntaFrequenteSerializer
 
-    @action(detail=False, url_path='perguntas-por-categoria')
+    @action(detail=False, url_path="perguntas-por-categoria")
     def perguntas_por_categoria(self, request):
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
 
 
 class PerguntaFrequenteViewSet(ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     queryset = PerguntaFrequente.objects.all()
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ["create", "update", "partial_update"]:
             return PerguntaFrequenteCreateSerializer
         return PerguntaFrequenteSerializer
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ["create", "update", "partial_update", "destroy"]:
             self.permission_classes = (UsuarioCODAEGestaoAlimentacao,)
         return super(PerguntaFrequenteViewSet, self).get_permissions()
 
 
 class NotificacaoViewSet(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     permission_classes = [IsAuthenticated]
     queryset = Notificacao.objects.all()
     serializer_class = NotificacaoSerializer
@@ -173,15 +198,25 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
     filterset_class = NotificacaoFilter
 
     def get_queryset(self):
-        qs = Notificacao.objects.filter(usuario=self.request.user).all().order_by('-criado_em')
+        qs = (
+            Notificacao.objects.filter(usuario=self.request.user)
+            .all()
+            .order_by("-criado_em")
+        )
 
         return qs
 
     def list(self, request, *args, **kwargs):
         pendencias = self.filter_queryset(
-            self.get_queryset().filter(tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False))
-        gerais = self.filter_queryset(self.get_queryset().exclude(
-            tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False))
+            self.get_queryset().filter(
+                tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False
+            )
+        )
+        gerais = self.filter_queryset(
+            self.get_queryset().exclude(
+                tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False
+            )
+        )
         # Notificações de pendencias não resolvidas tem precedencia na listagem de notificações
         queryset = list(pendencias) + list(gerais)
         page = self.paginate_queryset(queryset)
@@ -193,10 +228,13 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
         serializer = NotificacaoSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='gerais')
+    @action(detail=False, methods=["get"], url_path="gerais")
     def lista_notificacoes_gerais(self, request):
-        queryset = self.filter_queryset(self.get_queryset().exclude(
-            tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False))
+        queryset = self.filter_queryset(
+            self.get_queryset().exclude(
+                tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False
+            )
+        )
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = NotificacaoSerializer(page, many=True)
@@ -206,10 +244,13 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
         serializer = NotificacaoSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='pendencias-nao-resolvidas')
+    @action(detail=False, methods=["get"], url_path="pendencias-nao-resolvidas")
     def lista_pendencias_nao_resolvidas(self, request):
         queryset = self.filter_queryset(
-            self.get_queryset().filter(tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False))
+            self.get_queryset().filter(
+                tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False
+            )
+        )
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = NotificacaoSerializer(page, many=True)
@@ -219,38 +260,49 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
         serializer = NotificacaoSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='quantidade-nao-lidos')
+    @action(detail=False, methods=["get"], url_path="quantidade-nao-lidos")
     def quantidade_de_nao_lidos(self, request):
-        notificacoes = Notificacao.objects.filter(usuario=self.request.user).filter(
-            lido=False, tipo__in=[Notificacao.TIPO_NOTIFICACAO_ALERTA, Notificacao.TIPO_NOTIFICACAO_AVISO]).count()
-        pendencias = Notificacao.objects.filter(usuario=self.request.user).filter(
-            resolvido=False, tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA).count()
-        data = {
-            'quantidade_nao_lidos': notificacoes + pendencias
-        }
+        notificacoes = (
+            Notificacao.objects.filter(usuario=self.request.user)
+            .filter(
+                lido=False,
+                tipo__in=[
+                    Notificacao.TIPO_NOTIFICACAO_ALERTA,
+                    Notificacao.TIPO_NOTIFICACAO_AVISO,
+                ],
+            )
+            .count()
+        )
+        pendencias = (
+            Notificacao.objects.filter(usuario=self.request.user)
+            .filter(resolvido=False, tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA)
+            .count()
+        )
+        data = {"quantidade_nao_lidos": notificacoes + pendencias}
         return Response(data)
 
-    @action(detail=False, methods=['put'], url_path='marcar-lido')
+    @action(detail=False, methods=["put"], url_path="marcar-lido")
     def marcar_como_lido_nao_lido(self, request):
         dado = self.request.data
 
         try:
-            notificacao = Notificacao.objects.filter(uuid=dado['uuid']).first()
-            notificacao.lido = dado['lido']
+            notificacao = Notificacao.objects.filter(uuid=dado["uuid"]).first()
+            notificacao.lido = dado["lido"]
             notificacao.save()
         except Exception as err:
-            return Response(dict(detail=f'Erro ao realizar atualização: {err}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f"Erro ao realizar atualização: {err}"),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        resultado = {
-            'mensagem': 'Notificação atualizada com sucesso'
-        }
+        resultado = {"mensagem": "Notificação atualizada com sucesso"}
         status_code = status.HTTP_200_OK
 
         return Response(resultado, status=status_code)
 
 
 class CentralDeDownloadViewSet(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     permission_classes = [IsAuthenticated]
     queryset = CentralDeDownload.objects.all()
     serializer_class = CentralDeDownloadSerializer
@@ -259,41 +311,48 @@ class CentralDeDownloadViewSet(viewsets.ModelViewSet):
     filterset_class = CentralDeDownloadFilter
 
     def get_queryset(self):
-        qs = CentralDeDownload.objects.filter(usuario=self.request.user).all().order_by('-criado_em')
+        qs = (
+            CentralDeDownload.objects.filter(usuario=self.request.user)
+            .all()
+            .order_by("-criado_em")
+        )
 
         return qs
 
-    @action(detail=False, methods=['get'], url_path='quantidade-nao-vistos')
+    @action(detail=False, methods=["get"], url_path="quantidade-nao-vistos")
     def quantidade_de_nao_vistos(self, request):
         user = self.request.user
-        downloads = CentralDeDownload.objects.filter(
-            usuario=user).filter(visto=False).exclude(status=CentralDeDownload.STATUS_EM_PROCESSAMENTO).count()
-        data = {
-            'quantidade_nao_vistos': downloads
-        }
+        downloads = (
+            CentralDeDownload.objects.filter(usuario=user)
+            .filter(visto=False)
+            .exclude(status=CentralDeDownload.STATUS_EM_PROCESSAMENTO)
+            .count()
+        )
+        data = {"quantidade_nao_vistos": downloads}
         return Response(data)
 
-    @action(detail=False, methods=['put'], url_path='marcar-visto')
+    @action(detail=False, methods=["put"], url_path="marcar-visto")
     def marcar_como_visto_nao_visto(self, request):
         dado = self.request.data
 
         try:
-            download = CentralDeDownload.objects.filter(uuid=dado['uuid']).first()
-            download.visto = dado['visto']
+            download = CentralDeDownload.objects.filter(uuid=dado["uuid"]).first()
+            download.visto = dado["visto"]
             download.save()
         except Exception as err:
-            return Response(dict(detail=f'Erro ao realizar atualização: {err}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f"Erro ao realizar atualização: {err}"),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        resultado = {
-            'mensagem': 'Arquivo atualizado com sucesso'
-        }
+        resultado = {"mensagem": "Arquivo atualizado com sucesso"}
         status_code = status.HTTP_200_OK
 
         return Response(resultado, status=status_code)
 
 
 class SolicitacaoAbertaViewSet(ModelViewSet):
-    lookup_field = 'id'
+    lookup_field = "id"
     queryset = SolicitacaoAberta.objects.all()
     serializer_class = SolicitacaoAbertaSerializer
     pagination_class = None

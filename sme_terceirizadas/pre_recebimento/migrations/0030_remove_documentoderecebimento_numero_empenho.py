@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('pre_recebimento', '0029_alter_documentoderecebimento_status'),
+        ("pre_recebimento", "0029_alter_documentoderecebimento_status"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='documentoderecebimento',
-            name='numero_empenho',
+            model_name="documentoderecebimento",
+            name="numero_empenho",
         ),
     ]

@@ -8,21 +8,24 @@ from .models import (
     LogSolicitacoesUsuario,
     Notificacao,
     PerguntaFrequente,
-    TemplateMensagem
+    TemplateMensagem,
 )
 
 
 @admin.register(Contato)
 class ContatoAdmin(admin.ModelAdmin):
-    list_display = ('email', 'nome', 'telefone', 'telefone2', 'eh_nutricionista')
-    search_fields = ('email', 'nome', 'telefone', 'telefone2')
+    list_display = ("email", "nome", "telefone", "telefone2", "eh_nutricionista")
+    search_fields = ("email", "nome", "telefone", "telefone2")
 
 
 @admin.register(CentralDeDownload)
 class CentralDeDownloadAdmin(admin.ModelAdmin):
-    list_display = ('identificador', 'status', 'criado_em', 'visto')
-    readonly_fields = ('uuid', 'id',)
-    list_display_links = ('identificador',)
+    list_display = ("identificador", "status", "criado_em", "visto")
+    readonly_fields = (
+        "uuid",
+        "id",
+    )
+    list_display_links = ("identificador",)
 
 
 admin.site.register(CategoriaPerguntaFrequente)

@@ -4,11 +4,12 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kit_lanche', '0010_solicitacaokitlancheavulsa_alunos_com_dieta_especial_participantes'),
-        ('kit_lanche', '0010_auto_20211110_2023'),
+        (
+            "kit_lanche",
+            "0010_solicitacaokitlancheavulsa_alunos_com_dieta_especial_participantes",
+        ),
+        ("kit_lanche", "0010_auto_20211110_2023"),
     ]
 
-    operations = [
-    ]
+    operations = []

@@ -4,19 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0032_auto_20220810_1626'),
+        ("cardapio", "0032_auto_20220810_1626"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='substituicaoalimentacaonoperiodoescolar',
-            name='tipo_alimentacao_para',
+            model_name="substituicaoalimentacaonoperiodoescolar",
+            name="tipo_alimentacao_para",
         ),
         migrations.AddField(
-            model_name='substituicaoalimentacaonoperiodoescolar',
-            name='tipos_alimentacao_para',
-            field=models.ManyToManyField(blank=True, help_text='Substituições selecionada na solicitação', related_name='substituicoes_alimento_para', to='cardapio.TipoAlimentacao'),
+            model_name="substituicaoalimentacaonoperiodoescolar",
+            name="tipos_alimentacao_para",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Substituições selecionada na solicitação",
+                related_name="substituicoes_alimento_para",
+                to="cardapio.TipoAlimentacao",
+            ),
         ),
     ]

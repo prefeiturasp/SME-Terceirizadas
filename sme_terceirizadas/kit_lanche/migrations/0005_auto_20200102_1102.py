@@ -5,15 +5,35 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kit_lanche', '0004_solicitacaokitlancheunificada_foi_solicitado_fora_do_prazo'),
+        (
+            "kit_lanche",
+            "0004_solicitacaokitlancheunificada_foi_solicitado_fora_do_prazo",
+        ),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='solicitacaokitlancheunificada',
-            name='status',
-            field=django_xworkflows.models.StateField(max_length=37, workflow=django_xworkflows.models._SerializedWorkflow(initial_state='RASCUNHO', name='PedidoAPartirDaDiretoriaRegionalWorkflow', states=['RASCUNHO', 'CODAE_A_AUTORIZAR', 'DRE_PEDE_ESCOLA_REVISAR', 'CODAE_NEGOU_PEDIDO', 'CODAE_AUTORIZADO', 'CODAE_QUESTIONADO', 'TERCEIRIZADA_TOMOU_CIENCIA', 'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO', 'CANCELAMENTO_AUTOMATICO', 'DRE_CANCELOU'])),
+            model_name="solicitacaokitlancheunificada",
+            name="status",
+            field=django_xworkflows.models.StateField(
+                max_length=37,
+                workflow=django_xworkflows.models._SerializedWorkflow(
+                    initial_state="RASCUNHO",
+                    name="PedidoAPartirDaDiretoriaRegionalWorkflow",
+                    states=[
+                        "RASCUNHO",
+                        "CODAE_A_AUTORIZAR",
+                        "DRE_PEDE_ESCOLA_REVISAR",
+                        "CODAE_NEGOU_PEDIDO",
+                        "CODAE_AUTORIZADO",
+                        "CODAE_QUESTIONADO",
+                        "TERCEIRIZADA_TOMOU_CIENCIA",
+                        "TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO",
+                        "CANCELAMENTO_AUTOMATICO",
+                        "DRE_CANCELOU",
+                    ],
+                ),
+            ),
         ),
     ]

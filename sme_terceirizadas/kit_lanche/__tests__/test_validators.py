@@ -9,7 +9,7 @@ from ..api.validators import (
     solicitacao_deve_ter_1_ou_mais_kits,
     valida_quantidade_kits_tempo_passeio,
     valida_tempo_passeio_lista_igual,
-    valida_tempo_passeio_lista_nao_igual
+    valida_tempo_passeio_lista_nao_igual,
 )
 
 
@@ -18,7 +18,7 @@ def test_valida_tempo_passeio_lista_nao_igual():
 
 
 def test_valida_tempo_passeio_lista_nao_igual_exception():
-    with pytest.raises(ValidationError, match='tempo de passeio deve ser null'):
+    with pytest.raises(ValidationError, match="tempo de passeio deve ser null"):
         valida_tempo_passeio_lista_nao_igual(1)
 
 
@@ -34,22 +34,26 @@ def test_horarios_passeio_invalido(horarios_passeio_invalido):
 
 
 def test_escola_quantidade_deve_ter_mesmo_tempo_passeio():
-    escola_quantidade_mock = {'tempo_passeio': 3}
-    solicitacao_kit_lanche_mock = {'tempo_passeio': 3}
-    assert escola_quantidade_deve_ter_mesmo_tempo_passeio(
-        escola_quantidade_mock,
-        solicitacao_kit_lanche_mock, 3) is True
+    escola_quantidade_mock = {"tempo_passeio": 3}
+    solicitacao_kit_lanche_mock = {"tempo_passeio": 3}
+    assert (
+        escola_quantidade_deve_ter_mesmo_tempo_passeio(
+            escola_quantidade_mock, solicitacao_kit_lanche_mock, 3
+        )
+        is True
+    )
 
 
 def test_escola_quantidade_deve_ter_mesmo_tempo_passeio_exception():
-    escola_quantidade_mock = {'tempo_passeio': 4}
-    solicitacao_kit_lanche_mock = {'tempo_passeio': 3}
-    esperado = 'escola_quantidade indice #3 diverge do tempo_passeio de solicitacao_kit_lanche.'
+    escola_quantidade_mock = {"tempo_passeio": 4}
+    solicitacao_kit_lanche_mock = {"tempo_passeio": 3}
+    esperado = "escola_quantidade indice #3 diverge do tempo_passeio de solicitacao_kit_lanche."
     with pytest.raises(ValidationError, match=esperado):
         escola_quantidade_deve_ter_mesmo_tempo_passeio(
             escola_quantidade=escola_quantidade_mock,
             solicitacao_kit_lanche=solicitacao_kit_lanche_mock,
-            indice=3)
+            indice=3,
+        )
 
 
 def test_escola_quantidade_deve_ter_1_ou_mais_kits():
@@ -57,7 +61,7 @@ def test_escola_quantidade_deve_ter_1_ou_mais_kits():
 
 
 def test_escola_quantidade_deve_ter_1_ou_mais_kits_exception():
-    esperado = 'escola_quantidade indice # 2 deve ter 1 ou mais kits'
+    esperado = "escola_quantidade indice # 2 deve ter 1 ou mais kits"
     with pytest.raises(ValidationError, match=esperado):
         escola_quantidade_deve_ter_1_ou_mais_kits(0, 2)
 
@@ -67,7 +71,7 @@ def test_escola_quantidade_deve_ter_0_kit():
 
 
 def test_escola_quantidade_deve_ter_0_kit_exception():
-    esperado = 'escola_quantidade indice # 3 deve ter 0 kit'
+    esperado = "escola_quantidade indice # 3 deve ter 0 kit"
     with pytest.raises(ValidationError, match=esperado):
         escola_quantidade_deve_ter_0_kit(1, 3)
 

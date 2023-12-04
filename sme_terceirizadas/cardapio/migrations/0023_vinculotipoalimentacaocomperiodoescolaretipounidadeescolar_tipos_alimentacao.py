@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0022_auto_20211110_2023'),
+        ("cardapio", "0022_auto_20211110_2023"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='vinculotipoalimentacaocomperiodoescolaretipounidadeescolar',
-            name='tipos_alimentacao',
-            field=models.ManyToManyField(blank=True, related_name='vinculos', to='cardapio.TipoAlimentacao'),
+            model_name="vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+            name="tipos_alimentacao",
+            field=models.ManyToManyField(
+                blank=True, related_name="vinculos", to="cardapio.TipoAlimentacao"
+            ),
         ),
     ]

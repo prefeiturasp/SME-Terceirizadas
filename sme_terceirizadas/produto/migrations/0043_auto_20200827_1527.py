@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0042_auto_20200826_1327'),
+        ("produto", "0042_auto_20200826_1327"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaocadastroprodutodieta',
-            name='data_previsao_cadastro',
+            model_name="solicitacaocadastroprodutodieta",
+            name="data_previsao_cadastro",
             field=models.DateField(null=True),
         ),
         migrations.AddField(
-            model_name='solicitacaocadastroprodutodieta',
-            name='justificativa_previsao_cadastro',
+            model_name="solicitacaocadastroprodutodieta",
+            name="justificativa_previsao_cadastro",
             field=models.TextField(blank=True),
         ),
     ]

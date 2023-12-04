@@ -8,7 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -17,118 +16,344 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Fabricante',
+            name="Fabricante",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(blank=True, max_length=100, verbose_name='Nome')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(blank=True, max_length=100, verbose_name="Nome"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='InformacaoNutricional',
+            name="InformacaoNutricional",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(blank=True, max_length=100, verbose_name='Nome')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(blank=True, max_length=100, verbose_name="Nome"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Marca',
+            name="Marca",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(blank=True, max_length=100, verbose_name='Nome')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(blank=True, max_length=100, verbose_name="Nome"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='TipoDeInformacaoNutricional',
+            name="TipoDeInformacaoNutricional",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(blank=True, max_length=100, verbose_name='Nome')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(blank=True, max_length=100, verbose_name="Nome"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='ProtocoloDeDietaEspecial',
+            name="ProtocoloDeDietaEspecial",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(blank=True, max_length=100, verbose_name='Nome')),
-                ('ativo', models.BooleanField(default=True, verbose_name='Está ativo?')),
-                ('criado_em', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('criado_por', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(blank=True, max_length=100, verbose_name="Nome"),
+                ),
+                (
+                    "ativo",
+                    models.BooleanField(default=True, verbose_name="Está ativo?"),
+                ),
+                (
+                    "criado_em",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Criado em"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "criado_por",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Produto',
+            name="Produto",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(blank=True, max_length=100, verbose_name='Nome')),
-                ('ativo', models.BooleanField(default=True, verbose_name='Está ativo?')),
-                ('criado_em', models.DateTimeField(auto_now_add=True, verbose_name='Criado em')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('eh_para_alunos_com_dieta', models.BooleanField(default=False)),
-                ('detalhes_da_dieta', models.TextField()),
-                ('componentes', models.CharField(blank=True, max_length=100, verbose_name='Componentes do Produto')),
-                ('tem_aditivos_alergenicos', models.BooleanField(default=False)),
-                ('aditivos', models.TextField()),
-                ('tipo', models.CharField(blank=True, max_length=50, verbose_name='Tipo do Produto')),
-                ('embalagem', models.CharField(blank=True, max_length=100, verbose_name='Embalagem Primária')),
-                ('prazo_validade', models.CharField(blank=True, max_length=100, verbose_name='Prazo de validade')),
-                ('info_armazenamento', models.CharField(blank=True, max_length=100, verbose_name='Informações de Armazenamento')),
-                ('outras_informacoes', models.TextField()),
-                ('numero_registro', models.CharField(blank=True, max_length=100, verbose_name='Registro do órgão competente')),
-                ('porcao', models.CharField(blank=True, max_length=50, verbose_name='Porção nutricional')),
-                ('unidade_caseira', models.CharField(blank=True, max_length=50, verbose_name='Unidade nutricional')),
-                ('criado_por', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
-                ('fabricante', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='produto.Fabricante')),
-                ('marca', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='produto.Marca')),
-                ('protocolos', models.ManyToManyField(blank=True, help_text='Protocolos do produto.', related_name='protocolos', to='produto.ProtocoloDeDietaEspecial')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(blank=True, max_length=100, verbose_name="Nome"),
+                ),
+                (
+                    "ativo",
+                    models.BooleanField(default=True, verbose_name="Está ativo?"),
+                ),
+                (
+                    "criado_em",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Criado em"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("eh_para_alunos_com_dieta", models.BooleanField(default=False)),
+                ("detalhes_da_dieta", models.TextField()),
+                (
+                    "componentes",
+                    models.CharField(
+                        blank=True,
+                        max_length=100,
+                        verbose_name="Componentes do Produto",
+                    ),
+                ),
+                ("tem_aditivos_alergenicos", models.BooleanField(default=False)),
+                ("aditivos", models.TextField()),
+                (
+                    "tipo",
+                    models.CharField(
+                        blank=True, max_length=50, verbose_name="Tipo do Produto"
+                    ),
+                ),
+                (
+                    "embalagem",
+                    models.CharField(
+                        blank=True, max_length=100, verbose_name="Embalagem Primária"
+                    ),
+                ),
+                (
+                    "prazo_validade",
+                    models.CharField(
+                        blank=True, max_length=100, verbose_name="Prazo de validade"
+                    ),
+                ),
+                (
+                    "info_armazenamento",
+                    models.CharField(
+                        blank=True,
+                        max_length=100,
+                        verbose_name="Informações de Armazenamento",
+                    ),
+                ),
+                ("outras_informacoes", models.TextField()),
+                (
+                    "numero_registro",
+                    models.CharField(
+                        blank=True,
+                        max_length=100,
+                        verbose_name="Registro do órgão competente",
+                    ),
+                ),
+                (
+                    "porcao",
+                    models.CharField(
+                        blank=True, max_length=50, verbose_name="Porção nutricional"
+                    ),
+                ),
+                (
+                    "unidade_caseira",
+                    models.CharField(
+                        blank=True, max_length=50, verbose_name="Unidade nutricional"
+                    ),
+                ),
+                (
+                    "criado_por",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "fabricante",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="produto.Fabricante",
+                    ),
+                ),
+                (
+                    "marca",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="produto.Marca",
+                    ),
+                ),
+                (
+                    "protocolos",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Protocolos do produto.",
+                        related_name="protocolos",
+                        to="produto.ProtocoloDeDietaEspecial",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='InformacoesNutricionaisDoProduto',
+            name="InformacoesNutricionaisDoProduto",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('quantidade_porcao', models.CharField(blank=True, max_length=10, verbose_name='Quantidade por Porção')),
-                ('valor_diario', models.CharField(blank=True, max_length=3, verbose_name='%VD(*)')),
-                ('informacoes_nutricionais', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='produto.InformacaoNutricional')),
-                ('produto', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='produto.Produto')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "quantidade_porcao",
+                    models.CharField(
+                        blank=True, max_length=10, verbose_name="Quantidade por Porção"
+                    ),
+                ),
+                (
+                    "valor_diario",
+                    models.CharField(blank=True, max_length=3, verbose_name="%VD(*)"),
+                ),
+                (
+                    "informacoes_nutricionais",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="produto.InformacaoNutricional",
+                    ),
+                ),
+                (
+                    "produto",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="produto.Produto",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.AddField(
-            model_name='informacaonutricional',
-            name='tipo_nutricional',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='produto.TipoDeInformacaoNutricional'),
+            model_name="informacaonutricional",
+            name="tipo_nutricional",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                to="produto.TipoDeInformacaoNutricional",
+            ),
         ),
         migrations.CreateModel(
-            name='ImagemDoProduto',
+            name="ImagemDoProduto",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('arquivo', models.FileField(upload_to='')),
-                ('produto', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='produto.Produto')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("arquivo", models.FileField(upload_to="")),
+                (
+                    "produto",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="produto.Produto",
+                    ),
+                ),
             ],
         ),
     ]

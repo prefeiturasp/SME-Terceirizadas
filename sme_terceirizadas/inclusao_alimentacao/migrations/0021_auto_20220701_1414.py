@@ -5,19 +5,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0020_inclusaoalimentacaonormal_cancelado_justificativa'),
+        (
+            "inclusao_alimentacao",
+            "0020_inclusaoalimentacaonormal_cancelado_justificativa",
+        ),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='inclusaoalimentacaocontinua',
-            name='dias_semana',
+            model_name="inclusaoalimentacaocontinua",
+            name="dias_semana",
         ),
         migrations.AddField(
-            model_name='quantidadeporperiodo',
-            name='dias_semana',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.PositiveSmallIntegerField(blank=True, choices=[(0, 'Segunda'), (1, 'Terça'), (2, 'Quarta'), (3, 'Quinta'), (4, 'Sexta'), (5, 'Sábado'), (6, 'Domingo')], default=[], null=True), blank=True, null=True, size=None),
+            model_name="quantidadeporperiodo",
+            name="dias_semana",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.PositiveSmallIntegerField(
+                    blank=True,
+                    choices=[
+                        (0, "Segunda"),
+                        (1, "Terça"),
+                        (2, "Quarta"),
+                        (3, "Quinta"),
+                        (4, "Sexta"),
+                        (5, "Sábado"),
+                        (6, "Domingo"),
+                    ],
+                    default=[],
+                    null=True,
+                ),
+                blank=True,
+                null=True,
+                size=None,
+            ),
         ),
     ]

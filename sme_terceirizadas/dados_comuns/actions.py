@@ -9,8 +9,8 @@ from .utils import ExportExcelAction
 
 
 def style_output_file(file):
-    black_font = Font(color='000000', bold=True)
-    for cell in file['1:1']:
+    black_font = Font(color="000000", bold=True)
+    for cell in file["1:1"]:
         cell.font = black_font
 
     for column_cells in file.columns:
@@ -22,16 +22,16 @@ def style_output_file(file):
 
 
 def convert_data_date(value):
-    return value.strftime('%d/%m/%Y, %H:%M:%S')
+    return value.strftime("%d/%m/%Y, %H:%M:%S")
 
 
 def convert_boolean_field(value):
     if value:
-        return 'Sim'
-    return 'Não'
+        return "Sim"
+    return "Não"
 
 
-def export_as_xls(self, request, queryset, field_names): # noqa
+def export_as_xls(self, request, queryset, field_names):  # noqa
     opts = self.model._meta
     field_names = field_names if field_names else self.list_display
     file_name = unidecode(opts.verbose_name)
@@ -52,15 +52,17 @@ def export_as_xls(self, request, queryset, field_names): # noqa
                 elif isinstance(value, bool):
                     value = convert_boolean_field(value)
                 elif isinstance(value, type(None)):
-                    value = '-'
+                    value = "-"
             row.append(str(value))
         ws.append(row)
 
     ws = style_output_file(ws)
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = f'attachment; filename={file_name}.xlsx'
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f"attachment; filename={file_name}.xlsx"
     wb.save(response)
     return response
 
 
-export_as_xls.short_description = 'Exportar para excel'
+export_as_xls.short_description = "Exportar para excel"
