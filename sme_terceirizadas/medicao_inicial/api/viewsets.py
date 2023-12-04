@@ -396,7 +396,7 @@ class SolicitacaoMedicaoInicialViewSet(
             qs_solicitacao_medicao = query_set
         for mes_ano in meses_anos:
             status_ = (
-                qs_solicitacao_medicao.objects.filter(mes=mes_ano[0], ano=mes_ano[1])
+                qs_solicitacao_medicao.filter(mes=mes_ano[0], ano=mes_ano[1])
                 .values_list("status", flat=True)
                 .distinct()
             )
