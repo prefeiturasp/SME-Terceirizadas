@@ -4,19 +4,19 @@ from .managers import (
     AlteracoesCardapioDestaSemanaManager,
     AlteracoesCardapioDesteMesManager,
     AlteracoesCardapioDoMesCorrenteManager,
-    AlteracoesCardapioVencidaManager
+    AlteracoesCardapioVencidaManager,
 )
 
 
 class TemLabelDeTiposDeAlimentacao(models.Model):
     @property
     def label(self):
-        label = ''
+        label = ""
         for tipo_alimentacao in self.tipos_alimentacao.all():
             if len(label) == 0:
                 label += tipo_alimentacao.nome
             else:
-                label += f' e {tipo_alimentacao.nome}'
+                label += f" e {tipo_alimentacao.nome}"
         return label
 
     class Meta:
@@ -30,14 +30,17 @@ class EhAlteracaoCardapio(models.Model):
     vencidos = AlteracoesCardapioVencidaManager()
     do_mes_corrente = AlteracoesCardapioDoMesCorrenteManager()
 
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING, blank=True, null=True)
-    motivo = models.ForeignKey('MotivoAlteracaoCardapio', on_delete=models.PROTECT, blank=True, null=True)
+    escola = models.ForeignKey(
+        "escola.Escola", on_delete=models.DO_NOTHING, blank=True, null=True
+    )
+    motivo = models.ForeignKey(
+        "MotivoAlteracaoCardapio", on_delete=models.PROTECT, blank=True, null=True
+    )
 
     @classmethod
     def get_rascunhos_do_usuario(cls, usuario):
         return cls.objects.filter(
-            criado_por=usuario,
-            status=cls.workflow_class.RASCUNHO
+            criado_por=usuario, status=cls.workflow_class.RASCUNHO
         )
 
     class Meta:

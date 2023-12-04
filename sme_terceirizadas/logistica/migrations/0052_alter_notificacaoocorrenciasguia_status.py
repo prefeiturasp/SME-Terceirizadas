@@ -5,15 +5,25 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0051_auto_20230608_1204'),
+        ("logistica", "0051_auto_20230608_1204"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='notificacaoocorrenciasguia',
-            name='status',
-            field=django_xworkflows.models.StateField(max_length=26, workflow=django_xworkflows.models._SerializedWorkflow(initial_state='RASCUNHO', name='NotificacaoOcorrenciaWorkflow', states=['RASCUNHO', 'NOTIFICACAO_CRIADA', 'NOTIFICACAO_ENVIADA_FISCAL'])),
+            model_name="notificacaoocorrenciasguia",
+            name="status",
+            field=django_xworkflows.models.StateField(
+                max_length=26,
+                workflow=django_xworkflows.models._SerializedWorkflow(
+                    initial_state="RASCUNHO",
+                    name="NotificacaoOcorrenciaWorkflow",
+                    states=[
+                        "RASCUNHO",
+                        "NOTIFICACAO_CRIADA",
+                        "NOTIFICACAO_ENVIADA_FISCAL",
+                    ],
+                ),
+            ),
         ),
     ]

@@ -10,15 +10,21 @@ from typing import Any
 
 import environ
 import numpy as np
-from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection, send_mail
+from django.core.mail import (
+    EmailMessage,
+    EmailMultiAlternatives,
+    get_connection,
+    send_mail,
+)
 from django.template.loader import render_to_string
 from workalendar.america import BrazilSaoPauloCity
+
+from config.settings.base import URL_CONFIGS
 
 from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, DOMINIOS_DEV
 from .models import CentralDeDownload, Notificacao
@@ -50,53 +56,53 @@ def remove_emails_dev(lista_emails, modo_debug=settings.DEBUG):
     return nova_lista
 
 
-def envia_email_unico(assunto: str, corpo: str, email: str, template: str, dados_template: Any, html=None):
+def envia_email_unico(
+    assunto: str, corpo: str, email: str, template: str, dados_template: Any, html=None
+):
     config = DynamicEmailConfiguration.get_solo()
 
     return send_mail(
-        assunto,
-        corpo,
-        config.from_email or None,
-        [email],
-        html_message=html)
+        assunto, corpo, config.from_email or None, [email], html_message=html
+    )
 
 
-def envia_email_unico_com_anexo(assunto: str, corpo: str, email: str, anexo=[]):  # noqa B006
+def envia_email_unico_com_anexo(
+    assunto: str, corpo: str, email: str, anexo=[]
+):  # noqa B006
     # Anexa um arquivo no email.
     # Usado em enviar_email_para_diretor_da_escola_destino.
     config = DynamicEmailConfiguration.get_solo()
 
-    email = EmailMessage(
-        assunto,
-        corpo,
-        config.from_email or None,
-        [email]
-    )
-    email.content_subtype = 'html'
+    email = EmailMessage(assunto, corpo, config.from_email or None, [email])
+    email.content_subtype = "html"
     _mimetypes, _ = guess_type(anexo.name)
     # Este anexo vem da pasta media.
-    nome_anexo = anexo.name.split('/')[-1]
-    nome_anexo = nome_anexo.replace('_auto', '')
+    nome_anexo = anexo.name.split("/")[-1]
+    nome_anexo = nome_anexo.replace("_auto", "")
     email.attach(nome_anexo, anexo.read(), _mimetypes)
     email.send()
 
 
-def envia_email_unico_com_anexo_inmemory(assunto: str, corpo: str, email: str, anexo_nome: str, mimetypes: str, anexo=[]):  # noqa E501
+def envia_email_unico_com_anexo_inmemory(
+    assunto: str, corpo: str, email: str, anexo_nome: str, mimetypes: str, anexo=[]
+):  # noqa E501
     # Rever a obrigatoriedade de anexo_nome e mimetypes para implementações futuras, ou generalização.
     config = DynamicEmailConfiguration.get_solo()
 
-    email = EmailMessage(
-        assunto,
-        corpo,
-        config.from_email or None,
-        [email]
-    )
-    email.content_subtype = 'html'
+    email = EmailMessage(assunto, corpo, config.from_email or None, [email])
+    email.content_subtype = "html"
     email.attach(anexo_nome, anexo, mimetypes)
     email.send()
 
 
-def envia_email_em_massa(assunto: str, corpo: str, emails: list, template: str, dados_template: Any, html=None):
+def envia_email_em_massa(
+    assunto: str,
+    corpo: str,
+    emails: list,
+    template: str,
+    dados_template: Any,
+    html=None,
+):
     config = DynamicEmailConfiguration.get_solo()
     from_email = config.from_email
     with get_connection() as connection:
@@ -104,7 +110,7 @@ def envia_email_em_massa(assunto: str, corpo: str, emails: list, template: str, 
         for email in remove_emails_dev(emails):
             message = EmailMultiAlternatives(assunto, corpo, from_email, [email])
             if html:
-                message.attach_alternative(html, 'text/html')
+                message.attach_alternative(html, "text/html")
             messages.append(message)
         return connection.send_messages(messages)
 
@@ -128,18 +134,20 @@ def update_instance_from_dict(instance, attrs, save=False):
 
 def url_configs(variable, content):
     # TODO: rever essa logica de link para trabalhar no front, tá dando voltas
-    if 'http' in env('REACT_APP_URL'):
-        return env('REACT_APP_URL') + URL_CONFIGS[variable].format(**content)
-    http_ou_https = 'http://' if ':' in env('REACT_APP_URL') else 'https://'
-    return http_ou_https + env('REACT_APP_URL') + URL_CONFIGS[variable].format(**content)
+    if "http" in env("REACT_APP_URL"):
+        return env("REACT_APP_URL") + URL_CONFIGS[variable].format(**content)
+    http_ou_https = "http://" if ":" in env("REACT_APP_URL") else "https://"
+    return (
+        http_ou_https + env("REACT_APP_URL") + URL_CONFIGS[variable].format(**content)
+    )
 
 
 def convert_base64_to_contentfile(base64_str: str):
-    format, imgstr = base64_str.split(';base64,')
-    if format == 'data:application/vnd.ms-excel':
-        ext = '.xls'
+    format, imgstr = base64_str.split(";base64,")
+    if format == "data:application/vnd.ms-excel":
+        ext = ".xls"
     else:
-        ext = guess_extension(format[5:]) or ''
+        ext = guess_extension(format[5:]) or ""
     data = ContentFile(base64.b64decode(imgstr), name=str(uuid.uuid4()) + ext)
     return data
 
@@ -148,10 +156,10 @@ def convert_image_to_base64(image_file, format):
     if not os.path.isfile(image_file):
         return None
 
-    encoded_string = ''
-    with open(image_file, 'rb') as img_f:
+    encoded_string = ""
+    with open(image_file, "rb") as img_f:
         encoded_string = base64.b64encode(img_f.read())
-    return 'data:image/%s;base64,%s' % (format, encoded_string.decode('utf-8'))
+    return "data:image/%s;base64,%s" % (format, encoded_string.decode("utf-8"))
 
 
 def queryset_por_data(filtro_aplicado, model):
@@ -163,11 +171,13 @@ def queryset_por_data(filtro_aplicado, model):
 
 
 def convert_date_format(date, from_format, to_format):
-    return datetime.datetime.strftime(datetime.datetime.strptime(date, from_format), to_format)
+    return datetime.datetime.strftime(
+        datetime.datetime.strptime(date, from_format), to_format
+    )
 
 
 def size(b64string):
-    return (len(b64string) * 3) / 4 - b64string.count('=', -2)
+    return (len(b64string) * 3) / 4 - b64string.count("=", -2)
 
 
 ULTIMO_DIA_DO_MES = {
@@ -182,7 +192,7 @@ ULTIMO_DIA_DO_MES = {
     9: 30,
     10: 31,
     11: 30,
-    12: 31
+    12: 31,
 }
 
 
@@ -225,9 +235,9 @@ def gera_objeto_na_central_download(user, identificador):
         identificador=identificador,
         arquivo=None,
         status=CentralDeDownload.STATUS_EM_PROCESSAMENTO,
-        msg_erro='',
+        msg_erro="",
         visto=False,
-        usuario=usuario
+        usuario=usuario,
     )
     obj_arquivo_download.save()
 
@@ -235,11 +245,13 @@ def gera_objeto_na_central_download(user, identificador):
 
 
 def atualiza_central_download(obj_central_download, identificador, arquivo):
-    type_pdf = 'application/pdf'
-    type_xlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    content_type = type_pdf if '.pdf' in identificador else type_xlsx
+    type_pdf = "application/pdf"
+    type_xlsx = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    content_type = type_pdf if ".pdf" in identificador else type_xlsx
 
-    obj_central_download.arquivo = SimpleUploadedFile(identificador, arquivo, content_type=content_type)
+    obj_central_download.arquivo = SimpleUploadedFile(
+        identificador, arquivo, content_type=content_type
+    )
     obj_central_download.status = CentralDeDownload.STATUS_CONCLUIDO
     obj_central_download.save()
 
@@ -251,10 +263,10 @@ def atualiza_central_download_com_erro(obj_central_download, msg_erro):
 
 
 class ExportExcelAction:
-    @classmethod # noqa
+    @classmethod  # noqa
     def generate_header(cls, admin, model, list_display):
         def default_format(value):
-            return value.replace('_', ' ').upper()
+            return value.replace("_", " ").upper()
 
         header = []
         for field_display in list_display:
@@ -262,11 +274,13 @@ class ExportExcelAction:
             is_admin_field = hasattr(admin, field_display)
             if is_model_field:
                 field = model._meta.get_field(field_display)
-                field_name = getattr(field, 'verbose_name', field_display)
+                field_name = getattr(field, "verbose_name", field_display)
                 header.append(default_format(field_name))
             elif is_admin_field:
                 field = getattr(admin, field_display)
-                field_name = getattr(field, 'short_description', default_format(field_display))
+                field_name = getattr(
+                    field, "short_description", default_format(field_display)
+                )
                 header.append(default_format(field_name))
             else:
                 header.append(default_format(field_display))
@@ -274,7 +288,7 @@ class ExportExcelAction:
 
 
 def remove_tags_html_from_string(html_string: str):
-    return re.sub(r'<.*?>', '', html_string)
+    return re.sub(r"<.*?>", "", html_string)
 
 
 def get_ultimo_dia_mes(date: datetime.date):
@@ -284,10 +298,12 @@ def get_ultimo_dia_mes(date: datetime.date):
 
 
 def remove_multiplos_espacos(string: str):
-    return ' '.join(string.split())
+    return " ".join(string.split())
 
 
-def build_xlsx_generico(output, queryset_serializada, titulo, subtitulo, titulo_sheet, titulos_colunas):
+def build_xlsx_generico(
+    output, queryset_serializada, titulo, subtitulo, titulo_sheet, titulos_colunas
+):
     LINHA_0 = 0
     LINHA_1 = 1
     LINHA_2 = 2
@@ -297,7 +313,8 @@ def build_xlsx_generico(output, queryset_serializada, titulo, subtitulo, titulo_
     ALTURA_COLUNA_50 = 50
 
     import pandas as pd
-    xlwriter = pd.ExcelWriter(output, engine='xlsxwriter')
+
+    xlwriter = pd.ExcelWriter(output, engine="xlsxwriter")
 
     df = pd.DataFrame(queryset_serializada)
 
@@ -312,22 +329,26 @@ def build_xlsx_generico(output, queryset_serializada, titulo, subtitulo, titulo_
     worksheet = xlwriter.sheets[titulo_sheet]
     worksheet.set_row(LINHA_0, ALTURA_COLUNA_50)
     worksheet.set_row(LINHA_1, ALTURA_COLUNA_30)
-    worksheet.set_column('B:H', ALTURA_COLUNA_30)
-    merge_format = workbook.add_format({'align': 'center', 'bg_color': '#a9d18e', 'border_color': '#198459'})
-    merge_format.set_align('vcenter')
+    worksheet.set_column("B:H", ALTURA_COLUNA_30)
+    merge_format = workbook.add_format(
+        {"align": "center", "bg_color": "#a9d18e", "border_color": "#198459"}
+    )
+    merge_format.set_align("vcenter")
     merge_format.set_bold()
     cell_format = workbook.add_format()
     cell_format.set_text_wrap()
-    cell_format.set_align('vcenter')
+    cell_format.set_align("vcenter")
     cell_format.set_bold()
     v_center_format = workbook.add_format()
-    v_center_format.set_align('vcenter')
-    single_cell_format = workbook.add_format({'bg_color': '#a9d18e'})
+    v_center_format.set_align("vcenter")
+    single_cell_format = workbook.add_format({"bg_color": "#a9d18e"})
     len_cols = len(df.columns)
     worksheet.merge_range(0, 0, 0, len_cols, titulo, merge_format)
 
     worksheet.merge_range(LINHA_1, 0, LINHA_2, len_cols, subtitulo, cell_format)
-    worksheet.insert_image('A1', 'sme_terceirizadas/static/images/logo-sigpae-light.png')
+    worksheet.insert_image(
+        "A1", "sme_terceirizadas/static/images/logo-sigpae-light.png"
+    )
     for index, titulo_coluna in enumerate(titulos_colunas, start=1):
         worksheet.write(LINHA_3, index, titulo_coluna, single_cell_format)
 
@@ -338,21 +359,21 @@ def build_xlsx_generico(output, queryset_serializada, titulo, subtitulo, titulo_
 
 def converte_numero_em_mes(mes):
     meses = {
-        1: 'Janeiro',
-        2: 'Fevereiro',
-        3: 'Março',
-        4: 'Abril',
-        5: 'Maio',
-        6: 'Junho',
-        7: 'Julho',
-        8: 'Agosto',
-        9: 'Setembro',
-        10: 'Outubro',
-        11: 'Novembro',
-        12: 'Dezembro'
+        1: "Janeiro",
+        2: "Fevereiro",
+        3: "Março",
+        4: "Abril",
+        5: "Maio",
+        6: "Junho",
+        7: "Julho",
+        8: "Agosto",
+        9: "Setembro",
+        10: "Outubro",
+        11: "Novembro",
+        12: "Dezembro",
     }
 
-    return meses.get(mes, 'Mês inválido')
+    return meses.get(mes, "Mês inválido")
 
 
 def cria_copias_fk(obj, attr, attr_fk, obj_copia):
@@ -373,9 +394,9 @@ def cria_copias_m2m(obj, attr, obj_copia):
 def datetime_range(start=None, end=None):
     dates = []
     if isinstance(start, str):
-        start = datetime.datetime.strptime(start, '%Y-%m-%d').date()
+        start = datetime.datetime.strptime(start, "%Y-%m-%d").date()
     if isinstance(end, str):
-        end = datetime.datetime.strptime(end, '%Y-%m-%d').date()
+        end = datetime.datetime.strptime(end, "%Y-%m-%d").date()
     span = end - start
     for i in range(span.days + 1):
         dates.append(start + datetime.timedelta(days=i))
@@ -384,53 +405,57 @@ def datetime_range(start=None, end=None):
 
 def analisa_logs_alunos_matriculados_periodo_escola():
     from sme_terceirizadas.escola.models import Escola
+
     escolas = Escola.objects.all()
     for index, escola in enumerate(escolas):
-        msg = f'análise de LogAlunosMatriculadosPeriodoEscola para escola {escola.nome}'
-        msg += f' ({index + 1}/{(escolas).count()})'
+        msg = f"análise de LogAlunosMatriculadosPeriodoEscola para escola {escola.nome}"
+        msg += f" ({index + 1}/{(escolas).count()})"
         try:
-            logger.info(f'x-x-x-x Iniciando {msg} x-x-x-x')
+            logger.info(f"x-x-x-x Iniciando {msg} x-x-x-x")
             hoje = datetime.date.today()
             deletar_logs_alunos_matriculados_duplicados(escola, hoje)
             criar_logs_alunos_matriculados_inexistentes(escola, hoje)
-            logger.info(f'x-x-x-x Finaliza {msg} x-x-x-x')
+            logger.info(f"x-x-x-x Finaliza {msg} x-x-x-x")
         except Exception as e:
-            logger.error(f'x-x-x-x Erro na {msg} x-x-x-x')
-            logger.error(f'`--> {e}')
+            logger.error(f"x-x-x-x Erro na {msg} x-x-x-x")
+            logger.error(f"`--> {e}")
 
 
 def deletar_logs_alunos_matriculados_duplicados(escola, hoje):
     from sme_terceirizadas.escola.models import LogAlunosMatriculadosPeriodoEscola
+
     for i in range(1, 8):
         data = hoje - datetime.timedelta(days=i)
         logs = LogAlunosMatriculadosPeriodoEscola.objects.filter(
             escola=escola,
             criado_em__year=data.year,
             criado_em__month=data.month,
-            criado_em__day=data.day
+            criado_em__day=data.day,
         )
         logs_para_deletar = []
         for log in logs:
             logs_filtrados = logs.filter(
                 periodo_escolar=log.periodo_escolar,
                 tipo_turma=log.tipo_turma,
-                cei_ou_emei=log.cei_ou_emei
-            ).order_by('-criado_em')
-            for l in logs_filtrados[1:logs_filtrados.count()]:
-                if l.uuid not in logs_para_deletar:
-                    logs_para_deletar.append(l.uuid)
+                cei_ou_emei=log.cei_ou_emei,
+                infantil_ou_fundamental=log.infantil_ou_fundamental,
+            ).order_by("-criado_em")
+            for log_filtrado in logs_filtrados[1 : logs_filtrados.count()]:
+                if log_filtrado.uuid not in logs_para_deletar:
+                    logs_para_deletar.append(log_filtrado.uuid)
         logs.filter(uuid__in=logs_para_deletar).delete()
 
 
 def criar_logs_alunos_matriculados_inexistentes(escola, hoje):
     from sme_terceirizadas.escola.models import LogAlunosMatriculadosPeriodoEscola
+
     for i in range(1, 8):
         data = hoje - datetime.timedelta(days=i)
         logs = LogAlunosMatriculadosPeriodoEscola.objects.filter(
             escola=escola,
             criado_em__year=data.year,
             criado_em__month=data.month,
-            criado_em__day=data.day
+            criado_em__day=data.day,
         )
         if not logs:
             for i_para_repetir in range(1, 6):
@@ -445,9 +470,13 @@ def criar_logs_alunos_matriculados_inexistentes(escola, hoje):
                 if logs_para_repetir:
                     for log_para_criar in logs_para_repetir:
                         log_criado = LogAlunosMatriculadosPeriodoEscola.objects.create(
-                            escola=log_para_criar.escola, periodo_escolar=log_para_criar.periodo_escolar,
+                            escola=log_para_criar.escola,
+                            periodo_escolar=log_para_criar.periodo_escolar,
                             quantidade_alunos=log_para_criar.quantidade_alunos,
-                            tipo_turma=log_para_criar.tipo_turma)
+                            tipo_turma=log_para_criar.tipo_turma,
+                            cei_ou_emei=log_para_criar.cei_ou_emei,
+                            infantil_ou_fundamental=log_para_criar.infantil_ou_fundamental,
+                        )
                         log_criado.criado_em = data
                         log_criado.save()
                     break
@@ -456,26 +485,43 @@ def criar_logs_alunos_matriculados_inexistentes(escola, hoje):
 def analisa_logs_quantidade_dietas_autorizadas():
     from sme_terceirizadas.dieta_especial.models import (
         LogQuantidadeDietasAutorizadas,
-        LogQuantidadeDietasAutorizadasCEI
+        LogQuantidadeDietasAutorizadasCEI,
     )
     from sme_terceirizadas.escola.models import Escola
-    escolas = Escola.objects.filter(tipo_gestao__nome='TERC TOTAL')
+
+    escolas = Escola.objects.filter(tipo_gestao__nome="TERC TOTAL")
     for index, escola in enumerate(escolas):
-        msg = f'análise de LogQuantidadeDietasAutorizadas / LogQuantidadeDietasAutorizadasCEI'
-        msg += f' para escola {escola.nome} ({index + 1}/{(escolas).count()})'
+        msg = "análise de LogQuantidadeDietasAutorizadas / LogQuantidadeDietasAutorizadasCEI"
+        msg += f" para escola {escola.nome} ({index + 1}/{(escolas).count()})"
         try:
-            logger.info(f'x-x-x-x Iniciando {msg} x-x-x-x')
+            logger.info(f"x-x-x-x Iniciando {msg} x-x-x-x")
             hoje = datetime.date.today()
-            if escola.eh_cei:
-                modelo = LogQuantidadeDietasAutorizadasCEI
+            if escola.eh_cemei:
+                analisa_logs_quantidade_dietas_autorizadas_cemei(escola, hoje)
             else:
-                modelo = LogQuantidadeDietasAutorizadas
-            deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo)
-            criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo)
-            logger.info(f'x-x-x-x Finaliza {msg} x-x-x-x')
+                if escola.eh_cei:
+                    modelo = LogQuantidadeDietasAutorizadasCEI
+                else:
+                    modelo = LogQuantidadeDietasAutorizadas
+                deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo)
+                criar_logs_quantidade_dietas_autorizadas_inexistentes(
+                    escola, hoje, modelo
+                )
+            logger.info(f"x-x-x-x Finaliza {msg} x-x-x-x")
         except Exception as e:
-            logger.error(f'x-x-x-x Erro na {msg} x-x-x-x')
-            logger.error(f'`--> {e}')
+            logger.error(f"x-x-x-x Erro na {msg} x-x-x-x")
+            logger.error(f"`--> {e}")
+
+
+def analisa_logs_quantidade_dietas_autorizadas_cemei(escola, hoje):
+    from sme_terceirizadas.dieta_especial.models import (
+        LogQuantidadeDietasAutorizadas,
+        LogQuantidadeDietasAutorizadasCEI,
+    )
+
+    for modelo in [LogQuantidadeDietasAutorizadas, LogQuantidadeDietasAutorizadasCEI]:
+        deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo)
+        criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo)
 
 
 def deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo):
@@ -485,20 +531,36 @@ def deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo):
             escola=escola,
             data__year=data.year,
             data__month=data.month,
-            data__day=data.day
+            data__day=data.day,
         )
         logs_para_deletar = []
         for log in logs:
             logs_filtrados = logs.filter(
-                periodo_escolar=log.periodo_escolar,
-                classificacao=log.classificacao
-            ).order_by('-criado_em')
-            if escola.eh_cei:
-                logs_filtrados = logs_filtrados.filter(faixa_etaria=log.faixa_etaria).order_by('-criado_em')
-            for l in logs_filtrados[1:logs_filtrados.count()]:
-                if l.uuid not in logs_para_deletar:
-                    logs_para_deletar.append(l.uuid)
+                periodo_escolar=log.periodo_escolar, classificacao=log.classificacao
+            ).order_by("-criado_em")
+            if escola.eh_cei or (
+                escola.eh_cemei
+                and modelo.__name__ == "LogQuantidadeDietasAutorizadasCEI"
+            ):
+                logs_filtrados = logs_filtrados.filter(
+                    faixa_etaria=log.faixa_etaria
+                ).order_by("-criado_em")
+            if escola.eh_cemei and modelo.__name__ == "LogQuantidadeDietasAutorizadas":
+                logs_filtrados = logs_filtrados.filter(
+                    cei_ou_emei=log.cei_ou_emei
+                ).order_by("-criado_em")
+            logs_para_deletar = logs_para_deletar + uuids_logs_para_deletar(
+                logs_filtrados
+            )
         logs.filter(uuid__in=logs_para_deletar).delete()
+
+
+def uuids_logs_para_deletar(logs_filtrados):
+    logs_para_deletar = []
+    for log_filtrado in logs_filtrados[1 : logs_filtrados.count()]:
+        if log_filtrado.uuid not in logs_para_deletar:
+            logs_para_deletar.append(log_filtrado.uuid)
+    return logs_para_deletar
 
 
 def criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo):
@@ -508,7 +570,7 @@ def criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo):
             escola=escola,
             data__year=data.year,
             data__month=data.month,
-            data__day=data.day
+            data__day=data.day,
         )
         if not logs:
             for i_para_repetir in range(1, 6):
@@ -518,7 +580,7 @@ def criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo):
                     escola=escola,
                     data__year=data_para_repetir.year,
                     data__month=data_para_repetir.month,
-                    data__day=data_para_repetir.day
+                    data__day=data_para_repetir.day,
                 )
                 if logs_para_repetir:
                     for log_para_criar in logs_para_repetir:
@@ -529,8 +591,9 @@ def criar_logs_quantidade_dietas_autorizadas_inexistentes(escola, hoje, modelo):
 def create_objects_logs(escola, log_para_criar, data):
     from sme_terceirizadas.dieta_especial.models import (
         LogQuantidadeDietasAutorizadas,
-        LogQuantidadeDietasAutorizadasCEI
+        LogQuantidadeDietasAutorizadasCEI,
     )
+
     if escola.eh_cei:
         LogQuantidadeDietasAutorizadasCEI.objects.create(
             quantidade=log_para_criar.quantidade,
@@ -538,7 +601,7 @@ def create_objects_logs(escola, log_para_criar, data):
             data=data,
             classificacao=log_para_criar.classificacao,
             periodo_escolar=log_para_criar.periodo_escolar,
-            faixa_etaria=log_para_criar.faixa_etaria
+            faixa_etaria=log_para_criar.faixa_etaria,
         )
     else:
         LogQuantidadeDietasAutorizadas.objects.create(
@@ -546,7 +609,8 @@ def create_objects_logs(escola, log_para_criar, data):
             escola=log_para_criar.escola,
             data=data,
             classificacao=log_para_criar.classificacao,
-            periodo_escolar=log_para_criar.periodo_escolar
+            periodo_escolar=log_para_criar.periodo_escolar,
+            cei_ou_emei=log_para_criar.cei_ou_emei,
         )
 
 
@@ -580,7 +644,7 @@ def preencher_template_e_notificar(
                 requisicao=requisicao,
                 solicitacao_alteracao=solicitacao_alteracao,
                 guia=guia,
-                cronograma=cronograma
+                cronograma=cronograma,
             )
 
 

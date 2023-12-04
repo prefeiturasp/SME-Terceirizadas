@@ -4,14 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0060_auto_20230815_1534'),
+        ("escola", "0060_auto_20230815_1534"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='logalunosmatriculadosperiodoescola',
-            options={'ordering': ('-criado_em',), 'verbose_name': 'Log Alteração quantidade de alunos regular e programa', 'verbose_name_plural': 'Logs de Alteração quantidade de alunos regulares e de programas'},
+            name="logalunosmatriculadosperiodoescola",
+            options={
+                "ordering": ("-criado_em",),
+                "verbose_name": "Log Alteração quantidade de alunos regular e programa",
+                "verbose_name_plural": "Logs de Alteração quantidade de alunos regulares e de programas",
+            },
         ),
     ]

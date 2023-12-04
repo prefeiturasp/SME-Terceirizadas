@@ -8,6 +8,7 @@ from .models import (
     DataDeFabricaoEPrazo,
     DocumentoDeRecebimento,
     EtapasDoCronograma,
+    FichaTecnicaDoProduto,
     ImagemDoTipoDeEmbalagem,
     Laboratorio,
     LayoutDeEmbalagem,
@@ -16,26 +17,26 @@ from .models import (
     TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
-    UnidadeMedida
+    UnidadeMedida,
 )
 
 
 @admin.register(Laboratorio)
 class Laboratoriodmin(admin.ModelAdmin):
     form = CaixaAltaNomeForm
-    list_display = ('nome', 'cnpj', 'cidade', 'credenciado')
-    ordering = ('-criado_em',)
-    search_fields = ('nome',)
-    list_filter = ('nome',)
-    readonly_fields = ('uuid',)
+    list_display = ("nome", "cnpj", "cidade", "credenciado")
+    ordering = ("-criado_em",)
+    search_fields = ("nome",)
+    list_filter = ("nome",)
+    readonly_fields = ("uuid",)
 
 
 @admin.register(TipoEmbalagemQld)
 class EmbalagemQldAdmin(admin.ModelAdmin):
     form = CaixaAltaNomeForm
-    list_display = ('nome', 'abreviacao', 'criado_em')
-    search_fields = ('nome',)
-    readonly_fields = ('uuid',)
+    list_display = ("nome", "abreviacao", "criado_em")
+    search_fields = ("nome",)
+    readonly_fields = ("uuid",)
 
 
 class EtapasAntigasInline(admin.StackedInline):
@@ -55,14 +56,14 @@ class SolicitacaoAdmin(admin.ModelAdmin):
 
 @admin.register(UnidadeMedida)
 class UnidadeMedidaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'abreviacao', 'criado_em')
-    search_fields = ('nome', 'abreviacao')
+    list_display = ("nome", "abreviacao", "criado_em")
+    search_fields = ("nome", "abreviacao")
 
 
 class ImagemDoTipoDeEmbalagemInline(NestedStackedInline):
     model = ImagemDoTipoDeEmbalagem
     extra = 0
-    fk_name = 'tipo_de_embalagem'
+    fk_name = "tipo_de_embalagem"
     show_change_link = True
 
 
@@ -70,31 +71,37 @@ class TipoEmbalagemLayoutInline(NestedStackedInline):
     model = TipoDeEmbalagemDeLayout
     extra = 0
     show_change_link = True
-    readonly_fields = ('uuid',)
-    fk_name = 'layout_de_embalagem'
-    inlines = [ImagemDoTipoDeEmbalagemInline, ]
+    readonly_fields = ("uuid",)
+    fk_name = "layout_de_embalagem"
+    inlines = [
+        ImagemDoTipoDeEmbalagemInline,
+    ]
 
 
 class LayoutDeEmbalagemAdmin(NestedModelAdmin):
     form = ArquivoForm
-    list_display = ('get_cronograma', 'get_produto', 'criado_em')
-    search_fields = ('cronograma__numero', 'produto__nome')
-    readonly_fields = ('uuid',)
-    inlines = [TipoEmbalagemLayoutInline, ]
+    list_display = ("get_cronograma", "get_produto", "criado_em")
+    search_fields = ("cronograma__numero", "produto__nome")
+    readonly_fields = ("uuid",)
+    inlines = [
+        TipoEmbalagemLayoutInline,
+    ]
 
     def get_produto(self, obj):
         return obj.cronograma.produto.nome
-    get_produto.short_description = 'Produto'
+
+    get_produto.short_description = "Produto"
 
     def get_cronograma(self, obj):
         return obj.cronograma.numero
-    get_cronograma.short_description = 'Cronograma'
+
+    get_cronograma.short_description = "Cronograma"
 
 
 class ArquivoDoTipoDeDocumentoInline(NestedStackedInline):
     model = ArquivoDoTipoDeDocumento
     extra = 0
-    fk_name = 'tipo_de_documento'
+    fk_name = "tipo_de_documento"
     show_change_link = True
 
 
@@ -102,25 +109,31 @@ class TipoDocumentoRecebimentoInline(NestedStackedInline):
     model = TipoDeDocumentoDeRecebimento
     extra = 0
     show_change_link = True
-    readonly_fields = ('uuid',)
-    fk_name = 'documento_recebimento'
-    inlines = [ArquivoDoTipoDeDocumentoInline, ]
+    readonly_fields = ("uuid",)
+    fk_name = "documento_recebimento"
+    inlines = [
+        ArquivoDoTipoDeDocumentoInline,
+    ]
 
 
 class DocumentoDeRecebimentoAdmin(NestedModelAdmin):
     form = ArquivoForm
-    list_display = ('get_cronograma', 'get_produto', 'numero_laudo', 'criado_em')
-    search_fields = ('cronograma__numero', 'produto__nome')
-    readonly_fields = ('uuid',)
-    inlines = [TipoDocumentoRecebimentoInline, ]
+    list_display = ("get_cronograma", "get_produto", "numero_laudo", "criado_em")
+    search_fields = ("cronograma__numero", "produto__nome")
+    readonly_fields = ("uuid",)
+    inlines = [
+        TipoDocumentoRecebimentoInline,
+    ]
 
     def get_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
-    get_produto.short_description = 'Produto'
+
+    get_produto.short_description = "Produto"
 
     def get_cronograma(self, obj):
         return obj.cronograma.numero
-    get_cronograma.short_description = 'Cronograma'
+
+    get_cronograma.short_description = "Cronograma"
 
 
 admin.site.register(DocumentoDeRecebimento, DocumentoDeRecebimentoAdmin)
@@ -129,3 +142,4 @@ admin.site.register(LayoutDeEmbalagem, LayoutDeEmbalagemAdmin)
 admin.site.register(Cronograma)
 admin.site.register(EtapasDoCronograma)
 admin.site.register(ProgramacaoDoRecebimentoDoCronograma)
+admin.site.register(FichaTecnicaDoProduto)

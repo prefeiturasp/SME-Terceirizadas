@@ -5,16 +5,16 @@ from sme_terceirizadas.dieta_especial.models import SolicitacaoDietaEspecial
 from sme_terceirizadas.perfil.models import Usuario
 
 faker = Faker()
-fake = Faker('pt-br')
+fake = Faker("pt-br")
 
 
 def cancelar_dieta(dieta_uuid):
-    usuario_nutricodae = Usuario.objects.get(email='nutricodae@admin.com')
+    usuario_nutricodae = Usuario.objects.get(email="nutricodae@admin.com")
 
     dieta = SolicitacaoDietaEspecial.objects.get(uuid__startswith=dieta_uuid)
     usuario = dieta.criado_por
 
-    justificativa = f'<p>{fake.paragraph(nb_sentences=10)}</p>'
+    justificativa = f"<p>{fake.paragraph(nb_sentences=10)}</p>"
     dieta.inicia_fluxo_inativacao(user=usuario, justificativa=justificativa)
 
     dieta.ativo = False
@@ -31,12 +31,13 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--uuid', '-u',
-            dest='uuid',
-            help='Informar uuid (5 primeiros dígitos) da dieta.'
+            "--uuid",
+            "-u",
+            dest="uuid",
+            help="Informar uuid (5 primeiros dígitos) da dieta.",
         )
 
     def handle(self, *args, **options):
-        uuid = options['uuid']
+        uuid = options["uuid"]
         dieta = cancelar_dieta(uuid)
-        self.stdout.write(f'Dieta Cancelada: {dieta}')
+        self.stdout.write(f"Dieta Cancelada: {dieta}")

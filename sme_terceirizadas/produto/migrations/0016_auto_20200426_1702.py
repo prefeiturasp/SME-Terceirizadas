@@ -5,27 +5,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0015_auto_20200426_1659'),
+        ("produto", "0015_auto_20200426_1659"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='imagemdoproduto',
-            name='arquivo',
-            field=models.FileField(default=1, upload_to=''),
+            model_name="imagemdoproduto",
+            name="arquivo",
+            field=models.FileField(default=1, upload_to=""),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='imagemdoproduto',
-            name='nome',
-            field=models.CharField(blank=True, default='kkjfdsfd', max_length=100),
+            model_name="imagemdoproduto",
+            name="nome",
+            field=models.CharField(blank=True, default="kkjfdsfd", max_length=100),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='imagemdoproduto',
-            name='produto',
-            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, to='produto.Produto'),
+            model_name="imagemdoproduto",
+            name="produto",
+            field=models.ForeignKey(
+                blank=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="produto.Produto",
+            ),
         ),
     ]

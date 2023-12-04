@@ -4,15 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0046_notificacao'),
+        ("dados_comuns", "0046_notificacao"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='notificacao',
-            name='tipo',
-            field=models.CharField(choices=[('ALERTA', 'Alerta'), ('AVISO', 'Aviso'), ('PENDENCIA', 'Pendência')], default='AVISO', max_length=15, verbose_name='Tipo'),
+            model_name="notificacao",
+            name="tipo",
+            field=models.CharField(
+                choices=[
+                    ("ALERTA", "Alerta"),
+                    ("AVISO", "Aviso"),
+                    ("PENDENCIA", "Pendência"),
+                ],
+                default="AVISO",
+                max_length=15,
+                verbose_name="Tipo",
+            ),
         ),
     ]

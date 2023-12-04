@@ -15,32 +15,41 @@ from ...escola.models import Aluno, FaixaEtaria, PeriodoEscolar
 from ...perfil.models import Usuario
 from ...produto.models import Produto
 from ...terceirizada.models import Edital
-from ..models import AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial
+from ..models import (
+    AlergiaIntolerancia,
+    Alimento,
+    Anexo,
+    ClassificacaoDieta,
+    MotivoNegacao,
+    SolicitacaoDietaEspecial,
+)
 
-fake = Faker('pt_BR')
+fake = Faker("pt_BR")
 Faker.seed(420)
 
 
 @pytest.fixture
 def usuario_admin():
-    return mommy.make('Usuario', email='admin@admin.com', is_superuser=True)
+    return mommy.make("Usuario", email="admin@admin.com", is_superuser=True)
 
 
 @pytest.fixture
 def codae():
-    return mommy.make('Codae')
+    return mommy.make("Codae")
 
 
 @pytest.fixture
 def dre_guaianases():
-    return mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL GUAIANASES')
+    return mommy.make("DiretoriaRegional", nome="DIRETORIA REGIONAL GUAIANASES")
 
 
 @pytest.fixture
 def escola_dre_guaianases(dre_guaianases):
-    lote = mommy.make('Lote')
-    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
-    return mommy.make('Escola', lote=lote, diretoria_regional=dre_guaianases, tipo_gestao=tipo_gestao)
+    lote = mommy.make("Lote")
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    return mommy.make(
+        "Escola", lote=lote, diretoria_regional=dre_guaianases, tipo_gestao=tipo_gestao
+    )
 
 
 @pytest.fixture
@@ -50,50 +59,60 @@ def arquivo_docx_base64():
 
 @pytest.fixture
 def aluno():
-    return mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
+    return mommy.make(
+        Aluno,
+        nome="Roberto Alves da Silva",
+        codigo_eol="123456",
+        data_nascimento="2000-01-01",
+    )
 
 
 @pytest.fixture
 def solicitacao_dieta_especial(escola, aluno):
-    return mommy.make(SolicitacaoDietaEspecial,
-                      rastro_escola=escola,
-                      aluno=aluno)
+    return mommy.make(SolicitacaoDietaEspecial, rastro_escola=escola, aluno=aluno)
 
 
 @pytest.fixture
 def solicitacao_dieta_especial_outra_dre(escola_dre_guaianases, aluno):
-    return mommy.make(SolicitacaoDietaEspecial,
-                      rastro_escola=escola_dre_guaianases,
-                      aluno=aluno)
+    return mommy.make(
+        SolicitacaoDietaEspecial, rastro_escola=escola_dre_guaianases, aluno=aluno
+    )
 
 
 @pytest.fixture
 def anexo_docx(arquivo_docx_base64, solicitacao_dieta_especial):
-    return mommy.make(Anexo,
-                      solicitacao_dieta_especial=solicitacao_dieta_especial,
-                      arquivo=convert_base64_to_contentfile(
-                          arquivo_docx_base64),
-                      nome='arquivo-supimpa.docx')
+    return mommy.make(
+        Anexo,
+        solicitacao_dieta_especial=solicitacao_dieta_especial,
+        arquivo=convert_base64_to_contentfile(arquivo_docx_base64),
+        nome="arquivo-supimpa.docx",
+    )
 
 
-@pytest.fixture(scope='function', params=[
-    'teste.jpg',
-    'borboleta.png',
-    'arquivo_bacana.pdf',
-    'arquivo_top.docx',
-    'arquivo_legal.doc'
-])
+@pytest.fixture(
+    scope="function",
+    params=[
+        "teste.jpg",
+        "borboleta.png",
+        "arquivo_bacana.pdf",
+        "arquivo_top.docx",
+        "arquivo_legal.doc",
+    ],
+)
 def nomes_arquivos_validos(request):
     return request.param
 
 
-@pytest.fixture(scope='function', params=[
-    'teste.zip',
-    'borboleta.py',
-    'arquivo_bacana.js',
-    'arquivo_top.tar.gz',
-    'arquivo_legal.exe'
-])
+@pytest.fixture(
+    scope="function",
+    params=[
+        "teste.zip",
+        "borboleta.py",
+        "arquivo_bacana.js",
+        "arquivo_top.tar.gz",
+        "arquivo_legal.exe",
+    ],
+)
 def nomes_arquivos_invalidos(request):
     return request.param
 
@@ -133,73 +152,104 @@ def substituicoes(alimentos, produtos):
     substituicoes = []
     ids_produtos = [p.uuid for p in produtos]
     for _ in range(randint(3, 5)):
-        substituicoes.append({
-            'alimento': alimentos[randint(0, len(alimentos) - 1)].id,
-            'tipo': 'I' if randint(0, 1) == 1 else 'S',
-            'substitutos': sample(ids_produtos, randint(1, 4))
-        })
+        substituicoes.append(
+            {
+                "alimento": alimentos[randint(0, len(alimentos) - 1)].id,
+                "tipo": "I" if randint(0, 1) == 1 else "S",
+                "substitutos": sample(ids_produtos, randint(1, 4)),
+            }
+        )
     return substituicoes
 
 
 @pytest.fixture
 def edital():
-    return mommy.make('Edital', uuid='b7b6a0a7-b230-4783-94b6-8d3d22041ab3', numero='edital-teste-1')
+    return mommy.make(
+        "Edital", uuid="b7b6a0a7-b230-4783-94b6-8d3d22041ab3", numero="edital-teste-1"
+    )
 
 
 @pytest.fixture
-def payload_autorizar(alergias_intolerancias, classificacoes_dieta, substituicoes, protocolo_padrao_dieta_especial):
+def payload_autorizar(
+    alergias_intolerancias,
+    classificacoes_dieta,
+    substituicoes,
+    protocolo_padrao_dieta_especial,
+):
     return {
-        'classificacao': classificacoes_dieta[0].id,
-        'alergias_intolerancias': [
-            alergias_intolerancias[0].id
-        ],
-        'registro_funcional_nutricionista':
-            'ELABORADO por USUARIO NUTRICIONISTA CODAE - CRN null',
-        'substituicoes': substituicoes,
-        'informacoes_adicionais': 'Um texto bem grandão',
-        'protocolo_padrao': protocolo_padrao_dieta_especial.uuid,
-        'nome_protocolo': protocolo_padrao_dieta_especial.nome_protocolo,
-        'orientacoes_gerais': 'Um texto grande aqui'
+        "classificacao": classificacoes_dieta[0].id,
+        "alergias_intolerancias": [alergias_intolerancias[0].id],
+        "registro_funcional_nutricionista": "ELABORADO por USUARIO NUTRICIONISTA CODAE - CRN null",
+        "substituicoes": substituicoes,
+        "informacoes_adicionais": "Um texto bem grandão",
+        "protocolo_padrao": protocolo_padrao_dieta_especial.uuid,
+        "nome_protocolo": protocolo_padrao_dieta_especial.nome_protocolo,
+        "orientacoes_gerais": "Um texto grande aqui",
     }
 
 
 @pytest.fixture
-def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_dieta_especial):
-    email = 'escola@admin.com'
+def solicitacao_dieta_especial_a_autorizar(
+    client, escola, template_mensagem_dieta_especial
+):
+    email = "escola@admin.com"
     password = constants.DJANGO_ADMIN_PASSWORD
-    rf = '1545933'
-    user = Usuario.objects.create_user(username=email, password=password, email=email, registro_funcional=rf)
+    rf = "1545933"
+    user = Usuario.objects.create_user(
+        username=email, password=password, email=email, registro_funcional=rf
+    )
     client.login(username=email, password=password)
 
     mommy.make(AlergiaIntolerancia, id=1)
-    perfil_professor = mommy.make(
-        'perfil.Perfil', nome='ADMINISTRADOR_UE', ativo=False)
-    mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
-               data_inicial=datetime.date.today(), ativo=True)  # ativo
+    perfil_professor = mommy.make("perfil.Perfil", nome="ADMINISTRADOR_UE", ativo=False)
+    mommy.make(
+        "perfil.Vinculo",
+        usuario=user,
+        instituicao=escola,
+        perfil=perfil_professor,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )  # ativo
 
-    aluno = mommy.make(Aluno, nome='Roberto Alves da Silva',
-                       codigo_eol='123456', data_nascimento='2000-01-01')
-    solic = mommy.make(SolicitacaoDietaEspecial,
-                       rastro_escola=escola,
-                       rastro_terceirizada=escola.lote.terceirizada,
-                       aluno=aluno,
-                       criado_por=user)
+    aluno = mommy.make(
+        Aluno,
+        nome="Roberto Alves da Silva",
+        codigo_eol="123456",
+        data_nascimento="2000-01-01",
+    )
+    solic = mommy.make(
+        SolicitacaoDietaEspecial,
+        rastro_escola=escola,
+        rastro_terceirizada=escola.lote.terceirizada,
+        aluno=aluno,
+        criado_por=user,
+    )
     solic.inicia_fluxo(user=user)
 
     return solic
 
 
 @pytest.fixture
-def solicitacao_dieta_especial_autorizada(client, escola, solicitacao_dieta_especial_a_autorizar):
-    email = 'terceirizada@admin.com'
+def solicitacao_dieta_especial_autorizada(
+    client, escola, solicitacao_dieta_especial_a_autorizar
+):
+    email = "terceirizada@admin.com"
     password = constants.DJANGO_ADMIN_PASSWORD
-    rf = '4545454'
-    user = Usuario.objects.create_user(username=email, password=password, email=email, registro_funcional=rf)
+    rf = "4545454"
+    user = Usuario.objects.create_user(
+        username=email, password=password, email=email, registro_funcional=rf
+    )
     client.login(username=email, password=password)
 
-    perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
-    mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,
-               data_inicial=datetime.date.today(), ativo=True)
+    perfil = mommy.make("perfil.Perfil", nome="TERCEIRIZADA", ativo=False)
+    mommy.make(
+        "perfil.Vinculo",
+        usuario=user,
+        instituicao=escola.lote.terceirizada,
+        perfil=perfil,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
 
     solicitacao_dieta_especial_a_autorizar.codae_autoriza(user=user)
 
@@ -207,16 +257,26 @@ def solicitacao_dieta_especial_autorizada(client, escola, solicitacao_dieta_espe
 
 
 @pytest.fixture
-def solicitacao_dieta_especial_escola_solicitou_inativacao(client, escola, solicitacao_dieta_especial_autorizada):
-    email = 'terceirizada2@admin.com'
+def solicitacao_dieta_especial_escola_solicitou_inativacao(
+    client, escola, solicitacao_dieta_especial_autorizada
+):
+    email = "terceirizada2@admin.com"
     password = constants.DJANGO_ADMIN_PASSWORD
-    rf = '4545455'
-    user = Usuario.objects.create_user(username=email, password=password, email=email, registro_funcional=rf)
+    rf = "4545455"
+    user = Usuario.objects.create_user(
+        username=email, password=password, email=email, registro_funcional=rf
+    )
     client.login(username=email, password=password)
 
-    perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
-    mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,
-               data_inicial=datetime.date.today(), ativo=True)
+    perfil = mommy.make("perfil.Perfil", nome="TERCEIRIZADA", ativo=False)
+    mommy.make(
+        "perfil.Vinculo",
+        usuario=user,
+        instituicao=escola.lote.terceirizada,
+        perfil=perfil,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
 
     solicitacao_dieta_especial_autorizada.inicia_fluxo_inativacao(user=user)
 
@@ -224,124 +284,215 @@ def solicitacao_dieta_especial_escola_solicitou_inativacao(client, escola, solic
 
 
 @pytest.fixture
-def solicitacao_dieta_especial_codae_autorizou_inativacao(client,
-                                                          escola,
-                                                          solicitacao_dieta_especial_escola_solicitou_inativacao):
-    email = 'terceirizada3@admin.com'
+def solicitacao_dieta_especial_codae_autorizou_inativacao(
+    client, escola, solicitacao_dieta_especial_escola_solicitou_inativacao
+):
+    email = "terceirizada3@admin.com"
     password = constants.DJANGO_ADMIN_PASSWORD
-    rf = '4545456'
-    user = Usuario.objects.create_user(username=email, password=password, email=email, registro_funcional=rf)
+    rf = "4545456"
+    user = Usuario.objects.create_user(
+        username=email, password=password, email=email, registro_funcional=rf
+    )
     client.login(username=email, password=password)
 
-    perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
-    mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,
-               data_inicial=datetime.date.today(), ativo=True)
+    perfil = mommy.make("perfil.Perfil", nome="TERCEIRIZADA", ativo=False)
+    mommy.make(
+        "perfil.Vinculo",
+        usuario=user,
+        instituicao=escola.lote.terceirizada,
+        perfil=perfil,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
 
     solicitacao_dieta_especial_escola_solicitou_inativacao.codae_autoriza_inativacao(
-        user=user)
+        user=user
+    )
 
     return solicitacao_dieta_especial_escola_solicitou_inativacao
 
 
 @pytest.fixture
 def template_mensagem_dieta_especial():
-    return mommy.make(TemplateMensagem, tipo=TemplateMensagem.DIETA_ESPECIAL, assunto='TESTE DIETA ESPECIAL',
-                      template_html='@id @criado_em @status @link')
+    return mommy.make(
+        TemplateMensagem,
+        tipo=TemplateMensagem.DIETA_ESPECIAL,
+        assunto="TESTE DIETA ESPECIAL",
+        template_html="@id @criado_em @status @link",
+    )
 
 
 @pytest.fixture
 def escola():
-    terceirizada = mommy.make('Terceirizada', uuid='a8fefdd3-b5ff-47e0-8338-ce5d7c6d8a52')
-    lote = mommy.make('Lote', terceirizada=terceirizada, nome='LOTE 07', uuid='429446c2-5b17-4ada-96ae-cce369dd4ae1')
+    terceirizada = mommy.make(
+        "Terceirizada", uuid="a8fefdd3-b5ff-47e0-8338-ce5d7c6d8a52"
+    )
+    lote = mommy.make(
+        "Lote",
+        terceirizada=terceirizada,
+        nome="LOTE 07",
+        uuid="429446c2-5b17-4ada-96ae-cce369dd4ae1",
+    )
     diretoria_regional = mommy.make(
-        'DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
-    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
+        "DiretoriaRegional", nome="DIRETORIA REGIONAL IPIRANGA"
+    )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
     escola = mommy.make(
-        'Escola',
+        "Escola",
         lote=lote,
-        nome='EMEF JOAO MENDES',
-        codigo_eol='000546',
+        nome="EMEF JOAO MENDES",
+        codigo_eol="000546",
         diretoria_regional=diretoria_regional,
-        tipo_gestao=tipo_gestao
+        tipo_gestao=tipo_gestao,
     )
     return escola
 
 
 @pytest.fixture
+def escola_cemei():
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make("Lote", terceirizada=terceirizada)
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional", nome="DIRETORIA REGIONAL CEMEI"
+    )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEMEI")
+    escola_cemei = mommy.make(
+        "Escola",
+        nome="CEMEI",
+        lote=lote,
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade_escolar,
+    )
+    return escola_cemei
+
+
+@pytest.fixture
 def massa_dados_protocolo_padrao_test(solicitacao_dieta_especial):
     lote = solicitacao_dieta_especial.escola.lote
-    edital_1 = Edital.objects.get(uuid='b7b6a0a7-b230-4783-94b6-8d3d22041ab3')
-    edital_2 = Edital.objects.get(uuid='60f5a64e-8652-422d-a6e9-0a36717829c9')
-    contrato_1 = mommy.make('Contrato', lotes=[lote], edital=edital_1)
-    contrato_2 = mommy.make('Contrato', lotes=[lote], edital=edital_2)
-    return {'editais': [edital_1.uuid, edital_2.uuid],
-            'dieta_uuid': solicitacao_dieta_especial.uuid,
-            'contratos': [contrato_1, contrato_2]}
+    edital_1 = Edital.objects.get(uuid="b7b6a0a7-b230-4783-94b6-8d3d22041ab3")
+    edital_2 = Edital.objects.get(uuid="60f5a64e-8652-422d-a6e9-0a36717829c9")
+    contrato_1 = mommy.make("Contrato", lotes=[lote], edital=edital_1)
+    contrato_2 = mommy.make("Contrato", lotes=[lote], edital=edital_2)
+    return {
+        "editais": [edital_1.uuid, edital_2.uuid],
+        "dieta_uuid": solicitacao_dieta_especial.uuid,
+        "contratos": [contrato_1, contrato_2],
+    }
 
 
 @pytest.fixture
-def client_autenticado_vinculo_escola_dieta(client, django_user_model, escola, template_mensagem_dieta_especial):
-    email = 'test@test.com'
+def client_autenticado_vinculo_escola_dieta(
+    client, django_user_model, escola, template_mensagem_dieta_especial
+):
+    email = "test@test.com"
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR_UE', ativo=True)
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="8888888"
+    )
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
     hoje = datetime.date.today()
-    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
-               data_inicial=hoje, ativo=True)
+    mommy.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=escola,
+        perfil=perfil_diretor,
+        data_inicial=hoje,
+        ativo=True,
+    )
     client.login(username=email, password=password)
     return client
 
 
 @pytest.fixture
-def client_autenticado_vinculo_codae_dieta(client, django_user_model, escola, codae, template_mensagem_dieta_especial):
-    email = 'test@test.com'
+def client_autenticado_vinculo_codae_dieta(
+    client, django_user_model, escola, codae, template_mensagem_dieta_especial
+):
+    email = "test@test.com"
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
-    perfil_admin_dieta_especial = mommy.make('Perfil', nome=constants.ADMINISTRADOR_DIETA_ESPECIAL,
-                                             ativo=True)
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="8888888"
+    )
+    perfil_admin_dieta_especial = mommy.make(
+        "Perfil", nome=constants.ADMINISTRADOR_DIETA_ESPECIAL, ativo=True
+    )
     hoje = datetime.date.today()
-    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_dieta_especial,
-               data_inicial=hoje, ativo=True)
+    mommy.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil_admin_dieta_especial,
+        data_inicial=hoje,
+        ativo=True,
+    )
     client.login(username=email, password=password)
     return client
 
 
 @pytest.fixture
-def client_autenticado_vinculo_codae_gestao_alimentacao_dieta(client, django_user_model, escola, codae,
-                                                              template_mensagem_dieta_especial):
-    email = 'test@test.com'
+def client_autenticado_vinculo_codae_gestao_alimentacao_dieta(
+    client, django_user_model, escola, codae, template_mensagem_dieta_especial
+):
+    email = "test@test.com"
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
-    perfil_admin_gestao_alimentacao = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                 ativo=True)
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="8888888"
+    )
+    perfil_admin_gestao_alimentacao = mommy.make(
+        "Perfil",
+        nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+        ativo=True,
+    )
     hoje = datetime.date.today()
-    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_gestao_alimentacao,
-               data_inicial=hoje, ativo=True)
+    mommy.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil_admin_gestao_alimentacao,
+        data_inicial=hoje,
+        ativo=True,
+    )
     client.login(username=email, password=password)
     return client
 
 
 @pytest.fixture
-def client_autenticado_vinculo_terceirizada_dieta(client, django_user_model, escola, codae,
-                                                  template_mensagem_dieta_especial):
-    email = 'test@test.com'
+def client_autenticado_vinculo_terceirizada_dieta(
+    client, django_user_model, escola, codae, template_mensagem_dieta_especial
+):
+    email = "test@test.com"
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
-    perfil_nutri_admin = mommy.make('Perfil', nome=constants.ADMINISTRADOR_EMPRESA,
-                                    ativo=True)
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="8888888"
+    )
+    perfil_nutri_admin = mommy.make(
+        "Perfil", nome=constants.ADMINISTRADOR_EMPRESA, ativo=True
+    )
     hoje = datetime.date.today()
-    mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_nutri_admin,
-               data_inicial=hoje, ativo=True)
-    classificacao = mommy.make('ClassificacaoDieta', id=1, nome='Tipo A')
-    protocolo_padrao = mommy.make('ProtocoloPadraoDietaEspecial', nome_protocolo='ALERGIA - OVO',
-                                  uuid='5d7f80b8-7b62-441b-89da-4d5dd5c1e7e8')
-    mommy.make('SolicitacaoDietaEspecial', status='CODAE_AUTORIZADO', escola_destino=escola,
-               rastro_terceirizada=escola.lote.terceirizada, rastro_escola=escola, classificacao=classificacao,
-               protocolo_padrao=protocolo_padrao)
+    mommy.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=escola.lote.terceirizada,
+        perfil=perfil_nutri_admin,
+        data_inicial=hoje,
+        ativo=True,
+    )
+    classificacao = mommy.make("ClassificacaoDieta", id=1, nome="Tipo A")
+    protocolo_padrao = mommy.make(
+        "ProtocoloPadraoDietaEspecial",
+        nome_protocolo="ALERGIA - OVO",
+        uuid="5d7f80b8-7b62-441b-89da-4d5dd5c1e7e8",
+    )
+    mommy.make(
+        "SolicitacaoDietaEspecial",
+        status="CODAE_AUTORIZADO",
+        escola_destino=escola,
+        rastro_terceirizada=escola.lote.terceirizada,
+        rastro_escola=escola,
+        classificacao=classificacao,
+        protocolo_padrao=protocolo_padrao,
+    )
     client.login(username=email, password=password)
     return client
 
@@ -352,44 +503,61 @@ def solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas(escola, aluno):
     ontem = hoje - datetime.timedelta(days=1)
 
     return [
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.CODAE_A_AUTORIZAR,
-                   aluno=aluno,
-                   rastro_escola=escola),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO, rastro_escola=escola),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
-                   aluno=aluno,
-                   rastro_escola=escola),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
-                   rastro_escola=escola,
-                   aluno=aluno,
-                   data_termino=ontem),
-        mommy.make(SolicitacaoDietaEspecial,
-                   rastro_escola=escola,
-                   aluno=aluno,
-                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
-                   rastro_escola=escola,
-                   aluno=aluno,
-                   data_termino=ontem)
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.CODAE_A_AUTORIZAR,
+            aluno=aluno,
+            rastro_escola=escola,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO,
+            rastro_escola=escola,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
+            aluno=aluno,
+            rastro_escola=escola,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
+            rastro_escola=escola,
+            aluno=aluno,
+            data_termino=ontem,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            rastro_escola=escola,
+            aluno=aluno,
+            status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+            rastro_escola=escola,
+            aluno=aluno,
+            data_termino=ontem,
+        ),
     ]
 
 
-@pytest.fixture(params=[
-    DietaEspecialWorkflow.CODAE_AUTORIZADO,
-    DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-    DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
-    DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO
-])
+@pytest.fixture(
+    params=[
+        DietaEspecialWorkflow.CODAE_AUTORIZADO,
+        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+        DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+        DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO,
+    ]
+)
 def solicitacao_dieta_especial_autorizada_ativa(request, aluno, escola):
-    return mommy.make(SolicitacaoDietaEspecial,
-                      status=request.param,
-                      rastro_escola=escola,
-                      aluno=aluno)
+    return mommy.make(
+        SolicitacaoDietaEspecial,
+        status=request.param,
+        rastro_escola=escola,
+        aluno=aluno,
+    )
 
 
 @pytest.fixture
@@ -397,36 +565,48 @@ def solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior(aluno, escola):
     hoje = datetime.date.today()
     amanha = hoje + datetime.timedelta(days=1)
     return [
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=hoje),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=hoje),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=hoje),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=amanha),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=amanha),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=amanha),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=hoje,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=hoje,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=hoje,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=amanha,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=amanha,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=amanha,
+        ),
     ]
 
 
@@ -434,24 +614,30 @@ def solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior(aluno, escola):
 def solicitacoes_dieta_especial_dt_termino_ontem_ativas(aluno, escola):
     ontem = datetime.date.today() - datetime.timedelta(days=1)
     return [
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
-                   ativo=True,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=ontem),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                   ativo=True,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=ontem),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
-                   ativo=True,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=ontem),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+            ativo=True,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=ontem,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+            ativo=True,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=ontem,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+            ativo=True,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=ontem,
+        ),
     ]
 
 
@@ -459,37 +645,50 @@ def solicitacoes_dieta_especial_dt_termino_ontem_ativas(aluno, escola):
 def solicitacoes_dieta_especial_dt_termino_ontem_inativas(aluno, escola):
     ontem = datetime.date.today() - datetime.timedelta(days=1)
     return [
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
-                   ativo=False,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=ontem),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                   ativo=False,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=ontem),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
-                   ativo=False,
-                   aluno=aluno,
-                   rastro_escola=escola,
-                   data_termino=ontem),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+            ativo=False,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=ontem,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+            ativo=False,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=ontem,
+        ),
+        mommy.make(
+            SolicitacaoDietaEspecial,
+            status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+            ativo=False,
+            aluno=aluno,
+            rastro_escola=escola,
+            data_termino=ontem,
+        ),
     ]
 
 
 @pytest.fixture
-def solicitacoes_dieta_especial_dt_termino_ontem(solicitacoes_dieta_especial_dt_termino_ontem_ativas,
-                                                 solicitacoes_dieta_especial_dt_termino_ontem_inativas):
-    return solicitacoes_dieta_especial_dt_termino_ontem_ativas + solicitacoes_dieta_especial_dt_termino_ontem_inativas
+def solicitacoes_dieta_especial_dt_termino_ontem(
+    solicitacoes_dieta_especial_dt_termino_ontem_ativas,
+    solicitacoes_dieta_especial_dt_termino_ontem_inativas,
+):
+    return (
+        solicitacoes_dieta_especial_dt_termino_ontem_ativas
+        + solicitacoes_dieta_especial_dt_termino_ontem_inativas
+    )
 
 
 @pytest.fixture
-def solicitacoes_dieta_especial_com_data_termino(solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior,
-                                                 solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas,
-                                                 solicitacoes_dieta_especial_dt_termino_ontem):
+def solicitacoes_dieta_especial_com_data_termino(
+    solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior,
+    solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas,
+    solicitacoes_dieta_especial_dt_termino_ontem,
+):
     solicitacoes = [] + solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas
     solicitacoes += solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior
     solicitacoes += solicitacoes_dieta_especial_dt_termino_ontem
@@ -498,107 +697,126 @@ def solicitacoes_dieta_especial_com_data_termino(solicitacoes_dieta_especial_dt_
 
 @pytest.fixture
 def periodo_escolar_integral():
-    return mommy.make('PeriodoEscolar', nome='INTEGRAL')
+    return mommy.make("PeriodoEscolar", nome="INTEGRAL")
 
 
 @pytest.fixture
 def eolservice_get_informacoes_escola_turma_aluno(monkeypatch):
-    js_path = 'sme_terceirizadas/dieta_especial/__tests__/massa_eolservice_get_informacoes_escola_turma_aluno.json'
+    js_path = "sme_terceirizadas/dieta_especial/__tests__/massa_eolservice_get_informacoes_escola_turma_aluno.json"
     with open(js_path) as jsfile:
         js = json.load(jsfile)
     return monkeypatch.setattr(
-        EOLService,
-        'get_informacoes_escola_turma_aluno',
-        lambda x: js['results']
+        EOLService, "get_informacoes_escola_turma_aluno", lambda x: js["results"]
     )
 
 
 @pytest.fixture
-def log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta_especial_autorizada_ativa):
+def log_dietas_ativas_canceladas_automaticamente(
+    solicitacao_dieta_especial_autorizada_ativa,
+):
     return mommy.make(
-        'LogDietasAtivasCanceladasAutomaticamente',
+        "LogDietasAtivasCanceladasAutomaticamente",
         dieta=solicitacao_dieta_especial_autorizada_ativa,
-        codigo_eol_aluno='6595803',
-        nome_aluno='GUILHERME RODRIGUES DA HORA',
-        codigo_eol_escola_origem='019871',
-        nome_escola_origem='EMEF PERICLES EUGENIO DA SILVA RAMOS',
-        codigo_eol_escola_destino='018210',
-        nome_escola_destino='EMEFM DARCY RIBEIRO',
+        codigo_eol_aluno="6595803",
+        nome_aluno="GUILHERME RODRIGUES DA HORA",
+        codigo_eol_escola_origem="019871",
+        nome_escola_origem="EMEF PERICLES EUGENIO DA SILVA RAMOS",
+        codigo_eol_escola_destino="018210",
+        nome_escola_destino="EMEFM DARCY RIBEIRO",
     )
 
 
 @pytest.fixture
 def protocolo_padrao_dieta_especial():
     return mommy.make(
-        'ProtocoloPadraoDietaEspecial',
-        nome_protocolo='ALERGIA A AVEIA',
-        status='LIBERADO',
+        "ProtocoloPadraoDietaEspecial",
+        nome_protocolo="ALERGIA A AVEIA",
+        status="LIBERADO",
     )
 
 
 @pytest.fixture
 def protocolo_padrao_dieta_especial_2():
-    edital = mommy.make('Edital', uuid='60f5a64e-8652-422d-a6e9-0a36717829c9', numero='edital-teste-2')
+    edital = mommy.make(
+        "Edital", uuid="60f5a64e-8652-422d-a6e9-0a36717829c9", numero="edital-teste-2"
+    )
     return mommy.make(
-        'ProtocoloPadraoDietaEspecial',
-        nome_protocolo='ALERGIA A ABACAXI',
-        status='LIBERADO',
-        orientacoes_gerais='Orientação Geral',
-        editais=[edital]
+        "ProtocoloPadraoDietaEspecial",
+        nome_protocolo="ALERGIA A ABACAXI",
+        status="LIBERADO",
+        orientacoes_gerais="Orientação Geral",
+        editais=[edital],
     )
 
 
 @pytest.fixture
-def substituicao_padrao_dieta_especial_2(alimentos, produtos, protocolo_padrao_dieta_especial_2):
+def substituicao_padrao_dieta_especial_2(
+    alimentos, produtos, protocolo_padrao_dieta_especial_2
+):
     return mommy.make(
-        'SubstituicaoAlimentoProtocoloPadrao',
+        "SubstituicaoAlimentoProtocoloPadrao",
         protocolo_padrao=protocolo_padrao_dieta_especial_2,
         alimento=alimentos[0],
-        tipo='I',
-        alimentos_substitutos=alimentos
+        tipo="I",
+        alimentos_substitutos=alimentos,
     )
 
 
 @pytest.fixture
 def client_autenticado_protocolo_dieta(client, django_user_model, escola, codae):
-    email = 'test@test.com'
+    email = "test@test.com"
     password = constants.DJANGO_ADMIN_PASSWORD
-    user = django_user_model.objects.create_user(username=email, password=password, email=email,
-                                                 registro_funcional='8888888')
-    perfil_admin_dieta_especial = mommy.make('Perfil', nome=constants.ADMINISTRADOR_DIETA_ESPECIAL,
-                                             ativo=True)
+    user = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="8888888"
+    )
+    perfil_admin_dieta_especial = mommy.make(
+        "Perfil", nome=constants.ADMINISTRADOR_DIETA_ESPECIAL, ativo=True
+    )
     hoje = datetime.date.today()
-    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_dieta_especial,
-               data_inicial=hoje, ativo=True)
+    mommy.make(
+        "Vinculo",
+        usuario=user,
+        instituicao=codae,
+        perfil=perfil_admin_dieta_especial,
+        data_inicial=hoje,
+        ativo=True,
+    )
     client.login(username=email, password=password)
-    mommy.make('Edital', uuid='b7b6a0a7-b230-4783-94b6-8d3d22041ab3')
-    mommy.make('Edital', uuid='60f5a64e-8652-422d-a6e9-0a36717829c9')
-    mommy.make('Edital', uuid='4f7287e5-da63-4b23-8bbc-48cc6722c91e')
-    mommy.make('dieta_especial.Alimento', id=1)
-    mommy.make('dieta_especial.Alimento', id=2, uuid='e67b6e67-7501-4d6e-8fac-ce219df3ed2b',
-               tipo_listagem_protocolo='AMBOS')
+    mommy.make("Edital", uuid="b7b6a0a7-b230-4783-94b6-8d3d22041ab3")
+    mommy.make("Edital", uuid="60f5a64e-8652-422d-a6e9-0a36717829c9")
+    mommy.make("Edital", uuid="4f7287e5-da63-4b23-8bbc-48cc6722c91e")
+    mommy.make("dieta_especial.Alimento", id=1)
+    mommy.make(
+        "dieta_especial.Alimento",
+        id=2,
+        uuid="e67b6e67-7501-4d6e-8fac-ce219df3ed2b",
+        tipo_listagem_protocolo="AMBOS",
+    )
     return client
 
 
 @pytest.fixture
 def escola_cei():
-    terceirizada = mommy.make('Terceirizada')
-    lote = mommy.make('Lote', terceirizada=terceirizada)
-    tipo_gestao = mommy.make('TipoGestao', nome='TERC TOTAL')
-    tipo_unidade = mommy.make('TipoUnidadeEscolar', iniciais='CEI DIRET')
-    contato = mommy.make('dados_comuns.Contato', nome='FULANO', email='fake@email.com')
-    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
-                                    uuid='012f7722-9ab4-4e21-b0f6-85e17b58b0d1')
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make("Lote", terceirizada=terceirizada)
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade = mommy.make("TipoUnidadeEscolar", iniciais="CEI DIRET")
+    contato = mommy.make("dados_comuns.Contato", nome="FULANO", email="fake@email.com")
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL IPIRANGA",
+        uuid="012f7722-9ab4-4e21-b0f6-85e17b58b0d1",
+    )
     escola = mommy.make(
-        'Escola',
+        "Escola",
         lote=lote,
-        nome='CEI DIRET JOAO MENDES',
-        codigo_eol='000546',
-        uuid='a627fc63-16fd-482c-a877-16ebc1a82e57',
+        nome="CEI DIRET JOAO MENDES",
+        codigo_eol="000546",
+        uuid="a627fc63-16fd-482c-a877-16ebc1a82e57",
         contato=contato,
         diretoria_regional=diretoria_regional,
         tipo_gestao=tipo_gestao,
-        tipo_unidade=tipo_unidade
+        tipo_unidade=tipo_unidade,
     )
     return escola
 
@@ -606,147 +824,261 @@ def escola_cei():
 @pytest.fixture
 def classificacoes_dietas():
     return [
-        mommy.make(ClassificacaoDieta, nome='Tipo A'),
-        mommy.make(ClassificacaoDieta, nome='Tipo A Enteral'),
-        mommy.make(ClassificacaoDieta, nome='Tipo B')
+        mommy.make(ClassificacaoDieta, nome="Tipo A"),
+        mommy.make(ClassificacaoDieta, nome="Tipo A Enteral"),
+        mommy.make(ClassificacaoDieta, nome="Tipo B"),
     ]
 
 
 @pytest.fixture
 def solicitacoes_dieta_especial_ativas(escola, classificacoes_dietas):
-    periodo_tarde = mommy.make(PeriodoEscolar, nome='MANHA')
+    periodo_tarde = mommy.make(PeriodoEscolar, nome="MANHA")
     mommy.make(FaixaEtaria, inicio=1, fim=31)
-    aluno = mommy.make(Aluno,
-                       nome='Roberto Alves da Silva',
-                       codigo_eol='123456',
-                       data_nascimento='2022-01-01',
-                       escola=escola,
-                       periodo_escolar=periodo_tarde)
-    mommy.make(SolicitacaoDietaEspecial,
-               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
-               aluno=aluno,
-               rastro_escola=escola,
-               escola_destino=escola,
-               classificacao=classificacoes_dietas[0]),
-    mommy.make(SolicitacaoDietaEspecial,
-               status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-               aluno=aluno,
-               rastro_escola=escola,
-               escola_destino=escola,
-               classificacao=classificacoes_dietas[1]),
+    aluno = mommy.make(
+        Aluno,
+        nome="Roberto Alves da Silva",
+        codigo_eol="123456",
+        data_nascimento="2022-01-01",
+        escola=escola,
+        periodo_escolar=periodo_tarde,
+    )
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+        aluno=aluno,
+        rastro_escola=escola,
+        escola_destino=escola,
+        classificacao=classificacoes_dietas[0],
+    ),
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+        aluno=aluno,
+        rastro_escola=escola,
+        escola_destino=escola,
+        classificacao=classificacoes_dietas[1],
+    ),
     return SolicitacaoDietaEspecial.objects.all()
 
 
 @pytest.fixture
 def solicitacoes_dieta_especial_ativas_cei(escola_cei, classificacoes_dietas):
-    periodo_tarde = mommy.make(PeriodoEscolar, nome='TARDE')
+    periodo_tarde = mommy.make(PeriodoEscolar, nome="TARDE")
     mommy.make(FaixaEtaria, inicio=1, fim=31)
-    aluno = mommy.make(Aluno,
-                       nome='Roberto Alves da Silva',
-                       codigo_eol='123456',
-                       data_nascimento='2022-01-01',
-                       escola=escola_cei,
-                       periodo_escolar=periodo_tarde)
-    mommy.make(SolicitacaoDietaEspecial,
-               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
-               aluno=aluno,
-               rastro_escola=escola_cei,
-               escola_destino=escola_cei,
-               classificacao=classificacoes_dietas[0]),
-    mommy.make(SolicitacaoDietaEspecial,
-               status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-               aluno=aluno,
-               rastro_escola=escola_cei,
-               escola_destino=escola_cei,
-               classificacao=classificacoes_dietas[1]),
-    mommy.make(SolicitacaoDietaEspecial,
-               status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
-               aluno=aluno,
-               rastro_escola=escola_cei,
-               escola_destino=escola_cei,
-               classificacao=classificacoes_dietas[0])
+    aluno = mommy.make(
+        Aluno,
+        nome="Roberto Alves da Silva",
+        codigo_eol="123456",
+        data_nascimento="2022-01-01",
+        escola=escola_cei,
+        periodo_escolar=periodo_tarde,
+    )
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+        aluno=aluno,
+        rastro_escola=escola_cei,
+        escola_destino=escola_cei,
+        classificacao=classificacoes_dietas[0],
+    ),
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+        aluno=aluno,
+        rastro_escola=escola_cei,
+        escola_destino=escola_cei,
+        classificacao=classificacoes_dietas[1],
+    ),
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+        aluno=aluno,
+        rastro_escola=escola_cei,
+        escola_destino=escola_cei,
+        classificacao=classificacoes_dietas[0],
+    )
+    return SolicitacaoDietaEspecial.objects.all()
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_ativas_cemei(escola_cemei, classificacoes_dietas):
+    periodo_integral = mommy.make(PeriodoEscolar, nome="INTEGRAL")
+    mommy.make(FaixaEtaria, inicio=1, fim=31)
+    mommy.make(FaixaEtaria, inicio=32, fim=88)
+    aluno_a = mommy.make(
+        Aluno,
+        nome="Roberto Alves da Silva",
+        codigo_eol="123456",
+        data_nascimento="2022-01-01",
+        escola=escola_cemei,
+        periodo_escolar=periodo_integral,
+        serie="3B",
+    )
+    aluno_b = mommy.make(
+        Aluno,
+        nome="Aluno Teste",
+        codigo_eol="456789",
+        data_nascimento="2017-01-01",
+        escola=escola_cemei,
+        periodo_escolar=periodo_integral,
+        serie="6C",
+    )
+    aluno_c = mommy.make(
+        Aluno,
+        nome="Aluno Teste__2",
+        codigo_eol="123025",
+        data_nascimento="2017-01-01",
+        escola=escola_cemei,
+        periodo_escolar=periodo_integral,
+        serie="1A",
+    )
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+        aluno=aluno_a,
+        rastro_escola=escola_cemei,
+        escola_destino=escola_cemei,
+        classificacao=classificacoes_dietas[0],
+    ),
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+        aluno=aluno_b,
+        rastro_escola=escola_cemei,
+        escola_destino=escola_cemei,
+        classificacao=classificacoes_dietas[0],
+    ),
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+        aluno=aluno_c,
+        rastro_escola=escola_cemei,
+        escola_destino=escola_cemei,
+        classificacao=classificacoes_dietas[0],
+    ),
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+        aluno=aluno_a,
+        rastro_escola=escola_cemei,
+        escola_destino=escola_cemei,
+        classificacao=classificacoes_dietas[1],
+    ),
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+        aluno=aluno_b,
+        rastro_escola=escola_cemei,
+        escola_destino=escola_cemei,
+        classificacao=classificacoes_dietas[2],
+    ),
     return SolicitacaoDietaEspecial.objects.all()
 
 
 @pytest.fixture
 def categoria_medicao():
-    return mommy.make('CategoriaMedicao', nome='ALIMENTAÇÃO')
+    return mommy.make("CategoriaMedicao", nome="ALIMENTAÇÃO")
 
 
 @pytest.fixture
 def solicitacao_medicao_inicial(escola_cei, categoria_medicao):
-    tipo_contagem = mommy.make('TipoContagemAlimentacao', nome='Fichas')
-    periodo_manha = mommy.make('PeriodoEscolar', nome='MANHA')
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
     historico = {
-        'usuario': {'uuid': 'a7f20675-50e1-46d2-a207-28543b93e19d', 'nome': 'usuario teste',
-                    'username': '12312312344', 'email': 'email@teste.com'},
-        'criado_em': datetime.date.today().strftime('%Y-%m-%d %H:%M:%S'),
-        'acao': 'MEDICAO_CORRECAO_SOLICITADA',
-        'alteracoes': [
+        "usuario": {
+            "uuid": "a7f20675-50e1-46d2-a207-28543b93e19d",
+            "nome": "usuario teste",
+            "username": "12312312344",
+            "email": "email@teste.com",
+        },
+        "criado_em": datetime.date.today().strftime("%Y-%m-%d %H:%M:%S"),
+        "acao": "MEDICAO_CORRECAO_SOLICITADA",
+        "alteracoes": [
             {
-                'periodo_escolar': periodo_manha.nome,
-                'tabelas_lancamentos': [
+                "periodo_escolar": periodo_manha.nome,
+                "tabelas_lancamentos": [
                     {
-                        'categoria_medicao': 'ALIMENTAÇÃO',
-                        'semanas': [
-                            {'semana': '1', 'dias': ['01']}
-                        ]
+                        "categoria_medicao": "ALIMENTAÇÃO",
+                        "semanas": [{"semana": "1", "dias": ["01"]}],
                     }
-                ]
+                ],
             },
-        ]
+        ],
     }
     hoje = datetime.date.today()
     ontem = hoje - datetime.timedelta(days=1)
     solicitacao_medicao = mommy.make(
-        'SolicitacaoMedicaoInicial', uuid='bed4d779-2d57-4c5f-bf9c-9b93ddac54d9',
-        mes=f'{ontem.month:02d}', ano=ontem.year, escola=escola_cei, ue_possui_alunos_periodo_parcial=True,
-        historico=json.dumps([historico]))
+        "SolicitacaoMedicaoInicial",
+        uuid="bed4d779-2d57-4c5f-bf9c-9b93ddac54d9",
+        mes=f"{ontem.month:02d}",
+        ano=ontem.year,
+        escola=escola_cei,
+        ue_possui_alunos_periodo_parcial=True,
+        historico=json.dumps([historico]),
+    )
     solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
-    medicao = mommy.make('Medicao', solicitacao_medicao_inicial=solicitacao_medicao,
-                         periodo_escolar=periodo_manha)
-    mommy.make('ValorMedicao', dia='01', semana='1', nome_campo='lanche', medicao=medicao,
-               categoria_medicao=categoria_medicao, valor='10')
+    medicao = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_manha,
+    )
+    mommy.make(
+        "ValorMedicao",
+        dia="01",
+        semana="1",
+        nome_campo="lanche",
+        medicao=medicao,
+        categoria_medicao=categoria_medicao,
+        valor="10",
+    )
     return solicitacao_medicao
 
 
 @pytest.fixture
 def solicitacoes_dieta_especial_ativas_cei_com_solicitacao_medicao(
-    escola_cei,
-    classificacoes_dietas,
-    solicitacao_medicao_inicial
+    escola_cei, classificacoes_dietas, solicitacao_medicao_inicial
 ):
-    periodo_integral = mommy.make(PeriodoEscolar, nome='INTEGRAL')
+    periodo_integral = mommy.make(PeriodoEscolar, nome="INTEGRAL")
     mommy.make(FaixaEtaria, inicio=1, fim=50)
-    mommy.make(ClassificacaoDieta, nome='Tipo C')
-    aluno = mommy.make(Aluno,
-                       nome='Roberto Alves da Silva',
-                       codigo_eol='123456',
-                       data_nascimento='2022-01-01',
-                       escola=escola_cei,
-                       periodo_escolar=periodo_integral)
-    mommy.make(SolicitacaoDietaEspecial,
-               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
-               aluno=aluno,
-               rastro_escola=escola_cei,
-               escola_destino=escola_cei,
-               classificacao=classificacoes_dietas[0]),
-    mommy.make(SolicitacaoDietaEspecial,
-               status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-               aluno=aluno,
-               rastro_escola=escola_cei,
-               escola_destino=escola_cei,
-               classificacao=classificacoes_dietas[1]),
-    mommy.make(SolicitacaoDietaEspecial,
-               status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
-               aluno=aluno,
-               rastro_escola=escola_cei,
-               escola_destino=escola_cei,
-               classificacao=classificacoes_dietas[2])
-    mommy.make(SolicitacaoDietaEspecial,
-               status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
-               aluno=aluno,
-               rastro_escola=escola_cei,
-               escola_destino=escola_cei,
-               classificacao=classificacoes_dietas[2])
+    mommy.make(ClassificacaoDieta, nome="Tipo C")
+    aluno = mommy.make(
+        Aluno,
+        nome="Roberto Alves da Silva",
+        codigo_eol="123456",
+        data_nascimento="2022-01-01",
+        escola=escola_cei,
+        periodo_escolar=periodo_integral,
+    )
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+        aluno=aluno,
+        rastro_escola=escola_cei,
+        escola_destino=escola_cei,
+        classificacao=classificacoes_dietas[0],
+    ),
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+        aluno=aluno,
+        rastro_escola=escola_cei,
+        escola_destino=escola_cei,
+        classificacao=classificacoes_dietas[1],
+    ),
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+        aluno=aluno,
+        rastro_escola=escola_cei,
+        escola_destino=escola_cei,
+        classificacao=classificacoes_dietas[2],
+    )
+    mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+        aluno=aluno,
+        rastro_escola=escola_cei,
+        escola_destino=escola_cei,
+        classificacao=classificacoes_dietas[2],
+    )
     return SolicitacaoDietaEspecial.objects.all()

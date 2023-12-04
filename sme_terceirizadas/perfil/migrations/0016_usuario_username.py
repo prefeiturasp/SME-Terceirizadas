@@ -5,28 +5,25 @@ from django.db.models import F
 
 
 def migrate_default_values(apps, schmema_editor):
-    Usuario = apps.get_model('perfil', 'Usuario')
-    Usuario.objects.all().update(
-        username=F('email'))
+    Usuario = apps.get_model("perfil", "Usuario")
+    Usuario.objects.all().update(username=F("email"))
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('perfil', '0015_importacaoplanilhausuarioperfildre'),
+        ("perfil", "0015_importacaoplanilhausuarioperfildre"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='usuario',
-            name='username',
+            model_name="usuario",
+            name="username",
             field=models.CharField(default=None, max_length=100, null=True),
         ),
         migrations.RunPython(migrate_default_values),
         migrations.AlterField(
-            model_name='usuario',
-            name='username',
+            model_name="usuario",
+            name="username",
             field=models.CharField(max_length=100, unique=True),
         ),
-
     ]

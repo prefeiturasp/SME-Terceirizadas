@@ -4,19 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0032_auto_20210522_1949'),
+        ("logistica", "0032_auto_20210522_1949"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='insucessoentregaguia',
-            options={'verbose_name': 'Insucesso de Entrega da Guia', 'verbose_name_plural': 'Insucessos de Entregas das Guias'},
+            name="insucessoentregaguia",
+            options={
+                "verbose_name": "Insucesso de Entrega da Guia",
+                "verbose_name_plural": "Insucessos de Entregas das Guias",
+            },
         ),
         migrations.AlterField(
-            model_name='insucessoentregaguia',
-            name='motivo',
-            field=models.CharField(choices=[('UNIDADE_FECHADA', 'Unidade educacional fechada'), ('OUTROS', 'Outros')], default='UNIDADE_FECHADA', max_length=25, verbose_name='Motivo do insucesso'),
+            model_name="insucessoentregaguia",
+            name="motivo",
+            field=models.CharField(
+                choices=[
+                    ("UNIDADE_FECHADA", "Unidade educacional fechada"),
+                    ("OUTROS", "Outros"),
+                ],
+                default="UNIDADE_FECHADA",
+                max_length=25,
+                verbose_name="Motivo do insucesso",
+            ),
         ),
     ]

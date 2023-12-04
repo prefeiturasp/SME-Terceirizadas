@@ -5,20 +5,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0015_auto_20200313_1521'),
-        ('produto', '0039_auto_20200701_1937'),
+        ("escola", "0015_auto_20200313_1521"),
+        ("produto", "0039_auto_20200701_1937"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='reclamacaodeproduto',
-            name='vinculo',
+            model_name="reclamacaodeproduto",
+            name="vinculo",
         ),
         migrations.AddField(
-            model_name='reclamacaodeproduto',
-            name='escola',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='reclamacoes', to='escola.Escola'),
+            model_name="reclamacaodeproduto",
+            name="escola",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="reclamacoes",
+                to="escola.Escola",
+            ),
         ),
     ]

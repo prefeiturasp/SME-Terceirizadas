@@ -5,15 +5,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('perfil', '0003_usuario_contatos'),
+        ("perfil", "0003_usuario_contatos"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='usuario',
-            name='cpf',
-            field=models.CharField(max_length=11, null=True, unique=True, validators=[django.core.validators.MinLengthValidator(11)], verbose_name='CPF'),
+            model_name="usuario",
+            name="cpf",
+            field=models.CharField(
+                max_length=11,
+                null=True,
+                unique=True,
+                validators=[django.core.validators.MinLengthValidator(11)],
+                verbose_name="CPF",
+            ),
         ),
     ]

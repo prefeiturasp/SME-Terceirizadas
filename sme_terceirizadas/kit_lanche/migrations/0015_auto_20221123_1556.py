@@ -4,14 +4,20 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kit_lanche', '0014_faixasquantidadeskitlancheceidacemei_solicitacaokitlancheceidacemei_solicitacaokitlanchecemei_solici'),
+        (
+            "kit_lanche",
+            "0014_faixasquantidadeskitlancheceidacemei_solicitacaokitlancheceidacemei_solicitacaokitlanchecemei_solici",
+        ),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='kitlanche',
-            options={'ordering': ('nome',), 'verbose_name': 'Kit lanche', 'verbose_name_plural': 'Kit lanches'},
+            name="kitlanche",
+            options={
+                "ordering": ("nome",),
+                "verbose_name": "Kit lanche",
+                "verbose_name_plural": "Kit lanches",
+            },
         ),
     ]

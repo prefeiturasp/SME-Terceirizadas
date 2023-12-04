@@ -9,7 +9,7 @@ from .models import (
     MotivoInclusaoContinua,
     MotivoInclusaoNormal,
     QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
-    QuantidadePorPeriodo
+    QuantidadePorPeriodo,
 )
 
 admin.site.register(QuantidadePorPeriodo)

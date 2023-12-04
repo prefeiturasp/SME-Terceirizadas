@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('terceirizada', '0001_initial'),
+        ("terceirizada", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='nutricionista',
-            name='admin',
-            field=models.BooleanField(default=False, verbose_name='É Administrador por parte das Terceirizadas?'),
+            model_name="nutricionista",
+            name="admin",
+            field=models.BooleanField(
+                default=False,
+                verbose_name="É Administrador por parte das Terceirizadas?",
+            ),
         ),
     ]

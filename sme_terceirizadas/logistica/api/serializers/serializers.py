@@ -10,11 +10,16 @@ from sme_terceirizadas.logistica.models import (
     PrevisaoContratualNotificacao,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
-    TipoEmbalagem
+    TipoEmbalagem,
 )
-from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
+from sme_terceirizadas.logistica.models.guia import (
+    ConferenciaIndividualPorAlimento,
+    InsucessoEntregaGuia,
+)
 from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
-from sme_terceirizadas.terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
+from sme_terceirizadas.terceirizada.api.serializers.serializers import (
+    TerceirizadaSimplesSerializer,
+)
 
 
 class EmbalagemSerializer(serializers.ModelSerializer):
@@ -29,13 +34,13 @@ class EmbalagemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Embalagem
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class AlimentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alimento
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class AlimentoLookUpSerializer(serializers.ModelSerializer):
@@ -43,7 +48,7 @@ class AlimentoLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Alimento
-        fields = ('uuid', 'nome_alimento', 'embalagens')
+        fields = ("uuid", "nome_alimento", "embalagens")
 
 
 class GuiaSerializer(serializers.ModelSerializer):
@@ -51,7 +56,7 @@ class GuiaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Guia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class GuiaLookUpSerializer(serializers.ModelSerializer):
@@ -63,24 +68,43 @@ class GuiaLookUpSerializer(serializers.ModelSerializer):
         return obj.get_status_display()
 
     def get_nome_distribuidor(self, obj):
-        return obj.notificacao.empresa.nome_fantasia if obj.notificacao and obj.notificacao.empresa else None
+        return (
+            obj.notificacao.empresa.nome_fantasia
+            if obj.notificacao and obj.notificacao.empresa
+            else None
+        )
 
     class Meta:
         model = Guia
-        fields = ('uuid', 'numero_guia', 'data_entrega', 'codigo_unidade', 'nome_unidade', 'endereco_unidade',
-                  'numero_unidade', 'bairro_unidade', 'bairro_unidade', 'cep_unidade', 'cidade_unidade',
-                  'estado_unidade', 'contato_unidade', 'telefone_unidade', 'alimentos', 'status', 'situacao',
-                  'nome_distribuidor')
+        fields = (
+            "uuid",
+            "numero_guia",
+            "data_entrega",
+            "codigo_unidade",
+            "nome_unidade",
+            "endereco_unidade",
+            "numero_unidade",
+            "bairro_unidade",
+            "bairro_unidade",
+            "cep_unidade",
+            "cidade_unidade",
+            "estado_unidade",
+            "contato_unidade",
+            "telefone_unidade",
+            "alimentos",
+            "status",
+            "situacao",
+            "nome_distribuidor",
+        )
 
 
 class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
-
     logs = LogSolicitacoesSerializer(many=True)
     guias = GuiaSerializer(many=True)
 
     class Meta:
         model = SolicitacaoRemessa
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoRemessaLookUpSerializer(serializers.ModelSerializer):
@@ -96,7 +120,14 @@ class SolicitacaoRemessaLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoRemessa
-        fields = ('uuid', 'numero_solicitacao', 'distribuidor_nome', 'status', 'situacao', 'guias')
+        fields = (
+            "uuid",
+            "numero_solicitacao",
+            "distribuidor_nome",
+            "status",
+            "situacao",
+            "guias",
+        )
 
 
 class SolicitacaoRemessaContagemGuiasSerializer(serializers.ModelSerializer):
@@ -116,11 +147,11 @@ class SolicitacaoRemessaContagemGuiasSerializer(serializers.ModelSerializer):
         return obj.get_status_display()
 
     def get_data_entrega(self, obj):
-        return obj.data_entrega.strftime('%d/%m/%Y')
+        return obj.data_entrega.strftime("%d/%m/%Y")
 
     class Meta:
         model = SolicitacaoRemessa
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class XmlAlimentoSerializer(serializers.Serializer):
@@ -156,20 +187,18 @@ class XmlParserSolicitacaoSerializer(serializers.Serializer):
 class TipoEmbalagemSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoEmbalagem
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoRemessaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoRemessa
-        fields = ('uuid', 'numero_solicitacao')
+        fields = ("uuid", "numero_solicitacao")
 
 
 class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
     conferencia = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=False,
-        queryset=ConferenciaGuia.objects.all()
+        slug_field="uuid", required=False, queryset=ConferenciaGuia.objects.all()
     )
     status_alimento = serializers.SerializerMethodField()
     tipo_embalagem = serializers.SerializerMethodField()
@@ -186,18 +215,18 @@ class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConferenciaIndividualPorAlimento
-        exclude = ('id',)
+        exclude = ("id",)
 
 
-class ConferenciaIndividualPorAlimentoComOcorrenciaDisplaySerializer(serializers.ModelSerializer):
+class ConferenciaIndividualPorAlimentoComOcorrenciaDisplaySerializer(
+    serializers.ModelSerializer
+):
     conferencia = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=False,
-        queryset=ConferenciaGuia.objects.all()
+        slug_field="uuid", required=False, queryset=ConferenciaGuia.objects.all()
     )
-    status_alimento = serializers.CharField(source='get_status_alimento_display')
-    tipo_embalagem = serializers.CharField(source='get_tipo_embalagem_display')
-    ocorrencia = serializers.CharField(source='get_ocorrencia_display')
+    status_alimento = serializers.CharField(source="get_status_alimento_display")
+    tipo_embalagem = serializers.CharField(source="get_tipo_embalagem_display")
+    ocorrencia = serializers.CharField(source="get_ocorrencia_display")
     arquivo = serializers.SerializerMethodField()
 
     def get_arquivo(self, obj):
@@ -205,19 +234,19 @@ class ConferenciaIndividualPorAlimentoComOcorrenciaDisplaySerializer(serializers
 
     class Meta:
         model = ConferenciaIndividualPorAlimento
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class GuiaDaRemessaLookUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
-        fields = ('id', 'uuid', 'numero_guia', 'codigo_unidade', 'nome_unidade')
+        fields = ("id", "uuid", "numero_guia", "codigo_unidade", "nome_unidade")
 
 
 class GuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
-        fields = ('uuid', 'numero_guia')
+        fields = ("uuid", "numero_guia")
 
 
 class ConferenciaComOcorrenciaSerializer(serializers.ModelSerializer):
@@ -227,83 +256,90 @@ class ConferenciaComOcorrenciaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConferenciaGuia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class GuiaDaRemessaComAlimentoSerializer(serializers.ModelSerializer):
     alimentos = AlimentoLookUpSerializer(many=True)
     conferencias = ConferenciaComOcorrenciaSerializer(many=True)
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
 
     class Meta:
         model = Guia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class GuiaDaRemessaSerializer(serializers.ModelSerializer):
     numero_requisicao = serializers.CharField()
     alimentos = AlimentoLookUpSerializer(many=True)
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
 
     class Meta:
         model = Guia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class GuiaDaRemessaComStatusRequisicaoSerializer(serializers.ModelSerializer):
     numero_requisicao = serializers.CharField()
     alimentos = AlimentoLookUpSerializer(many=True)
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
     status_requisicao = serializers.CharField()
 
     class Meta:
         model = Guia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class GuiaDaRemessaComDistribuidorSerializer(serializers.ModelSerializer):
     nome_distribuidor = serializers.CharField()
     alimentos = AlimentoLookUpSerializer(many=True)
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
 
     class Meta:
         model = Guia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class GuiaDaRemessaComOcorrenciasSerializer(serializers.ModelSerializer):
     nome_distribuidor = serializers.CharField()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
     data_entrega = serializers.SerializerMethodField()
 
     def get_data_entrega(self, obj):
-        return obj.data_entrega.strftime('%d/%m/%Y')
+        return obj.data_entrega.strftime("%d/%m/%Y")
 
     class Meta:
         model = Guia
-        fields = ('uuid', 'numero_guia', 'status', 'data_entrega', 'nome_distribuidor', 'notificacao')
+        fields = (
+            "uuid",
+            "numero_guia",
+            "status",
+            "data_entrega",
+            "nome_distribuidor",
+            "notificacao",
+        )
 
 
 class InfoUnidadesSimplesDaGuiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
-        fields = ('codigo_unidade', 'nome_unidade')
+        fields = ("codigo_unidade", "nome_unidade")
 
 
 class AlimentoDaGuiaDaRemessaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alimento
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class AlimentoDaGuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alimento
-        fields = ('uuid', 'nome_alimento')
+        fields = ("uuid", "nome_alimento")
 
 
 class SolicitacaoDeAlteracaoSerializer(serializers.ModelSerializer):
-    motivo = serializers.CharField(source='get_motivo_display')
+    motivo = serializers.CharField(source="get_motivo_display")
     requisicao = SolicitacaoRemessaSimplesSerializer(read_only=True, many=False)
     nome_distribuidor = serializers.CharField()
     qtd_guias = serializers.IntegerField()
@@ -313,10 +349,10 @@ class SolicitacaoDeAlteracaoSerializer(serializers.ModelSerializer):
     numero_requisicao = serializers.SerializerMethodField()
 
     def get_criado_em(self, obj):
-        return obj.criado_em.strftime('%d/%m/%Y')
+        return obj.criado_em.strftime("%d/%m/%Y")
 
     def get_data_entrega(self, obj):
-        return obj.data_entrega.strftime('%d/%m/%Y')
+        return obj.data_entrega.strftime("%d/%m/%Y")
 
     def get_status(self, obj):
         return obj.get_status_display()
@@ -326,13 +362,13 @@ class SolicitacaoDeAlteracaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoDeAlteracaoRequisicao
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class SolicitacaoDeAlteracaoSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoDeAlteracaoRequisicao
-        fields = ('uuid', 'numero_solicitacao')
+        fields = ("uuid", "numero_solicitacao")
 
 
 class ConferenciaDaGuiaSerializer(serializers.ModelSerializer):
@@ -340,13 +376,13 @@ class ConferenciaDaGuiaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConferenciaGuia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class InsucessoDeEntregaGuiaSerializer(serializers.ModelSerializer):
     guia = GuiaDaRemessaSimplesSerializer()
     criado_por = UsuarioVinculoSerializer()
-    motivo = serializers.CharField(source='get_motivo_display')
+    motivo = serializers.CharField(source="get_motivo_display")
     arquivo = serializers.SerializerMethodField()
 
     def get_arquivo(self, obj):
@@ -354,43 +390,44 @@ class InsucessoDeEntregaGuiaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InsucessoEntregaGuia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class InsucessoDeEntregaSimplesGuiaSerializer(serializers.ModelSerializer):
     criado_por = UsuarioVinculoSerializer(required=False)
-    motivo = serializers.CharField(source='get_motivo_display', required=False)
+    motivo = serializers.CharField(source="get_motivo_display", required=False)
 
     class Meta:
         model = InsucessoEntregaGuia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class ConferenciaComOcorrenciaSimplesSerializer(serializers.ModelSerializer):
     criado_por = UsuarioVinculoSerializer()
-    conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoComOcorrenciaDisplaySerializer(many=True)
+    conferencia_dos_alimentos = (
+        ConferenciaIndividualPorAlimentoComOcorrenciaDisplaySerializer(many=True)
+    )
 
     class Meta:
         model = ConferenciaGuia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class GuiaDaRemessaCompletaSerializer(serializers.ModelSerializer):
     alimentos = AlimentoLookUpSerializer(many=True)
     conferencias = ConferenciaComOcorrenciaSimplesSerializer(required=False, many=True)
     insucessos = InsucessoDeEntregaGuiaSerializer(required=False, many=True)
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
 
     class Meta:
         model = Guia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class PrevisaoContratualSimplesSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = PrevisaoContratualNotificacao
-        exclude = ('uuid', 'id', 'alterado_em', 'criado_em', 'notificacao')
+        exclude = ("uuid", "id", "alterado_em", "criado_em", "notificacao")
 
 
 class NotificacaoOcorrenciasGuiaSerializer(serializers.ModelSerializer):
@@ -398,20 +435,20 @@ class NotificacaoOcorrenciasGuiaSerializer(serializers.ModelSerializer):
     empresa = TerceirizadaSimplesSerializer()
 
     def get_empresa(self, obj):
-        return {'uuid': obj.empresa.uuid, 'nome': obj.empresa.nome_fantasia}
+        return {"uuid": obj.empresa.uuid, "nome": obj.empresa.nome_fantasia}
 
     class Meta:
         model = NotificacaoOcorrenciasGuia
-        exclude = ('id',)
+        exclude = ("id",)
 
 
 class NotificacaoOcorrenciasGuiaSimplesSerializer(serializers.ModelSerializer):
     nome_empresa = serializers.CharField()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
 
     class Meta:
         model = NotificacaoOcorrenciasGuia
-        fields = ('uuid', 'numero', 'status', 'processo_sei', 'nome_empresa')
+        fields = ("uuid", "numero", "status", "processo_sei", "nome_empresa")
 
 
 class NotificacaoOcorrenciasGuiaDetalheSerializer(serializers.ModelSerializer):
@@ -421,4 +458,4 @@ class NotificacaoOcorrenciasGuiaDetalheSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NotificacaoOcorrenciasGuia
-        exclude = ('id',)
+        exclude = ("id",)

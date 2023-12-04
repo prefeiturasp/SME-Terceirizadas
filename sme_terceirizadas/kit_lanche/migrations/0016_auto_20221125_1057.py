@@ -5,25 +5,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kit_lanche', '0015_auto_20221123_1556'),
+        ("kit_lanche", "0015_auto_20221123_1556"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='faixaetariasolicitacaokitlancheceiavulsa',
-            name='matriculados_quando_criado',
-            field=models.PositiveSmallIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1)]),
+            model_name="faixaetariasolicitacaokitlancheceiavulsa",
+            name="matriculados_quando_criado",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                null=True,
+                validators=[django.core.validators.MinValueValidator(1)],
+            ),
         ),
         migrations.AlterField(
-            model_name='faixasquantidadeskitlancheceidacemei',
-            name='matriculados_quando_criado',
-            field=models.PositiveSmallIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1)]),
+            model_name="faixasquantidadeskitlancheceidacemei",
+            name="matriculados_quando_criado",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                null=True,
+                validators=[django.core.validators.MinValueValidator(1)],
+            ),
         ),
         migrations.AlterField(
-            model_name='solicitacaokitlancheemeidacemei',
-            name='matriculados_quando_criado',
-            field=models.PositiveSmallIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1)]),
+            model_name="solicitacaokitlancheemeidacemei",
+            name="matriculados_quando_criado",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                null=True,
+                validators=[django.core.validators.MinValueValidator(1)],
+            ),
         ),
     ]

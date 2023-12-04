@@ -4,20 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0029_auto_20220512_0428'),
+        ("cardapio", "0029_auto_20220512_0428"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='inversaocardapio',
-            name='data_de_inversao',
-            field=models.DateField(blank=True, null=True, verbose_name='Data de inversão'),
+            model_name="inversaocardapio",
+            name="data_de_inversao",
+            field=models.DateField(
+                blank=True, null=True, verbose_name="Data de inversão"
+            ),
         ),
         migrations.AddField(
-            model_name='inversaocardapio',
-            name='data_para_inversao',
-            field=models.DateField(blank=True, null=True, verbose_name='Data para inversão'),
+            model_name="inversaocardapio",
+            name="data_para_inversao",
+            field=models.DateField(
+                blank=True, null=True, verbose_name="Data para inversão"
+            ),
         ),
     ]

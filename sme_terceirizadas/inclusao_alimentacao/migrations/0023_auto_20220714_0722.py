@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0022_auto_20220707_1111'),
+        ("inclusao_alimentacao", "0022_auto_20220707_1111"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='quantidadeporperiodo',
-            name='numero_alunos',
+            model_name="quantidadeporperiodo",
+            name="numero_alunos",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
     ]

@@ -5,15 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0007_inclusaoalimentacaodacei_quantidadedealunosporfaixaetariadainclusaodealimentacaodacei'),
+        (
+            "inclusao_alimentacao",
+            "0007_inclusaoalimentacaodacei_quantidadedealunosporfaixaetariadainclusaodealimentacaodacei",
+        ),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='quantidadedealunosporfaixaetariadainclusaodealimentacaodacei',
-            name='inclusao_alimentacao_da_cei',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='quantidade_alunos_da_inclusao', to='inclusao_alimentacao.InclusaoAlimentacaoDaCEI'),
+            model_name="quantidadedealunosporfaixaetariadainclusaodealimentacaodacei",
+            name="inclusao_alimentacao_da_cei",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="quantidade_alunos_da_inclusao",
+                to="inclusao_alimentacao.InclusaoAlimentacaoDaCEI",
+            ),
         ),
     ]

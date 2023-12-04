@@ -4,15 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0007_auto_20200313_1513'),
+        ("dados_comuns", "0007_auto_20200313_1513"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='logsolicitacoesusuario',
-            name='solicitacao_tipo',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Solicitação de kit lanche avulsa'), (1, 'Alteração de cardápio'), (2, 'Suspensão de cardápio'), (3, 'Inversão de cardápio'), (4, 'Inclusão de alimentação normal'), (5, 'Inclusão de alimentação da CEI'), (6, 'Suspensão de alimentação da CEI'), (7, 'Inclusão de alimentação contínua'), (8, 'Dieta Especial'), (9, 'Solicitação de kit lanche unificada')]),
+            model_name="logsolicitacoesusuario",
+            name="solicitacao_tipo",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (0, "Solicitação de kit lanche avulsa"),
+                    (1, "Alteração de cardápio"),
+                    (2, "Suspensão de cardápio"),
+                    (3, "Inversão de cardápio"),
+                    (4, "Inclusão de alimentação normal"),
+                    (5, "Inclusão de alimentação da CEI"),
+                    (6, "Suspensão de alimentação da CEI"),
+                    (7, "Inclusão de alimentação contínua"),
+                    (8, "Dieta Especial"),
+                    (9, "Solicitação de kit lanche unificada"),
+                ]
+            ),
         ),
     ]

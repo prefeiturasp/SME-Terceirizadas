@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0010_categoriaperguntafrequente_uuid'),
-        ('dados_comuns', '0010_auto_20200423_1535'),
+        ("dados_comuns", "0010_categoriaperguntafrequente_uuid"),
+        ("dados_comuns", "0010_auto_20200423_1535"),
     ]
 
-    operations = [
-    ]
+    operations = []

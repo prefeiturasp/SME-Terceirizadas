@@ -4,14 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kit_lanche', '0020_alter_solicitacaokitlancheavulsa_rastro_dre_and_more'),
+        ("kit_lanche", "0020_alter_solicitacaokitlancheavulsa_rastro_dre_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='faixasquantidadeskitlancheceidacemei',
-            options={'ordering': ('faixa_etaria__inicio',), 'verbose_name': 'Faixa e quantidade de alunos da CEI da solicitação kit lanche CEMEI', 'verbose_name_plural': 'Faixas e quantidade de alunos da CEI das solicitações kit lanche CEMEI'},
+            name="faixasquantidadeskitlancheceidacemei",
+            options={
+                "ordering": ("faixa_etaria__inicio",),
+                "verbose_name": "Faixa e quantidade de alunos da CEI da solicitação kit lanche CEMEI",
+                "verbose_name_plural": "Faixas e quantidade de alunos da CEI das solicitações kit lanche CEMEI",
+            },
         ),
     ]

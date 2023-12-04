@@ -8,8 +8,10 @@ class SolicitacoesKitLancheCemeiDestaSemanaManager(models.Manager):
         hoje = datetime.date.today()
         data_limite_inicial = hoje
         data_limite_final = hoje + datetime.timedelta(days=7)
-        return super(SolicitacoesKitLancheCemeiDestaSemanaManager, self).get_queryset().filter(
-            data__range=(data_limite_inicial, data_limite_final)
+        return (
+            super(SolicitacoesKitLancheCemeiDestaSemanaManager, self)
+            .get_queryset()
+            .filter(data__range=(data_limite_inicial, data_limite_final))
         )
 
 
@@ -18,6 +20,8 @@ class SolicitacoesKitLancheCemeiDesteMesManager(models.Manager):
         hoje = datetime.date.today()
         data_limite_inicial = hoje
         data_limite_final = hoje + datetime.timedelta(days=31)
-        return super(SolicitacoesKitLancheCemeiDesteMesManager, self).get_queryset().filter(
-            data__range=(data_limite_inicial, data_limite_final)
+        return (
+            super(SolicitacoesKitLancheCemeiDesteMesManager, self)
+            .get_queryset()
+            .filter(data__range=(data_limite_inicial, data_limite_final))
         )
