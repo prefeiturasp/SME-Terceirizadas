@@ -61,6 +61,7 @@ from ..utils import (
     tratar_dias_duplicados,
     tratar_inclusao_continua,
     tratar_periodo_parcial,
+    tratar_periodo_parcial_cemei,
 )
 from ..validators import FiltroValidator
 from .constants import (
@@ -1089,6 +1090,9 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                         }
                     )
             else:
+                nome_periodo_escolar = tratar_periodo_parcial_cemei(
+                    nome_periodo_escolar, susp
+                )
                 s_quant_por_periodo = susp.quantidades_por_periodo.filter(
                     periodo_escolar__nome=nome_periodo_escolar
                 )
@@ -1124,6 +1128,20 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         else:
             query_set = query_set.exclude(motivo__icontains="Emergencial")
         return query_set
+
+    def get_alteracao_obj(self, alteracao, nome_periodo_escolar):
+        alt = None
+        if alteracao.escola.eh_cemei:
+            if 'Infantil' not in nome_periodo_escolar:
+                return alt
+            nome_periodo_escolar = nome_periodo_escolar.split(' ')[1]
+            if alteracao.substituicoes_cemei_emei_periodo_escolar.filter(
+                    periodo_escolar__nome=nome_periodo_escolar).exists():
+                alt = alteracao.substituicoes_cemei_emei_periodo_escolar.get(
+                    periodo_escolar__nome=nome_periodo_escolar)
+        elif alteracao.substituicoes_periodo_escolar.filter(periodo_escolar__nome=nome_periodo_escolar).exists():
+            alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
+        return alt
 
     @action(
         detail=False, methods=["GET"], url_path=f"{ALTERACOES_ALIMENTACAO_AUTORIZADAS}"
@@ -1167,9 +1185,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                         }
                     )
             else:
-                if alteracao.substituicoes_periodo_escolar.filter(
-                    periodo_escolar__nome=nome_periodo_escolar
-                ).exists():
+                alt = self.get_alteracao_obj(alteracao, nome_periodo_escolar)
+                if alt:
                     alt = alteracao.substituicoes_periodo_escolar.get(
                         periodo_escolar__nome=nome_periodo_escolar
                     )
