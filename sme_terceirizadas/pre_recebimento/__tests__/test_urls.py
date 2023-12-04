@@ -17,7 +17,6 @@ from sme_terceirizadas.dados_comuns.fluxo_status import (
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
     FichaTecnicaDetalharSerializer,
-    FichaTecnicaListagemSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer,
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
@@ -2735,9 +2734,6 @@ def test_ficha_tecnica_list_ok(
     url = "/ficha-tecnica/"
     fichas_criadas = [ficha_tecnica_factory.create(empresa=empresa) for _ in range(25)]
     response = client_autenticado_fornecedor.get(url)
-    fichas = FichaTecnicaDoProduto.objects.filter(empresa=empresa).order_by(
-        "-criado_em"
-    )
 
     assert response.status_code == status.HTTP_200_OK
 
