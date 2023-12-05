@@ -5249,25 +5249,41 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
             )
 
             numero_cronograma = self.cronograma.numero
-            nome_produto = self.cronograma.produto.nome
             url_documento_recebimento = (
                 f"/pre-recebimento/analise-documento-recebimento?uuid={self.uuid}"
             )
+            contexto = {
+                "numero_cronograma": numero_cronograma,
+                "nome_empresa": self.cronograma.empresa.nome_fantasia,
+                "nome_produto": self.cronograma.produto.nome,
+                "nome_usuario_empresa": user.nome,
+                "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
+                "url_documento_recebimento": base_url + url_documento_recebimento,
+            }
 
             EmailENotificacaoService.enviar_notificacao(
                 template="pre_recebimento_notificacao_fornecedor_corrige_documento_recebimento.html",
-                contexto_template={
-                    "numero_cronograna": numero_cronograma,
-                    "nome_produto": nome_produto,
-                    "nome_usuario_empresa": user.nome,
-                    "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
-                },
+                contexto_template=contexto,
                 titulo_notificacao=f"Documentos do Cronograma {numero_cronograma} foram corrigidos",
                 tipo_notificacao=Notificacao.TIPO_NOTIFICACAO_AVISO,
                 categoria_notificacao=Notificacao.CATEGORIA_NOTIFICACAO_DOCUMENTOS_DE_RECEBIMENTO,
                 link_acesse_aqui=url_documento_recebimento,
                 usuarios=PartesInteressadasService.usuarios_por_perfis(
                     constants.DILOG_QUALIDADE
+                ),
+            )
+
+            EmailENotificacaoService.enviar_email(
+                titulo=f"Documentos de Recebimento Corrigidos e Pendentes de Aprovação\nCronograma {numero_cronograma}",
+                assunto=f"[SIGPAE] Documentos de Recebimento Corrigidos e Pendentes de Aprovação | Cronograma Nº {numero_cronograma}",
+                template="pre_recebimento_email_fornecedor_corrige_documento_recebimento.html",
+                contexto_template=contexto,
+                destinatarios=PartesInteressadasService.usuarios_por_perfis(
+                    nomes_perfis=[
+                        constants.DILOG_QUALIDADE,
+                        constants.COORDENADOR_CODAE_DILOG_LOGISTICA,
+                    ],
+                    somente_email=True,
                 ),
             )
 
