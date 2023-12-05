@@ -5289,6 +5289,7 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
                 "nome_produto": self.cronograma.produto.nome,
                 "nome_usuario_empresa": user.nome,
                 "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
+                "data_envio": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),
                 "url_documento_recebimento": base_url + url_documento_recebimento,
             }
 
