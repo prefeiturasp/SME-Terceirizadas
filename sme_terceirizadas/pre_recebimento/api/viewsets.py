@@ -43,6 +43,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
 from sme_terceirizadas.pre_recebimento.api.filters import (
     CronogramaFilter,
     DocumentoDeRecebimentoFilter,
+    FichaTecnicaFilter,
     LaboratorioFilter,
     LayoutDeEmbalagemFilter,
     SolicitacaoAlteracaoCronogramaFilter,
@@ -78,7 +79,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
     FichaTecnicaDetalharSerializer,
-    FichaTecnicalistagemSerializer,
+    FichaTecnicaListagemSerializer,
     LaboratorioCredenciadoSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
@@ -992,6 +993,9 @@ class FichaTecnicaModelViewSet(
     serializer_class = FichaTecnicaRascunhoSerializer
     queryset = FichaTecnicaDoProduto.objects.all().order_by("-criado_em")
     permission_classes = (UsuarioEhFornecedor,)
+    pagination_class = DefaultPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = FichaTecnicaFilter
 
     def get_queryset(self):
         user = self.request.user
@@ -1002,7 +1006,9 @@ class FichaTecnicaModelViewSet(
         return FichaTecnicaDoProduto.objects.all().order_by("-criado_em")
 
     def get_serializer_class(self):
-        if self.action == "retrieve":
-            return FichaTecnicaDetalharSerializer
-        if self.action == "list":
-            return FichaTecnicalistagemSerializer
+        serializer_classes_map = {
+            "list": FichaTecnicaListagemSerializer,
+            "retrieve": FichaTecnicaDetalharSerializer,
+        }
+
+        return serializer_classes_map.get(self.action, FichaTecnicaRascunhoSerializer)
