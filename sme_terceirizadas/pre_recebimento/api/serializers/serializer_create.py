@@ -80,8 +80,12 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
     empresa = serializers.SlugRelatedField(
         slug_field="uuid",
         required=False,
-        queryset=Terceirizada.objects.filter(tipo_servico__in=[Terceirizada.FORNECEDOR,
-                                                               Terceirizada.FORNECEDOR_E_DISTRIBUIDOR]),
+        queryset=Terceirizada.objects.filter(
+            tipo_servico__in=[
+                Terceirizada.FORNECEDOR,
+                Terceirizada.FORNECEDOR_E_DISTRIBUIDOR,
+            ]
+        ),
     )
     contrato = serializers.SlugRelatedField(
         slug_field="uuid",

@@ -93,20 +93,20 @@ def tratar_periodo_parcial_cemei(nome_periodo_escolar, suspensao):
     if not suspensao.escola.eh_cemei:
         return nome_periodo_escolar
     if (
-        nome_periodo_escolar == 'PARCIAL'
+        nome_periodo_escolar == "PARCIAL"
         and suspensao.quantidades_por_periodo.filter(
-            alunos_cei_ou_emei__in=['CEI', 'Todos'], periodo_escolar__nome='INTEGRAL'
+            alunos_cei_ou_emei__in=["CEI", "Todos"], periodo_escolar__nome="INTEGRAL"
         ).exists()
     ):
-        nome_periodo_escolar = 'INTEGRAL'
+        nome_periodo_escolar = "INTEGRAL"
     elif (
-        'Infantil' in nome_periodo_escolar
+        "Infantil" in nome_periodo_escolar
         and suspensao.quantidades_por_periodo.filter(
-            alunos_cei_ou_emei__in=['EMEI', 'Todos'],
-            periodo_escolar__nome=nome_periodo_escolar.split(' ')[1],
+            alunos_cei_ou_emei__in=["EMEI", "Todos"],
+            periodo_escolar__nome=nome_periodo_escolar.split(" ")[1],
         ).exists()
     ):
-        nome_periodo_escolar = nome_periodo_escolar.split(' ')[1]
+        nome_periodo_escolar = nome_periodo_escolar.split(" ")[1]
     return nome_periodo_escolar
 
 
