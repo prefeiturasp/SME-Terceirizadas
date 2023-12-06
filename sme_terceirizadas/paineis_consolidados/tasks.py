@@ -188,14 +188,14 @@ def nomes_colunas(worksheet, status_, LINHAS, COLUNAS, single_cell_format):
         "Nª de Alunos",
         "N° total de Kits",
         "Observações",
-        map_data[status_]
+        map_data[status_],
     ]
     for index, header in enumerate(headers):
         worksheet.write(
             LINHAS[constants.ROW_IDX_HEADER_CAMPOS],
             COLUNAS[index],
             header,
-            single_cell_format
+            single_cell_format,
         )
 
 
@@ -213,7 +213,9 @@ def aplica_fundo_amarelo_tipo1(
             worksheet.write(
                 LINHAS[constants.ROW_IDX_HEADER_CAMPOS] + 1 + index,
                 COLUNAS[constants.COL_IDX_DATA_EVENTO],
-                df.values[LINHAS[constants.ROW_IDX_HEADER_CAMPOS] + index][COLUNAS[constants.COL_IDX_DATA_EVENTO]],
+                df.values[LINHAS[constants.ROW_IDX_HEADER_CAMPOS] + index][
+                    COLUNAS[constants.COL_IDX_DATA_EVENTO]
+                ],
                 workbook.add_format({"align": "left", "bg_color": "yellow"}),
             )
 
@@ -229,7 +231,9 @@ def aplica_fundo_amarelo_tipo2(
                 worksheet.write(
                     LINHAS[constants.ROW_IDX_HEADER_CAMPOS] + 1 + index,
                     COLUNAS[constants.COL_IDX_OBSERVACOES],
-                    df.values[LINHAS[constants.ROW_IDX_HEADER_CAMPOS] + index][COLUNAS[constants.COL_IDX_OBSERVACOES]],
+                    df.values[LINHAS[constants.ROW_IDX_HEADER_CAMPOS] + index][
+                        COLUNAS[constants.COL_IDX_OBSERVACOES]
+                    ],
                     workbook.add_format({"align": "left", "bg_color": "yellow"}),
                 )
             idx += 1
@@ -275,7 +279,7 @@ def build_xlsx(
         constants.ROW_IDX_TITULO_ARQUIVO,
         constants.ROW_IDX_FILTROS_PT1,
         constants.ROW_IDX_FILTROS_PT2,
-        constants.ROW_IDX_HEADER_CAMPOS
+        constants.ROW_IDX_HEADER_CAMPOS,
     ]
     COLUNAS = [
         constants.COL_IDX_N,
@@ -291,7 +295,7 @@ def build_xlsx(
         constants.COL_IDX_NUMERO_DE_ALUNOS,
         constants.COL_IDX_NUMERO_TOTAL_KITS,
         constants.COL_IDX_OBSERVACOES,
-        constants.COL_IDX_DATA_LOG
+        constants.COL_IDX_DATA_LOG,
     ]
 
     import pandas as pd
