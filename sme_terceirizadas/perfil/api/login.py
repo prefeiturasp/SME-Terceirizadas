@@ -265,8 +265,8 @@ class LoginView(TokenObtainPairView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         except (NovoSGPServicoLogadoException, PermissionDenied) as e:
-            logger.info(str(e), login)
+            logger.info(f'{str(e)}, {login}')
             return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
         except EOLException as e:
-            logger.info(str(e), login)
+            logger.info(f'{str(e)}, {login}')
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
