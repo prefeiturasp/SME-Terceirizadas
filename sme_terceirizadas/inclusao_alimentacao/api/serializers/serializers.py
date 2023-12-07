@@ -78,6 +78,7 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
     datas = serializers.CharField()
+    solicitacoes_similares = serializers.ListField(default=[])
 
     def to_representation(self, instance):
         retorno = super().to_representation(instance)
@@ -138,6 +139,7 @@ class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
     )
     id_externo = serializers.CharField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
+    solicitacoes_similares = serializers.ListField(default=[])
 
     class Meta:
         model = InclusaoAlimentacaoContinua
@@ -164,7 +166,7 @@ class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
         exclude = ("id", "data")
 
 
-class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
+class GrupoInclusaoAlimentacaoNormalBaseSerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
     escola = EscolaSimplesSerializer()
@@ -177,6 +179,12 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
         exclude = ("id",)
+
+
+class GrupoInclusaoAlimentacaoNormalSerializer(
+    GrupoInclusaoAlimentacaoNormalBaseSerializer
+):
+    solicitacoes_similares = GrupoInclusaoAlimentacaoNormalBaseSerializer(many=True)
 
 
 class GrupoInclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
@@ -233,6 +241,7 @@ class InclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     datas = serializers.CharField()
+    solicitacoes_similares = serializers.ListField(default=[])
 
     class Meta:
         model = InclusaoDeAlimentacaoCEMEI

@@ -256,6 +256,10 @@ class InclusaoAlimentacaoContinua(
             "status": self.status,
         }
 
+    @property
+    def solicitacoes_similares(self):
+        return []
+
     def __str__(self):
         return f"de {self.data_inicial} até {self.data_final} para {self.escola}"
 
@@ -488,6 +492,17 @@ class GrupoInclusaoAlimentacaoNormal(
             "existe_dia_cancelado": self.existe_dia_cancelado,
             "status": self.status,
         }
+
+    @property
+    def solicitacoes_similares(self):
+        if self.status == GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO:
+            return []
+
+        return GrupoInclusaoAlimentacaoNormal.objects.filter(
+            inclusoes_normais__data__in=self.inclusoes_normais.values_list(
+                "data", flat=True
+            )
+        ).exclude(id=self.id)
 
     def __str__(self):
         return f"{self.escola} pedindo {self.inclusoes.count()} inclusoes"
@@ -763,6 +778,10 @@ class InclusaoAlimentacaoDaCEI(
             .distinct()
         )
 
+    @property
+    def solicitacoes_similares(self):
+        return []
+
     def __str__(self):
         return f"Inclusao da CEI cód: {self.id_externo}"
 
@@ -1026,6 +1045,10 @@ class InclusaoDeAlimentacaoCEMEI(
             "status": self.status,
             "eh_evento_especifico": eh_evento_especifico,
         }
+
+    @property
+    def solicitacoes_similares(self):
+        return []
 
     def __str__(self):
         return f"Inclusão de Alimentação CEMEI cód: {self.id_externo}"
