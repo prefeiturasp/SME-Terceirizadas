@@ -23,6 +23,7 @@ from sme_terceirizadas.paineis_consolidados.models import (
 
 from ..perfil.models import Usuario
 from ..relatorios.utils import html_to_pdf_file
+from .api import constants
 
 logger = logging.getLogger(__name__)
 
@@ -167,30 +168,35 @@ def get_formats(workbook):
 
 
 def nomes_colunas(worksheet, status_, LINHAS, COLUNAS, single_cell_format):
-    worksheet.write(LINHAS[3], COLUNAS[0], "N", single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[1], "Lote", single_cell_format)
-    worksheet.write(
-        LINHAS[3],
-        COLUNAS[2],
-        "Terceirizada" if status_ == "Recebidas" else "Unidade Educacional",
-        single_cell_format,
-    )
-    worksheet.write(LINHAS[3], COLUNAS[3], "Tipo de Solicitação", single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[4], "ID da Solicitação", single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[5], "Data do Evento", single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[6], "Dia da semana", single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[7], "Período", single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[8], "Tipo de Alimentação", single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[9], "Nª de Alunos", single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[10], "N° total de Kits", single_cell_format)
-    worksheet.write(LINHAS[3], COLUNAS[11], "Observações", single_cell_format)
     map_data = {
         "Autorizadas": "Data de Autorização",
         "Canceladas": "Data de Cancelamento",
         "Negadas": "Data de Negação",
         "Recebidas": "Data de Autorização",
     }
-    worksheet.write(LINHAS[3], COLUNAS[12], map_data[status_], single_cell_format)
+    headers = [
+        "N",
+        "Lote",
+        "Terceirizada" if status_ == "Recebidas" else "Unidade Educacional",
+        "Tipo de Solicitação",
+        "ID da Solicitação",
+        "Data do Evento",
+        "Dia da semana",
+        "Período",
+        "Tipo de Alimentação",
+        "Tipo de Alteração",
+        "Nª de Alunos",
+        "N° total de Kits",
+        "Observações",
+        map_data[status_],
+    ]
+    for index, header in enumerate(headers):
+        worksheet.write(
+            LINHAS[constants.ROW_IDX_HEADER_CAMPOS],
+            COLUNAS[index],
+            header,
+            single_cell_format,
+        )
 
 
 def aplica_fundo_amarelo_tipo1(
@@ -205,9 +211,11 @@ def aplica_fundo_amarelo_tipo1(
     ]:
         if model_obj.existe_dia_cancelado or model_obj.status == "ESCOLA_CANCELOU":
             worksheet.write(
-                LINHAS[3] + 1 + index,
-                COLUNAS[5],
-                df.values[LINHAS[3] + index][COLUNAS[5]],
+                LINHAS[constants.ROW_IDX_HEADER_CAMPOS] + 1 + index,
+                COLUNAS[constants.COL_IDX_DATA_EVENTO],
+                df.values[LINHAS[constants.ROW_IDX_HEADER_CAMPOS] + index][
+                    COLUNAS[constants.COL_IDX_DATA_EVENTO]
+                ],
                 workbook.add_format({"align": "left", "bg_color": "yellow"}),
             )
 
@@ -221,9 +229,11 @@ def aplica_fundo_amarelo_tipo2(
             qt_periodo = qts_periodos[idx]
             if qt_periodo.cancelado:
                 worksheet.write(
-                    LINHAS[3] + 1 + index,
-                    COLUNAS[11],
-                    df.values[LINHAS[3] + index][COLUNAS[11]],
+                    LINHAS[constants.ROW_IDX_HEADER_CAMPOS] + 1 + index,
+                    COLUNAS[constants.COL_IDX_OBSERVACOES],
+                    df.values[LINHAS[constants.ROW_IDX_HEADER_CAMPOS] + index][
+                        COLUNAS[constants.COL_IDX_OBSERVACOES]
+                    ],
                     workbook.add_format({"align": "left", "bg_color": "yellow"}),
                 )
             idx += 1
@@ -265,8 +275,28 @@ def build_xlsx(
     ALTURA_COLUNA_30 = 30
     ALTURA_COLUNA_50 = 50
 
-    LINHAS = [0, 1, 2, 3]
-    COLUNAS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    LINHAS = [
+        constants.ROW_IDX_TITULO_ARQUIVO,
+        constants.ROW_IDX_FILTROS_PT1,
+        constants.ROW_IDX_FILTROS_PT2,
+        constants.ROW_IDX_HEADER_CAMPOS,
+    ]
+    COLUNAS = [
+        constants.COL_IDX_N,
+        constants.COL_IDX_LOTE,
+        constants.COL_IDX_UNIDADE_EDUCACIONAL,
+        constants.COL_IDX_TIPO_DE_SOLICITACAO,
+        constants.COL_IDX_ID_SOLICITACAO,
+        constants.COL_IDX_DATA_EVENTO,
+        constants.COL_IDX_DIA_DA_SEMANA,
+        constants.COL_IDX_PERIODO,
+        constants.COL_IDX_TIPO_DE_ALIMENTACAO,
+        constants.COL_IDX_TIPO_DE_ALTERACAO,
+        constants.COL_IDX_NUMERO_DE_ALUNOS,
+        constants.COL_IDX_NUMERO_TOTAL_KITS,
+        constants.COL_IDX_OBSERVACOES,
+        constants.COL_IDX_DATA_LOG,
+    ]
 
     import pandas as pd
 
@@ -275,9 +305,9 @@ def build_xlsx(
 
     novas_colunas = ["dia_semana", "periodo_inclusao", "tipo_alimentacao"]
     for i, nova_coluna in enumerate(novas_colunas):
-        df.insert(5 + i, nova_coluna, "-")
+        df.insert(constants.COL_IDX_DATA_EVENTO + i, nova_coluna, "-")
 
-    df.insert(9, "quantidade_alimentacoes", "-")
+    df.insert(constants.COL_IDX_NUMERO_DE_ALUNOS, "quantidade_alimentacoes", "-")
     novas_linhas, lista_uuids = novas_linhas_inc_continua_e_kit_lanche(
         df, queryset, instituicao
     )
@@ -313,11 +343,11 @@ def build_xlsx(
         "E:E": 15,
         "F:G": 30,
         "H:H": 10,
-        "I:I": 30,
-        "J:J": 13,
-        "K:K": 15,
-        "L:L": 30,
-        "M:M": 20,
+        "I:J": 30,
+        "K:K": 13,
+        "L:L": 15,
+        "M:M": 30,
+        "N:N": 20,
     }
     for col, width in columns_width.items():
         worksheet.set_column(col, width)
