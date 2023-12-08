@@ -271,16 +271,10 @@ def inclusao_alimentacao_normal(motivo_inclusao_normal):
     )
 
 
-@pytest.fixture()
-def inclusao_alimentacao_cei(
-    motivo_inclusao_normal, escola, template_inclusao_continua
-):
+@pytest.fixture
+def inclusao_alimentacao_cei(escola):
     return mommy.make(
         models.InclusaoAlimentacaoDaCEI,
-        data=datetime.date(2019, 10, 2),
-        motivo=motivo_inclusao_normal,
-        outro_motivo=fake.name(),
-        observacao=fake.name(),
         escola=escola,
         rastro_escola=escola,
         rastro_dre=escola.diretoria_regional,
