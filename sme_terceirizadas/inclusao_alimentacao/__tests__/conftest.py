@@ -78,6 +78,14 @@ def motivo_inclusao_normal():
 
 
 @pytest.fixture
+def make_motivo_inclusao_normal():
+    def handle(nome):
+        return mommy.make(models.MotivoInclusaoNormal, nome=nome)
+
+    return handle
+
+
+@pytest.fixture
 def quantidade_por_periodo():
     periodo_escolar = mommy.make("escola.PeriodoEscolar")
     tipos_alimentacao = mommy.make(
@@ -341,13 +349,13 @@ def make_grupo_inclusao_alimentacao_normal(
         )
         mommy.make(
             models.InclusaoAlimentacaoNormal,
-            motivo=motivo_inclusao_normal,
+            motivo=kwargs_inclusao1.pop("motivo", motivo_inclusao_normal),
             grupo_inclusao=grupo_inclusao_normal,
             **kwargs_inclusao1
         )
         mommy.make(
             models.InclusaoAlimentacaoNormal,
-            motivo=motivo_inclusao_normal,
+            motivo=kwargs_inclusao2.pop("motivo", motivo_inclusao_normal),
             grupo_inclusao=grupo_inclusao_normal,
             **kwargs_inclusao2
         )
