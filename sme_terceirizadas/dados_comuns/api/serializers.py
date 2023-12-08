@@ -4,7 +4,7 @@ import environ
 from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
-from ...perfil.api.serializers import UsuarioSerializer
+from ...perfil.api.serializers import UsuarioSerializer, UsuarioSimplesSerializer
 from ..models import (
     AnexoLogSolicitacoesUsuario,
     CategoriaPerguntaFrequente,
@@ -91,18 +91,16 @@ class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
 
 
 class LogSolicitacoesUsuarioSimplesSerializer(serializers.ModelSerializer):
-    criado_em = serializers.SerializerMethodField()
-    usuario = serializers.SerializerMethodField()
-
-    def get_usuario(self, obj):
-        return obj.usuario.nome
-
-    def get_criado_em(self, obj):
-        return datetime.strftime(obj.criado_em, "%d/%m/%Y - %H:%M")
+    usuario = UsuarioSimplesSerializer()
 
     class Meta:
         model = LogSolicitacoesUsuario
-        fields = ("usuario", "criado_em")
+        fields = (
+            "status_evento_explicacao",
+            "usuario",
+            "criado_em",
+            "justificativa",
+        )
 
 
 class LogSolicitacoesSerializer(serializers.ModelSerializer):

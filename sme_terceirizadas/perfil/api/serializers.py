@@ -105,6 +105,12 @@ class UsuarioSerializer(serializers.ModelSerializer):
         )
 
 
+class UsuarioSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ("uuid", "nome")
+
+
 class UsuarioVinculoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
