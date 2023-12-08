@@ -329,6 +329,39 @@ def grupo_inclusao_alimentacao_normal(
     return grupo_inclusao_normal
 
 
+@pytest.fixture
+def make_grupo_inclusao_alimentacao_normal(
+    escola, motivo_inclusao_normal, template_inclusao_normal
+):
+    def handle(*, kwargs_grupo=None, kwargs_inclusao1=None, kwargs_inclusao2=None):
+        kwargs_grupo = kwargs_grupo or {}
+        kwargs_inclusao1 = kwargs_inclusao1 or {}
+        kwargs_inclusao2 = kwargs_inclusao2 or {}
+
+        grupo_inclusao_normal = mommy.make(
+            models.GrupoInclusaoAlimentacaoNormal,
+            escola=escola,
+            rastro_escola=escola,
+            rastro_dre=escola.diretoria_regional,
+            **kwargs_grupo
+        )
+        mommy.make(
+            models.InclusaoAlimentacaoNormal,
+            motivo=motivo_inclusao_normal,
+            grupo_inclusao=grupo_inclusao_normal,
+            **kwargs_inclusao1
+        )
+        mommy.make(
+            models.InclusaoAlimentacaoNormal,
+            motivo=motivo_inclusao_normal,
+            grupo_inclusao=grupo_inclusao_normal,
+            **kwargs_inclusao2
+        )
+        return grupo_inclusao_normal
+
+    return handle
+
+
 @pytest.fixture(
     params=[
         # data ini, data fim, esperado

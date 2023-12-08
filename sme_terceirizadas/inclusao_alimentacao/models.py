@@ -498,11 +498,15 @@ class GrupoInclusaoAlimentacaoNormal(
         if self.status == GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO:
             return []
 
-        return GrupoInclusaoAlimentacaoNormal.objects.filter(
-            inclusoes_normais__data__in=self.inclusoes_normais.values_list(
-                "data", flat=True
+        return (
+            GrupoInclusaoAlimentacaoNormal.objects.filter(
+                inclusoes_normais__data__in=self.inclusoes_normais.values_list(
+                    "data", flat=True
+                )
             )
-        ).exclude(id=self.id)
+            .distinct()
+            .exclude(id=self.id)
+        )
 
     def __str__(self):
         return f"{self.escola} pedindo {self.inclusoes.count()} inclusoes"
