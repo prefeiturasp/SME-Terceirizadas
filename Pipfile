@@ -24,12 +24,12 @@ factory-boy="==2.12.0"
 pytest-factoryboy="==2.5.1"
 # Code quality
 # ------------------------------------------------------------------------------
-coverage="==6.5.0"             # https://github.com/nedbat/coveragepy
+coverage="==7.3.2"             # https://github.com/nedbat/coveragepy
 django-stubs="==1.2.0"         # https://github.com/typeddjango/django-stubs
 bandit="==1.6.2"               # https://github.com/PyCQA/bandit
 django-debug-toolbar="==3.2.4"  # https://github.com/jazzband/django-debug-toolbar
 django-extensions="==3.2.3"    # https://github.com/django-extensions/django-extensions
-django-coverage-plugin="==3.0.0"  # https://github.com/nedbat/django_coverage_plugin
+django-coverage-plugin="==3.1.0"  # https://github.com/nedbat/django_coverage_plugin
 flower = "==1.2.0"
 notebook = "==6.5.6"
 pre-commit = "==3.5.0"
