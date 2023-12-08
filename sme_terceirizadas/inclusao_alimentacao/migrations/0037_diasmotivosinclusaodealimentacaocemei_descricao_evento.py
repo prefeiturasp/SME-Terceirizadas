@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0036_alter_grupoinclusaoalimentacaonormal_rastro_dre_and_more'),
+        (
+            "inclusao_alimentacao",
+            "0036_alter_grupoinclusaoalimentacaonormal_rastro_dre_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='diasmotivosinclusaodealimentacaocemei',
-            name='descricao_evento',
-            field=models.CharField(blank=True, max_length=1500, verbose_name='Descrição do Evento'),
+            model_name="diasmotivosinclusaodealimentacaocemei",
+            name="descricao_evento",
+            field=models.CharField(
+                blank=True, max_length=1500, verbose_name="Descrição do Evento"
+            ),
         ),
     ]

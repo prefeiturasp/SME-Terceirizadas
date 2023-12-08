@@ -18,52 +18,81 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
-    UnidadeMedida
+    UnidadeMedida,
 )
-from sme_terceirizadas.produto.api.serializers.serializers import NomeDeProdutoEditalSerializer, UnidadeMedidaSerialzer
+from sme_terceirizadas.produto.api.serializers.serializers import (
+    FabricanteSimplesSerializer,
+    MarcaSimplesSerializer,
+    NomeDeProdutoEditalSerializer,
+    UnidadeMedidaSerialzer,
+)
 from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,
     DistribuidorSimplesSerializer,
-    TerceirizadaSimplesSerializer
+    TerceirizadaLookUpSerializer,
+    TerceirizadaSimplesSerializer,
 )
 
-from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....dados_comuns.api.serializers import (
+    LogSolicitacoesUsuarioSerializer,
+    LogSolicitacoesUsuarioSimplesSerializer,
+)
+from ...models.cronograma import FichaTecnicaDoProduto
 
 
 class ProgramacaoDoRecebimentoDoCronogramaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgramacaoDoRecebimentoDoCronograma
-        fields = ('uuid', 'data_programada', 'tipo_carga',)
+        fields = (
+            "uuid",
+            "data_programada",
+            "tipo_carga",
+        )
 
 
 class EtapasDoCronogramaSerializer(serializers.ModelSerializer):
     data_programada = serializers.SerializerMethodField()
 
     def get_data_programada(self, obj):
-        return obj.data_programada.strftime('%d/%m/%Y') if obj.data_programada else None
+        return obj.data_programada.strftime("%d/%m/%Y") if obj.data_programada else None
 
     class Meta:
         model = EtapasDoCronograma
-        fields = ('uuid', 'numero_empenho', 'etapa', 'parte', 'data_programada', 'quantidade',
-                  'total_embalagens')
+        fields = (
+            "uuid",
+            "numero_empenho",
+            "etapa",
+            "parte",
+            "data_programada",
+            "quantidade",
+            "total_embalagens",
+        )
 
 
 class SolicitacaoAlteracaoCronogramaSerializer(serializers.ModelSerializer):
-
-    fornecedor = serializers.CharField(source='cronograma.empresa')
-    cronograma = serializers.CharField(source='cronograma.numero')
-    status = serializers.CharField(source='get_status_display')
+    fornecedor = serializers.CharField(source="cronograma.empresa")
+    cronograma = serializers.CharField(source="cronograma.numero")
+    status = serializers.CharField(source="get_status_display")
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
-        fields = ('uuid', 'numero_solicitacao', 'fornecedor', 'status', 'criado_em', 'cronograma')
+        fields = (
+            "uuid",
+            "numero_solicitacao",
+            "fornecedor",
+            "status",
+            "criado_em",
+            "cronograma",
+        )
 
 
 class CronogramaSerializer(serializers.ModelSerializer):
     etapas = EtapasDoCronogramaSerializer(many=True)
-    programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(many=True)
+    programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(
+        many=True
+    )
     armazem = DistribuidorSimplesSerializer()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
     empresa = TerceirizadaSimplesSerializer()
     contrato = ContratoSimplesSerializer()
     produto = NomeDeProdutoEditalSerializer()
@@ -71,16 +100,31 @@ class CronogramaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cronograma
-        fields = ('uuid', 'numero', 'status', 'criado_em', 'alterado_em', 'contrato', 'empresa',
-                          'produto', 'qtd_total_programada', 'unidade_medida',
-                          'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento')
+        fields = (
+            "uuid",
+            "numero",
+            "status",
+            "criado_em",
+            "alterado_em",
+            "contrato",
+            "empresa",
+            "produto",
+            "qtd_total_programada",
+            "unidade_medida",
+            "tipo_embalagem",
+            "armazem",
+            "etapas",
+            "programacoes_de_recebimento",
+        )
 
 
 class CronogramaComLogSerializer(serializers.ModelSerializer):
     etapas = EtapasDoCronogramaSerializer(many=True)
-    programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(many=True)
+    programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(
+        many=True
+    )
     armazem = DistribuidorSimplesSerializer()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
     empresa = TerceirizadaSimplesSerializer()
     contrato = ContratoSimplesSerializer()
     produto = NomeDeProdutoEditalSerializer()
@@ -89,30 +133,53 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cronograma
-        fields = ('uuid', 'numero', 'status', 'criado_em', 'alterado_em', 'contrato', 'empresa',
-                          'produto', 'qtd_total_programada', 'unidade_medida',
-                          'tipo_embalagem', 'armazem', 'etapas', 'programacoes_de_recebimento', 'logs')
+        fields = (
+            "uuid",
+            "numero",
+            "status",
+            "criado_em",
+            "alterado_em",
+            "contrato",
+            "empresa",
+            "produto",
+            "qtd_total_programada",
+            "unidade_medida",
+            "tipo_embalagem",
+            "armazem",
+            "etapas",
+            "programacoes_de_recebimento",
+            "logs",
+        )
 
 
 class SolicitacaoAlteracaoCronogramaCompletoSerializer(serializers.ModelSerializer):
-
-    fornecedor = serializers.CharField(source='cronograma.empresa')
+    fornecedor = serializers.CharField(source="cronograma.empresa")
     cronograma = CronogramaSerializer()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
     etapas_antigas = EtapasDoCronogramaSerializer(many=True)
     etapas_novas = EtapasDoCronogramaSerializer(many=True)
     logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
-        fields = ('uuid', 'numero_solicitacao', 'fornecedor', 'status', 'criado_em', 'cronograma',
-                  'etapas_antigas', 'etapas_novas', 'justificativa', 'logs')
+        fields = (
+            "uuid",
+            "numero_solicitacao",
+            "fornecedor",
+            "status",
+            "criado_em",
+            "cronograma",
+            "etapas_antigas",
+            "etapas_novas",
+            "justificativa",
+            "logs",
+        )
 
 
 class CronogramaRascunhosSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cronograma
-        fields = ('uuid', 'numero', 'alterado_em')
+        fields = ("uuid", "numero", "alterado_em")
 
 
 class CronogramaSimplesSerializer(serializers.ModelSerializer):
@@ -127,14 +194,14 @@ class CronogramaSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cronograma
-        fields = ('uuid', 'numero', 'pregao_chamada_publica', 'nome_produto')
+        fields = ("uuid", "numero", "pregao_chamada_publica", "nome_produto")
 
 
 class PainelCronogramaSerializer(serializers.ModelSerializer):
     produto = serializers.SerializerMethodField()
     empresa = serializers.SerializerMethodField()
     log_mais_recente = serializers.SerializerMethodField()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
 
     def get_produto(self, obj):
         return obj.produto.nome if obj.produto else None
@@ -145,34 +212,44 @@ class PainelCronogramaSerializer(serializers.ModelSerializer):
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
             if obj.log_mais_recente.criado_em.date() == datetime.date.today():
-                return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M')
-            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y')
+                return datetime.datetime.strftime(
+                    obj.log_mais_recente.criado_em, "%d/%m/%Y %H:%M"
+                )
+            return datetime.datetime.strftime(
+                obj.log_mais_recente.criado_em, "%d/%m/%Y"
+            )
         else:
-            return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
+            return datetime.datetime.strftime(obj.criado_em, "%d/%m/%Y")
 
     class Meta:
         model = Cronograma
-        fields = ('uuid', 'numero', 'status', 'empresa', 'produto', 'log_mais_recente')
+        fields = ("uuid", "numero", "status", "empresa", "produto", "log_mais_recente")
 
 
 class PainelSolicitacaoAlteracaoCronogramaSerializerItem(serializers.ModelSerializer):
-
-    empresa = serializers.CharField(source='cronograma.empresa')
-    cronograma = serializers.CharField(source='cronograma.numero')
-    status = serializers.CharField(source='get_status_display')
+    empresa = serializers.CharField(source="cronograma.empresa")
+    cronograma = serializers.CharField(source="cronograma.numero")
+    status = serializers.CharField(source="get_status_display")
     log_mais_recente = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_criado_em:
             if obj.log_criado_em.date() == datetime.date.today():
-                return datetime.datetime.strftime(obj.log_criado_em, '%d/%m/%Y %H:%M')
-            return datetime.datetime.strftime(obj.log_criado_em, '%d/%m/%Y')
+                return datetime.datetime.strftime(obj.log_criado_em, "%d/%m/%Y %H:%M")
+            return datetime.datetime.strftime(obj.log_criado_em, "%d/%m/%Y")
         else:
-            return datetime.datetime.strftime(obj.log_criado_em, '%d/%m/%Y')
+            return datetime.datetime.strftime(obj.log_criado_em, "%d/%m/%Y")
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
-        fields = ('uuid', 'numero_solicitacao', 'empresa', 'status', 'cronograma', 'log_mais_recente')
+        fields = (
+            "uuid",
+            "numero_solicitacao",
+            "empresa",
+            "status",
+            "cronograma",
+            "log_mais_recente",
+        )
 
 
 class PainelSolicitacaoAlteracaoCronogramaSerializer(serializers.Serializer):
@@ -181,65 +258,69 @@ class PainelSolicitacaoAlteracaoCronogramaSerializer(serializers.Serializer):
     total = serializers.IntegerField(allow_null=True)
 
     def get_dados(self, obj):
-        return PainelSolicitacaoAlteracaoCronogramaSerializerItem(obj['dados'], many=True).data
+        return PainelSolicitacaoAlteracaoCronogramaSerializerItem(
+            obj["dados"], many=True
+        ).data
 
     class Meta:
         model = SolicitacaoAlteracaoCronograma
-        fields = ('uuid', 'status', 'total', 'dados')
+        fields = ("uuid", "status", "total", "dados")
 
     def to_representation(self, instance):
-        result = super(PainelSolicitacaoAlteracaoCronogramaSerializer, self).to_representation(instance)
-        return OrderedDict([(key, result[key]) for key in result if result[key] is not None])
+        result = super(
+            PainelSolicitacaoAlteracaoCronogramaSerializer, self
+        ).to_representation(instance)
+        return OrderedDict(
+            [(key, result[key]) for key in result if result[key] is not None]
+        )
 
 
 class LaboratorioSerializer(serializers.ModelSerializer):
-
     contatos = ContatoSimplesSerializer(many=True)
 
     class Meta:
         model = Laboratorio
-        exclude = ('id', )
+        exclude = ("id",)
 
 
 class LaboratorioSimplesFiltroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Laboratorio
-        fields = ('nome', 'cnpj')
-        read_only_fields = ('nome', 'cnpj')
+        fields = ("nome", "cnpj")
+        read_only_fields = ("nome", "cnpj")
 
 
 class LaboratorioCredenciadoSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Laboratorio
-        fields = ('uuid', 'nome')
-        read_only_fields = ('uuid', 'nome')
+        fields = ("uuid", "nome")
+        read_only_fields = ("uuid", "nome")
 
 
 class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoEmbalagemQld
-        exclude = ('id', )
+        exclude = ("id",)
 
 
 class UnidadeMedidaSerialzer(serializers.ModelSerializer):
     class Meta:
         model = UnidadeMedida
-        fields = ('uuid', 'nome', 'abreviacao', 'criado_em')
-        read_only_fields = ('uuid', 'nome', 'abreviacao', 'criado_em')
+        fields = ("uuid", "nome", "abreviacao", "criado_em")
+        read_only_fields = ("uuid", "nome", "abreviacao", "criado_em")
 
 
 class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnidadeMedida
-        fields = ('uuid', 'nome', 'abreviacao')
-        read_only_fields = ('uuid', 'nome', 'abreviacao')
+        fields = ("uuid", "nome", "abreviacao")
+        read_only_fields = ("uuid", "nome", "abreviacao")
 
 
 class ImagemDoTipoEmbalagemLookupSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ImagemDoTipoDeEmbalagem
-        exclude = ('id', 'uuid', 'tipo_de_embalagem')
+        exclude = ("id", "uuid", "tipo_de_embalagem")
 
 
 class TipoEmbalagemLayoutLookupSerializer(serializers.ModelSerializer):
@@ -247,27 +328,38 @@ class TipoEmbalagemLayoutLookupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoDeEmbalagemDeLayout
-        exclude = ('id', 'layout_de_embalagem')
+        exclude = ("id", "layout_de_embalagem")
 
 
 class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.SerializerMethodField()
     pregao_chamada_publica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
 
     def get_numero_cronograma(self, obj):
         return obj.cronograma.numero if obj.cronograma else None
 
     def get_pregao_chamada_publica(self, obj):
-        return obj.cronograma.contrato.pregao_chamada_publica if obj.cronograma.contrato else None
+        return (
+            obj.cronograma.contrato.pregao_chamada_publica
+            if obj.cronograma.contrato
+            else None
+        )
 
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
 
     class Meta:
         model = LayoutDeEmbalagem
-        fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'status', 'criado_em')
+        fields = (
+            "uuid",
+            "numero_cronograma",
+            "pregao_chamada_publica",
+            "nome_produto",
+            "status",
+            "criado_em",
+        )
 
 
 class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
@@ -275,7 +367,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
     pregao_chamada_publica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
     nome_empresa = serializers.SerializerMethodField()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
     tipos_de_embalagens = TipoEmbalagemLayoutLookupSerializer(many=True)
     log_mais_recente = serializers.SerializerMethodField()
     primeira_analise = serializers.SerializerMethodField()
@@ -284,7 +376,11 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
         return obj.cronograma.numero if obj.cronograma else None
 
     def get_pregao_chamada_publica(self, obj):
-        return obj.cronograma.contrato.pregao_chamada_publica if obj.cronograma.contrato else None
+        return (
+            obj.cronograma.contrato.pregao_chamada_publica
+            if obj.cronograma.contrato
+            else None
+        )
 
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
@@ -294,9 +390,11 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
-            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y - %H:%M')
+            return datetime.datetime.strftime(
+                obj.log_mais_recente.criado_em, "%d/%m/%Y - %H:%M"
+            )
         else:
-            return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y - %H:%M')
+            return datetime.datetime.strftime(obj.criado_em, "%d/%m/%Y - %H:%M")
 
     def get_primeira_analise(self, obj):
         return obj.eh_primeira_analise
@@ -304,30 +402,49 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
     class Meta:
         model = LayoutDeEmbalagem
         fields = (
-            'uuid', 'observacoes', 'criado_em', 'status', 'tipos_de_embalagens',
-            'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'nome_empresa',
-            'log_mais_recente', 'primeira_analise'
+            "uuid",
+            "observacoes",
+            "criado_em",
+            "status",
+            "tipos_de_embalagens",
+            "numero_cronograma",
+            "pregao_chamada_publica",
+            "nome_produto",
+            "nome_empresa",
+            "log_mais_recente",
+            "primeira_analise",
         )
 
 
 class PainelLayoutEmbalagemSerializer(serializers.ModelSerializer):
-    numero_cronograma = serializers.CharField(source='cronograma.numero')
-    nome_produto = serializers.CharField(source='cronograma.produto')
-    nome_empresa = serializers.CharField(source='cronograma.empresa.razao_social')
-    status = serializers.CharField(source='get_status_display')
+    numero_cronograma = serializers.CharField(source="cronograma.numero")
+    nome_produto = serializers.CharField(source="cronograma.produto")
+    nome_empresa = serializers.CharField(source="cronograma.empresa.razao_social")
+    status = serializers.CharField(source="get_status_display")
     log_mais_recente = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
             if obj.log_mais_recente.criado_em.date() == datetime.date.today():
-                return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M')
-            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y')
+                return datetime.datetime.strftime(
+                    obj.log_mais_recente.criado_em, "%d/%m/%Y %H:%M"
+                )
+            return datetime.datetime.strftime(
+                obj.log_mais_recente.criado_em, "%d/%m/%Y"
+            )
         else:
-            return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
+            return datetime.datetime.strftime(obj.criado_em, "%d/%m/%Y")
 
     class Meta:
         model = LayoutDeEmbalagem
-        fields = ('uuid', 'numero_cronograma', 'nome_produto', 'nome_empresa', 'status', 'log_mais_recente')
+        fields = (
+            "uuid",
+            "numero_cronograma",
+            "nome_produto",
+            "nome_empresa",
+            "status",
+            "log_mais_recente",
+        )
 
 
 class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
@@ -335,50 +452,71 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.SerializerMethodField()
     pregao_chamada_publica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
 
     def get_numero_cronograma(self, obj):
         return obj.cronograma.numero if obj.cronograma else None
 
     def get_pregao_chamada_publica(self, obj):
-        return obj.cronograma.contrato.pregao_chamada_publica if obj.cronograma.contrato else None
+        return (
+            obj.cronograma.contrato.pregao_chamada_publica
+            if obj.cronograma.contrato
+            else None
+        )
 
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
 
     def get_criado_em(self, obj):
-        return obj.criado_em.strftime('%d/%m/%Y')
+        return obj.criado_em.strftime("%d/%m/%Y")
 
     class Meta:
         model = DocumentoDeRecebimento
-        fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'status', 'criado_em')
+        fields = (
+            "uuid",
+            "numero_cronograma",
+            "pregao_chamada_publica",
+            "nome_produto",
+            "status",
+            "criado_em",
+        )
 
 
 class PainelDocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
-    numero_cronograma = serializers.CharField(source='cronograma.numero')
-    nome_produto = serializers.CharField(source='cronograma.produto')
-    nome_empresa = serializers.CharField(source='cronograma.empresa.razao_social')
-    status = serializers.CharField(source='get_status_display')
+    numero_cronograma = serializers.CharField(source="cronograma.numero")
+    nome_produto = serializers.CharField(source="cronograma.produto")
+    nome_empresa = serializers.CharField(source="cronograma.empresa.razao_social")
+    status = serializers.CharField(source="get_status_display")
     log_mais_recente = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
             if obj.log_mais_recente.criado_em.date() == datetime.date.today():
-                return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M')
-            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y')
+                return datetime.datetime.strftime(
+                    obj.log_mais_recente.criado_em, "%d/%m/%Y %H:%M"
+                )
+            return datetime.datetime.strftime(
+                obj.log_mais_recente.criado_em, "%d/%m/%Y"
+            )
         else:
-            return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
+            return datetime.datetime.strftime(obj.criado_em, "%d/%m/%Y")
 
     class Meta:
         model = DocumentoDeRecebimento
-        fields = ('uuid', 'numero_cronograma', 'nome_produto', 'nome_empresa', 'status', 'log_mais_recente')
+        fields = (
+            "uuid",
+            "numero_cronograma",
+            "nome_produto",
+            "nome_empresa",
+            "status",
+            "log_mais_recente",
+        )
 
 
 class ArquivoDoTipoDeDocumentoLookupSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ArquivoDoTipoDeDocumento
-        exclude = ('id', 'uuid', 'tipo_de_documento')
+        exclude = ("id", "uuid", "tipo_de_documento")
 
 
 class TipoDocumentoDeRecebimentoLookupSerializer(serializers.ModelSerializer):
@@ -386,7 +524,7 @@ class TipoDocumentoDeRecebimentoLookupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoDeDocumentoDeRecebimento
-        exclude = ('id', 'documento_recebimento')
+        exclude = ("id", "documento_recebimento")
 
 
 class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
@@ -394,36 +532,51 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.SerializerMethodField()
     pregao_chamada_publica = serializers.SerializerMethodField()
     nome_produto = serializers.SerializerMethodField()
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source="get_status_display")
     tipos_de_documentos = TipoDocumentoDeRecebimentoLookupSerializer(many=True)
+    log_mais_recente = LogSolicitacoesUsuarioSimplesSerializer()
 
     def get_numero_cronograma(self, obj):
         return obj.cronograma.numero if obj.cronograma else None
 
     def get_pregao_chamada_publica(self, obj):
-        return obj.cronograma.contrato.pregao_chamada_publica if obj.cronograma.contrato else None
+        return (
+            obj.cronograma.contrato.pregao_chamada_publica
+            if obj.cronograma.contrato
+            else None
+        )
 
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
 
     def get_criado_em(self, obj):
-        return obj.criado_em.strftime('%d/%m/%Y')
+        return obj.criado_em.strftime("%d/%m/%Y")
 
     class Meta:
         model = DocumentoDeRecebimento
-        fields = ('uuid', 'numero_cronograma', 'pregao_chamada_publica', 'nome_produto', 'numero_laudo', 'status',
-                  'criado_em', 'tipos_de_documentos', 'correcao_solicitada',)
+        fields = (
+            "uuid",
+            "numero_cronograma",
+            "pregao_chamada_publica",
+            "nome_produto",
+            "numero_laudo",
+            "status",
+            "criado_em",
+            "tipos_de_documentos",
+            "correcao_solicitada",
+            "log_mais_recente",
+        )
 
 
 class DataDeFabricacaoEPrazoLookupSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataDeFabricaoEPrazo
-        exclude = ('id', 'documento_recebimento')
+        exclude = ("id", "documento_recebimento")
 
 
 class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
-    laboratorio = serializers.UUIDField(source='laboratorio.uuid', read_only=True)
-    unidade_medida = serializers.UUIDField(source='unidade_medida.uuid', read_only=True)
+    laboratorio = LaboratorioCredenciadoSimplesSerializer()
+    unidade_medida = NomeEAbreviacaoUnidadeMedidaSerializer()
     datas_fabricacao_e_prazos = DataDeFabricacaoEPrazoLookupSerializer(many=True)
     numero_sei = serializers.SerializerMethodField()
     fornecedor = serializers.SerializerMethodField()
@@ -435,7 +588,60 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
         return obj.cronograma.empresa.nome_fantasia if obj.cronograma.empresa else None
 
     class Meta(DocRecebimentoDetalharSerializer.Meta):
-        fields = DocRecebimentoDetalharSerializer.Meta.fields + ('fornecedor', 'numero_sei', 'laboratorio',
-                                                                 'quantidade_laudo', 'unidade_medida', 'saldo_laudo',
-                                                                 'data_fabricacao_lote', 'validade_produto',
-                                                                 'data_final_lote', 'datas_fabricacao_e_prazos',)
+        fields = DocRecebimentoDetalharSerializer.Meta.fields + (
+            "fornecedor",
+            "numero_sei",
+            "laboratorio",
+            "quantidade_laudo",
+            "unidade_medida",
+            "saldo_laudo",
+            "data_fabricacao_lote",
+            "validade_produto",
+            "data_final_lote",
+            "datas_fabricacao_e_prazos",
+            "correcao_solicitada",
+        )
+
+
+class FichaTecnicalistagemSerializer(serializers.ModelSerializer):
+    # TODO: personalizar quando entrar a história de filtros e listagem
+    class Meta:
+        model = FichaTecnicaDoProduto
+        exclude = ("id",)
+
+
+class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
+    criado_em = serializers.SerializerMethodField()
+    produto = NomeDeProdutoEditalSerializer()
+    marca = MarcaSimplesSerializer()
+    empresa = TerceirizadaLookUpSerializer()
+    fabricante = FabricanteSimplesSerializer()
+    status = serializers.CharField(source="get_status_display")
+
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime("%d/%m/%Y")
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = (
+            "uuid",
+            "numero",
+            "produto",
+            "pregao_chamada_publica",
+            "marca",
+            "categoria",
+            "status",
+            "criado_em",
+            "empresa",
+            "fabricante",
+            "cnpj_fabricante",
+            "cep_fabricante",
+            "endereco_fabricante",
+            "numero_fabricante",
+            "complemento_fabricante",
+            "bairro_fabricante",
+            "cidade_fabricante",
+            "estado_fabricante",
+            "email_fabricante",
+            "telefone_fabricante",
+        )

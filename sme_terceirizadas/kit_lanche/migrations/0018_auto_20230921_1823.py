@@ -4,25 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kit_lanche', '0017_auto_20230120_1711'),
+        ("kit_lanche", "0017_auto_20230120_1711"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaokitlancheavulsa',
-            name='evento',
+            model_name="solicitacaokitlancheavulsa",
+            name="evento",
             field=models.CharField(blank=True, max_length=160),
         ),
         migrations.AddField(
-            model_name='solicitacaokitlancheceiavulsa',
-            name='evento',
+            model_name="solicitacaokitlancheceiavulsa",
+            name="evento",
             field=models.CharField(blank=True, max_length=160),
         ),
         migrations.AddField(
-            model_name='solicitacaokitlanchecemei',
-            name='evento',
+            model_name="solicitacaokitlanchecemei",
+            name="evento",
             field=models.CharField(blank=True, max_length=160),
         ),
     ]

@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0012_auto_20200210_1101'),
+        ("cardapio", "0012_auto_20200210_1101"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='tipoalimentacao',
-            name='substituicoes',
+            model_name="tipoalimentacao",
+            name="substituicoes",
         ),
     ]

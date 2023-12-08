@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0023_remove_produto_detalhes_da_dieta'),
+        ("produto", "0023_remove_produto_detalhes_da_dieta"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='informacoesnutricionaisdoproduto',
-            name='quantidade_porcao',
+            model_name="informacoesnutricionaisdoproduto",
+            name="quantidade_porcao",
             field=models.CharField(max_length=10),
         ),
     ]

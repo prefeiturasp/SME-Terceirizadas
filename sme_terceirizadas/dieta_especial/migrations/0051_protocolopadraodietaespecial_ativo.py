@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dieta_especial', '0050_auto_20230116_1142'),
+        ("dieta_especial", "0050_auto_20230116_1142"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='protocolopadraodietaespecial',
-            name='ativo',
-            field=models.BooleanField(default=True, verbose_name='Está ativo?'),
+            model_name="protocolopadraodietaespecial",
+            name="ativo",
+            field=models.BooleanField(default=True, verbose_name="Está ativo?"),
         ),
     ]

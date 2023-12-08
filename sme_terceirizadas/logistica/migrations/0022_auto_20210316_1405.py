@@ -5,20 +5,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0021_auto_20210315_1423'),
+        ("logistica", "0021_auto_20210315_1423"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaodealteracaorequisicao',
-            name='justificativa_negacao',
-            field=models.TextField(blank=True, verbose_name='Justificativa de negacao pela dilog'),
+            model_name="solicitacaodealteracaorequisicao",
+            name="justificativa_negacao",
+            field=models.TextField(
+                blank=True, verbose_name="Justificativa de negacao pela dilog"
+            ),
         ),
         migrations.AlterField(
-            model_name='solicitacaoremessa',
-            name='status',
-            field=django_xworkflows.models.StateField(max_length=31, workflow=django_xworkflows.models._SerializedWorkflow(initial_state='AGUARDANDO_ENVIO', name='SolicitacaoRemessaWorkFlow', states=['AGUARDANDO_ENVIO', 'DILOG_ENVIA', 'CANCELADA', 'DISTRIBUIDOR_CONFIRMA', 'DISTRIBUIDOR_SOLICITA_ALTERACAO', 'DILOG_ACEITA_ALTERACAO', 'DILOG_NEGA_ALTERACAO'])),
+            model_name="solicitacaoremessa",
+            name="status",
+            field=django_xworkflows.models.StateField(
+                max_length=31,
+                workflow=django_xworkflows.models._SerializedWorkflow(
+                    initial_state="AGUARDANDO_ENVIO",
+                    name="SolicitacaoRemessaWorkFlow",
+                    states=[
+                        "AGUARDANDO_ENVIO",
+                        "DILOG_ENVIA",
+                        "CANCELADA",
+                        "DISTRIBUIDOR_CONFIRMA",
+                        "DISTRIBUIDOR_SOLICITA_ALTERACAO",
+                        "DILOG_ACEITA_ALTERACAO",
+                        "DILOG_NEGA_ALTERACAO",
+                    ],
+                ),
+            ),
         ),
     ]

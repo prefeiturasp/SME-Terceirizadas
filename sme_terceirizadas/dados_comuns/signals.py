@@ -17,11 +17,15 @@ def post_save(sender, instance, created, **kwargs):
         channel_layer = get_channel_layer()
 
         async_to_sync(channel_layer.group_send)(
-            'solicitacoes_abertas',
+            "solicitacoes_abertas",
             {
-                'type': 'solicitacao.message',
-                'data': {'message': SolicitacaoAbertaSerializer(SolicitacaoAberta.objects.all(), many=True).data}
-            }
+                "type": "solicitacao.message",
+                "data": {
+                    "message": SolicitacaoAbertaSerializer(
+                        SolicitacaoAberta.objects.all(), many=True
+                    ).data
+                },
+            },
         )
 
     except Exception as e:
@@ -34,11 +38,15 @@ def post_delete(sender, instance, **kwargs):
         channel_layer = get_channel_layer()
 
         async_to_sync(channel_layer.group_send)(
-            'solicitacoes_abertas',
+            "solicitacoes_abertas",
             {
-                'type': 'solicitacao.message',
-                'data': {'message': SolicitacaoAbertaSerializer(SolicitacaoAberta.objects.all(), many=True).data}
-            }
+                "type": "solicitacao.message",
+                "data": {
+                    "message": SolicitacaoAbertaSerializer(
+                        SolicitacaoAberta.objects.all(), many=True
+                    ).data
+                },
+            },
         )
 
     except Exception as e:

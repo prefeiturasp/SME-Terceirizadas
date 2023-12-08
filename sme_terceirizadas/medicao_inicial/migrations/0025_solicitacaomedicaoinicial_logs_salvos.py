@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('medicao_inicial', '0024_auto_20230817_1916'),
+        ("medicao_inicial", "0024_auto_20230817_1916"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaomedicaoinicial',
-            name='logs_salvos',
-            field=models.BooleanField(default=False, verbose_name='Logs de matriculados, dietas autorizadas, etc foram salvos?'),
+            model_name="solicitacaomedicaoinicial",
+            name="logs_salvos",
+            field=models.BooleanField(
+                default=False,
+                verbose_name="Logs de matriculados, dietas autorizadas, etc foram salvos?",
+            ),
         ),
     ]

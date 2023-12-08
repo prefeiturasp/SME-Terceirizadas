@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0031_homologacaodoproduto_protocolo_analise_sensorial'),
-        ('produto', '0031_anexorespostaanalisesensorial_respostaanalisesensorial'),
+        ("produto", "0031_homologacaodoproduto_protocolo_analise_sensorial"),
+        ("produto", "0031_anexorespostaanalisesensorial_respostaanalisesensorial"),
     ]
 
-    operations = [
-    ]
+    operations = []

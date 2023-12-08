@@ -4,22 +4,21 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0030_diasmotivosinclusaodealimentacaocei'),
+        ("inclusao_alimentacao", "0030_diasmotivosinclusaodealimentacaocei"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='inclusaoalimentacaodacei',
-            name='data',
+            model_name="inclusaoalimentacaodacei",
+            name="data",
         ),
         migrations.RemoveField(
-            model_name='inclusaoalimentacaodacei',
-            name='motivo',
+            model_name="inclusaoalimentacaodacei",
+            name="motivo",
         ),
         migrations.RemoveField(
-            model_name='inclusaoalimentacaodacei',
-            name='outro_motivo',
+            model_name="inclusaoalimentacaodacei",
+            name="outro_motivo",
         ),
     ]

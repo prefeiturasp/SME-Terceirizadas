@@ -14,7 +14,7 @@ from ..models import (
     TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout,
     TipoEmbalagemQld,
-    UnidadeMedida
+    UnidadeMedida,
 )
 
 pytestmark = pytest.mark.django_db
@@ -25,12 +25,12 @@ def test_cronograma_instance_model(cronograma):
 
 
 def test_cronograma_srt_model(cronograma):
-    assert cronograma.__str__() == 'Cronograma: 001/2022 - Status: Rascunho'
+    assert cronograma.__str__() == "Cronograma: 001/2022 - Status: Rascunho"
 
 
 def test_cronograma_meta_modelo(cronograma):
-    assert cronograma._meta.verbose_name == 'Cronograma'
-    assert cronograma._meta.verbose_name_plural == 'Cronogramas'
+    assert cronograma._meta.verbose_name == "Cronograma"
+    assert cronograma._meta.verbose_name_plural == "Cronogramas"
 
 
 def test_etapas_do_cronograma_instance_model(etapa):
@@ -38,12 +38,12 @@ def test_etapas_do_cronograma_instance_model(etapa):
 
 
 def test_etapas_do_cronograma_srt_model(etapa):
-    assert etapa.__str__() == 'Etapa 1 do cronogrma 001/2022'
+    assert etapa.__str__() == "Etapa 1 do cronogrma 001/2022"
 
 
 def test_etapas_do_cronograma_meta_modelo(etapa):
-    assert etapa._meta.verbose_name == 'Etapa do Cronograma'
-    assert etapa._meta.verbose_name_plural == 'Etapas dos Cronogramas'
+    assert etapa._meta.verbose_name == "Etapa do Cronograma"
+    assert etapa._meta.verbose_name_plural == "Etapas dos Cronogramas"
 
 
 def test_programacao_de_recebimento_do_cronograma_instance_model(programacao):
@@ -51,12 +51,15 @@ def test_programacao_de_recebimento_do_cronograma_instance_model(programacao):
 
 
 def test_programacao_de_recebimento_do_cronograma_srt_model(programacao):
-    assert programacao.__str__() == '01/01/2022'
+    assert programacao.__str__() == "01/01/2022"
 
 
 def test_programacao_de_recebimento_do_cronograma_meta_modelo(programacao):
-    assert programacao._meta.verbose_name == 'Programação do Recebimento do Cromograma'
-    assert programacao._meta.verbose_name_plural == 'Programações dos Recebimentos dos Cromogramas'
+    assert programacao._meta.verbose_name == "Programação do Recebimento do Cromograma"
+    assert (
+        programacao._meta.verbose_name_plural
+        == "Programações dos Recebimentos dos Cromogramas"
+    )
 
 
 def test_laboratorio_instance_model(laboratorio):
@@ -64,12 +67,12 @@ def test_laboratorio_instance_model(laboratorio):
 
 
 def test_laboratorio_srt_model(laboratorio):
-    assert laboratorio.__str__() == 'Labo Test'
+    assert laboratorio.__str__() == "Labo Test"
 
 
 def test_laboratorio_meta_modelo(laboratorio):
-    assert laboratorio._meta.verbose_name == 'Laboratório'
-    assert laboratorio._meta.verbose_name_plural == 'Laboratórios'
+    assert laboratorio._meta.verbose_name == "Laboratório"
+    assert laboratorio._meta.verbose_name_plural == "Laboratórios"
 
 
 def test_embalagem_instance_model(tipo_emabalagem_qld):
@@ -77,18 +80,21 @@ def test_embalagem_instance_model(tipo_emabalagem_qld):
 
 
 def test_embalagem_srt_model(tipo_emabalagem_qld):
-    assert tipo_emabalagem_qld.__str__() == 'CAIXA'
+    assert tipo_emabalagem_qld.__str__() == "CAIXA"
 
 
 def test_embalagem_meta_modelo(tipo_emabalagem_qld):
-    assert tipo_emabalagem_qld._meta.verbose_name == 'Tipo de Embalagem (Qualidade)'
-    assert tipo_emabalagem_qld._meta.verbose_name_plural == 'Tipos de Embalagens (Qualidade)'
+    assert tipo_emabalagem_qld._meta.verbose_name == "Tipo de Embalagem (Qualidade)"
+    assert (
+        tipo_emabalagem_qld._meta.verbose_name_plural
+        == "Tipos de Embalagens (Qualidade)"
+    )
 
 
 def test_unidade_medida_model(unidade_medida_logistica):
     """Deve possuir os campos nome e abreviacao."""
-    assert unidade_medida_logistica.nome == 'UNIDADE TESTE'
-    assert unidade_medida_logistica.abreviacao == 'ut'
+    assert unidade_medida_logistica.nome == "UNIDADE TESTE"
+    assert unidade_medida_logistica.abreviacao == "ut"
 
 
 def test_unidade_medida_model_str(unidade_medida_logistica):
@@ -98,10 +104,7 @@ def test_unidade_medida_model_str(unidade_medida_logistica):
 
 def test_unidade_medida_model_save():
     """Deve converter atributo nome para caixa alta e atributo abreviacao para caixa baixa."""
-    data = {
-        'nome': 'uma unidade qualquer',
-        'abreviacao': 'UMQ'
-    }
+    data = {"nome": "uma unidade qualquer", "abreviacao": "UMQ"}
     obj = UnidadeMedida.objects.create(**data)
 
     assert obj.nome.isupper()
@@ -113,24 +116,26 @@ def test_laboratorio_model_str(laboratorio):
 
 
 def test_etapas_cronograma_model_str(etapa):
-    etapa.etapa = ''
+    etapa.etapa = ""
     etapa.save()
-    assert str(etapa) == f'Etapa do cronogrma {etapa.cronograma.numero}'
+    assert str(etapa) == f"Etapa do cronogrma {etapa.cronograma.numero}"
 
     etapa.cronograma = None
     etapa.save()
-    assert str(etapa) == 'Etapa sem cronograma'
+    assert str(etapa) == "Etapa sem cronograma"
 
 
 def test_programacao_recebimento_cronograma_model_str(programacao):
     assert str(programacao) == programacao.data_programada
 
-    programacao.data_programada = ''
+    programacao.data_programada = ""
     programacao.save()
     assert str(programacao) == str(programacao.id)
 
 
-def test_solicitacao_alteracao_cronograma_queryset_em_analise(solicitacao_cronograma_em_analise):
+def test_solicitacao_alteracao_cronograma_queryset_em_analise(
+    solicitacao_cronograma_em_analise,
+):
     qs = SolicitacaoAlteracaoCronograma.objects.em_analise()
     assert qs.count() == 1
     assert qs.first() == solicitacao_cronograma_em_analise
@@ -141,10 +146,13 @@ def test_solicitacao_alteracao_cronograma_queryset_filtrar_por_status(
     solicitacao_cronograma_ciente,
     solicitacao_cronograma_aprovado_dinutre,
     produto_arroz,
-    empresa
+    empresa,
 ):
     qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
-        status=[CronogramaAlteracaoWorkflow.EM_ANALISE, CronogramaAlteracaoWorkflow.APROVADO_DINUTRE]
+        status=[
+            CronogramaAlteracaoWorkflow.EM_ANALISE,
+            CronogramaAlteracaoWorkflow.APROVADO_DINUTRE,
+        ]
     )
     assert qs.count() == 2
     assert solicitacao_cronograma_em_analise in qs
@@ -157,19 +165,21 @@ def test_solicitacao_alteracao_cronograma_queryset_filtrar_por_status(
 
     qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
         status=[CronogramaAlteracaoWorkflow.EM_ANALISE],
-        filtros={'nome_fornecedor': empresa.nome_fantasia}
+        filtros={"nome_fornecedor": empresa.nome_fantasia},
     )
     assert qs.count() == 1
 
     qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
         status=[CronogramaAlteracaoWorkflow.EM_ANALISE],
-        filtros={'numero_cronograma': solicitacao_cronograma_em_analise.cronograma.numero}
+        filtros={
+            "numero_cronograma": solicitacao_cronograma_em_analise.cronograma.numero
+        },
     )
     assert qs.count() == 1
 
     qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
         status=[CronogramaAlteracaoWorkflow.EM_ANALISE],
-        filtros={'nome_produto': produto_arroz.nome}
+        filtros={"nome_produto": produto_arroz.nome},
     )
     assert qs.count() == 1
 
@@ -182,12 +192,12 @@ def test_layout_de_embalagem_instance_model(layout_de_embalagem):
 
 
 def test_layout_de_embalagem_srt_model(layout_de_embalagem):
-    assert layout_de_embalagem.__str__() == '004/2022 - Macarrão'
+    assert layout_de_embalagem.__str__() == "004/2022 - Macarrão"
 
 
 def test_layout_de_embalagem_meta_modelo(layout_de_embalagem):
-    assert layout_de_embalagem._meta.verbose_name == 'Layout de Embalagem'
-    assert layout_de_embalagem._meta.verbose_name_plural == 'Layouts de Embalagem'
+    assert layout_de_embalagem._meta.verbose_name == "Layout de Embalagem"
+    assert layout_de_embalagem._meta.verbose_name_plural == "Layouts de Embalagem"
 
 
 def test_tipo_de_embalagem_instance_model(tipo_de_embalagem_de_layout):
@@ -200,12 +210,17 @@ def test_tipo_de_embalagem_instance_model(tipo_de_embalagem_de_layout):
 
 
 def test_tipo_de_embalagem_srt_model(tipo_de_embalagem_de_layout):
-    assert tipo_de_embalagem_de_layout.__str__() == 'PRIMARIA - APROVADO'
+    assert tipo_de_embalagem_de_layout.__str__() == "PRIMARIA - APROVADO"
 
 
 def test_tipo_de_embalagem_meta_modelo(tipo_de_embalagem_de_layout):
-    assert tipo_de_embalagem_de_layout._meta.verbose_name == 'Tipo de Embalagem de Layout'
-    assert tipo_de_embalagem_de_layout._meta.verbose_name_plural == 'Tipos de Embalagens de Layout'
+    assert (
+        tipo_de_embalagem_de_layout._meta.verbose_name == "Tipo de Embalagem de Layout"
+    )
+    assert (
+        tipo_de_embalagem_de_layout._meta.verbose_name_plural
+        == "Tipos de Embalagens de Layout"
+    )
 
 
 def test_documento_de_recebimento_instance_model(documento_de_recebimento_factory):
@@ -218,17 +233,27 @@ def test_documento_de_recebimento_instance_model(documento_de_recebimento_factor
 
 def test_documento_de_recebimento_srt_model(documento_de_recebimento_factory):
     documento = documento_de_recebimento_factory.create()
-    assert documento.__str__() == f'{documento.cronograma.numero} - Laudo: {documento.numero_laudo}'
+    assert (
+        documento.__str__()
+        == f"{documento.cronograma.numero} - Laudo: {documento.numero_laudo}"
+    )
 
 
 def test_documento_de_recebimento_meta_modelo(documento_de_recebimento_factory):
     documento_de_recebimento = documento_de_recebimento_factory.create()
-    assert documento_de_recebimento._meta.verbose_name == 'Documento de Recebimento'
-    assert documento_de_recebimento._meta.verbose_name_plural == 'Documentos de Recebimento'
+    assert documento_de_recebimento._meta.verbose_name == "Documento de Recebimento"
+    assert (
+        documento_de_recebimento._meta.verbose_name_plural
+        == "Documentos de Recebimento"
+    )
 
 
-def test_tipo_de_documento_de_recebimento_instance_model(tipo_de_documento_de_recebimento_factory):
-    tipo_de_documento = tipo_de_documento_de_recebimento_factory.create(descricao_documento=fake.text())
+def test_tipo_de_documento_de_recebimento_instance_model(
+    tipo_de_documento_de_recebimento_factory,
+):
+    tipo_de_documento = tipo_de_documento_de_recebimento_factory.create(
+        descricao_documento=fake.text()
+    )
     model = tipo_de_documento
     assert isinstance(model, TipoDeDocumentoDeRecebimento)
     assert model.documento_recebimento
@@ -236,12 +261,19 @@ def test_tipo_de_documento_de_recebimento_instance_model(tipo_de_documento_de_re
     assert model.descricao_documento
 
 
-def test_tipo_de_documento_de_recebimento_srt_model(tipo_de_documento_de_recebimento_factory):
+def test_tipo_de_documento_de_recebimento_srt_model(
+    tipo_de_documento_de_recebimento_factory,
+):
     obj = tipo_de_documento_de_recebimento_factory.create()
-    assert obj.__str__() == f'{obj.documento_recebimento.cronograma.numero} - {obj.tipo_documento}'
+    assert (
+        obj.__str__()
+        == f"{obj.documento_recebimento.cronograma.numero} - {obj.tipo_documento}"
+    )
 
 
-def test_tipo_de_documento_de_recebimento_meta_modelo(tipo_de_documento_de_recebimento_factory):
+def test_tipo_de_documento_de_recebimento_meta_modelo(
+    tipo_de_documento_de_recebimento_factory,
+):
     obj = tipo_de_documento_de_recebimento_factory.create()
-    assert obj._meta.verbose_name == 'Tipo de Documento de Recebimento'
-    assert obj._meta.verbose_name_plural == 'Tipos de Documentos de Recebimento'
+    assert obj._meta.verbose_name == "Tipo de Documento de Recebimento"
+    assert obj._meta.verbose_name_plural == "Tipos de Documentos de Recebimento"

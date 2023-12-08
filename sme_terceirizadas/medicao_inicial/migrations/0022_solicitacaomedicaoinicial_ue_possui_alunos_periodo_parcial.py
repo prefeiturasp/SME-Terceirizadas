@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('medicao_inicial', '0021_delete_anexoocorrenciamedicaoinicial'),
+        ("medicao_inicial", "0021_delete_anexoocorrenciamedicaoinicial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaomedicaoinicial',
-            name='ue_possui_alunos_periodo_parcial',
-            field=models.BooleanField(default=False, verbose_name='Possui alunos periodo parcial?'),
+            model_name="solicitacaomedicaoinicial",
+            name="ue_possui_alunos_periodo_parcial",
+            field=models.BooleanField(
+                default=False, verbose_name="Possui alunos periodo parcial?"
+            ),
         ),
     ]

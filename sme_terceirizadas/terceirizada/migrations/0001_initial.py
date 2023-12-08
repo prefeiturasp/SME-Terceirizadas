@@ -11,108 +11,286 @@ import sme_terceirizadas.dados_comuns.behaviors
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('escola', '0001_initial'),
-        ('dados_comuns', '0001_initial'),
+        ("escola", "0001_initial"),
+        ("dados_comuns", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Contrato',
+            name="Contrato",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('numero', models.CharField(max_length=100, verbose_name='No do contrato')),
-                ('processo', models.CharField(help_text='Processo administrativo do contrato', max_length=100, verbose_name='Processo Administrativo')),
-                ('data_proposta', models.DateField(verbose_name='Data da proposta')),
-                ('diretorias_regionais', models.ManyToManyField(related_name='contratos_da_diretoria_regional', to='escola.DiretoriaRegional')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "numero",
+                    models.CharField(max_length=100, verbose_name="No do contrato"),
+                ),
+                (
+                    "processo",
+                    models.CharField(
+                        help_text="Processo administrativo do contrato",
+                        max_length=100,
+                        verbose_name="Processo Administrativo",
+                    ),
+                ),
+                ("data_proposta", models.DateField(verbose_name="Data da proposta")),
+                (
+                    "diretorias_regionais",
+                    models.ManyToManyField(
+                        related_name="contratos_da_diretoria_regional",
+                        to="escola.DiretoriaRegional",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Contrato',
-                'verbose_name_plural': 'Contratos',
+                "verbose_name": "Contrato",
+                "verbose_name_plural": "Contratos",
             },
         ),
         migrations.CreateModel(
-            name='Edital',
+            name="Edital",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('numero', models.CharField(help_text='Número do Edital', max_length=100, unique=True, verbose_name='Edital No')),
-                ('tipo_contratacao', models.CharField(max_length=100, verbose_name='Tipo de contratação')),
-                ('processo', models.CharField(help_text='Processo administrativo do edital', max_length=100, verbose_name='Processo Administrativo')),
-                ('objeto', models.TextField(verbose_name='objeto resumido')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "numero",
+                    models.CharField(
+                        help_text="Número do Edital",
+                        max_length=100,
+                        unique=True,
+                        verbose_name="Edital No",
+                    ),
+                ),
+                (
+                    "tipo_contratacao",
+                    models.CharField(
+                        max_length=100, verbose_name="Tipo de contratação"
+                    ),
+                ),
+                (
+                    "processo",
+                    models.CharField(
+                        help_text="Processo administrativo do edital",
+                        max_length=100,
+                        verbose_name="Processo Administrativo",
+                    ),
+                ),
+                ("objeto", models.TextField(verbose_name="objeto resumido")),
             ],
             options={
-                'verbose_name': 'Edital',
-                'verbose_name_plural': 'Editais',
+                "verbose_name": "Edital",
+                "verbose_name_plural": "Editais",
             },
         ),
         migrations.CreateModel(
-            name='VigenciaContrato',
+            name="VigenciaContrato",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('data_inicial', models.DateField(verbose_name='Data inicial')),
-                ('data_final', models.DateField(verbose_name='Data final')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('contrato', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='vigencias', to='terceirizada.Contrato')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("data_inicial", models.DateField(verbose_name="Data inicial")),
+                ("data_final", models.DateField(verbose_name="Data final")),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "contrato",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="vigencias",
+                        to="terceirizada.Contrato",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Vigência de contrato',
-                'verbose_name_plural': 'Vigências de contrato',
+                "verbose_name": "Vigência de contrato",
+                "verbose_name_plural": "Vigências de contrato",
             },
         ),
         migrations.CreateModel(
-            name='Terceirizada',
+            name="Terceirizada",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ativo', models.BooleanField(default=True, verbose_name='Está ativo?')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('nome_fantasia', models.CharField(blank=True, max_length=160, verbose_name='Nome fantasia')),
-                ('razao_social', models.CharField(blank=True, max_length=160, verbose_name='Razao social')),
-                ('cnpj', models.CharField(max_length=14, validators=[django.core.validators.MinLengthValidator(14)], verbose_name='CNPJ')),
-                ('representante_legal', models.CharField(blank=True, max_length=160, verbose_name='Representante legal')),
-                ('representante_telefone', models.CharField(blank=True, max_length=160, verbose_name='Representante contato (telefone)')),
-                ('representante_email', models.CharField(blank=True, max_length=160, verbose_name='Representante contato (email)')),
-                ('endereco', models.CharField(blank=True, max_length=160, verbose_name='Endereco')),
-                ('cep', models.CharField(blank=True, max_length=8, verbose_name='CEP')),
-                ('contatos', models.ManyToManyField(blank=True, to='dados_comuns.Contato')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "ativo",
+                    models.BooleanField(default=True, verbose_name="Está ativo?"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "nome_fantasia",
+                    models.CharField(
+                        blank=True, max_length=160, verbose_name="Nome fantasia"
+                    ),
+                ),
+                (
+                    "razao_social",
+                    models.CharField(
+                        blank=True, max_length=160, verbose_name="Razao social"
+                    ),
+                ),
+                (
+                    "cnpj",
+                    models.CharField(
+                        max_length=14,
+                        validators=[django.core.validators.MinLengthValidator(14)],
+                        verbose_name="CNPJ",
+                    ),
+                ),
+                (
+                    "representante_legal",
+                    models.CharField(
+                        blank=True, max_length=160, verbose_name="Representante legal"
+                    ),
+                ),
+                (
+                    "representante_telefone",
+                    models.CharField(
+                        blank=True,
+                        max_length=160,
+                        verbose_name="Representante contato (telefone)",
+                    ),
+                ),
+                (
+                    "representante_email",
+                    models.CharField(
+                        blank=True,
+                        max_length=160,
+                        verbose_name="Representante contato (email)",
+                    ),
+                ),
+                (
+                    "endereco",
+                    models.CharField(
+                        blank=True, max_length=160, verbose_name="Endereco"
+                    ),
+                ),
+                ("cep", models.CharField(blank=True, max_length=8, verbose_name="CEP")),
+                (
+                    "contatos",
+                    models.ManyToManyField(blank=True, to="dados_comuns.Contato"),
+                ),
             ],
             options={
-                'verbose_name': 'Terceirizada',
-                'verbose_name_plural': 'Terceirizadas',
+                "verbose_name": "Terceirizada",
+                "verbose_name_plural": "Terceirizadas",
             },
         ),
         migrations.CreateModel(
-            name='Nutricionista',
+            name="Nutricionista",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(blank=True, max_length=100, verbose_name='Nome')),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('crn_numero', models.CharField(blank=True, max_length=160, verbose_name='Nutricionista crn')),
-                ('contatos', models.ManyToManyField(blank=True, to='dados_comuns.Contato')),
-                ('terceirizada', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='nutricionistas', to='terceirizada.Terceirizada')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(blank=True, max_length=100, verbose_name="Nome"),
+                ),
+                (
+                    "uuid",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "crn_numero",
+                    models.CharField(
+                        blank=True, max_length=160, verbose_name="Nutricionista crn"
+                    ),
+                ),
+                (
+                    "contatos",
+                    models.ManyToManyField(blank=True, to="dados_comuns.Contato"),
+                ),
+                (
+                    "terceirizada",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="nutricionistas",
+                        to="terceirizada.Terceirizada",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Nutricionista',
-                'verbose_name_plural': 'Nutricionistas',
+                "verbose_name": "Nutricionista",
+                "verbose_name_plural": "Nutricionistas",
             },
         ),
         migrations.AddField(
-            model_name='contrato',
-            name='edital',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='contratos', to='terceirizada.Edital'),
+            model_name="contrato",
+            name="edital",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="contratos",
+                to="terceirizada.Edital",
+            ),
         ),
         migrations.AddField(
-            model_name='contrato',
-            name='lotes',
-            field=models.ManyToManyField(related_name='contratos_do_lote', to='escola.Lote'),
+            model_name="contrato",
+            name="lotes",
+            field=models.ManyToManyField(
+                related_name="contratos_do_lote", to="escola.Lote"
+            ),
         ),
         migrations.AddField(
-            model_name='contrato',
-            name='terceirizada',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contratos', to='terceirizada.Terceirizada'),
+            model_name="contrato",
+            name="terceirizada",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="contratos",
+                to="terceirizada.Terceirizada",
+            ),
         ),
     ]

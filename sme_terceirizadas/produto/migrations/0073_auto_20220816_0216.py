@@ -4,25 +4,24 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0072_auto_20220804_1207'),
+        ("produto", "0072_auto_20220804_1207"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='analisesensorial',
-            name='homologacao_de_produto',
+            model_name="analisesensorial",
+            name="homologacao_de_produto",
         ),
         migrations.RemoveField(
-            model_name='reclamacaodeproduto',
-            name='homologacao_de_produto',
+            model_name="reclamacaodeproduto",
+            name="homologacao_de_produto",
         ),
         migrations.RemoveField(
-            model_name='respostaanalisesensorial',
-            name='homologacao_de_produto',
+            model_name="respostaanalisesensorial",
+            name="homologacao_de_produto",
         ),
         migrations.DeleteModel(
-            name='HomologacaoDoProduto',
+            name="HomologacaoDoProduto",
         ),
     ]

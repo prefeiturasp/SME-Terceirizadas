@@ -9,5 +9,5 @@ from .usuario import (  # noqa F401
     ImportacaoPlanilhaUsuarioServidorCoreSSO,
     ImportacaoPlanilhaUsuarioUEParceiraCoreSSO,
     PlanilhaDiretorCogestor,
-    Usuario
+    Usuario,
 )

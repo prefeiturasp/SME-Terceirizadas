@@ -5,11 +5,8 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dados_comuns', '0025_auto_20201219_0530'),
+        ("dados_comuns", "0025_auto_20201219_0530"),
     ]
 
-    operations = [
-        UnaccentExtension()
-    ]
+    operations = [UnaccentExtension()]

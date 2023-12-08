@@ -8,16 +8,16 @@ from sme_terceirizadas.dieta_especial.models import (
     Alimento,
     ClassificacaoDieta,
     SolicitacaoDietaEspecial,
-    SubstituicaoAlimento
+    SubstituicaoAlimento,
 )
 from sme_terceirizadas.perfil.models import Usuario
 
 faker = Faker()
-fake = Faker('pt-br')
+fake = Faker("pt-br")
 
 
 def autorizar_dieta(dieta_uuid):
-    usuario = Usuario.objects.get(email='nutricodae@admin.com')
+    usuario = Usuario.objects.get(email="nutricodae@admin.com")
     alergias_intolerancias = choice(AlergiaIntolerancia.objects.all())
     classificacao = choice(ClassificacaoDieta.objects.all())
 
@@ -26,8 +26,10 @@ def autorizar_dieta(dieta_uuid):
     dieta.codae_autoriza(user=usuario)
     dieta.nome_protocolo = alergias_intolerancias.descricao
     dieta.classificacao = classificacao
-    dieta.informacoes_adicionais = f'<p>{fake.paragraph(nb_sentences=10)}</p>'
-    dieta.registro_funcional_nutricionista = f'Elaborado por {usuario.nome} - CRN {usuario.crn_numero}'
+    dieta.informacoes_adicionais = f"<p>{fake.paragraph(nb_sentences=10)}</p>"
+    dieta.registro_funcional_nutricionista = (
+        f"Elaborado por {usuario.nome} - CRN {usuario.crn_numero}"
+    )
     dieta.alergias_intolerancias.add(alergias_intolerancias)
     dieta.save()
 
@@ -39,7 +41,7 @@ def autorizar_dieta(dieta_uuid):
     substituicao_alimento = SubstituicaoAlimento.objects.create(
         solicitacao_dieta_especial=dieta,
         alimento=alimento,
-        tipo='S',
+        tipo="S",
         # substitutos=,
     )
     for i in alimentos_substitutos:
@@ -56,12 +58,13 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--uuid', '-u',
-            dest='uuid',
-            help='Informar uuid (5 primeiros dígitos) da dieta.'
+            "--uuid",
+            "-u",
+            dest="uuid",
+            help="Informar uuid (5 primeiros dígitos) da dieta.",
         )
 
     def handle(self, *args, **options):
-        uuid = options['uuid']
+        uuid = options["uuid"]
         dieta = autorizar_dieta(uuid)
-        self.stdout.write(f'Dieta Autorizada: {dieta}')
+        self.stdout.write(f"Dieta Autorizada: {dieta}")

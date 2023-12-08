@@ -4,20 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('inclusao_alimentacao', '0028_auto_20221121_1543'),
+        ("inclusao_alimentacao", "0028_auto_20221121_1543"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='quantidadeporperiodo',
-            name='cancelado',
-            field=models.BooleanField(default=False, verbose_name='Esta cancelado?'),
+            model_name="quantidadeporperiodo",
+            name="cancelado",
+            field=models.BooleanField(default=False, verbose_name="Esta cancelado?"),
         ),
         migrations.AddField(
-            model_name='quantidadeporperiodo',
-            name='cancelado_justificativa',
-            field=models.CharField(blank=True, max_length=500, verbose_name='Porque foi cancelado individualmente'),
+            model_name="quantidadeporperiodo",
+            name="cancelado_justificativa",
+            field=models.CharField(
+                blank=True,
+                max_length=500,
+                verbose_name="Porque foi cancelado individualmente",
+            ),
         ),
     ]

@@ -4,14 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0050_periodoescolar_posicao'),
+        ("escola", "0050_periodoescolar_posicao"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='periodoescolar',
-            options={'ordering': ('posicao',), 'verbose_name': 'Período escolar', 'verbose_name_plural': 'Períodos escolares'},
+            name="periodoescolar",
+            options={
+                "ordering": ("posicao",),
+                "verbose_name": "Período escolar",
+                "verbose_name_plural": "Períodos escolares",
+            },
         ),
     ]

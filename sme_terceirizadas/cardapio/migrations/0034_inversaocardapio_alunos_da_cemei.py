@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0033_auto_20220817_0827'),
+        ("cardapio", "0033_auto_20220817_0827"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='inversaocardapio',
-            name='alunos_da_cemei',
-            field=models.CharField(blank=True, max_length=50, null=True, verbose_name='Alunos da CEMEI'),
+            model_name="inversaocardapio",
+            name="alunos_da_cemei",
+            field=models.CharField(
+                blank=True, max_length=50, null=True, verbose_name="Alunos da CEMEI"
+            ),
         ),
     ]

@@ -1,10 +1,9 @@
-from utility.carga_dados.escola.helper import printa_pontinhos
-
 from sme_terceirizadas.cardapio.models import (
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
 )
 from sme_terceirizadas.escola.models import PeriodoEscolar, TipoUnidadeEscolar
+from utility.carga_dados.escola.helper import printa_pontinhos
 
 
 def vincula_tipo_alimentcao():
@@ -17,9 +16,11 @@ def vincula_tipo_unidade_escolar_periodo_escolar_combo_vazio():
     tipos_unidade_escolar = TipoUnidadeEscolar.objects.all()
     for tipo_ue in tipos_unidade_escolar:
         for periodo_escolar in tipo_ue.periodos_escolares.all():
-            vinculo, created = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.get_or_create(
-                tipo_unidade_escolar=tipo_ue,
-                periodo_escolar=periodo_escolar
+            (
+                vinculo,
+                created,
+            ) = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.get_or_create(
+                tipo_unidade_escolar=tipo_ue, periodo_escolar=periodo_escolar
             )
 
 

@@ -11,12 +11,12 @@ from sme_terceirizadas.dados_comuns.constants import (
     DILOG_CRONOGRAMA,
     DILOG_DIRETORIA,
     DILOG_QUALIDADE,
-    DINUTRE_DIRETORIA
+    DINUTRE_DIRETORIA,
 )
 from sme_terceirizadas.dados_comuns.fluxo_status import (
     CronogramaAlteracaoWorkflow,
     DocumentoDeRecebimentoWorkflow,
-    LayoutDeEmbalagemWorkflow
+    LayoutDeEmbalagemWorkflow,
 )
 
 
@@ -64,19 +64,23 @@ class BaseServiceDashboard:
         perfil = user.vinculo_atual.perfil.nome
 
         if perfil not in cls.STATUS_POR_PERFIL:
-            raise ValueError('Perfil não existe')
+            raise ValueError("Perfil não existe")
 
         return cls.STATUS_POR_PERFIL[perfil]
 
     def get_dados_dashboard(self) -> list:
-        lista_status_ver_mais = self.request.query_params.getlist('status', None)
-        offset = int(self.request.query_params.get('offset', 0))
-        limit = int(self.request.query_params.get('limit', 6))
+        lista_status_ver_mais = self.request.query_params.getlist("status", None)
+        offset = int(self.request.query_params.get("offset", 0))
+        limit = int(self.request.query_params.get("limit", 6))
 
-        filtered_queryset = self.filter_class(self.request.query_params, self.original_queryset).qs
+        filtered_queryset = self.filter_class(
+            self.request.query_params, self.original_queryset
+        ).qs
 
         if lista_status_ver_mais:
-            dados = self._get_dados_ver_mais(filtered_queryset, lista_status_ver_mais, offset, limit)
+            dados = self._get_dados_ver_mais(
+                filtered_queryset, lista_status_ver_mais, offset, limit
+            )
 
         else:
             dados = self._get_dados_cards(filtered_queryset, offset, limit)
@@ -86,9 +90,9 @@ class BaseServiceDashboard:
     def _get_dados_ver_mais(self, queryset_base, lista_status_ver_mais, offset, limit):
         qs = queryset_base.filter(status__in=lista_status_ver_mais)
         dados = {
-            'status': lista_status_ver_mais,
-            'total': len(qs),
-            'dados': self.serializer_class(qs[offset:offset + limit], many=True).data
+            "status": lista_status_ver_mais,
+            "total": len(qs),
+            "dados": self.serializer_class(qs[offset : offset + limit], many=True).data,
         }
 
         return dados
@@ -98,10 +102,14 @@ class BaseServiceDashboard:
         for status_perfil in self.get_dashboard_status(self.request.user):
             status_perfil_list = [status_perfil]
             qs = queryset_base.filter(status__in=status_perfil_list)
-            dados.append({
-                'status': status_perfil,
-                'dados': self.serializer_class(qs[offset:offset + limit], many=True).data
-            })
+            dados.append(
+                {
+                    "status": status_perfil,
+                    "dados": self.serializer_class(
+                        qs[offset : offset + limit], many=True
+                    ).data,
+                }
+            )
 
         return dados
 
@@ -113,7 +121,7 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles(BaseServiceDashboar
             CronogramaAlteracaoWorkflow.APROVADO_DINUTRE,
             CronogramaAlteracaoWorkflow.REPROVADO_DINUTRE,
             CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
-            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE
+            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE,
         ],
         DILOG_DIRETORIA: [
             CronogramaAlteracaoWorkflow.APROVADO_DINUTRE,
@@ -121,21 +129,21 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles(BaseServiceDashboar
             CronogramaAlteracaoWorkflow.APROVADO_DILOG,
             CronogramaAlteracaoWorkflow.REPROVADO_DILOG,
             CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
-            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE
+            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE,
         ],
         DILOG_CRONOGRAMA: [
             CronogramaAlteracaoWorkflow.EM_ANALISE,
             CronogramaAlteracaoWorkflow.APROVADO_DILOG,
             CronogramaAlteracaoWorkflow.REPROVADO_DILOG,
             CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
-            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE
+            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE,
         ],
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
             CronogramaAlteracaoWorkflow.EM_ANALISE,
             CronogramaAlteracaoWorkflow.APROVADO_DILOG,
             CronogramaAlteracaoWorkflow.REPROVADO_DILOG,
             CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
-            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE
+            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE,
         ],
     }
 
@@ -165,9 +173,11 @@ class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
         DILOG_QUALIDADE: [
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
         ],
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
         ],
     }

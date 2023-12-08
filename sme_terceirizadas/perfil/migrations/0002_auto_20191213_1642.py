@@ -4,20 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('perfil', '0001_initial'),
+        ("perfil", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='usuario',
-            name='crn_numero',
-            field=models.CharField(blank=True, max_length=160, verbose_name='Nutricionista crn'),
+            model_name="usuario",
+            name="crn_numero",
+            field=models.CharField(
+                blank=True, max_length=160, verbose_name="Nutricionista crn"
+            ),
         ),
         migrations.AddField(
-            model_name='usuario',
-            name='super_admin_terceirizadas',
-            field=models.BooleanField(default=False, verbose_name='É Administrador por parte das Terceirizadas?'),
+            model_name="usuario",
+            name="super_admin_terceirizadas",
+            field=models.BooleanField(
+                default=False,
+                verbose_name="É Administrador por parte das Terceirizadas?",
+            ),
         ),
     ]

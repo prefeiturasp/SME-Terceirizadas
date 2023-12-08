@@ -5,25 +5,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('cardapio', '0039_suspensaoalimentacaodacei_observacao'),
+        ("cardapio", "0039_suspensaoalimentacaodacei_observacao"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='faixaetariasubstituicaoalimentacaocei',
-            name='matriculados_quando_criado',
-            field=models.PositiveSmallIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1)]),
+            model_name="faixaetariasubstituicaoalimentacaocei",
+            name="matriculados_quando_criado",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                null=True,
+                validators=[django.core.validators.MinValueValidator(1)],
+            ),
         ),
         migrations.AddField(
-            model_name='faixaetariasubstituicaoalimentacaocemeicei',
-            name='matriculados_quando_criado',
-            field=models.PositiveSmallIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1)]),
+            model_name="faixaetariasubstituicaoalimentacaocemeicei",
+            name="matriculados_quando_criado",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                null=True,
+                validators=[django.core.validators.MinValueValidator(1)],
+            ),
         ),
         migrations.AddField(
-            model_name='substituicaoalimentacaonoperiodoescolarcemeiemei',
-            name='matriculados_quando_criado',
-            field=models.PositiveSmallIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1)]),
+            model_name="substituicaoalimentacaonoperiodoescolarcemeiemei",
+            name="matriculados_quando_criado",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                null=True,
+                validators=[django.core.validators.MinValueValidator(1)],
+            ),
         ),
     ]

@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('perfil', '0006_auto_20191216_1107'),
+        ("perfil", "0006_auto_20191216_1107"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='usuario',
-            options={'ordering': ('-super_admin_terceirizadas',)},
+            name="usuario",
+            options={"ordering": ("-super_admin_terceirizadas",)},
         ),
     ]

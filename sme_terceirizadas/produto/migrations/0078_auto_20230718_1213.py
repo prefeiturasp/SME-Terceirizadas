@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('produto', '0077_alter_nomedeprodutoedital_unique_together'),
+        ("produto", "0077_alter_nomedeprodutoedital_unique_together"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='homologacaoproduto',
-            name='eh_copia',
+            model_name="homologacaoproduto",
+            name="eh_copia",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='produto',
-            name='eh_copia',
+            model_name="produto",
+            name="eh_copia",
             field=models.BooleanField(default=False),
         ),
     ]

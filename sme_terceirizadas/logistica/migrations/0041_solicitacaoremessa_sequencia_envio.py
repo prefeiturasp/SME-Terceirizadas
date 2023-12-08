@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('logistica', '0040_auto_20210914_1043'),
+        ("logistica", "0040_auto_20210914_1043"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='solicitacaoremessa',
-            name='sequencia_envio',
-            field=models.IntegerField(null=True, verbose_name='Sequência de envio atribuído pelo papa'),
+            model_name="solicitacaoremessa",
+            name="sequencia_envio",
+            field=models.IntegerField(
+                null=True, verbose_name="Sequência de envio atribuído pelo papa"
+            ),
         ),
     ]

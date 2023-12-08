@@ -22,75 +22,87 @@ from .serializers.serializers import (
     EmailsPorModuloSerializer,
     EmailsTerceirizadaPorModuloSerializer,
     TerceirizadaLookUpSerializer,
-    TerceirizadaSimplesSerializer
+    TerceirizadaSimplesSerializer,
 )
 from .serializers.serializers_create import (
     CreateEmailTerceirizadaPorModuloSerializer,
     EditalContratosCreateSerializer,
     EmpresaNaoTerceirizadaCreateSerializer,
-    TerceirizadaCreateSerializer
+    TerceirizadaCreateSerializer,
 )
 
 
 class EditalViewSet(viewsets.ReadOnlyModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     serializer_class = EditalSerializer
     queryset = Edital.objects.all()
 
-    @action(detail=False, methods=['GET'], url_path='lista-numeros')
+    @action(detail=False, methods=["GET"], url_path="lista-numeros")
     def lista_numeros(self, request):
         queryset = self.get_queryset()
-        response = {'results': EditalSimplesSerializer(queryset, many=True).data}
+        response = {"results": EditalSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
 
-class EmpresaNaoTerceirizadaViewSet(viewsets.mixins.CreateModelMixin,
-                                    viewsets.mixins.UpdateModelMixin,
-                                    viewsets.mixins.DestroyModelMixin,
-                                    viewsets.GenericViewSet):
-    lookup_field = 'uuid'
-    queryset = Terceirizada.objects.all().order_by(Lower('razao_social'))
+class EmpresaNaoTerceirizadaViewSet(
+    viewsets.mixins.CreateModelMixin,
+    viewsets.mixins.UpdateModelMixin,
+    viewsets.mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    lookup_field = "uuid"
+    queryset = Terceirizada.objects.all().order_by(Lower("razao_social"))
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TerceirizadaFilter
     serializer_class = EmpresaNaoTerceirizadaCreateSerializer
 
 
 class TerceirizadaViewSet(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
-    queryset = Terceirizada.objects.all().order_by(Lower('razao_social'))
+    lookup_field = "uuid"
+    queryset = Terceirizada.objects.all().order_by(Lower("razao_social"))
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = TerceirizadaFilter
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ["create", "update", "partial_update"]:
             return TerceirizadaCreateSerializer
         return TerceirizadaSerializer
 
-    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    @action(detail=False, methods=["GET"], url_path="lista-nomes")
     def lista_nomes(self, request):
-        response = {'results': TerceirizadaSimplesSerializer(self.filter_queryset(self.get_queryset()), many=True).data}
+        response = {
+            "results": TerceirizadaSimplesSerializer(
+                self.filter_queryset(self.get_queryset()), many=True
+            ).data
+        }
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='lista-nomes-distribuidores')
+    @action(detail=False, methods=["GET"], url_path="lista-nomes-distribuidores")
     def lista_nomes_distribuidores(self, request):
-        queryset = Terceirizada.objects.filter(tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM)
-        response = {'results': DistribuidorSimplesSerializer(queryset, many=True).data}
+        queryset = Terceirizada.objects.filter(
+            tipo_servico=Terceirizada.DISTRIBUIDOR_ARMAZEM
+        )
+        response = {"results": DistribuidorSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='lista-empresas-cronograma')
+    @action(detail=False, methods=["GET"], url_path="lista-empresas-cronograma")
     def lista_empresas_cronograma(self, request):
         queryset = Terceirizada.objects.filter(
-            tipo_servico__in=[Terceirizada.FORNECEDOR, Terceirizada.FORNECEDOR_E_DISTRIBUIDOR])
-        response = {'results': TerceirizadaSimplesSerializer(queryset, many=True).data}
+            tipo_servico__in=[
+                Terceirizada.FORNECEDOR,
+                Terceirizada.FORNECEDOR_E_DISTRIBUIDOR,
+            ]
+        )
+        response = {"results": TerceirizadaSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='lista-cnpjs')
+    @action(detail=False, methods=["GET"], url_path="lista-cnpjs")
     def lista_cnpjs(self, request):
-        queryset = Terceirizada.objects.all().values_list('cnpj', flat=True)
-        response = {'results': queryset}
+        queryset = Terceirizada.objects.all().values_list("cnpj", flat=True)
+        response = {"results": queryset}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='relatorio-quantitativo')
+    @action(detail=False, methods=["GET"], url_path="relatorio-quantitativo")
     def relatorio_quantitativo(self, request):
         form = RelatorioQuantitativoForm(request.GET)
 
@@ -99,7 +111,7 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
 
         return Response(obtem_dados_relatorio_quantitativo(form.cleaned_data))
 
-    @action(detail=False, methods=['GET'], url_path='imprimir-relatorio-quantitativo')
+    @action(detail=False, methods=["GET"], url_path="imprimir-relatorio-quantitativo")
     def imprimir_relatorio_quantitativo(self, request):
         form = RelatorioQuantitativoForm(request.GET)
 
@@ -109,73 +121,86 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
         dados_relatorio = obtem_dados_relatorio_quantitativo(form.cleaned_data)
 
         return relatorio_quantitativo_por_terceirizada(
-            self.request, form.cleaned_data, dados_relatorio)
+            self.request, form.cleaned_data, dados_relatorio
+        )
 
-    @action(
-        detail=False, methods=['GET'],
-        url_path='emails-por-modulo')
+    @action(detail=False, methods=["GET"], url_path="emails-por-modulo")
     def emails_por_modulo(self, request):
-        modulo = request.query_params.get('modulo', None)
-        busca = request.query_params.get('busca', None)
-        queryset = Terceirizada.objects.filter(emails_terceirizadas__modulo__nome=modulo).distinct(
-            'razao_social').order_by('razao_social')
+        modulo = request.query_params.get("modulo", None)
+        busca = request.query_params.get("busca", None)
+        queryset = (
+            Terceirizada.objects.filter(emails_terceirizadas__modulo__nome=modulo)
+            .distinct("razao_social")
+            .order_by("razao_social")
+        )
         self.pagination_class = TerceirizadasEmailsPagination
         if busca:
-            queryset = queryset.filter(Q(emails_terceirizadas__email__icontains=busca) |
-                                       Q(razao_social__icontains=busca))
+            queryset = queryset.filter(
+                Q(emails_terceirizadas__email__icontains=busca)
+                | Q(razao_social__icontains=busca)
+            )
         page = self.paginate_queryset(queryset)
         serializer = EmailsPorModuloSerializer(
-            page if page is not None else queryset, many=True, context={'busca': busca})
+            page if page is not None else queryset, many=True, context={"busca": busca}
+        )
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'], url_path='lista-razoes')
+    @action(detail=False, methods=["GET"], url_path="lista-razoes")
     def lista_razoes(self, request):
-        response = {'results': TerceirizadaLookUpSerializer(self.get_queryset(), many=True).data}
+        response = {
+            "results": TerceirizadaLookUpSerializer(self.get_queryset(), many=True).data
+        }
         return Response(response)
 
 
 class EditalContratosViewSet(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     serializer_class = EditalContratosSerializer
     queryset = Edital.objects.all()
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ["create", "update", "partial_update"]:
             return EditalContratosCreateSerializer
         return EditalContratosSerializer
 
 
 class EmailTerceirizadaPorModuloViewSet(viewsets.ModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     serializer_class = EmailsTerceirizadaPorModuloSerializer
     queryset = EmailTerceirizadaPorModulo.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = EmailTerceirizadaPorModuloFilter
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ["create", "update", "partial_update"]:
             return CreateEmailTerceirizadaPorModuloSerializer
         return EmailsTerceirizadaPorModuloSerializer
 
 
 class ContratoViewSet(ReadOnlyModelViewSet):
-    lookup_field = 'uuid'
+    lookup_field = "uuid"
     serializer_class = ContratoSerializer
     queryset = Contrato.objects.all()
 
-    @action(detail=True, methods=['patch'], url_path='encerrar-contrato')
+    @action(detail=True, methods=["patch"], url_path="encerrar-contrato")
     def encerrar_contrato(self, request, uuid=None):
         contrato = self.get_object()
 
         try:
             dados_encerramento = Contrato.encerra_contrato(uuid=contrato.uuid)
         except IntegrityError as err:
-            return Response(dict(detail=f'{str(err)}'), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                dict(detail=f"{str(err)}"), status=status.HTTP_400_BAD_REQUEST
+            )
 
         return Response(dados_encerramento, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['GET'], url_path='numeros-contratos-cadastrados')
+    @action(detail=False, methods=["GET"], url_path="numeros-contratos-cadastrados")
     def numeros_contratos_cadastrados(self, request):
-        return Response({
-            'numeros_contratos_cadastrados': list(self.get_queryset().values_list('numero', flat=True))
-        })
+        return Response(
+            {
+                "numeros_contratos_cadastrados": list(
+                    self.get_queryset().values_list("numero", flat=True)
+                )
+            }
+        )

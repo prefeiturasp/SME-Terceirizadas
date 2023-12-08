@@ -17,7 +17,7 @@ from sme_terceirizadas.cardapio.models import (
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SuspensaoAlimentacao,
-    TipoAlimentacao
+    TipoAlimentacao,
 )
 from sme_terceirizadas.escola.models import DiretoriaRegional, Escola, PeriodoEscolar
 from sme_terceirizadas.inclusao_alimentacao.models import (
@@ -26,18 +26,18 @@ from sme_terceirizadas.inclusao_alimentacao.models import (
     InclusaoAlimentacaoNormal,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal,
-    QuantidadePorPeriodo
+    QuantidadePorPeriodo,
 )
 from sme_terceirizadas.kit_lanche.models import (
     EscolaQuantidade,
     KitLanche,
     SolicitacaoKitLanche,
     SolicitacaoKitLancheAvulsa,
-    SolicitacaoKitLancheUnificada
+    SolicitacaoKitLancheUnificada,
 )
 from sme_terceirizadas.perfil.models import Usuario
 
-f = Faker('pt-br')
+f = Faker("pt-br")
 f.seed(420)
 hoje = datetime.date.today() - datetime.timedelta(days=180)
 
@@ -91,7 +91,7 @@ def _get_random_tipos_alimentacao():
     return alimentacoes
 
 
-def fluxo_escola_felix(obj, user):
+def fluxo_escola_felix(obj, user):  # noqa: C901
     # print(f'aplicando fluxo ESCOLA feliz em {obj}')
     obj.inicia_fluxo(user=user, notificar=True)
     if random.random() < 0.3:
@@ -155,17 +155,17 @@ def cria_inclusoes_continuas(qtd=50):
                 escola=_get_random_escola(),
                 outro_motivo=f.text()[:20],
                 observacao=f.text()[:20],
-                descricao=f.text()[:160], criado_por=user,
+                descricao=f.text()[:160],
+                criado_por=user,
                 dias_semana=list(np.random.randint(6, size=4)),
-                data_inicial=hoje + datetime.timedelta(
-                    days=random.randint(1, 180)),
-                data_final=hoje + datetime.timedelta(
-                    days=random.randint(100, 200)))
+                data_inicial=hoje + datetime.timedelta(days=random.randint(1, 180)),
+                data_final=hoje + datetime.timedelta(days=random.randint(100, 200)),
+            )
 
-            q = QuantidadePorPeriodo.objects.create(
+            QuantidadePorPeriodo.objects.create(
                 periodo_escolar=_get_random_periodo_escolar(),
                 numero_alunos=random.randint(10, 200),
-                inclusao_alimentacao_continua=inclusao_continua
+                inclusao_alimentacao_continua=inclusao_continua,
             )
             # q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
 
@@ -179,21 +179,19 @@ def cria_inclusoes_normais(qtd=50):
     for i in range(qtd):
         try:
             grupo_inclusao_normal = GrupoInclusaoAlimentacaoNormal.objects.create(
-                descricao=f.text()[:160],
-                criado_por=user,
-                escola=_get_random_escola()
+                descricao=f.text()[:160], criado_por=user, escola=_get_random_escola()
             )
-            q = QuantidadePorPeriodo.objects.create(
+            QuantidadePorPeriodo.objects.create(
                 periodo_escolar=_get_random_periodo_escolar(),
                 numero_alunos=random.randint(10, 200),
-                grupo_inclusao_normal=grupo_inclusao_normal
+                grupo_inclusao_normal=grupo_inclusao_normal,
             )
             # q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
             InclusaoAlimentacaoNormal.objects.create(
                 motivo=_get_random_motivo_normal(),
                 outro_motivo=f.text()[:40],
                 grupo_inclusao=grupo_inclusao_normal,
-                data=hoje + datetime.timedelta(days=random.randint(1, 180))
+                data=hoje + datetime.timedelta(days=random.randint(1, 180)),
             )
             fluxo_escola_felix(grupo_inclusao_normal, user)
         except InvalidTransitionError:
@@ -208,7 +206,8 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
                 data=hoje + datetime.timedelta(days=random.randint(1, 180)),
                 motivo=f.text()[:40],
                 descricao=f.text()[:160],
-                tempo_passeio=SolicitacaoKitLanche.QUATRO)
+                tempo_passeio=SolicitacaoKitLanche.QUATRO,
+            )
             kits = _get_kit_lanches()[:2]
             base.kits.set(kits)
 
@@ -221,9 +220,11 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
                 solicitacao_kit_lanche=base,
             )
             for _ in range(2, 5):
-                EscolaQuantidade.objects.create(quantidade_alunos=random.randint(10, 100),
-                                                solicitacao_unificada=unificada,
-                                                escola=_get_random_escola())
+                EscolaQuantidade.objects.create(
+                    quantidade_alunos=random.randint(10, 100),
+                    solicitacao_unificada=unificada,
+                    escola=_get_random_escola(),
+                )
 
             fluxo_dre_felix(unificada, user)
         except InvalidTransitionError:
@@ -238,7 +239,8 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
                 data=hoje + datetime.timedelta(days=random.randint(1, 180)),
                 motivo=f.text()[:40],
                 descricao=f.text()[:160],
-                tempo_passeio=SolicitacaoKitLanche.QUATRO)
+                tempo_passeio=SolicitacaoKitLanche.QUATRO,
+            )
             kits = _get_kit_lanches()[:2]
             base.kits.set(kits)
             avulsa = SolicitacaoKitLancheAvulsa.objects.create(
@@ -246,7 +248,8 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
                 quantidade_alunos=random.randint(20, 200),
                 local=f.text()[:150],
                 escola=_get_random_escola(),
-                solicitacao_kit_lanche=base)
+                solicitacao_kit_lanche=base,
+            )
             fluxo_escola_felix(avulsa, user)
         except InvalidTransitionError:
             pass
@@ -262,7 +265,8 @@ def cria_inversoes_cardapio(qtd=50):
                 motivo=f.text()[:40],
                 escola=_get_random_escola(),
                 cardapio_de=_get_random_cardapio(dias_pra_frente=1),
-                cardapio_para=_get_random_cardapio(dias_pra_frente=10))
+                cardapio_para=_get_random_cardapio(dias_pra_frente=10),
+            )
             fluxo_escola_felix(inversao, user)
         except InvalidTransitionError:
             pass
@@ -280,9 +284,9 @@ def cria_suspensoes_alimentacao(qtd=50):
                 outro_motivo=f.text()[:50],
                 grupo_suspensao=suspensao_grupo,
                 data=hoje + datetime.timedelta(days=random.randint(1, 180)),
-                motivo=_get_random_motivo_suspensao()
+                motivo=_get_random_motivo_suspensao(),
             )
-            q = QuantidadePorPeriodoSuspensaoAlimentacao.objects.create(
+            QuantidadePorPeriodoSuspensaoAlimentacao.objects.create(
                 numero_alunos=random.randint(100, 420),
                 periodo_escolar=_get_random_periodo_escolar(),
                 grupo_suspensao=suspensao_grupo,
@@ -300,25 +304,25 @@ def cria_alteracoes_cardapio(qtd=50):
             data_final=hoje + datetime.timedelta(random.randint(16, 30)),
             criado_por=user,
             escola=_get_random_escola(),
-            motivo=_get_random_motivo_altercao_cardapio()
+            motivo=_get_random_motivo_altercao_cardapio(),
         )
         fluxo_escola_felix(alteracao_cardapio, user)
 
 
 QTD_PEDIDOS = 50
 
-print('-> criando inclusoes continuas')
+print("-> criando inclusoes continuas")
 cria_inclusoes_continuas(QTD_PEDIDOS)
-print('-> criando inclusoes normais')
+print("-> criando inclusoes normais")
 cria_inclusoes_normais(QTD_PEDIDOS)
-print('-> criando solicicitacoes kit lanche avulsa')
+print("-> criando solicicitacoes kit lanche avulsa")
 cria_solicitacoes_kit_lanche_avulsa(QTD_PEDIDOS)
 # print('-> criando inversoes de cardapio')
 # cria_inversoes_cardapio(QTD_PEDIDOS)      # FIXME: ta dando problema
-print('-> criando suspensoes alimentação')
+print("-> criando suspensoes alimentação")
 cria_suspensoes_alimentacao(QTD_PEDIDOS)
-print('-> criando alterações de cardapio')
+print("-> criando alterações de cardapio")
 cria_alteracoes_cardapio(QTD_PEDIDOS)
 
-print('-> criando solicicitacoes kit lanche unificada')
+print("-> criando solicicitacoes kit lanche unificada")
 cria_solicitacoes_kit_lanche_unificada(QTD_PEDIDOS)

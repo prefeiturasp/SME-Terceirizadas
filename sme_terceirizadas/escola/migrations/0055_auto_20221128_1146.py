@@ -4,14 +4,20 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('escola', '0054_tipounidadeescolar_pertence_relatorio_solicitacoes_alimentacao'),
+        (
+            "escola",
+            "0054_tipounidadeescolar_pertence_relatorio_solicitacoes_alimentacao",
+        ),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='tipounidadeescolar',
-            options={'ordering': ('iniciais',), 'verbose_name': 'Tipo de unidade escolar', 'verbose_name_plural': 'Tipos de unidade escolar'},
+            name="tipounidadeescolar",
+            options={
+                "ordering": ("iniciais",),
+                "verbose_name": "Tipo de unidade escolar",
+                "verbose_name_plural": "Tipos de unidade escolar",
+            },
         ),
     ]

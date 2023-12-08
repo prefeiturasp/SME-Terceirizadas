@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('terceirizada', '0006_auto_20211008_1026'),
+        ("terceirizada", "0006_auto_20211008_1026"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='terceirizada',
-            name='criado_em',
-            field=models.DateTimeField(auto_now_add=True, verbose_name='Criado em'),
+            model_name="terceirizada",
+            name="criado_em",
+            field=models.DateTimeField(auto_now_add=True, verbose_name="Criado em"),
         ),
     ]
