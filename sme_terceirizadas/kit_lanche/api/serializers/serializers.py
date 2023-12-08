@@ -318,6 +318,7 @@ class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     escola = EscolaSimplesSerializer()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
     solicitacoes_similares = SolicitacaoKitLancheCEISimilarSerializer(many=True)
 
     def to_representation(self, instance):
