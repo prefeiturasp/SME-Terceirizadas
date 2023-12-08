@@ -605,7 +605,9 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
             "foto_aluno": solicitacao.aluno.foto_aluno_base64,
             "eh_protocolo_dieta_especial": solicitacao.tipo_solicitacao
             == "ALTERACAO_UE",
-            "motivo": solicitacao.motivo_alteracao_ue.nome.split(" - ")[1],
+            "motivo": solicitacao.motivo_alteracao_ue.nome.split(" - ")[1]
+            if solicitacao.motivo_alteracao_ue
+            else None,
         },
     )
     if request:
