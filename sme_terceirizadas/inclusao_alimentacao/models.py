@@ -495,17 +495,37 @@ class GrupoInclusaoAlimentacaoNormal(
 
     @property
     def solicitacoes_similares(self):
-        if self.status == GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO:
+        MOTIVOS_PERMITIDOS = [
+            "Dia da família",
+            "Reposição de aula",
+            "Outro",
+        ]
+
+        if (
+            self.status == GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO
+            or any(
+                [
+                    motivo not in MOTIVOS_PERMITIDOS
+                    for motivo in self.inclusoes_normais.values_list(
+                        "motivo__nome", flat=True
+                    )
+                ]
+            )
+        ):
             return []
 
         return (
             GrupoInclusaoAlimentacaoNormal.objects.filter(
+                inclusoes_normais__motivo__nome__in=MOTIVOS_PERMITIDOS,
                 inclusoes_normais__data__in=self.inclusoes_normais.values_list(
                     "data", flat=True
-                )
+                ),
             )
             .distinct()
-            .exclude(id=self.id)
+            .exclude(
+                Q(id=self.id)
+                | Q(status=GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO)
+            )
         )
 
     def __str__(self):
