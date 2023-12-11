@@ -1,4 +1,5 @@
 import datetime
+import unicodedata
 from calendar import monthcalendar, setfirstweekday
 
 import numpy
@@ -353,6 +354,15 @@ class AlimentacaoLancamentoEspecial(Nomeavel, Ativavel, TemChaveExterna, Posicao
         verbose_name_plural = "Alimentações de Lançamentos Especiais"
         ordering = ["posicao"]
 
+    @property
+    def name(self):
+        return (
+            unicodedata.normalize("NFD", self.nome.replace(" ", "_"))
+            .encode("ascii", "ignore")
+            .decode("utf-8")
+            .lower()
+        )
+
     def __str__(self):
         return self.nome
 
@@ -397,7 +407,7 @@ class PermissaoLancamentoEspecial(
         ordering = ["-alterado_em"]
 
     def __str__(self):
-        return f"Permissão #{self.id_externo} - {self.escola.nome}"
+        return f"Permissão #{self.id_externo} - {self.escola.nome} -- de {self.data_inicial} até {self.data_final or '-- '}"
 
 
 class DiaParaCorrigir(
