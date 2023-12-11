@@ -78,6 +78,14 @@ def motivo_inclusao_normal():
 
 
 @pytest.fixture
+def make_motivo_inclusao_normal():
+    def handle(nome):
+        return mommy.make(models.MotivoInclusaoNormal, nome=nome)
+
+    return handle
+
+
+@pytest.fixture
 def quantidade_por_periodo():
     periodo_escolar = mommy.make("escola.PeriodoEscolar")
     tipos_alimentacao = mommy.make(
@@ -271,16 +279,10 @@ def inclusao_alimentacao_normal(motivo_inclusao_normal):
     )
 
 
-@pytest.fixture()
-def inclusao_alimentacao_cei(
-    motivo_inclusao_normal, escola, template_inclusao_continua
-):
+@pytest.fixture
+def inclusao_alimentacao_cei(escola):
     return mommy.make(
         models.InclusaoAlimentacaoDaCEI,
-        data=datetime.date(2019, 10, 2),
-        motivo=motivo_inclusao_normal,
-        outro_motivo=fake.name(),
-        observacao=fake.name(),
         escola=escola,
         rastro_escola=escola,
         rastro_dre=escola.diretoria_regional,
@@ -327,6 +329,39 @@ def grupo_inclusao_alimentacao_normal(
         grupo_inclusao=grupo_inclusao_normal,
     )
     return grupo_inclusao_normal
+
+
+@pytest.fixture
+def make_grupo_inclusao_alimentacao_normal(
+    escola, motivo_inclusao_normal, template_inclusao_normal
+):
+    def handle(*, kwargs_grupo=None, kwargs_inclusao1=None, kwargs_inclusao2=None):
+        kwargs_grupo = kwargs_grupo or {}
+        kwargs_inclusao1 = kwargs_inclusao1 or {}
+        kwargs_inclusao2 = kwargs_inclusao2 or {}
+
+        grupo_inclusao_normal = mommy.make(
+            models.GrupoInclusaoAlimentacaoNormal,
+            escola=escola,
+            rastro_escola=escola,
+            rastro_dre=escola.diretoria_regional,
+            **kwargs_grupo
+        )
+        mommy.make(
+            models.InclusaoAlimentacaoNormal,
+            motivo=kwargs_inclusao1.pop("motivo", motivo_inclusao_normal),
+            grupo_inclusao=grupo_inclusao_normal,
+            **kwargs_inclusao1
+        )
+        mommy.make(
+            models.InclusaoAlimentacaoNormal,
+            motivo=kwargs_inclusao2.pop("motivo", motivo_inclusao_normal),
+            grupo_inclusao=grupo_inclusao_normal,
+            **kwargs_inclusao2
+        )
+        return grupo_inclusao_normal
+
+    return handle
 
 
 @pytest.fixture(
