@@ -344,6 +344,14 @@ class Usuario(
             f"{self.cpf[:3]}.***.***-{self.cpf[9:]}" if self.cpf is not None else None
         )
 
+    @property
+    def registro_funcional_censurado(self):
+        return (
+            self.registro_funcional[:2] + "****" + self.registro_funcional[-1]
+            if self.registro_funcional
+            else None
+        )
+
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)
         content = {"uuid": self.uuid, "confirmation_key": self.confirmation_key}
