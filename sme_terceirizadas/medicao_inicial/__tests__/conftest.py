@@ -7,6 +7,10 @@ from model_mommy import mommy
 
 from sme_terceirizadas.dados_comuns.behaviors import TempoPasseio
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+from sme_terceirizadas.medicao_inicial.models import (
+    AlimentacaoLancamentoEspecial,
+    PermissaoLancamentoEspecial,
+)
 
 
 @pytest.fixture
@@ -1360,3 +1364,57 @@ def dia_para_corrigir(categoria_medicao, medicao):
         categoria_medicao=categoria_medicao,
         dia="01",
     )
+
+
+@pytest.fixture
+def permissoes_lancamento_especial(escola, escola_emei):
+    usuario = mommy.make("Usuario", email="admin2@admin.com", is_superuser=True)
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
+    alimentacoes = AlimentacaoLancamentoEspecial.objects.all()
+    mommy.make(
+        "PermissaoLancamentoEspecial",
+        alimentacoes_lancamento_especial=[
+            alimentacoes[0],
+            alimentacoes[2],
+            alimentacoes[5],
+            alimentacoes[6],
+        ],
+        criado_por=usuario,
+        data_inicial="2023-08-13",
+        data_final="2023-08-15",
+        escola=escola,
+        diretoria_regional=escola.diretoria_regional,
+        periodo_escolar=periodo_manha,
+    )
+    mommy.make(
+        "PermissaoLancamentoEspecial",
+        alimentacoes_lancamento_especial=[
+            alimentacoes[1],
+            alimentacoes[3],
+            alimentacoes[5],
+        ],
+        criado_por=usuario,
+        data_inicial="2023-08-02",
+        data_final="2023-08-09",
+        escola=escola,
+        diretoria_regional=escola.diretoria_regional,
+        periodo_escolar=periodo_tarde,
+    )
+    mommy.make(
+        "PermissaoLancamentoEspecial",
+        alimentacoes_lancamento_especial=[
+            alimentacoes[1],
+            alimentacoes[3],
+            alimentacoes[4],
+            alimentacoes[5],
+            alimentacoes[6],
+        ],
+        criado_por=usuario,
+        data_inicial="2023-08-10",
+        data_final="2023-08-12",
+        escola=escola_emei,
+        diretoria_regional=escola.diretoria_regional,
+        periodo_escolar=periodo_manha,
+    )
+    return PermissaoLancamentoEspecial.objects.all()
