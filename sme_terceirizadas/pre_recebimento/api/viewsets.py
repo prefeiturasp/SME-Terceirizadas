@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import QuerySet
+from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
@@ -975,6 +976,18 @@ class DocumentoDeRecebimentoModelViewSet(
             return Response(
                 DocRecebimentoDetalharSerializer(documentos_corrigidos).data
             )
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="download-laudo-assinado",
+        permission_classes=(UsuarioEhFornecedor,),
+    )
+    def download_laudo_assinado(self, request, uuid):
+        return HttpResponse(
+            self.get_object().arquivo_laudo_assinado,
+            content_type="application/pdf",
+        )
 
 
 class FichaTecnicaRascunhoViewSet(
