@@ -534,7 +534,7 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")
     tipos_de_documentos = TipoDocumentoDeRecebimentoLookupSerializer(many=True)
-    log_mais_recente = LogSolicitacoesUsuarioSimplesSerializer()
+    logs = LogSolicitacoesUsuarioSimplesSerializer(many=True)
 
     def get_numero_cronograma(self, obj):
         return obj.cronograma.numero if obj.cronograma else None
@@ -564,7 +564,7 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
             "criado_em",
             "tipos_de_documentos",
             "correcao_solicitada",
-            "log_mais_recente",
+            "logs",
         )
 
 

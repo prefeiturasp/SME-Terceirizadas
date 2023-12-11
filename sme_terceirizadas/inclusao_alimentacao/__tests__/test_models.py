@@ -1,9 +1,11 @@
+import datetime
 from uuid import UUID
 
 import pytest
 from model_mommy import mommy
 from xworkflows.base import InvalidTransitionError
 
+from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ...escola.models import Escola, PeriodoEscolar
 from ..models import InclusaoAlimentacaoContinua, MotivoInclusaoContinua
 
@@ -42,6 +44,12 @@ def test_inclusao_alimentacao_continua(inclusao_alimentacao_continua_params):
     assert "98DC7" in template_html
     assert "RASCUNHO" in template_html
     assert inclusao_alimentacao_continua.data == esperado
+
+
+def test_inclusao_alimentacao_continua_solicitacoes_similares(
+    inclusao_alimentacao_continua,
+):
+    assert inclusao_alimentacao_continua.solicitacoes_similares == []
 
 
 def test_inclusao_alimentacao_continua_fluxo(inclusao_alimentacao_continua_params):
@@ -83,6 +91,184 @@ def test_grupo_inclusao_alimentacao_normal_str(grupo_inclusao_alimentacao_nome):
     )
 
 
+def test_grupo_inclusao_alimentacao_normal_solicitacoes_similares_rascunho(
+    make_grupo_inclusao_alimentacao_normal,
+):
+    make_grupo_inclusao_alimentacao_normal(
+        kwargs_inclusao1={"data": datetime.datetime(2023, 12, 8)},
+        kwargs_inclusao2={"data": datetime.datetime(2023, 12, 11)},
+    )
+
+    # o proprio grupo eh um rascunho
+    grupo_inclusao_alimentacao_normal = make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.RASCUNHO},
+        kwargs_inclusao1={"data": datetime.datetime(2023, 12, 8)},
+        kwargs_inclusao2={"data": datetime.datetime(2023, 12, 11)},
+    )
+
+    assert len(grupo_inclusao_alimentacao_normal.solicitacoes_similares) == 0
+
+
+def test_grupo_inclusao_alimentacao_normal_solicitacoes_similares_rascunho2(
+    make_grupo_inclusao_alimentacao_normal, make_motivo_inclusao_normal
+):
+    # o grupo possui uma unica similar e que eh rascunho
+    make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.RASCUNHO},
+        kwargs_inclusao1={"data": datetime.datetime(2023, 12, 8)},
+        kwargs_inclusao2={"data": datetime.datetime(2023, 12, 11)},
+    )
+
+    grupo_inclusao_alimentacao_normal = make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal("Dia da família"),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal("Dia da família"),
+        },
+    )
+
+    assert len(grupo_inclusao_alimentacao_normal.solicitacoes_similares) == 0
+
+
+@pytest.mark.parametrize(
+    "motivo", [("Dia da família"), ("Reposição de aula"), ("Outro")]
+)
+def test_grupo_inclusao_alimentacao_normal_solicitacoes_similares_motivo_permitido(
+    make_grupo_inclusao_alimentacao_normal, make_motivo_inclusao_normal, motivo
+):
+    make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_inclusao1={"data": datetime.datetime(2023, 12, 8)},
+        kwargs_inclusao2={"data": datetime.datetime(2023, 12, 11)},
+    )
+
+    grupo_inclusao_alimentacao_normal = make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+    )
+
+    assert len(grupo_inclusao_alimentacao_normal.solicitacoes_similares) == 0
+
+
+@pytest.mark.parametrize(
+    "motivo", [("Dia da família"), ("Reposição de aula"), ("Outro")]
+)
+def test_grupo_inclusao_alimentacao_normal_solicitacoes_similares_motivo_permitido2(
+    make_grupo_inclusao_alimentacao_normal, make_motivo_inclusao_normal, motivo
+):
+    grupo_similar = make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+    )
+
+    grupo_inclusao_alimentacao_normal = make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+    )
+
+    assert len(grupo_inclusao_alimentacao_normal.solicitacoes_similares) == 1
+    assert grupo_inclusao_alimentacao_normal.solicitacoes_similares[0] == grupo_similar
+
+
+@pytest.mark.parametrize(
+    "motivo",
+    [
+        ("Evento Específico"),
+        ("Programas/Projetos Específicos"),
+        ("ETEC"),
+        ("Programas/Projetos Contínuos"),
+        ("x90x89x"),
+    ],
+)
+def test_grupo_inclusao_alimentacao_normal_solicitacoes_similares_motivo_nao_permitido(
+    make_grupo_inclusao_alimentacao_normal, make_motivo_inclusao_normal, motivo
+):
+    make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_inclusao1={"data": datetime.datetime(2023, 12, 8)},
+        kwargs_inclusao2={"data": datetime.datetime(2023, 12, 11)},
+    )
+
+    grupo_inclusao_alimentacao_normal = make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+    )
+
+    assert len(grupo_inclusao_alimentacao_normal.solicitacoes_similares) == 0
+
+
+@pytest.mark.parametrize(
+    "motivo",
+    [
+        ("Evento Específico"),
+        ("Programas/Projetos Específicos"),
+        ("ETEC"),
+        ("Programas/Projetos Contínuos"),
+        ("x90x89x"),
+    ],
+)
+def test_grupo_inclusao_alimentacao_normal_solicitacoes_similares_motivo_nao_permitido2(
+    make_grupo_inclusao_alimentacao_normal, make_motivo_inclusao_normal, motivo
+):
+    make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+    )
+
+    grupo_inclusao_alimentacao_normal = make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal(motivo),
+        },
+    )
+
+    assert len(grupo_inclusao_alimentacao_normal.solicitacoes_similares) == 0
+
+
 def test_inclusao_alimentacao_normal(inclusao_alimentacao_normal):
     assert inclusao_alimentacao_normal.__str__() == (
         f"Dia {inclusao_alimentacao_normal.data} "
@@ -97,3 +283,15 @@ def test_inclusao_alimentacao_normal_outro_motivo(
         f"Dia {inclusao_alimentacao_normal_outro_motivo.data} - Outro motivo: "
         + f"{inclusao_alimentacao_normal_outro_motivo.outro_motivo}"
     )
+
+
+def test_inclusao_alimentacao_cei_solicitacoes_similares(
+    inclusao_alimentacao_cei,
+):
+    assert inclusao_alimentacao_cei.solicitacoes_similares == []
+
+
+def test_inclusao_alimentacao_cemei_solicitacoes_similares(
+    inclusao_alimentacao_cemei,
+):
+    assert inclusao_alimentacao_cemei.solicitacoes_similares == []
