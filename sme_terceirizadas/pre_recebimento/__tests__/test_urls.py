@@ -2698,6 +2698,12 @@ def test_rascunho_ficha_tecnica_create_update(
         "estado_fabricante": "",
         "email_fabricante": "",
         "telefone_fabricante": "",
+        "prazo_validade": "",
+        "numero_registro": "",
+        "mecanismo_controle": "",
+        "componentes_produto": "",
+        "ingredientes_alergenicos": "",
+        "lactose_detalhe": "",
     }
 
     response_create = client_autenticado_fornecedor.post(
