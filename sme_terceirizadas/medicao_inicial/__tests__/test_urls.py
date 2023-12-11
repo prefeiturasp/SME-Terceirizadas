@@ -1218,3 +1218,26 @@ def test_salva_valores_medicao_inicial_cemei(
         ).exists()
         is True
     )
+
+
+def test_escolas_permissoes_lancamentos_especiais(
+    client_autenticado_coordenador_codae, permissoes_lancamento_especial
+):
+    response = client_autenticado_coordenador_codae.get(
+        "/medicao-inicial/permissao-lancamentos-especiais/escolas-permissoes-lancamentos-especiais/",
+        content_type="application/json",
+    )
+    assert len(response.data["results"]) == 2
+
+
+def test_permissoes_lancamentos_especiais_mes_ano(
+    client_autenticado_da_escola, escola, permissoes_lancamento_especial
+):
+    response = client_autenticado_da_escola.get(
+        "/medicao-inicial/permissao-lancamentos-especiais/permissoes-lancamentos-especiais-mes-ano/"
+        f"?escola_uuid={escola.uuid}&mes=08&ano=2023"
+        "&nome_periodo_escolar=MANHA"
+    )
+    assert len(response.data["results"]["permissoes_por_dia"]) == 11
+    assert len(response.data["results"]["alimentacoes_lancamentos_especiais"]) == 6
+    assert response.data["results"]["data_inicio_permissoes"] == "02/08/2023"
