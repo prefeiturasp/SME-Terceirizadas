@@ -6,6 +6,10 @@ from django.db import models
 from django.db.models import OuterRef
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.template.loader import render_to_string
+
+from sme_terceirizadas.dados_comuns.utils import convert_image_to_base64
+from sme_terceirizadas.relatorios.utils import merge_pdf_com_string_template
 
 from ...dados_comuns.behaviors import (
     CriadoEm,
@@ -533,6 +537,36 @@ class DocumentoDeRecebimento(
             usuario=usuario,
             uuid_original=self.uuid,
             justificativa=justificativa,
+        )
+
+    @property
+    def arquivo_laudo_assinado(self):
+        laudo = self.tipos_de_documentos.filter(
+            tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO
+        ).first()
+        arquivo_laudo = laudo.arquivos.first()
+
+        logo_sipae = convert_image_to_base64(
+            "sme_terceirizadas/relatorios/static/images/logo-sigpae.png", "png"
+        )
+
+        log_aprovacao = self.logs.filter(
+            status_evento=LogSolicitacoesUsuario.DOCUMENTO_APROVADO
+        ).first()
+
+        string_template = render_to_string(
+            "pre_recebimento/documentos_recebimento/rodape_assinatura_digital_laudo.html",
+            {
+                "logo_sigpae": logo_sipae,
+                "usuario": log_aprovacao.usuario,
+                "data_hora": log_aprovacao.criado_em,
+            },
+        )
+
+        return merge_pdf_com_string_template(
+            arquivo_pdf=arquivo_laudo.arquivo,
+            string_template=string_template,
+            somente_ultima_pagina=True,
         )
 
     def __str__(self):
