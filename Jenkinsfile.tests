@@ -6,8 +6,8 @@ pipeline {
     }
 
     agent { kubernetes {
-                  label 'python3918'
-                  defaultContainer 'python3918'
+                  label 'python310'
+                  defaultContainer 'python310'
                 }
               }
 
@@ -52,8 +52,8 @@ pipeline {
     sh 'pip install xlsxwriter'
     sh 'pip install pycparser'
     sh 'pip install --no-cache-dir -U pip'
-    sh 'pip install --no-cache-dir pipenv==2023.10.3'
-    sh 'pip install --user pipenv==2023.10.3'
+    sh 'pip install --no-cache-dir pipenv==2023.11.15'
+    sh 'pip install --user pipenv==2023.11.15'
     sh 'pipenv install --dev'
     sh 'pipenv run flake8'
     sh 'pipenv run pytest'
