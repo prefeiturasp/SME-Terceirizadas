@@ -444,13 +444,13 @@ def test_inclusao_alimentacao_cei_solicitacoes_similares_motivo_nao_permitido(
     make_inclusao_alimentacao_cei, make_motivo_inclusao_normal, motivo
 ):
     make_inclusao_alimentacao_cei(
-        kwargs_motivo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
-        kwargs_inclusao={"data": datetime.datetime(2023, 12, 8)},
+        kwargs_inclusao={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_motivo={"data": datetime.datetime(2023, 12, 8)},
     )
 
     inclusao = make_inclusao_alimentacao_cei(
-        kwargs_motivo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
-        kwargs_inclusao={
+        kwargs_inclusao={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_motivo={
             "data": datetime.datetime(2023, 12, 8),
             "motivo": make_motivo_inclusao_normal(motivo),
         },
@@ -473,16 +473,16 @@ def test_inclusao_alimentacao_cei_solicitacoes_similares_motivo_nao_permitido2(
     make_inclusao_alimentacao_cei, make_motivo_inclusao_normal, motivo
 ):
     make_inclusao_alimentacao_cei(
-        kwargs_motivo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
-        kwargs_inclusao={
+        kwargs_inclusao={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_motivo={
             "data": datetime.datetime(2023, 12, 8),
             "motivo": make_motivo_inclusao_normal(motivo),
         },
     )
 
     inclusao = make_inclusao_alimentacao_cei(
-        kwargs_motivo={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
-        kwargs_inclusao={
+        kwargs_inclusao={"status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR},
+        kwargs_motivo={
             "data": datetime.datetime(2023, 12, 8),
             "motivo": make_motivo_inclusao_normal(motivo),
         },
