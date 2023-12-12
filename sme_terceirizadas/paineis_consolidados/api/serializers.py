@@ -125,8 +125,8 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
         return obj.data_evento.strftime("%d/%m/%Y") if obj.data_evento else None
 
     def get_tipo_alteracao(self, obj):
-        if 'ALT_CARDAPIO' not in obj.tipo_doc:
-            return '-'
+        if "ALT_CARDAPIO" not in obj.tipo_doc:
+            return "-"
         return obj.motivo
 
     def get_data_autorizacao_negacao_cancelamento(self, obj):

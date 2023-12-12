@@ -1002,7 +1002,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = self.remove_duplicados_do_query_set(query_set)
 
         return_dict = []
-
         for inclusao in query_set:
             inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
             if inclusao.tipo_doc == "INC_ALIMENTA_CEI":
@@ -1042,6 +1041,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                 )
                 for periodo in periodos_escolares:
                     if "Infantil" not in periodo:
+                        if not inc.quantidade_alunos_cei_da_inclusao_cemei.exists():
+                            continue
                         qtd_alunos_cei_cemei_por_periodo = (
                             inc.quantidade_alunos_cei_da_inclusao_cemei.filter(
                                 periodo_escolar__nome=periodo
@@ -1058,6 +1059,23 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                                     "dia": dia_motivo_cemei.data.day,
                                     "faixas_etarias": faixas_etarias_uuids.distinct(),
                                 }
+                            )
+                    else:
+                        periodo = periodo.split(" ")[1]
+                        if not inc.quantidade_alunos_emei_da_inclusao_cemei.filter(
+                            periodo_escolar__nome=periodo
+                        ).exists():
+                            continue
+                        for dia_motivo_cemei in dias_motivos_cemei:
+                            tratar_append_return_dict(
+                                dia_motivo_cemei.data.day,
+                                mes,
+                                ano,
+                                inc.quantidade_alunos_emei_da_inclusao_cemei.get(
+                                    periodo_escolar__nome=periodo
+                                ),
+                                inclusao,
+                                return_dict,
                             )
             else:
                 for periodo in inc.quantidades_periodo.all():

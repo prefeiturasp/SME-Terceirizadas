@@ -22,7 +22,10 @@ from sme_terceirizadas.escola.models import (
     LogAlunosMatriculadosPeriodoEscola,
 )
 from sme_terceirizadas.escola.utils import string_to_faixa
-from sme_terceirizadas.medicao_inicial.models import ValorMedicao
+from sme_terceirizadas.medicao_inicial.models import (
+    AlimentacaoLancamentoEspecial,
+    ValorMedicao,
+)
 from sme_terceirizadas.paineis_consolidados.models import SolicitacoesEscola
 
 
@@ -2171,3 +2174,15 @@ def get_campos_a_desconsiderar(escola):
     if not escola.eh_cei:
         campos_a_desconsiderar.append("frequencia")
     return campos_a_desconsiderar
+
+
+def get_dict_alimentacoes_lancamentos_especiais(
+    alimentacoes_lancamentos_especiais_names,
+):
+    dict_alimentacoes_lancamentos_especiais = []
+    for alimentacao in AlimentacaoLancamentoEspecial.objects.all():
+        if alimentacao.name in alimentacoes_lancamentos_especiais_names:
+            dict_alimentacoes_lancamentos_especiais.append(
+                {"nome": alimentacao.nome, "name": alimentacao.name, "uuid": None}
+            )
+    return dict_alimentacoes_lancamentos_especiais

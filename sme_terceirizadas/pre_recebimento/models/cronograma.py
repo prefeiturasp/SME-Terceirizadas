@@ -646,6 +646,16 @@ class FichaTecnicaDoProduto(
         (CATEGORIA_NAO_PERECIVEIS, "Não Perecíveis"),
     )
 
+    MECANISMO_CERTIFICACAO = "CERTIFICACAO"
+    MECANISMO_OPAC = "OPAC"
+    MECANISMO_OCS = "OCS"
+
+    MECANISMO_CONTROLE_CHOICES = (
+        (MECANISMO_CERTIFICACAO, "Certificação"),
+        (MECANISMO_OPAC, "OPAC"),
+        (MECANISMO_OCS, "OCS"),
+    )
+
     numero = models.CharField(
         "Número da Ficha Técnica", blank=True, max_length=50, unique=True
     )
@@ -675,6 +685,25 @@ class FichaTecnicaDoProduto(
     telefone_fabricante = models.CharField(
         max_length=13, validators=[MinLengthValidator(8)], blank=True
     )
+    prazo_validade = models.CharField("Prazo de Validade", max_length=150, blank=True)
+    numero_registro = models.CharField(
+        "Nº do Registro do Rótulo", max_length=150, blank=True
+    )
+    agroecologico = models.BooleanField("É agroecológico?", null=True)
+    organico = models.BooleanField("É orgânico?", null=True)
+    mecanismo_controle = models.CharField(
+        choices=MECANISMO_CONTROLE_CHOICES, max_length=12, blank=True
+    )
+    componentes_produto = models.CharField(
+        "Componentes do Produto", max_length=250, blank=True
+    )
+    alergenicos = models.BooleanField("Pode conter alergênicos?", null=True)
+    ingredientes_alergenicos = models.CharField(
+        "Ingredientes/aditivos alergênicos", max_length=150, blank=True
+    )
+    gluten = models.BooleanField("Contém glúten?", null=True)
+    lactose = models.BooleanField("Contém lactose?", null=True)
+    lactose_detalhe = models.CharField("Detalhar Lactose", max_length=150, blank=True)
 
     def __str__(self):
         return self.produto.nome

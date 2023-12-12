@@ -651,10 +651,14 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         (
             "codae_pediu_analise_reclamacao",
             [
-                UE_RESPONDEU_QUESTIONAMENTO,
-                NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
-                TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+                CODAE_PEDIU_ANALISE_RECLAMACAO,
                 ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+                TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+                UE_RESPONDEU_QUESTIONAMENTO,
+                CODAE_QUESTIONOU_UE,
+                CODAE_QUESTIONOU_NUTRISUPERVISOR,
+                NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
+                CODAE_PEDIU_ANALISE_SENSORIAL,
             ],
             CODAE_PEDIU_ANALISE_RECLAMACAO,
         ),
