@@ -16,7 +16,10 @@ from rest_framework.status import (
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_EMPRESA
-from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    CronogramaWorkflow,
+    DocumentoDeRecebimentoWorkflow,
+)
 from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaAnalisarDilogSolicitacaoAlteracaoCronograma,
     PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,
@@ -984,8 +987,15 @@ class DocumentoDeRecebimentoModelViewSet(
         permission_classes=(UsuarioEhFornecedor,),
     )
     def download_laudo_assinado(self, request, uuid):
+        doc_recebimento = self.get_object()
+        if doc_recebimento.status != DocumentoDeRecebimentoWorkflow.APROVADO:
+            return HttpResponse(
+                "Não é possível fazer download do Laudo assinado de um Documento não Aprovado.",
+                status=HTTP_401_UNAUTHORIZED,
+            )
+
         return HttpResponse(
-            self.get_object().arquivo_laudo_assinado,
+            doc_recebimento.arquivo_laudo_assinado,
             content_type="application/pdf",
         )
 
