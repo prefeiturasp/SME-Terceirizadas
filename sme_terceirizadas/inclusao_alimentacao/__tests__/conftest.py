@@ -57,6 +57,25 @@ def escola_cei():
 
 
 @pytest.fixture
+def make_escola_cei():
+    def handle(kwargs_escola=None):
+        kwargs_escola = kwargs_escola or {}
+
+        terceirizada = mommy.make("Terceirizada")
+        lote = mommy.make("Lote", terceirizada=terceirizada)
+        diretoria_regional = mommy.make(
+            "DiretoriaRegional",
+            nome="DIRETORIA REGIONAL GUAIANASES",
+            uuid="7063d85d-a28f-4d62-a178-d56ae5a9776e",
+        )
+        return mommy.make(
+            "Escola", lote=lote, diretoria_regional=diretoria_regional, **kwargs_escola
+        )
+
+    return handle
+
+
+@pytest.fixture
 def dre_guaianases():
     return mommy.make("DiretoriaRegional", nome="DIRETORIA REGIONAL GUAIANASES")
 
@@ -287,6 +306,32 @@ def inclusao_alimentacao_cei(escola):
         rastro_escola=escola,
         rastro_dre=escola.diretoria_regional,
     )
+
+
+@pytest.fixture
+def make_inclusao_alimentacao_cei(escola):
+    def handle(*, kwargs_inclusao=None, kwargs_motivo=None):
+        kwargs_inclusao = kwargs_inclusao or {}
+        kwargs_motivo = kwargs_motivo or {}
+        _escola = kwargs_inclusao.pop("escola", escola)
+
+        inclusao = mommy.make(
+            models.InclusaoAlimentacaoDaCEI,
+            escola=_escola,
+            rastro_escola=_escola,
+            rastro_dre=_escola.diretoria_regional,
+            **kwargs_inclusao
+        )
+
+        mommy.make(
+            models.DiasMotivosInclusaoDeAlimentacaoCEI,
+            inclusao_cei=inclusao,
+            **kwargs_motivo
+        )
+
+        return inclusao
+
+    return handle
 
 
 @pytest.fixture
