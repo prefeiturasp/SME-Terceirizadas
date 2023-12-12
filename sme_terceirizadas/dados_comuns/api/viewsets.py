@@ -134,6 +134,22 @@ class FeriadosAnoViewSet(ViewSet):
 
         return Response({"results": retorno}, status=status.HTTP_200_OK)
 
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="ano-atual-e-proximo",
+    )
+    def feriados_ano_atual_e_proximo(self, request, uuid=None):
+        ano_atual = datetime.datetime.now().year
+        ano_proximo = ano_atual + 1
+
+        feriados_atual = calendario.holidays(ano_atual)
+        feriados_proximo = calendario.holidays(ano_proximo)
+
+        retorno = [h[0] for h in feriados_atual] + [h[0] for h in feriados_proximo]
+
+        return Response({"results": retorno}, status=status.HTTP_200_OK)
+
 
 class ConfiguracaoEmailViewSet(ModelViewSet):
     queryset = DynamicEmailConfiguration.objects.all()

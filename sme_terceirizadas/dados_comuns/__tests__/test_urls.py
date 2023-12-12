@@ -1,3 +1,4 @@
+import datetime
 import json
 
 from faker import Faker
@@ -378,3 +379,25 @@ def test_get_dias_uteis(client_autenticado_da_escola, escola, dia_suspensao_ativ
         "proximos_cinco_dias_uteis": "2023-10-03",
         "proximos_dois_dias_uteis": "2023-09-29",
     }
+
+
+def test_get_feriados_ano_atual(client_autenticado):
+    client = client_autenticado
+    ano_atual = str(datetime.datetime.now().year)
+    response = client.get("/feriados-ano/", content_type="application/json")
+    data = json.loads(response.content)
+    assert response.status_code == status.HTTP_200_OK
+    assert ano_atual in data["results"][0]
+
+
+def test_get_feriados_ano_atual_e_proximo_ano(client_autenticado):
+    client = client_autenticado
+    ano_atual = datetime.datetime.now().year
+    ano_proximo = ano_atual + 1
+    response = client.get(
+        "/feriados-ano/ano-atual-e-proximo/", content_type="application/json"
+    )
+    data = json.loads(response.content)
+    assert response.status_code == status.HTTP_200_OK
+    assert str(ano_atual) in data["results"][0]
+    assert str(ano_proximo) in data["results"][-1]
