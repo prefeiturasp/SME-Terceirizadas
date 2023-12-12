@@ -4,7 +4,13 @@ import unicodedata
 
 from dateutil.relativedelta import relativedelta
 
-from ..dados_comuns.utils import get_ultimo_dia_mes
+from sme_terceirizadas.cardapio.models import (
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
+)
+from sme_terceirizadas.dados_comuns.utils import get_ultimo_dia_mes
+from sme_terceirizadas.inclusao_alimentacao.models import (
+    QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI,
+)
 
 
 def formata_resultado_inclusoes_etec_autorizadas(dia, mes, ano, inclusao):
@@ -115,12 +121,21 @@ def tratar_append_return_dict(dia, mes, ano, periodo, inclusao, return_dict):
         get_ultimo_dia_mes(datetime.date(int(ano), int(mes), 1)) < datetime.date.today()
         or dia < datetime.date.today().day
     ):
+        if isinstance(periodo, QuantidadeDeAlunosEMEIInclusaoDeAlimentacaoCEMEI):
+            queryset_tipos_alimentacao = (
+                VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.get(
+                    tipo_unidade_escolar__iniciais="EMEI",
+                    periodo_escolar=periodo.periodo_escolar,
+                ).tipos_alimentacao.exclude(nome="Lanche Emergencial")
+            )
+        else:
+            queryset_tipos_alimentacao = periodo.tipos_alimentacao.all()
         alimentacoes = ", ".join(
             [
                 unicodedata.normalize("NFD", alimentacao.nome.replace(" ", "_"))
                 .encode("ascii", "ignore")
                 .decode("utf-8")
-                for alimentacao in periodo.tipos_alimentacao.all()
+                for alimentacao in queryset_tipos_alimentacao
             ]
         ).lower()
         return return_dict.append(
@@ -128,8 +143,12 @@ def tratar_append_return_dict(dia, mes, ano, periodo, inclusao, return_dict):
                 "dia": f"{dia:02d}",
                 "periodo": f"{periodo.periodo_escolar.nome}",
                 "alimentacoes": alimentacoes,
-                "numero_alunos": periodo.numero_alunos,
-                "dias_semana": periodo.dias_semana,
+                "numero_alunos": periodo.numero_alunos
+                if hasattr(periodo, "numero_alunos")
+                else periodo.quantidade_alunos,
+                "dias_semana": periodo.dias_semana
+                if hasattr(periodo, "dias_semana")
+                else None,
                 "inclusao_id_externo": inclusao.id_externo,
             }
         )
