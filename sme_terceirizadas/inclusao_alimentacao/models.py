@@ -514,18 +514,21 @@ class GrupoInclusaoAlimentacaoNormal(
         ):
             return []
 
-        return (
-            GrupoInclusaoAlimentacaoNormal.objects.filter(
-                inclusoes_normais__motivo__nome__in=MOTIVOS_PERMITIDOS,
-                inclusoes_normais__data__in=self.inclusoes_normais.values_list(
-                    "data", flat=True
-                ),
-            )
-            .distinct()
-            .exclude(
-                Q(id=self.id)
-                | Q(status=GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO)
-            )
+        queryset = GrupoInclusaoAlimentacaoNormal.objects.filter(
+            escola=self.escola,
+        )
+        queryset = queryset.filter(
+            inclusoes_normais__motivo__nome__in=MOTIVOS_PERMITIDOS,
+        )
+        queryset = queryset.filter(
+            inclusoes_normais__data__in=self.inclusoes_normais.values_list(
+                "data", flat=True
+            ),
+        )
+
+        return queryset.distinct().exclude(
+            Q(id=self.id)
+            | Q(status=GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO)
         )
 
     def __str__(self):
