@@ -62,7 +62,7 @@ class DiasMotivosInclusaoDeAlimentacaoCEISerializer(serializers.ModelSerializer)
         exclude = ("id",)
 
 
-class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+class InclusaoAlimentacaoDaCEIBaseSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     prioridade = serializers.CharField()
     periodo_escolar = PeriodoEscolarSimplesSerializer()
@@ -78,7 +78,6 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
     datas = serializers.CharField()
-    solicitacoes_similares = serializers.ListField(default=[])
 
     def to_representation(self, instance):
         retorno = super().to_representation(instance)
@@ -109,6 +108,10 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     class Meta:
         model = InclusaoAlimentacaoDaCEI
         exclude = ("id",)
+
+
+class InclusaoAlimentacaoDaCEISerializer(InclusaoAlimentacaoDaCEIBaseSerializer):
+    solicitacoes_similares = InclusaoAlimentacaoDaCEIBaseSerializer(many=True)
 
 
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
