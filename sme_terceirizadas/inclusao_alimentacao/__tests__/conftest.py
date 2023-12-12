@@ -40,6 +40,34 @@ def escola():
 
 
 @pytest.fixture
+def make_escola():
+    def handle(kwargs_escola=None):
+        kwargs_escola = kwargs_escola or {}
+
+        terceirizada = mommy.make("Terceirizada")
+        lote = mommy.make("Lote", terceirizada=terceirizada)
+        contato = mommy.make(
+            "dados_comuns.Contato", nome="FULANO", email="fake@email.com"
+        )
+        diretoria_regional = mommy.make(
+            "DiretoriaRegional",
+            nome="DIRETORIA REGIONAL IPIRANGA",
+            uuid="4227ee4f-1da3-47b3-83bb-479adc81111c",
+        )
+        tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+        return mommy.make(
+            "Escola",
+            lote=lote,
+            diretoria_regional=diretoria_regional,
+            contato=contato,
+            tipo_gestao=tipo_gestao,
+            **kwargs_escola
+        )
+
+    return handle
+
+
+@pytest.fixture
 def escola_cei():
     terceirizada = mommy.make("Terceirizada")
     lote = mommy.make("Lote", terceirizada=terceirizada)
@@ -377,19 +405,18 @@ def grupo_inclusao_alimentacao_normal(
 
 
 @pytest.fixture
-def make_grupo_inclusao_alimentacao_normal(
-    escola, motivo_inclusao_normal, template_inclusao_normal
-):
+def make_grupo_inclusao_alimentacao_normal(escola, motivo_inclusao_normal):
     def handle(*, kwargs_grupo=None, kwargs_inclusao1=None, kwargs_inclusao2=None):
         kwargs_grupo = kwargs_grupo or {}
         kwargs_inclusao1 = kwargs_inclusao1 or {}
         kwargs_inclusao2 = kwargs_inclusao2 or {}
+        _escola = kwargs_grupo.pop("escola", escola)
 
         grupo_inclusao_normal = mommy.make(
             models.GrupoInclusaoAlimentacaoNormal,
-            escola=escola,
-            rastro_escola=escola,
-            rastro_dre=escola.diretoria_regional,
+            escola=_escola,
+            rastro_escola=_escola,
+            rastro_dre=_escola.diretoria_regional,
             **kwargs_grupo
         )
         mommy.make(

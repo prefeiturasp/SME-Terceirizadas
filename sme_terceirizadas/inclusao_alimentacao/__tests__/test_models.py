@@ -269,6 +269,83 @@ def test_grupo_inclusao_alimentacao_normal_solicitacoes_similares_motivo_nao_per
     assert len(grupo_inclusao_alimentacao_normal.solicitacoes_similares) == 0
 
 
+def test_grupo_inclusao_alimentacao_normal_solicitacoes_similares_escola_diferente(
+    make_grupo_inclusao_alimentacao_normal, make_motivo_inclusao_normal, make_escola
+):
+    escolas = make_escola(kwargs_escola={"_quantity": 2})
+
+    make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={
+            "status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            "escola": escolas[0],
+        },
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal("Dia da família"),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal("Dia da família"),
+        },
+    )
+
+    grupo_inclusao_alimentacao_normal = make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={
+            "status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            "escola": escolas[1],
+        },
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal("Dia da família"),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal("Dia da família"),
+        },
+    )
+
+    assert len(grupo_inclusao_alimentacao_normal.solicitacoes_similares) == 0
+
+
+def test_grupo_inclusao_alimentacao_normal_solicitacoes_similares_escola_igual(
+    make_grupo_inclusao_alimentacao_normal, make_motivo_inclusao_normal, make_escola
+):
+    escola = make_escola()
+
+    similar = make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={
+            "status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            "escola": escola,
+        },
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal("Dia da família"),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal("Dia da família"),
+        },
+    )
+
+    grupo_inclusao_alimentacao_normal = make_grupo_inclusao_alimentacao_normal(
+        kwargs_grupo={
+            "status": PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            "escola": escola,
+        },
+        kwargs_inclusao1={
+            "data": datetime.datetime(2023, 12, 8),
+            "motivo": make_motivo_inclusao_normal("Dia da família"),
+        },
+        kwargs_inclusao2={
+            "data": datetime.datetime(2023, 12, 11),
+            "motivo": make_motivo_inclusao_normal("Dia da família"),
+        },
+    )
+
+    assert len(grupo_inclusao_alimentacao_normal.solicitacoes_similares) == 1
+    assert grupo_inclusao_alimentacao_normal.solicitacoes_similares[0] == similar
+
+
 def test_inclusao_alimentacao_cei_solicitacoes_similares_rascunho(
     make_inclusao_alimentacao_cei,
 ):
