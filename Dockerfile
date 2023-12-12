@@ -1,4 +1,4 @@
-FROM python:3.10-buster
+FROM python:3.10.13-bullseye
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc g++ git libpq-dev libmagic1 libcairo2 libpango-1.0-0 libpangocairo-1.0-0  && \
@@ -6,7 +6,6 @@ RUN apt-get update && \
     pip install xlsxwriter && \
     pip install pycparser && \
     pip install --no-cache-dir -U pip && \
-    pip install requests && \
     pip install --no-cache-dir pipenv==2023.11.15
 
 WORKDIR /code
