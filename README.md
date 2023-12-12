@@ -192,7 +192,7 @@ version: '3.1'
 
 services: 
   db:
-    image: postgres:11.2-alpine
+    image: postgres:12.17-alpine
     restart: always
     env_file:
       - HOME/SME-Terceirizadas/.env
@@ -239,8 +239,8 @@ celery -A config worker --beat --scheduler django --loglevel=info
 
 Pré-requisitos:
 
-* Python 3.9.18
-* pipenv versão 2023.10.3
+* Python 3.10.13
+* pipenv versão 2023.11.15
 
 Para instalação dos pré-requisitos utilizando o Pyenv, abra um terminal na pasta do backend do projeto na sua máquina e execute os comandos abaixo:
 
@@ -249,12 +249,12 @@ Para instalação dos pré-requisitos utilizando o Pyenv, abra um terminal na pa
 $ pyenv update
 
 # Instale a versão necessária do Python
-$ pyenv install 3.9.18
+$ pyenv install 3.10.13
 
 # Defina a versão do Python para a pasta
-$ pyenv local 3.9.18
+$ pyenv local 3.10.13
 
-$ pip install pipenv==2023.10.3
+$ pip install pipenv==2023.11.15
 
 # Crie o ambiente virtual e instale as dependências do projeto
 $ pipenv install --dev
