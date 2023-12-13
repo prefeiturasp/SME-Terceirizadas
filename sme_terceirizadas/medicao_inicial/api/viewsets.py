@@ -1349,7 +1349,12 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
         detail=False,
         methods=["GET"],
         url_path="permissoes-lancamentos-especiais-mes-ano",
-        permission_classes=(UsuarioEscolaTercTotal,),
+        permission_classes=[
+            UsuarioEscolaTercTotal
+            | UsuarioDiretoriaRegional
+            | UsuarioCODAENutriManifestacao
+            | UsuarioCODAEGestaoAlimentacao
+        ],
     )
     def permissoes_lancamentos_especiais_mes_ano(self, request):
         escola_uuid = request.query_params.get("escola_uuid")
@@ -1357,9 +1362,11 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
         ano = request.query_params.get("ano")
         nome_periodo_escolar = request.query_params.get("nome_periodo_escolar")
 
-        query_set = PermissaoLancamentoEspecial.objects.filter(escola__uuid=escola_uuid)
-        query_set = query_set.filter(
-            data_inicial__month__lte=mes, data_inicial__year=ano
+        query_set = PermissaoLancamentoEspecial.objects.filter(
+            escola__uuid=escola_uuid,
+            periodo_escolar__nome=nome_periodo_escolar,
+            data_inicial__month__lte=mes,
+            data_inicial__year=ano,
         )
         permissoes_por_dia = []
         alimentacoes_lancamentos_especiais_names = []
