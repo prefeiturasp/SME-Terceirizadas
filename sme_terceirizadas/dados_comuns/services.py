@@ -206,6 +206,12 @@ class ServiceMapeamentoLogsLinhaDoTempo:
             "Documento enviado para correção": "Enviado para Correção",
             "Documento aprovado": "Aprovado",
         },
+        LogSolicitacoesUsuario.LAYOUT_DE_EMBALAGEM: {
+            "Layout enviado para análise": "Enviado para Análise",
+            "Layout solicitado correção": "Solicitado Correção",
+            "Layout correção realizada": "Enviado para Análise",
+            "Layout aprovado": "Aprovado",
+        },
     }
 
     @classmethod
