@@ -1233,11 +1233,24 @@ def test_escolas_permissoes_lancamentos_especiais(
 def test_permissoes_lancamentos_especiais_mes_ano(
     client_autenticado_da_escola, escola, permissoes_lancamento_especial
 ):
-    response = client_autenticado_da_escola.get(
+    response_manha = client_autenticado_da_escola.get(
         "/medicao-inicial/permissao-lancamentos-especiais/permissoes-lancamentos-especiais-mes-ano/"
         f"?escola_uuid={escola.uuid}&mes=08&ano=2023"
         "&nome_periodo_escolar=MANHA"
     )
-    assert len(response.data["results"]["permissoes_por_dia"]) == 11
-    assert len(response.data["results"]["alimentacoes_lancamentos_especiais"]) == 6
-    assert response.data["results"]["data_inicio_permissoes"] == "02/08/2023"
+    assert len(response_manha.data["results"]["permissoes_por_dia"]) == 3
+    assert (
+        len(response_manha.data["results"]["alimentacoes_lancamentos_especiais"]) == 4
+    )
+    assert response_manha.data["results"]["data_inicio_permissoes"] == "13/08/2023"
+
+    response_tarde = client_autenticado_da_escola.get(
+        "/medicao-inicial/permissao-lancamentos-especiais/permissoes-lancamentos-especiais-mes-ano/"
+        f"?escola_uuid={escola.uuid}&mes=08&ano=2023"
+        "&nome_periodo_escolar=TARDE"
+    )
+    assert len(response_tarde.data["results"]["permissoes_por_dia"]) == 8
+    assert (
+        len(response_tarde.data["results"]["alimentacoes_lancamentos_especiais"]) == 3
+    )
+    assert response_tarde.data["results"]["data_inicio_permissoes"] == "02/08/2023"
