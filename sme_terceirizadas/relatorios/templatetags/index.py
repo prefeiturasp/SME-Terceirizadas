@@ -1,3 +1,4 @@
+import math
 import re
 
 from django import template
@@ -11,6 +12,7 @@ from ...inclusao_alimentacao.models import (
     InclusaoAlimentacaoDaCEI,
     InclusaoDeAlimentacaoCEMEI,
 )
+from ...kit_lanche.models import EscolaQuantidade
 
 register = template.Library()
 
@@ -522,3 +524,20 @@ def formatar_observacoes(observacoes, cei=False):
     ]
 
     return paginated_observacoes
+
+
+@register.filter
+def str_qtd_paginas_tabela(escolas_quantidades):
+    qtd_paginas = math.ceil(len(escolas_quantidades) / 10)
+    list_str = ''
+    for i in range(0, qtd_paginas):
+        list_str += str(i)
+    return list_str
+
+
+@register.filter
+def smart_slice(escolas_quantidades, idx):
+    idx = int(idx)
+    list_uuids = [esc['uuid'] for esc in escolas_quantidades]
+    qs = EscolaQuantidade.objects.filter(uuid__in=list_uuids)
+    return qs[10 * idx : 10 * (idx + 1)]

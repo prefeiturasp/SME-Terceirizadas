@@ -587,6 +587,7 @@ class SolicitacaoKitLancheUnificada(
         for escola_quantidade in qs_escolas_quantidades:
             escolas_quantidades.append(
                 {
+                    "uuid": escola_quantidade.uuid,
                     "codigo": escola_quantidade.escola.codigo_eol,
                     "unidade_escolar": escola_quantidade.escola.nome,
                     "quantidade": escola_quantidade.quantidade_alunos,
