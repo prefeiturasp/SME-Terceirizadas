@@ -133,7 +133,7 @@ def merge_pdf_com_string_template(
     string_template,
     somente_ultima_pagina=False,
 ):
-    pdf_usuario = PdfFileReader(arquivo_pdf)
+    pdf_usuario = PdfFileReader(arquivo_pdf, strict=False)
 
     css_string = (
         "html, body {font-family: Roboto; margin: 0; padding: 0}\n@page {size: A4 %s; margin: 0}"
