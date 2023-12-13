@@ -3,11 +3,12 @@ import math
 from datetime import date
 
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.core.files.base import ContentFile
 from django.http import HttpResponse
 from django_weasyprint.utils import django_url_fetcher
 from pikepdf import Pdf
 from PyPDF4 import PdfFileReader, PdfFileWriter
-from weasyprint import HTML
+from weasyprint import CSS, HTML
 
 from ..dados_comuns.models import LogSolicitacoesUsuario
 
@@ -125,6 +126,57 @@ def html_to_pdf_email_anexo(html_string, pdf_filename=None):
         string=html_string, url_fetcher=django_url_fetcher, base_url="file://abobrinha"
     ).write_pdf()
     return pdf_file
+
+
+def merge_pdf_com_string_template(
+    arquivo_pdf,
+    string_template,
+    somente_ultima_pagina=False,
+):
+    pdf_usuario = PdfFileReader(arquivo_pdf)
+
+    css_string = (
+        "html, body {font-family: Roboto; margin: 0; padding: 0}\n@page {size: A4 %s; margin: 0}"
+        % obter_orientacao_pdf(pdf_usuario)
+    )
+    stylesheets = [CSS(string=css_string)]
+    html_para_mergear = HTML(
+        string=string_template,
+        base_url=staticfiles_storage.location,
+    ).write_pdf(stylesheets=stylesheets)
+
+    pdf_para_mergear = PdfFileReader(io.BytesIO(html_para_mergear))
+
+    pdf_writer = PdfFileWriter()
+    total_paginas = pdf_usuario.getNumPages()
+
+    for idx_pagina in range(total_paginas):
+        pagina = pdf_usuario.getPage(idx_pagina)
+
+        if somente_ultima_pagina:
+            if idx_pagina == total_paginas - 1:
+                pagina.mergePage(pdf_para_mergear.getPage(0))
+
+        else:
+            pagina.mergePage(pdf_para_mergear.getPage(0))
+
+        pdf_writer.addPage(pagina)
+
+    arquivo_final = io.BytesIO()
+    pdf_writer.write(arquivo_final)
+    arquivo_final.seek(0)
+
+    return ContentFile(arquivo_final.read())
+
+
+def obter_orientacao_pdf(arquivo_pdf: PdfFileReader):
+    page = arquivo_pdf.getPage(0)
+
+    return (
+        "portrait"
+        if page.mediaBox.getHeight() > page.mediaBox.getWidth()
+        else "landscape"
+    )
 
 
 def get_config_cabecario_relatorio_analise(  # noqa C901
