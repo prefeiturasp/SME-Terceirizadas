@@ -371,6 +371,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
     tipos_de_embalagens = TipoEmbalagemLayoutLookupSerializer(many=True)
     log_mais_recente = serializers.SerializerMethodField()
     primeira_analise = serializers.SerializerMethodField()
+    logs = LogSolicitacoesUsuarioSimplesSerializer(many=True)
 
     def get_numero_cronograma(self, obj):
         return obj.cronograma.numero if obj.cronograma else None
@@ -413,6 +414,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
             "nome_empresa",
             "log_mais_recente",
             "primeira_analise",
+            "logs",
         )
 
 
