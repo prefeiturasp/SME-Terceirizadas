@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import QuerySet
+from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
@@ -15,7 +16,10 @@ from rest_framework.status import (
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.constants import ADMINISTRADOR_EMPRESA
-from sme_terceirizadas.dados_comuns.fluxo_status import CronogramaWorkflow
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    CronogramaWorkflow,
+    DocumentoDeRecebimentoWorkflow,
+)
 from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaAnalisarDilogSolicitacaoAlteracaoCronograma,
     PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,
@@ -975,6 +979,25 @@ class DocumentoDeRecebimentoModelViewSet(
             return Response(
                 DocRecebimentoDetalharSerializer(documentos_corrigidos).data
             )
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="download-laudo-assinado",
+        permission_classes=(UsuarioEhFornecedor,),
+    )
+    def download_laudo_assinado(self, request, uuid):
+        doc_recebimento = self.get_object()
+        if doc_recebimento.status != DocumentoDeRecebimentoWorkflow.APROVADO:
+            return HttpResponse(
+                "Não é possível fazer download do Laudo assinado de um Documento não Aprovado.",
+                status=HTTP_401_UNAUTHORIZED,
+            )
+
+        return HttpResponse(
+            doc_recebimento.arquivo_laudo_assinado,
+            content_type="application/pdf",
+        )
 
 
 class FichaTecnicaRascunhoViewSet(
