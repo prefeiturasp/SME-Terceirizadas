@@ -5,7 +5,7 @@ import environ
 from django.template.loader import render_to_string
 
 from ..perfil.models import Usuario
-from .models import Notificacao
+from .models import LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task
 
 env = environ.Env()
@@ -196,3 +196,18 @@ class EmailENotificacaoService:
                     guia=guia,
                     cronograma=cronograma,
                 )
+
+
+class ServiceMapeamentoLogsLinhaDoTempo:
+    STATUS_POR_TIPO_SOLICITACAO = {
+        LogSolicitacoesUsuario.DOCUMENTO_DE_RECEBIMENTO: {
+            "Documento enviado para análise": "Enviado para Análise",
+            "Documento correção realizada": "Enviado para Análise",
+            "Documento enviado para correção": "Enviado para Correção",
+            "Documento aprovado": "Aprovado",
+        },
+    }
+
+    @classmethod
+    def get_status_map(cls, tipo_solicitacao):
+        return cls.STATUS_POR_TIPO_SOLICITACAO.get(tipo_solicitacao, {})
