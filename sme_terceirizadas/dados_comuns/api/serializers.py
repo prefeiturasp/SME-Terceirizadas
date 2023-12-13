@@ -17,6 +17,7 @@ from ..models import (
     SolicitacaoAberta,
     TemplateMensagem,
 )
+from ..services import ServiceMapeamentoLogsLinhaDoTempo
 
 
 class CamposObrigatoriosMixin:
@@ -92,6 +93,16 @@ class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
 
 class LogSolicitacoesUsuarioSimplesSerializer(serializers.ModelSerializer):
     usuario = UsuarioSimplesSerializer()
+    status_evento_explicacao = serializers.SerializerMethodField()
+
+    def get_status_evento_explicacao(self, obj):
+        status_map = ServiceMapeamentoLogsLinhaDoTempo.get_status_map(
+            obj.solicitacao_tipo
+        )
+
+        return status_map.get(
+            obj.status_evento_explicacao, obj.status_evento_explicacao
+        )
 
     class Meta:
         model = LogSolicitacoesUsuario
