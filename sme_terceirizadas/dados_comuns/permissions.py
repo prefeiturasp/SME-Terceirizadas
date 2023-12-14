@@ -27,8 +27,10 @@ from .constants import (
     DILOG_DIRETORIA,
     DILOG_QUALIDADE,
     DINUTRE_DIRETORIA,
+    DIRETA,
     DIRETOR_UE,
     ORGAO_FISCALIZADOR,
+    PARCEIRA,
 )
 
 
@@ -87,6 +89,20 @@ class UsuarioDiretorEscolaTercTotal(UsuarioEscolaTercTotal):
             and isinstance(usuario.vinculo_atual.instituicao, Escola)
             and usuario.vinculo_atual.instituicao.modulo_gestao == "TERCEIRIZADA"
             and usuario.vinculo_atual.perfil.nome == DIRETOR_UE
+        )
+
+
+class UsuarioEscolaDiretaParceira(BasePermission):
+    """Permite acesso a usuários com vinculo a uma Escola do tipo de gestão Direta ou Parceira."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Escola)
+            and usuario.vinculo_atual.instituicao.tipo_gestao.nome in [DIRETA, PARCEIRA]
+            and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE, ADMINISTRADOR_UE]
         )
 
 

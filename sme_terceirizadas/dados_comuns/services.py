@@ -210,6 +210,7 @@ class ServiceMapeamentoLogsLinhaDoTempo:
             "Layout enviado para análise": "Enviado para Análise",
             "Layout solicitado correção": "Solicitado Correção",
             "Layout correção realizada": "Enviado para Análise",
+            "Layout atualizado": "Enviado para Análise",
             "Layout aprovado": "Aprovado",
         },
     }
