@@ -271,6 +271,7 @@ class InclusaoDeAlimentacaoCEMEIRetrieveSerializer(serializers.ModelSerializer):
     rastro_terceirizada = TerceirizadaSimplesSerializer()
     prioridade = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    solicitacoes_similares = InclusaoDeAlimentacaoCEMEIBaseSerializer(many=True)
 
     class Meta:
         model = InclusaoDeAlimentacaoCEMEI
