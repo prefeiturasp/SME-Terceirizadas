@@ -36,6 +36,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaDashboardDocumentosDeRecebimento,
     PermissaoParaDashboardLayoutEmbalagem,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
+    PermissaoParaVisualizarCalendarioCronograma,
     PermissaoParaVisualizarCronograma,
     PermissaoParaVisualizarDocumentosDeRecebimento,
     PermissaoParaVisualizarLayoutDeEmbalagem,
@@ -82,6 +83,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharCodaeSerializer,
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
+    EtapasDoCronogramaCalendarioSerializer,
     FichaTecnicaDetalharSerializer,
     FichaTecnicaListagemSerializer,
     LaboratorioCredenciadoSimplesSerializer,
@@ -119,6 +121,7 @@ from ...dados_comuns.api.paginations import DefaultPagination
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...relatorios.relatorios import get_pdf_cronograma
 from ..models.cronograma import FichaTecnicaDoProduto
+from .validators import valida_parametros_calendario
 
 
 class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet):
@@ -1035,3 +1038,32 @@ class FichaTecnicaModelViewSet(
         }
 
         return serializer_classes_map.get(self.action, FichaTecnicaRascunhoSerializer)
+
+
+class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = EtapasDoCronograma.objects.filter(cronograma__isnull=False).order_by(
+        "-criado_em"
+    )
+    serializer_class = EtapasDoCronogramaCalendarioSerializer
+    permission_classes = (PermissaoParaVisualizarCalendarioCronograma,)
+
+    def get_queryset(self):
+        mes = self.request.query_params.get("mes", None)
+        ano = self.request.query_params.get("ano", None)
+
+        valida_parametros_calendario(mes, ano)
+
+        status_necessarios_cronogramas = [
+            CronogramaWorkflow.ASSINADO_CODAE,
+            CronogramaWorkflow.ALTERACAO_CODAE,
+            CronogramaWorkflow.SOLICITADO_ALTERACAO,
+        ]
+
+        queryset = EtapasDoCronograma.objects.filter(
+            cronograma__isnull=False,
+            cronograma__status__in=status_necessarios_cronogramas,
+            data_programada__month=mes,
+            data_programada__year=ano,
+        ).order_by("-criado_em")
+
+        return queryset
