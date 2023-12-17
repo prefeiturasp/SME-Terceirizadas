@@ -11,6 +11,7 @@ from rest_framework.test import APIClient
 from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
 from sme_terceirizadas.dados_comuns.fluxo_status import (
+    CronogramaWorkflow,
     DocumentoDeRecebimentoWorkflow,
     LayoutDeEmbalagemWorkflow,
 )
@@ -2791,3 +2792,42 @@ def test_ficha_tecnica_retrieve_ok(
     assert (
         response.data == FichaTecnicaDetalharSerializer(ficha_tecnica, many=False).data
     )
+
+
+def test_calendario_cronograma_list_ok(
+    client_autenticado_dilog_cronograma,
+    etapas_do_cronograma_factory,
+    cronograma_factory,
+):
+    """Deve obter lista filtrada por mes e ano de etapas do cronograma."""
+    mes = "5"
+    ano = "2023"
+    data_programada = datetime.date(int(ano), int(mes), 1)
+    cronogramas = [
+        cronograma_factory.create(status=CronogramaWorkflow.ASSINADO_CODAE),
+        cronograma_factory.create(status=CronogramaWorkflow.ALTERACAO_CODAE),
+        cronograma_factory.create(status=CronogramaWorkflow.SOLICITADO_ALTERACAO),
+    ]
+    etapas_cronogramas = [
+        etapas_do_cronograma_factory.create(
+            cronograma=cronograma, data_programada=data_programada
+        )
+        for cronograma in cronogramas
+    ]
+
+    response = client_autenticado_dilog_cronograma.get(
+        "/calendario-cronogramas/",
+        {"mes": mes, "ano": ano},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["count"] == len(etapas_cronogramas)
+
+    breakpoint()
+
+
+def test_calendario_cronograma_list_not_authorized(client_autenticado):
+    """Deve retornar status HTTP 403 ao tentar obter listagem com usuário não autorizado."""
+    response = client_autenticado.get("/calendario-cronogramas/")
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
