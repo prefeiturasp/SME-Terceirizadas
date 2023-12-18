@@ -509,8 +509,8 @@ class SolicitacaoMedicaoInicialViewSet(
         uuid = request.query_params.get("uuid_solicitacao")
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
         retorno = []
-        campos_a_desconsiderar = get_campos_a_desconsiderar(escola)
         for medicao in solicitacao.medicoes.all():
+            campos_a_desconsiderar = get_campos_a_desconsiderar(escola, medicao)
             valores = []
             for valor_medicao in medicao.valores_medicao.exclude(
                 categoria_medicao__nome__icontains="DIETA"
@@ -550,7 +550,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 "valores": valores,
                 "valor_total": valor_total,
             }
-            if escola.eh_cei:
+            if escola.eh_cei or (
+                escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo
+            ):
                 dict_retorno["quantidade_alunos"] = sum(v["valor"] for v in valores)
             retorno.append(dict_retorno)
         return Response({"results": retorno}, status=status.HTTP_200_OK)

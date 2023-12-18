@@ -363,6 +363,32 @@ def make_inclusao_alimentacao_cei(escola):
 
 
 @pytest.fixture
+def make_inclusao_alimentacao_cemei(escola):
+    def handle(*, kwargs_inclusao=None, kwargs_motivo=None):
+        kwargs_inclusao = kwargs_inclusao or {}
+        kwargs_motivo = kwargs_motivo or {}
+        _escola = kwargs_inclusao.pop("escola", escola)
+
+        inclusao = mommy.make(
+            models.InclusaoDeAlimentacaoCEMEI,
+            escola=_escola,
+            rastro_escola=_escola,
+            rastro_dre=_escola.diretoria_regional,
+            **kwargs_inclusao
+        )
+
+        mommy.make(
+            models.DiasMotivosInclusaoDeAlimentacaoCEMEI,
+            inclusao_alimentacao_cemei=inclusao,
+            **kwargs_motivo
+        )
+
+        return inclusao
+
+    return handle
+
+
+@pytest.fixture
 def inclusao_alimentacao_normal_outro_motivo(motivo_inclusao_normal):
     return mommy.make(
         models.InclusaoAlimentacaoNormal,
