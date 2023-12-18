@@ -529,7 +529,7 @@ def popula_campos_preenchidos_pela_escola(
             .first()
             .valor
         ]
-    except ValorMedicao.DoesNotExist:
+    except (ValorMedicao.DoesNotExist, AttributeError):
         valores_dia += ["0"]
 
 
@@ -551,7 +551,7 @@ def popula_campos_preenchidos_pela_escola_cei(
             .valor
         )
         valores_dia += [quantidade]
-    except ValorMedicao.DoesNotExist:
+    except (ValorMedicao.DoesNotExist, AttributeError):
         valores_dia += ["0"]
 
 
