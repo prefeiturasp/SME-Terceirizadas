@@ -1,5 +1,7 @@
+import datetime
 import json
 
+import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
@@ -269,7 +271,7 @@ def test_url_endpoint_periodos_grupos_medicao(
     ]
 
 
-def test_url_endpoint_quantidades_alimentacoes_lancadas_periodo_grupo(
+def test_url_endpoint_quantidades_alimentacoes_lancadas_periodo_grupo_escola_comum(
     client_autenticado_da_escola, solicitacao_medicao_inicial_com_valores_repeticao
 ):
     uuid_solicitacao = solicitacao_medicao_inicial_com_valores_repeticao.uuid
@@ -283,6 +285,130 @@ def test_url_endpoint_quantidades_alimentacoes_lancadas_periodo_grupo(
         len([r for r in response.data["results"] if r["nome_periodo_grupo"] == "MANHA"])
         == 1
     )
+    assert [r for r in response.data["results"] if r["nome_periodo_grupo"] == "MANHA"][
+        0
+    ]["valor_total"] == 350
+
+
+def test_url_endpoint_quantidades_alimentacoes_lancadas_periodo_grupo_escola_cei(
+    client_autenticado_da_escola_cei,
+    solicitacao_medicao_inicial_varios_valores_escola_cei,
+):
+    uuid_solicitacao = solicitacao_medicao_inicial_varios_valores_escola_cei.uuid
+    response = client_autenticado_da_escola_cei.get(
+        "/medicao-inicial/solicitacao-medicao-inicial/quantidades-alimentacoes-lancadas-periodo-grupo/"
+        f"?uuid_solicitacao={uuid_solicitacao}",
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert (
+        len(
+            [
+                r
+                for r in response.data["results"]
+                if r["nome_periodo_grupo"] == "INTEGRAL"
+            ]
+        )
+        == 1
+    )
+    assert [
+        r for r in response.data["results"] if r["nome_periodo_grupo"] == "INTEGRAL"
+    ][0]["quantidade_alunos"] == 20
+    assert [
+        r for r in response.data["results"] if r["nome_periodo_grupo"] == "INTEGRAL"
+    ][0]["valor_total"] == 100
+    assert (
+        len(
+            [
+                r
+                for r in response.data["results"]
+                if r["nome_periodo_grupo"] == "PARCIAL"
+            ]
+        )
+        == 1
+    )
+    assert [
+        r for r in response.data["results"] if r["nome_periodo_grupo"] == "PARCIAL"
+    ][0]["quantidade_alunos"] == 36
+    assert [
+        r for r in response.data["results"] if r["nome_periodo_grupo"] == "PARCIAL"
+    ][0]["valor_total"] == 108
+    assert (
+        len([r for r in response.data["results"] if r["nome_periodo_grupo"] == "TARDE"])
+        == 1
+    )
+    assert [r for r in response.data["results"] if r["nome_periodo_grupo"] == "TARDE"][
+        0
+    ]["quantidade_alunos"] == 52
+    assert [r for r in response.data["results"] if r["nome_periodo_grupo"] == "TARDE"][
+        0
+    ]["valor_total"] == 104
+
+
+def test_url_endpoint_quantidades_alimentacoes_lancadas_periodo_grupo_escola_cemei(
+    client_autenticado_da_escola_cemei,
+    solicitacao_medicao_inicial_varios_valores_escola_cemei,
+):
+    uuid_solicitacao = solicitacao_medicao_inicial_varios_valores_escola_cemei.uuid
+    response = client_autenticado_da_escola_cemei.get(
+        "/medicao-inicial/solicitacao-medicao-inicial/quantidades-alimentacoes-lancadas-periodo-grupo/"
+        f"?uuid_solicitacao={uuid_solicitacao}",
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert (
+        len(
+            [
+                r
+                for r in response.data["results"]
+                if r["nome_periodo_grupo"] == "INTEGRAL"
+            ]
+        )
+        == 1
+    )
+    assert [
+        r for r in response.data["results"] if r["nome_periodo_grupo"] == "INTEGRAL"
+    ][0]["quantidade_alunos"] == 30
+    assert [
+        r for r in response.data["results"] if r["nome_periodo_grupo"] == "INTEGRAL"
+    ][0]["valor_total"] == 150
+    assert (
+        len(
+            [
+                r
+                for r in response.data["results"]
+                if r["nome_periodo_grupo"] == "PARCIAL"
+            ]
+        )
+        == 1
+    )
+    assert [
+        r for r in response.data["results"] if r["nome_periodo_grupo"] == "PARCIAL"
+    ][0]["quantidade_alunos"] == 60
+    assert [
+        r for r in response.data["results"] if r["nome_periodo_grupo"] == "PARCIAL"
+    ][0]["valor_total"] == 180
+    assert (
+        len(
+            [
+                r
+                for r in response.data["results"]
+                if r["nome_periodo_grupo"] == "Infantil MANHA"
+            ]
+        )
+        == 1
+    )
+    with pytest.raises(KeyError):
+        [
+            r
+            for r in response.data["results"]
+            if r["nome_periodo_grupo"] == "Infantil MANHA"
+        ][0]["quantidade_alunos"]
+    assert [
+        r
+        for r in response.data["results"]
+        if r["nome_periodo_grupo"] == "Infantil MANHA"
+    ][0]["valor_total"] == 80
 
 
 def test_url_endpoint_relatorio_pdf(
@@ -1218,3 +1344,55 @@ def test_salva_valores_medicao_inicial_cemei(
         ).exists()
         is True
     )
+
+
+def test_escolas_permissoes_lancamentos_especiais(
+    client_autenticado_coordenador_codae, permissoes_lancamento_especial
+):
+    response = client_autenticado_coordenador_codae.get(
+        "/medicao-inicial/permissao-lancamentos-especiais/escolas-permissoes-lancamentos-especiais/",
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 2
+
+
+def test_permissoes_lancamentos_especiais_mes_ano(
+    client_autenticado_da_escola, escola, permissoes_lancamento_especial
+):
+    response_manha = client_autenticado_da_escola.get(
+        "/medicao-inicial/permissao-lancamentos-especiais/permissoes-lancamentos-especiais-mes-ano/"
+        f"?escola_uuid={escola.uuid}&mes=08&ano=2023"
+        "&nome_periodo_escolar=MANHA"
+    )
+    assert response_manha.status_code == status.HTTP_200_OK
+    assert len(response_manha.data["results"]["permissoes_por_dia"]) == 3
+    assert (
+        len(response_manha.data["results"]["alimentacoes_lancamentos_especiais"]) == 4
+    )
+    assert response_manha.data["results"]["data_inicio_permissoes"] == "13/08/2023"
+
+    response_tarde = client_autenticado_da_escola.get(
+        "/medicao-inicial/permissao-lancamentos-especiais/permissoes-lancamentos-especiais-mes-ano/"
+        f"?escola_uuid={escola.uuid}&mes=08&ano=2023"
+        "&nome_periodo_escolar=TARDE"
+    )
+    assert response_tarde.status_code == status.HTTP_200_OK
+    assert len(response_tarde.data["results"]["permissoes_por_dia"]) == 8
+    assert (
+        len(response_tarde.data["results"]["alimentacoes_lancamentos_especiais"]) == 3
+    )
+    assert response_tarde.data["results"]["data_inicio_permissoes"] == "02/08/2023"
+
+
+def test_periodos_escola_cemei_com_alunos_emei(
+    client_autenticado_da_escola_cemei, logs_alunos_matriculados_periodo_escola_cemei
+):
+    hoje = datetime.date.today()
+    response = client_autenticado_da_escola_cemei.get(
+        "/medicao-inicial/solicitacao-medicao-inicial/periodos-escola-cemei-com-alunos-emei/"
+        f"?mes={hoje.month}&ano={hoje.year}"
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 2
+    assert set(response.data["results"]) == set(["Infantil TARDE", "Infantil MANHA"])

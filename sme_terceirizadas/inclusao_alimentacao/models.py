@@ -256,6 +256,10 @@ class InclusaoAlimentacaoContinua(
             "status": self.status,
         }
 
+    @property
+    def solicitacoes_similares(self):
+        return []
+
     def __str__(self):
         return f"de {self.data_inicial} até {self.data_final} para {self.escola}"
 
@@ -488,6 +492,44 @@ class GrupoInclusaoAlimentacaoNormal(
             "existe_dia_cancelado": self.existe_dia_cancelado,
             "status": self.status,
         }
+
+    @property
+    def solicitacoes_similares(self):
+        MOTIVOS_PERMITIDOS = [
+            "Dia da família",
+            "Reposição de aula",
+            "Outro",
+        ]
+
+        if (
+            self.status == GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO
+            or any(
+                [
+                    motivo not in MOTIVOS_PERMITIDOS
+                    for motivo in self.inclusoes_normais.values_list(
+                        "motivo__nome", flat=True
+                    )
+                ]
+            )
+        ):
+            return []
+
+        queryset = GrupoInclusaoAlimentacaoNormal.objects.filter(
+            escola=self.escola,
+        )
+        queryset = queryset.filter(
+            inclusoes_normais__motivo__nome__in=MOTIVOS_PERMITIDOS,
+        )
+        queryset = queryset.filter(
+            inclusoes_normais__data__in=self.inclusoes_normais.values_list(
+                "data", flat=True
+            ),
+        )
+
+        return queryset.distinct().exclude(
+            Q(id=self.id)
+            | Q(status=GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO)
+        )
 
     def __str__(self):
         return f"{self.escola} pedindo {self.inclusoes.count()} inclusoes"
@@ -763,6 +805,36 @@ class InclusaoAlimentacaoDaCEI(
             .distinct()
         )
 
+    @property
+    def solicitacoes_similares(self):
+        MOTIVOS_PERMITIDOS = [
+            "Dia da família",
+            "Reposição de aula",
+            "Outro",
+        ]
+
+        if self.status == InclusaoAlimentacaoDaCEI.workflow_class.RASCUNHO or any(
+            [
+                motivo not in MOTIVOS_PERMITIDOS
+                for motivo in self.inclusoes.values_list("motivo__nome", flat=True)
+            ]
+        ):
+            return []
+
+        queryset = InclusaoAlimentacaoDaCEI.objects.filter(escola=self.escola)
+        queryset = queryset.filter(
+            dias_motivos_da_inclusao_cei__motivo__nome__in=MOTIVOS_PERMITIDOS
+        )
+        queryset = queryset.filter(
+            dias_motivos_da_inclusao_cei__data__in=self.inclusoes.values_list(
+                "data", flat=True
+            )
+        )
+
+        return queryset.distinct().exclude(
+            Q(id=self.id) | Q(status=InclusaoAlimentacaoDaCEI.workflow_class.RASCUNHO)
+        )
+
     def __str__(self):
         return f"Inclusao da CEI cód: {self.id_externo}"
 
@@ -1026,6 +1098,36 @@ class InclusaoDeAlimentacaoCEMEI(
             "status": self.status,
             "eh_evento_especifico": eh_evento_especifico,
         }
+
+    @property
+    def solicitacoes_similares(self):
+        MOTIVOS_PERMITIDOS = [
+            "Dia da família",
+            "Reposição de aula",
+            "Outro",
+        ]
+
+        if self.status == InclusaoDeAlimentacaoCEMEI.workflow_class.RASCUNHO or any(
+            [
+                motivo not in MOTIVOS_PERMITIDOS
+                for motivo in self.inclusoes.values_list("motivo__nome", flat=True)
+            ]
+        ):
+            return []
+
+        queryset = InclusaoDeAlimentacaoCEMEI.objects.filter(escola=self.escola)
+        queryset = queryset.filter(
+            dias_motivos_da_inclusao_cemei__motivo__nome__in=MOTIVOS_PERMITIDOS
+        )
+        queryset = queryset.filter(
+            dias_motivos_da_inclusao_cemei__data__in=self.inclusoes.values_list(
+                "data", flat=True
+            )
+        )
+
+        return queryset.distinct().exclude(
+            Q(id=self.id) | Q(status=InclusaoDeAlimentacaoCEMEI.workflow_class.RASCUNHO)
+        )
 
     def __str__(self):
         return f"Inclusão de Alimentação CEMEI cód: {self.id_externo}"

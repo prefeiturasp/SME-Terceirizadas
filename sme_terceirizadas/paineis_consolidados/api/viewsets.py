@@ -1002,7 +1002,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = self.remove_duplicados_do_query_set(query_set)
 
         return_dict = []
-
         for inclusao in query_set:
             inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
             if inclusao.tipo_doc == "INC_ALIMENTA_CEI":
@@ -1037,20 +1036,47 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                             }
                         )
             elif inclusao.tipo_doc == "INC_ALIMENTA_CEMEI":
-                dias_motivos_cemei = inc.dias_motivos_da_inclusao_cemei.filter(data__month=mes, data__year=ano)
+                dias_motivos_cemei = inc.dias_motivos_da_inclusao_cemei.filter(
+                    data__month=mes, data__year=ano
+                )
                 for periodo in periodos_escolares:
                     if "Infantil" not in periodo:
-                        qtd_alunos_cei_cemei_por_periodo = inc.quantidade_alunos_cei_da_inclusao_cemei.filter(
-                            periodo_escolar__nome=periodo
+                        if not inc.quantidade_alunos_cei_da_inclusao_cemei.exists():
+                            continue
+                        qtd_alunos_cei_cemei_por_periodo = (
+                            inc.quantidade_alunos_cei_da_inclusao_cemei.filter(
+                                periodo_escolar__nome=periodo
+                            )
                         )
-                        faixas_etarias_uuids = qtd_alunos_cei_cemei_por_periodo.values_list(
-                            "faixa_etaria__uuid", flat=True
+                        faixas_etarias_uuids = (
+                            qtd_alunos_cei_cemei_por_periodo.values_list(
+                                "faixa_etaria__uuid", flat=True
+                            )
                         )
                         for dia_motivo_cemei in dias_motivos_cemei:
-                            return_dict.append({
-                                "dia": dia_motivo_cemei.data.day,
-                                "faixas_etarias": faixas_etarias_uuids.distinct(),
-                            })
+                            return_dict.append(
+                                {
+                                    "dia": dia_motivo_cemei.data.day,
+                                    "faixas_etarias": faixas_etarias_uuids.distinct(),
+                                }
+                            )
+                    else:
+                        periodo = periodo.split(" ")[1]
+                        if not inc.quantidade_alunos_emei_da_inclusao_cemei.filter(
+                            periodo_escolar__nome=periodo
+                        ).exists():
+                            continue
+                        for dia_motivo_cemei in dias_motivos_cemei:
+                            tratar_append_return_dict(
+                                dia_motivo_cemei.data.day,
+                                mes,
+                                ano,
+                                inc.quantidade_alunos_emei_da_inclusao_cemei.get(
+                                    periodo_escolar__nome=periodo
+                                ),
+                                inclusao,
+                                return_dict,
+                            )
             else:
                 for periodo in inc.quantidades_periodo.all():
                     if periodo.periodo_escolar.nome in periodos_escolares:
@@ -1147,15 +1173,21 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     def get_alteracao_obj(self, alteracao, nome_periodo_escolar):
         alt = None
         if alteracao.escola.eh_cemei:
-            if 'Infantil' not in nome_periodo_escolar:
+            if "Infantil" not in nome_periodo_escolar:
                 return alt
-            nome_periodo_escolar = nome_periodo_escolar.split(' ')[1]
+            nome_periodo_escolar = nome_periodo_escolar.split(" ")[1]
             if alteracao.substituicoes_cemei_emei_periodo_escolar.filter(
-                    periodo_escolar__nome=nome_periodo_escolar).exists():
+                periodo_escolar__nome=nome_periodo_escolar
+            ).exists():
                 alt = alteracao.substituicoes_cemei_emei_periodo_escolar.get(
-                    periodo_escolar__nome=nome_periodo_escolar)
-        elif alteracao.substituicoes_periodo_escolar.filter(periodo_escolar__nome=nome_periodo_escolar).exists():
-            alt = alteracao.substituicoes_periodo_escolar.get(periodo_escolar__nome=nome_periodo_escolar)
+                    periodo_escolar__nome=nome_periodo_escolar
+                )
+        elif alteracao.substituicoes_periodo_escolar.filter(
+            periodo_escolar__nome=nome_periodo_escolar
+        ).exists():
+            alt = alteracao.substituicoes_periodo_escolar.get(
+                periodo_escolar__nome=nome_periodo_escolar
+            )
         return alt
 
     @action(

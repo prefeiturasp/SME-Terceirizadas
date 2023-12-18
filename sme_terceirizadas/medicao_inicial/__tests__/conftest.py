@@ -7,6 +7,14 @@ from model_mommy import mommy
 
 from sme_terceirizadas.dados_comuns.behaviors import TempoPasseio
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+from sme_terceirizadas.escola.models import (
+    LogAlunosMatriculadosPeriodoEscola,
+    TipoTurma,
+)
+from sme_terceirizadas.medicao_inicial.models import (
+    AlimentacaoLancamentoEspecial,
+    PermissaoLancamentoEspecial,
+)
 
 
 @pytest.fixture
@@ -422,6 +430,116 @@ def solicitacao_medicao_inicial_varios_valores(escola, categoria_medicao):
                         categoria_medicao=categoria,
                         valor="10",
                     )
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_varios_valores_escola_cei(
+    escola_cei, categoria_medicao
+):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_integral = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    periodo_parcial = mommy.make("PeriodoEscolar", nome="PARCIAL")
+    periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial", mes=12, ano=2022, escola=escola_cei
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    medicao_integral = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_integral,
+    )
+    medicao_parcial = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_parcial,
+    )
+    medicao_tarde = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_tarde,
+    )
+    categoria_dieta_a = mommy.make(
+        "CategoriaMedicao", nome="DIETA ESPECIAL - TIPO A ENTERAL"
+    )
+    for dia in ["01", "02", "03", "04"]:
+        for categoria in [categoria_medicao, categoria_dieta_a]:
+            valores = ["5", "9", "13"]
+            for index, medicao_ in enumerate(
+                [medicao_integral, medicao_parcial, medicao_tarde]
+            ):
+                mommy.make(
+                    "ValorMedicao",
+                    dia=dia,
+                    nome_campo="frequencia",
+                    medicao=medicao_,
+                    categoria_medicao=categoria,
+                    valor=valores[index],
+                )
+    return solicitacao_medicao
+
+
+def medicao_infantil_manha(solicitacao_medicao, categoria_medicao):
+    periodo_infantil_manha = mommy.make("PeriodoEscolar", nome="Infantil MANHA")
+    medicao_infantil_manha = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_infantil_manha,
+    )
+    categoria_dieta_a = mommy.make(
+        "CategoriaMedicao", nome="DIETA ESPECIAL - TIPO A ENTERAL"
+    )
+    for dia in ["01", "02"]:
+        for campo in ["lanche", "refeicao", "lanche_emergencial", "sobremesa"]:
+            for categoria in [categoria_medicao, categoria_dieta_a]:
+                mommy.make(
+                    "ValorMedicao",
+                    dia=dia,
+                    nome_campo=campo,
+                    medicao=medicao_infantil_manha,
+                    categoria_medicao=categoria,
+                    valor="10",
+                )
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_varios_valores_escola_cemei(
+    escola_cemei, categoria_medicao
+):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_integral = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    periodo_parcial = mommy.make("PeriodoEscolar", nome="PARCIAL")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial", mes=12, ano=2022, escola=escola_cemei
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    medicao_integral = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_integral,
+    )
+    medicao_parcial = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_parcial,
+    )
+    categoria_dieta_a = mommy.make(
+        "CategoriaMedicao", nome="DIETA ESPECIAL - TIPO A ENTERAL"
+    )
+    for dia in ["01", "02", "03"]:
+        for categoria in [categoria_medicao, categoria_dieta_a]:
+            valores = ["10", "20"]
+            for index, medicao_ in enumerate([medicao_integral, medicao_parcial]):
+                mommy.make(
+                    "ValorMedicao",
+                    dia=dia,
+                    nome_campo="frequencia",
+                    medicao=medicao_,
+                    categoria_medicao=categoria,
+                    valor=valores[index],
+                )
+    medicao_infantil_manha(solicitacao_medicao, categoria_medicao)
     return solicitacao_medicao
 
 
@@ -1288,8 +1406,29 @@ def client_autenticado_da_escola(client, django_user_model, escola):
 
 
 @pytest.fixture
+def client_autenticado_da_escola_cei(client, django_user_model, escola_cei):
+    email = "user@escola_cei.com"
+    password = "admin@123"
+    perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
+    usuario = django_user_model.objects.create_user(
+        username=email, password=password, email=email, registro_funcional="123456"
+    )
+    hoje = datetime.date.today()
+    mommy.make(
+        "Vinculo",
+        usuario=usuario,
+        instituicao=escola_cei,
+        perfil=perfil_diretor,
+        data_inicial=hoje,
+        ativo=True,
+    )
+    client.login(username=email, password=password)
+    return client
+
+
+@pytest.fixture
 def client_autenticado_da_escola_cemei(client, django_user_model, escola_cemei):
-    email = "user@escola.com"
+    email = "user@escola_cemei.com"
     password = "admin@123"
     perfil_diretor = mommy.make("Perfil", nome="DIRETOR_UE", ativo=True)
     usuario = django_user_model.objects.create_user(
@@ -1360,3 +1499,102 @@ def dia_para_corrigir(categoria_medicao, medicao):
         categoria_medicao=categoria_medicao,
         dia="01",
     )
+
+
+@pytest.fixture
+def alimentacoes_lancamentos_especiais():
+    for alimentacao in [
+        {"nome": "2ª Refeição 1ª oferta", "posicao": 1},
+        {"nome": "Repetição 2ª Refeição", "posicao": 2},
+        {"nome": "2ª Sobremesa 1ª oferta", "posicao": 3},
+        {"nome": "Repetição 2ª Sobremesa", "posicao": 4},
+        {"nome": "2º Lanche 4h", "posicao": 5},
+        {"nome": "2º Lanche 5h", "posicao": 6},
+        {"nome": "Lanche Extra", "posicao": 7},
+    ]:
+        if not AlimentacaoLancamentoEspecial.objects.filter(
+            nome=alimentacao["nome"], posicao=alimentacao["posicao"]
+        ).exists():
+            AlimentacaoLancamentoEspecial.objects.create(
+                nome=alimentacao["nome"], posicao=alimentacao["posicao"]
+            )
+    return AlimentacaoLancamentoEspecial.objects.all()
+
+
+@pytest.fixture
+def permissoes_lancamento_especial(
+    escola, escola_emei, alimentacoes_lancamentos_especiais
+):
+    usuario = mommy.make("Usuario", email="admin2@admin.com", is_superuser=True)
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
+    alimentacoes = alimentacoes_lancamentos_especiais
+    mommy.make(
+        "PermissaoLancamentoEspecial",
+        alimentacoes_lancamento_especial=[
+            alimentacoes[0],
+            alimentacoes[2],
+            alimentacoes[5],
+            alimentacoes[6],
+        ],
+        criado_por=usuario,
+        data_inicial="2023-08-13",
+        data_final="2023-08-15",
+        escola=escola,
+        diretoria_regional=escola.diretoria_regional,
+        periodo_escolar=periodo_manha,
+    )
+    mommy.make(
+        "PermissaoLancamentoEspecial",
+        alimentacoes_lancamento_especial=[
+            alimentacoes[1],
+            alimentacoes[3],
+            alimentacoes[5],
+        ],
+        criado_por=usuario,
+        data_inicial="2023-08-02",
+        data_final="2023-08-09",
+        escola=escola,
+        diretoria_regional=escola.diretoria_regional,
+        periodo_escolar=periodo_tarde,
+    )
+    mommy.make(
+        "PermissaoLancamentoEspecial",
+        alimentacoes_lancamento_especial=[
+            alimentacoes[1],
+            alimentacoes[3],
+            alimentacoes[4],
+            alimentacoes[5],
+            alimentacoes[6],
+        ],
+        criado_por=usuario,
+        data_inicial="2023-08-10",
+        data_final="2023-08-12",
+        escola=escola_emei,
+        diretoria_regional=escola.diretoria_regional,
+        periodo_escolar=periodo_manha,
+    )
+    return PermissaoLancamentoEspecial.objects.all()
+
+
+@pytest.fixture
+def logs_alunos_matriculados_periodo_escola_cemei(escola_cemei):
+    quantidades = [10, 20]
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
+    for quantidade in quantidades:
+        mommy.make(
+            LogAlunosMatriculadosPeriodoEscola,
+            escola=escola_cemei,
+            periodo_escolar=periodo_manha,
+            quantidade_alunos=quantidade,
+            tipo_turma=TipoTurma.REGULAR.name,
+        )
+    mommy.make(
+        LogAlunosMatriculadosPeriodoEscola,
+        escola=escola_cemei,
+        periodo_escolar=periodo_tarde,
+        quantidade_alunos=50,
+        tipo_turma=TipoTurma.REGULAR.name,
+    )
+    return LogAlunosMatriculadosPeriodoEscola.objects.all()

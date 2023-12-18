@@ -1,3 +1,4 @@
+import calendar
 import datetime
 import json
 
@@ -56,12 +57,14 @@ from ..utils import (
     criar_log_aprovar_periodos_corrigidos,
     criar_log_solicitar_correcao_periodos,
     get_campos_a_desconsiderar,
+    get_dict_alimentacoes_lancamentos_especiais,
     get_valor_total,
     log_alteracoes_escola_corrige_periodo,
     tratar_valores,
     tratar_workflow_todos_lancamentos,
 )
 from .constants import (
+    ORDEM_NAME_LANCAMENTOS_ESPECIAIS,
     STATUS_RELACAO_DRE,
     STATUS_RELACAO_DRE_CODAE,
     STATUS_RELACAO_DRE_MEDICAO,
@@ -506,8 +509,8 @@ class SolicitacaoMedicaoInicialViewSet(
         uuid = request.query_params.get("uuid_solicitacao")
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
         retorno = []
-        campos_a_desconsiderar = get_campos_a_desconsiderar(escola)
         for medicao in solicitacao.medicoes.all():
+            campos_a_desconsiderar = get_campos_a_desconsiderar(escola, medicao)
             valores = []
             for valor_medicao in medicao.valores_medicao.exclude(
                 categoria_medicao__nome__icontains="DIETA"
@@ -547,7 +550,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 "valores": valores,
                 "valor_total": valor_total,
             }
-            if escola.eh_cei:
+            if escola.eh_cei or (
+                escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo
+            ):
                 dict_retorno["quantidade_alunos"] = sum(v["valor"] for v in valores)
             retorno.append(dict_retorno)
         return Response({"results": retorno}, status=status.HTTP_200_OK)
@@ -1313,6 +1318,11 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ["escola__uuid"]
 
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return PermissaoLancamentoEspecialCreateUpdateSerializer
+        return PermissaoLancamentoEspecialSerializer
+
     @action(
         detail=False,
         methods=["GET"],
@@ -1337,10 +1347,73 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
                 dict(detail=f"Erro: {e}"), status=status.HTTP_400_BAD_REQUEST
             )
 
-    def get_serializer_class(self):
-        if self.action in ["create", "update", "partial_update"]:
-            return PermissaoLancamentoEspecialCreateUpdateSerializer
-        return PermissaoLancamentoEspecialSerializer
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="permissoes-lancamentos-especiais-mes-ano",
+        permission_classes=[
+            UsuarioEscolaTercTotal
+            | UsuarioDiretoriaRegional
+            | UsuarioCODAENutriManifestacao
+            | UsuarioCODAEGestaoAlimentacao
+        ],
+    )
+    def permissoes_lancamentos_especiais_mes_ano(self, request):
+        escola_uuid = request.query_params.get("escola_uuid")
+        mes = request.query_params.get("mes")
+        ano = request.query_params.get("ano")
+        nome_periodo_escolar = request.query_params.get("nome_periodo_escolar")
+
+        query_set = PermissaoLancamentoEspecial.objects.filter(
+            escola__uuid=escola_uuid,
+            periodo_escolar__nome=nome_periodo_escolar,
+            data_inicial__month__lte=mes,
+            data_inicial__year=ano,
+        )
+        permissoes_por_dia = []
+        alimentacoes_lancamentos_especiais_names = []
+        for permissao in query_set:
+            dia_inicial = 1
+            dia_final = calendar.monthrange(int(ano), int(mes))[1]
+            if permissao.data_inicial.month == int(mes):
+                dia_inicial = permissao.data_inicial.day
+            if permissao.data_final and permissao.data_final.month == int(mes):
+                dia_final = permissao.data_final.day
+            nome_periodo_escolar = permissao.periodo_escolar.nome
+            permissao_id_externo = permissao.id_externo
+            alimentacoes = [
+                alimentacao.name
+                for alimentacao in permissao.alimentacoes_lancamento_especial.all()
+            ]
+            alimentacoes_lancamentos_especiais_names += alimentacoes
+            for dia in range(dia_inicial, dia_final + 1):
+                permissoes_por_dia.append(
+                    {
+                        "dia": f"{dia:02d}",
+                        "periodo": nome_periodo_escolar,
+                        "alimentacoes": alimentacoes,
+                        "permissao_id_externo": permissao_id_externo,
+                    }
+                )
+        alimentacoes_lancamentos_especiais = (
+            get_dict_alimentacoes_lancamentos_especiais(
+                alimentacoes_lancamentos_especiais_names
+            )
+        )
+        data = {
+            "results": {
+                "alimentacoes_lancamentos_especiais": sorted(
+                    alimentacoes_lancamentos_especiais,
+                    key=lambda k: ORDEM_NAME_LANCAMENTOS_ESPECIAIS[k["name"]],
+                ),
+                "permissoes_por_dia": permissoes_por_dia,
+                "data_inicio_permissoes": f'{min([permissao["dia"] for permissao in permissoes_por_dia])}/{mes}/{ano}'
+                if permissoes_por_dia
+                else None,
+            }
+        }
+
+        return Response(data)
 
 
 class DiasParaCorrigirViewSet(mixins.ListModelMixin, GenericViewSet):

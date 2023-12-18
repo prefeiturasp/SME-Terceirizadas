@@ -62,7 +62,7 @@ class DiasMotivosInclusaoDeAlimentacaoCEISerializer(serializers.ModelSerializer)
         exclude = ("id",)
 
 
-class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+class InclusaoAlimentacaoDaCEIBaseSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     prioridade = serializers.CharField()
     periodo_escolar = PeriodoEscolarSimplesSerializer()
@@ -110,6 +110,10 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
+class InclusaoAlimentacaoDaCEISerializer(InclusaoAlimentacaoDaCEIBaseSerializer):
+    solicitacoes_similares = InclusaoAlimentacaoDaCEIBaseSerializer(many=True)
+
+
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
     periodo_escolar = PeriodoEscolarSerializer()
     tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True, read_only=True)
@@ -138,6 +142,7 @@ class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
     )
     id_externo = serializers.CharField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
+    solicitacoes_similares = serializers.ListField(default=[])
 
     class Meta:
         model = InclusaoAlimentacaoContinua
@@ -164,7 +169,7 @@ class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
         exclude = ("id", "data")
 
 
-class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
+class GrupoInclusaoAlimentacaoNormalBaseSerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
     escola = EscolaSimplesSerializer()
@@ -177,6 +182,12 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
         exclude = ("id",)
+
+
+class GrupoInclusaoAlimentacaoNormalSerializer(
+    GrupoInclusaoAlimentacaoNormalBaseSerializer
+):
+    solicitacoes_similares = GrupoInclusaoAlimentacaoNormalBaseSerializer(many=True)
 
 
 class GrupoInclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
@@ -216,7 +227,7 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoCEMEISerializer(
         exclude = ("id",)
 
 
-class InclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
+class InclusaoDeAlimentacaoCEMEIBaseSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
     dias_motivos_da_inclusao_cemei = DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(
         many=True
@@ -239,6 +250,10 @@ class InclusaoDeAlimentacaoCEMEISerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
+class InclusaoDeAlimentacaoCEMEISerializer(InclusaoDeAlimentacaoCEMEIBaseSerializer):
+    solicitacoes_similares = InclusaoDeAlimentacaoCEMEIBaseSerializer(many=True)
+
+
 class InclusaoDeAlimentacaoCEMEIRetrieveSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     dias_motivos_da_inclusao_cemei = DiasMotivosInclusaoDeAlimentacaoCEMEISerializer(
@@ -256,6 +271,7 @@ class InclusaoDeAlimentacaoCEMEIRetrieveSerializer(serializers.ModelSerializer):
     rastro_terceirizada = TerceirizadaSimplesSerializer()
     prioridade = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    solicitacoes_similares = InclusaoDeAlimentacaoCEMEIBaseSerializer(many=True)
 
     class Meta:
         model = InclusaoDeAlimentacaoCEMEI
