@@ -521,13 +521,15 @@ def popula_campos_preenchidos_pela_escola(
         else:
             medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
         valores_dia += [
-            medicao.valores_medicao.get(
+            medicao.valores_medicao.filter(
                 dia=f"{dia:02d}",
                 categoria_medicao__nome=categoria_corrente,
                 nome_campo=campo,
-            ).valor
+            )
+            .first()
+            .valor
         ]
-    except ValorMedicao.DoesNotExist:
+    except (ValorMedicao.DoesNotExist, AttributeError):
         valores_dia += ["0"]
 
 
@@ -538,14 +540,18 @@ def popula_campos_preenchidos_pela_escola_cei(
         periodo = tabela["periodos"][indice_periodo]
         medicoes = solicitacao.medicoes.all()
         medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
-        quantidade = medicao.valores_medicao.get(
-            dia=f"{dia:02d}",
-            categoria_medicao__nome=categoria_corrente,
-            faixa_etaria=faixa_id,
-            nome_campo="frequencia",
-        ).valor
+        quantidade = (
+            medicao.valores_medicao.filter(
+                dia=f"{dia:02d}",
+                categoria_medicao__nome=categoria_corrente,
+                faixa_etaria=faixa_id,
+                nome_campo="frequencia",
+            )
+            .first()
+            .valor
+        )
         valores_dia += [quantidade]
-    except ValorMedicao.DoesNotExist:
+    except (ValorMedicao.DoesNotExist, AttributeError):
         valores_dia += ["0"]
 
 
