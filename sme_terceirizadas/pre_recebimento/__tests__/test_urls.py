@@ -2823,8 +2823,6 @@ def test_calendario_cronograma_list_ok(
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["count"] == len(etapas_cronogramas)
 
-    breakpoint()
-
 
 def test_calendario_cronograma_list_not_authorized(client_autenticado):
     """Deve retornar status HTTP 403 ao tentar obter listagem com usuário não autorizado."""
