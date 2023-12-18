@@ -1253,8 +1253,7 @@ def test_url_dashboard_layout_embalagens_status_retornados(
 
     assert response.status_code == status.HTTP_200_OK
 
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
-    user = get_user_model().objects.get(id=user_id)
+    user = get_user_model().objects.get()
     status_esperados = ServiceDashboardLayoutEmbalagem.get_dashboard_status(user)
     status_recebidos = [result["status"] for result in response.json()["results"]]
 
@@ -2072,8 +2071,7 @@ def test_url_documentos_de_recebimento_listagem_not_authorized(client_autenticad
 def test_url_dashboard_documentos_de_recebimento_status_retornados(
     client_autenticado_codae_dilog, documento_de_recebimento_factory
 ):
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
-    user = get_user_model().objects.get(id=user_id)
+    user = get_user_model().objects.get()
     status_esperados = ServiceDashboardDocumentosDeRecebimento.get_dashboard_status(
         user
     )
