@@ -2397,7 +2397,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige(
     cronograma_factory,
     tipo_de_documento_de_recebimento_factory,
 ):
-    user_id = django_user_model.objects.first().id
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     cronograma = cronograma_factory.create(
         empresa=empresa,
