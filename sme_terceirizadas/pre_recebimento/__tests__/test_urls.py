@@ -1252,7 +1252,8 @@ def test_url_dashboard_layout_embalagens_status_retornados(
 
     assert response.status_code == status.HTTP_200_OK
 
-    user = get_user_model().objects.get()
+    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user = get_user_model().objects.get(id=user_id)
     status_esperados = ServiceDashboardLayoutEmbalagem.get_dashboard_status(user)
     status_recebidos = [result["status"] for result in response.json()["results"]]
 
@@ -2070,7 +2071,8 @@ def test_url_documentos_de_recebimento_listagem_not_authorized(client_autenticad
 def test_url_dashboard_documentos_de_recebimento_status_retornados(
     client_autenticado_codae_dilog, documento_de_recebimento_factory
 ):
-    user = get_user_model().objects.get()
+    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user = get_user_model().objects.get(id=user_id)
     status_esperados = ServiceDashboardDocumentosDeRecebimento.get_dashboard_status(
         user
     )
@@ -2485,7 +2487,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
     cronograma_factory,
     tipo_de_documento_de_recebimento_factory,
 ):
-    user_id = django_user_model.objects.first().id
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     cronograma = cronograma_factory.create(
         empresa=empresa,
@@ -2621,7 +2623,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
     django_user_model,
     cronograma_factory,
 ):
-    user_id = django_user_model.objects.first().id
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     cronograma = cronograma_factory.create(
         empresa=empresa,
