@@ -924,17 +924,24 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
 
 class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     produto = serializers.SlugRelatedField(
-        slug_field="uuid", required=True, queryset=NomeDeProdutoEdital.objects.all()
+        slug_field="uuid",
+        required=True,
+        queryset=NomeDeProdutoEdital.objects.all(),
     )
     marca = serializers.SlugRelatedField(
-        slug_field="uuid", required=True, queryset=Marca.objects.all()
+        slug_field="uuid",
+        required=True,
+        queryset=Marca.objects.all(),
     )
     categoria = serializers.ChoiceField(
-        choices=FichaTecnicaDoProduto.CATEGORIA_CHOICES, required=True
+        choices=FichaTecnicaDoProduto.CATEGORIA_CHOICES,
+        required=True,
     )
     pregao_chamada_publica = serializers.CharField(required=True)
     empresa = serializers.SlugRelatedField(
-        slug_field="uuid", required=True, queryset=Terceirizada.objects.all()
+        slug_field="uuid",
+        required=True,
+        queryset=Terceirizada.objects.all(),
     )
     fabricante = serializers.SlugRelatedField(
         slug_field="uuid",
@@ -967,6 +974,15 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     gluten = serializers.BooleanField(required=False)
     lactose = serializers.BooleanField(required=False)
     lactose_detalhe = serializers.CharField(required=True, allow_blank=True)
+    porcao = serializers.CharField(required=True, allow_blank=True)
+    unidade_medida = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True,
+    )
+    valor_unidade_caseira = serializers.CharField(required=True, allow_blank=True)
+    unidade_medida_caseira = serializers.CharField(required=True, allow_blank=True)
 
     class Meta:
         model = FichaTecnicaDoProduto
