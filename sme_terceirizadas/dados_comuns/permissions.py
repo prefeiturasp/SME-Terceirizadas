@@ -841,6 +841,27 @@ class PermissaoParaCadastrarVisualizarUnidadesMedida(BasePermission):
         )
 
 
+class PermissaoParaVisualizarUnidadesMedida(BasePermission):
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae)
+                    and usuario.vinculo_atual.perfil.nome
+                    in [
+                        DILOG_QUALIDADE,
+                        DILOG_CRONOGRAMA,
+                        COORDENADOR_CODAE_DILOG_LOGISTICA,
+                    ]
+                    or usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA]
+                )
+            )
+        )
+
+
 class PermissaoParaVisualizarSolicitacoesAlteracaoCronograma(BasePermission):
     PERFIS_PERMITIDOS = [
         DINUTRE_DIRETORIA,
