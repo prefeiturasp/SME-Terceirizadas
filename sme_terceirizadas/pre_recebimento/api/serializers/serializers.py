@@ -672,6 +672,7 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     marca = MarcaSimplesSerializer()
     empresa = TerceirizadaLookUpSerializer()
     fabricante = FabricanteSimplesSerializer()
+    unidade_medida = NomeEAbreviacaoUnidadeMedidaSerializer()
     status = serializers.CharField(source="get_status_display")
 
     def get_criado_em(self, obj):
@@ -711,4 +712,8 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "gluten",
             "lactose",
             "lactose_detalhe",
+            "porcao",
+            "unidade_medida",
+            "valor_unidade_caseira",
+            "unidade_medida_caseira",
         )
