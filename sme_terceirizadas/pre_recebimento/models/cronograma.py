@@ -665,17 +665,29 @@ class FichaTecnicaDoProduto(
     numero = models.CharField(
         "Número da Ficha Técnica", blank=True, max_length=50, unique=True
     )
-    produto = models.ForeignKey(NomeDeProdutoEdital, on_delete=models.PROTECT)
+    produto = models.ForeignKey(
+        NomeDeProdutoEdital,
+        on_delete=models.PROTECT,
+        related_name="fichas_tecnicas",
+    )
     marca = models.ForeignKey(Marca, on_delete=models.PROTECT, blank=True, null=True)
     categoria = models.CharField(choices=CATEGORIA_CHOICES, max_length=14, blank=True)
     pregao_chamada_publica = models.CharField(
         "Nº do Pregão Eletrônico", max_length=100, blank=True
     )
     empresa = models.ForeignKey(
-        Terceirizada, on_delete=models.CASCADE, blank=True, null=True
+        Terceirizada,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas",
     )
     fabricante = models.ForeignKey(
-        Fabricante, on_delete=models.PROTECT, blank=True, null=True
+        Fabricante,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas",
     )
     cnpj_fabricante = models.CharField(
         "CNPJ", validators=[MinLengthValidator(14)], max_length=14
@@ -710,6 +722,20 @@ class FichaTecnicaDoProduto(
     gluten = models.BooleanField("Contém glúten?", null=True)
     lactose = models.BooleanField("Contém lactose?", null=True)
     lactose_detalhe = models.CharField("Detalhar Lactose", max_length=150, blank=True)
+    porcao = models.CharField("Porção", max_length=50, blank=True)
+    unidade_medida = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas",
+    )
+    valor_unidade_caseira = models.CharField(
+        "Unidade Caseira", max_length=50, blank=True
+    )
+    unidade_medida_caseira = models.CharField(
+        "Unidade de Medida Caseira", max_length=100, blank=True
+    )
 
     def __str__(self):
         return self.produto.nome
