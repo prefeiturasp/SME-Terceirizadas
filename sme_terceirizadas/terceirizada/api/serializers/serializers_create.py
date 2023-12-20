@@ -290,8 +290,6 @@ class EditalContratosCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         contrato_array = validated_data.pop("contratos")
 
-        instance.contratos.all().delete()
-
         contratos = []
         for contrato_json in contrato_array:
             contrato = ContratoCreateSerializer().create(contrato_json)
