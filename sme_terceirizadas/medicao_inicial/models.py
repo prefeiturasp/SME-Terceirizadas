@@ -407,7 +407,7 @@ class PermissaoLancamentoEspecial(
         ordering = ["-alterado_em"]
 
     def __str__(self):
-        return f"Permissão #{self.id_externo} - {self.escola.nome} -- de {self.data_inicial} até {self.data_final or '-- '}"
+        return f"#{self.id_externo} - {self.periodo_escolar.nome} - {self.escola.nome} -- de {self.data_inicial} até {self.data_final or '-- '}"
 
 
 class DiaParaCorrigir(
