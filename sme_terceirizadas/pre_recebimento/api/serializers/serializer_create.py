@@ -80,8 +80,12 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
     empresa = serializers.SlugRelatedField(
         slug_field="uuid",
         required=False,
-        queryset=Terceirizada.objects.filter(tipo_servico__in=[Terceirizada.FORNECEDOR,
-                                                               Terceirizada.FORNECEDOR_E_DISTRIBUIDOR]),
+        queryset=Terceirizada.objects.filter(
+            tipo_servico__in=[
+                Terceirizada.FORNECEDOR,
+                Terceirizada.FORNECEDOR_E_DISTRIBUIDOR,
+            ]
+        ),
     )
     contrato = serializers.SlugRelatedField(
         slug_field="uuid",
@@ -948,6 +952,21 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     estado_fabricante = serializers.CharField(required=True, allow_blank=True)
     email_fabricante = serializers.CharField(required=True, allow_blank=True)
     telefone_fabricante = serializers.CharField(required=True, allow_blank=True)
+    prazo_validade = serializers.CharField(required=True, allow_blank=True)
+    numero_registro = serializers.CharField(required=True, allow_blank=True)
+    agroecologico = serializers.BooleanField(required=False)
+    organico = serializers.BooleanField(required=False)
+    mecanismo_controle = serializers.ChoiceField(
+        choices=FichaTecnicaDoProduto.MECANISMO_CONTROLE_CHOICES,
+        required=True,
+        allow_blank=True,
+    )
+    componentes_produto = serializers.CharField(required=True, allow_blank=True)
+    alergenicos = serializers.BooleanField(required=False)
+    ingredientes_alergenicos = serializers.CharField(required=True, allow_blank=True)
+    gluten = serializers.BooleanField(required=False)
+    lactose = serializers.BooleanField(required=False)
+    lactose_detalhe = serializers.CharField(required=True, allow_blank=True)
 
     class Meta:
         model = FichaTecnicaDoProduto

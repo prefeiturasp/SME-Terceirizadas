@@ -40,6 +40,34 @@ def escola():
 
 
 @pytest.fixture
+def make_escola():
+    def handle(kwargs_escola=None):
+        kwargs_escola = kwargs_escola or {}
+
+        terceirizada = mommy.make("Terceirizada")
+        lote = mommy.make("Lote", terceirizada=terceirizada)
+        contato = mommy.make(
+            "dados_comuns.Contato", nome="FULANO", email="fake@email.com"
+        )
+        diretoria_regional = mommy.make(
+            "DiretoriaRegional",
+            nome="DIRETORIA REGIONAL IPIRANGA",
+            uuid="4227ee4f-1da3-47b3-83bb-479adc81111c",
+        )
+        tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+        return mommy.make(
+            "Escola",
+            lote=lote,
+            diretoria_regional=diretoria_regional,
+            contato=contato,
+            tipo_gestao=tipo_gestao,
+            **kwargs_escola
+        )
+
+    return handle
+
+
+@pytest.fixture
 def escola_cei():
     terceirizada = mommy.make("Terceirizada")
     lote = mommy.make("Lote", terceirizada=terceirizada)
@@ -54,6 +82,25 @@ def escola_cei():
         diretoria_regional=diretoria_regional,
         uuid="a7b9cf39-ab0a-4c6f-8e42-230243f9763f",
     )
+
+
+@pytest.fixture
+def make_escola_cei():
+    def handle(kwargs_escola=None):
+        kwargs_escola = kwargs_escola or {}
+
+        terceirizada = mommy.make("Terceirizada")
+        lote = mommy.make("Lote", terceirizada=terceirizada)
+        diretoria_regional = mommy.make(
+            "DiretoriaRegional",
+            nome="DIRETORIA REGIONAL GUAIANASES",
+            uuid="7063d85d-a28f-4d62-a178-d56ae5a9776e",
+        )
+        return mommy.make(
+            "Escola", lote=lote, diretoria_regional=diretoria_regional, **kwargs_escola
+        )
+
+    return handle
 
 
 @pytest.fixture
@@ -75,6 +122,14 @@ def motivo_inclusao_continua():
 @pytest.fixture
 def motivo_inclusao_normal():
     return mommy.make(models.MotivoInclusaoNormal, nome=fake.name())
+
+
+@pytest.fixture
+def make_motivo_inclusao_normal():
+    def handle(nome):
+        return mommy.make(models.MotivoInclusaoNormal, nome=nome)
+
+    return handle
 
 
 @pytest.fixture
@@ -271,20 +326,66 @@ def inclusao_alimentacao_normal(motivo_inclusao_normal):
     )
 
 
-@pytest.fixture()
-def inclusao_alimentacao_cei(
-    motivo_inclusao_normal, escola, template_inclusao_continua
-):
+@pytest.fixture
+def inclusao_alimentacao_cei(escola):
     return mommy.make(
         models.InclusaoAlimentacaoDaCEI,
-        data=datetime.date(2019, 10, 2),
-        motivo=motivo_inclusao_normal,
-        outro_motivo=fake.name(),
-        observacao=fake.name(),
         escola=escola,
         rastro_escola=escola,
         rastro_dre=escola.diretoria_regional,
     )
+
+
+@pytest.fixture
+def make_inclusao_alimentacao_cei(escola):
+    def handle(*, kwargs_inclusao=None, kwargs_motivo=None):
+        kwargs_inclusao = kwargs_inclusao or {}
+        kwargs_motivo = kwargs_motivo or {}
+        _escola = kwargs_inclusao.pop("escola", escola)
+
+        inclusao = mommy.make(
+            models.InclusaoAlimentacaoDaCEI,
+            escola=_escola,
+            rastro_escola=_escola,
+            rastro_dre=_escola.diretoria_regional,
+            **kwargs_inclusao
+        )
+
+        mommy.make(
+            models.DiasMotivosInclusaoDeAlimentacaoCEI,
+            inclusao_cei=inclusao,
+            **kwargs_motivo
+        )
+
+        return inclusao
+
+    return handle
+
+
+@pytest.fixture
+def make_inclusao_alimentacao_cemei(escola):
+    def handle(*, kwargs_inclusao=None, kwargs_motivo=None):
+        kwargs_inclusao = kwargs_inclusao or {}
+        kwargs_motivo = kwargs_motivo or {}
+        _escola = kwargs_inclusao.pop("escola", escola)
+
+        inclusao = mommy.make(
+            models.InclusaoDeAlimentacaoCEMEI,
+            escola=_escola,
+            rastro_escola=_escola,
+            rastro_dre=_escola.diretoria_regional,
+            **kwargs_inclusao
+        )
+
+        mommy.make(
+            models.DiasMotivosInclusaoDeAlimentacaoCEMEI,
+            inclusao_alimentacao_cemei=inclusao,
+            **kwargs_motivo
+        )
+
+        return inclusao
+
+    return handle
 
 
 @pytest.fixture
@@ -327,6 +428,38 @@ def grupo_inclusao_alimentacao_normal(
         grupo_inclusao=grupo_inclusao_normal,
     )
     return grupo_inclusao_normal
+
+
+@pytest.fixture
+def make_grupo_inclusao_alimentacao_normal(escola, motivo_inclusao_normal):
+    def handle(*, kwargs_grupo=None, kwargs_inclusao1=None, kwargs_inclusao2=None):
+        kwargs_grupo = kwargs_grupo or {}
+        kwargs_inclusao1 = kwargs_inclusao1 or {}
+        kwargs_inclusao2 = kwargs_inclusao2 or {}
+        _escola = kwargs_grupo.pop("escola", escola)
+
+        grupo_inclusao_normal = mommy.make(
+            models.GrupoInclusaoAlimentacaoNormal,
+            escola=_escola,
+            rastro_escola=_escola,
+            rastro_dre=_escola.diretoria_regional,
+            **kwargs_grupo
+        )
+        mommy.make(
+            models.InclusaoAlimentacaoNormal,
+            motivo=kwargs_inclusao1.pop("motivo", motivo_inclusao_normal),
+            grupo_inclusao=grupo_inclusao_normal,
+            **kwargs_inclusao1
+        )
+        mommy.make(
+            models.InclusaoAlimentacaoNormal,
+            motivo=kwargs_inclusao2.pop("motivo", motivo_inclusao_normal),
+            grupo_inclusao=grupo_inclusao_normal,
+            **kwargs_inclusao2
+        )
+        return grupo_inclusao_normal
+
+    return handle
 
 
 @pytest.fixture(

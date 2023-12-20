@@ -23,6 +23,7 @@ from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     PermissaoRelatorioDietasEspeciais,
     UsuarioCODAEDietaEspecial,
+    UsuarioEscolaDiretaParceira,
     UsuarioEscolaTercTotal,
     UsuarioTerceirizada,
 )
@@ -146,7 +147,9 @@ class SolicitacaoDietaEspecialViewSet(
                 PermissaoParaRecuperarDietaEspecial,
             )
         elif self.action == "create":
-            self.permission_classes = (UsuarioEscolaTercTotal,)
+            self.permission_classes = [
+                UsuarioEscolaTercTotal | UsuarioEscolaDiretaParceira
+            ]
         elif self.action in [
             "imprime_relatorio_dieta_especial",
         ]:
@@ -275,7 +278,7 @@ class SolicitacaoDietaEspecialViewSet(
         detail=True,
         methods=["POST"],
         url_path=constants.ESCOLA_SOLICITA_INATIVACAO,
-        permission_classes=(UsuarioEscolaTercTotal,),
+        permission_classes=[UsuarioEscolaTercTotal | UsuarioEscolaDiretaParceira],
     )
     def escola_solicita_inativacao(self, request, uuid=None):
         # TODO: colocar essa lógica dentro de um serializer

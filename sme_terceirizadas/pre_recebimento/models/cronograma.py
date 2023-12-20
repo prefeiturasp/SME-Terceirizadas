@@ -6,6 +6,11 @@ from django.db import models
 from django.db.models import OuterRef
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.template.loader import render_to_string
+from rest_framework.exceptions import ValidationError
+
+from sme_terceirizadas.dados_comuns.utils import convert_image_to_base64
+from sme_terceirizadas.relatorios.utils import merge_pdf_com_string_template
 
 from ...dados_comuns.behaviors import (
     CriadoEm,
@@ -535,6 +540,41 @@ class DocumentoDeRecebimento(
             justificativa=justificativa,
         )
 
+    @property
+    def arquivo_laudo_assinado(self):
+        log_aprovacao = self.logs.filter(
+            status_evento=LogSolicitacoesUsuario.DOCUMENTO_APROVADO
+        ).first()
+
+        if not log_aprovacao:
+            raise ValidationError(
+                "Não foi possível encontrar o log de Aprovação do Documento de Recebimento para gerar o Laudo assinado."
+            )
+
+        laudo = self.tipos_de_documentos.filter(
+            tipo_documento=TipoDeDocumentoDeRecebimento.TIPO_DOC_LAUDO
+        ).first()
+        arquivo_laudo = laudo.arquivos.first()
+
+        logo_sipae = convert_image_to_base64(
+            "sme_terceirizadas/relatorios/static/images/logo-sigpae.png", "png"
+        )
+
+        string_template = render_to_string(
+            "pre_recebimento/documentos_recebimento/rodape_assinatura_digital_laudo.html",
+            {
+                "logo_sigpae": logo_sipae,
+                "usuario": log_aprovacao.usuario,
+                "data_hora": log_aprovacao.criado_em,
+            },
+        )
+
+        return merge_pdf_com_string_template(
+            arquivo_pdf=arquivo_laudo.arquivo,
+            string_template=string_template,
+            somente_ultima_pagina=True,
+        )
+
     def __str__(self):
         return (
             f"{self.cronograma.numero} - Laudo: {self.numero_laudo}"
@@ -612,6 +652,16 @@ class FichaTecnicaDoProduto(
         (CATEGORIA_NAO_PERECIVEIS, "Não Perecíveis"),
     )
 
+    MECANISMO_CERTIFICACAO = "CERTIFICACAO"
+    MECANISMO_OPAC = "OPAC"
+    MECANISMO_OCS = "OCS"
+
+    MECANISMO_CONTROLE_CHOICES = (
+        (MECANISMO_CERTIFICACAO, "Certificação"),
+        (MECANISMO_OPAC, "OPAC"),
+        (MECANISMO_OCS, "OCS"),
+    )
+
     numero = models.CharField(
         "Número da Ficha Técnica", blank=True, max_length=50, unique=True
     )
@@ -641,6 +691,25 @@ class FichaTecnicaDoProduto(
     telefone_fabricante = models.CharField(
         max_length=13, validators=[MinLengthValidator(8)], blank=True
     )
+    prazo_validade = models.CharField("Prazo de Validade", max_length=150, blank=True)
+    numero_registro = models.CharField(
+        "Nº do Registro do Rótulo", max_length=150, blank=True
+    )
+    agroecologico = models.BooleanField("É agroecológico?", null=True)
+    organico = models.BooleanField("É orgânico?", null=True)
+    mecanismo_controle = models.CharField(
+        choices=MECANISMO_CONTROLE_CHOICES, max_length=12, blank=True
+    )
+    componentes_produto = models.CharField(
+        "Componentes do Produto", max_length=250, blank=True
+    )
+    alergenicos = models.BooleanField("Pode conter alergênicos?", null=True)
+    ingredientes_alergenicos = models.CharField(
+        "Ingredientes/aditivos alergênicos", max_length=150, blank=True
+    )
+    gluten = models.BooleanField("Contém glúten?", null=True)
+    lactose = models.BooleanField("Contém lactose?", null=True)
+    lactose_detalhe = models.CharField("Detalhar Lactose", max_length=150, blank=True)
 
     def __str__(self):
         return self.produto.nome

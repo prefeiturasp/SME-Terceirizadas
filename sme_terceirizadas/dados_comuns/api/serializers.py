@@ -4,7 +4,7 @@ import environ
 from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
-from ...perfil.api.serializers import UsuarioSerializer
+from ...perfil.api.serializers import UsuarioSerializer, UsuarioSimplesSerializer
 from ..models import (
     AnexoLogSolicitacoesUsuario,
     CategoriaPerguntaFrequente,
@@ -17,6 +17,7 @@ from ..models import (
     SolicitacaoAberta,
     TemplateMensagem,
 )
+from ..services import ServiceMapeamentoLogsLinhaDoTempo
 
 
 class CamposObrigatoriosMixin:
@@ -91,18 +92,26 @@ class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
 
 
 class LogSolicitacoesUsuarioSimplesSerializer(serializers.ModelSerializer):
-    criado_em = serializers.SerializerMethodField()
-    usuario = serializers.SerializerMethodField()
+    usuario = UsuarioSimplesSerializer()
+    status_evento_explicacao = serializers.SerializerMethodField()
 
-    def get_usuario(self, obj):
-        return obj.usuario.nome
+    def get_status_evento_explicacao(self, obj):
+        status_map = ServiceMapeamentoLogsLinhaDoTempo.get_status_map(
+            obj.solicitacao_tipo
+        )
 
-    def get_criado_em(self, obj):
-        return datetime.strftime(obj.criado_em, "%d/%m/%Y - %H:%M")
+        return status_map.get(
+            obj.status_evento_explicacao, obj.status_evento_explicacao
+        )
 
     class Meta:
         model = LogSolicitacoesUsuario
-        fields = ("usuario", "criado_em")
+        fields = (
+            "status_evento_explicacao",
+            "usuario",
+            "criado_em",
+            "justificativa",
+        )
 
 
 class LogSolicitacoesSerializer(serializers.ModelSerializer):

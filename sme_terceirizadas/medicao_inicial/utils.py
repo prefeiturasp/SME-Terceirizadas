@@ -22,7 +22,10 @@ from sme_terceirizadas.escola.models import (
     LogAlunosMatriculadosPeriodoEscola,
 )
 from sme_terceirizadas.escola.utils import string_to_faixa
-from sme_terceirizadas.medicao_inicial.models import ValorMedicao
+from sme_terceirizadas.medicao_inicial.models import (
+    AlimentacaoLancamentoEspecial,
+    ValorMedicao,
+)
 from sme_terceirizadas.paineis_consolidados.models import SolicitacoesEscola
 
 
@@ -518,13 +521,15 @@ def popula_campos_preenchidos_pela_escola(
         else:
             medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
         valores_dia += [
-            medicao.valores_medicao.get(
+            medicao.valores_medicao.filter(
                 dia=f"{dia:02d}",
                 categoria_medicao__nome=categoria_corrente,
                 nome_campo=campo,
-            ).valor
+            )
+            .first()
+            .valor
         ]
-    except ValorMedicao.DoesNotExist:
+    except (ValorMedicao.DoesNotExist, AttributeError):
         valores_dia += ["0"]
 
 
@@ -535,14 +540,18 @@ def popula_campos_preenchidos_pela_escola_cei(
         periodo = tabela["periodos"][indice_periodo]
         medicoes = solicitacao.medicoes.all()
         medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
-        quantidade = medicao.valores_medicao.get(
-            dia=f"{dia:02d}",
-            categoria_medicao__nome=categoria_corrente,
-            faixa_etaria=faixa_id,
-            nome_campo="frequencia",
-        ).valor
+        quantidade = (
+            medicao.valores_medicao.filter(
+                dia=f"{dia:02d}",
+                categoria_medicao__nome=categoria_corrente,
+                faixa_etaria=faixa_id,
+                nome_campo="frequencia",
+            )
+            .first()
+            .valor
+        )
         valores_dia += [quantidade]
-    except ValorMedicao.DoesNotExist:
+    except (ValorMedicao.DoesNotExist, AttributeError):
         valores_dia += ["0"]
 
 
@@ -2156,7 +2165,9 @@ def tratar_workflow_todos_lancamentos(usuario, raw_sql):
 
 def get_valor_total(escola, valores, medicao):
     valor_total = sum(v["valor"] for v in valores)
-    if escola.eh_cei:
+    if escola.eh_cei or (
+        escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo
+    ):
         fator_multiplicativo = 2
         if medicao.nome_periodo_grupo == "INTEGRAL":
             fator_multiplicativo = 5
@@ -2166,8 +2177,23 @@ def get_valor_total(escola, valores, medicao):
     return valor_total
 
 
-def get_campos_a_desconsiderar(escola):
+def get_campos_a_desconsiderar(escola, medicao):
     campos_a_desconsiderar = ["matriculados", "numero_de_alunos", "observacoes"]
-    if not escola.eh_cei:
+    if not (
+        escola.eh_cei
+        or (escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo)
+    ):
         campos_a_desconsiderar.append("frequencia")
     return campos_a_desconsiderar
+
+
+def get_dict_alimentacoes_lancamentos_especiais(
+    alimentacoes_lancamentos_especiais_names,
+):
+    dict_alimentacoes_lancamentos_especiais = []
+    for alimentacao in AlimentacaoLancamentoEspecial.objects.all():
+        if alimentacao.name in alimentacoes_lancamentos_especiais_names:
+            dict_alimentacoes_lancamentos_especiais.append(
+                {"nome": alimentacao.nome, "name": alimentacao.name, "uuid": None}
+            )
+    return dict_alimentacoes_lancamentos_especiais

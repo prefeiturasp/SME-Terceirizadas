@@ -591,6 +591,7 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
     else:
         escola = solicitacao.escola_destino
     substituicao_ordenada = solicitacao.substituicoes.order_by("alimento__nome")
+
     html_string = render_to_string(
         "solicitacao_dieta_especial_protocolo.html",
         {
@@ -602,6 +603,11 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
                 status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU
             ),
             "foto_aluno": solicitacao.aluno.foto_aluno_base64,
+            "eh_protocolo_dieta_especial": solicitacao.tipo_solicitacao
+            == "ALTERACAO_UE",
+            "motivo": solicitacao.motivo_alteracao_ue.nome.split(" - ")[1]
+            if solicitacao.motivo_alteracao_ue
+            else None,
         },
     )
     if request:

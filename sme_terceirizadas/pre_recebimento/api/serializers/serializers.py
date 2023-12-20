@@ -371,6 +371,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
     tipos_de_embalagens = TipoEmbalagemLayoutLookupSerializer(many=True)
     log_mais_recente = serializers.SerializerMethodField()
     primeira_analise = serializers.SerializerMethodField()
+    logs = LogSolicitacoesUsuarioSimplesSerializer(many=True)
 
     def get_numero_cronograma(self, obj):
         return obj.cronograma.numero if obj.cronograma else None
@@ -413,6 +414,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
             "nome_empresa",
             "log_mais_recente",
             "primeira_analise",
+            "logs",
         )
 
 
@@ -534,7 +536,7 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")
     tipos_de_documentos = TipoDocumentoDeRecebimentoLookupSerializer(many=True)
-    log_mais_recente = LogSolicitacoesUsuarioSimplesSerializer()
+    logs = LogSolicitacoesUsuarioSimplesSerializer(many=True)
 
     def get_numero_cronograma(self, obj):
         return obj.cronograma.numero if obj.cronograma else None
@@ -564,7 +566,7 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
             "criado_em",
             "tipos_de_documentos",
             "correcao_solicitada",
-            "log_mais_recente",
+            "logs",
         )
 
 
@@ -603,11 +605,27 @@ class DocRecebimentoDetalharCodaeSerializer(DocRecebimentoDetalharSerializer):
         )
 
 
-class FichaTecnicalistagemSerializer(serializers.ModelSerializer):
-    # TODO: personalizar quando entrar a história de filtros e listagem
+class FichaTecnicaListagemSerializer(serializers.ModelSerializer):
+    nome_produto = serializers.SerializerMethodField()
+    criado_em = serializers.SerializerMethodField()
+    status = serializers.CharField(source="get_status_display")
+
+    def get_nome_produto(self, obj):
+        return obj.produto.nome if obj.produto else None
+
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime("%d/%m/%Y")
+
     class Meta:
         model = FichaTecnicaDoProduto
-        exclude = ("id",)
+        fields = (
+            "uuid",
+            "numero",
+            "nome_produto",
+            "pregao_chamada_publica",
+            "criado_em",
+            "status",
+        )
 
 
 class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
@@ -644,4 +662,15 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "estado_fabricante",
             "email_fabricante",
             "telefone_fabricante",
+            "prazo_validade",
+            "numero_registro",
+            "agroecologico",
+            "organico",
+            "mecanismo_controle",
+            "componentes_produto",
+            "alergenicos",
+            "ingredientes_alergenicos",
+            "gluten",
+            "lactose",
+            "lactose_detalhe",
         )

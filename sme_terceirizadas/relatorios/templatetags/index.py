@@ -529,15 +529,12 @@ def formatar_observacoes(observacoes, cei=False):
 @register.filter
 def str_qtd_paginas_tabela(escolas_quantidades):
     qtd_paginas = math.ceil(len(escolas_quantidades) / 10)
-    list_str = ''
-    for i in range(0, qtd_paginas):
-        list_str += str(i)
-    return list_str
+    return "".join([str(i) for i in range(0, qtd_paginas)])
 
 
 @register.filter
 def smart_slice(escolas_quantidades, idx):
     idx = int(idx)
-    list_uuids = [esc['uuid'] for esc in escolas_quantidades]
+    list_uuids = [esc["uuid"] for esc in escolas_quantidades]
     qs = EscolaQuantidade.objects.filter(uuid__in=list_uuids)
     return qs[10 * idx : 10 * (idx + 1)]

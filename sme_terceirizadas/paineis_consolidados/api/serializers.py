@@ -75,6 +75,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
     escola_ou_terceirizada_nome = serializers.SerializerMethodField()
     desc_doc = serializers.CharField()
     data_evento = serializers.SerializerMethodField()
+    tipo_alteracao = serializers.SerializerMethodField()
     numero_alunos = serializers.SerializerMethodField()
     observacoes = serializers.SerializerMethodField()
     data_autorizacao_negacao_cancelamento = serializers.SerializerMethodField()
@@ -122,6 +123,11 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
         ]:
             return obj.get_raw_model.objects.get(uuid=obj.uuid).datas
         return obj.data_evento.strftime("%d/%m/%Y") if obj.data_evento else None
+
+    def get_tipo_alteracao(self, obj):
+        if "ALT_CARDAPIO" not in obj.tipo_doc:
+            return "-"
+        return obj.motivo
 
     def get_data_autorizacao_negacao_cancelamento(self, obj):
         map_data = {
@@ -173,6 +179,7 @@ class SolicitacoesExportXLSXSerializer(serializers.ModelSerializer):
             "desc_doc",
             "id_externo",
             "data_evento",
+            "tipo_alteracao",
             "numero_alunos",
             "observacoes",
             "data_autorizacao_negacao_cancelamento",
