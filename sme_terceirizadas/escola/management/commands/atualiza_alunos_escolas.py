@@ -166,6 +166,8 @@ class Command(BaseCommand):
                     f"{self.contador_alunos} DE UM TOTAL DE {self.total_alunos} MATRICULAS"
                 )
             )
+            if registro["codigoAluno"] in codigos_consultados:
+                continue
             if (
                 registro["codigoSituacaoMatricula"] in self.status_matricula_ativa
                 or self.aluno_matriculado_prox_ano(
