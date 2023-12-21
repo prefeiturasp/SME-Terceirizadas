@@ -8,6 +8,7 @@ from model_mommy import mommy
 from sme_terceirizadas.dieta_especial.models import (
     ClassificacaoDieta,
     LogQuantidadeDietasAutorizadas,
+    LogQuantidadeDietasAutorizadasCEI,
 )
 
 from ...escola import models
@@ -522,3 +523,102 @@ def logs_quantidade_dietas_autorizadas_escola_comum(escola, periodo_escolar):
         periodo_escolar=periodo_escolar,
     )
     return LogQuantidadeDietasAutorizadas.objects.all()
+
+
+@pytest.fixture
+def escola_cemei():
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make("Lote", terceirizada=terceirizada)
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional", nome="DIRETORIA REGIONAL TESTE"
+    )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEMEI")
+    return mommy.make(
+        "Escola",
+        nome="CEMEI TESTE",
+        lote=lote,
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade_escolar,
+    )
+
+
+@pytest.fixture
+def faixas_etarias_ativas():
+    faixas = [
+        (0, 1),
+        (1, 4),
+        (4, 6),
+        (6, 8),
+        (8, 12),
+        (12, 24),
+        (24, 48),
+        (48, 72),
+    ]
+    return [
+        mommy.make("FaixaEtaria", inicio=inicio, fim=fim, ativo=True)
+        for (inicio, fim) in faixas
+    ]
+
+
+@pytest.fixture
+def logs_quantidade_dietas_autorizadas_escola_cei(
+    escola_cei, periodo_escolar, faixas_etarias_ativas
+):
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    quatro_dias_atras = hoje - datetime.timedelta(days=4)
+    quantidades = [15, 15]
+    classificacao = mommy.make(ClassificacaoDieta, nome="Tipo B")
+    for quantidade in quantidades:
+        mommy.make(
+            LogQuantidadeDietasAutorizadasCEI,
+            quantidade=quantidade,
+            escola=escola_cei,
+            data=ontem,
+            classificacao=classificacao,
+            periodo_escolar=periodo_escolar,
+            faixa_etaria=faixas_etarias_ativas[0],
+        )
+    mommy.make(
+        LogQuantidadeDietasAutorizadasCEI,
+        quantidade=50,
+        escola=escola_cei,
+        data=quatro_dias_atras,
+        classificacao=classificacao,
+        periodo_escolar=periodo_escolar,
+        faixa_etaria=faixas_etarias_ativas[0],
+    )
+    return LogQuantidadeDietasAutorizadasCEI.objects.all()
+
+
+@pytest.fixture
+def logs_quantidade_dietas_autorizadas_escola_cemei(
+    escola_cemei, periodo_escolar, faixas_etarias_ativas
+):
+    hoje = datetime.date.today()
+    dois_dias_atras = hoje - datetime.timedelta(days=2)
+    quatro_dias_atras = hoje - datetime.timedelta(days=5)
+    quantidades = [25, 25]
+    classificacao = mommy.make(ClassificacaoDieta, nome="Tipo C")
+    for quantidade in quantidades:
+        mommy.make(
+            LogQuantidadeDietasAutorizadasCEI,
+            quantidade=quantidade,
+            escola=escola_cemei,
+            data=dois_dias_atras,
+            classificacao=classificacao,
+            periodo_escolar=periodo_escolar,
+            faixa_etaria=faixas_etarias_ativas[2],
+        )
+    mommy.make(
+        LogQuantidadeDietasAutorizadasCEI,
+        quantidade=50,
+        escola=escola_cemei,
+        data=quatro_dias_atras,
+        classificacao=classificacao,
+        periodo_escolar=periodo_escolar,
+        faixa_etaria=faixas_etarias_ativas[2],
+    )
+    return LogQuantidadeDietasAutorizadasCEI.objects.all()
