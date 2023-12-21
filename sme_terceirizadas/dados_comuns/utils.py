@@ -594,7 +594,10 @@ def create_objects_logs(escola, log_para_criar, data):
         LogQuantidadeDietasAutorizadasCEI,
     )
 
-    if escola.eh_cei:
+    if escola.eh_cei or (
+        escola.eh_cemei
+        and log_para_criar._meta.model.__name__ == "LogQuantidadeDietasAutorizadasCEI"
+    ):
         LogQuantidadeDietasAutorizadasCEI.objects.create(
             quantidade=log_para_criar.quantidade,
             escola=log_para_criar.escola,
