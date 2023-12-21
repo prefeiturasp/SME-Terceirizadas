@@ -3,7 +3,10 @@ from datetime import date
 import environ
 from freezegun import freeze_time
 
-from sme_terceirizadas.dieta_especial.models import LogQuantidadeDietasAutorizadas
+from sme_terceirizadas.dieta_especial.models import (
+    LogQuantidadeDietasAutorizadas,
+    LogQuantidadeDietasAutorizadasCEI,
+)
 from sme_terceirizadas.escola.models import LogAlunosMatriculadosPeriodoEscola
 
 from ..constants import (
@@ -137,7 +140,21 @@ def test_analisa_logs_alunos_matriculados_periodo_escola(
 
 def test_analisa_logs_quantidade_dietas_autorizadas(
     logs_quantidade_dietas_autorizadas_escola_comum,
+    logs_quantidade_dietas_autorizadas_escola_cei,
+    logs_quantidade_dietas_autorizadas_escola_cemei,
 ):
     analisa_logs_quantidade_dietas_autorizadas()
-    logs = LogQuantidadeDietasAutorizadas.objects.all()
-    assert logs.count() == 3
+    logs_dietas_comuns = LogQuantidadeDietasAutorizadas.objects.all()
+    assert logs_dietas_comuns.count() == 3
+    logs_dietas_cei = [
+        log
+        for log in LogQuantidadeDietasAutorizadasCEI.objects.all()
+        if log.escola.tipo_unidade.iniciais == "CEI DIRET"
+    ]
+    assert len(logs_dietas_cei) == 4
+    logs_dietas_cemei = [
+        log
+        for log in LogQuantidadeDietasAutorizadasCEI.objects.all()
+        if log.escola.tipo_unidade.iniciais == "CEMEI"
+    ]
+    assert len(logs_dietas_cemei) == 5
