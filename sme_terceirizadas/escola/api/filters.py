@@ -16,6 +16,9 @@ class AlunoFilter(filters.FilterSet):
     nao_tem_dieta_especial = filters.BooleanFilter(
         field_name="dietas_especiais", lookup_expr="isnull"
     )
+    periodo_escolar_nome = filters.CharFilter(
+        field_name="periodo_escolar__nome", lookup_expr="iexact"
+    )
 
 
 class LogAlunosMatriculadosFaixaEtariaDiaFilter(filters.FilterSet):
