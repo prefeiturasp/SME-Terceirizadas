@@ -27,6 +27,11 @@ router.register(
 )
 router.register("rascunho-ficha-tecnica", viewsets.FichaTecnicaRascunhoViewSet)
 router.register("ficha-tecnica", viewsets.FichaTecnicaModelViewSet)
+router.register(
+    "calendario-cronogramas",
+    viewsets.CalendarioCronogramaViewset,
+    basename="calendario-cronogramas",
+)
 
 
 urlpatterns = [path("", include(router.urls))]
