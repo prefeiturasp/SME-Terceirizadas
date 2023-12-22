@@ -754,7 +754,10 @@ def logs_periodo_integral_cei_ou_emei_escola_cemei(
     quantidade_cei = 0
     quantidade_emei = 0
     for dieta in dietas:
-        if any(serie in dieta.aluno.serie for serie in series_cei):
+        if not dieta.aluno.serie:
+            quantidade_cei += 1
+            quantidade_emei += 1
+        elif any(serie in dieta.aluno.serie for serie in series_cei):
             quantidade_cei += 1
         else:
             quantidade_emei += 1

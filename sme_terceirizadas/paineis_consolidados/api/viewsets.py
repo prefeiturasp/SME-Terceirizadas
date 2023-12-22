@@ -244,7 +244,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         filtros = {
             key: value for key, value in map_filtros.items() if value not in [None, []]
         }
-        queryset = queryset.filter(**filtros)
+        queryset = queryset.filter(**filtros).order_by("escola_nome")
         queryset = self.remove_duplicados_do_query_set(queryset)
         return queryset
 

@@ -1357,11 +1357,11 @@ def test_escolas_permissoes_lancamentos_especiais(
     assert len(response.data["results"]) == 2
 
 
-def test_permissoes_lancamentos_especiais_mes_ano(
+def test_permissoes_lancamentos_especiais_mes_ano_por_periodo(
     client_autenticado_da_escola, escola, permissoes_lancamento_especial
 ):
     response_manha = client_autenticado_da_escola.get(
-        "/medicao-inicial/permissao-lancamentos-especiais/permissoes-lancamentos-especiais-mes-ano/"
+        "/medicao-inicial/permissao-lancamentos-especiais/permissoes-lancamentos-especiais-mes-ano-por-periodo/"
         f"?escola_uuid={escola.uuid}&mes=08&ano=2023"
         "&nome_periodo_escolar=MANHA"
     )
@@ -1373,7 +1373,7 @@ def test_permissoes_lancamentos_especiais_mes_ano(
     assert response_manha.data["results"]["data_inicio_permissoes"] == "13/08/2023"
 
     response_tarde = client_autenticado_da_escola.get(
-        "/medicao-inicial/permissao-lancamentos-especiais/permissoes-lancamentos-especiais-mes-ano/"
+        "/medicao-inicial/permissao-lancamentos-especiais/permissoes-lancamentos-especiais-mes-ano-por-periodo/"
         f"?escola_uuid={escola.uuid}&mes=08&ano=2023"
         "&nome_periodo_escolar=TARDE"
     )
@@ -1396,3 +1396,35 @@ def test_periodos_escola_cemei_com_alunos_emei(
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data["results"]) == 2
     assert set(response.data["results"]) == set(["Infantil TARDE", "Infantil MANHA"])
+
+
+def test_periodos_permissoes_lancamentos_especiais_mes_ano(
+    client_autenticado_da_escola, escola, permissoes_lancamento_especial
+):
+    response = client_autenticado_da_escola.get(
+        "/medicao-inicial/permissao-lancamentos-especiais/periodos-permissoes-lancamentos-especiais-mes-ano/"
+        f"?escola_uuid={escola.uuid}&mes=08&ano=2023"
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 2
+    assert set(
+        [
+            periodo_permissao
+            for periodo_permissao in response.data["results"]
+            if periodo_permissao["periodo"] == "TARDE"
+        ][0]["alimentacoes"]
+    ) == set(["Repetição 2ª Sobremesa", "2º Lanche 5h", "Repetição 2ª Refeição"])
+    assert set(
+        [
+            periodo_permissao
+            for periodo_permissao in response.data["results"]
+            if periodo_permissao["periodo"] == "MANHA"
+        ][0]["alimentacoes"]
+    ) == set(
+        [
+            "2ª Sobremesa 1ª oferta",
+            "2º Lanche 5h",
+            "Lanche Extra",
+            "2ª Refeição 1ª oferta",
+        ]
+    )

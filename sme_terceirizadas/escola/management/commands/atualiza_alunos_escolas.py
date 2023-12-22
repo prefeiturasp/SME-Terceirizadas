@@ -143,35 +143,28 @@ class Command(BaseCommand):
             aluno.escola = None
             aluno.save()
 
-    def aluno_matriculado_prox_ano(self, dados, aluno_nome):
-        aluno_encontrado = next(
-            (aluno for aluno in dados if aluno["nomeAluno"] == aluno_nome), None
-        )
-        return (
-            aluno_encontrado
-            and aluno_encontrado["codigoSituacaoMatricula"]
-            in self.status_matricula_ativa
-        )
-
     def _atualiza_alunos_da_escola(
         self, escola, dados_alunos_escola, dados_alunos_escola_prox_ano
     ):
         novos_alunos = {}
-        self.total_alunos += len(dados_alunos_escola)
         codigos_consultados = []
-        for registro in dados_alunos_escola:
+        dados_ano_atual_mais_proximo_ano = (
+            dados_alunos_escola + dados_alunos_escola_prox_ano
+        )
+        self.total_alunos += len(dados_ano_atual_mais_proximo_ano)
+        for registro in dados_ano_atual_mais_proximo_ano:
             self.contador_alunos += 1
             self.stdout.write(
                 self.style.SUCCESS(
                     f"{self.contador_alunos} DE UM TOTAL DE {self.total_alunos} MATRICULAS"
                 )
             )
+            if registro["codigoAluno"] in codigos_consultados:
+                continue
             if (
                 registro["codigoSituacaoMatricula"] in self.status_matricula_ativa
-                or self.aluno_matriculado_prox_ano(
-                    dados_alunos_escola_prox_ano, registro["nomeAluno"]
-                )
-            ) and registro["codigoTipoTurma"] == self.codigo_turma_regular:
+                and registro["codigoTipoTurma"] == self.codigo_turma_regular
+            ):
                 codigos_consultados.append(registro["codigoAluno"])
                 aluno = Aluno.objects.filter(codigo_eol=registro["codigoAluno"]).first()
                 data_nascimento = registro["dataNascimento"].split("T")[0]
