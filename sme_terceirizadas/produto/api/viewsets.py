@@ -3110,6 +3110,14 @@ class InformacaoNutricionalViewSet(InformacaoNutricionalBaseViewSet):
         response = {"results": self._agrupa_informacoes_por_tipo(query_set)}
         return Response(response)
 
+    @action(detail=False, methods=["GET"], url_path="ordenadas")
+    def informacoes_nutricionais_ordenadas(self, request):
+        query_set = InformacaoNutricional.ordenadas()
+        response = {
+            "results": InformacaoNutricionalSerializer(query_set, many=True).data
+        }
+        return Response(response)
+
 
 class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
