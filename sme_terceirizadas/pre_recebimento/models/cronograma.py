@@ -30,7 +30,12 @@ from ...dados_comuns.fluxo_status import (
 )
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.validators import validate_file_size_10mb
-from ...produto.models import Fabricante, Marca, NomeDeProdutoEdital
+from ...produto.models import (
+    Fabricante,
+    InformacaoNutricional,
+    Marca,
+    NomeDeProdutoEdital,
+)
 from ...terceirizada.models import Contrato, Terceirizada
 
 
@@ -765,3 +770,32 @@ def gerar_numero_ficha_tecnica(sender, instance, created, **kwargs):
     if created:
         instance.gerar_numero_ficha_tecnica()
         instance.save()
+
+
+class InformacoesNutricionaisFichaTecnica(TemChaveExterna):
+    ficha_tecnica = models.ForeignKey(
+        FichaTecnicaDoProduto,
+        on_delete=models.CASCADE,
+        related_name="informacoes_nutricionais",
+    )
+    informacao_nutricional = models.ForeignKey(
+        InformacaoNutricional,
+        on_delete=models.DO_NOTHING,
+    )
+    quantidade_por_100g = models.CharField(max_length=10)
+    quantidade_porcao = models.CharField(max_length=10)
+    valor_diario = models.CharField(max_length=10)
+
+    def __str__(self):
+        nome_produto = self.ficha_tecnica.produto.nome
+        informacao_nutricional = self.informacao_nutricional.nome
+        return (
+            f"{nome_produto} - {informacao_nutricional} =>"
+            + f" quantidade por 100g: {self.quantidade_por_100g}"
+            + f" quantidade por porção: {self.quantidade_porcao}"
+            + f" valor diario: {self.valor_diario}"
+        )
+
+    class Meta:
+        verbose_name = "Informação Nutricional da Ficha Técnica"
+        verbose_name_plural = "Informações Nutricionais da Ficha Técnica"
