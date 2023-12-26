@@ -10,6 +10,7 @@ from .models import (
     EtapasDoCronograma,
     FichaTecnicaDoProduto,
     ImagemDoTipoDeEmbalagem,
+    InformacoesNutricionaisFichaTecnica,
     Laboratorio,
     LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
@@ -136,10 +137,26 @@ class DocumentoDeRecebimentoAdmin(NestedModelAdmin):
     get_cronograma.short_description = "Cronograma"
 
 
+class InformacoesNutricionaisFichaTecnicaInline(admin.TabularInline):
+    model = InformacoesNutricionaisFichaTecnica
+    extra = 1
+
+
+class FichaTecnicaDoProdutoAdmin(admin.ModelAdmin):
+    list_display = (
+        "numero",
+        "produto",
+        "categoria",
+        "empresa",
+        "fabricante",
+    )
+    inlines = (InformacoesNutricionaisFichaTecnicaInline,)
+
+
 admin.site.register(DocumentoDeRecebimento, DocumentoDeRecebimentoAdmin)
 admin.site.register(DataDeFabricaoEPrazo)
 admin.site.register(LayoutDeEmbalagem, LayoutDeEmbalagemAdmin)
 admin.site.register(Cronograma)
 admin.site.register(EtapasDoCronograma)
 admin.site.register(ProgramacaoDoRecebimentoDoCronograma)
-admin.site.register(FichaTecnicaDoProduto)
+admin.site.register(FichaTecnicaDoProduto, FichaTecnicaDoProdutoAdmin)
