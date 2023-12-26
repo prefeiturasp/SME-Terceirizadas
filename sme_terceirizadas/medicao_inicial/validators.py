@@ -78,6 +78,24 @@ def get_lista_dias_letivos(solicitacao, escola):
     ]
 
 
+def get_lista_dias_nao_letivos_e_com_inclusao(solicitacao, escola):
+    dias_nao_letivos = DiaCalendario.objects.filter(
+        data__month=int(solicitacao.mes),
+        data__year=int(solicitacao.ano),
+        escola=escola,
+        dia_letivo=False,
+    )
+    inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects.filter(
+        escola=escola,
+        inclusoes_normais__data__in=dias_nao_letivos.values_list("data", flat=True),
+        status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
+    )
+    inclusoes_normais_dias_nao_letivos = list(
+        set(inclusoes_normais.values_list("inclusoes_normais__data__day", flat=True))
+    )
+    return [str(dia).rjust(2, "0") for dia in inclusoes_normais_dias_nao_letivos]
+
+
 def erros_unicos(lista_erros):
     return list(map(dict, set(tuple(sorted(erro.items())) for erro in lista_erros)))
 
@@ -264,10 +282,18 @@ def get_campos_por_periodo(periodo_da_escola, dieta_especial):
 
 
 def comparar_dias_com_valores_medicao(
-    valores_da_medicao, dias_letivos, quantidade_dias_letivos_sem_log
+    valores_da_medicao,
+    dias_letivos,
+    quantidade_dias_letivos_sem_log,
+    dias_nao_letivos_e_com_inclusao,
+    quantidade_dias_nao_letivos_e_com_inclusao_sem_log,
 ):
     return len(valores_da_medicao) != (
-        len(dias_letivos) - quantidade_dias_letivos_sem_log
+        (len(dias_letivos) + len(dias_nao_letivos_e_com_inclusao))
+        - (
+            quantidade_dias_letivos_sem_log
+            + quantidade_dias_nao_letivos_e_com_inclusao_sem_log
+        )
     )
 
 
@@ -277,6 +303,18 @@ def get_quantidade_dias_letivos_sem_log(dias_letivos, logs_por_classificacao):
         for log in logs_por_classificacao.filter(data__day__in=dias_letivos)
     ]
     return len(set(dias_letivos) - set(logs))
+
+
+def get_quantidade_dias_nao_letivos_e_com_inclusao_sem_log(
+    dias_nao_letivos_e_com_inclusao, logs_por_classificacao
+):
+    logs = [
+        f"{log.data.day:02d}"
+        for log in logs_por_classificacao.filter(
+            data__day__in=dias_nao_letivos_e_com_inclusao
+        )
+    ]
+    return len(set(dias_nao_letivos_e_com_inclusao) - set(logs))
 
 
 def validate_lancamento_dietas(solicitacao, lista_erros):
@@ -295,6 +333,9 @@ def validate_lancamento_dietas(solicitacao, lista_erros):
 
     nomes_campos_padrao = ["dietas_autorizadas", "frequencia"]
     dias_letivos = get_lista_dias_letivos(solicitacao, escola)
+    dias_nao_letivos_e_com_inclusao = get_lista_dias_nao_letivos_e_com_inclusao(
+        solicitacao, escola
+    )
 
     nomes_dos_periodos = log_dietas_especiais.order_by("periodo_escolar__nome")
     nomes_dos_periodos = nomes_dos_periodos.values_list(
@@ -319,6 +360,11 @@ def validate_lancamento_dietas(solicitacao, lista_erros):
             quantidade_dias_letivos_sem_log = get_quantidade_dias_letivos_sem_log(
                 dias_letivos, logs_por_classificacao
             )
+            quantidade_dias_nao_letivos_e_com_inclusao_sem_log = (
+                get_quantidade_dias_nao_letivos_e_com_inclusao_sem_log(
+                    dias_nao_letivos_e_com_inclusao, logs_por_classificacao
+                )
+            )
             for log in logs_por_classificacao:
                 nomes_campos = get_campos_por_periodo(periodo_da_escola, log)
                 nomes_campos = nomes_campos + nomes_campos_padrao
@@ -342,6 +388,8 @@ def validate_lancamento_dietas(solicitacao, lista_erros):
                         valores_da_medicao,
                         dias_letivos,
                         quantidade_dias_letivos_sem_log,
+                        dias_nao_letivos_e_com_inclusao,
+                        quantidade_dias_nao_letivos_e_com_inclusao_sem_log,
                     )
         if periodo_com_erro:
             lista_erros.append(
