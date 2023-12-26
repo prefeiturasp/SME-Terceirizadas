@@ -485,8 +485,7 @@ def gera_pdf_relatorio_solicitacoes_alimentacao_async(
 
     try:
         instituicao = Usuario.objects.get(username=user).vinculo_atual.instituicao
-        solicitacoes = SolicitacoesCODAE.objects.filter(uuid__in=uuids)
-        solicitacoes = solicitacoes.order_by(
+        solicitacoes = SolicitacoesCODAE.objects.filter(uuid__in=uuids).order_by(
             "lote_nome", "escola_nome", "terceirizada_nome"
         )
         solicitacoes = set(
@@ -503,6 +502,13 @@ def gera_pdf_relatorio_solicitacoes_alimentacao_async(
                     instituicao,
                 )
             )
+        lista_solicitacoes_dict = sorted(
+            lista_solicitacoes_dict,
+            key=lambda solicitacao_: (
+                solicitacao_["lote"],
+                solicitacao_["unidade_educacional"],
+            ),
+        )
         arquivo = build_pdf(lista_solicitacoes_dict, status)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:

@@ -61,6 +61,7 @@ from ..models import (
     Escola,
     EscolaPeriodoEscolar,
     FaixaEtaria,
+    GrupoUnidadeEscolar,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
@@ -96,6 +97,7 @@ from .serializers import (
     EscolaListagemSimplissimaComDRESelializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
+    GrupoUnidadeEscolarSerializer,
     LogAlunosMatriculadosPeriodoEscolaSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
@@ -615,6 +617,13 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = AlunoFilter
 
+    @property
+    def pagination_class(self):
+        self._pagination_class = super(AlunoViewSet, self).pagination_class
+        if self.request.query_params.get("sem_paginacao") == "true":
+            self._pagination_class = None
+        return self._pagination_class
+
     def get_serializer_class(self):
         if self.action == "list":
             return AlunoSimplesSerializer
@@ -623,6 +632,13 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
     def get_queryset(self):
         if self.action == "retrieve":
             return self.queryset.select_related("escola__diretoria_regional")
+        if self.request.query_params.get("inclui_alunos_sem_matricula") == "true":
+            queryset = Aluno.objects.all()
+            if self.request.query_params.get("escola"):
+                queryset = queryset.filter(
+                    escola__uuid=self.request.query_params.get("escola")
+                )
+            return self.queryset | queryset.filter(nao_matriculado=True)
         return self.queryset
 
     @action(
@@ -978,3 +994,9 @@ class DiaSuspensaoAtividadesViewSet(ViewSetActionPermissionMixin, ModelViewSet):
             if str(error) == "`create()` did not return an object instance.":
                 return Response(status=status.HTTP_201_CREATED)
             return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GrupoUnidadeEscolarViewSet(ModelViewSet):
+    lookup_field = "uuid"
+    serializer_class = GrupoUnidadeEscolarSerializer
+    queryset = GrupoUnidadeEscolar.objects.all()

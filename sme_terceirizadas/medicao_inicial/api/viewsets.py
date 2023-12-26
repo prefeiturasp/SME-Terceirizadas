@@ -509,8 +509,8 @@ class SolicitacaoMedicaoInicialViewSet(
         uuid = request.query_params.get("uuid_solicitacao")
         solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid)
         retorno = []
-        campos_a_desconsiderar = get_campos_a_desconsiderar(escola)
         for medicao in solicitacao.medicoes.all():
+            campos_a_desconsiderar = get_campos_a_desconsiderar(escola, medicao)
             valores = []
             for valor_medicao in medicao.valores_medicao.exclude(
                 categoria_medicao__nome__icontains="DIETA"
@@ -550,7 +550,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 "valores": valores,
                 "valor_total": valor_total,
             }
-            if escola.eh_cei:
+            if escola.eh_cei or (
+                escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo
+            ):
                 dict_retorno["quantidade_alunos"] = sum(v["valor"] for v in valores)
             retorno.append(dict_retorno)
         return Response({"results": retorno}, status=status.HTTP_200_OK)
@@ -1348,7 +1350,7 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        url_path="permissoes-lancamentos-especiais-mes-ano",
+        url_path="permissoes-lancamentos-especiais-mes-ano-por-periodo",
         permission_classes=[
             UsuarioEscolaTercTotal
             | UsuarioDiretoriaRegional
@@ -1356,7 +1358,7 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
             | UsuarioCODAEGestaoAlimentacao
         ],
     )
-    def permissoes_lancamentos_especiais_mes_ano(self, request):
+    def permissoes_lancamentos_especiais_mes_ano_por_periodo(self, request):
         escola_uuid = request.query_params.get("escola_uuid")
         mes = request.query_params.get("mes")
         ano = request.query_params.get("ano")
@@ -1410,6 +1412,55 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
                 else None,
             }
         }
+
+        return Response(data)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="periodos-permissoes-lancamentos-especiais-mes-ano",
+        permission_classes=[UsuarioEscolaTercTotal],
+    )
+    def periodos_permissoes_lancamentos_especiais_mes_ano(self, request):
+        escola_uuid = request.query_params.get("escola_uuid")
+        mes = request.query_params.get("mes")
+        ano = request.query_params.get("ano")
+
+        query_set = PermissaoLancamentoEspecial.objects.filter(
+            escola__uuid=escola_uuid,
+            data_inicial__month__lte=mes,
+            data_inicial__year=ano,
+        )
+        periodos = list(set(query_set.values_list("periodo_escolar__nome", flat=True)))
+        alimentacoes_por_periodo = []
+        for periodo in periodos:
+            permissoes = query_set.filter(periodo_escolar__nome=periodo)
+            listas_alimentacoes = [
+                list(
+                    set(
+                        permissao.alimentacoes_lancamento_especial.values_list(
+                            "nome", flat=True
+                        )
+                    )
+                )
+                for permissao in permissoes
+            ]
+            alimentacoes = list(
+                set(
+                    [
+                        alimentacao
+                        for lista in listas_alimentacoes
+                        for alimentacao in lista
+                    ]
+                )
+            )
+            alimentacoes_por_periodo.append(
+                {
+                    "periodo": periodo,
+                    "alimentacoes": alimentacoes,
+                }
+            )
+        data = {"results": alimentacoes_por_periodo}
 
         return Response(data)
 

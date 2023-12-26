@@ -521,13 +521,15 @@ def popula_campos_preenchidos_pela_escola(
         else:
             medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
         valores_dia += [
-            medicao.valores_medicao.get(
+            medicao.valores_medicao.filter(
                 dia=f"{dia:02d}",
                 categoria_medicao__nome=categoria_corrente,
                 nome_campo=campo,
-            ).valor
+            )
+            .first()
+            .valor
         ]
-    except ValorMedicao.DoesNotExist:
+    except (ValorMedicao.DoesNotExist, AttributeError):
         valores_dia += ["0"]
 
 
@@ -538,14 +540,18 @@ def popula_campos_preenchidos_pela_escola_cei(
         periodo = tabela["periodos"][indice_periodo]
         medicoes = solicitacao.medicoes.all()
         medicao = medicoes.get(periodo_escolar__nome=periodo, grupo=None)
-        quantidade = medicao.valores_medicao.get(
-            dia=f"{dia:02d}",
-            categoria_medicao__nome=categoria_corrente,
-            faixa_etaria=faixa_id,
-            nome_campo="frequencia",
-        ).valor
+        quantidade = (
+            medicao.valores_medicao.filter(
+                dia=f"{dia:02d}",
+                categoria_medicao__nome=categoria_corrente,
+                faixa_etaria=faixa_id,
+                nome_campo="frequencia",
+            )
+            .first()
+            .valor
+        )
         valores_dia += [quantidade]
-    except ValorMedicao.DoesNotExist:
+    except (ValorMedicao.DoesNotExist, AttributeError):
         valores_dia += ["0"]
 
 
@@ -1173,12 +1179,153 @@ def build_tabelas_relatorio_medicao_cei(solicitacao):
     return tabelas_populadas, dias_letivos
 
 
+def tratar_lanches_de_permissoes_lancamentos(valores):
+    segundo_lanche_5h = [
+        valor for valor in valores if valor["nome_campo"] == "2_lanche_5h"
+    ]
+    segundo_lanche_4h = [
+        valor for valor in valores if valor["nome_campo"] == "2_lanche_4h"
+    ]
+    if segundo_lanche_5h:
+        valor_segundo_lanche_5h = segundo_lanche_5h[0]["valor"]
+        obj_lanche = [valor for valor in valores if valor["nome_campo"] == "lanche"]
+        valor_lanche = obj_lanche[0]["valor"] if obj_lanche else 0
+        valores = [
+            valor
+            for valor in valores
+            if valor["nome_campo"] not in ["2_lanche_5h", "lanche"]
+        ]
+        valores.append(
+            {
+                "nome_campo": "lanche",
+                "valor": valor_segundo_lanche_5h + valor_lanche,
+            }
+        )
+    if segundo_lanche_4h:
+        valor_segundo_lanche_4h = segundo_lanche_4h[0]["valor"]
+        obj_lanche_4h = [
+            valor for valor in valores if valor["nome_campo"] == "lanche_4h"
+        ]
+        valor_lanche_4h = obj_lanche_4h[0]["valor"] if obj_lanche_4h else 0
+        valores = [
+            valor
+            for valor in valores
+            if valor["nome_campo"] not in ["2_lanche_4h", "lanche_4h"]
+        ]
+        valores.append(
+            {
+                "nome_campo": "lanche_4h",
+                "valor": valor_segundo_lanche_4h + valor_lanche_4h,
+            }
+        )
+    return valores
+
+
+def tratar_segunda_refeicao_permissoes_lancamentos(valores, eh_emei=False):
+    segunda_refeicao_1_oferta = [
+        valor for valor in valores if valor["nome_campo"] == "2_refeicao_1_oferta"
+    ]
+    repeticao_2_refeicao = [
+        valor for valor in valores if valor["nome_campo"] == "repeticao_2_refeicao"
+    ]
+    if segunda_refeicao_1_oferta:
+        valor_segunda_refeicao_1_oferta = segunda_refeicao_1_oferta[0]["valor"]
+        obj_refeicao = [valor for valor in valores if valor["nome_campo"] == "refeicao"]
+        valor_refeicao = obj_refeicao[0]["valor"] if obj_refeicao else 0
+        valores = [
+            valor
+            for valor in valores
+            if valor["nome_campo"] not in ["2_refeicao_1_oferta", "refeicao"]
+        ]
+        valores.append(
+            {
+                "nome_campo": "refeicao",
+                "valor": valor_segunda_refeicao_1_oferta + valor_refeicao,
+            }
+        )
+    if repeticao_2_refeicao and not eh_emei:
+        valor_repeticao_2_refeicao = repeticao_2_refeicao[0]["valor"]
+        obj_refeicao = [valor for valor in valores if valor["nome_campo"] == "refeicao"]
+        valor_refeicao = obj_refeicao[0]["valor"] if obj_refeicao else 0
+        valores = [
+            valor
+            for valor in valores
+            if valor["nome_campo"] not in ["repeticao_2_refeicao", "refeicao"]
+        ]
+        valores.append(
+            {
+                "nome_campo": "refeicao",
+                "valor": valor_repeticao_2_refeicao + valor_refeicao,
+            }
+        )
+    if eh_emei:
+        valores = [
+            valor
+            for valor in valores
+            if valor["nome_campo"] not in ["repeticao_2_refeicao"]
+        ]
+    return valores
+
+
+def tratar_segunda_sobremesa_permissoes_lancamentos(valores, eh_emei=False):
+    segunda_sobremesa_1_oferta = [
+        valor for valor in valores if valor["nome_campo"] == "2_sobremesa_1_oferta"
+    ]
+    repeticao_2_sobremesa = [
+        valor for valor in valores if valor["nome_campo"] == "repeticao_2_sobremesa"
+    ]
+    if segunda_sobremesa_1_oferta:
+        valor_segunda_sobremesa_1_oferta = segunda_sobremesa_1_oferta[0]["valor"]
+        obj_sobremesa = [
+            valor for valor in valores if valor["nome_campo"] == "sobremesa"
+        ]
+        valor_refeicao = obj_sobremesa[0]["valor"] if obj_sobremesa else 0
+        valores = [
+            valor
+            for valor in valores
+            if valor["nome_campo"] not in ["2_sobremesa_1_oferta", "sobremesa"]
+        ]
+        valores.append(
+            {
+                "nome_campo": "sobremesa",
+                "valor": valor_segunda_sobremesa_1_oferta + valor_refeicao,
+            }
+        )
+    if repeticao_2_sobremesa and not eh_emei:
+        valor_repeticao_2_sobremesa = repeticao_2_sobremesa[0]["valor"]
+        obj_sobremesa = [
+            valor for valor in valores if valor["nome_campo"] == "sobremesa"
+        ]
+        valor_sobremesa = obj_sobremesa[0]["valor"] if obj_sobremesa else 0
+        valores = [
+            valor
+            for valor in valores
+            if valor["nome_campo"] not in ["repeticao_2_sobremesa", "sobremesa"]
+        ]
+        valores.append(
+            {
+                "nome_campo": "sobremesa",
+                "valor": valor_repeticao_2_sobremesa + valor_sobremesa,
+            }
+        )
+    if eh_emei:
+        valores = [
+            valor
+            for valor in valores
+            if valor["nome_campo"] not in ["repeticao_2_sobremesa"]
+        ]
+    return valores
+
+
 def tratar_valores(escola, valores):
+    valores = tratar_lanches_de_permissoes_lancamentos(valores)
     if escola.eh_emei:
         campos_repeticao = ["repeticao_refeicao", "repeticao_sobremesa"]
         valores = [
             valor for valor in valores if valor["nome_campo"] not in campos_repeticao
         ]
+        valores = tratar_segunda_refeicao_permissoes_lancamentos(valores, True)
+        valores = tratar_segunda_sobremesa_permissoes_lancamentos(valores, True)
     else:
         repeticao_refeicao = [
             valor for valor in valores if valor["nome_campo"] == "repeticao_refeicao"
@@ -1220,6 +1367,8 @@ def tratar_valores(escola, valores):
                     "valor": valor_repeticao_sobremesa + valor_sobremesa,
                 }
             )
+        valores = tratar_segunda_refeicao_permissoes_lancamentos(valores)
+        valores = tratar_segunda_sobremesa_permissoes_lancamentos(valores)
     return valores
 
 
@@ -2159,7 +2308,9 @@ def tratar_workflow_todos_lancamentos(usuario, raw_sql):
 
 def get_valor_total(escola, valores, medicao):
     valor_total = sum(v["valor"] for v in valores)
-    if escola.eh_cei:
+    if escola.eh_cei or (
+        escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo
+    ):
         fator_multiplicativo = 2
         if medicao.nome_periodo_grupo == "INTEGRAL":
             fator_multiplicativo = 5
@@ -2169,9 +2320,12 @@ def get_valor_total(escola, valores, medicao):
     return valor_total
 
 
-def get_campos_a_desconsiderar(escola):
+def get_campos_a_desconsiderar(escola, medicao):
     campos_a_desconsiderar = ["matriculados", "numero_de_alunos", "observacoes"]
-    if not escola.eh_cei:
+    if not (
+        escola.eh_cei
+        or (escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo)
+    ):
         campos_a_desconsiderar.append("frequencia")
     return campos_a_desconsiderar
 
