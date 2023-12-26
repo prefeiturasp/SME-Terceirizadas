@@ -13,6 +13,7 @@ from .inclusao_alimentacao.models import (
 )
 from .pre_recebimento.fixtures.factories.cronograma_factory import (
     CronogramaFactory,
+    EtapasDoCronogramaFactory,
     LaboratorioFactory,
     UnidadeMedidaFactory,
 )
@@ -44,6 +45,7 @@ register(ProdutoLogisticaFactory)
 register(ProdutoTerceirizadaFactory)
 register(TipoDeDocumentoDeRecebimentoFactory)
 register(UnidadeMedidaFactory)
+register(EtapasDoCronogramaFactory)
 
 
 @pytest.fixture

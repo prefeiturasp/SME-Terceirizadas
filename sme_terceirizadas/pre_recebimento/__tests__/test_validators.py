@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.serializers import ValidationError
 
-from ..api.validators import contrato_pertence_a_empresa
+from ..api.validators import contrato_pertence_a_empresa, valida_parametros_calendario
 
 pytestmark = pytest.mark.django_db
 
@@ -16,3 +16,20 @@ def test_contrato_pertence_a_empresa_validator(contrato, empresa):
         ValidationError, match="Contrato deve pertencer a empresa selecionada"
     ):
         contrato_pertence_a_empresa(contrato, empresa)
+
+
+def test_valida_parametros_calendario_validator():
+    with pytest.raises(ValidationError):
+        valida_parametros_calendario(None, "2023")
+
+    with pytest.raises(ValidationError):
+        valida_parametros_calendario("a", "2023")
+
+    with pytest.raises(ValidationError):
+        valida_parametros_calendario("0", "2023")
+
+    with pytest.raises(ValidationError):
+        valida_parametros_calendario("13", "2023")
+
+    with pytest.raises(ValidationError):
+        valida_parametros_calendario("5", "23")
