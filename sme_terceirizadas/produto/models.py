@@ -5,6 +5,7 @@ from datetime import datetime
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
+from django.db.models import Case, When
 from sequences import get_last_value, get_next_value
 
 from ..dados_comuns.behaviors import (
@@ -89,6 +90,37 @@ class InformacaoNutricional(TemChaveExterna, Nomeavel):
         TipoDeInformacaoNutricional, on_delete=models.DO_NOTHING
     )
     medida = models.CharField(max_length=10, blank=True)
+    eh_fixo = models.BooleanField("Informação Nutricional Fixa", default=False)
+
+    @property
+    def eh_dependente(self):
+        return self.nome.upper() in [
+            "AÇÚCARES ADICIONADOS",
+            "GORDURAS SATURADAS",
+            "GORDURAS TRANS",
+        ]
+
+    @classmethod
+    def ordenadas(cls):
+        ordem_tabela = [
+            "VALOR ENERGÉTICO",
+            "CARBOIDRATOS TOTAIS",
+            "AÇÚCARES TOTAIS",
+            "AÇÚCARES ADICIONADOS",
+            "PROTEÍNAS",
+            "GORDURAS TOTAIS",
+            "GORDURAS SATURADAS",
+            "GORDURAS TRANS",
+            "FIBRA ALIMENTAR",
+            "SÓDIO",
+        ]
+
+        return cls.objects.annotate(
+            ordem_tabela=Case(
+                *[When(nome=valor, then=pos) for pos, valor in enumerate(ordem_tabela)],
+                default=len(ordem_tabela),
+            )
+        ).order_by("ordem_tabela")
 
     def __str__(self):
         return self.nome
