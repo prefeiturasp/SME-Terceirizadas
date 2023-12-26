@@ -12,7 +12,11 @@ from sme_terceirizadas.paineis_consolidados.utils import (
 
 from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 from ..dieta_especial.models import ClassificacaoDieta, LogQuantidadeDietasAutorizadas
-from ..escola.models import DiaCalendario
+from ..escola.models import (
+    DiaCalendario,
+    FaixaEtaria,
+    LogAlunosMatriculadosFaixaEtariaDia,
+)
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoNormal,
@@ -161,6 +165,97 @@ def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):
             lista_erros,
         )
     return erros_unicos(lista_erros)
+
+
+def lista_erros_com_periodo(lista_erros, medicao):
+    return next(
+        (
+            erro
+            for erro in lista_erros
+            if erro["periodo_escolar"] == medicao.periodo_escolar.nome
+        ),
+        None,
+    )
+
+
+def validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
+    faixas_etarias,
+    lista_erros,
+    medicao,
+    logs,
+    ano,
+    mes,
+    dia,
+    categoria,
+    periodo_com_erro,
+):
+    for faixa_etaria in faixas_etarias:
+        if lista_erros_com_periodo(lista_erros, medicao):
+            continue
+        log = logs.filter(
+            data=datetime.date(int(ano), int(mes), int(dia)),
+            periodo_escolar=medicao.periodo_escolar,
+            faixa_etaria=faixa_etaria,
+        ).first()
+        quantidade = log.quantidade if log else 0
+        if quantidade == 0:
+            continue
+        if not medicao.valores_medicao.filter(
+            nome_campo="frequencia",
+            categoria_medicao=categoria,
+            dia=f"{dia:02d}",
+            faixa_etaria=faixa_etaria,
+        ).exists():
+            periodo_com_erro = True
+    return periodo_com_erro
+
+
+def validate_lancamento_alimentacoes_medicao_cei(solicitacao, lista_erros):
+    ano = solicitacao.ano
+    mes = solicitacao.mes
+    escola = solicitacao.escola
+    quantidade_dias_mes = calendar.monthrange(
+        int(solicitacao.ano), int(solicitacao.mes)
+    )[1]
+    categoria = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
+    faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+    logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
+        escola=escola, data__month=mes, data__year=ano
+    )
+    dias_letivos = list(
+        DiaCalendario.objects.filter(
+            escola=escola, data__month=mes, data__year=ano, dia_letivo=True
+        ).values_list("data__day", flat=True)
+    )
+
+    for dia in range(1, quantidade_dias_mes + 1):
+        if dia not in dias_letivos:
+            continue
+        for medicao in solicitacao.medicoes.all():
+            periodo_com_erro = False
+            if lista_erros_com_periodo(lista_erros, medicao):
+                continue
+            periodo_com_erro = (
+                validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
+                    faixas_etarias,
+                    lista_erros,
+                    medicao,
+                    logs,
+                    ano,
+                    mes,
+                    dia,
+                    categoria,
+                    periodo_com_erro,
+                )
+            )
+            if periodo_com_erro:
+                lista_erros.append(
+                    {
+                        "periodo_escolar": medicao.periodo_escolar.nome,
+                        "erro": "Restam dias a serem lançados nas alimentações.",
+                    }
+                )
+    return lista_erros
 
 
 def buscar_valores_lancamento_inclusoes(
