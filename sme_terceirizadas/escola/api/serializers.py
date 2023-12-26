@@ -25,6 +25,7 @@ from ..models import (
     EscolaPeriodoEscolar,
     FaixaEtaria,
     FaixaIdadeEscolar,
+    GrupoUnidadeEscolar,
     LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
     Lote,
@@ -793,4 +794,18 @@ class DiaSuspensaoAtividadesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DiaSuspensaoAtividades
+        exclude = ("id",)
+
+
+class TipoUnidadeEscolarSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoUnidadeEscolar
+        fields = ("uuid", "iniciais")
+
+
+class GrupoUnidadeEscolarSerializer(serializers.ModelSerializer):
+    tipos_unidades = TipoUnidadeEscolarSimplesSerializer(many=True)
+
+    class Meta:
+        model = GrupoUnidadeEscolar
         exclude = ("id",)
