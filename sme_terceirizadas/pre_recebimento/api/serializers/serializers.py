@@ -668,6 +668,21 @@ class FichaTecnicaListagemSerializer(serializers.ModelSerializer):
         )
 
 
+class InformacoesNutricionaisFichaTecnicaSerializer(serializers.ModelSerializer):
+    informacao_nutricional = InformacaoNutricionalSerializer()
+
+    class Meta:
+        model = InformacoesNutricionaisFichaTecnica
+        fields = (
+            "uuid",
+            "informacao_nutricional",
+            "quantidade_por_100g",
+            "quantidade_porcao",
+            "valor_diario",
+        )
+        read_only_fields = ("uuid",)
+
+
 class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     criado_em = serializers.SerializerMethodField()
     produto = NomeDeProdutoEditalSerializer()
@@ -676,16 +691,10 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     fabricante = FabricanteSimplesSerializer()
     unidade_medida = NomeEAbreviacaoUnidadeMedidaSerializer()
     status = serializers.CharField(source="get_status_display")
-    informacoes_nutricionais = serializers.SerializerMethodField()
+    informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaSerializer(many=True)
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")
-
-    def get_informacoes_nutricionais(self, obj):
-        return InformacoesNutricionaisFichaTecnicaSerializer(
-            obj.informacoes_nutricionais.all(),
-            many=True,
-        ).data
 
     class Meta:
         model = FichaTecnicaDoProduto
@@ -727,18 +736,3 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "unidade_medida_caseira",
             "informacoes_nutricionais",
         )
-
-
-class InformacoesNutricionaisFichaTecnicaSerializer(serializers.ModelSerializer):
-    informacao_nutricional = InformacaoNutricionalSerializer()
-
-    class Meta:
-        model = InformacoesNutricionaisFichaTecnica
-        fields = (
-            "uuid",
-            "informacao_nutricional",
-            "quantidade_por_100g",
-            "quantidade_porcao",
-            "valor_diario",
-        )
-        read_only_fields = ("uuid",)
