@@ -195,16 +195,20 @@ def append_tabela(
     tabelas[indice_atual]["periodos"] += [nome_periodo]
     tabelas[indice_atual]["categorias"] += [categoria]
     if segunda_tabela:
-        tabelas[indice_atual]["nomes_campos"] += sorted(
-            dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k]
-        )[MAX_COLUNAS:]
+        tabelas[indice_atual]["nomes_campos"] += [
+            campo
+            for campo in ORDEM_CAMPOS
+            if campo in dict_categorias_campos[categoria]
+        ][MAX_COLUNAS:]
         tabelas[indice_atual]["len_categorias"] += [
             len(dict_categorias_campos[categoria][MAX_COLUNAS:])
         ]
     else:
-        tabelas[indice_atual]["nomes_campos"] += sorted(
-            dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k]
-        )[:MAX_COLUNAS]
+        tabelas[indice_atual]["nomes_campos"] += [
+            campo
+            for campo in ORDEM_CAMPOS
+            if campo in dict_categorias_campos[categoria]
+        ][:MAX_COLUNAS]
         tabelas[indice_atual]["len_categorias"] += [MAX_COLUNAS]
     get_categorias_dos_periodos(
         nome_periodo,
@@ -303,9 +307,11 @@ def build_headers_tabelas(solicitacao):
                     ]
                     tabelas[indice_atual]["periodos"] += [nome_periodo]
                     tabelas[indice_atual]["categorias"] += [categoria]
-                    tabelas[indice_atual]["nomes_campos"] += sorted(
-                        dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k]
-                    )
+                    tabelas[indice_atual]["nomes_campos"] += [
+                        campo
+                        for campo in ORDEM_CAMPOS
+                        if campo in dict_categorias_campos[categoria]
+                    ]
                     tabelas[indice_atual]["len_categorias"] += [
                         len(dict_categorias_campos[categoria])
                     ]
@@ -320,9 +326,11 @@ def build_headers_tabelas(solicitacao):
                 if nome_periodo not in tabelas[indice_atual]["periodos"]:
                     tabelas[indice_atual]["periodos"] += [nome_periodo]
                 tabelas[indice_atual]["categorias"] += [categoria]
-                tabelas[indice_atual]["nomes_campos"] += sorted(
-                    dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k]
-                )
+                tabelas[indice_atual]["nomes_campos"] += [
+                    campo
+                    for campo in ORDEM_CAMPOS
+                    if campo in dict_categorias_campos[categoria]
+                ]
                 tabelas[indice_atual]["len_categorias"] += [
                     len(dict_categorias_campos[categoria])
                 ]
@@ -1867,9 +1875,9 @@ def build_tabela_somatorio_body(
             for campo in campos
             if campo not in campos_tipos_alimentacao
         ]
-    campos_tipos_alimentacao = sorted(
-        campos_tipos_alimentacao, key=lambda k: ORDEM_CAMPOS[k]
-    )
+    campos_tipos_alimentacao = [
+        campo for campo in ORDEM_CAMPOS if campo in campos_tipos_alimentacao
+    ]
     # head_tabela_somatorio_fixo em relatorio_solicitacao_medicao_por_escola.html: E800 noqa
     # 10 colunas conforme abaixo
     # [ E800 noqa
