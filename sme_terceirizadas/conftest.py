@@ -26,9 +26,11 @@ from .pre_recebimento.fixtures.factories.ficha_tecnica_do_produto_factory import
 )
 from .produto.fixtures.factories.produto_factory import (
     FabricanteFactory,
+    InformacaoNutricionalFactory,
     MarcaFactory,
     ProdutoLogisticaFactory,
     ProdutoTerceirizadaFactory,
+    TipoDeInformacaoNutricionalFactory,
 )
 from .terceirizada.fixtures.factories.terceirizada_factory import EmpresaFactory
 
@@ -46,6 +48,8 @@ register(ProdutoTerceirizadaFactory)
 register(TipoDeDocumentoDeRecebimentoFactory)
 register(UnidadeMedidaFactory)
 register(EtapasDoCronogramaFactory)
+register(TipoDeInformacaoNutricionalFactory)
+register(InformacaoNutricionalFactory)
 
 
 @pytest.fixture

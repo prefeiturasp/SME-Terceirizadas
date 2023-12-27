@@ -86,6 +86,19 @@ class TipoDeInformacaoNutricional(Nomeavel, TemChaveExterna):
 
 
 class InformacaoNutricional(TemChaveExterna, Nomeavel):
+    ORDEM_TABELA = [
+        "VALOR ENERGÉTICO",
+        "CARBOIDRATOS TOTAIS",
+        "AÇÚCARES TOTAIS",
+        "AÇÚCARES ADICIONADOS",
+        "PROTEÍNAS",
+        "GORDURAS TOTAIS",
+        "GORDURAS SATURADAS",
+        "GORDURAS TRANS",
+        "FIBRA ALIMENTAR",
+        "SÓDIO",
+    ]
+
     tipo_nutricional = models.ForeignKey(
         TipoDeInformacaoNutricional, on_delete=models.DO_NOTHING
     )
@@ -102,23 +115,13 @@ class InformacaoNutricional(TemChaveExterna, Nomeavel):
 
     @classmethod
     def ordenadas(cls):
-        ordem_tabela = [
-            "VALOR ENERGÉTICO",
-            "CARBOIDRATOS TOTAIS",
-            "AÇÚCARES TOTAIS",
-            "AÇÚCARES ADICIONADOS",
-            "PROTEÍNAS",
-            "GORDURAS TOTAIS",
-            "GORDURAS SATURADAS",
-            "GORDURAS TRANS",
-            "FIBRA ALIMENTAR",
-            "SÓDIO",
-        ]
-
         return cls.objects.annotate(
             ordem_tabela=Case(
-                *[When(nome=valor, then=pos) for pos, valor in enumerate(ordem_tabela)],
-                default=len(ordem_tabela),
+                *[
+                    When(nome=valor, then=pos)
+                    for pos, valor in enumerate(cls.ORDEM_TABELA)
+                ],
+                default=len(cls.ORDEM_TABELA),
             )
         ).order_by("ordem_tabela")
 
