@@ -41,6 +41,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarDocumentosDeRecebimento,
     PermissaoParaVisualizarLayoutDeEmbalagem,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
+    PermissaoParaVisualizarUnidadesMedida,
     UsuarioEhDilogQualidade,
     UsuarioEhFornecedor,
     ViewSetActionPermissionMixin,
@@ -789,7 +790,12 @@ class UnidadeMedidaViewset(viewsets.ModelViewSet):
             return UnidadeMedidaSerialzer
         return UnidadeMedidaCreateSerializer
 
-    @action(detail=False, methods=["GET"], url_path="lista-nomes-abreviacoes")
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="lista-nomes-abreviacoes",
+        permission_classes=(PermissaoParaVisualizarUnidadesMedida,),
+    )
     def listar_nomes_abreviacoes(self, request):
         unidades_medida = self.get_queryset()
         serializer = NomeEAbreviacaoUnidadeMedidaSerializer(unidades_medida, many=True)
