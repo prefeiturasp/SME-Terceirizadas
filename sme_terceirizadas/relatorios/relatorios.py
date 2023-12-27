@@ -1322,9 +1322,18 @@ def get_total_refeicoes_por_periodo(tabelas):
             idx_total_refeicoes_pagamento = tabela["nomes_campos"].index(
                 "total_refeicoes_pagamento"
             )
-            dict_periodos_total_refeicoes[tabela["periodos"][0]] = tabela[
-                "valores_campos"
-            ][-1][idx_total_refeicoes_pagamento + 1]
+            periodos = tabela["periodos"]
+            periodo = tabela["periodos"][0]
+            if len(periodos) > 1:
+                len_periodos = tabela["len_periodos"]
+                for idx, len_periodo in enumerate(len_periodos):
+                    if idx_total_refeicoes_pagamento <= sum(
+                        v for v in len_periodos[: (idx + 1)]
+                    ):
+                        periodo = tabela["periodos"][idx]
+            dict_periodos_total_refeicoes[periodo] = tabela["valores_campos"][-1][
+                idx_total_refeicoes_pagamento + 1
+            ]
     return dict_periodos_total_refeicoes
 
 
@@ -1335,9 +1344,18 @@ def get_total_sobremesas_por_periodo(tabelas):
             idx_total_sobremesas_pagamento = tabela["nomes_campos"].index(
                 "total_sobremesas_pagamento"
             )
-            dict_periodos_total_sobremesas[tabela["periodos"][0]] = tabela[
-                "valores_campos"
-            ][-1][idx_total_sobremesas_pagamento + 1]
+            periodos = tabela["periodos"]
+            periodo = tabela["periodos"][0]
+            if len(periodos) > 1:
+                len_periodos = tabela["len_periodos"]
+                for idx, len_periodo in enumerate(len_periodos):
+                    if idx_total_sobremesas_pagamento <= sum(
+                        v for v in len_periodos[: (idx + 1)]
+                    ):
+                        periodo = tabela["periodos"][idx]
+            dict_periodos_total_sobremesas[periodo] = tabela["valores_campos"][-1][
+                idx_total_sobremesas_pagamento + 1
+            ]
     return dict_periodos_total_sobremesas
 
 
