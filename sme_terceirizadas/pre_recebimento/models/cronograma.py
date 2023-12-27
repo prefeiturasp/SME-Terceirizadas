@@ -30,7 +30,12 @@ from ...dados_comuns.fluxo_status import (
 )
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.validators import validate_file_size_10mb
-from ...produto.models import Fabricante, Marca, NomeDeProdutoEdital
+from ...produto.models import (
+    Fabricante,
+    InformacaoNutricional,
+    Marca,
+    NomeDeProdutoEdital,
+)
 from ...terceirizada.models import Contrato, Terceirizada
 
 
@@ -665,17 +670,29 @@ class FichaTecnicaDoProduto(
     numero = models.CharField(
         "Número da Ficha Técnica", blank=True, max_length=50, unique=True
     )
-    produto = models.ForeignKey(NomeDeProdutoEdital, on_delete=models.PROTECT)
+    produto = models.ForeignKey(
+        NomeDeProdutoEdital,
+        on_delete=models.PROTECT,
+        related_name="fichas_tecnicas",
+    )
     marca = models.ForeignKey(Marca, on_delete=models.PROTECT, blank=True, null=True)
     categoria = models.CharField(choices=CATEGORIA_CHOICES, max_length=14, blank=True)
     pregao_chamada_publica = models.CharField(
         "Nº do Pregão Eletrônico", max_length=100, blank=True
     )
     empresa = models.ForeignKey(
-        Terceirizada, on_delete=models.CASCADE, blank=True, null=True
+        Terceirizada,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas",
     )
     fabricante = models.ForeignKey(
-        Fabricante, on_delete=models.PROTECT, blank=True, null=True
+        Fabricante,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas",
     )
     cnpj_fabricante = models.CharField(
         "CNPJ", validators=[MinLengthValidator(14)], max_length=14
@@ -710,6 +727,20 @@ class FichaTecnicaDoProduto(
     gluten = models.BooleanField("Contém glúten?", null=True)
     lactose = models.BooleanField("Contém lactose?", null=True)
     lactose_detalhe = models.CharField("Detalhar Lactose", max_length=150, blank=True)
+    porcao = models.CharField("Porção", max_length=50, blank=True)
+    unidade_medida = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas",
+    )
+    valor_unidade_caseira = models.CharField(
+        "Unidade Caseira", max_length=50, blank=True
+    )
+    unidade_medida_caseira = models.CharField(
+        "Unidade de Medida Caseira", max_length=100, blank=True
+    )
 
     def __str__(self):
         return self.produto.nome
@@ -739,3 +770,32 @@ def gerar_numero_ficha_tecnica(sender, instance, created, **kwargs):
     if created:
         instance.gerar_numero_ficha_tecnica()
         instance.save()
+
+
+class InformacoesNutricionaisFichaTecnica(TemChaveExterna):
+    ficha_tecnica = models.ForeignKey(
+        FichaTecnicaDoProduto,
+        on_delete=models.CASCADE,
+        related_name="informacoes_nutricionais",
+    )
+    informacao_nutricional = models.ForeignKey(
+        InformacaoNutricional,
+        on_delete=models.DO_NOTHING,
+    )
+    quantidade_por_100g = models.CharField(max_length=10)
+    quantidade_porcao = models.CharField(max_length=10)
+    valor_diario = models.CharField(max_length=10)
+
+    def __str__(self):
+        nome_produto = self.ficha_tecnica.produto.nome
+        informacao_nutricional = self.informacao_nutricional.nome
+        return (
+            f"{nome_produto} - {informacao_nutricional} =>"
+            + f" quantidade por 100g: {self.quantidade_por_100g}"
+            + f" quantidade por porção: {self.quantidade_porcao}"
+            + f" valor diario: {self.valor_diario}"
+        )
+
+    class Meta:
+        verbose_name = "Informação Nutricional da Ficha Técnica"
+        verbose_name_plural = "Informações Nutricionais da Ficha Técnica"

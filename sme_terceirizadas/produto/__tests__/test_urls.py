@@ -10,6 +10,7 @@ from sme_terceirizadas.dados_comuns.fluxo_status import HomologacaoProdutoWorkfl
 from sme_terceirizadas.produto.models import (
     DataHoraVinculoProdutoEdital,
     HomologacaoProduto,
+    InformacaoNutricional,
     ProdutoEdital,
 )
 
@@ -1799,3 +1800,25 @@ def test_relatorio_produtos_suspensos(
     )
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["count"] == 0
+
+
+def test_url_informacoes_nutricionais_ordenadas(
+    client_autenticado_codae_dilog, informacao_nutricional_factory
+):
+    informacoes_nutricionais = [
+        informacao_nutricional_factory.create(nome=info)
+        for info in InformacaoNutricional.ORDEM_TABELA
+    ]
+
+    response = client_autenticado_codae_dilog.get(
+        "/informacoes-nutricionais/ordenadas/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == len(InformacaoNutricional.ORDEM_TABELA)
+
+    for recebido, cadastrado in zip(
+        response.json()["results"],
+        informacoes_nutricionais,
+    ):
+        assert recebido["nome"] == cadastrado.nome

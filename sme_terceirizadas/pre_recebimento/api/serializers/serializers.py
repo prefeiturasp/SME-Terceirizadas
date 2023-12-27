@@ -11,6 +11,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     DocumentoDeRecebimento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
+    InformacoesNutricionaisFichaTecnica,
     Laboratorio,
     LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
@@ -22,6 +23,7 @@ from sme_terceirizadas.pre_recebimento.models import (
 )
 from sme_terceirizadas.produto.api.serializers.serializers import (
     FabricanteSimplesSerializer,
+    InformacaoNutricionalSerializer,
     MarcaSimplesSerializer,
     NomeDeProdutoEditalSerializer,
     UnidadeMedidaSerialzer,
@@ -666,13 +668,30 @@ class FichaTecnicaListagemSerializer(serializers.ModelSerializer):
         )
 
 
+class InformacoesNutricionaisFichaTecnicaSerializer(serializers.ModelSerializer):
+    informacao_nutricional = InformacaoNutricionalSerializer()
+
+    class Meta:
+        model = InformacoesNutricionaisFichaTecnica
+        fields = (
+            "uuid",
+            "informacao_nutricional",
+            "quantidade_por_100g",
+            "quantidade_porcao",
+            "valor_diario",
+        )
+        read_only_fields = ("uuid",)
+
+
 class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     criado_em = serializers.SerializerMethodField()
     produto = NomeDeProdutoEditalSerializer()
     marca = MarcaSimplesSerializer()
     empresa = TerceirizadaLookUpSerializer()
     fabricante = FabricanteSimplesSerializer()
+    unidade_medida = NomeEAbreviacaoUnidadeMedidaSerializer()
     status = serializers.CharField(source="get_status_display")
+    informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaSerializer(many=True)
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")
@@ -711,4 +730,9 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "gluten",
             "lactose",
             "lactose_detalhe",
+            "porcao",
+            "unidade_medida",
+            "valor_unidade_caseira",
+            "unidade_medida_caseira",
+            "informacoes_nutricionais",
         )

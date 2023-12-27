@@ -2707,6 +2707,11 @@ def test_rascunho_ficha_tecnica_create_update(
         "componentes_produto": "",
         "ingredientes_alergenicos": "",
         "lactose_detalhe": "",
+        "porcao": "",
+        "unidade_medida": "",
+        "valor_unidade_caseira": "",
+        "unidade_medida_caseira": "",
+        "informacoes_nutricionais": [],
     }
 
     response_create = client_autenticado_fornecedor.post(
