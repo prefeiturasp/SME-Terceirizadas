@@ -465,14 +465,21 @@ def get_nome_campo(campo):
         "desjejum": "Desjejum",
         "lanche": "Lanche",
         "lanche_4h": "Lanche 4h",
-        "refeicao": "Refeição 1 Oferta",
+        "refeicao": "Refeição 1ª Oferta",
         "repeticao_refeicao": "Repetição de Refeição",
         "lanche_emergencial": "Lanche Emergencial",
         "kit_lanche": "Kit Lanche",
         "total_refeicoes_pagamento": "Total de Refeições para Pagamento",
-        "sobremesa": "Sobremesa 1 Oferta",
+        "sobremesa": "Sobremesa 1ª Oferta",
         "repeticao_sobremesa": "Repetição de Sobremesa",
         "total_sobremesas_pagamento": "Total de Sobremesas para Pagamento",
+        "2_lanche_4h": "2º Lanche 4h",
+        "2_lanche_5h": "2º Lanche 5h",
+        "lanche_extra": "Lanche Extra",
+        "2_refeicao_1_oferta": "2ª Refeição 1ª Oferta",
+        "repeticao_2_refeicao": "Repetição 2ª Refeição",
+        "2_sobremesa_1_oferta": "2ª Sobremesa 1ª Oferta",
+        "repeticao_2_sobremesa": "Repetição 2ª Sobremesa",
     }
     return campos.get(campo, campo)
 
