@@ -8,6 +8,8 @@ from django.db.models import IntegerField, Sum
 from django.db.models.functions import Cast
 
 from sme_terceirizadas.dados_comuns.constants import (
+    MAX_COLUNAS,
+    ORDEM_CAMPOS,
     ORDEM_PERIODOS_GRUPOS,
     ORDEM_PERIODOS_GRUPOS_CEI,
 )
@@ -134,7 +136,7 @@ def build_dict_relacao_categorias_e_campos_cei(medicao):
     return dict_categorias_campos
 
 
-def get_tamanho_colunas_periodos(tabelas, ORDEM_PERIODOS_GRUPOS):
+def get_tamanho_colunas_periodos(tabelas):
     for tabela in tabelas:
         for periodo in tabela["periodos"]:
             tabela["len_periodos"] += [
@@ -153,46 +155,69 @@ def get_ordem_grupos_cei(tabelas, ORDEM_PERIODOS_GRUPOS_CEI):
 
 
 def get_categorias_dos_periodos(
-    nome_periodo, tabelas, indice_atual, categoria, dict_categorias_campos
+    nome_periodo,
+    tabelas,
+    indice_atual,
+    categoria,
+    dict_categorias_campos,
+    segunda_tabela=False,
 ):
+    numero_campos = len(dict_categorias_campos[categoria])
+    if numero_campos > MAX_COLUNAS:
+        if segunda_tabela:
+            numero_campos = numero_campos - MAX_COLUNAS
+        else:
+            numero_campos = MAX_COLUNAS
     if nome_periodo in tabelas[indice_atual]["categorias_dos_periodos"].keys():
         tabelas[indice_atual]["categorias_dos_periodos"][nome_periodo].append(
             {
                 "categoria": categoria,
-                "numero_campos": len(dict_categorias_campos[categoria]),
+                "numero_campos": numero_campos,
             }
         )
     else:
         tabelas[indice_atual]["categorias_dos_periodos"][nome_periodo] = [
             {
                 "categoria": categoria,
-                "numero_campos": len(dict_categorias_campos[categoria]),
+                "numero_campos": numero_campos,
             }
         ]
 
 
-def build_headers_tabelas(solicitacao):
-    MAX_COLUNAS = 15
-    ORDEM_CAMPOS = {
-        "numero_de_alunos": 1,
-        "matriculados": 2,
-        "aprovadas": 3,
-        "frequencia": 4,
-        "solicitado": 5,
-        "consumido": 6,
-        "desjejum": 7,
-        "lanche": 8,
-        "lanche_4h": 9,
-        "refeicao": 10,
-        "repeticao_refeicao": 11,
-        "kit_lanche": 12,
-        "total_refeicoes_pagamento": 13,
-        "sobremesa": 14,
-        "repeticao_sobremesa": 15,
-        "total_sobremesas_pagamento": 16,
-        "lanche_emergencial": 17,
-    }
+def append_tabela(
+    tabelas,
+    indice_atual,
+    nome_periodo,
+    categoria,
+    dict_categorias_campos,
+    segunda_tabela=False,
+):
+    tabelas[indice_atual]["periodos"] += [nome_periodo]
+    tabelas[indice_atual]["categorias"] += [categoria]
+    if segunda_tabela:
+        tabelas[indice_atual]["nomes_campos"] += sorted(
+            dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k]
+        )[MAX_COLUNAS:]
+        tabelas[indice_atual]["len_categorias"] += [
+            len(dict_categorias_campos[categoria][MAX_COLUNAS:])
+        ]
+    else:
+        tabelas[indice_atual]["nomes_campos"] += sorted(
+            dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k]
+        )[:MAX_COLUNAS]
+        tabelas[indice_atual]["len_categorias"] += [MAX_COLUNAS]
+    get_categorias_dos_periodos(
+        nome_periodo,
+        tabelas,
+        indice_atual,
+        categoria,
+        dict_categorias_campos,
+        segunda_tabela,
+    )
+    return tabelas
 
+
+def build_headers_tabelas(solicitacao):
     tabelas = [
         {
             "periodos": [],
@@ -231,35 +256,66 @@ def build_headers_tabelas(solicitacao):
                 "total_refeicoes_pagamento" in tabelas[indice_atual]["nomes_campos"]
                 and "total_refeicoes_pagamento" in dict_categorias_campos[categoria]
             ):
-                indice_atual += 1
-                tabelas += [
-                    {
-                        "periodos": [],
-                        "categorias": [],
-                        "nomes_campos": [],
-                        "len_periodos": [],
-                        "len_categorias": [],
-                        "valores_campos": [],
-                        "ordem_periodos_grupos": [],
-                        "dias_letivos": [],
-                        "categorias_dos_periodos": {},
-                    }
-                ]
-                tabelas[indice_atual]["periodos"] += [nome_periodo]
-                tabelas[indice_atual]["categorias"] += [categoria]
-                tabelas[indice_atual]["nomes_campos"] += sorted(
-                    dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k]
-                )
-                tabelas[indice_atual]["len_categorias"] += [
-                    len(dict_categorias_campos[categoria])
-                ]
-                get_categorias_dos_periodos(
-                    nome_periodo,
-                    tabelas,
-                    indice_atual,
-                    categoria,
-                    dict_categorias_campos,
-                )
+                if len(dict_categorias_campos[categoria]) > MAX_COLUNAS:
+                    tabelas = append_tabela(
+                        tabelas,
+                        indice_atual,
+                        nome_periodo,
+                        categoria,
+                        dict_categorias_campos,
+                    )
+                    indice_atual += 1
+                    tabelas += [
+                        {
+                            "periodos": [],
+                            "categorias": [],
+                            "nomes_campos": [],
+                            "len_periodos": [],
+                            "len_categorias": [],
+                            "valores_campos": [],
+                            "ordem_periodos_grupos": [],
+                            "dias_letivos": [],
+                            "categorias_dos_periodos": {},
+                        }
+                    ]
+                    append_tabela(
+                        tabelas,
+                        indice_atual,
+                        nome_periodo,
+                        categoria,
+                        dict_categorias_campos,
+                        True,
+                    )
+                else:
+                    indice_atual += 1
+                    tabelas += [
+                        {
+                            "periodos": [],
+                            "categorias": [],
+                            "nomes_campos": [],
+                            "len_periodos": [],
+                            "len_categorias": [],
+                            "valores_campos": [],
+                            "ordem_periodos_grupos": [],
+                            "dias_letivos": [],
+                            "categorias_dos_periodos": {},
+                        }
+                    ]
+                    tabelas[indice_atual]["periodos"] += [nome_periodo]
+                    tabelas[indice_atual]["categorias"] += [categoria]
+                    tabelas[indice_atual]["nomes_campos"] += sorted(
+                        dict_categorias_campos[categoria], key=lambda k: ORDEM_CAMPOS[k]
+                    )
+                    tabelas[indice_atual]["len_categorias"] += [
+                        len(dict_categorias_campos[categoria])
+                    ]
+                    get_categorias_dos_periodos(
+                        nome_periodo,
+                        tabelas,
+                        indice_atual,
+                        categoria,
+                        dict_categorias_campos,
+                    )
             else:
                 if nome_periodo not in tabelas[indice_atual]["periodos"]:
                     tabelas[indice_atual]["periodos"] += [nome_periodo]
@@ -278,7 +334,7 @@ def build_headers_tabelas(solicitacao):
                     dict_categorias_campos,
                 )
 
-    get_tamanho_colunas_periodos(tabelas, ORDEM_PERIODOS_GRUPOS)
+    get_tamanho_colunas_periodos(tabelas)
     return tabelas
 
 
@@ -645,6 +701,16 @@ def popula_campo_total_refeicoes_pagamento(
                 if "repeticao_refeicao" in campos
                 else 0
             )
+            valor_segunda_refeicao = (
+                valores_dia[campos.index("2_refeicao_1_oferta") + 1]
+                if "2_refeicao_1_oferta" in campos
+                else 0
+            )
+            valor_repeticao_segunda_refeicao = (
+                valores_dia[campos.index("repeticao_2_refeicao") + 1]
+                if "repeticao_2_refeicao" in campos
+                else 0
+            )
             valor_matriculados = (
                 valores_dia[campos.index("matriculados") + 1]
                 if "matriculados" in campos
@@ -658,7 +724,12 @@ def popula_campo_total_refeicoes_pagamento(
             if solicitacao.escola.eh_emei:
                 valores_dia += [valor_refeicao]
             else:
-                total_refeicao = int(valor_refeicao) + int(valor_repeticao_refeicao)
+                total_refeicao = (
+                    int(valor_refeicao)
+                    + int(valor_repeticao_refeicao)
+                    + int(valor_segunda_refeicao)
+                    + int(valor_repeticao_segunda_refeicao)
+                )
                 valor_comparativo = (
                     valor_matriculados
                     if valor_matriculados > 0
@@ -670,36 +741,163 @@ def popula_campo_total_refeicoes_pagamento(
             valores_dia += ["0"]
 
 
+def get_valor_repeticao_sobremesa(
+    tabela, campos_tabela_anterior, tabela_anterior, valores_dia, campos
+):
+    if (
+        "repeticao_sobremesa" not in tabela["nomes_campos"]
+        and "repeticao_sobremesa" in campos_tabela_anterior
+    ):
+        valor_repeticao_sobremesa = (
+            tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
+                campos_tabela_anterior.index("repeticao_sobremesa") + 1
+            ]
+            if "repeticao_sobremesa" in campos_tabela_anterior
+            else 0
+        )
+    else:
+        valor_repeticao_sobremesa = (
+            valores_dia[campos.index("repeticao_sobremesa") + 1]
+            if "repeticao_sobremesa" in campos
+            else 0
+        )
+    return valor_repeticao_sobremesa
+
+
+def get_valor_segunda_sobremesa(
+    tabela, campos_tabela_anterior, tabela_anterior, valores_dia, campos
+):
+    if (
+        "2_sobremesa_1_oferta" not in tabela["nomes_campos"]
+        and "2_sobremesa_1_oferta" in campos_tabela_anterior
+    ):
+        valor_segunda_sobremesa = (
+            tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
+                campos_tabela_anterior.index("2_sobremesa_1_oferta") + 1
+            ]
+            if "2_sobremesa_1_oferta" in campos_tabela_anterior
+            else 0
+        )
+    else:
+        valor_segunda_sobremesa = (
+            valores_dia[campos.index("2_sobremesa_1_oferta") + 1]
+            if "2_sobremesa_1_oferta" in campos
+            else 0
+        )
+    return valor_segunda_sobremesa
+
+
+def get_valor_repeticao_segunda_sobremesa(
+    tabela, campos_tabela_anterior, tabela_anterior, valores_dia, campos
+):
+    if (
+        "repeticao_2_sobremesa" not in tabela["nomes_campos"]
+        and "repeticao_2_sobremesa" in campos_tabela_anterior
+    ):
+        valor_repeticao_segunda_sobremesa = (
+            tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
+                campos_tabela_anterior.index("repeticao_2_sobremesa") + 1
+            ]
+            if "repeticao_2_sobremesa" in campos_tabela_anterior
+            else 0
+        )
+    else:
+        valor_repeticao_segunda_sobremesa = (
+            valores_dia[campos.index("repeticao_2_sobremesa") + 1]
+            if "repeticao_2_sobremesa" in campos
+            else 0
+        )
+    return valor_repeticao_segunda_sobremesa
+
+
 def popula_campo_total_sobremesas_pagamento(
-    solicitacao, tabela, campo, categoria_corrente, valores_dia
+    solicitacao, tabela, campo, categoria_corrente, valores_dia, tabelas, indice_tabela
 ):
     if campo == "total_sobremesas_pagamento":
         try:
             campos = tabela["nomes_campos"]
-            valor_sobremesa = (
-                valores_dia[campos.index("sobremesa") + 1]
-                if "sobremesa" in campos
-                else 0
-            )
-            valor_repeticao_sobremesa = (
-                valores_dia[campos.index("repeticao_sobremesa") + 1]
-                if "repeticao_sobremesa" in campos
-                else 0
-            )
-            valor_matriculados = (
-                valores_dia[campos.index("matriculados") + 1]
-                if "matriculados" in campos
-                else 0
-            )
-            valor_numero_de_alunos = (
-                valores_dia[campos.index("numero_de_alunos") + 1]
-                if "numero_de_alunos" in campos
-                else 0
-            )
+            tabela_anterior = tabelas[indice_tabela - 1]
+            campos_tabela_anterior = tabela_anterior["nomes_campos"]
+            if (
+                "sobremesa" not in tabela["nomes_campos"]
+                and "sobremesa" in campos_tabela_anterior
+            ):
+                valor_sobremesa = (
+                    tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
+                        campos_tabela_anterior.index("sobremesa") + 1
+                    ]
+                    if "sobremesa" in campos_tabela_anterior
+                    else 0
+                )
+                valor_repeticao_sobremesa = get_valor_repeticao_sobremesa(
+                    tabela, campos_tabela_anterior, tabela_anterior, valores_dia, campos
+                )
+                valor_segunda_sobremesa = get_valor_segunda_sobremesa(
+                    tabela, campos_tabela_anterior, tabela_anterior, valores_dia, campos
+                )
+                valor_repeticao_segunda_sobremesa = (
+                    get_valor_repeticao_segunda_sobremesa(
+                        tabela,
+                        campos_tabela_anterior,
+                        tabela_anterior,
+                        valores_dia,
+                        campos,
+                    )
+                )
+                valor_matriculados = (
+                    tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
+                        campos_tabela_anterior.index("matriculados") + 1
+                    ]
+                    if "matriculados" in campos_tabela_anterior
+                    else 0
+                )
+                valor_numero_de_alunos = (
+                    tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
+                        campos_tabela_anterior.index("numero_de_alunos") + 1
+                    ]
+                    if "numero_de_alunos" in campos_tabela_anterior
+                    else 0
+                )
+            else:
+                valor_sobremesa = (
+                    valores_dia[campos.index("sobremesa") + 1]
+                    if "sobremesa" in campos
+                    else 0
+                )
+                valor_repeticao_sobremesa = (
+                    valores_dia[campos.index("repeticao_sobremesa") + 1]
+                    if "repeticao_sobremesa" in campos
+                    else 0
+                )
+                valor_segunda_sobremesa = (
+                    valores_dia[campos.index("2_sobremesa_1_oferta") + 1]
+                    if "2_sobremesa_1_oferta" in campos
+                    else 0
+                )
+                valor_repeticao_segunda_sobremesa = (
+                    valores_dia[campos.index("repeticao_2_sobremesa") + 1]
+                    if "repeticao_2_sobremesa" in campos
+                    else 0
+                )
+                valor_matriculados = (
+                    valores_dia[campos.index("matriculados") + 1]
+                    if "matriculados" in campos
+                    else 0
+                )
+                valor_numero_de_alunos = (
+                    valores_dia[campos.index("numero_de_alunos") + 1]
+                    if "numero_de_alunos" in campos
+                    else 0
+                )
             if solicitacao.escola.eh_emei:
                 valores_dia += [valor_sobremesa]
             else:
-                total_sobremesa = int(valor_sobremesa) + int(valor_repeticao_sobremesa)
+                total_sobremesa = (
+                    int(valor_sobremesa)
+                    + int(valor_repeticao_sobremesa)
+                    + int(valor_segunda_sobremesa)
+                    + int(valor_repeticao_segunda_sobremesa)
+                )
                 valor_comparativo = (
                     valor_matriculados
                     if valor_matriculados > 0
@@ -841,6 +1039,8 @@ def popula_campos(
     logs_dietas,
     alteracoes_lanche_emergencial,
     kits_lanches,
+    tabelas,
+    indice_tabela,
 ):
     valores_dia = [dia]
     eh_dia_letivo = get_eh_dia_letivo(dia, solicitacao)
@@ -899,7 +1099,13 @@ def popula_campos(
                 indice_periodo,
             )
             popula_campo_total_sobremesas_pagamento(
-                solicitacao, tabela, campo, categoria_corrente, valores_dia
+                solicitacao,
+                tabela,
+                campo,
+                categoria_corrente,
+                valores_dia,
+                tabelas,
+                indice_tabela,
             )
             popula_campo_solicitado(
                 solicitacao,
@@ -1122,6 +1328,8 @@ def popula_tabelas(solicitacao, tabelas):
                 logs_dietas,
                 alteracoes_lanche_emergencial,
                 kits_lanches,
+                tabelas,
+                indice_tabela,
             )
 
     return tabelas
@@ -1377,6 +1585,7 @@ def get_nome_campo(campo):
         "desjejum": "Desjejum",
         "lanche": "Lanche",
         "lanche_4h": "Lanche 4h",
+        "lanche_extra": "Lanche Extra",
         "refeicao": "Refeição",
         "repeticao_refeicao": "Repetição de Refeição",
         "lanche_emergencial": "Lanche Emergencial",
@@ -1387,7 +1596,23 @@ def get_nome_campo(campo):
     return campos.get(campo, campo)
 
 
-def somar_valores_de_repeticao(
+def somar_lanches(values, medicao, campo):
+    if campo == "lanche":
+        values_lanche_e_2_lanche_5h = medicao.valores_medicao.filter(
+            categoria_medicao__nome="ALIMENTAÇÃO",
+            nome_campo__in=["lanche", "2_lanche_5h"],
+        )
+        values = values_lanche_e_2_lanche_5h
+    if campo == "lanche_4h":
+        values_lanche_4h_e_2_lanche_4h = medicao.valores_medicao.filter(
+            categoria_medicao__nome="ALIMENTAÇÃO",
+            nome_campo__in=["lanche_4h", "2_lanche_4h"],
+        )
+        values = values_lanche_4h_e_2_lanche_4h
+    return values
+
+
+def somar_valores_semelhantes(
     values, medicao, campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
     if not solicitacao.escola.eh_emei:
@@ -1402,7 +1627,11 @@ def somar_valores_de_repeticao(
             else:
                 values_repeticao_refeicao = medicao.valores_medicao.filter(
                     categoria_medicao__nome="ALIMENTAÇÃO",
-                    nome_campo="repeticao_refeicao",
+                    nome_campo__in=[
+                        "repeticao_refeicao",
+                        "2_refeicao_1_oferta",
+                        "repeticao_2_refeicao",
+                    ],
                 )
                 values = values | values_repeticao_refeicao
         if campo == "sobremesa":
@@ -1411,9 +1640,14 @@ def somar_valores_de_repeticao(
             else:
                 values_repeticao_sobremesa = medicao.valores_medicao.filter(
                     categoria_medicao__nome="ALIMENTAÇÃO",
-                    nome_campo="repeticao_sobremesa",
+                    nome_campo__in=[
+                        "repeticao_sobremesa",
+                        "2_sobremesa_1_oferta",
+                        "repeticao_2_sobremesa",
+                    ],
                 )
                 values = values | values_repeticao_sobremesa
+    values = somar_lanches(values, medicao, campo)
     return values
 
 
@@ -1425,7 +1659,7 @@ def get_somatorio_manha(
         values = medicao.valores_medicao.filter(
             categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
-        values = somar_valores_de_repeticao(
+        values = somar_valores_semelhantes(
             values,
             medicao,
             campo,
@@ -1451,7 +1685,7 @@ def get_somatorio_tarde(
         values = medicao.valores_medicao.filter(
             categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
-        values = somar_valores_de_repeticao(
+        values = somar_valores_semelhantes(
             values,
             medicao,
             campo,
@@ -1477,7 +1711,7 @@ def get_somatorio_integral(
         values = medicao.valores_medicao.filter(
             categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
-        values = somar_valores_de_repeticao(
+        values = somar_valores_semelhantes(
             values,
             medicao,
             campo,
@@ -1505,7 +1739,7 @@ def get_somatorio_programas_e_projetos(
             qs_values = medicao.valores_medicao.filter(
                 categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
             )
-            qs_values = somar_valores_de_repeticao(
+            qs_values = somar_valores_semelhantes(
                 qs_values,
                 medicao,
                 campo,
@@ -1557,7 +1791,7 @@ def get_somatorio_noite_eja(
         values = medicao.valores_medicao.filter(
             categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
-        values = somar_valores_de_repeticao(
+        values = somar_valores_semelhantes(
             values,
             medicao,
             campo,
@@ -1581,7 +1815,7 @@ def get_somatorio_etec(campo, solicitacao, dict_total_refeicoes, dict_total_sobr
         values = medicao.valores_medicao.filter(
             categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
-        values = somar_valores_de_repeticao(
+        values = somar_valores_semelhantes(
             values,
             medicao,
             campo,
@@ -1602,25 +1836,6 @@ def get_somatorio_etec(campo, solicitacao, dict_total_refeicoes, dict_total_sobr
 def build_tabela_somatorio_body(
     solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
-    ORDEM_CAMPOS = {
-        "numero_de_alunos": 1,
-        "matriculados": 2,
-        "aprovadas": 3,
-        "frequencia": 4,
-        "solicitado": 5,
-        "consumido": 6,
-        "desjejum": 7,
-        "lanche": 8,
-        "lanche_4h": 9,
-        "refeicao": 10,
-        "repeticao_refeicao": 11,
-        "kit_lanche": 12,
-        "total_refeicoes_pagamento": 13,
-        "sobremesa": 14,
-        "repeticao_sobremesa": 15,
-        "total_sobremesas_pagamento": 16,
-        "lanche_emergencial": 17,
-    }
     campos_tipos_alimentacao = []
     for medicao in sorted(
         solicitacao.medicoes.all(),
@@ -1636,6 +1851,12 @@ def build_tabela_somatorio_body(
                     "numero_de_alunos",
                     "repeticao_refeicao",
                     "repeticao_sobremesa",
+                    "2_lanche_4h",
+                    "2_lanche_5h",
+                    "2_refeicao_1_oferta",
+                    "repeticao_2_refeicao",
+                    "2_sobremesa_1_oferta",
+                    "repeticao_2_sobremesa",
                 ]
             )
             .values_list("nome_campo", flat=True)
