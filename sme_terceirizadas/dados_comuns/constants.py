@@ -270,6 +270,35 @@ ORDEM_PERIODOS_GRUPOS_CEI = {
     "TARDE": 4,
 }
 
+ORDEM_CAMPOS = [
+    "numero_de_alunos",
+    "matriculados",
+    "aprovadas",
+    "frequencia",
+    "solicitado",
+    "consumido",
+    "desjejum",
+    "lanche",
+    "lanche_4h",
+    "2_lanche_4h",
+    "2_lanche_5h",
+    "lanche_extra",
+    "refeicao",
+    "repeticao_refeicao",
+    "2_refeicao_1_oferta",
+    "repeticao_2_refeicao",
+    "kit_lanche",
+    "total_refeicoes_pagamento",
+    "sobremesa",
+    "repeticao_sobremesa",
+    "2_sobremesa_1_oferta",
+    "repeticao_2_sobremesa",
+    "total_sobremesas_pagamento",
+    "lanche_emergencial",
+]
+
+MAX_COLUNAS = 15
+
 
 class StatusProcessamentoArquivo(Enum):
     PENDENTE = "PENDENTE"

@@ -551,7 +551,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 "valor_total": valor_total,
             }
             if escola.eh_cei or (
-                escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo
+                escola.eh_cemei
+                and ("Infantil" not in medicao.nome_periodo_grupo)
+                and ("Solicitações" not in medicao.nome_periodo_grupo)
             ):
                 dict_retorno["quantidade_alunos"] = sum(v["valor"] for v in valores)
             retorno.append(dict_retorno)
