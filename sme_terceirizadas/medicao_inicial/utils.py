@@ -2538,7 +2538,9 @@ def tratar_workflow_todos_lancamentos(usuario, raw_sql):
 def get_valor_total(escola, valores, medicao):
     valor_total = sum(v["valor"] for v in valores)
     if escola.eh_cei or (
-        escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo
+        escola.eh_cemei
+        and ("Infantil" not in medicao.nome_periodo_grupo)
+        and ("Solicitações" not in medicao.nome_periodo_grupo)
     ):
         fator_multiplicativo = 2
         if medicao.nome_periodo_grupo == "INTEGRAL":
