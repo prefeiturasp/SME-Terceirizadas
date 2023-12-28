@@ -728,18 +728,22 @@ class FichaTecnicaDoProduto(
     lactose = models.BooleanField("Contém lactose?", null=True)
     lactose_detalhe = models.CharField("Detalhar Lactose", max_length=150, blank=True)
     porcao = models.CharField("Porção", max_length=50, blank=True)
-    unidade_medida = models.ForeignKey(
+    unidade_medida_porcao = models.ForeignKey(
         UnidadeMedida,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
-        related_name="fichas_tecnicas",
+        related_name="fichas_tecnicas_unidade_porcao",
     )
     valor_unidade_caseira = models.CharField(
-        "Unidade Caseira", max_length=50, blank=True
+        "Unidade Caseira",
+        max_length=50,
+        blank=True,
     )
     unidade_medida_caseira = models.CharField(
-        "Unidade de Medida Caseira", max_length=100, blank=True
+        "Unidade de Medida Caseira",
+        max_length=100,
+        blank=True,
     )
 
     def __str__(self):
