@@ -2,7 +2,9 @@ import calendar
 import datetime
 
 from dateutil.relativedelta import relativedelta
+from django.db.models import Q
 
+from sme_terceirizadas.dados_comuns.behaviors import DiasSemana
 from sme_terceirizadas.dados_comuns.utils import get_ultimo_dia_mes
 from sme_terceirizadas.paineis_consolidados.utils import (
     formata_resultado_inclusoes_etec_autorizadas,
@@ -15,6 +17,7 @@ from ..dieta_especial.models import ClassificacaoDieta, LogQuantidadeDietasAutor
 from ..escola.models import DiaCalendario
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoNormal,
 )
 from ..paineis_consolidados.models import SolicitacoesEscola
@@ -97,15 +100,44 @@ def get_inclusoes_normais_dias_nao_letivos(escola, dias_nao_letivos):
     )
 
 
-def get_lista_dias_nao_letivos_e_com_inclusao(inclusoes_normais_dias_nao_letivos):
-    inclusoes_normais_dias_nao_letivos = list(
-        set(
-            inclusoes_normais_dias_nao_letivos.values_list(
-                "inclusoes_normais__data__day", flat=True
-            )
+def get_inclusoes_continuas_dias_nao_letivos(escola, dias_nao_letivos):
+    datas = dias_nao_letivos.values_list("data", flat=True)
+    return InclusaoAlimentacaoContinua.objects.prefetch_related(
+        "quantidades_por_periodo__tipos_alimentacao"
+    ).filter(
+        Q(data_inicial__gte=min(datas)) | Q(data_final__lte=max(datas)),
+        quantidades_por_periodo__dias_semana__overlap=[
+            DiasSemana.SABADO,
+            DiasSemana.DOMINGO,
+        ],
+        escola=escola,
+        status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
+    )
+
+
+def get_lista_dias_nao_letivos_e_com_inclusao(
+    inclusoes_normais_dias_nao_letivos, inclusoes_continuas_dias_nao_letivos
+):
+    inclusoes_normais_dias = list(
+        inclusoes_normais_dias_nao_letivos.values_list(
+            "inclusoes_normais__data__day", flat=True
         )
     )
-    return [str(dia).rjust(2, "0") for dia in inclusoes_normais_dias_nao_letivos]
+
+    inclusoes_continuas_dias = []
+    for data_inicial, data_final in inclusoes_continuas_dias_nao_letivos.values_list(
+        "data_inicial", "data_final"
+    ):
+        quantidade_total_de_dias = (data_final - data_inicial).days
+        for dia in range(quantidade_total_de_dias + 1):
+            data = data_inicial + datetime.timedelta(days=dia)
+            if data.weekday in [DiasSemana.SABADO, DiasSemana.DOMINGO]:
+                inclusoes_continuas_dias.append(data.day)
+
+    return [
+        str(dia).rjust(2, "0")
+        for dia in list(set(inclusoes_normais_dias + inclusoes_continuas_dias))
+    ]
 
 
 def erros_unicos(lista_erros):
@@ -401,8 +433,11 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
     inclusoes_normais_dias_nao_letivos = get_inclusoes_normais_dias_nao_letivos(
         escola, dias_nao_letivos
     )
+    inclusoes_continuas_dias_nao_letivos = get_inclusoes_continuas_dias_nao_letivos(
+        escola, dias_nao_letivos
+    )
     dias_nao_letivos_e_com_inclusao = get_lista_dias_nao_letivos_e_com_inclusao(
-        inclusoes_normais_dias_nao_letivos
+        inclusoes_normais_dias_nao_letivos, inclusoes_continuas_dias_nao_letivos
     )
 
     nomes_dos_periodos = log_dietas_especiais.order_by("periodo_escolar__nome")
