@@ -1,7 +1,13 @@
-from factory import DjangoModelFactory, Sequence
+from factory import DjangoModelFactory, Sequence, SubFactory
 from faker import Faker
 
-from sme_terceirizadas.produto.models import Fabricante, Marca, NomeDeProdutoEdital
+from sme_terceirizadas.produto.models import (
+    Fabricante,
+    InformacaoNutricional,
+    Marca,
+    NomeDeProdutoEdital,
+    TipoDeInformacaoNutricional,
+)
 
 fake = Faker("pt_BR")
 
@@ -34,3 +40,15 @@ class MarcaFactory(DjangoModelFactory):
         model = Marca
 
     nome = Sequence(lambda n: str(fake.unique.name()).upper())
+
+
+class TipoDeInformacaoNutricionalFactory(DjangoModelFactory):
+    class Meta:
+        model = TipoDeInformacaoNutricional
+
+
+class InformacaoNutricionalFactory(DjangoModelFactory):
+    class Meta:
+        model = InformacaoNutricional
+
+    tipo_nutricional = SubFactory(TipoDeInformacaoNutricionalFactory)
