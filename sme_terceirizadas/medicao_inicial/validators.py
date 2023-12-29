@@ -435,6 +435,50 @@ def get_lista_erros_inclusoes_cei(
     return lista_erros
 
 
+def get_lista_erros_inclusoes_dietas_cei(
+    dias_nao_letivos,
+    solicitacao,
+    lista_erros,
+    inclusoes,
+    mes,
+    ano,
+    faixas_etarias,
+    categoria,
+    classificacao,
+    logs,
+):
+    for dia in dias_nao_letivos:
+        for medicao in solicitacao.medicoes.all():
+            periodo_com_erro = False
+            if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+                continue
+            inclusoes_ = get_inclusoes_filtradas_cei(inclusoes, dia, mes, ano, medicao)
+            if not inclusoes_.exists():
+                continue
+            periodo_com_erro = (
+                validate_lancamento_alimentacoes_medicao_cei_dietas_faixas_etarias(
+                    faixas_etarias,
+                    lista_erros,
+                    medicao,
+                    logs,
+                    ano,
+                    mes,
+                    dia,
+                    categoria,
+                    classificacao,
+                    periodo_com_erro,
+                )
+            )
+            if periodo_com_erro:
+                lista_erros.append(
+                    {
+                        "periodo_escolar": medicao.periodo_escolar.nome,
+                        "erro": "Restam dias a serem lançados nas dietas.",
+                    }
+                )
+    return lista_erros
+
+
 def validate_lancamento_inclusoes_cei(solicitacao, lista_erros):
     escola = solicitacao.escola
     mes = solicitacao.mes
@@ -474,6 +518,49 @@ def validate_lancamento_inclusoes_cei(solicitacao, lista_erros):
         logs,
     )
 
+    return lista_erros
+
+
+def validate_lancamento_inclusoes_dietas_cei(solicitacao, lista_erros):
+    escola = solicitacao.escola
+    mes = solicitacao.mes
+    ano = solicitacao.ano
+
+    inclusoes = (
+        escola.inclusao_alimentacao_inclusaoalimentacaodacei_rastro_escola.filter(
+            dias_motivos_da_inclusao_cei__data__month=mes,
+            dias_motivos_da_inclusao_cei__data__year=ano,
+            dias_motivos_da_inclusao_cei__cancelado=False,
+            status="CODAE_AUTORIZADO",
+        )
+    )
+    if not inclusoes.exists():
+        return lista_erros
+
+    faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+    logs = LogQuantidadeDietasAutorizadasCEI.objects.filter(
+        escola=escola, data__month=mes, data__year=ano
+    )
+    dias_nao_letivos = list(
+        DiaCalendario.objects.filter(
+            escola=escola, data__month=mes, data__year=ano, dia_letivo=False
+        ).values_list("data__day", flat=True)
+    )
+    categorias = CategoriaMedicao.objects.exclude(nome__icontains="ALIMENTAÇÃO")
+    for categoria in categorias:
+        classificacao = get_classificacoes_dietas_cei(categoria)
+        lista_erros = get_lista_erros_inclusoes_dietas_cei(
+            dias_nao_letivos,
+            solicitacao,
+            lista_erros,
+            inclusoes,
+            mes,
+            ano,
+            faixas_etarias,
+            categoria,
+            classificacao,
+            logs,
+        )
     return lista_erros
 
 
@@ -591,8 +678,12 @@ def get_classificacoes_dietas_cei(categoria):
             nome__icontains="Tipo A"
         ).exclude(nome="Tipo A")
     else:
-        classificacoes = ClassificacaoDieta.objects.filter(
-            nome__icontains=categoria.nome.split(" - ")[1]
+        classificacoes = (
+            ClassificacaoDieta.objects.filter(
+                nome__icontains=categoria.nome.split(" - ")[1]
+            )
+            .exclude(nome__icontains="amino")
+            .exclude(nome__icontains="enteral")
         )
     return classificacoes
 
