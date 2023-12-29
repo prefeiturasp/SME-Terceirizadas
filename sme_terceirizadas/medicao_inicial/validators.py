@@ -11,7 +11,11 @@ from sme_terceirizadas.paineis_consolidados.utils import (
 )
 
 from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-from ..dieta_especial.models import ClassificacaoDieta, LogQuantidadeDietasAutorizadas
+from ..dieta_especial.models import (
+    ClassificacaoDieta,
+    LogQuantidadeDietasAutorizadas,
+    LogQuantidadeDietasAutorizadasCEI,
+)
 from ..escola.models import (
     DiaCalendario,
     FaixaEtaria,
@@ -167,12 +171,13 @@ def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):
     return erros_unicos(lista_erros)
 
 
-def lista_erros_com_periodo(lista_erros, medicao):
+def lista_erros_com_periodo(lista_erros, medicao, tipo_erro):
     return next(
         (
             erro
             for erro in lista_erros
             if erro["periodo_escolar"] == medicao.periodo_escolar.nome
+            and tipo_erro in erro["erro"]
         ),
         None,
     )
@@ -190,7 +195,7 @@ def validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
     periodo_com_erro,
 ):
     for faixa_etaria in faixas_etarias:
-        if lista_erros_com_periodo(lista_erros, medicao):
+        if lista_erros_com_periodo(lista_erros, medicao, "alimentações"):
             continue
         log = logs.filter(
             data=datetime.date(int(ano), int(mes), int(dia)),
@@ -198,6 +203,42 @@ def validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
             faixa_etaria=faixa_etaria,
         ).first()
         quantidade = log.quantidade if log else 0
+        if quantidade == 0:
+            continue
+        if not medicao.valores_medicao.filter(
+            nome_campo="frequencia",
+            categoria_medicao=categoria,
+            dia=f"{dia:02d}",
+            faixa_etaria=faixa_etaria,
+        ).exists():
+            periodo_com_erro = True
+    return periodo_com_erro
+
+
+def validate_lancamento_alimentacoes_medicao_cei_dietas_faixas_etarias(
+    faixas_etarias,
+    lista_erros,
+    medicao,
+    logs,
+    ano,
+    mes,
+    dia,
+    categoria,
+    classificacoes,
+    periodo_com_erro,
+):
+    for faixa_etaria in faixas_etarias:
+        if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+            continue
+        quantidade = 0
+        for classificacao in classificacoes:
+            log = logs.filter(
+                data=datetime.date(int(ano), int(mes), int(dia)),
+                periodo_escolar=medicao.periodo_escolar,
+                classificacao=classificacao,
+                faixa_etaria=faixa_etaria,
+            ).first()
+            quantidade += log.quantidade if log else 0
         if quantidade == 0:
             continue
         if not medicao.valores_medicao.filter(
@@ -228,7 +269,7 @@ def validate_lancamento_alimentacoes_medicao_cei(solicitacao, lista_erros):
     for dia in dias_letivos:
         for medicao in solicitacao.medicoes.all():
             periodo_com_erro = False
-            if lista_erros_com_periodo(lista_erros, medicao):
+            if lista_erros_com_periodo(lista_erros, medicao, "alimentações"):
                 continue
             periodo_com_erro = (
                 validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
@@ -366,7 +407,7 @@ def get_lista_erros_inclusoes_cei(
     for dia in dias_nao_letivos:
         for medicao in solicitacao.medicoes.all():
             periodo_com_erro = False
-            if lista_erros_com_periodo(lista_erros, medicao):
+            if lista_erros_com_periodo(lista_erros, medicao, "alimentações"):
                 continue
             inclusoes_ = get_inclusoes_filtradas_cei(inclusoes, dia, mes, ano, medicao)
             if not inclusoes_.exists():
@@ -542,6 +583,63 @@ def validate_lancamento_dietas(solicitacao, lista_erros):
             )
     lista_erros = erros_unicos(lista_erros)
     return erros_unicos(lista_erros)
+
+
+def get_classificacoes_dietas_cei(categoria):
+    if "AMINOÁCIDOS" in categoria.nome:
+        classificacoes = ClassificacaoDieta.objects.filter(
+            nome__icontains="Tipo A"
+        ).exclude(nome="Tipo A")
+    else:
+        classificacoes = ClassificacaoDieta.objects.filter(
+            nome__icontains=categoria.nome.split(" - ")[1]
+        )
+    return classificacoes
+
+
+def validate_lancamento_dietas_cei(solicitacao, lista_erros):
+    ano = solicitacao.ano
+    mes = solicitacao.mes
+    escola = solicitacao.escola
+    categorias = CategoriaMedicao.objects.exclude(nome__icontains="ALIMENTAÇÃO")
+    faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+    logs = LogQuantidadeDietasAutorizadasCEI.objects.filter(
+        escola=escola, data__month=mes, data__year=ano
+    )
+    dias_letivos = list(
+        DiaCalendario.objects.filter(
+            escola=escola, data__month=mes, data__year=ano, dia_letivo=True
+        ).values_list("data__day", flat=True)
+    )
+    for categoria in categorias:
+        classificacoes = get_classificacoes_dietas_cei(categoria)
+        for dia in dias_letivos:
+            for medicao in solicitacao.medicoes.all():
+                periodo_com_erro = False
+                if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+                    continue
+                periodo_com_erro = (
+                    validate_lancamento_alimentacoes_medicao_cei_dietas_faixas_etarias(
+                        faixas_etarias,
+                        lista_erros,
+                        medicao,
+                        logs,
+                        ano,
+                        mes,
+                        dia,
+                        categoria,
+                        classificacoes,
+                        periodo_com_erro,
+                    )
+                )
+                if periodo_com_erro:
+                    lista_erros.append(
+                        {
+                            "periodo_escolar": medicao.periodo_escolar.nome,
+                            "erro": "Restam dias a serem lançados nas dietas.",
+                        }
+                    )
+    return lista_erros
 
 
 def remover_duplicados(query_set):
