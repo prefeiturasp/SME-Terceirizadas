@@ -680,7 +680,9 @@ def validate_lancamento_inclusoes_dietas_cei(solicitacao, lista_erros):
             escola=escola, data__month=mes, data__year=ano, dia_letivo=False
         ).values_list("data__day", flat=True)
     )
-    categorias = CategoriaMedicao.objects.exclude(nome__icontains="ALIMENTAÇÃO")
+    categorias = CategoriaMedicao.objects.exclude(
+        nome__icontains="ALIMENTAÇÃO"
+    ).exclude(nome__icontains="ENTERAL")
     for categoria in categorias:
         classificacao = get_classificacoes_dietas_cei(categoria)
         lista_erros = get_lista_erros_inclusoes_dietas_cei(
@@ -807,18 +809,9 @@ def validate_lancamento_dietas(solicitacao, lista_erros):
 
 
 def get_classificacoes_dietas_cei(categoria):
-    if "AMINOÁCIDOS" in categoria.nome:
-        classificacoes = ClassificacaoDieta.objects.filter(
-            nome__icontains="Tipo A"
-        ).exclude(nome="Tipo A")
-    else:
-        classificacoes = (
-            ClassificacaoDieta.objects.filter(
-                nome__icontains=categoria.nome.split(" - ")[1]
-            )
-            .exclude(nome__icontains="amino")
-            .exclude(nome__icontains="enteral")
-        )
+    classificacoes = ClassificacaoDieta.objects.filter(
+        nome__icontains=categoria.nome.split(" - ")[1]
+    )
     return classificacoes
 
 
@@ -826,7 +819,9 @@ def validate_lancamento_dietas_cei(solicitacao, lista_erros):
     ano = solicitacao.ano
     mes = solicitacao.mes
     escola = solicitacao.escola
-    categorias = CategoriaMedicao.objects.exclude(nome__icontains="ALIMENTAÇÃO")
+    categorias = CategoriaMedicao.objects.exclude(
+        nome__icontains="ALIMENTAÇÃO"
+    ).exclude(nome__icontains="ENTERAL")
     faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
     logs = LogQuantidadeDietasAutorizadasCEI.objects.filter(
         escola=escola, data__month=mes, data__year=ano
