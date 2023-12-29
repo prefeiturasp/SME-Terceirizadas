@@ -194,23 +194,64 @@ def validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
     categoria,
     periodo_com_erro,
 ):
+    DATA_INDEX = 0
+    PERIODO_ESCOLAR_ID_INDEX = 1
+    FAIXA_ETARIA_ID_INDEX = 2
+    QUANTIDADE_INDEX = 3
+
+    NOME_CAMPO_INDEX = 0
+    CATEGORIA_MEDICAO_ID_INDEX = 1
+    DIA_ID = 3
+
+    logs_ = list(
+        set(
+            logs.values_list(
+                "data", "periodo_escolar_id", "faixa_etaria_id", "quantidade"
+            ).distinct()
+        )
+    )
+    valores_medicao_ = list(
+        set(
+            medicao.valores_medicao.values_list(
+                "nome_campo",
+                "categoria_medicao_id",
+                "faixa_etaria_id",
+                "dia",
+            )
+        )
+    )
     for faixa_etaria in faixas_etarias:
         if lista_erros_com_periodo(lista_erros, medicao, "alimentações"):
             continue
-        log = logs.filter(
-            data=datetime.date(int(ano), int(mes), int(dia)),
-            periodo_escolar=medicao.periodo_escolar,
-            faixa_etaria=faixa_etaria,
-        ).first()
-        quantidade = log.quantidade if log else 0
+        log = next(
+            (
+                log_
+                for log_ in logs_
+                if (
+                    log_[DATA_INDEX] == datetime.date(int(ano), int(mes), int(dia))
+                    and log_[PERIODO_ESCOLAR_ID_INDEX] == medicao.periodo_escolar.id
+                    and log_[FAIXA_ETARIA_ID_INDEX] == faixa_etaria.id
+                )
+            ),
+            None,
+        )
+        quantidade = log[QUANTIDADE_INDEX] if log else 0
         if quantidade == 0:
             continue
-        if not medicao.valores_medicao.filter(
-            nome_campo="frequencia",
-            categoria_medicao=categoria,
-            dia=f"{dia:02d}",
-            faixa_etaria=faixa_etaria,
-        ).exists():
+        valor_medicao = next(
+            (
+                valor_medicao_
+                for valor_medicao_ in valores_medicao_
+                if (
+                    valor_medicao_[NOME_CAMPO_INDEX] == "frequencia"
+                    and valor_medicao_[CATEGORIA_MEDICAO_ID_INDEX] == categoria.id
+                    and valor_medicao_[FAIXA_ETARIA_ID_INDEX] == faixa_etaria.id
+                    and valor_medicao_[DIA_ID] == f"{dia:02d}"
+                )
+            ),
+            None,
+        )
+        if not valor_medicao:
             periodo_com_erro = True
     return periodo_com_erro
 
