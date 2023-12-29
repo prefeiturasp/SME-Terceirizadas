@@ -189,10 +189,11 @@ class SolicitacaoMedicaoInicialViewSet(
         except ValidationError as lista_erros:
             list_response = []
             for indice, erro in enumerate(lista_erros):
+                param = "erro" if "Restam dias" in erro else "periodo_escolar"
                 if indice % 2 == 0:
-                    obj = {"erro": erro}
+                    obj = {param: erro}
                 else:
-                    obj["periodo_escolar"] = erro
+                    obj[param] = erro
                     list_response.append(obj)
             return Response(list_response, status=status.HTTP_400_BAD_REQUEST)
 

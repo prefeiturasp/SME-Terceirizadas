@@ -1007,16 +1007,16 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
             if inclusao.tipo_doc == "INC_ALIMENTA_CEI":
                 if "PARCIAL" in periodos_escolares:
-                    periodos_externos = ["MANHA", "TARDE"]
+                    periodos_externos = ["INTEGRAL"]
                     periodos_internos = ["MANHA", "TARDE"]
                 if "INTEGRAL" in periodos_escolares:
                     periodos_externos = ["INTEGRAL"]
-                    periodos_internos = ["INTEGRAL", "MANHA", "TARDE"]
+                    periodos_internos = ["INTEGRAL"]
                 if "MANHA" in periodos_escolares:
-                    periodos_externos = ["INTEGRAL"]
+                    periodos_externos = ["MANHA"]
                     periodos_internos = ["MANHA"]
                 if "TARDE" in periodos_escolares:
-                    periodos_externos = ["INTEGRAL"]
+                    periodos_externos = ["TARDE"]
                     periodos_internos = ["TARDE"]
                 dias_motivos = inc.dias_motivos_da_inclusao_cei.filter(
                     data__month=mes, data__year=ano, cancelado=False
