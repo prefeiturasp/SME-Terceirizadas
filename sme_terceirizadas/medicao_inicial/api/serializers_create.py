@@ -48,6 +48,7 @@ from ...dados_comuns.constants import DIRETOR_UE
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ..utils import log_alteracoes_escola_corrige_periodo
 from ..validators import (
+    valida_medicoes_inexistentes_cei,
     validate_lancamento_alimentacoes_medicao,
     validate_lancamento_alimentacoes_medicao_cei,
     validate_lancamento_dietas,
@@ -220,6 +221,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             return
 
         lista_erros = []
+        lista_erros = valida_medicoes_inexistentes_cei(instance, lista_erros)
         lista_erros = validate_lancamento_alimentacoes_medicao_cei(
             instance, lista_erros
         )

@@ -302,6 +302,30 @@ def validate_lancamento_alimentacoes_medicao_cei_dietas_faixas_etarias(
     return periodo_com_erro
 
 
+def valida_medicoes_inexistentes_cei(solicitacao, lista_erros):
+    for periodo_escolar_nome in solicitacao.escola.periodos_escolares_com_alunos:
+        if not solicitacao.medicoes.filter(
+            periodo_escolar__nome=periodo_escolar_nome
+        ).exists():
+            lista_erros.append(
+                {
+                    "periodo_escolar": periodo_escolar_nome,
+                    "erro": "Restam dias a serem lançados nas alimentações.",
+                }
+            )
+    if (
+        solicitacao.ue_possui_alunos_periodo_parcial
+        and not solicitacao.medicoes.filter(periodo_escolar__nome="PARCIAL").exists()
+    ):
+        lista_erros.append(
+            {
+                "periodo_escolar": "PARCIAL",
+                "erro": "Restam dias a serem lançados nas alimentações.",
+            }
+        )
+    return lista_erros
+
+
 def validate_lancamento_alimentacoes_medicao_cei(solicitacao, lista_erros):
     ano = solicitacao.ano
     mes = solicitacao.mes
