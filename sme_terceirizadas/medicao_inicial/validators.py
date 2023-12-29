@@ -244,34 +244,60 @@ def validate_lancamento_alimentacoes_medicao_cei_dietas_faixas_etarias(
     faixas_etarias,
     lista_erros,
     medicao,
-    logs,
+    logs_,
     ano,
     mes,
     dia,
     categoria,
     classificacoes,
     periodo_com_erro,
+    valores_medicao_,
 ):
+    DATA_INDEX = 0
+    PERIODO_ESCOLAR_ID_INDEX = 1
+    FAIXA_ETARIA_ID_INDEX = 2
+    QUANTIDADE_INDEX = 3
+    CLASSIFICACAO_ID_INDEX = 4
+
+    NOME_CAMPO_INDEX = 0
+    CATEGORIA_MEDICAO_ID_INDEX = 1
+    DIA_ID = 3
+
     for faixa_etaria in faixas_etarias:
         if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
             continue
         quantidade = 0
         for classificacao in classificacoes:
-            log = logs.filter(
-                data=datetime.date(int(ano), int(mes), int(dia)),
-                periodo_escolar=medicao.periodo_escolar,
-                classificacao=classificacao,
-                faixa_etaria=faixa_etaria,
-            ).first()
-            quantidade += log.quantidade if log else 0
+            log = next(
+                (
+                    log_
+                    for log_ in logs_
+                    if (
+                        log_[DATA_INDEX] == datetime.date(int(ano), int(mes), int(dia))
+                        and log_[PERIODO_ESCOLAR_ID_INDEX] == medicao.periodo_escolar.id
+                        and log_[FAIXA_ETARIA_ID_INDEX] == faixa_etaria.id
+                        and log_[CLASSIFICACAO_ID_INDEX] == classificacao.id
+                    )
+                ),
+                None,
+            )
+            quantidade += log[QUANTIDADE_INDEX] if log else 0
         if quantidade == 0:
             continue
-        if not medicao.valores_medicao.filter(
-            nome_campo="frequencia",
-            categoria_medicao=categoria,
-            dia=f"{dia:02d}",
-            faixa_etaria=faixa_etaria,
-        ).exists():
+        valor_medicao = next(
+            (
+                valor_medicao_
+                for valor_medicao_ in valores_medicao_
+                if (
+                    valor_medicao_[NOME_CAMPO_INDEX] == "frequencia"
+                    and valor_medicao_[CATEGORIA_MEDICAO_ID_INDEX] == categoria.id
+                    and valor_medicao_[FAIXA_ETARIA_ID_INDEX] == faixa_etaria.id
+                    and valor_medicao_[DIA_ID] == f"{dia:02d}"
+                )
+            ),
+            None,
+        )
+        if not valor_medicao:
             periodo_com_erro = True
     return periodo_com_erro
 
@@ -509,8 +535,29 @@ def get_lista_erros_inclusoes_dietas_cei(
     classificacao,
     logs,
 ):
+    logs_ = list(
+        set(
+            logs.values_list(
+                "data",
+                "periodo_escolar_id",
+                "faixa_etaria_id",
+                "quantidade",
+                "classificacao_id",
+            ).distinct()
+        )
+    )
     for dia in dias_nao_letivos:
         for medicao in solicitacao.medicoes.all():
+            valores_medicao_ = list(
+                set(
+                    medicao.valores_medicao.values_list(
+                        "nome_campo",
+                        "categoria_medicao_id",
+                        "faixa_etaria_id",
+                        "dia",
+                    )
+                )
+            )
             periodo_com_erro = False
             if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
                 continue
@@ -522,13 +569,14 @@ def get_lista_erros_inclusoes_dietas_cei(
                     faixas_etarias,
                     lista_erros,
                     medicao,
-                    logs,
+                    logs_,
                     ano,
                     mes,
                     dia,
                     categoria,
                     classificacao,
                     periodo_com_erro,
+                    valores_medicao_,
                 )
             )
             if periodo_com_erro:
@@ -759,6 +807,17 @@ def validate_lancamento_dietas_cei(solicitacao, lista_erros):
     logs = LogQuantidadeDietasAutorizadasCEI.objects.filter(
         escola=escola, data__month=mes, data__year=ano
     )
+    logs_ = list(
+        set(
+            logs.values_list(
+                "data",
+                "periodo_escolar_id",
+                "faixa_etaria_id",
+                "quantidade",
+                "classificacao_id",
+            ).distinct()
+        )
+    )
     dias_letivos = list(
         DiaCalendario.objects.filter(
             escola=escola, data__month=mes, data__year=ano, dia_letivo=True
@@ -768,6 +827,16 @@ def validate_lancamento_dietas_cei(solicitacao, lista_erros):
         classificacoes = get_classificacoes_dietas_cei(categoria)
         for dia in dias_letivos:
             for medicao in solicitacao.medicoes.all():
+                valores_medicao_ = list(
+                    set(
+                        medicao.valores_medicao.values_list(
+                            "nome_campo",
+                            "categoria_medicao_id",
+                            "faixa_etaria_id",
+                            "dia",
+                        )
+                    )
+                )
                 periodo_com_erro = False
                 if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
                     continue
@@ -776,13 +845,14 @@ def validate_lancamento_dietas_cei(solicitacao, lista_erros):
                         faixas_etarias,
                         lista_erros,
                         medicao,
-                        logs,
+                        logs_,
                         ano,
                         mes,
                         dia,
                         categoria,
                         classificacoes,
                         periodo_com_erro,
+                        valores_medicao_,
                     )
                 )
                 if periodo_com_erro:
