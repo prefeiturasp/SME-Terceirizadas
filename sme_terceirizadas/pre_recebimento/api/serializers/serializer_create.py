@@ -1005,6 +1005,64 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaCreateSerializer(
         many=True
     )
+    prazo_validade_descongelamento = serializers.CharField(
+        required=True, allow_blank=True
+    )
+    condicoes_de_conservacao = serializers.CharField(required=True, allow_blank=True)
+    temperatura_congelamento = serializers.CharField(required=True, allow_blank=True)
+    temperatura_veiculo = serializers.CharField(required=True, allow_blank=True)
+    condicoes_de_transporte = serializers.CharField(required=True, allow_blank=True)
+    embalagem_primaria = serializers.CharField(required=True, allow_blank=True)
+    embalagem_secundaria = serializers.CharField(required=True, allow_blank=True)
+    embalagens_de_acordo_com_anexo = serializers.BooleanField(required=False)
+    material_embalagem_primaria = serializers.CharField(required=True, allow_blank=True)
+    peso_liquido_embalagem_primaria = serializers.FloatField(
+        required=True, allow_null=True
+    )
+    unidade_medida_primaria = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True,
+    )
+    peso_liquido_embalagem_secundaria = serializers.FloatField(
+        required=True, allow_null=True
+    )
+    unidade_medida_secundaria = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True,
+    )
+    peso_embalagem_primaria_vazia = serializers.FloatField(
+        required=True, allow_null=True
+    )
+    unidade_medida_primaria_vazia = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True,
+    )
+    peso_embalagem_secundaria_vazia = serializers.FloatField(
+        required=True, allow_null=True
+    )
+    unidade_medida_secundaria_vazia = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True,
+    )
+    variacao_percentual = serializers.FloatField(required=True, allow_null=True)
+    sistema_vedacao_embalagem_secundaria = serializers.CharField(
+        required=True, allow_blank=True
+    )
+    rotulo_legivel = serializers.BooleanField(required=False)
+    nome_responsavel_tecnico = serializers.CharField(required=True, allow_blank=True)
+    habilitacao = serializers.CharField(required=True, allow_blank=True)
+    numero_registro_orgao = serializers.CharField(required=True, allow_blank=True)
+    arquivo = serializers.FileField(required=True, allow_null=True)
+    modo_de_preparo = serializers.CharField(required=True, allow_blank=True)
+    informacoes_adicionais = serializers.CharField(required=True, allow_blank=True)
 
     def create(self, validated_data):
         dados_informacoes_nutricionais = validated_data.pop(
