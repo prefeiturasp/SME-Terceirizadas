@@ -992,7 +992,7 @@ class InclusaoDeAlimentacaoCEMEI(
         escola = self.rastro_escola
         vinculos = (
             VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-                periodo_escolar__in=escola.periodos_escolares, ativo=True
+                periodo_escolar__in=escola.periodos_escolares(), ativo=True
             ).order_by("periodo_escolar__posicao")
         )
         vinculos = (
@@ -1023,7 +1023,7 @@ class InclusaoDeAlimentacaoCEMEI(
             tipos_alimentacao_emei = vinculos.filter(
                 periodo_escolar__nome=periodo, tipo_unidade_escolar__iniciais="EMEI"
             )
-            if eh_evento_especifico and not self.escola.periodos_escolares.filter(
+            if eh_evento_especifico and not self.escola.periodos_escolares().filter(
                 nome=periodo
             ):
                 tipos_alimentacao_emei = vinculos.filter(

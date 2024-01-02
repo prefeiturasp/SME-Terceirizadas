@@ -2,7 +2,9 @@ import calendar
 import datetime
 
 from dateutil.relativedelta import relativedelta
+from django.db.models import Q
 
+from sme_terceirizadas.dados_comuns.behaviors import DiasSemana
 from sme_terceirizadas.dados_comuns.utils import get_ultimo_dia_mes
 from sme_terceirizadas.paineis_consolidados.utils import (
     formata_resultado_inclusoes_etec_autorizadas,
@@ -23,6 +25,7 @@ from ..escola.models import (
 )
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoNormal,
 )
 from ..paineis_consolidados.models import SolicitacoesEscola
@@ -86,6 +89,78 @@ def get_lista_dias_letivos(solicitacao, escola):
     ]
 
 
+def get_dias_nao_letivos(solicitacao, escola):
+    return DiaCalendario.objects.filter(
+        data__month=int(solicitacao.mes),
+        data__year=int(solicitacao.ano),
+        escola=escola,
+        dia_letivo=False,
+    )
+
+
+def get_inclusoes_normais_dias_nao_letivos(escola, dias_nao_letivos):
+    return GrupoInclusaoAlimentacaoNormal.objects.prefetch_related(
+        "quantidades_por_periodo__tipos_alimentacao"
+    ).filter(
+        escola=escola,
+        inclusoes_normais__data__in=dias_nao_letivos.values_list("data", flat=True),
+        status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
+    )
+
+
+def get_inclusoes_continuas_dias_nao_letivos(escola, dias_nao_letivos):
+    datas = dias_nao_letivos.values_list("data", flat=True)
+    data_inicial = min(datas)
+    data_final = max(datas)
+    return InclusaoAlimentacaoContinua.objects.prefetch_related(
+        "quantidades_por_periodo__tipos_alimentacao"
+    ).filter(
+        Q(data_inicial__gte=data_inicial)
+        | Q(
+            data_final__lte=data_final,
+            data_final__month=data_final.month,
+            data_final__year=data_final.year,
+        ),
+        quantidades_por_periodo__dias_semana__overlap=[
+            DiasSemana.SABADO,
+            DiasSemana.DOMINGO,
+        ],
+        escola=escola,
+        status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
+    )
+
+
+def get_lista_dias_nao_letivos_e_com_inclusao(
+    solicitacao,
+    inclusoes_normais_dias_nao_letivos,
+    inclusoes_continuas_dias_nao_letivos,
+):
+    inclusoes_normais_dias = list(
+        inclusoes_normais_dias_nao_letivos.values_list(
+            "inclusoes_normais__data__day", flat=True
+        )
+    )
+
+    inclusoes_continuas_dias = []
+    for data_inicial, data_final in inclusoes_continuas_dias_nao_letivos.values_list(
+        "data_inicial", "data_final"
+    ):
+        quantidade_total_de_dias = (data_final - data_inicial).days
+        for dia in range(quantidade_total_de_dias + 1):
+            data = data_inicial + datetime.timedelta(days=dia)
+            if (
+                data.month == int(solicitacao.mes)
+                and data.year == int(solicitacao.ano)
+                and data.weekday() in [DiasSemana.SABADO, DiasSemana.DOMINGO]
+            ):
+                inclusoes_continuas_dias.append(data.day)
+
+    return [
+        str(dia).rjust(2, "0")
+        for dia in list(set(inclusoes_normais_dias + inclusoes_continuas_dias))
+    ]
+
+
 def erros_unicos(lista_erros):
     return list(map(dict, set(tuple(sorted(erro.items())) for erro in lista_erros)))
 
@@ -139,7 +214,7 @@ def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):
     tipo_unidade = escola.tipo_unidade
     categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
     dias_letivos = get_lista_dias_letivos(solicitacao, escola)
-    for periodo_escolar in escola.periodos_escolares:
+    for periodo_escolar in escola.periodos_escolares(solicitacao.ano):
         vinculo = (
             VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.get(
                 tipo_unidade_escolar=tipo_unidade, periodo_escolar=periodo_escolar
@@ -718,11 +793,11 @@ def get_campos_por_periodo(periodo_da_escola, dieta_especial):
 
 
 def comparar_dias_com_valores_medicao(
-    valores_da_medicao, dias_letivos, quantidade_dias_letivos_sem_log
+    valores_da_medicao,
+    dias,
+    quantidade_dias_sem_log,
 ):
-    return len(valores_da_medicao) != (
-        len(dias_letivos) - quantidade_dias_letivos_sem_log
-    )
+    return len(valores_da_medicao) != (len(dias) - quantidade_dias_sem_log)
 
 
 def get_quantidade_dias_letivos_sem_log(dias_letivos, logs_por_classificacao):
@@ -733,9 +808,96 @@ def get_quantidade_dias_letivos_sem_log(dias_letivos, logs_por_classificacao):
     return len(set(dias_letivos) - set(logs))
 
 
-def validate_lancamento_dietas(solicitacao, lista_erros):
+def get_quantidade_dias_nao_letivos_e_com_inclusao_sem_log(
+    dias_nao_letivos_e_com_inclusao, logs_por_classificacao
+):
+    logs = [
+        f"{log.data.day:02d}"
+        for log in logs_por_classificacao.filter(
+            data__day__in=dias_nao_letivos_e_com_inclusao
+        )
+    ]
+    return len(set(dias_nao_letivos_e_com_inclusao) - set(logs))
+
+
+def eh_inclusao_somente_sobremesa(tipos_alimentacao):
+    return all([alimentacao == "Sobremesa" for alimentacao in tipos_alimentacao])
+
+
+def eh_inclusao_somente_refeicao(tipos_alimentacao):
+    return all([alimentacao == "Refeição" for alimentacao in tipos_alimentacao])
+
+
+def eh_inclusao_somente_lanche_lanche4h(tipos_alimentacao):
+    return all(
+        [alimentacao in ["Lanche", "Lanche 4h"] for alimentacao in tipos_alimentacao]
+    )
+
+
+def get_tipos_alimentacao(inclusoes):
+    return list(
+        set(
+            [
+                alimentacao
+                for inclusao in inclusoes
+                for quantidade_periodo in list(inclusao.quantidades_periodo.all())
+                for alimentacao in quantidade_periodo.tipos_alimentacao.values_list(
+                    "nome", flat=True
+                )
+            ]
+        )
+    )
+
+
+def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
+    def deve_validar_campo_dia_nao_letivo(
+        log, inclusoes_normais_dias_nao_letivos, inclusoes_continuas_dias_nao_letivos
+    ):
+        _inclusoes_continuas_dias_nao_letivos = (
+            inclusoes_continuas_dias_nao_letivos.filter(
+                data_inicial__lte=log.data, data_final__gte=log.data
+            )
+        )
+        _inclusoes_normais_dias_nao_letivos = inclusoes_normais_dias_nao_letivos.filter(
+            inclusoes_normais__data=log.data,
+        )
+        tipos_alimentacao = get_tipos_alimentacao(
+            _inclusoes_normais_dias_nao_letivos
+        ) + get_tipos_alimentacao(_inclusoes_continuas_dias_nao_letivos)
+        return tipos_alimentacao and (
+            (
+                eh_inclusao_somente_sobremesa(tipos_alimentacao)
+                and nome_campo == "sobremesa"
+            )
+            or (
+                eh_inclusao_somente_refeicao(tipos_alimentacao)
+                and nome_campo == "refeicao"
+            )
+            or (
+                eh_inclusao_somente_lanche_lanche4h(tipos_alimentacao)
+                and nome_campo in ["lanche", "lanche_4h"]
+            )
+        )
+
+    def get_valores_da_medicao(
+        solicitacao, nome_campo, nome_periodo, classificacao, dias
+    ):
+        valores_da_medicao = (
+            ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao,
+                nome_campo=nome_campo,
+                medicao__periodo_escolar__nome=nome_periodo,
+                dia__in=dias,
+                categoria_medicao__nome=get_classificacoes_nomes(classificacao),
+            )
+            .order_by("dia")
+            .exclude(valor=None)
+            .values_list("dia", flat=True)
+        )
+        return list(set(valores_da_medicao))
+
     escola = solicitacao.escola
-    periodos_da_escola = escola.periodos_escolares.all()
+    periodos_da_escola = escola.periodos_escolares(solicitacao.ano).all()
     log_dietas_especiais = (
         LogQuantidadeDietasAutorizadas.objects.filter(
             escola=escola,
@@ -749,6 +911,19 @@ def validate_lancamento_dietas(solicitacao, lista_erros):
 
     nomes_campos_padrao = ["dietas_autorizadas", "frequencia"]
     dias_letivos = get_lista_dias_letivos(solicitacao, escola)
+
+    dias_nao_letivos = get_dias_nao_letivos(solicitacao, escola)
+    inclusoes_normais_dias_nao_letivos = get_inclusoes_normais_dias_nao_letivos(
+        escola, dias_nao_letivos
+    )
+    inclusoes_continuas_dias_nao_letivos = get_inclusoes_continuas_dias_nao_letivos(
+        escola, dias_nao_letivos
+    )
+    dias_nao_letivos_e_com_inclusao = get_lista_dias_nao_letivos_e_com_inclusao(
+        solicitacao,
+        inclusoes_normais_dias_nao_letivos,
+        inclusoes_continuas_dias_nao_letivos,
+    )
 
     nomes_dos_periodos = log_dietas_especiais.order_by("periodo_escolar__nome")
     nomes_dos_periodos = nomes_dos_periodos.values_list(
@@ -773,30 +948,53 @@ def validate_lancamento_dietas(solicitacao, lista_erros):
             quantidade_dias_letivos_sem_log = get_quantidade_dias_letivos_sem_log(
                 dias_letivos, logs_por_classificacao
             )
+            quantidade_dias_nao_letivos_e_com_inclusao_sem_log = (
+                get_quantidade_dias_nao_letivos_e_com_inclusao_sem_log(
+                    dias_nao_letivos_e_com_inclusao, logs_por_classificacao
+                )
+            )
             for log in logs_por_classificacao:
                 nomes_campos = get_campos_por_periodo(periodo_da_escola, log)
                 nomes_campos = nomes_campos + nomes_campos_padrao
                 for nome_campo in nomes_campos:
-                    valores_da_medicao = (
-                        ValorMedicao.objects.filter(
-                            medicao__solicitacao_medicao_inicial=solicitacao,
-                            nome_campo=nome_campo,
-                            medicao__periodo_escolar__nome=nome_periodo,
-                            dia__in=dias_letivos,
-                            categoria_medicao__nome=get_classificacoes_nomes(
-                                classificacao
-                            ),
+                    campo_esta_vazio = False
+                    if str(log.data.day).rjust(2, "0") in dias_letivos:
+                        valores_da_medicao = get_valores_da_medicao(
+                            solicitacao,
+                            nome_campo,
+                            nome_periodo,
+                            classificacao,
+                            dias_letivos,
                         )
-                        .order_by("dia")
-                        .exclude(valor=None)
-                        .values_list("dia", flat=True)
-                    )
-                    valores_da_medicao = list(set(valores_da_medicao))
-                    periodo_com_erro = comparar_dias_com_valores_medicao(
-                        valores_da_medicao,
-                        dias_letivos,
-                        quantidade_dias_letivos_sem_log,
-                    )
+                        campo_esta_vazio = comparar_dias_com_valores_medicao(
+                            valores_da_medicao,
+                            dias_letivos,
+                            quantidade_dias_letivos_sem_log,
+                        )
+                    elif deve_validar_campo_dia_nao_letivo(
+                        log,
+                        inclusoes_normais_dias_nao_letivos,
+                        inclusoes_continuas_dias_nao_letivos,
+                    ):
+                        valores_da_medicao = get_valores_da_medicao(
+                            solicitacao,
+                            nome_campo,
+                            nome_periodo,
+                            classificacao,
+                            dias_nao_letivos_e_com_inclusao,
+                        )
+                        campo_esta_vazio = comparar_dias_com_valores_medicao(
+                            valores_da_medicao,
+                            dias_nao_letivos_e_com_inclusao,
+                            quantidade_dias_nao_letivos_e_com_inclusao_sem_log,
+                        )
+                    if campo_esta_vazio:
+                        periodo_com_erro = True
+                        break
+                if periodo_com_erro:
+                    break
+            if periodo_com_erro:
+                break
         if periodo_com_erro:
             lista_erros.append(
                 {

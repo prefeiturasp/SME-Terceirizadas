@@ -408,7 +408,7 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
     def get_periodos_escolares(self, obj):
         if isinstance(obj.instituicao, Escola):
             return PeriodoEscolarSerializer(
-                obj.instituicao.periodos_escolares.all(),
+                obj.instituicao.periodos_escolares().all(),
                 many=True,
                 context={"escola": obj.instituicao},
             ).data
@@ -718,7 +718,7 @@ class EscolaAlunoPeriodoSerializer(serializers.ModelSerializer):
 
     def get_periodos_escolares(self, obj):
         return PeriodoEscolarSimplesSerializer(
-            obj.periodos_escolares, many=True, context={"escola": obj}
+            obj.periodos_escolares(), many=True, context={"escola": obj}
         ).data
 
     def get_quantidade_alunos(self, obj):

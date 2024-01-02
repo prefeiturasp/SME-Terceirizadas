@@ -836,7 +836,7 @@ def relatorio_inclusao_alimentacao_cemei(request, solicitacao):  # noqa C901
             )
             if (
                 eh_evento_especifico
-                and not solicitacao.escola.periodos_escolares.filter(
+                and not solicitacao.escola.periodos_escolares().filter(
                     nome=periodo["nome"]
                 )
             ):
