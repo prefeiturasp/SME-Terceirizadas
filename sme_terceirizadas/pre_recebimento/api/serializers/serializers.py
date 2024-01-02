@@ -689,7 +689,7 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     marca = MarcaSimplesSerializer()
     empresa = TerceirizadaLookUpSerializer()
     fabricante = FabricanteSimplesSerializer()
-    unidade_medida = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_porcao = NomeEAbreviacaoUnidadeMedidaSerializer()
     status = serializers.CharField(source="get_status_display")
     informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaSerializer(many=True)
 
@@ -731,7 +731,7 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "lactose",
             "lactose_detalhe",
             "porcao",
-            "unidade_medida",
+            "unidade_medida_porcao",
             "valor_unidade_caseira",
             "unidade_medida_caseira",
             "informacoes_nutricionais",

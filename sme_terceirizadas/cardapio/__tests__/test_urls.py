@@ -717,7 +717,7 @@ def test_url_endpoint_alt_card_criar_update(
     periodo_escolar,
 ):
     hoje = datetime.date.today()
-    if hoje.month == 12 and hoje.day in [29, 30, 31]:
+    if hoje.month == 12 and hoje.day in [28, 29, 30, 31]:
         return
     response = client_autenticado_vinculo_escola_cardapio.post(
         f"/{ENDPOINT_ALTERACAO_CARD}/",

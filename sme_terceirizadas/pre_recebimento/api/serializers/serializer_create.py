@@ -994,7 +994,7 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     lactose = serializers.BooleanField(required=False)
     lactose_detalhe = serializers.CharField(required=True, allow_blank=True)
     porcao = serializers.CharField(required=True, allow_blank=True)
-    unidade_medida = serializers.SlugRelatedField(
+    unidade_medida_porcao = serializers.SlugRelatedField(
         slug_field="uuid",
         required=True,
         queryset=UnidadeMedida.objects.all(),

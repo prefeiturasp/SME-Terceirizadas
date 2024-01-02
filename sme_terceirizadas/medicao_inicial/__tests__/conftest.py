@@ -248,6 +248,31 @@ def solicitacao_medicao_inicial_cemei(escola_cemei, categoria_medicao):
 
 
 @pytest.fixture
+def solicitacao_medicao_inicial_cei(escola_cei, categoria_medicao):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_integral = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=4,
+        ano=2023,
+        escola=escola_cei,
+        ue_possui_alunos_periodo_parcial=True,
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_integral,
+    )
+    mommy.make(
+        "FaixaEtaria", inicio=1, fim=10, uuid="0c914b27-c7cd-4682-a439-a4874745b005"
+    )
+    mommy.make("Aluno", periodo_escolar=periodo_manha, escola=escola_cei)
+    return solicitacao_medicao
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial(escola, categoria_medicao):
     tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
     periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")

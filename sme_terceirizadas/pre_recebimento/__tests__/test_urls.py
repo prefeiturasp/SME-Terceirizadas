@@ -2708,7 +2708,7 @@ def test_rascunho_ficha_tecnica_create_update(
         "ingredientes_alergenicos": "",
         "lactose_detalhe": "",
         "porcao": "",
-        "unidade_medida": "",
+        "unidade_medida_porcao": "",
         "valor_unidade_caseira": "",
         "unidade_medida_caseira": "",
         "informacoes_nutricionais": [],
