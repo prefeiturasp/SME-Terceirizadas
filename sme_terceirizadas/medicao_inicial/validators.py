@@ -214,7 +214,7 @@ def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):
     tipo_unidade = escola.tipo_unidade
     categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
     dias_letivos = get_lista_dias_letivos(solicitacao, escola)
-    for periodo_escolar in escola.periodos_escolares:
+    for periodo_escolar in escola.periodos_escolares(solicitacao.ano):
         vinculo = (
             VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.get(
                 tipo_unidade_escolar=tipo_unidade, periodo_escolar=periodo_escolar
@@ -897,7 +897,7 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
         return list(set(valores_da_medicao))
 
     escola = solicitacao.escola
-    periodos_da_escola = escola.periodos_escolares.all()
+    periodos_da_escola = escola.periodos_escolares(solicitacao.ano).all()
     log_dietas_especiais = (
         LogQuantidadeDietasAutorizadas.objects.filter(
             escola=escola,
