@@ -110,10 +110,17 @@ def get_inclusoes_normais_dias_nao_letivos(escola, dias_nao_letivos):
 
 def get_inclusoes_continuas_dias_nao_letivos(escola, dias_nao_letivos):
     datas = dias_nao_letivos.values_list("data", flat=True)
+    data_inicial = min(datas)
+    data_final = max(datas)
     return InclusaoAlimentacaoContinua.objects.prefetch_related(
         "quantidades_por_periodo__tipos_alimentacao"
     ).filter(
-        Q(data_inicial__gte=min(datas)) | Q(data_final__lte=max(datas)),
+        Q(data_inicial__gte=data_inicial)
+        | Q(
+            data_final__lte=data_final,
+            data_final__month=data_final.month,
+            data_final__year=data_final.year,
+        ),
         quantidades_por_periodo__dias_semana__overlap=[
             DiasSemana.SABADO,
             DiasSemana.DOMINGO,
@@ -124,7 +131,9 @@ def get_inclusoes_continuas_dias_nao_letivos(escola, dias_nao_letivos):
 
 
 def get_lista_dias_nao_letivos_e_com_inclusao(
-    inclusoes_normais_dias_nao_letivos, inclusoes_continuas_dias_nao_letivos
+    solicitacao,
+    inclusoes_normais_dias_nao_letivos,
+    inclusoes_continuas_dias_nao_letivos,
 ):
     inclusoes_normais_dias = list(
         inclusoes_normais_dias_nao_letivos.values_list(
@@ -139,7 +148,11 @@ def get_lista_dias_nao_letivos_e_com_inclusao(
         quantidade_total_de_dias = (data_final - data_inicial).days
         for dia in range(quantidade_total_de_dias + 1):
             data = data_inicial + datetime.timedelta(days=dia)
-            if data.weekday in [DiasSemana.SABADO, DiasSemana.DOMINGO]:
+            if (
+                data.month == int(solicitacao.mes)
+                and data.year == int(solicitacao.ano)
+                and data.weekday() in [DiasSemana.SABADO, DiasSemana.DOMINGO]
+            ):
                 inclusoes_continuas_dias.append(data.day)
 
     return [
@@ -821,21 +834,37 @@ def eh_inclusao_somente_lanche_lanche4h(tipos_alimentacao):
     )
 
 
+def get_tipos_alimentacao(inclusoes):
+    return list(
+        set(
+            [
+                alimentacao
+                for inclusao in inclusoes
+                for quantidade_periodo in list(inclusao.quantidades_periodo.all())
+                for alimentacao in quantidade_periodo.tipos_alimentacao.values_list(
+                    "nome", flat=True
+                )
+            ]
+        )
+    )
+
+
 def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
-    def deve_validar_campo_dia_nao_letivo(inclusoes_normais_dias_nao_letivos):
-        tipos_alimentacao = list(
-            set(
-                [
-                    alimentacao
-                    for inclusao in inclusoes_normais_dias_nao_letivos
-                    for quantidade_periodo in list(inclusao.quantidades_periodo.all())
-                    for alimentacao in quantidade_periodo.tipos_alimentacao.values_list(
-                        "nome", flat=True
-                    )
-                ]
+    def deve_validar_campo_dia_nao_letivo(
+        log, inclusoes_normais_dias_nao_letivos, inclusoes_continuas_dias_nao_letivos
+    ):
+        _inclusoes_continuas_dias_nao_letivos = (
+            inclusoes_continuas_dias_nao_letivos.filter(
+                data_inicial__lte=log.data, data_final__gte=log.data
             )
         )
-        return (
+        _inclusoes_normais_dias_nao_letivos = inclusoes_normais_dias_nao_letivos.filter(
+            inclusoes_normais__data=log.data,
+        )
+        tipos_alimentacao = get_tipos_alimentacao(
+            _inclusoes_normais_dias_nao_letivos
+        ) + get_tipos_alimentacao(_inclusoes_continuas_dias_nao_letivos)
+        return tipos_alimentacao and (
             (
                 eh_inclusao_somente_sobremesa(tipos_alimentacao)
                 and nome_campo == "sobremesa"
@@ -891,7 +920,9 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
         escola, dias_nao_letivos
     )
     dias_nao_letivos_e_com_inclusao = get_lista_dias_nao_letivos_e_com_inclusao(
-        inclusoes_normais_dias_nao_letivos, inclusoes_continuas_dias_nao_letivos
+        solicitacao,
+        inclusoes_normais_dias_nao_letivos,
+        inclusoes_continuas_dias_nao_letivos,
     )
 
     nomes_dos_periodos = log_dietas_especiais.order_by("periodo_escolar__nome")
@@ -941,7 +972,9 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
                             quantidade_dias_letivos_sem_log,
                         )
                     elif deve_validar_campo_dia_nao_letivo(
-                        inclusoes_normais_dias_nao_letivos
+                        log,
+                        inclusoes_normais_dias_nao_letivos,
+                        inclusoes_continuas_dias_nao_letivos,
                     ):
                         valores_da_medicao = get_valores_da_medicao(
                             solicitacao,
