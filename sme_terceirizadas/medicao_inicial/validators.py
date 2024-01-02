@@ -861,21 +861,28 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
         _inclusoes_normais_dias_nao_letivos = inclusoes_normais_dias_nao_letivos.filter(
             inclusoes_normais__data=log.data,
         )
+
         tipos_alimentacao = get_tipos_alimentacao(
             _inclusoes_normais_dias_nao_letivos
         ) + get_tipos_alimentacao(_inclusoes_continuas_dias_nao_letivos)
+
+        inclusao_somente_sobremesa = eh_inclusao_somente_sobremesa(tipos_alimentacao)
+        inclusao_somente_refeicao = eh_inclusao_somente_refeicao(tipos_alimentacao)
+        inclusao_somente_lanche_lanche4h = eh_inclusao_somente_lanche_lanche4h(
+            tipos_alimentacao
+        )
+
         return tipos_alimentacao and (
-            (
-                eh_inclusao_somente_sobremesa(tipos_alimentacao)
-                and nome_campo == "sobremesa"
-            )
+            (inclusao_somente_sobremesa and nome_campo == "sobremesa")
+            or (inclusao_somente_refeicao and nome_campo == "refeicao")
             or (
-                eh_inclusao_somente_refeicao(tipos_alimentacao)
-                and nome_campo == "refeicao"
-            )
-            or (
-                eh_inclusao_somente_lanche_lanche4h(tipos_alimentacao)
+                inclusao_somente_lanche_lanche4h
                 and nome_campo in ["lanche", "lanche_4h"]
+            )
+            or not (
+                inclusao_somente_sobremesa
+                or inclusao_somente_refeicao
+                or inclusao_somente_lanche_lanche4h
             )
         )
 
