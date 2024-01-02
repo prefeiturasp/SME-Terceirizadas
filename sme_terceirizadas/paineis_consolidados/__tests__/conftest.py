@@ -714,6 +714,12 @@ def solicitacao_medicao_inicial(escola, periodo_escolar_manha):
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_escolar_manha,
     )
+    periodo_integral = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_integral,
+    )
     mommy.make("ValorMedicao", medicao=medicao)
     return solicitacao_medicao
 
