@@ -869,6 +869,30 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
     solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem_alimentacao])
 
     mommy.make(
+        "LogAlunosMatriculadosPeriodoEscola",
+        escola=escola_com_logs_para_medicao,
+        criado_em=datetime.date(2023, 9, 1),
+        periodo_escolar=periodo_escolar_manha,
+        quantidade_alunos=10,
+    )
+
+    mommy.make(
+        "LogAlunosMatriculadosPeriodoEscola",
+        escola=escola_com_logs_para_medicao,
+        criado_em=datetime.date(2023, 9, 1),
+        periodo_escolar=periodo_escolar_tarde,
+        quantidade_alunos=10,
+    )
+
+    mommy.make(
+        "LogAlunosMatriculadosPeriodoEscola",
+        escola=escola_com_logs_para_medicao,
+        criado_em=datetime.date(2023, 9, 1),
+        periodo_escolar=periodo_escolar_noite,
+        quantidade_alunos=10,
+    )
+
+    mommy.make(
         "Medicao",
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_escolar_manha,
