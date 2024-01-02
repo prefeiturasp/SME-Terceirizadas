@@ -471,8 +471,7 @@ def test_inclusoes_cei_autorizadas(
         "&periodos_escolares[]=MANHA&excluir_inclusoes_continuas=true"
     )
     assert response_manha.status_code == status.HTTP_200_OK
-    assert len(response_manha.data["results"]) == 1
-    assert response_manha.data["results"][0]["dia"] == 10
+    assert len(response_manha.data["results"]) == 0
 
     response_parcial = client_autenticado_escola_paineis_consolidados.get(
         f"/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/"
@@ -480,7 +479,8 @@ def test_inclusoes_cei_autorizadas(
         "&periodos_escolares[]=PARCIAL&excluir_inclusoes_continuas=true"
     )
     assert response_parcial.status_code == status.HTTP_200_OK
-    assert len(response_parcial.data["results"]) == 0
+    assert len(response_parcial.data["results"]) == 1
+    assert response_parcial.data["results"][0]["dia"] == 10
 
     response_integral = client_autenticado_escola_paineis_consolidados.get(
         f"/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/"
@@ -488,8 +488,7 @@ def test_inclusoes_cei_autorizadas(
         "&periodos_escolares[]=INTEGRAL&excluir_inclusoes_continuas=true"
     )
     assert response_integral.status_code == status.HTTP_200_OK
-    assert len(response_integral.data["results"]) == 1
-    assert response_manha.data["results"][0]["dia"] == 10
+    assert len(response_integral.data["results"]) == 0
 
     response_tarde = client_autenticado_escola_paineis_consolidados.get(
         f"/escola-solicitacoes/{INCLUSOES_AUTORIZADAS}/"

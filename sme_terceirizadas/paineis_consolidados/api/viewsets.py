@@ -56,6 +56,7 @@ from ..tasks import (
 )
 from ..utils import (
     formata_resultado_inclusoes_etec_autorizadas,
+    get_numero_alunos_alteracao_alimentacao,
     tratar_append_return_dict,
     tratar_data_evento_final_no_mes,
     tratar_dias_duplicados,
@@ -1006,16 +1007,16 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             inc = inclusao.get_raw_model.objects.get(uuid=inclusao.uuid)
             if inclusao.tipo_doc == "INC_ALIMENTA_CEI":
                 if "PARCIAL" in periodos_escolares:
-                    periodos_externos = ["MANHA", "TARDE"]
+                    periodos_externos = ["INTEGRAL"]
                     periodos_internos = ["MANHA", "TARDE"]
                 if "INTEGRAL" in periodos_escolares:
                     periodos_externos = ["INTEGRAL"]
-                    periodos_internos = ["INTEGRAL", "MANHA", "TARDE"]
+                    periodos_internos = ["INTEGRAL"]
                 if "MANHA" in periodos_escolares:
-                    periodos_externos = ["INTEGRAL"]
+                    periodos_externos = ["MANHA"]
                     periodos_internos = ["MANHA"]
                 if "TARDE" in periodos_escolares:
-                    periodos_externos = ["INTEGRAL"]
+                    periodos_externos = ["TARDE"]
                     periodos_internos = ["TARDE"]
                 dias_motivos = inc.dias_motivos_da_inclusao_cei.filter(
                     data__month=mes, data__year=ano, cancelado=False
@@ -1221,11 +1222,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                     return_dict.append(
                         {
                             "dia": f"{data_evento.data.day:02d}",
-                            "numero_alunos": sum(
-                                [
-                                    sub.qtd_alunos
-                                    for sub in alteracao.substituicoes_periodo_escolar.all()
-                                ]
+                            "numero_alunos": get_numero_alunos_alteracao_alimentacao(
+                                alteracao
                             ),
                             "inclusao_id_externo": alteracao.id_externo,
                             "motivo": alteracao_alimentacao.motivo,
@@ -1266,14 +1264,20 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         for kit_lanche in query_set:
             kit_lanche = kit_lanche.get_raw_model.objects.get(uuid=kit_lanche.uuid)
             if kit_lanche:
+                if kit_lanche.DESCRICAO == "Kit Lanche CEMEI":
+                    dia = f"{kit_lanche.data.day:02d}"
+                    numero_alunos = kit_lanche.total_kits
+                else:
+                    dia = f"{kit_lanche.solicitacao_kit_lanche.data.day:02d}"
+                    numero_alunos = (
+                        kit_lanche.total_kit_lanche_escola(escola_uuid)
+                        if isinstance(kit_lanche, SolicitacaoKitLancheUnificada)
+                        else kit_lanche.quantidade_alimentacoes
+                    )
                 return_dict.append(
                     {
-                        "dia": f"{kit_lanche.solicitacao_kit_lanche.data.day:02d}",
-                        "numero_alunos": (
-                            kit_lanche.total_kit_lanche_escola(escola_uuid)
-                            if isinstance(kit_lanche, SolicitacaoKitLancheUnificada)
-                            else kit_lanche.quantidade_alimentacoes
-                        ),
+                        "dia": dia,
+                        "numero_alunos": numero_alunos,
                         "kit_lanche_id_externo": kit_lanche.id_externo,
                     }
                 )

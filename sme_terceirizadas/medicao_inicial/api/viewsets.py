@@ -189,10 +189,11 @@ class SolicitacaoMedicaoInicialViewSet(
         except ValidationError as lista_erros:
             list_response = []
             for indice, erro in enumerate(lista_erros):
+                param = "erro" if "Restam dias" in erro else "periodo_escolar"
                 if indice % 2 == 0:
-                    obj = {"erro": erro}
+                    obj = {param: erro}
                 else:
-                    obj["periodo_escolar"] = erro
+                    obj[param] = erro
                     list_response.append(obj)
             return Response(list_response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -551,7 +552,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 "valor_total": valor_total,
             }
             if escola.eh_cei or (
-                escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo
+                escola.eh_cemei
+                and ("Infantil" not in medicao.nome_periodo_grupo)
+                and ("Solicitações" not in medicao.nome_periodo_grupo)
             ):
                 dict_retorno["quantidade_alunos"] = sum(v["valor"] for v in valores)
             retorno.append(dict_retorno)

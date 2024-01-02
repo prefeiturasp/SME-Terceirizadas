@@ -19,6 +19,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     DocumentoDeRecebimento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
+    InformacoesNutricionaisFichaTecnica,
     Laboratorio,
     LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
@@ -28,7 +29,12 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoEmbalagemQld,
     UnidadeMedida,
 )
-from sme_terceirizadas.produto.models import Fabricante, Marca, NomeDeProdutoEdital
+from sme_terceirizadas.produto.models import (
+    Fabricante,
+    InformacaoNutricional,
+    Marca,
+    NomeDeProdutoEdital,
+)
 from sme_terceirizadas.terceirizada.models import Contrato, Terceirizada
 
 from ...models.cronograma import FichaTecnicaDoProduto
@@ -922,19 +928,39 @@ class DocumentoDeRecebimentoCorrecaoSerializer(serializers.ModelSerializer):
         fields = ("tipos_de_documentos",)
 
 
+class InformacoesNutricionaisFichaTecnicaCreateSerializer(serializers.ModelSerializer):
+    informacao_nutricional = serializers.UUIDField()
+
+    class Meta:
+        model = InformacoesNutricionaisFichaTecnica
+        fields = (
+            "informacao_nutricional",
+            "quantidade_por_100g",
+            "quantidade_porcao",
+            "valor_diario",
+        )
+
+
 class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     produto = serializers.SlugRelatedField(
-        slug_field="uuid", required=True, queryset=NomeDeProdutoEdital.objects.all()
+        slug_field="uuid",
+        required=True,
+        queryset=NomeDeProdutoEdital.objects.all(),
     )
     marca = serializers.SlugRelatedField(
-        slug_field="uuid", required=True, queryset=Marca.objects.all()
+        slug_field="uuid",
+        required=True,
+        queryset=Marca.objects.all(),
     )
     categoria = serializers.ChoiceField(
-        choices=FichaTecnicaDoProduto.CATEGORIA_CHOICES, required=True
+        choices=FichaTecnicaDoProduto.CATEGORIA_CHOICES,
+        required=True,
     )
     pregao_chamada_publica = serializers.CharField(required=True)
     empresa = serializers.SlugRelatedField(
-        slug_field="uuid", required=True, queryset=Terceirizada.objects.all()
+        slug_field="uuid",
+        required=True,
+        queryset=Terceirizada.objects.all(),
     )
     fabricante = serializers.SlugRelatedField(
         slug_field="uuid",
@@ -967,6 +993,62 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     gluten = serializers.BooleanField(required=False)
     lactose = serializers.BooleanField(required=False)
     lactose_detalhe = serializers.CharField(required=True, allow_blank=True)
+    porcao = serializers.CharField(required=True, allow_blank=True)
+    unidade_medida_porcao = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True,
+    )
+    valor_unidade_caseira = serializers.CharField(required=True, allow_blank=True)
+    unidade_medida_caseira = serializers.CharField(required=True, allow_blank=True)
+    informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaCreateSerializer(
+        many=True
+    )
+
+    def create(self, validated_data):
+        dados_informacoes_nutricionais = validated_data.pop(
+            "informacoes_nutricionais", []
+        )
+
+        instance = FichaTecnicaDoProduto.objects.create(**validated_data)
+
+        for dados in dados_informacoes_nutricionais:
+            informacao_nutricional = InformacaoNutricional.objects.filter(
+                uuid=str(dados["informacao_nutricional"])
+            ).first()
+
+            InformacoesNutricionaisFichaTecnica.objects.create(
+                ficha_tecnica=instance,
+                informacao_nutricional=informacao_nutricional,
+                quantidade_por_100g=dados["quantidade_por_100g"],
+                quantidade_porcao=dados["quantidade_porcao"],
+                valor_diario=dados["valor_diario"],
+            )
+
+        return instance
+
+    def update(self, instance, validated_data):
+        dados_informacoes_nutricionais = validated_data.pop(
+            "informacoes_nutricionais", []
+        )
+
+        instance.informacoes_nutricionais.all().delete()
+
+        for dados in dados_informacoes_nutricionais:
+            informacao_nutricional = InformacaoNutricional.objects.filter(
+                uuid=str(dados["informacao_nutricional"])
+            ).first()
+
+            InformacoesNutricionaisFichaTecnica.objects.create(
+                ficha_tecnica=instance,
+                informacao_nutricional=informacao_nutricional,
+                quantidade_por_100g=dados["quantidade_por_100g"],
+                quantidade_porcao=dados["quantidade_porcao"],
+                valor_diario=dados["valor_diario"],
+            )
+
+        return update_instance_from_dict(instance, validated_data, True)
 
     class Meta:
         model = FichaTecnicaDoProduto

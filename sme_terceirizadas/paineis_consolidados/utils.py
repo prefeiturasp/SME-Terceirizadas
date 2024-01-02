@@ -194,3 +194,17 @@ def tratar_inclusao_continua(mes, ano, periodo, inclusao, return_dict):
     criar_dict_dias_inclusoes_continuas(
         i, data_evento_final_no_mes, periodo, ano, mes, inclusao, return_dict
     )
+
+
+def get_numero_alunos_alteracao_alimentacao(alteracao):
+    if alteracao.DESCRICAO == "Alteração do Tipo de Alimentação CEMEI":
+        numero_alunos = sum(
+            alteracao.substituicoes_cemei_emei_periodo_escolar.values_list(
+                "qtd_alunos", flat=True
+            )
+        )
+    else:
+        numero_alunos = sum(
+            alteracao.substituicoes_periodo_escolar.values_list("qtd_alunos", flat=True)
+        )
+    return numero_alunos

@@ -121,6 +121,7 @@ class TipoDeInformacaoNutricionalSerializer(serializers.ModelSerializer):
 
 class InformacaoNutricionalSerializer(serializers.ModelSerializer):
     tipo_nutricional = TipoDeInformacaoNutricionalSerializer()
+    eh_dependente = serializers.BooleanField()
 
     class Meta:
         model = InformacaoNutricional
