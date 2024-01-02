@@ -170,7 +170,7 @@ class VinculoTipoAlimentacaoViewSet(
             .distinct()
         )
 
-        periodos_escolares_uuids = escola.periodos_escolares.values_list(
+        periodos_escolares_uuids = escola.periodos_escolares().values_list(
             "uuid", flat=True
         )
 
@@ -210,9 +210,10 @@ class VinculoTipoAlimentacaoViewSet(
     @action(detail=False, url_path="escola/(?P<escola_uuid>[^/.]+)")
     def filtro_por_escola(self, request, escola_uuid=None):
         escola = Escola.objects.get(uuid=escola_uuid)
+        ano = request.query_params.get("ano", datetime.date.today().year)
         vinculos = (
             VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-                periodo_escolar__in=escola.periodos_escolares, ativo=True
+                periodo_escolar__in=escola.periodos_escolares(ano), ativo=True
             ).order_by("periodo_escolar__posicao")
         )
         if escola.eh_cemei:
