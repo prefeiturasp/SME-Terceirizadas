@@ -1,8 +1,10 @@
 import datetime
 import logging
+from io import BytesIO
 
 from celery import shared_task
 from dateutil.relativedelta import relativedelta
+from PyPDF4 import PdfFileMerger
 
 from ..dados_comuns.utils import (
     atualiza_central_download,
@@ -10,6 +12,11 @@ from ..dados_comuns.utils import (
     gera_objeto_na_central_download,
 )
 from ..escola.models import AlunoPeriodoParcial, Escola
+from ..relatorios.relatorios import (
+    relatorio_consolidado_medicoes_iniciais_emef,
+    relatorio_solicitacao_medicao_por_escola,
+    relatorio_solicitacao_medicao_por_escola_cei,
+)
 from .models import Responsavel, SolicitacaoMedicaoInicial
 
 logger = logging.getLogger(__name__)
@@ -113,12 +120,6 @@ def copiar_alunos_periodo_parcial(solicitacao_origem, solicitacao_destino):
 def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(
     user, nome_arquivo, uuid_sol_medicao
 ):
-    from ..medicao_inicial.models import SolicitacaoMedicaoInicial
-    from ..relatorios.relatorios import (
-        relatorio_solicitacao_medicao_por_escola,
-        relatorio_solicitacao_medicao_por_escola_cei,
-    )
-
     solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid_sol_medicao)
     logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
     obj_central_download = gera_objeto_na_central_download(
@@ -132,5 +133,67 @@ def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
+
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+    time_limit=3000,
+    soft_time_limit=3000,
+)
+def gera_pdf_relatorio_unificado_async(user, nome_arquivo, ids_solicitacoes):
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
+    obj_central_download = gera_objeto_na_central_download(
+        user=user, identificador=nome_arquivo
+    )
+    try:
+        merger_somatorio = PdfFileMerger(strict=False)
+        merger_lancamentos = PdfFileMerger(strict=False)
+        merger_arquivo_final = PdfFileMerger(strict=False)
+        for id_solicitacao in ids_solicitacoes:
+            try:
+                solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=id_solicitacao)
+                arquivo_somatorio = relatorio_consolidado_medicoes_iniciais_emef(
+                    solicitacao
+                )
+                arquivo_lancamentos = relatorio_solicitacao_medicao_por_escola(
+                    solicitacao
+                )
+                arquivo_somatorio_io = BytesIO(arquivo_somatorio)
+                merger_somatorio.append(arquivo_somatorio_io)
+                arquivo_lancamentos_io = BytesIO(arquivo_lancamentos)
+                merger_lancamentos.append(arquivo_lancamentos_io)
+            except Exception as e:
+                atualiza_central_download_com_erro(obj_central_download, str(e))
+                logger.error(
+                    f"Erro ao mesclar arquivo para a solicitação {id_solicitacao}: {e}"
+                )
+
+        output_somatorio = BytesIO()
+        merger_somatorio.write(output_somatorio)
+        output_somatorio.seek(0)
+        merger_arquivo_final.append(output_somatorio)
+
+        output_lancamentos = BytesIO()
+        merger_lancamentos.write(output_lancamentos)
+        output_lancamentos.seek(0)
+        merger_arquivo_final.append(output_lancamentos)
+
+        output_final = BytesIO()
+        merger_arquivo_final.write(output_final)
+        output_final.seek(0)
+
+        merger_somatorio.close()
+        merger_lancamentos.close()
+        merger_arquivo_final.close()
+
+        arquivo_bytes = output_final.getvalue()
+        atualiza_central_download(obj_central_download, nome_arquivo, arquivo_bytes)
+
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+        logger.error(f"Erro ao gerar relatório unificado: {e}")
 
     logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
