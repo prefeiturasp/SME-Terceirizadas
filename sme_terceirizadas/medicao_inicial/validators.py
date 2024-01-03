@@ -339,6 +339,50 @@ def build_nomes_campos_dietas_emef(escola, categoria):
     return nomes_campos
 
 
+def build_nomes_campos_inclusoes_dietas_emef(escola, categoria, inclusoes, medicao):
+    tipos_alimentacao = list(
+        VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+            tipo_unidade_escolar=escola.tipo_unidade,
+            periodo_escolar__nome__in=escola.periodos_escolares_com_alunos,
+        ).distinct()
+    )
+    nomes_campos = ["frequencia"]
+    if (
+        "Lanche" in tipos_alimentacao
+        and inclusoes.filter(
+            quantidades_por_periodo__periodo_escolar=medicao.periodo_escolar,
+            quantidades_por_periodo__tipos_alimentacao__nome="Lanche",
+        ).exists()
+    ):
+        nomes_campos.append("lanche")
+    if (
+        "Lanche 4h" in tipos_alimentacao
+        and inclusoes.filter(
+            quantidades_por_periodo__periodo_escolar=medicao.periodo_escolar,
+            quantidades_por_periodo__tipos_alimentacao__nome="Lanche 4h",
+        ).exists()
+    ):
+        nomes_campos.append("lanche_4h")
+    if (
+        "ENTERAL" in categoria.nome
+        and inclusoes.filter(
+            quantidades_por_periodo__periodo_escolar=medicao.periodo_escolar,
+            quantidades_por_periodo__tipos_alimentacao__nome="Refeição",
+        ).exists()
+    ):
+        nomes_campos.append("refeicao")
+    return nomes_campos
+
+
+def get_nomes_campos_emef_dietas(inclusoes, escola, categoria, medicao):
+    if inclusoes:
+        return build_nomes_campos_inclusoes_dietas_emef(
+            escola, categoria, inclusoes, medicao
+        )
+    else:
+        return build_nomes_campos_dietas_emef(escola, categoria)
+
+
 def validate_lancamento_alimentacoes_medicao_emef_dietas(
     lista_erros,
     medicao,
@@ -351,6 +395,7 @@ def validate_lancamento_alimentacoes_medicao_emef_dietas(
     periodo_com_erro,
     valores_medicao_,
     escola,
+    inclusoes=None,
 ):
     DATA_INDEX = 0
     PERIODO_ESCOLAR_ID_INDEX = 1
@@ -361,7 +406,8 @@ def validate_lancamento_alimentacoes_medicao_emef_dietas(
     CATEGORIA_MEDICAO_ID_INDEX = 1
     DIA_ID = 2
 
-    for nome_campo in build_nomes_campos_dietas_emef(escola, categoria):
+    nomes_campos = get_nomes_campos_emef_dietas(inclusoes, escola, categoria, medicao)
+    for nome_campo in nomes_campos:
         if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
             continue
         quantidade = 0
@@ -649,6 +695,15 @@ def get_inclusoes_filtradas_cei(inclusoes, dia, mes, ano, medicao):
     return inclusoes_
 
 
+def get_inclusoes_filtradas_emef(inclusoes, dia, mes, ano, medicao):
+    inclusoes_ = inclusoes.filter(
+        inclusoes_normais__data=datetime.date(int(ano), int(mes), int(dia)),
+        inclusoes_normais__cancelado=False,
+        quantidades_por_periodo__periodo_escolar=medicao.periodo_escolar,
+    )
+    return inclusoes_
+
+
 def get_lista_erros_inclusoes_cei(
     dias_nao_letivos,
     solicitacao,
@@ -704,6 +759,69 @@ def get_lista_erros_inclusoes_cei(
                     {
                         "periodo_escolar": medicao.periodo_escolar.nome,
                         "erro": "Restam dias a serem lançados nas alimentações.",
+                    }
+                )
+    return lista_erros
+
+
+def get_lista_erros_inclusoes_dietas_emef(
+    dias_nao_letivos,
+    solicitacao,
+    lista_erros,
+    inclusoes,
+    mes,
+    ano,
+    categoria,
+    classificacao,
+    logs,
+):
+    logs_ = list(
+        set(
+            logs.values_list(
+                "data",
+                "periodo_escolar_id",
+                "quantidade",
+                "classificacao_id",
+            ).distinct()
+        )
+    )
+    classificacoes = get_classificacoes_dietas(categoria)
+    for dia in dias_nao_letivos:
+        for medicao in solicitacao.medicoes.filter(periodo_escolar__isnull=False):
+            valores_medicao_ = list(
+                set(
+                    medicao.valores_medicao.values_list(
+                        "nome_campo",
+                        "categoria_medicao_id",
+                        "dia",
+                    )
+                )
+            )
+            periodo_com_erro = False
+            if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+                continue
+            inclusoes_ = get_inclusoes_filtradas_emef(inclusoes, dia, mes, ano, medicao)
+            if not inclusoes_.exists():
+                continue
+            periodo_com_erro = validate_lancamento_alimentacoes_medicao_emef_dietas(
+                lista_erros,
+                medicao,
+                logs_,
+                ano,
+                mes,
+                dia,
+                categoria,
+                classificacoes,
+                periodo_com_erro,
+                valores_medicao_,
+                solicitacao.escola,
+                inclusoes_,
+            )
+            if periodo_com_erro:
+                lista_erros.append(
+                    {
+                        "periodo_escolar": medicao.periodo_escolar.nome,
+                        "erro": "Restam dias a serem lançados nas dietas.",
                     }
                 )
     return lista_erros
@@ -814,6 +932,43 @@ def validate_lancamento_inclusoes_cei(solicitacao, lista_erros):
         logs,
     )
 
+    return lista_erros
+
+
+def validate_lancamento_inclusoes_dietas_emef(solicitacao, lista_erros):
+    escola = solicitacao.escola
+    mes = solicitacao.mes
+    ano = solicitacao.ano
+
+    inclusoes = escola.grupos_inclusoes_normais.filter(
+        inclusoes_normais__data__month=mes,
+        inclusoes_normais__data__year=ano,
+        inclusoes_normais__cancelado=False,
+        status="CODAE_AUTORIZADO",
+    )
+    if not inclusoes.exists():
+        return lista_erros
+
+    logs = escola.logs_dietas_autorizadas.filter(data__month=mes, data__year=ano)
+    dias_nao_letivos = list(
+        DiaCalendario.objects.filter(
+            escola=escola, data__month=mes, data__year=ano, dia_letivo=False
+        ).values_list("data__day", flat=True)
+    )
+    categorias = CategoriaMedicao.objects.exclude(nome__icontains="ALIMENTAÇÃO")
+    for categoria in categorias:
+        classificacao = get_classificacoes_dietas(categoria)
+        lista_erros = get_lista_erros_inclusoes_dietas_emef(
+            dias_nao_letivos,
+            solicitacao,
+            lista_erros,
+            inclusoes,
+            mes,
+            ano,
+            categoria,
+            classificacao,
+            logs,
+        )
     return lista_erros
 
 
