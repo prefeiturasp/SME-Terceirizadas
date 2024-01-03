@@ -793,10 +793,13 @@ def get_campos_por_periodo(periodo_da_escola, dieta_especial):
 
 
 def comparar_dias_com_valores_medicao(
+    nome_campo,
     valores_da_medicao,
     dias,
     quantidade_dias_sem_log,
 ):
+    if nome_campo == "dietas_autorizadas":
+        quantidade_dias_sem_log = 0
     return len(valores_da_medicao) != (len(dias) - quantidade_dias_sem_log)
 
 
@@ -974,6 +977,7 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
                             dias_letivos,
                         )
                         campo_esta_vazio = comparar_dias_com_valores_medicao(
+                            nome_campo,
                             valores_da_medicao,
                             dias_letivos,
                             quantidade_dias_letivos_sem_log,
@@ -991,6 +995,7 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
                             dias_nao_letivos_e_com_inclusao,
                         )
                         campo_esta_vazio = comparar_dias_com_valores_medicao(
+                            nome_campo,
                             valores_da_medicao,
                             dias_nao_letivos_e_com_inclusao,
                             quantidade_dias_nao_letivos_e_com_inclusao_sem_log,
