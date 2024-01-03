@@ -155,10 +155,13 @@ def get_lista_dias_nao_letivos_e_com_inclusao(
             ):
                 inclusoes_continuas_dias.append(data.day)
 
-    return [
-        str(dia).rjust(2, "0")
-        for dia in list(set(inclusoes_normais_dias + inclusoes_continuas_dias))
-    ]
+    # TODO: descomentar apos ajustar a liberacao do preenchimento no frontend
+    # return [
+    #     str(dia).rjust(2, "0")
+    #     for dia in list(set(inclusoes_normais_dias + inclusoes_continuas_dias))
+    # ]
+
+    return [str(dia).rjust(2, "0") for dia in list(set(inclusoes_normais_dias))]
 
 
 def erros_unicos(lista_erros):
@@ -793,10 +796,13 @@ def get_campos_por_periodo(periodo_da_escola, dieta_especial):
 
 
 def comparar_dias_com_valores_medicao(
+    nome_campo,
     valores_da_medicao,
     dias,
     quantidade_dias_sem_log,
 ):
+    if nome_campo == "dietas_autorizadas":
+        quantidade_dias_sem_log = 0
     return len(valores_da_medicao) != (len(dias) - quantidade_dias_sem_log)
 
 
@@ -853,29 +859,39 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
     def deve_validar_campo_dia_nao_letivo(
         log, inclusoes_normais_dias_nao_letivos, inclusoes_continuas_dias_nao_letivos
     ):
-        _inclusoes_continuas_dias_nao_letivos = (
-            inclusoes_continuas_dias_nao_letivos.filter(
-                data_inicial__lte=log.data, data_final__gte=log.data
-            )
-        )
+        # _inclusoes_continuas_dias_nao_letivos = (
+        #     inclusoes_continuas_dias_nao_letivos.filter(
+        #         data_inicial__lte=log.data, data_final__gte=log.data
+        #     )
+        # )
         _inclusoes_normais_dias_nao_letivos = inclusoes_normais_dias_nao_letivos.filter(
             inclusoes_normais__data=log.data,
         )
-        tipos_alimentacao = get_tipos_alimentacao(
-            _inclusoes_normais_dias_nao_letivos
-        ) + get_tipos_alimentacao(_inclusoes_continuas_dias_nao_letivos)
+
+        # TODO: descomentar apos ajustar a liberacao do preenchimento no frontend
+        # tipos_alimentacao = get_tipos_alimentacao(
+        #     _inclusoes_normais_dias_nao_letivos
+        # ) + get_tipos_alimentacao(_inclusoes_continuas_dias_nao_letivos)
+
+        tipos_alimentacao = get_tipos_alimentacao(_inclusoes_normais_dias_nao_letivos)
+
+        inclusao_somente_sobremesa = eh_inclusao_somente_sobremesa(tipos_alimentacao)
+        inclusao_somente_refeicao = eh_inclusao_somente_refeicao(tipos_alimentacao)
+        inclusao_somente_lanche_lanche4h = eh_inclusao_somente_lanche_lanche4h(
+            tipos_alimentacao
+        )
+
         return tipos_alimentacao and (
-            (
-                eh_inclusao_somente_sobremesa(tipos_alimentacao)
-                and nome_campo == "sobremesa"
-            )
+            (inclusao_somente_sobremesa and nome_campo == "sobremesa")
+            or (inclusao_somente_refeicao and nome_campo == "refeicao")
             or (
-                eh_inclusao_somente_refeicao(tipos_alimentacao)
-                and nome_campo == "refeicao"
-            )
-            or (
-                eh_inclusao_somente_lanche_lanche4h(tipos_alimentacao)
+                inclusao_somente_lanche_lanche4h
                 and nome_campo in ["lanche", "lanche_4h"]
+            )
+            or not (
+                inclusao_somente_sobremesa
+                or inclusao_somente_refeicao
+                or inclusao_somente_lanche_lanche4h
             )
         )
 
@@ -967,6 +983,7 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
                             dias_letivos,
                         )
                         campo_esta_vazio = comparar_dias_com_valores_medicao(
+                            nome_campo,
                             valores_da_medicao,
                             dias_letivos,
                             quantidade_dias_letivos_sem_log,
@@ -984,6 +1001,7 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
                             dias_nao_letivos_e_com_inclusao,
                         )
                         campo_esta_vazio = comparar_dias_com_valores_medicao(
+                            nome_campo,
                             valores_da_medicao,
                             dias_nao_letivos_e_com_inclusao,
                             quantidade_dias_nao_letivos_e_com_inclusao_sem_log,
