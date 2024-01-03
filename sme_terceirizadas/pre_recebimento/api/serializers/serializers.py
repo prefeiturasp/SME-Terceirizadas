@@ -692,6 +692,10 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     unidade_medida_porcao = NomeEAbreviacaoUnidadeMedidaSerializer()
     status = serializers.CharField(source="get_status_display")
     informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaSerializer(many=True)
+    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_primaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_secundaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")
