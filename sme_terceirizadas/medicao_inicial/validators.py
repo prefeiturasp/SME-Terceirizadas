@@ -155,10 +155,13 @@ def get_lista_dias_nao_letivos_e_com_inclusao(
             ):
                 inclusoes_continuas_dias.append(data.day)
 
-    return [
-        str(dia).rjust(2, "0")
-        for dia in list(set(inclusoes_normais_dias + inclusoes_continuas_dias))
-    ]
+    # TODO: descomentar apos ajustar a liberacao do preenchimento no frontend
+    # return [
+    #     str(dia).rjust(2, "0")
+    #     for dia in list(set(inclusoes_normais_dias + inclusoes_continuas_dias))
+    # ]
+
+    return [str(dia).rjust(2, "0") for dia in list(set(inclusoes_normais_dias))]
 
 
 def erros_unicos(lista_erros):
@@ -856,18 +859,21 @@ def validate_lancamento_dietas(solicitacao, lista_erros):  # noqa: C901
     def deve_validar_campo_dia_nao_letivo(
         log, inclusoes_normais_dias_nao_letivos, inclusoes_continuas_dias_nao_letivos
     ):
-        _inclusoes_continuas_dias_nao_letivos = (
-            inclusoes_continuas_dias_nao_letivos.filter(
-                data_inicial__lte=log.data, data_final__gte=log.data
-            )
-        )
+        # _inclusoes_continuas_dias_nao_letivos = (
+        #     inclusoes_continuas_dias_nao_letivos.filter(
+        #         data_inicial__lte=log.data, data_final__gte=log.data
+        #     )
+        # )
         _inclusoes_normais_dias_nao_letivos = inclusoes_normais_dias_nao_letivos.filter(
             inclusoes_normais__data=log.data,
         )
 
-        tipos_alimentacao = get_tipos_alimentacao(
-            _inclusoes_normais_dias_nao_letivos
-        ) + get_tipos_alimentacao(_inclusoes_continuas_dias_nao_letivos)
+        # TODO: descomentar apos ajustar a liberacao do preenchimento no frontend
+        # tipos_alimentacao = get_tipos_alimentacao(
+        #     _inclusoes_normais_dias_nao_letivos
+        # ) + get_tipos_alimentacao(_inclusoes_continuas_dias_nao_letivos)
+
+        tipos_alimentacao = get_tipos_alimentacao(_inclusoes_normais_dias_nao_letivos)
 
         inclusao_somente_sobremesa = eh_inclusao_somente_sobremesa(tipos_alimentacao)
         inclusao_somente_refeicao = eh_inclusao_somente_refeicao(tipos_alimentacao)
