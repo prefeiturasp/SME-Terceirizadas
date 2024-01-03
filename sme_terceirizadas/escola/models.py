@@ -617,8 +617,7 @@ class Escola(
             ]
         return []
 
-    @property
-    def periodos_escolares(self):
+    def periodos_escolares(self, ano=datetime.date.today().year):
         """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
         if self.tipo_unidade.tem_somente_integral_e_parcial:
             periodos = PeriodoEscolar.objects.filter(
@@ -634,8 +633,8 @@ class Escola(
             )
         else:
             # TODO: ver uma forma melhor de fazer essa query
-            periodos_ids = self.alunos_matriculados_por_periodo.filter(
-                tipo_turma="REGULAR", quantidade_alunos__gte=1
+            periodos_ids = self.logs_alunos_matriculados_por_periodo.filter(
+                tipo_turma="REGULAR", quantidade_alunos__gte=1, criado_em__year=ano
             ).values_list("periodo_escolar", flat=True)
             periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids)
         return periodos
@@ -795,7 +794,7 @@ class Escola(
         return f"{self.codigo_eol}: {self.nome}"
 
     def matriculados_por_periodo_e_faixa_etaria(self):
-        periodos = self.periodos_escolares.values_list("nome", flat=True)
+        periodos = self.periodos_escolares().values_list("nome", flat=True)
         matriculados_por_faixa = {}
         if self.eh_cei or self.eh_cemei:
             for periodo in periodos:
