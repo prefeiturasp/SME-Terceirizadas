@@ -692,6 +692,10 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     unidade_medida_porcao = NomeEAbreviacaoUnidadeMedidaSerializer()
     status = serializers.CharField(source="get_status_display")
     informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaSerializer(many=True)
+    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_primaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_secundaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")
@@ -735,4 +739,30 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "valor_unidade_caseira",
             "unidade_medida_caseira",
             "informacoes_nutricionais",
+            "prazo_validade_descongelamento",
+            "condicoes_de_conservacao",
+            "temperatura_congelamento",
+            "temperatura_veiculo",
+            "condicoes_de_transporte",
+            "embalagem_primaria",
+            "embalagem_secundaria",
+            "embalagens_de_acordo_com_anexo",
+            "material_embalagem_primaria",
+            "peso_liquido_embalagem_primaria",
+            "unidade_medida_primaria",
+            "peso_liquido_embalagem_secundaria",
+            "unidade_medida_secundaria",
+            "peso_embalagem_primaria_vazia",
+            "unidade_medida_primaria_vazia",
+            "peso_embalagem_secundaria_vazia",
+            "unidade_medida_secundaria_vazia",
+            "variacao_percentual",
+            "sistema_vedacao_embalagem_secundaria",
+            "rotulo_legivel",
+            "nome_responsavel_tecnico",
+            "habilitacao",
+            "numero_registro_orgao",
+            "arquivo",
+            "modo_de_preparo",
+            "informacoes_adicionais",
         )
