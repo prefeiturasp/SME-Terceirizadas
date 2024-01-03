@@ -745,6 +745,100 @@ class FichaTecnicaDoProduto(
         max_length=100,
         blank=True,
     )
+    prazo_validade_descongelamento = models.CharField(
+        "Prazo de Validade Descongelamento",
+        help_text="Prazo de Validade após o descongelamento e mantido sob refrigeração",
+        max_length=50,
+        blank=True,
+    )
+    condicoes_de_conservacao = models.TextField(
+        "Condições de conservação",
+        help_text="Condições de conservação e Prazo máximo para consumo após a abertura da embalagem primária",
+        blank=True,
+    )
+    temperatura_congelamento = models.CharField(
+        "Temperatura de Congelamento do Produto", max_length=10, blank=True
+    )
+    temperatura_veiculo = models.CharField(
+        "Temperatura Interna do Veículo para Transporte", max_length=10, blank=True
+    )
+    condicoes_de_transporte = models.TextField("Condições de Transporte", blank=True)
+    embalagem_primaria = models.TextField("Embalagem Primária", blank=True)
+    embalagem_secundaria = models.TextField("Embalagem Secundária", blank=True)
+    embalagens_de_acordo_com_anexo = models.BooleanField(
+        "Embalagens de Acordo com Anexo?",
+        help_text="Declaro que as embalagens primária e secundária em que serão entregues o produto estarão de acordo "
+        "com as especificações do Anexo I do Edital",
+        null=True,
+    )
+    material_embalagem_primaria = models.TextField(
+        "Material da Embalagem Primária", blank=True
+    )
+    peso_liquido_embalagem_primaria = models.FloatField(
+        blank=True, null=True, help_text="Peso Líquido do Produto na Embalagem Primária"
+    )
+    unidade_medida_primaria = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas_unidade_primaria",
+    )
+    peso_liquido_embalagem_secundaria = models.FloatField(
+        blank=True,
+        null=True,
+        help_text="Peso Líquido do Produto na Embalagem Secundária",
+    )
+    unidade_medida_secundaria = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas_unidade_secundaria",
+    )
+    peso_embalagem_primaria_vazia = models.FloatField(blank=True, null=True)
+    unidade_medida_primaria_vazia = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas_primaria_vazia",
+    )
+    peso_embalagem_secundaria_vazia = models.FloatField(blank=True, null=True)
+    unidade_medida_secundaria_vazia = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas_secundaria_vazia",
+    )
+    variacao_percentual = models.FloatField(blank=True, null=True)
+    sistema_vedacao_embalagem_secundaria = models.TextField(
+        "Sistema de Vedação da Embalagem Secundária", blank=True
+    )
+    rotulo_legivel = models.BooleanField(
+        "Rotulo Legível?",
+        help_text="Declaro que no rótulo da embalagem primária e, se for o caso, da secundária, constarão, de forma "
+        "legível e indelével, todas as informações solicitadas do Anexo I do Edital",
+        null=True,
+    )
+    nome_responsavel_tecnico = models.CharField(
+        "Nome completo do Responsável Técnico", max_length=100, blank=True
+    )
+    habilitacao = models.CharField("Habilitação", max_length=100, blank=True)
+    numero_registro_orgao = models.CharField(
+        "Nº do Registro em Órgão Competente", max_length=50, blank=True
+    )
+    arquivo = models.FileField(
+        upload_to="fichas_tecnicas",
+        validators=[
+            FileExtensionValidator(allowed_extensions=["PDF"]),
+            validate_file_size_10mb,
+        ],
+        null=True,
+    )
+    modo_de_preparo = models.TextField("Modo de Preparo do Produto", blank=True)
+    informacoes_adicionais = models.TextField("Informações Adicionais", blank=True)
 
     def __str__(self):
         return self.produto.nome

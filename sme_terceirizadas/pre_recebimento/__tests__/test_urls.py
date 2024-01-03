@@ -2683,6 +2683,7 @@ def test_rascunho_ficha_tecnica_create_update(
     empresa_factory,
     marca_factory,
     fabricante_factory,
+    arquivo_pdf_base64,
 ):
     payload = {
         "produto": str(produto_logistica_factory().uuid),
@@ -2712,6 +2713,30 @@ def test_rascunho_ficha_tecnica_create_update(
         "valor_unidade_caseira": "",
         "unidade_medida_caseira": "",
         "informacoes_nutricionais": [],
+        "prazo_validade_descongelamento": "",
+        "condicoes_de_conservacao": "",
+        "temperatura_congelamento": "",
+        "temperatura_veiculo": "",
+        "condicoes_de_transporte": "",
+        "embalagem_primaria": "",
+        "embalagem_secundaria": "",
+        "material_embalagem_primaria": "",
+        "peso_liquido_embalagem_primaria": None,
+        "unidade_medida_primaria": "",
+        "peso_liquido_embalagem_secundaria": None,
+        "unidade_medida_secundaria": "",
+        "peso_embalagem_primaria_vazia": None,
+        "unidade_medida_primaria_vazia": "",
+        "peso_embalagem_secundaria_vazia": None,
+        "unidade_medida_secundaria_vazia": "",
+        "variacao_percentual": None,
+        "sistema_vedacao_embalagem_secundaria": "",
+        "nome_responsavel_tecnico": "",
+        "habilitacao": "",
+        "numero_registro_orgao": "",
+        "arquivo": "",
+        "modo_de_preparo": "",
+        "informacoes_adicionais": "",
     }
 
     response_create = client_autenticado_fornecedor.post(
@@ -2728,6 +2753,7 @@ def test_rascunho_ficha_tecnica_create_update(
     )
 
     payload["pregao_chamada_publica"] = "0987654321"
+    payload["arquivo"] = arquivo_pdf_base64
     response_update = client_autenticado_fornecedor.put(
         f'/rascunho-ficha-tecnica/{response_create.json()["uuid"]}/',
         content_type="application/json",
@@ -2737,6 +2763,7 @@ def test_rascunho_ficha_tecnica_create_update(
 
     assert response_update.status_code == status.HTTP_200_OK
     assert ficha.pregao_chamada_publica == "0987654321"
+    assert ficha.arquivo
 
 
 def test_ficha_tecnica_list_ok(
