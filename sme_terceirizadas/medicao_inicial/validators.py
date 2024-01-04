@@ -1,14 +1,7 @@
 import calendar
 import datetime
 
-from dateutil.relativedelta import relativedelta
-
 from sme_terceirizadas.dados_comuns.utils import get_ultimo_dia_mes
-from sme_terceirizadas.paineis_consolidados.utils import (
-    formata_resultado_inclusoes_etec_autorizadas,
-    tratar_data_evento_final_no_mes,
-    tratar_inclusao_continua,
-)
 
 from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 from ..dieta_especial.models import (
@@ -1187,42 +1180,6 @@ def validate_lanche_emergencial(solicitacao, lista_erros):
     return erros_unicos(lista_erros)
 
 
-def formatar_return_dict(query_set, mes, ano):
-    return_dict = []
-
-    def append(dia, inclusao):
-        resultado = formata_resultado_inclusoes_etec_autorizadas(
-            dia, mes, ano, inclusao
-        )
-        return_dict.append(resultado) if resultado else None
-
-    for sol_escola in query_set:
-        inclusao = sol_escola.get_raw_model.objects.get(uuid=sol_escola.uuid)
-        dia = sol_escola.data_evento.day
-        big_range = False
-        data_evento_final_no_mes = None
-        if sol_escola.data_evento.month != int(
-            mes
-        ) and sol_escola.data_evento_2.month != int(mes):
-            big_range = True
-            i = datetime.date(int(ano), int(mes), 1)
-            data_evento_final_no_mes = (i + relativedelta(day=31)).day
-            dia = datetime.date(int(ano), int(mes), 1).day
-        elif sol_escola.data_evento.month != int(mes):
-            big_range = True
-            data_evento_final_no_mes = sol_escola.data_evento_2.day
-            dia = datetime.date(int(ano), int(mes), 1).day
-        else:
-            data_evento_final_no_mes = sol_escola.data_evento_2.day
-        data_evento_final_no_mes = tratar_data_evento_final_no_mes(
-            data_evento_final_no_mes, sol_escola, big_range
-        )
-        while dia <= data_evento_final_no_mes:
-            append(dia, inclusao)
-            dia += 1
-    return return_dict
-
-
 def get_inclusoes_programas_projetos(solicitacao):
     primeiro_dia_mes = datetime.date(int(solicitacao.ano), int(solicitacao.mes), 1)
     ultimo_dia_mes = get_ultimo_dia_mes(primeiro_dia_mes)
@@ -1248,15 +1205,6 @@ def get_inclusoes_etec(solicitacao):
         motivo__nome="ETEC",
     ).distinct()
     return inclusoes
-
-
-def formatar_dicionario_inclusoes(inclusoes, mes, ano, return_dict):
-    for inclusao in inclusoes:
-        for periodo in inclusao.quantidades_periodo.all():
-            if not periodo.cancelado:
-                inc = SolicitacoesEscola.objects.filter(uuid=inclusao.uuid)
-                inc = remover_duplicados(inc)[0]
-                tratar_inclusao_continua(mes, ano, periodo, inc, return_dict)
 
 
 def build_nomes_campos_alimentacoes_programas_e_projetos(escola):
