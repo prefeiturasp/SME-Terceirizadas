@@ -718,6 +718,28 @@ def escola_com_logs_para_medicao(
     kit_lanche_1,
     kit_lanche_2,
 ):
+    grupo_inclusao_normal = mommy.make(
+        "GrupoInclusaoAlimentacaoNormal",
+        status="CODAE_AUTORIZADO",
+        rastro_escola=escola,
+        escola=escola,
+    )
+
+    mommy.make(
+        "InclusaoAlimentacaoNormal",
+        grupo_inclusao=grupo_inclusao_normal,
+        data=datetime.date(2023, 9, 3),
+    )
+
+    qp = mommy.make(
+        "QuantidadePorPeriodo",
+        grupo_inclusao_normal=grupo_inclusao_normal,
+        numero_alunos=100,
+        periodo_escolar=periodo_escolar_manha,
+    )
+    qp.tipos_alimentacao.add(tipo_alimentacao_refeicao)
+    qp.save()
+
     inclusao_continua_programas_projetos = mommy.make(
         "InclusaoAlimentacaoContinua",
         escola=escola,
@@ -892,7 +914,7 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         quantidade_alunos=10,
     )
 
-    mommy.make(
+    medicao_manha = mommy.make(
         "Medicao",
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_escolar_manha,
@@ -920,7 +942,6 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         solicitacao_medicao_inicial=solicitacao_medicao,
         grupo=grupo_solicitacoes_alimentacao,
     )
-
     for dia in range(1, 31):
         mommy.make(
             "DiaCalendario",
@@ -928,24 +949,46 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
             data=f"2023-09-{dia:02d}",
             dia_letivo=False,
         )
-        for nome_campo in [
-            "numero_de_alunos",
-            "frequencia",
-            "lanche",
-            "lanche_4h",
-            "refeicao",
-            "repeticao_refeicao",
-            "sobremesa",
-            "repeticao_sobremesa",
+
+    for medicao_ in [medicao_manha, medicao_programas_projetos]:
+        for dia in range(1, 31):
+            for nome_campo in [
+                "numero_de_alunos",
+                "frequencia",
+                "lanche",
+                "lanche_4h",
+                "refeicao",
+                "repeticao_refeicao",
+                "sobremesa",
+                "repeticao_sobremesa",
+            ]:
+                mommy.make(
+                    "ValorMedicao",
+                    medicao=medicao_,
+                    nome_campo=nome_campo,
+                    dia=f"{dia:02d}",
+                    categoria_medicao=categoria_medicao,
+                    valor="10",
+                )
+    for nome_campo in [
+        "frequencia",
+        "lanche",
+        "lanche_4h",
+        "refeicao",
+    ]:
+        for categoria_medicao in [
+            categoria_medicao_dieta_a,
+            categoria_medicao_dieta_a_enteral_aminoacidos,
         ]:
             mommy.make(
                 "ValorMedicao",
-                medicao=medicao_programas_projetos,
                 nome_campo=nome_campo,
-                dia=f"{dia:02d}",
+                medicao=medicao_manha,
+                dia="03",
                 categoria_medicao=categoria_medicao,
                 valor="10",
             )
+
     return solicitacao_medicao
 
 
