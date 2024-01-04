@@ -1,0 +1,194 @@
+{% load static %}
+{% load sass_tags %}
+
+<html>
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/relatorio_consolidado_medicao_inicial.scss' %}" type="text/css">
+</head>
+<body>
+  <div>
+    <header class="header" style="page-break-before: always;">
+      <div class="row p-0 mx-4">
+        <div class="col-2">
+          <img src="{% static 'images/LOGO_FUNDO_CLARO.png' %}" alt="">
+        </div>
+        <div class="col-8">
+          <h1 class="text-center">
+            SECRETARIA MUNICIPAL DE EDUCAÇÃO - SME | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR - CODAE
+          </h1>
+          <h1 class="text-center">
+            RELATÓRIO CONSOLIDADO DAS MEDIÇÕES INICIAIS DO SERVIÇO DE FORNECIMENTO DA ALIMENTAÇÃO ESCOLAR
+          </h1>
+        </div>
+        <div class="col-1"></div>
+        <div class="col-1">
+          <h1 class="text-right">Página</h1>
+          <h1 class="page-number text-right"></h1>
+        </div>
+      </div>
+      <div class="row p-0 mx-2">
+        <div class="col-12">
+          <table class="tabela-cabecalho">
+            <tr class="custom-filtros">
+              <td><b>REFERÊNCIA: </b>{{ solicitacao.mes }}/{{ solicitacao.ano }}</td>
+              <td><b>DRE: </b>{{ solicitacao.escola.diretoria_regional.nome }}</td>
+              <td><b>LOTE: </b>{{ solicitacao.rastro_lote.nome }}</td>
+              <td><b>TIPO DE UNIDADE: </b>{{ grupo_unidade_escolar }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </header>
+
+    <table class="tabela-valores mt-3 mb-3">
+      <thead>
+        <tr><th colspan="18">LANÇAMENTOS CONSOLIDADOS POR TIPO DE UNIDADE</th></tr>
+        <tr>
+          <th rowspan="2">TIPO</th>
+          <th rowspan="2">CÓD. EOL</th>
+          <th rowspan="2">UNIDADE ESCOLAR</th>
+          <th rowspan="2">LANCHE EMERG.</th>
+          <th rowspan="2">KIT LANCHE</th>
+          <th class="periodo-grupo cor-periodo-grupo-1" colspan="3">MANHÃ</th>
+          <th class="periodo-grupo cor-periodo-grupo-2" colspan="3">TARDE</th>
+          <th class="periodo-grupo cor-periodo-grupo-3" colspan="4">INTEGRAL</th>
+          <th class="periodo-grupo cor-periodo-grupo-4" colspan="3">NOTURNO - EJA</th>
+        </tr>
+        <tr>
+          <th>LANCHE 5H</th>
+          <th>REFEIÇÕES P/ PAGAMENTO</th>
+          <th>SOBREMESAS P/ PAGAMENTO</th>
+
+          <th>LANCHE 5H</th>
+          <th>REFEIÇÕES P/ PAGAMENTO</th>
+          <th>SOBREMESAS P/ PAGAMENTO</th>
+
+          <th>LANCHE 4H</th>
+          <th>LANCHE 5H</th>
+          <th>REFEIÇÕES P/ PAGAMENTO</th>
+          <th>SOBREMESAS P/ PAGAMENTO</th>
+
+          <th>LANCHE 5H</th>
+          <th>REFEIÇÕES P/ PAGAMENTO</th>
+          <th>SOBREMESAS P/ PAGAMENTO</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in primeira_tabela %}
+          <tr>
+            {% for valor in row %}
+              <td>{{ valor }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <footer class="footer">
+      <div></div>
+      <h1 class="page-number-footer"></h1>
+      <h1 class="text-right">Relatório extraído em: {{ data_atual }}</h1>
+    </footer>
+  </div>
+
+  <div>
+    <header class="header" style="page-break-before: always;">
+      <div class="row p-0 mx-4">
+        <div class="col-2">
+          <img src="{% static 'images/LOGO_FUNDO_CLARO.png' %}" alt="">
+        </div>
+        <div class="col-8">
+          <h1 class="text-center">
+            SECRETARIA MUNICIPAL DE EDUCAÇÃO - SME | COORDENADORIA DE ALIMENTAÇÃO ESCOLAR - CODAE
+          </h1>
+          <h1 class="text-center">
+            RELATÓRIO CONSOLIDADO DAS MEDIÇÕES INICIAIS DO SERVIÇO DE FORNECIMENTO DA ALIMENTAÇÃO ESCOLAR
+          </h1>
+        </div>
+        <div class="col-1"></div>
+        <div class="col-1">
+          <h1 class="text-right">Página</h1>
+          <h1 class="page-number text-right"></h1>
+        </div>
+      </div>
+      <div class="row p-0 mx-2">
+        <div class="col-12">
+          <table class="tabela-cabecalho">
+            <tr class="custom-filtros">
+              <td><b>REFERÊNCIA: </b>{{ solicitacao.mes }}/{{ solicitacao.ano }}</td>
+              <td><b>DRE: </b>{{ solicitacao.escola.diretoria_regional.nome }}</td>
+              <td><b>LOTE: </b>{{ solicitacao.rastro_lote.nome }}</td>
+              <td><b>TIPO DE UNIDADE: </b>{{ grupo_unidade_escolar }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </header>
+
+    <table class="tabela-valores mt-3">
+      <thead>
+        <tr><th colspan="15">CONTINUAÇÃO DA PÁGINA</th></tr>
+        <tr>
+          <th rowspan="2">TIPO</th>
+          <th rowspan="2">CÓD. EOL</th>
+          <th rowspan="2">UNIDADE ESCOLAR</th>
+          <th class="periodo-grupo cor-periodo-grupo-1" colspan="4">PROGRAMAS E PROJETOS</th>
+          <th class="periodo-grupo cor-periodo-grupo-2" colspan="3">ETEC</th>
+          <th class="periodo-grupo cor-periodo-grupo-3" colspan="3">DIETA TIPO A</th>
+          <th class="periodo-grupo cor-periodo-grupo-4" colspan="2">DIETA TIPO B</th>
+        </tr>
+        <tr>
+          <th>LANCHE 4H</th>
+          <th>LANCHE 5H</th>
+          <th>REFEIÇÕES P/ PAGAMENTO</th>
+          <th>SOBREMESAS P/ PAGAMENTO</th>
+
+          <th>LANCHE 4H</th>
+          <th>REFEIÇÕES P/ PAGAMENTO</th>
+          <th>SOBREMESAS P/ PAGAMENTO</th>
+
+          <th>LANCHE 4H</th>
+          <th>LANCHE 5H</th>
+          <th>REFEIÇÃO (D. ENTERAL)</th>
+
+          <th>LANCHE 4H</th>
+          <th>LANCHE 5H</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in segunda_tabela %}
+          <tr>
+            {% for valor in row %}
+              <td>{{ valor }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="row p-0 mx-4 mt-3">
+      <div class="col-6 mr-3 assinatura">
+        {% if assinatura %}
+          <div class="row p-0 mx-1">
+            <div class="col-2">
+              <img src="{% static 'images/logo-sigpae.png' %}" alt="">
+            </div>
+            <div class="col-10 texto">
+              <span>
+                {{ assinatura }}
+              </span>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div></div>
+      <h1 class="page-number-footer"></h1>
+      <h1 class="text-right">Relatório extraído em: {{ data_atual }}</h1>
+    </footer>
+  </div>
+</body>
+</html>

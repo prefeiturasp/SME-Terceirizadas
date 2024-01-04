@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 from calendar import monthrange
 from collections import defaultdict
 
@@ -26,9 +27,12 @@ from sme_terceirizadas.escola.models import (
 from sme_terceirizadas.escola.utils import string_to_faixa
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
+    SolicitacaoMedicaoInicial,
     ValorMedicao,
 )
 from sme_terceirizadas.paineis_consolidados.models import SolicitacoesEscola
+
+logger = logging.getLogger(__name__)
 
 
 def get_lista_categorias_campos(medicao):
@@ -2571,3 +2575,310 @@ def get_dict_alimentacoes_lancamentos_especiais(
                 {"nome": alimentacao.nome, "name": alimentacao.name, "uuid": None}
             )
     return dict_alimentacoes_lancamentos_especiais
+
+
+def build_tabela_relatorio_consolidado(ids_solicitacoes):
+    primeira_tabela = []
+    segunda_tabela = []
+
+    for id_solicitacao in ids_solicitacoes:
+        try:
+            solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=id_solicitacao)
+            row_primeira_tabela = build_row_solicitacao(solicitacao, 0)
+            row_segunda_tabela = build_row_solicitacao(solicitacao, 1)
+
+            primeira_tabela.append(row_primeira_tabela)
+            segunda_tabela.append(row_segunda_tabela)
+        except Exception as e:
+            logger.error(f"Erro ao gerar tabela somatorio: {e}")
+    return primeira_tabela, segunda_tabela
+
+
+def build_row_solicitacao(solicitacao, id_tabela):
+    eh_primeira_tabela = id_tabela == 0
+    tipo_unidade = solicitacao.escola.tipo_unidade
+    codigo_eol = solicitacao.escola.codigo_eol
+    escola = solicitacao.escola.nome
+
+    if eh_primeira_tabela:
+        lanche_emergencial = get_total_solicitacoes_periodo(
+            solicitacao, "lanche_emergencial"
+        )
+        kit_lanche = get_total_solicitacoes_periodo(solicitacao, "kit_lanche")
+
+        lanche_5h_manha = get_total_campo_periodo(solicitacao, "MANHA", "lanche")
+        lanche_5h_tarde = get_total_campo_periodo(solicitacao, "TARDE", "lanche")
+        lanche_4h_integral = get_total_campo_periodo(
+            solicitacao, "INTEGRAL", "lanche_4h"
+        )
+        lanche_5h_integral = get_total_campo_periodo(solicitacao, "INTEGRAL", "lanche")
+        lanche_5h_noite = get_total_campo_periodo(solicitacao, "NOITE", "lanche")
+
+        total_refeicao_manha = get_total_refeicoes_sobremesas_pagamento_por_periodo(
+            solicitacao, "MANHA", "refeicao"
+        )
+        total_sobremesa_manha = get_total_refeicoes_sobremesas_pagamento_por_periodo(
+            solicitacao, "MANHA", "sobremesa"
+        )
+        total_refeicao_tarde = get_total_refeicoes_sobremesas_pagamento_por_periodo(
+            solicitacao, "TARDE", "refeicao"
+        )
+        total_sobremesa_tarde = get_total_refeicoes_sobremesas_pagamento_por_periodo(
+            solicitacao, "TARDE", "sobremesa"
+        )
+        total_refeicao_integral = get_total_refeicoes_sobremesas_pagamento_por_periodo(
+            solicitacao, "INTEGRAL", "refeicao"
+        )
+        total_sobremesa_integral = get_total_refeicoes_sobremesas_pagamento_por_periodo(
+            solicitacao, "INTEGRAL", "sobremesa"
+        )
+        total_refeicao_noite = get_total_refeicoes_sobremesas_pagamento_por_periodo(
+            solicitacao, "NOITE", "refeicao"
+        )
+        total_sobremesa_noite = get_total_refeicoes_sobremesas_pagamento_por_periodo(
+            solicitacao, "NOITE", "sobremesa"
+        )
+
+        return [
+            tipo_unidade,
+            codigo_eol,
+            escola,
+            lanche_emergencial,
+            kit_lanche,
+            lanche_5h_manha,
+            total_refeicao_manha,
+            total_sobremesa_manha,
+            lanche_5h_tarde,
+            total_refeicao_tarde,
+            total_sobremesa_tarde,
+            lanche_4h_integral,
+            lanche_5h_integral,
+            total_refeicao_integral,
+            total_sobremesa_integral,
+            lanche_5h_noite,
+            total_refeicao_noite,
+            total_sobremesa_noite,
+        ]
+
+    else:
+        lanche_4h_programas_projetos = get_total_campo_grupo(
+            solicitacao, "Programas e Projetos", "lanche_4h"
+        )
+        lanche_5h_programas_projetos = get_total_campo_grupo(
+            solicitacao, "Programas e Projetos", "lanche"
+        )
+        total_refeicao_programas_e_projetos = (
+            get_total_refeicoes_sobremesas_pagamento_por_grupo(
+                solicitacao, "Programas e Projetos", "refeicao"
+            )
+        )
+        total_sobremesa_programas_e_projetos = (
+            get_total_refeicoes_sobremesas_pagamento_por_grupo(
+                solicitacao, "Programas e Projetos", "sobremesa"
+            )
+        )
+
+        lanche_4h_etec = get_total_campo_grupo(solicitacao, "ETEC", "lanche_4h")
+        total_refeicao_etec = get_total_refeicoes_sobremesas_pagamento_por_grupo(
+            solicitacao, "ETEC", "refeicao"
+        )
+        total_sobremesa_etec = get_total_refeicoes_sobremesas_pagamento_por_grupo(
+            solicitacao, "ETEC", "sobremesa"
+        )
+
+        total_dietas_tipo_A = get_total_dietas(
+            solicitacao,
+            [
+                "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
+                "Tipo A ENTERAL",
+            ],
+        )
+        total_dietas_tipo_B = get_total_dietas(solicitacao, ["TIPO B"])
+
+        return [
+            tipo_unidade,
+            codigo_eol,
+            escola,
+            lanche_4h_programas_projetos,
+            lanche_5h_programas_projetos,
+            total_refeicao_programas_e_projetos,
+            total_sobremesa_programas_e_projetos,
+            lanche_4h_etec,
+            total_refeicao_etec,
+            total_sobremesa_etec,
+            total_dietas_tipo_A,
+            total_dietas_tipo_A,
+            total_dietas_tipo_A,
+            total_dietas_tipo_B,
+            total_dietas_tipo_B,
+        ]
+
+
+def get_total_solicitacoes_periodo(solicitacao, nome_campo):
+    try:
+        medicao = solicitacao.medicoes.get(grupo__nome__icontains="Solicitações")
+
+        total = sum(
+            int(medicao.valor)
+            for medicao in medicao.valores_medicao.filter(nome_campo=nome_campo)
+            if medicao.valor != "-"
+        )
+    except Exception:
+        total = "-"
+    return total or "-"
+
+
+def get_total_campo_periodo(solicitacao, periodo, nome_campo):
+    try:
+        medicao = solicitacao.medicoes.get(periodo_escolar__nome=periodo, grupo=None)
+
+        if nome_campo == "lanche":
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=["lanche", "2_lanche_5h"],
+            )
+        elif nome_campo == "lanche_4h":
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=["lanche_4h", "2_lanche_4h"],
+            )
+        else:
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=nome_campo
+            )
+        total = sum(
+            int(valor_medicao.valor)
+            for valor_medicao in valores
+            if valor_medicao.valor != "-"
+        )
+    except Exception:
+        total = "-"
+    return total or "-"
+
+
+def get_total_refeicoes_sobremesas_pagamento_por_periodo(solicitacao, periodo, campo):
+    try:
+        dias_no_mes = range(
+            1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1
+        )
+        medicao = solicitacao.medicoes.get(periodo_escolar__nome=periodo, grupo=None)
+        total = 0
+
+        for dia in dias_no_mes:
+            if campo == "refeicao":
+                valor_sobremesa = get_valor_campo_dia(medicao, "refeicao", dia)
+                valor_repeticao_sobremesa = get_valor_campo_dia(
+                    medicao, "repeticao_refeicao", dia
+                )
+                total_alimentacao = valor_sobremesa + valor_repeticao_sobremesa
+            else:
+                valor_sobremesa = get_valor_campo_dia(medicao, "sobremesa", dia)
+                valor_repeticao_sobremesa = get_valor_campo_dia(
+                    medicao, "repeticao_sobremesa", dia
+                )
+                total_alimentacao = valor_sobremesa + valor_repeticao_sobremesa
+
+            valor_matriculados = get_valor_campo_dia(medicao, "matriculados", dia)
+            valor_numero_de_alunos = get_valor_campo_dia(
+                medicao, "numero_de_alunos", dia
+            )
+            valor_comparativo = (
+                valor_matriculados if valor_matriculados > 0 else valor_numero_de_alunos
+            )
+
+            total_alimentacao = min(total_alimentacao, valor_comparativo)
+            total += total_alimentacao
+    except Exception:
+        total = "-"
+    return total or "-"
+
+
+def get_valor_campo_dia(medicao, nome_campo, dia):
+    valor_medicao = medicao.valores_medicao.filter(
+        categoria_medicao__nome="ALIMENTAÇÃO",
+        nome_campo=nome_campo,
+        dia=f"{dia:02d}",
+    ).first()
+    valor = int(valor_medicao.valor) if valor_medicao else 0
+    return valor
+
+
+def get_total_campo_grupo(solicitacao, grupo, nome_campo):
+    try:
+        medicao = solicitacao.medicoes.get(grupo__nome=grupo)
+
+        if nome_campo == "lanche":
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=["lanche", "2_lanche_5h"],
+            )
+        elif nome_campo == "lanche_4h":
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=["lanche_4h", "2_lanche_4h"],
+            )
+        else:
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=nome_campo
+            )
+        total = sum(
+            int(valor_medicao.valor)
+            for valor_medicao in valores
+            if valor_medicao.valor != "-"
+        )
+    except Exception:
+        total = "-"
+    return total or "-"
+
+
+def get_total_refeicoes_sobremesas_pagamento_por_grupo(solicitacao, grupo, campo):
+    try:
+        dias_no_mes = range(
+            1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1
+        )
+        medicao = solicitacao.medicoes.get(grupo__nome=grupo)
+        total = 0
+
+        for dia in dias_no_mes:
+            if campo == "refeicao":
+                valor_sobremesa = get_valor_campo_dia(medicao, "refeicao", dia)
+                valor_repeticao_sobremesa = get_valor_campo_dia(
+                    medicao, "repeticao_refeicao", dia
+                )
+                total_alimentacao = valor_sobremesa + valor_repeticao_sobremesa
+            else:
+                valor_sobremesa = get_valor_campo_dia(medicao, "sobremesa", dia)
+                valor_repeticao_sobremesa = get_valor_campo_dia(
+                    medicao, "repeticao_sobremesa", dia
+                )
+                total_alimentacao = valor_sobremesa + valor_repeticao_sobremesa
+
+            valor_matriculados = get_valor_campo_dia(medicao, "matriculados", dia)
+            valor_numero_de_alunos = get_valor_campo_dia(
+                medicao, "numero_de_alunos", dia
+            )
+            valor_comparativo = (
+                valor_matriculados if valor_matriculados > 0 else valor_numero_de_alunos
+            )
+
+            total_alimentacao = min(total_alimentacao, valor_comparativo)
+            total += total_alimentacao
+    except Exception:
+        total = "-"
+    return total or "-"
+
+
+def get_total_dietas(solicitacao, classificacoes):
+    try:
+        logs_dietas = LogQuantidadeDietasAutorizadas.objects.filter(
+            escola=solicitacao.escola,
+            data__month=solicitacao.mes,
+            data__year=solicitacao.ano,
+            classificacao__nome__in=classificacoes,
+        )
+        quantidade = logs_dietas.aggregate(Sum("quantidade")).get("quantidade__sum")
+        total = quantidade or "-"
+
+    except LogQuantidadeDietasAutorizadas.DoesNotExist:
+        total = "-"
+    return total

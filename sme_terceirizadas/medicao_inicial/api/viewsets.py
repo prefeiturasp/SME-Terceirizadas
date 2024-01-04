@@ -452,6 +452,11 @@ class SolicitacaoMedicaoInicialViewSet(
             status=status_solicitacao,
             escola__diretoria_regional__uuid=uuid_dre,
         )
+        tipos_de_unidade_do_grupo = [
+            tipo_unidade.iniciais
+            for tipo_unidade in grupo_unidade_escolar.tipos_unidades.all()
+        ]
+        tipos_de_unidade_do_grupo_str = ", ".join(tipos_de_unidade_do_grupo)
 
         if len(query_set):
             solicitacoes = []
@@ -464,7 +469,10 @@ class SolicitacaoMedicaoInicialViewSet(
             if len(solicitacoes):
                 nome_arquivo = f"Relatório Consolidado das Medições Inicias - {diretoria_regional.nome} - {grupo_unidade_escolar.nome} - {mes}/{ano}.pdf"
                 gera_pdf_relatorio_unificado_async.delay(
-                    user=user, nome_arquivo=nome_arquivo, ids_solicitacoes=solicitacoes
+                    user=user,
+                    nome_arquivo=nome_arquivo,
+                    ids_solicitacoes=solicitacoes,
+                    tipos_de_unidade=tipos_de_unidade_do_grupo_str,
                 )
         return Response(
             dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
