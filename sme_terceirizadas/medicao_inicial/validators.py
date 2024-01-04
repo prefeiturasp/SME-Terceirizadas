@@ -226,7 +226,7 @@ def build_nomes_campos_dietas_emef(escola, categoria, medicao):
         nomes_campos.append("lanche")
     if "Lanche 4h" in tipos_alimentacao:
         nomes_campos.append("lanche_4h")
-    if "ENTERAL" in categoria.nome:
+    if "Refeição" in tipos_alimentacao and "ENTERAL" in categoria.nome:
         nomes_campos.append("refeicao")
     return nomes_campos
 
@@ -261,7 +261,8 @@ def build_nomes_campos_inclusoes_dietas_emef(escola, categoria, inclusoes, medic
     ):
         nomes_campos.append("lanche_4h")
     if (
-        "ENTERAL" in categoria.nome
+        "Refeição" in tipos_alimentacao
+        and "ENTERAL" in categoria.nome
         and inclusoes.filter(
             quantidades_por_periodo__periodo_escolar=medicao.periodo_escolar,
             quantidades_por_periodo__tipos_alimentacao__nome="Refeição",
