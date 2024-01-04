@@ -151,20 +151,14 @@ def gera_pdf_relatorio_unificado_async(
         user=user, identificador=nome_arquivo
     )
     try:
-        merger_somatorio = PdfFileMerger(strict=False)
         merger_lancamentos = PdfFileMerger(strict=False)
         merger_arquivo_final = PdfFileMerger(strict=False)
 
-        processa_relatorio_somatorio(
-            ids_solicitacoes, tipos_de_unidade, merger_somatorio, obj_central_download
-        )
         processa_relatorio_lançamentos(
             ids_solicitacoes, merger_lancamentos, obj_central_download
         )
 
-        output_final = cria_merge_pdfs(
-            merger_somatorio, merger_lancamentos, merger_arquivo_final
-        )
+        output_final = cria_merge_pdfs(merger_lancamentos, merger_arquivo_final)
 
         atualiza_central_download(obj_central_download, nome_arquivo, output_final)
 
@@ -207,12 +201,7 @@ def processa_relatorio_lançamentos(
             )
 
 
-def cria_merge_pdfs(merger_somatorio, merger_lancamentos, merger_arquivo_final):
-    output_somatorio = BytesIO()
-    merger_somatorio.write(output_somatorio)
-    output_somatorio.seek(0)
-    merger_arquivo_final.append(output_somatorio)
-
+def cria_merge_pdfs(merger_lancamentos, merger_arquivo_final):
     output_lancamentos = BytesIO()
     merger_lancamentos.write(output_lancamentos)
     output_lancamentos.seek(0)
@@ -222,7 +211,6 @@ def cria_merge_pdfs(merger_somatorio, merger_lancamentos, merger_arquivo_final):
     merger_arquivo_final.write(output_final)
     output_final.seek(0)
 
-    merger_somatorio.close()
     merger_lancamentos.close()
     merger_arquivo_final.close()
 

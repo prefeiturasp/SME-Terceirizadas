@@ -157,6 +157,7 @@ def escola(tipo_unidade_escolar):
         diretoria_regional=diretoria_regional,
         tipo_gestao=tipo_gestao,
         tipo_unidade=tipo_unidade_escolar,
+        codigo_eol="123456",
     )
 
 

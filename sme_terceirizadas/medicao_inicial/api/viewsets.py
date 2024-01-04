@@ -458,7 +458,7 @@ class SolicitacaoMedicaoInicialViewSet(
         ]
         tipos_de_unidade_do_grupo_str = ", ".join(tipos_de_unidade_do_grupo)
 
-        if len(query_set):
+        if query_set.exists():
             solicitacoes = []
             for solicitacao in query_set:
                 id_tipo_unidade = solicitacao.escola.tipo_unidade.id
@@ -466,7 +466,7 @@ class SolicitacaoMedicaoInicialViewSet(
                     id=id_tipo_unidade
                 ).exists():
                     solicitacoes.append(solicitacao.uuid)
-            if len(solicitacoes):
+            if solicitacoes:
                 nome_arquivo = f"Relatório Consolidado das Medições Inicias - {diretoria_regional.nome} - {grupo_unidade_escolar.nome} - {mes}/{ano}.pdf"
                 gera_pdf_relatorio_unificado_async.delay(
                     user=user,
