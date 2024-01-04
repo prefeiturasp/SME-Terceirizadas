@@ -2,9 +2,7 @@ import calendar
 import datetime
 
 from dateutil.relativedelta import relativedelta
-from django.db.models import Q
 
-from sme_terceirizadas.dados_comuns.behaviors import DiasSemana
 from sme_terceirizadas.dados_comuns.utils import get_ultimo_dia_mes
 from sme_terceirizadas.paineis_consolidados.utils import (
     formata_resultado_inclusoes_etec_autorizadas,
@@ -24,7 +22,6 @@ from ..escola.models import (
 )
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
-    InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoNormal,
 )
 from ..paineis_consolidados.models import SolicitacoesEscola
@@ -48,33 +45,6 @@ def get_nome_campo(campo):
     return campos.get(campo, campo)
 
 
-def get_alimentacao_nome_by_campo(campo):
-    campos = {
-        "numero_de_alunos": "Número de Alunos",
-        "matriculados": "Matriculados",
-        "frequencia": "Frequência",
-        "solicitado": "Solicitado",
-        "desjejum": "Desjejum",
-        "lanche": "Lanche",
-        "lanche_4h": "Lanche 4h",
-        "refeicao": "Refeição",
-        "repeticao_refeicao": "Repetição de Refeição",
-        "sobremesa": "Sobremesa",
-        "repeticao_sobremesa": "Repetição de Sobremesa",
-    }
-    return campos.get(campo, campo)
-
-
-def get_classificacoes_nomes(classificacao):
-    categorias = {
-        "Tipo A": "DIETA ESPECIAL - TIPO A",
-        "Tipo A - Restrição de aminoácidos": "DIETA ESPECIAL - TIPO A - ENTERAL / RESTRIÇÃO DE AMINOÁCIDOS",
-        "Tipo A Enteral": "DIETA ESPECIAL - TIPO A - ENTERAL / RESTRIÇÃO DE AMINOÁCIDOS",
-        "Tipo B": "DIETA ESPECIAL - TIPO B",
-    }
-    return categorias.get(classificacao, classificacao)
-
-
 def get_lista_dias_letivos(solicitacao, escola):
     dias_letivos = DiaCalendario.objects.filter(
         data__month=int(solicitacao.mes),
@@ -86,81 +56,6 @@ def get_lista_dias_letivos(solicitacao, escola):
     return [
         str(dia) if not len(str(dia)) == 1 else ("0" + str(dia)) for dia in dias_letivos
     ]
-
-
-def get_dias_nao_letivos(solicitacao, escola):
-    return DiaCalendario.objects.filter(
-        data__month=int(solicitacao.mes),
-        data__year=int(solicitacao.ano),
-        escola=escola,
-        dia_letivo=False,
-    )
-
-
-def get_inclusoes_normais_dias_nao_letivos(escola, dias_nao_letivos):
-    return GrupoInclusaoAlimentacaoNormal.objects.prefetch_related(
-        "quantidades_por_periodo__tipos_alimentacao"
-    ).filter(
-        escola=escola,
-        inclusoes_normais__data__in=dias_nao_letivos.values_list("data", flat=True),
-        status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
-    )
-
-
-def get_inclusoes_continuas_dias_nao_letivos(escola, dias_nao_letivos):
-    datas = dias_nao_letivos.values_list("data", flat=True)
-    data_inicial = min(datas)
-    data_final = max(datas)
-    return InclusaoAlimentacaoContinua.objects.prefetch_related(
-        "quantidades_por_periodo__tipos_alimentacao"
-    ).filter(
-        Q(data_inicial__gte=data_inicial)
-        | Q(
-            data_final__lte=data_final,
-            data_final__month=data_final.month,
-            data_final__year=data_final.year,
-        ),
-        quantidades_por_periodo__dias_semana__overlap=[
-            DiasSemana.SABADO,
-            DiasSemana.DOMINGO,
-        ],
-        escola=escola,
-        status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-    )
-
-
-def get_lista_dias_nao_letivos_e_com_inclusao(
-    solicitacao,
-    inclusoes_normais_dias_nao_letivos,
-    inclusoes_continuas_dias_nao_letivos,
-):
-    inclusoes_normais_dias = list(
-        inclusoes_normais_dias_nao_letivos.values_list(
-            "inclusoes_normais__data__day", flat=True
-        )
-    )
-
-    inclusoes_continuas_dias = []
-    for data_inicial, data_final in inclusoes_continuas_dias_nao_letivos.values_list(
-        "data_inicial", "data_final"
-    ):
-        quantidade_total_de_dias = (data_final - data_inicial).days
-        for dia in range(quantidade_total_de_dias + 1):
-            data = data_inicial + datetime.timedelta(days=dia)
-            if (
-                data.month == int(solicitacao.mes)
-                and data.year == int(solicitacao.ano)
-                and data.weekday() in [DiasSemana.SABADO, DiasSemana.DOMINGO]
-            ):
-                inclusoes_continuas_dias.append(data.day)
-
-    # TODO: descomentar apos ajustar a liberacao do preenchimento no frontend
-    # return [
-    #     str(dia).rjust(2, "0")
-    #     for dia in list(set(inclusoes_normais_dias + inclusoes_continuas_dias))
-    # ]
-
-    return [str(dia).rjust(2, "0") for dia in list(set(inclusoes_normais_dias))]
 
 
 def erros_unicos(lista_erros):
