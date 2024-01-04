@@ -1690,3 +1690,23 @@ def logs_alunos_matriculados_periodo_escola_cemei(escola_cemei):
         tipo_turma=TipoTurma.REGULAR.name,
     )
     return LogAlunosMatriculadosPeriodoEscola.objects.all()
+
+
+@pytest.fixture
+def grupo_escolar():
+    grupo_escolar = mommy.make(
+        "GrupoUnidadeEscolar",
+        nome="Grupo 4",
+        uuid="5bd9ad5c-e0ab-4812-b2b6-336fc8988960",
+    )
+    return grupo_escolar.uuid
+
+
+@pytest.fixture
+def diretoria_regional():
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL IPIRANGA",
+        uuid="3972e0e9-2d8e-472a-9dfa-30cd219a6d9a",
+    )
+    return diretoria_regional.uuid
