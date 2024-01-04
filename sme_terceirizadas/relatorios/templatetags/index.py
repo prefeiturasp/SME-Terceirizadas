@@ -545,3 +545,14 @@ def smart_slice(escolas_quantidades, idx):
     list_uuids = [esc["uuid"] for esc in escolas_quantidades]
     qs = EscolaQuantidade.objects.filter(uuid__in=list_uuids)
     return qs[10 * idx : 10 * (idx + 1)]
+
+
+@register.filter
+def get_total_pages(tabela):
+    total_pages = math.ceil(len(tabela) / 30)
+    return range(total_pages)
+
+
+@register.filter
+def slice_table(tabela, index):
+    return tabela[index * 30 : (index * 30) + 30]

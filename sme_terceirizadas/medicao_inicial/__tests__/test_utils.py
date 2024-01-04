@@ -3,6 +3,7 @@ import pytest
 from sme_terceirizadas.medicao_inicial.utils import (
     build_dict_relacao_categorias_e_campos,
     build_headers_tabelas,
+    build_row_primeira_tabela,
     build_tabela_somatorio_body,
     build_tabelas_relatorio_medicao,
     get_lista_categorias_campos,
@@ -683,4 +684,44 @@ def test_utils_build_tabela_somatorio_body(
         ["Kit Lanche", 50, 50, 50, 50, 50, 250, 50, 50, 100],
         ["Sobremesa", 100, 100, 100, 100, 50, 450, 100, 100, 200],
         ["Lanche Emergencial", 50, 50, 50, 50, 50, 250, 50, 50, 100],
+    ]
+
+
+def test_build_row_primeira_tabela(solicitacao_medicao_inicial_com_valores_repeticao):
+    campos_categorias_primeira_tabela = [
+        {
+            "categoria": "Solicitação Alimentação",
+            "campos": ["lanche_emergencial", "kit_lanche"],
+        },
+        {"categoria": "MANHA", "campos": ["lanche", "refeicao", "sobremesa"]},
+        {"categoria": "TARDE", "campos": ["lanche", "refeicao", "sobremesa"]},
+        {
+            "categoria": "INTEGRAL",
+            "campos": ["lanche_4h", "lanche", "refeicao", "sobremesa"],
+        },
+        {"categoria": "NOITE", "campos": ["lanche", "refeicao", "sobremesa"]},
+    ]
+
+    assert build_row_primeira_tabela(
+        solicitacao_medicao_inicial_com_valores_repeticao,
+        campos_categorias_primeira_tabela,
+    ) == [
+        solicitacao_medicao_inicial_com_valores_repeticao.escola.tipo_unidade,
+        "123456",
+        "EMEF TESTE",
+        50,
+        50,
+        50,
+        "-",
+        "-",
+        50,
+        "-",
+        "-",
+        "-",
+        50,
+        "-",
+        "-",
+        50,
+        "-",
+        "-",
     ]

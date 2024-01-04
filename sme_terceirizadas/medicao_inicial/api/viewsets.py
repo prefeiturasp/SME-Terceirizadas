@@ -36,6 +36,7 @@ from ...escola.models import (
     DiretoriaRegional,
     Escola,
     FaixaEtaria,
+    GrupoUnidadeEscolar,
     LogAlunosMatriculadosPeriodoEscola,
 )
 from ..models import (
@@ -50,7 +51,10 @@ from ..models import (
     TipoContagemAlimentacao,
     ValorMedicao,
 )
-from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
+from ..tasks import (
+    gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
+    gera_pdf_relatorio_unificado_async,
+)
 from ..utils import (
     atualizar_anexos_ocorrencia,
     atualizar_status_ocorrencia,
@@ -426,6 +430,50 @@ class SolicitacaoMedicaoInicialViewSet(
             f"{solicitacao.mes}/{solicitacao.ano}.pdf",
             uuid_sol_medicao=uuid_sol_medicao,
         )
+        return Response(
+            dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["GET"], url_path="relatorio-unificado")
+    def relatorio_unificado(self, request):
+        user = request.user.get_username()
+        mes = request.query_params.get("mes")
+        ano = request.query_params.get("ano")
+        uuid_grupo_escolar = request.query_params.get("grupo_escolar")
+        status_solicitacao = request.query_params.get("status")
+        uuid_dre = request.query_params.get("dre")
+
+        diretoria_regional = DiretoriaRegional.objects.get(uuid=uuid_dre)
+        grupo_unidade_escolar = GrupoUnidadeEscolar.objects.get(uuid=uuid_grupo_escolar)
+        query_set = SolicitacaoMedicaoInicial.objects.filter(
+            mes=mes,
+            ano=ano,
+            status=status_solicitacao,
+            escola__diretoria_regional__uuid=uuid_dre,
+        )
+        tipos_de_unidade_do_grupo = [
+            tipo_unidade.iniciais
+            for tipo_unidade in grupo_unidade_escolar.tipos_unidades.all()
+        ]
+        tipos_de_unidade_do_grupo_str = ", ".join(tipos_de_unidade_do_grupo)
+
+        if query_set.exists():
+            solicitacoes = []
+            for solicitacao in query_set:
+                id_tipo_unidade = solicitacao.escola.tipo_unidade.id
+                if grupo_unidade_escolar.tipos_unidades.filter(
+                    id=id_tipo_unidade
+                ).exists():
+                    solicitacoes.append(solicitacao.uuid)
+            if solicitacoes:
+                nome_arquivo = f"Relatório Consolidado das Medições Inicias - {diretoria_regional.nome} - {grupo_unidade_escolar.nome} - {mes}/{ano}.pdf"
+                gera_pdf_relatorio_unificado_async.delay(
+                    user=user,
+                    nome_arquivo=nome_arquivo,
+                    ids_solicitacoes=solicitacoes,
+                    tipos_de_unidade=tipos_de_unidade_do_grupo_str,
+                )
         return Response(
             dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
             status=status.HTTP_200_OK,
