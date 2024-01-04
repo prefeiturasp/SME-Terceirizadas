@@ -774,6 +774,17 @@ class FichaTecnicaDoProduto(
     material_embalagem_primaria = models.TextField(
         "Material da Embalagem Primária", blank=True
     )
+    produto_eh_liquido = models.BooleanField("O produto é líquido?", null=True)
+    volume_embalagem_primaria = models.FloatField(
+        blank=True, null=True, help_text="Volume do Produto na Embalagem Primária"
+    )
+    unidade_medida_volume_primaria = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas_volume_primaria",
+    )
     peso_liquido_embalagem_primaria = models.FloatField(
         blank=True, null=True, help_text="Peso Líquido do Produto na Embalagem Primária"
     )
