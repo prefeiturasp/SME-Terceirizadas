@@ -209,13 +209,18 @@ def validate_lancamento_alimentacoes_medicao_cei_faixas_etarias(
     return periodo_com_erro
 
 
-def build_nomes_campos_dietas_emef(escola, categoria):
+def build_nomes_campos_dietas_emef(escola, categoria, medicao):
     tipos_alimentacao = list(
         VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
             tipo_unidade_escolar=escola.tipo_unidade,
-            periodo_escolar__nome__in=escola.periodos_escolares_com_alunos,
-        ).distinct()
+            periodo_escolar__in=escola.periodos_escolares(
+                medicao.solicitacao_medicao_inicial.ano
+            ),
+        )
+        .values_list("tipos_alimentacao__nome", flat=True)
+        .distinct()
     )
+
     nomes_campos = ["frequencia"]
     if "Lanche" in tipos_alimentacao:
         nomes_campos.append("lanche")
@@ -230,9 +235,14 @@ def build_nomes_campos_inclusoes_dietas_emef(escola, categoria, inclusoes, medic
     tipos_alimentacao = list(
         VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
             tipo_unidade_escolar=escola.tipo_unidade,
-            periodo_escolar__nome__in=escola.periodos_escolares_com_alunos,
-        ).distinct()
+            periodo_escolar__in=escola.periodos_escolares(
+                medicao.solicitacao_medicao_inicial.ano
+            ),
+        )
+        .values_list("tipos_alimentacao__nome", flat=True)
+        .distinct()
     )
+
     nomes_campos = ["frequencia"]
     if (
         "Lanche" in tipos_alimentacao
@@ -267,7 +277,7 @@ def get_nomes_campos_emef_dietas(inclusoes, escola, categoria, medicao):
             escola, categoria, inclusoes, medicao
         )
     else:
-        return build_nomes_campos_dietas_emef(escola, categoria)
+        return build_nomes_campos_dietas_emef(escola, categoria, medicao)
 
 
 def validate_lancamento_alimentacoes_medicao_emef_dietas(
@@ -659,7 +669,6 @@ def get_lista_erros_inclusoes_dietas_emef(
     mes,
     ano,
     categoria,
-    classificacao,
     logs,
 ):
     logs_ = list(
@@ -844,7 +853,6 @@ def validate_lancamento_inclusoes_dietas_emef(solicitacao, lista_erros):
     )
     categorias = CategoriaMedicao.objects.exclude(nome__icontains="ALIMENTAÇÃO")
     for categoria in categorias:
-        classificacao = get_classificacoes_dietas(categoria)
         lista_erros = get_lista_erros_inclusoes_dietas_emef(
             dias_nao_letivos,
             solicitacao,
@@ -853,7 +861,6 @@ def validate_lancamento_inclusoes_dietas_emef(solicitacao, lista_erros):
             mes,
             ano,
             categoria,
-            classificacao,
             logs,
         )
     return lista_erros
@@ -1207,13 +1214,18 @@ def get_inclusoes_etec(solicitacao):
     return inclusoes
 
 
-def build_nomes_campos_alimentacoes_programas_e_projetos(escola):
+def build_nomes_campos_alimentacoes_programas_e_projetos(escola, medicao):
     tipos_alimentacao = list(
         VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
             tipo_unidade_escolar=escola.tipo_unidade,
-            periodo_escolar__nome__in=escola.periodos_escolares_com_alunos,
-        ).distinct()
+            periodo_escolar__in=escola.periodos_escolares(
+                medicao.solicitacao_medicao_inicial.ano
+            ),
+        )
+        .values_list("tipos_alimentacao__nome", flat=True)
+        .distinct()
     )
+
     nomes_campos = ["frequencia"]
     if "Lanche" or "Lanche 4h" in tipos_alimentacao:
         nomes_campos.append("lanche")
@@ -1231,7 +1243,9 @@ def valida_alimentacoes_solicitacoes_continuas(
 ):
     periodo_com_erro = False
     categoria = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
-    nomes_campos = build_nomes_campos_alimentacoes_programas_e_projetos(escola)
+    nomes_campos = build_nomes_campos_alimentacoes_programas_e_projetos(
+        escola, medicao_programas_projetos
+    )
 
     for dia in range(1, quantidade_dias_mes + 1):
         data = datetime.date(year=int(ano), month=int(mes), day=dia)
