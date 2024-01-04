@@ -2596,122 +2596,42 @@ def build_tabela_relatorio_consolidado(ids_solicitacoes):
 
 def build_row_solicitacao(solicitacao, id_tabela):
     eh_primeira_tabela = id_tabela == 0
-    tipo_unidade = solicitacao.escola.tipo_unidade
-    codigo_eol = solicitacao.escola.codigo_eol
-    escola = solicitacao.escola.nome
+
+    campos_categorias_primeira_tabela = [
+        {
+            "categoria": "Solicitação Alimentação",
+            "campos": ["lanche_emergencial", "kit_lanche"],
+        },
+        {"categoria": "MANHA", "campos": ["lanche", "refeicao", "sobremesa"]},
+        {"categoria": "TARDE", "campos": ["lanche", "refeicao", "sobremesa"]},
+        {
+            "categoria": "INTEGRAL",
+            "campos": ["lanche_4h", "lanche", "refeicao", "sobremesa"],
+        },
+        {"categoria": "NOITE", "campos": ["lanche", "refeicao", "sobremesa"]},
+    ]
+
+    campos_categorias_segunda_tabela = [
+        {
+            "categoria": "Programas e Projetos",
+            "campos": ["lanche_4h", "lanche", "refeicao", "sobremesa"],
+        },
+        {"categoria": "ETEC", "campos": ["lanche_4h", "refeicao", "sobremesa"]},
+        {
+            "categoria": "DIETA TIPO A",
+            "campos": ["lanche_4h", "lanche_5h", "refeicao"],
+            "classificacao": ["Tipo A RESTRIÇÃO DE AMINOÁCIDOS", "Tipo A ENTERAL"],
+        },
+        {
+            "categoria": "DIETA TIPO B",
+            "campos": ["lanche_4h", "lanche_5h"],
+            "classificacao": ["TIPO B"],
+        },
+    ]
 
     if eh_primeira_tabela:
-        lanche_emergencial = get_total_solicitacoes_periodo(
-            solicitacao, "lanche_emergencial"
-        )
-        kit_lanche = get_total_solicitacoes_periodo(solicitacao, "kit_lanche")
-
-        lanche_5h_manha = get_total_campo_periodo(solicitacao, "MANHA", "lanche")
-        lanche_5h_tarde = get_total_campo_periodo(solicitacao, "TARDE", "lanche")
-        lanche_4h_integral = get_total_campo_periodo(
-            solicitacao, "INTEGRAL", "lanche_4h"
-        )
-        lanche_5h_integral = get_total_campo_periodo(solicitacao, "INTEGRAL", "lanche")
-        lanche_5h_noite = get_total_campo_periodo(solicitacao, "NOITE", "lanche")
-
-        total_refeicao_manha = get_total_refeicoes_sobremesas_pagamento_por_periodo(
-            solicitacao, "MANHA", "refeicao"
-        )
-        total_sobremesa_manha = get_total_refeicoes_sobremesas_pagamento_por_periodo(
-            solicitacao, "MANHA", "sobremesa"
-        )
-        total_refeicao_tarde = get_total_refeicoes_sobremesas_pagamento_por_periodo(
-            solicitacao, "TARDE", "refeicao"
-        )
-        total_sobremesa_tarde = get_total_refeicoes_sobremesas_pagamento_por_periodo(
-            solicitacao, "TARDE", "sobremesa"
-        )
-        total_refeicao_integral = get_total_refeicoes_sobremesas_pagamento_por_periodo(
-            solicitacao, "INTEGRAL", "refeicao"
-        )
-        total_sobremesa_integral = get_total_refeicoes_sobremesas_pagamento_por_periodo(
-            solicitacao, "INTEGRAL", "sobremesa"
-        )
-        total_refeicao_noite = get_total_refeicoes_sobremesas_pagamento_por_periodo(
-            solicitacao, "NOITE", "refeicao"
-        )
-        total_sobremesa_noite = get_total_refeicoes_sobremesas_pagamento_por_periodo(
-            solicitacao, "NOITE", "sobremesa"
-        )
-
-        return [
-            tipo_unidade,
-            codigo_eol,
-            escola,
-            lanche_emergencial,
-            kit_lanche,
-            lanche_5h_manha,
-            total_refeicao_manha,
-            total_sobremesa_manha,
-            lanche_5h_tarde,
-            total_refeicao_tarde,
-            total_sobremesa_tarde,
-            lanche_4h_integral,
-            lanche_5h_integral,
-            total_refeicao_integral,
-            total_sobremesa_integral,
-            lanche_5h_noite,
-            total_refeicao_noite,
-            total_sobremesa_noite,
-        ]
-
-    else:
-        lanche_4h_programas_projetos = get_total_campo_grupo(
-            solicitacao, "Programas e Projetos", "lanche_4h"
-        )
-        lanche_5h_programas_projetos = get_total_campo_grupo(
-            solicitacao, "Programas e Projetos", "lanche"
-        )
-        total_refeicao_programas_e_projetos = (
-            get_total_refeicoes_sobremesas_pagamento_por_grupo(
-                solicitacao, "Programas e Projetos", "refeicao"
-            )
-        )
-        total_sobremesa_programas_e_projetos = (
-            get_total_refeicoes_sobremesas_pagamento_por_grupo(
-                solicitacao, "Programas e Projetos", "sobremesa"
-            )
-        )
-
-        lanche_4h_etec = get_total_campo_grupo(solicitacao, "ETEC", "lanche_4h")
-        total_refeicao_etec = get_total_refeicoes_sobremesas_pagamento_por_grupo(
-            solicitacao, "ETEC", "refeicao"
-        )
-        total_sobremesa_etec = get_total_refeicoes_sobremesas_pagamento_por_grupo(
-            solicitacao, "ETEC", "sobremesa"
-        )
-
-        total_dietas_tipo_A = get_total_dietas(
-            solicitacao,
-            [
-                "Tipo A RESTRIÇÃO DE AMINOÁCIDOS",
-                "Tipo A ENTERAL",
-            ],
-        )
-        total_dietas_tipo_B = get_total_dietas(solicitacao, ["TIPO B"])
-
-        return [
-            tipo_unidade,
-            codigo_eol,
-            escola,
-            lanche_4h_programas_projetos,
-            lanche_5h_programas_projetos,
-            total_refeicao_programas_e_projetos,
-            total_sobremesa_programas_e_projetos,
-            lanche_4h_etec,
-            total_refeicao_etec,
-            total_sobremesa_etec,
-            total_dietas_tipo_A,
-            total_dietas_tipo_A,
-            total_dietas_tipo_A,
-            total_dietas_tipo_B,
-            total_dietas_tipo_B,
-        ]
+        return build_row_primeira_tabela(solicitacao, campos_categorias_primeira_tabela)
+    return build_row_segunda_tabela(solicitacao, campos_categorias_segunda_tabela)
 
 
 def get_total_solicitacoes_periodo(solicitacao, nome_campo):
@@ -2882,3 +2802,59 @@ def get_total_dietas(solicitacao, classificacoes):
     except LogQuantidadeDietasAutorizadas.DoesNotExist:
         total = "-"
     return total
+
+
+def build_row_primeira_tabela(solicitacao, campos_categorias):
+    body_tabela = [
+        solicitacao.escola.tipo_unidade,
+        solicitacao.escola.codigo_eol,
+        solicitacao.escola.nome,
+    ]
+
+    for campo_categoria in campos_categorias:
+        if campo_categoria["categoria"] == "Solicitação Alimentação":
+            for campo in campo_categoria["campos"]:
+                valor_campo = get_total_solicitacoes_periodo(solicitacao, campo)
+                body_tabela.append(valor_campo)
+        else:
+            for campo in campo_categoria["campos"]:
+                if campo in ["refeicao", "sobremesa"]:
+                    valor_campo = get_total_refeicoes_sobremesas_pagamento_por_periodo(
+                        solicitacao, campo_categoria["categoria"], campo
+                    )
+                    body_tabela.append(valor_campo)
+                else:
+                    valor_campo = get_total_campo_periodo(
+                        solicitacao, campo_categoria["categoria"], campo
+                    )
+                    body_tabela.append(valor_campo)
+    return body_tabela
+
+
+def build_row_segunda_tabela(solicitacao, campos_categorias):
+    body_tabela = [
+        solicitacao.escola.tipo_unidade,
+        solicitacao.escola.codigo_eol,
+        solicitacao.escola.nome,
+    ]
+
+    for campo_categoria in campos_categorias:
+        if "DIETA" in campo_categoria["categoria"]:
+            for campo in campo_categoria["campos"]:
+                valor_campo = get_total_dietas(
+                    solicitacao, campo_categoria["classificacao"]
+                )
+                body_tabela.append(valor_campo)
+        else:
+            for campo in campo_categoria["campos"]:
+                if campo in ["refeicao", "sobremesa"]:
+                    valor_campo = get_total_refeicoes_sobremesas_pagamento_por_grupo(
+                        solicitacao, campo_categoria["categoria"], campo
+                    )
+                    body_tabela.append(valor_campo)
+                else:
+                    valor_campo = get_total_campo_grupo(
+                        solicitacao, campo_categoria["categoria"], campo
+                    )
+                    body_tabela.append(valor_campo)
+    return body_tabela

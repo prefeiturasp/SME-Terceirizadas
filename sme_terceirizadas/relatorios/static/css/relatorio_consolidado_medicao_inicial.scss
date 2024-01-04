@@ -107,7 +107,7 @@ table.tabela-valores {
   }
 
   .cor-periodo-grupo-5 {
-    background-color: #1f861f;
+    background-color: #72bc17;
   }
 
   .cor-periodo-grupo-6 {
@@ -115,14 +115,10 @@ table.tabela-valores {
   }
 
   .cor-periodo-grupo-7 {
-    background-color: #ff0095;
-  }
-
-  .cor-periodo-grupo-8 {
     background-color: #198459;
   }
 
-  .cor-periodo-grupo-9 {
+  .cor-periodo-grupo-8 {
     background-color: #20aa73;
   }
 
@@ -159,10 +155,10 @@ table.tabela-valores {
   align-items: center;
   padding: 0 5px;
   background: $verde;
-  position: fixed;
-  bottom: 0;
+  position: absolute;
+  bottom: 0px;
   width: 100%;
-  height: 24px;
+  height: 28px;
 
   .page-number-footer:before {
     width: 100%;
