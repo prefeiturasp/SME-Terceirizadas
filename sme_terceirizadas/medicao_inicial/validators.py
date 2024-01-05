@@ -114,32 +114,8 @@ def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):
     categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
     dias_letivos = get_lista_dias_letivos(solicitacao, escola)
     for periodo_escolar in escola.periodos_escolares(solicitacao.ano):
-        permissoes_especiais = PermissaoLancamentoEspecial.objects.filter(
-            Q(
-                data_inicial__month__lte=int(solicitacao.mes),
-                data_inicial__year=int(solicitacao.ano),
-                data_final=None,
-            )
-            | Q(
-                data_inicial__month__lte=int(solicitacao.mes),
-                data_inicial__year=int(solicitacao.ano),
-                data_final__month=int(solicitacao.mes),
-                data_final__year=int(solicitacao.ano),
-            ),
-            escola=escola,
-            periodo_escolar=periodo_escolar,
-        )
-        alimentacoes_permitidas = list(
-            set(
-                [
-                    nome
-                    for nome, ativo in permissoes_especiais.values_list(
-                        "alimentacoes_lancamento_especial__nome",
-                        "alimentacoes_lancamento_especial__ativo",
-                    )
-                    if ativo
-                ]
-            )
+        alimentacoes_permitidas = get_alimentacoes_permitidas(
+            solicitacao, escola, periodo_escolar
         )
         vinculo = (
             VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.get(
@@ -563,6 +539,37 @@ def buscar_valores_lancamento_inclusoes(
     return lista_erros
 
 
+def get_alimentacoes_permitidas(solicitacao, escola, periodo_escolar):
+    permissoes_especiais = PermissaoLancamentoEspecial.objects.filter(
+        Q(
+            data_inicial__month__lte=int(solicitacao.mes),
+            data_inicial__year=int(solicitacao.ano),
+            data_final=None,
+        )
+        | Q(
+            data_inicial__month__lte=int(solicitacao.mes),
+            data_inicial__year=int(solicitacao.ano),
+            data_final__month=int(solicitacao.mes),
+            data_final__year=int(solicitacao.ano),
+        ),
+        escola=escola,
+        periodo_escolar=periodo_escolar,
+    )
+    alimentacoes_permitidas = list(
+        set(
+            [
+                nome
+                for nome, ativo in permissoes_especiais.values_list(
+                    "alimentacoes_lancamento_especial__nome",
+                    "alimentacoes_lancamento_especial__ativo",
+                )
+                if ativo
+            ]
+        )
+    )
+    return alimentacoes_permitidas
+
+
 def validate_lancamento_inclusoes(solicitacao, lista_erros):
     escola = solicitacao.escola
     categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
@@ -586,32 +593,8 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
     for inclusao in inclusoes:
         grupo = inclusao.grupo_inclusao
         for periodo in grupo.quantidades_periodo.all():
-            permissoes_especiais = PermissaoLancamentoEspecial.objects.filter(
-                Q(
-                    data_inicial__month__lte=int(solicitacao.mes),
-                    data_inicial__year=int(solicitacao.ano),
-                    data_final=None,
-                )
-                | Q(
-                    data_inicial__month__lte=int(solicitacao.mes),
-                    data_inicial__year=int(solicitacao.ano),
-                    data_final__month=int(solicitacao.mes),
-                    data_final__year=int(solicitacao.ano),
-                ),
-                escola=escola,
-                periodo_escolar=periodo.periodo_escolar,
-            )
-            alimentacoes_permitidas = list(
-                set(
-                    [
-                        nome
-                        for nome, ativo in permissoes_especiais.values_list(
-                            "alimentacoes_lancamento_especial__nome",
-                            "alimentacoes_lancamento_especial__ativo",
-                        )
-                        if ativo
-                    ]
-                )
+            alimentacoes_permitidas = get_alimentacoes_permitidas(
+                solicitacao, escola, periodo.periodo_escolar
             )
             tipos_alimentacao = periodo.tipos_alimentacao.exclude(
                 nome="Lanche Emergencial"
