@@ -2721,6 +2721,8 @@ def test_rascunho_ficha_tecnica_create_update(
         "embalagem_primaria": "",
         "embalagem_secundaria": "",
         "material_embalagem_primaria": "",
+        "volume_embalagem_primaria": None,
+        "unidade_medida_volume_primaria": "",
         "peso_liquido_embalagem_primaria": None,
         "unidade_medida_primaria": "",
         "peso_liquido_embalagem_secundaria": None,

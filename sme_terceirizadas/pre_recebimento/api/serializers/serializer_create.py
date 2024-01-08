@@ -1016,6 +1016,14 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     embalagem_secundaria = serializers.CharField(required=True, allow_blank=True)
     embalagens_de_acordo_com_anexo = serializers.BooleanField(required=False)
     material_embalagem_primaria = serializers.CharField(required=True, allow_blank=True)
+    produto_eh_liquido = serializers.BooleanField(required=False)
+    volume_embalagem_primaria = serializers.FloatField(required=True, allow_null=True)
+    unidade_medida_volume_primaria = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=True,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True,
+    )
     peso_liquido_embalagem_primaria = serializers.FloatField(
         required=True, allow_null=True
     )
