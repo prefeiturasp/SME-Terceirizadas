@@ -1,6 +1,8 @@
 import calendar
 import datetime
 
+from django.db.models import Q
+
 from sme_terceirizadas.dados_comuns.utils import get_ultimo_dia_mes
 
 from ..cardapio.models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
@@ -18,7 +20,7 @@ from ..inclusao_alimentacao.models import (
     InclusaoAlimentacaoNormal,
 )
 from ..paineis_consolidados.models import SolicitacoesEscola
-from .models import CategoriaMedicao, ValorMedicao
+from .models import CategoriaMedicao, PermissaoLancamentoEspecial, ValorMedicao
 
 
 def get_nome_campo(campo):
@@ -34,6 +36,13 @@ def get_nome_campo(campo):
         "Repetição de Refeição": "repeticao_refeicao",
         "Sobremesa": "sobremesa",
         "Repetição de Sobremesa": "repeticao_sobremesa",
+        "2º Lanche 4h": "2_lanche_4h",
+        "2º Lanche 5h": "2_lanche_5h",
+        "Lanche Extra": "lanche_extra",
+        "2ª Refeição 1ª oferta": "2_refeicao_1_oferta",
+        "Repetição 2ª Refeição": "repeticao_2_refeicao",
+        "2ª Sobremesa 1ª oferta": "2_sobremesa_1_oferta",
+        "Repetição 2ª Sobremesa": "repeticao_2_sobremesa",
     }
     return campos.get(campo, campo)
 
@@ -99,12 +108,31 @@ def buscar_valores_lancamento_alimentacoes(
     return lista_erros
 
 
+def get_linhas_da_tabela(alimentacoes):
+    linhas_da_tabela = ["matriculados", "frequencia"]
+    for alimentacao in alimentacoes:
+        nome_formatado = get_nome_campo(alimentacao)
+        linhas_da_tabela.append(nome_formatado)
+        if nome_formatado == "refeicao":
+            linhas_da_tabela.append("repeticao_refeicao")
+        if nome_formatado == "sobremesa":
+            linhas_da_tabela.append("repeticao_sobremesa")
+        if nome_formatado == "2_refeicao_1_oferta":
+            linhas_da_tabela.append("2_sobremesa_1_oferta")
+        if nome_formatado == "repeticao_2_refeicao":
+            linhas_da_tabela.append("repeticao_2_sobremesa")
+    return linhas_da_tabela
+
+
 def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):
     escola = solicitacao.escola
     tipo_unidade = escola.tipo_unidade
     categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
     dias_letivos = get_lista_dias_letivos(solicitacao, escola)
     for periodo_escolar in escola.periodos_escolares(solicitacao.ano):
+        alimentacoes_permitidas = get_alimentacoes_permitidas(
+            solicitacao, escola, periodo_escolar
+        )
         vinculo = (
             VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.get(
                 tipo_unidade_escolar=tipo_unidade, periodo_escolar=periodo_escolar
@@ -116,15 +144,8 @@ def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):
         alimentacoes_vinculadas = list(
             set(alimentacoes_vinculadas.values_list("nome", flat=True))
         )
-        linhas_da_tabela = ["matriculados", "frequencia"]
-        for alimentacao in alimentacoes_vinculadas:
-            nome_formatado = get_nome_campo(alimentacao)
-            linhas_da_tabela.append(nome_formatado)
-            if nome_formatado == "refeicao":
-                linhas_da_tabela.append("repeticao_refeicao")
-            if nome_formatado == "sobremesa":
-                linhas_da_tabela.append("repeticao_sobremesa")
-
+        alimentacoes = alimentacoes_vinculadas + alimentacoes_permitidas
+        linhas_da_tabela = get_linhas_da_tabela(alimentacoes)
         lista_erros = buscar_valores_lancamento_alimentacoes(
             linhas_da_tabela,
             solicitacao,
@@ -526,6 +547,37 @@ def buscar_valores_lancamento_inclusoes(
     return lista_erros
 
 
+def get_alimentacoes_permitidas(solicitacao, escola, periodo_escolar):
+    permissoes_especiais = PermissaoLancamentoEspecial.objects.filter(
+        Q(
+            data_inicial__month__lte=int(solicitacao.mes),
+            data_inicial__year=int(solicitacao.ano),
+            data_final=None,
+        )
+        | Q(
+            data_inicial__month__lte=int(solicitacao.mes),
+            data_inicial__year=int(solicitacao.ano),
+            data_final__month=int(solicitacao.mes),
+            data_final__year=int(solicitacao.ano),
+        ),
+        escola=escola,
+        periodo_escolar=periodo_escolar,
+    )
+    alimentacoes_permitidas = list(
+        set(
+            [
+                nome
+                for nome, ativo in permissoes_especiais.values_list(
+                    "alimentacoes_lancamento_especial__nome",
+                    "alimentacoes_lancamento_especial__ativo",
+                )
+                if ativo
+            ]
+        )
+    )
+    return alimentacoes_permitidas
+
+
 def validate_lancamento_inclusoes(solicitacao, lista_erros):
     escola = solicitacao.escola
     categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
@@ -549,15 +601,17 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
     for inclusao in inclusoes:
         grupo = inclusao.grupo_inclusao
         for periodo in grupo.quantidades_periodo.all():
+            alimentacoes_permitidas = get_alimentacoes_permitidas(
+                solicitacao, escola, periodo.periodo_escolar
+            )
             tipos_alimentacao = periodo.tipos_alimentacao.exclude(
                 nome="Lanche Emergencial"
             )
             tipos_alimentacao = list(
                 set(tipos_alimentacao.values_list("nome", flat=True))
             )
-            tipos_alimentacao = [
-                get_nome_campo(alimentacao) for alimentacao in tipos_alimentacao
-            ]
+            alimentacoes = tipos_alimentacao + alimentacoes_permitidas
+            linhas_da_tabela = get_linhas_da_tabela(alimentacoes)
 
             dia_da_inclusao = str(inclusao.data.day)
             if len(dia_da_inclusao) == 1:
@@ -566,7 +620,7 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
                 {
                     "periodo_escolar": periodo.periodo_escolar.nome,
                     "dia": dia_da_inclusao,
-                    "linhas_da_tabela": tipos_alimentacao,
+                    "linhas_da_tabela": linhas_da_tabela,
                 }
             )
     for inclusao in list_inclusoes:
