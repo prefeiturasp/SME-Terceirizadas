@@ -1537,7 +1537,54 @@ def tratar_segunda_sobremesa_permissoes_lancamentos(valores, eh_emei=False):
     return valores
 
 
-def tratar_valores(escola, valores):
+def get_total_refeicao_tratado_cemei(total_por_nome_campo) -> int:
+    return (
+        total_por_nome_campo.pop("refeicao", 0)
+        + total_por_nome_campo.pop("repeticao_refeicao", 0)
+        + total_por_nome_campo.pop("2_refeicao_1_oferta", 0)
+        + total_por_nome_campo.pop("repeticao_2_refeicao", 0)
+    )
+
+
+def get_total_sobremesa_tratado_cemei(total_por_nome_campo) -> int:
+    return (
+        total_por_nome_campo.pop("sobremesa", 0)
+        + total_por_nome_campo.pop("repeticao_sobremesa", 0)
+        + total_por_nome_campo.pop("2_sobremesa_1_oferta", 0)
+        + total_por_nome_campo.pop("repeticao_2_sobremesa", 0)
+    )
+
+
+def get_total_lanche_tratado_cemei(total_por_nome_campo) -> int:
+    return (
+        total_por_nome_campo.pop("lanche", 0)
+        + total_por_nome_campo.pop("2_lanche_4h", 0)
+        + total_por_nome_campo.pop("2_lanche_5h", 0)
+    )
+
+
+def tratar_valores_cemei(total_por_nome_campo):
+    _total_por_nome_campo = total_por_nome_campo.copy()
+
+    _total_por_nome_campo["refeicao"] = get_total_refeicao_tratado_cemei(
+        _total_por_nome_campo
+    )
+    _total_por_nome_campo["sobremesa"] = get_total_sobremesa_tratado_cemei(
+        _total_por_nome_campo
+    )
+    _total_por_nome_campo["lanche"] = get_total_lanche_tratado_cemei(
+        _total_por_nome_campo
+    )
+
+    return [
+        {"nome_campo": nome_campo, "valor": valor}
+        for nome_campo, valor in _total_por_nome_campo.items()
+    ]
+
+
+def tratar_valores(escola, valores, total_por_nome_campo=None):
+    if escola.eh_cemei:
+        return tratar_valores_cemei(total_por_nome_campo)
     valores = tratar_lanches_de_permissoes_lancamentos(valores)
     if escola.eh_emei:
         campos_repeticao = ["repeticao_refeicao", "repeticao_sobremesa"]
