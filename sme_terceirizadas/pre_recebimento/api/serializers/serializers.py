@@ -696,6 +696,7 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_primaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_secundaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")
@@ -748,6 +749,9 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "embalagem_secundaria",
             "embalagens_de_acordo_com_anexo",
             "material_embalagem_primaria",
+            "produto_eh_liquido",
+            "volume_embalagem_primaria",
+            "unidade_medida_volume_primaria",
             "peso_liquido_embalagem_primaria",
             "unidade_medida_primaria",
             "peso_liquido_embalagem_secundaria",
