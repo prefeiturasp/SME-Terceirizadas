@@ -17,6 +17,7 @@ from sme_terceirizadas.medicao_inicial.tasks import (
     cria_solicitacao_medicao_inicial_mes_atual,
     criar_nova_solicitacao,
     gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
+    gera_pdf_relatorio_unificado_async,
     solicitacao_medicao_atual_existe,
 )
 
@@ -76,6 +77,38 @@ class GeraPDFRelatorioSolicitacaoMedicaoPorEscolaAsyncTest(TestCase):
 
         gera_pdf_relatorio_solicitacao_medicao_por_escola_async(
             "user", "nome_arquivo", uuid_mock
+        )
+
+
+class GeraPDFRelatorioUnificadoMedicoesIniciaisAsyncTest(TestCase):
+    @patch("sme_terceirizadas.medicao_inicial.tasks.gera_objeto_na_central_download")
+    @patch("sme_terceirizadas.medicao_inicial.tasks.atualiza_central_download")
+    @patch(
+        "sme_terceirizadas.relatorios.relatorios.relatorio_consolidado_medicoes_iniciais_emef"
+    )
+    @patch(
+        "sme_terceirizadas.relatorios.relatorios.relatorio_solicitacao_medicao_por_escola"
+    )
+    @patch(
+        "sme_terceirizadas.medicao_inicial.tasks.SolicitacaoMedicaoInicial.objects.get"
+    )
+    @patch("sme_terceirizadas.medicao_inicial.tasks.logger.info")
+    def test_gera_pdf_relatorio_unificado_async(
+        self,
+        mock_logger_info,
+        mock_get,
+        mock_relatorio_somatorio,
+        mock_relatorio_lançamentos,
+        mock_atualiza,
+        mock_gera_objeto,
+    ):
+        mock_gera_objeto.return_value = Mock()
+        mock_relatorio_lançamentos.return_value = "arquivo_mock"
+        uuid_mock = "123456-abcd-7890"
+        tipos_de_unidade = ["EMEF", "CEUEMEF", "EMEFM", "EMEBS", "CIEJA", "CEU Gestão"]
+
+        gera_pdf_relatorio_unificado_async(
+            "user", "nome_arquivo", uuid_mock, tipos_de_unidade
         )
 
 

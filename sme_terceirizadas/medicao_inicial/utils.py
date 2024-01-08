@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 from calendar import monthrange
 from collections import defaultdict
 
@@ -26,9 +27,12 @@ from sme_terceirizadas.escola.models import (
 from sme_terceirizadas.escola.utils import string_to_faixa
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
+    SolicitacaoMedicaoInicial,
     ValorMedicao,
 )
 from sme_terceirizadas.paineis_consolidados.models import SolicitacoesEscola
+
+logger = logging.getLogger(__name__)
 
 
 def get_lista_categorias_campos(medicao):
@@ -2571,3 +2575,286 @@ def get_dict_alimentacoes_lancamentos_especiais(
                 {"nome": alimentacao.nome, "name": alimentacao.name, "uuid": None}
             )
     return dict_alimentacoes_lancamentos_especiais
+
+
+def build_tabela_relatorio_consolidado(ids_solicitacoes):
+    primeira_tabela = []
+    segunda_tabela = []
+
+    for id_solicitacao in ids_solicitacoes:
+        try:
+            solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=id_solicitacao)
+            row_primeira_tabela = build_row_solicitacao(solicitacao, 0)
+            row_segunda_tabela = build_row_solicitacao(solicitacao, 1)
+
+            primeira_tabela.append(row_primeira_tabela)
+            segunda_tabela.append(row_segunda_tabela)
+        except Exception as e:
+            logger.error(f"Erro ao gerar tabela somatorio: {e}")
+    return primeira_tabela, segunda_tabela
+
+
+def build_row_solicitacao(solicitacao, id_tabela):
+    eh_primeira_tabela = id_tabela == 0
+
+    campos_categorias_primeira_tabela = [
+        {
+            "categoria": "Solicitação Alimentação",
+            "campos": ["lanche_emergencial", "kit_lanche"],
+        },
+        {"categoria": "MANHA", "campos": ["lanche", "refeicao", "sobremesa"]},
+        {"categoria": "TARDE", "campos": ["lanche", "refeicao", "sobremesa"]},
+        {
+            "categoria": "INTEGRAL",
+            "campos": ["lanche_4h", "lanche", "refeicao", "sobremesa"],
+        },
+        {"categoria": "NOITE", "campos": ["lanche", "refeicao", "sobremesa"]},
+    ]
+
+    campos_categorias_segunda_tabela = [
+        {
+            "categoria": "Programas e Projetos",
+            "campos": ["lanche_4h", "lanche", "refeicao", "sobremesa"],
+        },
+        {"categoria": "ETEC", "campos": ["lanche_4h", "refeicao", "sobremesa"]},
+        {
+            "categoria": "DIETA TIPO A",
+            "campos": ["lanche_4h", "lanche_5h", "refeicao"],
+            "classificacao": ["Tipo A RESTRIÇÃO DE AMINOÁCIDOS", "Tipo A ENTERAL"],
+        },
+        {
+            "categoria": "DIETA TIPO B",
+            "campos": ["lanche_4h", "lanche_5h"],
+            "classificacao": ["TIPO B"],
+        },
+    ]
+
+    if eh_primeira_tabela:
+        return build_row_primeira_tabela(solicitacao, campos_categorias_primeira_tabela)
+    return build_row_segunda_tabela(solicitacao, campos_categorias_segunda_tabela)
+
+
+def get_total_solicitacoes_periodo(solicitacao, nome_campo):
+    try:
+        medicao = solicitacao.medicoes.get(grupo__nome__icontains="Solicitações")
+
+        total = sum(
+            int(medicao.valor)
+            for medicao in medicao.valores_medicao.filter(nome_campo=nome_campo)
+            if medicao.valor != "-"
+        )
+    except Exception:
+        total = "-"
+    return total or "-"
+
+
+def get_total_campo_periodo(solicitacao, periodo, nome_campo):
+    try:
+        medicao = solicitacao.medicoes.get(periodo_escolar__nome=periodo, grupo=None)
+
+        if nome_campo == "lanche":
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=["lanche", "2_lanche_5h"],
+            )
+        elif nome_campo == "lanche_4h":
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=["lanche_4h", "2_lanche_4h"],
+            )
+        else:
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=nome_campo
+            )
+        total = sum(
+            int(valor_medicao.valor)
+            for valor_medicao in valores
+            if valor_medicao.valor != "-"
+        )
+    except Exception:
+        total = "-"
+    return total or "-"
+
+
+def get_total_refeicoes_sobremesas_pagamento_por_periodo(solicitacao, periodo, campo):
+    try:
+        dias_no_mes = range(
+            1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1
+        )
+        medicao = solicitacao.medicoes.get(periodo_escolar__nome=periodo, grupo=None)
+        total = 0
+
+        for dia in dias_no_mes:
+            if campo == "refeicao":
+                valor_sobremesa = get_valor_campo_dia(medicao, "refeicao", dia)
+                valor_repeticao_sobremesa = get_valor_campo_dia(
+                    medicao, "repeticao_refeicao", dia
+                )
+                total_alimentacao = valor_sobremesa + valor_repeticao_sobremesa
+            else:
+                valor_sobremesa = get_valor_campo_dia(medicao, "sobremesa", dia)
+                valor_repeticao_sobremesa = get_valor_campo_dia(
+                    medicao, "repeticao_sobremesa", dia
+                )
+                total_alimentacao = valor_sobremesa + valor_repeticao_sobremesa
+
+            valor_matriculados = get_valor_campo_dia(medicao, "matriculados", dia)
+            valor_numero_de_alunos = get_valor_campo_dia(
+                medicao, "numero_de_alunos", dia
+            )
+            valor_comparativo = (
+                valor_matriculados if valor_matriculados > 0 else valor_numero_de_alunos
+            )
+
+            total_alimentacao = min(total_alimentacao, valor_comparativo)
+            total += total_alimentacao
+    except Exception:
+        total = "-"
+    return total or "-"
+
+
+def get_valor_campo_dia(medicao, nome_campo, dia):
+    valor_medicao = medicao.valores_medicao.filter(
+        categoria_medicao__nome="ALIMENTAÇÃO",
+        nome_campo=nome_campo,
+        dia=f"{dia:02d}",
+    ).first()
+    valor = int(valor_medicao.valor) if valor_medicao else 0
+    return valor
+
+
+def get_total_campo_grupo(solicitacao, grupo, nome_campo):
+    try:
+        medicao = solicitacao.medicoes.get(grupo__nome=grupo)
+
+        if nome_campo == "lanche":
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=["lanche", "2_lanche_5h"],
+            )
+        elif nome_campo == "lanche_4h":
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO",
+                nome_campo__in=["lanche_4h", "2_lanche_4h"],
+            )
+        else:
+            valores = medicao.valores_medicao.filter(
+                categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=nome_campo
+            )
+        total = sum(
+            int(valor_medicao.valor)
+            for valor_medicao in valores
+            if valor_medicao.valor != "-"
+        )
+    except Exception:
+        total = "-"
+    return total or "-"
+
+
+def get_total_refeicoes_sobremesas_pagamento_por_grupo(solicitacao, grupo, campo):
+    try:
+        dias_no_mes = range(
+            1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1
+        )
+        medicao = solicitacao.medicoes.get(grupo__nome=grupo)
+        total = 0
+
+        for dia in dias_no_mes:
+            if campo == "refeicao":
+                valor_sobremesa = get_valor_campo_dia(medicao, "refeicao", dia)
+                valor_repeticao_sobremesa = get_valor_campo_dia(
+                    medicao, "repeticao_refeicao", dia
+                )
+                total_alimentacao = valor_sobremesa + valor_repeticao_sobremesa
+            else:
+                valor_sobremesa = get_valor_campo_dia(medicao, "sobremesa", dia)
+                valor_repeticao_sobremesa = get_valor_campo_dia(
+                    medicao, "repeticao_sobremesa", dia
+                )
+                total_alimentacao = valor_sobremesa + valor_repeticao_sobremesa
+
+            valor_matriculados = get_valor_campo_dia(medicao, "matriculados", dia)
+            valor_numero_de_alunos = get_valor_campo_dia(
+                medicao, "numero_de_alunos", dia
+            )
+            valor_comparativo = (
+                valor_matriculados if valor_matriculados > 0 else valor_numero_de_alunos
+            )
+
+            total_alimentacao = min(total_alimentacao, valor_comparativo)
+            total += total_alimentacao
+    except Exception:
+        total = "-"
+    return total or "-"
+
+
+def get_total_dietas(solicitacao, classificacoes):
+    try:
+        logs_dietas = LogQuantidadeDietasAutorizadas.objects.filter(
+            escola=solicitacao.escola,
+            data__month=solicitacao.mes,
+            data__year=solicitacao.ano,
+            classificacao__nome__in=classificacoes,
+        )
+        quantidade = logs_dietas.aggregate(Sum("quantidade")).get("quantidade__sum")
+        total = quantidade or "-"
+
+    except LogQuantidadeDietasAutorizadas.DoesNotExist:
+        total = "-"
+    return total
+
+
+def build_row_primeira_tabela(solicitacao, campos_categorias):
+    body_tabela = [
+        solicitacao.escola.tipo_unidade,
+        solicitacao.escola.codigo_eol,
+        solicitacao.escola.nome,
+    ]
+
+    for campo_categoria in campos_categorias:
+        if campo_categoria["categoria"] == "Solicitação Alimentação":
+            for campo in campo_categoria["campos"]:
+                valor_campo = get_total_solicitacoes_periodo(solicitacao, campo)
+                body_tabela.append(valor_campo)
+        else:
+            for campo in campo_categoria["campos"]:
+                if campo in ["refeicao", "sobremesa"]:
+                    valor_campo = get_total_refeicoes_sobremesas_pagamento_por_periodo(
+                        solicitacao, campo_categoria["categoria"], campo
+                    )
+                    body_tabela.append(valor_campo)
+                else:
+                    valor_campo = get_total_campo_periodo(
+                        solicitacao, campo_categoria["categoria"], campo
+                    )
+                    body_tabela.append(valor_campo)
+    return body_tabela
+
+
+def build_row_segunda_tabela(solicitacao, campos_categorias):
+    body_tabela = [
+        solicitacao.escola.tipo_unidade,
+        solicitacao.escola.codigo_eol,
+        solicitacao.escola.nome,
+    ]
+
+    for campo_categoria in campos_categorias:
+        if "DIETA" in campo_categoria["categoria"]:
+            for campo in campo_categoria["campos"]:
+                valor_campo = get_total_dietas(
+                    solicitacao, campo_categoria["classificacao"]
+                )
+                body_tabela.append(valor_campo)
+        else:
+            for campo in campo_categoria["campos"]:
+                if campo in ["refeicao", "sobremesa"]:
+                    valor_campo = get_total_refeicoes_sobremesas_pagamento_por_grupo(
+                        solicitacao, campo_categoria["categoria"], campo
+                    )
+                    body_tabela.append(valor_campo)
+                else:
+                    valor_campo = get_total_campo_grupo(
+                        solicitacao, campo_categoria["categoria"], campo
+                    )
+                    body_tabela.append(valor_campo)
+    return body_tabela

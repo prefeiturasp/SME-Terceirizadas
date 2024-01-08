@@ -3,6 +3,10 @@
 {% block cabecalho_solicitacao_partindo_escola %}
   <hr style="color: #EEEEEE; opacity: 0.3">
   <h5 style="text-align: center">Relatório SIGPAE - {{ solicitacao.DESCRICAO }}</h5>
+  {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
+    <h5 style="text-align: center">Dieta Especial Destina-se à Aluno Não Matriculado na Rede Municipal de Ensino</h5>
+  {% endif %}
+
   <div class="row id-pedido">
     <div class="retangulo-id w-25">
       # {{ solicitacao.id_externo }} <br/> <span>Nº DA SOLICITAÇÃO</span>
