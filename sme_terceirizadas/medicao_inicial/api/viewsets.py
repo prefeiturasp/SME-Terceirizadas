@@ -560,36 +560,20 @@ class SolicitacaoMedicaoInicialViewSet(
         retorno = []
         for medicao in solicitacao.medicoes.all():
             campos_a_desconsiderar = get_campos_a_desconsiderar(escola, medicao)
-            valores = []
+            total_por_nome_campo = {}
             for valor_medicao in medicao.valores_medicao.exclude(
                 categoria_medicao__nome__icontains="DIETA"
             ):
-                tem_nome_campo = [
-                    valor
-                    for valor in valores
-                    if valor["nome_campo"] == valor_medicao.nome_campo
-                ]
                 if valor_medicao.nome_campo not in campos_a_desconsiderar:
-                    if tem_nome_campo:
-                        valores = [
-                            valor
-                            for valor in valores
-                            if valor["nome_campo"] != valor_medicao.nome_campo
-                        ]
-                        valores.append(
-                            {
-                                "nome_campo": valor_medicao.nome_campo,
-                                "valor": tem_nome_campo[0]["valor"]
-                                + int(valor_medicao.valor),
-                            }
-                        )
-                    else:
-                        valores.append(
-                            {
-                                "nome_campo": valor_medicao.nome_campo,
-                                "valor": int(valor_medicao.valor),
-                            }
-                        )
+                    total_por_nome_campo[
+                        valor_medicao.nome_campo
+                    ] = total_por_nome_campo.get(valor_medicao.nome_campo, 0) + int(
+                        valor_medicao.valor
+                    )
+            valores = valores = [
+                {"nome_campo": nome_campo, "valor": valor}
+                for nome_campo, valor in total_por_nome_campo.items()
+            ]
             valores = tratar_valores(escola, valores)
             valor_total = get_valor_total(escola, valores, medicao)
             dict_retorno = {
