@@ -18,6 +18,7 @@ from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
 from ..medicao_inicial.utils import (
+    build_tabela_relatorio_consolidado,
     build_tabela_somatorio_body,
     build_tabela_somatorio_body_cei,
     build_tabelas_relatorio_medicao,
@@ -1445,6 +1446,30 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
         },
     )
     return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
+
+
+def relatorio_consolidado_medicoes_iniciais_emef(
+    ids_solicitacoes, solicitacao, tipos_de_unidade
+):
+    primeira_tabela, segunda_tabela = build_tabela_relatorio_consolidado(
+        ids_solicitacoes
+    )
+
+    html_string = render_to_string(
+        "relatorio_consolidado_medicao_inicial.html",
+        {
+            "solicitacao": solicitacao,
+            "primeira_tabela": primeira_tabela,
+            "segunda_tabela": segunda_tabela,
+            "assinatura": solicitacao.assinatura_dre,
+            "grupo_unidade_escolar": tipos_de_unidade,
+            "data_atual": datetime.datetime.now().strftime("%d/%m/%Y %H:%M"),
+        },
+    )
+
+    return html_to_pdf_file(
+        html_string, "pagina_inicial_relatorio_consolidado.pdf", is_async=True
+    )
 
 
 def get_pdf_guia_distribuidor(data=None, many=False):
