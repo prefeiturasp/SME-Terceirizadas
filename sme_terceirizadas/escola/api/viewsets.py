@@ -61,6 +61,7 @@ from ..models import (
     Escola,
     EscolaPeriodoEscolar,
     FaixaEtaria,
+    GrupoUnidadeEscolar,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
@@ -96,6 +97,7 @@ from .serializers import (
     EscolaListagemSimplissimaComDRESelializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
+    GrupoUnidadeEscolarSerializer,
     LogAlunosMatriculadosPeriodoEscolaSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
@@ -992,3 +994,9 @@ class DiaSuspensaoAtividadesViewSet(ViewSetActionPermissionMixin, ModelViewSet):
             if str(error) == "`create()` did not return an object instance.":
                 return Response(status=status.HTTP_201_CREATED)
             return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GrupoUnidadeEscolarViewSet(ModelViewSet):
+    lookup_field = "uuid"
+    serializer_class = GrupoUnidadeEscolarSerializer
+    queryset = GrupoUnidadeEscolar.objects.all()

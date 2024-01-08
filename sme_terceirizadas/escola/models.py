@@ -2006,3 +2006,15 @@ class DiaSuspensaoAtividades(TemData, TemChaveExterna, CriadoEm, CriadoPor):
             "data",
         )
         ordering = ("data",)
+
+
+class GrupoUnidadeEscolar(TemChaveExterna, Nomeavel):
+    tipos_unidades = models.ManyToManyField(TipoUnidadeEscolar, blank=True)
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Grupo de unidade escolar"
+        verbose_name_plural = "Grupos de unidade escolar"
+        ordering = ("nome",)

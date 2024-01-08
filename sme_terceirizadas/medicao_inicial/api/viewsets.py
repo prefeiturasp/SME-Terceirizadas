@@ -36,6 +36,7 @@ from ...escola.models import (
     DiretoriaRegional,
     Escola,
     FaixaEtaria,
+    GrupoUnidadeEscolar,
     LogAlunosMatriculadosPeriodoEscola,
 )
 from ..models import (
@@ -50,7 +51,10 @@ from ..models import (
     TipoContagemAlimentacao,
     ValorMedicao,
 )
-from ..tasks import gera_pdf_relatorio_solicitacao_medicao_por_escola_async
+from ..tasks import (
+    gera_pdf_relatorio_solicitacao_medicao_por_escola_async,
+    gera_pdf_relatorio_unificado_async,
+)
 from ..utils import (
     atualizar_anexos_ocorrencia,
     atualizar_status_ocorrencia,
@@ -189,10 +193,11 @@ class SolicitacaoMedicaoInicialViewSet(
         except ValidationError as lista_erros:
             list_response = []
             for indice, erro in enumerate(lista_erros):
+                param = "erro" if "Restam dias" in erro else "periodo_escolar"
                 if indice % 2 == 0:
-                    obj = {"erro": erro}
+                    obj = {param: erro}
                 else:
-                    obj["periodo_escolar"] = erro
+                    obj[param] = erro
                     list_response.append(obj)
             return Response(list_response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -430,6 +435,50 @@ class SolicitacaoMedicaoInicialViewSet(
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=False, methods=["GET"], url_path="relatorio-unificado")
+    def relatorio_unificado(self, request):
+        user = request.user.get_username()
+        mes = request.query_params.get("mes")
+        ano = request.query_params.get("ano")
+        uuid_grupo_escolar = request.query_params.get("grupo_escolar")
+        status_solicitacao = request.query_params.get("status")
+        uuid_dre = request.query_params.get("dre")
+
+        diretoria_regional = DiretoriaRegional.objects.get(uuid=uuid_dre)
+        grupo_unidade_escolar = GrupoUnidadeEscolar.objects.get(uuid=uuid_grupo_escolar)
+        query_set = SolicitacaoMedicaoInicial.objects.filter(
+            mes=mes,
+            ano=ano,
+            status=status_solicitacao,
+            escola__diretoria_regional__uuid=uuid_dre,
+        )
+        tipos_de_unidade_do_grupo = [
+            tipo_unidade.iniciais
+            for tipo_unidade in grupo_unidade_escolar.tipos_unidades.all()
+        ]
+        tipos_de_unidade_do_grupo_str = ", ".join(tipos_de_unidade_do_grupo)
+
+        if query_set.exists():
+            solicitacoes = []
+            for solicitacao in query_set:
+                id_tipo_unidade = solicitacao.escola.tipo_unidade.id
+                if grupo_unidade_escolar.tipos_unidades.filter(
+                    id=id_tipo_unidade
+                ).exists():
+                    solicitacoes.append(solicitacao.uuid)
+            if solicitacoes:
+                nome_arquivo = f"Relatório Consolidado das Medições Inicias - {diretoria_regional.nome} - {grupo_unidade_escolar.nome} - {mes}/{ano}.pdf"
+                gera_pdf_relatorio_unificado_async.delay(
+                    user=user,
+                    nome_arquivo=nome_arquivo,
+                    ids_solicitacoes=solicitacoes,
+                    tipos_de_unidade=tipos_de_unidade_do_grupo_str,
+                )
+        return Response(
+            dict(detail="Solicitação de geração de arquivo recebida com sucesso."),
+            status=status.HTTP_200_OK,
+        )
+
     @action(
         detail=False,
         methods=["GET"],
@@ -551,7 +600,9 @@ class SolicitacaoMedicaoInicialViewSet(
                 "valor_total": valor_total,
             }
             if escola.eh_cei or (
-                escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo
+                escola.eh_cemei
+                and ("Infantil" not in medicao.nome_periodo_grupo)
+                and ("Solicitações" not in medicao.nome_periodo_grupo)
             ):
                 dict_retorno["quantidade_alunos"] = sum(v["valor"] for v in valores)
             retorno.append(dict_retorno)
@@ -1350,7 +1401,7 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        url_path="permissoes-lancamentos-especiais-mes-ano",
+        url_path="permissoes-lancamentos-especiais-mes-ano-por-periodo",
         permission_classes=[
             UsuarioEscolaTercTotal
             | UsuarioDiretoriaRegional
@@ -1358,7 +1409,7 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
             | UsuarioCODAEGestaoAlimentacao
         ],
     )
-    def permissoes_lancamentos_especiais_mes_ano(self, request):
+    def permissoes_lancamentos_especiais_mes_ano_por_periodo(self, request):
         escola_uuid = request.query_params.get("escola_uuid")
         mes = request.query_params.get("mes")
         ano = request.query_params.get("ano")
@@ -1412,6 +1463,55 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
                 else None,
             }
         }
+
+        return Response(data)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="periodos-permissoes-lancamentos-especiais-mes-ano",
+        permission_classes=[UsuarioEscolaTercTotal],
+    )
+    def periodos_permissoes_lancamentos_especiais_mes_ano(self, request):
+        escola_uuid = request.query_params.get("escola_uuid")
+        mes = request.query_params.get("mes")
+        ano = request.query_params.get("ano")
+
+        query_set = PermissaoLancamentoEspecial.objects.filter(
+            escola__uuid=escola_uuid,
+            data_inicial__month__lte=mes,
+            data_inicial__year=ano,
+        )
+        periodos = list(set(query_set.values_list("periodo_escolar__nome", flat=True)))
+        alimentacoes_por_periodo = []
+        for periodo in periodos:
+            permissoes = query_set.filter(periodo_escolar__nome=periodo)
+            listas_alimentacoes = [
+                list(
+                    set(
+                        permissao.alimentacoes_lancamento_especial.values_list(
+                            "nome", flat=True
+                        )
+                    )
+                )
+                for permissao in permissoes
+            ]
+            alimentacoes = list(
+                set(
+                    [
+                        alimentacao
+                        for lista in listas_alimentacoes
+                        for alimentacao in lista
+                    ]
+                )
+            )
+            alimentacoes_por_periodo.append(
+                {
+                    "periodo": periodo,
+                    "alimentacoes": alimentacoes,
+                }
+            )
+        data = {"results": alimentacoes_por_periodo}
 
         return Response(data)
 
