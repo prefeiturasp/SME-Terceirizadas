@@ -108,7 +108,23 @@ def buscar_valores_lancamento_alimentacoes(
     return lista_erros
 
 
-def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):  # noqa: C901
+def get_linhas_da_tabela(alimentacoes):
+    linhas_da_tabela = ["matriculados", "frequencia"]
+    for alimentacao in alimentacoes:
+        nome_formatado = get_nome_campo(alimentacao)
+        linhas_da_tabela.append(nome_formatado)
+        if nome_formatado == "refeicao":
+            linhas_da_tabela.append("repeticao_refeicao")
+        if nome_formatado == "sobremesa":
+            linhas_da_tabela.append("repeticao_sobremesa")
+        if nome_formatado == "2_refeicao_1_oferta":
+            linhas_da_tabela.append("2_sobremesa_1_oferta")
+        if nome_formatado == "repeticao_2_refeicao":
+            linhas_da_tabela.append("repeticao_2_sobremesa")
+    return linhas_da_tabela
+
+
+def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):
     escola = solicitacao.escola
     tipo_unidade = escola.tipo_unidade
     categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
@@ -129,18 +145,7 @@ def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):  # noqa:
             set(alimentacoes_vinculadas.values_list("nome", flat=True))
         )
         alimentacoes = alimentacoes_vinculadas + alimentacoes_permitidas
-        linhas_da_tabela = ["matriculados", "frequencia"]
-        for alimentacao in alimentacoes:
-            nome_formatado = get_nome_campo(alimentacao)
-            linhas_da_tabela.append(nome_formatado)
-            if nome_formatado == "refeicao":
-                linhas_da_tabela.append("repeticao_refeicao")
-            if nome_formatado == "sobremesa":
-                linhas_da_tabela.append("repeticao_sobremesa")
-            if nome_formatado == "2_refeicao_1_oferta":
-                linhas_da_tabela.append("2_sobremesa_1_oferta")
-            if nome_formatado == "repeticao_2_refeicao":
-                linhas_da_tabela.append("repeticao_2_sobremesa")
+        linhas_da_tabela = get_linhas_da_tabela(alimentacoes)
         lista_erros = buscar_valores_lancamento_alimentacoes(
             linhas_da_tabela,
             solicitacao,
@@ -573,7 +578,7 @@ def get_alimentacoes_permitidas(solicitacao, escola, periodo_escolar):
     return alimentacoes_permitidas
 
 
-def validate_lancamento_inclusoes(solicitacao, lista_erros):  # noqa: C901
+def validate_lancamento_inclusoes(solicitacao, lista_erros):
     escola = solicitacao.escola
     categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
     list_inclusoes = []
@@ -606,18 +611,7 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):  # noqa: C901
                 set(tipos_alimentacao.values_list("nome", flat=True))
             )
             alimentacoes = tipos_alimentacao + alimentacoes_permitidas
-            linhas_da_tabela = ["matriculados", "frequencia"]
-            for alimentacao in alimentacoes:
-                nome_formatado = get_nome_campo(alimentacao)
-                linhas_da_tabela.append(nome_formatado)
-                if nome_formatado == "refeicao":
-                    linhas_da_tabela.append("repeticao_refeicao")
-                if nome_formatado == "sobremesa":
-                    linhas_da_tabela.append("repeticao_sobremesa")
-                if nome_formatado == "2_refeicao_1_oferta":
-                    linhas_da_tabela.append("2_sobremesa_1_oferta")
-                if nome_formatado == "repeticao_2_refeicao":
-                    linhas_da_tabela.append("repeticao_2_sobremesa")
+            linhas_da_tabela = get_linhas_da_tabela(alimentacoes)
 
             dia_da_inclusao = str(inclusao.data.day)
             if len(dia_da_inclusao) == 1:
