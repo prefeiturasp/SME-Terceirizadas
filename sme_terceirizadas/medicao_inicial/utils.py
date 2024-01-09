@@ -1399,142 +1399,44 @@ def build_tabelas_relatorio_medicao_cei(solicitacao):
     return tabelas_populadas, dias_letivos
 
 
-def tratar_lanches_de_permissoes_lancamentos(valores):
-    segundo_lanche_5h = [
-        valor for valor in valores if valor["nome_campo"] == "2_lanche_5h"
-    ]
-    segundo_lanche_4h = [
-        valor for valor in valores if valor["nome_campo"] == "2_lanche_4h"
-    ]
-    if segundo_lanche_5h:
-        valor_segundo_lanche_5h = segundo_lanche_5h[0]["valor"]
-        obj_lanche = [valor for valor in valores if valor["nome_campo"] == "lanche"]
-        valor_lanche = obj_lanche[0]["valor"] if obj_lanche else 0
-        valores = [
-            valor
-            for valor in valores
-            if valor["nome_campo"] not in ["2_lanche_5h", "lanche"]
-        ]
-        valores.append(
-            {
-                "nome_campo": "lanche",
-                "valor": valor_segundo_lanche_5h + valor_lanche,
-            }
-        )
-    if segundo_lanche_4h:
-        valor_segundo_lanche_4h = segundo_lanche_4h[0]["valor"]
-        obj_lanche_4h = [
-            valor for valor in valores if valor["nome_campo"] == "lanche_4h"
-        ]
-        valor_lanche_4h = obj_lanche_4h[0]["valor"] if obj_lanche_4h else 0
-        valores = [
-            valor
-            for valor in valores
-            if valor["nome_campo"] not in ["2_lanche_4h", "lanche_4h"]
-        ]
-        valores.append(
-            {
-                "nome_campo": "lanche_4h",
-                "valor": valor_segundo_lanche_4h + valor_lanche_4h,
-            }
-        )
-    return valores
+def tratar_lanches_de_permissoes_lancamentos(total_por_nome_campo: dict):
+    total_por_nome_campo["lanche"] = total_por_nome_campo.pop(
+        "lanche", 0
+    ) + total_por_nome_campo.pop("2_lanche_5h", 0)
+    total_por_nome_campo["lanche_4h"] = total_por_nome_campo.pop(
+        "lanche_4h", 0
+    ) + total_por_nome_campo.pop("2_lanche_4h", 0)
+    return total_por_nome_campo
 
 
-def tratar_segunda_refeicao_permissoes_lancamentos(valores, eh_emei=False):
-    segunda_refeicao_1_oferta = [
-        valor for valor in valores if valor["nome_campo"] == "2_refeicao_1_oferta"
-    ]
-    repeticao_2_refeicao = [
-        valor for valor in valores if valor["nome_campo"] == "repeticao_2_refeicao"
-    ]
-    if segunda_refeicao_1_oferta:
-        valor_segunda_refeicao_1_oferta = segunda_refeicao_1_oferta[0]["valor"]
-        obj_refeicao = [valor for valor in valores if valor["nome_campo"] == "refeicao"]
-        valor_refeicao = obj_refeicao[0]["valor"] if obj_refeicao else 0
-        valores = [
-            valor
-            for valor in valores
-            if valor["nome_campo"] not in ["2_refeicao_1_oferta", "refeicao"]
-        ]
-        valores.append(
-            {
-                "nome_campo": "refeicao",
-                "valor": valor_segunda_refeicao_1_oferta + valor_refeicao,
-            }
-        )
-    if repeticao_2_refeicao and not eh_emei:
-        valor_repeticao_2_refeicao = repeticao_2_refeicao[0]["valor"]
-        obj_refeicao = [valor for valor in valores if valor["nome_campo"] == "refeicao"]
-        valor_refeicao = obj_refeicao[0]["valor"] if obj_refeicao else 0
-        valores = [
-            valor
-            for valor in valores
-            if valor["nome_campo"] not in ["repeticao_2_refeicao", "refeicao"]
-        ]
-        valores.append(
-            {
-                "nome_campo": "refeicao",
-                "valor": valor_repeticao_2_refeicao + valor_refeicao,
-            }
-        )
-    if eh_emei:
-        valores = [
-            valor
-            for valor in valores
-            if valor["nome_campo"] not in ["repeticao_2_refeicao"]
-        ]
-    return valores
+def tratar_segunda_refeicao_permissoes_lancamentos(
+    total_por_nome_campo: dict, eh_emei=False
+):
+    total_por_nome_campo["refeicao"] = total_por_nome_campo.pop(
+        "refeicao", 0
+    ) + total_por_nome_campo.pop("2_refeicao_1_oferta", 0)
+
+    total_repeticao_2_refeicao = total_por_nome_campo.pop("repeticao_2_refeicao", 0)
+
+    if not eh_emei:
+        total_por_nome_campo["refeicao"] += total_repeticao_2_refeicao
+
+    return total_por_nome_campo
 
 
-def tratar_segunda_sobremesa_permissoes_lancamentos(valores, eh_emei=False):
-    segunda_sobremesa_1_oferta = [
-        valor for valor in valores if valor["nome_campo"] == "2_sobremesa_1_oferta"
-    ]
-    repeticao_2_sobremesa = [
-        valor for valor in valores if valor["nome_campo"] == "repeticao_2_sobremesa"
-    ]
-    if segunda_sobremesa_1_oferta:
-        valor_segunda_sobremesa_1_oferta = segunda_sobremesa_1_oferta[0]["valor"]
-        obj_sobremesa = [
-            valor for valor in valores if valor["nome_campo"] == "sobremesa"
-        ]
-        valor_refeicao = obj_sobremesa[0]["valor"] if obj_sobremesa else 0
-        valores = [
-            valor
-            for valor in valores
-            if valor["nome_campo"] not in ["2_sobremesa_1_oferta", "sobremesa"]
-        ]
-        valores.append(
-            {
-                "nome_campo": "sobremesa",
-                "valor": valor_segunda_sobremesa_1_oferta + valor_refeicao,
-            }
-        )
-    if repeticao_2_sobremesa and not eh_emei:
-        valor_repeticao_2_sobremesa = repeticao_2_sobremesa[0]["valor"]
-        obj_sobremesa = [
-            valor for valor in valores if valor["nome_campo"] == "sobremesa"
-        ]
-        valor_sobremesa = obj_sobremesa[0]["valor"] if obj_sobremesa else 0
-        valores = [
-            valor
-            for valor in valores
-            if valor["nome_campo"] not in ["repeticao_2_sobremesa", "sobremesa"]
-        ]
-        valores.append(
-            {
-                "nome_campo": "sobremesa",
-                "valor": valor_repeticao_2_sobremesa + valor_sobremesa,
-            }
-        )
-    if eh_emei:
-        valores = [
-            valor
-            for valor in valores
-            if valor["nome_campo"] not in ["repeticao_2_sobremesa"]
-        ]
-    return valores
+def tratar_segunda_sobremesa_permissoes_lancamentos(
+    total_por_nome_campo: dict, eh_emei=False
+):
+    total_por_nome_campo["sobremesa"] = total_por_nome_campo.pop(
+        "sobremesa", 0
+    ) + total_por_nome_campo.pop("2_sobremesa_1_oferta", 0)
+
+    total_repeticao_2_sobremesa = total_por_nome_campo.pop("repeticao_2_sobremesa", 0)
+
+    if not eh_emei:
+        total_por_nome_campo["sobremesa"] += total_repeticao_2_sobremesa
+
+    return total_por_nome_campo
 
 
 def get_total_refeicao_tratado_cemei(total_por_nome_campo) -> int:
@@ -1563,80 +1465,56 @@ def get_total_lanche_tratado_cemei(total_por_nome_campo) -> int:
     )
 
 
-def tratar_valores_cemei(total_por_nome_campo):
+def tratar_valores_cemei(total_por_nome_campo: dict):
+    total_por_nome_campo["refeicao"] = get_total_refeicao_tratado_cemei(
+        total_por_nome_campo
+    )
+    total_por_nome_campo["sobremesa"] = get_total_sobremesa_tratado_cemei(
+        total_por_nome_campo
+    )
+    total_por_nome_campo["lanche"] = get_total_lanche_tratado_cemei(
+        total_por_nome_campo
+    )
+
+    return total_por_nome_campo
+
+
+def tratar_valores(escola, total_por_nome_campo: dict):
     _total_por_nome_campo = total_por_nome_campo.copy()
 
-    _total_por_nome_campo["refeicao"] = get_total_refeicao_tratado_cemei(
-        _total_por_nome_campo
-    )
-    _total_por_nome_campo["sobremesa"] = get_total_sobremesa_tratado_cemei(
-        _total_por_nome_campo
-    )
-    _total_por_nome_campo["lanche"] = get_total_lanche_tratado_cemei(
-        _total_por_nome_campo
-    )
-
-    return [
-        {"nome_campo": nome_campo, "valor": valor}
-        for nome_campo, valor in _total_por_nome_campo.items()
-    ]
-
-
-def tratar_valores(escola, valores, total_por_nome_campo=None):
     if escola.eh_cemei:
-        return tratar_valores_cemei(total_por_nome_campo)
-    valores = tratar_lanches_de_permissoes_lancamentos(valores)
+        return tratar_valores_cemei(_total_por_nome_campo)
+
+    _total_por_nome_campo = tratar_lanches_de_permissoes_lancamentos(
+        _total_por_nome_campo
+    )
+
+    total_repeticao_refeicao = _total_por_nome_campo.pop("repeticao_refeicao", 0)
+    total_repeticao_sobremesa = _total_por_nome_campo.pop("repeticao_sobremesa", 0)
+
     if escola.eh_emei:
-        campos_repeticao = ["repeticao_refeicao", "repeticao_sobremesa"]
-        valores = [
-            valor for valor in valores if valor["nome_campo"] not in campos_repeticao
-        ]
-        valores = tratar_segunda_refeicao_permissoes_lancamentos(valores, True)
-        valores = tratar_segunda_sobremesa_permissoes_lancamentos(valores, True)
+        _total_por_nome_campo = tratar_segunda_refeicao_permissoes_lancamentos(
+            _total_por_nome_campo, True
+        )
+        _total_por_nome_campo = tratar_segunda_sobremesa_permissoes_lancamentos(
+            _total_por_nome_campo, True
+        )
     else:
-        repeticao_refeicao = [
-            valor for valor in valores if valor["nome_campo"] == "repeticao_refeicao"
-        ]
-        repeticao_sobremesa = [
-            valor for valor in valores if valor["nome_campo"] == "repeticao_sobremesa"
-        ]
-        if repeticao_refeicao:
-            valor_repeticao_refeicao = repeticao_refeicao[0]["valor"]
-            obj_refeicao = [
-                valor for valor in valores if valor["nome_campo"] == "refeicao"
-            ]
-            valor_refeicao = obj_refeicao[0]["valor"] if obj_refeicao else 0
-            campos_refeicao = ["refeicao", "repeticao_refeicao"]
-            valores = [
-                valor for valor in valores if valor["nome_campo"] not in campos_refeicao
-            ]
-            valores.append(
-                {
-                    "nome_campo": "refeicao",
-                    "valor": valor_repeticao_refeicao + valor_refeicao,
-                }
-            )
-        if repeticao_sobremesa:
-            valor_repeticao_sobremesa = repeticao_sobremesa[0]["valor"]
-            obj_sobremesa = [
-                valor for valor in valores if valor["nome_campo"] == "sobremesa"
-            ]
-            valor_sobremesa = obj_sobremesa[0]["valor"] if obj_sobremesa else 0
-            campos_sobremesa = ["sobremesa", "repeticao_sobremesa"]
-            valores = [
-                valor
-                for valor in valores
-                if valor["nome_campo"] not in campos_sobremesa
-            ]
-            valores.append(
-                {
-                    "nome_campo": "sobremesa",
-                    "valor": valor_repeticao_sobremesa + valor_sobremesa,
-                }
-            )
-        valores = tratar_segunda_refeicao_permissoes_lancamentos(valores)
-        valores = tratar_segunda_sobremesa_permissoes_lancamentos(valores)
-    return valores
+        _total_por_nome_campo["refeicao"] = (
+            _total_por_nome_campo.pop("refeicao", 0) + total_repeticao_refeicao
+        )
+        _total_por_nome_campo["sobremesa"] = (
+            _total_por_nome_campo.pop("sobremesa", 0) + total_repeticao_sobremesa
+        )
+
+        _total_por_nome_campo = tratar_segunda_refeicao_permissoes_lancamentos(
+            _total_por_nome_campo
+        )
+        _total_por_nome_campo = tratar_segunda_sobremesa_permissoes_lancamentos(
+            _total_por_nome_campo
+        )
+
+    return _total_por_nome_campo
 
 
 def get_nome_campo(campo):
@@ -2586,8 +2464,8 @@ def tratar_workflow_todos_lancamentos(usuario, raw_sql):
     return raw_sql
 
 
-def get_valor_total(escola, valores, medicao):
-    valor_total = sum(v["valor"] for v in valores)
+def get_valor_total(escola, total_por_nome_campo, medicao):
+    valor_total = sum(total_por_nome_campo.values())
     if escola.eh_cei or (
         escola.eh_cemei
         and ("Infantil" not in medicao.nome_periodo_grupo)

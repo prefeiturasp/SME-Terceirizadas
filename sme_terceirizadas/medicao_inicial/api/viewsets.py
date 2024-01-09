@@ -570,14 +570,12 @@ class SolicitacaoMedicaoInicialViewSet(
                     ] = total_por_nome_campo.get(valor_medicao.nome_campo, 0) + int(
                         valor_medicao.valor
                     )
-            valores = valores = [
+            total_por_nome_campo = tratar_valores(escola, total_por_nome_campo)
+            valor_total = get_valor_total(escola, total_por_nome_campo, medicao)
+            valores = [
                 {"nome_campo": nome_campo, "valor": valor}
                 for nome_campo, valor in total_por_nome_campo.items()
             ]
-            valores = tratar_valores(
-                escola, valores, total_por_nome_campo=total_por_nome_campo
-            )
-            valor_total = get_valor_total(escola, valores, medicao)
             dict_retorno = {
                 "nome_periodo_grupo": medicao.nome_periodo_grupo,
                 "status": medicao.status.name,
