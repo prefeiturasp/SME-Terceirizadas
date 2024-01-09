@@ -1440,20 +1440,18 @@ def tratar_segunda_sobremesa_permissoes_lancamentos(
 
 
 def get_total_refeicao_tratado_cemei(total_por_nome_campo) -> int:
-    return (
-        total_por_nome_campo.pop("refeicao", 0)
-        + total_por_nome_campo.pop("repeticao_refeicao", 0)
-        + total_por_nome_campo.pop("2_refeicao_1_oferta", 0)
-        + total_por_nome_campo.pop("repeticao_2_refeicao", 0)
+    total_por_nome_campo.pop("repeticao_refeicao", None)
+    total_por_nome_campo.pop("repeticao_2_refeicao", None)
+    return total_por_nome_campo.pop("refeicao", 0) + total_por_nome_campo.pop(
+        "2_refeicao_1_oferta", 0
     )
 
 
 def get_total_sobremesa_tratado_cemei(total_por_nome_campo) -> int:
-    return (
-        total_por_nome_campo.pop("sobremesa", 0)
-        + total_por_nome_campo.pop("repeticao_sobremesa", 0)
-        + total_por_nome_campo.pop("2_sobremesa_1_oferta", 0)
-        + total_por_nome_campo.pop("repeticao_2_sobremesa", 0)
+    total_por_nome_campo.pop("repeticao_sobremesa", None)
+    total_por_nome_campo.pop("repeticao_2_sobremesa", None)
+    return total_por_nome_campo.pop("sobremesa", 0) + total_por_nome_campo.pop(
+        "2_sobremesa_1_oferta", 0
     )
 
 
