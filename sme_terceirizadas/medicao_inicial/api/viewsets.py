@@ -29,6 +29,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin,
 )
+from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
 )
@@ -1414,13 +1415,15 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
         mes = request.query_params.get("mes")
         ano = request.query_params.get("ano")
         nome_periodo_escolar = request.query_params.get("nome_periodo_escolar")
+        primeiro_dia_mes = datetime.date(int(ano), int(mes), 1)
+        ultimo_dia_mes = get_ultimo_dia_mes(primeiro_dia_mes)
 
         query_set = PermissaoLancamentoEspecial.objects.filter(
             escola__uuid=escola_uuid,
             periodo_escolar__nome=nome_periodo_escolar,
-            data_inicial__month__lte=mes,
-            data_inicial__year=ano,
-        )
+            data_inicial__lte=ultimo_dia_mes,
+        ).filter(Q(data_final__gte=primeiro_dia_mes) | Q(data_final=None))
+
         permissoes_por_dia = []
         alimentacoes_lancamentos_especiais_names = []
         for permissao in query_set:
