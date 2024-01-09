@@ -254,9 +254,13 @@ TIPO_SOLICITACAO_DIETA = {
 
 ORDEM_PERIODOS_GRUPOS = {
     "MANHA": 1,
+    "Infantil MANHA": 1,
     "TARDE": 2,
+    "Infantil TARDE": 2,
     "INTEGRAL": 3,
+    "Infantil INTEGRAL": 3,
     "NOITE": 4,
+    "Infantil NOITE": 4,
     "VESPERTINO": 5,
     "Programas e Projetos": 6,
     "Solicitações de Alimentação": 7,
