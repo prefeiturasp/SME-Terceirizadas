@@ -172,6 +172,8 @@ class SolicitacaoDietaEspecialAutorizarSerializer(
         if data_termino:
             data_termino = datetime.strptime(data_termino, "%Y-%m-%d").date()
             instance.data_termino = data_termino
+        else:
+            instance.data_termino = None
 
         instance.alergias_intolerancias.clear()
 
