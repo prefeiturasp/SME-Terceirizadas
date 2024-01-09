@@ -727,7 +727,7 @@ class FichaTecnicaDoProduto(
     gluten = models.BooleanField("Contém glúten?", null=True)
     lactose = models.BooleanField("Contém lactose?", null=True)
     lactose_detalhe = models.CharField("Detalhar Lactose", max_length=150, blank=True)
-    porcao = models.CharField("Porção", max_length=50, blank=True)
+    porcao = models.FloatField("Porção", blank=True, null=True)
     unidade_medida_porcao = models.ForeignKey(
         UnidadeMedida,
         on_delete=models.PROTECT,
@@ -735,10 +735,10 @@ class FichaTecnicaDoProduto(
         null=True,
         related_name="fichas_tecnicas_unidade_porcao",
     )
-    valor_unidade_caseira = models.CharField(
+    valor_unidade_caseira = models.FloatField(
         "Unidade Caseira",
-        max_length=50,
         blank=True,
+        null=True,
     )
     unidade_medida_caseira = models.CharField(
         "Unidade de Medida Caseira",
