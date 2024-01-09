@@ -1009,8 +1009,8 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         required=True, allow_blank=True
     )
     condicoes_de_conservacao = serializers.CharField(required=True, allow_blank=True)
-    temperatura_congelamento = serializers.CharField(required=True, allow_blank=True)
-    temperatura_veiculo = serializers.CharField(required=True, allow_blank=True)
+    temperatura_congelamento = serializers.FloatField(required=True, allow_null=True)
+    temperatura_veiculo = serializers.FloatField(required=True, allow_null=True)
     condicoes_de_transporte = serializers.CharField(required=True, allow_blank=True)
     embalagem_primaria = serializers.CharField(required=True, allow_blank=True)
     embalagem_secundaria = serializers.CharField(required=True, allow_blank=True)

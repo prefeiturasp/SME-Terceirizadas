@@ -756,11 +756,15 @@ class FichaTecnicaDoProduto(
         help_text="Condições de conservação e Prazo máximo para consumo após a abertura da embalagem primária",
         blank=True,
     )
-    temperatura_congelamento = models.CharField(
-        "Temperatura de Congelamento do Produto", max_length=10, blank=True
+    temperatura_congelamento = models.FloatField(
+        "Temperatura de Congelamento do Produto",
+        blank=True,
+        null=True,
     )
-    temperatura_veiculo = models.CharField(
-        "Temperatura Interna do Veículo para Transporte", max_length=10, blank=True
+    temperatura_veiculo = models.FloatField(
+        "Temperatura Interna do Veículo para Transporte",
+        blank=True,
+        null=True,
     )
     condicoes_de_transporte = models.TextField("Condições de Transporte", blank=True)
     embalagem_primaria = models.TextField("Embalagem Primária", blank=True)
