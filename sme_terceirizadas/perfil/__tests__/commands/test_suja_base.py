@@ -1,4 +1,5 @@
 import os
+import random
 from unittest import TestCase, mock
 
 import pytest
@@ -23,7 +24,7 @@ class SujaBaseCommandTest(TestCase):
             Usuario,
             nome="Fulano da Silva",
             email="fulano@teste.com",
-            cpf="52347255100",
+            cpf="".join([str(random.randint(0, 9)) for _ in range(11)]),
             registro_funcional="1234567",
         )
         mommy.make(

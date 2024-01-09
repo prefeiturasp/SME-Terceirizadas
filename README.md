@@ -239,7 +239,7 @@ celery -A config worker --beat --scheduler django --loglevel=info
 
 Pré-requisitos:
 
-* Python 3.10.13
+* Python 3.11.7
 * pipenv versão 2023.11.15
 
 Para instalação dos pré-requisitos utilizando o Pyenv, abra um terminal na pasta do backend do projeto na sua máquina e execute os comandos abaixo:
@@ -249,10 +249,10 @@ Para instalação dos pré-requisitos utilizando o Pyenv, abra um terminal na pa
 $ pyenv update
 
 # Instale a versão necessária do Python
-$ pyenv install 3.10.13
+$ pyenv install 3.11.7
 
 # Defina a versão do Python para a pasta
-$ pyenv local 3.10.13
+$ pyenv local 3.11.7
 
 $ pip install pipenv==2023.11.15
 

@@ -157,6 +157,7 @@ def escola(tipo_unidade_escolar):
         diretoria_regional=diretoria_regional,
         tipo_gestao=tipo_gestao,
         tipo_unidade=tipo_unidade_escolar,
+        codigo_eol="123456",
     )
 
 
@@ -244,6 +245,31 @@ def solicitacao_medicao_inicial_cemei(escola_cemei, categoria_medicao):
     mommy.make(
         "FaixaEtaria", inicio=1, fim=10, uuid="0c914b27-c7cd-4682-a439-a4874745b005"
     )
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_cei(escola_cei, categoria_medicao):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_integral = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=4,
+        ano=2023,
+        escola=escola_cei,
+        ue_possui_alunos_periodo_parcial=True,
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_integral,
+    )
+    mommy.make(
+        "FaixaEtaria", inicio=1, fim=10, uuid="0c914b27-c7cd-4682-a439-a4874745b005"
+    )
+    mommy.make("Aluno", periodo_escolar=periodo_manha, escola=escola_cei)
     return solicitacao_medicao
 
 
@@ -693,6 +719,28 @@ def escola_com_logs_para_medicao(
     kit_lanche_1,
     kit_lanche_2,
 ):
+    grupo_inclusao_normal = mommy.make(
+        "GrupoInclusaoAlimentacaoNormal",
+        status="CODAE_AUTORIZADO",
+        rastro_escola=escola,
+        escola=escola,
+    )
+
+    mommy.make(
+        "InclusaoAlimentacaoNormal",
+        grupo_inclusao=grupo_inclusao_normal,
+        data=datetime.date(2023, 9, 3),
+    )
+
+    qp = mommy.make(
+        "QuantidadePorPeriodo",
+        grupo_inclusao_normal=grupo_inclusao_normal,
+        numero_alunos=100,
+        periodo_escolar=periodo_escolar_manha,
+    )
+    qp.tipos_alimentacao.add(tipo_alimentacao_refeicao)
+    qp.save()
+
     inclusao_continua_programas_projetos = mommy.make(
         "InclusaoAlimentacaoContinua",
         escola=escola,
@@ -867,7 +915,7 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         quantidade_alunos=10,
     )
 
-    mommy.make(
+    medicao_manha = mommy.make(
         "Medicao",
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_escolar_manha,
@@ -895,7 +943,6 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
         solicitacao_medicao_inicial=solicitacao_medicao,
         grupo=grupo_solicitacoes_alimentacao,
     )
-
     for dia in range(1, 31):
         mommy.make(
             "DiaCalendario",
@@ -903,24 +950,46 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
             data=f"2023-09-{dia:02d}",
             dia_letivo=False,
         )
-        for nome_campo in [
-            "numero_de_alunos",
-            "frequencia",
-            "lanche",
-            "lanche_4h",
-            "refeicao",
-            "repeticao_refeicao",
-            "sobremesa",
-            "repeticao_sobremesa",
+
+    for medicao_ in [medicao_manha, medicao_programas_projetos]:
+        for dia in range(1, 31):
+            for nome_campo in [
+                "numero_de_alunos",
+                "frequencia",
+                "lanche",
+                "lanche_4h",
+                "refeicao",
+                "repeticao_refeicao",
+                "sobremesa",
+                "repeticao_sobremesa",
+            ]:
+                mommy.make(
+                    "ValorMedicao",
+                    medicao=medicao_,
+                    nome_campo=nome_campo,
+                    dia=f"{dia:02d}",
+                    categoria_medicao=categoria_medicao,
+                    valor="10",
+                )
+    for nome_campo in [
+        "frequencia",
+        "lanche",
+        "lanche_4h",
+        "refeicao",
+    ]:
+        for categoria_medicao in [
+            categoria_medicao_dieta_a,
+            categoria_medicao_dieta_a_enteral_aminoacidos,
         ]:
             mommy.make(
                 "ValorMedicao",
-                medicao=medicao_programas_projetos,
                 nome_campo=nome_campo,
-                dia=f"{dia:02d}",
+                medicao=medicao_manha,
+                dia="03",
                 categoria_medicao=categoria_medicao,
                 valor="10",
             )
+
     return solicitacao_medicao
 
 
@@ -1622,3 +1691,23 @@ def logs_alunos_matriculados_periodo_escola_cemei(escola_cemei):
         tipo_turma=TipoTurma.REGULAR.name,
     )
     return LogAlunosMatriculadosPeriodoEscola.objects.all()
+
+
+@pytest.fixture
+def grupo_escolar():
+    grupo_escolar = mommy.make(
+        "GrupoUnidadeEscolar",
+        nome="Grupo 4",
+        uuid="5bd9ad5c-e0ab-4812-b2b6-336fc8988960",
+    )
+    return grupo_escolar.uuid
+
+
+@pytest.fixture
+def diretoria_regional():
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL IPIRANGA",
+        uuid="3972e0e9-2d8e-472a-9dfa-30cd219a6d9a",
+    )
+    return diretoria_regional.uuid

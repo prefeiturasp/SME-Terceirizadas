@@ -11,6 +11,7 @@ from sme_terceirizadas.pre_recebimento.models import (
     DocumentoDeRecebimento,
     EtapasDoCronograma,
     ImagemDoTipoDeEmbalagem,
+    InformacoesNutricionaisFichaTecnica,
     Laboratorio,
     LayoutDeEmbalagem,
     ProgramacaoDoRecebimentoDoCronograma,
@@ -22,6 +23,7 @@ from sme_terceirizadas.pre_recebimento.models import (
 )
 from sme_terceirizadas.produto.api.serializers.serializers import (
     FabricanteSimplesSerializer,
+    InformacaoNutricionalSerializer,
     MarcaSimplesSerializer,
     NomeDeProdutoEditalSerializer,
     UnidadeMedidaSerialzer,
@@ -66,6 +68,44 @@ class EtapasDoCronogramaSerializer(serializers.ModelSerializer):
             "data_programada",
             "quantidade",
             "total_embalagens",
+        )
+
+
+class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
+    nome_produto = serializers.SerializerMethodField()
+    uuid_cronograma = serializers.SerializerMethodField()
+    numero_cronograma = serializers.SerializerMethodField()
+    nome_fornecedor = serializers.SerializerMethodField()
+    data_programada = serializers.SerializerMethodField()
+
+    def get_nome_produto(self, obj):
+        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+
+    def get_uuid_cronograma(self, obj):
+        return obj.cronograma.uuid if obj.cronograma else None
+
+    def get_numero_cronograma(self, obj):
+        return str(obj.cronograma.numero) if obj.cronograma else None
+
+    def get_nome_fornecedor(self, obj):
+        return obj.cronograma.empresa.nome_fantasia if obj.cronograma.empresa else None
+
+    def get_data_programada(self, obj):
+        return obj.data_programada.strftime("%d/%m/%Y") if obj.data_programada else None
+
+    class Meta:
+        model = EtapasDoCronograma
+        fields = (
+            "uuid",
+            "nome_produto",
+            "uuid_cronograma",
+            "numero_cronograma",
+            "nome_fornecedor",
+            "data_programada",
+            "numero_empenho",
+            "etapa",
+            "parte",
+            "quantidade",
         )
 
 
@@ -628,13 +668,34 @@ class FichaTecnicaListagemSerializer(serializers.ModelSerializer):
         )
 
 
+class InformacoesNutricionaisFichaTecnicaSerializer(serializers.ModelSerializer):
+    informacao_nutricional = InformacaoNutricionalSerializer()
+
+    class Meta:
+        model = InformacoesNutricionaisFichaTecnica
+        fields = (
+            "uuid",
+            "informacao_nutricional",
+            "quantidade_por_100g",
+            "quantidade_porcao",
+            "valor_diario",
+        )
+        read_only_fields = ("uuid",)
+
+
 class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     criado_em = serializers.SerializerMethodField()
     produto = NomeDeProdutoEditalSerializer()
     marca = MarcaSimplesSerializer()
     empresa = TerceirizadaLookUpSerializer()
     fabricante = FabricanteSimplesSerializer()
+    unidade_medida_porcao = NomeEAbreviacaoUnidadeMedidaSerializer()
     status = serializers.CharField(source="get_status_display")
+    informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaSerializer(many=True)
+    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_primaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_secundaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")
@@ -673,4 +734,35 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "gluten",
             "lactose",
             "lactose_detalhe",
+            "porcao",
+            "unidade_medida_porcao",
+            "valor_unidade_caseira",
+            "unidade_medida_caseira",
+            "informacoes_nutricionais",
+            "prazo_validade_descongelamento",
+            "condicoes_de_conservacao",
+            "temperatura_congelamento",
+            "temperatura_veiculo",
+            "condicoes_de_transporte",
+            "embalagem_primaria",
+            "embalagem_secundaria",
+            "embalagens_de_acordo_com_anexo",
+            "material_embalagem_primaria",
+            "peso_liquido_embalagem_primaria",
+            "unidade_medida_primaria",
+            "peso_liquido_embalagem_secundaria",
+            "unidade_medida_secundaria",
+            "peso_embalagem_primaria_vazia",
+            "unidade_medida_primaria_vazia",
+            "peso_embalagem_secundaria_vazia",
+            "unidade_medida_secundaria_vazia",
+            "variacao_percentual",
+            "sistema_vedacao_embalagem_secundaria",
+            "rotulo_legivel",
+            "nome_responsavel_tecnico",
+            "habilitacao",
+            "numero_registro_orgao",
+            "arquivo",
+            "modo_de_preparo",
+            "informacoes_adicionais",
         )

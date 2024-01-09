@@ -11,6 +11,7 @@ from rest_framework.test import APIClient
 from sme_terceirizadas.dados_comuns import constants
 from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
 from sme_terceirizadas.dados_comuns.fluxo_status import (
+    CronogramaWorkflow,
     DocumentoDeRecebimentoWorkflow,
     LayoutDeEmbalagemWorkflow,
 )
@@ -1252,7 +1253,8 @@ def test_url_dashboard_layout_embalagens_status_retornados(
 
     assert response.status_code == status.HTTP_200_OK
 
-    user = get_user_model().objects.get()
+    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user = get_user_model().objects.get(id=user_id)
     status_esperados = ServiceDashboardLayoutEmbalagem.get_dashboard_status(user)
     status_recebidos = [result["status"] for result in response.json()["results"]]
 
@@ -2070,7 +2072,8 @@ def test_url_documentos_de_recebimento_listagem_not_authorized(client_autenticad
 def test_url_dashboard_documentos_de_recebimento_status_retornados(
     client_autenticado_codae_dilog, documento_de_recebimento_factory
 ):
-    user = get_user_model().objects.get()
+    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user = get_user_model().objects.get(id=user_id)
     status_esperados = ServiceDashboardDocumentosDeRecebimento.get_dashboard_status(
         user
     )
@@ -2395,7 +2398,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige(
     cronograma_factory,
     tipo_de_documento_de_recebimento_factory,
 ):
-    user_id = django_user_model.objects.first().id
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     cronograma = cronograma_factory.create(
         empresa=empresa,
@@ -2485,7 +2488,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
     cronograma_factory,
     tipo_de_documento_de_recebimento_factory,
 ):
-    user_id = django_user_model.objects.first().id
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     cronograma = cronograma_factory.create(
         empresa=empresa,
@@ -2621,7 +2624,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
     django_user_model,
     cronograma_factory,
 ):
-    user_id = django_user_model.objects.first().id
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     cronograma = cronograma_factory.create(
         empresa=empresa,
@@ -2680,6 +2683,7 @@ def test_rascunho_ficha_tecnica_create_update(
     empresa_factory,
     marca_factory,
     fabricante_factory,
+    arquivo_pdf_base64,
 ):
     payload = {
         "produto": str(produto_logistica_factory().uuid),
@@ -2704,6 +2708,35 @@ def test_rascunho_ficha_tecnica_create_update(
         "componentes_produto": "",
         "ingredientes_alergenicos": "",
         "lactose_detalhe": "",
+        "porcao": "",
+        "unidade_medida_porcao": "",
+        "valor_unidade_caseira": "",
+        "unidade_medida_caseira": "",
+        "informacoes_nutricionais": [],
+        "prazo_validade_descongelamento": "",
+        "condicoes_de_conservacao": "",
+        "temperatura_congelamento": "",
+        "temperatura_veiculo": "",
+        "condicoes_de_transporte": "",
+        "embalagem_primaria": "",
+        "embalagem_secundaria": "",
+        "material_embalagem_primaria": "",
+        "peso_liquido_embalagem_primaria": None,
+        "unidade_medida_primaria": "",
+        "peso_liquido_embalagem_secundaria": None,
+        "unidade_medida_secundaria": "",
+        "peso_embalagem_primaria_vazia": None,
+        "unidade_medida_primaria_vazia": "",
+        "peso_embalagem_secundaria_vazia": None,
+        "unidade_medida_secundaria_vazia": "",
+        "variacao_percentual": None,
+        "sistema_vedacao_embalagem_secundaria": "",
+        "nome_responsavel_tecnico": "",
+        "habilitacao": "",
+        "numero_registro_orgao": "",
+        "arquivo": "",
+        "modo_de_preparo": "",
+        "informacoes_adicionais": "",
     }
 
     response_create = client_autenticado_fornecedor.post(
@@ -2720,6 +2753,7 @@ def test_rascunho_ficha_tecnica_create_update(
     )
 
     payload["pregao_chamada_publica"] = "0987654321"
+    payload["arquivo"] = arquivo_pdf_base64
     response_update = client_autenticado_fornecedor.put(
         f'/rascunho-ficha-tecnica/{response_create.json()["uuid"]}/',
         content_type="application/json",
@@ -2729,6 +2763,7 @@ def test_rascunho_ficha_tecnica_create_update(
 
     assert response_update.status_code == status.HTTP_200_OK
     assert ficha.pregao_chamada_publica == "0987654321"
+    assert ficha.arquivo
 
 
 def test_ficha_tecnica_list_ok(
@@ -2791,3 +2826,40 @@ def test_ficha_tecnica_retrieve_ok(
     assert (
         response.data == FichaTecnicaDetalharSerializer(ficha_tecnica, many=False).data
     )
+
+
+def test_calendario_cronograma_list_ok(
+    client_autenticado_dilog_cronograma,
+    etapas_do_cronograma_factory,
+    cronograma_factory,
+):
+    """Deve obter lista filtrada por mes e ano de etapas do cronograma."""
+    mes = "5"
+    ano = "2023"
+    data_programada = datetime.date(int(ano), int(mes), 1)
+    cronogramas = [
+        cronograma_factory.create(status=CronogramaWorkflow.ASSINADO_CODAE),
+        cronograma_factory.create(status=CronogramaWorkflow.ALTERACAO_CODAE),
+        cronograma_factory.create(status=CronogramaWorkflow.SOLICITADO_ALTERACAO),
+    ]
+    etapas_cronogramas = [
+        etapas_do_cronograma_factory.create(
+            cronograma=cronograma, data_programada=data_programada
+        )
+        for cronograma in cronogramas
+    ]
+
+    response = client_autenticado_dilog_cronograma.get(
+        "/calendario-cronogramas/",
+        {"mes": mes, "ano": ano},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["count"] == len(etapas_cronogramas)
+
+
+def test_calendario_cronograma_list_not_authorized(client_autenticado):
+    """Deve retornar status HTTP 403 ao tentar obter listagem com usuário não autorizado."""
+    response = client_autenticado.get("/calendario-cronogramas/")
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -30,7 +30,12 @@ from ...dados_comuns.fluxo_status import (
 )
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.validators import validate_file_size_10mb
-from ...produto.models import Fabricante, Marca, NomeDeProdutoEdital
+from ...produto.models import (
+    Fabricante,
+    InformacaoNutricional,
+    Marca,
+    NomeDeProdutoEdital,
+)
 from ...terceirizada.models import Contrato, Terceirizada
 
 
@@ -665,17 +670,29 @@ class FichaTecnicaDoProduto(
     numero = models.CharField(
         "Número da Ficha Técnica", blank=True, max_length=50, unique=True
     )
-    produto = models.ForeignKey(NomeDeProdutoEdital, on_delete=models.PROTECT)
+    produto = models.ForeignKey(
+        NomeDeProdutoEdital,
+        on_delete=models.PROTECT,
+        related_name="fichas_tecnicas",
+    )
     marca = models.ForeignKey(Marca, on_delete=models.PROTECT, blank=True, null=True)
     categoria = models.CharField(choices=CATEGORIA_CHOICES, max_length=14, blank=True)
     pregao_chamada_publica = models.CharField(
         "Nº do Pregão Eletrônico", max_length=100, blank=True
     )
     empresa = models.ForeignKey(
-        Terceirizada, on_delete=models.CASCADE, blank=True, null=True
+        Terceirizada,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas",
     )
     fabricante = models.ForeignKey(
-        Fabricante, on_delete=models.PROTECT, blank=True, null=True
+        Fabricante,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas",
     )
     cnpj_fabricante = models.CharField(
         "CNPJ", validators=[MinLengthValidator(14)], max_length=14
@@ -710,6 +727,118 @@ class FichaTecnicaDoProduto(
     gluten = models.BooleanField("Contém glúten?", null=True)
     lactose = models.BooleanField("Contém lactose?", null=True)
     lactose_detalhe = models.CharField("Detalhar Lactose", max_length=150, blank=True)
+    porcao = models.CharField("Porção", max_length=50, blank=True)
+    unidade_medida_porcao = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas_unidade_porcao",
+    )
+    valor_unidade_caseira = models.CharField(
+        "Unidade Caseira",
+        max_length=50,
+        blank=True,
+    )
+    unidade_medida_caseira = models.CharField(
+        "Unidade de Medida Caseira",
+        max_length=100,
+        blank=True,
+    )
+    prazo_validade_descongelamento = models.CharField(
+        "Prazo de Validade Descongelamento",
+        help_text="Prazo de Validade após o descongelamento e mantido sob refrigeração",
+        max_length=50,
+        blank=True,
+    )
+    condicoes_de_conservacao = models.TextField(
+        "Condições de conservação",
+        help_text="Condições de conservação e Prazo máximo para consumo após a abertura da embalagem primária",
+        blank=True,
+    )
+    temperatura_congelamento = models.CharField(
+        "Temperatura de Congelamento do Produto", max_length=10, blank=True
+    )
+    temperatura_veiculo = models.CharField(
+        "Temperatura Interna do Veículo para Transporte", max_length=10, blank=True
+    )
+    condicoes_de_transporte = models.TextField("Condições de Transporte", blank=True)
+    embalagem_primaria = models.TextField("Embalagem Primária", blank=True)
+    embalagem_secundaria = models.TextField("Embalagem Secundária", blank=True)
+    embalagens_de_acordo_com_anexo = models.BooleanField(
+        "Embalagens de Acordo com Anexo?",
+        help_text="Declaro que as embalagens primária e secundária em que serão entregues o produto estarão de acordo "
+        "com as especificações do Anexo I do Edital",
+        null=True,
+    )
+    material_embalagem_primaria = models.TextField(
+        "Material da Embalagem Primária", blank=True
+    )
+    peso_liquido_embalagem_primaria = models.FloatField(
+        blank=True, null=True, help_text="Peso Líquido do Produto na Embalagem Primária"
+    )
+    unidade_medida_primaria = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas_unidade_primaria",
+    )
+    peso_liquido_embalagem_secundaria = models.FloatField(
+        blank=True,
+        null=True,
+        help_text="Peso Líquido do Produto na Embalagem Secundária",
+    )
+    unidade_medida_secundaria = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas_unidade_secundaria",
+    )
+    peso_embalagem_primaria_vazia = models.FloatField(blank=True, null=True)
+    unidade_medida_primaria_vazia = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas_primaria_vazia",
+    )
+    peso_embalagem_secundaria_vazia = models.FloatField(blank=True, null=True)
+    unidade_medida_secundaria_vazia = models.ForeignKey(
+        UnidadeMedida,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="fichas_tecnicas_secundaria_vazia",
+    )
+    variacao_percentual = models.FloatField(blank=True, null=True)
+    sistema_vedacao_embalagem_secundaria = models.TextField(
+        "Sistema de Vedação da Embalagem Secundária", blank=True
+    )
+    rotulo_legivel = models.BooleanField(
+        "Rotulo Legível?",
+        help_text="Declaro que no rótulo da embalagem primária e, se for o caso, da secundária, constarão, de forma "
+        "legível e indelével, todas as informações solicitadas do Anexo I do Edital",
+        null=True,
+    )
+    nome_responsavel_tecnico = models.CharField(
+        "Nome completo do Responsável Técnico", max_length=100, blank=True
+    )
+    habilitacao = models.CharField("Habilitação", max_length=100, blank=True)
+    numero_registro_orgao = models.CharField(
+        "Nº do Registro em Órgão Competente", max_length=50, blank=True
+    )
+    arquivo = models.FileField(
+        upload_to="fichas_tecnicas",
+        validators=[
+            FileExtensionValidator(allowed_extensions=["PDF"]),
+            validate_file_size_10mb,
+        ],
+        null=True,
+    )
+    modo_de_preparo = models.TextField("Modo de Preparo do Produto", blank=True)
+    informacoes_adicionais = models.TextField("Informações Adicionais", blank=True)
 
     def __str__(self):
         return self.produto.nome
@@ -739,3 +868,32 @@ def gerar_numero_ficha_tecnica(sender, instance, created, **kwargs):
     if created:
         instance.gerar_numero_ficha_tecnica()
         instance.save()
+
+
+class InformacoesNutricionaisFichaTecnica(TemChaveExterna):
+    ficha_tecnica = models.ForeignKey(
+        FichaTecnicaDoProduto,
+        on_delete=models.CASCADE,
+        related_name="informacoes_nutricionais",
+    )
+    informacao_nutricional = models.ForeignKey(
+        InformacaoNutricional,
+        on_delete=models.DO_NOTHING,
+    )
+    quantidade_por_100g = models.CharField(max_length=10)
+    quantidade_porcao = models.CharField(max_length=10)
+    valor_diario = models.CharField(max_length=10)
+
+    def __str__(self):
+        nome_produto = self.ficha_tecnica.produto.nome
+        informacao_nutricional = self.informacao_nutricional.nome
+        return (
+            f"{nome_produto} - {informacao_nutricional} =>"
+            + f" quantidade por 100g: {self.quantidade_por_100g}"
+            + f" quantidade por porção: {self.quantidade_porcao}"
+            + f" valor diario: {self.valor_diario}"
+        )
+
+    class Meta:
+        verbose_name = "Informação Nutricional da Ficha Técnica"
+        verbose_name_plural = "Informações Nutricionais da Ficha Técnica"

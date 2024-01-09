@@ -3,6 +3,7 @@ from faker import Faker
 
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
+    EtapasDoCronograma,
     Laboratorio,
     UnidadeMedida,
 )
@@ -43,3 +44,10 @@ class UnidadeMedidaFactory(DjangoModelFactory):
 
     abreviacao = Sequence(lambda n: fake.unique.pystr(min_chars=3, max_chars=3).upper())
     nome = Sequence(lambda n: f"Laboratorio {fake.unique.name()}")
+
+
+class EtapasDoCronogramaFactory(DjangoModelFactory):
+    class Meta:
+        model = EtapasDoCronograma
+
+    cronograma = SubFactory(CronogramaFactory)

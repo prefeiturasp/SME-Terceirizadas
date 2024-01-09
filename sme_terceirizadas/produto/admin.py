@@ -120,9 +120,10 @@ class HomologacaoProdutoModelAdmin(admin.ModelAdmin):
 
 @admin.register(InformacaoNutricional)
 class InformacaoNutricionalModelAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "tipo_nutricional", "medida")
+    list_display = ("__str__", "tipo_nutricional", "medida", "eh_fixo")
     search_fields = ("nome",)
     list_filter = ("tipo_nutricional",)
+    list_editable = ("eh_fixo",)
 
 
 @admin.register(ItemCadastro)
