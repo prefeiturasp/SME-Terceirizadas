@@ -475,30 +475,23 @@ def test_utils_tratar_valores(escola, escola_emei):
         "2_sobremesa_1_oferta",
         "repeticao_2_sobremesa",
     ]
-    valores = []
-    for campo in campos:
-        valores.append(
-            {
-                "nome_campo": campo,
-                "valor": 10,
-            }
-        )
-    assert tratar_valores(escola_emei, valores) == [
-        {"nome_campo": "lanche_emergencial", "valor": 10},
-        {"nome_campo": "kit_lanche", "valor": 10},
-        {"nome_campo": "lanche", "valor": 20},
-        {"nome_campo": "lanche_4h", "valor": 10},
-        {"nome_campo": "refeicao", "valor": 20},
-        {"nome_campo": "sobremesa", "valor": 20},
-    ]
-    assert tratar_valores(escola, valores) == [
-        {"nome_campo": "lanche_emergencial", "valor": 10},
-        {"nome_campo": "kit_lanche", "valor": 10},
-        {"nome_campo": "lanche", "valor": 20},
-        {"nome_campo": "lanche_4h", "valor": 10},
-        {"nome_campo": "refeicao", "valor": 40},
-        {"nome_campo": "sobremesa", "valor": 40},
-    ]
+    total_por_nome_campo = {campo: 10 for campo in campos}
+    assert tratar_valores(escola_emei, total_por_nome_campo) == {
+        "lanche_emergencial": 10,
+        "kit_lanche": 10,
+        "lanche": 20,
+        "lanche_4h": 10,
+        "refeicao": 20,
+        "sobremesa": 20,
+    }
+    assert tratar_valores(escola, total_por_nome_campo) == {
+        "lanche_emergencial": 10,
+        "kit_lanche": 10,
+        "lanche": 20,
+        "lanche_4h": 10,
+        "refeicao": 40,
+        "sobremesa": 40,
+    }
 
 
 def test_utils_get_nome_campo():
