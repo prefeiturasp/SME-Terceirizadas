@@ -126,6 +126,12 @@ class SolicitacaoAlteracaoCronogramaSerializer(serializers.ModelSerializer):
         )
 
 
+class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoEmbalagemQld
+        exclude = ("id",)
+
+
 class CronogramaSerializer(serializers.ModelSerializer):
     etapas = EtapasDoCronogramaSerializer(many=True)
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(
@@ -137,6 +143,7 @@ class CronogramaSerializer(serializers.ModelSerializer):
     contrato = ContratoSimplesSerializer()
     produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
+    tipo_embalagem = TipoEmbalagemQldSerializer()
 
     class Meta:
         model = Cronograma
@@ -169,6 +176,7 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
     contrato = ContratoSimplesSerializer()
     produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
+    tipo_embalagem = TipoEmbalagemQldSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
@@ -335,12 +343,6 @@ class LaboratorioCredenciadoSimplesSerializer(serializers.ModelSerializer):
         model = Laboratorio
         fields = ("uuid", "nome")
         read_only_fields = ("uuid", "nome")
-
-
-class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TipoEmbalagemQld
-        exclude = ("id",)
 
 
 class UnidadeMedidaSerialzer(serializers.ModelSerializer):
