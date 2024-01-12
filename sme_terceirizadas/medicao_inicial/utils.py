@@ -24,8 +24,13 @@ from sme_terceirizadas.escola.models import (
     DiaCalendario,
     FaixaEtaria,
     LogAlunosMatriculadosPeriodoEscola,
+    PeriodoEscolar,
 )
 from sme_terceirizadas.escola.utils import string_to_faixa
+from sme_terceirizadas.inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoNormal,
+)
 from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     SolicitacaoMedicaoInicial,
@@ -3202,3 +3207,122 @@ def build_row_segunda_tabela(solicitacao, campos_categorias):
                     )
                     body_tabela.append(valor_campo)
     return body_tabela
+
+
+def get_name_campo(campo):
+    campos = {
+        "Número de Alunos": "numero_de_alunos",
+        "Matriculados": "matriculados",
+        "Frequência": "frequencia",
+        "Solicitado": "solicitado",
+        "Desjejum": "desjejum",
+        "Lanche": "lanche",
+        "Lanche 4h": "lanche_4h",
+        "Refeição": "refeicao",
+        "Repetição de Refeição": "repeticao_refeicao",
+        "Sobremesa": "sobremesa",
+        "Repetição de Sobremesa": "repeticao_sobremesa",
+        "2º Lanche 4h": "2_lanche_4h",
+        "2º Lanche 5h": "2_lanche_5h",
+        "Lanche Extra": "lanche_extra",
+        "2ª Refeição 1ª oferta": "2_refeicao_1_oferta",
+        "Repetição 2ª Refeição": "repeticao_2_refeicao",
+        "2ª Sobremesa 1ª oferta": "2_sobremesa_1_oferta",
+        "Repetição 2ª Sobremesa": "repeticao_2_sobremesa",
+    }
+    return campos.get(campo, campo)
+
+
+def trata_numero_de_alunos(linhas_da_tabela, tem_numero_de_alunos):
+    if tem_numero_de_alunos:
+        linhas_da_tabela.insert(0, "numero_de_alunos")
+    else:
+        linhas_da_tabela.insert(0, "matriculados")
+    return linhas_da_tabela
+
+
+def get_linhas_da_tabela(alimentacoes, tem_numero_de_alunos=False):
+    linhas_da_tabela = ["frequencia"]
+    linhas_da_tabela = trata_numero_de_alunos(linhas_da_tabela, tem_numero_de_alunos)
+    for alimentacao in alimentacoes:
+        nome_formatado = get_name_campo(alimentacao)
+        linhas_da_tabela.append(nome_formatado)
+        if nome_formatado == "refeicao":
+            linhas_da_tabela.append("repeticao_refeicao")
+        if nome_formatado == "sobremesa":
+            linhas_da_tabela.append("repeticao_sobremesa")
+        if nome_formatado == "2_refeicao_1_oferta":
+            linhas_da_tabela.append("2_sobremesa_1_oferta")
+        if nome_formatado == "repeticao_2_refeicao":
+            linhas_da_tabela.append("repeticao_2_sobremesa")
+    return linhas_da_tabela
+
+
+def get_periodos_escolares_comuns_com_inclusoes_normais(solicitacao):
+    ano = solicitacao.ano
+    mes = solicitacao.mes
+    escola = solicitacao.escola
+    uuids_inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects.filter(
+        status="CODAE_AUTORIZADO",
+        escola__uuid=escola.uuid,
+        inclusoes_normais__cancelado=False,
+        inclusoes_normais__data__month=mes,
+        inclusoes_normais__data__year=ano,
+        inclusoes_normais__data__lt=datetime.date.today(),
+    ).values_list("uuid", flat=True)
+
+    periodos_escolares_inclusoes = PeriodoEscolar.objects.filter(
+        quantidadeporperiodo__grupo_inclusao_normal__uuid__in=uuids_inclusoes_normais
+    ).distinct()
+    return periodos_escolares_inclusoes
+
+
+def get_lista_dias_inclusoes_ceu_gestao(solicitacao):
+    escola = solicitacao.escola
+    lista_inclusoes = []
+
+    inclusoes_uuids = list(
+        set(
+            GrupoInclusaoAlimentacaoNormal.objects.filter(
+                escola=escola,
+                status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
+            ).values_list("inclusoes_normais__uuid", flat=True)
+        )
+    )
+    inclusoes = InclusaoAlimentacaoNormal.objects.filter(
+        uuid__in=inclusoes_uuids,
+        data__month=int(solicitacao.mes),
+        data__year=int(solicitacao.ano),
+        cancelado=False,
+    ).order_by("data")
+
+    for inclusao in inclusoes:
+        grupo = inclusao.grupo_inclusao
+        for periodo in grupo.quantidades_periodo.all():
+            tipos_alimentacao = periodo.tipos_alimentacao.exclude(
+                nome="Lanche Emergencial"
+            )
+            alimentacoes = list(set(tipos_alimentacao.values_list("nome", flat=True)))
+            linhas_da_tabela = get_linhas_da_tabela(alimentacoes, True)
+
+            dia_da_inclusao = str(inclusao.data.day)
+            if len(dia_da_inclusao) == 1:
+                dia_da_inclusao = "0" + str(inclusao.data.day)
+            lista_inclusoes.append(
+                {
+                    "periodo_escolar": periodo.periodo_escolar.nome,
+                    "dia": dia_da_inclusao,
+                    "linhas_da_tabela": linhas_da_tabela,
+                }
+            )
+    return lista_inclusoes
+
+
+def incluir_lanche(nomes_campos, campo, lista_inclusoes, inclusao):
+    [
+        nomes_campos.append(campo)
+        for inc in lista_inclusoes
+        if inclusao["periodo_escolar"] == inc["periodo_escolar"]
+        and campo in inc["linhas_da_tabela"]
+    ]
+    return nomes_campos
