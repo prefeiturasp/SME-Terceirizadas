@@ -540,6 +540,15 @@ class Terceirizada(
 
 
 class Contrato(ExportModelOperationsMixin("contato"), TemChaveExterna):
+    # Modalidade Choices
+    PREGAO_ELETRONICO = "PREGAO_ELETRONICO"
+    CHAMADA_PUBLICA = "CHAMADA_PUBLICA"
+
+    MODALIDADE_CHOICES = (
+        (PREGAO_ELETRONICO, "Pregão Eletrônico"),
+        (CHAMADA_PUBLICA, "Chamada Pública"),
+    )
+
     numero = models.CharField("No do contrato", max_length=100, unique=True)
     processo = models.CharField(
         "Processo Administrativo",
@@ -569,9 +578,13 @@ class Contrato(ExportModelOperationsMixin("contato"), TemChaveExterna):
     data_hora_encerramento = models.DateTimeField(
         "Data e hora do encerramento", null=True, default=None
     )
-    ata = models.CharField("No da Ata/Chamada Pública", max_length=100, blank=True)
-    pregao_chamada_publica = models.CharField(
-        "No do Pregão Eletrônico", max_length=100, blank=True
+    ata = models.CharField("No da Ata", max_length=100, blank=True)
+    modalidade = models.CharField(choices=MODALIDADE_CHOICES, max_length=17, blank=True)
+    numero_pregao = models.CharField(
+        "Nº do Pregão Eletrônico", max_length=100, blank=True
+    )
+    numero_chamada_publica = models.CharField(
+        "Nº da Chamada Pública", max_length=100, blank=True
     )
 
     def __str__(self):

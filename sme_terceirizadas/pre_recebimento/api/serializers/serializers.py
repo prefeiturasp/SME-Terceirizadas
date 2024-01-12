@@ -235,7 +235,7 @@ class CronogramaSimplesSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
 
     def get_pregao_chamada_publica(self, obj):
-        return obj.contrato.pregao_chamada_publica if obj.contrato else None
+        return obj.contrato.numero_pregao if obj.contrato else None
 
     def get_nome_produto(self, obj):
         return obj.produto.nome if obj.produto else None
@@ -384,9 +384,7 @@ class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):
@@ -420,9 +418,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):
@@ -503,9 +499,7 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):
@@ -585,9 +579,7 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):

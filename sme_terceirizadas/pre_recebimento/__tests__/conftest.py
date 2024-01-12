@@ -14,7 +14,7 @@ def contrato():
         "Contrato",
         numero="0003/2022",
         processo="123",
-        pregao_chamada_publica="123456789",
+        numero_pregao="123456789",
     )
 
 
