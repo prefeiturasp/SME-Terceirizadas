@@ -218,7 +218,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
 
 
 class EmpresaNaoTerceirizadaCreateSerializer(serializers.ModelSerializer):
-    contatos = ContatoSerializer(many=True)
+    contatos = ContatoSerializer(required=False, many=True)
     contratos = ContratoAbastecimentoCreateSerializer(many=True, required=False)
 
     def create(self, validated_data):
@@ -226,8 +226,10 @@ class EmpresaNaoTerceirizadaCreateSerializer(serializers.ModelSerializer):
         contratos_array = validated_data.pop("contratos", [])
 
         empresa = Terceirizada.objects.create(**validated_data)
-        contatos_list = cria_contatos(contatos)
-        empresa.contatos.set(contatos_list)
+
+        if contatos:
+            contatos_list = cria_contatos(contatos)
+            empresa.contatos.set(contatos_list)
 
         contratos = []
         for contrato_json in contratos_array:
