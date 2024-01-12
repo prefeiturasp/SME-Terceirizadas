@@ -237,13 +237,26 @@ def solicitacao_medicao_inicial_cemei(escola_cemei, categoria_medicao):
         "SolicitacaoMedicaoInicial", mes=4, ano=2023, escola=escola_cemei
     )
     solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
-    mommy.make(
+    medicao = mommy.make(
         "Medicao",
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_integral,
     )
     mommy.make(
         "FaixaEtaria", inicio=1, fim=10, uuid="0c914b27-c7cd-4682-a439-a4874745b005"
+    )
+    faixa_etaria = mommy.make(
+        "FaixaEtaria", inicio=1, fim=2, uuid="1d125c38-ce75-6974-b25d-a4874745b996"
+    )
+    mommy.make(
+        "ValorMedicao",
+        dia="01",
+        semana="1",
+        nome_campo="frequencia",
+        medicao=medicao,
+        categoria_medicao=categoria_medicao,
+        valor="10",
+        faixa_etaria=faixa_etaria,
     )
     return solicitacao_medicao
 
@@ -270,6 +283,56 @@ def solicitacao_medicao_inicial_cei(escola_cei, categoria_medicao):
         "FaixaEtaria", inicio=1, fim=10, uuid="0c914b27-c7cd-4682-a439-a4874745b005"
     )
     mommy.make("Aluno", periodo_escolar=periodo_manha, escola=escola_cei)
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_valores_cei(escola_cei, categoria_medicao):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_integral = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=4,
+        ano=2023,
+        escola=escola_cei,
+        ue_possui_alunos_periodo_parcial=True,
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    medicao_manha = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_manha,
+    )
+    medicao_integral = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_integral,
+    )
+    faixa_etaria = mommy.make(
+        "FaixaEtaria", inicio=1, fim=10, uuid="0c914b27-c7cd-4682-a439-a4874745b005"
+    )
+    mommy.make("Aluno", periodo_escolar=periodo_manha, escola=escola_cei)
+    mommy.make(
+        "ValorMedicao",
+        dia="01",
+        semana="1",
+        nome_campo="frequencia",
+        medicao=medicao_manha,
+        categoria_medicao=categoria_medicao,
+        valor="10",
+        faixa_etaria=faixa_etaria,
+    )
+    mommy.make(
+        "ValorMedicao",
+        dia="01",
+        semana="1",
+        nome_campo="frequencia",
+        medicao=medicao_integral,
+        categoria_medicao=categoria_medicao,
+        valor="05",
+        faixa_etaria=faixa_etaria,
+    )
     return solicitacao_medicao
 
 
@@ -680,6 +743,35 @@ def medicao_solicitacoes_alimentacao(escola):
                 categoria_medicao=categoria,
                 valor="10",
             )
+    return medicao_solicitacoes_alimentacao
+
+
+@pytest.fixture
+def medicao_solicitacoes_alimentacao_cei(escola):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    categoria = mommy.make("CategoriaMedicao", nome="ALIMENTAÇÃO")
+    periodo_escolar = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial", mes=11, ano=2023, escola=escola
+    )
+    faixa_etaria = mommy.make("FaixaEtaria", inicio=1, fim=3)
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    medicao_solicitacoes_alimentacao = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_escolar,
+        grupo=None,
+    )
+    for dia in ["01", "02", "03", "04", "05"]:
+        mommy.make(
+            "ValorMedicao",
+            dia=dia,
+            nome_campo="frequencia",
+            medicao=medicao_solicitacoes_alimentacao,
+            categoria_medicao=categoria,
+            valor="10",
+            faixa_etaria=faixa_etaria,
+        )
     return medicao_solicitacoes_alimentacao
 
 

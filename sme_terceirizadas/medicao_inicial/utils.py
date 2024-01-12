@@ -632,6 +632,7 @@ def popula_campo_matriculados(
 
 
 def get_nome_periodo(periodo_corrente):
+    periodo = periodo_corrente
     if periodo_corrente in [
         "Infantil INTEGRAL",
         "Infantil MANHA",
