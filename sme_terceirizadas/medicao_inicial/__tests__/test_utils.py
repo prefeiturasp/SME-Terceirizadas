@@ -1,13 +1,22 @@
+from calendar import monthrange
+from collections import defaultdict
+
 import pytest
 
 from sme_terceirizadas.medicao_inicial.utils import (
     build_dict_relacao_categorias_e_campos,
+    build_dict_relacao_categorias_e_campos_cei,
     build_headers_tabelas,
+    build_headers_tabelas_cei,
     build_row_primeira_tabela,
     build_tabela_somatorio_body,
     build_tabelas_relatorio_medicao,
+    build_tabelas_relatorio_medicao_cemei,
     get_lista_categorias_campos,
+    get_lista_categorias_campos_cei,
+    get_lista_dias_letivos,
     get_nome_campo,
+    get_nome_periodo,
     get_somatorio_etec,
     get_somatorio_integral,
     get_somatorio_manha,
@@ -151,6 +160,44 @@ def test_utils_build_headers_tabelas(solicitacao_medicao_inicial_varios_valores)
             },
         },
     ]
+
+
+def test_build_headers_tabelas_cei(
+    solicitacao_medicao_inicial_valores_cei,
+):
+    assert build_headers_tabelas_cei(solicitacao_medicao_inicial_valores_cei) == [
+        {
+            "periodos": ["INTEGRAL", "MANHA"],
+            "categorias": [
+                {"categoria": "ALIMENTAÇÃO", "faixas_etarias": ["01 a 09 meses"]}
+            ],
+            "len_periodos": [2, 0],
+            "len_categorias": [2],
+            "valores_campos": [],
+            "ordem_periodos_grupos": [1, 3],
+            "periodo_values": defaultdict(int, {"INTEGRAL": 2, "MANHA": 0}),
+            "categoria_values": defaultdict(int, {"ALIMENTAÇÃO": 2}),
+        },
+    ]
+
+
+def test_get_lista_dias_letivos(solicitacao_medicao_inicial_varios_valores):
+    dias_letivos = get_lista_dias_letivos(solicitacao_medicao_inicial_varios_valores)
+
+    _, num_dias = monthrange(
+        int(solicitacao_medicao_inicial_varios_valores.ano),
+        int(solicitacao_medicao_inicial_varios_valores.mes),
+    )
+
+    assert len(dias_letivos) == num_dias
+
+
+def test_get_nome_periodo():
+    assert get_nome_periodo("Infantil INTEGRAL") == "INTEGRAL"
+    assert get_nome_periodo("Infantil MANHA") == "MANHA"
+    assert get_nome_periodo("Infantil TARDE") == "TARDE"
+    assert get_nome_periodo("Fundamental MANHA") == "Fundamental MANHA"
+    assert get_nome_periodo("EJA NOITE") == "EJA NOITE"
 
 
 def test_build_tabelas_relatorio_medicao(solicitacao_medicao_inicial_varios_valores):
@@ -459,6 +506,20 @@ def test_utils_get_lista_categorias_campos(medicao_solicitacoes_alimentacao):
     ]
 
 
+def test_utils_get_lista_categorias_campos_cei(medicao_solicitacoes_alimentacao_cei):
+    assert get_lista_categorias_campos_cei(medicao_solicitacoes_alimentacao_cei) == [
+        ("ALIMENTAÇÃO", "01 a 02 meses")
+    ]
+
+
+def test_build_dict_relacao_categorias_e_campos_cei(
+    medicao_solicitacoes_alimentacao_cei,
+):
+    assert build_dict_relacao_categorias_e_campos_cei(
+        medicao_solicitacoes_alimentacao_cei
+    ) == {"ALIMENTAÇÃO": ["01 a 02 meses"]}
+
+
 def test_utils_tratar_valores(escola, escola_emei):
     campos = [
         "lanche",
@@ -562,6 +623,89 @@ def test_utils_get_somatorio_integral(
         )
         == " - "
     )
+
+
+def test_build_tabelas_relatorio_medicao_cemei(solicitacao_medicao_inicial_cemei):
+    assert build_tabelas_relatorio_medicao_cemei(solicitacao_medicao_inicial_cemei) == [
+        {
+            "periodos": ["INTEGRAL"],
+            "categorias": ["ALIMENTAÇÃO"],
+            "nomes_campos": [],
+            "faixas_etarias": ["01 mês", "total"],
+            "len_periodos": [3],
+            "len_categorias": [3],
+            "valores_campos": [
+                [1, "0", "10", "10"],
+                [2, "0", "0", "0"],
+                [3, "0", "0", "0"],
+                [4, "0", "0", "0"],
+                [5, "0", "0", "0"],
+                [6, "0", "0", "0"],
+                [7, "0", "0", "0"],
+                [8, "0", "0", "0"],
+                [9, "0", "0", "0"],
+                [10, "0", "0", "0"],
+                [11, "0", "0", "0"],
+                [12, "0", "0", "0"],
+                [13, "0", "0", "0"],
+                [14, "0", "0", "0"],
+                [15, "0", "0", "0"],
+                [16, "0", "0", "0"],
+                [17, "0", "0", "0"],
+                [18, "0", "0", "0"],
+                [19, "0", "0", "0"],
+                [20, "0", "0", "0"],
+                [21, "0", "0", "0"],
+                [22, "0", "0", "0"],
+                [23, "0", "0", "0"],
+                [24, "0", "0", "0"],
+                [25, "0", "0", "0"],
+                [26, "0", "0", "0"],
+                [27, "0", "0", "0"],
+                [28, "0", "0", "0"],
+                [29, "0", "0", "0"],
+                [30, "0", "0", "0"],
+                ["Total", "-", "10", "10"],
+            ],
+            "ordem_periodos_grupos": [1],
+            "dias_letivos": [
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ],
+            "categorias_dos_periodos": {
+                "INTEGRAL": [{"categoria": "ALIMENTAÇÃO", "numero_campos": 1}]
+            },
+        }
+    ]
 
 
 def test_utils_get_somatorio_noite_eja(

@@ -274,6 +274,15 @@ ORDEM_PERIODOS_GRUPOS_CEI = {
     "TARDE": 4,
 }
 
+ORDEM_PERIODOS_GRUPOS_CEMEI = {
+    "INTEGRAL": 1,
+    "PARCIAL": 2,
+    "Infantil INTEGRAL": 3,
+    "Infantil MANHA": 4,
+    "Infantil TARDE": 5,
+    "Solicitações de Alimentação": 6,
+}
+
 ORDEM_CAMPOS = [
     "numero_de_alunos",
     "matriculados",
