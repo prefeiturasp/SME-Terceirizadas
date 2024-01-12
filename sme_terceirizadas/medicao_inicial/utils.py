@@ -146,11 +146,14 @@ def get_tamanho_colunas_periodos(tabelas, ordem_periodos_grupos, tipo_unidade=No
         for periodo in tabela["periodos"]:
             if tipo_unidade == "CEMEI" and periodo in ["INTEGRAL", "PARCIAL"]:
                 tabela["len_periodos"] += [
-                    sum(
-                        x["numero_campos"]
-                        for x in tabela["categorias_dos_periodos"][periodo]
+                    (
+                        sum(
+                            x["numero_campos"]
+                            for x in tabela["categorias_dos_periodos"][periodo]
+                        )
+                        * 2
                     )
-                    + 2
+                    + 1
                 ]
             else:
                 tabela["len_periodos"] += [
@@ -214,9 +217,14 @@ def append_tabela(
             for campo in ORDEM_CAMPOS
             if campo in dict_categorias_campos[categoria]
         ][MAX_COLUNAS:]
-        tabelas[indice_atual]["len_categorias"] += [
-            len(dict_categorias_campos[categoria][MAX_COLUNAS:])
-        ]
+        if nome_periodo in ["INTEGRAL", "PARCIAL"]:
+            tabelas[indice_atual]["len_categorias"] += [
+                (len(dict_categorias_campos[categoria][MAX_COLUNAS:]) * 2) + 1
+            ]
+        else:
+            tabelas[indice_atual]["len_categorias"] += [
+                len(dict_categorias_campos[categoria][MAX_COLUNAS:])
+            ]
     else:
         tabelas[indice_atual]["nomes_campos"] += [
             campo
@@ -462,17 +470,16 @@ def build_headers_tabelas_cemei(solicitacao):
                     else medicao.grupo.nome
                 )
             )
+            len_faixas = (len(tabelas[indice_atual]["faixas_etarias"]) * 2) + 1
 
             len_colunas = (
-                len(dict_categorias_campos[categoria]) + 2
+                len_faixas
                 if nome_periodo in ["INTEGRAL", "PARCIAL"]
                 else len(dict_categorias_campos[categoria])
             )
 
             if (
-                len(tabelas[indice_atual]["nomes_campos"])
-                + (len(tabelas[indice_atual]["faixas_etarias"]) + 2)
-                + len_colunas
+                len(tabelas[indice_atual]["nomes_campos"]) + len_faixas + len_colunas
                 > MAX_COLUNAS
             ) or (
                 "total_refeicoes_pagamento" in tabelas[indice_atual]["nomes_campos"]
@@ -510,9 +517,13 @@ def build_headers_tabelas_cemei(solicitacao):
                         tabelas[indice_atual]["faixas_etarias"] += [
                             faixa for faixa in dict_categorias_campos[categoria]
                         ]
-                    tabelas[indice_atual]["len_categorias"] += [
-                        len(dict_categorias_campos[categoria])
-                    ]
+                        tabelas[indice_atual]["len_categorias"] += [
+                            (len(dict_categorias_campos[categoria]) * 2) + 1
+                        ]
+                    else:
+                        tabelas[indice_atual]["len_categorias"] += [
+                            len(dict_categorias_campos[categoria])
+                        ]
                     get_categorias_dos_periodos(
                         nome_periodo,
                         tabelas,
@@ -557,7 +568,7 @@ def adiciona_valores_header(
             faixa for faixa in dict_categorias_campos[categoria]
         ]
         tabelas[indice_atual]["len_categorias"] += [
-            len(dict_categorias_campos[categoria]) + 2
+            (len(dict_categorias_campos[categoria]) * 2) + 1
         ]
     else:
         tabelas[indice_atual]["len_categorias"] += [
