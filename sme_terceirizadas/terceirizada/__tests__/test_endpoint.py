@@ -82,7 +82,7 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
                 "numero": "1",
                 "processo": "1",
                 "ata": "1",
-                "pregao_chamada_publica": "1",
+                "numero_pregao": "1",
                 "vigencias": [
                     {"data_inicial": "01/01/2023", "data_final": "31/12/2023"},
                 ],
@@ -92,7 +92,7 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
                 "numero": "2",
                 "processo": "2",
                 "ata": "2",
-                "pregao_chamada_publica": "2",
+                "numero_pregao": "2",
                 "vigencias": [
                     {"data_inicial": "01/01/2023", "data_final": "31/12/2023"},
                 ],
@@ -118,7 +118,7 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
                 "encerrado": False,
                 "processo": "9",
                 "ata": "9",
-                "pregao_chamada_publica": "9",
+                "numero_pregao": "9",
                 "vigencias": [
                     {"data_inicial": "09/09/1999", "data_final": "31/12/2023"},
                 ],
@@ -138,10 +138,7 @@ def test_url_endpoint_empresas_nao_terceirizadas_cadastro_e_edicao_contratos(
 
     assert contrato_edicao.processo == payload["contratos"][0]["processo"]
     assert contrato_edicao.ata == payload["contratos"][0]["ata"]
-    assert (
-        contrato_edicao.pregao_chamada_publica
-        == payload["contratos"][0]["pregao_chamada_publica"]
-    )
+    assert contrato_edicao.numero_pregao == payload["contratos"][0]["numero_pregao"]
 
     vigencia_contrato_edicao = contrato_edicao.vigencias.last()
     vigencia_payload = payload["contratos"][0]["vigencias"][0]
