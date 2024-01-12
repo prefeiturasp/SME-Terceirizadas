@@ -1345,7 +1345,7 @@ def test_salva_valores_medicao_inicial_cemei(
     assert response.status_code == status.HTTP_200_OK
 
     medicao_integral.refresh_from_db()
-    assert medicao_integral.valores_medicao.count() == 2
+    assert medicao_integral.valores_medicao.count() == 3
     assert (
         medicao_integral.valores_medicao.filter(
             dia="08", nome_campo="matriculados", valor="218"

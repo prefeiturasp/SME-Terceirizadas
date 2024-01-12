@@ -166,6 +166,21 @@ class VinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
         )
 
 
+class VinculoTipoAlimentoPeriodoSerializer(serializers.ModelSerializer):
+    nome = serializers.SerializerMethodField()
+    tipos_alimentacao = TipoAlimentacaoSerializer(many=True, read_only=True)
+
+    def get_nome(self, obj):
+        return obj.periodo_escolar.nome
+
+    class Meta:
+        model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+        fields = (
+            "nome",
+            "tipos_alimentacao",
+        )
+
+
 class CardapioSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cardapio

@@ -676,6 +676,10 @@ class Escola(
         return self.tipo_unidade and self.tipo_unidade.iniciais in ["EMEBS"]
 
     @property
+    def eh_ceu_gestao(self):
+        return self.tipo_unidade and self.tipo_unidade.iniciais in ["CEU GESTAO"]
+
+    @property
     def eh_emef_emei_cieja(self):
         return self.tipo_unidade and self.tipo_unidade.iniciais in [
             "EMEI",
