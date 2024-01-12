@@ -16,6 +16,7 @@ from ..relatorios.relatorios import (
     relatorio_consolidado_medicoes_iniciais_emef,
     relatorio_solicitacao_medicao_por_escola,
     relatorio_solicitacao_medicao_por_escola_cei,
+    relatorio_solicitacao_medicao_por_escola_cemei,
 )
 from .models import Responsavel, SolicitacaoMedicaoInicial
 
@@ -128,6 +129,8 @@ def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(
     try:
         if solicitacao.escola.eh_cei:
             arquivo = relatorio_solicitacao_medicao_por_escola_cei(solicitacao)
+        elif solicitacao.escola.eh_cemei:
+            arquivo = relatorio_solicitacao_medicao_por_escola_cemei(solicitacao)
         else:
             arquivo = relatorio_solicitacao_medicao_por_escola(solicitacao)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
