@@ -45,8 +45,9 @@ def test_url_endpoint_empresas_nao_terceirizadas_create(
             {
                 "numero": "12345",
                 "processo": "123",
+                "modalidade": "PREGAO_ELETRONICO",
+                "numero_pregao": "12345",
                 "ata": "1234",
-                "pregao_chamada_publica": "12345",
                 "vigencias": [
                     {"data_inicial": "10/01/2023", "data_final": "15/01/2023"},
                 ],
