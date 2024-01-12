@@ -21,30 +21,12 @@ from ..inclusao_alimentacao.models import (
 )
 from ..paineis_consolidados.models import SolicitacoesEscola
 from .models import CategoriaMedicao, PermissaoLancamentoEspecial, ValorMedicao
-
-
-def get_nome_campo(campo):
-    campos = {
-        "Número de Alunos": "numero_de_alunos",
-        "Matriculados": "matriculados",
-        "Frequência": "frequencia",
-        "Solicitado": "solicitado",
-        "Desjejum": "desjejum",
-        "Lanche": "lanche",
-        "Lanche 4h": "lanche_4h",
-        "Refeição": "refeicao",
-        "Repetição de Refeição": "repeticao_refeicao",
-        "Sobremesa": "sobremesa",
-        "Repetição de Sobremesa": "repeticao_sobremesa",
-        "2º Lanche 4h": "2_lanche_4h",
-        "2º Lanche 5h": "2_lanche_5h",
-        "Lanche Extra": "lanche_extra",
-        "2ª Refeição 1ª oferta": "2_refeicao_1_oferta",
-        "Repetição 2ª Refeição": "repeticao_2_refeicao",
-        "2ª Sobremesa 1ª oferta": "2_sobremesa_1_oferta",
-        "Repetição 2ª Sobremesa": "repeticao_2_sobremesa",
-    }
-    return campos.get(campo, campo)
+from .utils import (
+    get_linhas_da_tabela,
+    get_lista_dias_inclusoes_ceu_gestao,
+    get_periodos_escolares_comuns_com_inclusoes_normais,
+    incluir_lanche,
+)
 
 
 def get_lista_dias_letivos(solicitacao, escola):
@@ -106,22 +88,6 @@ def buscar_valores_lancamento_alimentacoes(
             }
         )
     return lista_erros
-
-
-def get_linhas_da_tabela(alimentacoes):
-    linhas_da_tabela = ["matriculados", "frequencia"]
-    for alimentacao in alimentacoes:
-        nome_formatado = get_nome_campo(alimentacao)
-        linhas_da_tabela.append(nome_formatado)
-        if nome_formatado == "refeicao":
-            linhas_da_tabela.append("repeticao_refeicao")
-        if nome_formatado == "sobremesa":
-            linhas_da_tabela.append("repeticao_sobremesa")
-        if nome_formatado == "2_refeicao_1_oferta":
-            linhas_da_tabela.append("2_sobremesa_1_oferta")
-        if nome_formatado == "repeticao_2_refeicao":
-            linhas_da_tabela.append("repeticao_2_sobremesa")
-    return linhas_da_tabela
 
 
 def validate_lancamento_alimentacoes_medicao(solicitacao, lista_erros):
@@ -542,6 +508,45 @@ def buscar_valores_lancamento_inclusoes(
             {
                 "periodo_escolar": inclusao["periodo_escolar"],
                 "erro": "Restam dias a serem lançados nas alimentações.",
+            }
+        )
+    return lista_erros
+
+
+def buscar_valores_lancamento_dietas_inclusoes(
+    inclusao, solicitacao, categoria_medicao, lista_erros, nomes_campos
+):
+    periodo_com_erro = False
+    valor_dietas_autorizadas = ValorMedicao.objects.filter(
+        medicao__solicitacao_medicao_inicial=solicitacao,
+        nome_campo="dietas_autorizadas",
+        medicao__periodo_escolar__nome=inclusao["periodo_escolar"],
+        dia=inclusao["dia"],
+        categoria_medicao=categoria_medicao,
+    ).exclude(valor=0)
+    for nome_campo in nomes_campos:
+        valores_da_medicao = ValorMedicao.objects.filter(
+            medicao__solicitacao_medicao_inicial=solicitacao,
+            nome_campo=nome_campo,
+            medicao__periodo_escolar__nome=inclusao["periodo_escolar"],
+            dia=inclusao["dia"],
+            categoria_medicao=categoria_medicao,
+        ).exclude(valor=None)
+        if not valores_da_medicao and valor_dietas_autorizadas:
+            valor_observacao = ValorMedicao.objects.filter(
+                medicao__solicitacao_medicao_inicial=solicitacao,
+                nome_campo="observacao",
+                medicao__periodo_escolar__nome=inclusao["periodo_escolar"],
+                dia=inclusao["dia"],
+                categoria_medicao=categoria_medicao,
+            ).exclude(valor=None)
+            if not valor_observacao:
+                periodo_com_erro = True
+    if periodo_com_erro:
+        lista_erros.append(
+            {
+                "periodo_escolar": inclusao["periodo_escolar"],
+                "erro": "Restam dias a serem lançados nas dietas.",
             }
         )
     return lista_erros
@@ -1464,3 +1469,67 @@ def validate_solicitacoes_etec(solicitacao, lista_erros):
     return validate_solicitacoes_continuas(
         solicitacao, lista_erros, inclusoes, medicao_etec, "ETEC", False
     )
+
+
+def valida_medicoes_inexistentes_ceu_gestao(solicitacao, lista_erros):
+    periodos_escolares_comuns_com_inclusoes_normais = (
+        get_periodos_escolares_comuns_com_inclusoes_normais(solicitacao)
+    )
+    for periodo_escolar in periodos_escolares_comuns_com_inclusoes_normais:
+        if not solicitacao.medicoes.filter(
+            periodo_escolar__nome=periodo_escolar.nome
+        ).exists():
+            lista_erros.append(
+                {
+                    "periodo_escolar": periodo_escolar.nome,
+                    "erro": "Restam dias a serem lançados nas alimentações.",
+                }
+            )
+    return lista_erros
+
+
+def validate_lancamento_alimentacoes_inclusoes_ceu_gestao(solicitacao, lista_erros):
+    categoria_medicao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
+    lista_inclusoes = get_lista_dias_inclusoes_ceu_gestao(solicitacao)
+    for inclusao in lista_inclusoes:
+        lista_erros = buscar_valores_lancamento_inclusoes(
+            inclusao, solicitacao, categoria_medicao, lista_erros
+        )
+    return erros_unicos(lista_erros)
+
+
+def validate_lancamento_dietas_inclusoes_ceu_gestao(solicitacao, lista_erros):
+    ano = solicitacao.ano
+    mes = solicitacao.mes
+    escola = solicitacao.escola
+    lista_inclusoes = get_lista_dias_inclusoes_ceu_gestao(solicitacao)
+    categorias_dietas = CategoriaMedicao.objects.filter(nome__icontains="dieta")
+    ids_categorias_existentes_no_mes = list(
+        set(
+            escola.logs_dietas_autorizadas.filter(
+                data__month=mes, data__year=ano, quantidade__gt=0
+            )
+            .exclude(classificacao__nome="Tipo C")
+            .values_list("classificacao", flat=True)
+            .distinct()
+        )
+    )
+    classificacoes = ClassificacaoDieta.objects.filter(
+        id__in=ids_categorias_existentes_no_mes
+    )
+    for classificacao in classificacoes:
+        for inclusao in lista_inclusoes:
+            nomes_campos = ["frequencia"]
+            nomes_campos, categoria = get_nomes_campos_categoria(
+                nomes_campos, classificacao, categorias_dietas
+            )
+            nomes_campos = incluir_lanche(
+                nomes_campos, "lanche", lista_inclusoes, inclusao
+            )
+            nomes_campos = incluir_lanche(
+                nomes_campos, "lanche_4h", lista_inclusoes, inclusao
+            )
+            lista_erros = buscar_valores_lancamento_dietas_inclusoes(
+                inclusao, solicitacao, categoria, lista_erros, list(set(nomes_campos))
+            )
+    return erros_unicos(lista_erros)
