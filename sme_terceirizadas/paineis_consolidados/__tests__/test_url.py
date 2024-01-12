@@ -374,7 +374,7 @@ def test_filtro_dre_error(solicitacoes_ano_dre):
 
 
 def test_ceu_gestao_periodos_com_solicitacoes_autorizadas(
-    client_autenticado_escola_paineis_consolidados, escola
+    client_autenticado_escola_paineis_consolidados, escola, vinculo_periodo_alimentacao
 ):
     response = client_autenticado_escola_paineis_consolidados.get(
         "/escola-solicitacoes/ceu-gestao-periodos-com-solicitacoes-autorizadas/"
