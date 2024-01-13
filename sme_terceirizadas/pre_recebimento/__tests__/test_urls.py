@@ -5,6 +5,7 @@ import uuid
 import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from faker import Faker
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -13,6 +14,7 @@ from sme_terceirizadas.dados_comuns.api.paginations import DefaultPagination
 from sme_terceirizadas.dados_comuns.fluxo_status import (
     CronogramaWorkflow,
     DocumentoDeRecebimentoWorkflow,
+    FichaTecnicaDoProdutoWorkflow,
     LayoutDeEmbalagemWorkflow,
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
@@ -23,9 +25,6 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
 from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
     ServiceDashboardLayoutEmbalagem,
-)
-from sme_terceirizadas.pre_recebimento.fixtures.factories.documentos_de_recebimento_factory import (
-    fake,
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
@@ -38,6 +37,8 @@ from sme_terceirizadas.pre_recebimento.models import (
     TipoEmbalagemQld,
     UnidadeMedida,
 )
+
+fake = Faker("pt_BR")
 
 
 def test_url_endpoint_cronograma(
@@ -2679,72 +2680,13 @@ def test_rascunho_ficha_tecnica_retrieve_metodo_nao_permitido(
 
 def test_rascunho_ficha_tecnica_create_update(
     client_autenticado_fornecedor,
-    produto_logistica_factory,
-    empresa_factory,
-    marca_factory,
-    fabricante_factory,
+    payload_ficha_tecnica_rascunho,
     arquivo_pdf_base64,
 ):
-    payload = {
-        "produto": str(produto_logistica_factory().uuid),
-        "marca": str(marca_factory().uuid),
-        "empresa": str(empresa_factory().uuid),
-        "fabricante": str(fabricante_factory().uuid),
-        "categoria": FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
-        "pregao_chamada_publica": "1234567890",
-        "cnpj_fabricante": "",
-        "cep_fabricante": "",
-        "endereco_fabricante": "",
-        "numero_fabricante": "",
-        "complemento_fabricante": "",
-        "bairro_fabricante": "",
-        "cidade_fabricante": "",
-        "estado_fabricante": "",
-        "email_fabricante": "",
-        "telefone_fabricante": "",
-        "prazo_validade": "",
-        "numero_registro": "",
-        "mecanismo_controle": "",
-        "componentes_produto": "",
-        "ingredientes_alergenicos": "",
-        "lactose_detalhe": "",
-        "porcao": None,
-        "unidade_medida_porcao": "",
-        "valor_unidade_caseira": None,
-        "unidade_medida_caseira": "",
-        "informacoes_nutricionais": [],
-        "prazo_validade_descongelamento": "",
-        "condicoes_de_conservacao": "",
-        "temperatura_congelamento": None,
-        "temperatura_veiculo": None,
-        "condicoes_de_transporte": "",
-        "embalagem_primaria": "",
-        "embalagem_secundaria": "",
-        "material_embalagem_primaria": "",
-        "volume_embalagem_primaria": None,
-        "unidade_medida_volume_primaria": "",
-        "peso_liquido_embalagem_primaria": None,
-        "unidade_medida_primaria": "",
-        "peso_liquido_embalagem_secundaria": None,
-        "unidade_medida_secundaria": "",
-        "peso_embalagem_primaria_vazia": None,
-        "unidade_medida_primaria_vazia": "",
-        "peso_embalagem_secundaria_vazia": None,
-        "unidade_medida_secundaria_vazia": "",
-        "variacao_percentual": None,
-        "sistema_vedacao_embalagem_secundaria": "",
-        "nome_responsavel_tecnico": "",
-        "habilitacao": "",
-        "numero_registro_orgao": "",
-        "arquivo": "",
-        "modo_de_preparo": "",
-        "informacoes_adicionais": "",
-    }
-
     response_create = client_autenticado_fornecedor.post(
         "/rascunho-ficha-tecnica/",
         content_type="application/json",
-        data=json.dumps(payload),
+        data=json.dumps(payload_ficha_tecnica_rascunho),
     )
 
     ultima_ficha_criada = FichaTecnicaDoProduto.objects.last()
@@ -2754,18 +2696,230 @@ def test_rascunho_ficha_tecnica_create_update(
         response_create.json()["numero"] == f"FT{str(ultima_ficha_criada.pk).zfill(3)}"
     )
 
-    payload["pregao_chamada_publica"] = "0987654321"
-    payload["arquivo"] = arquivo_pdf_base64
+    payload_ficha_tecnica_rascunho["pregao_chamada_publica"] = "0987654321"
+    payload_ficha_tecnica_rascunho["arquivo"] = arquivo_pdf_base64
     response_update = client_autenticado_fornecedor.put(
         f'/rascunho-ficha-tecnica/{response_create.json()["uuid"]}/',
         content_type="application/json",
-        data=json.dumps(payload),
+        data=json.dumps(payload_ficha_tecnica_rascunho),
     )
     ficha = FichaTecnicaDoProduto.objects.last()
 
     assert response_update.status_code == status.HTTP_200_OK
     assert ficha.pregao_chamada_publica == "0987654321"
     assert ficha.arquivo
+
+
+def test_ficha_tecnica_create_ok(
+    client_autenticado_fornecedor,
+    payload_ficha_tecnica_pereciveis,
+):
+    response = client_autenticado_fornecedor.post(
+        "/ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload_ficha_tecnica_pereciveis),
+    )
+
+    ficha = FichaTecnicaDoProduto.objects.last()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["numero"] == f"FT{str(ficha.pk).zfill(3)}"
+    assert ficha.status == FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE
+
+
+def test_ficha_tecnica_create_from_rascunho_ok(
+    client_autenticado_fornecedor,
+    payload_ficha_tecnica_rascunho,
+    payload_ficha_tecnica_pereciveis,
+):
+    response = client_autenticado_fornecedor.post(
+        "/rascunho-ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload_ficha_tecnica_rascunho),
+    )
+
+    ficha_rascunho = FichaTecnicaDoProduto.objects.last()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["numero"] == f"FT{str(ficha_rascunho.pk).zfill(3)}"
+    assert ficha_rascunho.status == FichaTecnicaDoProdutoWorkflow.RASCUNHO
+
+    response = client_autenticado_fornecedor.put(
+        f"/ficha-tecnica/{ficha_rascunho.uuid}/",
+        content_type="application/json",
+        data=json.dumps(payload_ficha_tecnica_pereciveis),
+    )
+
+    ficha_criada = FichaTecnicaDoProduto.objects.last()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["numero"] == f"FT{str(ficha_criada.pk).zfill(3)}"
+    assert ficha_criada.status == FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE
+    assert ficha_rascunho.numero == ficha_criada.numero
+
+
+def test_ficha_tecnica_validate_pereciveis(
+    client_autenticado_fornecedor,
+    payload_ficha_tecnica_pereciveis,
+):
+    # testa validação dos atributos presentes somente em perecíveis
+    payload = {**payload_ficha_tecnica_pereciveis}
+    attrs_obrigatorios_pereciveis = {
+        "numero_registro",
+        "agroecologico",
+        "organico",
+        "prazo_validade_descongelamento",
+        "temperatura_congelamento",
+        "temperatura_veiculo",
+        "condicoes_de_transporte",
+        "variacao_percentual",
+    }
+    for attr in attrs_obrigatorios_pereciveis:
+        payload.pop(attr)
+
+    response = client_autenticado_fornecedor.post(
+        "/ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"] == [
+        "Fichas Técnicas de Produtos PERECÍVEIS exigem que sejam forncecidos valores para os campos"
+        + " numero_registro, agroecologico, organico, prazo_validade_descongelamento, temperatura_congelamento"
+        + ", temperatura_veiculo, condicoes_de_transporte e variacao_percentual."
+    ]
+
+    # testa validação dos atributos dependentes organico e mecanismo_controle
+    payload = {**payload_ficha_tecnica_pereciveis}
+    payload.pop("mecanismo_controle")
+
+    response = client_autenticado_fornecedor.post(
+        "/ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"] == [
+        "É obrigatório fornecer um valor para atributo mecanismo_controle quando o produto for orgânico."
+    ]
+
+    # testa validação dos atributos dependentes alergenicos e ingredientes_alergenicos
+    payload = {**payload_ficha_tecnica_pereciveis}
+    payload.pop("ingredientes_alergenicos")
+
+    response = client_autenticado_fornecedor.post(
+        "/ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"] == [
+        "É obrigatório fornecer um valor para atributo ingredientes_alergenicos quando o produto for alergênico."
+    ]
+
+    # testa validação dos atributos dependentes lactose e lactose_detalhe
+    payload = {**payload_ficha_tecnica_pereciveis}
+    payload.pop("lactose_detalhe")
+
+    response = client_autenticado_fornecedor.post(
+        "/ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"] == [
+        "É obrigatório fornecer um valor para atributo lactose_detalhe quando o produto possuir lactose."
+    ]
+
+
+def test_ficha_tecnica_validate_nao_pereciveis(
+    client_autenticado_fornecedor,
+    payload_ficha_tecnica_nao_pereciveis,
+):
+    payload = {**payload_ficha_tecnica_nao_pereciveis}
+    payload.pop("produto_eh_liquido")
+
+    response = client_autenticado_fornecedor.post(
+        "/ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"] == [
+        "Fichas Técnicas de Produtos NÃO PERECÍVEIS exigem que sejam forncecidos valores para o campo produto_eh_liquido"
+    ]
+
+    # testa validação dos atributos volume_embalagem_primaria e unidade_medida_volume_primaria
+    payload = {**payload_ficha_tecnica_nao_pereciveis}
+    payload.pop("volume_embalagem_primaria")
+
+    response = client_autenticado_fornecedor.post(
+        "/ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"] == [
+        "É obrigatório fornecer um valor para os atributos volume_embalagem_primaria e unidade_medida_volume_primaria quando o produto for líquido."
+    ]
+
+
+def test_ficha_tecnica_validate_arquivo(
+    client_autenticado_fornecedor,
+    payload_ficha_tecnica_pereciveis,
+):
+    payload_ficha_tecnica_pereciveis["arquivo"] = "string qualquer"
+
+    response = client_autenticado_fornecedor.post(
+        "/ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload_ficha_tecnica_pereciveis),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["arquivo"] == ["Arquivo deve ser um PDF."]
+
+
+def test_ficha_tecnica_validate_embalagens_de_acordo_com_anexo(
+    client_autenticado_fornecedor,
+    payload_ficha_tecnica_pereciveis,
+):
+    payload_ficha_tecnica_pereciveis["embalagens_de_acordo_com_anexo"] = False
+
+    response = client_autenticado_fornecedor.post(
+        "/ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload_ficha_tecnica_pereciveis),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["embalagens_de_acordo_com_anexo"] == [
+        "Checkbox indicando que as embalagens estão de acordo com o Anexo I precisa ser marcado."
+    ]
+
+
+def test_ficha_tecnica_validate_rotulo_legivel(
+    client_autenticado_fornecedor,
+    payload_ficha_tecnica_pereciveis,
+):
+    payload_ficha_tecnica_pereciveis["rotulo_legivel"] = False
+
+    response = client_autenticado_fornecedor.post(
+        "/ficha-tecnica/",
+        content_type="application/json",
+        data=json.dumps(payload_ficha_tecnica_pereciveis),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["rotulo_legivel"] == [
+        "Checkbox indicando que o rótulo contém as informações solicitadas no Anexo I precisa ser marcado."
+    ]
 
 
 def test_ficha_tecnica_list_ok(
