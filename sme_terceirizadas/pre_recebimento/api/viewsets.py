@@ -67,6 +67,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoCorrecaoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
+    FichaTecnicaCreateSerializer,
     FichaTecnicaRascunhoSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
@@ -1019,7 +1020,11 @@ class FichaTecnicaRascunhoViewSet(
 
 
 class FichaTecnicaModelViewSet(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
 ):
     lookup_field = "uuid"
     serializer_class = FichaTecnicaRascunhoSerializer
@@ -1035,12 +1040,15 @@ class FichaTecnicaModelViewSet(
             return FichaTecnicaDoProduto.objects.filter(
                 empresa=user.vinculo_atual.instituicao
             ).order_by("-criado_em")
+
         return FichaTecnicaDoProduto.objects.all().order_by("-criado_em")
 
     def get_serializer_class(self):
         serializer_classes_map = {
             "list": FichaTecnicaListagemSerializer,
             "retrieve": FichaTecnicaDetalharSerializer,
+            "create": FichaTecnicaCreateSerializer,
+            "update": FichaTecnicaCreateSerializer,
         }
 
         return serializer_classes_map.get(self.action, FichaTecnicaRascunhoSerializer)
