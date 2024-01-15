@@ -718,7 +718,7 @@ class FichaTecnicaDoProduto(
     gluten = models.BooleanField("Contém glúten?", null=True)
     lactose = models.BooleanField("Contém lactose?", null=True)
     lactose_detalhe = models.CharField("Detalhar Lactose", max_length=150, blank=True)
-    porcao = models.CharField("Porção", max_length=50, blank=True)
+    porcao = models.FloatField("Porção", blank=True, null=True)
     unidade_medida_porcao = models.ForeignKey(
         UnidadeMedida,
         on_delete=models.PROTECT,
@@ -726,10 +726,10 @@ class FichaTecnicaDoProduto(
         null=True,
         related_name="fichas_tecnicas_unidade_porcao",
     )
-    valor_unidade_caseira = models.CharField(
+    valor_unidade_caseira = models.FloatField(
         "Unidade Caseira",
-        max_length=50,
         blank=True,
+        null=True,
     )
     unidade_medida_caseira = models.CharField(
         "Unidade de Medida Caseira",
@@ -747,11 +747,15 @@ class FichaTecnicaDoProduto(
         help_text="Condições de conservação e Prazo máximo para consumo após a abertura da embalagem primária",
         blank=True,
     )
-    temperatura_congelamento = models.CharField(
-        "Temperatura de Congelamento do Produto", max_length=10, blank=True
+    temperatura_congelamento = models.FloatField(
+        "Temperatura de Congelamento do Produto",
+        blank=True,
+        null=True,
     )
-    temperatura_veiculo = models.CharField(
-        "Temperatura Interna do Veículo para Transporte", max_length=10, blank=True
+    temperatura_veiculo = models.FloatField(
+        "Temperatura Interna do Veículo para Transporte",
+        blank=True,
+        null=True,
     )
     condicoes_de_transporte = models.TextField("Condições de Transporte", blank=True)
     embalagem_primaria = models.TextField("Embalagem Primária", blank=True)

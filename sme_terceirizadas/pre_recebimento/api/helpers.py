@@ -1,13 +1,19 @@
-from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
+from sme_terceirizadas.dados_comuns.utils import (
+    convert_base64_to_contentfile,
+    update_instance_from_dict,
+)
 from sme_terceirizadas.pre_recebimento.models import (
     ArquivoDoTipoDeDocumento,
     DataDeFabricaoEPrazo,
     EtapasDoCronograma,
+    FichaTecnicaDoProduto,
     ImagemDoTipoDeEmbalagem,
+    InformacoesNutricionaisFichaTecnica,
     ProgramacaoDoRecebimentoDoCronograma,
     TipoDeDocumentoDeRecebimento,
     TipoDeEmbalagemDeLayout,
 )
+from sme_terceirizadas.produto.models import InformacaoNutricional
 
 
 def cria_etapas_de_cronograma(etapas, cronograma=None):
@@ -69,3 +75,54 @@ def cria_datas_e_prazos_doc_recebimento(datas_e_prazos, doc_recebimento):
             )
         )
     return datas_criadas
+
+
+def cria_ficha_tecnica(validated_data):
+    dados_informacoes_nutricionais = validated_data.pop("informacoes_nutricionais", [])
+    validated_data["arquivo"] = _processa_arquivo(validated_data.get("arquivo", None))
+
+    instance = FichaTecnicaDoProduto.objects.create(**validated_data)
+
+    for dados in dados_informacoes_nutricionais:
+        informacao_nutricional = InformacaoNutricional.objects.filter(
+            uuid=str(dados["informacao_nutricional"])
+        ).first()
+
+        InformacoesNutricionaisFichaTecnica.objects.create(
+            ficha_tecnica=instance,
+            informacao_nutricional=informacao_nutricional,
+            quantidade_por_100g=dados["quantidade_por_100g"],
+            quantidade_porcao=dados["quantidade_porcao"],
+            valor_diario=dados["valor_diario"],
+        )
+
+    return instance
+
+
+def atualiza_ficha_tecnica(instance, validated_data):
+    dados_informacoes_nutricionais = validated_data.pop("informacoes_nutricionais", [])
+
+    validated_data["arquivo"] = _processa_arquivo(validated_data.get("arquivo", None))
+
+    instance.informacoes_nutricionais.all().delete()
+
+    for dados in dados_informacoes_nutricionais:
+        informacao_nutricional = InformacaoNutricional.objects.filter(
+            uuid=str(dados["informacao_nutricional"])
+        ).first()
+
+        InformacoesNutricionaisFichaTecnica.objects.create(
+            ficha_tecnica=instance,
+            informacao_nutricional=informacao_nutricional,
+            quantidade_por_100g=dados["quantidade_por_100g"],
+            quantidade_porcao=dados["quantidade_porcao"],
+            valor_diario=dados["valor_diario"],
+        )
+
+    return update_instance_from_dict(instance, validated_data, save=True)
+
+
+def _processa_arquivo(arquivo):
+    if arquivo:
+        return convert_base64_to_contentfile(arquivo)
+    return None
