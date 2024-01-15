@@ -426,6 +426,20 @@ def test_url_endpoint_relatorio_pdf(
     }
 
 
+def test_url_endpoint_relatorio_unificado_pdf(
+    client_autenticado_diretoria_regional, grupo_escolar, diretoria_regional
+):
+    response = client_autenticado_diretoria_regional.get(
+        "/medicao-inicial/solicitacao-medicao-inicial/relatorio-unificado/"
+        f"?mes=05&ano=2023&grupo_escolar={grupo_escolar}&status=MEDICAO_APROVADA_PELA_CODAE&dre={diretoria_regional}",
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "detail": "Solicitação de geração de arquivo recebida com sucesso."
+    }
+
+
 def test_url_endpoint_medicao_dashboard_dre(
     client_autenticado_diretoria_regional, solicitacoes_medicao_inicial
 ):
@@ -1331,7 +1345,7 @@ def test_salva_valores_medicao_inicial_cemei(
     assert response.status_code == status.HTTP_200_OK
 
     medicao_integral.refresh_from_db()
-    assert medicao_integral.valores_medicao.count() == 2
+    assert medicao_integral.valores_medicao.count() == 3
     assert (
         medicao_integral.valores_medicao.filter(
             dia="08", nome_campo="matriculados", valor="218"

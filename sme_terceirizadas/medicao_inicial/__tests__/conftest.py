@@ -157,6 +157,7 @@ def escola(tipo_unidade_escolar):
         diretoria_regional=diretoria_regional,
         tipo_gestao=tipo_gestao,
         tipo_unidade=tipo_unidade_escolar,
+        codigo_eol="123456",
     )
 
 
@@ -218,6 +219,25 @@ def escola_cemei():
 
 
 @pytest.fixture
+def escola_ceu_gestao():
+    terceirizada = mommy.make("Terceirizada")
+    lote = mommy.make("Lote", terceirizada=terceirizada)
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional", nome="DIRETORIA REGIONAL TESTE"
+    )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEU GESTAO")
+    return mommy.make(
+        "Escola",
+        nome="CEMEI TESTE",
+        lote=lote,
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade_escolar,
+    )
+
+
+@pytest.fixture
 def aluno():
     return mommy.make(
         "Aluno",
@@ -236,13 +256,26 @@ def solicitacao_medicao_inicial_cemei(escola_cemei, categoria_medicao):
         "SolicitacaoMedicaoInicial", mes=4, ano=2023, escola=escola_cemei
     )
     solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
-    mommy.make(
+    medicao = mommy.make(
         "Medicao",
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_integral,
     )
     mommy.make(
         "FaixaEtaria", inicio=1, fim=10, uuid="0c914b27-c7cd-4682-a439-a4874745b005"
+    )
+    faixa_etaria = mommy.make(
+        "FaixaEtaria", inicio=1, fim=2, uuid="1d125c38-ce75-6974-b25d-a4874745b996"
+    )
+    mommy.make(
+        "ValorMedicao",
+        dia="01",
+        semana="1",
+        nome_campo="frequencia",
+        medicao=medicao,
+        categoria_medicao=categoria_medicao,
+        valor="10",
+        faixa_etaria=faixa_etaria,
     )
     return solicitacao_medicao
 
@@ -269,6 +302,56 @@ def solicitacao_medicao_inicial_cei(escola_cei, categoria_medicao):
         "FaixaEtaria", inicio=1, fim=10, uuid="0c914b27-c7cd-4682-a439-a4874745b005"
     )
     mommy.make("Aluno", periodo_escolar=periodo_manha, escola=escola_cei)
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_valores_cei(escola_cei, categoria_medicao):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_integral = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=4,
+        ano=2023,
+        escola=escola_cei,
+        ue_possui_alunos_periodo_parcial=True,
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    medicao_manha = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_manha,
+    )
+    medicao_integral = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_integral,
+    )
+    faixa_etaria = mommy.make(
+        "FaixaEtaria", inicio=1, fim=10, uuid="0c914b27-c7cd-4682-a439-a4874745b005"
+    )
+    mommy.make("Aluno", periodo_escolar=periodo_manha, escola=escola_cei)
+    mommy.make(
+        "ValorMedicao",
+        dia="01",
+        semana="1",
+        nome_campo="frequencia",
+        medicao=medicao_manha,
+        categoria_medicao=categoria_medicao,
+        valor="10",
+        faixa_etaria=faixa_etaria,
+    )
+    mommy.make(
+        "ValorMedicao",
+        dia="01",
+        semana="1",
+        nome_campo="frequencia",
+        medicao=medicao_integral,
+        categoria_medicao=categoria_medicao,
+        valor="05",
+        faixa_etaria=faixa_etaria,
+    )
     return solicitacao_medicao
 
 
@@ -455,6 +538,80 @@ def solicitacao_medicao_inicial_varios_valores(escola, categoria_medicao):
                         categoria_medicao=categoria,
                         valor="10",
                     )
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_varios_valores_ceu_gestao(
+    escola_ceu_gestao,
+    categoria_medicao,
+    tipo_alimentacao_refeicao,
+    tipo_alimentacao_lanche,
+):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial", mes=12, ano=2023, escola=escola_ceu_gestao
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    medicao = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_manha,
+    )
+    categoria_dieta_a = mommy.make("CategoriaMedicao", nome="DIETA ESPECIAL - TIPO A")
+    categoria_dieta_b = mommy.make("CategoriaMedicao", nome="DIETA ESPECIAL - TIPO B")
+    for dia in ["05"]:
+        for campo in [
+            "numero_de_alunos",
+            "frequencia",
+            "lanche",
+            "refeicao",
+            "repeticao_refeicao",
+            "sobremesa",
+        ]:
+            for categoria in [categoria_medicao, categoria_dieta_a, categoria_dieta_b]:
+                for medicao_ in [medicao]:
+                    mommy.make(
+                        "ValorMedicao",
+                        dia=dia,
+                        nome_campo=campo,
+                        medicao=medicao_,
+                        categoria_medicao=categoria,
+                        valor="10",
+                    )
+    grupo_inclusao_normal = mommy.make(
+        "GrupoInclusaoAlimentacaoNormal",
+        status="CODAE_AUTORIZADO",
+        rastro_escola=escola_ceu_gestao,
+        escola=escola_ceu_gestao,
+    )
+
+    mommy.make(
+        "InclusaoAlimentacaoNormal",
+        grupo_inclusao=grupo_inclusao_normal,
+        data=datetime.date(2023, 12, 5),
+    )
+
+    qp_manha = mommy.make(
+        "QuantidadePorPeriodo",
+        grupo_inclusao_normal=grupo_inclusao_normal,
+        numero_alunos=15,
+        periodo_escolar=periodo_manha,
+    )
+    qp_manha.tipos_alimentacao.add(tipo_alimentacao_refeicao, tipo_alimentacao_lanche)
+    qp_manha.save()
+
+    qp_tarde = mommy.make(
+        "QuantidadePorPeriodo",
+        grupo_inclusao_normal=grupo_inclusao_normal,
+        numero_alunos=10,
+        periodo_escolar=periodo_tarde,
+    )
+    qp_tarde.tipos_alimentacao.add(tipo_alimentacao_lanche)
+    qp_tarde.save()
+
     return solicitacao_medicao
 
 
@@ -679,6 +836,35 @@ def medicao_solicitacoes_alimentacao(escola):
                 categoria_medicao=categoria,
                 valor="10",
             )
+    return medicao_solicitacoes_alimentacao
+
+
+@pytest.fixture
+def medicao_solicitacoes_alimentacao_cei(escola):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    categoria = mommy.make("CategoriaMedicao", nome="ALIMENTAÇÃO")
+    periodo_escolar = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial", mes=11, ano=2023, escola=escola
+    )
+    faixa_etaria = mommy.make("FaixaEtaria", inicio=1, fim=3)
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    medicao_solicitacoes_alimentacao = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_escolar,
+        grupo=None,
+    )
+    for dia in ["01", "02", "03", "04", "05"]:
+        mommy.make(
+            "ValorMedicao",
+            dia=dia,
+            nome_campo="frequencia",
+            medicao=medicao_solicitacoes_alimentacao,
+            categoria_medicao=categoria,
+            valor="10",
+            faixa_etaria=faixa_etaria,
+        )
     return medicao_solicitacoes_alimentacao
 
 
@@ -1690,3 +1876,23 @@ def logs_alunos_matriculados_periodo_escola_cemei(escola_cemei):
         tipo_turma=TipoTurma.REGULAR.name,
     )
     return LogAlunosMatriculadosPeriodoEscola.objects.all()
+
+
+@pytest.fixture
+def grupo_escolar():
+    grupo_escolar = mommy.make(
+        "GrupoUnidadeEscolar",
+        nome="Grupo 4",
+        uuid="5bd9ad5c-e0ab-4812-b2b6-336fc8988960",
+    )
+    return grupo_escolar.uuid
+
+
+@pytest.fixture
+def diretoria_regional():
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL IPIRANGA",
+        uuid="3972e0e9-2d8e-472a-9dfa-30cd219a6d9a",
+    )
+    return diretoria_regional.uuid

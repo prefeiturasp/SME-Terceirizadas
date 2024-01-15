@@ -501,6 +501,13 @@ class TipoEmbalagemQldModelViewSet(viewsets.ModelViewSet):
         response = {"results": queryset}
         return Response(response)
 
+    @action(detail=False, methods=["GET"], url_path="lista-tipos-embalagens")
+    def lista_tipo_embalagem_completa(self, request):
+        queryset = self.get_queryset()
+        serializer = TipoEmbalagemQldSerializer(queryset, many=True).data
+        response = {"results": serializer}
+        return Response(response)
+
 
 class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"

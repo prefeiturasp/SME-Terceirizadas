@@ -37,6 +37,7 @@ from ...produto.models import (
     NomeDeProdutoEdital,
 )
 from ...terceirizada.models import Contrato, Terceirizada
+from .qualidade import TipoEmbalagemQld
 
 
 class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
@@ -57,16 +58,6 @@ class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
 
 
 class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronograma):
-    CAIXA = "CAIXA"
-    FARDO = "FARDO"
-    TUBET = "TUBET"
-
-    TIPO_EMBALAGEM_CHOICES = (
-        (CAIXA, "Caixa"),
-        (FARDO, "Fardo"),
-        (TUBET, "Tubet"),
-    )
-
     numero = models.CharField(
         "Número do Cronograma", blank=True, max_length=50, unique=True
     )
@@ -92,8 +83,8 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
         null=True,
         related_name="cronogramas",
     )
-    tipo_embalagem = models.CharField(
-        choices=TIPO_EMBALAGEM_CHOICES, max_length=15, blank=True
+    tipo_embalagem = models.ForeignKey(
+        TipoEmbalagemQld, on_delete=models.PROTECT, blank=True, null=True
     )
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):

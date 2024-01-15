@@ -1,8 +1,10 @@
 import datetime
 import logging
+from io import BytesIO
 
 from celery import shared_task
 from dateutil.relativedelta import relativedelta
+from PyPDF4 import PdfFileMerger
 
 from ..dados_comuns.utils import (
     atualiza_central_download,
@@ -10,6 +12,12 @@ from ..dados_comuns.utils import (
     gera_objeto_na_central_download,
 )
 from ..escola.models import AlunoPeriodoParcial, Escola
+from ..relatorios.relatorios import (
+    relatorio_consolidado_medicoes_iniciais_emef,
+    relatorio_solicitacao_medicao_por_escola,
+    relatorio_solicitacao_medicao_por_escola_cei,
+    relatorio_solicitacao_medicao_por_escola_cemei,
+)
 from .models import Responsavel, SolicitacaoMedicaoInicial
 
 logger = logging.getLogger(__name__)
@@ -113,12 +121,6 @@ def copiar_alunos_periodo_parcial(solicitacao_origem, solicitacao_destino):
 def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(
     user, nome_arquivo, uuid_sol_medicao
 ):
-    from ..medicao_inicial.models import SolicitacaoMedicaoInicial
-    from ..relatorios.relatorios import (
-        relatorio_solicitacao_medicao_por_escola,
-        relatorio_solicitacao_medicao_por_escola_cei,
-    )
-
     solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=uuid_sol_medicao)
     logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
     obj_central_download = gera_objeto_na_central_download(
@@ -127,6 +129,8 @@ def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(
     try:
         if solicitacao.escola.eh_cei:
             arquivo = relatorio_solicitacao_medicao_por_escola_cei(solicitacao)
+        elif solicitacao.escola.eh_cemei:
+            arquivo = relatorio_solicitacao_medicao_por_escola_cemei(solicitacao)
         else:
             arquivo = relatorio_solicitacao_medicao_por_escola(solicitacao)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
@@ -134,3 +138,83 @@ def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(
         atualiza_central_download_com_erro(obj_central_download, str(e))
 
     logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+@shared_task(
+    retry_backoff=2,
+    retry_kwargs={"max_retries": 8},
+    time_limit=3000,
+    soft_time_limit=3000,
+)
+def gera_pdf_relatorio_unificado_async(
+    user, nome_arquivo, ids_solicitacoes, tipos_de_unidade
+):
+    logger.info(f"x-x-x-x Iniciando a geração do arquivo {nome_arquivo} x-x-x-x")
+    obj_central_download = gera_objeto_na_central_download(
+        user=user, identificador=nome_arquivo
+    )
+    try:
+        merger_lancamentos = PdfFileMerger(strict=False)
+        merger_arquivo_final = PdfFileMerger(strict=False)
+
+        processa_relatorio_lançamentos(
+            ids_solicitacoes, merger_lancamentos, obj_central_download
+        )
+
+        output_final = cria_merge_pdfs(merger_lancamentos, merger_arquivo_final)
+
+        atualiza_central_download(obj_central_download, nome_arquivo, output_final)
+
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+        logger.error(f"Erro ao gerar relatório consolidado: {e}")
+
+    logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+def processa_relatorio_somatorio(
+    ids_solicitacoes, tipos_de_unidade, merger_somatorio, obj_central_download
+):
+    try:
+        id_solicitacao = ids_solicitacoes[0]
+        solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=id_solicitacao)
+        arquivo_somatorio = relatorio_consolidado_medicoes_iniciais_emef(
+            ids_solicitacoes, solicitacao, tipos_de_unidade
+        )
+        arquivo_somatorio_io = BytesIO(arquivo_somatorio)
+        merger_somatorio.append(arquivo_somatorio_io)
+    except Exception as e:
+        atualiza_central_download_com_erro(obj_central_download, str(e))
+        logger.error(f"Erro ao gerar relatório somatorio: {e}")
+
+
+def processa_relatorio_lançamentos(
+    ids_solicitacoes, merger_lancamentos, obj_central_download
+):
+    for id_solicitacao in ids_solicitacoes:
+        try:
+            solicitacao = SolicitacaoMedicaoInicial.objects.get(uuid=id_solicitacao)
+            arquivo_lancamentos = relatorio_solicitacao_medicao_por_escola(solicitacao)
+            arquivo_lancamentos_io = BytesIO(arquivo_lancamentos)
+            merger_lancamentos.append(arquivo_lancamentos_io)
+        except Exception as e:
+            atualiza_central_download_com_erro(obj_central_download, str(e))
+            logger.error(
+                f"Erro ao mesclar arquivo para a solicitação {id_solicitacao}: {e}"
+            )
+
+
+def cria_merge_pdfs(merger_lancamentos, merger_arquivo_final):
+    output_lancamentos = BytesIO()
+    merger_lancamentos.write(output_lancamentos)
+    output_lancamentos.seek(0)
+    merger_arquivo_final.append(output_lancamentos)
+
+    output_final = BytesIO()
+    merger_arquivo_final.write(output_final)
+    output_final.seek(0)
+
+    merger_lancamentos.close()
+    merger_arquivo_final.close()
+
+    return output_final.getvalue()

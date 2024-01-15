@@ -126,6 +126,12 @@ class SolicitacaoAlteracaoCronogramaSerializer(serializers.ModelSerializer):
         )
 
 
+class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoEmbalagemQld
+        exclude = ("id",)
+
+
 class CronogramaSerializer(serializers.ModelSerializer):
     etapas = EtapasDoCronogramaSerializer(many=True)
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(
@@ -137,6 +143,7 @@ class CronogramaSerializer(serializers.ModelSerializer):
     contrato = ContratoSimplesSerializer()
     produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
+    tipo_embalagem = TipoEmbalagemQldSerializer()
 
     class Meta:
         model = Cronograma
@@ -169,6 +176,7 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
     contrato = ContratoSimplesSerializer()
     produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
+    tipo_embalagem = TipoEmbalagemQldSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
@@ -227,7 +235,7 @@ class CronogramaSimplesSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
 
     def get_pregao_chamada_publica(self, obj):
-        return obj.contrato.pregao_chamada_publica if obj.contrato else None
+        return obj.contrato.numero_pregao if obj.contrato else None
 
     def get_nome_produto(self, obj):
         return obj.produto.nome if obj.produto else None
@@ -337,12 +345,6 @@ class LaboratorioCredenciadoSimplesSerializer(serializers.ModelSerializer):
         read_only_fields = ("uuid", "nome")
 
 
-class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TipoEmbalagemQld
-        exclude = ("id",)
-
-
 class UnidadeMedidaSerialzer(serializers.ModelSerializer):
     class Meta:
         model = UnidadeMedida
@@ -382,9 +384,7 @@ class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):
@@ -418,9 +418,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):
@@ -501,9 +499,7 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):
@@ -583,9 +579,7 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):

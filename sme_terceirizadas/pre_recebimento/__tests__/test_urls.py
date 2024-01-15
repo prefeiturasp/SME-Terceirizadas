@@ -1237,7 +1237,7 @@ def test_url_layout_de_embalagem_detalhar(
     assert dedos_layout_recebido["status"] == layout_esperado.get_status_display()
     assert dedos_layout_recebido["numero_cronograma"] == str(cronograma_esperado.numero)
     assert dedos_layout_recebido["pregao_chamada_publica"] == str(
-        cronograma_esperado.contrato.pregao_chamada_publica
+        cronograma_esperado.contrato.numero_pregao
     )
     assert dedos_layout_recebido["nome_produto"] == str(
         cronograma_esperado.produto.nome
@@ -2266,31 +2266,31 @@ def test_url_documentos_de_recebimento_detalhar(
     response = client_autenticado_fornecedor.get(
         f"/documentos-de-recebimento/{documento_de_recebimento.uuid}/"
     )
-    dedos_documento_de_recebimento = response.json()
+    dados_documento_de_recebimento = response.json()
 
     assert response.status_code == status.HTTP_200_OK
 
-    assert dedos_documento_de_recebimento["uuid"] == str(documento_de_recebimento.uuid)
-    assert dedos_documento_de_recebimento["numero_laudo"] == str(
+    assert dados_documento_de_recebimento["uuid"] == str(documento_de_recebimento.uuid)
+    assert dados_documento_de_recebimento["numero_laudo"] == str(
         documento_de_recebimento.numero_laudo
     )
-    assert dedos_documento_de_recebimento[
+    assert dados_documento_de_recebimento[
         "criado_em"
     ] == documento_de_recebimento.criado_em.strftime("%d/%m/%Y")
     assert (
-        dedos_documento_de_recebimento["status"]
+        dados_documento_de_recebimento["status"]
         == documento_de_recebimento.get_status_display()
     )
-    assert dedos_documento_de_recebimento["numero_cronograma"] == str(cronograma.numero)
-    assert dedos_documento_de_recebimento["nome_produto"] == str(
+    assert dados_documento_de_recebimento["numero_cronograma"] == str(cronograma.numero)
+    assert dados_documento_de_recebimento["nome_produto"] == str(
         cronograma.produto.nome
     )
-    assert dedos_documento_de_recebimento["pregao_chamada_publica"] == str(
-        cronograma.contrato.pregao_chamada_publica
+    assert dados_documento_de_recebimento["pregao_chamada_publica"] == str(
+        cronograma.contrato.numero_pregao
     )
-    assert dedos_documento_de_recebimento["tipos_de_documentos"] is not None
+    assert dados_documento_de_recebimento["tipos_de_documentos"] is not None
     assert (
-        dedos_documento_de_recebimento["tipos_de_documentos"][0]["tipo_documento"]
+        dados_documento_de_recebimento["tipos_de_documentos"][0]["tipo_documento"]
         == "LAUDO"
     )
 

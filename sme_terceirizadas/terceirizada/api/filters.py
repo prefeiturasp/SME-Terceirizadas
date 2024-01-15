@@ -14,8 +14,10 @@ class TerceirizadaFilter(filters.FilterSet):
     busca = filters.CharFilter(method="filtrar_empresa")
 
     def filtrar_empresa(self, queryset, name, value):
-        return queryset.filter(cnpj__icontains=value) | queryset.filter(
-            razao_social__icontains=value
+        return (
+            queryset.filter(cnpj__icontains=value)
+            | queryset.filter(razao_social__icontains=value)
+            | queryset.filter(nome_fantasia__icontains=value)
         )
 
 

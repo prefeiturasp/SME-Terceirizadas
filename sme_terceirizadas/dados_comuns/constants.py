@@ -254,9 +254,13 @@ TIPO_SOLICITACAO_DIETA = {
 
 ORDEM_PERIODOS_GRUPOS = {
     "MANHA": 1,
+    "Infantil MANHA": 1,
     "TARDE": 2,
+    "Infantil TARDE": 2,
     "INTEGRAL": 3,
+    "Infantil INTEGRAL": 3,
     "NOITE": 4,
+    "Infantil NOITE": 4,
     "VESPERTINO": 5,
     "Programas e Projetos": 6,
     "Solicitações de Alimentação": 7,
@@ -268,6 +272,15 @@ ORDEM_PERIODOS_GRUPOS_CEI = {
     "PARCIAL": 2,
     "MANHA": 3,
     "TARDE": 4,
+}
+
+ORDEM_PERIODOS_GRUPOS_CEMEI = {
+    "INTEGRAL": 1,
+    "PARCIAL": 2,
+    "Infantil INTEGRAL": 3,
+    "Infantil MANHA": 4,
+    "Infantil TARDE": 5,
+    "Solicitações de Alimentação": 6,
 }
 
 ORDEM_CAMPOS = [
