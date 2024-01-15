@@ -199,7 +199,7 @@
           {% for periodo, campos_list in tabela.categorias_dos_periodos.items %}
             {% for campos in campos_list %}
               {% with numero_campos=campos.numero_campos|add:1 %}
-                {% with faixas_limite=tabela.faixas_etarias|slice:":numero_campos" %}
+                {% with faixas_limite=tabela.faixas_etarias|slice_faixas:numero_campos %}
                   {% for faixa in faixas_limite %}
                     {% if faixa == "total" %}
                       <th class="faixa-etaria">Total do Dia</th>

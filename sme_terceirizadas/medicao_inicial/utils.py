@@ -1492,11 +1492,6 @@ def popula_tabelas_cemei(solicitacao, tabelas):
         criado_em__year=solicitacao.ano,
         tipo_turma="REGULAR",
     )
-    logs_dietas = LogQuantidadeDietasAutorizadas.objects.filter(
-        escola=solicitacao.escola,
-        data__month=solicitacao.mes,
-        data__year=solicitacao.ano,
-    )
 
     alteracoes_lanche_emergencial = get_alteracoes_lanche_emergencial(solicitacao)
     kits_lanches = get_kit_lanche(solicitacao)
@@ -1513,7 +1508,6 @@ def popula_tabelas_cemei(solicitacao, tabelas):
                 dia,
                 indice_periodo,
                 logs_alunos_matriculados,
-                logs_dietas,
                 alteracoes_lanche_emergencial,
                 kits_lanches,
                 tabelas,
@@ -1529,7 +1523,6 @@ def popula_campos_cemei(
     dia,
     indice_periodo,
     logs_alunos_matriculados,
-    logs_dietas,
     alteracoes_lanche_emergencial,
     kits_lanches,
     tabelas,
@@ -1544,6 +1537,18 @@ def popula_campos_cemei(
     categoria_corrente = tabela["categorias"][indice_categoria]
     faixas_etarias = tabela["faixas_etarias"]
     periodo_corrente = tabela["periodos"][indice_periodo]
+
+    modelo = (
+        LogQuantidadeDietasAutorizadasCEI
+        if periodo_corrente in ["INTEGRAL", "PARCIAL"]
+        else LogQuantidadeDietasAutorizadas
+    )
+
+    logs_dietas = modelo.objects.filter(
+        escola=solicitacao.escola,
+        data__month=solicitacao.mes,
+        data__year=solicitacao.ano,
+    )
 
     if len(faixas_etarias):
         popula_campos_faixas_etarias(
