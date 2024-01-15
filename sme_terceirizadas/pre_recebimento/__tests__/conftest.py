@@ -1,11 +1,20 @@
 import pytest
+from faker import Faker
 from model_mommy import mommy
 
 from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
-from ..models import LayoutDeEmbalagem, TipoDeEmbalagemDeLayout, UnidadeMedida
+from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
+from ..models import (
+    FichaTecnicaDoProduto,
+    LayoutDeEmbalagem,
+    TipoDeEmbalagemDeLayout,
+    UnidadeMedida,
+)
+
+fake = Faker("pt_BR")
 
 
 @pytest.fixture
@@ -647,3 +656,143 @@ def layout_de_embalagem_em_analise_com_correcao(
     )
 
     return layout
+
+
+@pytest.fixture
+def payload_ficha_tecnica_rascunho(
+    produto_logistica_factory,
+    empresa,
+    marca_factory,
+    fabricante_factory,
+):
+    return {
+        "produto": str(produto_logistica_factory().uuid),
+        "marca": str(marca_factory().uuid),
+        "empresa": str(empresa.uuid),
+        "fabricante": str(fabricante_factory().uuid),
+        "categoria": FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
+        "pregao_chamada_publica": fake.pystr(max_chars=100),
+        "cnpj_fabricante": "",
+        "cep_fabricante": "",
+        "endereco_fabricante": "",
+        "numero_fabricante": "",
+        "complemento_fabricante": "",
+        "bairro_fabricante": "",
+        "cidade_fabricante": "",
+        "estado_fabricante": "",
+        "email_fabricante": "",
+        "telefone_fabricante": "",
+        "prazo_validade": "",
+        "numero_registro": "",
+        "mecanismo_controle": "",
+        "componentes_produto": "",
+        "ingredientes_alergenicos": "",
+        "lactose_detalhe": "",
+        "porcao": None,
+        "unidade_medida_porcao": "",
+        "valor_unidade_caseira": None,
+        "unidade_medida_caseira": "",
+        "informacoes_nutricionais": [],
+        "condicoes_de_conservacao": "",
+        "embalagem_primaria": "",
+        "embalagem_secundaria": "",
+        "material_embalagem_primaria": "",
+        "volume_embalagem_primaria": None,
+        "unidade_medida_volume_primaria": "",
+        "peso_liquido_embalagem_primaria": None,
+        "unidade_medida_primaria": "",
+        "peso_liquido_embalagem_secundaria": None,
+        "unidade_medida_secundaria": "",
+        "peso_embalagem_primaria_vazia": None,
+        "unidade_medida_primaria_vazia": "",
+        "peso_embalagem_secundaria_vazia": None,
+        "unidade_medida_secundaria_vazia": "",
+        "sistema_vedacao_embalagem_secundaria": "",
+        "nome_responsavel_tecnico": "",
+        "habilitacao": "",
+        "numero_registro_orgao": "",
+        "arquivo": "",
+        "modo_de_preparo": "",
+        "informacoes_adicionais": "",
+    }
+
+
+@pytest.fixture
+def payload_ficha_tecnica_pereciveis(
+    payload_ficha_tecnica_rascunho,
+    arquivo_pdf_base64,
+    unidade_medida_logistica,
+):
+    payload = {
+        **payload_ficha_tecnica_rascunho,
+        "prazo_validade": fake.pystr(max_chars=150),
+        "numero_registro": fake.pystr(max_chars=150),
+        "agroecologico": True,
+        "organico": True,
+        "mecanismo_controle": FichaTecnicaDoProduto.MECANISMO_OPAC,
+        "componentes_produto": fake.pystr(max_chars=250),
+        "alergenicos": True,
+        "ingredientes_alergenicos": fake.pystr(max_chars=150),
+        "lactose": True,
+        "lactose_detalhe": fake.pystr(max_chars=150),
+        "porcao": fake.random_number() / 100,
+        "unidade_medida_porcao": str(unidade_medida_logistica.uuid),
+        "valor_unidade_caseira": fake.random_number() / 100,
+        "unidade_medida_caseira": str(unidade_medida_logistica.uuid),
+        "prazo_validade_descongelamento": fake.pystr(max_chars=50),
+        "condicoes_de_conservacao": fake.pystr(max_chars=150),
+        "temperatura_congelamento": 0,
+        "temperatura_veiculo": -fake.random_number() / 100,
+        "condicoes_de_transporte": fake.pystr(max_chars=150),
+        "embalagem_primaria": fake.pystr(max_chars=150),
+        "embalagem_secundaria": fake.pystr(max_chars=150),
+        "embalagens_de_acordo_com_anexo": True,
+        "material_embalagem_primaria": fake.pystr(max_chars=150),
+        "peso_liquido_embalagem_primaria": fake.random_number() / 100,
+        "unidade_medida_primaria": str(unidade_medida_logistica.uuid),
+        "peso_liquido_embalagem_secundaria": fake.random_number() / 100,
+        "unidade_medida_secundaria": str(unidade_medida_logistica.uuid),
+        "peso_embalagem_primaria_vazia": fake.random_number() / 100,
+        "unidade_medida_primaria_vazia": str(unidade_medida_logistica.uuid),
+        "peso_embalagem_secundaria_vazia": fake.random_number() / 100,
+        "unidade_medida_secundaria_vazia": str(unidade_medida_logistica.uuid),
+        "variacao_percentual": fake.random_number() / 100,
+        "sistema_vedacao_embalagem_secundaria": fake.pystr(max_chars=150),
+        "rotulo_legivel": True,
+        "nome_responsavel_tecnico": fake.pystr(max_chars=100),
+        "habilitacao": fake.pystr(max_chars=100),
+        "numero_registro_orgao": fake.pystr(max_chars=50),
+        "arquivo": arquivo_pdf_base64,
+        "password": DJANGO_ADMIN_PASSWORD,
+    }
+
+    payload.pop("volume_embalagem_primaria")
+    payload.pop("unidade_medida_volume_primaria")
+
+    return payload
+
+
+@pytest.fixture
+def payload_ficha_tecnica_nao_pereciveis(
+    payload_ficha_tecnica_pereciveis,
+    unidade_medida_logistica,
+):
+    payload = {
+        **payload_ficha_tecnica_pereciveis,
+        "categoria": FichaTecnicaDoProduto.CATEGORIA_NAO_PERECIVEIS,
+        "produto_eh_liquido": True,
+        "volume_embalagem_primaria": fake.random_number() / 100,
+        "unidade_medida_volume_primaria": str(unidade_medida_logistica.uuid),
+    }
+
+    payload.pop("numero_registro")
+    payload.pop("agroecologico")
+    payload.pop("organico")
+    payload.pop("mecanismo_controle")
+    payload.pop("prazo_validade_descongelamento")
+    payload.pop("temperatura_congelamento")
+    payload.pop("temperatura_veiculo")
+    payload.pop("condicoes_de_transporte")
+    payload.pop("variacao_percentual")
+
+    return payload
