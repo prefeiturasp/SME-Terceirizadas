@@ -247,6 +247,9 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             != SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
         ):
             return
+        self.cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei_ceu_gestao(
+            instance
+        )
 
         lista_erros = []
         lista_erros = valida_medicoes_inexistentes_ceu_gestao(instance, lista_erros)
@@ -260,6 +263,9 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             instance, lista_erros
         )
         lista_erros = validate_solicitacoes_etec_ceu_gestao(instance, lista_erros)
+        lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
+        lista_erros = validate_lanche_emergencial(instance, lista_erros)
+
         if lista_erros:
             raise ValidationError(lista_erros)
 
@@ -532,7 +538,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             instance
         )
 
-    def cria_valores_medicao_kit_lanches_emef_emei(
+    def cria_valores_medicao_kit_lanches_emef_emei_ceu_gestao(
         self, instance, kits_lanche, kits_lanche_unificado
     ):
         valores_medicao_a_criar = []
@@ -567,7 +573,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             )
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
-    def cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei(
+    def cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei_ceu_gestao(
         self, instance: SolicitacaoMedicaoInicial
     ) -> None:
         escola = instance.escola
@@ -597,7 +603,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         ):
             return
 
-        self.cria_valores_medicao_kit_lanches_emef_emei(
+        self.cria_valores_medicao_kit_lanches_emef_emei_ceu_gestao(
             instance, kits_lanche, kits_lanche_unificado
         )
 
@@ -610,7 +616,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
         self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
         self.cria_valores_medicao_logs_numero_alunos_emef_emei(instance)
-        self.cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei(
+        self.cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei_ceu_gestao(
             instance
         )
 
