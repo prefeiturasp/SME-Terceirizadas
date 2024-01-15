@@ -556,3 +556,8 @@ def get_total_pages(tabela):
 @register.filter
 def slice_table(tabela, index):
     return tabela[index * 30 : (index * 30) + 30]
+
+
+@register.filter
+def slice_faixas(tabela, index):
+    return tabela[:index]
