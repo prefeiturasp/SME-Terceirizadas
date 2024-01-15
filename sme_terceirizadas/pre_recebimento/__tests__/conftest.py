@@ -6,6 +6,7 @@ from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflo
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
+from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from ..models import (
     FichaTecnicaDoProduto,
     LayoutDeEmbalagem,
@@ -762,6 +763,7 @@ def payload_ficha_tecnica_pereciveis(
         "habilitacao": fake.pystr(max_chars=100),
         "numero_registro_orgao": fake.pystr(max_chars=50),
         "arquivo": arquivo_pdf_base64,
+        "password": DJANGO_ADMIN_PASSWORD,
     }
 
     payload.pop("volume_embalagem_primaria")
