@@ -1057,7 +1057,7 @@ class FichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         queryset=UnidadeMedida.objects.all(),
         allow_null=True,
     )
-    variacao_percentual = serializers.FloatField(required=False)
+    variacao_percentual = serializers.FloatField(required=False, allow_null=True)
     sistema_vedacao_embalagem_secundaria = serializers.CharField(
         required=True, allow_blank=True
     )
