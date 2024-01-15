@@ -1053,6 +1053,28 @@ class FichaTecnicaModelViewSet(
 
         return serializer_classes_map.get(self.action, FichaTecnicaRascunhoSerializer)
 
+    def create(self, request, *args, **kwargs):
+        return self._verificar_autenticidade_usuario(
+            request, *args, **kwargs
+        ) or super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        return self._verificar_autenticidade_usuario(
+            request, *args, **kwargs
+        ) or super().update(request, *args, **kwargs)
+
+    def _verificar_autenticidade_usuario(self, request, *args, **kwargs):
+        usuario = request.user
+        password = request.data.pop("password", "")
+
+        if not usuario.verificar_autenticidade(password):
+            return Response(
+                {
+                    "Senha inválida": "em caso de esquecimento de senha, solicite a recuperação e tente novamente."
+                },
+                status=HTTP_401_UNAUTHORIZED,
+            )
+
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):
     queryset = EtapasDoCronograma.objects.filter(cronograma__isnull=False).order_by(
