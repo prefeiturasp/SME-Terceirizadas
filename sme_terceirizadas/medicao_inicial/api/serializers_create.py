@@ -63,7 +63,9 @@ from ..validators import (
     validate_lancamento_kit_lanche,
     validate_lanche_emergencial,
     validate_solicitacoes_etec,
+    validate_solicitacoes_etec_ceu_gestao,
     validate_solicitacoes_programas_e_projetos,
+    validate_solicitacoes_programas_e_projetos_ceu_gestao,
 )
 
 
@@ -254,6 +256,10 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         lista_erros = validate_lancamento_dietas_inclusoes_ceu_gestao(
             instance, lista_erros
         )
+        lista_erros = validate_solicitacoes_programas_e_projetos_ceu_gestao(
+            instance, lista_erros
+        )
+        lista_erros = validate_solicitacoes_etec_ceu_gestao(instance, lista_erros)
         if lista_erros:
             raise ValidationError(lista_erros)
 
