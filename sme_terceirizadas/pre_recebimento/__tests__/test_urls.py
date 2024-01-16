@@ -24,6 +24,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
+    ServiceDashboardFichaTecnica,
     ServiceDashboardLayoutEmbalagem,
 )
 from sme_terceirizadas.pre_recebimento.models import (
@@ -3019,3 +3020,142 @@ def test_calendario_cronograma_list_not_authorized(client_autenticado):
     response = client_autenticado.get("/calendario-cronogramas/")
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_dashboard_ficha_tecnica_status_retornados(
+    client_autenticado_codae_dilog, ficha_tecnica_factory, django_user_model
+):
+    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user = django_user_model.objects.get(id=user_id)
+    status_esperados = ServiceDashboardFichaTecnica.get_dashboard_status(user)
+    for state in status_esperados:
+        ficha_tecnica_factory(status=state)
+
+    response = client_autenticado_codae_dilog.get("/ficha-tecnica/dashboard/")
+
+    assert response.status_code == status.HTTP_200_OK
+
+    status_recebidos = [result["status"] for result in response.json()["results"]]
+
+    for status_recebido in status_recebidos:
+        assert status_recebido in status_esperados
+
+
+@pytest.mark.parametrize(
+    "status_card",
+    [
+        FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+    ],
+)
+def test_url_dashboard_ficha_tecnica_com_filtro(
+    client_autenticado_codae_dilog, ficha_tecnica_factory, status_card
+):
+    fichas_tecnicas = ficha_tecnica_factory.create_batch(size=10, status=status_card)
+
+    filtros = {"numero_ficha": fichas_tecnicas[0].numero}
+    response = client_autenticado_codae_dilog.get("/ficha-tecnica/dashboard/", filtros)
+    dados_card = list(
+        filter(lambda e: e["status"] == status_card, response.json()["results"])
+    ).pop()["dados"]
+
+    assert len(dados_card) == 1
+
+    filtros = {"nome_produto": fichas_tecnicas[0].produto.nome}
+    response = client_autenticado_codae_dilog.get("/ficha-tecnica/dashboard/", filtros)
+    dados_card = list(
+        filter(lambda e: e["status"] == status_card, response.json()["results"])
+    ).pop()["dados"]
+
+    assert len(dados_card) == 1
+
+    filtros = {"nome_empresa": fichas_tecnicas[0].empresa.nome_fantasia}
+    response = client_autenticado_codae_dilog.get("/ficha-tecnica/dashboard/", filtros)
+    dados_card = list(
+        filter(lambda e: e["status"] == status_card, response.json()["results"])
+    ).pop()["dados"]
+
+    assert len(dados_card) == 1
+
+
+@pytest.mark.parametrize(
+    "status_card",
+    [
+        FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+    ],
+)
+def test_url_dashboard_ficha_tecnica_ver_mais(
+    client_autenticado_codae_dilog, ficha_tecnica_factory, status_card
+):
+    fichas_tecnicas = ficha_tecnica_factory.create_batch(size=10, status=status_card)
+
+    filtros = {"status": status_card, "offset": 0, "limit": 10}
+    response = client_autenticado_codae_dilog.get("/ficha-tecnica/dashboard/", filtros)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]["dados"]) == 10
+
+    assert response.json()["results"]["total"] == len(fichas_tecnicas)
+
+
+@pytest.mark.parametrize(
+    "status_card",
+    [
+        FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+    ],
+)
+def test_url_dashboard_ficha_tecnica_ver_mais_com_filtros(
+    client_autenticado_codae_dilog, ficha_tecnica_factory, status_card
+):
+    fichas_tecnicas = ficha_tecnica_factory.create_batch(size=10, status=status_card)
+
+    filtros = {
+        "status": status_card,
+        "offset": 0,
+        "limit": 10,
+        "numero_ficha": fichas_tecnicas[0].numero,
+    }
+    response = client_autenticado_codae_dilog.get("/ficha-tecnica/dashboard/", filtros)
+
+    assert len(response.json()["results"]["dados"]) == 1
+
+    filtros = {
+        "status": status_card,
+        "offset": 0,
+        "limit": 10,
+        "nome_produto": fichas_tecnicas[0].produto.nome,
+    }
+    response = client_autenticado_codae_dilog.get("/ficha-tecnica/dashboard/", filtros)
+
+    assert len(response.json()["results"]["dados"]) == 1
+
+    filtros = {
+        "status": status_card,
+        "offset": 0,
+        "limit": 10,
+        "nome_empresa": fichas_tecnicas[0].empresa.nome_fantasia,
+    }
+    response = client_autenticado_codae_dilog.get("/ficha-tecnica/dashboard/", filtros)
+
+    assert len(response.json()["results"]["dados"]) == 1
+
+
+@pytest.mark.parametrize(
+    "status_card",
+    [
+        FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+    ],
+)
+def test_url_dashboard_ficha_tecnica_quantidade_itens_por_card(
+    client_autenticado_codae_dilog, ficha_tecnica_factory, status_card
+):
+    ficha_tecnica_factory.create_batch(size=10, status=status_card)
+
+    response = client_autenticado_codae_dilog.get("/ficha-tecnica/dashboard/")
+
+    assert response.status_code == status.HTTP_200_OK
+
+    dados_card = list(
+        filter(lambda e: e["status"] == status_card, response.json()["results"])
+    ).pop()["dados"]
+
+    assert len(dados_card) == 6

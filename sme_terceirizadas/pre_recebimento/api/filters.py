@@ -167,6 +167,10 @@ class FichaTecnicaFilter(filters.FilterSet):
         field_name="produto__nome",
         lookup_expr="icontains",
     )
+    nome_empresa = filters.CharFilter(
+        field_name="empresa__nome_fantasia",
+        lookup_expr="icontains",
+    )
     pregao_chamada_publica = filters.CharFilter(
         field_name="pregao_chamada_publica",
         lookup_expr="icontains",
