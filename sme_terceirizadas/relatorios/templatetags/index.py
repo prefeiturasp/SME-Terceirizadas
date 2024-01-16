@@ -559,5 +559,22 @@ def slice_table(tabela, index):
 
 
 @register.filter
-def slice_faixas(tabela, index):
-    return tabela[:index]
+def build_rows_faixas_etarias(tabela):
+    html_output = []
+    index_inicial = 0
+    for _, campos_list in tabela["categorias_dos_periodos"].items():
+        for campos in campos_list:
+            numero_campos = campos["numero_campos"] + 1
+            faixas_limite = tabela["faixas_etarias"][
+                index_inicial : index_inicial + numero_campos
+            ]
+            for faixa in faixas_limite:
+                if faixa == "total":
+                    html_output.append('<th class="faixa-etaria">Total do Dia</th>')
+                else:
+                    if campos["categoria"] == "ALIMENTAÇÃO":
+                        html_output.append("<th>Matriculados</th><th>Frequência</th>")
+                    else:
+                        html_output.append("<th>Aprovadas</th><th>Frequência</th>")
+            index_inicial += numero_campos
+    return "".join(html_output)
