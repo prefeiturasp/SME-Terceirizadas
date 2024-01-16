@@ -196,27 +196,7 @@
         </tr>
 
         <tr>
-          {% for periodo, campos_list in tabela.categorias_dos_periodos.items %}
-            {% for campos in campos_list %}
-              {% with numero_campos=campos.numero_campos|add:1 %}
-                {% with faixas_limite=tabela.faixas_etarias|slice_faixas:numero_campos %}
-                  {% for faixa in faixas_limite %}
-                    {% if faixa == "total" %}
-                      <th class="faixa-etaria">Total do Dia</th>
-                    {% else %}
-                      {% if campos.categoria == "ALIMENTAÇÃO" %}
-                        <th>Matriculados</th>
-                        <th>Frequência</th>
-                      {% else %}
-                        <th>Aprovadas</th>
-                        <th>Frequência</th>
-                      {% endif %}
-                    {% endif %}
-                  {% endfor %}
-                {% endwith %}
-              {% endwith %}
-            {% endfor %}
-          {% endfor %}
+          {{tabela|build_rows_faixas_etarias|safe}}
 
           {% for campo in tabela.nomes_campos %}
             <th>{{ campo|get_nome_campo }}</th>
