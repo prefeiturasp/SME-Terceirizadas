@@ -153,12 +153,10 @@ def get_tamanho_colunas_periodos(tabelas, ordem_periodos_grupos, tipo_unidade=No
                 tabela["len_periodos"] += [
                     (
                         sum(
-                            x["numero_campos"]
+                            (x["numero_campos"] * 2) + 1
                             for x in tabela["categorias_dos_periodos"][periodo]
                         )
-                        * 2
                     )
-                    + 1
                 ]
             else:
                 tabela["len_periodos"] += [
@@ -213,6 +211,7 @@ def append_tabela(
     categoria,
     dict_categorias_campos,
     segunda_tabela=False,
+    tipo_unidade=None,
 ):
     tabelas[indice_atual]["periodos"] += [nome_periodo]
     tabelas[indice_atual]["categorias"] += [categoria]
@@ -222,7 +221,12 @@ def append_tabela(
             for campo in ORDEM_CAMPOS
             if campo in dict_categorias_campos[categoria]
         ][MAX_COLUNAS:]
-        if nome_periodo in ["INTEGRAL", "PARCIAL"]:
+
+        if tipo_unidade == "CEMEI" and nome_periodo in ["INTEGRAL", "PARCIAL"]:
+            tabelas[indice_atual]["faixas_etarias"] += [
+                faixa for faixa in dict_categorias_campos[categoria]
+            ][MAX_COLUNAS:]
+
             tabelas[indice_atual]["len_categorias"] += [
                 (len(dict_categorias_campos[categoria][MAX_COLUNAS:]) * 2) + 1
             ]
@@ -236,6 +240,12 @@ def append_tabela(
             for campo in ORDEM_CAMPOS
             if campo in dict_categorias_campos[categoria]
         ][:MAX_COLUNAS]
+
+        if tipo_unidade == "CEMEI" and nome_periodo in ["INTEGRAL", "PARCIAL"]:
+            tabelas[indice_atual]["faixas_etarias"] += [
+                faixa for faixa in dict_categorias_campos[categoria]
+            ][:MAX_COLUNAS]
+
         tabelas[indice_atual]["len_categorias"] += [MAX_COLUNAS]
     get_categorias_dos_periodos(
         nome_periodo,
@@ -475,10 +485,11 @@ def build_headers_tabelas_cemei(solicitacao):
                     else medicao.grupo.nome
                 )
             )
-            len_faixas = (len(tabelas[indice_atual]["faixas_etarias"]) * 2) + 1
+            faixas_etarias = tabelas[indice_atual]["faixas_etarias"]
+            len_faixas = sum(2 if faixa != "total" else 1 for faixa in faixas_etarias)
 
             len_colunas = (
-                len_faixas
+                (len(dict_categorias_campos[categoria]) * 2) + 1
                 if nome_periodo in ["INTEGRAL", "PARCIAL"]
                 else len(dict_categorias_campos[categoria])
             )
@@ -497,6 +508,7 @@ def build_headers_tabelas_cemei(solicitacao):
                         nome_periodo,
                         categoria,
                         dict_categorias_campos,
+                        "CEMEI",
                     )
                     indice_atual += 1
                     tabelas += [cria_tabela_vazia_cemei()]
@@ -507,6 +519,7 @@ def build_headers_tabelas_cemei(solicitacao):
                         categoria,
                         dict_categorias_campos,
                         True,
+                        "CEMEI",
                     )
                 else:
                     indice_atual += 1
@@ -1714,8 +1727,8 @@ def popula_campos_faixas_etarias(
     valores_dia,
     indice_categoria,
 ):
-    len_faixas = len([item for item in faixas_etarias if "total" not in item])
     indice_faixa = 0
+    indice_inicial = 0
 
     for faixa in faixas_etarias:
         if faixa == "total":
@@ -1730,19 +1743,23 @@ def popula_campos_faixas_etarias(
                 valores_dia += [str(total if total else 0)]
 
             else:
-                valores_dia += [str(total_mensal_categoria[indice_periodo])]
-                total_mensal_categoria[indice_periodo] = 0
-            indice_periodo += 1
+                popula_total_faixas(
+                    indice_faixa,
+                    faixas_etarias,
+                    tabela,
+                    total_mensal_categoria,
+                    indice_periodo,
+                    valores_dia,
+                    indice_inicial,
+                )
 
         else:
-            if indice_faixa > len_faixas - 1:
-                indice_faixa = 0
+            if (
+                get_indice_faixa(indice_inicial, indice_faixa, faixas_etarias)
+                > tabela["len_categorias"][indice_categoria]
+            ):
                 indice_categoria += 1
                 categoria_corrente = tabela["categorias"][indice_categoria]["categoria"]
-                faixas_etarias = tabela["categorias"][indice_categoria][
-                    "faixas_etarias"
-                ]
-
                 if indice_campo > tabela["len_periodos"][
                     indice_periodo
                 ] - 1 and indice_periodo + 1 < len(tabela["periodos"]):
@@ -1759,6 +1776,35 @@ def popula_campos_faixas_etarias(
                 indice_campo,
                 indice_faixa,
             )
+
+
+def get_indice_faixa(indice_inicial, indice_atual, faixas_etarias):
+    indice_faixa = sum(
+        2 if faixa != "total" else 1
+        for faixa in [faixas_etarias][indice_inicial : indice_atual + 1]
+    )
+
+    return indice_faixa
+
+
+def popula_total_faixas(
+    indice_faixa,
+    faixas_etarias,
+    tabela,
+    total_mensal_categoria,
+    indice_periodo,
+    valores_dia,
+    indice_inicial,
+):
+    valores_dia += [str(total_mensal_categoria[indice_periodo])]
+    total_mensal_categoria[indice_periodo] = 0
+    if (
+        get_indice_faixa(indice_inicial, indice_faixa, faixas_etarias)
+        > tabela["len_periodos"][indice_periodo]
+    ):
+        indice_periodo += 1
+
+    indice_inicial = indice_faixa
 
 
 def popula_faixas_dias(
