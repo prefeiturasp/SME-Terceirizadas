@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import OuterRef, QuerySet
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import mixins, viewsets
@@ -1092,8 +1092,16 @@ class FichaTecnicaModelViewSet(
         permission_classes=(PermissaoParaDashboardFichaTecnica,),
     )
     def dashboard(self, request):
+        subquery = (
+            LogSolicitacoesUsuario.objects.filter(uuid_original=OuterRef("uuid"))
+            .order_by("-criado_em")
+            .values("criado_em")[:1]
+        )
+        qs = FichaTecnicaDoProduto.objects.annotate(log_criado_em=subquery).order_by(
+            "-log_criado_em"
+        )
         dashboard_service = ServiceDashboardFichaTecnica(
-            self.get_queryset(),
+            qs,
             FichaTecnicaFilter,
             PainelFichaTecnicaSerializer,
             request,
