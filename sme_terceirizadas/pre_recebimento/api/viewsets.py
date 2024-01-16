@@ -34,6 +34,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaDarCienciaAlteracaoCronograma,
     PermissaoParaDashboardCronograma,
     PermissaoParaDashboardDocumentosDeRecebimento,
+    PermissaoParaDashboardFichaTecnica,
     PermissaoParaDashboardLayoutEmbalagem,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCalendarioCronograma,
@@ -96,6 +97,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
     PainelDocumentoDeRecebimentoSerializer,
+    PainelFichaTecnicaSerializer,
     PainelLayoutEmbalagemSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
@@ -105,6 +107,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
+    ServiceDashboardFichaTecnica,
     ServiceDashboardLayoutEmbalagem,
     ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
 )
@@ -1081,6 +1084,22 @@ class FichaTecnicaModelViewSet(
                 },
                 status=HTTP_401_UNAUTHORIZED,
             )
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="dashboard",
+        permission_classes=(PermissaoParaDashboardFichaTecnica,),
+    )
+    def dashboard(self, request):
+        dashboard_service = ServiceDashboardFichaTecnica(
+            self.get_queryset(),
+            FichaTecnicaFilter,
+            PainelFichaTecnicaSerializer,
+            request,
+        )
+
+        return Response({"results": dashboard_service.get_dados_dashboard()})
 
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):
