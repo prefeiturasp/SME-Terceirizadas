@@ -247,9 +247,6 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             != SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
         ):
             return
-        self.cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei_ceu_gestao(
-            instance
-        )
 
         lista_erros = []
         lista_erros = valida_medicoes_inexistentes_ceu_gestao(instance, lista_erros)
@@ -573,7 +570,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             )
         ValorMedicao.objects.bulk_create(valores_medicao_a_criar)
 
-    def cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei_ceu_gestao(
+    def cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei(
         self, instance: SolicitacaoMedicaoInicial
     ) -> None:
         escola = instance.escola
@@ -616,7 +613,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         self.cria_valores_medicao_logs_alunos_matriculados_emef_emei(instance)
         self.cria_valores_medicao_logs_dietas_autorizadas_emef_emei(instance)
         self.cria_valores_medicao_logs_numero_alunos_emef_emei(instance)
-        self.cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei_ceu_gestao(
+        self.cria_valores_medicao_logs_kit_lanche_lanches_emergenciais_emef_emei(
             instance
         )
 
