@@ -16,6 +16,7 @@ from sme_terceirizadas.dados_comuns.constants import (
 from sme_terceirizadas.dados_comuns.fluxo_status import (
     CronogramaAlteracaoWorkflow,
     DocumentoDeRecebimentoWorkflow,
+    FichaTecnicaDoProdutoWorkflow,
     LayoutDeEmbalagemWorkflow,
 )
 
@@ -179,5 +180,16 @@ class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+        ],
+    }
+
+
+class ServiceDashboardFichaTecnica(BaseServiceDashboard):
+    STATUS_POR_PERFIL = {
+        COORDENADOR_GESTAO_PRODUTO: [
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+        ],
+        COORDENADOR_CODAE_DILOG_LOGISTICA: [
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
         ],
     }
