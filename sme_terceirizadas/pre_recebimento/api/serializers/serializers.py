@@ -769,3 +769,34 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "modo_de_preparo",
             "informacoes_adicionais",
         )
+
+
+class PainelFichaTecnicaSerializer(serializers.ModelSerializer):
+    numero_ficha = serializers.CharField(source="numero")
+    nome_produto = serializers.CharField(source="produto.nome")
+    nome_empresa = serializers.CharField(source="empresa.nome_fantasia")
+    status = serializers.CharField(source="get_status_display")
+    log_mais_recente = serializers.SerializerMethodField()
+
+    def get_log_mais_recente(self, obj):
+        if obj.log_mais_recente:
+            if obj.log_mais_recente.criado_em.date() == datetime.date.today():
+                return datetime.datetime.strftime(
+                    obj.log_mais_recente.criado_em, "%d/%m/%Y %H:%M"
+                )
+            return datetime.datetime.strftime(
+                obj.log_mais_recente.criado_em, "%d/%m/%Y"
+            )
+        else:
+            return datetime.datetime.strftime(obj.criado_em, "%d/%m/%Y")
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = (
+            "uuid",
+            "numero_ficha",
+            "nome_produto",
+            "nome_empresa",
+            "status",
+            "log_mais_recente",
+        )
