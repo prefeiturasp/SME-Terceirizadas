@@ -77,6 +77,7 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.SerializerMethodField()
     nome_fornecedor = serializers.SerializerMethodField()
     data_programada = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
@@ -93,6 +94,9 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
     def get_data_programada(self, obj):
         return obj.data_programada.strftime("%d/%m/%Y") if obj.data_programada else None
 
+    def get_status(self, obj):
+        return obj.cronograma.get_status_display() if obj.cronograma else None
+
     class Meta:
         model = EtapasDoCronograma
         fields = (
@@ -106,6 +110,7 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
             "etapa",
             "parte",
             "quantidade",
+            "status",
         )
 
 
