@@ -11,6 +11,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
+from ...cardapio.api.serializers.serializers import VinculoTipoAlimentoPeriodoSerializer
+from ...cardapio.models import (
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
+)
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.permissions import (
@@ -25,8 +29,7 @@ from ...dieta_especial.api.serializers import (
     SolicitacaoDietaEspecialSerializer,
 )
 from ...dieta_especial.models import SolicitacaoDietaEspecial
-from ...escola.api.serializers import PeriodoEscolarSerializer
-from ...escola.models import PeriodoEscolar
+from ...escola.models import Escola, PeriodoEscolar
 from ...inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal
 from ...kit_lanche.models import SolicitacaoKitLancheUnificada
 from ...medicao_inicial.models import SolicitacaoMedicaoInicial
@@ -977,12 +980,20 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             inclusoes_normais__data__lt=datetime.date.today(),
         ).values_list("uuid", flat=True)
 
-        periodos_escolares = PeriodoEscolar.objects.filter(
+        periodos_escolares_inclusoes = PeriodoEscolar.objects.filter(
             quantidadeporperiodo__grupo_inclusao_normal__uuid__in=uuids_inclusoes_normais
         ).distinct()
+        escola = Escola.objects.get(uuid=escola_uuid)
+        vinculos = (
+            VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+                periodo_escolar__in=periodos_escolares_inclusoes,
+                ativo=True,
+                tipo_unidade_escolar=escola.tipo_unidade,
+            ).order_by("periodo_escolar__posicao")
+        )
 
         return Response(
-            PeriodoEscolarSerializer(periodos_escolares, many=True).data,
+            VinculoTipoAlimentoPeriodoSerializer(vinculos, many=True).data,
             status=status.HTTP_200_OK,
         )
 

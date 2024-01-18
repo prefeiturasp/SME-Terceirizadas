@@ -23,6 +23,7 @@ from ..medicao_inicial.utils import (
     build_tabela_somatorio_body_cei,
     build_tabelas_relatorio_medicao,
     build_tabelas_relatorio_medicao_cei,
+    build_tabelas_relatorio_medicao_cemei,
 )
 from ..relatorios.utils import (
     html_to_pdf_cancelada,
@@ -1445,6 +1446,28 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
             "tabelas_somatorios": tabelas_somatorios,
         },
     )
+    return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
+
+
+def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
+    tabelas = build_tabelas_relatorio_medicao_cemei(solicitacao)
+    tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list(
+        "nome", flat=True
+    )
+    tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
+
+    html_string = render_to_string(
+        "relatorio_solicitacao_medicao_por_escola_cemei.html",
+        {
+            "solicitacao": solicitacao,
+            "tipos_contagem_alimentacao": tipos_contagem_alimentacao,
+            "responsaveis": solicitacao.responsaveis.all(),
+            "assinatura_escola": solicitacao.assinatura_ue,
+            "assinatura_dre": solicitacao.assinatura_dre,
+            "tabelas": tabelas,
+        },
+    )
+
     return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
 
 

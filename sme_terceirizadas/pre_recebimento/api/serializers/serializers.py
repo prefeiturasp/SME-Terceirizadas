@@ -77,6 +77,7 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.SerializerMethodField()
     nome_fornecedor = serializers.SerializerMethodField()
     data_programada = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
     def get_nome_produto(self, obj):
         return obj.cronograma.produto.nome if obj.cronograma.produto else None
@@ -93,6 +94,9 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
     def get_data_programada(self, obj):
         return obj.data_programada.strftime("%d/%m/%Y") if obj.data_programada else None
 
+    def get_status(self, obj):
+        return obj.cronograma.get_status_display() if obj.cronograma else None
+
     class Meta:
         model = EtapasDoCronograma
         fields = (
@@ -106,6 +110,7 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
             "etapa",
             "parte",
             "quantidade",
+            "status",
         )
 
 
@@ -126,6 +131,12 @@ class SolicitacaoAlteracaoCronogramaSerializer(serializers.ModelSerializer):
         )
 
 
+class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoEmbalagemQld
+        exclude = ("id",)
+
+
 class CronogramaSerializer(serializers.ModelSerializer):
     etapas = EtapasDoCronogramaSerializer(many=True)
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(
@@ -137,6 +148,7 @@ class CronogramaSerializer(serializers.ModelSerializer):
     contrato = ContratoSimplesSerializer()
     produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
+    tipo_embalagem = TipoEmbalagemQldSerializer()
 
     class Meta:
         model = Cronograma
@@ -169,6 +181,7 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
     contrato = ContratoSimplesSerializer()
     produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
+    tipo_embalagem = TipoEmbalagemQldSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
@@ -227,7 +240,7 @@ class CronogramaSimplesSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
 
     def get_pregao_chamada_publica(self, obj):
-        return obj.contrato.pregao_chamada_publica if obj.contrato else None
+        return obj.contrato.numero_pregao if obj.contrato else None
 
     def get_nome_produto(self, obj):
         return obj.produto.nome if obj.produto else None
@@ -337,12 +350,6 @@ class LaboratorioCredenciadoSimplesSerializer(serializers.ModelSerializer):
         read_only_fields = ("uuid", "nome")
 
 
-class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TipoEmbalagemQld
-        exclude = ("id",)
-
-
 class UnidadeMedidaSerialzer(serializers.ModelSerializer):
     class Meta:
         model = UnidadeMedida
@@ -382,9 +389,7 @@ class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):
@@ -418,9 +423,7 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):
@@ -501,9 +504,7 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):
@@ -583,9 +584,7 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
 
     def get_pregao_chamada_publica(self, obj):
         return (
-            obj.cronograma.contrato.pregao_chamada_publica
-            if obj.cronograma.contrato
-            else None
+            obj.cronograma.contrato.numero_pregao if obj.cronograma.contrato else None
         )
 
     def get_nome_produto(self, obj):
@@ -696,6 +695,7 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_primaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_secundaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")
@@ -748,6 +748,9 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "embalagem_secundaria",
             "embalagens_de_acordo_com_anexo",
             "material_embalagem_primaria",
+            "produto_eh_liquido",
+            "volume_embalagem_primaria",
+            "unidade_medida_volume_primaria",
             "peso_liquido_embalagem_primaria",
             "unidade_medida_primaria",
             "peso_liquido_embalagem_secundaria",
@@ -765,4 +768,35 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "arquivo",
             "modo_de_preparo",
             "informacoes_adicionais",
+        )
+
+
+class PainelFichaTecnicaSerializer(serializers.ModelSerializer):
+    numero_ficha = serializers.CharField(source="numero")
+    nome_produto = serializers.CharField(source="produto.nome")
+    nome_empresa = serializers.CharField(source="empresa.nome_fantasia")
+    status = serializers.CharField(source="get_status_display")
+    log_mais_recente = serializers.SerializerMethodField()
+
+    def get_log_mais_recente(self, obj):
+        if obj.log_mais_recente:
+            if obj.log_mais_recente.criado_em.date() == datetime.date.today():
+                return datetime.datetime.strftime(
+                    obj.log_mais_recente.criado_em, "%d/%m/%Y %H:%M"
+                )
+            return datetime.datetime.strftime(
+                obj.log_mais_recente.criado_em, "%d/%m/%Y"
+            )
+        else:
+            return datetime.datetime.strftime(obj.criado_em, "%d/%m/%Y")
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = (
+            "uuid",
+            "numero_ficha",
+            "nome_produto",
+            "nome_empresa",
+            "status",
+            "log_mais_recente",
         )

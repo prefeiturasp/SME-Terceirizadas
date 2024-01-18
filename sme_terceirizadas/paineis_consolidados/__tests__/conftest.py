@@ -38,11 +38,13 @@ def escola(diretoria_regional):
     lote = mommy.make(
         "Lote", diretoria_regional=diretoria_regional, terceirizada=terceirizada
     )
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="CEU GESTAO")
     return mommy.make(
         "Escola",
         diretoria_regional=diretoria_regional,
         lote=lote,
         uuid="fdf23c84-c9ff-4811-adff-e70df5378466",
+        tipo_unidade=tipo_unidade_escolar,
     )
 
 
@@ -1062,3 +1064,15 @@ def kit_lanche_cemei():
     )
 
     return kit_lanche_cemei
+
+
+@pytest.fixture
+def vinculo_periodo_alimentacao(escola, periodo_escolar_manha):
+    vinculo_alimentacao = mommy.make(
+        "VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar",
+        tipo_unidade_escolar=escola.tipo_unidade,
+        periodo_escolar=periodo_escolar_manha,
+    )
+    tipo_alimentacao_refeicao = mommy.make("TipoAlimentacao", nome="Refeição")
+    vinculo_alimentacao.tipos_alimentacao.add(tipo_alimentacao_refeicao)
+    vinculo_alimentacao.save()

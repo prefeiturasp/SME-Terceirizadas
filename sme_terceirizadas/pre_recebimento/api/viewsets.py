@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import OuterRef, QuerySet
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import mixins, viewsets
@@ -34,6 +34,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaDarCienciaAlteracaoCronograma,
     PermissaoParaDashboardCronograma,
     PermissaoParaDashboardDocumentosDeRecebimento,
+    PermissaoParaDashboardFichaTecnica,
     PermissaoParaDashboardLayoutEmbalagem,
     PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma,
     PermissaoParaVisualizarCalendarioCronograma,
@@ -67,6 +68,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import 
     DocumentoDeRecebimentoAnalisarSerializer,
     DocumentoDeRecebimentoCorrecaoSerializer,
     DocumentoDeRecebimentoCreateSerializer,
+    FichaTecnicaCreateSerializer,
     FichaTecnicaRascunhoSerializer,
     LaboratorioCreateSerializer,
     LayoutDeEmbalagemAnaliseSerializer,
@@ -95,6 +97,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     NomeEAbreviacaoUnidadeMedidaSerializer,
     PainelCronogramaSerializer,
     PainelDocumentoDeRecebimentoSerializer,
+    PainelFichaTecnicaSerializer,
     PainelLayoutEmbalagemSerializer,
     PainelSolicitacaoAlteracaoCronogramaSerializer,
     SolicitacaoAlteracaoCronogramaCompletoSerializer,
@@ -104,6 +107,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
 )
 from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardDocumentosDeRecebimento,
+    ServiceDashboardFichaTecnica,
     ServiceDashboardLayoutEmbalagem,
     ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
 )
@@ -498,6 +502,13 @@ class TipoEmbalagemQldModelViewSet(viewsets.ModelViewSet):
     def lista_abreviacoes_tipos_embalagens(self, request):
         queryset = TipoEmbalagemQld.objects.all().values_list("abreviacao", flat=True)
         response = {"results": queryset}
+        return Response(response)
+
+    @action(detail=False, methods=["GET"], url_path="lista-tipos-embalagens")
+    def lista_tipo_embalagem_completa(self, request):
+        queryset = self.get_queryset()
+        serializer = TipoEmbalagemQldSerializer(queryset, many=True).data
+        response = {"results": serializer}
         return Response(response)
 
 
@@ -1019,7 +1030,11 @@ class FichaTecnicaRascunhoViewSet(
 
 
 class FichaTecnicaModelViewSet(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
 ):
     lookup_field = "uuid"
     serializer_class = FichaTecnicaRascunhoSerializer
@@ -1035,15 +1050,64 @@ class FichaTecnicaModelViewSet(
             return FichaTecnicaDoProduto.objects.filter(
                 empresa=user.vinculo_atual.instituicao
             ).order_by("-criado_em")
+
         return FichaTecnicaDoProduto.objects.all().order_by("-criado_em")
 
     def get_serializer_class(self):
         serializer_classes_map = {
             "list": FichaTecnicaListagemSerializer,
             "retrieve": FichaTecnicaDetalharSerializer,
+            "create": FichaTecnicaCreateSerializer,
+            "update": FichaTecnicaCreateSerializer,
         }
 
         return serializer_classes_map.get(self.action, FichaTecnicaRascunhoSerializer)
+
+    def create(self, request, *args, **kwargs):
+        return self._verificar_autenticidade_usuario(
+            request, *args, **kwargs
+        ) or super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        return self._verificar_autenticidade_usuario(
+            request, *args, **kwargs
+        ) or super().update(request, *args, **kwargs)
+
+    def _verificar_autenticidade_usuario(self, request, *args, **kwargs):
+        usuario = request.user
+        password = request.data.pop("password", "")
+
+        if not usuario.verificar_autenticidade(password):
+            return Response(
+                {
+                    "Senha inválida": "em caso de esquecimento de senha, solicite a recuperação e tente novamente."
+                },
+                status=HTTP_401_UNAUTHORIZED,
+            )
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="dashboard",
+        permission_classes=(PermissaoParaDashboardFichaTecnica,),
+    )
+    def dashboard(self, request):
+        subquery = (
+            LogSolicitacoesUsuario.objects.filter(uuid_original=OuterRef("uuid"))
+            .order_by("-criado_em")
+            .values("criado_em")[:1]
+        )
+        qs = FichaTecnicaDoProduto.objects.annotate(log_criado_em=subquery).order_by(
+            "-log_criado_em"
+        )
+        dashboard_service = ServiceDashboardFichaTecnica(
+            qs,
+            FichaTecnicaFilter,
+            PainelFichaTecnicaSerializer,
+            request,
+        )
+
+        return Response({"results": dashboard_service.get_dados_dashboard()})
 
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):

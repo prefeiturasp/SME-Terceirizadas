@@ -5331,8 +5331,14 @@ class FichaTecnicaDoProdutoWorkflow(xwf_models.Workflow):
     log_model = ""  # Disable logging to database
 
     RASCUNHO = "RASCUNHO"
+    ENVIADA_PARA_ANALISE = "ENVIADA_PARA_ANALISE"
 
-    states = ((RASCUNHO, "Rascunho"),)
+    states = (
+        (RASCUNHO, "Rascunho"),
+        (ENVIADA_PARA_ANALISE, "Enviada para Análise"),
+    )
+
+    transitions = (("inicia_fluxo", RASCUNHO, ENVIADA_PARA_ANALISE),)
 
     initial_state = RASCUNHO
 
@@ -5340,6 +5346,15 @@ class FichaTecnicaDoProdutoWorkflow(xwf_models.Workflow):
 class FluxoFichaTecnicaDoProduto(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = FichaTecnicaDoProdutoWorkflow
     status = xwf_models.StateField(workflow_class)
+
+    @xworkflows.after_transition("inicia_fluxo")
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs["user"]
+        if user:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_ANALISE,
+                usuario=user,
+            )
 
     class Meta:
         abstract = True

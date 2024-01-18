@@ -29,6 +29,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin,
 )
+from ...dados_comuns.utils import get_ultimo_dia_mes
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
 )
@@ -560,38 +561,22 @@ class SolicitacaoMedicaoInicialViewSet(
         retorno = []
         for medicao in solicitacao.medicoes.all():
             campos_a_desconsiderar = get_campos_a_desconsiderar(escola, medicao)
-            valores = []
+            total_por_nome_campo = {}
             for valor_medicao in medicao.valores_medicao.exclude(
                 categoria_medicao__nome__icontains="DIETA"
             ):
-                tem_nome_campo = [
-                    valor
-                    for valor in valores
-                    if valor["nome_campo"] == valor_medicao.nome_campo
-                ]
                 if valor_medicao.nome_campo not in campos_a_desconsiderar:
-                    if tem_nome_campo:
-                        valores = [
-                            valor
-                            for valor in valores
-                            if valor["nome_campo"] != valor_medicao.nome_campo
-                        ]
-                        valores.append(
-                            {
-                                "nome_campo": valor_medicao.nome_campo,
-                                "valor": tem_nome_campo[0]["valor"]
-                                + int(valor_medicao.valor),
-                            }
-                        )
-                    else:
-                        valores.append(
-                            {
-                                "nome_campo": valor_medicao.nome_campo,
-                                "valor": int(valor_medicao.valor),
-                            }
-                        )
-            valores = tratar_valores(escola, valores)
-            valor_total = get_valor_total(escola, valores, medicao)
+                    total_por_nome_campo[
+                        valor_medicao.nome_campo
+                    ] = total_por_nome_campo.get(valor_medicao.nome_campo, 0) + int(
+                        valor_medicao.valor
+                    )
+            total_por_nome_campo = tratar_valores(escola, total_por_nome_campo)
+            valor_total = get_valor_total(escola, total_por_nome_campo, medicao)
+            valores = [
+                {"nome_campo": nome_campo, "valor": valor}
+                for nome_campo, valor in total_por_nome_campo.items()
+            ]
             dict_retorno = {
                 "nome_periodo_grupo": medicao.nome_periodo_grupo,
                 "status": medicao.status.name,
@@ -1414,13 +1399,15 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
         mes = request.query_params.get("mes")
         ano = request.query_params.get("ano")
         nome_periodo_escolar = request.query_params.get("nome_periodo_escolar")
+        primeiro_dia_mes = datetime.date(int(ano), int(mes), 1)
+        ultimo_dia_mes = get_ultimo_dia_mes(primeiro_dia_mes)
 
         query_set = PermissaoLancamentoEspecial.objects.filter(
             escola__uuid=escola_uuid,
             periodo_escolar__nome=nome_periodo_escolar,
-            data_inicial__month__lte=mes,
-            data_inicial__year=ano,
-        )
+            data_inicial__lte=ultimo_dia_mes,
+        ).filter(Q(data_final__gte=primeiro_dia_mes) | Q(data_final=None))
+
         permissoes_por_dia = []
         alimentacoes_lancamentos_especiais_names = []
         for permissao in query_set:

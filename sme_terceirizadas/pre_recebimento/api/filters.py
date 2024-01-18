@@ -124,7 +124,7 @@ class LayoutDeEmbalagemFilter(filters.FilterSet):
         lookup_expr="icontains",
     )
     pregao_chamada_publica = filters.CharFilter(
-        field_name="cronograma__contrato__pregao_chamada_publica",
+        field_name="cronograma__contrato__numero_pregao",
         lookup_expr="icontains",
     )
     status = filters.MultipleChoiceFilter(
@@ -165,6 +165,10 @@ class FichaTecnicaFilter(filters.FilterSet):
     )
     nome_produto = filters.CharFilter(
         field_name="produto__nome",
+        lookup_expr="icontains",
+    )
+    nome_empresa = filters.CharFilter(
+        field_name="empresa__nome_fantasia",
         lookup_expr="icontains",
     )
     pregao_chamada_publica = filters.CharFilter(

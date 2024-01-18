@@ -124,7 +124,8 @@ class LogSolicitacoesUsuario(
         DOCUMENTO_ENVIADO_PARA_CORRECAO,
         DOCUMENTO_APROVADO,
         DOCUMENTO_CORRECAO_REALIZADA,
-    ) = range(97)
+        FICHA_TECNICA_ENVIADA_PARA_ANALISE,
+    ) = range(98)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, "Solicitação Realizada"),
@@ -272,6 +273,7 @@ class LogSolicitacoesUsuario(
         (DOCUMENTO_ENVIADO_PARA_CORRECAO, "Documento enviado para correção"),
         (DOCUMENTO_APROVADO, "Documento aprovado"),
         (DOCUMENTO_CORRECAO_REALIZADA, "Documento correção realizada"),
+        (FICHA_TECNICA_ENVIADA_PARA_ANALISE, "Ficha Técnica enviada para análise"),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -329,7 +331,7 @@ class LogSolicitacoesUsuario(
         (NOTIFICACAO_OCORRENCIA_GUIA, "Notificação de guia com ocorrência"),
         (LAYOUT_DE_EMBALAGEM, "Layout de embalagem"),
         (DOCUMENTO_DE_RECEBIMENTO, "Documento de recebimento"),
-        (FICHA_TECNICA_DO_PRODUTO, "Ficha técnica do produro"),
+        (FICHA_TECNICA_DO_PRODUTO, "Ficha técnica do produto"),
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

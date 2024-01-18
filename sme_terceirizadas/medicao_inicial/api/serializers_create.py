@@ -49,10 +49,13 @@ from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ..utils import log_alteracoes_escola_corrige_periodo
 from ..validators import (
     valida_medicoes_inexistentes_cei,
+    valida_medicoes_inexistentes_ceu_gestao,
+    validate_lancamento_alimentacoes_inclusoes_ceu_gestao,
     validate_lancamento_alimentacoes_medicao,
     validate_lancamento_alimentacoes_medicao_cei,
     validate_lancamento_dietas_cei,
     validate_lancamento_dietas_emef,
+    validate_lancamento_dietas_inclusoes_ceu_gestao,
     validate_lancamento_inclusoes,
     validate_lancamento_inclusoes_cei,
     validate_lancamento_inclusoes_dietas_cei,
@@ -60,7 +63,9 @@ from ..validators import (
     validate_lancamento_kit_lanche,
     validate_lanche_emergencial,
     validate_solicitacoes_etec,
+    validate_solicitacoes_etec_ceu_gestao,
     validate_solicitacoes_programas_e_projetos,
+    validate_solicitacoes_programas_e_projetos_ceu_gestao,
 )
 
 
@@ -230,6 +235,34 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         lista_erros = validate_lancamento_inclusoes_cei(instance, lista_erros)
         lista_erros = validate_lancamento_dietas_cei(instance, lista_erros)
         lista_erros = validate_lancamento_inclusoes_dietas_cei(instance, lista_erros)
+        if lista_erros:
+            raise ValidationError(lista_erros)
+
+    def valida_finalizar_medicao_ceu_gestao(
+        self, instance: SolicitacaoMedicaoInicial
+    ) -> None:
+        if (
+            not instance.escola.eh_ceu_gestao
+            or instance.status
+            != SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+        ):
+            return
+
+        lista_erros = []
+        lista_erros = valida_medicoes_inexistentes_ceu_gestao(instance, lista_erros)
+        lista_erros = validate_lancamento_alimentacoes_inclusoes_ceu_gestao(
+            instance, lista_erros
+        )
+        lista_erros = validate_lancamento_dietas_inclusoes_ceu_gestao(
+            instance, lista_erros
+        )
+        lista_erros = validate_solicitacoes_programas_e_projetos_ceu_gestao(
+            instance, lista_erros
+        )
+        lista_erros = validate_solicitacoes_etec_ceu_gestao(instance, lista_erros)
+        lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
+        lista_erros = validate_lanche_emergencial(instance, lista_erros)
+
         if lista_erros:
             raise ValidationError(lista_erros)
 
@@ -502,7 +535,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             instance
         )
 
-    def cria_valores_medicao_kit_lanches_emef_emei(
+    def cria_valores_medicao_kit_lanches_emef_emei_ceu_gestao(
         self, instance, kits_lanche, kits_lanche_unificado
     ):
         valores_medicao_a_criar = []
@@ -567,7 +600,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         ):
             return
 
-        self.cria_valores_medicao_kit_lanches_emef_emei(
+        self.cria_valores_medicao_kit_lanches_emef_emei_ceu_gestao(
             instance, kits_lanche, kits_lanche_unificado
         )
 
@@ -669,6 +702,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             self.cria_valores_medicao_logs_emef_emei(instance)
             self.valida_finalizar_medicao_emef_emei(instance)
             self.valida_finalizar_medicao_cei(instance)
+            self.valida_finalizar_medicao_ceu_gestao(instance)
             instance.ue_envia(user=self.context["request"].user)
             if hasattr(instance, "ocorrencia"):
                 instance.ocorrencia.ue_envia(
