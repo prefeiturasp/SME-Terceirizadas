@@ -224,6 +224,38 @@ class SolicitacaoDietaEspecialViewSet(
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(
+        detail=False,
+        methods=("GET",),
+        url_path="solicitacoes-aluno-nao-matriculado",
+    )
+    def solicitacoes_vigentes_aluno_nao_matriculado(self, request):
+        try:
+            codigo_eol_escola = request.query_params.get("codigo_eol_escola", None)
+            nome_aluno = request.query_params.get("nome_aluno", False)
+            if not codigo_eol_escola:
+                raise ValidationError(
+                    "`codigo_eol_escola` como query_param é obrigatório"
+                )
+            if not nome_aluno:
+                raise ValidationError("`nome_aluno` como query_param é obrigatório")
+            solicitacoes = (
+                SolicitacaoDietaEspecial.objects.filter(
+                    aluno__nao_matriculado=True,
+                    aluno__escola__codigo_eol=codigo_eol_escola,
+                    aluno__nome=nome_aluno,
+                )
+                .exclude(
+                    status=SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
+                )
+                .order_by("-criado_em")
+            )
+            page = self.paginate_queryset(solicitacoes)
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        except ValidationError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
     @transaction.atomic
     @action(
         detail=True, methods=["patch"], permission_classes=(UsuarioCODAEDietaEspecial,)
