@@ -665,7 +665,7 @@ def test_build_tabelas_relatorio_medicao_cemei(solicitacao_medicao_inicial_cemei
                 [28, "0", "0", "0"],
                 [29, "0", "0", "0"],
                 [30, "0", "0", "0"],
-                ["Total", "-", "10", "10"],
+                ["Total", "-", "10", 10],
             ],
             "ordem_periodos_grupos": [1],
             "dias_letivos": [
