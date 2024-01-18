@@ -946,7 +946,7 @@ def popula_campo_total_refeicoes_pagamento(
                 if "numero_de_alunos" in campos
                 else 0
             )
-            if solicitacao.escola.eh_emei:
+            if solicitacao.escola.eh_emei or solicitacao.escola.eh_cemei:
                 valores_dia += [valor_refeicao]
             else:
                 total_refeicao = (
@@ -1114,7 +1114,7 @@ def popula_campo_total_sobremesas_pagamento(
                     if "numero_de_alunos" in campos
                     else 0
                 )
-            if solicitacao.escola.eh_emei:
+            if solicitacao.escola.eh_emei or solicitacao.escola.eh_cemei:
                 valores_dia += [valor_sobremesa]
             else:
                 total_sobremesa = (
@@ -1348,9 +1348,9 @@ def popula_campos_cei(  # noqa C901
                 categoria_corrente,
                 valores_dia,
                 logs_dietas,
-                indice_campo,
-                indice_faixa,
             )
+            indice_campo += 2
+            indice_faixa += 1
     tabela["valores_campos"] += [valores_dia]
     return total_mensal_categoria
 
@@ -1508,24 +1508,21 @@ def popula_tabelas_cemei(solicitacao, tabelas):
 
     alteracoes_lanche_emergencial = get_alteracoes_lanche_emergencial(solicitacao)
     kits_lanches = get_kit_lanche(solicitacao)
-    indice_periodo = 0
+
     quantidade_tabelas = range(0, len(tabelas))
 
     for indice_tabela in quantidade_tabelas:
         tabela = tabelas[indice_tabela]
-        total_mensal_categoria = [0] * len(tabelas[indice_tabela]["periodos"])
         for dia in list(dias_no_mes) + ["Total"]:
-            total_mensal_categoria = popula_campos_cemei(
+            popula_campos_cemei(
                 solicitacao,
                 tabela,
                 dia,
-                indice_periodo,
                 logs_alunos_matriculados,
                 alteracoes_lanche_emergencial,
                 kits_lanches,
                 tabelas,
                 indice_tabela,
-                total_mensal_categoria,
             )
     return tabelas
 
@@ -1534,18 +1531,17 @@ def popula_campos_cemei(
     solicitacao,
     tabela,
     dia,
-    indice_periodo,
     logs_alunos_matriculados,
     alteracoes_lanche_emergencial,
     kits_lanches,
     tabelas,
     indice_tabela,
-    total_mensal_categoria,
 ):
     valores_dia = [dia]
     eh_dia_letivo = get_eh_dia_letivo(dia, solicitacao)
     indice_campo = 0
     indice_categoria = 0
+    indice_periodo = 0
 
     categoria_corrente = tabela["categorias"][indice_categoria]
     faixas_etarias = tabela["faixas_etarias"]
@@ -1570,7 +1566,6 @@ def popula_campos_cemei(
             dia,
             indice_periodo,
             logs_dietas,
-            total_mensal_categoria,
             categoria_corrente,
             indice_campo,
             faixas_etarias,
@@ -1599,7 +1594,6 @@ def popula_campos_cemei(
 
     tabela["valores_campos"] += [valores_dia]
     tabela["dias_letivos"] += [eh_dia_letivo if not dia == "Total" else False]
-    return total_mensal_categoria
 
 
 def popula_campos_nomes(
@@ -1720,7 +1714,6 @@ def popula_campos_faixas_etarias(
     dia,
     indice_periodo,
     logs_dietas,
-    total_mensal_categoria,
     categoria_corrente,
     indice_campo,
     faixas_etarias,
@@ -1728,42 +1721,38 @@ def popula_campos_faixas_etarias(
     indice_categoria,
 ):
     indice_faixa = 0
-    indice_inicial = 0
+    len_faixa = 0
 
     for faixa in faixas_etarias:
-        if faixa == "total":
-            indice_campo += 1
-            if dia != "Total":
-                total = contador_frequencia_diaria_cei(
-                    solicitacao, tabela, dia, indice_periodo, categoria_corrente
-                )
-                total_mensal_categoria[indice_periodo] = (
-                    total_mensal_categoria[indice_periodo] + total
-                )
-                valores_dia += [str(total if total else 0)]
+        len_faixa = get_indice_faixa(len_faixa, faixa, indice_faixa)
 
-            else:
-                popula_total_faixas(
-                    indice_faixa,
-                    faixas_etarias,
+        if len_faixa > tabela["len_categorias"][indice_categoria] - 1:
+            indice_faixa = 0
+            len_faixa = 0
+            indice_categoria += 1
+            categoria_corrente = tabela["categorias"][indice_categoria]
+            periodo_corrente = tabela["periodos"][indice_periodo]
+            if indice_categoria > len(
+                tabela["categorias_dos_periodos"][periodo_corrente]
+            ) - 1 and indice_periodo + 1 < len(tabela["periodos"]):
+                indice_periodo += 1
+        if faixa == "total":
+            if dia != "Total":
+                valores_dia = popula_total_faixas(
                     tabela,
-                    total_mensal_categoria,
                     indice_periodo,
                     valores_dia,
-                    indice_inicial,
+                    solicitacao,
+                    dia,
+                    categoria_corrente,
+                )
+
+            else:
+                popula_campo_total_cemei(
+                    tabela, valores_dia, indice_categoria, indice_faixa
                 )
 
         else:
-            if (
-                get_indice_faixa(indice_inicial, indice_faixa, faixas_etarias)
-                > tabela["len_categorias"][indice_categoria]
-            ):
-                indice_categoria += 1
-                categoria_corrente = tabela["categorias"][indice_categoria]["categoria"]
-                if indice_campo > tabela["len_periodos"][
-                    indice_periodo
-                ] - 1 and indice_periodo + 1 < len(tabela["periodos"]):
-                    indice_periodo += 1
             popula_faixas_dias(
                 dia,
                 solicitacao,
@@ -1773,38 +1762,56 @@ def popula_campos_faixas_etarias(
                 categoria_corrente,
                 valores_dia,
                 logs_dietas,
-                indice_campo,
-                indice_faixa,
             )
+        indice_faixa += 1
 
 
-def get_indice_faixa(indice_inicial, indice_atual, faixas_etarias):
-    indice_faixa = sum(
-        2 if faixa != "total" else 1
-        for faixa in [faixas_etarias][indice_inicial : indice_atual + 1]
-    )
+def popula_campo_total_cemei(tabela, valores_dia, indice_categoria, indice_faixa):
+    try:
+        if indice_categoria == 0:
+            values = [
+                valores[tabela["faixas_etarias"].index("total") + 1]
+                for valores in tabela["valores_campos"]
+            ]
+        else:
+            i = 1
+            indice_valor_campo = 0
+            while i <= indice_categoria:
+                indice_valor_campo += tabela["len_categorias"][indice_categoria - i]
+                i += 1
+            indice_valor_campo += indice_faixa
+            values = [
+                valores[indice_valor_campo + 1] for valores in tabela["valores_campos"]
+            ]
+        valores_dia += [sum(int(x) for x in values)]
+    except Exception:
+        valores_dia += ["0"]
 
-    return indice_faixa
+
+def get_indice_faixa(len_faixa, faixa, indice_faixa):
+    if indice_faixa == 0:
+        len_faixa = 0
+    else:
+        len_faixa += 2 if faixa != "total" else 1
+
+    return len_faixa
 
 
 def popula_total_faixas(
-    indice_faixa,
-    faixas_etarias,
     tabela,
-    total_mensal_categoria,
     indice_periodo,
     valores_dia,
-    indice_inicial,
+    solicitacao,
+    dia,
+    categoria_corrente,
 ):
-    valores_dia += [str(total_mensal_categoria[indice_periodo])]
-    total_mensal_categoria[indice_periodo] = 0
-    if (
-        get_indice_faixa(indice_inicial, indice_faixa, faixas_etarias)
-        > tabela["len_periodos"][indice_periodo]
-    ):
-        indice_periodo += 1
+    total = contador_frequencia_diaria_cei(
+        solicitacao, tabela, dia, indice_periodo, categoria_corrente
+    )
 
-    indice_inicial = indice_faixa
+    valores_dia += [str(total if total else 0)]
+
+    return valores_dia
 
 
 def popula_faixas_dias(
@@ -1816,8 +1823,6 @@ def popula_faixas_dias(
     categoria_corrente,
     valores_dia,
     logs_dietas,
-    indice_campo,
-    indice_faixa,
 ):
     inicio, fim = string_to_faixa(faixa)
     faixa_id = FaixaEtaria.objects.get(inicio=inicio, fim=fim, ativo=True).id
@@ -1863,9 +1868,6 @@ def popula_faixas_dias(
             categoria_corrente,
             valores_dia,
         )
-
-        indice_campo += 2
-        indice_faixa += 1
 
 
 def build_tabelas_relatorio_medicao(solicitacao):
