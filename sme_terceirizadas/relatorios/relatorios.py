@@ -1456,6 +1456,31 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
     )
     tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
 
+    observacoes = list(
+        solicitacao.medicoes.filter(valores_medicao__nome_campo="observacoes")
+        .values_list(
+            "valores_medicao__dia",
+            "periodo_escolar__nome",
+            "valores_medicao__categoria_medicao__nome",
+            "valores_medicao__valor",
+            "grupo__nome",
+        )
+        .order_by(
+            "valores_medicao__dia",
+            "periodo_escolar__nome",
+            "valores_medicao__categoria_medicao__nome",
+        )
+    )
+
+    tabela_observacoes_cei = []
+    tabela_observacoes_infantil = []
+
+    for observacao in observacoes:
+        if observacao[1] in ["INTEGRAL", "PARCIAL"]:
+            tabela_observacoes_cei.append(observacao)
+        else:
+            tabela_observacoes_infantil.append(observacao)
+
     html_string = render_to_string(
         "relatorio_solicitacao_medicao_por_escola_cemei.html",
         {
@@ -1465,6 +1490,8 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
             "assinatura_escola": solicitacao.assinatura_ue,
             "assinatura_dre": solicitacao.assinatura_dre,
             "tabelas": tabelas,
+            "tabela_observacoes_cei": tabela_observacoes_cei,
+            "tabela_observacoes_infantil": tabela_observacoes_infantil,
         },
     )
 
