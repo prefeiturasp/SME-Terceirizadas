@@ -1768,20 +1768,19 @@ def popula_campos_faixas_etarias(
 
 def popula_campo_total_cemei(tabela, valores_dia, indice_categoria, indice_faixa):
     try:
+        indice_valor_campo = tabela["len_categorias"][indice_categoria]
+
         if indice_categoria == 0:
             values = [
-                valores[tabela["faixas_etarias"].index("total") + 1]
-                for valores in tabela["valores_campos"]
+                valores[indice_valor_campo] for valores in tabela["valores_campos"]
             ]
         else:
             i = 1
-            indice_valor_campo = 0
             while i <= indice_categoria:
                 indice_valor_campo += tabela["len_categorias"][indice_categoria - i]
                 i += 1
-            indice_valor_campo += indice_faixa
             values = [
-                valores[indice_valor_campo + 1] for valores in tabela["valores_campos"]
+                valores[indice_valor_campo] for valores in tabela["valores_campos"]
             ]
         valores_dia += [sum(int(x) for x in values)]
     except Exception:
@@ -2424,7 +2423,11 @@ def build_tabela_somatorio_body_cei(solicitacao):
     CATEGORIAS = ["ALIMENTAÇÃO", "DIETA TIPO A", "DIETA TIPO B", "total"]
 
     periodos_ordenados = sorted(
-        [medicao.nome_periodo_grupo for medicao in solicitacao.medicoes.all()],
+        [
+            medicao.nome_periodo_grupo
+            for medicao in solicitacao.medicoes.all()
+            if medicao.nome_periodo_grupo in list(ORDEM_PERIODOS_GRUPOS_CEI)
+        ],
         key=lambda k: ORDEM_PERIODOS_GRUPOS_CEI[k],
     )
     grupos_periodos = [

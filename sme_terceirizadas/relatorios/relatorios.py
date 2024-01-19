@@ -1455,6 +1455,7 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
         "nome", flat=True
     )
     tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
+    tabelas_somatorios_cei = build_tabela_somatorio_body_cei(solicitacao)
 
     observacoes = list(
         solicitacao.medicoes.filter(valores_medicao__nome_campo="observacoes")
@@ -1492,6 +1493,7 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
             "tabelas": tabelas,
             "tabela_observacoes_cei": tabela_observacoes_cei,
             "tabela_observacoes_infantil": tabela_observacoes_infantil,
+            "tabelas_somatorios_cei": tabelas_somatorios_cei,
         },
     )
 
