@@ -3534,13 +3534,13 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name="produto_codae_recusou_reclamacao.html",
             context={
-                "titulo": "Reclamação recusada",
+                "titulo": "Reclamação Analisada",
                 "reclamacao": self,
                 "log_recusa": log_recusa,
             },
         )
         envia_email_unico_task.delay(
-            assunto="[SIGPAE] Reclamação recusada",
+            assunto="[SIGPAE] Reclamação Analisada",
             email=self.criado_por.email,
             corpo="",
             html=html,
