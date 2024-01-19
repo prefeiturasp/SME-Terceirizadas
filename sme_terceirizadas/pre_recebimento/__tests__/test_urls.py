@@ -828,7 +828,7 @@ def test_url_dashboard_com_filtro_painel_usuario_dinutre(
         "/cronogramas/dashboard-com-filtro/?nome_produto=Arroz"
     )
     response_filtro2 = client_autenticado_dinutre_diretoria.get(
-        "/cronogramas/dashboard-com-filtro/?numero_cronograma=003/2023"
+        "/cronogramas/dashboard-com-filtro/?numero_cronograma=003/2023A"
     )
     response_filtro3 = client_autenticado_dinutre_diretoria.get(
         "/cronogramas/dashboard-com-filtro/?nome_fornecedor=Alimentos"
@@ -1297,7 +1297,7 @@ def test_url_dashboard_layout_embalagens_quantidade_itens_por_card(
 def test_url_dashboard_layout_embalagens_com_filtro(
     client_autenticado_codae_dilog, lista_layouts_de_embalagem, status_card
 ):
-    filtros = {"numero_cronograma": "003/2022"}
+    filtros = {"numero_cronograma": "003/2022A"}
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
@@ -1315,7 +1315,7 @@ def test_url_dashboard_layout_embalagens_com_filtro(
     ).pop()["dados"]
     assert len(dados_card) == 5
 
-    filtros = {"numero_cronograma": "004/2022"}
+    filtros = {"numero_cronograma": "004/2022A"}
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
@@ -1381,7 +1381,7 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
         "status": status_card,
         "offset": 0,
         "limit": 10,
-        "numero_cronograma": "003/2022",
+        "numero_cronograma": "003/2022A",
     }
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
@@ -1389,7 +1389,7 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
     assert len(response.json()["results"]["dados"]) == 5
 
     layouts_esperados = LayoutDeEmbalagem.objects.filter(
-        status=status_card, cronograma__numero="003/2022"
+        status=status_card, cronograma__numero="003/2022A"
     ).order_by("-criado_em")[:10]
     primeiro_layout_esperado = layouts_esperados[0]
     ultimo_layout_esperado = layouts_esperados[4]
@@ -1417,7 +1417,7 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
         "status": status_card,
         "offset": 0,
         "limit": 10,
-        "numero_cronograma": "004/2022",
+        "numero_cronograma": "004/2022A",
     }
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
@@ -1425,7 +1425,7 @@ def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
     assert len(response.json()["results"]["dados"]) == 10
 
     layouts_esperados = LayoutDeEmbalagem.objects.filter(
-        status=status_card, cronograma__numero="004/2022"
+        status=status_card, cronograma__numero="004/2022A"
     ).order_by("-criado_em")[:10]
     primeiro_layout_esperado = layouts_esperados[0]
     ultimo_layout_esperado = layouts_esperados[9]
