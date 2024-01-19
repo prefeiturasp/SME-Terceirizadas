@@ -335,6 +335,24 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=["GET"],
+        permission_classes=(UsuarioNutricionista,),
+        url_name="anos-com-dietas",
+        url_path="anos-com-dietas",
+    )
+    def anos_com_dietas(self, request):
+        queryset = SolicitacaoDietaEspecial.objects.all().exclude(
+            status=SolicitacaoDietaEspecial.workflow_class.RASCUNHO
+        )
+
+        anos = [c.date().year for c in queryset.values_list("criado_em", flat=True)]
+        anos_unicos = list(set(anos))
+        anos_unicos_ordenados = sorted(anos_unicos, reverse=True)
+
+        return Response(data=anos_unicos_ordenados, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["GET"],
         url_path=f"{PENDENTES_AUTORIZACAO}/{FILTRO_PADRAO_PEDIDOS}",
         permission_classes=(UsuarioNutricionista,),
     )
