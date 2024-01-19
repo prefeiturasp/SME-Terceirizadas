@@ -224,6 +224,7 @@
   }
 }
 
+.titulo-tabela-somatorio,
 .titulo-tabela-observacoes {
   font-family: "Roboto";
   font-style: normal;
@@ -354,6 +355,20 @@ table.tabela-valores-medicao {
       }
     }
   }
+}
+
+.info-abaixo-tabela {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 9px;
+  color: $cinza-meio-escuro;
+  margin-top: 0.5%;
+  margin-left: 1.5%;
+}
+
+.hachurado {
+  background-color: #f2f2f2;
 }
 
 .text-center {
