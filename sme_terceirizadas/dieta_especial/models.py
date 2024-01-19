@@ -28,6 +28,39 @@ from ..escola.constants import CEI_OU_EMEI
 from ..escola.models import Aluno, Escola
 from .managers import AlimentoProprioManager
 
+PENDENTES_EVENTO_DIETA_ESPECIAL = [
+    LogSolicitacoesUsuario.INICIO_FLUXO,
+    LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO,
+]
+
+AUTORIZADO_EVENTO_DIETA_ESPECIAL = [
+    LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+    LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+    LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
+    LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+    LogSolicitacoesUsuario.INICIO_FLUXO,
+]
+
+NEGADOS_EVENTO_DIETA_ESPECIAL = [
+    LogSolicitacoesUsuario.CODAE_NEGOU,
+    LogSolicitacoesUsuario.CODAE_NEGOU_INATIVACAO,
+    LogSolicitacoesUsuario.CODAE_NEGOU_CANCELAMENTO,
+]
+
+CANCELADOS_EVENTO_DIETA_ESPECIAL = [
+    LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+    LogSolicitacoesUsuario.CANCELADO_ALUNO_MUDOU_ESCOLA,
+    LogSolicitacoesUsuario.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+    LogSolicitacoesUsuario.TERMINADA_AUTOMATICAMENTE_SISTEMA,
+]
+
+CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP = [
+    LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
+    LogSolicitacoesUsuario.TERMINADA_AUTOMATICAMENTE_SISTEMA,
+    LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+    LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+]
+
 
 class SolicitacaoDietaEspecial(
     ExportModelOperationsMixin("dieta_especial"),
@@ -149,6 +182,79 @@ class SolicitacaoDietaEspecial(
     conferido = models.BooleanField("Marcar como conferido?", default=False)
 
     eh_importado = models.BooleanField("Proveniente de importacao?", default=False)
+
+    @classmethod
+    def _get_quantidade_solicitacoes_que_ja_estiveram_nos_status(
+        cls, solicitacoes: list, status: list
+    ):
+        solicitacoes = [
+            solicitacao
+            for solicitacao in solicitacoes
+            if solicitacao.logs.filter(status_evento__in=status).distinct().exists()
+        ]
+        return len(solicitacoes)
+
+    @classmethod
+    def quantidade_solicitacoes_que_ja_estiveram_pendentes(cls, solicitacoes):
+        return cls._get_quantidade_solicitacoes_que_ja_estiveram_nos_status(
+            solicitacoes, PENDENTES_EVENTO_DIETA_ESPECIAL
+        )
+
+    @classmethod
+    def quantidade_solicitacoes_que_ja_estiveram_autorizadas(cls, solicitacoes):
+        return cls._get_quantidade_solicitacoes_que_ja_estiveram_nos_status(
+            solicitacoes, AUTORIZADO_EVENTO_DIETA_ESPECIAL
+        )
+
+    @classmethod
+    def quantidade_solicitacoes_que_ja_estiveram_negadas(cls, solicitacoes):
+        return cls._get_quantidade_solicitacoes_que_ja_estiveram_nos_status(
+            solicitacoes, NEGADOS_EVENTO_DIETA_ESPECIAL
+        )
+
+    @classmethod
+    def quantidade_solicitacoes_que_ja_estiveram_canceladas(cls, solicitacoes):
+        solicitacoes = [
+            solicitacao
+            for solicitacao in solicitacoes
+            if solicitacao.tipo_solicitacao in ["ALTERACAO_UE", "COMUM"]
+        ]
+        status = (
+            CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP + CANCELADOS_EVENTO_DIETA_ESPECIAL
+        )
+        return cls._get_quantidade_solicitacoes_que_ja_estiveram_nos_status(
+            solicitacoes, status
+        )
+
+    @classmethod
+    def get_totais_gerencial_dietas(cls):
+        solicitacoes = list(
+            SolicitacaoDietaEspecial.objects.only("uuid", "tipo_solicitacao").all()
+        )
+
+        total_solicitacoes = (
+            SolicitacaoDietaEspecial.quantidade_solicitacoes_que_ja_estiveram_pendentes(
+                solicitacoes
+            )
+        )
+        total_autorizadas = SolicitacaoDietaEspecial.quantidade_solicitacoes_que_ja_estiveram_autorizadas(
+            solicitacoes
+        )
+        total_negadas = (
+            SolicitacaoDietaEspecial.quantidade_solicitacoes_que_ja_estiveram_negadas(
+                solicitacoes
+            )
+        )
+        total_canceladas = SolicitacaoDietaEspecial.quantidade_solicitacoes_que_ja_estiveram_canceladas(
+            solicitacoes
+        )
+
+        return {
+            "total_solicitacoes": total_solicitacoes,
+            "total_autorizadas": total_autorizadas,
+            "total_negadas": total_negadas,
+            "total_canceladas": total_canceladas,
+        }
 
     @classmethod
     def aluno_possui_dieta_especial_pendente(cls, aluno):

@@ -353,6 +353,20 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=["GET"],
+        permission_classes=(UsuarioNutricionista,),
+        url_name="totais-gerencial-dietas",
+        url_path="totais-gerencial-dietas",
+    )
+    def totais_gerencial_dietas(self, request):
+        totais = SolicitacaoDietaEspecial.get_totais_gerencial_dietas()
+        return Response(
+            data=totais,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        methods=["GET"],
         url_path=f"{PENDENTES_AUTORIZACAO}/{FILTRO_PADRAO_PEDIDOS}",
         permission_classes=(UsuarioNutricionista,),
     )
