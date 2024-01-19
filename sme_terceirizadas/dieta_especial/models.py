@@ -227,10 +227,12 @@ class SolicitacaoDietaEspecial(
         )
 
     @classmethod
-    def get_totais_gerencial_dietas(cls):
-        solicitacoes = list(
-            SolicitacaoDietaEspecial.objects.only("uuid", "tipo_solicitacao").all()
+    def get_totais_gerencial_dietas(cls, queryset=None):
+        queryset = (
+            SolicitacaoDietaEspecial.objects.all() if queryset is None else queryset
         )
+
+        solicitacoes = list(queryset.only("uuid", "tipo_solicitacao"))
 
         total_solicitacoes = (
             SolicitacaoDietaEspecial.quantidade_solicitacoes_que_ja_estiveram_pendentes(

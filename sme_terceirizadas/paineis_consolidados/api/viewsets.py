@@ -358,7 +358,22 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
         url_path="totais-gerencial-dietas",
     )
     def totais_gerencial_dietas(self, request):
-        totais = SolicitacaoDietaEspecial.get_totais_gerencial_dietas()
+        queryset = SolicitacaoDietaEspecial.objects.all().order_by()
+
+        filtro_ano = request.query_params.get("ano")
+        if filtro_ano:
+            queryset = queryset.filter(criado_em__date__year__in=filtro_ano.split(","))
+
+        filtro_mes = request.query_params.get("mes")
+        if filtro_mes:
+            queryset = queryset.filter(criado_em__date__month__in=filtro_mes.split(","))
+
+        filtro_dia = request.query_params.get("dia")
+        if filtro_dia:
+            queryset = queryset.filter(criado_em__date__day__in=filtro_dia)
+
+        totais = SolicitacaoDietaEspecial.get_totais_gerencial_dietas(queryset)
+
         return Response(
             data=totais,
             status=status.HTTP_200_OK,
