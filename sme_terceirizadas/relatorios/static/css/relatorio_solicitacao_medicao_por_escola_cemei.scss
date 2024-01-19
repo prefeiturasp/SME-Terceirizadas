@@ -224,6 +224,14 @@
   }
 }
 
+.titulo-tabela-observacoes {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  font-size: 12px;
+  color: $cinza-meio-escuro;
+}
+
 table.tabela-valores-medicao {
   width: 98%;
   margin-left: 1%;
@@ -309,6 +317,40 @@ table.tabela-valores-medicao {
         border: 0.5px solid #dadada;
         padding-top: 3px;
         padding-bottom: 3px;
+      }
+    }
+  }
+
+  .head-tabela-observacoes {
+    tr {
+      th {
+        background-color: $verde-escuro;
+      }
+      th:last-child {
+        border: none;
+        border-bottom: 0.5px solid #dadada;
+        width: 669.5px !important;
+        height: 9px !important;
+      }
+    }
+  }
+
+  .body-tabela-observacoes {
+    tr {
+      td {
+        padding-top: 3px;
+        padding-bottom: 3px;
+        height: 19px;
+      }
+
+      td:last-child {
+        border: none;
+        border-bottom: 0.5px solid #dadada;
+        padding-bottom: 3.3px !important;
+        height: 19px !important;
+        padding-left: 10px;
+        width: 660px !important;
+        word-wrap: break-word;
       }
     }
   }
