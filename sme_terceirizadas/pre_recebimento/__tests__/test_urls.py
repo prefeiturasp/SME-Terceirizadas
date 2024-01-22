@@ -61,8 +61,15 @@ def test_rascunho_cronograma_create_ok(
         "tipo_embalagem": str(tipo_emabalagem_qld.uuid),
         "cadastro_finalizado": False,
         "etapas": [
-            {"numero_empenho": "123456789"},
-            {"numero_empenho": "1891425", "etapa": "Etapa 1"},
+            {
+                "numero_empenho": "123456789",
+                "qtd_total_empenho": fake.random_number() / 100,
+            },
+            {
+                "numero_empenho": "1891425",
+                "qtd_total_empenho": fake.random_number() / 100,
+                "etapa": "Etapa 1",
+            },
         ],
         "programacoes_de_recebimento": [
             {
