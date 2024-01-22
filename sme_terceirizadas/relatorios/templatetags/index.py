@@ -493,7 +493,7 @@ def get_dias(observacoes_tuple):
 
 
 @register.filter
-def formatar_observacoes(observacoes, cei=False):
+def formatar_observacoes(observacoes, tipo_unidade=None):
     MAX_LINHAS_POR_PAGINA = 22
 
     def format_observacao(obs):
@@ -508,9 +508,13 @@ def formatar_observacoes(observacoes, cei=False):
 
     observacoes_tuple = [format_observacao(observacao) for observacao in observacoes]
 
-    order_key = (
-        constants.ORDEM_PERIODOS_GRUPOS_CEI if cei else constants.ORDEM_PERIODOS_GRUPOS
-    )
+    order_key = None
+    if tipo_unidade == "CEI":
+        order_key = constants.ORDEM_PERIODOS_GRUPOS_CEI
+    elif tipo_unidade == "CEMEI":
+        order_key = constants.ORDEM_PERIODOS_GRUPOS_CEMEI
+    else:
+        order_key = constants.ORDEM_PERIODOS_GRUPOS
 
     dias = get_dias(observacoes_tuple)
 

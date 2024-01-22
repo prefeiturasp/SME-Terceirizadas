@@ -1375,17 +1375,25 @@ def get_alteracoes_lanche_emergencial(solicitacao):
         alteracao = alteracao_alimentacao.get_raw_model.objects.get(
             uuid=alteracao_alimentacao.uuid
         )
-        alteracoes_lanche_emergencial.append(
-            {
-                "dia": f"{alteracao.data.day:02d}",
-                "numero_alunos": sum(
-                    [
-                        sub.qtd_alunos
-                        for sub in alteracao.substituicoes_periodo_escolar.all()
-                    ]
-                ),
-            }
-        )
+        if solicitacao.escola.eh_cemei:
+            alteracoes_lanche_emergencial.append(
+                {
+                    "dia": f"{alteracao.data.day:02d}",
+                    "numero_alunos": alteracao.numero_alunos,
+                }
+            )
+        else:
+            alteracoes_lanche_emergencial.append(
+                {
+                    "dia": f"{alteracao.data.day:02d}",
+                    "numero_alunos": sum(
+                        [
+                            sub.qtd_alunos
+                            for sub in alteracao.substituicoes_periodo_escolar.all()
+                        ]
+                    ),
+                }
+            )
     return alteracoes_lanche_emergencial
 
 
@@ -1407,10 +1415,15 @@ def get_kit_lanche(solicitacao):
     kits_lanches = []
     for kit_lanche in query_set:
         kit_lanche = kit_lanche.get_raw_model.objects.get(uuid=kit_lanche.uuid)
+        solicitacao_kit_lanche = (
+            kit_lanche
+            if solicitacao.escola.eh_cemei
+            else kit_lanche.solicitacao_kit_lanche
+        )
         if kit_lanche:
             kits_lanches.append(
                 {
-                    "dia": f"{kit_lanche.solicitacao_kit_lanche.data.day:02d}",
+                    "dia": f"{solicitacao_kit_lanche.data.day:02d}",
                     "numero_alunos": kit_lanche.quantidade_alimentacoes,
                 }
             )
@@ -2082,7 +2095,12 @@ def get_somatorio_manha(
     campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
     try:
-        medicao = solicitacao.medicoes.get(periodo_escolar__nome="MANHA", grupo=None)
+        if solicitacao.escola.eh_cemei:
+            medicao = solicitacao.medicoes.get(grupo__nome="Infantil MANHA")
+        else:
+            medicao = solicitacao.medicoes.get(
+                periodo_escolar__nome="MANHA", grupo=None
+            )
         values = medicao.valores_medicao.filter(
             categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
@@ -2108,7 +2126,12 @@ def get_somatorio_tarde(
     campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
     try:
-        medicao = solicitacao.medicoes.get(periodo_escolar__nome="TARDE", grupo=None)
+        if solicitacao.escola.eh_cemei:
+            medicao = solicitacao.medicoes.get(grupo__nome="Infantil TARDE")
+        else:
+            medicao = solicitacao.medicoes.get(
+                periodo_escolar__nome="TARDE", grupo=None
+            )
         values = medicao.valores_medicao.filter(
             categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
@@ -2134,7 +2157,12 @@ def get_somatorio_integral(
     campo, solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
     try:
-        medicao = solicitacao.medicoes.get(periodo_escolar__nome="INTEGRAL", grupo=None)
+        if solicitacao.escola.eh_cemei:
+            medicao = solicitacao.medicoes.get(grupo__nome="Infantil INTEGRAL")
+        else:
+            medicao = solicitacao.medicoes.get(
+                periodo_escolar__nome="INTEGRAL", grupo=None
+            )
         values = medicao.valores_medicao.filter(
             categoria_medicao__nome="ALIMENTAÇÃO", nome_campo=campo
         )
@@ -2264,7 +2292,28 @@ def build_tabela_somatorio_body(
     solicitacao, dict_total_refeicoes, dict_total_sobremesas
 ):
     campos_tipos_alimentacao = []
-    for medicao in get_medicoes_ordenadas(solicitacao, ORDEM_PERIODOS_GRUPOS):
+
+    ORDEM_PERIODOS_CEMEI = {
+        "Infantil INTEGRAL": 1,
+        "Infantil MANHA": 2,
+        "Infantil TARDE": 3,
+        "Solicitações de Alimentação": 4,
+    }
+
+    ordem_periodos = (
+        ORDEM_PERIODOS_CEMEI if solicitacao.escola.eh_cemei else ORDEM_PERIODOS_GRUPOS
+    )
+
+    medicoes = sorted(
+        [
+            medicao
+            for medicao in solicitacao.medicoes.all()
+            if medicao.nome_periodo_grupo in list(ordem_periodos)
+        ],
+        key=lambda k: ordem_periodos[k.nome_periodo_grupo],
+    )
+
+    for medicao in medicoes:
         campos = (
             medicao.valores_medicao.exclude(
                 nome_campo__in=[
@@ -2301,54 +2350,169 @@ def build_tabela_somatorio_body(
     #    'NOITE/EJA', 'ETEC', 'TOTAL'
     # ] E800 noqa
     body_tabela_somatorio = []
+    if solicitacao.escola.eh_cemei:
+        if campos_tipos_alimentacao:
+            campos_tipos_alimentacao.append("Total por Períodos")
+
+        for tipo_alimentacao in campos_tipos_alimentacao:
+            body_tabela_somatorio = somatorio_periodo_cemei(
+                tipo_alimentacao,
+                dict_total_refeicoes,
+                dict_total_sobremesas,
+                solicitacao,
+                body_tabela_somatorio,
+            )
+        return body_tabela_somatorio
+
     for tipo_alimentacao in campos_tipos_alimentacao:
+        body_tabela_somatorio = somatorio_periodo(
+            tipo_alimentacao,
+            dict_total_refeicoes,
+            dict_total_sobremesas,
+            solicitacao,
+            body_tabela_somatorio,
+        )
+    return body_tabela_somatorio
+
+
+def somatorio_periodo(
+    tipo_alimentacao,
+    dict_total_refeicoes,
+    dict_total_sobremesas,
+    solicitacao,
+    body_tabela_somatorio,
+):
+    somatorio_manha = get_somatorio_manha(
+        tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
+    )
+    somatorio_tarde = get_somatorio_tarde(
+        tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
+    )
+    somatorio_integral = get_somatorio_integral(
+        tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
+    )
+    somatorio_programas_e_projetos = get_somatorio_programas_e_projetos(
+        tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
+    )
+    somatorio_solicitacoes_de_alimentacao = get_somatorio_solicitacoes_de_alimentacao(
+        tipo_alimentacao, solicitacao
+    )
+    valores_somatorios_primeira_tabela = [
+        somatorio_manha,
+        somatorio_tarde,
+        somatorio_integral,
+        somatorio_programas_e_projetos,
+        somatorio_solicitacoes_de_alimentacao,
+    ]
+    somatorio_total_primeira_tabela = get_somatorio_total_tabela(
+        valores_somatorios_primeira_tabela
+    )
+    somatorio_noite_eja = get_somatorio_noite_eja(
+        tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
+    )
+    somatorio_etec = get_somatorio_etec(
+        tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
+    )
+    valores_somatorios_segunda_tabela = [somatorio_noite_eja, somatorio_etec]
+    somatorio_total_segunda_tabela = get_somatorio_total_tabela(
+        valores_somatorios_segunda_tabela
+    )
+    body_tabela_somatorio.append(
+        [
+            get_nome_campo(tipo_alimentacao),
+            somatorio_manha,
+            somatorio_tarde,
+            somatorio_integral,
+            somatorio_programas_e_projetos,
+            somatorio_solicitacoes_de_alimentacao,
+            somatorio_total_primeira_tabela,
+            somatorio_noite_eja,
+            somatorio_etec,
+            somatorio_total_segunda_tabela,
+        ]
+    )
+    return body_tabela_somatorio
+
+
+def somatorio_periodo_cemei(
+    tipo_alimentacao,
+    dict_total_refeicoes,
+    dict_total_sobremesas,
+    solicitacao,
+    body_tabela_somatorio,
+):
+    if tipo_alimentacao == "Total por Períodos":
+        valores_periodo_integral = [valores[1] for valores in body_tabela_somatorio]
+        total_periodo_integral = (
+            sum(int(valor) for valor in valores_periodo_integral if valor != " - ")
+            or "-"
+        )
+
+        valores_periodo_manha = [valores[2] for valores in body_tabela_somatorio]
+        total_periodo_manha = (
+            sum(int(valor) for valor in valores_periodo_manha if valor != " - ") or "-"
+        )
+
+        valores_periodo_tarde = [valores[3] for valores in body_tabela_somatorio]
+        total_periodo_tarde = (
+            sum(int(valor) for valor in valores_periodo_tarde if valor != " - ") or "-"
+        )
+
+        valores_solicitacoes_de_alimentacao = [
+            valores[4] for valores in body_tabela_somatorio
+        ]
+        total_solicitacoes_de_alimentacao = (
+            sum(
+                int(valor)
+                for valor in valores_solicitacoes_de_alimentacao
+                if valor != " - "
+            )
+            or "-"
+        )
+
+        valores_totais = [valores[5] for valores in body_tabela_somatorio]
+        total_geral = (
+            sum(int(valor) for valor in valores_totais if valor != " - ") or "-"
+        )
+
+        body_tabela_somatorio.append(
+            [
+                "Total por Períodos",
+                total_periodo_integral,
+                total_periodo_manha,
+                total_periodo_tarde,
+                total_solicitacoes_de_alimentacao,
+                total_geral,
+            ]
+        )
+    else:
+        somatorio_integral = get_somatorio_integral(
+            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
+        )
         somatorio_manha = get_somatorio_manha(
             tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
         )
         somatorio_tarde = get_somatorio_tarde(
             tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
         )
-        somatorio_integral = get_somatorio_integral(
-            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
-        )
-        somatorio_programas_e_projetos = get_somatorio_programas_e_projetos(
-            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
-        )
         somatorio_solicitacoes_de_alimentacao = (
             get_somatorio_solicitacoes_de_alimentacao(tipo_alimentacao, solicitacao)
         )
-        valores_somatorios_primeira_tabela = [
+        valores_somatorios_tabela = [
+            somatorio_integral,
             somatorio_manha,
             somatorio_tarde,
-            somatorio_integral,
-            somatorio_programas_e_projetos,
             somatorio_solicitacoes_de_alimentacao,
         ]
-        somatorio_total_primeira_tabela = get_somatorio_total_tabela(
-            valores_somatorios_primeira_tabela
-        )
-        somatorio_noite_eja = get_somatorio_noite_eja(
-            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
-        )
-        somatorio_etec = get_somatorio_etec(
-            tipo_alimentacao, solicitacao, dict_total_refeicoes, dict_total_sobremesas
-        )
-        valores_somatorios_segunda_tabela = [somatorio_noite_eja, somatorio_etec]
-        somatorio_total_segunda_tabela = get_somatorio_total_tabela(
-            valores_somatorios_segunda_tabela
-        )
+        somatorio_total = get_somatorio_total_tabela(valores_somatorios_tabela)
         body_tabela_somatorio.append(
             [
                 get_nome_campo(tipo_alimentacao),
+                somatorio_integral,
                 somatorio_manha,
                 somatorio_tarde,
-                somatorio_integral,
-                somatorio_programas_e_projetos,
                 somatorio_solicitacoes_de_alimentacao,
-                somatorio_total_primeira_tabela,
-                somatorio_noite_eja,
-                somatorio_etec,
-                somatorio_total_segunda_tabela,
+                somatorio_total,
             ]
         )
     return body_tabela_somatorio
