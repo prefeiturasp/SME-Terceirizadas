@@ -42,13 +42,23 @@ from sme_terceirizadas.pre_recebimento.models import (
 fake = Faker("pt_BR")
 
 
-def test_url_endpoint_cronograma(
-    client_autenticado_codae_dilog, armazem, contrato, empresa
+def test_rascunho_cronograma_create_ok(
+    client_autenticado_codae_dilog,
+    contrato,
+    empresa,
+    produto_arroz,
+    unidade_medida_logistica,
+    armazem,
+    tipo_emabalagem_qld,
+    ficha_tecnica_perecivel_enviada_para_analise,
 ):
-    data = {
-        "armazem": str(armazem.uuid),
+    payload = {
         "contrato": str(contrato.uuid),
         "empresa": str(empresa.uuid),
+        "produto": str(produto_arroz.uuid),
+        "unidade_medida": str(unidade_medida_logistica.uuid),
+        "armazem": str(armazem.uuid),
+        "tipo_embalagem": str(tipo_emabalagem_qld.uuid),
         "cadastro_finalizado": False,
         "etapas": [
             {"numero_empenho": "123456789"},
@@ -60,13 +70,24 @@ def test_url_endpoint_cronograma(
                 "tipo_carga": "PALETIZADA",
             }
         ],
+        "ficha_tecnica": str(ficha_tecnica_perecivel_enviada_para_analise.uuid),
+        "custo_unitario_produto": fake.random_number() / 100,
     }
+
     response = client_autenticado_codae_dilog.post(
-        "/cronogramas/", content_type="application/json", data=json.dumps(data)
+        "/cronogramas/", content_type="application/json", data=json.dumps(payload)
     )
-    assert response.status_code == status.HTTP_201_CREATED
+
     obj = Cronograma.objects.last()
+
+    assert response.status_code == status.HTTP_201_CREATED
     assert obj.contrato == contrato
+    assert obj.empresa == empresa
+    assert obj.produto == produto_arroz
+    assert obj.unidade_medida == unidade_medida_logistica
+    assert obj.armazem == armazem
+    assert obj.tipo_embalagem == tipo_emabalagem_qld
+    assert obj.ficha_tecnica == ficha_tecnica_perecivel_enviada_para_analise
 
 
 def test_url_lista_etapas_authorized_numeros(client_autenticado_codae_dilog):
@@ -3159,3 +3180,25 @@ def test_url_dashboard_ficha_tecnica_quantidade_itens_por_card(
     ).pop()["dados"]
 
     assert len(dados_card) == 6
+
+
+def test_url_ficha_tecnica_lista_com_numero_e_produto(
+    client_autenticado_dilog_cronograma, ficha_tecnica_factory
+):
+    fichas = ficha_tecnica_factory.create_batch(
+        size=35, status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE
+    )
+
+    response = client_autenticado_dilog_cronograma.get(
+        "/ficha-tecnica/lista-com-numero-e-produto/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == len(fichas)
+
+    ficha = [
+        ficha
+        for ficha in response.json()["results"]
+        if ficha["uuid"] == str(fichas[0].uuid)
+    ].pop()
+    assert ficha["numero_e_produto"] == f"{fichas[0].numero} - {fichas[0].produto.nome}"
