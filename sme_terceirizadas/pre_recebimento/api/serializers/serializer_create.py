@@ -65,6 +65,7 @@ class EtapasDoCronogramaCreateSerializer(serializers.ModelSerializer):
     data_programada = serializers.CharField(required=False)
     quantidade = serializers.FloatField(required=False)
     total_embalagens = serializers.IntegerField(required=False)
+    qtd_total_empenho = serializers.FloatField(required=False)
 
     class Meta:
         model = EtapasDoCronograma
@@ -121,6 +122,13 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         many=True, required=False
     )
     cadastro_finalizado = serializers.BooleanField(required=False)
+    ficha_tecnica = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        queryset=FichaTecnicaDoProduto.objects.all(),
+        allow_null=True,
+    )
+    custo_unitario_produto = serializers.FloatField(required=False)
 
     def gera_proximo_numero_cronograma(self):
         ano = date.today().year
