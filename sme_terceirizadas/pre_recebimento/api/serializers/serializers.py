@@ -800,3 +800,43 @@ class PainelFichaTecnicaSerializer(serializers.ModelSerializer):
             "status",
             "log_mais_recente",
         )
+
+
+class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
+    produto = NomeDeProdutoEditalSerializer()
+    marca = MarcaSimplesSerializer()
+    empresa = TerceirizadaLookUpSerializer()
+    status = serializers.CharField(source="get_status_display")
+    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = (
+            "uuid",
+            "numero",
+            "produto",
+            "marca",
+            "categoria",
+            "status",
+            "empresa",
+            "produto_eh_liquido",
+            "volume_embalagem_primaria",
+            "unidade_medida_volume_primaria",
+            "peso_liquido_embalagem_primaria",
+            "unidade_medida_primaria",
+            "peso_liquido_embalagem_secundaria",
+            "unidade_medida_secundaria",
+        )
+
+
+class FichaTecnicaSimplesSerializer(serializers.ModelSerializer):
+    numero_e_produto = serializers.SerializerMethodField()
+
+    def get_numero_e_produto(self, obj):
+        return f"{obj.numero} - {obj.produto.nome}" if obj.produto else obj.numero
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = ("uuid", "numero_e_produto")
