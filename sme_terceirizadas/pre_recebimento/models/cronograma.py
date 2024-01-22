@@ -86,6 +86,12 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
     tipo_embalagem = models.ForeignKey(
         TipoEmbalagemQld, on_delete=models.PROTECT, blank=True, null=True
     )
+    ficha_tecnica = models.ForeignKey(
+        "FichaTecnicaDoProduto", on_delete=models.PROTECT, blank=True, null=True
+    )
+    custo_unitario_produto = models.FloatField(
+        "Custo Unitário do Produto", blank=True, null=True
+    )
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get("justificativa", "")
@@ -115,6 +121,9 @@ class EtapasDoCronograma(ModeloBase):
         related_name="etapas",
     )
     numero_empenho = models.CharField("Número do Empenho", blank=True, max_length=50)
+    qtd_total_empenho = models.FloatField(
+        "Qtde. Total do Empenho", blank=True, null=True
+    )
     etapa = models.CharField(blank=True, max_length=15)
     parte = models.CharField(blank=True, max_length=15)
     data_programada = models.DateField("Data Programada", blank=True, null=True)
