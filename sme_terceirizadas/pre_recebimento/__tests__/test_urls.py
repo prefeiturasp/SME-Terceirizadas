@@ -3207,24 +3207,32 @@ def test_url_dashboard_ficha_tecnica_quantidade_itens_por_card(
     assert len(dados_card) == 6
 
 
-def test_url_ficha_tecnica_lista_com_numero_e_produto(
-    client_autenticado_dilog_cronograma, ficha_tecnica_factory
+def test_url_ficha_tecnica_lista_simples(
+    client_autenticado_dilog_cronograma, ficha_tecnica_factory, cronograma_factory
 ):
+    FICHAS_VINCULADAS = 5
+
     fichas = ficha_tecnica_factory.create_batch(
         size=35, status=FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE
     )
 
+    for ficha in fichas[:FICHAS_VINCULADAS]:
+        cronograma_factory(ficha_tecnica=ficha)
+
     response = client_autenticado_dilog_cronograma.get(
-        "/ficha-tecnica/lista-com-numero-e-produto/"
+        "/ficha-tecnica/lista-simples-sem-cronograma/"
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == len(fichas)
+    assert len(response.json()["results"]) == len(fichas) - FICHAS_VINCULADAS
 
     ficha = [
         ficha
         for ficha in response.json()["results"]
-        if ficha["uuid"] == str(fichas[0].uuid)
+        if ficha["uuid"] == str(fichas[FICHAS_VINCULADAS].uuid)
     ].pop()
-    assert ficha["numero_e_produto"] == f"{fichas[0].numero} - {fichas[0].produto.nome}"
+    assert (
+        ficha["numero_e_produto"]
+        == f"{fichas[FICHAS_VINCULADAS].numero} - {fichas[FICHAS_VINCULADAS].produto.nome}"
+    )
     assert ficha["uuid_empresa"] is not None

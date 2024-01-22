@@ -1113,12 +1113,14 @@ class FichaTecnicaModelViewSet(
     @action(
         detail=False,
         methods=["GET"],
-        url_path="lista-com-numero-e-produto",
+        url_path="lista-simples-sem-cronograma",
         permission_classes=(PermissaoParaCriarCronograma,),
     )
-    def lista_com_numero_e_produto(self, request):
-        qs = self.get_queryset().exclude(
-            status=FichaTecnicaDoProduto.workflow_class.RASCUNHO
+    def lista_simples_sem_cronograma(self, request):
+        qs = (
+            self.get_queryset()
+            .exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO)
+            .exclude(cronograma__isnull=False)
         )
 
         return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
