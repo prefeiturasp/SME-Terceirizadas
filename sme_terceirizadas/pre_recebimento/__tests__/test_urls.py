@@ -3227,3 +3227,4 @@ def test_url_ficha_tecnica_lista_com_numero_e_produto(
         if ficha["uuid"] == str(fichas[0].uuid)
     ].pop()
     assert ficha["numero_e_produto"] == f"{fichas[0].numero} - {fichas[0].produto.nome}"
+    assert ficha["uuid_empresa"] is not None

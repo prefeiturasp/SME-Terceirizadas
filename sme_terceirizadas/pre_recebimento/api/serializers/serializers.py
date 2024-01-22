@@ -837,10 +837,14 @@ class PainelFichaTecnicaSerializer(serializers.ModelSerializer):
 
 class FichaTecnicaSimplesSerializer(serializers.ModelSerializer):
     numero_e_produto = serializers.SerializerMethodField()
+    uuid_empresa = serializers.SerializerMethodField()
 
     def get_numero_e_produto(self, obj):
         return f"{obj.numero} - {obj.produto.nome}" if obj.produto else obj.numero
 
+    def get_uuid_empresa(self, obj):
+        return obj.empresa.uuid if obj.empresa else None
+
     class Meta:
         model = FichaTecnicaDoProduto
-        fields = ("uuid", "numero_e_produto")
+        fields = ("uuid", "numero_e_produto", "uuid_empresa")
