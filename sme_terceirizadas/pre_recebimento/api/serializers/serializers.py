@@ -63,6 +63,7 @@ class EtapasDoCronogramaSerializer(serializers.ModelSerializer):
         fields = (
             "uuid",
             "numero_empenho",
+            "qtd_total_empenho",
             "etapa",
             "parte",
             "data_programada",
@@ -137,6 +138,42 @@ class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
+class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedida
+        fields = ("uuid", "nome", "abreviacao")
+        read_only_fields = ("uuid", "nome", "abreviacao")
+
+
+class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
+    produto = NomeDeProdutoEditalSerializer()
+    marca = MarcaSimplesSerializer()
+    empresa = TerceirizadaLookUpSerializer()
+    status = serializers.CharField(source="get_status_display")
+    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = (
+            "uuid",
+            "numero",
+            "produto",
+            "marca",
+            "categoria",
+            "status",
+            "empresa",
+            "produto_eh_liquido",
+            "volume_embalagem_primaria",
+            "unidade_medida_volume_primaria",
+            "peso_liquido_embalagem_primaria",
+            "unidade_medida_primaria",
+            "peso_liquido_embalagem_secundaria",
+            "unidade_medida_secundaria",
+        )
+
+
 class CronogramaSerializer(serializers.ModelSerializer):
     etapas = EtapasDoCronogramaSerializer(many=True)
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(
@@ -149,6 +186,7 @@ class CronogramaSerializer(serializers.ModelSerializer):
     produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
     tipo_embalagem = TipoEmbalagemQldSerializer()
+    ficha_tecnica = FichaTecnicaCronogramaSerializer()
 
     class Meta:
         model = Cronograma
@@ -167,6 +205,8 @@ class CronogramaSerializer(serializers.ModelSerializer):
             "armazem",
             "etapas",
             "programacoes_de_recebimento",
+            "ficha_tecnica",
+            "custo_unitario_produto",
         )
 
 
@@ -355,13 +395,6 @@ class UnidadeMedidaSerialzer(serializers.ModelSerializer):
         model = UnidadeMedida
         fields = ("uuid", "nome", "abreviacao", "criado_em")
         read_only_fields = ("uuid", "nome", "abreviacao", "criado_em")
-
-
-class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UnidadeMedida
-        fields = ("uuid", "nome", "abreviacao")
-        read_only_fields = ("uuid", "nome", "abreviacao")
 
 
 class ImagemDoTipoEmbalagemLookupSerializer(serializers.ModelSerializer):
@@ -799,35 +832,6 @@ class PainelFichaTecnicaSerializer(serializers.ModelSerializer):
             "nome_empresa",
             "status",
             "log_mais_recente",
-        )
-
-
-class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
-    produto = NomeDeProdutoEditalSerializer()
-    marca = MarcaSimplesSerializer()
-    empresa = TerceirizadaLookUpSerializer()
-    status = serializers.CharField(source="get_status_display")
-    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
-    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
-    unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
-
-    class Meta:
-        model = FichaTecnicaDoProduto
-        fields = (
-            "uuid",
-            "numero",
-            "produto",
-            "marca",
-            "categoria",
-            "status",
-            "empresa",
-            "produto_eh_liquido",
-            "volume_embalagem_primaria",
-            "unidade_medida_volume_primaria",
-            "peso_liquido_embalagem_primaria",
-            "unidade_medida_primaria",
-            "peso_liquido_embalagem_secundaria",
-            "unidade_medida_secundaria",
         )
 
 

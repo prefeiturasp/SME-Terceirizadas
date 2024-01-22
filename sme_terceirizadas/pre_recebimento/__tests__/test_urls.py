@@ -795,7 +795,7 @@ def test_url_dilog_assina_cronograma_not_authorized(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_detalhar_com_log(
+def test_url_conogramas_detalhar(
     client_autenticado_dinutre_diretoria, cronogramas_multiplos_status_com_log
 ):
     cronograma_com_log = Cronograma.objects.first()
@@ -803,6 +803,24 @@ def test_url_detalhar_com_log(
         f"/cronogramas/{cronograma_com_log.uuid}/detalhar-com-log/"
     )
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_conogramas_detalhar(
+    client_autenticado_dilog_cronograma,
+    cronograma,
+    ficha_tecnica_perecivel_enviada_para_analise,
+):
+    cronograma.ficha_tecnica = ficha_tecnica_perecivel_enviada_para_analise
+    cronograma.save()
+
+    response = client_autenticado_dilog_cronograma.get(
+        f"/cronogramas/{cronograma.uuid}/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["ficha_tecnica"]["uuid"] == str(
+        ficha_tecnica_perecivel_enviada_para_analise.uuid
+    )
 
 
 def test_url_dashboard_painel_usuario_dinutre(
