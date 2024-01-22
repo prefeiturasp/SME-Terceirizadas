@@ -86,8 +86,11 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
     tipo_embalagem = models.ForeignKey(
         TipoEmbalagemQld, on_delete=models.PROTECT, blank=True, null=True
     )
-    ficha_tecnica = models.ForeignKey(
-        "FichaTecnicaDoProduto", on_delete=models.PROTECT, blank=True, null=True
+    ficha_tecnica = models.OneToOneField(
+        "FichaTecnicaDoProduto",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
     )
     custo_unitario_produto = models.FloatField(
         "Custo Unitário do Produto", blank=True, null=True
