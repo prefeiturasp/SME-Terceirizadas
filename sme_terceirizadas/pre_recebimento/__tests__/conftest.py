@@ -40,14 +40,17 @@ def empresa(contrato):
 
 @pytest.fixture
 def cronograma():
-    return mommy.make("Cronograma", numero="001/2022")
+    return mommy.make(
+        "Cronograma",
+        numero="001/2022A",
+    )
 
 
 @pytest.fixture
 def cronograma_rascunho(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="002/2022",
+        numero="002/2022A",
         contrato=contrato,
         armazem=armazem,
         empresa=empresa,
@@ -58,7 +61,7 @@ def cronograma_rascunho(armazem, contrato, empresa):
 def cronograma_recebido(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="002/2022",
+        numero="002/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -103,7 +106,7 @@ def tipo_emabalagem_qld():
 def cronograma_solicitado_alteracao(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="00222/2022",
+        numero="00222/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -145,7 +148,7 @@ def solicitacao_cronograma_aprovado_dinutre(cronograma_solicitado_alteracao):
 def cronograma_assinado_fornecedor(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="002/2022",
+        numero="002/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -157,7 +160,7 @@ def cronograma_assinado_fornecedor(armazem, contrato, empresa):
 def cronograma_assinado_perfil_cronograma(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="002/2022",
+        numero="002/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -169,7 +172,7 @@ def cronograma_assinado_perfil_cronograma(armazem, contrato, empresa):
 def cronograma_assinado_perfil_dinutre(armazem, contrato, empresa, produto_arroz):
     return mommy.make(
         "Cronograma",
-        numero="003/2022",
+        numero="003/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -182,7 +185,7 @@ def cronograma_assinado_perfil_dinutre(armazem, contrato, empresa, produto_arroz
 def cronograma_assinado_perfil_dilog(armazem, contrato, empresa, produto_macarrao):
     return mommy.make(
         "Cronograma",
-        numero="004/2022",
+        numero="004/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -223,7 +226,7 @@ def cronogramas_multiplos_status_com_log(
 ):
     c1 = mommy.make(
         "Cronograma",
-        numero="002/2023",
+        numero="002/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -232,7 +235,7 @@ def cronogramas_multiplos_status_com_log(
     )
     c2 = mommy.make(
         "Cronograma",
-        numero="003/2023",
+        numero="003/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -241,7 +244,7 @@ def cronogramas_multiplos_status_com_log(
     )
     c3 = mommy.make(
         "Cronograma",
-        numero="004/2023",
+        numero="004/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -250,7 +253,7 @@ def cronogramas_multiplos_status_com_log(
     )
     c4 = mommy.make(
         "Cronograma",
-        numero="005/2023",
+        numero="005/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -259,7 +262,7 @@ def cronogramas_multiplos_status_com_log(
     )
     c5 = mommy.make(
         "Cronograma",
-        numero="006/2023",
+        numero="006/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -268,7 +271,7 @@ def cronogramas_multiplos_status_com_log(
     )
     c6 = mommy.make(
         "Cronograma",
-        numero="007/2023",
+        numero="007/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -319,7 +322,7 @@ def cronogramas_multiplos_status_com_log_cronograma_ciente(
 ):
     c1 = mommy.make(
         "Cronograma",
-        numero="002/2023",
+        numero="002/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -328,7 +331,7 @@ def cronogramas_multiplos_status_com_log_cronograma_ciente(
     )
     c2 = mommy.make(
         "Cronograma",
-        numero="003/2023",
+        numero="003/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,

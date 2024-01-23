@@ -25,7 +25,7 @@ def test_cronograma_instance_model(cronograma):
 
 
 def test_cronograma_srt_model(cronograma):
-    assert cronograma.__str__() == "Cronograma: 001/2022 - Status: Rascunho"
+    assert cronograma.__str__() == "Cronograma: 001/2022A - Status: Rascunho"
 
 
 def test_cronograma_meta_modelo(cronograma):
@@ -38,7 +38,7 @@ def test_etapas_do_cronograma_instance_model(etapa):
 
 
 def test_etapas_do_cronograma_srt_model(etapa):
-    assert etapa.__str__() == "Etapa 1 do cronogrma 001/2022"
+    assert etapa.__str__() == "Etapa 1 do cronogrma 001/2022A"
 
 
 def test_etapas_do_cronograma_meta_modelo(etapa):
@@ -192,7 +192,7 @@ def test_layout_de_embalagem_instance_model(layout_de_embalagem):
 
 
 def test_layout_de_embalagem_srt_model(layout_de_embalagem):
-    assert layout_de_embalagem.__str__() == "004/2022 - Macarrão"
+    assert layout_de_embalagem.__str__() == "004/2022A - Macarrão"
 
 
 def test_layout_de_embalagem_meta_modelo(layout_de_embalagem):

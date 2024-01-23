@@ -126,9 +126,9 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         ano = date.today().year
         ultimo_cronograma = Cronograma.objects.last()
         if ultimo_cronograma:
-            return f"{str(int(ultimo_cronograma.numero[:3]) + 1).zfill(3)}/{ano}"
+            return f"{str(int(ultimo_cronograma.numero[:3]) + 1).zfill(3)}/{ano}A"
         else:
-            return f"001/{ano}"
+            return f"001/{ano}A"
 
     def validate(self, attrs):
         user = self.context["request"].user
