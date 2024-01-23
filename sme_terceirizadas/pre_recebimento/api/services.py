@@ -1,6 +1,6 @@
 from typing import Type
 
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Value
 from django_filters.rest_framework import FilterSet
 from rest_framework.request import Request
 from rest_framework.serializers import ModelSerializer
@@ -227,7 +227,7 @@ class ServiceQuerysetAlteracaoCronograma:
         self.request = request
 
     @classmethod
-    def get_dashboard_status(self, user) -> list:
+    def get_status(self, user) -> list:
         perfil = user.vinculo_atual.perfil.nome
 
         if perfil not in self.STATUS_PRIORITARIO:
@@ -237,16 +237,24 @@ class ServiceQuerysetAlteracaoCronograma:
 
     def get_queryset(self):
         user = self.request.user
-        lista_status = self.get_dashboard_status(user)
-        q1 = SolicitacaoAlteracaoCronograma.objects.filter(
-            status__in=lista_status,
-        ).order_by("-criado_em")
-        q2 = SolicitacaoAlteracaoCronograma.objects.exclude(
-            status__in=lista_status,
-        ).order_by("-criado_em")
+        lista_status = self.get_status(user)
+        q1 = (
+            SolicitacaoAlteracaoCronograma.objects.filter(
+                status__in=lista_status,
+            )
+            .order_by("-criado_em")
+            .annotate(ordem=Value(1))
+        )
+        q2 = (
+            SolicitacaoAlteracaoCronograma.objects.exclude(
+                status__in=lista_status,
+            )
+            .order_by("-criado_em")
+            .annotate(ordem=Value(2))
+        )
 
         if user.eh_fornecedor:
             q1 = q1.filter(cronograma__empresa=user.vinculo_atual.instituicao)
             q2 = q2.filter(cronograma__empresa=user.vinculo_atual.instituicao)
 
-        return q1.union(q2, all=True)
+        return q1.union(q2, all=True).order_by("ordem")
