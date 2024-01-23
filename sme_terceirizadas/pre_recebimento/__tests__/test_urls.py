@@ -3236,3 +3236,15 @@ def test_url_ficha_tecnica_lista_simples(
         == f"{fichas[FICHAS_VINCULADAS].numero} - {fichas[FICHAS_VINCULADAS].produto.nome}"
     )
     assert ficha["uuid_empresa"] is not None
+
+
+def test_url_ficha_tecnica_dados_cronograma(
+    client_autenticado_dilog_cronograma, ficha_tecnica_factory
+):
+    ficha = ficha_tecnica_factory()
+
+    response = client_autenticado_dilog_cronograma.get(
+        f"/ficha-tecnica/{ficha.uuid}/dados-cronograma/"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
