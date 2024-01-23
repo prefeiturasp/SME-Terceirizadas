@@ -52,6 +52,9 @@ def test_rascunho_cronograma_create_ok(
     tipo_emabalagem_qld,
     ficha_tecnica_perecivel_enviada_para_analise,
 ):
+    qtd_total_empenho = fake.random_number() / 100
+    custo_unitario_produto = fake.random_number() / 100
+
     payload = {
         "contrato": str(contrato.uuid),
         "empresa": str(empresa.uuid),
@@ -63,11 +66,11 @@ def test_rascunho_cronograma_create_ok(
         "etapas": [
             {
                 "numero_empenho": "123456789",
-                "qtd_total_empenho": fake.random_number() / 100,
+                "qtd_total_empenho": qtd_total_empenho,
             },
             {
                 "numero_empenho": "1891425",
-                "qtd_total_empenho": fake.random_number() / 100,
+                "qtd_total_empenho": qtd_total_empenho,
                 "etapa": "Etapa 1",
             },
         ],
@@ -78,7 +81,7 @@ def test_rascunho_cronograma_create_ok(
             }
         ],
         "ficha_tecnica": str(ficha_tecnica_perecivel_enviada_para_analise.uuid),
-        "custo_unitario_produto": fake.random_number() / 100,
+        "custo_unitario_produto": custo_unitario_produto,
     }
 
     response = client_autenticado_codae_dilog.post(
@@ -95,6 +98,8 @@ def test_rascunho_cronograma_create_ok(
     assert obj.armazem == armazem
     assert obj.tipo_embalagem == tipo_emabalagem_qld
     assert obj.ficha_tecnica == ficha_tecnica_perecivel_enviada_para_analise
+    assert obj.custo_unitario_produto == custo_unitario_produto
+    assert obj.etapas.first().qtd_total_empenho == qtd_total_empenho
 
 
 def test_url_lista_etapas_authorized_numeros(client_autenticado_codae_dilog):
