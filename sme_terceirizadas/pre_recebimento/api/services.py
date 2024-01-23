@@ -238,23 +238,15 @@ class ServiceQuerysetAlteracaoCronograma:
     def get_queryset(self):
         user = self.request.user
         lista_status = self.get_status(user)
-        q1 = (
-            SolicitacaoAlteracaoCronograma.objects.filter(
-                status__in=lista_status,
-            )
-            .order_by("-criado_em")
-            .annotate(ordem=Value(1))
-        )
-        q2 = (
-            SolicitacaoAlteracaoCronograma.objects.exclude(
-                status__in=lista_status,
-            )
-            .order_by("-criado_em")
-            .annotate(ordem=Value(2))
-        )
+        q1 = SolicitacaoAlteracaoCronograma.objects.filter(
+            status__in=lista_status,
+        ).annotate(ordem=Value(1))
+        q2 = SolicitacaoAlteracaoCronograma.objects.exclude(
+            status__in=lista_status,
+        ).annotate(ordem=Value(2))
 
         if user.eh_fornecedor:
             q1 = q1.filter(cronograma__empresa=user.vinculo_atual.instituicao)
             q2 = q2.filter(cronograma__empresa=user.vinculo_atual.instituicao)
 
-        return q1.union(q2, all=True).order_by("ordem")
+        return q1.union(q2, all=True).order_by("ordem", "-criado_em")
