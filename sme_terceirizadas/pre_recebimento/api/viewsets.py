@@ -110,6 +110,7 @@ from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardFichaTecnica,
     ServiceDashboardLayoutEmbalagem,
     ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
+    ServiceQuerysetAlteracaoCronograma,
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
@@ -520,12 +521,7 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
 
     def get_queryset(self):
-        user = self.request.user
-        if user.eh_fornecedor:
-            return SolicitacaoAlteracaoCronograma.objects.filter(
-                cronograma__empresa=user.vinculo_atual.instituicao
-            ).order_by("-criado_em")
-        return SolicitacaoAlteracaoCronograma.objects.all().order_by("-criado_em")
+        return ServiceQuerysetAlteracaoCronograma(request=self.request).get_queryset()
 
     def get_serializer_class(self):
         serializer_classes_map = {
