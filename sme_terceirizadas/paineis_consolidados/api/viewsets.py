@@ -358,7 +358,11 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
         url_path="totais-gerencial-dietas",
     )
     def totais_gerencial_dietas(self, request):
-        queryset = SolicitacaoDietaEspecial.objects.all().order_by()
+        queryset = (
+            SolicitacaoDietaEspecial.objects.all()
+            .exclude(status=SolicitacaoDietaEspecial.workflow_class.RASCUNHO)
+            .order_by()
+        )
 
         dia = request.query_params.get("dia")
         if dia:
