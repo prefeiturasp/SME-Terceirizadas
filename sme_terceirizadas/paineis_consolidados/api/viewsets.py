@@ -360,18 +360,18 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     def totais_gerencial_dietas(self, request):
         queryset = SolicitacaoDietaEspecial.objects.all().order_by()
 
-        filtro_ano = request.query_params.get("ano")
-        if filtro_ano:
-            queryset = queryset.filter(criado_em__date__year__in=filtro_ano.split(","))
-
-        filtro_mes = request.query_params.get("mes")
-        if filtro_mes:
-            queryset = queryset.filter(criado_em__date__month__in=filtro_mes.split(","))
-
-        filtro_dia = request.query_params.get("dia")
-        if filtro_dia:
-            data = datetime.datetime.strptime(filtro_dia, "%d/%m/%Y").date()
+        dia = request.query_params.get("dia")
+        if dia:
+            data = datetime.datetime.strptime(dia, "%d/%m/%Y").date()
             queryset = queryset.filter(criado_em__date=data)
+        else:
+            anos = request.query_params.get("anos")
+            if anos:
+                queryset = queryset.filter(criado_em__date__year__in=anos.split(","))
+
+            meses = request.query_params.get("meses")
+            if meses:
+                queryset = queryset.filter(criado_em__date__month__in=meses.split(","))
 
         totais = SolicitacaoDietaEspecial.get_totais_gerencial_dietas(queryset)
 
