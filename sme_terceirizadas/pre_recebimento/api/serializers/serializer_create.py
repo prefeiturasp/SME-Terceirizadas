@@ -147,12 +147,14 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
             raise NotAuthenticated(
                 "Assinatura do cronograma não foi validada. Verifique sua senha."
             )
+
+        contrato = attrs.get("contrato", None)
+        empresa = attrs.get("empresa", None)
+        contrato_pertence_a_empresa(contrato, empresa)
+
         return super().validate(attrs)
 
     def create(self, validated_data):
-        contrato = validated_data.get("contrato", None)
-        empresa = validated_data.get("empresa", None)
-        contrato_pertence_a_empresa(contrato, empresa)
         user = self.context["request"].user
         cadastro_finalizado = validated_data.pop("cadastro_finalizado", None)
         etapas = validated_data.pop("etapas", [])
