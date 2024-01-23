@@ -19,6 +19,7 @@ from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
+    UsuarioCODAEDietaEspecial,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
     UsuarioNutricionista,
@@ -335,7 +336,7 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=(UsuarioNutricionista,),
+        permission_classes=(UsuarioCODAEDietaEspecial,),
         url_name="anos-com-dietas",
         url_path="anos-com-dietas",
     )
@@ -353,7 +354,7 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=(UsuarioNutricionista,),
+        permission_classes=(UsuarioCODAEDietaEspecial,),
         url_name="totais-gerencial-dietas",
         url_path="totais-gerencial-dietas",
     )
