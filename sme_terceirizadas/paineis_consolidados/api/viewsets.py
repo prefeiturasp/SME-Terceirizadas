@@ -370,7 +370,8 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
 
         filtro_dia = request.query_params.get("dia")
         if filtro_dia:
-            queryset = queryset.filter(criado_em__date__day__in=filtro_dia)
+            data = datetime.datetime.strptime(filtro_dia, "%d/%m/%Y").date()
+            queryset = queryset.filter(criado_em__date=data)
 
         totais = SolicitacaoDietaEspecial.get_totais_gerencial_dietas(queryset)
 
