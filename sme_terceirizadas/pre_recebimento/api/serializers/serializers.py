@@ -146,6 +146,7 @@ class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
 
 
 class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
+    produto = NomeDeProdutoEditalSerializer()
     marca = MarcaSimplesSerializer()
     unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
@@ -155,6 +156,8 @@ class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
         model = FichaTecnicaDoProduto
         fields = (
             "uuid",
+            "numero",
+            "produto",
             "marca",
             "volume_embalagem_primaria",
             "unidade_medida_volume_primaria",
