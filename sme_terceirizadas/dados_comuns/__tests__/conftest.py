@@ -622,3 +622,8 @@ def logs_quantidade_dietas_autorizadas_escola_cemei(
         faixa_etaria=faixas_etarias_ativas[2],
     )
     return LogQuantidadeDietasAutorizadasCEI.objects.all()
+
+
+@pytest.fixture
+def obj_central_download():
+    return mommy.make("CentralDeDownload")
