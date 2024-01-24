@@ -919,6 +919,7 @@ class SolicitacaoDietaEspecialViewSet(
                     SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZOU_INATIVACAO,
                     SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
                     SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+                    SolicitacaoDietaEspecial.workflow_class.states.TERMINADA_AUTOMATICAMENTE_SISTEMA,
                 ]
             )
         return query_set

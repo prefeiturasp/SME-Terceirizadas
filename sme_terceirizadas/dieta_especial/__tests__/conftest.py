@@ -561,6 +561,22 @@ def solicitacao_dieta_especial_autorizada_ativa(request, aluno, escola):
 
 
 @pytest.fixture
+def solicitacao_dieta_especial_cancelada_automaticamente(escola):
+    aluno = mommy.make(
+        Aluno,
+        nome="Isabella Pereira da Silva",
+        codigo_eol="488226",
+        data_nascimento="2000-01-01",
+    )
+    return mommy.make(
+        SolicitacaoDietaEspecial,
+        status=DietaEspecialWorkflow.TERMINADA_AUTOMATICAMENTE_SISTEMA,
+        rastro_escola=escola,
+        aluno=aluno,
+    )
+
+
+@pytest.fixture
 def solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior(aluno, escola):
     hoje = datetime.date.today()
     amanha = hoje + datetime.timedelta(days=1)
