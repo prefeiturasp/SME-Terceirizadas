@@ -131,7 +131,7 @@ class EtapasDoCronograma(ModeloBase):
     parte = models.CharField(blank=True, max_length=15)
     data_programada = models.DateField("Data Programada", blank=True, null=True)
     quantidade = models.FloatField(blank=True, null=True)
-    total_embalagens = models.PositiveSmallIntegerField(
+    total_embalagens = models.PositiveIntegerField(
         "Total de Embalagens", blank=True, null=True
     )
 
