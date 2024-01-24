@@ -295,6 +295,16 @@ class Usuario(
         return tipo_usuario
 
     @property
+    def eh_escola(self):
+        return (
+            self.vinculo_atual and self.vinculo_atual.content_type.app_label == "escola"
+        )
+
+    @property
+    def eh_parceira(self):
+        return self.eh_escola and self.vinculo_atual.instituicao.eh_parceira
+
+    @property
     def eh_empresa(self):
         return (
             self.vinculo_atual
