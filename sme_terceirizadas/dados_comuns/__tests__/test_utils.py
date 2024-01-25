@@ -15,9 +15,11 @@ from ..constants import (
     SEM_FILTRO,
     obter_dias_uteis_apos_hoje,
 )
+from ..models import CentralDeDownload
 from ..utils import (
     analisa_logs_alunos_matriculados_periodo_escola,
     analisa_logs_quantidade_dietas_autorizadas,
+    atualiza_central_download,
     eh_email_dev,
     ordena_dias_semana_comeca_domingo,
     queryset_por_data,
@@ -158,3 +160,17 @@ def test_analisa_logs_quantidade_dietas_autorizadas(
         if log.escola.tipo_unidade.iniciais == "CEMEI"
     ]
     assert len(logs_dietas_cemei) == 5
+
+
+def test_atualiza_central_download(obj_central_download):
+    identificador_pdf = "relatorio.pdf"
+    arquivo = b"conteudo do arquivo"
+    prefixo = identificador_pdf.split(".")[0]
+
+    atualiza_central_download(obj_central_download, identificador_pdf, arquivo)
+
+    assert prefixo in obj_central_download.arquivo.name
+    assert obj_central_download.arquivo.read() == arquivo
+    assert obj_central_download.status == CentralDeDownload.STATUS_CONCLUIDO
+
+    obj_central_download.arquivo.close()

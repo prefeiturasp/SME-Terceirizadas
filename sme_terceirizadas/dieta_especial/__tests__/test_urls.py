@@ -764,13 +764,15 @@ def test_relatorio_dieta_especial_terceirizada_lista_autorizadas(
 
 
 def test_relatorio_dieta_especial_terceirizada_lista_canceladas(
-    client_autenticado, solicitacao_dieta_especial_codae_autorizou_inativacao
+    client_autenticado,
+    solicitacao_dieta_especial_codae_autorizou_inativacao,
+    solicitacao_dieta_especial_cancelada_automaticamente,
 ):
     response = client_autenticado.get(
         "/solicitacoes-dieta-especial/relatorio-dieta-especial-terceirizada/?status_selecionado=CANCELADAS"
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 1
+    assert len(response.json()["results"]) == 2
 
 
 def test_imprime_relatorio_dieta_especial(
