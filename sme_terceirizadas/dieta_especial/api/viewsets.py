@@ -1471,9 +1471,14 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         dieta_uuid = request.query_params.get("dieta_especial_uuid", None)
         solicitacao = SolicitacaoDietaEspecial.objects.get(uuid=dieta_uuid)
         escola = solicitacao.escola
-        editais_uuid = Contrato.objects.filter(lotes__in=[escola.lote]).values_list(
-            "edital__uuid", flat=True
-        )
+        if escola.eh_parceira:
+            editais_uuid = Edital.objects.filter(numero__iexact="PARCEIRA").values_list(
+                "uuid", flat=True
+            )
+        else:
+            editais_uuid = Contrato.objects.filter(lotes__in=[escola.lote]).values_list(
+                "edital__uuid", flat=True
+            )
         protocolos_liberados = self.get_queryset().filter(
             status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO,
             editais__uuid__in=editais_uuid,
