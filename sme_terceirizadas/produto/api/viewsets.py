@@ -2674,7 +2674,9 @@ class ProdutosEditaisViewSet(viewsets.ModelViewSet):
         usuario = request.user
         lotes_uuid = Lote.objects.all().values_list("uuid", flat=True)
 
-        if usuario.tipo_usuario == "escola":
+        if usuario.eh_parceira:
+            lotes_uuid = []
+        elif usuario.tipo_usuario == "escola":
             lotes_uuid = [usuario.vinculo_atual.instituicao.lote.uuid]
         elif usuario.tipo_usuario == "diretoriaregional":
             lotes_uuid = usuario.vinculo_atual.instituicao.lotes.values_list(
