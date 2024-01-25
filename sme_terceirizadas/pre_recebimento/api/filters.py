@@ -25,7 +25,7 @@ class CronogramaFilter(filters.FilterSet):
         lookup_expr="icontains",
     )
     nome_produto = filters.CharFilter(
-        field_name="produto__nome",
+        field_name="ficha_tecnica__produto__nome",
         lookup_expr="icontains",
     )
     data_inicial = filters.DateFilter(
