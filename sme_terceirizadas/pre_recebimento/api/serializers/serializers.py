@@ -146,18 +146,19 @@ class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
 
 
 class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
-    produto = NomeDeProdutoEditalSerializer()
     marca = MarcaSimplesSerializer()
     unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    numero_e_produto = serializers.SerializerMethodField()
+
+    def get_numero_e_produto(self, obj):
+        return str(obj)
 
     class Meta:
         model = FichaTecnicaDoProduto
         fields = (
             "uuid",
-            "numero",
-            "produto",
             "marca",
             "volume_embalagem_primaria",
             "unidade_medida_volume_primaria",
@@ -165,6 +166,7 @@ class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
             "unidade_medida_primaria",
             "peso_liquido_embalagem_secundaria",
             "unidade_medida_secundaria",
+            "numero_e_produto",
         )
 
 
@@ -834,7 +836,7 @@ class FichaTecnicaSimplesSerializer(serializers.ModelSerializer):
     uuid_empresa = serializers.SerializerMethodField()
 
     def get_numero_e_produto(self, obj):
-        return f"{obj.numero} - {obj.produto.nome}" if obj.produto else obj.numero
+        return str(obj)
 
     def get_uuid_empresa(self, obj):
         return obj.empresa.uuid if obj.empresa else None

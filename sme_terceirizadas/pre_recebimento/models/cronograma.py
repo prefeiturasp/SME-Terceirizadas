@@ -859,7 +859,7 @@ class FichaTecnicaDoProduto(
     informacoes_adicionais = models.TextField("Informações Adicionais", blank=True)
 
     def __str__(self):
-        return self.produto.nome
+        return f"{self.numero} - {self.produto.nome}" if self.produto else self.numero
 
     class Meta:
         verbose_name = "Ficha Técnica do Produto"
