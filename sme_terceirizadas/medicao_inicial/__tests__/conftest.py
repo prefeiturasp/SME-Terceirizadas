@@ -1179,6 +1179,89 @@ def solicitacao_medicao_inicial_teste_salvar_logs(
 
 
 @pytest.fixture
+def faixas_etarias_ativas():
+    faixas = [
+        (0, 1),
+        (1, 4),
+        (4, 6),
+        (6, 8),
+        (8, 12),
+        (12, 24),
+        (24, 48),
+        (48, 72),
+    ]
+    return [
+        mommy.make("FaixaEtaria", inicio=inicio, fim=fim, ativo=True)
+        for (inicio, fim) in faixas
+    ]
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_teste_salvar_logs_cei(
+    escola_cei,
+    tipo_contagem_alimentacao,
+    faixas_etarias_ativas,
+    classificacao_dieta_tipo_a,
+    classificacao_dieta_tipo_a_enteral,
+    categoria_medicao,
+    categoria_medicao_dieta_a,
+    categoria_medicao_dieta_a_enteral_aminoacidos,
+):
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        uuid="7f7c79ec-bb92-11ee-ad73-5f84fbd2a2f0",
+        mes="10",
+        ano=2023,
+        escola=escola_cei,
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem_alimentacao])
+    solicitacao_medicao.ue_possui_alunos_periodo_parcial = True
+    solicitacao_medicao.save()
+
+    periodo_integral = mommy.make("PeriodoEscolar", nome="INTEGRAL")
+    periodo_parcial = mommy.make("PeriodoEscolar", nome="PARCIAL")
+    periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
+
+    mommy.make("Aluno", serie="1", escola=escola_cei, periodo_escolar=periodo_integral)
+    mommy.make("Aluno", serie="2", escola=escola_cei, periodo_escolar=periodo_tarde)
+
+    for periodo in [periodo_integral, periodo_parcial, periodo_tarde]:
+        for dia in range(1, 32):
+            log = mommy.make(
+                "LogAlunosMatriculadosFaixaEtariaDia",
+                escola=escola_cei,
+                periodo_escolar=periodo,
+                faixa_etaria=faixas_etarias_ativas[2],
+                quantidade=10,
+                data=datetime.date(2023, 10, dia),
+            )
+
+            for classificacao in [
+                classificacao_dieta_tipo_a,
+                classificacao_dieta_tipo_a_enteral,
+            ]:
+                mommy.make(
+                    "LogQuantidadeDietasAutorizadasCEI",
+                    escola=escola_cei,
+                    periodo_escolar=periodo,
+                    faixa_etaria=faixas_etarias_ativas[2],
+                    quantidade=2,
+                    data=datetime.date(2023, 10, dia),
+                    classificacao=classificacao,
+                )
+                mommy.make(
+                    "LogQuantidadeDietasAutorizadasCEI",
+                    escola=escola_cei,
+                    periodo_escolar=periodo,
+                    faixa_etaria=faixas_etarias_ativas[4],
+                    quantidade=2,
+                    data=datetime.date(2023, 10, dia),
+                    classificacao=classificacao,
+                )
+    return solicitacao_medicao
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial_com_grupo(escola, categoria_medicao_dieta_a):
     tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
     periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
