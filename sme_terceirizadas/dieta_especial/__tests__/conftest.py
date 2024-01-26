@@ -584,19 +584,40 @@ def solicitacao_dieta_especial_autorizada_ativa(request, aluno, escola):
 
 
 @pytest.fixture
-def solicitacao_dieta_especial_cancelada_automaticamente(escola):
+def solicitacao_dieta_especial_cancelada_automaticamente(client, escola):
     aluno = mommy.make(
         Aluno,
         nome="Isabella Pereira da Silva",
         codigo_eol="488226",
         data_nascimento="2000-01-01",
     )
-    return mommy.make(
+    email = "test3@admin.com"
+    password = constants.DJANGO_ADMIN_PASSWORD
+    rf = "374867"
+    user = Usuario.objects.create_user(
+        username=email, password=password, email=email, registro_funcional=rf
+    )
+    client.login(username=email, password=password)
+
+    perfil = mommy.make("perfil.Perfil", nome="TERCEIRIZADA", ativo=False)
+    mommy.make(
+        "perfil.Vinculo",
+        usuario=user,
+        instituicao=escola.lote.terceirizada,
+        perfil=perfil,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
+    solicitacao = mommy.make(
         SolicitacaoDietaEspecial,
-        status=DietaEspecialWorkflow.TERMINADA_AUTOMATICAMENTE_SISTEMA,
         rastro_escola=escola,
         aluno=aluno,
+        data_termino=datetime.date.today() - datetime.timedelta(days=1),
+        status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
     )
+
+    solicitacao.termina(user)
+    return solicitacao
 
 
 @pytest.fixture
