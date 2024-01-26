@@ -913,6 +913,24 @@ def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados(
     assert len(response.json()["results"]) == 2
 
 
+def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados_parceiras(
+    client_autenticado_vinculo_codae_dieta,
+    solicitacao_dieta_especial_parceira,
+    protocolo_padrao_edital_parceira,
+):
+    # dado uma solicitacao de uma escola parceira
+    # e um protocolo padrao do edital PARCEIRA
+
+    # quando
+    response = client_autenticado_vinculo_codae_dieta.get(
+        f"/protocolo-padrao-dieta-especial/lista-protocolos-liberados/?dieta_especial_uuid={solicitacao_dieta_especial_parceira.uuid}"
+    )
+
+    # entao
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
+
+
 def test_filtros_relatorio_dieta_especial_validation_error(
     client_autenticado_vinculo_terceirizada_dieta,
 ):
