@@ -807,7 +807,7 @@ def test_url_dilog_assina_cronograma_not_authorized(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_conogramas_detalhar(
+def test_url_conogramas_detalhar_com_log(
     client_autenticado_dinutre_diretoria, cronogramas_multiplos_status_com_log
 ):
     cronograma_com_log = Cronograma.objects.first()
