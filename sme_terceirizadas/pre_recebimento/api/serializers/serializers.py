@@ -181,7 +181,6 @@ class CronogramaSerializer(serializers.ModelSerializer):
     contrato = ContratoSimplesSerializer()
     produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
-    tipo_embalagem = TipoEmbalagemQldSerializer()
     ficha_tecnica = FichaTecnicaCronogramaSerializer()
 
     class Meta:
@@ -197,7 +196,6 @@ class CronogramaSerializer(serializers.ModelSerializer):
             "produto",
             "qtd_total_programada",
             "unidade_medida",
-            "tipo_embalagem",
             "armazem",
             "etapas",
             "programacoes_de_recebimento",
@@ -217,7 +215,6 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
     contrato = ContratoSimplesSerializer()
     produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
-    tipo_embalagem = TipoEmbalagemQldSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
@@ -233,7 +230,6 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
             "produto",
             "qtd_total_programada",
             "unidade_medida",
-            "tipo_embalagem",
             "armazem",
             "etapas",
             "programacoes_de_recebimento",

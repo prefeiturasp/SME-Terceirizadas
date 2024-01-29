@@ -111,12 +111,6 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
     )
     password = serializers.CharField(required=False)
     qtd_total_programada = serializers.FloatField(required=False)
-    tipo_embalagem = serializers.SlugRelatedField(
-        slug_field="uuid",
-        required=False,
-        queryset=TipoEmbalagemQld.objects.all(),
-        allow_null=True,
-    )
     etapas = EtapasDoCronogramaCreateSerializer(many=True, required=False)
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(
         many=True, required=False

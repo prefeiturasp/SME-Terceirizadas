@@ -49,7 +49,6 @@ def test_rascunho_cronograma_create_ok(
     produto_arroz,
     unidade_medida_logistica,
     armazem,
-    tipo_emabalagem_qld,
     ficha_tecnica_perecivel_enviada_para_analise,
 ):
     qtd_total_empenho = fake.random_number() / 100
@@ -61,7 +60,6 @@ def test_rascunho_cronograma_create_ok(
         "produto": str(produto_arroz.uuid),
         "unidade_medida": str(unidade_medida_logistica.uuid),
         "armazem": str(armazem.uuid),
-        "tipo_embalagem": str(tipo_emabalagem_qld.uuid),
         "cadastro_finalizado": False,
         "etapas": [
             {
@@ -96,7 +94,6 @@ def test_rascunho_cronograma_create_ok(
     assert obj.produto == produto_arroz
     assert obj.unidade_medida == unidade_medida_logistica
     assert obj.armazem == armazem
-    assert obj.tipo_embalagem == tipo_emabalagem_qld
     assert obj.ficha_tecnica == ficha_tecnica_perecivel_enviada_para_analise
     assert obj.custo_unitario_produto == custo_unitario_produto
     assert obj.etapas.first().qtd_total_empenho == qtd_total_empenho

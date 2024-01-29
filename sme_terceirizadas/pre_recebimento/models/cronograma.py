@@ -37,7 +37,6 @@ from ...produto.models import (
     NomeDeProdutoEdital,
 )
 from ...terceirizada.models import Contrato, Terceirizada
-from .qualidade import TipoEmbalagemQld
 
 
 class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
@@ -82,9 +81,6 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
         blank=True,
         null=True,
         related_name="cronogramas",
-    )
-    tipo_embalagem = models.ForeignKey(
-        TipoEmbalagemQld, on_delete=models.PROTECT, blank=True, null=True
     )
     ficha_tecnica = models.OneToOneField(
         "FichaTecnicaDoProduto",
