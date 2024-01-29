@@ -224,6 +224,7 @@
   }
 }
 
+.titulo-tabela-somatorio,
 .titulo-tabela-observacoes {
   font-family: "Roboto";
   font-style: normal;
@@ -296,6 +297,14 @@ table.tabela-valores-medicao {
     background-color: #ff0095;
   }
 
+  .cor-periodo-grupo-1-somatorio {
+    background-color: #2f80ed;
+  }
+
+  .cor-periodo-grupo-2-somatorio {
+    background-color: #de9524;
+  }
+
   .nao-dia-letivo {
     background-color: $cinza-claro;
   }
@@ -354,6 +363,29 @@ table.tabela-valores-medicao {
       }
     }
   }
+}
+
+.info-abaixo-tabela {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 9px;
+  color: $cinza-meio-escuro;
+  margin-top: 0.5%;
+  margin-left: 1.5%;
+}
+
+.somatorio-infantil tr:nth-last-child(2) {
+  background-color: #f2f2f2;
+}
+
+.hachurado {
+  background-color: #f2f2f2;
+}
+
+.bloco-assinatura {
+  position: absolute;
+  bottom: 35px;
 }
 
 .text-center {

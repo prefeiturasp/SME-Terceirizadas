@@ -913,14 +913,40 @@ class SolicitacaoDietaEspecialViewSet(
                 ativo=True,
             )
         elif data.get("status_selecionado") == "CANCELADAS":
-            query_set = query_set.filter(
-                status__in=[
-                    SolicitacaoDietaEspecial.workflow_class.states.ESCOLA_CANCELOU,
-                    SolicitacaoDietaEspecial.workflow_class.states.CODAE_AUTORIZOU_INATIVACAO,
-                    SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_MUDOU_ESCOLA,
-                    SolicitacaoDietaEspecial.workflow_class.states.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-                ]
+            data_inicial_str = data.get("data_cancelamento_inicial")
+            data_final_str = data.get("data_cancelamento_final")
+            formato = "%d/%m/%Y"
+
+            data_inicial = (
+                datetime.strptime(data_inicial_str, formato)
+                if data_inicial_str
+                else None
             )
+            data_final = (
+                datetime.strptime(data_final_str, formato) if data_final_str else None
+            )
+
+            params = {
+                "criado_em__gte": data_inicial,
+                "criado_em__lte": data_final,
+                "status_evento__in": [
+                    LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                    LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
+                    LogSolicitacoesUsuario.CANCELADO_ALUNO_MUDOU_ESCOLA,
+                    LogSolicitacoesUsuario.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+                    LogSolicitacoesUsuario.TERMINADA_AUTOMATICAMENTE_SISTEMA,
+                ],
+            }
+
+            log_filtros = {
+                key: value for key, value in params.items() if value is not None
+            }
+
+            logs = LogSolicitacoesUsuario.objects.filter(**log_filtros)
+
+            solicitacoes_uuids = [log.uuid_original for log in logs]
+            query_set = query_set.filter(uuid__in=solicitacoes_uuids)
+
         return query_set
 
     @action(detail=False, methods=("get",), url_path="filtros-relatorio-dieta-especial")
@@ -1206,8 +1232,8 @@ class SolicitacaoDietaEspecialViewSet(
             request.query_params.getlist("classificacoes_selecionadas[]", None),
             request.query_params.getlist("protocolos_padrao_selecionados[]", None),
             request.query_params.getlist("alergias_intolerancias_selecionadas[]", None),
-            request.query_params.get("data_inicial", None),
-            request.query_params.get("data_final", None),
+            request.query_params.get("data_cancelamento_inicial", None),
+            request.query_params.get("data_cancelamento_final", None),
         )
         gera_pdf_relatorio_dietas_especiais_terceirizadas_async.delay(
             user=user,
@@ -1470,9 +1496,14 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         dieta_uuid = request.query_params.get("dieta_especial_uuid", None)
         solicitacao = SolicitacaoDietaEspecial.objects.get(uuid=dieta_uuid)
         escola = solicitacao.escola
-        editais_uuid = Contrato.objects.filter(lotes__in=[escola.lote]).values_list(
-            "edital__uuid", flat=True
-        )
+        if escola.eh_parceira:
+            editais_uuid = Edital.objects.filter(numero__iexact="PARCEIRA").values_list(
+                "uuid", flat=True
+            )
+        else:
+            editais_uuid = Contrato.objects.filter(lotes__in=[escola.lote]).values_list(
+                "edital__uuid", flat=True
+            )
         protocolos_liberados = self.get_queryset().filter(
             status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO,
             editais__uuid__in=editais_uuid,
