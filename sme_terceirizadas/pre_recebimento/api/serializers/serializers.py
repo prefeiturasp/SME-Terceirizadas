@@ -63,6 +63,7 @@ class EtapasDoCronogramaSerializer(serializers.ModelSerializer):
         fields = (
             "uuid",
             "numero_empenho",
+            "qtd_total_empenho",
             "etapa",
             "parte",
             "data_programada",
@@ -137,6 +138,38 @@ class TipoEmbalagemQldSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
+class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedida
+        fields = ("uuid", "nome", "abreviacao")
+        read_only_fields = ("uuid", "nome", "abreviacao")
+
+
+class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
+    marca = MarcaSimplesSerializer()
+    unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    unidade_medida_secundaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    numero_e_produto = serializers.SerializerMethodField()
+
+    def get_numero_e_produto(self, obj):
+        return str(obj)
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = (
+            "uuid",
+            "marca",
+            "volume_embalagem_primaria",
+            "unidade_medida_volume_primaria",
+            "peso_liquido_embalagem_primaria",
+            "unidade_medida_primaria",
+            "peso_liquido_embalagem_secundaria",
+            "unidade_medida_secundaria",
+            "numero_e_produto",
+        )
+
+
 class CronogramaSerializer(serializers.ModelSerializer):
     etapas = EtapasDoCronogramaSerializer(many=True)
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(
@@ -149,6 +182,7 @@ class CronogramaSerializer(serializers.ModelSerializer):
     produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
     tipo_embalagem = TipoEmbalagemQldSerializer()
+    ficha_tecnica = FichaTecnicaCronogramaSerializer()
 
     class Meta:
         model = Cronograma
@@ -167,6 +201,8 @@ class CronogramaSerializer(serializers.ModelSerializer):
             "armazem",
             "etapas",
             "programacoes_de_recebimento",
+            "ficha_tecnica",
+            "custo_unitario_produto",
         )
 
 
@@ -355,13 +391,6 @@ class UnidadeMedidaSerialzer(serializers.ModelSerializer):
         model = UnidadeMedida
         fields = ("uuid", "nome", "abreviacao", "criado_em")
         read_only_fields = ("uuid", "nome", "abreviacao", "criado_em")
-
-
-class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UnidadeMedida
-        fields = ("uuid", "nome", "abreviacao")
-        read_only_fields = ("uuid", "nome", "abreviacao")
 
 
 class ImagemDoTipoEmbalagemLookupSerializer(serializers.ModelSerializer):
@@ -800,3 +829,18 @@ class PainelFichaTecnicaSerializer(serializers.ModelSerializer):
             "status",
             "log_mais_recente",
         )
+
+
+class FichaTecnicaSimplesSerializer(serializers.ModelSerializer):
+    numero_e_produto = serializers.SerializerMethodField()
+    uuid_empresa = serializers.SerializerMethodField()
+
+    def get_numero_e_produto(self, obj):
+        return str(obj)
+
+    def get_uuid_empresa(self, obj):
+        return obj.empresa.uuid if obj.empresa else None
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = ("uuid", "numero_e_produto", "uuid_empresa")
