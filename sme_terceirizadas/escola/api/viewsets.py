@@ -19,7 +19,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
 from ...dados_comuns.permissions import (
+    UsuarioCODAEDietaEspecial,
     UsuarioCODAEGestaoAlimentacao,
+    UsuarioCODAENutriManifestacao,
     UsuarioDiretoriaRegional,
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin,
@@ -302,6 +304,8 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             UsuarioEscolaTercTotal
             | UsuarioDiretoriaRegional
             | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAEDietaEspecial
+            | UsuarioCODAENutriManifestacao
         ],
     )
     def inclusao_continua_por_mes(self, request):

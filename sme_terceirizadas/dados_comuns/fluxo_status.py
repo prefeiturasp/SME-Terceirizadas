@@ -3003,8 +3003,12 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         escola = self.criado_por.vinculo_atual.instituicao
         self.rastro_escola = escola
         self.rastro_dre = escola.diretoria_regional
-        self.rastro_lote = escola.lote
-        self.rastro_terceirizada = escola.lote.terceirizada
+        if escola.tipo_gestao and escola.tipo_gestao.nome == "PARCEIRA":
+            self.rastro_lote = None
+            self.rastro_terceirizada = None
+        else:
+            self.rastro_lote = escola.lote
+            self.rastro_terceirizada = escola.lote.terceirizada
         self.save()
 
     def termina(self, usuario):
@@ -3534,13 +3538,13 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name="produto_codae_recusou_reclamacao.html",
             context={
-                "titulo": "Reclamação recusada",
+                "titulo": "Reclamação Analisada",
                 "reclamacao": self,
                 "log_recusa": log_recusa,
             },
         )
         envia_email_unico_task.delay(
-            assunto="[SIGPAE] Reclamação recusada",
+            assunto="[SIGPAE] Reclamação Analisada",
             email=self.criado_por.email,
             corpo="",
             html=html,

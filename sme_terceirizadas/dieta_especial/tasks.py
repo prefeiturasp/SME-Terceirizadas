@@ -87,7 +87,7 @@ def gera_pdf_relatorio_dieta_especial_async(user, nome_arquivo, ids_dietas, data
         if not form.is_valid():
             raise ValidationError(form.errors)
         queryset = SolicitacaoDietaEspecial.objects.filter(id__in=ids_dietas)
-        usuario = Usuario.objects.get(email=user)
+        usuario = Usuario.objects.get(username=user)
         arquivo = relatorio_geral_dieta_especial_pdf(form, queryset, usuario)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:

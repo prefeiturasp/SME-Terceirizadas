@@ -19,6 +19,7 @@ from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
+    UsuarioCODAEDietaEspecial,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
     UsuarioNutricionista,
@@ -331,6 +332,58 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = SolicitacoesNutrisupervisao.objects.all()
     serializer_class = SolicitacoesSerializer
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=(UsuarioCODAEDietaEspecial,),
+        url_name="anos-com-dietas",
+        url_path="anos-com-dietas",
+    )
+    def anos_com_dietas(self, request):
+        queryset = SolicitacaoDietaEspecial.objects.all().exclude(
+            status=SolicitacaoDietaEspecial.workflow_class.RASCUNHO
+        )
+
+        anos = [c.date().year for c in queryset.values_list("criado_em", flat=True)]
+        anos_unicos = list(set(anos))
+        anos_unicos_ordenados = sorted(anos_unicos, reverse=True)
+
+        return Response(data=anos_unicos_ordenados, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=(UsuarioCODAEDietaEspecial,),
+        url_name="totais-gerencial-dietas",
+        url_path="totais-gerencial-dietas",
+    )
+    def totais_gerencial_dietas(self, request):
+        queryset = (
+            SolicitacaoDietaEspecial.objects.all()
+            .exclude(status=SolicitacaoDietaEspecial.workflow_class.RASCUNHO)
+            .order_by()
+        )
+
+        dia = request.query_params.get("dia")
+        if dia:
+            data = datetime.datetime.strptime(dia, "%d/%m/%Y").date()
+            queryset = queryset.filter(criado_em__date=data)
+        else:
+            anos = request.query_params.get("anos")
+            if anos:
+                queryset = queryset.filter(criado_em__date__year__in=anos.split(","))
+
+            meses = request.query_params.get("meses")
+            if meses:
+                queryset = queryset.filter(criado_em__date__month__in=meses.split(","))
+
+        totais = SolicitacaoDietaEspecial.get_totais_gerencial_dietas(queryset)
+
+        return Response(
+            data=totais,
+            status=status.HTTP_200_OK,
+        )
 
     @action(
         detail=False,

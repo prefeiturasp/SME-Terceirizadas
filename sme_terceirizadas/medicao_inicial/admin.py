@@ -104,7 +104,7 @@ class PermissaoLancamentoEspecialAdmin(admin.ModelAdmin):
 
 @admin.register(ValorMedicao)
 class ValorMedicaoAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "valor", "medicao", "get_escola")
+    list_display = ("__str__", "valor", "medicao", "get_escola", "faixa_etaria")
     search_fields = (
         "valor",
         "medicao__solicitacao_medicao_inicial__escola__nome",
@@ -113,6 +113,10 @@ class ValorMedicaoAdmin(admin.ModelAdmin):
     list_filter = (
         "medicao__solicitacao_medicao_inicial__mes",
         "medicao__solicitacao_medicao_inicial__ano",
+        "medicao__periodo_escolar__nome",
+        "medicao__grupo",
+        "categoria_medicao",
+        "nome_campo",
     )
 
     @admin.display(description="Escola")

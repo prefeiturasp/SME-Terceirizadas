@@ -1451,10 +1451,16 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
 
 def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
     tabelas = build_tabelas_relatorio_medicao_cemei(solicitacao)
+    dict_total_refeicoes = get_total_refeicoes_por_periodo(tabelas)
+    dict_total_sobremesas = get_total_sobremesas_por_periodo(tabelas)
     tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list(
         "nome", flat=True
     )
     tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
+    tabelas_somatorios_cei = build_tabela_somatorio_body_cei(solicitacao)
+    tabelas_somatorios_infantil = build_tabela_somatorio_body(
+        solicitacao, dict_total_refeicoes, dict_total_sobremesas
+    )
 
     observacoes = list(
         solicitacao.medicoes.filter(valores_medicao__nome_campo="observacoes")
@@ -1467,6 +1473,7 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
         )
         .order_by(
             "valores_medicao__dia",
+            "grupo__nome",
             "periodo_escolar__nome",
             "valores_medicao__categoria_medicao__nome",
         )
@@ -1492,6 +1499,8 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
             "tabelas": tabelas,
             "tabela_observacoes_cei": tabela_observacoes_cei,
             "tabela_observacoes_infantil": tabela_observacoes_infantil,
+            "tabelas_somatorios_cei": tabelas_somatorios_cei,
+            "tabelas_somatorios_infantil": tabelas_somatorios_infantil,
         },
     )
 

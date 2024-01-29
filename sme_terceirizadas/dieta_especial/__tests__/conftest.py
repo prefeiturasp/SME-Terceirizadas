@@ -73,6 +73,13 @@ def solicitacao_dieta_especial(escola, aluno):
 
 
 @pytest.fixture
+def solicitacao_dieta_especial_parceira(escola_parceira, aluno):
+    return mommy.make(
+        SolicitacaoDietaEspecial, rastro_escola=escola_parceira, aluno=aluno
+    )
+
+
+@pytest.fixture
 def solicitacao_dieta_especial_outra_dre(escola_dre_guaianases, aluno):
     return mommy.make(
         SolicitacaoDietaEspecial, rastro_escola=escola_dre_guaianases, aluno=aluno
@@ -167,6 +174,11 @@ def edital():
     return mommy.make(
         "Edital", uuid="b7b6a0a7-b230-4783-94b6-8d3d22041ab3", numero="edital-teste-1"
     )
+
+
+@pytest.fixture
+def edital_parceira():
+    return mommy.make("Edital", numero="PARCEIRA")
 
 
 @pytest.fixture
@@ -343,6 +355,17 @@ def escola():
         nome="EMEF JOAO MENDES",
         codigo_eol="000546",
         diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+    )
+    return escola
+
+
+@pytest.fixture
+def escola_parceira():
+    tipo_gestao = mommy.make("TipoGestao", nome="PARCEIRA")
+    escola = mommy.make(
+        "Escola",
+        nome="PARCEIRA",
         tipo_gestao=tipo_gestao,
     )
     return escola
@@ -561,6 +584,43 @@ def solicitacao_dieta_especial_autorizada_ativa(request, aluno, escola):
 
 
 @pytest.fixture
+def solicitacao_dieta_especial_cancelada_automaticamente(client, escola):
+    aluno = mommy.make(
+        Aluno,
+        nome="Isabella Pereira da Silva",
+        codigo_eol="488226",
+        data_nascimento="2000-01-01",
+    )
+    email = "test3@admin.com"
+    password = constants.DJANGO_ADMIN_PASSWORD
+    rf = "374867"
+    user = Usuario.objects.create_user(
+        username=email, password=password, email=email, registro_funcional=rf
+    )
+    client.login(username=email, password=password)
+
+    perfil = mommy.make("perfil.Perfil", nome="TERCEIRIZADA", ativo=False)
+    mommy.make(
+        "perfil.Vinculo",
+        usuario=user,
+        instituicao=escola.lote.terceirizada,
+        perfil=perfil,
+        data_inicial=datetime.date.today(),
+        ativo=True,
+    )
+    solicitacao = mommy.make(
+        SolicitacaoDietaEspecial,
+        rastro_escola=escola,
+        aluno=aluno,
+        data_termino=datetime.date.today() - datetime.timedelta(days=1),
+        status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+    )
+
+    solicitacao.termina(user)
+    return solicitacao
+
+
+@pytest.fixture
 def solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior(aluno, escola):
     hoje = datetime.date.today()
     amanha = hoje + datetime.timedelta(days=1)
@@ -746,6 +806,15 @@ def protocolo_padrao_dieta_especial_2():
         status="LIBERADO",
         orientacoes_gerais="Orientação Geral",
         editais=[edital],
+    )
+
+
+@pytest.fixture
+def protocolo_padrao_edital_parceira(edital_parceira):
+    return mommy.make(
+        "ProtocoloPadraoDietaEspecial",
+        status="LIBERADO",
+        editais=[edital_parceira],
     )
 
 
