@@ -582,3 +582,21 @@ def build_rows_faixas_etarias(tabela):
                         html_output.append("<th>Aprovadas</th><th>Frequência</th>")
             index_inicial += numero_campos
     return "".join(html_output)
+
+
+@register.filter
+def build_headers_faixas_etarias(tabela):
+    html_output = []
+    faixas_etarias = tabela["faixas_etarias"]
+    colunas = faixas_etarias.copy()
+    campos = tabela["nomes_campos"]
+
+    if campos and faixas_etarias:
+        colunas.extend([""] * len(campos))
+
+    for faixa in colunas:
+        if faixa == "total" or faixa == "":
+            html_output.append('<th  class="faixa-etaria" colspan="1"></th>')
+        else:
+            html_output.append(f'<th class="faixa-etaria" colspan="2">{faixa}</th>')
+    return "".join(html_output)
