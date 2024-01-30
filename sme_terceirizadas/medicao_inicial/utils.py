@@ -181,13 +181,18 @@ def get_categorias_dos_periodos(
     categoria,
     dict_categorias_campos,
     segunda_tabela=False,
+    limite_campos=0,
 ):
     numero_campos = len(dict_categorias_campos[categoria])
     if numero_campos > MAX_COLUNAS:
         if segunda_tabela:
-            numero_campos = numero_campos - MAX_COLUNAS
+            numero_campos = (
+                (numero_campos - limite_campos)
+                if limite_campos
+                else (numero_campos - MAX_COLUNAS)
+            )
         else:
-            numero_campos = MAX_COLUNAS
+            numero_campos = limite_campos if limite_campos else MAX_COLUNAS
     if nome_periodo in tabelas[indice_atual]["categorias_dos_periodos"].keys():
         tabelas[indice_atual]["categorias_dos_periodos"][nome_periodo].append(
             {
@@ -212,41 +217,52 @@ def append_tabela(
     dict_categorias_campos,
     segunda_tabela=False,
     tipo_unidade=None,
+    limite_campos=0,
 ):
     tabelas[indice_atual]["periodos"] += [nome_periodo]
     tabelas[indice_atual]["categorias"] += [categoria]
-    if segunda_tabela:
-        tabelas[indice_atual]["nomes_campos"] += [
-            campo
-            for campo in ORDEM_CAMPOS
-            if campo in dict_categorias_campos[categoria]
-        ][MAX_COLUNAS:]
 
+    if tipo_unidade == "CEMEI":
+        if not segunda_tabela:
+            faixas_etarias = tabelas[indice_atual]["faixas_etarias"]
+            len_faixas = (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
+
+            len_colunas = len(tabelas[indice_atual]["nomes_campos"]) + len_faixas
+            limite_campos = MAX_COLUNAS - len_colunas
+    else:
+        limite_campos = MAX_COLUNAS
+
+    if segunda_tabela:
         if tipo_unidade == "CEMEI" and nome_periodo in ["INTEGRAL", "PARCIAL"]:
             tabelas[indice_atual]["faixas_etarias"] += [
                 faixa for faixa in dict_categorias_campos[categoria]
-            ][MAX_COLUNAS:]
+            ][limite_campos:]
 
             tabelas[indice_atual]["len_categorias"] += [
-                (len(dict_categorias_campos[categoria][MAX_COLUNAS:]) * 2) + 1
+                (len(dict_categorias_campos[categoria][limite_campos:]) * 2) - 1
             ]
         else:
+            tabelas[indice_atual]["nomes_campos"] += [
+                campo
+                for campo in ORDEM_CAMPOS
+                if campo in dict_categorias_campos[categoria]
+            ][limite_campos:]
             tabelas[indice_atual]["len_categorias"] += [
-                len(dict_categorias_campos[categoria][MAX_COLUNAS:])
+                len(dict_categorias_campos[categoria][limite_campos:])
             ]
     else:
-        tabelas[indice_atual]["nomes_campos"] += [
-            campo
-            for campo in ORDEM_CAMPOS
-            if campo in dict_categorias_campos[categoria]
-        ][:MAX_COLUNAS]
-
         if tipo_unidade == "CEMEI" and nome_periodo in ["INTEGRAL", "PARCIAL"]:
             tabelas[indice_atual]["faixas_etarias"] += [
                 faixa for faixa in dict_categorias_campos[categoria]
-            ][:MAX_COLUNAS]
+            ][:limite_campos]
+        else:
+            tabelas[indice_atual]["nomes_campos"] += [
+                campo
+                for campo in ORDEM_CAMPOS
+                if campo in dict_categorias_campos[categoria]
+            ][:limite_campos]
 
-        tabelas[indice_atual]["len_categorias"] += [MAX_COLUNAS]
+        tabelas[indice_atual]["len_categorias"] += [limite_campos]
     get_categorias_dos_periodos(
         nome_periodo,
         tabelas,
@@ -254,8 +270,9 @@ def append_tabela(
         categoria,
         dict_categorias_campos,
         segunda_tabela,
+        limite_campos,
     )
-    return tabelas
+    return tabelas, limite_campos
 
 
 def build_headers_tabelas(solicitacao):
@@ -502,13 +519,16 @@ def build_headers_tabelas_cemei(solicitacao):
                 and "total_refeicoes_pagamento" in dict_categorias_campos[categoria]
             ):
                 if len(dict_categorias_campos[categoria]) > MAX_COLUNAS:
-                    tabelas = append_tabela(
+                    limite_campos = 0
+                    tabelas, limite_campos = append_tabela(
                         tabelas,
                         indice_atual,
                         nome_periodo,
                         categoria,
                         dict_categorias_campos,
+                        False,
                         "CEMEI",
+                        limite_campos,
                     )
                     indice_atual += 1
                     tabelas += [cria_tabela_vazia_cemei()]
@@ -520,6 +540,7 @@ def build_headers_tabelas_cemei(solicitacao):
                         dict_categorias_campos,
                         True,
                         "CEMEI",
+                        limite_campos,
                     )
                 else:
                     indice_atual += 1
@@ -908,46 +929,98 @@ def get_index_refeicao(indexes_refeicao, indice_periodo):
     return index_refeicao
 
 
+def get_numero_campos(tabela, periodo_corrente, categoria_corrente):
+    categorias_do_periodo = tabela["categorias_dos_periodos"][periodo_corrente]
+
+    for categoria_campos in categorias_do_periodo:
+        if categoria_campos["categoria"] == categoria_corrente:
+            numero_campos = categoria_campos["numero_campos"]
+    return numero_campos
+
+
 def popula_campo_total_refeicoes_pagamento(
-    solicitacao, tabela, campo, categoria_corrente, valores_dia, indice_periodo
+    solicitacao,
+    tabela,
+    campo,
+    categoria_corrente,
+    valores_dia,
+    indice_periodo,
+    periodo_corrente,
+    tabelas,
+    indice_tabela,
 ):
     if campo == "total_refeicoes_pagamento":
         try:
-            campos = tabela["nomes_campos"]
-            indexes_refeicao = [
-                i for i, campo in enumerate(campos) if campo == "refeicao"
-            ]
-            index_refeicao = get_index_refeicao(indexes_refeicao, indice_periodo)
-            valor_refeicao = (
-                valores_dia[index_refeicao + 1] if "refeicao" in campos else 0
+            numero_campos = get_numero_campos(
+                tabela, periodo_corrente, categoria_corrente
             )
-            valor_repeticao_refeicao = (
-                valores_dia[campos.index("repeticao_refeicao") + 1]
-                if "repeticao_refeicao" in campos
-                else 0
+
+            campos = tabela["nomes_campos"][:numero_campos]
+
+            tabela_anterior = tabelas[indice_tabela - 1]
+            campos_tabela_anterior = tabela_anterior["nomes_campos"]
+
+            valor_refeicao = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores_dia,
+                "refeicao",
             )
-            valor_segunda_refeicao = (
-                valores_dia[campos.index("2_refeicao_1_oferta") + 1]
-                if "2_refeicao_1_oferta" in campos
-                else 0
+
+            valor_repeticao_refeicao = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores_dia,
+                "repeticao_refeicao",
             )
-            valor_repeticao_segunda_refeicao = (
-                valores_dia[campos.index("repeticao_2_refeicao") + 1]
-                if "repeticao_2_refeicao" in campos
-                else 0
+
+            valor_segunda_refeicao = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores_dia,
+                "2_refeicao_1_oferta",
             )
-            valor_matriculados = (
-                valores_dia[campos.index("matriculados") + 1]
-                if "matriculados" in campos
-                else 0
+
+            valor_repeticao_segunda_refeicao = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores_dia,
+                "repeticao_2_refeicao",
             )
-            valor_numero_de_alunos = (
-                valores_dia[campos.index("numero_de_alunos") + 1]
-                if "numero_de_alunos" in campos
-                else 0
+
+            valor_matriculados = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores_dia,
+                "matriculados",
+            )
+
+            valor_numero_de_alunos = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores_dia,
+                "numero_de_alunos",
             )
             if solicitacao.escola.eh_emei or solicitacao.escola.eh_cemei:
-                valores_dia += [valor_refeicao]
+                valores_dia += [int(valor_refeicao) + int(valor_segunda_refeicao)]
             else:
                 total_refeicao = (
                     int(valor_refeicao)
@@ -964,6 +1037,47 @@ def popula_campo_total_refeicoes_pagamento(
                 valores_dia += [total_refeicao]
         except Exception:
             valores_dia += ["0"]
+
+
+def get_valor_campo(
+    campos,
+    campos_tabela_anterior,
+    indice_periodo,
+    tabela,
+    tabela_anterior,
+    valores_dia,
+    nome_campo,
+):
+    if nome_campo not in campos and nome_campo in campos_tabela_anterior:
+        indexes_campo = [
+            i for i, campo in enumerate(campos_tabela_anterior) if campo == nome_campo
+        ]
+        index_campo = get_index_refeicao(indexes_campo, indice_periodo)
+
+        if "faixas_etarias" in tabela_anterior:
+            faixas_etarias = tabela_anterior["faixas_etarias"]
+            len_faixas = (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
+
+        valor_campo = (
+            tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
+                index_campo + len_faixas + 1
+            ]
+            if nome_campo in campos_tabela_anterior
+            else 0
+        )
+    elif nome_campo in campos:
+        indexes_campo = [i for i, campo in enumerate(campos) if campo == nome_campo]
+        index_campo = get_index_refeicao(indexes_campo, indice_periodo)
+
+        if "faixas_etarias" in tabela:
+            faixas_etarias = tabela["faixas_etarias"]
+            len_faixas = (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
+        valor_campo = (
+            valores_dia[index_campo + len_faixas + 1] if nome_campo in campos else 0
+        )
+    else:
+        valor_campo = 0
+    return valor_campo
 
 
 def get_valor_repeticao_sobremesa(
@@ -1115,7 +1229,7 @@ def popula_campo_total_sobremesas_pagamento(
                     else 0
                 )
             if solicitacao.escola.eh_emei or solicitacao.escola.eh_cemei:
-                valores_dia += [valor_sobremesa]
+                valores_dia += [int(valor_sobremesa) + int(valor_segunda_sobremesa)]
             else:
                 total_sobremesa = (
                     int(valor_sobremesa)
@@ -1271,16 +1385,12 @@ def popula_campos(
     eh_dia_letivo = get_eh_dia_letivo(dia, solicitacao)
     indice_campo = 0
     indice_categoria = 0
-    categoria_corrente = tabela["categorias"][indice_categoria]
-    periodo_corrente = tabela["periodos"][indice_periodo]
     popula_campos_nomes(
         solicitacao,
         tabela,
         dia,
         indice_campo,
         indice_categoria,
-        categoria_corrente,
-        periodo_corrente,
         indice_periodo,
         valores_dia,
         logs_alunos_matriculados,
@@ -1573,7 +1683,10 @@ def popula_campos_cemei(
     )
 
     if len(faixas_etarias):
-        popula_campos_faixas_etarias(
+        (
+            indice_periodo,
+            indice_categoria,
+        ) = popula_campos_faixas_etarias(
             solicitacao,
             tabela,
             dia,
@@ -1593,8 +1706,6 @@ def popula_campos_cemei(
             dia,
             indice_campo,
             indice_categoria,
-            categoria_corrente,
-            periodo_corrente,
             indice_periodo,
             valores_dia,
             logs_alunos_matriculados,
@@ -1615,8 +1726,6 @@ def popula_campos_nomes(
     dia,
     indice_campo,
     indice_categoria,
-    categoria_corrente,
-    periodo_corrente,
     indice_periodo,
     valores_dia,
     logs_alunos_matriculados,
@@ -1626,6 +1735,9 @@ def popula_campos_nomes(
     alteracoes_lanche_emergencial,
     kits_lanches,
 ):
+    categoria_corrente = tabela["categorias"][indice_categoria]
+    periodo_corrente = tabela["periodos"][indice_periodo]
+
     for campo in tabela["nomes_campos"]:
         if indice_campo > tabela["len_categorias"][indice_categoria] - 1:
             indice_campo = 0
@@ -1677,6 +1789,9 @@ def popula_campos_nomes(
                 categoria_corrente,
                 valores_dia,
                 indice_periodo,
+                periodo_corrente,
+                tabelas,
+                indice_tabela,
             )
 
             popula_campo_total_sobremesas_pagamento(
@@ -1777,6 +1892,9 @@ def popula_campos_faixas_etarias(
                 logs_dietas,
             )
         indice_faixa += 1
+    indice_periodo += 1
+    indice_categoria += 1
+    return indice_periodo, indice_categoria
 
 
 def popula_campo_total_cemei(tabela, valores_dia, indice_categoria, indice_faixa):
