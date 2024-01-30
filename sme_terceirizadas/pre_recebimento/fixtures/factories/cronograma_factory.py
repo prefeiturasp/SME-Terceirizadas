@@ -10,9 +10,6 @@ from sme_terceirizadas.pre_recebimento.models import (
     Laboratorio,
     UnidadeMedida,
 )
-from sme_terceirizadas.produto.fixtures.factories.produto_factory import (
-    ProdutoLogisticaFactory,
-)
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     EmpresaFactory,
 )
@@ -28,7 +25,6 @@ class CronogramaFactory(DjangoModelFactory):
         lambda n: f'{str(fake.unique.random_int(min=0, max=1000))}/{str(fake.date(pattern="%Y"))}'
     )
     empresa = SubFactory(EmpresaFactory)
-    produto = SubFactory(ProdutoLogisticaFactory)
     ficha_tecnica = SubFactory(FichaTecnicaFactory)
 
 

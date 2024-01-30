@@ -66,9 +66,6 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
     empresa = models.ForeignKey(
         Terceirizada, on_delete=models.CASCADE, blank=True, null=True
     )
-    produto = models.ForeignKey(
-        NomeDeProdutoEdital, on_delete=models.CASCADE, blank=True, null=True
-    )
     qtd_total_programada = models.FloatField(
         "Qtd Total Programada", blank=True, null=True
     )
@@ -220,7 +217,9 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
                 )
             if "nome_produto" in filtros:
                 qs = qs.filter(
-                    cronograma__produto__nome__icontains=filtros["nome_produto"]
+                    cronograma__ficha_tecnica__produto__nome__icontains=filtros[
+                        "nome_produto"
+                    ]
                 )
         return qs
 
@@ -417,11 +416,10 @@ class LayoutDeEmbalagem(
         return True
 
     def __str__(self):
-        return (
-            f"{self.cronograma.numero} - {self.cronograma.produto.nome}"
-            if self.cronograma
-            else str(self.id)
-        )
+        try:
+            return f"{self.cronograma.numero} - {self.cronograma.ficha_tecnica.produto.nome}"
+        except AttributeError:
+            return str(self.id)
 
     class Meta:
         verbose_name = "Layout de Embalagem"

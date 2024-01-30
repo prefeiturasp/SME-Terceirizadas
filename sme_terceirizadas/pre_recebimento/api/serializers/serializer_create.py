@@ -97,12 +97,6 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         queryset=Contrato.objects.all(),
         allow_null=True,
     )
-    produto = serializers.SlugRelatedField(
-        slug_field="uuid",
-        required=False,
-        queryset=NomeDeProdutoEdital.objects.all(),
-        allow_null=True,
-    )
     unidade_medida = serializers.SlugRelatedField(
         slug_field="uuid",
         required=False,

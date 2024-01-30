@@ -89,7 +89,10 @@ class LayoutDeEmbalagemAdmin(NestedModelAdmin):
     ]
 
     def get_produto(self, obj):
-        return obj.cronograma.produto.nome
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            return ""
 
     get_produto.short_description = "Produto"
 
@@ -127,7 +130,10 @@ class DocumentoDeRecebimentoAdmin(NestedModelAdmin):
     ]
 
     def get_produto(self, obj):
-        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            return ""
 
     get_produto.short_description = "Produto"
 
