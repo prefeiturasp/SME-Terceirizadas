@@ -186,13 +186,7 @@
 
         
         <tr>
-          {% for faixa in tabela.faixas_etarias %}
-              {% if faixa == "total" %}
-                  <th  class="faixa-etaria" colspan="1"></th>
-              {% else %}
-                <th class="faixa-etaria" colspan="2">{{ faixa }}</th>
-              {% endif %}
-          {% endfor %}
+          {{tabela|build_headers_faixas_etarias|safe}}
         </tr>
 
         <tr>
