@@ -280,7 +280,8 @@ ORDEM_PERIODOS_GRUPOS_CEMEI = {
     "Infantil INTEGRAL": 3,
     "Infantil MANHA": 4,
     "Infantil TARDE": 5,
-    "Solicitações de Alimentação": 6,
+    "Programas e Projetos": 6,
+    "Solicitações de Alimentação": 7,
 }
 
 ORDEM_CAMPOS = [

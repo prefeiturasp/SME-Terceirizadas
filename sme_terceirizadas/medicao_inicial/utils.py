@@ -2880,7 +2880,11 @@ def buscar_valores_medicao(
         "categoria_medicao": categoria_medicao,
     }
     if uuid_faixa_etaria:
-        filtro["faixa_etaria__uuid"] = uuid_faixa_etaria
+        filtro["faixa_etaria__uuid"] = (
+            uuid_faixa_etaria.uuid
+            if isinstance(uuid_faixa_etaria, FaixaEtaria)
+            else uuid_faixa_etaria
+        )
     return ValorMedicao.objects.filter(**filtro)
 
 
@@ -3256,6 +3260,7 @@ def get_valor_total(escola, total_por_nome_campo, medicao):
         escola.eh_cemei
         and ("Infantil" not in medicao.nome_periodo_grupo)
         and ("Solicitações" not in medicao.nome_periodo_grupo)
+        and ("Programas" not in medicao.nome_periodo_grupo)
     ):
         fator_multiplicativo = 2
         if medicao.nome_periodo_grupo == "INTEGRAL":
@@ -3270,7 +3275,11 @@ def get_campos_a_desconsiderar(escola, medicao):
     campos_a_desconsiderar = ["matriculados", "numero_de_alunos", "observacoes"]
     if not (
         escola.eh_cei
-        or (escola.eh_cemei and "Infantil" not in medicao.nome_periodo_grupo)
+        or (
+            escola.eh_cemei
+            and "Infantil" not in medicao.nome_periodo_grupo
+            and "Programas" not in medicao.nome_periodo_grupo
+        )
     ):
         campos_a_desconsiderar.append("frequencia")
     return campos_a_desconsiderar

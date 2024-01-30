@@ -520,6 +520,8 @@ class SolicitacaoMedicaoInicialViewSet(
         ordem = (
             constants.ORDEM_PERIODOS_GRUPOS_CEI
             if solicitacao.escola.eh_cei
+            else constants.ORDEM_PERIODOS_GRUPOS_CEMEI
+            if solicitacao.escola.eh_cemei
             else constants.ORDEM_PERIODOS_GRUPOS
         )
 

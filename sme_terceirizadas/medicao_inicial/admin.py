@@ -23,9 +23,9 @@ admin.site.register(TipoContagemAlimentacao)
 
 @admin.register(SolicitacaoMedicaoInicial)
 class SolicitacaoMedicaoInicialAdmin(admin.ModelAdmin):
-    list_display = ("id_externo", "escola", "mes", "ano", "criado_em")
+    list_display = ("id_externo", "escola", "mes", "ano", "criado_em", "status")
     search_fields = ("escola__nome", "escola__codigo_eol")
-    list_filter = ("mes", "ano")
+    list_filter = ("mes", "ano", "status")
 
 
 @admin.register(Medicao)
@@ -38,6 +38,7 @@ class MedicaoAdmin(admin.ModelAdmin):
         "grupo",
         "get_uuid_sol_medicao",
         "criado_em",
+        "status",
     )
     search_fields = (
         "solicitacao_medicao_inicial__escola__nome",
@@ -48,6 +49,7 @@ class MedicaoAdmin(admin.ModelAdmin):
         "grupo",
         "solicitacao_medicao_inicial__mes",
         "solicitacao_medicao_inicial__ano",
+        "status",
     )
 
     @admin.display(description="Solicitação Medição Inicial")
