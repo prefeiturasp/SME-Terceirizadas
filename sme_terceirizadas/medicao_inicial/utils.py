@@ -929,13 +929,19 @@ def get_index_refeicao(indexes_refeicao, indice_periodo):
     return index_refeicao
 
 
-def get_numero_campos(tabela, periodo_corrente, categoria_corrente):
-    categorias_do_periodo = tabela["categorias_dos_periodos"][periodo_corrente]
+def get_numero_campos(tabela, indice_periodo, categoria_corrente):
+    periodo_corrente = tabela["periodos"][indice_periodo]
+    categorias_do_periodo_atual = tabela["categorias_dos_periodos"][periodo_corrente]
+    len_campos = len(tabela["nomes_campos"])
 
-    for categoria_campos in categorias_do_periodo:
+    for categoria_campos in categorias_do_periodo_atual:
         if categoria_campos["categoria"] == categoria_corrente:
-            numero_campos = categoria_campos["numero_campos"]
-    return numero_campos
+            indice_final = categoria_campos["numero_campos"]
+
+    indice_inicial = (len_campos - indice_final) if indice_periodo > 0 else 0
+    indice_final += indice_inicial
+
+    return indice_inicial, indice_final
 
 
 def popula_campo_total_refeicoes_pagamento(
@@ -945,78 +951,85 @@ def popula_campo_total_refeicoes_pagamento(
     categoria_corrente,
     valores_dia,
     indice_periodo,
-    periodo_corrente,
     tabelas,
     indice_tabela,
 ):
     if campo == "total_refeicoes_pagamento":
         try:
-            numero_campos = get_numero_campos(
-                tabela, periodo_corrente, categoria_corrente
+            indice_inicial, indice_final = get_numero_campos(
+                tabela, indice_periodo, categoria_corrente
             )
+            dia = valores_dia[0]
 
-            campos = tabela["nomes_campos"][:numero_campos]
+            campos = tabela["nomes_campos"][indice_inicial:indice_final]
+            valores = valores_dia[indice_inicial:indice_final]
 
             tabela_anterior = tabelas[indice_tabela - 1]
             campos_tabela_anterior = tabela_anterior["nomes_campos"]
 
             valor_refeicao = get_valor_campo(
+                dia,
                 campos,
                 campos_tabela_anterior,
                 indice_periodo,
                 tabela,
                 tabela_anterior,
-                valores_dia,
+                valores,
                 "refeicao",
             )
 
             valor_repeticao_refeicao = get_valor_campo(
+                dia,
                 campos,
                 campos_tabela_anterior,
                 indice_periodo,
                 tabela,
                 tabela_anterior,
-                valores_dia,
+                valores,
                 "repeticao_refeicao",
             )
 
             valor_segunda_refeicao = get_valor_campo(
+                dia,
                 campos,
                 campos_tabela_anterior,
                 indice_periodo,
                 tabela,
                 tabela_anterior,
-                valores_dia,
+                valores,
                 "2_refeicao_1_oferta",
             )
 
             valor_repeticao_segunda_refeicao = get_valor_campo(
+                dia,
                 campos,
                 campos_tabela_anterior,
                 indice_periodo,
                 tabela,
                 tabela_anterior,
-                valores_dia,
+                valores,
                 "repeticao_2_refeicao",
             )
 
             valor_matriculados = get_valor_campo(
+                dia,
                 campos,
                 campos_tabela_anterior,
                 indice_periodo,
                 tabela,
                 tabela_anterior,
-                valores_dia,
+                valores,
                 "matriculados",
             )
 
             valor_numero_de_alunos = get_valor_campo(
+                dia,
                 campos,
                 campos_tabela_anterior,
                 indice_periodo,
                 tabela,
                 tabela_anterior,
-                valores_dia,
+                valores,
                 "numero_de_alunos",
             )
             if solicitacao.escola.eh_emei or solicitacao.escola.eh_cemei:
@@ -1040,6 +1053,7 @@ def popula_campo_total_refeicoes_pagamento(
 
 
 def get_valor_campo(
+    dia,
     campos,
     campos_tabela_anterior,
     indice_periodo,
@@ -1059,7 +1073,7 @@ def get_valor_campo(
             len_faixas = (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
 
         valor_campo = (
-            tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
+            tabela_anterior["valores_campos"][int(dia - 1)][
                 index_campo + len_faixas + 1
             ]
             if nome_campo in campos_tabela_anterior
@@ -1789,7 +1803,6 @@ def popula_campos_nomes(
                 categoria_corrente,
                 valores_dia,
                 indice_periodo,
-                periodo_corrente,
                 tabelas,
                 indice_tabela,
             )
