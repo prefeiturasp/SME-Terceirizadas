@@ -235,7 +235,7 @@ class ServiceQuerysetAlteracaoCronograma:
 
         return self.STATUS_PRIORITARIO[perfil]
 
-    def get_queryset(self):
+    def get_queryset(self, filter=False):
         user = self.request.user
         lista_status = self.get_status(user)
         q1 = SolicitacaoAlteracaoCronograma.objects.filter(
@@ -248,5 +248,9 @@ class ServiceQuerysetAlteracaoCronograma:
         if user.eh_fornecedor:
             q1 = q1.filter(cronograma__empresa=user.vinculo_atual.instituicao)
             q2 = q2.filter(cronograma__empresa=user.vinculo_atual.instituicao)
+
+        if filter:
+            q1 = filter(q1)
+            q2 = filter(q2)
 
         return q1.union(q2, all=True).order_by("ordem", "-criado_em")
