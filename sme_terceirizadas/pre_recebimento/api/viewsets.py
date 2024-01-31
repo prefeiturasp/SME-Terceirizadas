@@ -527,7 +527,6 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
                 cronograma__empresa=user.vinculo_atual.instituicao
             ).order_by("-criado_em")
         return SolicitacaoAlteracaoCronograma.objects.all().order_by("-criado_em")
-        return ServiceQuerysetAlteracaoCronograma(request=self.request).get_queryset()
 
     def get_serializer_class(self):
         serializer_classes_map = {
