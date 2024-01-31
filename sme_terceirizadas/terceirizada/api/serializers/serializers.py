@@ -46,6 +46,21 @@ class DistribuidorSimplesSerializer(serializers.ModelSerializer):
         fields = ("uuid", "nome_fantasia", "razao_social")
 
 
+class DistribuidorComEnderecoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Terceirizada
+        fields = (
+            "uuid",
+            "nome_fantasia",
+            "razao_social",
+            "endereco",
+            "numero",
+            "bairro",
+            "estado",
+            "cep",
+        )
+
+
 class VigenciaContratoSerializer(serializers.ModelSerializer):
     class Meta:
         model = VigenciaContrato

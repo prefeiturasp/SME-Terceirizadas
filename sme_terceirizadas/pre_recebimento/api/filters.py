@@ -116,7 +116,7 @@ class LayoutDeEmbalagemFilter(filters.FilterSet):
         lookup_expr="icontains",
     )
     nome_produto = filters.CharFilter(
-        field_name="cronograma__produto__nome",
+        field_name="cronograma__ficha_tecnica__produto__nome",
         lookup_expr="icontains",
     )
     nome_fornecedor = filters.CharFilter(
@@ -139,7 +139,7 @@ class DocumentoDeRecebimentoFilter(filters.FilterSet):
         lookup_expr="icontains",
     )
     nome_produto = filters.CharFilter(
-        field_name="cronograma__produto__nome",
+        field_name="cronograma__ficha_tecnica__produto__nome",
         lookup_expr="icontains",
     )
     nome_fornecedor = filters.CharFilter(

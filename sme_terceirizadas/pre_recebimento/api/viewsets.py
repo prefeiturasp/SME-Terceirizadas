@@ -261,7 +261,9 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         if numero_cronograma:
             query_set = query_set.filter(numero__icontains=numero_cronograma)
         if produto:
-            query_set = query_set.filter(produto__nome__icontains=produto)
+            query_set = query_set.filter(
+                ficha_tecnica__produto__nome__icontains=produto
+            )
         if fornecedor:
             query_set = query_set.filter(empresa__razao_social__icontains=fornecedor)
 

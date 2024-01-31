@@ -30,6 +30,7 @@ from sme_terceirizadas.produto.api.serializers.serializers import (
 )
 from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,
+    DistribuidorComEnderecoSimplesSerializer,
     DistribuidorSimplesSerializer,
     TerceirizadaLookUpSerializer,
     TerceirizadaSimplesSerializer,
@@ -81,7 +82,10 @@ class EtapasDoCronogramaCalendarioSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
 
     def get_nome_produto(self, obj):
-        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            return None
 
     def get_uuid_cronograma(self, obj):
         return obj.cronograma.uuid if obj.cronograma else None
@@ -146,6 +150,7 @@ class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
 
 
 class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
+    produto = NomeDeProdutoEditalSerializer()
     marca = MarcaSimplesSerializer()
     unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
@@ -159,6 +164,7 @@ class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
         model = FichaTecnicaDoProduto
         fields = (
             "uuid",
+            "produto",
             "marca",
             "volume_embalagem_primaria",
             "unidade_medida_volume_primaria",
@@ -179,9 +185,7 @@ class CronogramaSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source="get_status_display")
     empresa = TerceirizadaSimplesSerializer()
     contrato = ContratoSimplesSerializer()
-    produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
-    tipo_embalagem = TipoEmbalagemQldSerializer()
     ficha_tecnica = FichaTecnicaCronogramaSerializer()
 
     class Meta:
@@ -194,10 +198,8 @@ class CronogramaSerializer(serializers.ModelSerializer):
             "alterado_em",
             "contrato",
             "empresa",
-            "produto",
             "qtd_total_programada",
             "unidade_medida",
-            "tipo_embalagem",
             "armazem",
             "etapas",
             "programacoes_de_recebimento",
@@ -211,14 +213,13 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(
         many=True
     )
-    armazem = DistribuidorSimplesSerializer()
+    armazem = DistribuidorComEnderecoSimplesSerializer()
     status = serializers.CharField(source="get_status_display")
     empresa = TerceirizadaSimplesSerializer()
     contrato = ContratoSimplesSerializer()
-    produto = NomeDeProdutoEditalSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
-    tipo_embalagem = TipoEmbalagemQldSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    ficha_tecnica = FichaTecnicaCronogramaSerializer()
 
     class Meta:
         model = Cronograma
@@ -230,13 +231,13 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
             "alterado_em",
             "contrato",
             "empresa",
-            "produto",
             "qtd_total_programada",
             "unidade_medida",
-            "tipo_embalagem",
             "armazem",
             "etapas",
             "programacoes_de_recebimento",
+            "ficha_tecnica",
+            "custo_unitario_produto",
             "logs",
         )
 
@@ -279,7 +280,7 @@ class CronogramaSimplesSerializer(serializers.ModelSerializer):
         return obj.contrato.numero_pregao if obj.contrato else None
 
     def get_nome_produto(self, obj):
-        return obj.produto.nome if obj.produto else None
+        return obj.ficha_tecnica.produto.nome if obj.ficha_tecnica else None
 
     class Meta:
         model = Cronograma
@@ -293,7 +294,10 @@ class PainelCronogramaSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source="get_status_display")
 
     def get_produto(self, obj):
-        return obj.produto.nome if obj.produto else None
+        try:
+            return obj.ficha_tecnica.produto.nome
+        except AttributeError:
+            return None
 
     def get_empresa(self, obj):
         return obj.empresa.razao_social if obj.empresa else None
@@ -422,7 +426,10 @@ class LayoutDeEmbalagemSerializer(serializers.ModelSerializer):
         )
 
     def get_nome_produto(self, obj):
-        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            None
 
     class Meta:
         model = LayoutDeEmbalagem
@@ -456,7 +463,10 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
         )
 
     def get_nome_produto(self, obj):
-        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            None
 
     def get_nome_empresa(self, obj):
         return obj.cronograma.empresa.razao_social if obj.cronograma.empresa else None
@@ -492,10 +502,22 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
 
 class PainelLayoutEmbalagemSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.CharField(source="cronograma.numero")
-    nome_produto = serializers.CharField(source="cronograma.produto")
-    nome_empresa = serializers.CharField(source="cronograma.empresa.razao_social")
+    nome_produto = serializers.SerializerMethodField()
+    nome_empresa = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")
     log_mais_recente = serializers.SerializerMethodField()
+
+    def get_nome_produto(self, obj):
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            return ""
+
+    def get_nome_empresa(self, obj):
+        try:
+            return obj.cronograma.empresa.razao_social
+        except AttributeError:
+            return ""
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -537,7 +559,10 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
         )
 
     def get_nome_produto(self, obj):
-        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            None
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")
@@ -556,10 +581,22 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
 
 class PainelDocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.CharField(source="cronograma.numero")
-    nome_produto = serializers.CharField(source="cronograma.produto")
-    nome_empresa = serializers.CharField(source="cronograma.empresa.razao_social")
+    nome_produto = serializers.SerializerMethodField()
+    nome_empresa = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")
     log_mais_recente = serializers.SerializerMethodField()
+
+    def get_nome_produto(self, obj):
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            return ""
+
+    def get_nome_empresa(self, obj):
+        try:
+            return obj.cronograma.empresa.razao_social
+        except AttributeError:
+            return ""
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -617,7 +654,10 @@ class DocRecebimentoDetalharSerializer(serializers.ModelSerializer):
         )
 
     def get_nome_produto(self, obj):
-        return obj.cronograma.produto.nome if obj.cronograma.produto else None
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            return None
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")

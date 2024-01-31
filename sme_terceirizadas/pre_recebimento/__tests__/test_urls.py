@@ -46,10 +46,8 @@ def test_rascunho_cronograma_create_ok(
     client_autenticado_codae_dilog,
     contrato,
     empresa,
-    produto_arroz,
     unidade_medida_logistica,
     armazem,
-    tipo_emabalagem_qld,
     ficha_tecnica_perecivel_enviada_para_analise,
 ):
     qtd_total_empenho = fake.random_number() / 100
@@ -58,10 +56,8 @@ def test_rascunho_cronograma_create_ok(
     payload = {
         "contrato": str(contrato.uuid),
         "empresa": str(empresa.uuid),
-        "produto": str(produto_arroz.uuid),
         "unidade_medida": str(unidade_medida_logistica.uuid),
         "armazem": str(armazem.uuid),
-        "tipo_embalagem": str(tipo_emabalagem_qld.uuid),
         "cadastro_finalizado": False,
         "etapas": [
             {
@@ -93,10 +89,8 @@ def test_rascunho_cronograma_create_ok(
     assert response.status_code == status.HTTP_201_CREATED
     assert obj.contrato == contrato
     assert obj.empresa == empresa
-    assert obj.produto == produto_arroz
     assert obj.unidade_medida == unidade_medida_logistica
     assert obj.armazem == armazem
-    assert obj.tipo_embalagem == tipo_emabalagem_qld
     assert obj.ficha_tecnica == ficha_tecnica_perecivel_enviada_para_analise
     assert obj.custo_unitario_produto == custo_unitario_produto
     assert obj.etapas.first().qtd_total_empenho == qtd_total_empenho
@@ -869,90 +863,54 @@ def test_url_dashboard_painel_usuario_dinutre_com_paginacao(
     assert len(response.json()["results"][0]["dados"]) == 2
 
 
-def test_url_dashboard_com_filtro_painel_usuario_dinutre(
-    client_autenticado_dinutre_diretoria, cronogramas_multiplos_status_com_log
+@pytest.mark.parametrize(
+    "status_card",
+    [
+        CronogramaWorkflow.ASSINADO_FORNECEDOR,
+        CronogramaWorkflow.ASSINADO_DINUTRE,
+        CronogramaWorkflow.ASSINADO_CODAE,
+    ],
+)
+def test_url_dashboard_cronograma_com_filtro(
+    client_autenticado_dinutre_diretoria, cronograma_factory, status_card
 ):
+    cronogramas = cronograma_factory.create_batch(size=10, status=status_card)
+
+    filtros = {
+        "status": status_card,
+        "offset": 0,
+        "limit": 10,
+        "numero_cronograma": cronogramas[0].numero,
+    }
     response = client_autenticado_dinutre_diretoria.get(
-        "/cronogramas/dashboard-com-filtro/"
-    )
-    response_filtro1 = client_autenticado_dinutre_diretoria.get(
-        "/cronogramas/dashboard-com-filtro/?nome_produto=Arroz"
-    )
-    response_filtro2 = client_autenticado_dinutre_diretoria.get(
-        "/cronogramas/dashboard-com-filtro/?numero_cronograma=003/2023A"
-    )
-    response_filtro3 = client_autenticado_dinutre_diretoria.get(
-        "/cronogramas/dashboard-com-filtro/?nome_fornecedor=Alimentos"
+        "/cronogramas/dashboard-com-filtro/", filtros
     )
 
-    assert response.status_code == status.HTTP_200_OK
-    assert response_filtro1.status_code == status.HTTP_200_OK
-    assert response_filtro2.status_code == status.HTTP_200_OK
-    assert response_filtro3.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"][0]["dados"]) == 1
 
-    resultados_assinado_fornecedor = [
-        r for r in response.json()["results"] if r["status"] == "ASSINADO_FORNECEDOR"
-    ][0]
-    assert len(resultados_assinado_fornecedor["dados"]) == 3
-    resultados_assinado_dinutre = [
-        r for r in response.json()["results"] if r["status"] == "ASSINADO_DINUTRE"
-    ][0]
-    assert len(resultados_assinado_dinutre["dados"]) == 2
-    resultados_assinado_codae = [
-        r for r in response.json()["results"] if r["status"] == "ASSINADO_CODAE"
-    ][0]
-    assert len(resultados_assinado_codae["dados"]) == 1
+    filtros = {
+        "status": status_card,
+        "offset": 0,
+        "limit": 10,
+        "nome_produto": cronogramas[0].ficha_tecnica.produto.nome,
+    }
+    response = client_autenticado_dinutre_diretoria.get(
+        "/cronogramas/dashboard-com-filtro/", filtros
+    )
 
-    resultados_assinado_fornecedor = [
-        r
-        for r in response_filtro1.json()["results"]
-        if r["status"] == "ASSINADO_FORNECEDOR"
-    ][0]
-    assert len(resultados_assinado_fornecedor["dados"]) == 1
-    resultados_assinado_dinutre = [
-        r
-        for r in response_filtro1.json()["results"]
-        if r["status"] == "ASSINADO_DINUTRE"
-    ][0]
-    assert len(resultados_assinado_dinutre["dados"]) == 1
-    resultados_assinado_codae = [
-        r for r in response_filtro1.json()["results"] if r["status"] == "ASSINADO_CODAE"
-    ][0]
-    assert len(resultados_assinado_codae["dados"]) == 0
+    assert len(response.json()["results"][0]["dados"]) == 1
 
-    resultados_assinado_fornecedor = [
-        r
-        for r in response_filtro2.json()["results"]
-        if r["status"] == "ASSINADO_FORNECEDOR"
-    ][0]
-    assert len(resultados_assinado_fornecedor["dados"]) == 1
-    resultados_assinado_dinutre = [
-        r
-        for r in response_filtro2.json()["results"]
-        if r["status"] == "ASSINADO_DINUTRE"
-    ][0]
-    assert len(resultados_assinado_dinutre["dados"]) == 0
-    resultados_assinado_codae = [
-        r for r in response_filtro2.json()["results"] if r["status"] == "ASSINADO_CODAE"
-    ][0]
-    assert len(resultados_assinado_codae["dados"]) == 0
+    filtros = {
+        "status": status_card,
+        "offset": 0,
+        "limit": 10,
+        "nome_fornecedor": cronogramas[0].empresa.razao_social,
+    }
+    response = client_autenticado_dinutre_diretoria.get(
+        "/cronogramas/dashboard-com-filtro/", filtros
+    )
 
-    resultados_assinado_fornecedor = [
-        r
-        for r in response_filtro3.json()["results"]
-        if r["status"] == "ASSINADO_FORNECEDOR"
-    ][0]
-    assert len(resultados_assinado_fornecedor["dados"]) == 3
-    resultados_assinado_dinutre = [
-        r
-        for r in response_filtro3.json()["results"]
-        if r["status"] == "ASSINADO_DINUTRE"
-    ][0]
-    assert len(resultados_assinado_dinutre["dados"]) == 2
-    resultados_assinado_codae = [
-        r for r in response_filtro3.json()["results"] if r["status"] == "ASSINADO_CODAE"
-    ][0]
-    assert len(resultados_assinado_codae["dados"]) == 1
+    assert len(response.json()["results"][0]["dados"]) == 1
 
 
 def test_url_dashboard_painel_solicitacao_alteracao_dinutre(
@@ -1277,24 +1235,21 @@ def test_url_layout_de_embalagem_detalhar(
     response = client_autenticado_codae_dilog.get(
         f"/layouts-de-embalagem/{layout_esperado.uuid}/"
     )
-    dedos_layout_recebido = response.json()
+    dados_recebidos = response.json()
 
     assert response.status_code == status.HTTP_200_OK
 
-    assert dedos_layout_recebido["uuid"] == str(layout_esperado.uuid)
-    assert dedos_layout_recebido["observacoes"] == str(layout_esperado.observacoes)
-    assert dedos_layout_recebido["criado_em"] == layout_esperado.criado_em.strftime(
+    assert dados_recebidos["uuid"] == str(layout_esperado.uuid)
+    assert dados_recebidos["observacoes"] == str(layout_esperado.observacoes)
+    assert dados_recebidos["criado_em"] == layout_esperado.criado_em.strftime(
         settings.REST_FRAMEWORK["DATETIME_FORMAT"]
     )
-    assert dedos_layout_recebido["status"] == layout_esperado.get_status_display()
-    assert dedos_layout_recebido["numero_cronograma"] == str(cronograma_esperado.numero)
-    assert dedos_layout_recebido["pregao_chamada_publica"] == str(
-        cronograma_esperado.contrato.numero_pregao
+    assert dados_recebidos["status"] == layout_esperado.get_status_display()
+    assert dados_recebidos["numero_cronograma"] == str(cronograma_esperado.numero)
+    assert dados_recebidos["nome_produto"] == str(
+        cronograma_esperado.ficha_tecnica.produto.nome
     )
-    assert dedos_layout_recebido["nome_produto"] == str(
-        cronograma_esperado.produto.nome
-    )
-    assert dedos_layout_recebido["nome_empresa"] == str(
+    assert dados_recebidos["nome_empresa"] == str(
         cronograma_esperado.empresa.razao_social
     )
 
@@ -1346,52 +1301,39 @@ def test_url_dashboard_layout_embalagens_quantidade_itens_por_card(
     ],
 )
 def test_url_dashboard_layout_embalagens_com_filtro(
-    client_autenticado_codae_dilog, lista_layouts_de_embalagem, status_card
+    client_autenticado_codae_dilog, layout_de_embalagem_factory, status_card
 ):
-    filtros = {"numero_cronograma": "003/2022A"}
-    response = client_autenticado_codae_dilog.get(
-        "/layouts-de-embalagem/dashboard/", filtros
-    )
-    dados_card = list(
-        filter(lambda e: e["status"] == status_card, response.json()["results"])
-    ).pop()["dados"]
-    assert len(dados_card) == 5
+    layouts = layout_de_embalagem_factory.create_batch(size=10, status=status_card)
 
-    filtros = {"nome_produto": "Arroz"}
+    filtros = {"numero_cronograma": layouts[0].cronograma.numero}
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
     dados_card = list(
         filter(lambda e: e["status"] == status_card, response.json()["results"])
     ).pop()["dados"]
-    assert len(dados_card) == 5
 
-    filtros = {"numero_cronograma": "004/2022A"}
-    response = client_autenticado_codae_dilog.get(
-        "/layouts-de-embalagem/dashboard/", filtros
-    )
-    dados_card = list(
-        filter(lambda e: e["status"] == status_card, response.json()["results"])
-    ).pop()["dados"]
-    assert len(dados_card) == 6
+    assert len(dados_card) == 1
 
-    filtros = {"nome_produto": "Macarrão"}
+    filtros = {"nome_produto": layouts[0].cronograma.ficha_tecnica.produto.nome}
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
     dados_card = list(
         filter(lambda e: e["status"] == status_card, response.json()["results"])
     ).pop()["dados"]
-    assert len(dados_card) == 6
 
-    filtros = {"nome_fornecedor": "Alimentos"}
+    assert len(dados_card) == 1
+
+    filtros = {"nome_fornecedor": layouts[0].cronograma.empresa.razao_social}
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
     dados_card = list(
         filter(lambda e: e["status"] == status_card, response.json()["results"])
     ).pop()["dados"]
-    assert len(dados_card) == 6
+
+    assert len(dados_card) == 1
 
 
 @pytest.mark.parametrize(
@@ -1426,90 +1368,45 @@ def test_url_dashboard_layout_embalagens_ver_mais(
     ],
 )
 def test_url_dashboard_layout_embalagens_ver_mais_com_filtros(
-    client_autenticado_codae_dilog, lista_layouts_de_embalagem, status_card
+    client_autenticado_codae_dilog, layout_de_embalagem_factory, status_card
 ):
-    filtros = {
-        "status": status_card,
-        "offset": 0,
-        "limit": 10,
-        "numero_cronograma": "003/2022A",
-    }
-    response = client_autenticado_codae_dilog.get(
-        "/layouts-de-embalagem/dashboard/", filtros
-    )
-    assert len(response.json()["results"]["dados"]) == 5
-
-    layouts_esperados = LayoutDeEmbalagem.objects.filter(
-        status=status_card, cronograma__numero="003/2022A"
-    ).order_by("-criado_em")[:10]
-    primeiro_layout_esperado = layouts_esperados[0]
-    ultimo_layout_esperado = layouts_esperados[4]
-    assert (
-        str(primeiro_layout_esperado.uuid)
-        == response.json()["results"]["dados"][0]["uuid"]
-    )
-    assert (
-        str(ultimo_layout_esperado.uuid)
-        == response.json()["results"]["dados"][-1]["uuid"]
-    )
+    layouts = layout_de_embalagem_factory.create_batch(size=10, status=status_card)
 
     filtros = {
         "status": status_card,
         "offset": 0,
         "limit": 10,
-        "nome_produto": "Arroz",
+        "numero_cronograma": layouts[0].cronograma.numero,
     }
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
-    assert len(response.json()["results"]["dados"]) == 5
+
+    assert len(response.json()["results"]["dados"]) == 1
 
     filtros = {
         "status": status_card,
         "offset": 0,
         "limit": 10,
-        "numero_cronograma": "004/2022A",
+        "nome_produto": layouts[0].cronograma.ficha_tecnica.produto.nome,
     }
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
-    assert len(response.json()["results"]["dados"]) == 10
 
-    layouts_esperados = LayoutDeEmbalagem.objects.filter(
-        status=status_card, cronograma__numero="004/2022A"
-    ).order_by("-criado_em")[:10]
-    primeiro_layout_esperado = layouts_esperados[0]
-    ultimo_layout_esperado = layouts_esperados[9]
-    assert (
-        str(primeiro_layout_esperado.uuid)
-        == response.json()["results"]["dados"][0]["uuid"]
-    )
-    assert (
-        str(ultimo_layout_esperado.uuid)
-        == response.json()["results"]["dados"][-1]["uuid"]
-    )
+    assert len(response.json()["results"]["dados"]) == 1
 
     filtros = {
         "status": status_card,
         "offset": 0,
         "limit": 10,
-        "nome_produto": "Macarrão",
+        "nome_fornecedor": layouts[0].cronograma.empresa.razao_social,
     }
     response = client_autenticado_codae_dilog.get(
         "/layouts-de-embalagem/dashboard/", filtros
     )
-    assert len(response.json()["results"]["dados"]) == 10
 
-    filtros = {
-        "status": status_card,
-        "offset": 0,
-        "limit": 10,
-        "nome_fornecedor": "Alimentos",
-    }
-    response = client_autenticado_codae_dilog.get(
-        "/layouts-de-embalagem/dashboard/", filtros
-    )
-    assert len(response.json()["results"]["dados"]) == 10
+    assert len(response.json()["results"]["dados"]) == 1
 
 
 def test_url_layout_embalagens_analise_aprovando(
@@ -2196,7 +2093,11 @@ def test_url_dashboard_documentos_de_recebimento_com_filtro(
 
     assert len(dados_card) == 1
 
-    filtros = {"nome_produto": documentos_de_recebimento[0].cronograma.produto.nome}
+    filtros = {
+        "nome_produto": documentos_de_recebimento[
+            0
+        ].cronograma.ficha_tecnica.produto.nome
+    }
     response = client_autenticado_codae_dilog.get(
         "/documentos-de-recebimento/dashboard/", filtros
     )
@@ -2276,7 +2177,9 @@ def test_url_dashboard_documentos_de_recebimento_ver_mais_com_filtros(
         "status": status_card,
         "offset": 0,
         "limit": 10,
-        "nome_produto": documentos_de_recebimento[0].cronograma.produto.nome,
+        "nome_produto": documentos_de_recebimento[
+            0
+        ].cronograma.ficha_tecnica.produto.nome,
     }
     response = client_autenticado_codae_dilog.get(
         "/documentos-de-recebimento/dashboard/", filtros
@@ -2335,7 +2238,7 @@ def test_url_documentos_de_recebimento_detalhar(
     )
     assert dados_documento_de_recebimento["numero_cronograma"] == str(cronograma.numero)
     assert dados_documento_de_recebimento["nome_produto"] == str(
-        cronograma.produto.nome
+        cronograma.ficha_tecnica.produto.nome
     )
     assert dados_documento_de_recebimento["pregao_chamada_publica"] == str(
         cronograma.contrato.numero_pregao
