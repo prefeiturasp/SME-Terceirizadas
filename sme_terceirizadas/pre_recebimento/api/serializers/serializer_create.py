@@ -612,7 +612,7 @@ class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
     tipos_de_embalagens = TipoDeEmbalagemDeLayoutCorrecaoSerializer(
         many=True, required=True
     )
-    observacoes = serializers.CharField(required=False)
+    observacoes = serializers.CharField(required=False, allow_blank=True)
 
     def update(self, instance, validated_data):
         try:
