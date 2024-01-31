@@ -502,10 +502,22 @@ class LayoutDeEmbalagemDetalheSerializer(serializers.ModelSerializer):
 
 class PainelLayoutEmbalagemSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.CharField(source="cronograma.numero")
-    nome_produto = serializers.CharField(source="cronograma.ficha_tecnica.produto")
-    nome_empresa = serializers.CharField(source="cronograma.empresa.razao_social")
+    nome_produto = serializers.SerializerMethodField()
+    nome_empresa = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")
     log_mais_recente = serializers.SerializerMethodField()
+
+    def get_nome_produto(self, obj):
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            return ""
+
+    def get_nome_empresa(self, obj):
+        try:
+            return obj.cronograma.empresa.razao_social
+        except AttributeError:
+            return ""
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -569,10 +581,22 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
 
 class PainelDocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
     numero_cronograma = serializers.CharField(source="cronograma.numero")
-    nome_produto = serializers.CharField(source="cronograma.ficha_tecnica.produto")
-    nome_empresa = serializers.CharField(source="cronograma.empresa.razao_social")
+    nome_produto = serializers.SerializerMethodField()
+    nome_empresa = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display")
     log_mais_recente = serializers.SerializerMethodField()
+
+    def get_nome_produto(self, obj):
+        try:
+            return obj.cronograma.ficha_tecnica.produto.nome
+        except AttributeError:
+            return ""
+
+    def get_nome_empresa(self, obj):
+        try:
+            return obj.cronograma.empresa.razao_social
+        except AttributeError:
+            return ""
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
