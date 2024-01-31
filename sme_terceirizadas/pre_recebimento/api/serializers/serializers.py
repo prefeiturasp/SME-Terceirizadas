@@ -30,6 +30,7 @@ from sme_terceirizadas.produto.api.serializers.serializers import (
 )
 from sme_terceirizadas.terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,
+    DistribuidorComEnderecoSimplesSerializer,
     DistribuidorSimplesSerializer,
     TerceirizadaLookUpSerializer,
     TerceirizadaSimplesSerializer,
@@ -149,6 +150,7 @@ class NomeEAbreviacaoUnidadeMedidaSerializer(serializers.ModelSerializer):
 
 
 class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
+    produto = NomeDeProdutoEditalSerializer()
     marca = MarcaSimplesSerializer()
     unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
@@ -162,6 +164,7 @@ class FichaTecnicaCronogramaSerializer(serializers.ModelSerializer):
         model = FichaTecnicaDoProduto
         fields = (
             "uuid",
+            "produto",
             "marca",
             "volume_embalagem_primaria",
             "unidade_medida_volume_primaria",
@@ -210,12 +213,13 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaSerializer(
         many=True
     )
-    armazem = DistribuidorSimplesSerializer()
+    armazem = DistribuidorComEnderecoSimplesSerializer()
     status = serializers.CharField(source="get_status_display")
     empresa = TerceirizadaSimplesSerializer()
     contrato = ContratoSimplesSerializer()
     unidade_medida = UnidadeMedidaSerialzer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    ficha_tecnica = FichaTecnicaCronogramaSerializer()
 
     class Meta:
         model = Cronograma
@@ -232,6 +236,8 @@ class CronogramaComLogSerializer(serializers.ModelSerializer):
             "armazem",
             "etapas",
             "programacoes_de_recebimento",
+            "ficha_tecnica",
+            "custo_unitario_produto",
             "logs",
         )
 
