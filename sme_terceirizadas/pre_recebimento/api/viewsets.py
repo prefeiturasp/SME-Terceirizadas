@@ -87,8 +87,10 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
     EtapasDoCronogramaCalendarioSerializer,
+    FichaTecnicaCronogramaSerializer,
     FichaTecnicaDetalharSerializer,
     FichaTecnicaListagemSerializer,
+    FichaTecnicaSimplesSerializer,
     LaboratorioCredenciadoSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
@@ -1122,6 +1124,30 @@ class FichaTecnicaModelViewSet(
         )
 
         return Response({"results": dashboard_service.get_dados_dashboard()})
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="lista-simples-sem-cronograma",
+        permission_classes=(PermissaoParaCriarCronograma,),
+    )
+    def lista_simples_sem_cronograma(self, request, **kwargs):
+        qs = (
+            self.get_queryset()
+            .exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO)
+            .exclude(cronograma__isnull=False)
+        )
+
+        return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="dados-cronograma",
+        permission_classes=(PermissaoParaCriarCronograma,),
+    )
+    def dados_cronograma(self, request, **kwargs):
+        return Response(FichaTecnicaCronogramaSerializer(self.get_object()).data)
 
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):

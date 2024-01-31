@@ -1,6 +1,9 @@
 from factory import DjangoModelFactory, Sequence, SubFactory
 from faker import Faker
 
+from sme_terceirizadas.pre_recebimento.fixtures.factories.ficha_tecnica_do_produto_factory import (
+    FichaTecnicaFactory,
+)
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
@@ -26,6 +29,7 @@ class CronogramaFactory(DjangoModelFactory):
     )
     empresa = SubFactory(EmpresaFactory)
     produto = SubFactory(ProdutoLogisticaFactory)
+    ficha_tecnica = SubFactory(FichaTecnicaFactory)
 
 
 class LaboratorioFactory(DjangoModelFactory):

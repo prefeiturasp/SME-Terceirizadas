@@ -2,11 +2,12 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
-from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from ..models import (
     FichaTecnicaDoProduto,
     LayoutDeEmbalagem,
@@ -799,3 +800,35 @@ def payload_ficha_tecnica_nao_pereciveis(
     payload.pop("variacao_percentual")
 
     return payload
+
+
+@pytest.fixture
+def ficha_tecnica_perecivel_enviada_para_analise(
+    payload_ficha_tecnica_pereciveis,
+    produto_logistica_factory,
+    empresa,
+    marca_factory,
+    fabricante_factory,
+    arquivo_pdf_base64,
+    unidade_medida_logistica,
+):
+    dados = {
+        **payload_ficha_tecnica_pereciveis,
+        "produto": produto_logistica_factory(),
+        "marca": marca_factory(),
+        "empresa": empresa,
+        "fabricante": fabricante_factory(),
+        "categoria": FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
+        "unidade_medida_porcao": unidade_medida_logistica,
+        "unidade_medida_primaria": unidade_medida_logistica,
+        "unidade_medida_secundaria": unidade_medida_logistica,
+        "unidade_medida_primaria_vazia": unidade_medida_logistica,
+        "unidade_medida_secundaria_vazia": unidade_medida_logistica,
+        "arquivo": convert_base64_to_contentfile(arquivo_pdf_base64),
+        "status": FichaTecnicaDoProduto.workflow_class.ENVIADA_PARA_ANALISE,
+    }
+
+    dados.pop("informacoes_nutricionais")
+    dados.pop("password")
+
+    return FichaTecnicaDoProduto.objects.create(**dados)

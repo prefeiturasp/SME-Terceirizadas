@@ -764,13 +764,15 @@ def test_relatorio_dieta_especial_terceirizada_lista_autorizadas(
 
 
 def test_relatorio_dieta_especial_terceirizada_lista_canceladas(
-    client_autenticado, solicitacao_dieta_especial_codae_autorizou_inativacao
+    client_autenticado,
+    solicitacao_dieta_especial_codae_autorizou_inativacao,
+    solicitacao_dieta_especial_cancelada_automaticamente,
 ):
     response = client_autenticado.get(
         "/solicitacoes-dieta-especial/relatorio-dieta-especial-terceirizada/?status_selecionado=CANCELADAS"
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 1
+    assert len(response.json()["results"]) == 2
 
 
 def test_imprime_relatorio_dieta_especial(
@@ -909,6 +911,24 @@ def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados(
     )
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 2
+
+
+def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados_parceiras(
+    client_autenticado_vinculo_codae_dieta,
+    solicitacao_dieta_especial_parceira,
+    protocolo_padrao_edital_parceira,
+):
+    # dado uma solicitacao de uma escola parceira
+    # e um protocolo padrao do edital PARCEIRA
+
+    # quando
+    response = client_autenticado_vinculo_codae_dieta.get(
+        f"/protocolo-padrao-dieta-especial/lista-protocolos-liberados/?dieta_especial_uuid={solicitacao_dieta_especial_parceira.uuid}"
+    )
+
+    # entao
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
 
 
 def test_filtros_relatorio_dieta_especial_validation_error(
