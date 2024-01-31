@@ -3169,7 +3169,9 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             "movimentacao_realizada": str(self.status),
             "perfil_que_autorizou": user.nome,
             "escola": self.escola.nome,
-            "lote": self.escola.lote.nome,
+            "lote": self.escola.lote.nome
+            if self.escola.lote
+            else "Sem Lote (Parceira)",
             "url": url,
             "data_log": self.log_mais_recente.criado_em.strftime("%d/%m/%Y - %H:%M"),
         }

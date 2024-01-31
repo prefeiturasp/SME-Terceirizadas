@@ -525,7 +525,12 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
     filterset_class = SolicitacaoAlteracaoCronogramaFilter
 
     def get_queryset(self):
-        return ServiceQuerysetAlteracaoCronograma(request=self.request).get_queryset()
+        user = self.request.user
+        if user.eh_fornecedor:
+            return SolicitacaoAlteracaoCronograma.objects.filter(
+                cronograma__empresa=user.vinculo_atual.instituicao
+            ).order_by("-criado_em")
+        return SolicitacaoAlteracaoCronograma.objects.all().order_by("-criado_em")
 
     def get_serializer_class(self):
         serializer_classes_map = {
@@ -545,6 +550,19 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
         action_permissions = permission_classes_map.get(self.action, [])
         self.permission_classes = (*self.permission_classes, *action_permissions)
         return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
+
+    def list(self, request, *args, **kwargs):
+        queryset = ServiceQuerysetAlteracaoCronograma(
+            request=self.request
+        ).get_queryset(filter=self.filter_queryset)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            return response
+
+        serializer = SolicitacaoAlteracaoCronogramaSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def _dados_dashboard(self, request, filtros=None):
         limit = (
