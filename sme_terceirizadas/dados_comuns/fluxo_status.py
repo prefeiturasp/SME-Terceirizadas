@@ -5190,7 +5190,7 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
             contexto = {
                 "numero_cronograma": numero_cronograma,
                 "nome_empresa": self.cronograma.empresa.nome_fantasia,
-                "nome_produto": self.cronograma.produto.nome,
+                "nome_produto": self.cronograma.ficha_tecnica.produto.nome,
                 "data_envio": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),
                 "nome_usuario_empresa": user.nome,
                 "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
@@ -5243,7 +5243,7 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
             )
             contexto = {
                 "numero_cronograma": numero_cronograma,
-                "nome_produto": self.cronograma.produto.nome,
+                "nome_produto": self.cronograma.ficha_tecnica.produto.nome,
                 "data_solicitacao": self.log_mais_recente.criado_em.strftime(
                     "%d/%m/%Y"
                 ),
@@ -5296,7 +5296,7 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
             contexto = {
                 "numero_cronograma": numero_cronograma,
                 "nome_empresa": self.cronograma.empresa.nome_fantasia,
-                "nome_produto": self.cronograma.produto.nome,
+                "nome_produto": self.cronograma.ficha_tecnica.produto.nome,
                 "nome_usuario_empresa": user.nome,
                 "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
                 "data_envio": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),

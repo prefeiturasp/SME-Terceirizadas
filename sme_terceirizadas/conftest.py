@@ -24,6 +24,9 @@ from .pre_recebimento.fixtures.factories.documentos_de_recebimento_factory impor
 from .pre_recebimento.fixtures.factories.ficha_tecnica_do_produto_factory import (
     FichaTecnicaFactory,
 )
+from .pre_recebimento.fixtures.factories.layout_embalagem_factory import (
+    LayoutDeEmbalagemFactory,
+)
 from .produto.fixtures.factories.produto_factory import (
     FabricanteFactory,
     InformacaoNutricionalFactory,
@@ -50,6 +53,7 @@ register(UnidadeMedidaFactory)
 register(EtapasDoCronogramaFactory)
 register(TipoDeInformacaoNutricionalFactory)
 register(InformacaoNutricionalFactory)
+register(LayoutDeEmbalagemFactory)
 
 
 @pytest.fixture
