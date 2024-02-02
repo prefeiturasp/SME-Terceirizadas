@@ -1147,7 +1147,7 @@ class FichaTecnicaModelViewSet(
         detail=True,
         methods=["GET"],
         url_path="dados-cronograma",
-        permission_classes=(PermissaoParaCriarCronograma,),
+        permission_classes=(PermissaoParaVisualizarCronograma,),
     )
     def dados_cronograma(self, request, **kwargs):
         return Response(FichaTecnicaCronogramaSerializer(self.get_object()).data)

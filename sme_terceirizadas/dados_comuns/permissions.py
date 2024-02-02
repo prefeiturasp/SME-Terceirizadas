@@ -1150,7 +1150,7 @@ class PermissaoParaDashboardFichaTecnica(BasePermission):
 
 class PermissaoParaVisualizarFichaTecnica(BasePermission):
     PERFIS_PERMITIDOS = [
-        DILOG_CRONOGRAMA,
+        COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
     ]
 
