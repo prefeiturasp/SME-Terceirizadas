@@ -2043,6 +2043,7 @@ class HistoricoMatriculaAluno(TemChaveExterna):
     class Meta:
         verbose_name = "Histórico de Matrícula do Aluno"
         verbose_name_plural = "Históricos de Matrículas dos Alunos"
+        unique_together = ["aluno", "escola"]
 
     def __str__(self) -> str:
         return f"{self.aluno} - {self.escola} | De: {self.data_inicio} Ate: {self.data_fim}"
