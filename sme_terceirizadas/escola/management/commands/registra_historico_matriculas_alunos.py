@@ -21,8 +21,8 @@ class Command(BaseCommand):
 
     def __init__(self):
         super().__init__()
-        # self.alunos = Aluno.objects.all().exclude(codigo_eol__isnull=True)
-        self.alunos = [Aluno.objects.get(codigo_eol="7806880")]
+        self.alunos = Aluno.objects.all().exclude(codigo_eol__isnull=True)[:100]
+        # self.alunos = [Aluno.objects.get(codigo_eol="7806880")]
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
@@ -97,13 +97,15 @@ class Command(BaseCommand):
                     codigo_situacao = codigo_situacao_matricula
                     situacao = situacao_matricula
 
-            HistoricoMatriculaAluno.objects.create(
+            HistoricoMatriculaAluno.objects.update_or_create(
                 aluno=aluno,
                 escola=Escola.objects.get(codigo_eol=codigo_eol_escola),
-                data_inicio=data_inicio,
-                data_fim=data_fim,
-                codigo_situacao=codigo_situacao,
-                situacao=situacao,
+                defaults={
+                    "data_inicio": data_inicio,
+                    "data_fim": data_fim,
+                    "codigo_situacao": codigo_situacao,
+                    "situacao": situacao,
+                },
             )
         except Exception as err:
             logger.warning(
