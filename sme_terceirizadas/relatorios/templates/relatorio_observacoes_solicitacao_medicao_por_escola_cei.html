@@ -1,6 +1,6 @@
 {% load index static sass_tags %}
 
-{% for tabela in tabela_observacoes|formatar_observacoes:"True" %}
+{% for tabela in tabela_observacoes|formatar_observacoes:"CEI" %}
 
     {% include "relatorio_cabecalho_solicitacao_medicao_por_escola_cei.html" with solicitacoes=solicitacoes %}
 

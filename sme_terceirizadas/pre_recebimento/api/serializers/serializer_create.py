@@ -65,6 +65,7 @@ class EtapasDoCronogramaCreateSerializer(serializers.ModelSerializer):
     data_programada = serializers.CharField(required=False)
     quantidade = serializers.FloatField(required=False)
     total_embalagens = serializers.IntegerField(required=False)
+    qtd_total_empenho = serializers.FloatField(required=False)
 
     class Meta:
         model = EtapasDoCronograma
@@ -96,12 +97,6 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
         queryset=Contrato.objects.all(),
         allow_null=True,
     )
-    produto = serializers.SlugRelatedField(
-        slug_field="uuid",
-        required=False,
-        queryset=NomeDeProdutoEdital.objects.all(),
-        allow_null=True,
-    )
     unidade_medida = serializers.SlugRelatedField(
         slug_field="uuid",
         required=False,
@@ -110,25 +105,26 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
     )
     password = serializers.CharField(required=False)
     qtd_total_programada = serializers.FloatField(required=False)
-    tipo_embalagem = serializers.SlugRelatedField(
-        slug_field="uuid",
-        required=False,
-        queryset=TipoEmbalagemQld.objects.all(),
-        allow_null=True,
-    )
     etapas = EtapasDoCronogramaCreateSerializer(many=True, required=False)
     programacoes_de_recebimento = ProgramacaoDoRecebimentoDoCronogramaCreateSerializer(
         many=True, required=False
     )
     cadastro_finalizado = serializers.BooleanField(required=False)
+    ficha_tecnica = serializers.SlugRelatedField(
+        slug_field="uuid",
+        required=False,
+        queryset=FichaTecnicaDoProduto.objects.all(),
+        allow_null=True,
+    )
+    custo_unitario_produto = serializers.FloatField(required=False)
 
     def gera_proximo_numero_cronograma(self):
         ano = date.today().year
         ultimo_cronograma = Cronograma.objects.last()
         if ultimo_cronograma:
-            return f"{str(int(ultimo_cronograma.numero[:3]) + 1).zfill(3)}/{ano}"
+            return f"{str(int(ultimo_cronograma.numero[:3]) + 1).zfill(3)}/{ano}A"
         else:
-            return f"001/{ano}"
+            return f"001/{ano}A"
 
     def validate(self, attrs):
         user = self.context["request"].user
@@ -139,12 +135,14 @@ class CronogramaCreateSerializer(serializers.ModelSerializer):
             raise NotAuthenticated(
                 "Assinatura do cronograma não foi validada. Verifique sua senha."
             )
+
+        contrato = attrs.get("contrato", None)
+        empresa = attrs.get("empresa", None)
+        contrato_pertence_a_empresa(contrato, empresa)
+
         return super().validate(attrs)
 
     def create(self, validated_data):
-        contrato = validated_data.get("contrato", None)
-        empresa = validated_data.get("empresa", None)
-        contrato_pertence_a_empresa(contrato, empresa)
         user = self.context["request"].user
         cadastro_finalizado = validated_data.pop("cadastro_finalizado", None)
         etapas = validated_data.pop("etapas", [])
@@ -602,7 +600,7 @@ class LayoutDeEmbalagemCorrecaoSerializer(serializers.ModelSerializer):
     tipos_de_embalagens = TipoDeEmbalagemDeLayoutCorrecaoSerializer(
         many=True, required=True
     )
-    observacoes = serializers.CharField(required=False)
+    observacoes = serializers.CharField(required=False, allow_blank=True)
 
     def update(self, instance, validated_data):
         try:

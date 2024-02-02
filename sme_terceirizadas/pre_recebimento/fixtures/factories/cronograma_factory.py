@@ -1,14 +1,14 @@
 from factory import DjangoModelFactory, Sequence, SubFactory
 from faker import Faker
 
+from sme_terceirizadas.pre_recebimento.fixtures.factories.ficha_tecnica_do_produto_factory import (
+    FichaTecnicaFactory,
+)
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
     EtapasDoCronograma,
     Laboratorio,
     UnidadeMedida,
-)
-from sme_terceirizadas.produto.fixtures.factories.produto_factory import (
-    ProdutoLogisticaFactory,
 )
 from sme_terceirizadas.terceirizada.fixtures.factories.terceirizada_factory import (
     EmpresaFactory,
@@ -25,7 +25,7 @@ class CronogramaFactory(DjangoModelFactory):
         lambda n: f'{str(fake.unique.random_int(min=0, max=1000))}/{str(fake.date(pattern="%Y"))}'
     )
     empresa = SubFactory(EmpresaFactory)
-    produto = SubFactory(ProdutoLogisticaFactory)
+    ficha_tecnica = SubFactory(FichaTecnicaFactory)
 
 
 class LaboratorioFactory(DjangoModelFactory):

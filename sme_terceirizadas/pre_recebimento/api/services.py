@@ -1,23 +1,28 @@
 from typing import Type
 
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Value
 from django_filters.rest_framework import FilterSet
 from rest_framework.request import Request
 from rest_framework.serializers import ModelSerializer
 
 from sme_terceirizadas.dados_comuns.constants import (
+    ADMINISTRADOR_EMPRESA,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_GESTAO_PRODUTO,
     DILOG_CRONOGRAMA,
     DILOG_DIRETORIA,
     DILOG_QUALIDADE,
     DINUTRE_DIRETORIA,
+    USUARIO_EMPRESA,
 )
 from sme_terceirizadas.dados_comuns.fluxo_status import (
     CronogramaAlteracaoWorkflow,
     DocumentoDeRecebimentoWorkflow,
     FichaTecnicaDoProdutoWorkflow,
     LayoutDeEmbalagemWorkflow,
+)
+from sme_terceirizadas.pre_recebimento.models.cronograma import (
+    SolicitacaoAlteracaoCronograma,
 )
 
 
@@ -193,3 +198,59 @@ class ServiceDashboardFichaTecnica(BaseServiceDashboard):
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
         ],
     }
+
+
+class ServiceQuerysetAlteracaoCronograma:
+    STATUS_PRIORITARIO = {
+        ADMINISTRADOR_EMPRESA: [
+            CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
+        ],
+        USUARIO_EMPRESA: [
+            CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
+        ],
+        DILOG_CRONOGRAMA: [
+            CronogramaAlteracaoWorkflow.EM_ANALISE,
+        ],
+        DILOG_DIRETORIA: [
+            CronogramaAlteracaoWorkflow.APROVADO_DINUTRE,
+            CronogramaAlteracaoWorkflow.REPROVADO_DINUTRE,
+        ],
+        DINUTRE_DIRETORIA: [
+            CronogramaAlteracaoWorkflow.CRONOGRAMA_CIENTE,
+        ],
+    }
+
+    def __init__(
+        self,
+        request: Request,
+    ) -> None:
+        self.request = request
+
+    @classmethod
+    def get_status(self, user) -> list:
+        perfil = user.vinculo_atual.perfil.nome
+
+        if perfil not in self.STATUS_PRIORITARIO:
+            raise ValueError("Perfil não existe")
+
+        return self.STATUS_PRIORITARIO[perfil]
+
+    def get_queryset(self, filter=False):
+        user = self.request.user
+        lista_status = self.get_status(user)
+        q1 = SolicitacaoAlteracaoCronograma.objects.filter(
+            status__in=lista_status,
+        ).annotate(ordem=Value(1))
+        q2 = SolicitacaoAlteracaoCronograma.objects.exclude(
+            status__in=lista_status,
+        ).annotate(ordem=Value(2))
+
+        if user.eh_fornecedor:
+            q1 = q1.filter(cronograma__empresa=user.vinculo_atual.instituicao)
+            q2 = q2.filter(cronograma__empresa=user.vinculo_atual.instituicao)
+
+        if filter:
+            q1 = filter(q1)
+            q2 = filter(q2)
+
+        return q1.union(q2, all=True).order_by("ordem", "-criado_em")

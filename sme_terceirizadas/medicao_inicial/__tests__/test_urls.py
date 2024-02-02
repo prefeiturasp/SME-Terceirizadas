@@ -1312,6 +1312,71 @@ def test_finaliza_medicao_inicial_salva_logs(
     )
 
 
+def test_finaliza_medicao_inicial_salva_logs_cei(
+    client_autenticado_da_escola_cei,
+    solicitacao_medicao_inicial_teste_salvar_logs_cei,
+):
+    tipos_contagem = (
+        solicitacao_medicao_inicial_teste_salvar_logs_cei.tipos_contagem_alimentacao.all()
+    )
+    tipos_contagem_uuids = tipos_contagem.values_list("uuid", flat=True)
+    tipos_contagem_uuids = [str(uuid) for uuid in tipos_contagem_uuids]
+    data_update = {
+        "escola": str(solicitacao_medicao_inicial_teste_salvar_logs_cei.escola.uuid),
+        "tipo_contagem_alimentacoes[]": tipos_contagem_uuids,
+        "com_ocorrencias": False,
+        "finaliza_medicao": True,
+    }
+    response = client_autenticado_da_escola_cei.patch(
+        f"/medicao-inicial/solicitacao-medicao-inicial/{solicitacao_medicao_inicial_teste_salvar_logs_cei.uuid}/",
+        content_type="application/json",
+        data=json.dumps(data_update),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    solicitacao_medicao_inicial_teste_salvar_logs_cei.refresh_from_db()
+    assert (
+        solicitacao_medicao_inicial_teste_salvar_logs_cei.status
+        == "MEDICAO_ENVIADA_PELA_UE"
+    )
+    assert solicitacao_medicao_inicial_teste_salvar_logs_cei.logs_salvos is True
+    assert solicitacao_medicao_inicial_teste_salvar_logs_cei.medicoes.count() == 3
+
+    medicao_integral = solicitacao_medicao_inicial_teste_salvar_logs_cei.medicoes.get(
+        periodo_escolar__nome="INTEGRAL"
+    )
+    assert (
+        medicao_integral.valores_medicao.filter(nome_campo="matriculados").count() == 31
+    )
+    assert (
+        medicao_integral.valores_medicao.filter(nome_campo="dietas_autorizadas").count()
+        == 62
+    )
+
+    medicao_parcial = solicitacao_medicao_inicial_teste_salvar_logs_cei.medicoes.get(
+        periodo_escolar__nome="PARCIAL"
+    )
+    assert medicao_parcial.valores_medicao.count() == 93
+    assert (
+        medicao_parcial.valores_medicao.filter(nome_campo="dietas_autorizadas").count()
+        == 62
+    )
+    assert (
+        medicao_parcial.valores_medicao.filter(nome_campo="dietas_autorizadas")
+        .values_list("faixa_etaria", flat=True)
+        .distinct()
+        .count()
+        == 2
+    )
+    assert (
+        medicao_parcial.valores_medicao.filter(nome_campo="matriculados")
+        .values_list("faixa_etaria", flat=True)
+        .distinct()
+        .count()
+        == 1
+    )
+
+
 def test_salva_valores_medicao_inicial_cemei(
     client_autenticado_da_escola_cemei, escola_cemei, solicitacao_medicao_inicial_cemei
 ):

@@ -493,7 +493,7 @@ def get_dias(observacoes_tuple):
 
 
 @register.filter
-def formatar_observacoes(observacoes, cei=False):
+def formatar_observacoes(observacoes, tipo_unidade=None):
     MAX_LINHAS_POR_PAGINA = 22
 
     def format_observacao(obs):
@@ -508,9 +508,13 @@ def formatar_observacoes(observacoes, cei=False):
 
     observacoes_tuple = [format_observacao(observacao) for observacao in observacoes]
 
-    order_key = (
-        constants.ORDEM_PERIODOS_GRUPOS_CEI if cei else constants.ORDEM_PERIODOS_GRUPOS
-    )
+    order_key = None
+    if tipo_unidade == "CEI":
+        order_key = constants.ORDEM_PERIODOS_GRUPOS_CEI
+    elif tipo_unidade == "CEMEI":
+        order_key = constants.ORDEM_PERIODOS_GRUPOS_CEMEI
+    else:
+        order_key = constants.ORDEM_PERIODOS_GRUPOS
 
     dias = get_dias(observacoes_tuple)
 
@@ -577,4 +581,22 @@ def build_rows_faixas_etarias(tabela):
                     else:
                         html_output.append("<th>Aprovadas</th><th>Frequência</th>")
             index_inicial += numero_campos
+    return "".join(html_output)
+
+
+@register.filter
+def build_headers_faixas_etarias(tabela):
+    html_output = []
+    faixas_etarias = tabela["faixas_etarias"]
+    colunas = faixas_etarias.copy()
+    campos = tabela["nomes_campos"]
+
+    if campos and faixas_etarias:
+        colunas.extend([""] * len(campos))
+
+    for faixa in colunas:
+        if faixa == "total" or faixa == "":
+            html_output.append('<th  class="faixa-etaria" colspan="1"></th>')
+        else:
+            html_output.append(f'<th class="faixa-etaria" colspan="2">{faixa}</th>')
     return "".join(html_output)

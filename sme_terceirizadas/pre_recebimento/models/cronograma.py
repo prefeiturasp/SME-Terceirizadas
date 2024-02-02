@@ -37,7 +37,6 @@ from ...produto.models import (
     NomeDeProdutoEdital,
 )
 from ...terceirizada.models import Contrato, Terceirizada
-from .qualidade import TipoEmbalagemQld
 
 
 class UnidadeMedida(TemChaveExterna, Nomeavel, CriadoEm):
@@ -67,9 +66,6 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
     empresa = models.ForeignKey(
         Terceirizada, on_delete=models.CASCADE, blank=True, null=True
     )
-    produto = models.ForeignKey(
-        NomeDeProdutoEdital, on_delete=models.CASCADE, blank=True, null=True
-    )
     qtd_total_programada = models.FloatField(
         "Qtd Total Programada", blank=True, null=True
     )
@@ -83,8 +79,14 @@ class Cronograma(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoCronogr
         null=True,
         related_name="cronogramas",
     )
-    tipo_embalagem = models.ForeignKey(
-        TipoEmbalagemQld, on_delete=models.PROTECT, blank=True, null=True
+    ficha_tecnica = models.OneToOneField(
+        "FichaTecnicaDoProduto",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
+    custo_unitario_produto = models.FloatField(
+        "Custo Unitário do Produto", blank=True, null=True
     )
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
@@ -115,11 +117,14 @@ class EtapasDoCronograma(ModeloBase):
         related_name="etapas",
     )
     numero_empenho = models.CharField("Número do Empenho", blank=True, max_length=50)
+    qtd_total_empenho = models.FloatField(
+        "Qtde. Total do Empenho", blank=True, null=True
+    )
     etapa = models.CharField(blank=True, max_length=15)
     parte = models.CharField(blank=True, max_length=15)
     data_programada = models.DateField("Data Programada", blank=True, null=True)
     quantidade = models.FloatField(blank=True, null=True)
-    total_embalagens = models.PositiveSmallIntegerField(
+    total_embalagens = models.PositiveIntegerField(
         "Total de Embalagens", blank=True, null=True
     )
 
@@ -212,7 +217,9 @@ class SolicitacaoAlteracaoCronogramaQuerySet(models.QuerySet):
                 )
             if "nome_produto" in filtros:
                 qs = qs.filter(
-                    cronograma__produto__nome__icontains=filtros["nome_produto"]
+                    cronograma__ficha_tecnica__produto__nome__icontains=filtros[
+                        "nome_produto"
+                    ]
                 )
         return qs
 
@@ -409,11 +416,10 @@ class LayoutDeEmbalagem(
         return True
 
     def __str__(self):
-        return (
-            f"{self.cronograma.numero} - {self.cronograma.produto.nome}"
-            if self.cronograma
-            else str(self.id)
-        )
+        try:
+            return f"{self.cronograma.numero} - {self.cronograma.ficha_tecnica.produto.nome}"
+        except AttributeError:
+            return str(self.id)
 
     class Meta:
         verbose_name = "Layout de Embalagem"
@@ -847,7 +853,7 @@ class FichaTecnicaDoProduto(
     informacoes_adicionais = models.TextField("Informações Adicionais", blank=True)
 
     def __str__(self):
-        return self.produto.nome
+        return f"{self.numero} - {self.produto.nome}" if self.produto else self.numero
 
     class Meta:
         verbose_name = "Ficha Técnica do Produto"

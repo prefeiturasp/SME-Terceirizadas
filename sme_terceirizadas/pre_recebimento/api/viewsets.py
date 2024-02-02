@@ -87,8 +87,10 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
     EtapasDoCronogramaCalendarioSerializer,
+    FichaTecnicaCronogramaSerializer,
     FichaTecnicaDetalharSerializer,
     FichaTecnicaListagemSerializer,
+    FichaTecnicaSimplesSerializer,
     LaboratorioCredenciadoSimplesSerializer,
     LaboratorioSerializer,
     LaboratorioSimplesFiltroSerializer,
@@ -110,6 +112,7 @@ from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardFichaTecnica,
     ServiceDashboardLayoutEmbalagem,
     ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles,
+    ServiceQuerysetAlteracaoCronograma,
 )
 from sme_terceirizadas.pre_recebimento.models import (
     Cronograma,
@@ -258,7 +261,9 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         if numero_cronograma:
             query_set = query_set.filter(numero__icontains=numero_cronograma)
         if produto:
-            query_set = query_set.filter(produto__nome__icontains=produto)
+            query_set = query_set.filter(
+                ficha_tecnica__produto__nome__icontains=produto
+            )
         if fornecedor:
             query_set = query_set.filter(empresa__razao_social__icontains=fornecedor)
 
@@ -545,6 +550,19 @@ class SolicitacaoDeAlteracaoCronogramaViewSet(viewsets.ModelViewSet):
         action_permissions = permission_classes_map.get(self.action, [])
         self.permission_classes = (*self.permission_classes, *action_permissions)
         return super(SolicitacaoDeAlteracaoCronogramaViewSet, self).get_permissions()
+
+    def list(self, request, *args, **kwargs):
+        queryset = ServiceQuerysetAlteracaoCronograma(
+            request=self.request
+        ).get_queryset(filter=self.filter_queryset)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = SolicitacaoAlteracaoCronogramaSerializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            return response
+
+        serializer = SolicitacaoAlteracaoCronogramaSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def _dados_dashboard(self, request, filtros=None):
         limit = (
@@ -1108,6 +1126,30 @@ class FichaTecnicaModelViewSet(
         )
 
         return Response({"results": dashboard_service.get_dados_dashboard()})
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="lista-simples-sem-cronograma",
+        permission_classes=(PermissaoParaCriarCronograma,),
+    )
+    def lista_simples_sem_cronograma(self, request, **kwargs):
+        qs = (
+            self.get_queryset()
+            .exclude(status=FichaTecnicaDoProduto.workflow_class.RASCUNHO)
+            .exclude(cronograma__isnull=False)
+        )
+
+        return Response({"results": FichaTecnicaSimplesSerializer(qs, many=True).data})
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="dados-cronograma",
+        permission_classes=(PermissaoParaCriarCronograma,),
+    )
+    def dados_cronograma(self, request, **kwargs):
+        return Response(FichaTecnicaCronogramaSerializer(self.get_object()).data)
 
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):
