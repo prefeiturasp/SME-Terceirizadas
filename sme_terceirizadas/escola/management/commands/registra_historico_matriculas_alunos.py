@@ -21,8 +21,7 @@ class Command(BaseCommand):
 
     def __init__(self):
         super().__init__()
-        # self.alunos = Aluno.objects.all().exclude(codigo_eol__isnull=True)[:100]
-        self.alunos = [Aluno.objects.get(codigo_eol="7806880")]
+        self.alunos = Aluno.objects.all().exclude(codigo_eol__isnull=True)
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
