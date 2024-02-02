@@ -21,8 +21,8 @@ class Command(BaseCommand):
 
     def __init__(self):
         super().__init__()
-        self.alunos = Aluno.objects.all().exclude(codigo_eol__isnull=True)[:100]
-        # self.alunos = [Aluno.objects.get(codigo_eol="7806880")]
+        # self.alunos = Aluno.objects.all().exclude(codigo_eol__isnull=True)[:100]
+        self.alunos = [Aluno.objects.get(codigo_eol="7806880")]
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
@@ -97,9 +97,11 @@ class Command(BaseCommand):
                     codigo_situacao = codigo_situacao_matricula
                     situacao = situacao_matricula
 
-            HistoricoMatriculaAluno.objects.update_or_create(
+            escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
+
+            _, criado = HistoricoMatriculaAluno.objects.update_or_create(
                 aluno=aluno,
-                escola=Escola.objects.get(codigo_eol=codigo_eol_escola),
+                escola=escola,
                 defaults={
                     "data_inicio": data_inicio,
                     "data_fim": data_fim,
@@ -107,13 +109,21 @@ class Command(BaseCommand):
                     "situacao": situacao,
                 },
             )
+
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"ESCOLA {escola}: HISTORICO {'CRIADO' if criado else 'ATUALIZADO'} COM SUCESSO"
+                )
+            )
         except Exception as err:
             logger.warning(
                 f"Nao foi possivel gerar o historico de matriculas do aluno {aluno} da escola {codigo_eol_escola}: {err}"
             )
 
     def _gera_historico_matriculas_alunos(self, ano_letivo: int):
-        for aluno in self.alunos:
+        total = len(self.alunos)
+        for i, aluno in enumerate(self.alunos):
+            logger.debug(f"{i + 1}/{total} - {aluno}")
             matriculas = self._obtem_matriculas_aluno(aluno.codigo_eol, ano_letivo)
 
             matriculas_agrupadas_por_escola = self._agrupa_matriculas_por_escola(
