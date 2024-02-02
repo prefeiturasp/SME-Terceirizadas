@@ -40,6 +40,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarCalendarioCronograma,
     PermissaoParaVisualizarCronograma,
     PermissaoParaVisualizarDocumentosDeRecebimento,
+    PermissaoParaVisualizarFichaTecnica,
     PermissaoParaVisualizarLayoutDeEmbalagem,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     PermissaoParaVisualizarUnidadesMedida,
@@ -1057,7 +1058,7 @@ class FichaTecnicaModelViewSet(
     lookup_field = "uuid"
     serializer_class = FichaTecnicaRascunhoSerializer
     queryset = FichaTecnicaDoProduto.objects.all().order_by("-criado_em")
-    permission_classes = (UsuarioEhFornecedor,)
+    permission_classes = (PermissaoParaVisualizarFichaTecnica,)
     pagination_class = DefaultPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = FichaTecnicaFilter
