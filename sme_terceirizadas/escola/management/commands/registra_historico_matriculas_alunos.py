@@ -30,10 +30,13 @@ class Command(BaseCommand):
             type=int,
         )
 
+    def _get_ano_atual(self):
+        return datetime.today().year
+
     def handle(self, *args, **options):
         tic = timeit.default_timer()
 
-        ano_letivo = options.get("ano") or datetime.today().year
+        ano_letivo = options.get("ano") or self._get_ano_atual()
 
         self._gera_historico_matriculas_alunos(ano_letivo)
 
