@@ -10,8 +10,10 @@ class TerceirizadaFilter(filters.FilterSet):
         field_name="lotes__diretoria_regional__uuid",
         lookup_expr="icontains",
     )
-
     busca = filters.CharFilter(method="filtrar_empresa")
+    tipo_empresa = filters.CharFilter(
+        field_name="tipo_empresa", lookup_expr="icontains"
+    )
 
     def filtrar_empresa(self, queryset, name, value):
         return (
