@@ -19,7 +19,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
 from ...dados_comuns.permissions import (
+    UsuarioCODAEDietaEspecial,
     UsuarioCODAEGestaoAlimentacao,
+    UsuarioCODAENutriManifestacao,
     UsuarioDiretoriaRegional,
     UsuarioEscolaTercTotal,
     ViewSetActionPermissionMixin,
@@ -302,6 +304,8 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             UsuarioEscolaTercTotal
             | UsuarioDiretoriaRegional
             | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAEDietaEspecial
+            | UsuarioCODAENutriManifestacao
         ],
     )
     def inclusao_continua_por_mes(self, request):
@@ -751,6 +755,31 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
             return Response(
                 escola.quantidade_alunos_por_periodo_cei_emei, status=status.HTTP_200_OK
             )
+        except ValidationError as e:
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=False,
+        methods=("GET",),
+        url_path="dados-aluno-nao-matriculado-detalhes-dieta",
+        permission_classes=(IsAuthenticated,),
+    )
+    def dados_aluno_nao_matriculado_detalhes_dieta(self, request):
+        try:
+            codigo_eol_escola = request.query_params.get("codigo_eol_escola", None)
+            nome_aluno = request.query_params.get("nome_aluno", False)
+            if not codigo_eol_escola:
+                raise ValidationError(
+                    "`codigo_eol_escola` como query_param é obrigatório"
+                )
+            if not nome_aluno:
+                raise ValidationError("`nome_aluno` como query_param é obrigatório")
+            aluno = Aluno.objects.filter(
+                nao_matriculado=True,
+                escola__codigo_eol=codigo_eol_escola,
+                nome=nome_aluno,
+            ).first()
+            return Response(self.get_serializer(aluno).data, status=status.HTTP_200_OK)
         except ValidationError as e:
             return Response(e, status=status.HTTP_400_BAD_REQUEST)
 

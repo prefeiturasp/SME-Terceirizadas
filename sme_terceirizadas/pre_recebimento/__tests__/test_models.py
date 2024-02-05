@@ -25,7 +25,7 @@ def test_cronograma_instance_model(cronograma):
 
 
 def test_cronograma_srt_model(cronograma):
-    assert cronograma.__str__() == "Cronograma: 001/2022 - Status: Rascunho"
+    assert cronograma.__str__() == "Cronograma: 001/2022A - Status: Rascunho"
 
 
 def test_cronograma_meta_modelo(cronograma):
@@ -38,7 +38,7 @@ def test_etapas_do_cronograma_instance_model(etapa):
 
 
 def test_etapas_do_cronograma_srt_model(etapa):
-    assert etapa.__str__() == "Etapa 1 do cronogrma 001/2022"
+    assert etapa.__str__() == "Etapa 1 do cronogrma 001/2022A"
 
 
 def test_etapas_do_cronograma_meta_modelo(etapa):
@@ -145,7 +145,7 @@ def test_solicitacao_alteracao_cronograma_queryset_filtrar_por_status(
     solicitacao_cronograma_em_analise,
     solicitacao_cronograma_ciente,
     solicitacao_cronograma_aprovado_dinutre,
-    produto_arroz,
+    ficha_tecnica_perecivel_enviada_para_analise,
     empresa,
 ):
     qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
@@ -160,7 +160,9 @@ def test_solicitacao_alteracao_cronograma_queryset_filtrar_por_status(
     assert solicitacao_cronograma_ciente not in qs
 
     solicitacao_cronograma_em_analise.cronograma.empresa = empresa
-    solicitacao_cronograma_em_analise.cronograma.produto = produto_arroz
+    solicitacao_cronograma_em_analise.cronograma.ficha_tecnica = (
+        ficha_tecnica_perecivel_enviada_para_analise
+    )
     solicitacao_cronograma_em_analise.cronograma.save()
 
     qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
@@ -179,7 +181,9 @@ def test_solicitacao_alteracao_cronograma_queryset_filtrar_por_status(
 
     qs = SolicitacaoAlteracaoCronograma.objects.filtrar_por_status(
         status=[CronogramaAlteracaoWorkflow.EM_ANALISE],
-        filtros={"nome_produto": produto_arroz.nome},
+        filtros={
+            "nome_produto": ficha_tecnica_perecivel_enviada_para_analise.produto.nome
+        },
     )
     assert qs.count() == 1
 
@@ -192,7 +196,10 @@ def test_layout_de_embalagem_instance_model(layout_de_embalagem):
 
 
 def test_layout_de_embalagem_srt_model(layout_de_embalagem):
-    assert layout_de_embalagem.__str__() == "004/2022 - Macarrão"
+    numero_cronograma = layout_de_embalagem.cronograma.numero
+    nome_produto_ficha = layout_de_embalagem.cronograma.ficha_tecnica.produto.nome
+
+    assert str(layout_de_embalagem) == f"{numero_cronograma} - {nome_produto_ficha}"
 
 
 def test_layout_de_embalagem_meta_modelo(layout_de_embalagem):

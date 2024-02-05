@@ -77,13 +77,15 @@ def test_unidade_medida_create_serializer_updating(unidade_medida_logistica):
 
 
 def test_painel_cronograma_serializer(cronograma, cronogramas_multiplos_status_com_log):
-    cronograma_completo = Cronograma.objects.filter(numero="002/2023").first()
+    cronograma_completo = Cronograma.objects.filter(numero="002/2023A").first()
     serializer = PainelCronogramaSerializer(cronograma_completo)
 
     assert cronograma_completo.empresa is not None
     assert serializer.data["empresa"] == str(cronograma_completo.empresa.razao_social)
-    assert cronograma_completo.produto is not None
-    assert serializer.data["produto"] == str(cronograma_completo.produto.nome)
+    assert cronograma_completo.ficha_tecnica.produto is not None
+    assert serializer.data["produto"] == str(
+        cronograma_completo.ficha_tecnica.produto.nome
+    )
     assert cronograma_completo.log_mais_recente is not None
     assert serializer.data[
         "log_mais_recente"
@@ -93,7 +95,7 @@ def test_painel_cronograma_serializer(cronograma, cronogramas_multiplos_status_c
     serializer = PainelCronogramaSerializer(cronograma_incompleto)
 
     assert cronograma_incompleto.empresa is None
-    assert cronograma_incompleto.produto is None
+    assert cronograma_incompleto.ficha_tecnica is None
     assert cronograma_incompleto.log_mais_recente is None
     assert serializer.data[
         "log_mais_recente"
@@ -102,7 +104,7 @@ def test_painel_cronograma_serializer(cronograma, cronogramas_multiplos_status_c
 
 @freeze_time((timezone.now() + timezone.timedelta(2)))
 def test_painel_cronograma_serializer_log_recente(cronogramas_multiplos_status_com_log):
-    cronograma_completo = Cronograma.objects.filter(numero="002/2023").first()
+    cronograma_completo = Cronograma.objects.filter(numero="002/2023A").first()
     serializer = PainelCronogramaSerializer(cronograma_completo)
 
     expected_date = (timezone.now() - timezone.timedelta(2)).strftime("%d/%m/%Y")
@@ -111,14 +113,14 @@ def test_painel_cronograma_serializer_log_recente(cronogramas_multiplos_status_c
 
 def test_gera_proximo_numero_cronograma_sem_ultimo_cronograma():
     numero = CronogramaCreateSerializer().gera_proximo_numero_cronograma()
-    assert numero == f"001/{timezone.now().year}"
+    assert numero == f"001/{timezone.now().year}A"
 
 
 def test_gera_proximo_numero_cronograma_com_ultimo_cronograma(cronograma):
     numero = CronogramaCreateSerializer().gera_proximo_numero_cronograma()
     assert (
         numero
-        == f"{str(int(cronograma.numero[:3]) + 1).zfill(3)}/{timezone.now().year}"
+        == f"{str(int(cronograma.numero[:3]) + 1).zfill(3)}/{timezone.now().year}A"
     )
 
 

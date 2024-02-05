@@ -508,6 +508,10 @@ class Escola(
     )
 
     @property
+    def eh_parceira(self):
+        return self.tipo_gestao.nome == "PARCEIRA"
+
+    @property
     def quantidade_alunos(self):
         quantidade = AlunosMatriculadosPeriodoEscola.objects.filter(
             escola=self, tipo_turma="REGULAR"

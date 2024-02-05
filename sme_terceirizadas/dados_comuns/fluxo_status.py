@@ -3003,8 +3003,12 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         escola = self.criado_por.vinculo_atual.instituicao
         self.rastro_escola = escola
         self.rastro_dre = escola.diretoria_regional
-        self.rastro_lote = escola.lote
-        self.rastro_terceirizada = escola.lote.terceirizada
+        if escola.tipo_gestao and escola.tipo_gestao.nome == "PARCEIRA":
+            self.rastro_lote = None
+            self.rastro_terceirizada = None
+        else:
+            self.rastro_lote = escola.lote
+            self.rastro_terceirizada = escola.lote.terceirizada
         self.save()
 
     def termina(self, usuario):
@@ -3165,7 +3169,9 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             "movimentacao_realizada": str(self.status),
             "perfil_que_autorizou": user.nome,
             "escola": self.escola.nome,
-            "lote": self.escola.lote.nome,
+            "lote": self.escola.lote.nome
+            if self.escola.lote
+            else "Sem Lote (Parceira)",
             "url": url,
             "data_log": self.log_mais_recente.criado_em.strftime("%d/%m/%Y - %H:%M"),
         }
@@ -3534,13 +3540,13 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name="produto_codae_recusou_reclamacao.html",
             context={
-                "titulo": "Reclamação recusada",
+                "titulo": "Reclamação Analisada",
                 "reclamacao": self,
                 "log_recusa": log_recusa,
             },
         )
         envia_email_unico_task.delay(
-            assunto="[SIGPAE] Reclamação recusada",
+            assunto="[SIGPAE] Reclamação Analisada",
             email=self.criado_por.email,
             corpo="",
             html=html,
@@ -5184,7 +5190,7 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
             contexto = {
                 "numero_cronograma": numero_cronograma,
                 "nome_empresa": self.cronograma.empresa.nome_fantasia,
-                "nome_produto": self.cronograma.produto.nome,
+                "nome_produto": self.cronograma.ficha_tecnica.produto.nome,
                 "data_envio": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),
                 "nome_usuario_empresa": user.nome,
                 "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
@@ -5237,7 +5243,7 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
             )
             contexto = {
                 "numero_cronograma": numero_cronograma,
-                "nome_produto": self.cronograma.produto.nome,
+                "nome_produto": self.cronograma.ficha_tecnica.produto.nome,
                 "data_solicitacao": self.log_mais_recente.criado_em.strftime(
                     "%d/%m/%Y"
                 ),
@@ -5290,7 +5296,7 @@ class FluxoDocumentoDeRecebimento(xwf_models.WorkflowEnabled, models.Model):
             contexto = {
                 "numero_cronograma": numero_cronograma,
                 "nome_empresa": self.cronograma.empresa.nome_fantasia,
-                "nome_produto": self.cronograma.produto.nome,
+                "nome_produto": self.cronograma.ficha_tecnica.produto.nome,
                 "nome_usuario_empresa": user.nome,
                 "cpf_usuario_empresa": user.cpf_formatado_e_censurado,
                 "data_envio": self.log_mais_recente.criado_em.strftime("%d/%m/%Y"),

@@ -2,11 +2,15 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from sme_terceirizadas.dados_comuns.fluxo_status import LayoutDeEmbalagemWorkflow
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD
+from sme_terceirizadas.dados_comuns.fluxo_status import (
+    CronogramaWorkflow,
+    LayoutDeEmbalagemWorkflow,
+)
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
-from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from ..models import (
     FichaTecnicaDoProduto,
     LayoutDeEmbalagem,
@@ -40,14 +44,17 @@ def empresa(contrato):
 
 @pytest.fixture
 def cronograma():
-    return mommy.make("Cronograma", numero="001/2022")
+    return mommy.make(
+        "Cronograma",
+        numero="001/2022A",
+    )
 
 
 @pytest.fixture
 def cronograma_rascunho(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="002/2022",
+        numero="002/2022A",
         contrato=contrato,
         armazem=armazem,
         empresa=empresa,
@@ -58,7 +65,7 @@ def cronograma_rascunho(armazem, contrato, empresa):
 def cronograma_recebido(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="002/2022",
+        numero="002/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -103,7 +110,7 @@ def tipo_emabalagem_qld():
 def cronograma_solicitado_alteracao(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="00222/2022",
+        numero="00222/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -145,7 +152,7 @@ def solicitacao_cronograma_aprovado_dinutre(cronograma_solicitado_alteracao):
 def cronograma_assinado_fornecedor(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="002/2022",
+        numero="002/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -157,7 +164,7 @@ def cronograma_assinado_fornecedor(armazem, contrato, empresa):
 def cronograma_assinado_perfil_cronograma(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="002/2022",
+        numero="002/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
@@ -166,28 +173,32 @@ def cronograma_assinado_perfil_cronograma(armazem, contrato, empresa):
 
 
 @pytest.fixture
-def cronograma_assinado_perfil_dinutre(armazem, contrato, empresa, produto_arroz):
+def cronograma_assinado_perfil_dinutre(armazem, contrato, empresa):
     return mommy.make(
         "Cronograma",
-        numero="003/2022",
+        numero="003/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        produto=produto_arroz,
         status="ASSINADO_DINUTRE",
     )
 
 
 @pytest.fixture
-def cronograma_assinado_perfil_dilog(armazem, contrato, empresa, produto_macarrao):
+def cronograma_assinado_perfil_dilog(
+    armazem,
+    contrato,
+    empresa,
+    ficha_tecnica_factory,
+):
     return mommy.make(
         "Cronograma",
-        numero="004/2022",
+        numero="004/2022A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        produto=produto_macarrao,
         status="ASSINADO_CODAE",
+        ficha_tecnica=ficha_tecnica_factory(),
     )
 
 
@@ -213,67 +224,61 @@ def produto_acucar():
 
 @pytest.fixture
 def cronogramas_multiplos_status_com_log(
-    armazem,
-    contrato,
-    empresa,
-    produto_arroz,
-    produto_macarrao,
-    produto_feijao,
-    produto_acucar,
+    armazem, contrato, empresa, ficha_tecnica_factory
 ):
     c1 = mommy.make(
         "Cronograma",
-        numero="002/2023",
+        numero="002/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        produto=produto_arroz,
         status="ASSINADO_FORNECEDOR",
+        ficha_tecnica=ficha_tecnica_factory(),
     )
     c2 = mommy.make(
         "Cronograma",
-        numero="003/2023",
+        numero="003/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        produto=produto_acucar,
         status="ASSINADO_FORNECEDOR",
+        ficha_tecnica=ficha_tecnica_factory(),
     )
     c3 = mommy.make(
         "Cronograma",
-        numero="004/2023",
+        numero="004/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        produto=produto_arroz,
         status="ASSINADO_DINUTRE",
+        ficha_tecnica=ficha_tecnica_factory(),
     )
     c4 = mommy.make(
         "Cronograma",
-        numero="005/2023",
+        numero="005/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        produto=produto_feijao,
         status="ASSINADO_DINUTRE",
+        ficha_tecnica=ficha_tecnica_factory(),
     )
     c5 = mommy.make(
         "Cronograma",
-        numero="006/2023",
+        numero="006/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        produto=produto_macarrao,
         status="ASSINADO_FORNECEDOR",
+        ficha_tecnica=ficha_tecnica_factory(),
     )
     c6 = mommy.make(
         "Cronograma",
-        numero="007/2023",
+        numero="007/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        produto=produto_macarrao,
         status="ASSINADO_CODAE",
+        ficha_tecnica=ficha_tecnica_factory(),
     )
     mommy.make(
         "LogSolicitacoesUsuario",
@@ -314,25 +319,21 @@ def cronogramas_multiplos_status_com_log(
 
 
 @pytest.fixture
-def cronogramas_multiplos_status_com_log_cronograma_ciente(
-    armazem, contrato, empresa, produto_arroz, produto_acucar
-):
+def cronogramas_multiplos_status_com_log_cronograma_ciente(armazem, contrato, empresa):
     c1 = mommy.make(
         "Cronograma",
-        numero="002/2023",
+        numero="002/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        produto=produto_arroz,
         status="SOLICITADO_ALTERACAO",
     )
     c2 = mommy.make(
         "Cronograma",
-        numero="003/2023",
+        numero="003/2023A",
         contrato=contrato,
         empresa=empresa,
         armazem=armazem,
-        produto=produto_acucar,
         status="SOLICITADO_ALTERACAO",
     )
     s1 = mommy.make(
@@ -430,12 +431,12 @@ def arquivo_pdf_base64():
 
 
 @pytest.fixture
-def lista_layouts_de_embalagem_enviados_para_analise(
-    cronograma_assinado_perfil_dinutre, cronograma_assinado_perfil_dilog
-):
+def lista_layouts_de_embalagem_enviados_para_analise(cronograma_factory):
     layouts_cronograma_assinado_dinutre = [
         {
-            "cronograma": cronograma_assinado_perfil_dinutre,
+            "cronograma": cronograma_factory(
+                status=CronogramaWorkflow.ASSINADO_DINUTRE
+            ),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         }
@@ -444,7 +445,7 @@ def lista_layouts_de_embalagem_enviados_para_analise(
 
     layouts_cronograma_assinado_dilog = [
         {
-            "cronograma": cronograma_assinado_perfil_dilog,
+            "cronograma": cronograma_factory(status=CronogramaWorkflow.ASSINADO_CODAE),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
         }
@@ -459,12 +460,12 @@ def lista_layouts_de_embalagem_enviados_para_analise(
 
 
 @pytest.fixture
-def lista_layouts_de_embalagem_aprovados(
-    cronograma_assinado_perfil_dinutre, cronograma_assinado_perfil_dilog
-):
+def lista_layouts_de_embalagem_aprovados(cronograma_factory):
     layouts_cronograma_assinado_dinutre = [
         {
-            "cronograma": cronograma_assinado_perfil_dinutre,
+            "cronograma": cronograma_factory(
+                status=CronogramaWorkflow.ASSINADO_DINUTRE
+            ),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.APROVADO,
         }
@@ -473,7 +474,7 @@ def lista_layouts_de_embalagem_aprovados(
 
     layouts_cronograma_assinado_dilog = [
         {
-            "cronograma": cronograma_assinado_perfil_dilog,
+            "cronograma": cronograma_factory(status=CronogramaWorkflow.ASSINADO_CODAE),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.APROVADO,
         }
@@ -488,12 +489,12 @@ def lista_layouts_de_embalagem_aprovados(
 
 
 @pytest.fixture
-def lista_layouts_de_embalagem_solicitado_correcao(
-    cronograma_assinado_perfil_dinutre, cronograma_assinado_perfil_dilog
-):
+def lista_layouts_de_embalagem_solicitado_correcao(cronograma_factory):
     layouts_cronograma_assinado_dinutre = [
         {
-            "cronograma": cronograma_assinado_perfil_dinutre,
+            "cronograma": cronograma_factory(
+                status=CronogramaWorkflow.ASSINADO_DINUTRE
+            ),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         }
@@ -502,7 +503,7 @@ def lista_layouts_de_embalagem_solicitado_correcao(
 
     layouts_cronograma_assinado_dilog = [
         {
-            "cronograma": cronograma_assinado_perfil_dilog,
+            "cronograma": cronograma_factory(status=CronogramaWorkflow.ASSINADO_CODAE),
             "observacoes": f"Teste {i}",
             "status": LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         }
@@ -796,3 +797,35 @@ def payload_ficha_tecnica_nao_pereciveis(
     payload.pop("variacao_percentual")
 
     return payload
+
+
+@pytest.fixture
+def ficha_tecnica_perecivel_enviada_para_analise(
+    payload_ficha_tecnica_pereciveis,
+    produto_logistica_factory,
+    empresa,
+    marca_factory,
+    fabricante_factory,
+    arquivo_pdf_base64,
+    unidade_medida_logistica,
+):
+    dados = {
+        **payload_ficha_tecnica_pereciveis,
+        "produto": produto_logistica_factory(),
+        "marca": marca_factory(),
+        "empresa": empresa,
+        "fabricante": fabricante_factory(),
+        "categoria": FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
+        "unidade_medida_porcao": unidade_medida_logistica,
+        "unidade_medida_primaria": unidade_medida_logistica,
+        "unidade_medida_secundaria": unidade_medida_logistica,
+        "unidade_medida_primaria_vazia": unidade_medida_logistica,
+        "unidade_medida_secundaria_vazia": unidade_medida_logistica,
+        "arquivo": convert_base64_to_contentfile(arquivo_pdf_base64),
+        "status": FichaTecnicaDoProduto.workflow_class.ENVIADA_PARA_ANALISE,
+    }
+
+    dados.pop("informacoes_nutricionais")
+    dados.pop("password")
+
+    return FichaTecnicaDoProduto.objects.create(**dados)
