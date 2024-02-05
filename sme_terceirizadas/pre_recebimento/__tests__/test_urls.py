@@ -28,6 +28,7 @@ from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardLayoutEmbalagem,
 )
 from sme_terceirizadas.pre_recebimento.models import (
+    AnaliseFichaTecnica,
     Cronograma,
     DocumentoDeRecebimento,
     FichaTecnicaDoProduto,
@@ -3156,3 +3157,62 @@ def test_url_ficha_tecnica_dados_cronograma(
     )
 
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_ficha_tecnica_rascunho_analise_create(
+    client_autenticado_codae_dilog,
+    ficha_tecnica_perecivel_enviada_para_analise,
+    payload_rascunho_analise_ficha_tecnica,
+):
+    response = client_autenticado_codae_dilog.post(
+        f"/ficha-tecnica/{ficha_tecnica_perecivel_enviada_para_analise.uuid}/rascunho-analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_rascunho_analise_ficha_tecnica),
+    )
+    analises = AnaliseFichaTecnica.objects.all()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert analises.count() == 1
+    assert (
+        analises.first().ficha_tecnica == ficha_tecnica_perecivel_enviada_para_analise
+    )
+
+
+def test_url_ficha_tecnica_rascunho_analise_update(
+    client_autenticado_codae_dilog,
+    analise_ficha_tecnica,
+    payload_rascunho_analise_ficha_tecnica,
+):
+    payload_atualizacao = {**payload_rascunho_analise_ficha_tecnica}
+    payload_atualizacao["detalhes_produto_conferido"] = False
+    payload_atualizacao["detalhes_produto_correcoes"] = "Uma correção qualquer..."
+
+    response = client_autenticado_codae_dilog.put(
+        f"/ficha-tecnica/{analise_ficha_tecnica.ficha_tecnica.uuid}/rascunho-analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_atualizacao),
+    )
+    analise = AnaliseFichaTecnica.objects.last()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert AnaliseFichaTecnica.objects.count() == 1
+    assert analise.detalhes_produto_conferido == False
+    assert analise.detalhes_produto_correcoes == "Uma correção qualquer..."
+
+
+def test_url_ficha_tecnica_rascunho_analise_update_criado_por(
+    client_autenticado_codae_dilog,
+    analise_ficha_tecnica,
+    payload_rascunho_analise_ficha_tecnica,
+):
+    criado_por_antigo = analise_ficha_tecnica.criado_por
+    response = client_autenticado_codae_dilog.put(
+        f"/ficha-tecnica/{analise_ficha_tecnica.ficha_tecnica.uuid}/rascunho-analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_rascunho_analise_ficha_tecnica),
+    )
+    analise_atualizada = AnaliseFichaTecnica.objects.last()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert AnaliseFichaTecnica.objects.count() == 1
+    assert analise_atualizada.criado_por != criado_por_antigo
