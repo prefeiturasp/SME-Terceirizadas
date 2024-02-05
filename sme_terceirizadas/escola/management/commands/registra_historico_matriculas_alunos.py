@@ -2,15 +2,12 @@ import logging
 import timeit
 from datetime import datetime
 
-import environ
 import requests
 from django.core.management.base import BaseCommand, CommandParser
 from requests import ConnectionError
 
 from ....dados_comuns.constants import DJANGO_EOL_SGP_API_TOKEN, DJANGO_EOL_SGP_API_URL
 from ...models import Aluno, Escola, HistoricoMatriculaAluno
-
-env = environ.Env()
 
 logger = logging.getLogger("sigpae.cmd_registra_historico_matriculas_alunos")
 
