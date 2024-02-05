@@ -12,6 +12,7 @@ from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
 from ..models import (
+    AnaliseFichaTecnica,
     FichaTecnicaDoProduto,
     LayoutDeEmbalagem,
     TipoDeEmbalagemDeLayout,
@@ -829,3 +830,35 @@ def ficha_tecnica_perecivel_enviada_para_analise(
     dados.pop("password")
 
     return FichaTecnicaDoProduto.objects.create(**dados)
+
+
+@pytest.fixture
+def payload_rascunho_analise_ficha_tecnica():
+    return {
+        "detalhes_produto_conferido": True,
+        "detalhes_produto_correcoes": "",
+        "informacoes_nutricionais_conferido": True,
+        "informacoes_nutricionais_correcoes": "",
+        "conservacao_conferido": True,
+        "conservacao_correcoes": "",
+        "temperatura_e_transporte_conferido": True,
+        "temperatura_e_transporte_correcoes": "",
+        "armazenamento_conferido": True,
+        "armazenamento_correcoes": "",
+        "embalagem_e_rotulagem_conferido": True,
+        "embalagem_e_rotulagem_correcoes": "",
+        "responsavel_tecnico_conferido": True,
+        "modo_preparo_conferido": True,
+        "outras_informacoes_conferido": True,
+    }
+
+
+@pytest.fixture
+def analise_ficha_tecnica(
+    ficha_tecnica_perecivel_enviada_para_analise,
+    payload_rascunho_analise_ficha_tecnica,
+):
+    return AnaliseFichaTecnica.objects.create(
+        ficha_tecnica=ficha_tecnica_perecivel_enviada_para_analise,
+        **payload_rascunho_analise_ficha_tecnica,
+    )
