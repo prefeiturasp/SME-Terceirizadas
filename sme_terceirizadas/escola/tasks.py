@@ -348,3 +348,15 @@ def gera_xlsx_relatorio_alunos_matriculados_async(user, nome_arquivo, uuids):
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
     logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=5,
+    retry_kwargs={"max_retries": 2},
+)
+def registra_historico_matriculas_alunos():
+    logger.debug(
+        f"Iniciando task registra_historico_matriculas_alunos às {datetime.datetime.now()}"
+    )
+    management.call_command("registra_historico_matriculas_alunos", verbosity=0)
