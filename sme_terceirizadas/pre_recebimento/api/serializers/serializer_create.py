@@ -14,6 +14,7 @@ from sme_terceirizadas.dados_comuns.utils import (
     update_instance_from_dict,
 )
 from sme_terceirizadas.pre_recebimento.models import (
+    AnaliseFichaTecnica,
     Cronograma,
     DataDeFabricaoEPrazo,
     DocumentoDeRecebimento,
@@ -541,9 +542,11 @@ class LayoutDeEmbalagemAnaliseSerializer(serializers.ModelSerializer):
                 tipo_de_embalagem.complemento_do_status = dados["complemento_do_status"]
                 tipo_de_embalagem.save()
 
-            instance.codae_aprova(
-                user=user
-            ) if instance.aprovado else instance.codae_solicita_correcao(user=user)
+            (
+                instance.codae_aprova(user=user)
+                if instance.aprovado
+                else instance.codae_solicita_correcao(user=user)
+            )
 
         except InvalidTransitionError as e:
             raise serializers.ValidationError(
@@ -1291,4 +1294,90 @@ class FichaTecnicaCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FichaTecnicaDoProduto
+        exclude = ("id",)
+
+
+class AnaliseFichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
+    criado_por = serializers.SlugRelatedField(
+        slug_field="uuid",
+        read_only=True,
+    )
+    ficha_tecnica = serializers.SlugRelatedField(
+        slug_field="uuid",
+        read_only=True,
+    )
+    detalhes_produto_conferido = serializers.BooleanField(
+        required=False,
+        allow_null=True,
+    )
+    detalhes_produto_correcoes = serializers.CharField(
+        required=True,
+        allow_blank=True,
+    )
+    informacoes_nutricionais_conferido = serializers.BooleanField(
+        required=False,
+        allow_null=True,
+    )
+    informacoes_nutricionais_correcoes = serializers.CharField(
+        required=True,
+        allow_blank=True,
+    )
+    conservacao_conferido = serializers.BooleanField(
+        required=False,
+        allow_null=True,
+    )
+    conservacao_correcoes = serializers.CharField(
+        required=True,
+        allow_blank=True,
+    )
+    temperatura_e_transporte_conferido = serializers.BooleanField(
+        required=False,
+        allow_null=True,
+    )
+    temperatura_e_transporte_correcoes = serializers.CharField(
+        required=True,
+        allow_blank=True,
+    )
+    armazenamento_conferido = serializers.BooleanField(
+        required=False,
+        allow_null=True,
+    )
+    armazenamento_correcoes = serializers.CharField(
+        required=True,
+        allow_blank=True,
+    )
+    embalagem_e_rotulagem_conferido = serializers.BooleanField(
+        required=False,
+        allow_null=True,
+    )
+    embalagem_e_rotulagem_correcoes = serializers.CharField(
+        required=True,
+        allow_blank=True,
+    )
+    responsavel_tecnico_conferido = serializers.BooleanField(
+        required=False,
+        allow_null=True,
+    )
+    modo_preparo_conferido = serializers.BooleanField(
+        required=False,
+        allow_null=True,
+    )
+    outras_informacoes_conferido = serializers.BooleanField(
+        required=False,
+        allow_null=True,
+    )
+
+    def create(self, validated_data):
+        return AnaliseFichaTecnica.objects.create(
+            ficha_tecnica=self.context.get("ficha_tecnica"),
+            criado_por=self.context.get("criado_por"),
+            **validated_data,
+        )
+
+    def update(self, instance, validated_data):
+        validated_data["criado_por"] = self.context.get("criado_por")
+        return update_instance_from_dict(instance, validated_data, save=True)
+
+    class Meta:
+        model = AnaliseFichaTecnica
         exclude = ("id",)
