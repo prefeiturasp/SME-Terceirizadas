@@ -1167,3 +1167,18 @@ class PermissaoParaVisualizarFichaTecnica(BasePermission):
                 or usuario.eh_fornecedor
             )
         )
+
+
+class PermissaoParaAnalisarFichaTecnica(BasePermission):
+    PERFIS_PERMITIDOS = [
+        COORDENADOR_GESTAO_PRODUTO,
+        COORDENADOR_CODAE_DILOG_LOGISTICA,
+    ]
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
+        )
