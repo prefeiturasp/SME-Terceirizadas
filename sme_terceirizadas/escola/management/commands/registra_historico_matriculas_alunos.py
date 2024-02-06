@@ -120,6 +120,7 @@ class Command(BaseCommand):
             )
 
     def _gera_historico_matriculas_alunos(self, ano_letivo: int):
+        logger.debug(f"Ano de referencia: {ano_letivo}")
         total = len(self.alunos)
         for i, aluno in enumerate(self.alunos):
             logger.debug(f"{i + 1}/{total} - {aluno}")

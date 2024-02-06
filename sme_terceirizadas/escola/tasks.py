@@ -355,8 +355,14 @@ def gera_xlsx_relatorio_alunos_matriculados_async(user, nome_arquivo, uuids):
     retry_backoff=5,
     retry_kwargs={"max_retries": 2},
 )
-def registra_historico_matriculas_alunos():
+def registra_historico_matriculas_alunos(*args, **kwargs):
     logger.debug(
         f"Iniciando task registra_historico_matriculas_alunos às {datetime.datetime.now()}"
     )
-    management.call_command("registra_historico_matriculas_alunos", verbosity=0)
+    ano = kwargs.get("ano")
+    if ano is not None:
+        management.call_command(
+            "registra_historico_matriculas_alunos", f"--ano={ano}", verbosity=0
+        )
+    else:
+        management.call_command("registra_historico_matriculas_alunos", verbosity=0)
