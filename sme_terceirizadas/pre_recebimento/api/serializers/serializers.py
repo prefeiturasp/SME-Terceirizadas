@@ -765,6 +765,10 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
     unidade_medida_primaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_secundaria_vazia = NomeEAbreviacaoUnidadeMedidaSerializer()
     unidade_medida_volume_primaria = NomeEAbreviacaoUnidadeMedidaSerializer()
+    categoria_display = serializers.CharField(
+        source="get_categoria_display",
+        read_only=True,
+    )
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")
@@ -778,6 +782,7 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "pregao_chamada_publica",
             "marca",
             "categoria",
+            "categoria_display",
             "status",
             "criado_em",
             "empresa",

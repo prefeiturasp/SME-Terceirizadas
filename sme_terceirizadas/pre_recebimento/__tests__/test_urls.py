@@ -2930,14 +2930,16 @@ def test_ficha_tecnica_retrieve_ok(
 ):
     user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
-    ficha_tecnica = ficha_tecnica_factory.create(empresa=empresa)
+    ficha_tecnica = ficha_tecnica_factory.create(
+        empresa=empresa,
+        categoria=FichaTecnicaDoProduto.CATEGORIA_PERECIVEIS,
+    )
     url = f"/ficha-tecnica/{ficha_tecnica.uuid}/"
     response = client_autenticado_fornecedor.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert (
-        response.data == FichaTecnicaDetalharSerializer(ficha_tecnica, many=False).data
-    )
+    assert response.data == FichaTecnicaDetalharSerializer(ficha_tecnica).data
+    assert response.data["categoria_display"] == ficha_tecnica.get_categoria_display()
 
 
 def test_calendario_cronograma_list_ok(
