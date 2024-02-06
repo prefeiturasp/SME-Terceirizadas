@@ -154,6 +154,13 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
         return Response(response)
 
 
+class TerceirizadaSimplesViewSet(viewsets.ModelViewSet):
+    lookup_field = "uuid"
+    queryset = Terceirizada.objects.all().order_by(Lower("razao_social"))
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = TerceirizadaFilter
+
+
 class EditalContratosViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = EditalContratosSerializer
