@@ -22,6 +22,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     CategoriaMedicao,
     DiaParaCorrigir,
     DiaSobremesaDoce,
+    Empenho,
     Medicao,
     OcorrenciaMedicaoInicial,
     PermissaoLancamentoEspecial,
@@ -243,3 +244,12 @@ class DiaParaCorrigirSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiaParaCorrigir
         exclude = ("id", "criado_por")
+
+
+class EmpenhoSerializer(serializers.ModelSerializer):
+    contrato = serializers.CharField(source="contrato.numero")
+    edital = serializers.CharField(source="edital.numero")
+
+    class Meta:
+        model = Empenho
+        exclude = ("id", "criado_em", "alterado_em")
