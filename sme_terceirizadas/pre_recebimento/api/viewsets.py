@@ -92,6 +92,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
     EtapasDoCronogramaCalendarioSerializer,
+    FichaTecnicaComAnaliseDetalharSerializer,
     FichaTecnicaCronogramaSerializer,
     FichaTecnicaDetalharSerializer,
     FichaTecnicaListagemSerializer,
@@ -1155,6 +1156,17 @@ class FichaTecnicaModelViewSet(
     )
     def dados_cronograma(self, request, **kwargs):
         return Response(FichaTecnicaCronogramaSerializer(self.get_object()).data)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="detalhar-com-analise",
+        permission_classes=(PermissaoParaAnalisarFichaTecnica,),
+    )
+    def detalhar_com_analise(self, request, **kwargs):
+        return Response(
+            FichaTecnicaComAnaliseDetalharSerializer(self.get_object()).data
+        )
 
     @action(
         detail=True,
