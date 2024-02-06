@@ -6,6 +6,7 @@ from .models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
     DiaSobremesaDoce,
+    Empenho,
     GrupoMedicao,
     Medicao,
     PermissaoLancamentoEspecial,
@@ -125,3 +126,11 @@ class ValorMedicaoAdmin(admin.ModelAdmin):
     def get_escola(self, obj):
         escola = obj.medicao.solicitacao_medicao_inicial.escola
         return f"{escola.codigo_eol}: {escola.nome}"
+
+
+@admin.register(Empenho)
+class EmpenhoAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "contrato", "edital", "status", "alterado_em")
+    search_fields = ("numero",)
+    list_filter = ("alterado_em", "status")
+    ordering = ("-alterado_em",)

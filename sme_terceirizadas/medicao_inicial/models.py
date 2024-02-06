@@ -456,3 +456,38 @@ class DiaParaCorrigir(
     class Meta:
         verbose_name = "Dia da Medição para corrigir"
         verbose_name_plural = "Dias da Medição para corrigir"
+
+
+class Empenho(TemChaveExterna, CriadoEm, TemAlteradoEm):
+    # Tipo de empenho
+    TIPO_EMPENHO_CHOICES = (("PRINCIPAL", "Principal"), ("REAJUSTE", "Reajuste"))
+
+    # Tipo de reajuste
+    TIPO_REAJUSTE_CHOICES = (("ALIMENTACOES", "Alimentações"), ("DIETAS", "Dietas"))
+
+    # Status
+    STATUS_CHOICES = (("ATIVO", "Ativo"), ("INATIVO", "Inativo"))
+
+    numero = models.CharField("Número do empenho", max_length=100, unique=True)
+    contrato = models.ForeignKey(
+        "terceirizada.Contrato", on_delete=models.PROTECT, related_name="empenhos"
+    )
+    edital = models.ForeignKey(
+        "terceirizada.Edital", on_delete=models.PROTECT, related_name="empenhos"
+    )
+    tipo_empenho = models.CharField(
+        choices=TIPO_EMPENHO_CHOICES, max_length=20, default="PRINCIPAL"
+    )
+    tipo_reajuste = models.CharField(
+        choices=TIPO_REAJUSTE_CHOICES, max_length=20, null=True, blank=True
+    )
+    status = models.CharField(choices=STATUS_CHOICES, max_length=10, default="ATIVO")
+    valor_total = models.DecimalField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return f"Empenho: {self.numero}"
+
+    class Meta:
+        verbose_name = "Empenho"
+        verbose_name_plural = "Empenhos"
+        ordering = ["-alterado_em"]
