@@ -33,6 +33,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
     DiaSobremesaDoce,
+    Empenho,
     GrupoMedicao,
     Medicao,
     OcorrenciaMedicaoInicial,
@@ -43,6 +44,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     ValorMedicao,
 )
 from sme_terceirizadas.perfil.models import Usuario
+from sme_terceirizadas.terceirizada.models import Contrato, Edital
 
 from ...dados_comuns.constants import DIRETOR_UE
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
@@ -1125,4 +1127,17 @@ class PermissaoLancamentoEspecialCreateUpdateSerializer(serializers.ModelSeriali
 
     class Meta:
         model = PermissaoLancamentoEspecial
+        fields = "__all__"
+
+
+class EmpenhoCreateUpdateSerializer(serializers.ModelSerializer):
+    contrato = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=Contrato.objects.all()
+    )
+    edital = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=Edital.objects.all()
+    )
+
+    class Meta:
+        model = Empenho
         fields = "__all__"
