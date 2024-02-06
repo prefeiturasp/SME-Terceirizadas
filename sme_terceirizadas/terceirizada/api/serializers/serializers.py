@@ -61,7 +61,7 @@ class DistribuidorComEnderecoSimplesSerializer(serializers.ModelSerializer):
         )
 
 
-class VigenciaContratoSerializer(serializers.ModelSerializer):
+class VigenciaContratoSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = VigenciaContrato
         fields = ("uuid", "data_inicial", "data_final")
@@ -75,7 +75,7 @@ class EditalSerializer(serializers.ModelSerializer):
 
 class ContratoSimplesSerializer(serializers.ModelSerializer):
     edital = EditalSerializer()
-    vigencias = VigenciaContratoSerializer(many=True)
+    vigencias = VigenciaContratoSimplesSerializer(many=True)
     modalidade_display = serializers.CharField(source="get_modalidade_display")
 
     class Meta:
@@ -102,7 +102,7 @@ class ContratoSerializer(serializers.ModelSerializer):
     edital = serializers.SlugRelatedField(
         slug_field="uuid", queryset=Edital.objects.all()
     )
-    vigencias = VigenciaContratoSerializer(many=True)
+    vigencias = VigenciaContratoSimplesSerializer(many=True)
 
     lotes = LoteSimplesSerializer(many=True)
 
@@ -163,3 +163,13 @@ class EmailsTerceirizadaPorModuloSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailTerceirizadaPorModulo
         exclude = ("id", "criado_por")
+
+
+class VigenciaContratoSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="contrato.uuid")
+    numero = serializers.CharField(source="contrato.numero")
+    edital = EditalSimplesSerializer(source="contrato.edital")
+
+    class Meta:
+        model = VigenciaContrato
+        exclude = ("id", "data_inicial", "data_final", "contrato")

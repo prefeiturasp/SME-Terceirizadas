@@ -13,7 +13,7 @@ from ..api.serializers.serializers import (
     EditalSimplesSerializer,
     EmailsTerceirizadaPorModuloSerializer,
     TerceirizadaSimplesSerializer,
-    VigenciaContratoSerializer,
+    VigenciaContratoSimplesSerializer,
 )
 from ..models import (
     Contrato,
@@ -231,7 +231,7 @@ def vigencia_contrato(contrato):
 
 @pytest.fixture
 def vigencia_contrato_serializer(vigencia_contrato):
-    return VigenciaContratoSerializer(vigencia_contrato)
+    return VigenciaContratoSimplesSerializer(vigencia_contrato)
 
 
 @pytest.fixture
