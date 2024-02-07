@@ -980,6 +980,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         queryset=GrupoMedicao.objects.all(),
     )
     valores_medicao = ValorMedicaoCreateUpdateSerializer(many=True, required=False)
+    infantil_ou_fundamental = serializers.CharField(required=False)
 
     def create(self, validated_data):
         validated_data["criado_por"] = self.context["request"].user
@@ -1014,6 +1015,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                 periodo_escolar=None,
             )
         medicao.save()
+        infantil_ou_fundamental = validated_data.pop("infantil_ou_fundamental", "N/A")
 
         for valor_medicao in valores_medicao_dict:
             dia = int(valor_medicao.get("dia", ""))
@@ -1028,6 +1030,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                 categoria_medicao=valor_medicao.get("categoria_medicao", ""),
                 tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
                 faixa_etaria=valor_medicao.get("faixa_etaria", None),
+                infantil_ou_fundamental=infantil_ou_fundamental,
                 defaults={
                     "medicao": medicao,
                     "dia": valor_medicao.get("dia", ""),
@@ -1037,6 +1040,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                     "categoria_medicao": valor_medicao.get("categoria_medicao", ""),
                     "tipo_alimentacao": valor_medicao.get("tipo_alimentacao", None),
                     "faixa_etaria": valor_medicao.get("faixa_etaria", None),
+                    "infantil_ou_fundamental": infantil_ou_fundamental,
                 },
             )
 
@@ -1053,6 +1057,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
             log_alteracoes_escola_corrige_periodo(user, instance, acao, valores)
 
         valores_medicao_dict = validated_data.pop("valores_medicao", None)
+        infantil_ou_fundamental = validated_data.pop("infantil_ou_fundamental", "N/A")
 
         if valores_medicao_dict:
             for valor_medicao in valores_medicao_dict:
@@ -1068,6 +1073,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                     categoria_medicao=valor_medicao.get("categoria_medicao", ""),
                     tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
                     faixa_etaria=valor_medicao.get("faixa_etaria", None),
+                    infantil_ou_fundamental=infantil_ou_fundamental,
                     defaults={
                         "medicao": instance,
                         "dia": valor_medicao.get("dia", ""),
@@ -1077,6 +1083,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                         "categoria_medicao": valor_medicao.get("categoria_medicao", ""),
                         "tipo_alimentacao": valor_medicao.get("tipo_alimentacao", None),
                         "faixa_etaria": valor_medicao.get("faixa_etaria", None),
+                        "infantil_ou_fundamental": infantil_ou_fundamental,
                     },
                 )
         eh_observacao = self.context["request"].data.get(
