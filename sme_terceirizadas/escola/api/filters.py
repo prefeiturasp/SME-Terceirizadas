@@ -25,8 +25,12 @@ class AlunoFilter(filters.FilterSet):
     def filter_escola(self, queryset, name, value):
         _filter = {name: value}
 
-        historicos_da_escola = HistoricoMatriculaAluno.objects.filter(**_filter)
         alunos_atualmente_na_escola = queryset.filter(**_filter)
+
+        if self.request.query_params.get("inclui_alunos_egressos") != "true":
+            return alunos_atualmente_na_escola
+
+        historicos_da_escola = HistoricoMatriculaAluno.objects.filter(**_filter)
         alunos_com_historico_na_escola = Aluno.objects.filter(
             id__in=historicos_da_escola.values_list("aluno_id", flat=True)
         )
