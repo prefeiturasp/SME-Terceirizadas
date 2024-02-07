@@ -1043,7 +1043,7 @@ def popula_campo_total_refeicoes_pagamento(
                 )
                 valor_comparativo = (
                     valor_matriculados
-                    if valor_matriculados > 0
+                    if int(valor_matriculados) > 0
                     else valor_numero_de_alunos
                 )
                 total_refeicao = min(int(total_refeicao), int(valor_comparativo))
@@ -1067,7 +1067,7 @@ def get_valor_campo(
             i for i, campo in enumerate(campos_tabela_anterior) if campo == nome_campo
         ]
         index_campo = get_index_refeicao(indexes_campo, indice_periodo)
-
+        len_faixas = 0
         if "faixas_etarias" in tabela_anterior:
             faixas_etarias = tabela_anterior["faixas_etarias"]
             len_faixas = (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
@@ -1077,18 +1077,22 @@ def get_valor_campo(
                 index_campo + len_faixas + 1
             ]
             if nome_campo in campos_tabela_anterior
+            and len(tabela_anterior["valores_campos"])
             else 0
         )
     elif nome_campo in campos:
         indexes_campo = [i for i, campo in enumerate(campos) if campo == nome_campo]
         index_campo = get_index_refeicao(indexes_campo, indice_periodo)
+        len_faixas = 0
 
         if "faixas_etarias" in tabela:
             faixas_etarias = tabela["faixas_etarias"]
             len_faixas = (len(faixas_etarias) * 2) - 1 if faixas_etarias else 0
+
         valor_campo = (
             valores_dia[index_campo + len_faixas + 1] if nome_campo in campos else 0
         )
+
     else:
         valor_campo = 0
     return valor_campo
