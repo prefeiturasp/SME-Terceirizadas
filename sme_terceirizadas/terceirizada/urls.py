@@ -21,5 +21,6 @@ router.register(
     basename="emails-terceirizadas",
 )
 router.register("contratos", viewsets.ContratoViewSet, basename="Contratos")
+router.register("vigencias", viewsets.VigenciaContratoViewSet, basename="Vigencias")
 
 urlpatterns = [path("", include(router.urls))]

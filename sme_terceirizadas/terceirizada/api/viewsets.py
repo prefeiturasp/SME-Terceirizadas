@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.functions import Lower
@@ -11,7 +13,13 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from ...escola.api.serializers import TerceirizadaSerializer
 from ...relatorios.relatorios import relatorio_quantitativo_por_terceirizada
 from ..forms import RelatorioQuantitativoForm
-from ..models import Contrato, Edital, EmailTerceirizadaPorModulo, Terceirizada
+from ..models import (
+    Contrato,
+    Edital,
+    EmailTerceirizadaPorModulo,
+    Terceirizada,
+    VigenciaContrato,
+)
 from ..utils import TerceirizadasEmailsPagination, obtem_dados_relatorio_quantitativo
 from .filters import EmailTerceirizadaPorModuloFilter, TerceirizadaFilter
 from .serializers.serializers import (
@@ -24,6 +32,7 @@ from .serializers.serializers import (
     EmailsTerceirizadaPorModuloSerializer,
     TerceirizadaLookUpSerializer,
     TerceirizadaSimplesSerializer,
+    VigenciaContratoSerializer,
 )
 from .serializers.serializers_create import (
     CreateEmailTerceirizadaPorModuloSerializer,
@@ -217,4 +226,22 @@ class ContratoViewSet(ReadOnlyModelViewSet):
                     self.get_queryset().values_list("numero", flat=True)
                 )
             }
+        )
+
+
+class VigenciaContratoViewSet(ReadOnlyModelViewSet):
+    lookup_field = "uuid"
+    serializer_class = VigenciaContratoSerializer
+    queryset = VigenciaContrato.objects.all()
+
+    @action(detail=False, methods=["GET"], url_path="contratos-vigentes")
+    def contratos_vigentes(self, request):
+        queryset = self.get_queryset()
+        data_atual = date.today()
+        vigencias_contratos = queryset.filter(
+            data_inicial__lte=data_atual, data_final__gte=data_atual
+        )
+
+        return Response(
+            {"results": VigenciaContratoSerializer(vigencias_contratos, many=True).data}
         )
