@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from django_filters import rest_framework as filters
 
 from sme_terceirizadas.escola.models import Aluno, HistoricoMatriculaAluno
@@ -31,11 +33,30 @@ class AlunoFilter(filters.FilterSet):
             return alunos_atualmente_na_escola
 
         historicos_da_escola = HistoricoMatriculaAluno.objects.filter(**_filter)
+
+        mes = self.request.query_params.get("mes")
+        ano = self.request.query_params.get("ano")
+        if mes is not None and ano is not None:
+            ultimo_dia_do_mes = datetime(
+                int(ano), min(int(mes) + 1, 12), 1
+            ) - timedelta(days=1)
+            primeiro_dia_do_mes = datetime(int(ano), int(mes), 1)
+
+            historicos_da_escola_ativos = historicos_da_escola.filter(
+                data_inicio__lte=ultimo_dia_do_mes, data_fim__isnull=True
+            )
+            historicos_da_escola_concluidos = historicos_da_escola.filter(
+                data_fim__gte=primeiro_dia_do_mes
+            )
+            historicos_da_escola = (
+                historicos_da_escola_ativos | historicos_da_escola_concluidos
+            )
+
         alunos_com_historico_na_escola = Aluno.objects.filter(
             id__in=historicos_da_escola.values_list("aluno_id", flat=True)
         )
 
-        return alunos_atualmente_na_escola | alunos_com_historico_na_escola
+        return alunos_com_historico_na_escola
 
 
 class LogAlunosMatriculadosFaixaEtariaDiaFilter(filters.FilterSet):
