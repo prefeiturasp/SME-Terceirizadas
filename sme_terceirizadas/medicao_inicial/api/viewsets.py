@@ -76,7 +76,7 @@ from .constants import (
     STATUS_RELACAO_DRE_MEDICAO,
     STATUS_RELACAO_DRE_UE,
 )
-from .filters import DiaParaCorrecaoFilter
+from .filters import DiaParaCorrecaoFilter, EmpenhoFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     AlimentacaoLancamentoEspecialSerializer,
@@ -1522,6 +1522,8 @@ class EmpenhoViewSet(ModelViewSet):
     permission_classes = [UsuarioCODAEGestaoAlimentacao]
     queryset = Empenho.objects.all()
     serializer_class = EmpenhoSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = EmpenhoFilter
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
