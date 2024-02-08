@@ -313,6 +313,12 @@ class CategoriaMedicao(Nomeavel, Ativavel, TemChaveExterna):
 class ValorMedicao(
     TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, TemDia, TemSemana
 ):
+    INFANTIL_OU_FUNDAMENTAL = (
+        ("N/A", "N/A"),
+        ("INFANTIL", "INFANTIL"),
+        ("FUNDAMENTAL", "FUNDAMENTAL"),
+    )
+
     valor = models.TextField("Valor do Campo")
     nome_campo = models.CharField(max_length=100)
     medicao = models.ForeignKey(
@@ -328,6 +334,9 @@ class ValorMedicao(
         "escola.FaixaEtaria", blank=True, null=True, on_delete=models.DO_NOTHING
     )
     habilitado_correcao = models.BooleanField(default=False)
+    infantil_ou_fundamental = models.CharField(
+        max_length=11, choices=INFANTIL_OU_FUNDAMENTAL, default="N/A"
+    )
 
     @classmethod
     def get_week_of_month(cls, year, month, day):

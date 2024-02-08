@@ -156,6 +156,7 @@ class ValorMedicaoSerializer(serializers.ModelSerializer):
     faixa_etaria = serializers.SerializerMethodField()
     faixa_etaria_str = serializers.SerializerMethodField()
     faixa_etaria_inicio = serializers.SerializerMethodField()
+    infantil_ou_fundamental = serializers.CharField()
 
     def get_medicao_uuid(self, obj):
         return obj.medicao.uuid
@@ -189,6 +190,7 @@ class ValorMedicaoSerializer(serializers.ModelSerializer):
             "uuid",
             "medicao_alterado_em",
             "habilitado_correcao",
+            "infantil_ou_fundamental",
         )
 
 
