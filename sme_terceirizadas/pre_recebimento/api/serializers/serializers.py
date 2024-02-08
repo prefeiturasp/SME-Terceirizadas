@@ -851,7 +851,7 @@ class FichaTecnicaComAnaliseDetalharSerializer(serializers.ModelSerializer):
     criado_em = serializers.SerializerMethodField()
     produto = serializers.SerializerMethodField()
     marca = serializers.SerializerMethodField()
-    empresa = serializers.SerializerMethodField()
+    empresa = TerceirizadaLookUpSerializer()
     fabricante = serializers.SerializerMethodField()
     unidade_medida_porcao = serializers.SerializerMethodField()
     status = serializers.CharField(source="get_status_display", read_only=True)
@@ -872,9 +872,6 @@ class FichaTecnicaComAnaliseDetalharSerializer(serializers.ModelSerializer):
 
     def get_marca(self, obj):
         return obj.marca.nome
-
-    def get_empresa(self, obj):
-        return obj.empresa.razao_social
 
     def get_fabricante(self, obj):
         return obj.fabricante.nome
