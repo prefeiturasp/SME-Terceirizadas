@@ -39,4 +39,4 @@ class ContratoFilter(filters.FilterSet):
             | queryset.filter(contratos__processo__icontains=value)
             | queryset.filter(contratos__edital__numero__icontains=value)
             | queryset.filter(contratos__edital__tipo_contratacao__icontains=value)
-        )
+        ).distinct()
