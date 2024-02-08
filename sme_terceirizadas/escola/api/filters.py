@@ -46,7 +46,7 @@ class AlunoFilter(filters.FilterSet):
                 data_inicio__lte=ultimo_dia_do_mes, data_fim__isnull=True
             )
             historicos_da_escola_concluidos = historicos_da_escola.filter(
-                data_fim__gte=primeiro_dia_do_mes
+                data_inicio__lte=ultimo_dia_do_mes, data_fim__gte=primeiro_dia_do_mes
             )
             historicos_da_escola = (
                 historicos_da_escola_ativos | historicos_da_escola_concluidos
