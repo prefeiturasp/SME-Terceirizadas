@@ -22,7 +22,11 @@ from ..models import (
     VigenciaContrato,
 )
 from ..utils import TerceirizadasEmailsPagination, obtem_dados_relatorio_quantitativo
-from .filters import EmailTerceirizadaPorModuloFilter, TerceirizadaFilter
+from .filters import (
+    ContratoFilter,
+    EmailTerceirizadaPorModuloFilter,
+    TerceirizadaFilter,
+)
 from .serializers.serializers import (
     ContratoSerializer,
     DistribuidorSimplesSerializer,
@@ -176,6 +180,8 @@ class EditalContratosViewSet(viewsets.ModelViewSet):
     serializer_class = EditalContratosSerializer
     pagination_class = DefaultPagination
     queryset = Edital.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ContratoFilter
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
