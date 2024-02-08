@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from ...dados_comuns.api.paginations import DefaultPagination
 from ...escola.api.serializers import TerceirizadaSerializer
 from ...relatorios.relatorios import relatorio_quantitativo_por_terceirizada
 from ..forms import RelatorioQuantitativoForm
@@ -173,6 +174,7 @@ class TerceirizadaSimplesViewSet(viewsets.ModelViewSet):
 class EditalContratosViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = EditalContratosSerializer
+    pagination_class = DefaultPagination
     queryset = Edital.objects.all()
 
     def get_serializer_class(self):
