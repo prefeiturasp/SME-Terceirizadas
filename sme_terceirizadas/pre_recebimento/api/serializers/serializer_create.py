@@ -1311,7 +1311,7 @@ class AnaliseFichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     detalhes_produto_correcoes = serializers.CharField(
-        required=True,
+        required=False,
         allow_blank=True,
     )
     informacoes_nutricionais_conferido = serializers.BooleanField(
@@ -1319,7 +1319,7 @@ class AnaliseFichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     informacoes_nutricionais_correcoes = serializers.CharField(
-        required=True,
+        required=False,
         allow_blank=True,
     )
     conservacao_conferido = serializers.BooleanField(
@@ -1327,7 +1327,7 @@ class AnaliseFichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     conservacao_correcoes = serializers.CharField(
-        required=True,
+        required=False,
         allow_blank=True,
     )
     temperatura_e_transporte_conferido = serializers.BooleanField(
@@ -1335,7 +1335,7 @@ class AnaliseFichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     temperatura_e_transporte_correcoes = serializers.CharField(
-        required=True,
+        required=False,
         allow_blank=True,
     )
     armazenamento_conferido = serializers.BooleanField(
@@ -1343,7 +1343,7 @@ class AnaliseFichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     armazenamento_correcoes = serializers.CharField(
-        required=True,
+        required=False,
         allow_blank=True,
     )
     embalagem_e_rotulagem_conferido = serializers.BooleanField(
@@ -1351,7 +1351,7 @@ class AnaliseFichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     embalagem_e_rotulagem_correcoes = serializers.CharField(
-        required=True,
+        required=False,
         allow_blank=True,
     )
     responsavel_tecnico_conferido = serializers.BooleanField(
