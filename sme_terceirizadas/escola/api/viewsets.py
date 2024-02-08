@@ -636,13 +636,6 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
     def get_queryset(self):
         if self.action == "retrieve":
             return self.queryset.select_related("escola__diretoria_regional")
-        if self.request.query_params.get("inclui_alunos_sem_matricula") == "true":
-            queryset = Aluno.objects.all()
-            if self.request.query_params.get("escola"):
-                queryset = queryset.filter(
-                    escola__uuid=self.request.query_params.get("escola")
-                )
-            return self.queryset | queryset.filter(nao_matriculado=True)
         return self.queryset
 
     @action(
