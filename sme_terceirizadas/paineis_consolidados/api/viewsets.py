@@ -20,6 +20,7 @@ from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEDietaEspecial,
+    UsuarioCODAEGabinete,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
     UsuarioNutricionista,
@@ -493,7 +494,7 @@ class NutrimanifestacaoSolicitacoesViewSet(SolicitacoesViewSet):
         detail=False,
         methods=["GET"],
         url_path=AUTORIZADOS,
-        permission_classes=(UsuarioNutricionista,),
+        permission_classes=[UsuarioNutricionista | UsuarioCODAEGabinete],
     )
     def autorizados(self, request):
         query_set = SolicitacoesNutrimanifestacao.get_autorizados()
@@ -506,7 +507,7 @@ class NutrimanifestacaoSolicitacoesViewSet(SolicitacoesViewSet):
         detail=False,
         methods=["GET"],
         url_path=NEGADOS,
-        permission_classes=(UsuarioNutricionista,),
+        permission_classes=[UsuarioNutricionista | UsuarioCODAEGabinete],
     )
     def negados(self, request):
         query_set = SolicitacoesNutrimanifestacao.get_negados()
@@ -519,7 +520,7 @@ class NutrimanifestacaoSolicitacoesViewSet(SolicitacoesViewSet):
         detail=False,
         methods=["GET"],
         url_path=CANCELADOS,
-        permission_classes=(UsuarioNutricionista,),
+        permission_classes=[UsuarioNutricionista | UsuarioCODAEGabinete],
     )
     def cancelados(self, request):
         query_set = SolicitacoesNutrimanifestacao.get_cancelados()
