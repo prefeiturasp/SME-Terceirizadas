@@ -45,6 +45,7 @@ from ..models import (
     CategoriaMedicao,
     DiaParaCorrigir,
     DiaSobremesaDoce,
+    Empenho,
     Medicao,
     OcorrenciaMedicaoInicial,
     PermissaoLancamentoEspecial,
@@ -75,13 +76,14 @@ from .constants import (
     STATUS_RELACAO_DRE_MEDICAO,
     STATUS_RELACAO_DRE_UE,
 )
-from .filters import DiaParaCorrecaoFilter
+from .filters import DiaParaCorrecaoFilter, EmpenhoFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
 from .serializers import (
     AlimentacaoLancamentoEspecialSerializer,
     CategoriaMedicaoSerializer,
     DiaParaCorrigirSerializer,
     DiaSobremesaDoceSerializer,
+    EmpenhoSerializer,
     MedicaoSerializer,
     OcorrenciaMedicaoInicialSerializer,
     PermissaoLancamentoEspecialSerializer,
@@ -92,6 +94,7 @@ from .serializers import (
 )
 from .serializers_create import (
     DiaSobremesaDoceCreateManySerializer,
+    EmpenhoCreateUpdateSerializer,
     MedicaoCreateUpdateSerializer,
     PermissaoLancamentoEspecialCreateUpdateSerializer,
     SolicitacaoMedicaoInicialCreateSerializer,
@@ -1512,3 +1515,18 @@ class DiasParaCorrigirViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DiaParaCorrecaoFilter
     pagination_class = None
+
+
+class EmpenhoViewSet(ModelViewSet):
+    lookup_field = "uuid"
+    permission_classes = [UsuarioCODAEGestaoAlimentacao]
+    queryset = Empenho.objects.all()
+    serializer_class = EmpenhoSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = EmpenhoFilter
+    pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return EmpenhoCreateUpdateSerializer
+        return EmpenhoSerializer

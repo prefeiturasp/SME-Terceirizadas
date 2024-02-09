@@ -1,5 +1,15 @@
 @import "../variaveis";
 
+@page :nth(n+2) {
+  margin-top: 6.7cm !important;
+  padding-top: 1cm !important;
+}
+
+@page :nth(1) {
+  margin-top: 1cm !important;
+  padding-top: 6.6cm !important;
+}
+
 .dados{
   display: flex;
   flex-wrap: wrap;
@@ -41,9 +51,11 @@
     }
 
     .assinatura-container{
+      height: 2.3cm;
       border: 1px solid #A4A4A4;
       border-radius: 4px;
       display: flex;
+      align-items: center;
       padding: 4px;
     }
 
