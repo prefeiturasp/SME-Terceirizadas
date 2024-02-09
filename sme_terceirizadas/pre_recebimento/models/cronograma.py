@@ -937,6 +937,29 @@ class AnaliseFichaTecnica(ModeloBase, CriadoPor):
     modo_preparo_conferido = models.BooleanField(null=True)
     outras_informacoes_conferido = models.BooleanField(null=True)
 
+    @property
+    def aprovada(self):
+        return (
+            (self.detalhes_produto_conferido and not self.detalhes_produto_correcoes)
+            and (
+                self.informacoes_nutricionais_conferido
+                and not self.informacoes_nutricionais_correcoes
+            )
+            and (self.conservacao_conferido and not self.conservacao_correcoes)
+            and (
+                self.temperatura_e_transporte_conferido
+                and not self.temperatura_e_transporte_correcoes
+            )
+            and (self.armazenamento_conferido and not self.armazenamento_correcoes)
+            and (
+                self.embalagem_e_rotulagem_conferido
+                and not self.embalagem_e_rotulagem_correcoes
+            )
+            and self.responsavel_tecnico_conferido
+            and self.modo_preparo_conferido
+            and self.outras_informacoes_conferido
+        )
+
     class Meta:
         verbose_name = "Análise da Ficha Técnica"
         verbose_name_plural = "Análises das Fichas Técnicas"

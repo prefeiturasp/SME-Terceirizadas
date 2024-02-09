@@ -1381,3 +1381,88 @@ class AnaliseFichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnaliseFichaTecnica
         exclude = ("id",)
+
+
+class AnaliseFichaTecnicaCreateSerializer(serializers.ModelSerializer):
+    detalhes_produto_conferido = serializers.BooleanField()
+    detalhes_produto_correcoes = serializers.CharField(allow_blank=True)
+    informacoes_nutricionais_conferido = serializers.BooleanField()
+    informacoes_nutricionais_correcoes = serializers.CharField(allow_blank=True)
+    conservacao_conferido = serializers.BooleanField()
+    conservacao_correcoes = serializers.CharField(allow_blank=True)
+    temperatura_e_transporte_conferido = serializers.BooleanField()
+    temperatura_e_transporte_correcoes = serializers.CharField(allow_blank=True)
+    armazenamento_conferido = serializers.BooleanField()
+    armazenamento_correcoes = serializers.CharField(allow_blank=True)
+    embalagem_e_rotulagem_conferido = serializers.BooleanField()
+    embalagem_e_rotulagem_correcoes = serializers.CharField(allow_blank=True)
+    responsavel_tecnico_conferido = serializers.BooleanField()
+    modo_preparo_conferido = serializers.BooleanField()
+    outras_informacoes_conferido = serializers.BooleanField()
+
+    def validate(self, attrs):
+        campos_dependentes = [
+            "detalhes_produto",
+            "informacoes_nutricionais",
+            "conservacao",
+            "temperatura_e_transporte",
+            "armazenamento",
+            "embalagem_e_rotulagem",
+        ]
+
+        self._validate_campos_correcoes_preenchido(attrs, campos_dependentes)
+        self._validate_campos_correcoes_vazio(attrs, campos_dependentes)
+
+        return attrs
+
+    def _validate_campos_correcoes_preenchido(self, attrs, campos_dependentes):
+        for campo in campos_dependentes:
+            if (
+                attrs[f"{campo}_conferido"] is False
+                and attrs[f"{campo}_correcoes"] == ""
+            ):
+                raise serializers.ValidationError(
+                    f"O valor de {campo}_correcoes não pode ser vazio quando {campo}_conferido for False."
+                )
+
+    def _validate_campos_correcoes_vazio(self, attrs, campos_dependentes):
+        for campo in campos_dependentes:
+            if (
+                attrs[f"{campo}_conferido"] is True
+                and attrs[f"{campo}_correcoes"] != ""
+            ):
+                raise serializers.ValidationError(
+                    f"O valor de {campo}_correcoes deve ser vazio quando {campo}_conferido for True."
+                )
+
+    def create(self, validated_data):
+        usuario = self.context.get("criado_por")
+        analise = AnaliseFichaTecnica.objects.create(
+            criado_por=usuario,
+            ficha_tecnica=self.context.get("ficha_tecnica"),
+            **validated_data,
+        )
+
+        self._avaliar_estado_ficha_tecnica(analise, usuario)
+
+        return analise
+
+    def update(self, instance, validated_data):
+        usuario = self.context.get("criado_por")
+        validated_data["criado_por"] = usuario
+        analise = update_instance_from_dict(instance, validated_data, save=True)
+
+        self._avaliar_estado_ficha_tecnica(analise, usuario)
+
+        return analise
+
+    def _avaliar_estado_ficha_tecnica(self, analise, usuario):
+        (
+            analise.ficha_tecnica.gpcodae_aprova(user=usuario)
+            if analise.aprovada
+            else analise.ficha_tecnica.gpcodae_envia_para_correcao(user=usuario)
+        )
+
+    class Meta:
+        model = AnaliseFichaTecnica
+        exclude = ("id", "ficha_tecnica")
