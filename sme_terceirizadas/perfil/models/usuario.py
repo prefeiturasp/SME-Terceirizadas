@@ -254,7 +254,6 @@ class Usuario(
                 if self.vinculo_atual.perfil.nome in [
                     COORDENADOR_LOGISTICA,
                     COORDENADOR_CODAE_DILOG_LOGISTICA,
-                    ADMINISTRADOR_CODAE_GABINETE,
                     ADMINISTRADOR_CODAE_DILOG_JURIDICO,
                     ADMINISTRADOR_CODAE_DILOG_CONTABIL,
                     ADMINISTRADOR_REPRESENTANTE_CODAE,
@@ -281,6 +280,8 @@ class Usuario(
                     tipo_usuario = "nutricao_manifestacao"
                 elif self.vinculo_atual.perfil.nome in [ADMINISTRADOR_MEDICAO]:
                     tipo_usuario = "medicao"
+                elif self.vinculo_atual.perfil.nome in [ADMINISTRADOR_CODAE_GABINETE]:
+                    tipo_usuario = "codae_gabinete"
                 elif self.vinculo_atual.perfil.nome in [
                     DILOG_CRONOGRAMA,
                     DILOG_QUALIDADE,
