@@ -67,6 +67,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
     TipoEmbalagemQldPagination,
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
+    AnaliseFichaTecnicaCreateSerializer,
     AnaliseFichaTecnicaRascunhoSerializer,
     CronogramaCreateSerializer,
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
@@ -1194,6 +1195,30 @@ class FichaTecnicaModelViewSet(
             serializer.data,
             status=HTTP_201_CREATED if analise is None else HTTP_200_OK,
         )
+
+    @action(
+        detail=True,
+        methods=["POST", "PUT"],
+        url_path="analise-gpcodae",
+        permission_classes=(PermissaoParaAnalisarFichaTecnica,),
+    )
+    def analise_gpcodae(self, request, *args, **kwargs):
+        ficha_tecnica = self.get_object()
+        analise = ficha_tecnica.analises.last()
+        criado_por = self.request.user
+
+        serializer = AnaliseFichaTecnicaCreateSerializer(
+            instance=analise,
+            data=request.data,
+            context={
+                "ficha_tecnica": ficha_tecnica,
+                "criado_por": criado_por,
+            },
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(status=HTTP_201_CREATED if analise is None else HTTP_200_OK)
 
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):
