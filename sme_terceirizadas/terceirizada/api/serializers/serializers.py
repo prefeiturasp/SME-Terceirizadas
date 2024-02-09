@@ -64,7 +64,7 @@ class DistribuidorComEnderecoSimplesSerializer(serializers.ModelSerializer):
 class VigenciaContratoSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = VigenciaContrato
-        fields = ("uuid", "data_inicial", "data_final")
+        fields = ("uuid", "data_inicial", "data_final", "status")
 
 
 class EditalSerializer(serializers.ModelSerializer):

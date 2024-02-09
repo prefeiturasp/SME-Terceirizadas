@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from ...dados_comuns.api.paginations import DefaultPagination
 from ...escola.api.serializers import TerceirizadaSerializer
 from ...relatorios.relatorios import relatorio_quantitativo_por_terceirizada
 from ..forms import RelatorioQuantitativoForm
@@ -21,7 +22,11 @@ from ..models import (
     VigenciaContrato,
 )
 from ..utils import TerceirizadasEmailsPagination, obtem_dados_relatorio_quantitativo
-from .filters import EmailTerceirizadaPorModuloFilter, TerceirizadaFilter
+from .filters import (
+    ContratoFilter,
+    EmailTerceirizadaPorModuloFilter,
+    TerceirizadaFilter,
+)
 from .serializers.serializers import (
     ContratoSerializer,
     DistribuidorSimplesSerializer,
@@ -173,7 +178,10 @@ class TerceirizadaSimplesViewSet(viewsets.ModelViewSet):
 class EditalContratosViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = EditalContratosSerializer
+    pagination_class = DefaultPagination
     queryset = Edital.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ContratoFilter
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:

@@ -625,6 +625,11 @@ class Contrato(ExportModelOperationsMixin("contato"), TemChaveExterna):
 class VigenciaContrato(
     ExportModelOperationsMixin("vigencia_contrato"), TemChaveExterna, IntervaloDeDia
 ):
+    ATIVO = "ativo"
+    VENCIDO = "vencido"
+    PROXIMO_AO_VENCIMENTO = "proximo_ao_vencimento"
+    ENCERRADO = "encerrado"
+
     contrato = models.ForeignKey(
         Contrato,
         on_delete=models.CASCADE,
@@ -633,7 +638,23 @@ class VigenciaContrato(
         blank=True,
     )
 
-    def __str__(self):
+    @property
+    def status(self) -> str:
+        hoje = datetime.date.today()
+        daqui_30_dias = datetime.date.today() + datetime.timedelta(days=30)
+        if self.contrato.encerrado:
+            return self.ENCERRADO
+        elif not self.data_final:
+            return self.ATIVO
+
+        if self.data_final < hoje and not self.contrato.encerrado:
+            return self.VENCIDO
+        elif hoje <= self.data_final <= daqui_30_dias and not self.contrato.encerrado:
+            return self.PROXIMO_AO_VENCIMENTO
+        else:
+            return self.ATIVO
+
+    def __str__(self) -> str:
         return (
             f"Contrato:{self.contrato.numero} {self.data_inicial} a {self.data_final}"
         )
