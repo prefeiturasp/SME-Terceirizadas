@@ -1385,17 +1385,35 @@ class AnaliseFichaTecnicaRascunhoSerializer(serializers.ModelSerializer):
 
 class AnaliseFichaTecnicaCreateSerializer(serializers.ModelSerializer):
     detalhes_produto_conferido = serializers.BooleanField()
-    detalhes_produto_correcoes = serializers.CharField(allow_blank=True)
+    detalhes_produto_correcoes = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
     informacoes_nutricionais_conferido = serializers.BooleanField()
-    informacoes_nutricionais_correcoes = serializers.CharField(allow_blank=True)
+    informacoes_nutricionais_correcoes = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
     conservacao_conferido = serializers.BooleanField()
-    conservacao_correcoes = serializers.CharField(allow_blank=True)
-    temperatura_e_transporte_conferido = serializers.BooleanField()
-    temperatura_e_transporte_correcoes = serializers.CharField(allow_blank=True)
+    conservacao_correcoes = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
+    temperatura_e_transporte_conferido = serializers.BooleanField(required=False)
+    temperatura_e_transporte_correcoes = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
     armazenamento_conferido = serializers.BooleanField()
-    armazenamento_correcoes = serializers.CharField(allow_blank=True)
+    armazenamento_correcoes = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
     embalagem_e_rotulagem_conferido = serializers.BooleanField()
-    embalagem_e_rotulagem_correcoes = serializers.CharField(allow_blank=True)
+    embalagem_e_rotulagem_correcoes = serializers.CharField(
+        required=False,
+        allow_blank=True,
+    )
     responsavel_tecnico_conferido = serializers.BooleanField()
     modo_preparo_conferido = serializers.BooleanField()
     outras_informacoes_conferido = serializers.BooleanField()
