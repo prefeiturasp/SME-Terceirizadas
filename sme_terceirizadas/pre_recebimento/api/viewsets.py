@@ -1165,7 +1165,7 @@ class FichaTecnicaModelViewSet(
     )
     def detalhar_com_analise(self, request, **kwargs):
         return Response(
-            FichaTecnicaComAnaliseDetalharSerializer(self.get_object()).data
+            FichaTecnicaComAnaliseDetalharSerializer(instance=self.get_object()).data
         )
 
     @action(
