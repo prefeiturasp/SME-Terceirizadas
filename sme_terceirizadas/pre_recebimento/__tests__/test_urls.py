@@ -3161,12 +3161,12 @@ def test_url_ficha_tecnica_dados_cronograma(
 def test_url_ficha_tecnica_rascunho_analise_create(
     client_autenticado_codae_dilog,
     ficha_tecnica_perecivel_enviada_para_analise,
-    payload_rascunho_analise_ficha_tecnica,
+    payload_analise_ficha_tecnica,
 ):
     response = client_autenticado_codae_dilog.post(
         f"/ficha-tecnica/{ficha_tecnica_perecivel_enviada_para_analise.uuid}/rascunho-analise-gpcodae/",
         content_type="application/json",
-        data=json.dumps(payload_rascunho_analise_ficha_tecnica),
+        data=json.dumps(payload_analise_ficha_tecnica),
     )
     analises = AnaliseFichaTecnica.objects.all()
 
@@ -3196,9 +3196,9 @@ def test_url_ficha_tecnica_detalhar_com_analise_ok(
 def test_url_ficha_tecnica_rascunho_analise_update(
     client_autenticado_codae_dilog,
     analise_ficha_tecnica,
-    payload_rascunho_analise_ficha_tecnica,
+    payload_analise_ficha_tecnica,
 ):
-    payload_atualizacao = {**payload_rascunho_analise_ficha_tecnica}
+    payload_atualizacao = {**payload_analise_ficha_tecnica}
     payload_atualizacao["detalhes_produto_conferido"] = False
     payload_atualizacao["detalhes_produto_correcoes"] = "Uma correção qualquer..."
 
@@ -3218,16 +3218,79 @@ def test_url_ficha_tecnica_rascunho_analise_update(
 def test_url_ficha_tecnica_rascunho_analise_update_criado_por(
     client_autenticado_codae_dilog,
     analise_ficha_tecnica,
-    payload_rascunho_analise_ficha_tecnica,
+    payload_analise_ficha_tecnica,
 ):
     criado_por_antigo = analise_ficha_tecnica.criado_por
     response = client_autenticado_codae_dilog.put(
         f"/ficha-tecnica/{analise_ficha_tecnica.ficha_tecnica.uuid}/rascunho-analise-gpcodae/",
         content_type="application/json",
-        data=json.dumps(payload_rascunho_analise_ficha_tecnica),
+        data=json.dumps(payload_analise_ficha_tecnica),
     )
     analise_atualizada = AnaliseFichaTecnica.objects.last()
 
     assert response.status_code == status.HTTP_200_OK
     assert AnaliseFichaTecnica.objects.count() == 1
     assert analise_atualizada.criado_por != criado_por_antigo
+
+
+def test_url_ficha_tecnica_analise_gpcodae_aprovacao(
+    client_autenticado_codae_dilog,
+    ficha_tecnica_perecivel_enviada_para_analise,
+    payload_analise_ficha_tecnica,
+):
+    response = client_autenticado_codae_dilog.post(
+        f"/ficha-tecnica/{ficha_tecnica_perecivel_enviada_para_analise.uuid}/analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_analise_ficha_tecnica),
+    )
+    analise = AnaliseFichaTecnica.objects.first()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert analise.ficha_tecnica.status == FichaTecnicaDoProdutoWorkflow.APROVADA
+
+
+def test_url_ficha_tecnica_analise_gpcodae_aprovacao_analise_rascunho(
+    client_autenticado_codae_dilog,
+    analise_ficha_tecnica,
+    payload_analise_ficha_tecnica,
+):
+    analise = analise_ficha_tecnica
+    response = client_autenticado_codae_dilog.put(
+        f"/ficha-tecnica/{analise_ficha_tecnica.ficha_tecnica.uuid}/analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_analise_ficha_tecnica),
+    )
+    analise.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert analise.ficha_tecnica.status == FichaTecnicaDoProdutoWorkflow.APROVADA
+
+
+def test_url_ficha_tecnica_analise_gpcodae_validate(
+    client_autenticado_codae_dilog,
+    ficha_tecnica_perecivel_enviada_para_analise,
+    payload_analise_ficha_tecnica,
+):
+    payload_invalido = {**payload_analise_ficha_tecnica}
+    payload_invalido["detalhes_produto_conferido"] = False
+
+    response = client_autenticado_codae_dilog.post(
+        f"/ficha-tecnica/{ficha_tecnica_perecivel_enviada_para_analise.uuid}/analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_invalido),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert not AnaliseFichaTecnica.objects.exists()
+
+    payload_invalido = {**payload_analise_ficha_tecnica}
+    payload_invalido["detalhes_produto_correcoes"] = "Uma string não vazia"
+
+    response = client_autenticado_codae_dilog.post(
+        f"/ficha-tecnica/{ficha_tecnica_perecivel_enviada_para_analise.uuid}/analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_invalido),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert not AnaliseFichaTecnica.objects.exists()
