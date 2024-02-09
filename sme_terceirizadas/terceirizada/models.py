@@ -590,6 +590,13 @@ class Contrato(ExportModelOperationsMixin("contato"), TemChaveExterna):
     def __str__(self):
         return f"Contrato:{self.numero} Processo: {self.processo}"
 
+    @property
+    def pregao_chamada_publica(self):
+        if self.modalidade == "PREGAO_ELETRONICO":
+            return self.numero_pregao
+        else:
+            return self.numero_chamada_publica
+
     @classmethod
     def encerra_contrato(cls, uuid):
         contrato = cls.objects.get(uuid=uuid)
