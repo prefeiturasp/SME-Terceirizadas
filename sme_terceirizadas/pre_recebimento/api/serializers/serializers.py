@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import ContatoSimplesSerializer
 from sme_terceirizadas.pre_recebimento.models import (
+    AnaliseFichaTecnica,
     ArquivoDoTipoDeDocumento,
     Cronograma,
     DataDeFabricaoEPrazo,
@@ -837,6 +838,144 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
             "arquivo",
             "modo_de_preparo",
             "informacoes_adicionais",
+        )
+
+
+class AnaliseFichaTecnicaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnaliseFichaTecnica
+        exclude = ("id", "ficha_tecnica")
+
+
+class FichaTecnicaComAnaliseDetalharSerializer(serializers.ModelSerializer):
+    criado_em = serializers.SerializerMethodField()
+    produto = serializers.SerializerMethodField()
+    marca = serializers.SerializerMethodField()
+    empresa = TerceirizadaLookUpSerializer()
+    fabricante = serializers.SerializerMethodField()
+    unidade_medida_porcao = serializers.SerializerMethodField()
+    status = serializers.CharField(source="get_status_display", read_only=True)
+    informacoes_nutricionais = InformacoesNutricionaisFichaTecnicaSerializer(many=True)
+    unidade_medida_primaria = serializers.SerializerMethodField()
+    unidade_medida_secundaria = serializers.SerializerMethodField()
+    unidade_medida_primaria_vazia = serializers.SerializerMethodField()
+    unidade_medida_secundaria_vazia = serializers.SerializerMethodField()
+    unidade_medida_volume_primaria = serializers.SerializerMethodField()
+    categoria = serializers.CharField(source="get_categoria_display", read_only=True)
+    analise = serializers.SerializerMethodField()
+
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime("%d/%m/%Y")
+
+    def get_produto(self, obj):
+        return obj.produto.nome
+
+    def get_marca(self, obj):
+        return obj.marca.nome
+
+    def get_fabricante(self, obj):
+        return obj.fabricante.nome
+
+    def get_unidade_medida_porcao(self, obj):
+        return obj.unidade_medida_porcao.nome
+
+    def get_unidade_medida_primaria(self, obj):
+        return obj.unidade_medida_primaria.nome
+
+    def get_unidade_medida_secundaria(self, obj):
+        return obj.unidade_medida_secundaria.nome
+
+    def get_unidade_medida_primaria_vazia(self, obj):
+        return obj.unidade_medida_primaria_vazia.nome
+
+    def get_unidade_medida_secundaria_vazia(self, obj):
+        return obj.unidade_medida_secundaria_vazia.nome
+
+    def get_unidade_medida_volume_primaria(self, obj):
+        return (
+            obj.unidade_medida_volume_primaria.nome
+            if obj.unidade_medida_volume_primaria
+            else None
+        )
+
+    def get_analise(self, obj):
+        analise_mais_recente = obj.analises.order_by("-criado_em").first()
+
+        return (
+            AnaliseFichaTecnicaSerializer(analise_mais_recente).data
+            if analise_mais_recente
+            else None
+        )
+
+    class Meta:
+        model = FichaTecnicaDoProduto
+        fields = (
+            "uuid",
+            "numero",
+            "produto",
+            "pregao_chamada_publica",
+            "marca",
+            "categoria",
+            "status",
+            "criado_em",
+            "empresa",
+            "fabricante",
+            "cnpj_fabricante",
+            "cep_fabricante",
+            "endereco_fabricante",
+            "numero_fabricante",
+            "complemento_fabricante",
+            "bairro_fabricante",
+            "cidade_fabricante",
+            "estado_fabricante",
+            "email_fabricante",
+            "telefone_fabricante",
+            "prazo_validade",
+            "numero_registro",
+            "agroecologico",
+            "organico",
+            "mecanismo_controle",
+            "componentes_produto",
+            "alergenicos",
+            "ingredientes_alergenicos",
+            "gluten",
+            "lactose",
+            "lactose_detalhe",
+            "porcao",
+            "unidade_medida_porcao",
+            "valor_unidade_caseira",
+            "unidade_medida_caseira",
+            "informacoes_nutricionais",
+            "prazo_validade_descongelamento",
+            "condicoes_de_conservacao",
+            "temperatura_congelamento",
+            "temperatura_veiculo",
+            "condicoes_de_transporte",
+            "embalagem_primaria",
+            "embalagem_secundaria",
+            "embalagens_de_acordo_com_anexo",
+            "material_embalagem_primaria",
+            "produto_eh_liquido",
+            "volume_embalagem_primaria",
+            "unidade_medida_volume_primaria",
+            "peso_liquido_embalagem_primaria",
+            "unidade_medida_primaria",
+            "peso_liquido_embalagem_secundaria",
+            "unidade_medida_secundaria",
+            "peso_embalagem_primaria_vazia",
+            "unidade_medida_primaria_vazia",
+            "peso_embalagem_secundaria_vazia",
+            "unidade_medida_secundaria_vazia",
+            "variacao_percentual",
+            "sistema_vedacao_embalagem_secundaria",
+            "rotulo_legivel",
+            "nome_responsavel_tecnico",
+            "habilitacao",
+            "numero_registro_orgao",
+            "arquivo",
+            "modo_de_preparo",
+            "informacoes_adicionais",
+            "analise",
         )
 
 

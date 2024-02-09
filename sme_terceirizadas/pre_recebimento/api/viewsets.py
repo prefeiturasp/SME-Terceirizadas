@@ -9,6 +9,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_406_NOT_ACCEPTABLE,
@@ -23,6 +25,7 @@ from sme_terceirizadas.dados_comuns.fluxo_status import (
 from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaAnalisarDilogSolicitacaoAlteracaoCronograma,
     PermissaoParaAnalisarDinutreSolicitacaoAlteracaoCronograma,
+    PermissaoParaAnalisarFichaTecnica,
     PermissaoParaAssinarCronogramaUsuarioDilog,
     PermissaoParaAssinarCronogramaUsuarioDinutre,
     PermissaoParaAssinarCronogramaUsuarioFornecedor,
@@ -40,6 +43,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     PermissaoParaVisualizarCalendarioCronograma,
     PermissaoParaVisualizarCronograma,
     PermissaoParaVisualizarDocumentosDeRecebimento,
+    PermissaoParaVisualizarFichaTecnica,
     PermissaoParaVisualizarLayoutDeEmbalagem,
     PermissaoParaVisualizarSolicitacoesAlteracaoCronograma,
     PermissaoParaVisualizarUnidadesMedida,
@@ -63,6 +67,7 @@ from sme_terceirizadas.pre_recebimento.api.paginations import (
     TipoEmbalagemQldPagination,
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializer_create import (
+    AnaliseFichaTecnicaRascunhoSerializer,
     CronogramaCreateSerializer,
     DocumentoDeRecebimentoAnalisarRascunhoSerializer,
     DocumentoDeRecebimentoAnalisarSerializer,
@@ -87,6 +92,7 @@ from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     DocRecebimentoDetalharSerializer,
     DocumentoDeRecebimentoSerializer,
     EtapasDoCronogramaCalendarioSerializer,
+    FichaTecnicaComAnaliseDetalharSerializer,
     FichaTecnicaCronogramaSerializer,
     FichaTecnicaDetalharSerializer,
     FichaTecnicaListagemSerializer,
@@ -186,9 +192,9 @@ class CronogramaModelViewSet(ViewSetActionPermissionMixin, viewsets.ModelViewSet
         else:
             qs = sorted(
                 query_set.filter(status__in=workflow).distinct().all(),
-                key=lambda x: x.log_mais_recente.criado_em
-                if x.log_mais_recente
-                else "-criado_em",
+                key=lambda x: (
+                    x.log_mais_recente.criado_em if x.log_mais_recente else "-criado_em"
+                ),
                 reverse=True,
             )
             return qs
@@ -1057,7 +1063,7 @@ class FichaTecnicaModelViewSet(
     lookup_field = "uuid"
     serializer_class = FichaTecnicaRascunhoSerializer
     queryset = FichaTecnicaDoProduto.objects.all().order_by("-criado_em")
-    permission_classes = (UsuarioEhFornecedor,)
+    permission_classes = (PermissaoParaVisualizarFichaTecnica,)
     pagination_class = DefaultPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = FichaTecnicaFilter
@@ -1146,10 +1152,51 @@ class FichaTecnicaModelViewSet(
         detail=True,
         methods=["GET"],
         url_path="dados-cronograma",
-        permission_classes=(PermissaoParaCriarCronograma,),
+        permission_classes=(PermissaoParaVisualizarCronograma,),
     )
     def dados_cronograma(self, request, **kwargs):
         return Response(FichaTecnicaCronogramaSerializer(self.get_object()).data)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="detalhar-com-analise",
+        permission_classes=(PermissaoParaAnalisarFichaTecnica,),
+    )
+    def detalhar_com_analise(self, request, **kwargs):
+        return Response(
+            FichaTecnicaComAnaliseDetalharSerializer(
+                self.get_object(),
+                context=self.get_serializer_context(),
+            ).data
+        )
+
+    @action(
+        detail=True,
+        methods=["POST", "PUT"],
+        url_path="rascunho-analise-gpcodae",
+        permission_classes=(PermissaoParaAnalisarFichaTecnica,),
+    )
+    def rascunho_analise_gpcodae(self, request, *args, **kwargs):
+        ficha_tecnica = self.get_object()
+        analise = ficha_tecnica.analises.last()
+        criado_por = self.request.user
+
+        serializer = AnaliseFichaTecnicaRascunhoSerializer(
+            instance=analise,
+            data=request.data,
+            context={
+                "ficha_tecnica": ficha_tecnica,
+                "criado_por": criado_por,
+            },
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            serializer.data,
+            status=HTTP_201_CREATED if analise is None else HTTP_200_OK,
+        )
 
 
 class CalendarioCronogramaViewset(viewsets.ReadOnlyModelViewSet):

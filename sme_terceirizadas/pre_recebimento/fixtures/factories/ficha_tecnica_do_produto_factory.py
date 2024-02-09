@@ -1,7 +1,10 @@
 from factory import DjangoModelFactory, SubFactory
 from faker import Faker
 
-from sme_terceirizadas.pre_recebimento.models.cronograma import FichaTecnicaDoProduto
+from sme_terceirizadas.pre_recebimento.models.cronograma import (
+    AnaliseFichaTecnica,
+    FichaTecnicaDoProduto,
+)
 from sme_terceirizadas.produto.fixtures.factories.produto_factory import (
     ProdutoLogisticaFactory,
 )
@@ -18,3 +21,10 @@ class FichaTecnicaFactory(DjangoModelFactory):
 
     empresa = SubFactory(EmpresaFactory)
     produto = SubFactory(ProdutoLogisticaFactory)
+
+
+class AnaliseFichaTecnicaFactory(DjangoModelFactory):
+    class Meta:
+        model = AnaliseFichaTecnica
+
+    ficha_tecnica = SubFactory(FichaTecnicaFactory)
