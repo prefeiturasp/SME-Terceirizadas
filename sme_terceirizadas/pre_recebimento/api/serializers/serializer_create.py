@@ -1435,9 +1435,8 @@ class AnaliseFichaTecnicaCreateSerializer(serializers.ModelSerializer):
 
     def _validate_campos_correcoes_preenchido(self, attrs, campos_dependentes):
         for campo in campos_dependentes:
-            if (
-                attrs[f"{campo}_conferido"] is False
-                and attrs[f"{campo}_correcoes"] == ""
+            if attrs.get(f"{campo}_conferido") is False and not attrs.get(
+                f"{campo}_correcoes"
             ):
                 raise serializers.ValidationError(
                     f"O valor de {campo}_correcoes não pode ser vazio quando {campo}_conferido for False."
@@ -1445,9 +1444,8 @@ class AnaliseFichaTecnicaCreateSerializer(serializers.ModelSerializer):
 
     def _validate_campos_correcoes_vazio(self, attrs, campos_dependentes):
         for campo in campos_dependentes:
-            if (
-                attrs[f"{campo}_conferido"] is True
-                and attrs[f"{campo}_correcoes"] != ""
+            if attrs.get(f"{campo}_conferido") is True and attrs.get(
+                f"{campo}_correcoes"
             ):
                 raise serializers.ValidationError(
                     f"O valor de {campo}_correcoes deve ser vazio quando {campo}_conferido for True."
