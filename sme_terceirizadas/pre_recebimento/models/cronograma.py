@@ -693,7 +693,10 @@ class FichaTecnicaDoProduto(
         related_name="fichas_tecnicas",
     )
     cnpj_fabricante = models.CharField(
-        "CNPJ", validators=[MinLengthValidator(14)], max_length=14
+        "CNPJ",
+        validators=[MinLengthValidator(14)],
+        max_length=14,
+        blank=True,
     )
     cep_fabricante = models.CharField("CEP", max_length=8, blank=True)
     endereco_fabricante = models.CharField("Endereco", max_length=160, blank=True)
