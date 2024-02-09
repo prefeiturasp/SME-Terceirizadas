@@ -3,6 +3,7 @@ from nested_inline.admin import NestedModelAdmin, NestedStackedInline
 
 from .forms import ArquivoForm, CaixaAltaNomeForm
 from .models import (
+    AnaliseFichaTecnica,
     ArquivoDoTipoDeDocumento,
     Cronograma,
     DataDeFabricaoEPrazo,
@@ -148,6 +149,11 @@ class InformacoesNutricionaisFichaTecnicaInline(admin.TabularInline):
     extra = 1
 
 
+class AnaliseFichaTecnicaInline(admin.StackedInline):
+    model = AnaliseFichaTecnica
+    extra = 1
+
+
 class FichaTecnicaDoProdutoAdmin(admin.ModelAdmin):
     list_display = (
         "numero",
@@ -156,7 +162,10 @@ class FichaTecnicaDoProdutoAdmin(admin.ModelAdmin):
         "empresa",
         "fabricante",
     )
-    inlines = (InformacoesNutricionaisFichaTecnicaInline,)
+    inlines = (
+        InformacoesNutricionaisFichaTecnicaInline,
+        AnaliseFichaTecnicaInline,
+    )
 
 
 admin.site.register(DocumentoDeRecebimento, DocumentoDeRecebimentoAdmin)
