@@ -940,24 +940,30 @@ class AnaliseFichaTecnica(ModeloBase, CriadoPor):
     @property
     def aprovada(self):
         return (
-            (self.detalhes_produto_conferido and not self.detalhes_produto_correcoes)
+            (
+                self.detalhes_produto_conferido is True
+                and not self.detalhes_produto_correcoes
+            )
             and (
-                self.informacoes_nutricionais_conferido
+                self.informacoes_nutricionais_conferido is True
                 and not self.informacoes_nutricionais_correcoes
             )
-            and (self.conservacao_conferido and not self.conservacao_correcoes)
+            and (self.conservacao_conferido is True and not self.conservacao_correcoes)
             and (
-                self.temperatura_e_transporte_conferido
+                self.temperatura_e_transporte_conferido in [True, None]
                 and not self.temperatura_e_transporte_correcoes
             )
-            and (self.armazenamento_conferido and not self.armazenamento_correcoes)
             and (
-                self.embalagem_e_rotulagem_conferido
+                self.armazenamento_conferido is True
+                and not self.armazenamento_correcoes
+            )
+            and (
+                self.embalagem_e_rotulagem_conferido is True
                 and not self.embalagem_e_rotulagem_correcoes
             )
-            and self.responsavel_tecnico_conferido
-            and self.modo_preparo_conferido
-            and self.outras_informacoes_conferido
+            and self.responsavel_tecnico_conferido is True
+            and self.modo_preparo_conferido is True
+            and self.outras_informacoes_conferido is True
         )
 
     class Meta:
