@@ -125,7 +125,9 @@ class LogSolicitacoesUsuario(
         DOCUMENTO_APROVADO,
         DOCUMENTO_CORRECAO_REALIZADA,
         FICHA_TECNICA_ENVIADA_PARA_ANALISE,
-    ) = range(98)
+        FICHA_TECNICA_APROVADA,
+        FICHA_TECNICA_ENVIADA_PARA_CORRECAO,
+    ) = range(100)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, "Solicitação Realizada"),
@@ -274,6 +276,8 @@ class LogSolicitacoesUsuario(
         (DOCUMENTO_APROVADO, "Documento aprovado"),
         (DOCUMENTO_CORRECAO_REALIZADA, "Documento correção realizada"),
         (FICHA_TECNICA_ENVIADA_PARA_ANALISE, "Ficha Técnica enviada para análise"),
+        (FICHA_TECNICA_APROVADA, "Ficha Técnica aprovada"),
+        (FICHA_TECNICA_ENVIADA_PARA_CORRECAO, "Ficha Técnica enviada para correção"),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
