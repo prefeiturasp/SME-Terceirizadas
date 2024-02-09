@@ -2026,3 +2026,24 @@ class GrupoUnidadeEscolar(TemChaveExterna, Nomeavel):
         verbose_name = "Grupo de unidade escolar"
         verbose_name_plural = "Grupos de unidade escolar"
         ordering = ("nome",)
+
+
+class HistoricoMatriculaAluno(TemChaveExterna):
+    aluno = models.ForeignKey(
+        "Aluno", on_delete=models.PROTECT, related_name="historico"
+    )
+    escola = models.ForeignKey(
+        "Escola", on_delete=models.PROTECT, related_name="historico"
+    )
+    data_inicio = models.DateField()
+    data_fim = models.DateField(null=True)
+    codigo_situacao = models.IntegerField()
+    situacao = models.CharField(blank=True)
+
+    class Meta:
+        verbose_name = "Histórico de Matrícula do Aluno"
+        verbose_name_plural = "Históricos de Matrículas dos Alunos"
+        unique_together = ["aluno", "escola"]
+
+    def __str__(self) -> str:
+        return f"{self.aluno} - {self.escola} | De: {self.data_inicio} Ate: {self.data_fim}"

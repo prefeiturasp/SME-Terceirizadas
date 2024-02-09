@@ -17,6 +17,7 @@ from .models import (
     EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
     GrupoUnidadeEscolar,
+    HistoricoMatriculaAluno,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     LogAlunosMatriculadosFaixaEtariaDia,
     LogAlunosMatriculadosPeriodoEscola,
@@ -294,6 +295,19 @@ class DiaCalendarioAdmin(admin.ModelAdmin):
 class PeriodoEscolarAdmin(admin.ModelAdmin):
     list_display = ("nome", "posicao")
     search_fields = ("nome",)
+
+
+@admin.register(HistoricoMatriculaAluno)
+class HistoricoMatriculaAlunoAdmin(admin.ModelAdmin):
+    list_display = ("aluno", "escola", "data_inicio", "data_fim", "situacao")
+    search_fields = ("aluno__nome", "escola__nome")
+    list_filter = (
+        "situacao",
+        "escola__diretoria_regional",
+        ("data_inicio", DateRangeFilter),
+        ("data_fim", DateRangeFilter),
+    )
+    readonly_fields = ("aluno", "escola")
 
 
 admin.site.register(Codae)

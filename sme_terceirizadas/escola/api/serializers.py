@@ -475,6 +475,10 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.eh_cemei
 
+    def get_eh_emebs(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.eh_emebs
+
     def get_tipo_servico(self, obj):
         if isinstance(obj.instituicao, Terceirizada):
             return obj.instituicao.tipo_servico
@@ -508,6 +512,7 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             instituicao_dict["eh_cei"] = self.get_eh_cei(obj)
             instituicao_dict["eh_cemei"] = self.get_eh_cemei(obj)
+            instituicao_dict["eh_emebs"] = self.get_eh_emebs(obj)
             instituicao_dict["modulo_gestao"] = self.get_modulo_gestao(obj)
             if obj.instituicao.eh_cemei:
                 instituicao_dict[

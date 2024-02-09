@@ -3189,7 +3189,13 @@ def test_url_ficha_tecnica_detalhar_com_analise_ok(
     response = client_autenticado_codae_dilog.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data == FichaTecnicaComAnaliseDetalharSerializer(ficha_tecnica).data
+    assert (
+        response.data
+        == FichaTecnicaComAnaliseDetalharSerializer(
+            ficha_tecnica,
+            context={"request": response.wsgi_request},
+        ).data
+    )
     assert response.data["analise"] is not None
 
 
