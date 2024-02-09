@@ -21,6 +21,7 @@ from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.constants import (
+    TIPO_USUARIO_CODAE_GABINETE,
     TIPO_USUARIO_DIRETORIA_REGIONAL,
     TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     TIPO_USUARIO_NUTRIMANIFESTACAO,
@@ -33,6 +34,7 @@ from ...dados_comuns.fluxo_status import (
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     PermissaoParaReclamarDeProduto,
+    UsuarioCODAEGabinete,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioCODAEGestaoProduto,
     UsuarioDiretoriaRegional,
@@ -720,6 +722,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             constants.COORDENADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae_ou_dre,
             constants.ADMINISTRADOR_GESTAO_PRODUTO: filtros_terceirizada_ou_codae_ou_dre,
             constants.ADMINISTRADOR_EMPRESA: filtros_terceirizada_ou_codae_ou_dre,
+            constants.ADMINISTRADOR_CODAE_GABINETE: filtros_terceirizada_ou_codae_ou_dre,
             constants.COORDENADOR_SUPERVISAO_NUTRICAO: {
                 "status__in": status__in + ["CODAE_QUESTIONOU_NUTRISUPERVISOR"],
                 "raw_sql": (
@@ -738,6 +741,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             constants.ADMINISTRADOR_GESTAO_PRODUTO,
             constants.ADMINISTRADOR_EMPRESA,
             constants.COORDENADOR_SUPERVISAO_NUTRICAO,
+            constants.ADMINISTRADOR_CODAE_GABINETE,
         ]:
             filtros["status__in"] = filtros_dict[perfil_nome]["status__in"]
             raw_sql += filtros_dict[perfil_nome]["raw_sql"]
@@ -2166,10 +2170,12 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             | UsuarioCODAEGestaoAlimentacao
             | UsuarioNutricionista
             | UsuarioOrgaoFiscalizador
+            | UsuarioCODAEGabinete
         ],
     )
     def filtro_reclamacoes_terceirizada(self, request):
         if self.request.user.tipo_usuario in [
+            TIPO_USUARIO_CODAE_GABINETE,
             TIPO_USUARIO_DIRETORIA_REGIONAL,
             TIPO_USUARIO_GESTAO_ALIMENTACAO_TERCEIRIZADA,
             TIPO_USUARIO_NUTRIMANIFESTACAO,
