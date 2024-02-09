@@ -114,8 +114,8 @@ def test_url_list_cronogramas(
     assert "previous" in json
 
 
-def test_url_list_cronogramas_fornecedor(client_autenticado_codae_dilog):
-    response = client_autenticado_codae_dilog.get("/cronogramas/")
+def test_url_list_cronogramas_fornecedor(client_autenticado_fornecedor):
+    response = client_autenticado_fornecedor.get("/cronogramas/")
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert "count" in json
@@ -137,9 +137,9 @@ def test_url_list_solicitacoes_alteracao_cronograma(
 
 
 def test_url_list_solicitacoes_alteracao_cronograma_fornecedor(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
 ):
-    response = client_autenticado_codae_dilog.get(
+    response = client_autenticado_fornecedor.get(
         "/solicitacao-de-alteracao-de-cronograma/"
     )
     assert response.status_code == status.HTTP_200_OK
@@ -150,7 +150,7 @@ def test_url_list_solicitacoes_alteracao_cronograma_fornecedor(
 
 
 def test_url_solicitacao_alteracao_fornecedor(
-    client_autenticado_codae_dilog, cronograma_assinado_perfil_dilog
+    client_autenticado_fornecedor, cronograma_assinado_perfil_dilog
 ):
     data = {
         "cronograma": str(cronograma_assinado_perfil_dilog.uuid),
@@ -173,7 +173,7 @@ def test_url_solicitacao_alteracao_fornecedor(
         ],
         "justificativa": "Teste",
     }
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/solicitacao-de-alteracao-de-cronograma/",
         content_type="application/json",
         data=json.dumps(data),
@@ -421,10 +421,10 @@ def test_url_analise_dilog_erro_transicao_estado(
 
 
 def test_url_fornecedor_assina_cronograma_authorized(
-    client_autenticado_codae_dilog, cronograma_recebido
+    client_autenticado_fornecedor, cronograma_recebido
 ):
     data = json.dumps({"password": constants.DJANGO_ADMIN_PASSWORD})
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/",
         data,
         content_type="application/json",
@@ -435,10 +435,10 @@ def test_url_fornecedor_assina_cronograma_authorized(
 
 
 def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(
-    client_autenticado_codae_dilog, cronograma
+    client_autenticado_fornecedor, cronograma
 ):
     data = json.dumps({"password": constants.DJANGO_ADMIN_PASSWORD})
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/cronogramas/{cronograma.uuid}/fornecedor-assina-cronograma/",
         data,
         content_type="application/json",
@@ -447,10 +447,10 @@ def test_url_fornecedor_confirma_cronograma_erro_transicao_estado(
 
 
 def test_url_fornecedor_confirma_not_authorized(
-    client_autenticado_codae_dilog, cronograma_recebido
+    client_autenticado_fornecedor, cronograma_recebido
 ):
     data = json.dumps({"password": "senha-errada"})
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/cronogramas/{cronograma_recebido.uuid}/fornecedor-assina-cronograma/",
         data,
         content_type="application/json",
@@ -459,10 +459,10 @@ def test_url_fornecedor_confirma_not_authorized(
 
 
 def test_url_fornecedor_assina_cronograma_erro_cronograma_invalido(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
 ):
     data = json.dumps({"password": constants.DJANGO_ADMIN_PASSWORD})
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/cronogramas/{uuid.uuid4()}/fornecedor-assina-cronograma/",
         data,
         content_type="application/json",
@@ -1124,17 +1124,17 @@ def test_url_unidades_medida_action_listar_nomes_abreviacoes(
 
 
 def test_url_cronograma_action_listar_para_cadastro(
-    client_autenticado_codae_dilog, django_user_model, cronograma_factory
+    client_autenticado_fornecedor, django_user_model, cronograma_factory
 ):
     """Deve obter lista com numeros, pregao e nome do produto dos cronogramas cadastrados do fornecedor."""
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     cronogramas_do_fornecedor = [
         cronograma_factory.create(empresa=empresa) for _ in range(10)
     ]
     outros_cronogramas = [cronograma_factory.create() for _ in range(5)]
     todos_cronogramas = cronogramas_do_fornecedor + outros_cronogramas
-    response = client_autenticado_codae_dilog.get(
+    response = client_autenticado_fornecedor.get(
         "/cronogramas/lista-cronogramas-cadastro/"
     )
 
@@ -1153,7 +1153,7 @@ def test_url_cronograma_action_listar_para_cadastro(
 
 
 def test_url_endpoint_layout_de_embalagem_create(
-    client_autenticado_codae_dilog, cronograma_assinado_perfil_dilog, arquivo_base64
+    client_autenticado_fornecedor, cronograma_assinado_perfil_dilog, arquivo_base64
 ):
     data = {
         "cronograma": str(cronograma_assinado_perfil_dilog.uuid),
@@ -1175,7 +1175,7 @@ def test_url_endpoint_layout_de_embalagem_create(
         ],
     }
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/layouts-de-embalagem/", content_type="application/json", data=json.dumps(data)
     )
 
@@ -1186,7 +1186,7 @@ def test_url_endpoint_layout_de_embalagem_create(
 
 
 def test_url_endpoint_layout_de_embalagem_create_cronograma_nao_existe(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
 ):
     """Uuid do cronograma precisa existir na base, imagens_do_tipo_de_embalagem e arquivo são obrigatórios."""
     data = {
@@ -1203,7 +1203,7 @@ def test_url_endpoint_layout_de_embalagem_create_cronograma_nao_existe(
         ],
     }
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/layouts-de-embalagem/", content_type="application/json", data=json.dumps(data)
     )
 
@@ -1715,7 +1715,7 @@ def test_url_layout_embalagens_validacao_analise_correcao(
 
 
 def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(
-    client_autenticado_codae_dilog, arquivo_base64, layout_de_embalagem_para_correcao
+    client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_para_correcao
 ):
     layout_para_corrigir = layout_de_embalagem_para_correcao
     dados_correcao = {
@@ -1736,7 +1736,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(
         ],
     }
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/",
         content_type="application/json",
         data=json.dumps(dados_correcao),
@@ -1750,7 +1750,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige(
 
 
 def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(
-    client_autenticado_codae_dilog, arquivo_base64, layout_de_embalagem_para_correcao
+    client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_para_correcao
 ):
     """Checa transição de estado, UUID valido de tipo de embalagem e se pode ser de fato corrigido."""
     layout_para_corrigir = layout_de_embalagem_para_correcao
@@ -1776,7 +1776,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(
         ],
     }
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/",
         content_type="application/json",
         data=json.dumps(dados),
@@ -1814,7 +1814,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(
     layout_para_corrigir.status = LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE
     layout_para_corrigir.save()
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/layouts-de-embalagem/{layout_para_corrigir.uuid}/fornecedor-realiza-correcao/",
         content_type="application/json",
         data=json.dumps(dados),
@@ -1828,7 +1828,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_corrige_not_ok(
 
 
 def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza(
-    client_autenticado_codae_dilog, arquivo_base64, layout_de_embalagem_aprovado
+    client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_aprovado
 ):
     layout_para_atualizar = layout_de_embalagem_aprovado
     dados_correcao = {
@@ -1866,7 +1866,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza(
         ],
     }
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/layouts-de-embalagem/{layout_para_atualizar.uuid}/",
         content_type="application/json",
         data=json.dumps(dados_correcao),
@@ -1882,7 +1882,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza(
 
 
 def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza_not_ok(
-    client_autenticado_codae_dilog, arquivo_base64, layout_de_embalagem_para_correcao
+    client_autenticado_fornecedor, arquivo_base64, layout_de_embalagem_para_correcao
 ):
     """Checa transição de estado."""
     layout_para_atualizar = layout_de_embalagem_para_correcao
@@ -1904,7 +1904,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza_not_ok(
         ],
     }
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/layouts-de-embalagem/{layout_para_atualizar.uuid}/",
         content_type="application/json",
         data=json.dumps(dados),
@@ -1918,7 +1918,7 @@ def test_url_endpoint_layout_de_embalagem_fornecedor_atualiza_not_ok(
 
 
 def test_url_endpoint_documentos_recebimento_create(
-    client_autenticado_codae_dilog, cronograma_factory, arquivo_base64
+    client_autenticado_fornecedor, cronograma_factory, arquivo_base64
 ):
     cronograma_obj = cronograma_factory.create()
     data = {
@@ -1941,7 +1941,7 @@ def test_url_endpoint_documentos_recebimento_create(
         ],
     }
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/documentos-de-recebimento/",
         content_type="application/json",
         data=json.dumps(data),
@@ -1956,7 +1956,7 @@ def test_url_endpoint_documentos_recebimento_create(
     data["cronograma"] = fake.uuid4()
     data["tipos_de_documentos"][1].pop("arquivos_do_tipo_de_documento")
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/documentos-de-recebimento/",
         content_type="application/json",
         data=json.dumps(data),
@@ -1971,16 +1971,16 @@ def test_url_endpoint_documentos_recebimento_create(
 
 
 def test_url_documentos_de_recebimento_listagem(
-    client_autenticado_codae_dilog, django_user_model, documento_de_recebimento_factory
+    client_autenticado_fornecedor, django_user_model, documento_de_recebimento_factory
 ):
     """Deve obter lista paginada e filtrada de documentos de recebimento."""
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     documentos = [
         documento_de_recebimento_factory.create(cronograma__empresa=empresa)
         for _ in range(11)
     ]
-    response = client_autenticado_codae_dilog.get("/documentos-de-recebimento/")
+    response = client_autenticado_fornecedor.get("/documentos-de-recebimento/")
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -1991,11 +1991,11 @@ def test_url_documentos_de_recebimento_listagem(
 
     # Acessa a próxima página
     next_page = response.data["next"]
-    next_response = client_autenticado_codae_dilog.get(next_page)
+    next_response = client_autenticado_fornecedor.get(next_page)
     assert next_response.status_code == status.HTTP_200_OK
 
     # Tenta acessar uma página que não existe
-    response_not_found = client_autenticado_codae_dilog.get(
+    response_not_found = client_autenticado_fornecedor.get(
         "/documentos-de-recebimento/?page=1000"
     )
     assert response_not_found.status_code == status.HTTP_404_NOT_FOUND
@@ -2007,7 +2007,7 @@ def test_url_documentos_de_recebimento_listagem(
 
     # Teste de consulta com parâmetros
     data = datetime.date.today() - datetime.timedelta(days=1)
-    response_filtro = client_autenticado_codae_dilog.get(
+    response_filtro = client_autenticado_fornecedor.get(
         f"/documentos-de-recebimento/?data_cadastro={data}"
     )
     assert response_filtro.status_code == status.HTTP_200_OK
@@ -2203,13 +2203,13 @@ def test_url_dashboard_documentos_de_recebimento_ver_mais_com_filtros(
 
 
 def test_url_documentos_de_recebimento_detalhar(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     documento_de_recebimento_factory,
     cronograma_factory,
     django_user_model,
     tipo_de_documento_de_recebimento_factory,
 ):
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     contrato = empresa.contratos.first()
     cronograma = cronograma_factory.create(empresa=empresa, contrato=contrato)
@@ -2220,7 +2220,7 @@ def test_url_documentos_de_recebimento_detalhar(
         documento_recebimento=documento_de_recebimento
     )
 
-    response = client_autenticado_codae_dilog.get(
+    response = client_autenticado_fornecedor.get(
         f"/documentos-de-recebimento/{documento_de_recebimento.uuid}/"
     )
     dados_documento_de_recebimento = response.json()
@@ -2350,13 +2350,13 @@ def test_url_documentos_de_recebimento_analisar_documento(
 
 def test_url_documentos_de_recebimento_fornecedor_corrige(
     documento_de_recebimento_factory,
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     arquivo_base64,
     django_user_model,
     cronograma_factory,
     tipo_de_documento_de_recebimento_factory,
 ):
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     cronograma = cronograma_factory.create(
         empresa=empresa,
@@ -2405,7 +2405,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige(
         ],
     }
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/",
         content_type="application/json",
         data=json.dumps(dados_correcao),
@@ -2440,13 +2440,13 @@ def test_url_documentos_de_recebimento_fornecedor_corrige(
 
 def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
     documento_de_recebimento_factory,
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     arquivo_base64,
     django_user_model,
     cronograma_factory,
     tipo_de_documento_de_recebimento_factory,
 ):
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     cronograma = cronograma_factory.create(
         empresa=empresa,
@@ -2481,7 +2481,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
         ],
     }
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/",
         content_type="application/json",
         data=json.dumps(dados_correcao_sem_laudo),
@@ -2502,7 +2502,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
         ],
     }
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/",
         content_type="application/json",
         data=json.dumps(dados_correcao_sem_documentos),
@@ -2538,7 +2538,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
         ],
     }
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/",
         content_type="application/json",
         data=json.dumps(dados_correcao_sem_arquivos),
@@ -2566,7 +2566,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
         ],
     }
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/",
         content_type="application/json",
         data=json.dumps(dados_correcao_sem_arquivos),
@@ -2577,12 +2577,12 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_validacao(
 
 def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
     documento_de_recebimento_factory,
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     arquivo_base64,
     django_user_model,
     cronograma_factory,
 ):
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     cronograma = cronograma_factory.create(
         empresa=empresa,
@@ -2610,7 +2610,7 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
         ],
     }
 
-    response = client_autenticado_codae_dilog.patch(
+    response = client_autenticado_fornecedor.patch(
         f"/documentos-de-recebimento/{documento_de_recebimento.uuid}/corrigir-documentos/",
         content_type="application/json",
         data=json.dumps(dados_correcao),
@@ -2657,27 +2657,27 @@ def test_calendario_cronograma_list_not_authorized(client_autenticado):
 
 
 def test_rascunho_ficha_tecnica_list_metodo_nao_permitido(
-    client_autenticado_codae_dilog, ficha_tecnica_factory
+    client_autenticado_fornecedor, ficha_tecnica_factory
 ):
     url = "/rascunho-ficha-tecnica/"
-    response = client_autenticado_codae_dilog.get(url)
+    response = client_autenticado_fornecedor.get(url)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
 def test_rascunho_ficha_tecnica_retrieve_metodo_nao_permitido(
-    client_autenticado_codae_dilog, ficha_tecnica_factory
+    client_autenticado_fornecedor, ficha_tecnica_factory
 ):
     url = f"/rascunho-ficha-tecnica/{ficha_tecnica_factory().uuid}/"
-    response = client_autenticado_codae_dilog.get(url)
+    response = client_autenticado_fornecedor.get(url)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
 def test_rascunho_ficha_tecnica_create_update(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     payload_ficha_tecnica_rascunho,
     arquivo_pdf_base64,
 ):
-    response_create = client_autenticado_codae_dilog.post(
+    response_create = client_autenticado_fornecedor.post(
         "/rascunho-ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload_ficha_tecnica_rascunho),
@@ -2692,7 +2692,7 @@ def test_rascunho_ficha_tecnica_create_update(
 
     payload_ficha_tecnica_rascunho["pregao_chamada_publica"] = "0987654321"
     payload_ficha_tecnica_rascunho["arquivo"] = arquivo_pdf_base64
-    response_update = client_autenticado_codae_dilog.put(
+    response_update = client_autenticado_fornecedor.put(
         f'/rascunho-ficha-tecnica/{response_create.json()["uuid"]}/',
         content_type="application/json",
         data=json.dumps(payload_ficha_tecnica_rascunho),
@@ -2705,10 +2705,10 @@ def test_rascunho_ficha_tecnica_create_update(
 
 
 def test_ficha_tecnica_create_ok(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     payload_ficha_tecnica_pereciveis,
 ):
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload_ficha_tecnica_pereciveis),
@@ -2722,11 +2722,11 @@ def test_ficha_tecnica_create_ok(
 
 
 def test_ficha_tecnica_create_from_rascunho_ok(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     payload_ficha_tecnica_rascunho,
     payload_ficha_tecnica_pereciveis,
 ):
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/rascunho-ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload_ficha_tecnica_rascunho),
@@ -2738,7 +2738,7 @@ def test_ficha_tecnica_create_from_rascunho_ok(
     assert response.json()["numero"] == f"FT{str(ficha_rascunho.pk).zfill(3)}"
     assert ficha_rascunho.status == FichaTecnicaDoProdutoWorkflow.RASCUNHO
 
-    response = client_autenticado_codae_dilog.put(
+    response = client_autenticado_fornecedor.put(
         f"/ficha-tecnica/{ficha_rascunho.uuid}/",
         content_type="application/json",
         data=json.dumps(payload_ficha_tecnica_pereciveis),
@@ -2753,7 +2753,7 @@ def test_ficha_tecnica_create_from_rascunho_ok(
 
 
 def test_ficha_tecnica_validate_pereciveis(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     payload_ficha_tecnica_pereciveis,
 ):
     # testa validação dos atributos presentes somente em perecíveis
@@ -2771,7 +2771,7 @@ def test_ficha_tecnica_validate_pereciveis(
     for attr in attrs_obrigatorios_pereciveis:
         payload.pop(attr)
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload),
@@ -2788,7 +2788,7 @@ def test_ficha_tecnica_validate_pereciveis(
     payload = {**payload_ficha_tecnica_pereciveis}
     payload.pop("mecanismo_controle")
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload),
@@ -2803,7 +2803,7 @@ def test_ficha_tecnica_validate_pereciveis(
     payload = {**payload_ficha_tecnica_pereciveis}
     payload.pop("ingredientes_alergenicos")
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload),
@@ -2818,7 +2818,7 @@ def test_ficha_tecnica_validate_pereciveis(
     payload = {**payload_ficha_tecnica_pereciveis}
     payload.pop("lactose_detalhe")
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload),
@@ -2831,13 +2831,13 @@ def test_ficha_tecnica_validate_pereciveis(
 
 
 def test_ficha_tecnica_validate_nao_pereciveis(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     payload_ficha_tecnica_nao_pereciveis,
 ):
     payload = {**payload_ficha_tecnica_nao_pereciveis}
     payload.pop("produto_eh_liquido")
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload),
@@ -2852,7 +2852,7 @@ def test_ficha_tecnica_validate_nao_pereciveis(
     payload = {**payload_ficha_tecnica_nao_pereciveis}
     payload.pop("volume_embalagem_primaria")
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload),
@@ -2865,12 +2865,12 @@ def test_ficha_tecnica_validate_nao_pereciveis(
 
 
 def test_ficha_tecnica_validate_arquivo(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     payload_ficha_tecnica_pereciveis,
 ):
     payload_ficha_tecnica_pereciveis["arquivo"] = "string qualquer"
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload_ficha_tecnica_pereciveis),
@@ -2881,12 +2881,12 @@ def test_ficha_tecnica_validate_arquivo(
 
 
 def test_ficha_tecnica_validate_embalagens_de_acordo_com_anexo(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     payload_ficha_tecnica_pereciveis,
 ):
     payload_ficha_tecnica_pereciveis["embalagens_de_acordo_com_anexo"] = False
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload_ficha_tecnica_pereciveis),
@@ -2899,12 +2899,12 @@ def test_ficha_tecnica_validate_embalagens_de_acordo_com_anexo(
 
 
 def test_ficha_tecnica_validate_rotulo_legivel(
-    client_autenticado_codae_dilog,
+    client_autenticado_fornecedor,
     payload_ficha_tecnica_pereciveis,
 ):
     payload_ficha_tecnica_pereciveis["rotulo_legivel"] = False
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_fornecedor.post(
         "/ficha-tecnica/",
         content_type="application/json",
         data=json.dumps(payload_ficha_tecnica_pereciveis),
@@ -2917,14 +2917,14 @@ def test_ficha_tecnica_validate_rotulo_legivel(
 
 
 def test_ficha_tecnica_list_ok(
-    client_autenticado_codae_dilog, ficha_tecnica_factory, django_user_model
+    client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model
 ):
     """Deve obter lista paginada e filtrada de fichas técnicas."""
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     url = "/ficha-tecnica/"
     fichas_criadas = [ficha_tecnica_factory.create(empresa=empresa) for _ in range(25)]
-    response = client_autenticado_codae_dilog.get(url)
+    response = client_autenticado_fornecedor.get(url)
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -2935,11 +2935,11 @@ def test_ficha_tecnica_list_ok(
 
     # Acessa a próxima página
     next_page = response.data["next"]
-    next_response = client_autenticado_codae_dilog.get(next_page)
+    next_response = client_autenticado_fornecedor.get(next_page)
     assert next_response.status_code == status.HTTP_200_OK
 
     # Tenta acessar uma página que não existe
-    response_not_found = client_autenticado_codae_dilog.get("/ficha-tecnica/?page=1000")
+    response_not_found = client_autenticado_fornecedor.get("/ficha-tecnica/?page=1000")
     assert response_not_found.status_code == status.HTTP_404_NOT_FOUND
 
     # Testa a resposta em caso de erro (por exemplo, sem autenticação)
@@ -2949,7 +2949,7 @@ def test_ficha_tecnica_list_ok(
 
     # Teste de consulta com parâmetros
     data = datetime.date.today() - datetime.timedelta(days=1)
-    response_filtro = client_autenticado_codae_dilog.get(
+    response_filtro = client_autenticado_fornecedor.get(
         f"/ficha-tecnica/?data_cadastro={data}"
     )
     assert response_filtro.status_code == status.HTTP_200_OK
@@ -2964,13 +2964,15 @@ def test_ficha_tecnica_list_not_authorized(client_autenticado):
 
 
 def test_ficha_tecnica_retrieve_ok(
-    client_autenticado_codae_dilog, ficha_tecnica_factory, django_user_model
+    client_autenticado_fornecedor, ficha_tecnica_factory, django_user_model
 ):
-    user_id = client_autenticado_codae_dilog.session["_auth_user_id"]
+    user_id = client_autenticado_fornecedor.session["_auth_user_id"]
     empresa = django_user_model.objects.get(pk=user_id).vinculo_atual.instituicao
     ficha_tecnica = ficha_tecnica_factory.create(empresa=empresa)
     url = f"/ficha-tecnica/{ficha_tecnica.uuid}/"
-    response = client_autenticado_codae_dilog.get(url)
+    response = client_autenticado_fornecedor.get(url)
+
+    breakpoint()
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data == FichaTecnicaDetalharSerializer(ficha_tecnica).data
