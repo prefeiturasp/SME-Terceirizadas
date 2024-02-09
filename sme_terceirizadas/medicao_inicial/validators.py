@@ -1043,6 +1043,74 @@ def get_lista_erros_inclusoes_dietas_cei(
     return lista_erros
 
 
+def get_lista_erros_inclusoes_dietas_cemei(
+    dias_nao_letivos,
+    solicitacao,
+    lista_erros,
+    inclusoes,
+    mes,
+    ano,
+    faixas_etarias,
+    categoria,
+    classificacao,
+    logs,
+):
+    logs_ = list(
+        set(
+            logs.values_list(
+                "data",
+                "periodo_escolar_id",
+                "faixa_etaria_id",
+                "quantidade",
+                "classificacao_id",
+            ).distinct()
+        )
+    )
+    for dia in dias_nao_letivos:
+        for medicao in solicitacao.medicoes.all():
+            valores_medicao_ = list(
+                set(
+                    medicao.valores_medicao.values_list(
+                        "nome_campo",
+                        "categoria_medicao_id",
+                        "faixa_etaria_id",
+                        "dia",
+                    )
+                )
+            )
+            periodo_com_erro = False
+            if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+                continue
+            inclusoes_ = get_inclusoes_filtradas_cemei(
+                inclusoes, dia, mes, ano, medicao
+            )
+            if not inclusoes_.exists():
+                continue
+            periodo_com_erro = (
+                validate_lancamento_alimentacoes_medicao_cei_dietas_faixas_etarias(
+                    faixas_etarias,
+                    lista_erros,
+                    medicao,
+                    logs_,
+                    ano,
+                    mes,
+                    dia,
+                    categoria,
+                    classificacao,
+                    periodo_com_erro,
+                    valores_medicao_,
+                )
+            )
+            if periodo_com_erro:
+                lista_erros.append(
+                    {
+                        "periodo_escolar": medicao.periodo_escolar.nome,
+                        "erro": "Restam dias a serem lançados nas dietas.",
+                    }
+                )
+    return lista_erros
+
+
 def validate_lancamento_inclusoes_cei(solicitacao, lista_erros):
     escola = solicitacao.escola
     mes = solicitacao.mes
@@ -1165,6 +1233,50 @@ def validate_lancamento_inclusoes_dietas_cei(solicitacao, lista_erros):
     return lista_erros
 
 
+def validate_lancamento_inclusoes_dietas_cemei(solicitacao, lista_erros):
+    escola = solicitacao.escola
+    mes = solicitacao.mes
+    ano = solicitacao.ano
+
+    inclusoes = InclusaoDeAlimentacaoCEMEI.objects.filter(
+        escola=escola,
+        status=InclusaoDeAlimentacaoCEMEI.workflow_class.CODAE_AUTORIZADO,
+        dias_motivos_da_inclusao_cemei__data__month=mes,
+        dias_motivos_da_inclusao_cemei__data__year=ano,
+        dias_motivos_da_inclusao_cemei__cancelado=False,
+    ).order_by("dias_motivos_da_inclusao_cemei__data")
+    if not inclusoes.exists():
+        return lista_erros
+
+    faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+    logs = LogQuantidadeDietasAutorizadasCEI.objects.filter(
+        escola=escola, data__month=mes, data__year=ano
+    )
+    dias_nao_letivos = list(
+        DiaCalendario.objects.filter(
+            escola=escola, data__month=mes, data__year=ano, dia_letivo=False
+        ).values_list("data__day", flat=True)
+    )
+    categorias = CategoriaMedicao.objects.exclude(
+        nome__icontains="ALIMENTAÇÃO"
+    ).exclude(nome__icontains="ENTERAL")
+    for categoria in categorias:
+        classificacao = get_classificacoes_dietas_cei(categoria)
+        lista_erros = get_lista_erros_inclusoes_dietas_cemei(
+            dias_nao_letivos,
+            solicitacao,
+            lista_erros,
+            inclusoes,
+            mes,
+            ano,
+            faixas_etarias,
+            categoria,
+            classificacao,
+            logs,
+        )
+    return lista_erros
+
+
 def get_classificacoes_dietas_cei(categoria):
     classificacoes = ClassificacaoDieta.objects.filter(
         nome__icontains=categoria.nome.split(" - ")[1]
@@ -1249,6 +1361,75 @@ def validate_lancamento_dietas_emef(solicitacao, lista_erros):
 
 
 def validate_lancamento_dietas_cei(solicitacao, lista_erros):
+    ano = solicitacao.ano
+    mes = solicitacao.mes
+    escola = solicitacao.escola
+    categorias = CategoriaMedicao.objects.exclude(
+        nome__icontains="ALIMENTAÇÃO"
+    ).exclude(nome__icontains="ENTERAL")
+    faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+    logs = LogQuantidadeDietasAutorizadasCEI.objects.filter(
+        escola=escola, data__month=mes, data__year=ano
+    )
+    logs_ = list(
+        set(
+            logs.values_list(
+                "data",
+                "periodo_escolar_id",
+                "faixa_etaria_id",
+                "quantidade",
+                "classificacao_id",
+            ).distinct()
+        )
+    )
+    dias_letivos = list(
+        DiaCalendario.objects.filter(
+            escola=escola, data__month=mes, data__year=ano, dia_letivo=True
+        ).values_list("data__day", flat=True)
+    )
+    for categoria in categorias:
+        classificacoes = get_classificacoes_dietas_cei(categoria)
+        for dia in dias_letivos:
+            for medicao in solicitacao.medicoes.all():
+                valores_medicao_ = list(
+                    set(
+                        medicao.valores_medicao.values_list(
+                            "nome_campo",
+                            "categoria_medicao_id",
+                            "faixa_etaria_id",
+                            "dia",
+                        )
+                    )
+                )
+                periodo_com_erro = False
+                if lista_erros_com_periodo(lista_erros, medicao, "dietas"):
+                    continue
+                periodo_com_erro = (
+                    validate_lancamento_alimentacoes_medicao_cei_dietas_faixas_etarias(
+                        faixas_etarias,
+                        lista_erros,
+                        medicao,
+                        logs_,
+                        ano,
+                        mes,
+                        dia,
+                        categoria,
+                        classificacoes,
+                        periodo_com_erro,
+                        valores_medicao_,
+                    )
+                )
+                if periodo_com_erro:
+                    lista_erros.append(
+                        {
+                            "periodo_escolar": medicao.periodo_escolar.nome,
+                            "erro": "Restam dias a serem lançados nas dietas.",
+                        }
+                    )
+    return lista_erros
+
+
+def validate_lancamento_dietas_cemei(solicitacao, lista_erros):
     ano = solicitacao.ano
     mes = solicitacao.mes
     escola = solicitacao.escola

@@ -57,12 +57,14 @@ from ..validators import (
     validate_lancamento_alimentacoes_medicao_cei,
     validate_lancamento_alimentacoes_medicao_cemei,
     validate_lancamento_dietas_cei,
+    validate_lancamento_dietas_cemei,
     validate_lancamento_dietas_emef,
     validate_lancamento_dietas_inclusoes_ceu_gestao,
     validate_lancamento_inclusoes,
     validate_lancamento_inclusoes_cei,
     validate_lancamento_inclusoes_cemei,
     validate_lancamento_inclusoes_dietas_cei,
+    validate_lancamento_inclusoes_dietas_cemei,
     validate_lancamento_inclusoes_dietas_emef,
     validate_lancamento_kit_lanche,
     validate_lanche_emergencial,
@@ -238,6 +240,8 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             instance, lista_erros
         )
         lista_erros = validate_lancamento_inclusoes_cemei(instance, lista_erros)
+        lista_erros = validate_lancamento_dietas_cemei(instance, lista_erros)
+        lista_erros = validate_lancamento_inclusoes_dietas_cemei(instance, lista_erros)
 
         if lista_erros:
             raise ValidationError(lista_erros)
