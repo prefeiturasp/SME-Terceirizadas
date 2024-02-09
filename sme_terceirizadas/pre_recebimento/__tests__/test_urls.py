@@ -2972,8 +2972,6 @@ def test_ficha_tecnica_retrieve_ok(
     url = f"/ficha-tecnica/{ficha_tecnica.uuid}/"
     response = client_autenticado_fornecedor.get(url)
 
-    breakpoint()
-
     assert response.status_code == status.HTTP_200_OK
     assert response.data == FichaTecnicaDetalharSerializer(ficha_tecnica).data
 
