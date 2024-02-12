@@ -833,7 +833,7 @@ def ficha_tecnica_perecivel_enviada_para_analise(
 
 
 @pytest.fixture
-def payload_rascunho_analise_ficha_tecnica():
+def payload_analise_ficha_tecnica():
     return {
         "detalhes_produto_conferido": True,
         "detalhes_produto_correcoes": "",
@@ -856,9 +856,9 @@ def payload_rascunho_analise_ficha_tecnica():
 @pytest.fixture
 def analise_ficha_tecnica(
     ficha_tecnica_perecivel_enviada_para_analise,
-    payload_rascunho_analise_ficha_tecnica,
+    payload_analise_ficha_tecnica,
 ):
     return AnaliseFichaTecnica.objects.create(
         ficha_tecnica=ficha_tecnica_perecivel_enviada_para_analise,
-        **payload_rascunho_analise_ficha_tecnica,
+        **payload_analise_ficha_tecnica,
     )
