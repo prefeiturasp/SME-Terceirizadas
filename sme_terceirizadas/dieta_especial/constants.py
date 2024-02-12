@@ -4,3 +4,5 @@ ENDPOINT_MOTIVOS_NEGACAO = "motivos-negacao"
 ENDPOINT_TIPOS_DIETA_ESPECIAL = "tipos-dieta-especial"
 ENDPOINT_ALIMENTOS = "alimentos"
 ENDPOINT_TIPO_CONTAGEM = "tipo-contagem"
+
+ETAPA_INFANTIL = 10

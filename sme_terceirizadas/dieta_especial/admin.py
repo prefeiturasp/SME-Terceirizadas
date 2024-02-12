@@ -345,6 +345,7 @@ class LogQuantidadeDietasAutorizadasAdmin(admin.ModelAdmin):
         "escola",
         "periodo_escolar",
         "cei_ou_emei",
+        "infantil_ou_fundamental",
         "classificacao",
         "quantidade",
         "data",
@@ -353,8 +354,10 @@ class LogQuantidadeDietasAutorizadasAdmin(admin.ModelAdmin):
     search_fields = ("escola__nome", "escola__codigo_eol")
     list_filter = (
         ("data", DateRangeFilter),
-        "classificacao__nome",
-        "periodo_escolar__nome",
+        "classificacao",
+        "periodo_escolar",
+        "cei_ou_emei",
+        "infantil_ou_fundamental",
     )
 
 
@@ -372,8 +375,8 @@ class LogQuantidadeDietasAutorizadasCEIAdmin(admin.ModelAdmin):
     search_fields = ("escola__nome", "escola__codigo_eol")
     list_filter = (
         ("data", DateRangeFilter),
-        "classificacao__nome",
-        "periodo_escolar__nome",
+        "classificacao",
+        "periodo_escolar",
     )
 
 
