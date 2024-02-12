@@ -91,3 +91,7 @@ def test_solicitacao_medicao_assinatura_dre_sucesso(
         "Documento conferido e aprovado eletronicamente por "
         in solicitacao_com_anexo_e_medicoes_aprovadas.assinatura_dre
     )
+
+
+def test_empenho_model(empenho):
+    assert empenho.__str__() == "Empenho: 123456"

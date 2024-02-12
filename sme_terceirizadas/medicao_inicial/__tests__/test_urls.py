@@ -8,6 +8,7 @@ from rest_framework import status
 from sme_terceirizadas.medicao_inicial.models import (
     DiaParaCorrigir,
     DiaSobremesaDoce,
+    Empenho,
     Medicao,
 )
 
@@ -1507,3 +1508,36 @@ def test_periodos_permissoes_lancamentos_especiais_mes_ano(
             "2ª Refeição 1ª oferta",
         ]
     )
+
+
+def test_url_endpoint_empenho(client_autenticado_coordenador_codae, edital, contrato):
+    data = {
+        "numero": "1234599",
+        "contrato": contrato.uuid,
+        "edital": edital.uuid,
+        "tipo_empenho": "PRINCIPAL",
+        "status": "ATIVO",
+        "valor_total": 1050.99,
+        "uuid": "c1203fab-b189-4cac-8930-6e2f315bbe2e",
+    }
+
+    response = client_autenticado_coordenador_codae.post(
+        "/medicao-inicial/empenhos/",
+        content_type="application/json",
+        data=data,
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    assert Empenho.objects.count() == 1
+
+    response = client_autenticado_coordenador_codae.get(
+        "/medicao-inicial/empenhos/",
+        content_type="application/json",
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["results"][0]["contrato"] == "Contrato 78/SME/2024"
+    assert response.json()["results"][0]["edital"] == "Edital de Pregão nº 78/SME/2024"
+    assert response.json()["results"][0]["numero"] == "1234599"
+    assert response.json()["results"][0]["tipo_empenho"] == "PRINCIPAL"
+    assert response.json()["results"][0]["tipo_reajuste"] == None
+    assert response.json()["results"][0]["status"] == "ATIVO"
+    assert response.json()["results"][0]["valor_total"] == "1050.99"

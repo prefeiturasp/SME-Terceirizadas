@@ -1979,3 +1979,41 @@ def diretoria_regional():
         uuid="3972e0e9-2d8e-472a-9dfa-30cd219a6d9a",
     )
     return diretoria_regional.uuid
+
+
+@pytest.fixture
+def edital():
+    edital = mommy.make(
+        "terceirizada.Edital",
+        numero="Edital de Pregão nº 78/SME/2024",
+        uuid="f76f367c-f9c4-463e-aefb-0ff434d93ae9",
+    )
+    return edital
+
+
+@pytest.fixture
+def contrato(edital):
+    terceirizada = mommy.make("terceirizada.Terceirizada")
+    lote = mommy.make("escola.Lote", terceirizada=terceirizada)
+    contrato = mommy.make(
+        "terceirizada.Contrato",
+        lotes=[lote],
+        edital=edital,
+        numero="Contrato 78/SME/2024",
+        uuid="13cb1ff3-a2c8-47ad-a17f-145b38f72ef0",
+    )
+    return contrato
+
+
+@pytest.fixture
+def empenho(edital, contrato):
+    empenho = mommy.make(
+        "Empenho",
+        numero="123456",
+        contrato=contrato,
+        edital=edital,
+        tipo_empenho="PRINCIPAL",
+        status="ATIVO",
+        valor_total="100.50",
+    )
+    return empenho
