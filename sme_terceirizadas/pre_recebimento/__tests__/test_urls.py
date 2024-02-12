@@ -19,6 +19,7 @@ from sme_terceirizadas.dados_comuns.fluxo_status import (
 )
 from sme_terceirizadas.pre_recebimento.api.serializers.serializers import (
     CronogramaSimplesSerializer,
+    FichaTecnicaComAnaliseDetalharSerializer,
     FichaTecnicaDetalharSerializer,
     NomeEAbreviacaoUnidadeMedidaSerializer,
 )
@@ -28,6 +29,7 @@ from sme_terceirizadas.pre_recebimento.api.services import (
     ServiceDashboardLayoutEmbalagem,
 )
 from sme_terceirizadas.pre_recebimento.models import (
+    AnaliseFichaTecnica,
     Cronograma,
     DocumentoDeRecebimento,
     FichaTecnicaDoProduto,
@@ -2617,6 +2619,43 @@ def test_url_documentos_de_recebimento_fornecedor_corrige_erro_transicao_estado(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
+def test_calendario_cronograma_list_ok(
+    client_autenticado_dilog_cronograma,
+    etapas_do_cronograma_factory,
+    cronograma_factory,
+):
+    """Deve obter lista filtrada por mes e ano de etapas do cronograma."""
+    mes = "5"
+    ano = "2023"
+    data_programada = datetime.date(int(ano), int(mes), 1)
+    cronogramas = [
+        cronograma_factory.create(status=CronogramaWorkflow.ASSINADO_CODAE),
+        cronograma_factory.create(status=CronogramaWorkflow.ALTERACAO_CODAE),
+        cronograma_factory.create(status=CronogramaWorkflow.SOLICITADO_ALTERACAO),
+    ]
+    etapas_cronogramas = [
+        etapas_do_cronograma_factory.create(
+            cronograma=cronograma, data_programada=data_programada
+        )
+        for cronograma in cronogramas
+    ]
+
+    response = client_autenticado_dilog_cronograma.get(
+        "/calendario-cronogramas/",
+        {"mes": mes, "ano": ano},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["count"] == len(etapas_cronogramas)
+
+
+def test_calendario_cronograma_list_not_authorized(client_autenticado):
+    """Deve retornar status HTTP 403 ao tentar obter listagem com usuário não autorizado."""
+    response = client_autenticado.get("/calendario-cronogramas/")
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 def test_rascunho_ficha_tecnica_list_metodo_nao_permitido(
     client_autenticado_fornecedor, ficha_tecnica_factory
 ):
@@ -2934,46 +2973,7 @@ def test_ficha_tecnica_retrieve_ok(
     response = client_autenticado_fornecedor.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert (
-        response.data == FichaTecnicaDetalharSerializer(ficha_tecnica, many=False).data
-    )
-
-
-def test_calendario_cronograma_list_ok(
-    client_autenticado_dilog_cronograma,
-    etapas_do_cronograma_factory,
-    cronograma_factory,
-):
-    """Deve obter lista filtrada por mes e ano de etapas do cronograma."""
-    mes = "5"
-    ano = "2023"
-    data_programada = datetime.date(int(ano), int(mes), 1)
-    cronogramas = [
-        cronograma_factory.create(status=CronogramaWorkflow.ASSINADO_CODAE),
-        cronograma_factory.create(status=CronogramaWorkflow.ALTERACAO_CODAE),
-        cronograma_factory.create(status=CronogramaWorkflow.SOLICITADO_ALTERACAO),
-    ]
-    etapas_cronogramas = [
-        etapas_do_cronograma_factory.create(
-            cronograma=cronograma, data_programada=data_programada
-        )
-        for cronograma in cronogramas
-    ]
-
-    response = client_autenticado_dilog_cronograma.get(
-        "/calendario-cronogramas/",
-        {"mes": mes, "ano": ano},
-    )
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["count"] == len(etapas_cronogramas)
-
-
-def test_calendario_cronograma_list_not_authorized(client_autenticado):
-    """Deve retornar status HTTP 403 ao tentar obter listagem com usuário não autorizado."""
-    response = client_autenticado.get("/calendario-cronogramas/")
-
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.data == FichaTecnicaDetalharSerializer(ficha_tecnica).data
 
 
 def test_url_dashboard_ficha_tecnica_status_retornados(
@@ -3156,3 +3156,147 @@ def test_url_ficha_tecnica_dados_cronograma(
     )
 
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_ficha_tecnica_rascunho_analise_create(
+    client_autenticado_codae_dilog,
+    ficha_tecnica_perecivel_enviada_para_analise,
+    payload_analise_ficha_tecnica,
+):
+    response = client_autenticado_codae_dilog.post(
+        f"/ficha-tecnica/{ficha_tecnica_perecivel_enviada_para_analise.uuid}/rascunho-analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_analise_ficha_tecnica),
+    )
+    analises = AnaliseFichaTecnica.objects.all()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert analises.count() == 1
+    assert (
+        analises.first().ficha_tecnica == ficha_tecnica_perecivel_enviada_para_analise
+    )
+
+
+def test_url_ficha_tecnica_detalhar_com_analise_ok(
+    client_autenticado_codae_dilog,
+    ficha_tecnica_perecivel_enviada_para_analise,
+    analise_ficha_tecnica_factory,
+):
+    ficha_tecnica = ficha_tecnica_perecivel_enviada_para_analise
+    analise_ficha_tecnica_factory.create(ficha_tecnica=ficha_tecnica)
+    url = f"/ficha-tecnica/{ficha_tecnica.uuid}/detalhar-com-analise/"
+
+    response = client_autenticado_codae_dilog.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert (
+        response.data
+        == FichaTecnicaComAnaliseDetalharSerializer(
+            ficha_tecnica,
+            context={"request": response.wsgi_request},
+        ).data
+    )
+    assert response.data["analise"] is not None
+
+
+def test_url_ficha_tecnica_rascunho_analise_update(
+    client_autenticado_codae_dilog,
+    analise_ficha_tecnica,
+    payload_analise_ficha_tecnica,
+):
+    payload_atualizacao = {**payload_analise_ficha_tecnica}
+    payload_atualizacao["detalhes_produto_conferido"] = False
+    payload_atualizacao["detalhes_produto_correcoes"] = "Uma correção qualquer..."
+
+    response = client_autenticado_codae_dilog.put(
+        f"/ficha-tecnica/{analise_ficha_tecnica.ficha_tecnica.uuid}/rascunho-analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_atualizacao),
+    )
+    analise = AnaliseFichaTecnica.objects.last()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert AnaliseFichaTecnica.objects.count() == 1
+    assert analise.detalhes_produto_conferido == False
+    assert analise.detalhes_produto_correcoes == "Uma correção qualquer..."
+
+
+def test_url_ficha_tecnica_rascunho_analise_update_criado_por(
+    client_autenticado_codae_dilog,
+    analise_ficha_tecnica,
+    payload_analise_ficha_tecnica,
+):
+    criado_por_antigo = analise_ficha_tecnica.criado_por
+    response = client_autenticado_codae_dilog.put(
+        f"/ficha-tecnica/{analise_ficha_tecnica.ficha_tecnica.uuid}/rascunho-analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_analise_ficha_tecnica),
+    )
+    analise_atualizada = AnaliseFichaTecnica.objects.last()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert AnaliseFichaTecnica.objects.count() == 1
+    assert analise_atualizada.criado_por != criado_por_antigo
+
+
+def test_url_ficha_tecnica_analise_gpcodae_aprovacao(
+    client_autenticado_codae_dilog,
+    ficha_tecnica_perecivel_enviada_para_analise,
+    payload_analise_ficha_tecnica,
+):
+    response = client_autenticado_codae_dilog.post(
+        f"/ficha-tecnica/{ficha_tecnica_perecivel_enviada_para_analise.uuid}/analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_analise_ficha_tecnica),
+    )
+    analise = AnaliseFichaTecnica.objects.first()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert analise.ficha_tecnica.status == FichaTecnicaDoProdutoWorkflow.APROVADA
+
+
+def test_url_ficha_tecnica_analise_gpcodae_aprovacao_analise_rascunho(
+    client_autenticado_codae_dilog,
+    analise_ficha_tecnica,
+    payload_analise_ficha_tecnica,
+):
+    analise = analise_ficha_tecnica
+    response = client_autenticado_codae_dilog.put(
+        f"/ficha-tecnica/{analise_ficha_tecnica.ficha_tecnica.uuid}/analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_analise_ficha_tecnica),
+    )
+    analise.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert analise.ficha_tecnica.status == FichaTecnicaDoProdutoWorkflow.APROVADA
+
+
+def test_url_ficha_tecnica_analise_gpcodae_validate(
+    client_autenticado_codae_dilog,
+    ficha_tecnica_perecivel_enviada_para_analise,
+    payload_analise_ficha_tecnica,
+):
+    payload_invalido = {**payload_analise_ficha_tecnica}
+    payload_invalido["detalhes_produto_conferido"] = False
+
+    response = client_autenticado_codae_dilog.post(
+        f"/ficha-tecnica/{ficha_tecnica_perecivel_enviada_para_analise.uuid}/analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_invalido),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert not AnaliseFichaTecnica.objects.exists()
+
+    payload_invalido = {**payload_analise_ficha_tecnica}
+    payload_invalido["detalhes_produto_correcoes"] = "Uma string não vazia"
+
+    response = client_autenticado_codae_dilog.post(
+        f"/ficha-tecnica/{ficha_tecnica_perecivel_enviada_para_analise.uuid}/analise-gpcodae/",
+        content_type="application/json",
+        data=json.dumps(payload_invalido),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert not AnaliseFichaTecnica.objects.exists()

@@ -1,3 +1,4 @@
+from .cronograma import AnaliseFichaTecnica  # noqa
 from .cronograma import ArquivoDoTipoDeDocumento  # noqa
 from .cronograma import Cronograma  # noqa
 from .cronograma import DataDeFabricaoEPrazo  # noqa

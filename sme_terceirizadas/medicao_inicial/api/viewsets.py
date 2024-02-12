@@ -22,6 +22,7 @@ from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.constants import TRADUCOES_FERIADOS
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
+    UsuarioCODAEGabinete,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioCODAENutriManifestacao,
     UsuarioDiretorEscolaTercTotal,
@@ -181,6 +182,7 @@ class SolicitacaoMedicaoInicialViewSet(
         | UsuarioDiretoriaRegional
         | UsuarioCODAEGestaoAlimentacao
         | UsuarioCODAENutriManifestacao
+        | UsuarioCODAEGabinete
     ]
     queryset = SolicitacaoMedicaoInicial.objects.all()
 
@@ -372,6 +374,7 @@ class SolicitacaoMedicaoInicialViewSet(
             | UsuarioDiretoriaRegional
             | UsuarioCODAEGestaoAlimentacao
             | UsuarioCODAENutriManifestacao
+            | UsuarioCODAEGabinete
         ],
     )
     def dashboard(self, request):
@@ -397,6 +400,7 @@ class SolicitacaoMedicaoInicialViewSet(
             | UsuarioDiretoriaRegional
             | UsuarioCODAEGestaoAlimentacao
             | UsuarioCODAENutriManifestacao
+            | UsuarioCODAEGabinete
         ],
     )
     def meses_anos(self, request):
@@ -492,6 +496,7 @@ class SolicitacaoMedicaoInicialViewSet(
             | UsuarioEscolaTercTotal
             | UsuarioCODAEGestaoAlimentacao
             | UsuarioCODAENutriManifestacao
+            | UsuarioCODAEGabinete
         ],
     )
     def periodos_grupos_medicao(self, request):
@@ -1222,6 +1227,7 @@ class MedicaoViewSet(
             | UsuarioDiretoriaRegional
             | UsuarioCODAEGestaoAlimentacao
             | UsuarioCODAENutriManifestacao
+            | UsuarioCODAEGabinete
         ],
     )
     def feriados_no_mes_com_nome(self, request, uuid=None):
@@ -1397,6 +1403,7 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
             | UsuarioDiretoriaRegional
             | UsuarioCODAENutriManifestacao
             | UsuarioCODAEGestaoAlimentacao
+            | UsuarioCODAEGabinete
         ],
     )
     def permissoes_lancamentos_especiais_mes_ano_por_periodo(self, request):

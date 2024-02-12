@@ -1579,7 +1579,7 @@ def get_pdf_cronograma(request, cronograma):
             "logs": logs,
         },
     )
-    data_arquivo = datetime.date.today().strftime("%d/%m/%Y")
+    data_arquivo = datetime.datetime.today().strftime("%d/%m/%Y às %H:%M")
     return html_to_pdf_response(
         html_string.replace("dt_file", data_arquivo),
         f"cronogram_{cronograma.numero}.pdf",

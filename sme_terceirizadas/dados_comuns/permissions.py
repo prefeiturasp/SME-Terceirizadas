@@ -191,6 +191,19 @@ class UsuarioCODAEDietaEspecial(BasePermission):
         )
 
 
+class UsuarioCODAEGabinete(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Gabinete."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Codae)
+            and usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_CODAE_GABINETE]
+        )
+
+
 class UsuarioNutricionista(BasePermission):
     """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
 
@@ -296,6 +309,7 @@ class PermissaoParaRecuperarObjeto(BasePermission):
                 COORDENADOR_SUPERVISAO_NUTRICAO,
                 COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
                 ADMINISTRADOR_MEDICAO,
+                ADMINISTRADOR_CODAE_GABINETE,
             ]
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             try:  # solicitacoes normais
@@ -330,6 +344,7 @@ class PermissaoParaRecuperarSolicitacaoUnificada(BasePermission):
                 COORDENADOR_SUPERVISAO_NUTRICAO,
                 COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
                 ADMINISTRADOR_MEDICAO,
+                ADMINISTRADOR_CODAE_GABINETE,
             ]
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return usuario.vinculo_atual.instituicao in [
@@ -364,6 +379,7 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
                 ADMINISTRADOR_SUPERVISAO_NUTRICAO,
                 COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO,
                 ADMINISTRADOR_MEDICAO,
+                ADMINISTRADOR_CODAE_GABINETE,
             ]
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return usuario.vinculo_atual.instituicao in [
@@ -1145,4 +1161,41 @@ class PermissaoParaDashboardFichaTecnica(BasePermission):
                     and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
                 )
             )
+        )
+
+
+class PermissaoParaVisualizarFichaTecnica(BasePermission):
+    PERFIS_PERMITIDOS = [
+        COORDENADOR_GESTAO_PRODUTO,
+        COORDENADOR_CODAE_DILOG_LOGISTICA,
+        COORDENADOR_GESTAO_PRODUTO,
+    ]
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae)
+                    and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
+                )
+                or usuario.eh_fornecedor
+            )
+        )
+
+
+class PermissaoParaAnalisarFichaTecnica(BasePermission):
+    PERFIS_PERMITIDOS = [
+        COORDENADOR_GESTAO_PRODUTO,
+        COORDENADOR_CODAE_DILOG_LOGISTICA,
+    ]
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
         )
