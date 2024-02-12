@@ -2,6 +2,7 @@ import re
 from collections import Counter
 from datetime import date
 
+from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.template.loader import render_to_string
@@ -690,22 +691,44 @@ def filtrar_alunos_com_dietas_nos_status_e_rastro_escola(
     return queryset
 
 
+def get_quantidade_nao_matriculados_entre_4_e_6_anos(dietas):
+    return dietas.filter(
+        tipo_solicitacao="ALUNO_NAO_MATRICULADO",
+        aluno__data_nascimento__lte=date.today() - relativedelta(years=4),
+        aluno__data_nascimento__gte=date.today() - relativedelta(years=6),
+    ).count()
+
+
+def get_quantidade_nao_matriculados_maior_6_anos(dietas):
+    return dietas.filter(
+        tipo_solicitacao="ALUNO_NAO_MATRICULADO",
+        aluno__data_nascimento__lte=date.today() - relativedelta(years=6),
+    ).count()
+
+
+def get_quantidade_dietas_emebs(each, dietas):
+    dietas_sem_alunos_nao_matriculados = dietas.exclude(
+        tipo_solicitacao="ALUNO_NAO_MATRICULADO"
+    )
+    if each == "INFANTIL":
+        quantidade = dietas_sem_alunos_nao_matriculados.filter(
+            aluno__etapa=ETAPA_INFANTIL
+        ).count()
+        quantidade += get_quantidade_nao_matriculados_entre_4_e_6_anos(dietas)
+    else:
+        quantidade = dietas_sem_alunos_nao_matriculados.exclude(
+            aluno__etapa=ETAPA_INFANTIL
+        ).count()
+        quantidade += get_quantidade_nao_matriculados_maior_6_anos(dietas)
+    return quantidade
+
+
 def logs_a_criar_sem_periodo_escolar(
     logs_a_criar, escola, dietas_filtradas, ontem, classificacao
 ):
     if escola.eh_emebs:
         for each in ["INFANTIL", "FUNDAMENTAL"]:
-            dietas_filtradas = dietas_filtradas.exclude(
-                tipo_solicitacao="ALUNO_NAO_MATRICULADO"
-            )
-            if each == "INFANTIL":
-                quantidade = dietas_filtradas.filter(
-                    aluno__etapa=ETAPA_INFANTIL
-                ).count()
-            else:
-                quantidade = dietas_filtradas.exclude(
-                    aluno__etapa=ETAPA_INFANTIL
-                ).count()
+            quantidade = get_quantidade_dietas_emebs(each, dietas_filtradas)
             log = LogQuantidadeDietasAutorizadas(
                 quantidade=quantidade,
                 escola=escola,
@@ -723,18 +746,6 @@ def logs_a_criar_sem_periodo_escolar(
         )
         logs_a_criar.append(log)
     return logs_a_criar
-
-
-def get_quantidade_dietas_emebs(each, dietas_filtradas_periodo):
-    if each == "INFANTIL":
-        quantidade = dietas_filtradas_periodo.filter(
-            aluno__etapa=ETAPA_INFANTIL
-        ).count()
-    else:
-        quantidade = dietas_filtradas_periodo.exclude(
-            aluno__etapa=ETAPA_INFANTIL
-        ).count()
-    return quantidade
 
 
 def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
@@ -766,9 +777,6 @@ def gera_logs_dietas_escolas_comuns(escola, dietas_autorizadas, ontem):
                 )
             if escola.eh_emebs:
                 for each in ["INFANTIL", "FUNDAMENTAL"]:
-                    dietas_filtradas_periodo = dietas_filtradas_periodo.exclude(
-                        tipo_solicitacao="ALUNO_NAO_MATRICULADO"
-                    )
                     quantidade = get_quantidade_dietas_emebs(
                         each, dietas_filtradas_periodo
                     )
