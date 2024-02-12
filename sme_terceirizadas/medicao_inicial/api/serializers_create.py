@@ -233,6 +233,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             return
 
         lista_erros = validate_medicao_cemei(instance)
+        raise ValidationError(lista_erros)
         if lista_erros:
             raise ValidationError(lista_erros)
 

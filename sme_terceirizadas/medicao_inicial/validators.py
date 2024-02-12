@@ -1394,33 +1394,16 @@ def validate_lancamento_dietas_cei(solicitacao, lista_erros):
     return lista_erros
 
 
-def validate_lancamento_dietas_cemei(solicitacao, lista_erros):
-    ano = solicitacao.ano
-    mes = solicitacao.mes
-    escola = solicitacao.escola
-    categorias = CategoriaMedicao.objects.exclude(
-        nome__icontains="ALIMENTAÇÃO"
-    ).exclude(nome__icontains="ENTERAL")
-    faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
-    logs = LogQuantidadeDietasAutorizadasCEI.objects.filter(
-        escola=escola, data__month=mes, data__year=ano
-    )
-    logs_ = list(
-        set(
-            logs.values_list(
-                "data",
-                "periodo_escolar_id",
-                "faixa_etaria_id",
-                "quantidade",
-                "classificacao_id",
-            ).distinct()
-        )
-    )
-    dias_letivos = list(
-        DiaCalendario.objects.filter(
-            escola=escola, data__month=mes, data__year=ano, dia_letivo=True
-        ).values_list("data__day", flat=True)
-    )
+def validate_lancamento_dietas_cemei(
+    solicitacao,
+    lista_erros,
+    mes,
+    ano,
+    categorias,
+    faixas_etarias,
+    logs,
+    dias_letivos,
+):
     for categoria in categorias:
         classificacoes = get_classificacoes_dietas_cei(categoria)
         for dia in dias_letivos:
@@ -1443,7 +1426,7 @@ def validate_lancamento_dietas_cemei(solicitacao, lista_erros):
                         faixas_etarias,
                         lista_erros,
                         medicao,
-                        logs_,
+                        logs,
                         ano,
                         mes,
                         dia,
@@ -2033,15 +2016,31 @@ def _validate_medicao_cei_cemei(
     solicitacao,
     dias_nao_letivos,
     inclusoes,
+    categorias_dieta,
 ):
     faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
-    logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
+    logs_faixas_etarias = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
         escola=escola, data__month=mes, data__year=ano
     )
-    logs_dict = list(
+    logs_faixas_etarias_dict = list(
         set(
-            logs.values_list(
+            logs_faixas_etarias.values_list(
                 "data", "periodo_escolar_id", "faixa_etaria_id", "quantidade"
+            ).distinct()
+        )
+    )
+
+    logs_dietas_autorizadas = LogQuantidadeDietasAutorizadasCEI.objects.filter(
+        escola=escola, data__month=mes, data__year=ano
+    )
+    logs_dietas_autorizadas_dict = list(
+        set(
+            logs_dietas_autorizadas.values_list(
+                "data",
+                "periodo_escolar_id",
+                "faixa_etaria_id",
+                "quantidade",
+                "classificacao_id",
             ).distinct()
         )
     )
@@ -2051,7 +2050,7 @@ def _validate_medicao_cei_cemei(
         dias_letivos,
         medicao,
         faixas_etarias,
-        logs_dict,
+        logs_faixas_etarias_dict,
         ano,
         mes,
         categoria_alimentacao,
@@ -2065,9 +2064,18 @@ def _validate_medicao_cei_cemei(
         faixas_etarias,
         categoria_alimentacao,
         dias_nao_letivos,
-        logs,
+        logs_faixas_etarias,
     )
-    # lista_erros = validate_lancamento_dietas_cemei(solicitacao, lista_erros)
+    lista_erros = validate_lancamento_dietas_cemei(
+        solicitacao,
+        lista_erros,
+        mes,
+        ano,
+        categorias_dieta,
+        faixas_etarias,
+        logs_dietas_autorizadas_dict,
+        dias_letivos,
+    )
     # lista_erros = validate_lancamento_inclusoes_dietas_cemei(solicitacao, lista_erros)
 
     return lista_erros
@@ -2079,6 +2087,9 @@ def validate_medicao_cemei(solicitacao):
     escola = solicitacao.escola
 
     categoria_alimentacao = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
+    categorias_dieta = CategoriaMedicao.objects.exclude(
+        nome__icontains="ALIMENTAÇÃO"
+    ).exclude(nome__icontains="ENTERAL")
 
     dias_letivos = list(
         DiaCalendario.objects.filter(
@@ -2102,7 +2113,7 @@ def validate_medicao_cemei(solicitacao):
     lista_erros = []
 
     for medicao in solicitacao.medicoes.all():
-        if medicao.nome_grupo_nome.upper() in ["INTEGRAL", "MANHA", "TARDE"]:
+        if medicao.nome_periodo_grupo.upper() in ["INTEGRAL", "PARCIAL"]:
             lista_erros = _validate_medicao_cei_cemei(
                 lista_erros,
                 medicao,
@@ -2114,6 +2125,7 @@ def validate_medicao_cemei(solicitacao):
                 solicitacao,
                 dias_nao_letivos,
                 inclusoes,
+                categorias_dieta,
             )
 
     return lista_erros
