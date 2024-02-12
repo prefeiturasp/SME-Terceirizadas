@@ -1198,33 +1198,20 @@ def validate_lancamento_inclusoes_dietas_cei(solicitacao, lista_erros):
     return lista_erros
 
 
-def validate_lancamento_inclusoes_dietas_cemei(solicitacao, lista_erros):
-    escola = solicitacao.escola
-    mes = solicitacao.mes
-    ano = solicitacao.ano
-
-    inclusoes = InclusaoDeAlimentacaoCEMEI.objects.filter(
-        escola=escola,
-        status=InclusaoDeAlimentacaoCEMEI.workflow_class.CODAE_AUTORIZADO,
-        dias_motivos_da_inclusao_cemei__data__month=mes,
-        dias_motivos_da_inclusao_cemei__data__year=ano,
-        dias_motivos_da_inclusao_cemei__cancelado=False,
-    ).order_by("dias_motivos_da_inclusao_cemei__data")
+def validate_lancamento_inclusoes_dietas_cemei(
+    solicitacao,
+    lista_erros,
+    mes,
+    ano,
+    inclusoes,
+    categorias,
+    dias_nao_letivos,
+    faixas_etarias,
+    logs,
+):
     if not inclusoes.exists():
         return lista_erros
 
-    faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
-    logs = LogQuantidadeDietasAutorizadasCEI.objects.filter(
-        escola=escola, data__month=mes, data__year=ano
-    )
-    dias_nao_letivos = list(
-        DiaCalendario.objects.filter(
-            escola=escola, data__month=mes, data__year=ano, dia_letivo=False
-        ).values_list("data__day", flat=True)
-    )
-    categorias = CategoriaMedicao.objects.exclude(
-        nome__icontains="ALIMENTAÇÃO"
-    ).exclude(nome__icontains="ENTERAL")
     for categoria in categorias:
         classificacao = get_classificacoes_dietas_cei(categoria)
         lista_erros = get_lista_erros_inclusoes_dietas_cemei(
@@ -2076,7 +2063,17 @@ def _validate_medicao_cei_cemei(
         logs_dietas_autorizadas_dict,
         dias_letivos,
     )
-    # lista_erros = validate_lancamento_inclusoes_dietas_cemei(solicitacao, lista_erros)
+    lista_erros = validate_lancamento_inclusoes_dietas_cemei(
+        solicitacao,
+        lista_erros,
+        mes,
+        ano,
+        inclusoes,
+        categorias_dieta,
+        dias_nao_letivos,
+        faixas_etarias,
+        logs_dietas_autorizadas,
+    )
 
     return lista_erros
 
