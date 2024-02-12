@@ -707,6 +707,45 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
     return erros_unicos(lista_erros)
 
 
+def validate_lancamento_inclusoes_emei_cemei(
+    solicitacao, lista_erros, inclusoes, escola, categoria
+):
+    list_inclusoes = []
+
+    for inclusao in inclusoes:
+        for qt in inclusao.quantidade_alunos_emei_da_inclusao_cemei.all():
+            periodo = qt.periodo_escolar
+            alimentacoes_permitidas = get_alimentacoes_permitidas(
+                solicitacao, escola, periodo
+            )
+            tipos_alimentacao = periodo.tipos_alimentacao.exclude(
+                nome="Lanche Emergencial"
+            )
+            tipos_alimentacao = list(
+                set(tipos_alimentacao.values_list("nome", flat=True))
+            )
+            alimentacoes = tipos_alimentacao + alimentacoes_permitidas
+            linhas_da_tabela = get_linhas_da_tabela(alimentacoes)
+
+            dia_da_inclusao = str(
+                inclusao.dias_motivos_da_inclusao_cemei.first().data.day
+            )
+            if len(dia_da_inclusao) == 1:
+                dia_da_inclusao = "0" + str(inclusao.data.day)
+            list_inclusoes.append(
+                {
+                    "periodo_escolar": periodo.nome,
+                    "dia": dia_da_inclusao,
+                    "linhas_da_tabela": linhas_da_tabela,
+                }
+            )
+    for inclusao in list_inclusoes:
+        lista_erros = buscar_valores_lancamento_inclusoes(
+            inclusao, solicitacao, categoria, lista_erros
+        )
+    return erros_unicos(lista_erros)
+
+
 def validate_lancamento_inclusoes_cei_cemei(
     solicitacao,
     lista_erros,
@@ -2111,7 +2150,7 @@ def _validate_medicao_cei_cemei(
 
 
 def _validate_medicao_emei_cemei(
-    lista_erros, solicitacao, escola, categoria_alimentacao, dias_letivos
+    lista_erros, solicitacao, escola, categoria_alimentacao, dias_letivos, inclusoes
 ):
     # faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
     # logs_faixas_etarias = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
@@ -2143,7 +2182,9 @@ def _validate_medicao_emei_cemei(
     lista_erros = validate_lancamento_alimentacoes_medicao_emei_cemei(
         solicitacao, lista_erros, escola, categoria_alimentacao, dias_letivos
     )
-    # lista_erros = validate_lancamento_inclusoes(instance, lista_erros)
+    lista_erros = validate_lancamento_inclusoes_emei_cemei(
+        solicitacao, lista_erros, inclusoes, escola, categoria_alimentacao
+    )
     # lista_erros = validate_lancamento_dietas_emef(instance, lista_erros)
     # lista_erros = validate_lancamento_inclusoes_dietas_emef(instance, lista_erros)
     # lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
@@ -2202,7 +2243,12 @@ def validate_medicao_cemei(solicitacao):
             )
         else:
             lista_erros = _validate_medicao_emei_cemei(
-                lista_erros, solicitacao, escola, categoria_alimentacao, dias_letivos
+                lista_erros,
+                solicitacao,
+                escola,
+                categoria_alimentacao,
+                dias_letivos,
+                inclusoes,
             )
 
     return lista_erros
