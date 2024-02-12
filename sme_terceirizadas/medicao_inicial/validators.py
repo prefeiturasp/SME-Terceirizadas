@@ -482,7 +482,7 @@ def validate_lancamento_alimentacoes_medicao_cei(solicitacao, lista_erros):
     return lista_erros
 
 
-def validate_lancamento_alimentacoes_medicao_cemei(
+def validate_lancamento_alimentacoes_medicao_cei_cemei(
     lista_erros, dias_letivos, medicao, faixas_etarias, logs, ano, mes, categoria
 ):
     for dia in dias_letivos:
@@ -675,7 +675,7 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
     return erros_unicos(lista_erros)
 
 
-def validate_lancamento_inclusoes_cemei(
+def validate_lancamento_inclusoes_cei_cemei(
     solicitacao,
     lista_erros,
     ano,
@@ -1198,7 +1198,7 @@ def validate_lancamento_inclusoes_dietas_cei(solicitacao, lista_erros):
     return lista_erros
 
 
-def validate_lancamento_inclusoes_dietas_cemei(
+def validate_lancamento_inclusoes_dietas_cei_cemei(
     solicitacao,
     lista_erros,
     mes,
@@ -1381,7 +1381,7 @@ def validate_lancamento_dietas_cei(solicitacao, lista_erros):
     return lista_erros
 
 
-def validate_lancamento_dietas_cemei(
+def validate_lancamento_dietas_cei_cemei(
     solicitacao,
     lista_erros,
     mes,
@@ -2032,7 +2032,7 @@ def _validate_medicao_cei_cemei(
         )
     )
 
-    lista_erros = validate_lancamento_alimentacoes_medicao_cemei(
+    lista_erros = validate_lancamento_alimentacoes_medicao_cei_cemei(
         lista_erros,
         dias_letivos,
         medicao,
@@ -2042,7 +2042,7 @@ def _validate_medicao_cei_cemei(
         mes,
         categoria_alimentacao,
     )
-    lista_erros = validate_lancamento_inclusoes_cemei(
+    lista_erros = validate_lancamento_inclusoes_cei_cemei(
         solicitacao,
         lista_erros,
         ano,
@@ -2053,7 +2053,7 @@ def _validate_medicao_cei_cemei(
         dias_nao_letivos,
         logs_faixas_etarias,
     )
-    lista_erros = validate_lancamento_dietas_cemei(
+    lista_erros = validate_lancamento_dietas_cei_cemei(
         solicitacao,
         lista_erros,
         mes,
@@ -2063,7 +2063,7 @@ def _validate_medicao_cei_cemei(
         logs_dietas_autorizadas_dict,
         dias_letivos,
     )
-    lista_erros = validate_lancamento_inclusoes_dietas_cemei(
+    lista_erros = validate_lancamento_inclusoes_dietas_cei_cemei(
         solicitacao,
         lista_erros,
         mes,
