@@ -675,31 +675,19 @@ def validate_lancamento_inclusoes(solicitacao, lista_erros):
     return erros_unicos(lista_erros)
 
 
-def validate_lancamento_inclusoes_cemei(solicitacao, lista_erros):
-    escola = solicitacao.escola
-    mes = int(solicitacao.mes)
-    ano = int(solicitacao.ano)
-
-    inclusoes = InclusaoDeAlimentacaoCEMEI.objects.filter(
-        escola=escola,
-        status=InclusaoDeAlimentacaoCEMEI.workflow_class.CODAE_AUTORIZADO,
-        dias_motivos_da_inclusao_cemei__data__month=mes,
-        dias_motivos_da_inclusao_cemei__data__year=ano,
-        dias_motivos_da_inclusao_cemei__cancelado=False,
-    ).order_by("dias_motivos_da_inclusao_cemei__data")
+def validate_lancamento_inclusoes_cemei(
+    solicitacao,
+    lista_erros,
+    ano,
+    mes,
+    inclusoes,
+    faixas_etarias,
+    categoria,
+    dias_nao_letivos,
+    logs,
+):
     if not inclusoes.exists():
         return lista_erros
-
-    categoria = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
-    faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
-    logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
-        escola=escola, data__month=mes, data__year=ano
-    )
-    dias_nao_letivos = list(
-        DiaCalendario.objects.filter(
-            escola=escola, data__month=mes, data__year=ano, dia_letivo=False
-        ).values_list("data__day", flat=True)
-    )
 
     lista_erros = get_lista_erros_inclusoes_cemei(
         dias_nao_letivos,
@@ -2035,13 +2023,22 @@ def validate_solicitacoes_etec_ceu_gestao(solicitacao, lista_erros):
 
 
 def _validate_medicao_cei_cemei(
-    lista_erros, medicao, escola, mes, ano, dias_letivos, categoria
+    lista_erros,
+    medicao,
+    escola,
+    mes,
+    ano,
+    dias_letivos,
+    categoria_alimentacao,
+    solicitacao,
+    dias_nao_letivos,
+    inclusoes,
 ):
     faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
     logs = LogAlunosMatriculadosFaixaEtariaDia.objects.filter(
         escola=escola, data__month=mes, data__year=ano
     )
-    logs = list(
+    logs_dict = list(
         set(
             logs.values_list(
                 "data", "periodo_escolar_id", "faixa_etaria_id", "quantidade"
@@ -2050,9 +2047,26 @@ def _validate_medicao_cei_cemei(
     )
 
     lista_erros = validate_lancamento_alimentacoes_medicao_cemei(
-        lista_erros, dias_letivos, medicao, faixas_etarias, logs, ano, mes, categoria
+        lista_erros,
+        dias_letivos,
+        medicao,
+        faixas_etarias,
+        logs_dict,
+        ano,
+        mes,
+        categoria_alimentacao,
     )
-    # lista_erros = validate_lancamento_inclusoes_cemei(solicitacao, lista_erros)
+    lista_erros = validate_lancamento_inclusoes_cemei(
+        solicitacao,
+        lista_erros,
+        ano,
+        mes,
+        inclusoes,
+        faixas_etarias,
+        categoria_alimentacao,
+        dias_nao_letivos,
+        logs,
+    )
     # lista_erros = validate_lancamento_dietas_cemei(solicitacao, lista_erros)
     # lista_erros = validate_lancamento_inclusoes_dietas_cemei(solicitacao, lista_erros)
 
@@ -2071,6 +2085,19 @@ def validate_medicao_cemei(solicitacao):
             escola=escola, data__month=mes, data__year=ano, dia_letivo=True
         ).values_list("data__day", flat=True)
     )
+    dias_nao_letivos = list(
+        DiaCalendario.objects.filter(
+            escola=escola, data__month=mes, data__year=ano, dia_letivo=False
+        ).values_list("data__day", flat=True)
+    )
+
+    inclusoes = InclusaoDeAlimentacaoCEMEI.objects.filter(
+        escola=escola,
+        status=InclusaoDeAlimentacaoCEMEI.workflow_class.CODAE_AUTORIZADO,
+        dias_motivos_da_inclusao_cemei__data__month=mes,
+        dias_motivos_da_inclusao_cemei__data__year=ano,
+        dias_motivos_da_inclusao_cemei__cancelado=False,
+    ).order_by("dias_motivos_da_inclusao_cemei__data")
 
     lista_erros = []
 
@@ -2084,6 +2111,9 @@ def validate_medicao_cemei(solicitacao):
                 ano,
                 dias_letivos,
                 categoria_alimentacao,
+                solicitacao,
+                dias_nao_letivos,
+                inclusoes,
             )
 
     return lista_erros
