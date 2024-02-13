@@ -55,12 +55,16 @@ from ..validators import (
     validate_lancamento_alimentacoes_inclusoes_ceu_gestao,
     validate_lancamento_alimentacoes_medicao,
     validate_lancamento_alimentacoes_medicao_cei,
+    validate_lancamento_alimentacoes_medicao_cemei,
     validate_lancamento_dietas_cei,
+    validate_lancamento_dietas_cemei,
     validate_lancamento_dietas_emef,
     validate_lancamento_dietas_inclusoes_ceu_gestao,
     validate_lancamento_inclusoes,
     validate_lancamento_inclusoes_cei,
+    validate_lancamento_inclusoes_cemei,
     validate_lancamento_inclusoes_dietas_cei,
+    validate_lancamento_inclusoes_dietas_cemei,
     validate_lancamento_inclusoes_dietas_emef,
     validate_lancamento_kit_lanche,
     validate_lanche_emergencial,
@@ -217,6 +221,27 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         lista_erros = validate_lanche_emergencial(instance, lista_erros)
         lista_erros = validate_solicitacoes_etec(instance, lista_erros)
         lista_erros = validate_solicitacoes_programas_e_projetos(instance, lista_erros)
+
+        if lista_erros:
+            raise ValidationError(lista_erros)
+
+    def valida_finalizar_medicao_cemei(
+        self, instance: SolicitacaoMedicaoInicial
+    ) -> None:
+        if (
+            not instance.escola.eh_cemei
+            or instance.status
+            != SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+        ):
+            return
+
+        lista_erros = []
+        lista_erros = validate_lancamento_alimentacoes_medicao_cemei(
+            instance, lista_erros
+        )
+        lista_erros = validate_lancamento_inclusoes_cemei(instance, lista_erros)
+        lista_erros = validate_lancamento_dietas_cemei(instance, lista_erros)
+        lista_erros = validate_lancamento_inclusoes_dietas_cemei(instance, lista_erros)
 
         if lista_erros:
             raise ValidationError(lista_erros)
@@ -907,6 +932,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             self.cria_valores_medicao_logs_emef_emei(instance)
             self.cria_valores_medicao_logs_cei(instance)
             self.valida_finalizar_medicao_emef_emei(instance)
+            self.valida_finalizar_medicao_cemei(instance)
             self.valida_finalizar_medicao_cei(instance)
             self.valida_finalizar_medicao_ceu_gestao(instance)
             instance.ue_envia(user=self.context["request"].user)
