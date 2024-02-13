@@ -1,7 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-
-# from django.db.models import OuterRef, QuerySet
 from django.db.models import QuerySet
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
