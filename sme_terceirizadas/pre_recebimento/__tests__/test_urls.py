@@ -2999,6 +2999,7 @@ def test_url_dashboard_ficha_tecnica_status_retornados(
     "status_card",
     [
         FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+        FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
     ],
 )
 def test_url_dashboard_ficha_tecnica_com_filtro(
@@ -3035,6 +3036,7 @@ def test_url_dashboard_ficha_tecnica_com_filtro(
     "status_card",
     [
         FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+        FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
     ],
 )
 def test_url_dashboard_ficha_tecnica_ver_mais(
@@ -3055,6 +3057,7 @@ def test_url_dashboard_ficha_tecnica_ver_mais(
     "status_card",
     [
         FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+        FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
     ],
 )
 def test_url_dashboard_ficha_tecnica_ver_mais_com_filtros(
@@ -3097,6 +3100,7 @@ def test_url_dashboard_ficha_tecnica_ver_mais_com_filtros(
     "status_card",
     [
         FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+        FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
     ],
 )
 def test_url_dashboard_ficha_tecnica_quantidade_itens_por_card(
