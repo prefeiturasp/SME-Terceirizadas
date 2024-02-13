@@ -1118,13 +1118,17 @@ class FichaTecnicaModelViewSet(
     )
     def dashboard(self, request):
         subquery = (
-            LogSolicitacoesUsuario.objects.filter(uuid_original=OuterRef("uuid"))
-            .order_by("-criado_em")
+            LogSolicitacoesUsuario.objects.filter(
+                uuid_original=OuterRef("uuid"),
+                status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_ANALISE,
+            )
+            .order_by("criado_em")
             .values("criado_em")[:1]
         )
         qs = FichaTecnicaDoProduto.objects.annotate(log_criado_em=subquery).order_by(
             "-log_criado_em"
         )
+
         dashboard_service = ServiceDashboardFichaTecnica(
             qs,
             FichaTecnicaFilter,
