@@ -1504,9 +1504,13 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
             editais_uuid = Contrato.objects.filter(lotes__in=[escola.lote]).values_list(
                 "edital__uuid", flat=True
             )
-        protocolos_liberados = self.get_queryset().filter(
-            status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO,
-            editais__uuid__in=editais_uuid,
+        protocolos_liberados = (
+            self.get_queryset()
+            .filter(
+                status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO,
+                editais__uuid__in=editais_uuid,
+            )
+            .distinct()
         )
         response = {
             "results": ProtocoloPadraoDietaEspecialSimplesSerializer(
