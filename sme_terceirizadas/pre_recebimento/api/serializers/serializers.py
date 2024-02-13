@@ -987,7 +987,16 @@ class PainelFichaTecnicaSerializer(serializers.ModelSerializer):
     log_mais_recente = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
-        return obj.log_criado_em.strftime("%d/%m/%Y")
+        if obj.log_mais_recente:
+            if obj.log_mais_recente.criado_em.date() == datetime.date.today():
+                return datetime.datetime.strftime(
+                    obj.log_mais_recente.criado_em, "%d/%m/%Y %H:%M"
+                )
+            return datetime.datetime.strftime(
+                obj.log_mais_recente.criado_em, "%d/%m/%Y"
+            )
+        else:
+            return datetime.datetime.strftime(obj.criado_em, "%d/%m/%Y")
 
     class Meta:
         model = FichaTecnicaDoProduto
