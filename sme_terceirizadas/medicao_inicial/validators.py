@@ -2011,7 +2011,10 @@ def valida_alimentacoes_solicitacoes_continuas(
         if (
             periodo_com_erro
             or not inclusoes_filtradas.exists()
-            or not escola.calendario.get(data=data).dia_letivo
+            or (
+                not escola.calendario.get(data=data).dia_letivo
+                and not inclusoes_filtradas.exists()
+            )
         ):
             continue
         for nome_campo in nomes_campos:
@@ -2154,6 +2157,7 @@ def validate_solicitacoes_continuas(
             medicao,
             eh_ceu_gestao,
         )
+        print("OK 2")
 
     if periodo_com_erro_dieta:
         lista_erros.append(
@@ -2186,6 +2190,24 @@ def validate_solicitacoes_programas_e_projetos(solicitacao, lista_erros):
         lista_erros,
         inclusoes,
         medicao_programas_projetos,
+        "Programas e Projetos",
+        True,
+    )
+
+
+def _validate_solicitacoes_programas_e_projetos_emei_cemei(
+    solicitacao, lista_erros, medicao
+):
+    inclusoes = get_inclusoes_programas_projetos(solicitacao)
+
+    if not inclusoes:
+        return lista_erros
+    print("OK 1")
+    return validate_solicitacoes_continuas(
+        solicitacao,
+        lista_erros,
+        inclusoes,
+        medicao,
         "Programas e Projetos",
         True,
     )
@@ -2475,10 +2497,6 @@ def _validate_medicao_emei_cemei(
         logs_dietas_autorizadas_dict,
         medicao,
     )
-    # lista_erros = validate_lancamento_kit_lanche(instance, lista_erros)
-    # lista_erros = validate_lanche_emergencial(instance, lista_erros)
-    # lista_erros = validate_solicitacoes_etec(instance, lista_erros)
-    # lista_erros = validate_solicitacoes_programas_e_projetos(instance, lista_erros)
 
     return lista_erros
 
@@ -2512,7 +2530,8 @@ def validate_medicao_cemei(solicitacao):
     lista_erros = []
 
     for medicao in solicitacao.medicoes.all():
-        if medicao.nome_periodo_grupo.upper() in ["INTEGRAL", "PARCIAL"]:
+        tipo_medicao = medicao.nome_periodo_grupo.upper()
+        if tipo_medicao in ["INTEGRAL", "PARCIAL"]:
             lista_erros = _validate_medicao_cei_cemei(
                 lista_erros,
                 medicao,
@@ -2525,6 +2544,11 @@ def validate_medicao_cemei(solicitacao):
                 inclusoes,
             )
             print("CEI: ", lista_erros, medicao)
+        elif tipo_medicao == "PROGRAMAS E PROJETOS":
+            lista_erros = _validate_solicitacoes_programas_e_projetos_emei_cemei(
+                solicitacao, lista_erros, medicao
+            )
+            print("Programas e Projetos: ", lista_erros, medicao)
         else:
             lista_erros = _validate_medicao_emei_cemei(
                 lista_erros,
