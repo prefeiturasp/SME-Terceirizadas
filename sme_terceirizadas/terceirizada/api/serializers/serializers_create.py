@@ -46,6 +46,8 @@ class VigenciaContratoCreateSerializer(serializers.ModelSerializer):
 
 
 class ContratoCreateSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(required=False)
+    numero = serializers.CharField(validators=[])
     lotes = serializers.SlugRelatedField(
         slug_field="uuid", many=True, queryset=Lote.objects.all()
     )
@@ -63,7 +65,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         lotes_json = validated_data.pop("lotes", [])
         dres_json = validated_data.pop("diretorias_regionais", [])
-        vigencias_array = validated_data.pop("vigencias")
+        vigencias_array = validated_data.pop("vigencias", [])
 
         vigencias = []
         for vigencia_json in vigencias_array:
@@ -82,7 +84,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
         terceirizadas_json = validated_data.pop("terceirizadas", [])
         dres_json = validated_data.pop("diretorias_regionais", [])
 
-        vigencias_array = validated_data.pop("vigencias")
+        vigencias_array = validated_data.pop("vigencias", [])
 
         instance.vigencias.all().delete()
 
@@ -107,7 +109,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
 class ContratoAbastecimentoCreateSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(required=False)
-    vigencias = VigenciaContratoCreateSerializer(many=True)
+    vigencias = VigenciaContratoCreateSerializer(many=True, required=False)
 
     def create(self, validated_data):
         vigencias_array = validated_data.pop("vigencias")
@@ -294,7 +296,29 @@ class EditalContratosCreateSerializer(serializers.ModelSerializer):
 
         contratos = []
         for contrato_json in contrato_array:
-            contrato = ContratoCreateSerializer().create(contrato_json)
+            lotes = contrato_json.pop("lotes")
+            diretorias_regionais = contrato_json.pop("diretorias_regionais")
+            vigencias_array = contrato_json.pop("vigencias")
+
+            if "uuid" in contrato_json:
+                contrato, _ = Contrato.objects.update_or_create(
+                    uuid=contrato_json.pop("uuid"),
+                    defaults=contrato_json,
+                )
+            else:
+                contrato = ContratoCreateSerializer().create(contrato_json)
+            contrato.vigencias.all().delete()
+
+            vigencias = []
+            for vigencia_json in vigencias_array:
+                vigencia = VigenciaContratoCreateSerializer().create(vigencia_json)
+                vigencias.append(vigencia)
+
+            contrato.vigencias.set(vigencias)
+
+            contrato.lotes.set(lotes)
+            contrato.diretorias_regionais.set(diretorias_regionais)
+            contrato.vigencias.set(vigencias)
             contratos.append(contrato)
 
         update_instance_from_dict(instance, validated_data, save=True)
