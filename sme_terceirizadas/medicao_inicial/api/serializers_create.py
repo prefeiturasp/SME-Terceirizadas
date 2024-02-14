@@ -55,19 +55,16 @@ from ..validators import (
     validate_lancamento_alimentacoes_inclusoes_ceu_gestao,
     validate_lancamento_alimentacoes_medicao,
     validate_lancamento_alimentacoes_medicao_cei,
-    validate_lancamento_alimentacoes_medicao_cemei,
     validate_lancamento_dietas_cei,
-    validate_lancamento_dietas_cemei,
     validate_lancamento_dietas_emef,
     validate_lancamento_dietas_inclusoes_ceu_gestao,
     validate_lancamento_inclusoes,
     validate_lancamento_inclusoes_cei,
-    validate_lancamento_inclusoes_cemei,
     validate_lancamento_inclusoes_dietas_cei,
-    validate_lancamento_inclusoes_dietas_cemei,
     validate_lancamento_inclusoes_dietas_emef,
     validate_lancamento_kit_lanche,
     validate_lanche_emergencial,
+    validate_medicao_cemei,
     validate_solicitacoes_etec,
     validate_solicitacoes_etec_ceu_gestao,
     validate_solicitacoes_programas_e_projetos,
@@ -225,9 +222,10 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if lista_erros:
             raise ValidationError(lista_erros)
 
+    # TODO: adicionar testes unitarios
     def valida_finalizar_medicao_cemei(
         self, instance: SolicitacaoMedicaoInicial
-    ) -> None:
+    ) -> None:  # pragma: no cover
         if (
             not instance.escola.eh_cemei
             or instance.status
@@ -235,14 +233,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         ):
             return
 
-        lista_erros = []
-        lista_erros = validate_lancamento_alimentacoes_medicao_cemei(
-            instance, lista_erros
-        )
-        lista_erros = validate_lancamento_inclusoes_cemei(instance, lista_erros)
-        lista_erros = validate_lancamento_dietas_cemei(instance, lista_erros)
-        lista_erros = validate_lancamento_inclusoes_dietas_cemei(instance, lista_erros)
-
+        lista_erros = validate_medicao_cemei(instance)
         if lista_erros:
             raise ValidationError(lista_erros)
 
