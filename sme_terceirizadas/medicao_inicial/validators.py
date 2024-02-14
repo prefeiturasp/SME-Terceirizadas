@@ -2011,6 +2011,54 @@ def valida_alimentacoes_solicitacoes_continuas(
         if (
             periodo_com_erro
             or not inclusoes_filtradas.exists()
+            or not escola.calendario.get(data=data).dia_letivo
+        ):
+            continue
+        for nome_campo in nomes_campos:
+            if not medicao_programas_projetos.valores_medicao.filter(
+                categoria_medicao=categoria,
+                nome_campo=nome_campo,
+                dia=f"{dia:02d}",
+            ).exists():
+                periodo_com_erro = True
+                continue
+    return periodo_com_erro
+
+
+def valida_alimentacoes_solicitacoes_continuas_emei_cemei(
+    ano,
+    mes,
+    inclusoes,
+    escola,
+    quantidade_dias_mes,
+    medicao_programas_projetos,
+    eh_ceu_gestao=False,
+):
+    periodo_com_erro = False
+    categoria = CategoriaMedicao.objects.get(nome="ALIMENTAÇÃO")
+    nomes_campos = build_nomes_campos_alimentacoes_programas_e_projetos(
+        escola, medicao_programas_projetos, inclusoes, eh_ceu_gestao
+    )
+
+    for dia in range(1, quantidade_dias_mes + 1):
+        data = datetime.date(year=int(ano), month=int(mes), day=dia)
+        dia_semana = data.weekday()
+        if eh_ceu_gestao and medicao_programas_projetos.nome_periodo_grupo == "ETEC":
+            inclusoes_filtradas = inclusoes.filter(
+                data_inicial__lte=data,
+                data_final__gte=data,
+                quantidades_por_periodo__cancelado=False,
+            )
+        else:
+            inclusoes_filtradas = inclusoes.filter(
+                data_inicial__lte=data,
+                data_final__gte=data,
+                quantidades_por_periodo__cancelado=False,
+                quantidades_por_periodo__dias_semana__icontains=dia_semana,
+            )
+        if (
+            periodo_com_erro
+            or not inclusoes_filtradas.exists()
             or (
                 not escola.calendario.get(data=data).dia_letivo
                 and not inclusoes_filtradas.exists()
@@ -2070,6 +2118,62 @@ def tratar_nomes_campos_periodo_com_erro(
 
 
 def valida_dietas_solicitacoes_continuas(
+    escola,
+    mes,
+    ano,
+    quantidade_dias_mes,
+    inclusoes,
+    medicao_programas_projetos,
+    eh_ceu_gestao=False,
+):
+    periodo_com_erro_dieta = False
+
+    categorias = CategoriaMedicao.objects.filter(nome__icontains="dieta")
+    nomes_campos = ["frequencia", "lanche"]
+    ids_categorias_existentes_no_mes = list(
+        set(
+            escola.logs_dietas_autorizadas.filter(
+                data__month=mes, data__year=ano, quantidade__gt=0
+            )
+            .exclude(classificacao__nome="Tipo C")
+            .values_list("classificacao", flat=True)
+            .distinct()
+        )
+    )
+    classificacoes = ClassificacaoDieta.objects.filter(
+        id__in=ids_categorias_existentes_no_mes
+    )
+    for classificacao in classificacoes:
+        nomes_campos, categoria = get_nomes_campos_categoria(
+            nomes_campos, classificacao, categorias
+        )
+        for dia in range(1, quantidade_dias_mes + 1):
+            data = datetime.date(year=int(ano), month=int(mes), day=dia)
+            dia_semana = data.weekday()
+            inclusoes_filtradas = inclusoes.filter(
+                data_inicial__lte=data,
+                data_final__gte=data,
+                quantidades_por_periodo__cancelado=False,
+                quantidades_por_periodo__dias_semana__icontains=dia_semana,
+            )
+            if (
+                periodo_com_erro_dieta
+                or not inclusoes_filtradas.exists()
+                or not escola.calendario.get(data=data).dia_letivo
+            ):
+                continue
+            periodo_com_erro_dieta = tratar_nomes_campos_periodo_com_erro(
+                nomes_campos,
+                medicao_programas_projetos,
+                categoria,
+                dia,
+                eh_ceu_gestao,
+                periodo_com_erro_dieta,
+            )
+    return periodo_com_erro_dieta
+
+
+def valida_dietas_solicitacoes_continuas_emei_cemei(
     escola,
     mes,
     ano,
@@ -2180,6 +2284,58 @@ def validate_solicitacoes_continuas(
     return erros_unicos(lista_erros)
 
 
+def validate_solicitacoes_continuas_emei_cemei(
+    solicitacao,
+    lista_erros,
+    inclusoes,
+    medicao,
+    nome_secao,
+    valida_dietas,
+    eh_ceu_gestao=False,
+):
+    periodo_com_erro_dieta = False
+    quantidade_dias_mes = calendar.monthrange(
+        int(solicitacao.ano), int(solicitacao.mes)
+    )[1]
+
+    periodo_com_erro = valida_alimentacoes_solicitacoes_continuas_emei_cemei(
+        solicitacao.ano,
+        solicitacao.mes,
+        inclusoes,
+        solicitacao.escola,
+        quantidade_dias_mes,
+        medicao,
+        eh_ceu_gestao,
+    )
+    if valida_dietas:
+        periodo_com_erro_dieta = valida_dietas_solicitacoes_continuas_emei_cemei(
+            solicitacao.escola,
+            solicitacao.mes,
+            solicitacao.ano,
+            quantidade_dias_mes,
+            inclusoes,
+            medicao,
+            eh_ceu_gestao,
+        )
+
+    if periodo_com_erro_dieta:
+        lista_erros.append(
+            {
+                "periodo_escolar": nome_secao,
+                "erro": "Restam dias a serem lançados nas dietas.",
+            }
+        )
+
+    if periodo_com_erro:
+        lista_erros.append(
+            {
+                "periodo_escolar": nome_secao,
+                "erro": "Restam dias a serem lançados nas alimentações.",
+            }
+        )
+    return erros_unicos(lista_erros)
+
+
 def validate_solicitacoes_programas_e_projetos(solicitacao, lista_erros):
     inclusoes = get_inclusoes_programas_projetos(solicitacao)
 
@@ -2205,7 +2361,7 @@ def _validate_solicitacoes_programas_e_projetos_emei_cemei(
 
     if not inclusoes:
         return lista_erros
-    return validate_solicitacoes_continuas(
+    return validate_solicitacoes_continuas_emei_cemei(
         solicitacao,
         lista_erros,
         inclusoes,
