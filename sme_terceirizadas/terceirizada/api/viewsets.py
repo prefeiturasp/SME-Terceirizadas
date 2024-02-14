@@ -1,6 +1,5 @@
 from datetime import date
 
-from django.db import transaction
 from django.db.models import Q
 from django.db.models.functions import Lower
 from django.db.utils import IntegrityError
@@ -187,12 +186,6 @@ class EditalContratosViewSet(viewsets.ModelViewSet):
         if self.action in ["create", "update", "partial_update"]:
             return EditalContratosCreateSerializer
         return EditalContratosSerializer
-
-    @transaction.atomic
-    def update(self, request, *args, **kwargs):
-        obj = self.get_object()
-        obj.contratos.all().delete()
-        return super(EditalContratosViewSet, self).update(request, *args, **kwargs)
 
 
 class EmailTerceirizadaPorModuloViewSet(viewsets.ModelViewSet):
