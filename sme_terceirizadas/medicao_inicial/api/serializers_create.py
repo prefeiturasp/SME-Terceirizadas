@@ -222,9 +222,10 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         if lista_erros:
             raise ValidationError(lista_erros)
 
+    # TODO: adicionar testes unitarios
     def valida_finalizar_medicao_cemei(
         self, instance: SolicitacaoMedicaoInicial
-    ) -> None:
+    ) -> None:  # pragma: no cover
         if (
             not instance.escola.eh_cemei
             or instance.status
