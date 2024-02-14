@@ -2102,15 +2102,19 @@ def valida_dietas_solicitacoes_continuas(
         for dia in range(1, quantidade_dias_mes + 1):
             data = datetime.date(year=int(ano), month=int(mes), day=dia)
             dia_semana = data.weekday()
+            inclusoes_filtradas = inclusoes.filter(
+                data_inicial__lte=data,
+                data_final__gte=data,
+                quantidades_por_periodo__cancelado=False,
+                quantidades_por_periodo__dias_semana__icontains=dia_semana,
+            )
             if (
                 periodo_com_erro_dieta
-                or not inclusoes.filter(
-                    data_inicial__lte=data,
-                    data_final__gte=data,
-                    quantidades_por_periodo__cancelado=False,
-                    quantidades_por_periodo__dias_semana__icontains=dia_semana,
-                ).exists()
-                or not escola.calendario.get(data=data).dia_letivo
+                or not inclusoes_filtradas.exists()
+                or (
+                    not escola.calendario.get(data=data).dia_letivo
+                    and not inclusoes_filtradas.exists()
+                )
             ):
                 continue
             periodo_com_erro_dieta = tratar_nomes_campos_periodo_com_erro(
@@ -2157,7 +2161,6 @@ def validate_solicitacoes_continuas(
             medicao,
             eh_ceu_gestao,
         )
-        print("OK 2")
 
     if periodo_com_erro_dieta:
         lista_erros.append(
@@ -2202,7 +2205,6 @@ def _validate_solicitacoes_programas_e_projetos_emei_cemei(
 
     if not inclusoes:
         return lista_erros
-    print("OK 1")
     return validate_solicitacoes_continuas(
         solicitacao,
         lista_erros,
