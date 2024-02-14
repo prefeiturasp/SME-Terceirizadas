@@ -2711,6 +2711,10 @@ def validate_medicao_cemei(solicitacao):  # pragma: no cover
                 solicitacao, lista_erros, medicao
             )
             print("Programas e Projetos: ", lista_erros, medicao)
+        elif tipo_medicao == "SOLICITAÇÕES DE ALIMENTAÇÃO":
+            lista_erros = validate_lancamento_kit_lanche(solicitacao, lista_erros)
+            lista_erros = validate_lanche_emergencial(solicitacao, lista_erros)
+            print("Solicitações de Alimentação: ", lista_erros, medicao)
         else:
             lista_erros = _validate_medicao_emei_cemei(
                 lista_erros,
