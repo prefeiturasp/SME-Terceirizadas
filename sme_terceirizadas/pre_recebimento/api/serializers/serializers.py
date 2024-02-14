@@ -573,6 +573,7 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
         fields = (
             "uuid",
             "numero_cronograma",
+            "numero_laudo",
             "pregao_chamada_publica",
             "nome_produto",
             "status",
