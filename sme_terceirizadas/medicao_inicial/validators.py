@@ -2705,12 +2705,13 @@ def validate_medicao_cemei(solicitacao):  # pragma: no cover
                 dias_nao_letivos,
                 inclusoes,
             )
-            print("CEI: ", lista_erros, medicao)
         elif tipo_medicao == "PROGRAMAS E PROJETOS":
             lista_erros = _validate_solicitacoes_programas_e_projetos_emei_cemei(
                 solicitacao, lista_erros, medicao
             )
-            print("Programas e Projetos: ", lista_erros, medicao)
+        elif tipo_medicao == "SOLICITAÇÕES DE ALIMENTAÇÃO":
+            lista_erros = validate_lancamento_kit_lanche(solicitacao, lista_erros)
+            lista_erros = validate_lanche_emergencial(solicitacao, lista_erros)
         else:
             lista_erros = _validate_medicao_emei_cemei(
                 lista_erros,
@@ -2724,6 +2725,5 @@ def validate_medicao_cemei(solicitacao):  # pragma: no cover
                 ano,
                 dias_nao_letivos,
             )
-            print("EMEI: ", lista_erros, medicao)
 
     return lista_erros
