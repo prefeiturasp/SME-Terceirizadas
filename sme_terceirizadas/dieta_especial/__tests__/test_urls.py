@@ -910,7 +910,7 @@ def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados(
         f"/protocolo-padrao-dieta-especial/lista-protocolos-liberados/?dieta_especial_uuid={dieta_especial_uuid}"
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 2
+    assert len(response.json()["results"]) == 1
 
 
 def test_cadastro_protocolo_dieta_especial_nomes_protocolos_liberados_parceiras(

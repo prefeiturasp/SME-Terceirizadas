@@ -278,7 +278,7 @@ class CronogramaSimplesSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
 
     def get_pregao_chamada_publica(self, obj):
-        return obj.contrato.numero_pregao if obj.contrato else None
+        return obj.contrato.pregao_chamada_publica if obj.contrato else None
 
     def get_nome_produto(self, obj):
         return obj.ficha_tecnica.produto.nome if obj.ficha_tecnica else None
@@ -573,6 +573,7 @@ class DocumentoDeRecebimentoSerializer(serializers.ModelSerializer):
         fields = (
             "uuid",
             "numero_cronograma",
+            "numero_laudo",
             "pregao_chamada_publica",
             "nome_produto",
             "status",

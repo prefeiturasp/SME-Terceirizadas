@@ -130,6 +130,7 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
     lote2 = mommy.make(
         "Lote", uuid="42d3887a-517b-4a72-be78-95d96d857236", terceirizada=terceirizada
     )
+    mommy.make("DiretoriaRegional", uuid="9db1e5d8-dba3-4245-b937-a94c4ea44411")
     ontem = datetime.date.today() - datetime.timedelta(days=1)
     hoje = datetime.date.today()
     amanha = datetime.date.today() + datetime.timedelta(days=1)
