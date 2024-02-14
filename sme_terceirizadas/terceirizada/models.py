@@ -592,7 +592,7 @@ class Contrato(ExportModelOperationsMixin("contato"), TemChaveExterna):
 
     @property
     def pregao_chamada_publica(self):
-        if self.modalidade == "PREGAO_ELETRONICO":
+        if self.modalidade == self.PREGAO_ELETRONICO:
             return self.numero_pregao
         else:
             return self.numero_chamada_publica
