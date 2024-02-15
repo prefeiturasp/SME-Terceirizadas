@@ -24,6 +24,7 @@ from ..inclusao_alimentacao.models import (
 from ..paineis_consolidados.models import SolicitacoesEscola
 from .models import CategoriaMedicao, PermissaoLancamentoEspecial, ValorMedicao
 from .utils import (
+    agrupa_permissoes_especiais_por_dia,
     get_linhas_da_tabela,
     get_lista_dias_inclusoes_ceu_gestao,
     get_periodos_escolares_comuns_com_inclusoes_normais,
@@ -93,29 +94,39 @@ def buscar_valores_lancamento_alimentacoes(
 
 
 def buscar_valores_lancamento_alimentacoes_emei_cemei(
-    lista_erros, linhas_da_tabela, dias_letivos, categoria_medicao, medicao
+    lista_erros,
+    dias_letivos,
+    categoria_medicao,
+    medicao,
+    alimentacoes_vinculadas,
+    permissoes_especiais,
+    mes,
+    ano,
 ):
     periodo_com_erro = False
     dias_letivos = [str(x).rjust(2, "0") for x in dias_letivos]
-    for nome_campo in linhas_da_tabela:
-        valores_da_medicao = (
-            ValorMedicao.objects.filter(
+    permissoes_especiais_agrupadas_por_dia = agrupa_permissoes_especiais_por_dia(
+        permissoes_especiais, mes, ano
+    )
+    for dia in dias_letivos:
+        permissao_do_dia = permissoes_especiais_agrupadas_por_dia.get(dia)
+        alimentacoes_permitidas_no_dia = (
+            permissao_do_dia["alimentacoes"] if permissao_do_dia else []
+        )
+        alimentacoes = alimentacoes_vinculadas + alimentacoes_permitidas_no_dia
+        linhas_da_tabela = get_linhas_da_tabela(alimentacoes)
+        for nome_campo in linhas_da_tabela:
+            valor_da_medicao = ValorMedicao.objects.filter(
                 medicao=medicao,
                 nome_campo=nome_campo,
-                dia__in=dias_letivos,
+                dia=dia,
                 categoria_medicao=categoria_medicao,
-            )
-            .exclude(valor=None)
-            .values_list("dia", flat=True)
-        )
-        valores_da_medicao = list(set(valores_da_medicao))
-        if len(valores_da_medicao) != len(dias_letivos):
-            diferenca = list(set(dias_letivos) - set(valores_da_medicao))
-            for dia_sem_preenchimento in diferenca:
+            ).exclude(valor=None)
+            if not valor_da_medicao.exists():
                 valor_observacao = ValorMedicao.objects.filter(
                     medicao=medicao,
                     nome_campo="observacao",
-                    dia=dia_sem_preenchimento,
+                    dia=dia,
                     categoria_medicao=categoria_medicao,
                 ).exclude(valor=None)
                 if not valor_observacao.exists():
@@ -168,7 +179,7 @@ def validate_lancamento_alimentacoes_medicao_emei_cemei(
 ):
     for periodo_escolar in escola.periodos_escolares(solicitacao.ano):
         if periodo_escolar.nome.upper() in medicao.nome_periodo_grupo.upper():
-            alimentacoes_permitidas = get_alimentacoes_permitidas(
+            permissoes_especiais = get_permissoes_especiais_da_solicitacao(
                 solicitacao, escola, periodo_escolar
             )
             vinculo = (
@@ -183,10 +194,15 @@ def validate_lancamento_alimentacoes_medicao_emei_cemei(
             alimentacoes_vinculadas = list(
                 set(alimentacoes_vinculadas.values_list("nome", flat=True))
             )
-            alimentacoes = alimentacoes_vinculadas + alimentacoes_permitidas
-            linhas_da_tabela = get_linhas_da_tabela(alimentacoes)
             lista_erros = buscar_valores_lancamento_alimentacoes_emei_cemei(
-                lista_erros, linhas_da_tabela, dias_letivos, categoria_medicao, medicao
+                lista_erros,
+                dias_letivos,
+                categoria_medicao,
+                medicao,
+                alimentacoes_vinculadas,
+                permissoes_especiais,
+                solicitacao.mes,
+                solicitacao.ano,
             )
     return erros_unicos(lista_erros)
 
@@ -854,6 +870,43 @@ def get_alimentacoes_permitidas(solicitacao, escola, periodo_escolar):
             ]
         )
     )
+    return alimentacoes_permitidas
+
+
+def get_permissoes_especiais_da_solicitacao(solicitacao, escola, periodo_escolar):
+    permissoes_especiais = PermissaoLancamentoEspecial.objects.filter(
+        Q(
+            data_inicial__month__lte=int(solicitacao.mes),
+            data_inicial__year=int(solicitacao.ano),
+            data_final=None,
+        )
+        | Q(
+            data_inicial__month__lte=int(solicitacao.mes),
+            data_inicial__year=int(solicitacao.ano),
+            data_final__month=int(solicitacao.mes),
+            data_final__year=int(solicitacao.ano),
+        ),
+        escola=escola,
+        periodo_escolar=periodo_escolar,
+    )
+
+    return permissoes_especiais
+
+
+def get_alimentacoes_permitidas_emei_cemei(permissoes_especiais):
+    alimentacoes_permitidas = list(
+        set(
+            [
+                nome
+                for nome, ativo in permissoes_especiais.values_list(
+                    "alimentacoes_lancamento_especial__nome",
+                    "alimentacoes_lancamento_especial__ativo",
+                )
+                if ativo
+            ]
+        )
+    )
+
     return alimentacoes_permitidas
 
 
