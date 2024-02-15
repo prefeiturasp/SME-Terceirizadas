@@ -2329,6 +2329,14 @@ def valida_dietas_solicitacoes_continuas_emei_cemei(
                 quantidades_por_periodo__cancelado=False,
                 quantidades_por_periodo__dias_semana__icontains=dia_semana,
             )
+            log_do_dia_maior_que_zero = LogQuantidadeDietasAutorizadas.objects.filter(
+                escola=escola,
+                data=datetime.datetime(int(ano), int(mes), dia).date(),
+                classificacao=classificacao,
+                periodo_escolar__isnull=True,
+                quantidade__gt=0,
+                cei_ou_emei="N/A",
+            )
             if (
                 periodo_com_erro_dieta
                 or not inclusoes_filtradas.exists()
@@ -2336,6 +2344,7 @@ def valida_dietas_solicitacoes_continuas_emei_cemei(
                     not escola.calendario.get(data=data).dia_letivo
                     and not inclusoes_filtradas.exists()
                 )
+                or not log_do_dia_maior_que_zero.exists()
             ):
                 continue
             periodo_com_erro_dieta = tratar_nomes_campos_periodo_com_erro(
