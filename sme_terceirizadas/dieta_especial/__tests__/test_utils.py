@@ -136,3 +136,27 @@ def test_gera_logs_dietas_escolas_cei_com_solicitacao_medicao(
     assert [log for log in logs if log.classificacao.nome == "Tipo B"][
         0
     ].quantidade == 2
+
+
+@pytest.mark.django_db
+def test_gera_logs_dietas_escolas_emebs(
+    escola_emebs, solicitacoes_dieta_especial_ativas_emebs
+):
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    logs = gera_logs_dietas_escolas_comuns(
+        escola_emebs, solicitacoes_dieta_especial_ativas_emebs, ontem
+    )
+    assert len(logs) == 12
+    assert len([log for log in logs if log.periodo_escolar == None]) == 6
+    assert (
+        len(
+            [
+                log
+                for log in logs
+                if log.infantil_ou_fundamental == "INFANTIL"
+                and log.classificacao.nome == "Tipo A"
+            ]
+        )
+        == 2
+    )
