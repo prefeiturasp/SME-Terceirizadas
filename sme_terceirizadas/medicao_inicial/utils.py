@@ -1,3 +1,4 @@
+import calendar
 import datetime
 import json
 import logging
@@ -3701,3 +3702,27 @@ def incluir_lanche(nomes_campos, campo, lista_inclusoes, inclusao):
         and campo in inc["linhas_da_tabela"]
     ]
     return nomes_campos
+
+
+def agrupa_permissoes_especiais_por_dia(permissoes_especiais, mes, ano):
+    permissoes_especiais_por_dia = {}
+    for permissao in permissoes_especiais:
+        dia_inicial = 1
+        dia_final = calendar.monthrange(int(ano), int(mes))[1]
+        if permissao.data_inicial.month == int(mes):
+            dia_inicial = permissao.data_inicial.day
+        if permissao.data_final and permissao.data_final.month == int(mes):
+            dia_final = permissao.data_final.day
+        nome_periodo_escolar = permissao.periodo_escolar.nome
+        permissao_id_externo = permissao.id_externo
+        alimentacoes = [
+            alimentacao.name
+            for alimentacao in permissao.alimentacoes_lancamento_especial.all()
+        ]
+        for dia in range(dia_inicial, dia_final + 1):
+            permissoes_especiais_por_dia[f"{dia:02d}"] = {
+                "periodo": nome_periodo_escolar,
+                "alimentacoes": alimentacoes,
+                "permissao_id_externo": permissao_id_externo,
+            }
+    return permissoes_especiais_por_dia
