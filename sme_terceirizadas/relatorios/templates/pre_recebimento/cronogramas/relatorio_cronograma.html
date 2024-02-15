@@ -49,7 +49,7 @@
       </div>
 
       <div class="dados pb-3">
-        <div>R$ {{cronograma.custo_unitario_produto}}</div>
+        <div>R$ {{cronograma.custo_unitario_produto|floatformat:2}}</div>
         <div>{{cronograma.ficha_tecnica.volume_embalagem_primaria|default:""}}</div>
       </div>
 
