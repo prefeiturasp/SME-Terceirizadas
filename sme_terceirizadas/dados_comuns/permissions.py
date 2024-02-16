@@ -786,6 +786,7 @@ class PermissaoParaDashboardDocumentosDeRecebimento(BasePermission):
     PERFIS_PERMITIDOS = [
         DILOG_QUALIDADE,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
+        DILOG_CRONOGRAMA,
     ]
 
     def has_permission(self, request, view):
@@ -1114,6 +1115,8 @@ class PermissaoParaVisualizarLayoutDeEmbalagem(BasePermission):
 class PermissaoParaVisualizarDocumentosDeRecebimento(BasePermission):
     PERFIS_PERMITIDOS = [
         DILOG_QUALIDADE,
+        COORDENADOR_CODAE_DILOG_LOGISTICA,
+        DILOG_CRONOGRAMA,
     ]
 
     def has_permission(self, request, view):
