@@ -1,4 +1,5 @@
 import pytest
+from model_mommy import mommy
 
 
 @pytest.fixture(
@@ -92,3 +93,43 @@ def escola_total_params(request):
 )
 def escola_total_por_periodo_params(request):
     return request.param
+
+
+@pytest.fixture
+def escola_sheila_1():
+    return mommy.make("Escola", codigo_eol="094595")
+
+
+@pytest.fixture
+def escola_sheila_2():
+    return mommy.make("Escola", codigo_eol="094641")
+
+
+@pytest.fixture
+def escola_sheila_3():
+    return mommy.make("Escola", codigo_eol="094633")
+
+
+@pytest.fixture
+def escola_sheila_4():
+    return mommy.make("Escola", codigo_eol="200069")
+
+
+@pytest.fixture
+def escola_lorena_1():
+    return mommy.make("Escola", codigo_eol="091898")
+
+
+@pytest.fixture
+def escola_lorena_2():
+    return mommy.make("Escola", codigo_eol="309040")
+
+
+@pytest.fixture
+def escola_lorena_3():
+    return mommy.make("Escola", codigo_eol="092037")
+
+
+@pytest.fixture
+def aluno_com_codigo_eol():
+    return mommy.make("Aluno", codigo_eol="1234567")

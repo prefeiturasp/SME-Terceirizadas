@@ -24,7 +24,7 @@ from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
 from ..escola.api.serializers import AlunoSerializer
-from ..escola.constants import CEI_OU_EMEI
+from ..escola.constants import CEI_OU_EMEI, INFANTIL_OU_FUNDAMENTAL
 from ..escola.models import Aluno, Escola
 from .managers import AlimentoProprioManager
 
@@ -742,6 +742,9 @@ class LogQuantidadeDietasAutorizadas(TemChaveExterna, TemData, CriadoEm):
         related_name="logs_dietas_autorizadas",
     )
     cei_ou_emei = models.CharField(max_length=4, choices=CEI_OU_EMEI, default="N/A")
+    infantil_ou_fundamental = models.CharField(
+        max_length=11, choices=INFANTIL_OU_FUNDAMENTAL, default="N/A"
+    )
 
     def __str__(self) -> str:
         return (
