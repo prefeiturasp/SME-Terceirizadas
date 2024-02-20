@@ -563,7 +563,11 @@ class UsuarioDilogOuDistribuidor(BasePermission):
             and (
                 isinstance(usuario.vinculo_atual.instituicao, Codae)
                 and usuario.vinculo_atual.perfil.nome
-                in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA]
+                in [
+                    COORDENADOR_LOGISTICA,
+                    COORDENADOR_CODAE_DILOG_LOGISTICA,
+                    ADMINISTRADOR_CODAE_GABINETE,
+                ]
                 or usuario.eh_distribuidor
             )
         )
