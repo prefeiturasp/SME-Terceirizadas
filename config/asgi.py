@@ -13,8 +13,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")
 django.setup()
 
 from channels.auth import AuthMiddlewareStack  # noqa
-from channels.http import AsgiHandler  # noqa
 from channels.routing import ProtocolTypeRouter, URLRouter  # noqa
+from django.core.asgi import get_asgi_application  # noqa
 
 from sme_terceirizadas.dados_comuns.urls import ws_urlpatterns  # noqa
 
@@ -22,9 +22,11 @@ from sme_terceirizadas.dados_comuns.urls import ws_urlpatterns  # noqa
 # before importing consumers and AuthMiddlewareStack that may import ORM
 # models.
 
+django_asgi_app = get_asgi_application()
+
 application = ProtocolTypeRouter(
     {
-        "http": AsgiHandler(),
+        "http": django_asgi_app,
         "websocket": AuthMiddlewareStack(URLRouter([*ws_urlpatterns])),
     }
 )

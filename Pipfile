@@ -108,6 +108,7 @@ brazilnum="==0.8.8"
 munch="==4.0.0"
 channels = "==4.0.0"
 channels-redis = "==4.0.0"
+daphne = "==4.1.0"
 drf-spectacular = "==0.26.3"
 cerberus = "*"
 
