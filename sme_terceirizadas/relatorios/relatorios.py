@@ -21,6 +21,7 @@ from ..medicao_inicial.utils import (
     build_tabela_relatorio_consolidado,
     build_tabela_somatorio_body,
     build_tabela_somatorio_body_cei,
+    build_tabela_somatorio_dietas_body,
     build_tabelas_relatorio_medicao,
     build_tabelas_relatorio_medicao_cei,
     build_tabelas_relatorio_medicao_cemei,
@@ -1387,6 +1388,12 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
     tabela_somatorio = build_tabela_somatorio_body(
         solicitacao, dict_total_refeicoes, dict_total_sobremesas
     )
+    tabela_somatorio_dietas_tipo_a = build_tabela_somatorio_dietas_body(
+        solicitacao, "TIPO A"
+    )
+    tabela_somatorio_dietas_tipo_b = build_tabela_somatorio_dietas_body(
+        solicitacao, "TIPO B"
+    )
     html_string = render_to_string(
         "relatorio_solicitacao_medicao_por_escola.html",
         {
@@ -1401,6 +1408,8 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
             "tabelas": tabelas,
             "tabela_observacoes": tabela_observacoes,
             "tabela_somatorio": tabela_somatorio,
+            "tabela_somatorio_dietas_tipo_a": tabela_somatorio_dietas_tipo_a,
+            "tabela_somatorio_dietas_tipo_b": tabela_somatorio_dietas_tipo_b,
         },
     )
 
