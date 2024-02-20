@@ -76,14 +76,21 @@ def montar_faixas_etarias(ws, row_calculada, dado, faixas_etarias):
             celula.border = Border(top=thin, left=thin, right=thin, bottom=thin)
             celula.alignment = Alignment(horizontal="center", vertical="center")
 
+    monta_celulas_faixas_periodos(faixas_etarias, row_calculada, ws, dado)
+
+
+def monta_celulas_faixas_periodos(faixas_etarias, row_calculada, ws, dado):
     for idx, faixa in enumerate(faixas_etarias):
         row = row_calculada + 2 + idx
         celula = ws.cell(row=row, column=1)
         celula.value = faixa["nome"]
         celula = ws.cell(row=row, column=6)
-        celula.value = dado["alunos_por_faixa_etaria"][dado["periodo_escolar"]][
-            faixa["uuid"]
-        ]
+        try:
+            celula.value = dado["alunos_por_faixa_etaria"][dado["periodo_escolar"]][
+                faixa["uuid"]
+            ]
+        except KeyError:
+            celula.value = 0
 
 
 def build_xlsx_alunos_matriculados(dados, nome_arquivo, output):
