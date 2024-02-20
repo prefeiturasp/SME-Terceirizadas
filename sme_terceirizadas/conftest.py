@@ -22,6 +22,7 @@ from .pre_recebimento.fixtures.factories.documentos_de_recebimento_factory impor
     TipoDeDocumentoDeRecebimentoFactory,
 )
 from .pre_recebimento.fixtures.factories.ficha_tecnica_do_produto_factory import (
+    AnaliseFichaTecnicaFactory,
     FichaTecnicaFactory,
 )
 from .pre_recebimento.fixtures.factories.layout_embalagem_factory import (
@@ -54,6 +55,7 @@ register(EtapasDoCronogramaFactory)
 register(TipoDeInformacaoNutricionalFactory)
 register(InformacaoNutricionalFactory)
 register(LayoutDeEmbalagemFactory)
+register(AnaliseFichaTecnicaFactory)
 
 
 @pytest.fixture

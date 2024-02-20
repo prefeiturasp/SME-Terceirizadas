@@ -193,9 +193,13 @@ class ServiceDashboardFichaTecnica(BaseServiceDashboard):
     STATUS_POR_PERFIL = {
         COORDENADOR_GESTAO_PRODUTO: [
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            FichaTecnicaDoProdutoWorkflow.APROVADA,
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
         ],
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
             FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_ANALISE,
+            FichaTecnicaDoProdutoWorkflow.APROVADA,
+            FichaTecnicaDoProdutoWorkflow.ENVIADA_PARA_CORRECAO,
         ],
     }
 

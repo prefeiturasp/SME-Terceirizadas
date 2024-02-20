@@ -743,6 +743,8 @@ class PermissaoParaVisualizarCalendarioCronograma(BasePermission):
         DILOG_CRONOGRAMA,
         DILOG_QUALIDADE,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
+        DINUTRE_DIRETORIA,
+        DILOG_DIRETORIA,
     ]
 
     def has_permission(self, request, view):
@@ -1161,4 +1163,41 @@ class PermissaoParaDashboardFichaTecnica(BasePermission):
                     and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
                 )
             )
+        )
+
+
+class PermissaoParaVisualizarFichaTecnica(BasePermission):
+    PERFIS_PERMITIDOS = [
+        COORDENADOR_GESTAO_PRODUTO,
+        COORDENADOR_CODAE_DILOG_LOGISTICA,
+        COORDENADOR_GESTAO_PRODUTO,
+    ]
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae)
+                    and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
+                )
+                or usuario.eh_fornecedor
+            )
+        )
+
+
+class PermissaoParaAnalisarFichaTecnica(BasePermission):
+    PERFIS_PERMITIDOS = [
+        COORDENADOR_GESTAO_PRODUTO,
+        COORDENADOR_CODAE_DILOG_LOGISTICA,
+    ]
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and usuario.vinculo_atual.perfil.nome in self.PERFIS_PERMITIDOS
         )

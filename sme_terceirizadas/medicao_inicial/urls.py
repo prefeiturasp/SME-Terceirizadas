@@ -21,6 +21,7 @@ router.register(
     "permissao-lancamentos-especiais", viewsets.PermissaoLancamentoEspecialViewSet
 )
 router.register("dias-para-corrigir", viewsets.DiasParaCorrigirViewSet)
+router.register("empenhos", viewsets.EmpenhoViewSet)
 
 
 urlpatterns = [

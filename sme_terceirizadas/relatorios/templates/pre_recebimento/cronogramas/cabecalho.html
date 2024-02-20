@@ -16,13 +16,25 @@
     <div class="info mt-2 border border-dark">
 			<div class="row">
 				<div class="col pt-2 pb-2 grow-2"> Nº do Cronograma de Entrega: </div>
-				<div class="col pt-2 pb-2 grow-2"> Nº do Contrato: </div>
+				<div class="col pt-2 pb-2 grow-2"> Nº do Pregão/Chamada Pública: </div>
         <div class="col pt-2 pb-2 grow-2"> Nº do Processo SEI: </div>
 			</div>
 			<div class="row green-important-text">
 				<div class="col pb-2 grow-2"> {{cronograma.numero}} </div>
-				<div class="col pb-2 grow-2"> {{contrato.numero}} </div>
+				<div class="col pb-2 grow-2"> {{contrato.pregao_chamada_publica}} </div>
         <div class="col pb-2 grow-2"> {{contrato.processo}} </div>
+			</div>
+      <div class="row">
+				<div class="col pt-2 pb-2 grow-2"> Nº do Contrato: </div>
+        {% if contrato.ata %}
+				  <div class="col pt-2 pb-2 grow-2"> Nº da ATA: </div>
+        {% endif %}
+      <div class="col pt-2 pb-2 grow-2"> </div>
+			</div>
+			<div class="row green-important-text">
+				<div class="col pb-2 grow-2"> {{contrato.numero}} </div>
+				<div class="col pb-2 grow-2"> {{contrato.ata|default:"" }} </div>
+				<div class="col pb-2 grow-2"> </div>
 			</div>
 		</div>
 
@@ -40,10 +52,10 @@
       <div class="dados-empresa">
         <b>Responsável:</b> {{empresa.responsavel_nome}}
       </div>
-      <div class="dados-empresa"> 
+      <div class="dados-empresa">
         <b>Telefone:</b> {{empresa.responsavel_telefone}}
       </div>
-      <div class="dados-empresa"> 
+      <div class="dados-empresa">
         <b>E-mail:</b> {{empresa.responsavel_email}}
       </div>
     </section>

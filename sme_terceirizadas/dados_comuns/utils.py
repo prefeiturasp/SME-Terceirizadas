@@ -538,6 +538,10 @@ def deletar_logs_quantidade_dietas_autorizadas(escola, hoje, modelo):
             logs_filtrados = logs.filter(
                 periodo_escolar=log.periodo_escolar, classificacao=log.classificacao
             ).order_by("-criado_em")
+            if modelo.__name__ == "LogQuantidadeDietasAutorizadas":
+                logs_filtrados = logs_filtrados.filter(
+                    infantil_ou_fundamental=log.infantil_ou_fundamental
+                ).order_by("-criado_em")
             if escola.eh_cei or (
                 escola.eh_cemei
                 and modelo.__name__ == "LogQuantidadeDietasAutorizadasCEI"
@@ -614,6 +618,7 @@ def create_objects_logs(escola, log_para_criar, data):
             classificacao=log_para_criar.classificacao,
             periodo_escolar=log_para_criar.periodo_escolar,
             cei_ou_emei=log_para_criar.cei_ou_emei,
+            infantil_ou_fundamental=log_para_criar.infantil_ou_fundamental,
         )
 
 

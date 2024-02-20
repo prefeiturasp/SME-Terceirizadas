@@ -14,6 +14,7 @@ from sme_terceirizadas.relatorios.utils import merge_pdf_com_string_template
 
 from ...dados_comuns.behaviors import (
     CriadoEm,
+    CriadoPor,
     Logs,
     ModeloBase,
     Nomeavel,
@@ -692,7 +693,10 @@ class FichaTecnicaDoProduto(
         related_name="fichas_tecnicas",
     )
     cnpj_fabricante = models.CharField(
-        "CNPJ", validators=[MinLengthValidator(14)], max_length=14
+        "CNPJ",
+        validators=[MinLengthValidator(14)],
+        max_length=14,
+        blank=True,
     )
     cep_fabricante = models.CharField("CEP", max_length=8, blank=True)
     endereco_fabricante = models.CharField("Endereco", max_length=160, blank=True)
@@ -909,3 +913,59 @@ class InformacoesNutricionaisFichaTecnica(TemChaveExterna):
     class Meta:
         verbose_name = "Informação Nutricional da Ficha Técnica"
         verbose_name_plural = "Informações Nutricionais da Ficha Técnica"
+
+
+class AnaliseFichaTecnica(ModeloBase, CriadoPor):
+    ficha_tecnica = models.ForeignKey(
+        FichaTecnicaDoProduto,
+        on_delete=models.CASCADE,
+        related_name="analises",
+    )
+    detalhes_produto_conferido = models.BooleanField(null=True)
+    detalhes_produto_correcoes = models.TextField(blank=True)
+    informacoes_nutricionais_conferido = models.BooleanField(null=True)
+    informacoes_nutricionais_correcoes = models.TextField(blank=True)
+    conservacao_conferido = models.BooleanField(null=True)
+    conservacao_correcoes = models.TextField(blank=True)
+    temperatura_e_transporte_conferido = models.BooleanField(null=True)
+    temperatura_e_transporte_correcoes = models.TextField(blank=True)
+    armazenamento_conferido = models.BooleanField(null=True)
+    armazenamento_correcoes = models.TextField(blank=True)
+    embalagem_e_rotulagem_conferido = models.BooleanField(null=True)
+    embalagem_e_rotulagem_correcoes = models.TextField(blank=True)
+    responsavel_tecnico_conferido = models.BooleanField(null=True)
+    modo_preparo_conferido = models.BooleanField(null=True)
+    outras_informacoes_conferido = models.BooleanField(null=True)
+
+    @property
+    def aprovada(self):
+        return (
+            (
+                self.detalhes_produto_conferido is True
+                and not self.detalhes_produto_correcoes
+            )
+            and (
+                self.informacoes_nutricionais_conferido is True
+                and not self.informacoes_nutricionais_correcoes
+            )
+            and (self.conservacao_conferido is True and not self.conservacao_correcoes)
+            and (
+                self.temperatura_e_transporte_conferido in [True, None]
+                and not self.temperatura_e_transporte_correcoes
+            )
+            and (
+                self.armazenamento_conferido is True
+                and not self.armazenamento_correcoes
+            )
+            and (
+                self.embalagem_e_rotulagem_conferido is True
+                and not self.embalagem_e_rotulagem_correcoes
+            )
+            and self.responsavel_tecnico_conferido is True
+            and self.modo_preparo_conferido is True
+            and self.outras_informacoes_conferido is True
+        )
+
+    class Meta:
+        verbose_name = "Análise da Ficha Técnica"
+        verbose_name_plural = "Análises das Fichas Técnicas"

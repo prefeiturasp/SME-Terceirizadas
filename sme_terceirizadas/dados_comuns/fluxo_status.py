@@ -2,6 +2,7 @@
 
 Na pasta docs tem os BMPNs dos fluxos
 """
+
 import datetime
 
 import environ
@@ -1968,9 +1969,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         log_transicao = self.salvar_log_transicao(
             status_evento=evento,
             usuario=request.user,
-            justificativa=justificativa_
-            if justificativa_
-            else request.data["justificativa"],
+            justificativa=(
+                justificativa_ if justificativa_ else request.data["justificativa"]
+            ),
         )
         for anexo in request.data.pop("anexos", []):
             arquivo = convert_base64_to_contentfile(anexo.pop("base64"))
@@ -3169,9 +3170,9 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             "movimentacao_realizada": str(self.status),
             "perfil_que_autorizou": user.nome,
             "escola": self.escola.nome,
-            "lote": self.escola.lote.nome
-            if self.escola.lote
-            else "Sem Lote (Parceira)",
+            "lote": (
+                self.escola.lote.nome if self.escola.lote else "Sem Lote (Parceira)"
+            ),
             "url": url,
             "data_log": self.log_mais_recente.criado_em.strftime("%d/%m/%Y - %H:%M"),
         }
@@ -5338,13 +5339,21 @@ class FichaTecnicaDoProdutoWorkflow(xwf_models.Workflow):
 
     RASCUNHO = "RASCUNHO"
     ENVIADA_PARA_ANALISE = "ENVIADA_PARA_ANALISE"
+    APROVADA = "APROVADA"
+    ENVIADA_PARA_CORRECAO = "ENVIADA_PARA_CORRECAO"
 
     states = (
         (RASCUNHO, "Rascunho"),
         (ENVIADA_PARA_ANALISE, "Enviada para Análise"),
+        (APROVADA, "Aprovada"),
+        (ENVIADA_PARA_CORRECAO, "Enviada para Correção"),
     )
 
-    transitions = (("inicia_fluxo", RASCUNHO, ENVIADA_PARA_ANALISE),)
+    transitions = (
+        ("inicia_fluxo", RASCUNHO, ENVIADA_PARA_ANALISE),
+        ("gpcodae_aprova", ENVIADA_PARA_ANALISE, APROVADA),
+        ("gpcodae_envia_para_correcao", ENVIADA_PARA_ANALISE, ENVIADA_PARA_CORRECAO),
+    )
 
     initial_state = RASCUNHO
 
@@ -5359,6 +5368,24 @@ class FluxoFichaTecnicaDoProduto(xwf_models.WorkflowEnabled, models.Model):
         if user:
             self.salvar_log_transicao(
                 status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_ANALISE,
+                usuario=user,
+            )
+
+    @xworkflows.after_transition("gpcodae_aprova")
+    def _gpcodae_aprova_hook(self, *args, **kwargs):
+        user = kwargs["user"]
+        if user:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_APROVADA,
+                usuario=user,
+            )
+
+    @xworkflows.after_transition("gpcodae_envia_para_correcao")
+    def _gpcodae_envia_para_correcao_hook(self, *args, **kwargs):
+        user = kwargs["user"]
+        if user:
+            self.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.FICHA_TECNICA_ENVIADA_PARA_CORRECAO,
                 usuario=user,
             )
 

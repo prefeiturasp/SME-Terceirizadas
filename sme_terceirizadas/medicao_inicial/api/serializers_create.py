@@ -33,6 +33,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     AlimentacaoLancamentoEspecial,
     CategoriaMedicao,
     DiaSobremesaDoce,
+    Empenho,
     GrupoMedicao,
     Medicao,
     OcorrenciaMedicaoInicial,
@@ -43,6 +44,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     ValorMedicao,
 )
 from sme_terceirizadas.perfil.models import Usuario
+from sme_terceirizadas.terceirizada.models import Contrato, Edital
 
 from ...dados_comuns.constants import DIRETOR_UE
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
@@ -62,6 +64,7 @@ from ..validators import (
     validate_lancamento_inclusoes_dietas_emef,
     validate_lancamento_kit_lanche,
     validate_lanche_emergencial,
+    validate_medicao_cemei,
     validate_solicitacoes_etec,
     validate_solicitacoes_etec_ceu_gestao,
     validate_solicitacoes_programas_e_projetos,
@@ -216,6 +219,21 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
         lista_erros = validate_solicitacoes_etec(instance, lista_erros)
         lista_erros = validate_solicitacoes_programas_e_projetos(instance, lista_erros)
 
+        if lista_erros:
+            raise ValidationError(lista_erros)
+
+    # TODO: adicionar testes unitarios
+    def valida_finalizar_medicao_cemei(
+        self, instance: SolicitacaoMedicaoInicial
+    ) -> None:  # pragma: no cover
+        if (
+            not instance.escola.eh_cemei
+            or instance.status
+            != SolicitacaoMedicaoInicial.workflow_class.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE
+        ):
+            return
+
+        lista_erros = validate_medicao_cemei(instance)
         if lista_erros:
             raise ValidationError(lista_erros)
 
@@ -905,6 +923,7 @@ class SolicitacaoMedicaoInicialCreateSerializer(serializers.ModelSerializer):
             self.cria_valores_medicao_logs_emef_emei(instance)
             self.cria_valores_medicao_logs_cei(instance)
             self.valida_finalizar_medicao_emef_emei(instance)
+            self.valida_finalizar_medicao_cemei(instance)
             self.valida_finalizar_medicao_cei(instance)
             self.valida_finalizar_medicao_ceu_gestao(instance)
             instance.ue_envia(user=self.context["request"].user)
@@ -978,6 +997,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
         queryset=GrupoMedicao.objects.all(),
     )
     valores_medicao = ValorMedicaoCreateUpdateSerializer(many=True, required=False)
+    infantil_ou_fundamental = serializers.CharField(required=False)
 
     def create(self, validated_data):
         validated_data["criado_por"] = self.context["request"].user
@@ -1012,6 +1032,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                 periodo_escolar=None,
             )
         medicao.save()
+        infantil_ou_fundamental = validated_data.pop("infantil_ou_fundamental", "N/A")
 
         for valor_medicao in valores_medicao_dict:
             dia = int(valor_medicao.get("dia", ""))
@@ -1026,6 +1047,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                 categoria_medicao=valor_medicao.get("categoria_medicao", ""),
                 tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
                 faixa_etaria=valor_medicao.get("faixa_etaria", None),
+                infantil_ou_fundamental=infantil_ou_fundamental,
                 defaults={
                     "medicao": medicao,
                     "dia": valor_medicao.get("dia", ""),
@@ -1035,6 +1057,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                     "categoria_medicao": valor_medicao.get("categoria_medicao", ""),
                     "tipo_alimentacao": valor_medicao.get("tipo_alimentacao", None),
                     "faixa_etaria": valor_medicao.get("faixa_etaria", None),
+                    "infantil_ou_fundamental": infantil_ou_fundamental,
                 },
             )
 
@@ -1051,6 +1074,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
             log_alteracoes_escola_corrige_periodo(user, instance, acao, valores)
 
         valores_medicao_dict = validated_data.pop("valores_medicao", None)
+        infantil_ou_fundamental = validated_data.pop("infantil_ou_fundamental", "N/A")
 
         if valores_medicao_dict:
             for valor_medicao in valores_medicao_dict:
@@ -1066,6 +1090,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                     categoria_medicao=valor_medicao.get("categoria_medicao", ""),
                     tipo_alimentacao=valor_medicao.get("tipo_alimentacao", None),
                     faixa_etaria=valor_medicao.get("faixa_etaria", None),
+                    infantil_ou_fundamental=infantil_ou_fundamental,
                     defaults={
                         "medicao": instance,
                         "dia": valor_medicao.get("dia", ""),
@@ -1075,6 +1100,7 @@ class MedicaoCreateUpdateSerializer(serializers.ModelSerializer):
                         "categoria_medicao": valor_medicao.get("categoria_medicao", ""),
                         "tipo_alimentacao": valor_medicao.get("tipo_alimentacao", None),
                         "faixa_etaria": valor_medicao.get("faixa_etaria", None),
+                        "infantil_ou_fundamental": infantil_ou_fundamental,
                     },
                 )
         eh_observacao = self.context["request"].data.get(
@@ -1125,4 +1151,17 @@ class PermissaoLancamentoEspecialCreateUpdateSerializer(serializers.ModelSeriali
 
     class Meta:
         model = PermissaoLancamentoEspecial
+        fields = "__all__"
+
+
+class EmpenhoCreateUpdateSerializer(serializers.ModelSerializer):
+    contrato = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=Contrato.objects.all()
+    )
+    edital = serializers.SlugRelatedField(
+        slug_field="uuid", queryset=Edital.objects.all()
+    )
+
+    class Meta:
+        model = Empenho
         fields = "__all__"

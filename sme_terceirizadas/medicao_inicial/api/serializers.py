@@ -22,6 +22,7 @@ from sme_terceirizadas.medicao_inicial.models import (
     CategoriaMedicao,
     DiaParaCorrigir,
     DiaSobremesaDoce,
+    Empenho,
     Medicao,
     OcorrenciaMedicaoInicial,
     PermissaoLancamentoEspecial,
@@ -155,6 +156,7 @@ class ValorMedicaoSerializer(serializers.ModelSerializer):
     faixa_etaria = serializers.SerializerMethodField()
     faixa_etaria_str = serializers.SerializerMethodField()
     faixa_etaria_inicio = serializers.SerializerMethodField()
+    infantil_ou_fundamental = serializers.CharField()
 
     def get_medicao_uuid(self, obj):
         return obj.medicao.uuid
@@ -188,6 +190,7 @@ class ValorMedicaoSerializer(serializers.ModelSerializer):
             "uuid",
             "medicao_alterado_em",
             "habilitado_correcao",
+            "infantil_ou_fundamental",
         )
 
 
@@ -243,3 +246,12 @@ class DiaParaCorrigirSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiaParaCorrigir
         exclude = ("id", "criado_por")
+
+
+class EmpenhoSerializer(serializers.ModelSerializer):
+    contrato = serializers.CharField(source="contrato.numero")
+    edital = serializers.CharField(source="edital.numero")
+
+    class Meta:
+        model = Empenho
+        exclude = ("id", "criado_em", "alterado_em")

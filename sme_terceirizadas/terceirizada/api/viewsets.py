@@ -1,4 +1,5 @@
-from django.db import transaction
+from datetime import date
+
 from django.db.models import Q
 from django.db.models.functions import Lower
 from django.db.utils import IntegrityError
@@ -8,12 +9,23 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from ...dados_comuns.api.paginations import DefaultPagination
 from ...escola.api.serializers import TerceirizadaSerializer
 from ...relatorios.relatorios import relatorio_quantitativo_por_terceirizada
 from ..forms import RelatorioQuantitativoForm
-from ..models import Contrato, Edital, EmailTerceirizadaPorModulo, Terceirizada
+from ..models import (
+    Contrato,
+    Edital,
+    EmailTerceirizadaPorModulo,
+    Terceirizada,
+    VigenciaContrato,
+)
 from ..utils import TerceirizadasEmailsPagination, obtem_dados_relatorio_quantitativo
-from .filters import EmailTerceirizadaPorModuloFilter, TerceirizadaFilter
+from .filters import (
+    ContratoFilter,
+    EmailTerceirizadaPorModuloFilter,
+    TerceirizadaFilter,
+)
 from .serializers.serializers import (
     ContratoSerializer,
     DistribuidorSimplesSerializer,
@@ -24,6 +36,7 @@ from .serializers.serializers import (
     EmailsTerceirizadaPorModuloSerializer,
     TerceirizadaLookUpSerializer,
     TerceirizadaSimplesSerializer,
+    VigenciaContratoSerializer,
 )
 from .serializers.serializers_create import (
     CreateEmailTerceirizadaPorModuloSerializer,
@@ -154,21 +167,25 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
         return Response(response)
 
 
+class TerceirizadaSimplesViewSet(viewsets.ModelViewSet):
+    lookup_field = "uuid"
+    queryset = Terceirizada.objects.all().order_by(Lower("razao_social"))
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = TerceirizadaFilter
+
+
 class EditalContratosViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
     serializer_class = EditalContratosSerializer
+    pagination_class = DefaultPagination
     queryset = Edital.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ContratoFilter
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
             return EditalContratosCreateSerializer
         return EditalContratosSerializer
-
-    @transaction.atomic
-    def update(self, request, *args, **kwargs):
-        obj = self.get_object()
-        obj.contratos.all().delete()
-        return super(EditalContratosViewSet, self).update(request, *args, **kwargs)
 
 
 class EmailTerceirizadaPorModuloViewSet(viewsets.ModelViewSet):
@@ -210,4 +227,22 @@ class ContratoViewSet(ReadOnlyModelViewSet):
                     self.get_queryset().values_list("numero", flat=True)
                 )
             }
+        )
+
+
+class VigenciaContratoViewSet(ReadOnlyModelViewSet):
+    lookup_field = "uuid"
+    serializer_class = VigenciaContratoSerializer
+    queryset = VigenciaContrato.objects.all()
+
+    @action(detail=False, methods=["GET"], url_path="contratos-vigentes")
+    def contratos_vigentes(self, request):
+        queryset = self.get_queryset()
+        data_atual = date.today()
+        vigencias_contratos = queryset.filter(
+            data_inicial__lte=data_atual, data_final__gte=data_atual
+        )
+
+        return Response(
+            {"results": VigenciaContratoSerializer(vigencias_contratos, many=True).data}
         )
