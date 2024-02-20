@@ -433,10 +433,13 @@ def get_total_medicao(tabela_somatorio):
 @register.filter
 def get_matriculados(uuid, alunos_matriculados):
     periodo = alunos_matriculados["periodo_escolar"]
-    alunos_no_periodo = alunos_matriculados["alunos_por_faixa_etaria"][periodo]
-    if alunos_no_periodo and alunos_no_periodo[uuid]:
-        return alunos_matriculados["alunos_por_faixa_etaria"][periodo][uuid]
-    else:
+    try:
+        alunos_no_periodo = alunos_matriculados["alunos_por_faixa_etaria"][periodo]
+        if alunos_no_periodo and alunos_no_periodo[uuid]:
+            return alunos_matriculados["alunos_por_faixa_etaria"][periodo][uuid]
+        else:
+            return 0
+    except KeyError:
         return 0
 
 
