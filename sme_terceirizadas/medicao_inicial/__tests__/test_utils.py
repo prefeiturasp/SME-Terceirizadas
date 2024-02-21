@@ -10,6 +10,7 @@ from sme_terceirizadas.medicao_inicial.utils import (
     build_headers_tabelas_cei,
     build_row_primeira_tabela,
     build_tabela_somatorio_body,
+    build_tabela_somatorio_dietas_body,
     build_tabelas_relatorio_medicao,
     build_tabelas_relatorio_medicao_cemei,
     get_lista_categorias_campos,
@@ -821,6 +822,24 @@ def test_utils_build_tabela_somatorio_body(
         ["Kit Lanche", 50, 50, 50, 50, 50, 250, 50, 50, 100],
         ["Sobremesa", 100, 100, 100, 100, 50, 450, 100, 100, 200],
         ["Lanche Emergencial", 50, 50, 50, 50, 50, 250, 50, 50, 100],
+    ]
+
+
+def test_utils_build_tabela_somatorio_dietas_body(
+    solicitacao_medicao_inicial_dietas,
+):
+    assert build_tabela_somatorio_dietas_body(
+        solicitacao_medicao_inicial_dietas, "TIPO A"
+    ) == [
+        ["Lanche", " - ", 20, 20, 20, 60, "Lanche", 20],
+        ["Lanche 4h", " - ", 20, 20, 20, 60, "Lanche 4h", 20],
+        ["Refeição", " - ", 20, 20, 20, 60, "Refeição", 20],
+    ]
+    assert build_tabela_somatorio_dietas_body(
+        solicitacao_medicao_inicial_dietas, "TIPO B"
+    ) == [
+        ["Lanche", " - ", 20, 20, 20, 60, "Lanche", 20],
+        ["Lanche 4h", " - ", 20, 20, 20, 60, "Lanche 4h", 20],
     ]
 
 
