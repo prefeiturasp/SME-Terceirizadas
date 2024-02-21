@@ -843,6 +843,8 @@ class FichaTecnicaDetalharSerializer(serializers.ModelSerializer):
 
 
 class AnaliseFichaTecnicaSerializer(serializers.ModelSerializer):
+    aprovada = serializers.BooleanField()
+
     class Meta:
         model = AnaliseFichaTecnica
         exclude = ("id", "ficha_tecnica")
