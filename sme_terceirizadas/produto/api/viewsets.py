@@ -332,7 +332,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     )
         return query_set
 
-    def tratar_parcialmente_suspensos(self, workflow, qs, edital):
+    def tratar_parcialmente_suspensos_codae_suspendeu(self, workflow, qs, edital):
         if workflow == "CODAE_SUSPENDEU":
             if edital:
                 qs_parc_suspensos = qs.filter(
@@ -341,11 +341,21 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     produto__vinculos__edital__numero=edital,
                 )
             else:
-                qs_parc_suspensos = qs.filter(
-                    status="CODAE_HOMOLOGADO", produto__vinculos__suspenso=True
-                )
+                if self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
+                    qs_parc_suspensos = qs.filter(
+                        status="CODAE_HOMOLOGADO",
+                        produto__vinculos__suspenso=True,
+                        produto__vinculos__edital__uuid__in=self.request.user.vinculo_atual.instituicao.editais,
+                    )
+                else:
+                    qs_parc_suspensos = qs.filter(
+                        status="CODAE_HOMOLOGADO", produto__vinculos__suspenso=True
+                    )
             qs = qs_parc_suspensos | qs.filter(status=workflow)
-        elif workflow == "CODAE_HOMOLOGADO":
+        return qs
+
+    def tratar_parcialmente_suspensos_codae_homologado(self, workflow, qs, edital):
+        if workflow == "CODAE_HOMOLOGADO":
             if edital:
                 qs = qs.filter(
                     status="CODAE_HOMOLOGADO",
@@ -353,10 +363,23 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     produto__vinculos__edital__numero=edital,
                 )
             else:
-                qs = qs.filter(
-                    status="CODAE_HOMOLOGADO", produto__vinculos__suspenso=False
-                )
-        else:
+                if self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
+                    qs = qs.filter(
+                        status="CODAE_HOMOLOGADO",
+                        produto__vinculos__suspenso=False,
+                        produto__vinculos__edital__uuid__in=self.request.user.vinculo_atual.instituicao.editais,
+                    )
+                else:
+                    qs = qs.filter(
+                        status="CODAE_HOMOLOGADO",
+                        produto__vinculos__suspenso=False,
+                    )
+        return qs
+
+    def tratar_parcialmente_suspensos(self, workflow, qs, edital):
+        qs = self.tratar_parcialmente_suspensos_codae_suspendeu(workflow, qs, edital)
+        qs = self.tratar_parcialmente_suspensos_codae_homologado(workflow, qs, edital)
+        if workflow not in ["CODAE_HOMOLOGADO", "CODAE_SUSPENDEU"]:
             qs = qs.filter(status=workflow).distinct().all()
         return qs
 
