@@ -341,7 +341,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     produto__vinculos__edital__numero=edital,
                 )
             else:
-                if self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
+                if hasattr(self.request.user.vinculo_atual.instituicao, "editais"):
                     qs_parc_suspensos = qs.filter(
                         status="CODAE_HOMOLOGADO",
                         produto__vinculos__suspenso=True,
@@ -363,7 +363,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     produto__vinculos__edital__numero=edital,
                 )
             else:
-                if self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
+                if hasattr(self.request.user.vinculo_atual.instituicao, "editais"):
                     qs = qs.filter(
                         status="CODAE_HOMOLOGADO",
                         produto__vinculos__suspenso=False,
@@ -509,6 +509,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         use_raw = self.request.user.tipo_usuario not in [
             constants.TIPO_USUARIO_ESCOLA,
             constants.TIPO_USUARIO_NUTRISUPERVISOR,
+            constants.TIPO_USUARIO_TERCEIRIZADA,
         ]
         response = {
             "results": self.dados_dashboard(
