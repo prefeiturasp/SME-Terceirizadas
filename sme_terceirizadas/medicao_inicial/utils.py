@@ -313,7 +313,7 @@ def build_headers_tabelas(solicitacao):
                 and "total_refeicoes_pagamento" in dict_categorias_campos[categoria]
             ):
                 if len(dict_categorias_campos[categoria]) > MAX_COLUNAS:
-                    tabelas = append_tabela(
+                    tabelas, _ = append_tabela(
                         tabelas,
                         indice_atual,
                         nome_periodo,
