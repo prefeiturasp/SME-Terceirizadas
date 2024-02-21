@@ -866,6 +866,7 @@ class FichaTecnicaComAnaliseDetalharSerializer(serializers.ModelSerializer):
     unidade_medida_volume_primaria = serializers.SerializerMethodField()
     categoria = serializers.CharField(source="get_categoria_display", read_only=True)
     analise = serializers.SerializerMethodField()
+    log_mais_recente = serializers.SerializerMethodField()
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime("%d/%m/%Y")
@@ -909,6 +910,17 @@ class FichaTecnicaComAnaliseDetalharSerializer(serializers.ModelSerializer):
             if analise_mais_recente
             else None
         )
+
+    def get_log_mais_recente(self, obj):
+        log_mais_recente = obj.log_mais_recente
+
+        if log_mais_recente:
+            return datetime.datetime.strftime(
+                log_mais_recente.criado_em, "%d/%m/%Y - %H:%M"
+            )
+
+        else:
+            return datetime.datetime.strftime(obj.alterado_em, "%d/%m/%Y - %H:%M")
 
     class Meta:
         model = FichaTecnicaDoProduto
@@ -979,6 +991,7 @@ class FichaTecnicaComAnaliseDetalharSerializer(serializers.ModelSerializer):
             "modo_de_preparo",
             "informacoes_adicionais",
             "analise",
+            "log_mais_recente",
         )
 
 
