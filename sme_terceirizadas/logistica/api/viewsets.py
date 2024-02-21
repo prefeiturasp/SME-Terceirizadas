@@ -1044,7 +1044,9 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=["GET"],
         url_path="relatorio-guia-remessa",
-        permission_classes=[UsuarioDilogOuDistribuidorOuEscolaAbastecimento],
+        permission_classes=[
+            UsuarioDilogOuDistribuidorOuEscolaAbastecimento | UsuarioCODAEGabinete
+        ],
     )
     def relatorio_guia_de_remessa(self, request, uuid=None):
         guia = self.get_object()
