@@ -98,6 +98,7 @@ from .serializers import (
     DiretoriaRegionalLookUpSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaListagemSimplissimaComDRESelializer,
+    EscolaParaFiltrosReadOnlySerializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
     GrupoUnidadeEscolarSerializer,
@@ -143,6 +144,13 @@ class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSe
     def filtro_por_diretoria_regional(self, request, dre_uuid=None):
         escolas = Escola.objects.filter(diretoria_regional__uuid=dre_uuid)
         return Response(self.get_serializer(escolas, many=True).data)
+
+
+class EscolaParaFiltrosViewSet(ListModelMixin, GenericViewSet):
+    queryset = Escola.objects.all()
+    serializer_class = EscolaParaFiltrosReadOnlySerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ["diretoria_regional__uuid"]
 
 
 class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
