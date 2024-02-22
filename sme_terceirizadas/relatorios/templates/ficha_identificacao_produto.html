@@ -49,62 +49,66 @@
       </table>
     </div>
   </div>
-  <hr style="color: #EEEEEE; margin-top: 15px; margin-bottom: -5px;">
-  <div class="section">
-    <h5 style="color: #686868; margin-bottom: -8px;">
-        Editais Vinculados
-    </h5>
-    <div class="tabela-sem-borda">
-      <table class="ficha-produto-table">
-        <thead>
-          <tr class="sem-border-bottom">
-            <td style="color: #686868; margin-left: 0; padding-left: 0;">
-              <div>
-                  Editais Vinculados ao Produto
-              </div>
-            </td>
-          </tr>
-        </thead>
-        <tbody class="ficha-produto-body">
-          <tr class="sem-border-bottom">
-            <td style="margin-left: 0; padding-left: 0; margin-right: 0; padding-right: 0;">
-              <div>
-                  {{ editais_vinculados|default:'Ainda não existe nenhum edital vinculado ao produto' }}
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  {% if editais_vinculados %}
+    <hr style="color: #EEEEEE; margin-top: 15px; margin-bottom: -5px;">
+    <div class="section">
+      <h5 style="color: #686868; margin-bottom: -8px;">
+          Editais Vinculados
+      </h5>
+      <div class="tabela-sem-borda">
+        <table class="ficha-produto-table">
+          <thead>
+            <tr class="sem-border-bottom">
+              <td style="color: #686868; margin-left: 0; padding-left: 0;">
+                <div>
+                    Editais Vinculados ao Produto
+                </div>
+              </td>
+            </tr>
+          </thead>
+          <tbody class="ficha-produto-body">
+            <tr class="sem-border-bottom">
+              <td style="margin-left: 0; padding-left: 0; margin-right: 0; padding-right: 0;">
+                <div>
+                    {{ editais_vinculados|default:'Ainda não existe nenhum edital vinculado ao produto' }}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
-  <hr style="color: #EEEEEE; margin-top: 15px; margin-bottom: -5px;">
-  <div class="section">
-    <h5 style="color: #686868; margin-bottom: -8px;">
-        Produto Suspenso nos Editais
-    </h5>
-    <div class="tabela-sem-borda">
-      <table class="ficha-produto-table">
-        <thead>
-          <tr class="sem-border-bottom">
-            <td style="color: #686868; margin-left: 0; padding-left: 0;">
-              <div>
-                  Produto Suspenso nos Editais
-              </div>
-            </td>
-          </tr>
-        </thead>
-        <tbody class="ficha-produto-body">
-          <tr class="sem-border-bottom">
-            <td style="margin-left: 0; padding-left: 0; margin-right: 0; padding-right: 0;">
-              <div>
-                  {{ editais_suspensos|default:'Ainda não existe nenhum edital suspenso no produto' }}
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  {% endif %}
+  {% if editais_suspensos %}
+    <hr style="color: #EEEEEE; margin-top: 15px; margin-bottom: -5px;">
+    <div class="section">
+      <h5 style="color: #686868; margin-bottom: -8px;">
+          Produto Suspenso nos Editais
+      </h5>
+      <div class="tabela-sem-borda">
+        <table class="ficha-produto-table">
+          <thead>
+            <tr class="sem-border-bottom">
+              <td style="color: #686868; margin-left: 0; padding-left: 0;">
+                <div>
+                    Produto Suspenso nos Editais
+                </div>
+              </td>
+            </tr>
+          </thead>
+          <tbody class="ficha-produto-body">
+            <tr class="sem-border-bottom">
+              <td style="margin-left: 0; padding-left: 0; margin-right: 0; padding-right: 0;">
+                <div>
+                    {{ editais_suspensos|default:'Ainda não existe nenhum edital suspenso no produto' }}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+  {% endif %}
   <hr style="color: #EEEEEE; margin-top: 15px; margin-bottom: -5px;">
   <div class="section">
     <h5 style="color: #686868; margin-bottom: -8px;">Identificação do Produto</h5>
