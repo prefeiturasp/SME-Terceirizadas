@@ -192,6 +192,14 @@ class Terceirizada(
     contatos = models.ManyToManyField("dados_comuns.Contato", blank=True)
 
     @property
+    def editais(self):
+        return list(
+            self.contratos.filter(edital__isnull=False)
+            .values_list("edital__uuid", flat=True)
+            .distinct()
+        )
+
+    @property
     def vinculos_que_podem_ser_finalizados(self):
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False)

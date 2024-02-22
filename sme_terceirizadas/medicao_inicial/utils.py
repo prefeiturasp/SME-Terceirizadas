@@ -313,7 +313,7 @@ def build_headers_tabelas(solicitacao):
                 and "total_refeicoes_pagamento" in dict_categorias_campos[categoria]
             ):
                 if len(dict_categorias_campos[categoria]) > MAX_COLUNAS:
-                    tabelas = append_tabela(
+                    tabelas, _ = append_tabela(
                         tabelas,
                         indice_atual,
                         nome_periodo,
@@ -2511,6 +2511,128 @@ def build_tabela_somatorio_body(
     return body_tabela_somatorio
 
 
+def get_somatorio_dietas(campo, solicitacao, tipo_dieta, periodo=None, grupo=None):
+    # ajustar para filtrar periodo/grupo EJA
+    try:
+        medicao = solicitacao.medicoes.get(
+            periodo_escolar__nome=periodo, grupo__nome=grupo
+        )
+        values = medicao.valores_medicao.filter(
+            categoria_medicao__nome__icontains=tipo_dieta, nome_campo=campo
+        )
+        somatorio_dietas = (
+            values if type(values) is int else sum([int(v.valor) for v in values])
+        )
+        if somatorio_dietas == 0:
+            somatorio_dietas = " - "
+    except Exception:
+        somatorio_dietas = " - "
+    return somatorio_dietas
+
+
+def build_tabela_somatorio_dietas_body(solicitacao, tipo_dieta):
+    campos_tipos_alimentacao = []
+
+    ordem_periodos = ORDEM_PERIODOS_GRUPOS
+
+    medicoes = sorted(
+        [
+            medicao
+            for medicao in solicitacao.medicoes.all()
+            if medicao.nome_periodo_grupo in list(ordem_periodos)
+        ],
+        key=lambda k: ordem_periodos[k.nome_periodo_grupo],
+    )
+
+    for medicao in medicoes:
+        campos = (
+            medicao.valores_medicao.exclude(
+                nome_campo__in=[
+                    "observacoes",
+                    "dietas_autorizadas",
+                    "frequencia",
+                    "matriculados",
+                    "numero_de_alunos",
+                    "repeticao_refeicao",
+                    "repeticao_sobremesa",
+                    "2_lanche_4h",
+                    "2_lanche_5h",
+                    "2_refeicao_1_oferta",
+                    "repeticao_2_refeicao",
+                    "2_sobremesa_1_oferta",
+                    "repeticao_2_sobremesa",
+                ]
+            )
+            .filter(categoria_medicao__nome__icontains=tipo_dieta)
+            .values_list("nome_campo", flat=True)
+            .distinct()
+        )
+        [
+            campos_tipos_alimentacao.append(campo)
+            for campo in campos
+            if campo not in campos_tipos_alimentacao
+        ]
+    campos_tipos_alimentacao = [
+        campo for campo in ORDEM_CAMPOS if campo in campos_tipos_alimentacao
+    ]
+    # head_tabela_somatorio_dietas_fixo em relatorio_solicitacao_medicao_por_escola.html: E800 noqa
+    # 8 colunas conforme abaixo
+    # [ E800 noqa
+    #    'DIETAS TIPO A / ENTERAL / ...', 'MANHÃ', 'TARDE', 'INTEGRAL', 'PROGRAMAS E PROJETOS', 'TOTAL', # noqa E501
+    #    'DIETAS TIPO A / ENTERAL / ...', 'NOITE/EJA'
+    # ] E800 noqa
+    body_tabela_somatorio_dietas = []
+
+    for tipo_alimentacao in campos_tipos_alimentacao:
+        body_tabela_somatorio_dietas = somatorio_periodo_dietas(
+            tipo_alimentacao, solicitacao, body_tabela_somatorio_dietas, tipo_dieta
+        )
+    return body_tabela_somatorio_dietas
+
+
+def somatorio_periodo_dietas(
+    tipo_alimentacao, solicitacao, body_tabela_somatorio_dietas, tipo_dieta
+):
+    somatorio_manha_dietas = get_somatorio_dietas(
+        tipo_alimentacao, solicitacao, tipo_dieta, "MANHA"
+    )
+    somatorio_tarde_dietas = get_somatorio_dietas(
+        tipo_alimentacao, solicitacao, tipo_dieta, "TARDE"
+    )
+    somatorio_integral_dietas = get_somatorio_dietas(
+        tipo_alimentacao, solicitacao, tipo_dieta, "INTEGRAL"
+    )
+    somatorio_programas_e_projetos_dietas = get_somatorio_dietas(
+        tipo_alimentacao, solicitacao, tipo_dieta, None, "Programas e Projetos"
+    )
+    somatorio_noite_eja_dietas = get_somatorio_dietas(
+        tipo_alimentacao, solicitacao, tipo_dieta, "NOITE"
+    )
+    arr_somatorio_periodos_grupo = [
+        somatorio_manha_dietas,
+        somatorio_tarde_dietas,
+        somatorio_integral_dietas,
+        somatorio_programas_e_projetos_dietas,
+    ]
+    somatorio_total_primeira_tabela_dietas = sum(
+        somatorio if not isinstance(somatorio, str) else 0
+        for somatorio in arr_somatorio_periodos_grupo
+    )
+    body_tabela_somatorio_dietas.append(
+        [
+            get_nome_campo(tipo_alimentacao),
+            somatorio_manha_dietas,
+            somatorio_tarde_dietas,
+            somatorio_integral_dietas,
+            somatorio_programas_e_projetos_dietas,
+            somatorio_total_primeira_tabela_dietas,
+            get_nome_campo(tipo_alimentacao),
+            somatorio_noite_eja_dietas,
+        ]
+    )
+    return body_tabela_somatorio_dietas
+
+
 def somatorio_periodo(
     tipo_alimentacao,
     dict_total_refeicoes,
@@ -3627,10 +3749,6 @@ def get_linhas_da_tabela(alimentacoes, tem_numero_de_alunos=False):
             linhas_da_tabela.append("repeticao_refeicao")
         if nome_formatado == "sobremesa":
             linhas_da_tabela.append("repeticao_sobremesa")
-        if nome_formatado == "2_refeicao_1_oferta":
-            linhas_da_tabela.append("2_sobremesa_1_oferta")
-        if nome_formatado == "repeticao_2_refeicao":
-            linhas_da_tabela.append("repeticao_2_sobremesa")
     return linhas_da_tabela
 
 

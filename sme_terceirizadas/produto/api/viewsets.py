@@ -332,7 +332,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     )
         return query_set
 
-    def tratar_parcialmente_suspensos(self, workflow, qs, edital):
+    def tratar_parcialmente_suspensos_codae_suspendeu(self, workflow, qs, edital):
         if workflow == "CODAE_SUSPENDEU":
             if edital:
                 qs_parc_suspensos = qs.filter(
@@ -341,11 +341,21 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     produto__vinculos__edital__numero=edital,
                 )
             else:
-                qs_parc_suspensos = qs.filter(
-                    status="CODAE_HOMOLOGADO", produto__vinculos__suspenso=True
-                )
+                if hasattr(self.request.user.vinculo_atual.instituicao, "editais"):
+                    qs_parc_suspensos = qs.filter(
+                        status="CODAE_HOMOLOGADO",
+                        produto__vinculos__suspenso=True,
+                        produto__vinculos__edital__uuid__in=self.request.user.vinculo_atual.instituicao.editais,
+                    )
+                else:
+                    qs_parc_suspensos = qs.filter(
+                        status="CODAE_HOMOLOGADO", produto__vinculos__suspenso=True
+                    )
             qs = qs_parc_suspensos | qs.filter(status=workflow)
-        elif workflow == "CODAE_HOMOLOGADO":
+        return qs
+
+    def tratar_parcialmente_suspensos_codae_homologado(self, workflow, qs, edital):
+        if workflow == "CODAE_HOMOLOGADO":
             if edital:
                 qs = qs.filter(
                     status="CODAE_HOMOLOGADO",
@@ -353,10 +363,23 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     produto__vinculos__edital__numero=edital,
                 )
             else:
-                qs = qs.filter(
-                    status="CODAE_HOMOLOGADO", produto__vinculos__suspenso=False
-                )
-        else:
+                if hasattr(self.request.user.vinculo_atual.instituicao, "editais"):
+                    qs = qs.filter(
+                        status="CODAE_HOMOLOGADO",
+                        produto__vinculos__suspenso=False,
+                        produto__vinculos__edital__uuid__in=self.request.user.vinculo_atual.instituicao.editais,
+                    )
+                else:
+                    qs = qs.filter(
+                        status="CODAE_HOMOLOGADO",
+                        produto__vinculos__suspenso=False,
+                    )
+        return qs
+
+    def tratar_parcialmente_suspensos(self, workflow, qs, edital):
+        qs = self.tratar_parcialmente_suspensos_codae_suspendeu(workflow, qs, edital)
+        qs = self.tratar_parcialmente_suspensos_codae_homologado(workflow, qs, edital)
+        if workflow not in ["CODAE_HOMOLOGADO", "CODAE_SUSPENDEU"]:
             qs = qs.filter(status=workflow).distinct().all()
         return qs
 
@@ -486,6 +509,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         use_raw = self.request.user.tipo_usuario not in [
             constants.TIPO_USUARIO_ESCOLA,
             constants.TIPO_USUARIO_NUTRISUPERVISOR,
+            constants.TIPO_USUARIO_TERCEIRIZADA,
         ]
         response = {
             "results": self.dados_dashboard(
@@ -1655,7 +1679,6 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         ]  # noqa E501
         imagens = homologacao_produto.produto.imagens.filter(id__in=img_ids)
         documentos = homologacao_produto.produto.imagens.exclude(id__in=img_ids)
-        eh_card_suspensos = request.query_params.get("eh_card_suspensos")
         html_string = render_to_string(
             "ficha_identificacao_produto.html",
             {
@@ -1667,19 +1690,18 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                         suspenso=False
                     )
                 ),
-                "informacoes_nutricionais": homologacao_produto.produto.informacoes_nutricionais.all(),
-                "especificacao_primaria": homologacao_produto.produto.especificacoes.first(),
-                "URL": SERVER_NAME,
-                "imagens": imagens,
-                "documentos": documentos,
-                "base_static_url": staticfiles_storage.location,
-                "eh_card_suspensos": eh_card_suspensos,
                 "editais_suspensos": ", ".join(
                     vinc.edital.numero
                     for vinc in homologacao_produto.produto.vinculos.filter(
                         suspenso=True
                     )
                 ),
+                "informacoes_nutricionais": homologacao_produto.produto.informacoes_nutricionais.all(),
+                "especificacao_primaria": homologacao_produto.produto.especificacoes.first(),
+                "URL": SERVER_NAME,
+                "imagens": imagens,
+                "documentos": documentos,
+                "base_static_url": staticfiles_storage.location,
             },
         )
         return html_to_pdf_response(
