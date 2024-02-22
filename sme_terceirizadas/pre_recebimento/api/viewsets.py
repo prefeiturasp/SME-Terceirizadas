@@ -1155,7 +1155,7 @@ class FichaTecnicaModelViewSet(
         detail=True,
         methods=["GET"],
         url_path="detalhar-com-analise",
-        permission_classes=(PermissaoParaAnalisarFichaTecnica,),
+        permission_classes=(PermissaoParaVisualizarFichaTecnica,),
     )
     def detalhar_com_analise(self, request, **kwargs):
         return Response(
