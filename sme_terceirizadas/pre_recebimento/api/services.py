@@ -6,6 +6,7 @@ from rest_framework.request import Request
 from rest_framework.serializers import ModelSerializer
 
 from sme_terceirizadas.dados_comuns.constants import (
+    ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_EMPRESA,
     COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_GESTAO_PRODUTO,
@@ -145,6 +146,13 @@ class ServiceDashboardSolicitacaoAlteracaoCronogramaProfiles(BaseServiceDashboar
             CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE,
         ],
         COORDENADOR_CODAE_DILOG_LOGISTICA: [
+            CronogramaAlteracaoWorkflow.EM_ANALISE,
+            CronogramaAlteracaoWorkflow.APROVADO_DILOG,
+            CronogramaAlteracaoWorkflow.REPROVADO_DILOG,
+            CronogramaAlteracaoWorkflow.ALTERACAO_ENVIADA_FORNECEDOR,
+            CronogramaAlteracaoWorkflow.FORNECEDOR_CIENTE,
+        ],
+        ADMINISTRADOR_CODAE_GABINETE: [
             CronogramaAlteracaoWorkflow.EM_ANALISE,
             CronogramaAlteracaoWorkflow.APROVADO_DILOG,
             CronogramaAlteracaoWorkflow.REPROVADO_DILOG,

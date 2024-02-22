@@ -646,6 +646,7 @@ class PermissaoParaVisualizarCronograma(BasePermission):
                         DILOG_DIRETORIA,
                         DINUTRE_DIRETORIA,
                         COORDENADOR_CODAE_DILOG_LOGISTICA,
+                        ADMINISTRADOR_CODAE_GABINETE,
                     ]
                 )
                 or usuario.eh_fornecedor
@@ -730,6 +731,7 @@ class PermissaoParaDashboardCronograma(BasePermission):
         DILOG_DIRETORIA,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_CRONOGRAMA,
+        ADMINISTRADOR_CODAE_GABINETE,
     ]
 
     def has_permission(self, request, view):
@@ -895,6 +897,7 @@ class PermissaoParaVisualizarSolicitacoesAlteracaoCronograma(BasePermission):
         DILOG_DIRETORIA,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_CRONOGRAMA,
+        ADMINISTRADOR_CODAE_GABINETE,
     ]
 
     def has_permission(self, request, view):
@@ -949,6 +952,7 @@ class PermissaoParaListarDashboardSolicitacaoAlteracaoCronograma(BasePermission)
         DILOG_DIRETORIA,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_CRONOGRAMA,
+        ADMINISTRADOR_CODAE_GABINETE,
     ]
 
     def has_permission(self, request, view):
