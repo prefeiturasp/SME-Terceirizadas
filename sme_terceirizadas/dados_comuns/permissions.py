@@ -755,6 +755,7 @@ class PermissaoParaVisualizarCalendarioCronograma(BasePermission):
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DINUTRE_DIRETORIA,
         DILOG_DIRETORIA,
+        ADMINISTRADOR_CODAE_GABINETE,
     ]
 
     def has_permission(self, request, view):
