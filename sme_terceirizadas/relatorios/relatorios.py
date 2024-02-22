@@ -25,6 +25,7 @@ from ..medicao_inicial.utils import (
     build_tabelas_relatorio_medicao,
     build_tabelas_relatorio_medicao_cei,
     build_tabelas_relatorio_medicao_cemei,
+    build_tabelas_relatorio_medicao_emebs,
 )
 from ..relatorios.utils import (
     html_to_pdf_cancelada,
@@ -608,9 +609,11 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
             "foto_aluno": solicitacao.aluno.foto_aluno_base64,
             "eh_protocolo_dieta_especial": solicitacao.tipo_solicitacao
             == "ALTERACAO_UE",
-            "motivo": solicitacao.motivo_alteracao_ue.nome.split(" - ")[1]
-            if solicitacao.motivo_alteracao_ue
-            else None,
+            "motivo": (
+                solicitacao.motivo_alteracao_ue.nome.split(" - ")[1]
+                if solicitacao.motivo_alteracao_ue
+                else None
+            ),
         },
     )
     if request:
@@ -1084,9 +1087,9 @@ def produtos_suspensos_por_edital(produtos, data_final, nome_edital, filtros):
             "produtos": produtos,
             "total": len(produtos),
             "hoje": datetime.date.today().strftime("%d/%m/%Y"),
-            "data_final": data_final
-            if data_final
-            else datetime.date.today().strftime("%d/%m/%Y"),
+            "data_final": (
+                data_final if data_final else datetime.date.today().strftime("%d/%m/%Y")
+            ),
             "nome_edital": nome_edital,
             "filtros": filtros,
         },
@@ -1513,6 +1516,31 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
         },
     )
 
+    return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
+
+
+def relatorio_solicitacao_medicao_por_escola_emebs(solicitacao):
+    tabelas = build_tabelas_relatorio_medicao_emebs(solicitacao)
+
+    tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list(
+        "nome", flat=True
+    )
+    tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
+
+    html_string = render_to_string(
+        "relatorio_solicitacao_medicao_por_escola_emebs.html",
+        {
+            "solicitacao": solicitacao,
+            "tipos_contagem_alimentacao": tipos_contagem_alimentacao,
+            "responsaveis": solicitacao.responsaveis.all(),
+            "assinatura_escola": solicitacao.assinatura_ue,
+            "assinatura_dre": solicitacao.assinatura_dre,
+            "quantidade_dias_mes": range(
+                1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1
+            ),
+            "tabelas": tabelas,
+        },
+    )
     return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
 
 
