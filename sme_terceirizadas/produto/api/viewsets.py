@@ -1679,7 +1679,6 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         ]  # noqa E501
         imagens = homologacao_produto.produto.imagens.filter(id__in=img_ids)
         documentos = homologacao_produto.produto.imagens.exclude(id__in=img_ids)
-        eh_card_suspensos = request.query_params.get("eh_card_suspensos")
         html_string = render_to_string(
             "ficha_identificacao_produto.html",
             {
@@ -1691,19 +1690,18 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                         suspenso=False
                     )
                 ),
-                "informacoes_nutricionais": homologacao_produto.produto.informacoes_nutricionais.all(),
-                "especificacao_primaria": homologacao_produto.produto.especificacoes.first(),
-                "URL": SERVER_NAME,
-                "imagens": imagens,
-                "documentos": documentos,
-                "base_static_url": staticfiles_storage.location,
-                "eh_card_suspensos": eh_card_suspensos,
                 "editais_suspensos": ", ".join(
                     vinc.edital.numero
                     for vinc in homologacao_produto.produto.vinculos.filter(
                         suspenso=True
                     )
                 ),
+                "informacoes_nutricionais": homologacao_produto.produto.informacoes_nutricionais.all(),
+                "especificacao_primaria": homologacao_produto.produto.especificacoes.first(),
+                "URL": SERVER_NAME,
+                "imagens": imagens,
+                "documentos": documentos,
+                "base_static_url": staticfiles_storage.location,
             },
         )
         return html_to_pdf_response(
