@@ -1109,48 +1109,10 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_homologa(
                 user=request.user, link_pdf=url_configs("API", {"uri": uri})
             )
-            eh_para_alunos_com_dieta = (
-                homologacao_produto.produto.eh_para_alunos_com_dieta
-            )
-            vinculos_produto_edital = homologacao_produto.produto.vinculos.all()
-            array_uuids_vinc = [
-                str(value)
-                for value in [
-                    *vinculos_produto_edital.values_list("edital__uuid", flat=True)
-                ]
-            ]
-            editais_suspensos = []
-            for vinc_prod_edital in vinculos_produto_edital:
-                if str(vinc_prod_edital.edital.uuid) not in editais:
-                    editais_suspensos.append(vinc_prod_edital.edital.numero)
-                    vinc_prod_edital.suspenso = True
-                    vinc_prod_edital.suspenso_por = request.user
-                    vinc_prod_edital.suspenso_em = datetime.now()
-                    vinc_prod_edital.save()
-                    vinc_prod_edital.criar_data_hora_vinculo()
-            if editais_suspensos:
-                justificativa = request.data.get("justificativa", "")
-                homologacao_produto.cria_log_editais_suspensos(
-                    justificativa, editais_suspensos, self.request.user
-                )
 
-            editais_vinculados = []
-            for edital_uuid in editais:
-                if edital_uuid not in array_uuids_vinc:
-                    edital = Edital.objects.get(uuid=edital_uuid)
-                    produto_edital = ProdutoEdital.objects.create(
-                        produto=homologacao_produto.produto,
-                        edital=edital,
-                        tipo_produto=ProdutoEdital.DIETA_ESPECIAL
-                        if eh_para_alunos_com_dieta
-                        else ProdutoEdital.COMUM,
-                    )
-                    produto_edital.criar_data_hora_vinculo(suspenso=False)
-                    editais_vinculados.append(edital.numero)
-            if editais_vinculados:
-                homologacao_produto.cria_log_editais_vinculados(
-                    editais_vinculados, self.request.user
-                )
+            homologacao_produto.vincula_ou_desvincula_editais(
+                editais, request.data.get("justificativa", ""), request.user
+            )
 
             return Response(
                 {

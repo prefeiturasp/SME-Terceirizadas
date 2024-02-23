@@ -5,7 +5,7 @@ from datetime import datetime
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
-from django.db.models import Case, When
+from django.db.models import Case, QuerySet, When
 from sequences import get_last_value, get_next_value
 
 from ..dados_comuns.behaviors import (
@@ -707,6 +707,58 @@ class HomologacaoProduto(
             solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
             usuario=usuario,
         )
+
+    def suspende_editais(
+        self,
+        editais: list,
+        vinculos_produto_edital: QuerySet,
+        usuario: Usuario,
+        justificativa: str,
+    ) -> None:
+        editais_suspensos = []
+        for vinc_prod_edital in vinculos_produto_edital:
+            if str(vinc_prod_edital.edital.uuid) not in editais:
+                editais_suspensos.append(vinc_prod_edital.edital.numero)
+                vinc_prod_edital.suspenso = True
+                vinc_prod_edital.suspenso_por = usuario
+                vinc_prod_edital.suspenso_em = datetime.now()
+                vinc_prod_edital.save()
+                vinc_prod_edital.criar_data_hora_vinculo()
+        if editais_suspensos:
+            self.cria_log_editais_suspensos(justificativa, editais_suspensos, usuario)
+
+    def vincula_editais(
+        self, editais: list, vinculos_produto_edital: QuerySet, usuario: Usuario
+    ) -> None:
+        eh_para_alunos_com_dieta = self.produto.eh_para_alunos_com_dieta
+        array_uuids_vinc = [
+            str(value)
+            for value in [
+                *vinculos_produto_edital.values_list("edital__uuid", flat=True)
+            ]
+        ]
+        editais_vinculados = []
+        for edital_uuid in editais:
+            if edital_uuid not in array_uuids_vinc:
+                edital = Edital.objects.get(uuid=edital_uuid)
+                produto_edital = ProdutoEdital.objects.create(
+                    produto=self.produto,
+                    edital=edital,
+                    tipo_produto=ProdutoEdital.DIETA_ESPECIAL
+                    if eh_para_alunos_com_dieta
+                    else ProdutoEdital.COMUM,
+                )
+                produto_edital.criar_data_hora_vinculo(suspenso=False)
+                editais_vinculados.append(edital.numero)
+        if editais_vinculados:
+            self.cria_log_editais_vinculados(editais_vinculados, usuario)
+
+    def vincula_ou_desvincula_editais(
+        self, editais: list, justificativa: str, usuario: Usuario
+    ) -> None:
+        vinculos_produto_edital = self.produto.vinculos.all()
+        self.suspende_editais(editais, vinculos_produto_edital, usuario, justificativa)
+        self.vincula_editais(editais, vinculos_produto_edital, usuario)
 
     class Meta:
         ordering = ("-ativo", "-criado_em")
