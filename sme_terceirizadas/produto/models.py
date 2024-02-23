@@ -36,6 +36,7 @@ from ..dados_comuns.utils import (
     cria_copias_m2m,
 )
 from ..escola.models import Escola
+from ..perfil.models import Usuario
 from ..terceirizada.models import Edital
 
 MAX_NUMERO_PROTOCOLO = 6
@@ -678,6 +679,34 @@ class HomologacaoProduto(
         produto_copia = self.cria_copia_produto()
         hom_copia = self.cria_copia_homologacao_produto(produto_copia)
         return hom_copia
+
+    def cria_log_editais_suspensos(
+        self, justificativa: str, list_editais_suspensos: list, usuario: Usuario
+    ) -> None:
+        numeros_editais_para_justificativa = ", ".join(list_editais_suspensos)
+        justificativa += "<br><br><p>Editais suspensos:</p>"
+        justificativa += f"<p>{numeros_editais_para_justificativa}</p>"
+        LogSolicitacoesUsuario.objects.create(
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            status_evento=LogSolicitacoesUsuario.SUSPENSO_EM_ALGUNS_EDITAIS,
+            solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
+            usuario=usuario,
+        )
+
+    def cria_log_editais_vinculados(
+        self, list_editais_vinculados: list, usuario: Usuario
+    ) -> None:
+        numeros_editais_para_justificativa = ", ".join(list_editais_vinculados)
+        justificativa = "<p>Editais vinculados:</p>"
+        justificativa += f"<p>{numeros_editais_para_justificativa}</p>"
+        LogSolicitacoesUsuario.objects.create(
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            status_evento=LogSolicitacoesUsuario.ATIVO_EM_ALGUNS_EDITAIS,
+            solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
+            usuario=usuario,
+        )
 
     class Meta:
         ordering = ("-ativo", "-criado_em")
