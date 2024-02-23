@@ -204,6 +204,11 @@ class ServiceDashboardDocumentosDeRecebimento(BaseServiceDashboard):
             DocumentoDeRecebimentoWorkflow.APROVADO,
             DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
         ],
+        ADMINISTRADOR_CODAE_GABINETE: [
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_ANALISE,
+            DocumentoDeRecebimentoWorkflow.APROVADO,
+            DocumentoDeRecebimentoWorkflow.ENVIADO_PARA_CORRECAO,
+        ],
     }
 
 

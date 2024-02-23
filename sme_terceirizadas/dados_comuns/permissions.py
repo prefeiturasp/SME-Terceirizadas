@@ -799,6 +799,7 @@ class PermissaoParaDashboardDocumentosDeRecebimento(BasePermission):
         DILOG_QUALIDADE,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_CRONOGRAMA,
+        ADMINISTRADOR_CODAE_GABINETE,
     ]
 
     def has_permission(self, request, view):
@@ -1133,6 +1134,7 @@ class PermissaoParaVisualizarDocumentosDeRecebimento(BasePermission):
         DILOG_QUALIDADE,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_CRONOGRAMA,
+        ADMINISTRADOR_CODAE_GABINETE,
     ]
 
     def has_permission(self, request, view):
