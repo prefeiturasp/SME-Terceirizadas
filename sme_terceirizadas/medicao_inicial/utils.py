@@ -2384,6 +2384,31 @@ def build_tabelas_relatorio_medicao_emebs(solicitacao):
     return tabelas_populadas
 
 
+def build_lista_campos_observacoes(solicitacao, tipo_turma=None):
+    observacoes = list(
+        solicitacao.medicoes.filter(
+            valores_medicao__nome_campo="observacoes",
+            valores_medicao__infantil_ou_fundamental=(
+                tipo_turma if tipo_turma is not None else "N/A"
+            ),
+        )
+        .values_list(
+            "valores_medicao__dia",
+            "periodo_escolar__nome",
+            "valores_medicao__categoria_medicao__nome",
+            "valores_medicao__valor",
+            "grupo__nome",
+        )
+        .order_by(
+            "valores_medicao__dia",
+            "grupo__nome",
+            "periodo_escolar__nome",
+            "valores_medicao__categoria_medicao__nome",
+        )
+    )
+    return observacoes
+
+
 def tratar_lanches_de_permissoes_lancamentos(total_por_nome_campo: dict):
     total_por_nome_campo["lanche"] = total_por_nome_campo.pop(
         "lanche", 0

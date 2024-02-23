@@ -313,6 +313,9 @@ class CategoriaMedicao(Nomeavel, Ativavel, TemChaveExterna):
 class ValorMedicao(
     TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, TemDia, TemSemana
 ):
+    INFANTIL = "INFANTIL"
+    FUNDAMENTAL = "FUNDAMENTAL"
+
     INFANTIL_OU_FUNDAMENTAL = (
         ("N/A", "N/A"),
         ("INFANTIL", "INFANTIL"),
