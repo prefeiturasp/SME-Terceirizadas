@@ -179,6 +179,11 @@ class ServiceDashboardLayoutEmbalagem(BaseServiceDashboard):
             LayoutDeEmbalagemWorkflow.APROVADO,
             LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
         ],
+        ADMINISTRADOR_CODAE_GABINETE: [
+            LayoutDeEmbalagemWorkflow.ENVIADO_PARA_ANALISE,
+            LayoutDeEmbalagemWorkflow.APROVADO,
+            LayoutDeEmbalagemWorkflow.SOLICITADO_CORRECAO,
+        ],
     }
 
 

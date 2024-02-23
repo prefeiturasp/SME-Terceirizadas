@@ -777,6 +777,7 @@ class PermissaoParaDashboardLayoutEmbalagem(BasePermission):
         COORDENADOR_CODAE_DILOG_LOGISTICA,
         DILOG_QUALIDADE,
         COORDENADOR_GESTAO_PRODUTO,
+        ADMINISTRADOR_CODAE_GABINETE,
     ]
 
     def has_permission(self, request, view):
@@ -1109,6 +1110,7 @@ class PermissaoParaVisualizarLayoutDeEmbalagem(BasePermission):
         DILOG_QUALIDADE,
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
+        ADMINISTRADOR_CODAE_GABINETE,
     ]
 
     def has_permission(self, request, view):
