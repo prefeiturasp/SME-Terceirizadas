@@ -17,7 +17,7 @@ from sme_terceirizadas.dados_comuns.constants import (
     ORDEM_PERIODOS_GRUPOS_CEI,
     ORDEM_PERIODOS_GRUPOS_CEMEI,
     ORDEM_PERIODOS_GRUPOS_EMEBS,
-    TIPOS_PERIODOS_EMEBES,
+    TIPOS_ALUNOS_EMEBS,
 )
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.dieta_especial.models import (
@@ -442,7 +442,7 @@ def build_headers_tabelas_emebs(solicitacao):
     indice_atual = 0
 
     for medicao in get_medicoes_ordenadas(solicitacao, ORDEM_PERIODOS_GRUPOS):
-        for tipo_periodo in TIPOS_PERIODOS_EMEBES:
+        for tipo_periodo in TIPOS_ALUNOS_EMEBS:
             dict_categorias_campos = build_dict_relacao_categorias_e_campos(
                 medicao, tipo_periodo
             )
@@ -3378,9 +3378,9 @@ def gerar_dicionario_e_buscar_valores_medicao(data, medicao):
             valor_medicao.exists()
             and valor_medicao.first().valor != valor_atualizado.get("valor")
         ):
-            dicionario_alteracoes[str(valor_medicao.first().uuid)] = (
-                valor_atualizado.get("valor")
-            )
+            dicionario_alteracoes[
+                str(valor_medicao.first().uuid)
+            ] = valor_atualizado.get("valor")
 
     valores_medicao = ValorMedicao.objects.filter(uuid__in=dicionario_alteracoes.keys())
     return dicionario_alteracoes, valores_medicao
