@@ -968,10 +968,15 @@ def popula_campos_preenchidos_pela_escola(
 ):
     try:
         periodo_corrente = tabela["periodos"][indice_periodo]
+        periodo = (
+            get_nome_periodo(periodo_corrente)
+            if solicitacao.escola.eh_emebs
+            else periodo_corrente
+        )
         tipo_periodo = (
             periodo_corrente.split(" - ")[1] if solicitacao.escola.eh_emebs else "N/A"
         )
-        periodo = get_nome_periodo(periodo_corrente)
+
         medicoes = solicitacao.medicoes.all()
         if periodo in [
             "ETEC",
@@ -1298,155 +1303,125 @@ def get_valor_campo(
     return valor_campo
 
 
-def get_valor_repeticao_sobremesa(
-    tabela, campos_tabela_anterior, tabela_anterior, valores_dia, campos
-):
-    if (
-        "repeticao_sobremesa" not in tabela["nomes_campos"]
-        and "repeticao_sobremesa" in campos_tabela_anterior
-    ):
-        valor_repeticao_sobremesa = (
-            tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
-                campos_tabela_anterior.index("repeticao_sobremesa") + 1
-            ]
-            if "repeticao_sobremesa" in campos_tabela_anterior
-            else 0
-        )
-    else:
-        valor_repeticao_sobremesa = (
-            valores_dia[campos.index("repeticao_sobremesa") + 1]
-            if "repeticao_sobremesa" in campos
-            else 0
-        )
-    return valor_repeticao_sobremesa
-
-
-def get_valor_segunda_sobremesa(
-    tabela, campos_tabela_anterior, tabela_anterior, valores_dia, campos
-):
-    if (
-        "2_sobremesa_1_oferta" not in tabela["nomes_campos"]
-        and "2_sobremesa_1_oferta" in campos_tabela_anterior
-    ):
-        valor_segunda_sobremesa = (
-            tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
-                campos_tabela_anterior.index("2_sobremesa_1_oferta") + 1
-            ]
-            if "2_sobremesa_1_oferta" in campos_tabela_anterior
-            else 0
-        )
-    else:
-        valor_segunda_sobremesa = (
-            valores_dia[campos.index("2_sobremesa_1_oferta") + 1]
-            if "2_sobremesa_1_oferta" in campos
-            else 0
-        )
-    return valor_segunda_sobremesa
-
-
-def get_valor_repeticao_segunda_sobremesa(
-    tabela, campos_tabela_anterior, tabela_anterior, valores_dia, campos
-):
-    if (
-        "repeticao_2_sobremesa" not in tabela["nomes_campos"]
-        and "repeticao_2_sobremesa" in campos_tabela_anterior
-    ):
-        valor_repeticao_segunda_sobremesa = (
-            tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
-                campos_tabela_anterior.index("repeticao_2_sobremesa") + 1
-            ]
-            if "repeticao_2_sobremesa" in campos_tabela_anterior
-            else 0
-        )
-    else:
-        valor_repeticao_segunda_sobremesa = (
-            valores_dia[campos.index("repeticao_2_sobremesa") + 1]
-            if "repeticao_2_sobremesa" in campos
-            else 0
-        )
-    return valor_repeticao_segunda_sobremesa
-
-
 def popula_campo_total_sobremesas_pagamento(
-    solicitacao, tabela, campo, categoria_corrente, valores_dia, tabelas, indice_tabela
+    solicitacao,
+    tabela,
+    campo,
+    categoria_corrente,
+    valores_dia,
+    indice_periodo,
+    tabelas,
+    indice_tabela,
 ):
     if campo == "total_sobremesas_pagamento":
         try:
-            campos = tabela["nomes_campos"]
+            periodo_corrente = tabela["periodos"][indice_periodo]
+            indice_inicial, indice_final = get_numero_campos(
+                tabela, periodo_corrente, categoria_corrente
+            )
+            dia = valores_dia[0]
+
+            campos = tabela["nomes_campos"][indice_inicial:indice_final]
+            valores = valores_dia[indice_inicial + 1 : indice_final + 1]
+
             tabela_anterior = tabelas[indice_tabela - 1]
-            campos_tabela_anterior = tabela_anterior["nomes_campos"]
+            periodos_tabela_anterior = tabela_anterior["periodos"]
+            campos_tabela_anterior = []
+            valores_tabela_anterior = []
+
             if (
-                "sobremesa" not in tabela["nomes_campos"]
-                and "sobremesa" in campos_tabela_anterior
+                periodo_corrente in periodos_tabela_anterior
+                and categoria_corrente in tabela_anterior["categorias"]
             ):
-                valor_sobremesa = (
-                    tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
-                        campos_tabela_anterior.index("sobremesa") + 1
-                    ]
-                    if "sobremesa" in campos_tabela_anterior
-                    else 0
+                (
+                    indice_inicial_tabela_anterior,
+                    indice_final_tabela_anterior,
+                ) = get_numero_campos(
+                    tabela_anterior, periodo_corrente, categoria_corrente
                 )
-                valor_repeticao_sobremesa = get_valor_repeticao_sobremesa(
-                    tabela, campos_tabela_anterior, tabela_anterior, valores_dia, campos
-                )
-                valor_segunda_sobremesa = get_valor_segunda_sobremesa(
-                    tabela, campos_tabela_anterior, tabela_anterior, valores_dia, campos
-                )
-                valor_repeticao_segunda_sobremesa = (
-                    get_valor_repeticao_segunda_sobremesa(
-                        tabela,
-                        campos_tabela_anterior,
-                        tabela_anterior,
-                        valores_dia,
-                        campos,
-                    )
-                )
-                valor_matriculados = (
-                    tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
-                        campos_tabela_anterior.index("matriculados") + 1
-                    ]
-                    if "matriculados" in campos_tabela_anterior
-                    else 0
-                )
-                valor_numero_de_alunos = (
-                    tabela_anterior["valores_campos"][int(valores_dia[0] - 1)][
-                        campos_tabela_anterior.index("numero_de_alunos") + 1
-                    ]
-                    if "numero_de_alunos" in campos_tabela_anterior
-                    else 0
-                )
-            else:
-                valor_sobremesa = (
-                    valores_dia[campos.index("sobremesa") + 1]
-                    if "sobremesa" in campos
-                    else 0
-                )
-                valor_repeticao_sobremesa = (
-                    valores_dia[campos.index("repeticao_sobremesa") + 1]
-                    if "repeticao_sobremesa" in campos
-                    else 0
-                )
-                valor_segunda_sobremesa = (
-                    valores_dia[campos.index("2_sobremesa_1_oferta") + 1]
-                    if "2_sobremesa_1_oferta" in campos
-                    else 0
-                )
-                valor_repeticao_segunda_sobremesa = (
-                    valores_dia[campos.index("repeticao_2_sobremesa") + 1]
-                    if "repeticao_2_sobremesa" in campos
-                    else 0
-                )
-                valor_matriculados = (
-                    valores_dia[campos.index("matriculados") + 1]
-                    if "matriculados" in campos
-                    else 0
-                )
-                valor_numero_de_alunos = (
-                    valores_dia[campos.index("numero_de_alunos") + 1]
-                    if "numero_de_alunos" in campos
-                    else 0
-                )
-            if solicitacao.escola.eh_emei or solicitacao.escola.eh_cemei:
+                campos_tabela_anterior = tabela_anterior["nomes_campos"][
+                    indice_inicial_tabela_anterior:indice_final_tabela_anterior
+                ]
+                valores_tabela_anterior = tabela_anterior["valores_campos"][
+                    int(dia - 1)
+                ][indice_inicial_tabela_anterior + 1 : indice_final_tabela_anterior + 1]
+
+            valor_sobremesa = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores,
+                valores_tabela_anterior,
+                "sobremesa",
+            )
+
+            valor_repeticao_sobremesa = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores,
+                valores_tabela_anterior,
+                "repeticao_sobremesa",
+            )
+
+            valor_segunda_sobremesa = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores,
+                valores_tabela_anterior,
+                "2_sobremesa_1_oferta",
+            )
+
+            valor_repeticao_segunda_sobremesa = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores,
+                valores_tabela_anterior,
+                "repeticao_2_sobremesa",
+            )
+
+            valor_matriculados = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores,
+                valores_tabela_anterior,
+                "matriculados",
+            )
+
+            valor_numero_de_alunos = get_valor_campo(
+                campos,
+                campos_tabela_anterior,
+                indice_periodo,
+                tabela,
+                tabela_anterior,
+                valores,
+                valores_tabela_anterior,
+                "numero_de_alunos",
+            )
+
+            eh_emebs_infantil = (
+                solicitacao.escola.eh_emebs
+                and tabela["periodos"][indice_periodo].split(" - ")[1] == "INFANTIL"
+            )
+
+            if (
+                solicitacao.escola.eh_emei
+                or solicitacao.escola.eh_cemei
+                or eh_emebs_infantil
+            ):
                 valores_dia += [int(valor_sobremesa) + int(valor_segunda_sobremesa)]
             else:
                 total_sobremesa = (
@@ -1918,6 +1893,7 @@ def popula_valores_campos(
                 campo,
                 categoria_corrente,
                 valores_dia,
+                indice_periodo,
                 tabelas,
                 indice_tabela,
             )
@@ -2179,6 +2155,7 @@ def popula_campos_nomes(
                 campo,
                 categoria_corrente,
                 valores_dia,
+                indice_periodo,
                 tabelas,
                 indice_tabela,
             )
