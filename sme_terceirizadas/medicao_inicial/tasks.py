@@ -17,6 +17,7 @@ from ..relatorios.relatorios import (
     relatorio_solicitacao_medicao_por_escola,
     relatorio_solicitacao_medicao_por_escola_cei,
     relatorio_solicitacao_medicao_por_escola_cemei,
+    relatorio_solicitacao_medicao_por_escola_emebs,
 )
 from .models import Responsavel, SolicitacaoMedicaoInicial
 
@@ -131,11 +132,14 @@ def gera_pdf_relatorio_solicitacao_medicao_por_escola_async(
             arquivo = relatorio_solicitacao_medicao_por_escola_cei(solicitacao)
         elif solicitacao.escola.eh_cemei:
             arquivo = relatorio_solicitacao_medicao_por_escola_cemei(solicitacao)
+        elif solicitacao.escola.eh_emebs:
+            arquivo = relatorio_solicitacao_medicao_por_escola_emebs(solicitacao)
         else:
             arquivo = relatorio_solicitacao_medicao_por_escola(solicitacao)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))
+        logger.error(f"Erro: {e}")
 
     logger.info(f"x-x-x-x Finaliza a geração do arquivo {nome_arquivo} x-x-x-x")
 

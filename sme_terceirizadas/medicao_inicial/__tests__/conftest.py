@@ -219,6 +219,29 @@ def escola_cemei():
 
 
 @pytest.fixture
+def escola_emebs():
+    terceirizada = mommy.make("Terceirizada")
+    diretoria_regional = mommy.make(
+        "DiretoriaRegional",
+        nome="DIRETORIA REGIONAL TESTE",
+    )
+    lote = mommy.make(
+        "Lote", terceirizada=terceirizada, diretoria_regional=diretoria_regional
+    )
+    tipo_gestao = mommy.make("TipoGestao", nome="TERC TOTAL")
+    tipo_unidade_escolar = mommy.make("TipoUnidadeEscolar", iniciais="EMEBS")
+    return mommy.make(
+        "Escola",
+        nome="EMEBS TESTE",
+        lote=lote,
+        diretoria_regional=diretoria_regional,
+        tipo_gestao=tipo_gestao,
+        tipo_unidade=tipo_unidade_escolar,
+        codigo_eol="000329",
+    )
+
+
+@pytest.fixture
 def escola_ceu_gestao():
     terceirizada = mommy.make("Terceirizada")
     lote = mommy.make("Lote", terceirizada=terceirizada)
@@ -538,6 +561,52 @@ def solicitacao_medicao_inicial_varios_valores(escola, categoria_medicao):
                         categoria_medicao=categoria,
                         valor="10",
                     )
+    return solicitacao_medicao
+
+
+@pytest.fixture
+def solicitacao_medicao_inicial_varios_valores_emebs(escola_emebs, categoria_medicao):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    periodo_manha = mommy.make("PeriodoEscolar", nome="MANHA")
+    periodo_tarde = mommy.make("PeriodoEscolar", nome="TARDE")
+    solicitacao_medicao = mommy.make(
+        "SolicitacaoMedicaoInicial", mes=12, ano=2023, escola=escola_emebs
+    )
+    solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
+    medicao_manha = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_manha,
+    )
+    medicao_tarde = mommy.make(
+        "Medicao",
+        solicitacao_medicao_inicial=solicitacao_medicao,
+        periodo_escolar=periodo_tarde,
+    )
+    categoria_dieta_a = mommy.make(
+        "CategoriaMedicao", nome="DIETA ESPECIAL - TIPO A ENTERAL"
+    )
+    categoria_dieta_b = mommy.make("CategoriaMedicao", nome="DIETA ESPECIAL - TIPO B")
+    tipos_periodos = ["INFANTIL", "FUNDAMENTAL"]
+
+    for dia in ["01", "02", "03", "04", "05"]:
+        for tipo_periodo in tipos_periodos:
+            for campo in ["lanche", "refeicao", "sobremesa"]:
+                for categoria in [
+                    categoria_medicao,
+                    categoria_dieta_a,
+                    categoria_dieta_b,
+                ]:
+                    for medicao_ in [medicao_manha, medicao_tarde]:
+                        mommy.make(
+                            "ValorMedicao",
+                            dia=dia,
+                            nome_campo=campo,
+                            medicao=medicao_,
+                            categoria_medicao=categoria,
+                            valor="10",
+                            infantil_ou_fundamental=tipo_periodo,
+                        )
     return solicitacao_medicao
 
 
