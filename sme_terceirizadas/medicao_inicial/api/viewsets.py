@@ -410,6 +410,9 @@ class SolicitacaoMedicaoInicialViewSet(
         qs_solicitacao_medicao = SolicitacaoMedicaoInicial.objects.all()
         if isinstance(request.user.vinculo_atual.instituicao, DiretoriaRegional):
             qs_solicitacao_medicao = query_set
+        q_status = request.query_params.get("status")
+        if q_status:
+            qs_solicitacao_medicao = qs_solicitacao_medicao.filter(status=q_status)
         for mes_ano in meses_anos:
             status_ = (
                 qs_solicitacao_medicao.filter(mes=mes_ano[0], ano=mes_ano[1])
