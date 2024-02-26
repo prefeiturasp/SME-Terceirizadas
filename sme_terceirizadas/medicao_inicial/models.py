@@ -25,6 +25,7 @@ from ..dados_comuns.fluxo_status import (
     FluxoSolicitacaoMedicaoInicial,
     LogSolicitacoesUsuario,
 )
+from ..escola.constants import INFANTIL_OU_FUNDAMENTAL
 from ..escola.models import TipoUnidadeEscolar
 from ..perfil.models import Usuario
 
@@ -316,12 +317,6 @@ class ValorMedicao(
     INFANTIL = "INFANTIL"
     FUNDAMENTAL = "FUNDAMENTAL"
 
-    INFANTIL_OU_FUNDAMENTAL = (
-        ("N/A", "N/A"),
-        ("INFANTIL", "INFANTIL"),
-        ("FUNDAMENTAL", "FUNDAMENTAL"),
-    )
-
     valor = models.TextField("Valor do Campo")
     nome_campo = models.CharField(max_length=100)
     medicao = models.ForeignKey(
@@ -432,6 +427,9 @@ class DiaParaCorrigir(
         "CategoriaMedicao", on_delete=models.CASCADE, related_name="dias_para_corrigir"
     )
     habilitado_correcao = models.BooleanField(default=True)
+    infantil_ou_fundamental = models.CharField(
+        max_length=11, choices=INFANTIL_OU_FUNDAMENTAL, default="N/A"
+    )
 
     @classmethod
     def cria_dias_para_corrigir(
@@ -450,6 +448,9 @@ class DiaParaCorrigir(
                 dia=dia_para_corrigir["dia"],
                 categoria_medicao=categoria_medicao,
                 criado_por=usuario,
+                infantil_ou_fundamental=dia_para_corrigir.get(
+                    "infantil_ou_fundamental", "N/A"
+                ),
             )
             list_dias_para_corrigir_a_criar.append(dia_obj)
         DiaParaCorrigir.objects.bulk_create(list_dias_para_corrigir_a_criar)
@@ -463,7 +464,7 @@ class DiaParaCorrigir(
         )
         mes = self.medicao.solicitacao_medicao_inicial.mes
         ano = self.medicao.solicitacao_medicao_inicial.ano
-        return f"# {self.id_externo} - {escola} - {periodo_ou_grupo} - {self.dia}/{mes}/{ano}"
+        return f"# {self.id_externo} - {escola} - {periodo_ou_grupo} - {self.dia}/{mes}/{ano} - {self.infantil_ou_fundamental}"
 
     class Meta:
         verbose_name = "Dia da Medição para corrigir"
