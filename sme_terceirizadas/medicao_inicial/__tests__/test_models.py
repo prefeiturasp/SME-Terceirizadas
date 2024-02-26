@@ -46,7 +46,7 @@ def test_valor_medicao_model(valor_medicao):
 
 def test_dia_para_corrigir_model(dia_para_corrigir):
     assert dia_para_corrigir.__str__() == (
-        "# D5C33 - EMEF TESTE - INTEGRAL - 01/12/2022"
+        "# D5C33 - EMEF TESTE - INTEGRAL - 01/12/2022 - N/A"
     )
 
 
