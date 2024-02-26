@@ -591,7 +591,7 @@ def solicitacao_medicao_inicial_varios_valores_emebs(escola_emebs, categoria_med
 
     for dia in ["01", "02", "03", "04", "05"]:
         for tipo_periodo in tipos_periodos:
-            for campo in ["lanche", "refeicao", "sobremesa"]:
+            for campo in ["lanche", "refeicao", "sobremesa", "observacoes"]:
                 for categoria in [
                     categoria_medicao,
                     categoria_dieta_a,
@@ -604,7 +604,11 @@ def solicitacao_medicao_inicial_varios_valores_emebs(escola_emebs, categoria_med
                             nome_campo=campo,
                             medicao=medicao_,
                             categoria_medicao=categoria,
-                            valor="10",
+                            valor=(
+                                "10"
+                                if campo != "observacoes"
+                                else f"observação {tipo_periodo} dia {dia}"
+                            ),
                             infantil_ou_fundamental=tipo_periodo,
                         )
     return solicitacao_medicao
