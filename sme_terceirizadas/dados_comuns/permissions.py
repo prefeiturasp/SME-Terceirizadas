@@ -1171,6 +1171,7 @@ class PermissaoParaDashboardFichaTecnica(BasePermission):
     PERFIS_PERMITIDOS = [
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
+        ADMINISTRADOR_CODAE_GABINETE,
     ]
 
     def has_permission(self, request, view):
@@ -1191,6 +1192,7 @@ class PermissaoParaVisualizarFichaTecnica(BasePermission):
     PERFIS_PERMITIDOS = [
         COORDENADOR_GESTAO_PRODUTO,
         COORDENADOR_CODAE_DILOG_LOGISTICA,
+        ADMINISTRADOR_CODAE_GABINETE,
     ]
 
     def has_permission(self, request, view):
