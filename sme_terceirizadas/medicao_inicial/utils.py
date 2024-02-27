@@ -17,7 +17,7 @@ from sme_terceirizadas.dados_comuns.constants import (
     ORDEM_PERIODOS_GRUPOS_CEI,
     ORDEM_PERIODOS_GRUPOS_CEMEI,
     ORDEM_PERIODOS_GRUPOS_EMEBS,
-    TIPOS_ALUNOS_EMEBS,
+    TIPOS_TURMAS_EMEBS,
 )
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
 from sme_terceirizadas.dieta_especial.models import (
@@ -45,11 +45,11 @@ from sme_terceirizadas.paineis_consolidados.models import SolicitacoesEscola
 logger = logging.getLogger(__name__)
 
 
-def get_lista_categorias_campos(medicao, tipo_periodo=None):
+def get_lista_categorias_campos(medicao, tipo_turma=None):
     queryset = medicao.valores_medicao
 
-    if tipo_periodo:
-        queryset = medicao.valores_medicao.filter(infantil_ou_fundamental=tipo_periodo)
+    if tipo_turma:
+        queryset = medicao.valores_medicao.filter(infantil_ou_fundamental=tipo_turma)
 
     lista_categorias_campos = sorted(
         list(
@@ -101,11 +101,11 @@ def get_lista_categorias_campos_cei(medicao):
     return lista_categorias_campos
 
 
-def build_dict_relacao_categorias_e_campos(medicao, tipo_periodo=None):
+def build_dict_relacao_categorias_e_campos(medicao, tipo_turma=None):
     CATEGORIA = 0
     CAMPO = 1
 
-    lista_categorias_campos = get_lista_categorias_campos(medicao, tipo_periodo)
+    lista_categorias_campos = get_lista_categorias_campos(medicao, tipo_turma)
     dict_categorias_campos = {}
     for categoria_campo in lista_categorias_campos:
         if categoria_campo[CATEGORIA] not in dict_categorias_campos.keys():
@@ -442,19 +442,19 @@ def build_headers_tabelas_emebs(solicitacao):
     indice_atual = 0
 
     for medicao in get_medicoes_ordenadas(solicitacao, ORDEM_PERIODOS_GRUPOS):
-        for tipo_periodo in TIPOS_ALUNOS_EMEBS:
+        for tipo_turma in TIPOS_TURMAS_EMEBS:
             dict_categorias_campos = build_dict_relacao_categorias_e_campos(
-                medicao, tipo_periodo
+                medicao, tipo_turma
             )
 
             for categoria in dict_categorias_campos.keys():
                 nome_periodo = (
-                    f"{medicao.periodo_escolar.nome} - {tipo_periodo}"
+                    f"{medicao.periodo_escolar.nome} - {tipo_turma}"
                     if not medicao.grupo
                     else (
-                        f"{medicao.grupo.nome} - {medicao.periodo_escolar.nome} - {tipo_periodo}"
+                        f"{medicao.grupo.nome} - {medicao.periodo_escolar.nome} - {tipo_turma}"
                         if medicao.periodo_escolar
-                        else f"{medicao.grupo.nome} - {tipo_periodo}"
+                        else f"{medicao.grupo.nome} - {tipo_turma}"
                     )
                 )
 
@@ -973,7 +973,7 @@ def popula_campos_preenchidos_pela_escola(
             if solicitacao.escola.eh_emebs
             else periodo_corrente
         )
-        tipo_periodo = (
+        tipo_turma = (
             periodo_corrente.split(" - ")[1] if solicitacao.escola.eh_emebs else "N/A"
         )
 
@@ -994,7 +994,7 @@ def popula_campos_preenchidos_pela_escola(
                 dia=f"{dia:02d}",
                 categoria_medicao__nome=categoria_corrente,
                 nome_campo=campo,
-                infantil_ou_fundamental=tipo_periodo,
+                infantil_ou_fundamental=tipo_turma,
             )
             .first()
             .valor
@@ -1917,7 +1917,7 @@ def popula_valores_campos(
 
 
 def get_logs_emebs(solicitacao, tipo_log, periodo_corrente):
-    tipo_periodo = periodo_corrente.split(" - ")[1]
+    tipo_turma = periodo_corrente.split(" - ")[1]
     logs = None
 
     if tipo_log == "dietas":
@@ -1925,7 +1925,7 @@ def get_logs_emebs(solicitacao, tipo_log, periodo_corrente):
             escola=solicitacao.escola,
             data__month=solicitacao.mes,
             data__year=solicitacao.ano,
-            infantil_ou_fundamental=tipo_periodo,
+            infantil_ou_fundamental=tipo_turma,
         )
     elif tipo_log == "alunos_matriculados":
         logs = LogAlunosMatriculadosPeriodoEscola.objects.filter(
@@ -1933,7 +1933,7 @@ def get_logs_emebs(solicitacao, tipo_log, periodo_corrente):
             criado_em__month=solicitacao.mes,
             criado_em__year=solicitacao.ano,
             tipo_turma="REGULAR",
-            infantil_ou_fundamental=tipo_periodo,
+            infantil_ou_fundamental=tipo_turma,
         )
     return logs
 

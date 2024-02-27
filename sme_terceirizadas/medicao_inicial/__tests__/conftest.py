@@ -587,10 +587,10 @@ def solicitacao_medicao_inicial_varios_valores_emebs(escola_emebs, categoria_med
         "CategoriaMedicao", nome="DIETA ESPECIAL - TIPO A ENTERAL"
     )
     categoria_dieta_b = mommy.make("CategoriaMedicao", nome="DIETA ESPECIAL - TIPO B")
-    tipos_periodos = ["INFANTIL", "FUNDAMENTAL"]
+    tipos_turmas = ["INFANTIL", "FUNDAMENTAL"]
 
     for dia in ["01", "02", "03", "04", "05"]:
-        for tipo_periodo in tipos_periodos:
+        for tipo_turma in tipos_turmas:
             for campo in ["lanche", "refeicao", "sobremesa", "observacoes"]:
                 for categoria in [
                     categoria_medicao,
@@ -607,9 +607,9 @@ def solicitacao_medicao_inicial_varios_valores_emebs(escola_emebs, categoria_med
                             valor=(
                                 "10"
                                 if campo != "observacoes"
-                                else f"observação {tipo_periodo} dia {dia}"
+                                else f"observação {tipo_turma} dia {dia}"
                             ),
-                            infantil_ou_fundamental=tipo_periodo,
+                            infantil_ou_fundamental=tipo_turma,
                         )
     return solicitacao_medicao
 
