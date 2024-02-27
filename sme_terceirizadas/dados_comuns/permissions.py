@@ -506,7 +506,7 @@ class UsuarioCodaeDilog(BasePermission):
 
 
 class PermissaoParaCriarUsuarioComCoresso(BasePermission):
-    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial, Terceirizadas e Diretores."""
+    """Permite criar usuários no coresso."""
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -522,6 +522,32 @@ class PermissaoParaCriarUsuarioComCoresso(BasePermission):
                 COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                 ADMINISTRADOR_REPRESENTANTE_CODAE,
                 COORDENADOR_SUPERVISAO_NUTRICAO,
+            ]
+            or isinstance(usuario.vinculo_atual.instituicao, Escola)
+            and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE]
+            or isinstance(usuario.vinculo_atual.instituicao, Terceirizada)
+            and usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_EMPRESA]
+        )
+
+
+class PermissaoParaListarVinculosAtivos(BasePermission):
+    """Permite acesso a usuários com vinculo."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous
+            and usuario.vinculo_atual
+            and isinstance(usuario.vinculo_atual.instituicao, Codae)
+            and usuario.vinculo_atual.perfil.nome
+            in [
+                COORDENADOR_GESTAO_PRODUTO,
+                COORDENADOR_DIETA_ESPECIAL,
+                COORDENADOR_CODAE_DILOG_LOGISTICA,
+                COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                ADMINISTRADOR_REPRESENTANTE_CODAE,
+                COORDENADOR_SUPERVISAO_NUTRICAO,
+                ADMINISTRADOR_CODAE_GABINETE,
             ]
             or isinstance(usuario.vinculo_atual.instituicao, Escola)
             and usuario.vinculo_atual.perfil.nome in [DIRETOR_UE]
