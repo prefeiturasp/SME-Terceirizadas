@@ -151,6 +151,7 @@ class EscolaParaFiltrosViewSet(ListModelMixin, GenericViewSet):
     serializer_class = EscolaParaFiltrosReadOnlySerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ["diretoria_regional__uuid"]
+    pagination_class = None
 
 
 class EscolaSimplissimaComEolViewSet(ReadOnlyModelViewSet):
