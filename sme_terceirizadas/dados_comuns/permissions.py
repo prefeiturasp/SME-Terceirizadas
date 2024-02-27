@@ -692,8 +692,7 @@ class PermissaoParaCriarCronograma(BasePermission):
             and (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae)
-                    and usuario.vinculo_atual.perfil.nome
-                    in [DILOG_CRONOGRAMA, COORDENADOR_CODAE_DILOG_LOGISTICA]
+                    and usuario.vinculo_atual.perfil.nome in [DILOG_CRONOGRAMA]
                 )
             )
         )
