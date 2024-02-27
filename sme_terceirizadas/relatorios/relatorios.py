@@ -17,7 +17,9 @@ from ..escola.constants import (
 from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
+from ..medicao_inicial.models import ValorMedicao
 from ..medicao_inicial.utils import (
+    build_lista_campos_observacoes,
     build_tabela_relatorio_consolidado,
     build_tabela_somatorio_body,
     build_tabela_somatorio_body_cei,
@@ -25,6 +27,7 @@ from ..medicao_inicial.utils import (
     build_tabelas_relatorio_medicao,
     build_tabelas_relatorio_medicao_cei,
     build_tabelas_relatorio_medicao_cemei,
+    build_tabelas_relatorio_medicao_emebs,
 )
 from ..relatorios.utils import (
     html_to_pdf_cancelada,
@@ -608,9 +611,11 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
             "foto_aluno": solicitacao.aluno.foto_aluno_base64,
             "eh_protocolo_dieta_especial": solicitacao.tipo_solicitacao
             == "ALTERACAO_UE",
-            "motivo": solicitacao.motivo_alteracao_ue.nome.split(" - ")[1]
-            if solicitacao.motivo_alteracao_ue
-            else None,
+            "motivo": (
+                solicitacao.motivo_alteracao_ue.nome.split(" - ")[1]
+                if solicitacao.motivo_alteracao_ue
+                else None
+            ),
         },
     )
     if request:
@@ -1084,9 +1089,9 @@ def produtos_suspensos_por_edital(produtos, data_final, nome_edital, filtros):
             "produtos": produtos,
             "total": len(produtos),
             "hoje": datetime.date.today().strftime("%d/%m/%Y"),
-            "data_final": data_final
-            if data_final
-            else datetime.date.today().strftime("%d/%m/%Y"),
+            "data_final": (
+                data_final if data_final else datetime.date.today().strftime("%d/%m/%Y")
+            ),
             "nome_edital": nome_edital,
             "filtros": filtros,
         },
@@ -1370,21 +1375,7 @@ def relatorio_solicitacao_medicao_por_escola(solicitacao):
         "nome", flat=True
     )
     tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
-    tabela_observacoes = list(
-        solicitacao.medicoes.filter(valores_medicao__nome_campo="observacoes")
-        .values_list(
-            "valores_medicao__dia",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-            "valores_medicao__valor",
-            "grupo__nome",
-        )
-        .order_by(
-            "valores_medicao__dia",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-        )
-    )
+    tabela_observacoes = build_lista_campos_observacoes(solicitacao)
     tabela_somatorio = build_tabela_somatorio_body(
         solicitacao, dict_total_refeicoes, dict_total_sobremesas
     )
@@ -1423,21 +1414,7 @@ def relatorio_solicitacao_medicao_por_escola_cei(solicitacao):
         "nome", flat=True
     )
     tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
-    tabela_observacoes = list(
-        solicitacao.medicoes.filter(valores_medicao__nome_campo="observacoes")
-        .values_list(
-            "valores_medicao__dia",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-            "valores_medicao__valor",
-            "grupo__nome",
-        )
-        .order_by(
-            "valores_medicao__dia",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-        )
-    )
+    tabela_observacoes = build_lista_campos_observacoes(solicitacao)
     html_string = render_to_string(
         "relatorio_solicitacao_medicao_por_escola_cei.html",
         {
@@ -1471,22 +1448,7 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
         solicitacao, dict_total_refeicoes, dict_total_sobremesas
     )
 
-    observacoes = list(
-        solicitacao.medicoes.filter(valores_medicao__nome_campo="observacoes")
-        .values_list(
-            "valores_medicao__dia",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-            "valores_medicao__valor",
-            "grupo__nome",
-        )
-        .order_by(
-            "valores_medicao__dia",
-            "grupo__nome",
-            "periodo_escolar__nome",
-            "valores_medicao__categoria_medicao__nome",
-        )
-    )
+    observacoes = build_lista_campos_observacoes(solicitacao)
 
     tabela_observacoes_cei = []
     tabela_observacoes_infantil = []
@@ -1513,6 +1475,41 @@ def relatorio_solicitacao_medicao_por_escola_cemei(solicitacao):
         },
     )
 
+    return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
+
+
+def relatorio_solicitacao_medicao_por_escola_emebs(solicitacao):
+    tabelas = build_tabelas_relatorio_medicao_emebs(solicitacao)
+
+    tipos_contagem_alimentacao = solicitacao.tipos_contagem_alimentacao.values_list(
+        "nome", flat=True
+    )
+    tipos_contagem_alimentacao = ", ".join(list(set(tipos_contagem_alimentacao)))
+
+    tabela_observacoes_infantil = build_lista_campos_observacoes(
+        solicitacao, ValorMedicao.INFANTIL
+    )
+
+    tabela_observacoes_fundamental = build_lista_campos_observacoes(
+        solicitacao, ValorMedicao.FUNDAMENTAL
+    )
+
+    html_string = render_to_string(
+        "relatorio_solicitacao_medicao_por_escola_emebs.html",
+        {
+            "solicitacao": solicitacao,
+            "tipos_contagem_alimentacao": tipos_contagem_alimentacao,
+            "responsaveis": solicitacao.responsaveis.all(),
+            "assinatura_escola": solicitacao.assinatura_ue,
+            "assinatura_dre": solicitacao.assinatura_dre,
+            "quantidade_dias_mes": range(
+                1, monthrange(int(solicitacao.ano), int(solicitacao.mes))[1] + 1
+            ),
+            "tabelas": tabelas,
+            "tabela_observacoes_infantil": tabela_observacoes_infantil,
+            "tabela_observacoes_fundamental": tabela_observacoes_fundamental,
+        },
+    )
     return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
 
 

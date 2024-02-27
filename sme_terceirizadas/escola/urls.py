@@ -17,6 +17,11 @@ router.register(
     "escolas-simples", viewsets.EscolaSimplesViewSet, basename="escolas-simples"
 )
 router.register(
+    "escolas-para-filtros",
+    viewsets.EscolaParaFiltrosViewSet,
+    basename="escolas-para-filtros",
+)
+router.register(
     "escolas-simplissima",
     viewsets.EscolaSimplissimaViewSet,
     basename="escolas-simplissima",
