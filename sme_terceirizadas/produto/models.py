@@ -717,7 +717,10 @@ class HomologacaoProduto(
     ) -> None:
         editais_suspensos = []
         for vinc_prod_edital in vinculos_produto_edital:
-            if str(vinc_prod_edital.edital.uuid) not in editais:
+            if (
+                str(vinc_prod_edital.edital.uuid) not in editais
+                and not vinc_prod_edital.suspenso
+            ):
                 editais_suspensos.append(vinc_prod_edital.edital.numero)
                 vinc_prod_edital.suspenso = True
                 vinc_prod_edital.suspenso_por = usuario
