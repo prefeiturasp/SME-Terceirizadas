@@ -2932,14 +2932,18 @@ def build_tabela_somatorio_body(
     return body_tabela_somatorio
 
 
-def get_somatorio_dietas(campo, solicitacao, tipo_dieta, periodo=None, grupo=None):
+def get_somatorio_dietas(
+    campo, solicitacao, tipo_dieta, periodo=None, grupo=None, tipo_turma=None
+):
     # ajustar para filtrar periodo/grupo EJA
     try:
         medicao = solicitacao.medicoes.get(
             periodo_escolar__nome=periodo, grupo__nome=grupo
         )
         values = medicao.valores_medicao.filter(
-            categoria_medicao__nome__icontains=tipo_dieta, nome_campo=campo
+            categoria_medicao__nome__icontains=tipo_dieta,
+            nome_campo=campo,
+            infantil_ou_fundamental=tipo_turma if tipo_turma is not None else "N/A",
         )
         somatorio_dietas = (
             values if type(values) is int else sum([int(v.valor) for v in values])
@@ -2951,7 +2955,7 @@ def get_somatorio_dietas(campo, solicitacao, tipo_dieta, periodo=None, grupo=Non
     return somatorio_dietas
 
 
-def build_tabela_somatorio_dietas_body(solicitacao, tipo_dieta):
+def build_tabela_somatorio_dietas_body(solicitacao, tipo_dieta, tipo_turma=None):
     campos_tipos_alimentacao = []
 
     ordem_periodos = ORDEM_PERIODOS_GRUPOS
@@ -2984,7 +2988,10 @@ def build_tabela_somatorio_dietas_body(solicitacao, tipo_dieta):
                     "repeticao_2_sobremesa",
                 ]
             )
-            .filter(categoria_medicao__nome__icontains=tipo_dieta)
+            .filter(
+                categoria_medicao__nome__icontains=tipo_dieta,
+                infantil_ou_fundamental=tipo_turma if tipo_turma is not None else "N/A",
+            )
             .values_list("nome_campo", flat=True)
             .distinct()
         )
@@ -3006,28 +3013,41 @@ def build_tabela_somatorio_dietas_body(solicitacao, tipo_dieta):
 
     for tipo_alimentacao in campos_tipos_alimentacao:
         body_tabela_somatorio_dietas = somatorio_periodo_dietas(
-            tipo_alimentacao, solicitacao, body_tabela_somatorio_dietas, tipo_dieta
+            tipo_alimentacao,
+            solicitacao,
+            body_tabela_somatorio_dietas,
+            tipo_dieta,
+            tipo_turma,
         )
     return body_tabela_somatorio_dietas
 
 
 def somatorio_periodo_dietas(
-    tipo_alimentacao, solicitacao, body_tabela_somatorio_dietas, tipo_dieta
+    tipo_alimentacao,
+    solicitacao,
+    body_tabela_somatorio_dietas,
+    tipo_dieta,
+    tipo_turma=None,
 ):
     somatorio_manha_dietas = get_somatorio_dietas(
-        tipo_alimentacao, solicitacao, tipo_dieta, "MANHA"
+        tipo_alimentacao, solicitacao, tipo_dieta, "MANHA", tipo_turma=tipo_turma
     )
     somatorio_tarde_dietas = get_somatorio_dietas(
-        tipo_alimentacao, solicitacao, tipo_dieta, "TARDE"
+        tipo_alimentacao, solicitacao, tipo_dieta, "TARDE", tipo_turma=tipo_turma
     )
     somatorio_integral_dietas = get_somatorio_dietas(
-        tipo_alimentacao, solicitacao, tipo_dieta, "INTEGRAL"
+        tipo_alimentacao, solicitacao, tipo_dieta, "INTEGRAL", tipo_turma=tipo_turma
     )
     somatorio_programas_e_projetos_dietas = get_somatorio_dietas(
-        tipo_alimentacao, solicitacao, tipo_dieta, None, "Programas e Projetos"
+        tipo_alimentacao,
+        solicitacao,
+        tipo_dieta,
+        None,
+        "Programas e Projetos",
+        tipo_turma=tipo_turma,
     )
     somatorio_noite_eja_dietas = get_somatorio_dietas(
-        tipo_alimentacao, solicitacao, tipo_dieta, "NOITE"
+        tipo_alimentacao, solicitacao, tipo_dieta, "NOITE", tipo_turma=tipo_turma
     )
     arr_somatorio_periodos_grupo = [
         somatorio_manha_dietas,

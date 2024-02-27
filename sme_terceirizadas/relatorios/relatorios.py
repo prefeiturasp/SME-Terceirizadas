@@ -1489,10 +1489,32 @@ def relatorio_solicitacao_medicao_por_escola_emebs(solicitacao):
         ValorMedicao.INFANTIL,
     )
 
+    tabela_somatorio_dietas_tipo_a_infantil = build_tabela_somatorio_dietas_body(
+        solicitacao,
+        "TIPO A",
+        ValorMedicao.INFANTIL,
+    )
+    tabela_somatorio_dietas_tipo_b_infantil = build_tabela_somatorio_dietas_body(
+        solicitacao,
+        "TIPO B",
+        ValorMedicao.INFANTIL,
+    )
+
     tabela_somatorio_fundamental = build_tabela_somatorio_body(
         solicitacao,
         dict_total_refeicoes,
         dict_total_sobremesas,
+        ValorMedicao.FUNDAMENTAL,
+    )
+
+    tabela_somatorio_dietas_tipo_a_fundamental = build_tabela_somatorio_dietas_body(
+        solicitacao,
+        "TIPO A",
+        ValorMedicao.FUNDAMENTAL,
+    )
+    tabela_somatorio_dietas_tipo_b_fundamental = build_tabela_somatorio_dietas_body(
+        solicitacao,
+        "TIPO B",
         ValorMedicao.FUNDAMENTAL,
     )
 
@@ -1511,7 +1533,11 @@ def relatorio_solicitacao_medicao_por_escola_emebs(solicitacao):
             "tabela_observacoes_infantil": tabela_observacoes_infantil,
             "tabela_observacoes_fundamental": tabela_observacoes_fundamental,
             "tabela_somatorio_infantil": tabela_somatorio_infantil,
+            "tabela_somatorio_dietas_tipo_a_infantil": tabela_somatorio_dietas_tipo_a_infantil,
+            "tabela_somatorio_dietas_tipo_b_infantil": tabela_somatorio_dietas_tipo_b_infantil,
             "tabela_somatorio_fundamental": tabela_somatorio_fundamental,
+            "tabela_somatorio_dietas_tipo_a_fundamental": tabela_somatorio_dietas_tipo_a_fundamental,
+            "tabela_somatorio_dietas_tipo_b_fundamental": tabela_somatorio_dietas_tipo_b_fundamental,
         },
     )
     return html_to_pdf_file(html_string, "relatorio_dieta_especial.pdf", is_async=True)
