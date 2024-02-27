@@ -1164,6 +1164,9 @@ class MedicaoViewSet(
                 )
                 tipo_alimentacao = self.get_tipo_alimentacao(valor_medicao)
                 faixa_etaria = self.get_faixa_etaria(valor_medicao)
+                infantil_ou_fundamental = valor_medicao.get(
+                    "infantil_ou_fundamental", "N/A"
+                )
                 ValorMedicao.objects.update_or_create(
                     medicao=medicao,
                     dia=valor_medicao.get("dia", ""),
@@ -1172,6 +1175,7 @@ class MedicaoViewSet(
                     categoria_medicao=categoria_medicao_qs.first(),
                     tipo_alimentacao=tipo_alimentacao,
                     faixa_etaria=faixa_etaria,
+                    infantil_ou_fundamental=infantil_ou_fundamental,
                     defaults={
                         "medicao": medicao,
                         "dia": valor_medicao.get("dia", ""),
@@ -1182,6 +1186,7 @@ class MedicaoViewSet(
                         "tipo_alimentacao": tipo_alimentacao,
                         "faixa_etaria": faixa_etaria,
                         "habilitado_correcao": True,
+                        "infantil_ou_fundamental": infantil_ou_fundamental,
                     },
                 )
             medicao.valores_medicao.filter(valor=-1).delete()
