@@ -212,6 +212,16 @@ class EscolaSimplissimaSerializer(serializers.ModelSerializer):
         )
 
 
+class EscolaParaFiltrosDiretoriaRegionalReadOnlySerializer(serializers.Serializer):
+    uuid = serializers.CharField(read_only=True)
+    nome = serializers.CharField(read_only=True)
+
+
+class EscolaParaFiltrosTipoUnidadeReadOnlySerializer(serializers.Serializer):
+    uuid = serializers.CharField(read_only=True)
+    iniciais = serializers.CharField(read_only=True)
+
+
 class EscolaParaFiltrosLoteReadOnlySerializer(serializers.Serializer):
     uuid = serializers.CharField(read_only=True)
     nome = serializers.CharField(read_only=True)
@@ -226,6 +236,8 @@ class EscolaParaFiltrosReadOnlySerializer(serializers.Serializer):
     uuid = serializers.CharField(read_only=True)
     nome = serializers.CharField(read_only=True)
     codigo_eol = serializers.CharField(read_only=True)
+    diretoria_regional = EscolaParaFiltrosDiretoriaRegionalReadOnlySerializer()
+    tipo_unidade = EscolaParaFiltrosTipoUnidadeReadOnlySerializer()
     lote = EscolaParaFiltrosLoteReadOnlySerializer()
     periodos_escolares = EscolaParaFiltrosPeriodoEscolarReadOnlySerializer(many=True)
     tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
