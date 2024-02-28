@@ -76,6 +76,7 @@ from .constants import (
     STATUS_RELACAO_DRE_CODAE,
     STATUS_RELACAO_DRE_MEDICAO,
     STATUS_RELACAO_DRE_UE,
+    USUARIOS_RELACAO_DRE_CODAE,
 )
 from .filters import DiaParaCorrecaoFilter, EmpenhoFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
@@ -225,6 +226,8 @@ class SolicitacaoMedicaoInicialViewSet(
             return STATUS_RELACAO_DRE_MEDICAO + ["TODOS_OS_LANCAMENTOS"]
         elif usuario.tipo_usuario == "diretoriaregional":
             return STATUS_RELACAO_DRE + ["TODOS_OS_LANCAMENTOS"]
+        elif usuario.tipo_usuario in USUARIOS_RELACAO_DRE_CODAE:
+            return STATUS_RELACAO_DRE_CODAE + ["TODOS_OS_LANCAMENTOS"]
         else:
             return (
                 STATUS_RELACAO_DRE_UE
@@ -242,6 +245,9 @@ class SolicitacaoMedicaoInicialViewSet(
 
     def condicao_por_usuario(self, queryset):
         usuario = self.request.user
+
+        if usuario.tipo_usuario in USUARIOS_RELACAO_DRE_CODAE:
+            return queryset.filter(status__in=STATUS_RELACAO_DRE_CODAE)
         if not (
             usuario.tipo_usuario == "diretoriaregional"
             or usuario.tipo_usuario == "medicao"
@@ -267,6 +273,7 @@ class SolicitacaoMedicaoInicialViewSet(
 
         sumario = []
         usuario = self.request.user
+
         for workflow in self.get_lista_status(usuario):
             todos_lancamentos = workflow == "TODOS_OS_LANCAMENTOS"
             if use_raw:
