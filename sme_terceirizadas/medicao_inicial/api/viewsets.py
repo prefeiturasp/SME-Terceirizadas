@@ -1585,4 +1585,7 @@ class RelatoriosViewSet(ViewSet):
                     resultados, medicao_nome, valor_medicao
                 )
 
+            if not resultados[medicao_nome]:
+                del resultados[medicao_nome]
+
         return Response(data=resultados, status=status.HTTP_200_OK)
