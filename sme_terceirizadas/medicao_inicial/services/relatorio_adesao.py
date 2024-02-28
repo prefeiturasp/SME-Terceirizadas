@@ -57,19 +57,21 @@ def _atualiza_total_frequencia_e_adesao_para_cada_tipo_de_alimentacao(
     return resultados
 
 
-def _soma_totais_por_medicao(resultados, medicao: Medicao):
+def _soma_totais_por_medicao(
+    resultados, total_frequencia_por_medicao, medicao: Medicao
+):
     medicao_nome = (
         medicao.periodo_escolar.nome if medicao.periodo_escolar else medicao.grupo.nome
     )
+
     if resultados.get(medicao_nome) is None:
         resultados[medicao_nome] = {}
-
-    total_frequencia = 0
+        total_frequencia_por_medicao[medicao_nome] = 0
 
     valores_medicao = _obtem_valores_medicao(medicao)
     for valor_medicao in valores_medicao:
         if valor_medicao.nome_campo == "frequencia":
-            total_frequencia += int(valor_medicao.valor)
+            total_frequencia_por_medicao[medicao_nome] += int(valor_medicao.valor)
         else:
             resultados = _soma_total_servido_do_tipo_de_alimentacao(
                 resultados, medicao_nome, valor_medicao
@@ -79,7 +81,7 @@ def _soma_totais_por_medicao(resultados, medicao: Medicao):
         del resultados[medicao_nome]
     else:
         resultados = _atualiza_total_frequencia_e_adesao_para_cada_tipo_de_alimentacao(
-            resultados, medicao_nome, total_frequencia
+            resultados, medicao_nome, total_frequencia_por_medicao[medicao_nome]
         )
 
     return resultados
@@ -87,9 +89,12 @@ def _soma_totais_por_medicao(resultados, medicao: Medicao):
 
 def obtem_resultados(mes: str, ano: str):
     resultados = {}
+    total_frequencia_por_medicao = {}
 
     medicoes = _obtem_medicoes(mes, ano)
     for medicao in medicoes:
-        resultados = _soma_totais_por_medicao(resultados, medicao)
+        resultados = _soma_totais_por_medicao(
+            resultados, total_frequencia_por_medicao, medicao
+        )
 
     return resultados
