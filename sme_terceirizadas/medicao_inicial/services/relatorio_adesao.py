@@ -43,13 +43,16 @@ def _soma_total_servido_do_tipo_de_alimentacao(
     return resultados
 
 
-def _atualiza_total_frequencia_para_cada_tipo_de_alimentacao(
+def _atualiza_total_frequencia_e_adesao_para_cada_tipo_de_alimentacao(
     resultados, medicao_nome: str, total_frequencia: int
 ):
     for tipo_alimentacao in resultados[medicao_nome].keys():
-        resultados[medicao_nome][tipo_alimentacao][
-            "total_frequencia"
-        ] = total_frequencia
+        tipo_alimentacao_totais = resultados[medicao_nome][tipo_alimentacao]
+        tipo_alimentacao_totais["total_frequencia"] = total_frequencia
+        tipo_alimentacao_totais["total_adesao"] = round(
+            tipo_alimentacao_totais["total_servido"] / total_frequencia,
+            4,
+        )
 
     return resultados
 
@@ -75,7 +78,7 @@ def _soma_totais_por_medicao(resultados, medicao: Medicao):
     if not resultados[medicao_nome]:
         del resultados[medicao_nome]
     else:
-        resultados = _atualiza_total_frequencia_para_cada_tipo_de_alimentacao(
+        resultados = _atualiza_total_frequencia_e_adesao_para_cada_tipo_de_alimentacao(
             resultados, medicao_nome, total_frequencia
         )
 
