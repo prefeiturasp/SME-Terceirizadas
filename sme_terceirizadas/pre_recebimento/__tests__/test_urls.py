@@ -45,7 +45,7 @@ fake = Faker("pt_BR")
 
 
 def test_rascunho_cronograma_create_ok(
-    client_autenticado_codae_dilog,
+    client_autenticado_dilog_cronograma,
     contrato,
     empresa,
     unidade_medida_logistica,
@@ -82,7 +82,7 @@ def test_rascunho_cronograma_create_ok(
         "custo_unitario_produto": custo_unitario_produto,
     }
 
-    response = client_autenticado_codae_dilog.post(
+    response = client_autenticado_dilog_cronograma.post(
         "/cronogramas/", content_type="application/json", data=json.dumps(payload)
     )
 
