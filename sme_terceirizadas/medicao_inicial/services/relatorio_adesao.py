@@ -2,24 +2,30 @@ from sme_terceirizadas.medicao_inicial.models import Medicao, ValorMedicao
 
 
 def _obtem_medicoes(mes: str, ano: str):
-    return Medicao.objects.filter(
-        solicitacao_medicao_inicial__mes=mes,
-        solicitacao_medicao_inicial__ano=ano,
-        solicitacao_medicao_inicial__status="MEDICAO_APROVADA_PELA_CODAE",
-    ).exclude(
-        solicitacao_medicao_inicial__escola__tipo_unidade__iniciais__in=[
-            "CEI",
-            "CCI",
-            "CEU CEI",
-            "CEU CEMEI",
-            "CEMEI",
-        ]
+    return (
+        Medicao.objects.select_related("periodo_escolar", "grupo")
+        .filter(
+            solicitacao_medicao_inicial__mes=mes,
+            solicitacao_medicao_inicial__ano=ano,
+            solicitacao_medicao_inicial__status="MEDICAO_APROVADA_PELA_CODAE",
+        )
+        .exclude(
+            solicitacao_medicao_inicial__escola__tipo_unidade__iniciais__in=[
+                "CEI",
+                "CCI",
+                "CEU CEI",
+                "CEU CEMEI",
+                "CEMEI",
+            ]
+        )
     )
 
 
 def _obtem_valores_medicao(medicao: Medicao):
-    return ValorMedicao.objects.filter(medicao=medicao).exclude(
-        categoria_medicao__nome__icontains="DIETA"
+    return (
+        ValorMedicao.objects.select_related("tipo_alimentacao")
+        .filter(medicao=medicao)
+        .exclude(categoria_medicao__nome__icontains="DIETA")
     )
 
 
