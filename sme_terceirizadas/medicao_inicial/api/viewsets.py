@@ -16,6 +16,12 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
 from workalendar.america import BrazilSaoPauloCity
 from xworkflows import InvalidTransitionError
 
+from sme_terceirizadas.medicao_inicial.services.relatorio_adesao import (
+    obtem_medicoes,
+    obtem_valores_medicao,
+    soma_total_servido_do_tipo_de_alimentacao,
+)
+
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns import constants
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -1554,5 +1560,29 @@ class RelatoriosViewSet(ViewSet):
     @action(detail=False, url_name="relatorio-adesao", url_path="relatorio-adesao")
     def relatorio_adesao(self, request):
         query_params = request.query_params
-        print(query_params)
-        return Response(data={}, status=status.HTTP_200_OK)
+
+        mes_ano = query_params.get("mes_ano")
+        if not mes_ano:
+            return Response(data={}, status=status.HTTP_200_OK)
+
+        mes, ano = mes_ano.split("_")
+
+        resultados = {}
+
+        medicoes = obtem_medicoes(mes, ano)
+        for medicao in medicoes:
+            medicao_nome = (
+                medicao.periodo_escolar.nome
+                if medicao.periodo_escolar
+                else medicao.grupo.nome
+            )
+            if resultados.get(medicao_nome) is None:
+                resultados[medicao_nome] = {}
+
+            valores_medicao = obtem_valores_medicao(medicao)
+            for valor_medicao in valores_medicao:
+                resultados = soma_total_servido_do_tipo_de_alimentacao(
+                    resultados, medicao_nome, valor_medicao
+                )
+
+        return Response(data=resultados, status=status.HTTP_200_OK)
