@@ -33,7 +33,7 @@ ORDEM_NAME_LANCAMENTOS_ESPECIAIS = {
     "repeticao_2_sobremesa": 7,
 }
 
-USUARIOS_RELACAO_DRE_CODAE = [
+USUARIOS_VISAO_CODAE = [
     "gestao_alimentacao_terceirizada",
     "nutricao_manifestacao",
     "codae_gabinete",

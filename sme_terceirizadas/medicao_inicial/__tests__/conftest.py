@@ -1518,6 +1518,101 @@ def solicitacoes_medicao_inicial(escola):
 
 
 @pytest.fixture
+def solicitacoes_medicao_inicial_codae(escola):
+    tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas")
+    s1 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=4,
+        ano=2022,
+        escola=escola,
+        status="MEDICAO_APROVADA_PELA_DRE",
+    )
+    s1.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    s2 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=7,
+        ano=2023,
+        escola=escola,
+        status="MEDICAO_APROVADA_PELA_DRE",
+    )
+    s2.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    s3 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=2,
+        ano=2023,
+        escola=escola,
+        status="MEDICAO_CORRECAO_SOLICITADA_CODAE",
+    )
+    s3.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    s4 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=12,
+        ano=2023,
+        escola=escola,
+        status="MEDICAO_CORRIGIDA_PARA_CODAE",
+    )
+    s4.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    s5 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=3,
+        ano=2023,
+        escola=escola,
+        status="MEDICAO_APROVADA_PELA_CODAE",
+    )
+    s5.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    s6 = mommy.make(
+        "SolicitacaoMedicaoInicial",
+        mes=2,
+        ano=2024,
+        escola=escola,
+        status="MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE",
+    )
+    s6.tipos_contagem_alimentacao.set([tipo_contagem])
+
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s1.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s2.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_DRE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s3.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_CORRECAO_SOLICITADA_CODAE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s4.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_CORRIGIDA_PARA_CODAE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s5.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_APROVADA_PELA_CODAE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+    mommy.make(
+        "LogSolicitacoesUsuario",
+        uuid_original=s6.uuid,
+        status_evento=LogSolicitacoesUsuario.MEDICAO_EM_ABERTO_PARA_PREENCHIMENTO_UE,
+        solicitacao_tipo=LogSolicitacoesUsuario.MEDICAO_INICIAL,
+    )
+
+
+@pytest.fixture
 def solicitacao_medicao_inicial_sem_arquivo(escola):
     tipo_contagem = mommy.make("TipoContagemAlimentacao", nome="Fichas COloridas")
     solicitacao_medicao = mommy.make(

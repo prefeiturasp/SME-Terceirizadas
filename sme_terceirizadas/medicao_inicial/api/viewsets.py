@@ -76,7 +76,7 @@ from .constants import (
     STATUS_RELACAO_DRE_CODAE,
     STATUS_RELACAO_DRE_MEDICAO,
     STATUS_RELACAO_DRE_UE,
-    USUARIOS_RELACAO_DRE_CODAE,
+    USUARIOS_VISAO_CODAE,
 )
 from .filters import DiaParaCorrecaoFilter, EmpenhoFilter
 from .permissions import EhAdministradorMedicaoInicialOuGestaoAlimentacao
@@ -226,7 +226,7 @@ class SolicitacaoMedicaoInicialViewSet(
             return STATUS_RELACAO_DRE_MEDICAO + ["TODOS_OS_LANCAMENTOS"]
         elif usuario.tipo_usuario == "diretoriaregional":
             return STATUS_RELACAO_DRE + ["TODOS_OS_LANCAMENTOS"]
-        elif usuario.tipo_usuario in USUARIOS_RELACAO_DRE_CODAE:
+        elif usuario.tipo_usuario in USUARIOS_VISAO_CODAE:
             return STATUS_RELACAO_DRE_CODAE + ["TODOS_OS_LANCAMENTOS"]
         else:
             return (
@@ -246,7 +246,7 @@ class SolicitacaoMedicaoInicialViewSet(
     def condicao_por_usuario(self, queryset):
         usuario = self.request.user
 
-        if usuario.tipo_usuario in USUARIOS_RELACAO_DRE_CODAE:
+        if usuario.tipo_usuario in USUARIOS_VISAO_CODAE:
             return queryset.filter(status__in=STATUS_RELACAO_DRE_CODAE)
         if not (
             usuario.tipo_usuario == "diretoriaregional"
@@ -312,9 +312,11 @@ class SolicitacaoMedicaoInicialViewSet(
                 qs = self.condicao_por_usuario(qs)
                 qs = sorted(
                     qs.distinct().all(),
-                    key=lambda x: x.log_mais_recente.criado_em
-                    if x.log_mais_recente
-                    else "-criado_em",
+                    key=lambda x: (
+                        x.log_mais_recente.criado_em
+                        if x.log_mais_recente
+                        else "-criado_em"
+                    ),
                     reverse=True,
                 )
             sumario.append(
@@ -525,9 +527,11 @@ class SolicitacaoMedicaoInicialViewSet(
                 {
                     "uuid_medicao_periodo_grupo": medicao.uuid,
                     "nome_periodo_grupo": nome,
-                    "periodo_escolar": medicao.periodo_escolar.nome
-                    if medicao.periodo_escolar
-                    else None,
+                    "periodo_escolar": (
+                        medicao.periodo_escolar.nome
+                        if medicao.periodo_escolar
+                        else None
+                    ),
                     "grupo": medicao.grupo.nome if medicao.grupo else None,
                     "status": medicao.status.name,
                     "logs": LogSolicitacoesUsuarioSerializer(
@@ -538,9 +542,11 @@ class SolicitacaoMedicaoInicialViewSet(
         ordem = (
             constants.ORDEM_PERIODOS_GRUPOS_CEI
             if solicitacao.escola.eh_cei
-            else constants.ORDEM_PERIODOS_GRUPOS_CEMEI
-            if solicitacao.escola.eh_cemei
-            else constants.ORDEM_PERIODOS_GRUPOS
+            else (
+                constants.ORDEM_PERIODOS_GRUPOS_CEMEI
+                if solicitacao.escola.eh_cemei
+                else constants.ORDEM_PERIODOS_GRUPOS
+            )
         )
 
         return Response(
@@ -1472,9 +1478,11 @@ class PermissaoLancamentoEspecialViewSet(ModelViewSet):
                     key=lambda k: ORDEM_NAME_LANCAMENTOS_ESPECIAIS[k["name"]],
                 ),
                 "permissoes_por_dia": permissoes_por_dia,
-                "data_inicio_permissoes": f'{min([permissao["dia"] for permissao in permissoes_por_dia])}/{mes}/{ano}'
-                if permissoes_por_dia
-                else None,
+                "data_inicio_permissoes": (
+                    f'{min([permissao["dia"] for permissao in permissoes_por_dia])}/{mes}/{ano}'
+                    if permissoes_por_dia
+                    else None
+                ),
             }
         }
 
