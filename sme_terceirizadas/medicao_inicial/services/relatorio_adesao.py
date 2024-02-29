@@ -1,3 +1,5 @@
+from typing import List
+
 from django.http import QueryDict
 
 from sme_terceirizadas.medicao_inicial.models import Medicao, ValorMedicao
@@ -24,12 +26,20 @@ def _obtem_medicoes(mes: str, ano: str, filtros: dict):
     )
 
 
-def _obtem_valores_medicao(medicao: Medicao):
-    return (
-        ValorMedicao.objects.select_related("tipo_alimentacao")
-        .filter(medicao=medicao)
-        .exclude(categoria_medicao__nome__icontains="DIETA")
+def _obtem_valores_medicao(
+    medicao: Medicao,
+    tipos_alimentacao: List[str],
+):
+    queryset = ValorMedicao.objects.select_related("tipo_alimentacao").filter(
+        medicao=medicao
     )
+
+    if tipos_alimentacao:
+        queryset = queryset.filter(
+            tipo_alimentacao__uuid__in=tipos_alimentacao
+        ) | queryset.filter(nome_campo="frequencia")
+
+    return queryset.exclude(categoria_medicao__nome__icontains="DIETA")
 
 
 def _soma_total_servido_do_tipo_de_alimentacao(
@@ -67,7 +77,10 @@ def _atualiza_total_frequencia_e_adesao_para_cada_tipo_de_alimentacao(
 
 
 def _soma_totais_por_medicao(
-    resultados, total_frequencia_por_medicao, medicao: Medicao
+    resultados,
+    total_frequencia_por_medicao,
+    medicao: Medicao,
+    tipos_alimentacao: List[str],
 ):
     medicao_nome = (
         medicao.periodo_escolar.nome if medicao.periodo_escolar else medicao.grupo.nome
@@ -77,7 +90,7 @@ def _soma_totais_por_medicao(
         resultados[medicao_nome] = {}
         total_frequencia_por_medicao[medicao_nome] = 0
 
-    valores_medicao = _obtem_valores_medicao(medicao)
+    valores_medicao = _obtem_valores_medicao(medicao, tipos_alimentacao)
     for valor_medicao in valores_medicao:
         if valor_medicao.nome_campo == "frequencia":
             total_frequencia_por_medicao[medicao_nome] += int(valor_medicao.valor)
@@ -120,6 +133,8 @@ def _cria_filtros(query_params: QueryDict):
 
 
 def obtem_resultados(mes: str, ano: str, query_params: QueryDict):
+    tipos_alimentacao = query_params.getlist("tipos_alimentacao[]")
+
     filtros = _cria_filtros(query_params)
     resultados = {}
     total_frequencia_por_medicao = {}
@@ -127,7 +142,7 @@ def obtem_resultados(mes: str, ano: str, query_params: QueryDict):
     medicoes = _obtem_medicoes(mes, ano, filtros)
     for medicao in medicoes:
         resultados = _soma_totais_por_medicao(
-            resultados, total_frequencia_por_medicao, medicao
+            resultados, total_frequencia_por_medicao, medicao, tipos_alimentacao
         )
 
     return resultados
