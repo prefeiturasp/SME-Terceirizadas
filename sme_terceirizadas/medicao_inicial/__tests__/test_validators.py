@@ -4,8 +4,10 @@ from sme_terceirizadas.medicao_inicial.utils import get_lista_dias_inclusoes_ceu
 from sme_terceirizadas.medicao_inicial.validators import (
     valida_medicoes_inexistentes_cei,
     valida_medicoes_inexistentes_ceu_gestao,
+    valida_medicoes_inexistentes_emebs,
     validate_lancamento_alimentacoes_inclusoes_ceu_gestao,
     validate_lancamento_alimentacoes_medicao_cei,
+    validate_lancamento_alimentacoes_medicao_emebs,
     validate_lancamento_inclusoes_cei,
     validate_lancamento_inclusoes_dietas_emef,
     validate_solicitacoes_etec,
@@ -105,3 +107,23 @@ def test_validate_lancamento_alimentacoes_inclusoes_ceu_gestao(
         next((erro for erro in lista_erros if erro["periodo_escolar"] == "TARDE"), None)
         is not None
     )
+
+
+def test_valida_medicoes_inexistentes_emebs(
+    solicitacao_medicao_inicial_varios_valores_emebs,
+):
+    lista_erros = []
+    lista_erros = valida_medicoes_inexistentes_emebs(
+        solicitacao_medicao_inicial_varios_valores_emebs, lista_erros
+    )
+    assert len(lista_erros) == 0
+
+
+def test_validate_lancamento_alimentacoes_medicao_emebs(
+    solicitacao_medicao_inicial_varios_valores_emebs,
+):
+    lista_erros = []
+    lista_erros = validate_lancamento_alimentacoes_medicao_emebs(
+        solicitacao_medicao_inicial_varios_valores_emebs, lista_erros
+    )
+    assert len(lista_erros) == 0

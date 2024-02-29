@@ -628,7 +628,7 @@ def solicitacao_medicao_inicial_varios_valores_ceu_gestao(
         "SolicitacaoMedicaoInicial", mes=12, ano=2023, escola=escola_ceu_gestao
     )
     solicitacao_medicao.tipos_contagem_alimentacao.set([tipo_contagem])
-    medicao = mommy.make(
+    medicao_manha = mommy.make(
         "Medicao",
         solicitacao_medicao_inicial=solicitacao_medicao,
         periodo_escolar=periodo_manha,
@@ -645,7 +645,7 @@ def solicitacao_medicao_inicial_varios_valores_ceu_gestao(
             "sobremesa",
         ]:
             for categoria in [categoria_medicao, categoria_dieta_a, categoria_dieta_b]:
-                for medicao_ in [medicao]:
+                for medicao_ in [medicao_manha]:
                     mommy.make(
                         "ValorMedicao",
                         dia=dia,
